@@ -1,0 +1,2001 @@
+{
+  "kind": "group",
+  "title": "All results",
+  "directory": "Results",
+  "contents": [
+    {
+      "kind": "group",
+      "title": "Individual types",
+      "directory": "single",
+      "contents": [
+        {
+          "kind": "group",
+          "title": "Array",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "operations",
+              "tasks": [
+                "Array<Int> init from unsafe buffer",
+                "Array<Int> sequential iteration",
+                "Array<Int> subscript get, random offsets",
+                "Array<Int> append",
+                "Array<Int> append, reserving capacity",
+                "Array<Int> prepend",
+                "Array<Int> prepend, reserving capacity",
+                "Array<Int> removeFirst",
+                "Array<Int> removeLast",
+                "Array<Int> sort"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "access",
+              "tasks": [
+                "Array<Int> sequential iteration",
+                "Array<Int> subscript get, random offsets"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "mutate",
+              "tasks": [
+                "Array<Int> mutate through subscript",
+                "Array<Int> random swaps",
+                "Array<Int> partitioning around middle",
+                "Array<Int> sort"
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "Set",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "operations",
+              "tasks": [
+                "Set<Int> init from range",
+                "Set<Int> init from unsafe buffer",
+                "Set<Int> sequential iteration",
+                "Set<Int> successful contains",
+                "Set<Int> unsuccessful contains",
+                "Set<Int> insert",
+                "Set<Int> insert, reserving capacity",
+                "Set<Int> remove"
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "union with Self",
+                  "tasks": [
+                    "Set<Int> union with Self (0% overlap)",
+                    "Set<Int> union with Self (25% overlap)",
+                    "Set<Int> union with Self (50% overlap)",
+                    "Set<Int> union with Self (75% overlap)",
+                    "Set<Int> union with Self (100% overlap)"
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "union with Array",
+                  "tasks": [
+                    "Set<Int> union with Array (0% overlap)",
+                    "Set<Int> union with Array (25% overlap)",
+                    "Set<Int> union with Array (50% overlap)",
+                    "Set<Int> union with Array (75% overlap)",
+                    "Set<Int> union with Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion with Self",
+                  "tasks": [
+                    "Set<Int> formUnion with Self (0% overlap)",
+                    "Set<Int> formUnion with Self (25% overlap)",
+                    "Set<Int> formUnion with Self (50% overlap)",
+                    "Set<Int> formUnion with Self (75% overlap)",
+                    "Set<Int> formUnion with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion with Array",
+                  "tasks": [
+                    "Set<Int> formUnion with Array (0% overlap)",
+                    "Set<Int> formUnion with Array (25% overlap)",
+                    "Set<Int> formUnion with Array (50% overlap)",
+                    "Set<Int> formUnion with Array (75% overlap)",
+                    "Set<Int> formUnion with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "intersection with Self",
+                  "tasks": [
+                    "Set<Int> intersection with Self (0% overlap)",
+                    "Set<Int> intersection with Self (25% overlap)",
+                    "Set<Int> intersection with Self (50% overlap)",
+                    "Set<Int> intersection with Self (75% overlap)",
+                    "Set<Int> intersection with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "intersection with Array",
+                  "tasks": [
+                    "Set<Int> intersection with Array (0% overlap)",
+                    "Set<Int> intersection with Array (25% overlap)",
+                    "Set<Int> intersection with Array (50% overlap)",
+                    "Set<Int> intersection with Array (75% overlap)",
+                    "Set<Int> intersection with Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection with Self",
+                  "tasks": [
+                    "Set<Int> formIntersection with Self (0% overlap)",
+                    "Set<Int> formIntersection with Self (25% overlap)",
+                    "Set<Int> formIntersection with Self (50% overlap)",
+                    "Set<Int> formIntersection with Self (75% overlap)",
+                    "Set<Int> formIntersection with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection with Array",
+                  "tasks": [
+                    "Set<Int> formIntersection with Array (0% overlap)",
+                    "Set<Int> formIntersection with Array (25% overlap)",
+                    "Set<Int> formIntersection with Array (50% overlap)",
+                    "Set<Int> formIntersection with Array (75% overlap)",
+                    "Set<Int> formIntersection with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference with Self",
+                  "tasks": [
+                    "Set<Int> symmetricDifference with Self (0% overlap)",
+                    "Set<Int> symmetricDifference with Self (25% overlap)",
+                    "Set<Int> symmetricDifference with Self (50% overlap)",
+                    "Set<Int> symmetricDifference with Self (75% overlap)",
+                    "Set<Int> symmetricDifference with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference with Array",
+                  "tasks": [
+                    "Set<Int> symmetricDifference with Array (0% overlap)",
+                    "Set<Int> symmetricDifference with Array (25% overlap)",
+                    "Set<Int> symmetricDifference with Array (50% overlap)",
+                    "Set<Int> symmetricDifference with Array (75% overlap)",
+                    "Set<Int> symmetricDifference with Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference with Self",
+                  "tasks": [
+                    "Set<Int> formSymmetricDifference with Self (0% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (25% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (50% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (75% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference with Array",
+                  "tasks": [
+                    "Set<Int> formSymmetricDifference with Array (0% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (25% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (50% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (75% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "subtracting Self",
+                  "tasks": [
+                    "Set<Int> subtracting Self (0% overlap)",
+                    "Set<Int> subtracting Self (25% overlap)",
+                    "Set<Int> subtracting Self (50% overlap)",
+                    "Set<Int> subtracting Self (75% overlap)",
+                    "Set<Int> subtracting Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtracting Array",
+                  "tasks": [
+                    "Set<Int> subtracting Array (0% overlap)",
+                    "Set<Int> subtracting Array (25% overlap)",
+                    "Set<Int> subtracting Array (50% overlap)",
+                    "Set<Int> subtracting Array (75% overlap)",
+                    "Set<Int> subtracting Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract Self",
+                  "tasks": [
+                    "Set<Int> subtract Self (0% overlap)",
+                    "Set<Int> subtract Self (25% overlap)",
+                    "Set<Int> subtract Self (50% overlap)",
+                    "Set<Int> subtract Self (75% overlap)",
+                    "Set<Int> subtract Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract with Array",
+                  "tasks": [
+                    "Set<Int> subtract Array (0% overlap)",
+                    "Set<Int> subtract Array (25% overlap)",
+                    "Set<Int> subtract Array (50% overlap)",
+                    "Set<Int> subtract Array (75% overlap)",
+                    "Set<Int> subtract Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "Dictionary",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "operations",
+              "tasks": [
+                "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "Dictionary<Int, Int> sequential iteration",
+                "Dictionary<Int, Int> subscript, successful lookups",
+                "Dictionary<Int, Int> subscript, insert",
+                "Dictionary<Int, Int> subscript, remove existing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "iteration",
+              "tasks": [
+                "Dictionary<Int, Int> sequential iteration",
+                "Dictionary<Int, Int>.Keys sequential iteration",
+                "Dictionary<Int, Int>.Values sequential iteration"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "lookups",
+              "tasks": [
+                "Dictionary<Int, Int> subscript, successful lookups",
+                "Dictionary<Int, Int> subscript, unsuccessful lookups",
+                "Dictionary<Int, Int> defaulted subscript, successful lookups",
+                "Dictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+                "Dictionary<Int, Int> successful index(forKey:)",
+                "Dictionary<Int, Int> unsuccessful index(forKey:)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "subscript",
+              "tasks": [
+                "Dictionary<Int, Int> subscript, successful lookups",
+                "Dictionary<Int, Int> subscript, unsuccessful lookups",
+                "Dictionary<Int, Int> subscript, noop setter",
+                "Dictionary<Int, Int> subscript, set existing",
+                "Dictionary<Int, Int> subscript, _modify",
+                "Dictionary<Int, Int> subscript, insert",
+                "Dictionary<Int, Int> subscript, insert, reserving capacity",
+                "Dictionary<Int, Int> subscript, remove existing",
+                "Dictionary<Int, Int> subscript, remove missing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "defaulted subscript",
+              "tasks": [
+                "Dictionary<Int, Int> defaulted subscript, successful lookups",
+                "Dictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+                "Dictionary<Int, Int> defaulted subscript, _modify existing",
+                "Dictionary<Int, Int> defaulted subscript, _modify missing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "mutations",
+              "tasks": [
+                "Dictionary<Int, Int> updateValue(_:forKey:), existing",
+                "Dictionary<Int, Int> subscript, set existing",
+                "Dictionary<Int, Int> subscript, _modify",
+                "Dictionary<Int, Int> defaulted subscript, _modify existing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removals",
+              "tasks": [
+                "Dictionary<Int, Int> subscript, remove existing",
+                "Dictionary<Int, Int> subscript, remove missing",
+                "Dictionary<Int, Int> random removals (existing keys)",
+                "Dictionary<Int, Int> random removals (missing keys)",
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "Deque",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "operations",
+              "tasks": [
+                "Deque<Int> init from unsafe buffer",
+                "Deque<Int> sequential iteration (contiguous)",
+                "Deque<Int> subscript get, random offsets (contiguous)",
+                "Deque<Int> append",
+                "Deque<Int> append, reserving capacity",
+                "Deque<Int> prepend",
+                "Deque<Int> prepend, reserving capacity",
+                "Deque<Int> removeFirst (contiguous)",
+                "Deque<Int> removeLast (contiguous)",
+                "Deque<Int> sort (contiguous)",
+                "Deque<Int> sort (discontiguous)"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "access",
+              "tasks": [
+                "Deque<Int> sequential iteration (contiguous)",
+                "Deque<Int> sequential iteration (discontiguous)",
+                "Deque<Int> subscript get, random offsets (contiguous)",
+                "Deque<Int> subscript get, random offsets (discontiguous)",
+                "Deque<Int> mutate through subscript (contiguous)",
+                "Deque<Int> mutate through subscript (discontiguous)"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "mutate",
+              "tasks": [
+                "Deque<Int> mutate through subscript (contiguous)",
+                "Deque<Int> mutate through subscript (discontiguous)",
+                "Deque<Int> random swaps (contiguous)",
+                "Deque<Int> random swaps (discontiguous)",
+                "Deque<Int> partitioning around middle (contiguous)",
+                "Deque<Int> partitioning around middle (discontiguous)",
+                "Deque<Int> sort (contiguous)",
+                "Deque<Int> sort (discontiguous)"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "push",
+              "tasks": [
+                "Deque<Int> append",
+                "Deque<Int> append, reserving capacity",
+                "Deque<Int> prepend",
+                "Deque<Int> prepend, reserving capacity"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "pop",
+              "tasks": [
+                "Deque<Int> removeFirst (contiguous)",
+                "Deque<Int> removeFirst (discontiguous)",
+                "Deque<Int> removeLast (contiguous)",
+                "Deque<Int> removeLast (discontiguous)"
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "OrderedSet",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "operations",
+              "tasks": [
+                "OrderedSet<Int> init from range",
+                "OrderedSet<Int> init from unsafe buffer",
+                "OrderedSet<Int> sequential iteration",
+                "OrderedSet<Int> successful contains",
+                "OrderedSet<Int> unsuccessful contains",
+                "OrderedSet<Int> append",
+                "OrderedSet<Int> append, reserving capacity",
+                "OrderedSet<Int> remove",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "initializers",
+              "tasks": [
+                "OrderedSet<Int> init from range",
+                "OrderedSet<Int> init from unsafe buffer",
+                "OrderedSet<Int> init(uncheckedUniqueElements:) from range"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "mutations",
+              "tasks": [
+                "OrderedSet<Int> random swaps",
+                "OrderedSet<Int> partitioning around middle",
+                "OrderedSet<Int> sort",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "range replaceable",
+              "tasks": [
+                "OrderedSet<Int> append",
+                "OrderedSet<Int> append, reserving capacity",
+                "OrderedSet<Int> prepend",
+                "OrderedSet<Int> prepend, reserving capacity",
+                "OrderedSet<Int> random insertions, reserving capacity",
+                "OrderedSet<Int> remove",
+                "OrderedSet<Int> removeLast",
+                "OrderedSet<Int> removeFirst",
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "union with Self",
+                  "tasks": [
+                    "OrderedSet<Int> union with Self (0% overlap)",
+                    "OrderedSet<Int> union with Self (25% overlap)",
+                    "OrderedSet<Int> union with Self (50% overlap)",
+                    "OrderedSet<Int> union with Self (75% overlap)",
+                    "OrderedSet<Int> union with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "union with Array",
+                  "tasks": [
+                    "OrderedSet<Int> union with Array (0% overlap)",
+                    "OrderedSet<Int> union with Array (25% overlap)",
+                    "OrderedSet<Int> union with Array (50% overlap)",
+                    "OrderedSet<Int> union with Array (75% overlap)",
+                    "OrderedSet<Int> union with Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion with Self",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Self (0% overlap)",
+                    "OrderedSet<Int> formUnion with Self (25% overlap)",
+                    "OrderedSet<Int> formUnion with Self (50% overlap)",
+                    "OrderedSet<Int> formUnion with Self (75% overlap)",
+                    "OrderedSet<Int> formUnion with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion with Array",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Array (0% overlap)",
+                    "OrderedSet<Int> formUnion with Array (25% overlap)",
+                    "OrderedSet<Int> formUnion with Array (50% overlap)",
+                    "OrderedSet<Int> formUnion with Array (75% overlap)",
+                    "OrderedSet<Int> formUnion with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "intersection with Self",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Self (0% overlap)",
+                    "OrderedSet<Int> intersection with Self (25% overlap)",
+                    "OrderedSet<Int> intersection with Self (50% overlap)",
+                    "OrderedSet<Int> intersection with Self (75% overlap)",
+                    "OrderedSet<Int> intersection with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "intersection with Array",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Array (0% overlap)",
+                    "OrderedSet<Int> intersection with Array (25% overlap)",
+                    "OrderedSet<Int> intersection with Array (50% overlap)",
+                    "OrderedSet<Int> intersection with Array (75% overlap)",
+                    "OrderedSet<Int> intersection with Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection with Self",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Self (0% overlap)",
+                    "OrderedSet<Int> formIntersection with Self (25% overlap)",
+                    "OrderedSet<Int> formIntersection with Self (50% overlap)",
+                    "OrderedSet<Int> formIntersection with Self (75% overlap)",
+                    "OrderedSet<Int> formIntersection with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection with Array",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Array (0% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (25% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (50% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (75% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference with Self",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Self (0% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Self (25% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Self (50% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Self (75% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference with Array",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Array (0% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (25% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (50% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (75% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference with Self",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Self (0% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Self (25% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Self (50% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Self (75% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference with Array",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Array (0% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (25% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (50% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (75% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "subtracting Self",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Self (0% overlap)",
+                    "OrderedSet<Int> subtracting Self (25% overlap)",
+                    "OrderedSet<Int> subtracting Self (50% overlap)",
+                    "OrderedSet<Int> subtracting Self (75% overlap)",
+                    "OrderedSet<Int> subtracting Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtracting Array",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Array (0% overlap)",
+                    "OrderedSet<Int> subtracting Array (25% overlap)",
+                    "OrderedSet<Int> subtracting Array (50% overlap)",
+                    "OrderedSet<Int> subtracting Array (75% overlap)",
+                    "OrderedSet<Int> subtracting Array (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract Self",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Self (0% overlap)",
+                    "OrderedSet<Int> subtract Self (25% overlap)",
+                    "OrderedSet<Int> subtract Self (50% overlap)",
+                    "OrderedSet<Int> subtract Self (75% overlap)",
+                    "OrderedSet<Int> subtract Self (100% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract with Array",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Array (0% overlap)",
+                    "OrderedSet<Int> subtract Array (25% overlap)",
+                    "OrderedSet<Int> subtract Array (50% overlap)",
+                    "OrderedSet<Int> subtract Array (75% overlap)",
+                    "OrderedSet<Int> subtract Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "OrderedDictionary",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "operations",
+              "tasks": [
+                "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> sequential iteration",
+                "OrderedDictionary<Int, Int> subscript, successful lookups",
+                "OrderedDictionary<Int, Int> subscript, append",
+                "OrderedDictionary<Int, Int> subscript, remove existing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "initializers",
+              "tasks": [
+                "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uncheckedUniqueKeys:values:)"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "iteration",
+              "tasks": [
+                "OrderedDictionary<Int, Int> sequential iteration",
+                "OrderedDictionary<Int, Int>.Keys sequential iteration",
+                "OrderedDictionary<Int, Int>.Values sequential iteration"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "lookups",
+              "tasks": [
+                "OrderedDictionary<Int, Int> subscript, successful lookups",
+                "OrderedDictionary<Int, Int> subscript, unsuccessful lookups",
+                "OrderedDictionary<Int, Int> defaulted subscript, successful lookups",
+                "OrderedDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+                "OrderedDictionary<Int, Int> successful index(forKey:)",
+                "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "subscript",
+              "tasks": [
+                "OrderedDictionary<Int, Int> subscript, successful lookups",
+                "OrderedDictionary<Int, Int> subscript, unsuccessful lookups",
+                "OrderedDictionary<Int, Int> subscript, noop setter",
+                "OrderedDictionary<Int, Int> subscript, set existing",
+                "OrderedDictionary<Int, Int> subscript, _modify",
+                "OrderedDictionary<Int, Int> subscript, append",
+                "OrderedDictionary<Int, Int> subscript, append, reserving capacity",
+                "OrderedDictionary<Int, Int> subscript, remove existing",
+                "OrderedDictionary<Int, Int> subscript, remove missing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "defaulted subscript",
+              "tasks": [
+                "OrderedDictionary<Int, Int> defaulted subscript, successful lookups",
+                "OrderedDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+                "OrderedDictionary<Int, Int> defaulted subscript, _modify existing",
+                "OrderedDictionary<Int, Int> defaulted subscript, _modify missing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "mutations",
+              "tasks": [
+                "OrderedDictionary<Int, Int> updateValue(_:forKey:), existing",
+                "OrderedDictionary<Int, Int> subscript, set existing",
+                "OrderedDictionary<Int, Int> subscript, _modify",
+                "OrderedDictionary<Int, Int> defaulted subscript, _modify existing",
+                "OrderedDictionary<Int, Int> random swaps",
+                "OrderedDictionary<Int, Int> partitioning around middle",
+                "OrderedDictionary<Int, Int> sort",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removals",
+              "tasks": [
+                "OrderedDictionary<Int, Int> subscript, remove existing",
+                "OrderedDictionary<Int, Int> subscript, remove missing",
+                "OrderedDictionary<Int, Int> removeLast",
+                "OrderedDictionary<Int, Int> removeFirst",
+                "OrderedDictionary<Int, Int> random removals (offset-based)",
+                "OrderedDictionary<Int, Int> random removals (existing keys)",
+                "OrderedDictionary<Int, Int> random removals (missing keys)",
+              ]
+            },
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "Against other Swift collections",
+      "directory": "stdlib",
+      "contents": [
+        {
+          "kind": "group",
+          "title": "Deque vs Array",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "init from buffer of integers",
+              "tasks": [
+                "Deque<Int> init from unsafe buffer",
+                "Array<Int> init from unsafe buffer"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sequential iteration",
+              "tasks": [
+                "Deque<Int> sequential iteration (contiguous)",
+                "Deque<Int> sequential iteration (discontiguous)",
+                "Array<Int> sequential iteration",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random-access offset lookups",
+              "tasks": [
+                "Deque<Int> subscript get, random offsets (contiguous)",
+                "Deque<Int> subscript get, random offsets (discontiguous)",
+                "Array<Int> subscript get, random offsets"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "mutate through subscript",
+              "tasks": [
+                "Deque<Int> mutate through subscript (contiguous)",
+                "Deque<Int> mutate through subscript (discontiguous)",
+                "Array<Int> mutate through subscript"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random swaps",
+              "tasks": [
+                "Deque<Int> random swaps (contiguous)",
+                "Deque<Int> random swaps (discontiguous)",
+                "Array<Int> random swaps",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "partitioning around middle",
+              "tasks": [
+                "Deque<Int> partitioning around middle (contiguous)",
+                "Deque<Int> partitioning around middle (discontiguous)",
+                "Array<Int> partitioning around middle",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sort",
+              "tasks": [
+                "Deque<Int> sort (contiguous)",
+                "Deque<Int> sort (discontiguous)",
+                "Array<Int> sort",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "append individual integers",
+              "tasks": [
+                "Deque<Int> append",
+                "Deque<Int> append, reserving capacity",
+                "Array<Int> append",
+                "Array<Int> append, reserving capacity"
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "prepend individual integers",
+              "tasks": [
+                "Deque<Int> prepend",
+                "Deque<Int> prepend, reserving capacity",
+                "Array<Int> prepend",
+                "Array<Int> prepend, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random insertions",
+              "tasks": [
+                "Deque<Int> random insertions",
+                "Array<Int> random insertions",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removeFirst",
+              "tasks": [
+                "Deque<Int> removeFirst (contiguous)",
+                "Deque<Int> removeFirst (discontiguous)",
+                "Array<Int> removeFirst",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removeLast",
+              "tasks": [
+                "Deque<Int> removeLast (contiguous)",
+                "Deque<Int> removeLast (discontiguous)",
+                "Array<Int> removeLast",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random removals",
+              "tasks": [
+                "Deque<Int> random removals (contiguous)",
+                "Deque<Int> random removals (discontiguous)",
+                "Array<Int> random removals",
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "OrderedSet vs Set",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "init from buffer of integers",
+              "tasks": [
+                "OrderedSet<Int> init from unsafe buffer",
+                "Set<Int> init from unsafe buffer",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "init from range of integers",
+              "tasks": [
+                "OrderedSet<Int> init from range",
+                "Set<Int> init from range",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sequential iteration",
+              "tasks": [
+                "OrderedSet<Int> sequential iteration",
+                "Set<Int> sequential iteration",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "successful random lookups",
+              "tasks": [
+                "OrderedSet<Int> successful contains",
+                "Set<Int> successful contains",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "unsuccessful random lookups",
+              "tasks": [
+                "OrderedSet<Int> unsuccessful contains",
+                "Set<Int> unsuccessful contains",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "insert",
+              "tasks": [
+                "OrderedSet<Int> append",
+                "OrderedSet<Int> append, reserving capacity",
+                "Set<Int> insert",
+                "Set<Int> insert, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "remove",
+              "tasks": [
+                "OrderedSet<Int> remove",
+                "Set<Int> remove",
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "union (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> union with Self (0% overlap)",
+                    "OrderedSet<Int> union with Array (0% overlap)",
+                    "Set<Int> union with Self (0% overlap)",
+                    "Set<Int> union with Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "union (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> union with Self (25% overlap)",
+                    "OrderedSet<Int> union with Array (25% overlap)",
+                    "Set<Int> union with Self (25% overlap)",
+                    "Set<Int> union with Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "union (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> union with Self (50% overlap)",
+                    "OrderedSet<Int> union with Array (50% overlap)",
+                    "Set<Int> union with Self (50% overlap)",
+                    "Set<Int> union with Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "union (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> union with Self (75% overlap)",
+                    "OrderedSet<Int> union with Array (75% overlap)",
+                    "Set<Int> union with Self (75% overlap)",
+                    "Set<Int> union with Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "union (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> union with Self (100% overlap)",
+                    "OrderedSet<Int> union with Array (100% overlap)",
+                    "Set<Int> union with Self (100% overlap)",
+                    "Set<Int> union with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "formUnion (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Self (0% overlap)",
+                    "OrderedSet<Int> formUnion with Array (0% overlap)",
+                    "Set<Int> formUnion with Self (0% overlap)",
+                    "Set<Int> formUnion with Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Self (25% overlap)",
+                    "OrderedSet<Int> formUnion with Array (25% overlap)",
+                    "Set<Int> formUnion with Self (25% overlap)",
+                    "Set<Int> formUnion with Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Self (50% overlap)",
+                    "OrderedSet<Int> formUnion with Array (50% overlap)",
+                    "Set<Int> formUnion with Self (50% overlap)",
+                    "Set<Int> formUnion with Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Self (75% overlap)",
+                    "OrderedSet<Int> formUnion with Array (75% overlap)",
+                    "Set<Int> formUnion with Self (75% overlap)",
+                    "Set<Int> formUnion with Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formUnion (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formUnion with Self (100% overlap)",
+                    "OrderedSet<Int> formUnion with Array (100% overlap)",
+                    "Set<Int> formUnion with Self (100% overlap)",
+                    "Set<Int> formUnion with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "intersection (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Self (0% overlap)",
+                    "OrderedSet<Int> intersection with Array (0% overlap)",
+                    "Set<Int> intersection with Self (0% overlap)",
+                    "Set<Int> intersection with Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "intersection (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Self (25% overlap)",
+                    "OrderedSet<Int> intersection with Array (25% overlap)",
+                    "Set<Int> intersection with Self (25% overlap)",
+                    "Set<Int> intersection with Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "intersection (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Self (50% overlap)",
+                    "OrderedSet<Int> intersection with Array (50% overlap)",
+                    "Set<Int> intersection with Self (50% overlap)",
+                    "Set<Int> intersection with Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "intersection (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Self (75% overlap)",
+                    "OrderedSet<Int> intersection with Array (75% overlap)",
+                    "Set<Int> intersection with Self (75% overlap)",
+                    "Set<Int> intersection with Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "intersection (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> intersection with Self (100% overlap)",
+                    "OrderedSet<Int> intersection with Array (100% overlap)",
+                    "Set<Int> intersection with Self (100% overlap)",
+                    "Set<Int> intersection with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "formIntersection (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Self (0% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (0% overlap)",
+                    "Set<Int> formIntersection with Self (0% overlap)",
+                    "Set<Int> formIntersection with Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Self (25% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (25% overlap)",
+                    "Set<Int> formIntersection with Self (25% overlap)",
+                    "Set<Int> formIntersection with Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Self (50% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (50% overlap)",
+                    "Set<Int> formIntersection with Self (50% overlap)",
+                    "Set<Int> formIntersection with Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Self (75% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (75% overlap)",
+                    "Set<Int> formIntersection with Self (75% overlap)",
+                    "Set<Int> formIntersection with Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formIntersection (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formIntersection with Self (100% overlap)",
+                    "OrderedSet<Int> formIntersection with Array (100% overlap)",
+                    "Set<Int> formIntersection with Self (100% overlap)",
+                    "Set<Int> formIntersection with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Self (0% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (0% overlap)",
+                    "Set<Int> symmetricDifference with Self (0% overlap)",
+                    "Set<Int> symmetricDifference with Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Self (25% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (25% overlap)",
+                    "Set<Int> symmetricDifference with Self (25% overlap)",
+                    "Set<Int> symmetricDifference with Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Self (50% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (50% overlap)",
+                    "Set<Int> symmetricDifference with Self (50% overlap)",
+                    "Set<Int> symmetricDifference with Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Self (75% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (75% overlap)",
+                    "Set<Int> symmetricDifference with Self (75% overlap)",
+                    "Set<Int> symmetricDifference with Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "symmetricDifference (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> symmetricDifference with Self (100% overlap)",
+                    "OrderedSet<Int> symmetricDifference with Array (100% overlap)",
+                    "Set<Int> symmetricDifference with Self (100% overlap)",
+                    "Set<Int> symmetricDifference with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Self (0% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (0% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (0% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Self (25% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (25% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (25% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Self (50% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (50% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (50% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Self (75% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (75% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (75% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "formSymmetricDifference (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> formSymmetricDifference with Self (100% overlap)",
+                    "OrderedSet<Int> formSymmetricDifference with Array (100% overlap)",
+                    "Set<Int> formSymmetricDifference with Self (100% overlap)",
+                    "Set<Int> formSymmetricDifference with Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "subtracting (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Self (0% overlap)",
+                    "OrderedSet<Int> subtracting Array (0% overlap)",
+                    "Set<Int> subtracting Self (0% overlap)",
+                    "Set<Int> subtracting Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtracting (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Self (25% overlap)",
+                    "OrderedSet<Int> subtracting Array (25% overlap)",
+                    "Set<Int> subtracting Self (25% overlap)",
+                    "Set<Int> subtracting Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtracting (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Self (50% overlap)",
+                    "OrderedSet<Int> subtracting Array (50% overlap)",
+                    "Set<Int> subtracting Self (50% overlap)",
+                    "Set<Int> subtracting Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtracting (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Self (75% overlap)",
+                    "OrderedSet<Int> subtracting Array (75% overlap)",
+                    "Set<Int> subtracting Self (75% overlap)",
+                    "Set<Int> subtracting Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtracting (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtracting Self (100% overlap)",
+                    "OrderedSet<Int> subtracting Array (100% overlap)",
+                    "Set<Int> subtracting Self (100% overlap)",
+                    "Set<Int> subtracting Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "subtract (0% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Self (0% overlap)",
+                    "OrderedSet<Int> subtract Array (0% overlap)",
+                    "Set<Int> subtract Self (0% overlap)",
+                    "Set<Int> subtract Array (0% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract (25% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Self (25% overlap)",
+                    "OrderedSet<Int> subtract Array (25% overlap)",
+                    "Set<Int> subtract Self (25% overlap)",
+                    "Set<Int> subtract Array (25% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract (50% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Self (50% overlap)",
+                    "OrderedSet<Int> subtract Array (50% overlap)",
+                    "Set<Int> subtract Self (50% overlap)",
+                    "Set<Int> subtract Array (50% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract (75% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Self (75% overlap)",
+                    "OrderedSet<Int> subtract Array (75% overlap)",
+                    "Set<Int> subtract Self (75% overlap)",
+                    "Set<Int> subtract Array (75% overlap)",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subtract (100% overlap)",
+                  "tasks": [
+                    "OrderedSet<Int> subtract Self (100% overlap)",
+                    "OrderedSet<Int> subtract Array (100% overlap)",
+                    "Set<Int> subtract Self (100% overlap)",
+                    "Set<Int> subtract Array (100% overlap)",
+                  ]
+                },
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "OrderedDictionary vs Dictionary",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "initializers",
+              "tasks": [
+                "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uncheckedUniqueKeys:values:)"
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "iteration",
+                  "tasks": [
+                    "Dictionary<Int, Int> sequential iteration",
+                    "OrderedDictionary<Int, Int> sequential iteration",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "Keys iteration",
+                  "tasks": [
+                    "Dictionary<Int, Int>.Keys sequential iteration",
+                    "OrderedDictionary<Int, Int>.Keys sequential iteration",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "Values iteration",
+                  "tasks": [
+                    "Dictionary<Int, Int>.Values sequential iteration",
+                    "OrderedDictionary<Int, Int>.Values sequential iteration",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "Values iteration",
+                  "tasks": [
+                    "Dictionary<Int, Int>.Values sequential iteration",
+                    "OrderedDictionary<Int, Int>.Values sequential iteration",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "index(forKey:)",
+              "tasks": [
+                "Dictionary<Int, Int> successful index(forKey:)",
+                "Dictionary<Int, Int> unsuccessful index(forKey:)",
+                "OrderedDictionary<Int, Int> successful index(forKey:)",
+                "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "subscript lookups",
+                  "tasks": [
+                    "Dictionary<Int, Int> subscript, successful lookups",
+                    "Dictionary<Int, Int> subscript, unsuccessful lookups",
+                    "OrderedDictionary<Int, Int> subscript, successful lookups",
+                    "OrderedDictionary<Int, Int> subscript, unsuccessful lookups",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subscript setter, simple",
+                  "tasks": [
+                    "Dictionary<Int, Int> subscript, noop setter",
+                    "Dictionary<Int, Int> subscript, set existing",
+                    "Dictionary<Int, Int> subscript, _modify",
+                    "OrderedDictionary<Int, Int> subscript, noop setter",
+                    "OrderedDictionary<Int, Int> subscript, set existing",
+                    "OrderedDictionary<Int, Int> subscript, _modify",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subscript insert/append",
+                  "tasks": [
+                    "Dictionary<Int, Int> subscript, insert",
+                    "Dictionary<Int, Int> subscript, insert, reserving capacity",
+                    "OrderedDictionary<Int, Int> subscript, append",
+                    "OrderedDictionary<Int, Int> subscript, append, reserving capacity",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "subscript remove",
+                  "tasks": [
+                    "Dictionary<Int, Int> subscript, remove existing",
+                    "Dictionary<Int, Int> subscript, remove missing",
+                    "OrderedDictionary<Int, Int> subscript, remove existing",
+                    "OrderedDictionary<Int, Int> subscript, remove missing",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "variants",
+              "charts": [
+                {
+                  "kind": "chart",
+                  "title": "defaulted subscript lookups",
+                  "tasks": [
+                    "Dictionary<Int, Int> defaulted subscript, successful lookups",
+                    "Dictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+                    "OrderedDictionary<Int, Int> defaulted subscript, successful lookups",
+                    "OrderedDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+                  ]
+                },
+                {
+                  "kind": "chart",
+                  "title": "defaulted subscript mutations",
+                  "tasks": [
+                    "Dictionary<Int, Int> defaulted subscript, _modify existing",
+                    "Dictionary<Int, Int> defaulted subscript, _modify missing",
+                    "OrderedDictionary<Int, Int> defaulted subscript, _modify existing",
+                    "OrderedDictionary<Int, Int> defaulted subscript, _modify missing",
+                  ]
+                },
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "updateValue(_:forKey:)",
+              "tasks": [
+                "Dictionary<Int, Int> updateValue(_:forKey:), existing",
+                "Dictionary<Int, Int> updateValue(_:forKey:), insert",
+                "OrderedDictionary<Int, Int> updateValue(_:forKey:), existing",
+                "OrderedDictionary<Int, Int> updateValue(_:forKey:), append",
+              ]
+            },
+          ]
+        },
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "Against containers in the C++ Standard Template Library",
+      "directory": "stl",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "Hashing",
+          "tasks": [
+            "std::hash<intptr_t>",
+            "custom_intptr_hash (using Swift.Hasher)",
+            "Hasher.combine on a single buffer of integers",
+            "Int.hashValue on each value",
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "Array vs std::vector",
+          "directory": "Array + vector",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "init from buffer of integers",
+              "tasks": [
+                "std::vector<intptr_t> constructor from buffer",
+                "Array<Int> init from unsafe buffer",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sequential iteration",
+              "tasks": [
+                "std::vector<intptr_t> sequential iteration",
+                "Array<Int> sequential iteration",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random-access offset lookups",
+              "tasks": [
+                "std::vector<intptr_t> random-access offset lookups (operator [])",
+                "std::vector<intptr_t> random-access offset lookups (at)",
+                "Array<Int> subscript get, random offsets",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "append individual integers",
+              "tasks": [
+                "std::vector<intptr_t> push_back",
+                "std::vector<intptr_t> push_back, reserving capacity",
+                "Array<Int> append",
+                "Array<Int> append, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "prepend individual integers",
+              "tasks": [
+                "std::vector<intptr_t> insert at front",
+                "std::vector<intptr_t> insert at front, reserving capacity",
+                "Array<Int> prepend",
+                "Array<Int> prepend, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random insertions",
+              "tasks": [
+                "std::vector<intptr_t> random insertions",
+                "Array<Int> random insertions",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removeFirst",
+              "tasks": [
+                "std::vector<intptr_t> erase first",
+                "Array<Int> removeFirst",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removeLast",
+              "tasks": [
+                "std::vector<intptr_t> pop_back",
+                "Array<Int> removeLast",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random removals",
+              "tasks": [
+                "std::vector<intptr_t> random removals",
+                "Array<Int> random removals",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sort",
+              "tasks": [
+                "std::vector<intptr_t> sort",
+                "Array<Int> sort",
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "Deque vs std::deque",
+          "directory": "Deque + deque",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "init from buffer of integers",
+              "tasks": [
+                "std::deque<intptr_t> constructor from buffer",
+                "Deque<Int> init from unsafe buffer",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sequential iteration",
+              "tasks": [
+                "std::deque<intptr_t> sequential iteration",
+                "Deque<Int> sequential iteration (contiguous)",
+                "Deque<Int> sequential iteration (discontiguous)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random-access offset lookups",
+              "tasks": [
+                "std::deque<intptr_t> random-access offset lookups (operator [])",
+                "std::deque<intptr_t> at, random offsets",
+                "Deque<Int> subscript get, random offsets (contiguous)",
+                "Deque<Int> subscript get, random offsets (discontiguous)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "append individual integers",
+              "tasks": [
+                "std::deque<intptr_t> push_back",
+                "Deque<Int> append",
+                "Deque<Int> append, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "prepend individual integers",
+              "tasks": [
+                "std::deque<intptr_t> push_front",
+                "Deque<Int> prepend",
+                "Deque<Int> prepend, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random insertions",
+              "tasks": [
+                "std::deque<intptr_t> random insertions",
+                "Deque<Int> random insertions",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removeFirst",
+              "tasks": [
+                "std::deque<intptr_t> pop_front",
+                "Deque<Int> removeFirst (contiguous)",
+                "Deque<Int> removeFirst (discontiguous)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removeLast",
+              "tasks": [
+                "std::deque<intptr_t> pop_back",
+                "Deque<Int> removeLast (contiguous)",
+                "Deque<Int> removeLast (discontiguous)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random removals",
+              "tasks": [
+                "std::deque<intptr_t> random removals",
+                "Deque<Int> random removals (contiguous)",
+                "Deque<Int> random removals (discontiguous)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sort",
+              "tasks": [
+                "std::deque<intptr_t> sort",
+                "Deque<Int> sort (contiguous)",
+                "Deque<Int> sort (discontiguous)",
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "Set vs std::unordered_set",
+          "directory": "Set + unordered_set",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "init from integer range",
+              "tasks": [
+                "std::unordered_set<intptr_t> insert from integer range",
+                "Set<Int> init from range",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "init from buffer of integers",
+              "tasks": [
+                "std::unordered_set<intptr_t> constructor from buffer",
+                "Set<Int> init from unsafe buffer",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sequential iteration",
+              "tasks": [
+                "std::unordered_set<intptr_t> sequential iteration",
+                "Set<Int> sequential iteration",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "successful lookups",
+              "tasks": [
+                "std::unordered_set<intptr_t> successful find",
+                "Set<Int> successful contains",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "unsuccessful lookups",
+              "tasks": [
+                "std::unordered_set<intptr_t> unsuccessful find",
+                "Set<Int> unsuccessful contains",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random insertions",
+              "tasks": [
+                "std::unordered_set<intptr_t> insert",
+                "std::unordered_set<intptr_t> insert, reserving capacity",
+                "Set<Int> insert",
+                "Set<Int> insert, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random removals",
+              "tasks": [
+                "std::unordered_set<intptr_t> erase",
+                "Set<Int> remove",
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "OrderedSet vs std::unordered_set",
+          "directory": "OrderedSet + unordered_set",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "init from integer range",
+              "tasks": [
+                "std::unordered_set<intptr_t> insert from integer range",
+                "Set<Int> init from range",
+                "OrderedSet<Int> init from range",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "init from buffer of integers",
+              "tasks": [
+                "std::unordered_set<intptr_t> constructor from buffer",
+                "Set<Int> init from unsafe buffer",
+                "OrderedSet<Int> init from unsafe buffer",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "sequential iteration",
+              "tasks": [
+                "std::unordered_set<intptr_t> sequential iteration",
+                "Set<Int> sequential iteration",
+                "OrderedSet<Int> sequential iteration",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "successful lookups",
+              "tasks": [
+                "std::unordered_set<intptr_t> successful find",
+                "OrderedSet<Int> successful contains",
+                "Set<Int> successful contains",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "unsuccessful lookups",
+              "tasks": [
+                "std::unordered_set<intptr_t> unsuccessful find",
+                "OrderedSet<Int> unsuccessful contains",
+                "Set<Int> unsuccessful contains",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "insertions",
+              "tasks": [
+                "std::unordered_set<intptr_t> insert",
+                "Set<Int> insert",
+                "OrderedSet<Int> append",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "insertions, reserving capacity",
+              "tasks": [
+                "std::unordered_set<intptr_t> insert, reserving capacity",
+                "Set<Int> insert, reserving capacity",
+                "OrderedSet<Int> append, reserving capacity",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "random removals",
+              "tasks": [
+                "std::unordered_set<intptr_t> erase",
+                "Set<Int> remove",
+                "OrderedSet<Int> remove",
+              ]
+            },
+          ]
+        },
+        {
+          "kind": "group",
+          "title": "OrderedDictionary vs std::unordered_map",
+          "directory": "OrderedDictionary + unordered_map",
+          "contents": [
+            {
+              "kind": "chart",
+              "title": "initializers",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> insert",
+                "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
+                "OrderedDictionary<Int, Int> init(uncheckedUniqueKeys:values:)",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "iteration",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> sequential iteration",
+                "Dictionary<Int, Int> sequential iteration",
+                "OrderedDictionary<Int, Int> sequential iteration",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "successful find index",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> successful find",
+                "OrderedDictionary<Int, Int> successful index(forKey:)",
+                "Dictionary<Int, Int> successful index(forKey:)",
+                "Int.hashValue on each value",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "unsuccessful find index",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> unsuccessful find",
+                "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
+                "Dictionary<Int, Int> unsuccessful index(forKey:)",
+                "Int.hashValue on each value",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "defaulted subscript, existing key",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> subscript, existing key",
+                "OrderedDictionary<Int, Int> defaulted subscript, _modify existing",
+                "Dictionary<Int, Int> defaulted subscript, _modify existing",
+                "Int.hashValue on each value",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "defaulted subscript, new key",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> subscript, new key",
+                "OrderedDictionary<Int, Int> defaulted subscript, _modify missing",
+                "Dictionary<Int, Int> defaulted subscript, _modify missing",
+                "Int.hashValue on each value",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "insert",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> insert",
+                "OrderedDictionary<Int, Int> subscript, append",
+                "Dictionary<Int, Int> subscript, insert",
+                "Int.hashValue on each value",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "insert, reserving capacity",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> insert, reserving capacity",
+                "OrderedDictionary<Int, Int> subscript, append, reserving capacity",
+                "Dictionary<Int, Int> subscript, insert, reserving capacity",
+                "Int.hashValue on each value",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removing existing elements",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> erase existing",
+                "OrderedDictionary<Int, Int> subscript, remove existing",
+                "Dictionary<Int, Int> subscript, remove existing",
+              ]
+            },
+            {
+              "kind": "chart",
+              "title": "removing missing elements",
+              "tasks": [
+                "std::unordered_map<intptr_t, intptr_t> erase missing",
+                "OrderedDictionary<Int, Int> subscript, remove missing",
+                "Dictionary<Int, Int> subscript, remove missing",
+              ]
+            },
+          ]
+        },
+      ]
+    },
+  ]
+}

@@ -1,0 +1,9 @@
+module CppBenchmarks {
+  header "Hashing.h"
+  header "VectorBenchmarks.h"
+  header "DequeBenchmarks.h"
+  header "UnorderedSetBenchmarks.h"
+  header "UnorderedMapBenchmarks.h"
+  export *
+}
+
