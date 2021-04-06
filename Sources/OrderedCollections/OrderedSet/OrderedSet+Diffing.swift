@@ -14,7 +14,7 @@ extension OrderedSet {
   /// receiver, using an algorithm specialized to exploit fast membership
   /// testing and the member uniqueness guarantees of `OrderedSet`.
   ///
-  /// - Complexity: O(`left.count + right.count`)
+  /// - Complexity: O(`self.count + other.count`)
   @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
   public func difference(
     from other: Self
