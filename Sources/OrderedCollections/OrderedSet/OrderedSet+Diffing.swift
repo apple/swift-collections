@@ -93,9 +93,8 @@ extension OrderedSet {
   ///   is the number of changes contained by the parameter.
   @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
   public func applying(_ difference: CollectionDifference<Element>) -> Self? {
-    guard let array = Array(self).applying(difference) else { return nil }
+    guard let array = self.elements.applying(difference) else { return nil }
     let result = OrderedSet(array)
     return result.count == array.count ? result : nil
   }
 }
-
