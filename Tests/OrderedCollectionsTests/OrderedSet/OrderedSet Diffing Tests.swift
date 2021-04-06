@@ -98,6 +98,18 @@ class OrderedSetDiffingTests: CollectionTestCase {
     _validate(from: a, to: b, mutations: 4)
   }
 
+  func test_disparate() {
+    let a = OrderedSet(0..<1000)
+    let b = OrderedSet(1000..<2000)
+    _validate(from: a, to: b, mutations: 2000)
+  }
+
+  func test_reversed() {
+    let a = OrderedSet(0..<1000)
+    let b = OrderedSet((0..<1000).reversed())
+    _validate(from: a, to: b, mutations: 1998)
+  }
+
   func test_fuzzerDiscovered00() {
     //                  X     X        X
     let a = [3, 5, 8, 0, 7, 9]
