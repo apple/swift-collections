@@ -57,12 +57,12 @@ extension OrderedSet {
             assert(y == axinb)
             // `a[x]` == `b[y]`
             x += 1; y += 1
-          } else if byina - x >= axinb - y {
-            // `b[y]` exists further away from the current position in `a` than `a[x]` does in `b`
-            remove()
-          } else {
+          } else if byina - x < axinb - y {
             // `a[x]` exists further away from the current position in `b` than `b[y] does in `a`
             insert()
+          } else {
+            // `b[y]` exists further away from the current position in `a` than `a[x]` does in `b`
+            remove()
           }
         } else {
           // `b[y]` does not exist in `a`, the element must have been inserted

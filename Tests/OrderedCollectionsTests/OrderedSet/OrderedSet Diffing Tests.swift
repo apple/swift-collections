@@ -29,31 +29,31 @@ class OrderedSetDiffingTests: CollectionTestCase {
     expectEqual(Array(b).applying(e), Array(a))
   }
 
-  func testEqual() {
+  func test_equal() {
     let a = [1, 2, 3, 4, 5]
     _validate(from: a, to: a, mutations: 0)
   }
 
-  func testMoveTrap() {
+  func test_moveTrap() {
     let a = [1, 2, 3]
     let b = [3, 2]
     _validate(from: a, to: b, mutations: 3)
   }
 
-  func testMinimalish() {
+  func test_minimalish() {
     let a = ["g", "1", "2",      "w", "o", "a", "e", "t", "4",               "8"]
     let b = [     "1", "2", "3",                "e",      "4", "5", "6", "7"]
     _validate(from: a, to: b, mutations: 10)
   }
 
-  func testArrowDefeatingMinimalDiff() {
+  func test_arrowDefeatingMinimalDiff() {
     // Arrow diff only finds one match ("n") instead of two ("o", "c")
     let a = [               "o", "c", "n"]
     let b = ["n", "d", "y", "o", "c"]
     _validate(from: a, to: b, mutations: 4)
   }
 
-  func testFuzzerDiscovered00() {
+  func test_fuzzerDiscovered00() {
     //                  X     X        X
     let a = [3, 5, 8, 0, 7, 9]
     let b = [8, 5, 9, 7, 0, 6]
@@ -61,7 +61,7 @@ class OrderedSetDiffingTests: CollectionTestCase {
     _validate(from: a, to: b)
   }
 
-  func testFuzz() {
+  func test_fuzz() {
     for _ in 0..<1000 {
       let a = (0..<10).map { _ in Int.random(in: 0..<10) }
       let b = (0..<10).map { _ in Int.random(in: 0..<10) }
