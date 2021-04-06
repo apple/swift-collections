@@ -13,14 +13,60 @@ import XCTest
 import OrderedCollections
 import CollectionsTestSupport
 
+class MeasuringHashable: Hashable {
+  static var equalityChecks = 0
+  static func == (lhs: MeasuringHashable, rhs: MeasuringHashable) -> Bool {
+    MeasuringHashable.equalityChecks += 1
+    return lhs._inner == rhs._inner
+  }
+
+  static var hashChecks = 0
+  func hash(into hasher: inout Hasher) {
+    MeasuringHashable.hashChecks += 1
+    _inner.hash(into: &hasher)
+  }
+
+  let _inner: AnyHashable
+
+  init<T: Hashable>(_ wrapped: T) {
+    _inner = AnyHashable(wrapped)
+  }
+}
+
 class OrderedSetDiffingTests: CollectionTestCase {
 
+  func _validatePerformance<T: Hashable>(from a: OrderedSet<T>, to b: OrderedSet<T>) {
+    MeasuringHashable.equalityChecks = 0
+    MeasuringHashable.hashChecks = 0
+
+    let _ = OrderedSet(a.map({MeasuringHashable($0)})).difference(from: OrderedSet(b.map({MeasuringHashable($0)})))
+    let n = a.count + b.count
+
+    /* Expect linear performance, which we can fence in testing as
+     * "less than nlogn" since diffing generally tends to be at least n**2
+     */
+    expectLessThan(MeasuringHashable.equalityChecks, n * n.bitWidth)
+    expectLessThan(MeasuringHashable.hashChecks, n * n.bitWidth)
+  }
+
   func _validate<T: Hashable>(from a: Array<T>, to b: Array<T>, mutations: Int? = nil) {
+    _validate(from: OrderedSet(a), to: OrderedSet(b), mutations: mutations)
+  }
+
+  func _validate<T: Hashable>(from a: OrderedSet<T>, to b: OrderedSet<T>, mutations: Int? = nil) {
+    _validatePerformance(from: a, to: b)
+    _validatePerformance(from: b, to: a)
+
     let d = b.difference(from: a)
     let e = a.difference(from: b)
-    expectEqual(d.count, e.count)
+
     if let mutations = mutations {
-      expectEqual(d.count, mutations)
+      if mutations >= 0 {
+        expectEqual(d.count, mutations)
+        expectEqual(d.count, e.count)
+      }
+    } else {
+      expectEqual(d.count, e.count)
     }
     expectEqual(a.applying(d), b)
     expectEqual(b.applying(d.inverse()), a)
@@ -60,11 +106,25 @@ class OrderedSetDiffingTests: CollectionTestCase {
     _validate(from: a, to: b)
   }
 
+  /* Good example of greedy match seeking resulting in a non-minimal diff.
+   * Luckily, the API contract doesn't promise the shortest edit script, just an
+   * accurate one.
+   */
+  func test_fuzzerDiscovered01() {
+    // b → a X  X  X  X  X        X
+    // a → b X  X  X  X  X  X     X
+    let a = [3, 7, 2, 5, 9, 1, 8, 4]
+    let b = [4, 2, 1, 7, 8, 6]
+    // a → b X  X  X  X     X
+    // b → a X  X     X     X
+    _validate(from: a, to: b, mutations: -1)
+  }
+
   func test_fuzz() {
     for _ in 0..<1000 {
       let a = (0..<10).map { _ in Int.random(in: 0..<10) }
       let b = (0..<10).map { _ in Int.random(in: 0..<10) }
-      _validate(from: a, to: b)
+      _validate(from: OrderedSet(a), to: OrderedSet(b), mutations: -1)
     }
   }
 }
