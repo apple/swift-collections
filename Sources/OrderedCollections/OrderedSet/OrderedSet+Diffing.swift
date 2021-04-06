@@ -89,7 +89,7 @@ extension OrderedSet {
   ///   difference applied, or `nil` if the difference is incompatible with
   ///   the receiver's state.
   ///
-  /// - Complexity: O(*n* + 2 × (*n* + *c*)), where *n* is `self.count` and *c*
+  /// - Complexity: O(*n* + *c*), where *n* is `self.count` and *c*
   ///   is the number of changes contained by the parameter.
   @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
   public func applying(_ difference: CollectionDifference<Element>) -> Self? {
