@@ -107,7 +107,7 @@ The test support library currently provides the following functionality:
 
     </details>
 
-- [`Combinatorics`](./Sources/CollectionsTestSupport/Combinatorics): Basic support for exhaustive combinatorial testing. This allows us to easily verify that a collection operation works correctly on all possible instances up to a certain size, including behavioral variations such as unique/shared storage.
+- [`Combinatorics`](./Sources/CollectionsTestSupport/AssertionContexts/Combinatorics.swift): Basic support for exhaustive combinatorial testing. This allows us to easily verify that a collection operation works correctly on all possible instances up to a certain size, including behavioral variations such as unique/shared storage.
 
   <details>
    <summary><strong>Click here for an example</strong></summary>
