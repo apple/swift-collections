@@ -36,7 +36,7 @@ How did you verify the new feature performs as expected?
 What is the impact of this change on existing users of this package? Does it deprecate or remove any existing API?
 
 ### Checklist
-- [ ] I've read the [Contribution Guidelines](../CONTRIBUTING.md)
+- [ ] I've read the [Contribution Guidelines](../../CONTRIBUTING.md)
 - [ ] My contributions are licensed under the [Swift license](https://swift.org/LICENSE.txt).
 - [ ] I've followed the coding style of the rest of the project.
 - [ ] I've added tests covering all new code paths my change adds to the project (to the extent possible).
