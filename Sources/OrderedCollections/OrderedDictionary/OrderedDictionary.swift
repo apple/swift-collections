@@ -570,7 +570,7 @@ extension OrderedDictionary {
   /// key.
   ///
   /// If the value of an existing key is updated,
-  /// `updateOrInsertValue(_:forKey:at:)` returns the original value and its
+  /// `updateValue(_:forKey:insertingAt:)` returns the original value and its
   /// index.
   ///
   ///     var hues: OrderedDictionary = [
