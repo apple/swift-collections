@@ -75,5 +75,27 @@ extension OrderedSet {
     }
     return CollectionDifference(changes)!
   }
+
+  /* Replicating RangeReplaceableCollection.applying here would involve
+   * duplicating a ton of IPI from the stdlib. Dropping down to Array and back
+   * to OrderedSet is still O(n)-ish which still beats the naïve application
+   * algorithm of "remove, then insert"
+   */
+  /// Applies the given difference to this collection.
+  ///
+  /// - Parameter difference: The difference to be applied.
+  ///
+  /// - Returns: An instance representing the state of the receiver with the
+  ///   difference applied, or `nil` if the difference is incompatible with
+  ///   the receiver's state.
+  ///
+  /// - Complexity: O(*n* + 2 × (*n* + *c*)), where *n* is `self.count` and *c*
+  ///   is the number of changes contained by the parameter.
+  @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+  public func applying(_ difference: CollectionDifference<Element>) -> Self? {
+    guard let array = Array(self).applying(difference) else { return nil }
+    let result = OrderedSet(array)
+    return result.count == array.count ? result : nil
+  }
 }
 

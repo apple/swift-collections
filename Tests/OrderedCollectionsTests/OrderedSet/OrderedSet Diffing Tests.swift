@@ -22,11 +22,10 @@ class OrderedSetDiffingTests: CollectionTestCase {
     if let mutations = mutations {
       expectEqual(d.count, mutations)
     }
-    // TODO: OrderedSet.applying() since OrderedSet isn't RangeReplaceable
-    expectEqual(Array(a).applying(d), Array(b))
-    expectEqual(Array(b).applying(d.inverse()), Array(a))
-    expectEqual(Array(a).applying(e.inverse()), Array(b))
-    expectEqual(Array(b).applying(e), Array(a))
+    expectEqual(a.applying(d), b)
+    expectEqual(b.applying(d.inverse()), a)
+    expectEqual(a.applying(e.inverse()), b)
+    expectEqual(b.applying(e), a)
   }
 
   func test_equal() {
