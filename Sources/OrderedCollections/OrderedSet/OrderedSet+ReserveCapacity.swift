@@ -20,10 +20,7 @@ extension OrderedSet {
   /// If you have a good idea of the expected working size of the set, calling
   /// this initializer with `persistent` set to true can sometimes improve
   /// performance by eliminating churn due to repeated rehashings when the set
-  /// temporarily shrinks below its regular size. You can cancel any capacity
-  /// you've previously reserved by persistently reserving a capacity of zero.
-  /// (This also shrinks the hash table to the ideal size for its current number
-  /// elements.)
+  /// temporarily shrinks below its regular size.
   ///
   /// - Parameter minimumCapacity: The minimum number of elements that the newly
   ///   created set should be able to store without reallocating its storage.
