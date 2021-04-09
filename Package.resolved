@@ -11,6 +11,15 @@
         }
       },
       {
+        "package": "swift-collections-benchmark",
+        "repositoryURL": "https://github.com/apple/swift-collections-benchmark",
+        "state": {
+          "branch": null,
+          "revision": "49297647d1c0855eb33ec18cd6ee1181727c159b",
+          "version": "0.0.1"
+        }
+      },
+      {
         "package": "swift-system",
         "repositoryURL": "https://github.com/apple/swift-system",
         "state": {
