@@ -107,7 +107,7 @@ The test support library currently provides the following functionality:
 
     </details>
 
-- [`Combinatorics`](./Sources/CollectionsTestSupport/Combinatorics): Basic support for exhaustive combinatorial testing. This allows us to easily verify that a collection operation works correctly on all possible instances up to a certain size, including behavioral variations such as unique/shared storage.
+- [`Combinatorics`](./Sources/CollectionsTestSupport/AssertionContexts/Combinatorics.swift): Basic support for exhaustive combinatorial testing. This allows us to easily verify that a collection operation works correctly on all possible instances up to a certain size, including behavioral variations such as unique/shared storage.
 
   <details>
    <summary><strong>Click here for an example</strong></summary>
@@ -157,7 +157,7 @@ The test support library currently provides the following functionality:
     - [`MinimalEncoder`](./Sources/CollectionsTestSupport/MinimalTypes/MinimalEncoder.swift)
     - [`MinimalDecoder`](./Sources/CollectionsTestSupport/MinimalTypes/MinimalDecoder.swift)
 
-- [`Utilities`](./Sources/CollectionsTestSupport/Utilities): Utility types. Wrapper types for boxed values, a simple deterministic random number generator, and a lifetime tracker for catching simple memory management issues such as memory leaks. (The [Adress Sanitizer][asan] can be used to catch more serious problems.)
+- [`Utilities`](./Sources/CollectionsTestSupport/Utilities): Utility types. Wrapper types for boxed values, a simple deterministic random number generator, and a lifetime tracker for catching simple memory management issues such as memory leaks. (The [Address Sanitizer][asan] can be used to catch more serious problems.)
 
 [asan]: https://developer.apple.com/documentation/xcode/diagnosing_memory_thread_and_crash_issues_early?language=objc
 

@@ -242,6 +242,33 @@ extension Benchmark {
       }
     }
 
+    if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
+      self.add(
+        title: "OrderedSet<Int> diff computation",
+        input: ([Int], [Int]).self
+      ) { pa, pb in
+        let a = OrderedSet(pa)
+        let b = OrderedSet(pb)
+        return { timer in
+          timer.measure {
+            blackHole(b.difference(from: a))
+          }
+        }
+      }
+
+      self.add(
+        title: "OrderedSet<Int> diff application",
+        input: ([Int], [Int]).self
+      ) { a, b in
+        let d = OrderedSet(b).difference(from: OrderedSet(a))
+        return { timer in
+          timer.measure {
+            blackHole(a.applying(d))
+          }
+        }
+      }
+    }
+
     let overlaps: [(String, (Int) -> Int)] = [
       ("0%",   { c in c }),
       ("25%",  { c in 3 * c / 4 }),

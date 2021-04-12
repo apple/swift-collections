@@ -37,7 +37,7 @@ What is the impact of this change on existing users of this package? Does it dep
 
 ### Checklist
 - [ ] I've read the [Contribution Guidelines](/README.md#contributing-to-swift-collections)
-- [ ] My contributions are licensed under the [Swift license](/LICENSE.txt).
+- [ ] My contributions are licensed under the [Swift license](https://swift.org/LICENSE.txt).
 - [ ] I've followed the coding style of the rest of the project.
 - [ ] I've added tests covering all new code paths my change adds to the project (to the extent possible).
 - [ ] I've added benchmarks covering new functionality (if appropriate).
