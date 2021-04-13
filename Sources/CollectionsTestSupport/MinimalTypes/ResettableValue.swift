@@ -12,7 +12,7 @@
 
 // Loosely adapted from https://github.com/apple/swift/tree/main/stdlib/private/StdlibUnittest
 
-public class ResettableValue<Value> {
+public final class ResettableValue<Value> {
   public init(_ value: Value) {
     self.defaultValue = value
     self.value = value

@@ -13,7 +13,7 @@
 // Loosely adapted from https://github.com/apple/swift/tree/main/stdlib/private/StdlibCollectionUnittest
 
 /// State shared by all iterators of a MinimalSequence instance.
-internal class _MinimalIteratorSharedState<Element> {
+internal final class _MinimalIteratorSharedState<Element> {
   internal init(_ data: [Element]) {
     self.data = data
   }

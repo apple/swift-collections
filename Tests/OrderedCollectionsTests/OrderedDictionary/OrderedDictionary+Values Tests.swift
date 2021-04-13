@@ -14,7 +14,7 @@ import XCTest
 
 import CollectionsTestSupport
 
-class OrderedDictionaryValueTests: CollectionTestCase {
+final class OrderedDictionaryValueTests: CollectionTestCase {
   func test_values_getter() {
     let d: OrderedDictionary = [
       "one": 1,

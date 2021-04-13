@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-public class MinimalDecoder {
+public final class MinimalDecoder {
   public typealias Value = MinimalEncoder.Value
   typealias _Key = MinimalEncoder._Key
 
@@ -356,7 +356,7 @@ extension MinimalDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
 }
 
 extension MinimalDecoder {
-  class UnkeyedContainer {
+  final class UnkeyedContainer {
     typealias Value = MinimalEncoder.Value
 
     unowned let base: MinimalDecoder
@@ -598,7 +598,7 @@ extension MinimalDecoder.UnkeyedContainer: UnkeyedDecodingContainer {
 }
 
 extension MinimalDecoder {
-  class SingleValueContainer {
+  final class SingleValueContainer {
     typealias Value = MinimalEncoder.Value
 
     unowned let base: MinimalDecoder

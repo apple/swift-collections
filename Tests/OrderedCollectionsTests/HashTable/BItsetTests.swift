@@ -14,7 +14,7 @@ import XCTest
 import CollectionsTestSupport
 @_spi(Testing) @testable import OrderedCollections
 
-class BitsetTests: CollectionTestCase {
+final class BitsetTests: CollectionTestCase {
   typealias Word = _UnsafeBitset.Word
 
   func test_empty() {

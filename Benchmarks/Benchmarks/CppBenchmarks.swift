@@ -12,7 +12,7 @@
 import CollectionsBenchmark
 import CppBenchmarks
 
-internal class CppVector {
+internal final class CppVector {
   var ptr: UnsafeMutableRawPointer?
 
   init(_ input: [Int]) {
@@ -33,7 +33,7 @@ internal class CppVector {
   }
 }
 
-internal class CppDeque {
+internal final class CppDeque {
   var ptr: UnsafeMutableRawPointer?
 
   init(_ input: [Int]) {
@@ -54,7 +54,7 @@ internal class CppDeque {
   }
 }
 
-internal class CppUnorderedSet {
+internal final class CppUnorderedSet {
   var ptr: UnsafeMutableRawPointer?
 
   init(_ input: [Int]) {
@@ -75,7 +75,7 @@ internal class CppUnorderedSet {
   }
 }
 
-internal class CppUnorderedMap {
+internal final class CppUnorderedMap {
   var ptr: UnsafeMutableRawPointer?
 
   init(_ input: [Int]) {

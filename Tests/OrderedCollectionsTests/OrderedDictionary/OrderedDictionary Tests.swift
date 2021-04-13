@@ -14,7 +14,7 @@ import XCTest
 
 import CollectionsTestSupport
 
-class OrderedDictionaryTests: CollectionTestCase {
+final class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {
     let d = OrderedDictionary<String, Int>()
     expectEqualElements(d, [])

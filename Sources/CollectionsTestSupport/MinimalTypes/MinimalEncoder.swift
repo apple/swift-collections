@@ -20,7 +20,7 @@
 /// FIXME: Fix error reporting. We ought to throw errors instead of trapping
 /// on validation problems, and we should include context information to help
 /// isolating the problem.
-public class MinimalEncoder {
+public final class MinimalEncoder {
   public enum Value: Hashable {
     case null
     case bool(Bool)

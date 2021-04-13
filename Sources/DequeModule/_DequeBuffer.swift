@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 @usableFromInline
-internal class _DequeBuffer<Element>: ManagedBuffer<_DequeBufferHeader, Element> {
+internal final class _DequeBuffer<Element>: ManagedBuffer<_DequeBufferHeader, Element> {
   @inlinable
   deinit {
     let storage = Deque<Element>._Storage(self)

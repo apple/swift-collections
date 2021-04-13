@@ -14,7 +14,7 @@ import XCTest
 
 import CollectionsTestSupport
 
-class OrderedDictionaryElementsTests: CollectionTestCase {
+final class OrderedDictionaryElementsTests: CollectionTestCase {
   func test_elements_getter() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in

@@ -13,7 +13,7 @@ import XCTest
 import CollectionsTestSupport
 @_spi(Testing) import DequeModule
 
-final class MutableCollectiontests: CollectionTestCase {
+final class MutableCollectionTests: CollectionTestCase {
   // Note: Most of the test below are exhaustively testing the behavior
   // of a particular mutation or query on every possible deque layout
   // of a small set of capacities. This helps catching issues that may only

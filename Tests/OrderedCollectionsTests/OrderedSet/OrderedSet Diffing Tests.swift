@@ -13,7 +13,7 @@ import XCTest
 import OrderedCollections
 import CollectionsTestSupport
 
-class MeasuringHashable: Hashable {
+private final class MeasuringHashable: Hashable {
   static var equalityChecks = 0
   static func == (lhs: MeasuringHashable, rhs: MeasuringHashable) -> Bool {
     MeasuringHashable.equalityChecks += 1
@@ -33,7 +33,7 @@ class MeasuringHashable: Hashable {
   }
 }
 
-class OrderedSetDiffingTests: CollectionTestCase {
+final class OrderedSetDiffingTests: CollectionTestCase {
 
   func _validatePerformance<T: Hashable>(from a: OrderedSet<T>, to b: OrderedSet<T>) {
     MeasuringHashable.equalityChecks = 0
