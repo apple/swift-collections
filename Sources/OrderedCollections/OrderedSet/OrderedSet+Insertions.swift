@@ -152,6 +152,7 @@ extension OrderedSet {
   ///    type, if it implements high-quality hashing. (Insertions need to make
   ///    room in the storage array to add the inserted element.)
   @inlinable
+  @discardableResult
   public mutating func insert(
     _ item: Element,
     at index: Index
