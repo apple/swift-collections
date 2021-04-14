@@ -236,6 +236,7 @@ extension OrderedSet {
   ///    hash, and compare operations on the `Element` type, if it implements
   ///    high-quality hashing.
   @inlinable
+  @discardableResult
   public mutating func updateOrInsert(
     _ item: Element,
     at index: Index
