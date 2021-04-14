@@ -23,8 +23,8 @@ open class CollectionTestCase: XCTestCase {
   }
 
   public override func tearDown() {
-    super.setUp()
     TestContext.pop(context)
     _context = nil
+    super.tearDown()
   }
 }
