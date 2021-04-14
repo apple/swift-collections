@@ -152,6 +152,7 @@ extension OrderedSet {
   ///    type, if it implements high-quality hashing. (Insertions need to make
   ///    room in the storage array to add the inserted element.)
   @inlinable
+  @discardableResult
   public mutating func insert(
     _ item: Element,
     at index: Index
@@ -206,6 +207,7 @@ extension OrderedSet {
   ///    hash, and compare operations on the `Element` type, if it implements
   ///    high-quality hashing.
   @inlinable
+  @discardableResult
   public mutating func updateOrAppend(_ item: Element) -> Element? {
     let (inserted, index) = _append(item)
     if inserted { return nil }
@@ -234,6 +236,7 @@ extension OrderedSet {
   ///    hash, and compare operations on the `Element` type, if it implements
   ///    high-quality hashing.
   @inlinable
+  @discardableResult
   public mutating func updateOrInsert(
     _ item: Element,
     at index: Index
