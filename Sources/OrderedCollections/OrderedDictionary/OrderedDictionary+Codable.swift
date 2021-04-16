@@ -19,11 +19,11 @@ extension OrderedDictionary: Encodable where Key: Encodable, Value: Encodable {
   /// encoder's format.
   ///
   /// - Note: Unlike the standard `Dictionary` type, ordered dictionaries
-  ///    always encode in an unkeyed container, because `Codable`'s keyed
-  ///    containers do not guarantee that they preserve the ordering of the
-  ///    items they contain. (And in popular encoding formats, keyed containers
-  ///    tend to map to unordered data structures -- e.g., JSON's "object"
-  ///    construct is explicitly unordered.)
+  ///    always encode themselves into an unkeyed container, because
+  ///    `Codable`'s keyed containers do not guarantee that they preserve the
+  ///    ordering of the items they contain. (And in popular encoding formats,
+  ///    keyed containers tend to map to unordered data structures -- e.g.,
+  ///    JSON's "object" construct is explicitly unordered.)
   ///
   /// - Parameter encoder: The encoder to write data to.
   @inlinable
@@ -40,8 +40,18 @@ extension OrderedDictionary: Encodable where Key: Encodable, Value: Encodable {
 extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
   /// Creates a new dictionary by decoding from the given decoder.
   ///
+  /// `OrderedDictionary` expects its contents to be encoded as alternating
+  /// key-value pairs in an unkeyed container.
+  ///
   /// This initializer throws an error if reading from the decoder fails, or
-  /// if the decoded contents are corrupt (such as they contain duplicate values).
+  /// if the decoded contents are not in the expected format.
+  ///
+  /// - Note: Unlike the standard `Dictionary` type, ordered dictionaries
+  ///    always encode themselves into an unkeyed container, because
+  ///    `Codable`'s keyed containers do not guarantee that they preserve the
+  ///    ordering of the items they contain. (And in popular encoding formats,
+  ///    keyed containers tend to map to unordered data structures -- e.g.,
+  ///    JSON's "object" construct is explicitly unordered.)
   ///
   /// - Parameter decoder: The decoder to read data from.
   @inlinable
