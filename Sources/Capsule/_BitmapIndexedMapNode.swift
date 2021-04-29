@@ -42,8 +42,8 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode<Key, Value> where Key : H
         }
 
         if ((nodeMap & bitpos) != 0) {
-          let index = indexFrom(nodeMap, mask, bitpos)
-          return self.getNode(index).get(key, keyHash, shift + BitPartitionSize)
+            let index = indexFrom(nodeMap, mask, bitpos)
+            return self.getNode(index).get(key, keyHash, shift + BitPartitionSize)
         }
 
         return nil
@@ -60,8 +60,8 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode<Key, Value> where Key : H
         }
 
         if ((nodeMap & bitpos) != 0) {
-          let index = indexFrom(nodeMap, mask, bitpos)
-          return self.getNode(index).containsKey(key, keyHash, shift + BitPartitionSize)
+            let index = indexFrom(nodeMap, mask, bitpos)
+            return self.getNode(index).containsKey(key, keyHash, shift + BitPartitionSize)
         }
 
         return false
@@ -72,29 +72,29 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode<Key, Value> where Key : H
         let bitpos = bitposFrom(mask)
 
         if ((dataMap & bitpos) != 0) {
-          let index = indexFrom(dataMap, mask, bitpos)
-          let (key0, value0) = self.getPayload(index)
+            let index = indexFrom(dataMap, mask, bitpos)
+            let (key0, value0) = self.getPayload(index)
 
-          if (key0 == key) {
-            effect.setReplacedValue()
-            return copyAndSetValue(bitpos, value)
-          } else {
-            let subNodeNew = mergeTwoKeyValPairs(key0, value0, computeHash(key0), key, value, keyHash, shift + BitPartitionSize)
-            effect.setModified()
-            return copyAndMigrateFromInlineToNode(bitpos, subNodeNew)
-          }
+            if (key0 == key) {
+                effect.setReplacedValue()
+                return copyAndSetValue(bitpos, value)
+            } else {
+                let subNodeNew = mergeTwoKeyValPairs(key0, value0, computeHash(key0), key, value, keyHash, shift + BitPartitionSize)
+                effect.setModified()
+                return copyAndMigrateFromInlineToNode(bitpos, subNodeNew)
+            }
         }
 
         if ((nodeMap & bitpos) != 0) {
-          let index = indexFrom(nodeMap, mask, bitpos)
-          let subNode = self.getNode(index)
+            let index = indexFrom(nodeMap, mask, bitpos)
+            let subNode = self.getNode(index)
 
-          let subNodeNew = subNode.updated(key, value, keyHash, shift + BitPartitionSize, &effect)
-          if (!effect.modified) {
-            return self
-          } else {
-            return copyAndSetNode(bitpos, subNodeNew)
-          }
+            let subNodeNew = subNode.updated(key, value, keyHash, shift + BitPartitionSize, &effect)
+            if (!effect.modified) {
+                return self
+            } else {
+                return copyAndSetNode(bitpos, subNodeNew)
+            }
         }
 
         effect.setModified()

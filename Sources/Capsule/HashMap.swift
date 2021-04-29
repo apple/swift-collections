@@ -73,11 +73,11 @@ public struct HashMap<Key, Value> where Key : Hashable {
         let newRootNode = rootNode.updated(key, value, keyHash, 0, &effect)
 
         if (effect.modified) {
-          if (effect.replacedValue) {
-            return Self(newRootNode, cachedKeySetHashCode, cachedSize)
-          } else {
-            return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize + 1)
-          }
+            if (effect.replacedValue) {
+                return Self(newRootNode, cachedKeySetHashCode, cachedSize)
+            } else {
+                return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize + 1)
+            }
         } else { return self }
     }
 
@@ -87,7 +87,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
         let newRootNode = rootNode.removed(key, keyHash, 0, &effect)
 
         if (effect.modified) {
-          return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize - 1)
+            return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize - 1)
         } else { return self }
     }
 }
