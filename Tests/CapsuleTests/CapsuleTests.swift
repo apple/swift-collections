@@ -1,7 +1,8 @@
 import XCTest
-@testable import Capsule
+import _CollectionsTestSupport
+@_spi(Testing) import Capsule
 
-final class CapsuleTests: XCTestCase {
+final class CapsuleTests: CollectionTestCase {
     func testSubscriptAdd() {
         var copyAndSetTest: HashMap<Int, String> =
             [ 1 : "a", 2 : "b" ]
@@ -9,11 +10,11 @@ final class CapsuleTests: XCTestCase {
         copyAndSetTest[3] = "x"
         copyAndSetTest[4] = "y"
 
-        XCTAssertEqual(copyAndSetTest.count, 4)
-        XCTAssertEqual(copyAndSetTest[1], "a")
-        XCTAssertEqual(copyAndSetTest[2], "b")
-        XCTAssertEqual(copyAndSetTest[3], "x")
-        XCTAssertEqual(copyAndSetTest[4], "y")
+        expectEqual(copyAndSetTest.count, 4)
+        expectEqual(copyAndSetTest[1], "a")
+        expectEqual(copyAndSetTest[2], "b")
+        expectEqual(copyAndSetTest[3], "x")
+        expectEqual(copyAndSetTest[4], "y")
     }
 
     func testSubscriptOverwrite() {
@@ -23,9 +24,9 @@ final class CapsuleTests: XCTestCase {
         copyAndSetTest[1] = "x"
         copyAndSetTest[2] = "y"
 
-        XCTAssertEqual(copyAndSetTest.count, 2)
-        XCTAssertEqual(copyAndSetTest[1], "x")
-        XCTAssertEqual(copyAndSetTest[2], "y")
+        expectEqual(copyAndSetTest.count, 2)
+        expectEqual(copyAndSetTest[1], "x")
+        expectEqual(copyAndSetTest[2], "y")
     }
     
     func testSubscriptRemove() {
@@ -35,8 +36,8 @@ final class CapsuleTests: XCTestCase {
         copyAndSetTest[1] = nil
         copyAndSetTest[2] = nil
         
-        XCTAssertEqual(copyAndSetTest.count, 0)
-        XCTAssertEqual(copyAndSetTest[1], nil)
-        XCTAssertEqual(copyAndSetTest[2], nil)
+        expectEqual(copyAndSetTest.count, 0)
+        expectEqual(copyAndSetTest[1], nil)
+        expectEqual(copyAndSetTest[2], nil)
     }
 }
