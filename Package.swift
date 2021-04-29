@@ -113,5 +113,14 @@ let package = Package(
         name: "PriorityQueueTests",
         dependencies: ["PriorityQueueModule"],
         swiftSettings: settings),
+
+    // HashMap<Key, Value>
+    .target(
+      name: "Capsule",
+      swiftSettings: settings),
+    .testTarget(
+      name: "CapsuleTests",
+      dependencies: ["Capsule", "_CollectionsTestSupport"],
+      swiftSettings: settings),
   ]
 )
