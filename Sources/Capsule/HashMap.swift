@@ -92,37 +92,6 @@ public struct HashMap<Key, Value> where Key : Hashable {
     }
 }
 
-extension HashMap : ExpressibleByDictionaryLiteral {
-    public init(dictionaryLiteral elements: (Key, Value)...) {
-        let map = elements.reduce(Self()) { (map, element) in let (key, value) = element
-            return map.insert(key: key, value: value)
-        }
-        self.init(map)
-    }
-}
-
-extension HashMap : Equatable, Hashable {
-    public static func == (lhs: HashMap<Key, Value>, rhs: HashMap<Key, Value>) -> Bool {
-        lhs.cachedSize == rhs.cachedSize &&
-            lhs.cachedKeySetHashCode == rhs.cachedKeySetHashCode &&
-            (lhs.rootNode === rhs.rootNode || lhs.rootNode == rhs.rootNode)
-    }
-    
-    public var hashValue: Int {
-        preconditionFailure("Not yet implemented")
-    }
-    
-    public func hash(into: inout Hasher) {
-        preconditionFailure("Not yet implemented")
-    }
-}
-
-extension HashMap : Sequence {
-    public __consuming func makeIterator() -> MapKeyValueTupleIterator<Key, Value> {
-        return MapKeyValueTupleIterator(rootNode: rootNode)
-    }
-}
-
 fileprivate let EmptyMapNode = BitmapIndexedMapNode<AnyHashable, Any>(0, 0, Array())
 
 // TODO assess if convertible to a `protocol`. Variance / constraints on return types make it difficult.
