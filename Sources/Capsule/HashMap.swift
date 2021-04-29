@@ -30,7 +30,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
     
     var isEmpty: Bool { cachedSize == 0 }
     
-    var count: Int { cachedSize }
+    public var count: Int { cachedSize }
     
     var capacity: Int { count }
     
@@ -38,7 +38,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
     /// Accessing Keys and Values
     ///
 
-    subscript(_ key: Key) -> Value? {
+    public subscript(_ key: Key) -> Value? {
         get {
             return get(key)
         }
@@ -51,7 +51,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
         }
     }
     
-    subscript(_ key: Key, default: () -> Value) -> Value {
+    public subscript(_ key: Key, default: () -> Value) -> Value {
         return get(key) ?? `default`()
     }
     
