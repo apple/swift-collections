@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
 import _CollectionsTestSupport
 @_spi(Testing) import Capsule
 
