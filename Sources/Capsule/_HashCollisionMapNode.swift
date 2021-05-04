@@ -87,8 +87,8 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
     func getPayload(_ index: Int) -> (Key, Value) { content[index] }
 }
 
-extension HashCollisionMapNode /* : Equatable where Value : Equatable */ {
+extension HashCollisionMapNode : Equatable where Value : Equatable {
     static func == (lhs: HashCollisionMapNode<Key, Value>, rhs: HashCollisionMapNode<Key, Value>) -> Bool {
-        preconditionFailure("Not yet implemented")
+        Dictionary.init(uniqueKeysWithValues: lhs.content) == Dictionary.init(uniqueKeysWithValues: rhs.content)
     }
 }

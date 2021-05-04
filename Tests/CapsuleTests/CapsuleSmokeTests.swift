@@ -82,38 +82,43 @@ final class CapsuleSmokeTests: CollectionTestCase {
         res1[CollidableInt(11, 1)] = CollidableInt(11, 1)
         res1[CollidableInt(12, 1)] = CollidableInt(12, 1)
 
-        expectEqual(res1.count, 2)
         expectTrue(res1.contains(CollidableInt(11, 1)))
         expectTrue(res1.contains(CollidableInt(12, 1)))
+
+        expectEqual(res1.count, 2)
+        expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1), CollidableInt(12, 1) : CollidableInt(12, 1)]), res1)
 
 
         var res2 = res1
         res2[CollidableInt(12, 1)] = nil
+
         expectTrue(res2.contains(CollidableInt(11, 1)))
         expectFalse(res2.contains(CollidableInt(12, 1)))
 
         expectEqual(res2.count, 1)
-        // expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1)]), res2)
+        expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1)]), res2)
 
 
         var res3 = res1
         res3[CollidableInt(11, 1)] = nil
+
         expectFalse(res3.contains(CollidableInt(11, 1)))
         expectTrue(res3.contains(CollidableInt(12, 1)))
 
         expectEqual(res3.count, 1)
-        // expectEqual(HashMap.init([CollidableInt(12, 1) : CollidableInt(12, 1)]), res3)
+        expectEqual(HashMap.init([CollidableInt(12, 1) : CollidableInt(12, 1)]), res3)
 
 
         var resX = res1
         resX[CollidableInt(32769)] = CollidableInt(32769)
         resX[CollidableInt(12, 1)] = nil
+
         expectTrue(resX.contains(CollidableInt(11, 1)))
         expectFalse(resX.contains(CollidableInt(12, 1)))
         expectTrue(resX.contains(CollidableInt(32769)))
 
         expectEqual(resX.count, 2)
-        // expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1), CollidableInt(32769) : CollidableInt(32769)]), resX)
+        expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1), CollidableInt(32769) : CollidableInt(32769)]), resX)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode2() {
@@ -124,29 +129,32 @@ final class CapsuleSmokeTests: CollectionTestCase {
         res1[CollidableInt(32769_1, 32769)] = CollidableInt(32769_1, 32769)
         res1[CollidableInt(32769_2, 32769)] = CollidableInt(32769_2, 32769)
 
-        expectEqual(res1.count, 2)
         expectTrue(res1.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
+
+        expectEqual(res1.count, 2)
+        expectEqual(HashMap.init([CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res1)
 
 
         var res2 = res1
         res2[CollidableInt(1)] = CollidableInt(1)
 
-        expectEqual(res2.count, 3)
         expectTrue(res2.contains(CollidableInt(1)))
         expectTrue(res2.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
+
+        expectEqual(res2.count, 3)
+        expectEqual(HashMap.init([CollidableInt(1) : CollidableInt(1), CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res2)
 
 
         var res3 = res2
         res3[CollidableInt(32769_2, 32769)] = nil
 
-        expectEqual(res3.count, 2)
         expectTrue(res3.contains(CollidableInt(1)))
         expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
 
-
-        // expectEqual(HashMap.init([CollidableInt(1) : CollidableInt(1), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res3)
+        expectEqual(res3.count, 2)
+        expectEqual(HashMap.init([CollidableInt(1) : CollidableInt(1), CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769)]), res3)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode3() {
@@ -157,30 +165,35 @@ final class CapsuleSmokeTests: CollectionTestCase {
         res1[CollidableInt(32769_1, 32769)] = CollidableInt(32769_1, 32769)
         res1[CollidableInt(32769_2, 32769)] = CollidableInt(32769_2, 32769)
 
-        expectEqual(res1.count, 2)
         expectTrue(res1.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
+
+        expectEqual(res1.count, 2)
+        expectEqual(HashMap.init([CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res1)
 
 
         var res2 = res1
         res2[CollidableInt(1)] = CollidableInt(1)
 
-        expectEqual(res2.count, 3)
         expectTrue(res2.contains(CollidableInt(1)))
         expectTrue(res2.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
+
+        expectEqual(res2.count, 3)
+        expectEqual(HashMap.init([CollidableInt(1) : CollidableInt(1), CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res2)
 
 
         var res3 = res2
         res3[CollidableInt(1)] = nil
 
-        expectEqual(res3.count, 2)
         expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res3.contains(CollidableInt(32769_2, 32769)))
 
+        expectEqual(res3.count, 2)
+        expectEqual(HashMap.init([CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res3)
 
-        // expectEqual(HashMap.init([CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res3)
 
+        expectEqual(res1, res3)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode4() {
@@ -191,29 +204,35 @@ final class CapsuleSmokeTests: CollectionTestCase {
         res1[CollidableInt(32769_1, 32769)] = CollidableInt(32769_1, 32769)
         res1[CollidableInt(32769_2, 32769)] = CollidableInt(32769_2, 32769)
 
-        expectEqual(res1.count, 2)
         expectTrue(res1.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
+
+        expectEqual(res1.count, 2)
+        expectEqual(HashMap.init([CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res1)
 
 
         var res2 = res1
         res2[CollidableInt(5)] = CollidableInt(5)
 
-        expectEqual(res2.count, 3)
         expectTrue(res2.contains(CollidableInt(5)))
         expectTrue(res2.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
+
+        expectEqual(res2.count, 3)
+        expectEqual(HashMap.init([CollidableInt(5) : CollidableInt(5), CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res2)
 
 
         var res3 = res2
         res3[CollidableInt(5)] = nil
 
-        expectEqual(res3.count, 2)
         expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
         expectTrue(res3.contains(CollidableInt(32769_2, 32769)))
 
+        expectEqual(res3.count, 2)
+        expectEqual(HashMap.init([CollidableInt(32769_1, 32769) : CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769) : CollidableInt(32769_2, 32769)]), res3)
 
-        // expectEqual(res1, res3)
+
+        expectEqual(res1, res3)
     }
 }
 

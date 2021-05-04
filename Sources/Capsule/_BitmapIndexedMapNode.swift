@@ -248,6 +248,11 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         content[content.count - 1 - index] as! HashCollisionMapNode<Key, Value>
     }
 
+    // TODO rework temporarily duplicated methods for type-safe access (requires changing protocol)
+    func getAnyNode(_ index: Int) -> Any {
+        content[content.count - 1 - index]
+    }
+
     var hasPayload: Bool { dataMap != 0 }
 
     var payloadArity: Int { dataMap.nonzeroBitCount }
@@ -346,15 +351,40 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     }
 }
 
-extension BitmapIndexedMapNode /* : Equatable where Value : Equatable */ {
+extension BitmapIndexedMapNode : Equatable where Value : Equatable {
     static func == (lhs: BitmapIndexedMapNode<Key, Value>, rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
         lhs === rhs ||
             lhs.nodeMap == rhs.nodeMap &&
             lhs.dataMap == rhs.dataMap &&
-            deepContentEquality(lhs.content, rhs.content, lhs.content.count)
+            deepContentEquality(lhs, rhs)
     }
 
-    private static func deepContentEquality(_ a1: [Any], _ a2: [Any], _ length: Int) -> Bool {
-        preconditionFailure("Not yet implemented")
+    private static func deepContentEquality(_ lhs: BitmapIndexedMapNode<Key, Value>, _ rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
+        for index in 0..<lhs.payloadArity {
+            if (lhs.getPayload(index) != rhs.getPayload(index)) {
+                return false
+            }
+        }
+
+        /// `==` has no context on how deep the current node is located in the trie. Thus it would be beneficial making it explict
+        /// how many regular and hash-collision nodes are stored on the current level.
+
+        for index in 0..<lhs.nodeArity {
+            if let lhsNode = lhs.getAnyNode(index) as? BitmapIndexedMapNode<Key, Value>,
+               let rhsNode = rhs.getAnyNode(index) as? BitmapIndexedMapNode<Key, Value> {
+                if (lhsNode != rhsNode) {
+                    return false
+                }
+            } else if let lhsNode = lhs.getAnyNode(index) as? HashCollisionMapNode<Key, Value>,
+                      let rhsNode = rhs.getAnyNode(index) as? HashCollisionMapNode<Key, Value> {
+                if (lhsNode != rhsNode) {
+                    return false
+                }
+            } else {
+                return false
+            }
+        }
+
+        return true
     }
 }
