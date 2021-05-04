@@ -156,7 +156,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode<Key, Value> where Key : H
 
     func mergeTwoKeyValPairs(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ key1: Key, _ value1: Value, _ keyHash1: Int, _ shift: Int) -> MapNode<Key, Value> {
         if (shift >= HashCodeLength) {
-            preconditionFailure("Not yet implemented")
+            return HashCollisionMapNode(keyHash0, [(key0, value0), (key1, value1)])
         } else {
             let mask0 = maskFrom(keyHash0, shift)
             let mask1 = maskFrom(keyHash1, shift)
@@ -279,7 +279,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode<Key, Value> where Key : H
     }
 }
 
-extension BitmapIndexedMapNode /* : Equatable */ {
+extension BitmapIndexedMapNode /* : Equatable where Value : Equatable */ {
     static func == (lhs: BitmapIndexedMapNode<Key, Value>, rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
         lhs === rhs ||
             lhs.nodeMap == rhs.nodeMap &&

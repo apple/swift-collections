@@ -53,7 +53,7 @@ class MapNode<Key, Value> : Node where Key : Hashable {
     }
 }
 
-extension MapNode : Equatable {
+extension MapNode : Equatable where Value : Equatable {
     static func == (lhs: MapNode<Key, Value>, rhs: MapNode<Key, Value>) -> Bool {
         preconditionFailure("Not yet implemented")
     }
