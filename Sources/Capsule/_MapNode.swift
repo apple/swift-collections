@@ -9,52 +9,27 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO assess if convertible to a `protocol`. Variance / constraints on return types make it difficult.
-class MapNode<Key, Value> : Node where Key : Hashable {
+protocol MapNode : Node {
+    associatedtype Key : Hashable
+    associatedtype Value
 
-    func get(_ key: Key, _ hash: Int, _ shift: Int) -> Value? {
-        preconditionFailure("This method must be overridden")
-    }
+    func get(_ key: Key, _ hash: Int, _ shift: Int) -> Value?
 
-    func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool {
-        preconditionFailure("This method must be overridden")
-    }
+    func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool
 
-    func updated(_ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> MapNode<Key, Value> {
-        preconditionFailure("This method must be overridden")
-    }
+    func updated(_ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnNode
 
-    func removed(_ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> MapNode<Key, Value> {
-        preconditionFailure("This method must be overridden")
-    }
+    func removed(_ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnNode
 
-    var hasNodes: Bool {
-        preconditionFailure("This method must be overridden")
-    }
+    var hasNodes: Bool { get }
 
-    var nodeArity: Int {
-        preconditionFailure("This method must be overridden")
-    }
+    var nodeArity: Int { get }
 
-    func getNode(_ index: Int) -> MapNode<Key, Value> {
-        preconditionFailure("This method must be overridden")
-    }
+    func getNode(_ index: Int) -> ReturnNode
 
-    var hasPayload: Bool {
-        preconditionFailure("This method must be overridden")
-    }
+    var hasPayload: Bool { get }
 
-    var payloadArity: Int {
-        preconditionFailure("This method must be overridden")
-    }
+    var payloadArity: Int { get }
 
-    func getPayload(_ index: Int) -> (Key, Value) {
-        preconditionFailure("This method must be overridden")
-    }
-}
-
-extension MapNode : Equatable where Value : Equatable {
-    static func == (lhs: MapNode<Key, Value>, rhs: MapNode<Key, Value>) -> Bool {
-        preconditionFailure("Not yet implemented")
-    }
+    func getPayload(_ index: Int) -> ReturnPayload /* (Key, Value) */
 }

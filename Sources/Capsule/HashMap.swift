@@ -10,11 +10,11 @@
 //===----------------------------------------------------------------------===//
 
 public struct HashMap<Key, Value> where Key : Hashable {
-    let rootNode: MapNode<Key, Value>
+    let rootNode: BitmapIndexedMapNode<Key, Value>
     let cachedKeySetHashCode: Int
     let cachedSize: Int
     
-    fileprivate init(_ rootNode: MapNode<Key, Value>, _ cachedKeySetHashCode: Int, _ cachedSize: Int) {
+    fileprivate init(_ rootNode: BitmapIndexedMapNode<Key, Value>, _ cachedKeySetHashCode: Int, _ cachedSize: Int) {
         self.rootNode = rootNode
         self.cachedKeySetHashCode = cachedKeySetHashCode
         self.cachedSize = cachedSize
@@ -95,9 +95,9 @@ public struct HashMap<Key, Value> where Key : Hashable {
 fileprivate let EmptyMapNode = BitmapIndexedMapNode<AnyHashable, Any>(0, 0, Array())
 
 public struct MapKeyValueTupleIterator<Key : Hashable, Value> {
-    private var baseIterator: ChampBaseIterator<MapNode<Key, Value>>
+    private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>>
     
-    init(rootNode: MapNode<Key, Value>) {
+    init(rootNode: BitmapIndexedMapNode<Key, Value>) {
         self.baseIterator = ChampBaseIterator(rootNode: rootNode)
     }
 }
@@ -114,9 +114,9 @@ extension MapKeyValueTupleIterator : IteratorProtocol {
 }
 
 public struct MapKeyValueTupleReverseIterator<Key : Hashable, Value> {
-    private var baseIterator: ChampBaseReverseIterator<MapNode<Key, Value>>
+    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>>
     
-    init(rootNode: MapNode<Key, Value>) {
+    init(rootNode: BitmapIndexedMapNode<Key, Value>) {
         self.baseIterator = ChampBaseReverseIterator(rootNode: rootNode)
     }
 }
