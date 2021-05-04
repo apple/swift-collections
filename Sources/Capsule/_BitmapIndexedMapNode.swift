@@ -97,7 +97,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 if (!effect.modified) {
                     return self
                 } else {
-                    return copyAndSetCollisionNode(bitpos, subNodeNew) // NOTE difference in callee
+                    return copyAndSetNode(bitpos, subNodeNew)
                 }
             } else {
                 // regular sub-node
@@ -172,7 +172,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
                 default: // equivalent to `case 2...`
                     // modify current node (set replacement node)
-                    return copyAndSetCollisionNode(bitpos, subNodeNew) // NOTE difference in callee
+                    return copyAndSetNode(bitpos, subNodeNew)
                 }
             } else {
                 // regular sub-node
@@ -296,18 +296,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return BitmapIndexedMapNode(dataMap, nodeMap, dst)
     }
 
-    // TODO rework temporarily duplicated methods for type-safe access
-    func copyAndSetNode(_ bitpos: Int, _ newNode: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
-        let idx = self.content.count - 1 - self.nodeIndex(bitpos)
-
-        var dst = self.content
-        dst[idx] = newNode
-
-        return BitmapIndexedMapNode(dataMap, nodeMap, dst)
-    }
-
-    // TODO rework temporarily duplicated methods for type-safe access
-    func copyAndSetCollisionNode(_ bitpos: Int, _ newNode: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetNode<T: MapNode>(_ bitpos: Int, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
         let idx = self.content.count - 1 - self.nodeIndex(bitpos)
 
         var dst = self.content
