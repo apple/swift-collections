@@ -14,7 +14,7 @@ fileprivate var TupleLength: Int { 2 }
 final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     let dataMap: Int
     let nodeMap: Int
-    let content: [Any]
+    var content: [Any]
 
     init(_ dataMap: Int, _ nodeMap: Int, _ content: [Any]) {
         self.dataMap = dataMap
@@ -67,7 +67,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return false
     }
 
-    func updated(_ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout MapEffect) -> BitmapIndexedMapNode<Key, Value> {
+    func updated(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout MapEffect) -> BitmapIndexedMapNode<Key, Value> {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -77,7 +77,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
             if (key0 == key) {
                 effect.setReplacedValue()
-                return copyAndSetValue(bitpos, value)
+                return copyAndSetValue(isStorageKnownUniquelyReferenced, bitpos, value)
             } else {
                 let subNodeNew = mergeTwoKeyValPairs(key0, value0, computeHash(key0), key, value, keyHash, shift + BitPartitionSize)
                 effect.setModified()
@@ -91,25 +91,25 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 // hash-collison sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                let subNode = self.getCollisionNode(index) // NOTE difference in callee
+                var subNode = self.getCollisionNode(index) // NOTE difference in callee
 
-                let subNodeNew = subNode.updated(key, value, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.updated(isKnownUniquelyReferenced(&subNode), key, value, keyHash, shift + BitPartitionSize, &effect)
                 if (!effect.modified) {
                     return self
                 } else {
-                    return copyAndSetNode(bitpos, subNodeNew)
+                    return copyAndSetNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 }
             } else {
                 // regular sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                let subNode = self.getNode(index)
+                var subNode = self.getNode(index)
 
-                let subNodeNew = subNode.updated(key, value, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.updated(isKnownUniquelyReferenced(&subNode), key, value, keyHash, shift + BitPartitionSize, &effect)
                 if (!effect.modified) {
                     return self
                 } else {
-                    return copyAndSetNode(bitpos, subNodeNew)
+                    return copyAndSetNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 }
             }
         }
@@ -118,7 +118,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return copyAndInsertValue(bitpos, key, value)
     }
 
-    func removed(_ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout MapEffect) -> BitmapIndexedMapNode<Key, Value> {
+    func removed(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout MapEffect) -> BitmapIndexedMapNode<Key, Value> {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -152,9 +152,9 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 // hash-collison sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                let subNode = self.getCollisionNode(index) // NOTE difference in callee
+                var subNode = self.getCollisionNode(index) // NOTE difference in callee
 
-                let subNodeNew = subNode.removed(key, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.removed(isKnownUniquelyReferenced(&subNode), key, keyHash, shift + BitPartitionSize, &effect)
 
                 if (!effect.modified) { return self }
                 switch subNodeNew.payloadArity {
@@ -172,15 +172,15 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
                 default: // equivalent to `case 2...`
                     // modify current node (set replacement node)
-                    return copyAndSetNode(bitpos, subNodeNew)
+                    return copyAndSetNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 }
             } else {
                 // regular sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                let subNode = self.getNode(index)
+                var subNode = self.getNode(index)
 
-                let subNodeNew = subNode.removed(key, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.removed(isKnownUniquelyReferenced(&subNode), key, keyHash, shift + BitPartitionSize, &effect)
 
                 if (!effect.modified) { return self }
                 switch subNodeNew.payloadArity {
@@ -194,7 +194,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
                 default: // equivalent to `case 2...`
                     // modify current node (set replacement node)
-                    return copyAndSetNode(bitpos, subNodeNew)
+                    return copyAndSetNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 }
             }
         }
@@ -292,22 +292,36 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     ///
     /// Possible mitigations: transform recursive to loop where `isKnownUniquelyReferenced` could be checked from the outside.
     /// This would be very invasive though and make problem logic hard to understand and maintain.
-    func copyAndSetValue(_ bitpos: Int, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Int, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
         let idx = TupleLength * dataIndex(bitpos) + 1
 
-        var dst = self.content
-        dst[idx] = newValue
+        if (isStorageKnownUniquelyReferenced) {
+            // no copying if already editable
+            self.content[idx] = newValue
 
-        return BitmapIndexedMapNode(dataMap, nodeMap, dst)
+            return self
+        } else {
+            var dst = self.content
+            dst[idx] = newValue
+
+            return BitmapIndexedMapNode(dataMap, nodeMap, dst)
+        }
     }
 
-    func copyAndSetNode<T: MapNode>(_ bitpos: Int, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetNode<T: MapNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Int, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
         let idx = self.content.count - 1 - self.nodeIndex(bitpos)
 
-        var dst = self.content
-        dst[idx] = newNode
+        if (isStorageKnownUniquelyReferenced) {
+            // no copying if already editable
+            self.content[idx] = newNode
 
-        return BitmapIndexedMapNode(dataMap, nodeMap, dst)
+            return self
+        } else {
+            var dst = self.content
+            dst[idx] = newNode
+
+            return BitmapIndexedMapNode(dataMap, nodeMap, dst)
+        }
     }
 
     func copyAndInsertValue(_ bitpos: Int, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
