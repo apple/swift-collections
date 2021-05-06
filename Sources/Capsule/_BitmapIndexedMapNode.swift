@@ -91,9 +91,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 // hash-collison sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                var subNode = self.getCollisionNode(index) // NOTE difference in callee
+                let subNodeModifyInPlace = self.isNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+                let subNode = self.getCollisionNode(index) // NOTE difference in callee
 
-                let subNodeNew = subNode.updated(isKnownUniquelyReferenced(&subNode), key, value, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.updated(subNodeModifyInPlace, key, value, keyHash, shift + BitPartitionSize, &effect)
                 if (!effect.modified) {
                     return self
                 } else {
@@ -103,9 +104,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 // regular sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                var subNode = self.getNode(index)
+                let subNodeModifyInPlace = self.isNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+                let subNode = self.getNode(index)
 
-                let subNodeNew = subNode.updated(isKnownUniquelyReferenced(&subNode), key, value, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.updated(subNodeModifyInPlace, key, value, keyHash, shift + BitPartitionSize, &effect)
                 if (!effect.modified) {
                     return self
                 } else {
@@ -152,9 +154,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 // hash-collison sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                var subNode = self.getCollisionNode(index) // NOTE difference in callee
+                let subNodeModifyInPlace = self.isNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+                let subNode = self.getCollisionNode(index) // NOTE difference in callee
 
-                let subNodeNew = subNode.removed(isKnownUniquelyReferenced(&subNode), key, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + BitPartitionSize, &effect)
 
                 if (!effect.modified) { return self }
                 switch subNodeNew.payloadArity {
@@ -178,9 +181,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 // regular sub-node
 
                 let index = indexFrom(nodeMap, mask, bitpos)
-                var subNode = self.getNode(index)
+                let subNodeModifyInPlace = self.isNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+                let subNode = self.getNode(index)
 
-                let subNodeNew = subNode.removed(isKnownUniquelyReferenced(&subNode), key, keyHash, shift + BitPartitionSize, &effect)
+                let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + BitPartitionSize, &effect)
 
                 if (!effect.modified) { return self }
                 switch subNodeNew.payloadArity {
@@ -251,6 +255,23 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     // TODO rework temporarily duplicated methods for type-safe access (requires changing protocol)
     func getAnyNode(_ index: Int) -> Any {
         content[content.count - 1 - index]
+    }
+
+
+    // TODO replace 'manual' move semantics with pointer arithmetic for obtaining reference
+    // to pass into `isKnownUniquelyReferenced`
+    private func isNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
+        let slotIndex = content.count - 1 - index
+
+        let fakeNode = BitmapIndexedMapNode(0, 0, Array())
+
+        var realNode = content[slotIndex] as AnyObject
+        content[slotIndex] = fakeNode
+
+        let isKnownUniquelyReferenced = isKnownUniquelyReferenced(&realNode)
+        content[slotIndex] = realNode
+
+        return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
 
     var hasPayload: Bool { dataMap != 0 }
