@@ -48,6 +48,103 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectEqual(map[2], nil)
     }
 
+    func testTriggerOverwrite1() {
+        let map: HashMap<Int, String> = [ 1 : "a", 2 : "b" ]
+
+        let _ = map
+            .with(key: 1, value: "x") // triggers COW
+            .with(key: 2, value: "y") // triggers COW
+
+        var res1: HashMap<Int, String> = [:]
+        res1.insert(key: 1, value: "a") // in-place
+        res1.insert(key: 2, value: "b") // in-place
+
+        var res2: HashMap<Int, String> = [:]
+        res2[1] = "a" // in-place
+        res2[2] = "b" // in-place
+
+        var res3: HashMap<Int, String> = res2
+        res3[1] = "x" // triggers COW
+        res3[2] = "y" // in-place
+
+        expectEqual(res2.count, 2)
+        expectEqual(res2.get(1), "a")
+        expectEqual(res2.get(2), "b")
+
+        expectEqual(res3.count, 2)
+        expectEqual(res3.get(1), "x")
+        expectEqual(res3.get(2), "y")
+    }
+
+    func testTriggerOverwrite2() {
+        var res1: HashMap<CollidableInt, String> = [:]
+        res1.insert(key: CollidableInt(10, 01), value: "a") // in-place
+        res1.insert(key: CollidableInt(11, 33), value: "a") // in-place
+        res1.insert(key: CollidableInt(20, 02), value: "b") // in-place
+
+        res1.insert(key: CollidableInt(10, 01), value: "x") // in-place
+        res1.insert(key: CollidableInt(11, 33), value: "x") // in-place
+        res1.insert(key: CollidableInt(20, 02), value: "y") // in-place
+
+        print("Yeah!")
+
+        var res2: HashMap<CollidableInt, String> = res1
+        res2.insert(key: CollidableInt(10, 01), value: "a") // triggers COW
+        res2.insert(key: CollidableInt(11, 33), value: "a") // in-place
+        res2.insert(key: CollidableInt(20, 02), value: "b") // in-place
+
+        print("Yeah!")
+
+        expectEqual(res1.get(CollidableInt(10, 01)), "x")
+        expectEqual(res1.get(CollidableInt(11, 33)), "x")
+        expectEqual(res1.get(CollidableInt(20, 02)), "y")
+
+        expectEqual(res2.get(CollidableInt(10, 01)), "a")
+        expectEqual(res2.get(CollidableInt(11, 33)), "a")
+        expectEqual(res2.get(CollidableInt(20, 02)), "b")
+
+    }
+
+    func testTriggerOverwrite3() {
+        let upperBound = 1_000_000
+
+        var map1: HashMap<Int, String> = [:]
+        for index in 0..<upperBound {
+            map1[index] = "+\(index)"
+        }
+
+        print("Populated `map1`")
+
+        var map2: HashMap<Int, String> = map1
+        for index in 0..<upperBound {
+            map2[index] = "-\(index)"
+        }
+
+        print("Populated `map2`")
+
+        expectEqual(map1.count, upperBound)
+        expectEqual(map2.count, upperBound)
+
+        for index in 0..<upperBound {
+            expectEqual(map1[index], "+\(index)")
+            expectEqual(map2[index], "-\(index)")
+        }
+
+        print("Tested `map1` and `map2`")
+
+        var map3: HashMap<Int, String> = map2
+        for index in 0..<upperBound {
+            map3[index] = nil
+        }
+
+        print("Populated `map3`")
+
+        // Assertion currently fails, likely due to a concurrency issue when updating
+        // the `cachedSize` when deleting. The map content itself is correct, but the
+        // size doesn't reflect it.
+        expectEqual(map3.count, 0)
+    }
+
     private func hashPair<Key : Hashable, Value : Hashable>(_ k: Key, _ v: Value) -> Int {
         var hasher = Hasher()
         hasher.combine(k)
