@@ -108,16 +108,16 @@ final class CapsuleSmokeTests: CollectionTestCase {
     func testTriggerOverwrite3() {
         let upperBound = 1_000
 
-        var map1: HashMap<Int, String> = [:]
+        var map1: HashMap<CollidableInt, String> = [:]
         for index in 0..<upperBound {
-            map1[index] = "+\(index)"
+            map1[CollidableInt(index)] = "+\(index)"
         }
 
         print("Populated `map1`")
 
-        var map2: HashMap<Int, String> = map1
+        var map2: HashMap<CollidableInt, String> = map1
         for index in 0..<upperBound {
-            map2[index] = "-\(index)"
+            map2[CollidableInt(index)] = "-\(index)"
         }
 
         print("Populated `map2`")
@@ -126,15 +126,15 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectEqual(map2.count, upperBound)
 
         for index in 0..<upperBound {
-            expectEqual(map1[index], "+\(index)")
-            expectEqual(map2[index], "-\(index)")
+            expectEqual(map1[CollidableInt(index)], "+\(index)")
+            expectEqual(map2[CollidableInt(index)], "-\(index)")
         }
 
         print("Tested `map1` and `map2`")
 
-        var map3: HashMap<Int, String> = map2
+        var map3: HashMap<CollidableInt, String> = map2
         for index in 0..<upperBound {
-            map3[index] = nil
+            map3[CollidableInt(index)] = nil
         }
 
         print("Populated `map3`")
