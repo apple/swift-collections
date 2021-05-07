@@ -52,8 +52,8 @@ final class CapsuleSmokeTests: CollectionTestCase {
         let map: HashMap<Int, String> = [ 1 : "a", 2 : "b" ]
 
         let _ = map
-            .with(key: 1, value: "x") // triggers COW
-            .with(key: 2, value: "y") // triggers COW
+            .inserting(key: 1, value: "x") // triggers COW
+            .inserting(key: 2, value: "y") // triggers COW
 
         var res1: HashMap<Int, String> = [:]
         res1.insert(key: 1, value: "a") // in-place

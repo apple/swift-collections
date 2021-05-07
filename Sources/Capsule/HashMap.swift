@@ -92,7 +92,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
     }
 
     // fluid/immutable API
-    public func with(key: Key, value: Value) -> Self {
+    public func inserting(key: Key, value: Value) -> Self {
         var effect = MapEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updated(false, key, value, keyHash, 0, &effect)
@@ -125,7 +125,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
     }
 
     // fluid/immutable API
-    public func without(key: Key) -> Self {
+    public func deleting(key: Key) -> Self {
         var effect = MapEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removed(false, key, keyHash, 0, &effect)

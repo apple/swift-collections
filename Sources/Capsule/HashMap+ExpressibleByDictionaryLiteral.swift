@@ -12,9 +12,7 @@
 extension HashMap : ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (Key, Value)...) {
         let map = elements.reduce(Self()) { (map, element) in let (key, value) = element
-            var tmp = map
-            tmp.insert(key: key, value: value)
-            return tmp
+            return map.inserting(key: key, value: value)
         }
         self.init(map)
     }
