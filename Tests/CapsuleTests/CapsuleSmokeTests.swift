@@ -15,7 +15,7 @@ import _CollectionsTestSupport
 final class CapsuleSmokeTests: CollectionTestCase {
     func testSubscriptAdd() {
         var map: HashMap<Int, String> = [ 1 : "a", 2 : "b" ]
-        
+
         map[3] = "x"
         map[4] = "y"
 
@@ -28,7 +28,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
     func testSubscriptOverwrite() {
         var map: HashMap<Int, String> = [ 1 : "a", 2 : "b" ]
-        
+
         map[1] = "x"
         map[2] = "y"
 
@@ -36,13 +36,13 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectEqual(map[1], "x")
         expectEqual(map[2], "y")
     }
-    
+
     func testSubscriptRemove() {
         var map: HashMap<Int, String> = [ 1 : "a", 2 : "b" ]
-        
+
         map[1] = nil
         map[2] = nil
-        
+
         expectEqual(map.count, 0)
         expectEqual(map[1], nil)
         expectEqual(map[2], nil)
@@ -368,7 +368,11 @@ fileprivate final class CollidableInt : CustomStringConvertible, Equatable, Hash
     }
 
     static func == (lhs: CollidableInt, rhs: CollidableInt) -> Bool {
-        return lhs.value == rhs.value
+        if lhs.value == rhs.value {
+            precondition(lhs.hashValue == rhs.hashValue)
+            return true
+        }
+        return false
     }
 }
 
