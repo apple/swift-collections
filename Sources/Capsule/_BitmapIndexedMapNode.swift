@@ -283,9 +283,9 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
          content[TupleLength * index + 1] as! Value)
     }
 
-    func dataIndex(_ bitpos: Int) -> Int { (dataMap & (bitpos - 1)).nonzeroBitCount }
+    func dataIndex(_ bitpos: Int) -> Int { (dataMap & (bitpos &- 1)).nonzeroBitCount }
 
-    func nodeIndex(_ bitpos: Int) -> Int { (nodeMap & (bitpos - 1)).nonzeroBitCount }
+    func nodeIndex(_ bitpos: Int) -> Int { (nodeMap & (bitpos &- 1)).nonzeroBitCount }
 
     /// TODO: leverage lazy copy-on-write only when aliased. The pattern required by the current data structure design
     /// isn't expressible in Swift currently (i.e., `isKnownUniquelyReferenced(&self)` isn't supported). Example:

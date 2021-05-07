@@ -32,7 +32,7 @@ func bitposFrom(_ mask: Int) -> Int {
 }
 
 func indexFrom(_ bitmap: Int, _ bitpos: Int) -> Int {
-    (bitmap & (bitpos - 1)).nonzeroBitCount
+    (bitmap & (bitpos &- 1)).nonzeroBitCount
 }
 
 func indexFrom(_ bitmap: Int, _ mask: Int, _ bitpos: Int) -> Int {
