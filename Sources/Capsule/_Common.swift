@@ -17,7 +17,7 @@ func computeHash<T : Hashable>(_ value: T) -> Int {
 
 var HashCodeLength: Int { Int.bitWidth }
 
-var BitPartitionSize: Int { 5 }
+var BitPartitionSize: Int { 6 }
 
 var BitPartitionMask: Int { (1 << BitPartitionSize) - 1 }
 
