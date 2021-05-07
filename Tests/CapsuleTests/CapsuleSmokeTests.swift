@@ -106,7 +106,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testTriggerOverwrite3() {
-        let upperBound = 1_000_000
+        let upperBound = 1_000
 
         var map1: HashMap<Int, String> = [:]
         for index in 0..<upperBound {
@@ -216,6 +216,18 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
         expectEqual(resX.count, 2)
         expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1), CollidableInt(32769) : CollidableInt(32769)]), resX)
+
+
+        var resY = res1
+        resY[CollidableInt(32769)] = CollidableInt(32769)
+        resY[CollidableInt(32769)] = nil
+
+        expectTrue(resY.contains(CollidableInt(11, 1)))
+        expectTrue(resY.contains(CollidableInt(12, 1)))
+        expectFalse(resY.contains(CollidableInt(32769)))
+
+        expectEqual(resY.count, 2)
+        expectEqual(HashMap.init([CollidableInt(11, 1) : CollidableInt(11, 1), CollidableInt(12, 1) : CollidableInt(12, 1)]), resY)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode2() {

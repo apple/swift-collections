@@ -17,7 +17,7 @@ func computeHash<T : Hashable>(_ value: T) -> Int {
 
 typealias Bitmap = Int64
 
-let BitPartitionSize: Int = 6
+let BitPartitionSize: Int = 5
 
 let BitPartitionMask: Int = (1 << BitPartitionSize) - 1
 
@@ -44,12 +44,19 @@ func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
 protocol Node {
     associatedtype ReturnPayload
     associatedtype ReturnNode : Node
+    associatedtype ReturnCollisionNode : Node
     
     var hasNodes: Bool { get }
     
     var nodeArity: Int { get }
     
     func getNode(_ index: Int) -> ReturnNode
+
+    var hasCollisionNodes: Bool { get }
+
+    var collisionNodeArity: Int { get }
+
+    func getCollisionNode(_ index: Int) -> ReturnCollisionNode
     
     var hasPayload: Bool { get }
     
