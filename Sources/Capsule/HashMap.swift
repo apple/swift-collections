@@ -21,7 +21,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
     }
     
     public init() {
-        self.init(BitmapIndexedMapNode(0, 0, Array()), 0, 0)
+        self.init(BitmapIndexedMapNode(0, 0, 0, Array()), 0, 0)
     }
     
     public init(_ map: HashMap<Key, Value>) {
@@ -135,8 +135,6 @@ public struct HashMap<Key, Value> where Key : Hashable {
         } else { return self }
     }
 }
-
-fileprivate let EmptyMapNode = BitmapIndexedMapNode<AnyHashable, Any>(0, 0, Array())
 
 public struct MapKeyValueTupleIterator<Key : Hashable, Value> {
     private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>>

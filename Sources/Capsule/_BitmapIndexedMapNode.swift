@@ -12,13 +12,19 @@
 fileprivate var TupleLength: Int { 2 }
 
 final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
-    let dataMap: Bitmap
-    let nodeMap: Bitmap
+    let bitmap1: Bitmap
+    let bitmap2: Bitmap
     var content: [Any]
 
-    init(_ dataMap: Bitmap, _ nodeMap: Bitmap, _ content: [Any]) {
-        self.dataMap = dataMap
-        self.nodeMap = nodeMap
+    var dataMap: Bitmap { bitmap1 ^ collMap }
+
+    var nodeMap: Bitmap { bitmap2 ^ collMap }
+
+    var collMap: Bitmap { bitmap1 & bitmap2 }
+
+    init(_ dataMap: Bitmap, _ nodeMap: Bitmap, _ collMap: Bitmap, _ content: [Any]) {
+        self.bitmap1 = dataMap ^ collMap
+        self.bitmap2 = nodeMap ^ collMap
         self.content = content
     }
 
@@ -139,10 +145,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                     if (shift == 0) { newDataMap = (dataMap ^ bitpos) } else { newDataMap = bitposFrom(maskFrom(keyHash, 0)) }
                     if (index == 0) {
                         let (k, v) = getPayload(1)
-                        return BitmapIndexedMapNode(newDataMap, 0, Array(arrayLiteral: k, v) )
+                        return BitmapIndexedMapNode(newDataMap, 0, 0, Array(arrayLiteral: k, v) )
                     } else {
                         let (k, v) = getPayload(0)
-                        return BitmapIndexedMapNode(newDataMap, 0, Array(arrayLiteral: k, v))
+                        return BitmapIndexedMapNode(newDataMap, 0, 0, Array(arrayLiteral: k, v))
                     }
                 } else { return copyAndRemoveValue(bitpos) }
             } else { return self }
@@ -167,7 +173,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                         let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
                         let (k, v) = subNodeNew.getPayload(0)
 
-                        return BitmapIndexedMapNode(newDataMap, 0, Array(arrayLiteral: k, v))
+                        return BitmapIndexedMapNode(newDataMap, 0, 0, Array(arrayLiteral: k, v))
                     }
                     else { // inline value (move to front)
                         return copyAndMigrateFromNodeToInline(bitpos, subNodeNew.getPayload(0))
@@ -215,25 +221,25 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             let dataMap = bitposFrom(mask0) | bitposFrom(mask1)
 
             if (mask0 < mask1) {
-                return BitmapIndexedMapNode(dataMap, 0, Array(arrayLiteral: key0, value0, key1, value1))
+                return BitmapIndexedMapNode(dataMap, 0, 0, Array(arrayLiteral: key0, value0, key1, value1))
             } else {
-                return BitmapIndexedMapNode(dataMap, 0, Array(arrayLiteral: key1, value1, key0, value0))
+                return BitmapIndexedMapNode(dataMap, 0, 0, Array(arrayLiteral: key1, value1, key0, value0))
             }
         } else {
             if (shift + BitPartitionSize >= HashCodeLength) {
                 // hash collision: prefix exhausted on next level
 
-                let nodeMap = bitposFrom(mask0)
+                let collMap = bitposFrom(mask0)
                 let node = HashCollisionMapNode(keyHash0, [(key0, value0), (key1, value1)])
 
-                return BitmapIndexedMapNode(0, nodeMap, Array(arrayLiteral: node))
+                return BitmapIndexedMapNode(0, collMap, 0, Array(arrayLiteral: node)) // TODO swap `collMap` <-> `0`
             } else {
                 // recurse: identical prefixes, payload must be disambiguated deeper in the trie
 
                 let nodeMap = bitposFrom(mask0)
                 let node = mergeTwoKeyValPairs(key0, value0, keyHash0, key1, value1, keyHash1, shift + BitPartitionSize)
 
-                return BitmapIndexedMapNode(0, nodeMap, Array(arrayLiteral: node))
+                return BitmapIndexedMapNode(0, nodeMap, 0, Array(arrayLiteral: node))
             }
         }
     }
@@ -263,7 +269,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     private func isNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
         let slotIndex = content.count - 1 - index
 
-        let fakeNode = BitmapIndexedMapNode(0, 0, Array())
+        let fakeNode = BitmapIndexedMapNode(0, 0, 0, Array())
 
         var realNode = content[slotIndex] as AnyObject
         content[slotIndex] = fakeNode
@@ -325,7 +331,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             var dst = self.content
             dst[idx] = newValue
 
-            return BitmapIndexedMapNode(dataMap, nodeMap, dst)
+            return BitmapIndexedMapNode(dataMap, nodeMap, collMap, dst)
         }
     }
 
@@ -341,7 +347,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             var dst = self.content
             dst[idx] = newNode
 
-            return BitmapIndexedMapNode(dataMap, nodeMap, dst)
+            return BitmapIndexedMapNode(dataMap, nodeMap, collMap, dst)
         }
     }
 
@@ -351,7 +357,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         var dst = self.content
         dst.insert(contentsOf: [key, value], at: idx)
 
-        return BitmapIndexedMapNode(dataMap | bitpos, nodeMap, dst)
+        return BitmapIndexedMapNode(dataMap | bitpos, nodeMap, collMap, dst)
     }
 
     func copyAndRemoveValue(_ bitpos: Bitmap) -> BitmapIndexedMapNode<Key, Value> {
@@ -360,7 +366,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         var dst = self.content
         dst.removeSubrange(idx..<idx+TupleLength)
 
-        return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap, dst)
+        return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap, collMap, dst)
     }
 
     func copyAndMigrateFromInlineToNode(_ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
@@ -371,7 +377,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         dst.removeSubrange(idxOld..<idxOld+TupleLength)
         dst.insert(node, at: idxNew)
 
-        return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap | bitpos, dst)
+        return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap | bitpos, collMap, dst) // TODO check correctness
     }
 
     func copyAndMigrateFromNodeToInline(_ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
@@ -382,7 +388,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         dst.remove(at: idxOld)
         dst.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
 
-        return BitmapIndexedMapNode(dataMap | bitpos, nodeMap ^ bitpos, dst)
+        return BitmapIndexedMapNode(dataMap | bitpos, nodeMap ^ bitpos, collMap, dst) // TODO check correctness
     }
 }
 
