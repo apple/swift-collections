@@ -15,11 +15,13 @@ func computeHash<T : Hashable>(_ value: T) -> Int {
     value.hashValue
 }
 
-var HashCodeLength: Int { Int.bitWidth }
+typealias Bitmap = Int64
 
-var BitPartitionSize: Int { 6 }
+let BitPartitionSize: Int = 6
 
-var BitPartitionMask: Int { (1 << BitPartitionSize) - 1 }
+let BitPartitionMask: Int = (1 << BitPartitionSize) - 1
+
+let HashCodeLength: Int = Int.bitWidth
 
 let MaxDepth = Int(ceil(Double(HashCodeLength) / Double(BitPartitionSize)))
 
@@ -27,15 +29,15 @@ func maskFrom(_ hash: Int, _ shift: Int) -> Int {
     (hash >> shift) & BitPartitionMask
 }
 
-func bitposFrom(_ mask: Int) -> Int {
+func bitposFrom(_ mask: Int) -> Bitmap {
     1 << mask
 }
 
-func indexFrom(_ bitmap: Int, _ bitpos: Int) -> Int {
+func indexFrom(_ bitmap: Bitmap, _ bitpos: Bitmap) -> Int {
     (bitmap & (bitpos &- 1)).nonzeroBitCount
 }
 
-func indexFrom(_ bitmap: Int, _ mask: Int, _ bitpos: Int) -> Int {
+func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
     (bitmap == -1) ? mask : indexFrom(bitmap, bitpos)
 }
 

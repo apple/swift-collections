@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import _CollectionsTestSupport
-@_spi(Testing) import Capsule
+@testable import Capsule
 
 final class CapsuleSmokeTests: CollectionTestCase {
     func testSubscriptAdd() {
@@ -357,5 +357,13 @@ fileprivate final class CollidableInt : CustomStringConvertible, Equatable, Hash
 
     static func == (lhs: CollidableInt, rhs: CollidableInt) -> Bool {
         return lhs.value == rhs.value
+    }
+}
+
+final class BitmapSmokeTests: CollectionTestCase {
+    func test_BitPartitionSize_isValid() {
+        expectTrue(BitPartitionSize > 0)
+        expectTrue((2 << (BitPartitionSize - 1)) != 0)
+        expectTrue((2 << (BitPartitionSize - 1)) <= Bitmap.bitWidth)
     }
 }

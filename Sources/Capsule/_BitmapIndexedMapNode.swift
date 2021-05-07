@@ -12,11 +12,11 @@
 fileprivate var TupleLength: Int { 2 }
 
 final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
-    let dataMap: Int
-    let nodeMap: Int
+    let dataMap: Bitmap
+    let nodeMap: Bitmap
     var content: [Any]
 
-    init(_ dataMap: Int, _ nodeMap: Int, _ content: [Any]) {
+    init(_ dataMap: Bitmap, _ nodeMap: Bitmap, _ content: [Any]) {
         self.dataMap = dataMap
         self.nodeMap = nodeMap
         self.content = content
@@ -135,7 +135,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                      * Create new node with remaining pair. The new node will a) either become the new root
                      * returned, or b) unwrapped and inlined during returning.
                      */
-                    let newDataMap: Int
+                    let newDataMap: Bitmap
                     if (shift == 0) { newDataMap = (dataMap ^ bitpos) } else { newDataMap = bitposFrom(maskFrom(keyHash, 0)) }
                     if (index == 0) {
                         let (k, v) = getPayload(1)
@@ -164,7 +164,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 case 1:
                     if (self.payloadArity == 0 && self.nodeArity == 1) { // escalate (singleton or empty) result
                         // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
-                        let newDataMap: Int = bitposFrom(maskFrom(subNodeNew.hash, 0))
+                        let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
                         let (k, v) = subNodeNew.getPayload(0)
 
                         return BitmapIndexedMapNode(newDataMap, 0, Array(arrayLiteral: k, v))
@@ -283,9 +283,9 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
          content[TupleLength * index + 1] as! Value)
     }
 
-    func dataIndex(_ bitpos: Int) -> Int { (dataMap & (bitpos &- 1)).nonzeroBitCount }
+    func dataIndex(_ bitpos: Bitmap) -> Int { (dataMap & (bitpos &- 1)).nonzeroBitCount }
 
-    func nodeIndex(_ bitpos: Int) -> Int { (nodeMap & (bitpos &- 1)).nonzeroBitCount }
+    func nodeIndex(_ bitpos: Bitmap) -> Int { (nodeMap & (bitpos &- 1)).nonzeroBitCount }
 
     /// TODO: leverage lazy copy-on-write only when aliased. The pattern required by the current data structure design
     /// isn't expressible in Swift currently (i.e., `isKnownUniquelyReferenced(&self)` isn't supported). Example:
@@ -313,7 +313,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     ///
     /// Possible mitigations: transform recursive to loop where `isKnownUniquelyReferenced` could be checked from the outside.
     /// This would be very invasive though and make problem logic hard to understand and maintain.
-    func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Int, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
         let idx = TupleLength * dataIndex(bitpos) + 1
 
         if (isStorageKnownUniquelyReferenced) {
@@ -329,7 +329,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         }
     }
 
-    func copyAndSetNode<T: MapNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Int, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetNode<T: MapNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
         let idx = self.content.count - 1 - self.nodeIndex(bitpos)
 
         if (isStorageKnownUniquelyReferenced) {
@@ -345,7 +345,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         }
     }
 
-    func copyAndInsertValue(_ bitpos: Int, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndInsertValue(_ bitpos: Bitmap, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
         let idx = TupleLength * dataIndex(bitpos)
 
         var dst = self.content
@@ -354,7 +354,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return BitmapIndexedMapNode(dataMap | bitpos, nodeMap, dst)
     }
 
-    func copyAndRemoveValue(_ bitpos: Int) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndRemoveValue(_ bitpos: Bitmap) -> BitmapIndexedMapNode<Key, Value> {
         let idx = TupleLength * dataIndex(bitpos)
 
         var dst = self.content
@@ -363,7 +363,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap, dst)
     }
 
-    func copyAndMigrateFromInlineToNode(_ bitpos: Int, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromInlineToNode(_ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
         let idxOld = TupleLength * dataIndex(bitpos)
         let idxNew = self.content.count - TupleLength - nodeIndex(bitpos)
 
@@ -374,7 +374,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap | bitpos, dst)
     }
 
-    func copyAndMigrateFromNodeToInline(_ bitpos: Int, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromNodeToInline(_ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
         let idxOld = self.content.count - 1 - nodeIndex(bitpos)
         let idxNew = TupleLength * dataIndex(bitpos)
 
