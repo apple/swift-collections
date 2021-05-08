@@ -115,7 +115,7 @@ extension OrderedSet {
   @inlinable
   internal mutating func _insertNew(
     _ item: Element,
-    at index: Index,
+    at index: Int,
     in bucket: _Bucket
   ) {
     guard _elements.count < _capacity else {
@@ -155,8 +155,8 @@ extension OrderedSet {
   @discardableResult
   public mutating func insert(
     _ item: Element,
-    at index: Index
-  ) -> (inserted: Bool, index: Index) {
+    at index: Int
+  ) -> (inserted: Bool, index: Int) {
     let (existing, bucket) = _find(item)
     if let existing = existing { return (false, existing) }
     _insertNew(item, at: index, in: bucket)
@@ -181,7 +181,7 @@ extension OrderedSet {
   /// - Complexity: Amortized O(1).
   @inlinable
   @discardableResult
-  public mutating func update(_ item: Element, at index: Index) -> Element {
+  public mutating func update(_ item: Element, at index: Int) -> Element {
     let old = _elements[index]
     precondition(
       item == old,
@@ -239,8 +239,8 @@ extension OrderedSet {
   @discardableResult
   public mutating func updateOrInsert(
     _ item: Element,
-    at index: Index
-  ) -> (originalMember: Element?, index: Index) {
+    at index: Int
+  ) -> (originalMember: Element?, index: Int) {
     let (existing, bucket) = _find(item)
     if let existing = existing {
       let old = _elements[existing]

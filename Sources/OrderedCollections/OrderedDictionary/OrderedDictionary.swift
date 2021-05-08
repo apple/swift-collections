@@ -120,8 +120,8 @@
 /// existing members:
 ///
 ///     // Permutation operations from MutableCollection:
-///     func swapAt(_ i: Index, _ j: Index)
-///     func partition(by predicate: (Element) throws -> Bool) -> rethrows Index
+///     func swapAt(_ i: Int, _ j: Int)
+///     func partition(by predicate: (Element) throws -> Bool) -> rethrows Int
 ///     func sort() where Element: Comparable
 ///     func sort(by predicate: (Element, Element) throws -> Bool) rethrows
 ///     func shuffle()
@@ -129,7 +129,7 @@
 ///
 ///     // Removal operations from RangeReplaceableCollection:
 ///     func removeAll(keepingCapacity: Bool = false)
-///     func remove(at index: Index) -> Element
+///     func remove(at index: Int) -> Element
 ///     func removeSubrange(_ bounds: Range<Int>)
 ///     func removeLast() -> Element
 ///     func removeLast(_ n: Int)
@@ -284,7 +284,7 @@ extension OrderedDictionary {
   ///    high-quality hashing.
   @inlinable
   @inline(__always)
-  public func index(forKey key: Key) -> Index? {
+  public func index(forKey key: Key) -> Int? {
     _keys.firstIndex(of: key)
   }
 
@@ -298,7 +298,7 @@ extension OrderedDictionary {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(offset offset: Index) -> Element {
+  public subscript(offset offset: Int) -> Element {
     (_keys[offset], _values[offset])
   }
 }
@@ -616,8 +616,8 @@ extension OrderedDictionary {
   public mutating func updateValue(
     _ value: Value,
     forKey key: Key,
-    insertingAt index: Index
-  ) -> (originalMember: Value?, index: Index) {
+    insertingAt index: Int
+  ) -> (originalMember: Value?, index: Int) {
     let (inserted, offset) = _keys.insert(key, at: index)
     if inserted {
       assert(offset == index)

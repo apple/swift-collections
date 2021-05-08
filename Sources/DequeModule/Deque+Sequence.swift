@@ -43,7 +43,7 @@ extension Deque: Sequence {
     }
 
     @inlinable
-    internal init(_base: Deque, from index: Index) {
+    internal init(_base: Deque, from index: Int) {
       assert(index <= _base.count)
       self = _base._storage.read { handle in
         let start = handle.slot(forOffset: index)

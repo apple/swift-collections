@@ -47,7 +47,7 @@ extension Deque: RangeReplaceableCollection {
   ///    `subrange`.
   @inlinable
   public mutating func replaceSubrange<C: Collection>(
-    _ subrange: Range<Index>,
+    _ subrange: Range<Int>,
     with newElements: __owned C
   ) where C.Element == Element {
     precondition(subrange.lowerBound >= 0 && subrange.upperBound <= count, "Index range out of bounds")
@@ -272,7 +272,7 @@ extension Deque: RangeReplaceableCollection {
   ///    elements that need to be moved. When inserting at the start or the end,
   ///    this reduces the complexity to amortized O(1).
   @inlinable
-  public mutating func insert(_ newElement: Element, at index: Index) {
+  public mutating func insert(_ newElement: Element, at index: Int) {
     precondition(index >= 0 && index <= count,
                  "Can't insert element at invalid index")
     _storage.ensureUnique(minimumCapacity: count + 1)
@@ -310,7 +310,7 @@ extension Deque: RangeReplaceableCollection {
   ///    amortized O(1).
   @inlinable
   public mutating func insert<C: Collection>(
-    contentsOf newElements: __owned C, at index: Index
+    contentsOf newElements: __owned C, at index: Int
   ) where C.Element == Element {
     precondition(index >= 0 && index <= count,
                  "Can't insert elements at an invalid index")
@@ -338,7 +338,7 @@ extension Deque: RangeReplaceableCollection {
   ///    deque costs O(1) if the deque's storage isn't shared.
   @inlinable
   @discardableResult
-  public mutating func remove(at index: Index) -> Element {
+  public mutating func remove(at index: Int) -> Element {
     precondition(index >= 0 && index < self.count, "Index out of bounds")
     // FIXME: Implement storage shrinking
     _storage.ensureUnique()
@@ -364,7 +364,7 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: O(`count`). Removing elements from the start or end of the
   ///    deque costs O(`bounds.count`) if the deque's storage isn't shared.
   @inlinable
-  public mutating func removeSubrange(_ bounds: Range<Index>) {
+  public mutating func removeSubrange(_ bounds: Range<Int>) {
     precondition(bounds.lowerBound >= 0 && bounds.upperBound <= self.count,
                  "Index range out of bounds")
     _storage.ensureUnique()

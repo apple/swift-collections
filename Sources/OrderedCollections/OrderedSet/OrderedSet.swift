@@ -66,7 +66,7 @@
 /// it provides its own variants for insertion that are more explicit about
 /// where in the collection new elements gets inserted:
 ///
-///     func insert(_ item: Element, at index: Index) -> (inserted: Bool, index: Int)
+///     func insert(_ item: Element, at index: Int) -> (inserted: Bool, index: Int)
 ///     func append(_ item: Element) -> (inserted: Bool, index: Int)
 ///     func update(at index: Int, with item: Element) -> Element
 ///     func updateOrAppend(_ item: Element) -> Element?
@@ -381,13 +381,13 @@ extension OrderedSet {
 
 extension OrderedSet {
   @inlinable
-  internal func _find(_ item: Element) -> (index: Index?, bucket: _Bucket) {
+  internal func _find(_ item: Element) -> (index: Int?, bucket: _Bucket) {
     _find_inlined(item)
   }
 
   @inlinable
   @inline(__always)
-  internal func _find_inlined(_ item: Element) -> (index: Index?, bucket: _Bucket) {
+  internal func _find_inlined(_ item: Element) -> (index: Int?, bucket: _Bucket) {
     _elements.withUnsafeBufferPointer { elements in
       guard let table = _table else {
         return (elements.firstIndex(of: item), _Bucket(offset: 0))
@@ -399,7 +399,7 @@ extension OrderedSet {
   }
 
   @inlinable
-  internal func _bucket(for index: Index) -> _Bucket {
+  internal func _bucket(for index: Int) -> _Bucket {
     guard let table = _table else { return _Bucket(offset: 0) }
     return table.read { hashTable in
       var it = hashTable.bucketIterator(for: _elements[index])
@@ -419,7 +419,7 @@ extension OrderedSet {
   ///    average, provided that `Element` implements high-quality hashing.
   @inlinable
   @inline(__always)
-  public func firstIndex(of element: Element) -> Index? {
+  public func firstIndex(of element: Element) -> Int? {
     _find(element).index
   }
 
@@ -433,7 +433,7 @@ extension OrderedSet {
   ///    average, provided that `Element` implements high-quality hashing.
   @inlinable
   @inline(__always)
-  public func lastIndex(of element: Element) -> Index? {
+  public func lastIndex(of element: Element) -> Int? {
     _find(element).index
   }
 }
@@ -468,7 +468,7 @@ extension OrderedSet {
   @inlinable
   @discardableResult
   internal mutating func _removeExistingMember(
-    at index: Index,
+    at index: Int,
     in bucket: _Bucket
   ) -> Element {
     guard _elements.count - 1 >= _minimumCapacity else {
