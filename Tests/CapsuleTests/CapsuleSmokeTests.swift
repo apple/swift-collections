@@ -135,13 +135,16 @@ final class CapsuleSmokeTests: CollectionTestCase {
         var map3: HashMap<CollidableInt, String> = map2
         for index in 0..<upperBound {
             map3[CollidableInt(index)] = nil
+
+            expectEqual(map3.cachedSize, inferSize(map3))
+            if map3.cachedSize != inferSize(map3) {
+                assertionFailure()
+            }
+
         }
 
         print("Populated `map3`")
 
-        // Assertion currently fails, likely due to a concurrency issue when updating
-        // the `cachedSize` when deleting. The map content itself is correct, but the
-        // size doesn't reflect it.
         expectEqual(map3.count, 0)
     }
 
@@ -342,6 +345,31 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
 
         expectEqual(res1, res3)
+    }
+
+    func inferSize<Key, Value>(_ map: HashMap<Key, Value>) -> Int {
+        var size = 0
+
+        for _ in map {
+            size += 1
+        }
+
+        return size
+    }
+
+    func testIteratorEnumeratesAll() {
+        let map1: HashMap<CollidableInt, String> = [
+            CollidableInt(11, 1) : "a",
+            CollidableInt(12, 1) : "a",
+            CollidableInt(32769) : "b"
+        ]
+
+        var map2: HashMap<CollidableInt, String> = [:]
+        for (key, value) in map1 {
+            map2[key] = value
+        }
+
+        expectEqual(map1, map2)
     }
 }
 
