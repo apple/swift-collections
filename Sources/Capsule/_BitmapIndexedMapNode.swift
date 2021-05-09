@@ -182,8 +182,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + BitPartitionSize, &effect)
 
             if (!effect.modified) { return self }
-            switch subNodeNew.payloadArity {
-            case 1:
+            switch subNodeNew.sizePredicate {
+            case .sizeEmpty:
+                preconditionFailure()
+            case .sizeOne:
                 if (self.payloadArity == 0 && self.nodeArity == 1) { // escalate (singleton or empty) result
                     return subNodeNew
                 }
@@ -191,7 +193,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                     return copyAndMigrateFromNodeToInline(bitpos, subNodeNew.getPayload(0))
                 }
 
-            default: // equivalent to `case 2...`
+            case .sizeMoreThanOne:
                 // TODO simplify hash-collision compaction (if feasible)
                 if (subNodeNew.payloadArity == 0 && subNodeNew.nodeArity == 0 && subNodeNew.collisionNodeArity == 1) {
                     if (self.payloadArity == 0 && (self.nodeArity + self.collisionNodeArity) == 1) { // escalate (singleton or empty) result
@@ -215,8 +217,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + BitPartitionSize, &effect)
 
             if (!effect.modified) { return self }
-            switch subNodeNew.payloadArity {
-            case 1:
+            switch subNodeNew.sizePredicate {
+            case .sizeEmpty:
+                preconditionFailure()
+            case .sizeOne:
                 // TODO simplify hash-collision compaction (if feasible)
                 if (self.payloadArity == 0 && (self.nodeArity + self.collisionNodeArity) == 1) { // escalate (singleton or empty) result
                     // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
@@ -229,7 +233,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                     return copyAndMigrateFromCollisionNodeToInline(bitpos, subNodeNew.getPayload(0))
                 }
 
-            default: // equivalent to `case 2...`
+            case .sizeMoreThanOne:
                 // modify current node (set replacement node)
                 return copyAndSetCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
             }
@@ -345,6 +349,8 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         (content[TupleLength * index + 0] as! Key,
          content[TupleLength * index + 1] as! Value)
     }
+
+    var sizePredicate: SizePredicate { SizePredicate(self) }
 
     func dataIndex(_ bitpos: Bitmap) -> Int { (dataMap & (bitpos &- 1)).nonzeroBitCount }
 

@@ -100,6 +100,29 @@ enum AnyNode<BitmapIndexedNode : Node, HashCollisionNode : Node> {
     }
 }
 
+enum SizePredicate {
+    case sizeEmpty
+    case sizeOne
+    case sizeMoreThanOne
+}
+
+extension SizePredicate {
+    init<T: Node>(_ node: T) {
+        if node.anyNodeArity == 0 {
+            switch node.payloadArity {
+            case 0:
+                self = .sizeEmpty
+            case 1:
+                self = .sizeOne
+            case _:
+                self = .sizeMoreThanOne
+            }
+        } else {
+            self = .sizeMoreThanOne
+        }
+    }
+}
+
 protocol Node {
     associatedtype ReturnPayload
     associatedtype ReturnNode : Node
@@ -128,6 +151,8 @@ protocol Node {
     var payloadArity: Int { get }
     
     func getPayload(_ index: Int) -> ReturnPayload
+
+    var sizePredicate: SizePredicate { get }
 }
 
 ///

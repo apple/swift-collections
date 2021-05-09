@@ -101,6 +101,8 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
     var payloadArity: Int { content.count }
 
     func getPayload(_ index: Int) -> (Key, Value) { content[index] }
+
+    var sizePredicate: SizePredicate { SizePredicate(self) }
 }
 
 extension HashCollisionMapNode : Equatable where Value : Equatable {
