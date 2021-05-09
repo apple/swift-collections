@@ -41,6 +41,65 @@ func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
     (bitmap == -1) ? mask : indexFrom(bitmap, bitpos)
 }
 
+enum AnyNode<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+    case bitmapIndexed(BitmapIndexedNode)
+    case hashCollision(HashCollisionNode)
+
+//    func value<T: AnyObject>() -> T {
+//        switch self {
+//        case .bitmapIndexed(let node):
+//            return node as! T
+//        case .hashCollision(let node):
+//            return node as! T
+//        }
+//    }
+
+    var hasPayload: Bool {
+        switch self {
+        case .bitmapIndexed(let node):
+            return node.hasPayload
+        case .hashCollision(let node):
+            return node.hasPayload
+        }
+    }
+
+    var payloadArity: Int {
+        switch self {
+        case .bitmapIndexed(let node):
+            return node.payloadArity
+        case .hashCollision(let node):
+            return node.payloadArity
+        }
+    }
+
+//    func getPayload(_ index: Int) -> Node.ReturnPayload {
+//        switch self {
+//        case .bitmapIndexed(let node):
+//            return node.getPayload(index)
+//        case .hashCollision(let node):
+//            return node.getPayload(index)
+//        }
+//    }
+
+    var hasAnyNodes: Bool {
+        switch self {
+        case .bitmapIndexed(let node):
+            return node.hasAnyNodes
+        case .hashCollision(let node):
+            return node.hasAnyNodes
+        }
+    }
+
+    var anyNodeArity: Int {
+        switch self {
+        case .bitmapIndexed(let node):
+            return node.anyNodeArity
+        case .hashCollision(let node):
+            return node.anyNodeArity
+        }
+    }
+}
+
 protocol Node {
     associatedtype ReturnPayload
     associatedtype ReturnNode : Node
@@ -57,7 +116,13 @@ protocol Node {
     var collisionNodeArity: Int { get }
 
     func getCollisionNode(_ index: Int) -> ReturnCollisionNode
-    
+
+    var hasAnyNodes: Bool { get }
+
+    var anyNodeArity: Int { get }
+
+    func getAnyNode(_ index: Int) -> AnyNode<ReturnNode, ReturnCollisionNode>
+
     var hasPayload: Bool { get }
     
     var payloadArity: Int { get }
