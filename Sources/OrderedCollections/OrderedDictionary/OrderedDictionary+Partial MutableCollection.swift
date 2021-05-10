@@ -22,7 +22,7 @@ extension OrderedDictionary {
   /// - Complexity: O(1) when the dictionary's storage isn't shared with another
   ///    value; O(`count`) otherwise.
   @inlinable
-  public mutating func swapAt(_ i: Index, _ j: Index) {
+  public mutating func swapAt(_ i: Int, _ j: Int) {
     _keys.swapAt(i, j)
     _values.swapAt(i, j)
   }
@@ -47,7 +47,7 @@ extension OrderedDictionary {
   @inlinable
   public mutating func partition(
     by belongsInSecondPartition: (Element) throws -> Bool
-  ) rethrows -> Index {
+  ) rethrows -> Int {
     let pivot = try _values.withUnsafeMutableBufferPointer { values in
       try _keys._partition(values: values, by: belongsInSecondPartition)
     }

@@ -47,7 +47,7 @@ extension OrderedSet {
   /// - Complexity: O(`count`)
   @inlinable
   @discardableResult
-  public mutating func remove(at index: Index) -> Self.Element {
+  public mutating func remove(at index: Int) -> Self.Element {
     _elements._failEarlyRangeCheck(index, bounds: startIndex ..< endIndex)
     let bucket = _bucket(for: index)
     return _removeExistingMember(at: index, in: bucket)
@@ -63,7 +63,7 @@ extension OrderedSet {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func removeSubrange(_ bounds: Range<Index>) {
+  public mutating func removeSubrange(_ bounds: Range<Int>) {
     _elements._failEarlyRangeCheck(
       bounds,
       bounds: _elements.startIndex ..< _elements.endIndex)
@@ -113,7 +113,7 @@ extension OrderedSet {
   @inlinable
   public mutating func removeSubrange<R: RangeExpression>(
     _ bounds: R
-  ) where R.Bound == Index {
+  ) where R.Bound == Int {
     removeSubrange(bounds.relative(to: self))
   }
 

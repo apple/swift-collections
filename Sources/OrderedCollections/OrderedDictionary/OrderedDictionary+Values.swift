@@ -143,7 +143,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(after i: Index) -> Index { i + 1 }
+  public func index(after i: Int) -> Int { i + 1 }
 
   /// Returns the position immediately before the given index.
   ///
@@ -157,7 +157,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(before i: Index) -> Index { i - 1 }
+  public func index(before i: Int) -> Int { i - 1 }
 
   /// Replaces the given index with its successor.
   ///
@@ -169,7 +169,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(after i: inout Index) { i += 1 }
+  public func formIndex(after i: inout Int) { i += 1 }
 
   /// Replaces the given index with its predecessor.
   ///
@@ -181,7 +181,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(before i: inout Index) { i -= 1 }
+  public func formIndex(before i: inout Int) { i -= 1 }
 
   /// Returns an index that is the specified distance from the given index.
   ///
@@ -200,7 +200,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Int, offsetBy distance: Int) -> Int {
     i + distance
   }
 
@@ -227,10 +227,10 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   @inlinable
   @inline(__always)
   public func index(
-    _ i: Index,
+    _ i: Int,
     offsetBy distance: Int,
-    limitedBy limit: Index
-  ) -> Index? {
+    limitedBy limit: Int
+  ) -> Int? {
     _base._values.index(i, offsetBy: distance, limitedBy: limit)
   }
 
@@ -246,7 +246,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Int, to end: Int) -> Int {
     end - start
   }
 
@@ -279,7 +279,7 @@ extension OrderedDictionary.Values: MutableCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(position: Index) -> Value {
+  public subscript(position: Int) -> Value {
     get {
       _base._values[position]
     }

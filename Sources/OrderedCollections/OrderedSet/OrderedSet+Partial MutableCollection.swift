@@ -24,7 +24,7 @@ extension OrderedSet {
   /// - Complexity: O(1) when the set's storage isn't shared with another
   ///    value; O(`count`) otherwise.
   @inlinable
-  public mutating func swapAt(_ i: Index, _ j: Index) {
+  public mutating func swapAt(_ i: Int, _ j: Int) {
     guard i != j else { return }
     _elements.swapAt(i, j)
     guard _table != nil else { return }
@@ -74,7 +74,7 @@ extension OrderedSet {
   @inlinable
   public mutating func partition(
     by belongsInSecondPartition: (Element) throws -> Bool
-  ) rethrows -> Index {
+  ) rethrows -> Int {
     try _partition(by: belongsInSecondPartition, callback: { a, b in })
   }
 }
@@ -84,12 +84,12 @@ extension OrderedSet {
   public mutating func _partition(
     by belongsInSecondPartition: (Element) throws -> Bool,
     callback: (Int, Int) -> Void
-  ) rethrows -> Index {
+  ) rethrows -> Int {
     guard _table != nil else {
       return try _elements.partition(by: belongsInSecondPartition)
     }
     _ensureUnique()
-    let result: Index = try _table!.update { hashTable in
+    let result: Int = try _table!.update { hashTable in
       let maybeOffset: Int? = try _elements.withContiguousMutableStorageIfAvailable { buffer in
         let pivot = try buffer._partition(
           with: hashTable,

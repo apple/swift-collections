@@ -22,7 +22,7 @@ extension Deque: MutableCollection {
   /// - Complexity: O(1) when this instance has a unique reference to its
   ///    underlying storage; O(`count`) otherwise.
   @inlinable
-  public mutating func swapAt(_ i: Index, _ j: Index) {
+  public mutating func swapAt(_ i: Int, _ j: Int) {
     precondition(i >= 0 && i < count, "Index out of bounds")
     precondition(j >= 0 && j < count, "Index out of bounds")
     _storage.ensureUnique()

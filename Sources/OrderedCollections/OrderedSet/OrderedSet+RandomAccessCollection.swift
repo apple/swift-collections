@@ -77,7 +77,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var startIndex: Index { _elements.startIndex }
+  public var startIndex: Int { _elements.startIndex }
 
   /// The set's "past the end" position---that is, the position one greater
   /// than the last valid subscript argument.
@@ -88,7 +88,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var endIndex: Index { _elements.endIndex }
+  public var endIndex: Int { _elements.endIndex }
 
   /// The indices that are valid for subscripting the collection, in ascending
   /// order.
@@ -110,7 +110,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(after i: Index) -> Index { i + 1 }
+  public func index(after i: Int) -> Int { i + 1 }
 
   /// Returns the position immediately before the given index.
   ///
@@ -124,7 +124,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(before i: Index) -> Index { i - 1 }
+  public func index(before i: Int) -> Int { i - 1 }
 
   /// Replaces the given index with its successor.
   ///
@@ -136,7 +136,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(after i: inout Index) { i += 1 }
+  public func formIndex(after i: inout Int) { i += 1 }
 
   /// Replaces the given index with its predecessor.
   ///
@@ -148,7 +148,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(before i: inout Index) { i -= 1 }
+  public func formIndex(before i: inout Int) { i -= 1 }
 
   /// Returns an index that is the specified distance from the given index.
   ///
@@ -167,7 +167,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Int, offsetBy distance: Int) -> Int {
     i + distance
   }
 
@@ -194,10 +194,10 @@ extension OrderedSet: RandomAccessCollection {
   @inlinable
   @inline(__always)
   public func index(
-    _ i: Index,
+    _ i: Int,
     offsetBy distance: Int,
-    limitedBy limit: Index
-  ) -> Index? {
+    limitedBy limit: Int
+  ) -> Int? {
     _elements.index(i, offsetBy: distance, limitedBy: limit)
   }
 
@@ -213,7 +213,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Int, to end: Int) -> Int {
     end - start
   }
 
@@ -225,7 +225,7 @@ extension OrderedSet: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(position: Index) -> Element {
+  public subscript(position: Int) -> Element {
     _elements[position]
   }
 
@@ -242,7 +242,7 @@ extension OrderedSet: RandomAccessCollection {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public subscript(bounds: Range<Index>) -> SubSequence {
+  public subscript(bounds: Range<Int>) -> SubSequence {
     _failEarlyRangeCheck(bounds, bounds: startIndex ..< endIndex)
     return SubSequence(base: self, bounds: bounds)
   }
@@ -262,7 +262,7 @@ extension OrderedSet: RandomAccessCollection {
   public var count: Int { _elements.count }
 
   @inlinable
-  public func _customIndexOfEquatableElement(_ element: Element) -> Index?? {
+  public func _customIndexOfEquatableElement(_ element: Element) -> Int?? {
     guard let table = _table else {
       return _elements._customIndexOfEquatableElement(element)
     }
@@ -275,26 +275,26 @@ extension OrderedSet: RandomAccessCollection {
 
   @inlinable
   @inline(__always)
-  public func _customLastIndexOfEquatableElement(_ element: Element) -> Index?? {
+  public func _customLastIndexOfEquatableElement(_ element: Element) -> Int?? {
     // OrderedSet holds unique elements.
     _customIndexOfEquatableElement(element)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ index: Index, bounds: Range<Index>) {
+  public func _failEarlyRangeCheck(_ index: Int, bounds: Range<Int>) {
     _elements._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ index: Index, bounds: ClosedRange<Index>) {
+  public func _failEarlyRangeCheck(_ index: Int, bounds: ClosedRange<Int>) {
     _elements._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ range: Range<Index>, bounds: Range<Index>) {
+  public func _failEarlyRangeCheck(_ range: Range<Int>, bounds: Range<Int>) {
     _elements._failEarlyRangeCheck(range, bounds: bounds)
   }
 }

@@ -154,7 +154,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(after i: Index) -> Index { i + 1 }
+  public func index(after i: Int) -> Int { i + 1 }
 
   /// Returns the position immediately before the given index.
   ///
@@ -168,7 +168,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(before i: Index) -> Index { i - 1 }
+  public func index(before i: Int) -> Int { i - 1 }
 
   /// Replaces the given index with its successor.
   ///
@@ -180,7 +180,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(after i: inout Index) { i += 1 }
+  public func formIndex(after i: inout Int) { i += 1 }
 
   /// Replaces the given index with its predecessor.
   ///
@@ -192,7 +192,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(before i: inout Index) { i -= 1 }
+  public func formIndex(before i: inout Int) { i -= 1 }
 
   /// Returns an index that is the specified distance from the given index.
   ///
@@ -211,7 +211,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Int, offsetBy distance: Int) -> Int {
     i + distance
   }
 
@@ -238,10 +238,10 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   @inlinable
   @inline(__always)
   public func index(
-    _ i: Index,
+    _ i: Int,
     offsetBy distance: Int,
-    limitedBy limit: Index
-  ) -> Index? {
+    limitedBy limit: Int
+  ) -> Int? {
     _base._values.index(i, offsetBy: distance, limitedBy: limit)
   }
 
@@ -257,7 +257,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Int, to end: Int) -> Int {
     end - start
   }
 
@@ -270,7 +270,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(position: Index) -> Element {
+  public subscript(position: Int) -> Element {
     (_base._keys[position], _base._values[position])
   }
 
@@ -313,13 +313,13 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ index: Index, bounds: ClosedRange<Index>) {
+  public func _failEarlyRangeCheck(_ index: Int, bounds: ClosedRange<Int>) {
     _base._values._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ range: Range<Index>, bounds: Range<Index>) {
+  public func _failEarlyRangeCheck(_ range: Range<Int>, bounds: Range<Int>) {
     _base._values._failEarlyRangeCheck(range, bounds: bounds)
   }
 }
@@ -373,7 +373,7 @@ extension OrderedDictionary.Elements {
   ///    value; O(`count`) otherwise.
   @inlinable
   @inline(__always)
-  public mutating func swapAt(_ i: Index, _ j: Index) {
+  public mutating func swapAt(_ i: Int, _ j: Int) {
     _base.swapAt(i, j)
   }
 
@@ -398,7 +398,7 @@ extension OrderedDictionary.Elements {
   @inline(__always)
   public mutating func partition(
     by belongsInSecondPartition: (Element) throws -> Bool
-  ) rethrows -> Index {
+  ) rethrows -> Int {
     try _base.partition(by: belongsInSecondPartition)
   }
 }

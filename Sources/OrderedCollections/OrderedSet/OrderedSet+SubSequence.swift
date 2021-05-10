@@ -22,11 +22,11 @@ extension OrderedSet {
     internal var _base: OrderedSet
 
     @usableFromInline
-    internal var _bounds: Range<Index>
+    internal var _bounds: Range<Int>
 
     @inlinable
     @inline(__always)
-    internal init(base: OrderedSet, bounds: Range<Index>) {
+    internal init(base: OrderedSet, bounds: Range<Int>) {
       self._base = base
       self._bounds = bounds
     }
@@ -40,7 +40,7 @@ extension OrderedSet.SubSequence {
   }
 
   @inlinable
-  internal func _index(of element: Element) -> Index? {
+  internal func _index(of element: Element) -> Int? {
     guard let index = _base._find(element).index else { return nil }
     guard _bounds.contains(index) else { return nil }
     return index
@@ -121,7 +121,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var startIndex: Index { _bounds.lowerBound }
+  public var startIndex: Int { _bounds.lowerBound }
 
   /// The "past the end" position---that is, the position one greater
   /// than the last valid subscript argument.
@@ -132,7 +132,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var endIndex: Index { _bounds.upperBound }
+  public var endIndex: Int { _bounds.upperBound }
 
   /// The indices that are valid for subscripting the collection, in ascending
   /// order.
@@ -154,7 +154,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(after i: Index) -> Index { i + 1 }
+  public func index(after i: Int) -> Int { i + 1 }
 
   /// Returns the position immediately before the given index.
   ///
@@ -168,7 +168,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(before i: Index) -> Index { i - 1 }
+  public func index(before i: Int) -> Int { i - 1 }
 
   /// Replaces the given index with its successor.
   ///
@@ -180,7 +180,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(after i: inout Index) { i += 1 }
+  public func formIndex(after i: inout Int) { i += 1 }
 
   /// Replaces the given index with its predecessor.
   ///
@@ -192,7 +192,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(before i: inout Index) { i -= 1 }
+  public func formIndex(before i: inout Int) { i -= 1 }
 
   /// Returns an index that is the specified distance from the given index.
   ///
@@ -211,7 +211,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Int, offsetBy distance: Int) -> Int {
     i + distance
   }
 
@@ -238,10 +238,10 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   @inlinable
   @inline(__always)
   public func index(
-    _ i: Index,
+    _ i: Int,
     offsetBy distance: Int,
-    limitedBy limit: Index
-  ) -> Index? {
+    limitedBy limit: Int
+  ) -> Int? {
     _slice.index(i, offsetBy: distance, limitedBy: limit)
   }
 
@@ -257,7 +257,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Int, to end: Int) -> Int {
     end - start
   }
 
@@ -269,7 +269,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(position: Index) -> Element {
+  public subscript(position: Int) -> Element {
     _slice[position]
   }
 
@@ -287,7 +287,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(bounds: Range<Index>) -> SubSequence {
+  public subscript(bounds: Range<Int>) -> SubSequence {
     _failEarlyRangeCheck(bounds, bounds: startIndex ..< endIndex)
     return SubSequence(base: _base, bounds: bounds)
   }
@@ -308,31 +308,31 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
 
   @inlinable
   @inline(__always)
-  public func _customIndexOfEquatableElement(_ element: Element) -> Index?? {
+  public func _customIndexOfEquatableElement(_ element: Element) -> Int?? {
     .some(_index(of: element))
   }
 
   @inlinable
   @inline(__always)
-  public func _customLastIndexOfEquatableElement(_ element: Element) -> Index?? {
+  public func _customLastIndexOfEquatableElement(_ element: Element) -> Int?? {
     .some(_index(of: element))
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ index: Index, bounds: Range<Index>) {
+  public func _failEarlyRangeCheck(_ index: Int, bounds: Range<Int>) {
     _slice._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ index: Index, bounds: ClosedRange<Index>) {
+  public func _failEarlyRangeCheck(_ index: Int, bounds: ClosedRange<Int>) {
     _slice._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
-  public func _failEarlyRangeCheck(_ range: Range<Index>, bounds: Range<Index>) {
+  public func _failEarlyRangeCheck(_ range: Range<Int>, bounds: Range<Int>) {
     _slice._failEarlyRangeCheck(range, bounds: bounds)
   }
 }

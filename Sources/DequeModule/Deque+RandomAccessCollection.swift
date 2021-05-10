@@ -28,7 +28,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var startIndex: Index { 0 }
+  public var startIndex: Int { 0 }
 
   /// The deque’s “past the end” position—that is, the position one greater than
   /// the last valid subscript argument.
@@ -39,7 +39,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var endIndex: Index { count }
+  public var endIndex: Int { count }
 
   /// Returns the position immediately after the given index.
   ///
@@ -51,7 +51,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(after i: Index) -> Index {
+  public func index(after i: Int) -> Int {
     // Note: Like `Array`, index manipulation methods on deques don't trap on
     // invalid indices. (Indices are still validated on element access.)
     return i + 1
@@ -65,7 +65,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(after i: inout Index) {
+  public func formIndex(after i: inout Int) {
     // Note: Like `Array`, index manipulation methods on deques
     // don't trap on invalid indices.
     // (Indices are still validated on element access.)
@@ -82,7 +82,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(before i: Index) -> Index {
+  public func index(before i: Int) -> Int {
     // Note: Like `Array`, index manipulation methods on deques don't trap on
     // invalid indices. (Indices are still validated on element access.)
     return i - 1
@@ -95,7 +95,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func formIndex(before i: inout Index) {
+  public func formIndex(before i: inout Int) {
     // Note: Like `Array`, index manipulation methods on deques don't trap on
     // invalid indices. (Indices are still validated on element access.)
     i -= 1
@@ -118,7 +118,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Int, offsetBy distance: Int) -> Int {
     // Note: Like `Array`, index manipulation methods on deques don't trap on
     // invalid indices. (Indices are still validated on element access.)
     return i + distance
@@ -170,7 +170,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Int, to end: Int) -> Int {
     // Note: Like `Array`, index manipulation method on deques
     // don't trap on invalid indices.
     // (Indices are still validated on element access.)
@@ -187,7 +187,7 @@ extension Deque: RandomAccessCollection {
   ///    unless the deque’s storage is shared with another deque, in which case
   ///    writing is O(`count`).
   @inlinable
-  public subscript(index: Index) -> Element {
+  public subscript(index: Int) -> Element {
     get {
       precondition(index >= 0 && index < count, "Index out of bounds")
       return _storage.read { $0.ptr(at: $0.slot(forOffset: index)).pointee }
@@ -228,7 +228,7 @@ extension Deque: RandomAccessCollection {
   /// The accessed slice uses the same indices for the same elements as the
   /// original collection.
   @inlinable
-  public subscript(bounds: Range<Index>) -> Slice<Self> {
+  public subscript(bounds: Range<Int>) -> Slice<Self> {
     get {
       precondition(bounds.lowerBound >= 0 && bounds.upperBound <= count,
                    "Invalid bounds")
