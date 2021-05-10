@@ -80,11 +80,11 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 
-    var hasCollisionNodes: Bool { false }
+    var hasHashCollisionNodes: Bool { false }
 
-    var collisionNodeArity: Int { 0 }
+    var hashCollisionNodeArity: Int { 0 }
 
-    func getCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+    func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 

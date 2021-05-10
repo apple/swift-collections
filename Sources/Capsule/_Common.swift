@@ -134,11 +134,11 @@ protocol Node {
     
     func getNode(_ index: Int) -> ReturnNode
 
-    var hasCollisionNodes: Bool { get }
+    var hasHashCollisionNodes: Bool { get }
 
-    var collisionNodeArity: Int { get }
+    var hashCollisionNodeArity: Int { get }
 
-    func getCollisionNode(_ index: Int) -> ReturnCollisionNode
+    func getHashCollisionNode(_ index: Int) -> ReturnCollisionNode
 
     var hasAnyNodes: Bool { get }
 
