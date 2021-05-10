@@ -184,7 +184,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             if (!effect.modified) { return self }
             switch subNodeNew.sizePredicate {
             case .sizeEmpty:
-                preconditionFailure()
+                preconditionFailure("Sub-node must have at least one element.")
             case .sizeOne:
                 if (self.payloadArity == 0 && self.bitmapIndexedNodeArity == 1) { // escalate (singleton or empty) result
                     return subNodeNew
@@ -219,7 +219,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             if (!effect.modified) { return self }
             switch subNodeNew.sizePredicate {
             case .sizeEmpty:
-                preconditionFailure()
+                preconditionFailure("Sub-node must have at least one element.")
             case .sizeOne:
                 // TODO simplify hash-collision compaction (if feasible)
                 if (self.payloadArity == 0 && (self.bitmapIndexedNodeArity + self.hashCollisionNodeArity) == 1) { // escalate (singleton or empty) result
