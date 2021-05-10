@@ -20,16 +20,4 @@ protocol MapNode : Node {
     func updated(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnNode
 
     func removed(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnNode
-
-    var hasNodes: Bool { get }
-
-    var nodeArity: Int { get }
-
-    func getNode(_ index: Int) -> ReturnNode
-
-    var hasPayload: Bool { get }
-
-    var payloadArity: Int { get }
-
-    func getPayload(_ index: Int) -> ReturnPayload /* (Key, Value) */
 }
