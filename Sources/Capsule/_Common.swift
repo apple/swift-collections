@@ -41,7 +41,7 @@ func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
     (bitmap == -1) ? mask : indexFrom(bitmap, bitpos)
 }
 
-enum AnyNode<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+enum TrieNode<BitmapIndexedNode : Node, HashCollisionNode : Node> {
     case bitmapIndexed(BitmapIndexedNode)
     case hashCollision(HashCollisionNode)
 
@@ -144,7 +144,7 @@ protocol Node {
 
     var nodeArity: Int { get }
 
-    func getNode(_ index: Int) -> AnyNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
+    func getNode(_ index: Int) -> TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
 
     var hasPayload: Bool { get }
     
@@ -161,7 +161,7 @@ protocol Node {
 /// node before traversing sub-nodes (left to right).
 ///
 struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
-    typealias T = AnyNode<BitmapIndexedNode, HashCollisionNode>
+    typealias T = TrieNode<BitmapIndexedNode, HashCollisionNode>
 
     var currentValueCursor: Int = 0
     var currentValueLength: Int = 0
@@ -244,7 +244,7 @@ struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
 /// iterator performs a depth-first post-order traversal, traversing sub-nodes (right to left).
 ///
 struct ChampBaseReverseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
-    typealias T = AnyNode<BitmapIndexedNode, HashCollisionNode>
+    typealias T = TrieNode<BitmapIndexedNode, HashCollisionNode>
 
     var currentValueCursor: Int = -1
     var currentValueNode: T? = nil

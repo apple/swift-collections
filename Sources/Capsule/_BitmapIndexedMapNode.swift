@@ -333,11 +333,11 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
     var nodeArity: Int { (nodeMap | collMap).nonzeroBitCount }
 
-    func getNode(_ index: Int) -> AnyNode<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
+    func getNode(_ index: Int) -> TrieNode<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
         if index < bitmapIndexedNodeArity {
-            return AnyNode.bitmapIndexed(getBitmapIndexedNode(index))
+            return .bitmapIndexed(getBitmapIndexedNode(index))
         } else {
-            return AnyNode.hashCollision(getHashCollisionNode(index))
+            return .hashCollision(getHashCollisionNode(index))
         }
     }
 
