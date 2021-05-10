@@ -125,26 +125,26 @@ extension SizePredicate {
 
 protocol Node {
     associatedtype ReturnPayload
-    associatedtype ReturnNode : Node
-    associatedtype ReturnCollisionNode : Node
+    associatedtype ReturnBitmapIndexedNode : Node
+    associatedtype ReturnHashCollisionNode : Node
     
     var hasBitmapIndexedNodes: Bool { get }
     
     var bitmapIndexedNodeArity: Int { get }
     
-    func getBitmapIndexedNode(_ index: Int) -> ReturnNode
+    func getBitmapIndexedNode(_ index: Int) -> ReturnBitmapIndexedNode
 
     var hasHashCollisionNodes: Bool { get }
 
     var hashCollisionNodeArity: Int { get }
 
-    func getHashCollisionNode(_ index: Int) -> ReturnCollisionNode
+    func getHashCollisionNode(_ index: Int) -> ReturnHashCollisionNode
 
     var hasNodes: Bool { get }
 
     var nodeArity: Int { get }
 
-    func getNode(_ index: Int) -> AnyNode<ReturnNode, ReturnCollisionNode>
+    func getNode(_ index: Int) -> AnyNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
 
     var hasPayload: Bool { get }
     

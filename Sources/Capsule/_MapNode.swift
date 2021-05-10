@@ -17,7 +17,7 @@ protocol MapNode : Node {
 
     func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool
 
-    func updated(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnNode
+    func updated(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnBitmapIndexedNode
 
-    func removed(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnNode
+    func removed(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnBitmapIndexedNode
 }
