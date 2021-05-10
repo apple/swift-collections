@@ -5,7 +5,7 @@
   "contents": [
     {
       "kind": "chart",
-      "title": "Deque: random access lookups",
+      "title": "Deque - random access lookups",
       "tasks": [
         "Deque<Int> subscript get, random offsets (discontiguous)",
         "Array<Int> subscript get, random offsets",
@@ -14,7 +14,7 @@
     },
     {
       "kind": "chart",
-      "title": "Deque: prepending individual integers",
+      "title": "Deque - prepending individual integers",
       "tasks": [
         "Deque<Int> prepend, reserving capacity",
         "Array<Int> prepend, reserving capacity",
