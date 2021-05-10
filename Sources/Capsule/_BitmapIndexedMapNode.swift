@@ -358,32 +358,6 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
     func collIndex(_ bitpos: Bitmap) -> Int { (collMap & (bitpos &- 1)).nonzeroBitCount }
 
-    /// TODO: leverage lazy copy-on-write only when aliased. The pattern required by the current data structure design
-    /// isn't expressible in Swift currently (i.e., `isKnownUniquelyReferenced(&self)` isn't supported). Example:
-    ///
-    /// ```
-    /// class Node {
-    ///     var src: [Any]
-    ///     func updateInlineOrCopy(idx: Int, newValue: Any) {
-    ///         if isKnownUniquelyReferenced(&self) { // this isn't supported ...
-    ///             src[idx] = newValue
-    ///             return self
-    ///         } else {
-    ///             var dst = self.content
-    ///             dst[idx] = newValue
-    ///             return Node(dst)
-    ///         }
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// Some more context:
-    /// * Node should be a reference counted data type (i.e., `class`)
-    /// * In a optimized version `src` would be gone, and `Node` likely become a subclass of `ManagedBuffer`
-    /// * I want to check `isKnownUniquelyReferenced(&self)` since `updateInlineOrCopy` should be recursive call that decides upon returning from recursion if modifications are necessary
-    ///
-    /// Possible mitigations: transform recursive to loop where `isKnownUniquelyReferenced` could be checked from the outside.
-    /// This would be very invasive though and make problem logic hard to understand and maintain.
     func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
         let idx = TupleLength * dataIndex(bitpos) + 1
 
