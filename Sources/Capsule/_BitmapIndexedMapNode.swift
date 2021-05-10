@@ -35,7 +35,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         if ((dataMap & bitpos) != 0) {
             let index = indexFrom(dataMap, mask, bitpos)
             let payload = self.getPayload(index)
-            if (key == payload.0) { return payload.1 } else { return nil }
+            if (key == payload.key) { return payload.value } else { return nil }
         }
 
         if ((nodeMap & bitpos) != 0) {
@@ -58,7 +58,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         if ((dataMap & bitpos) != 0) {
             let index = indexFrom(dataMap, mask, bitpos)
             let payload = self.getPayload(index)
-            return key == payload.0
+            return key == payload.key
         }
 
         if ((nodeMap & bitpos) != 0) {
@@ -345,7 +345,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
     var payloadArity: Int { dataMap.nonzeroBitCount }
 
-    func getPayload(_ index: Int) -> (Key, Value) {
+    func getPayload(_ index: Int) -> (key: Key, value: Value) {
         (content[TupleLength * index + 0] as! Key,
          content[TupleLength * index + 1] as! Value)
     }

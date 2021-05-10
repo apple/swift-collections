@@ -11,11 +11,11 @@
 
 final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
     let hash: Int
-    let content: Array<(Key, Value)>
+    let content: Array<(key: Key, value: Value)>
 
-    init(_ hash: Int, _ content: Array<(Key, Value)>) {
+    init(_ hash: Int, _ content: Array<(key: Key, value: Value)>) {
         // precondition(content.count >= 2)
-        precondition(content.map { $0.0 }.allSatisfy {$0.hashValue == hash})
+        precondition(content.map { $0.key }.allSatisfy {$0.hashValue == hash})
 
         self.hash = hash
         self.content = content
@@ -23,24 +23,24 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
 
     func get(_ key: Key, _ hash: Int, _ shift: Int) -> Value? {
         if (self.hash == hash) {
-            return content.first(where: { key == $0.0 }).map { $0.1 }
+            return content.first(where: { key == $0.key }).map { $0.value }
         } else { return nil }
     }
 
     func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool {
-        return self.hash == hash && content.contains(where: { key == $0.0 })
+        return self.hash == hash && content.contains(where: { key == $0.key })
     }
 
 //    // TODO requires Value to be Equatable
 //    func contains(_ key: Key, _ value: Value, _ hash: Int, _ shift: Int) -> Bool {
-//        return self.hash == hash && content.contains(where: { key == $0.0 && value == $0.1 })
+//        return self.hash == hash && content.contains(where: { key == $0.key && value == $0.value })
 //    }
 
     func updated(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
 
         // TODO check if key/value-pair check should be added (requires value to be Equitable)
         if (self.containsKey(key, hash, shift)) {
-            let index = content.firstIndex(where: { key == $0.0 })!
+            let index = content.firstIndex(where: { key == $0.key })!
             let updatedContent = content[0..<index] + [(key, value)] + content[index+1..<content.count]
 
             effect.setReplacedValue()
@@ -59,7 +59,7 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
             return self
         } else {
             effect.setModified()
-            let updatedContent = content.filter { $0.0 != key }
+            let updatedContent = content.filter { $0.key != key }
             assert(updatedContent.count == content.count - 1)
 
 //            switch updatedContent.count {
@@ -100,7 +100,7 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
 
     var payloadArity: Int { content.count }
 
-    func getPayload(_ index: Int) -> (Key, Value) { content[index] }
+    func getPayload(_ index: Int) -> (key: Key, value: Value) { content[index] }
 
     var sizePredicate: SizePredicate { SizePredicate(self) }
 }
