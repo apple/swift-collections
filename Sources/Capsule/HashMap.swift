@@ -137,10 +137,10 @@ public struct HashMap<Key, Value> where Key : Hashable {
 }
 
 public struct MapKeyValueTupleIterator<Key : Hashable, Value> {
-    private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>>
+    private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
     
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
-        self.baseIterator = ChampBaseIterator(rootNode: rootNode)
+        self.baseIterator = ChampBaseIterator(rootNode: .bitmapIndexed(rootNode))
     }
 }
 
@@ -148,7 +148,15 @@ extension MapKeyValueTupleIterator : IteratorProtocol {
     public mutating func next() -> (Key, Value)? {
         guard baseIterator.hasNext() else { return nil }
 
-        let payload = baseIterator.currentValueNode?.getPayload(baseIterator.currentValueCursor)
+        let payload: (Key, Value)
+
+        // TODO remove duplication in specialization
+        switch baseIterator.currentValueNode! {
+        case .bitmapIndexed(let node):
+            payload = node.getPayload(baseIterator.currentValueCursor)
+        case .hashCollision(let node):
+            payload = node.getPayload(baseIterator.currentValueCursor)
+        }
         baseIterator.currentValueCursor += 1
 
         return payload
@@ -156,10 +164,10 @@ extension MapKeyValueTupleIterator : IteratorProtocol {
 }
 
 public struct MapKeyValueTupleReverseIterator<Key : Hashable, Value> {
-    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>>
+    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
     
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
-        self.baseIterator = ChampBaseReverseIterator(rootNode: rootNode)
+        self.baseIterator = ChampBaseReverseIterator(rootNode: .bitmapIndexed(rootNode))
     }
 }
 
@@ -167,7 +175,15 @@ extension MapKeyValueTupleReverseIterator : IteratorProtocol {
     public mutating func next() -> (Key, Value)? {
         guard baseIterator.hasNext() else { return nil }
 
-        let payload = baseIterator.currentValueNode?.getPayload(baseIterator.currentValueCursor)
+        let payload: (Key, Value)
+
+        // TODO remove duplication in specialization
+        switch baseIterator.currentValueNode! {
+        case .bitmapIndexed(let node):
+            payload = node.getPayload(baseIterator.currentValueCursor)
+        case .hashCollision(let node):
+            payload = node.getPayload(baseIterator.currentValueCursor)
+        }
         baseIterator.currentValueCursor -= 1
 
         return payload

@@ -160,8 +160,9 @@ protocol Node {
 /// depth-first pre-order traversal, which yields first all payload elements of the current
 /// node before traversing sub-nodes (left to right).
 ///
-struct ChampBaseIterator<T : Node> {
-    
+struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+    typealias T = AnyNode<BitmapIndexedNode, HashCollisionNode>
+
     var currentValueCursor: Int = 0
     var currentValueLength: Int = 0
     var currentValueNode: T? = nil
@@ -169,10 +170,10 @@ struct ChampBaseIterator<T : Node> {
     private var currentStackLevel: Int = -1
     private var nodeCursorsAndLengths: Array<Int> = Array<Int>(repeating: 0, count: MaxDepth * 2)
     private var nodes: Array<T?> = Array<T?>(repeating: nil, count: MaxDepth)
-    
+
     init(rootNode: T) {
-        if (rootNode.hasNodes) { pushNode(rootNode) }
-        if (rootNode.hasPayload) { setupPayloadNode(rootNode) }
+        if (rootNode.hasAnyNodes) { pushNode(rootNode) }
+        if (rootNode.hasPayload)  { setupPayloadNode(rootNode) }
     }
     
     private mutating func setupPayloadNode(_ node: T) {
@@ -189,7 +190,7 @@ struct ChampBaseIterator<T : Node> {
         
         nodes[currentStackLevel] = node
         nodeCursorsAndLengths[cursorIndex] = 0
-        nodeCursorsAndLengths[lengthIndex] = node.nodeArity
+        nodeCursorsAndLengths[lengthIndex] = node.anyNodeArity
     }
     
     private mutating func popNode() {
@@ -210,11 +211,20 @@ struct ChampBaseIterator<T : Node> {
             
             if (nodeCursor < nodeLength) {
                 nodeCursorsAndLengths[cursorIndex] += 1
-                
-                let nextNode = nodes[currentStackLevel]!.getNode(nodeCursor) as! T
-                
-                if (nextNode.hasNodes)   { pushNode(nextNode) }
-                if (nextNode.hasPayload) { setupPayloadNode(nextNode) ; return true }
+
+                // TODO remove duplication in specialization
+                switch nodes[currentStackLevel]! {
+                case .bitmapIndexed(let currentNode):
+                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+
+                    if (nextNode.hasAnyNodes) { pushNode(nextNode) }
+                    if (nextNode.hasPayload)  { setupPayloadNode(nextNode) ; return true }
+                case .hashCollision(let currentNode):
+                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+
+                    if (nextNode.hasAnyNodes) { pushNode(nextNode) }
+                    if (nextNode.hasPayload)  { setupPayloadNode(nextNode) ; return true }
+                }
             } else {
                 popNode()
             }
@@ -233,7 +243,8 @@ struct ChampBaseIterator<T : Node> {
 /// Base class for fixed-stack iterators that traverse a hash-trie in reverse order. The base
 /// iterator performs a depth-first post-order traversal, traversing sub-nodes (right to left).
 ///
-struct ChampBaseReverseIterator<T : Node> {
+struct ChampBaseReverseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+    typealias T = AnyNode<BitmapIndexedNode, HashCollisionNode>
 
     var currentValueCursor: Int = -1
     var currentValueNode: T? = nil
@@ -256,7 +267,7 @@ struct ChampBaseReverseIterator<T : Node> {
         currentStackLevel = currentStackLevel + 1
         
         nodeStack[currentStackLevel] = node
-        nodeIndex[currentStackLevel] = node.nodeArity - 1
+        nodeIndex[currentStackLevel] = node.anyNodeArity - 1
     }
     
     private mutating func popNode() {
@@ -273,8 +284,15 @@ struct ChampBaseReverseIterator<T : Node> {
             let nodeCursor = nodeIndex[currentStackLevel] ; nodeIndex[currentStackLevel] = nodeCursor - 1
             
             if (nodeCursor >= 0) {
-                let nextNode = nodeStack[currentStackLevel]!.getNode(nodeCursor) as! T
-                pushNode(nextNode)
+                // TODO remove duplication in specialization
+                switch nodeStack[currentStackLevel]! {
+                case .bitmapIndexed(let currentNode):
+                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+                    pushNode(nextNode)
+                case .hashCollision(let currentNode):
+                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+                    pushNode(nextNode)
+                }
             } else {
                 let currNode = nodeStack[currentStackLevel]!
                 popNode()
