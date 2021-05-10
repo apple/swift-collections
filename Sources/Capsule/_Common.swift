@@ -81,21 +81,21 @@ enum AnyNode<BitmapIndexedNode : Node, HashCollisionNode : Node> {
 //        }
 //    }
 
-    var hasAnyNodes: Bool {
+    var hasNodes: Bool {
         switch self {
         case .bitmapIndexed(let node):
-            return node.hasAnyNodes
+            return node.hasNodes
         case .hashCollision(let node):
-            return node.hasAnyNodes
+            return node.hasNodes
         }
     }
 
-    var anyNodeArity: Int {
+    var nodeArity: Int {
         switch self {
         case .bitmapIndexed(let node):
-            return node.anyNodeArity
+            return node.nodeArity
         case .hashCollision(let node):
-            return node.anyNodeArity
+            return node.nodeArity
         }
     }
 }
@@ -108,7 +108,7 @@ enum SizePredicate {
 
 extension SizePredicate {
     init<T: Node>(_ node: T) {
-        if node.anyNodeArity == 0 {
+        if node.nodeArity == 0 {
             switch node.payloadArity {
             case 0:
                 self = .sizeEmpty
@@ -140,11 +140,11 @@ protocol Node {
 
     func getHashCollisionNode(_ index: Int) -> ReturnCollisionNode
 
-    var hasAnyNodes: Bool { get }
+    var hasNodes: Bool { get }
 
-    var anyNodeArity: Int { get }
+    var nodeArity: Int { get }
 
-    func getAnyNode(_ index: Int) -> AnyNode<ReturnNode, ReturnCollisionNode>
+    func getNode(_ index: Int) -> AnyNode<ReturnNode, ReturnCollisionNode>
 
     var hasPayload: Bool { get }
     
@@ -172,8 +172,8 @@ struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
     private var nodes: Array<T?> = Array<T?>(repeating: nil, count: MaxDepth)
 
     init(rootNode: T) {
-        if (rootNode.hasAnyNodes) { pushNode(rootNode) }
-        if (rootNode.hasPayload)  { setupPayloadNode(rootNode) }
+        if (rootNode.hasNodes)   { pushNode(rootNode) }
+        if (rootNode.hasPayload) { setupPayloadNode(rootNode) }
     }
     
     private mutating func setupPayloadNode(_ node: T) {
@@ -190,7 +190,7 @@ struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
         
         nodes[currentStackLevel] = node
         nodeCursorsAndLengths[cursorIndex] = 0
-        nodeCursorsAndLengths[lengthIndex] = node.anyNodeArity
+        nodeCursorsAndLengths[lengthIndex] = node.nodeArity
     }
     
     private mutating func popNode() {
@@ -215,15 +215,15 @@ struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
                 // TODO remove duplication in specialization
                 switch nodes[currentStackLevel]! {
                 case .bitmapIndexed(let currentNode):
-                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+                    let nextNode = currentNode.getNode(nodeCursor) as! T
 
-                    if (nextNode.hasAnyNodes) { pushNode(nextNode) }
-                    if (nextNode.hasPayload)  { setupPayloadNode(nextNode) ; return true }
+                    if (nextNode.hasNodes)   { pushNode(nextNode) }
+                    if (nextNode.hasPayload) { setupPayloadNode(nextNode) ; return true }
                 case .hashCollision(let currentNode):
-                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+                    let nextNode = currentNode.getNode(nodeCursor) as! T
 
-                    if (nextNode.hasAnyNodes) { pushNode(nextNode) }
-                    if (nextNode.hasPayload)  { setupPayloadNode(nextNode) ; return true }
+                    if (nextNode.hasNodes)   { pushNode(nextNode) }
+                    if (nextNode.hasPayload) { setupPayloadNode(nextNode) ; return true }
                 }
             } else {
                 popNode()
@@ -267,7 +267,7 @@ struct ChampBaseReverseIterator<BitmapIndexedNode : Node, HashCollisionNode : No
         currentStackLevel = currentStackLevel + 1
         
         nodeStack[currentStackLevel] = node
-        nodeIndex[currentStackLevel] = node.anyNodeArity - 1
+        nodeIndex[currentStackLevel] = node.nodeArity - 1
     }
     
     private mutating func popNode() {
@@ -287,10 +287,10 @@ struct ChampBaseReverseIterator<BitmapIndexedNode : Node, HashCollisionNode : No
                 // TODO remove duplication in specialization
                 switch nodeStack[currentStackLevel]! {
                 case .bitmapIndexed(let currentNode):
-                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+                    let nextNode = currentNode.getNode(nodeCursor) as! T
                     pushNode(nextNode)
                 case .hashCollision(let currentNode):
-                    let nextNode = currentNode.getAnyNode(nodeCursor) as! T
+                    let nextNode = currentNode.getNode(nodeCursor) as! T
                     pushNode(nextNode)
                 }
             } else {
