@@ -72,11 +72,11 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
         }
     }
 
-    var hasNodes: Bool { false }
+    var hasBitmapIndexedNodes: Bool { false }
 
-    var nodeArity: Int { 0 }
+    var bitmapIndexedNodeArity: Int { 0 }
 
-    func getNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+    func getBitmapIndexedNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 

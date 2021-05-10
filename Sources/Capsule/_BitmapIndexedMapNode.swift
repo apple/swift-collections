@@ -40,7 +40,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
         if ((nodeMap & bitpos) != 0) {
             let index = indexFrom(nodeMap, mask, bitpos)
-            return self.getNode(index).get(key, keyHash, shift + BitPartitionSize)
+            return self.getBitmapIndexedNode(index).get(key, keyHash, shift + BitPartitionSize)
         }
 
         if ((collMap & bitpos) != 0) {
@@ -63,7 +63,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
         if ((nodeMap & bitpos) != 0) {
             let index = indexFrom(nodeMap, mask, bitpos)
-            return self.getNode(index).containsKey(key, keyHash, shift + BitPartitionSize)
+            return self.getBitmapIndexedNode(index).containsKey(key, keyHash, shift + BitPartitionSize)
         }
 
         if ((collMap & bitpos) != 0) {
@@ -103,7 +103,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         if ((nodeMap & bitpos) != 0) {
             let index = indexFrom(nodeMap, mask, bitpos)
             let subNodeModifyInPlace = self.isNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
-            let subNode = self.getNode(index)
+            let subNode = self.getBitmapIndexedNode(index)
 
             let subNodeNew = subNode.updated(subNodeModifyInPlace, key, value, keyHash, shift + BitPartitionSize, &effect)
             if (!effect.modified) {
@@ -148,8 +148,8 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
             if (key0 == key) {
                 effect.setModified()
-                // TODO check globally usage of `nodeArity` and `hashCollisionNodeArity`
-                if (self.payloadArity == 2 && self.nodeArity == 0 && self.hashCollisionNodeArity == 0) {
+                // TODO check globally usage of `bitmapIndexedNodeArity` and `hashCollisionNodeArity`
+                if (self.payloadArity == 2 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 0) {
                     /*
                      * Create new node with remaining pair. The new node will a) either become the new root
                      * returned, or b) unwrapped and inlined during returning.
@@ -163,7 +163,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                         let (k, v) = getPayload(0)
                         return BitmapIndexedMapNode(newDataMap, 0, 0, Array(arrayLiteral: k, v))
                     }
-                } else if (self.payloadArity == 1 && self.nodeArity == 0 && self.hashCollisionNodeArity == 1) {
+                } else if (self.payloadArity == 1 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1) {
                     /*
                      * Create new node with collision node. The new node will a) either become the new root
                      * returned, or b) unwrapped and inlined during returning.
@@ -177,7 +177,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         if ((nodeMap & bitpos) != 0) {
             let index = indexFrom(nodeMap, mask, bitpos)
             let subNodeModifyInPlace = self.isNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
-            let subNode = self.getNode(index)
+            let subNode = self.getBitmapIndexedNode(index)
 
             let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + BitPartitionSize, &effect)
 
@@ -186,7 +186,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
             case .sizeEmpty:
                 preconditionFailure()
             case .sizeOne:
-                if (self.payloadArity == 0 && self.nodeArity == 1) { // escalate (singleton or empty) result
+                if (self.payloadArity == 0 && self.bitmapIndexedNodeArity == 1) { // escalate (singleton or empty) result
                     return subNodeNew
                 }
                 else { // inline value (move to front)
@@ -195,8 +195,8 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
             case .sizeMoreThanOne:
                 // TODO simplify hash-collision compaction (if feasible)
-                if (subNodeNew.payloadArity == 0 && subNodeNew.nodeArity == 0 && subNodeNew.hashCollisionNodeArity == 1) {
-                    if (self.payloadArity == 0 && (self.nodeArity + self.hashCollisionNodeArity) == 1) { // escalate (singleton or empty) result
+                if (subNodeNew.payloadArity == 0 && subNodeNew.bitmapIndexedNodeArity == 0 && subNodeNew.hashCollisionNodeArity == 1) {
+                    if (self.payloadArity == 0 && (self.bitmapIndexedNodeArity + self.hashCollisionNodeArity) == 1) { // escalate (singleton or empty) result
                         return subNodeNew
                     } else { // inline value (move to front)
                         assertionFailure()
@@ -222,7 +222,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
                 preconditionFailure()
             case .sizeOne:
                 // TODO simplify hash-collision compaction (if feasible)
-                if (self.payloadArity == 0 && (self.nodeArity + self.hashCollisionNodeArity) == 1) { // escalate (singleton or empty) result
+                if (self.payloadArity == 0 && (self.bitmapIndexedNodeArity + self.hashCollisionNodeArity) == 1) { // escalate (singleton or empty) result
                     // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
                     let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
                     let (k, v) = subNodeNew.getPayload(0)
@@ -289,11 +289,11 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         }
     }
 
-    var hasNodes: Bool { nodeMap != 0 }
+    var hasBitmapIndexedNodes: Bool { nodeMap != 0 }
 
-    var nodeArity: Int { nodeMap.nonzeroBitCount }
+    var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
 
-    func getNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
+    func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
         content[content.count - 1 - index] as! BitmapIndexedMapNode<Key, Value>
     }
 
@@ -303,7 +303,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     }
 
     private func isCollisionNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
-        let slotIndex = content.count - 1 - nodeArity - index
+        let slotIndex = content.count - 1 - bitmapIndexedNodeArity - index
         return isAnyNodeKnownUniquelyReferenced(slotIndex, isParentNodeKnownUniquelyReferenced)
     }
 
@@ -326,7 +326,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
 
     func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
-        return content[content.count - 1 - nodeArity - index] as! HashCollisionMapNode<Key, Value>
+        return content[content.count - 1 - bitmapIndexedNodeArity - index] as! HashCollisionMapNode<Key, Value>
     }
 
     var hasAnyNodes: Bool { (nodeMap | collMap) != 0 }
@@ -334,8 +334,8 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     var anyNodeArity: Int { (nodeMap | collMap).nonzeroBitCount }
 
     func getAnyNode(_ index: Int) -> AnyNode<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
-        if index < nodeArity {
-            return AnyNode.bitmapIndexed(getNode(index))
+        if index < bitmapIndexedNodeArity {
+            return AnyNode.bitmapIndexed(getBitmapIndexedNode(index))
         } else {
             return AnyNode.hashCollision(getHashCollisionNode(index))
         }
@@ -405,7 +405,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         return copyAndAnyNode(isStorageKnownUniquelyReferenced, bitpos, idx, newNode)    }
 
     func copyAndSetCollisionNode<T: MapNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
-        let idx = self.content.count - 1 - nodeArity - self.collIndex(bitpos)
+        let idx = self.content.count - 1 - bitmapIndexedNodeArity - self.collIndex(bitpos)
         return copyAndAnyNode(isStorageKnownUniquelyReferenced, bitpos, idx, newNode)
     }
 
@@ -454,7 +454,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
     func copyAndMigrateFromInlineToCollisionNode(_ bitpos: Bitmap, _ node: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
         let idxOld = TupleLength * dataIndex(bitpos)
-        let idxNew = self.content.count - TupleLength - nodeArity - collIndex(bitpos)
+        let idxNew = self.content.count - TupleLength - bitmapIndexedNodeArity - collIndex(bitpos)
 
         var dst = self.content
         dst.removeSubrange(idxOld..<idxOld+TupleLength)
@@ -475,7 +475,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     }
 
     func copyAndMigrateFromCollisionNodeToInline(_ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
-        let idxOld = self.content.count - 1 - nodeArity - collIndex(bitpos)
+        let idxOld = self.content.count - 1 - bitmapIndexedNodeArity - collIndex(bitpos)
         let idxNew = TupleLength * dataIndex(bitpos)
 
         var dst = self.content
@@ -486,7 +486,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     }
 
     func copyAndMigrateFromCollisionNodeToNode(_ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
-        let idxOld = self.content.count - 1 - nodeArity - collIndex(bitpos)
+        let idxOld = self.content.count - 1 - bitmapIndexedNodeArity - collIndex(bitpos)
         let idxNew = self.content.count - 1 - nodeIndex(bitpos)
 
         var dst = self.content
@@ -498,7 +498,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 
 //    func copyAndMigrateFromNodeToCollisionNode(_ bitpos: Bitmap, _ node: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
 //        let idxOld = self.content.count - 1 - nodeIndex(bitpos)
-//        let idxNew = self.content.count - 1 - nodeArity - 1 - collIndex(bitpos)
+//        let idxNew = self.content.count - 1 - bitmapIndexedNodeArity - 1 - collIndex(bitpos)
 //
 //        var dst = self.content
 //        dst.remove(at: idxOld)
@@ -524,8 +524,8 @@ extension BitmapIndexedMapNode : Equatable where Value : Equatable {
             }
         }
 
-        for index in 0..<lhs.nodeArity {
-            if (lhs.getNode(index) != rhs.getNode(index)) {
+        for index in 0..<lhs.bitmapIndexedNodeArity {
+            if (lhs.getBitmapIndexedNode(index) != rhs.getBitmapIndexedNode(index)) {
                 return false
             }
         }

@@ -128,11 +128,11 @@ protocol Node {
     associatedtype ReturnNode : Node
     associatedtype ReturnCollisionNode : Node
     
-    var hasNodes: Bool { get }
+    var hasBitmapIndexedNodes: Bool { get }
     
-    var nodeArity: Int { get }
+    var bitmapIndexedNodeArity: Int { get }
     
-    func getNode(_ index: Int) -> ReturnNode
+    func getBitmapIndexedNode(_ index: Int) -> ReturnNode
 
     var hasHashCollisionNodes: Bool { get }
 
