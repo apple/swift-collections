@@ -78,8 +78,8 @@ public struct HashMap<Key, Value> where Key : Hashable {
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updated(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
 
-        if (effect.modified) {
-            if (effect.replacedValue) {
+        if effect.modified {
+            if effect.replacedValue {
                 self.rootNode = newRootNode
                 // self.cachedKeySetHashCode = cachedKeySetHashCode
                 // self.cachedSize = cachedSize
@@ -97,8 +97,8 @@ public struct HashMap<Key, Value> where Key : Hashable {
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updated(false, key, value, keyHash, 0, &effect)
 
-        if (effect.modified) {
-            if (effect.replacedValue) {
+        if effect.modified {
+            if effect.replacedValue {
                 return Self(newRootNode, cachedKeySetHashCode, cachedSize)
             } else {
                 return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize + 1)
@@ -117,7 +117,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removed(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
 
-        if (effect.modified) {
+        if effect.modified {
             self.rootNode = newRootNode
             self.cachedKeySetHashCode = cachedKeySetHashCode ^ keyHash
             self.cachedSize = cachedSize - 1
@@ -130,7 +130,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removed(false, key, keyHash, 0, &effect)
 
-        if (effect.modified) {
+        if effect.modified {
             return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize - 1)
         } else { return self }
     }
