@@ -13,17 +13,17 @@ public struct HashMap<Key, Value> where Key: Hashable {
     var rootNode: BitmapIndexedMapNode<Key, Value>
     var cachedKeySetHashCode: Int
     var cachedSize: Int
-    
+
     fileprivate init(_ rootNode: BitmapIndexedMapNode<Key, Value>, _ cachedKeySetHashCode: Int, _ cachedSize: Int) {
         self.rootNode = rootNode
         self.cachedKeySetHashCode = cachedKeySetHashCode
         self.cachedSize = cachedSize
     }
-    
+
     public init() {
         self.init(BitmapIndexedMapNode(), 0, 0)
     }
-    
+
     public init(_ map: HashMap<Key, Value>) {
         self.init(map.rootNode, map.cachedKeySetHashCode, map.cachedSize)
     }
@@ -31,13 +31,13 @@ public struct HashMap<Key, Value> where Key: Hashable {
     ///
     /// Inspecting a Dictionary
     ///
-    
+
     var isEmpty: Bool { cachedSize == 0 }
-    
+
     public var count: Int { cachedSize }
-    
+
     var capacity: Int { count }
-    
+
     ///
     /// Accessing Keys and Values
     ///
@@ -54,15 +54,15 @@ public struct HashMap<Key, Value> where Key: Hashable {
             }
         }
     }
-    
+
     public subscript(_ key: Key, default: () -> Value) -> Value {
         return get(key) ?? `default`()
     }
-    
+
     public func contains(_ key: Key) -> Bool {
         rootNode.containsKey(key, computeHash(key), 0)
     }
-    
+
     public func get(_ key: Key) -> Value? {
         rootNode.get(key, computeHash(key), 0)
     }
@@ -138,7 +138,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
 public struct MapKeyValueTupleIterator<Key: Hashable, Value> {
     private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
-    
+
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
         self.baseIterator = ChampBaseIterator(rootNode: .bitmapIndexed(rootNode))
     }
@@ -165,7 +165,7 @@ extension MapKeyValueTupleIterator: IteratorProtocol {
 
 public struct MapKeyValueTupleReverseIterator<Key: Hashable, Value> {
     private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
-    
+
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
         self.baseIterator = ChampBaseReverseIterator(rootNode: .bitmapIndexed(rootNode))
     }
