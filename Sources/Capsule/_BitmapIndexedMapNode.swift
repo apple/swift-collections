@@ -263,22 +263,18 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         let mask0 = maskFrom(keyHash0, shift)
         let mask1 = maskFrom(keyHash1, shift)
 
-        if (mask0 != mask1) {
+        if mask0 != mask1 {
             // unique prefixes, payload fits on same level
-            let dataMap = bitposFrom(mask0) | bitposFrom(mask1)
-
-            if (mask0 < mask1) {
-                return BitmapIndexedMapNode(dataMap: dataMap, arrayLiteral: (key0, value0), (key1, value1))
+            if mask0 < mask1 {
+                return BitmapIndexedMapNode(dataMap: bitposFrom(mask0) | bitposFrom(mask1), arrayLiteral: (key0, value0), (key1, value1))
             } else {
-                return BitmapIndexedMapNode(dataMap: dataMap, arrayLiteral: (key1, value1), (key0, value0))
+                return BitmapIndexedMapNode(dataMap: bitposFrom(mask1) | bitposFrom(mask0), arrayLiteral: (key1, value1), (key0, value0))
             }
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
-
-            let nodeMap = bitposFrom(mask0)
             let node = mergeTwoKeyValPairs(key0, value0, keyHash0, key1, value1, keyHash1, shift + BitPartitionSize)
 
-            return BitmapIndexedMapNode(nodeMap: nodeMap, arrayLiteral: node)
+            return BitmapIndexedMapNode(nodeMap: bitposFrom(mask0), arrayLiteral: node)
         }
     }
 
@@ -288,19 +284,14 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         let mask0 = maskFrom(keyHash0, shift)
         let mask1 = maskFrom(nodeHash1, shift)
 
-        if (mask0 != mask1) {
+        if mask0 != mask1 {
             // unique prefixes, payload and collision node fit on same level
-            let dataMap = bitposFrom(mask0)
-            let collMap = bitposFrom(mask1)
-
-            return BitmapIndexedMapNode(dataMap: dataMap, collMap: collMap, arrayLiteral: key0, value0, node1)
+            return BitmapIndexedMapNode(dataMap: bitposFrom(mask0), collMap: bitposFrom(mask1), arrayLiteral: key0, value0, node1)
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
-
-            let nodeMap = bitposFrom(mask0)
             let node = mergeKeyValPairAndCollisionNode(key0, value0, keyHash0, node1, nodeHash1, shift + BitPartitionSize)
 
-            return BitmapIndexedMapNode(nodeMap: nodeMap, arrayLiteral: node)
+            return BitmapIndexedMapNode(nodeMap: bitposFrom(mask0), arrayLiteral: node)
         }
     }
 
