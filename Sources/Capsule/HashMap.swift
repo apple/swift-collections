@@ -76,7 +76,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
     mutating func insert(_ isStorageKnownUniquelyReferenced: Bool, key: Key, value: Value) {
         var effect = MapEffect()
         let keyHash = computeHash(key)
-        let newRootNode = rootNode.updated(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
+        let newRootNode = rootNode.updateOrUpdating(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
 
         if effect.modified {
             if effect.replacedValue {
@@ -95,7 +95,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
     public func inserting(key: Key, value: Value) -> Self {
         var effect = MapEffect()
         let keyHash = computeHash(key)
-        let newRootNode = rootNode.updated(false, key, value, keyHash, 0, &effect)
+        let newRootNode = rootNode.updateOrUpdating(false, key, value, keyHash, 0, &effect)
 
         if effect.modified {
             if effect.replacedValue {
@@ -115,7 +115,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
     mutating func delete(_ isStorageKnownUniquelyReferenced: Bool, key: Key) {
         var effect = MapEffect()
         let keyHash = computeHash(key)
-        let newRootNode = rootNode.removed(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
+        let newRootNode = rootNode.removeOrRemoving(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
 
         if effect.modified {
             self.rootNode = newRootNode
@@ -128,7 +128,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
     public func deleting(key: Key) -> Self {
         var effect = MapEffect()
         let keyHash = computeHash(key)
-        let newRootNode = rootNode.removed(false, key, keyHash, 0, &effect)
+        let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
         if effect.modified {
             return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize - 1)

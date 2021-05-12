@@ -36,7 +36,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 //        return self.hash == hash && content.contains(where: { key == $0.key && value == $0.value })
 //    }
 
-    func updated(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
+    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
 
         // TODO check if key/value-pair check should be added (requires value to be Equitable)
         if self.containsKey(key, hash, shift) {
@@ -54,7 +54,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
     // TODO rethink such that `precondition(content.count >= 2)` holds
     // TODO consider returning either type of `BitmapIndexedMapNode` and `HashCollisionMapNode`
-    func removed(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
+    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
         if !self.containsKey(key, hash, shift) {
             return self
         } else {
