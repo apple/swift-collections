@@ -11,9 +11,9 @@
 
 final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
     let hash: Int
-    let content: Array<(key: Key, value: Value)>
+    let content: [(key: Key, value: Value)]
 
-    init(_ hash: Int, _ content: Array<(key: Key, value: Value)>) {
+    init(_ hash: Int, _ content: [(key: Key, value: Value)]) {
         // precondition(content.count >= 2)
         precondition(content.map { $0.key }.allSatisfy {$0.hashValue == hash})
 

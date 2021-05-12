@@ -17,16 +17,16 @@ func computeHash<T: Hashable>(_ value: T) -> Int {
 
 typealias Bitmap = Int64
 
-let BitPartitionSize: Int = 5
+let bitPartitionSize: Int = 5
 
-let BitPartitionMask: Int = (1 << BitPartitionSize) - 1
+let bitPartitionMask: Int = (1 << bitPartitionSize) - 1
 
-let HashCodeLength: Int = Int.bitWidth
+let hashCodeLength: Int = Int.bitWidth
 
-let MaxDepth = Int(ceil(Double(HashCodeLength) / Double(BitPartitionSize)))
+let maxDepth = Int(ceil(Double(hashCodeLength) / Double(bitPartitionSize)))
 
 func maskFrom(_ hash: Int, _ shift: Int) -> Int {
-    (hash >> shift) & BitPartitionMask
+    (hash >> shift) & bitPartitionMask
 }
 
 func bitposFrom(_ mask: Int) -> Bitmap {
@@ -152,8 +152,8 @@ struct ChampBaseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
     var currentValueNode: T? = nil
 
     private var currentStackLevel: Int = -1
-    private var nodeCursorsAndLengths: Array<Int> = Array<Int>(repeating: 0, count: MaxDepth * 2)
-    private var nodes: Array<T?> = Array<T?>(repeating: nil, count: MaxDepth)
+    private var nodeCursorsAndLengths: [Int] = Array(repeating: 0, count: maxDepth * 2)
+    private var nodes: [T?] = Array(repeating: nil, count: maxDepth)
 
     init(rootNode: T) {
         if rootNode.hasNodes   { pushNode(rootNode) }
@@ -186,7 +186,7 @@ struct ChampBaseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
     /// and pushes encountered sub-nodes on a stack for depth-first traversal.
     ///
     private mutating func searchNextValueNode() -> Bool {
-        while (currentStackLevel >= 0) {
+        while currentStackLevel >= 0 {
             let cursorIndex = currentStackLevel * 2
             let lengthIndex = currentStackLevel * 2 + 1
 
@@ -234,8 +234,8 @@ struct ChampBaseReverseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node
     var currentValueNode: T? = nil
 
     private var currentStackLevel: Int = -1
-    private var nodeIndex: Array<Int> = Array<Int>(repeating: 0, count: MaxDepth + 1)
-    private var nodeStack: Array<T?> = Array<T?>(repeating: nil, count: MaxDepth + 1)
+    private var nodeIndex: [Int] = Array(repeating: 0, count: maxDepth + 1)
+    private var nodeStack: [T?] = Array(repeating: nil, count: maxDepth + 1)
 
     init(rootNode: T) {
         pushNode(rootNode)
@@ -264,7 +264,7 @@ struct ChampBaseReverseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node
     ///
     @discardableResult
     private mutating func searchNextValueNode() -> Bool {
-        while (currentStackLevel >= 0) {
+        while currentStackLevel >= 0 {
             let nodeCursor = nodeIndex[currentStackLevel] ; nodeIndex[currentStackLevel] = nodeCursor - 1
 
             if nodeCursor >= 0 {

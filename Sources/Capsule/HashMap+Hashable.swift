@@ -13,10 +13,10 @@
 extension HashMap: Hashable where Value: Hashable {
     public func hash(into hasher: inout Hasher) {
         var commutativeHash = 0
-        for (k, v) in self {
+        for (key, value) in self {
             var elementHasher = Hasher()
-            elementHasher.combine(k)
-            elementHasher.combine(v)
+            elementHasher.combine(key)
+            elementHasher.combine(value)
             commutativeHash ^= elementHasher.finalize()
         }
         hasher.combine(commutativeHash)
