@@ -51,18 +51,18 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
-        if (dataMap & bitpos) != 0 {
+        guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let payload = self.getPayload(index)
             return key == payload.key ? payload.value : nil
         }
 
-        if (nodeMap & bitpos) != 0 {
+        guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
             return self.getBitmapIndexedNode(index).get(key, keyHash, shift + bitPartitionSize)
         }
 
-        if (collMap & bitpos) != 0 {
+        guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
             return self.getHashCollisionNode(index).get(key, keyHash, shift + bitPartitionSize)
         }
@@ -74,18 +74,18 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
-        if (dataMap & bitpos) != 0 {
+        guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let payload = self.getPayload(index)
             return key == payload.key
         }
 
-        if (nodeMap & bitpos) != 0 {
+        guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
             return self.getBitmapIndexedNode(index).containsKey(key, keyHash, shift + bitPartitionSize)
         }
 
-        if (collMap & bitpos) != 0 {
+        guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
             return self.getHashCollisionNode(index).containsKey(key, keyHash, shift + bitPartitionSize)
         }
@@ -97,7 +97,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
-        if (dataMap & bitpos) != 0 {
+        guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let (key0, value0) = self.getPayload(index)
 
@@ -119,7 +119,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             }
         }
 
-        if (nodeMap & bitpos) != 0 {
+        guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
             let subNodeModifyInPlace = self.isBitmapIndexedNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
             let subNode = self.getBitmapIndexedNode(index)
@@ -132,7 +132,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             }
         }
 
-        if (collMap & bitpos) != 0 {
+        guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
             let subNodeModifyInPlace = self.isHashCollisionNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
             let subNode = self.getHashCollisionNode(index)
@@ -161,7 +161,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
-        if (dataMap & bitpos) != 0 {
+        guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let (key0, _) = self.getPayload(index)
 
@@ -191,7 +191,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             } else { return self }
         }
 
-        if (nodeMap & bitpos) != 0 {
+        guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
             let subNodeModifyInPlace = self.isBitmapIndexedNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
             let subNode = self.getBitmapIndexedNode(index)
@@ -226,7 +226,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             }
         }
 
-        if (collMap & bitpos) != 0 {
+        guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
             let subNodeModifyInPlace = self.isHashCollisionNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
             let subNode = self.getHashCollisionNode(index)
