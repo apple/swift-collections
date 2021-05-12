@@ -28,6 +28,10 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
         self.content = content
     }
 
+    convenience init() {
+        self.init(0, 0, 0, Array())
+    }
+
     func get(_ key: Key, _ keyHash: Int, _ shift: Int) -> Value? {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
@@ -310,7 +314,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
     // TODO replace 'manual' move semantics with pointer arithmetic for obtaining reference
     // to pass into `isKnownUniquelyReferenced`
     private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
-        let fakeNode = BitmapIndexedMapNode(0, 0, 0, Array())
+        let fakeNode = BitmapIndexedMapNode()
 
         var realNode = content[slotIndex] as AnyObject
         content[slotIndex] = fakeNode
