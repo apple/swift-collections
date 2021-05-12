@@ -239,7 +239,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
             case .sizeOne:
                 // TODO simplify hash-collision compaction (if feasible)
-                if self.payloadArity == 0 && (self.bitmapIndexedNodeArity + self.hashCollisionNodeArity) == 1 {
+                if self.payloadArity == 0 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
                     // escalate singleton
                     // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
                     let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
