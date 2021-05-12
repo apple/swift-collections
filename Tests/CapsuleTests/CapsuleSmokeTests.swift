@@ -347,6 +347,37 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectEqual(res1, res3)
     }
 
+    func testCompactionWhenDeletingFromHashCollisionNode5() {
+        let map: HashMap<CollidableInt, CollidableInt> = [:]
+
+
+        var res1 = map
+        res1[CollidableInt(1)] = CollidableInt(1)
+        res1[CollidableInt(1026)] = CollidableInt(1026)
+        res1[CollidableInt(32770_1, 32770)] = CollidableInt(32770_1, 32770)
+        res1[CollidableInt(32770_2, 32770)] = CollidableInt(32770_2, 32770)
+
+        expectTrue(res1.contains(CollidableInt(1)))
+        expectTrue(res1.contains(CollidableInt(1026)))
+        expectTrue(res1.contains(CollidableInt(32770_1, 32770)))
+        expectTrue(res1.contains(CollidableInt(32770_2, 32770)))
+
+        expectEqual(res1.count, 4)
+        expectEqual(HashMap.init([CollidableInt(1) : CollidableInt(1), CollidableInt(1026) : CollidableInt(1026), CollidableInt(32770_1, 32770) : CollidableInt(32770_1, 32770), CollidableInt(32770_2, 32770) : CollidableInt(32770_2, 32770)]), res1)
+
+
+        var res2 = res1
+        res2[CollidableInt(1026)] = nil
+
+        expectTrue(res2.contains(CollidableInt(1)))
+        expectFalse(res2.contains(CollidableInt(1026)))
+        expectTrue(res2.contains(CollidableInt(32770_1, 32770)))
+        expectTrue(res2.contains(CollidableInt(32770_2, 32770)))
+
+        expectEqual(res2.count, 3)
+        expectEqual(HashMap.init([CollidableInt(1) : CollidableInt(1), CollidableInt(32770_1, 32770) : CollidableInt(32770_1, 32770), CollidableInt(32770_2, 32770) : CollidableInt(32770_2, 32770)]), res2)
+    }
+
     func inferSize<Key, Value>(_ map: HashMap<Key, Value>) -> Int {
         var size = 0
 
