@@ -406,8 +406,8 @@ fileprivate final class CollidableInt : CustomStringConvertible, Equatable, Hash
 
 final class BitmapSmokeTests: CollectionTestCase {
     func test_BitPartitionSize_isValid() {
-        expectTrue(BitPartitionSize > 0)
-        expectTrue((2 << (BitPartitionSize - 1)) != 0)
-        expectTrue((2 << (BitPartitionSize - 1)) <= Bitmap.bitWidth)
+        expectTrue(bitPartitionSize > 0)
+        expectTrue((2 << (bitPartitionSize - 1)) != 0)
+        expectTrue((2 << (bitPartitionSize - 1)) <= Bitmap.bitWidth)
     }
 }
