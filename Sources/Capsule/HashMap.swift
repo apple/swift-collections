@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-public struct HashMap<Key, Value> where Key : Hashable {
+public struct HashMap<Key, Value> where Key: Hashable {
     var rootNode: BitmapIndexedMapNode<Key, Value>
     var cachedKeySetHashCode: Int
     var cachedSize: Int
@@ -136,7 +136,7 @@ public struct HashMap<Key, Value> where Key : Hashable {
     }
 }
 
-public struct MapKeyValueTupleIterator<Key : Hashable, Value> {
+public struct MapKeyValueTupleIterator<Key: Hashable, Value> {
     private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
     
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
@@ -144,7 +144,7 @@ public struct MapKeyValueTupleIterator<Key : Hashable, Value> {
     }
 }
 
-extension MapKeyValueTupleIterator : IteratorProtocol {
+extension MapKeyValueTupleIterator: IteratorProtocol {
     public mutating func next() -> (Key, Value)? {
         guard baseIterator.hasNext() else { return nil }
 
@@ -163,7 +163,7 @@ extension MapKeyValueTupleIterator : IteratorProtocol {
     }
 }
 
-public struct MapKeyValueTupleReverseIterator<Key : Hashable, Value> {
+public struct MapKeyValueTupleReverseIterator<Key: Hashable, Value> {
     private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
     
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
@@ -171,7 +171,7 @@ public struct MapKeyValueTupleReverseIterator<Key : Hashable, Value> {
     }
 }
 
-extension MapKeyValueTupleReverseIterator : IteratorProtocol {
+extension MapKeyValueTupleReverseIterator: IteratorProtocol {
     public mutating func next() -> (Key, Value)? {
         guard baseIterator.hasNext() else { return nil }
 

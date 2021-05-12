@@ -11,7 +11,7 @@
 
 import func Foundation.ceil
 
-func computeHash<T : Hashable>(_ value: T) -> Int {
+func computeHash<T: Hashable>(_ value: T) -> Int {
     value.hashValue
 }
 
@@ -41,7 +41,7 @@ func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
     (bitmap == -1) ? mask : indexFrom(bitmap, bitpos)
 }
 
-enum TrieNode<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+enum TrieNode<BitmapIndexedNode: Node, HashCollisionNode: Node> {
     case bitmapIndexed(BitmapIndexedNode)
     case hashCollision(HashCollisionNode)
 
@@ -109,8 +109,8 @@ extension SizePredicate {
 
 protocol Node {
     associatedtype ReturnPayload
-    associatedtype ReturnBitmapIndexedNode : Node
-    associatedtype ReturnHashCollisionNode : Node
+    associatedtype ReturnBitmapIndexedNode: Node
+    associatedtype ReturnHashCollisionNode: Node
     
     var hasBitmapIndexedNodes: Bool { get }
     
@@ -144,7 +144,7 @@ protocol Node {
 /// depth-first pre-order traversal, which yields first all payload elements of the current
 /// node before traversing sub-nodes (left to right).
 ///
-struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+struct ChampBaseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
     typealias T = TrieNode<BitmapIndexedNode, HashCollisionNode>
 
     var currentValueCursor: Int = 0
@@ -227,7 +227,7 @@ struct ChampBaseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
 /// Base class for fixed-stack iterators that traverse a hash-trie in reverse order. The base
 /// iterator performs a depth-first post-order traversal, traversing sub-nodes (right to left).
 ///
-struct ChampBaseReverseIterator<BitmapIndexedNode : Node, HashCollisionNode : Node> {
+struct ChampBaseReverseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
     typealias T = TrieNode<BitmapIndexedNode, HashCollisionNode>
 
     var currentValueCursor: Int = -1

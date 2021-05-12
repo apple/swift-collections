@@ -11,7 +11,7 @@
 
 fileprivate var TupleLength: Int { 2 }
 
-final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
+final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     let bitmap1: Bitmap
     let bitmap2: Bitmap
     var content: [Any]
@@ -488,7 +488,7 @@ final class BitmapIndexedMapNode<Key, Value> : MapNode where Key : Hashable {
 //    }
 }
 
-extension BitmapIndexedMapNode : Equatable where Value : Equatable {
+extension BitmapIndexedMapNode: Equatable where Value: Equatable {
     static func == (lhs: BitmapIndexedMapNode<Key, Value>, rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
         lhs === rhs ||
             lhs.nodeMap == rhs.nodeMap &&

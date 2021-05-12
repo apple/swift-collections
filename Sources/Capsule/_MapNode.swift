@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-protocol MapNode : Node {
-    associatedtype Key : Hashable
+protocol MapNode: Node {
+    associatedtype Key: Hashable
     associatedtype Value
 
     func get(_ key: Key, _ hash: Int, _ shift: Int) -> Value?

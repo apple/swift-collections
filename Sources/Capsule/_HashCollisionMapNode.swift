@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
+final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
     let hash: Int
     let content: Array<(key: Key, value: Value)>
 
@@ -105,7 +105,7 @@ final class HashCollisionMapNode<Key, Value> : MapNode where Key : Hashable {
     var sizePredicate: SizePredicate { SizePredicate(self) }
 }
 
-extension HashCollisionMapNode : Equatable where Value : Equatable {
+extension HashCollisionMapNode: Equatable where Value: Equatable {
     static func == (lhs: HashCollisionMapNode<Key, Value>, rhs: HashCollisionMapNode<Key, Value>) -> Bool {
         Dictionary.init(uniqueKeysWithValues: lhs.content) == Dictionary.init(uniqueKeysWithValues: rhs.content)
     }

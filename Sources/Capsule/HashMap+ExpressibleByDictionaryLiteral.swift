@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension HashMap : ExpressibleByDictionaryLiteral {
+extension HashMap: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (Key, Value)...) {
         let map = elements.reduce(Self()) { (map, element) in let (key, value) = element
             return map.inserting(key: key, value: value)
