@@ -125,11 +125,9 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             let subNode = self.getBitmapIndexedNode(index)
 
             let subNodeNew = subNode.updated(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-            if !effect.modified {
-                return self
-            } else {
-                return copyAndSetBitmapIndexedNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
-            }
+            guard effect.modified else { return self }
+
+            return copyAndSetBitmapIndexedNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
         }
 
         guard (collMap & bitpos) == 0 else {
@@ -141,11 +139,9 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
             if keyHash == collisionHash {
                 let subNodeNew = subNode.updated(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-                if !effect.modified {
-                    return self
-                } else {
-                    return copyAndSetHashCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
-                }
+                guard effect.modified else { return self }
+
+                return copyAndSetHashCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
             } else {
                 let subNodeNew = mergeKeyValPairAndCollisionNode(key, value, keyHash, subNode, collisionHash, shift + bitPartitionSize)
                 effect.setModified()
@@ -164,31 +160,30 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let (key0, _) = self.getPayload(index)
+            guard key0 == key else { return self }
 
-            if key0 == key {
-                effect.setModified()
-                // TODO check globally usage of `bitmapIndexedNodeArity` and `hashCollisionNodeArity`
-                if self.payloadArity == 2 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 0 {
-                    /*
-                     * Create new node with remaining pair. The new node will a) either become the new root
-                     * returned, or b) unwrapped and inlined during returning.
-                     */
-                    let newDataMap: Bitmap
-                    if shift == 0 { newDataMap = (dataMap ^ bitpos) } else { newDataMap = bitposFrom(maskFrom(keyHash, 0)) }
-                    if index == 0 {
-                        return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: getPayload(1))
-                    } else {
-                        return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: getPayload(0))
-                    }
-                } else if self.payloadArity == 1 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
-                    /*
-                     * Create new node with collision node. The new node will a) either become the new root
-                     * returned, or b) unwrapped and inlined during returning.
-                     */
-                    let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).hash, 0))
-                    return BitmapIndexedMapNode(collMap: newCollMap, arrayLiteral: getHashCollisionNode(0))
-                } else { return copyAndRemoveValue(bitpos) }
-            } else { return self }
+            effect.setModified()
+            // TODO check globally usage of `bitmapIndexedNodeArity` and `hashCollisionNodeArity`
+            if self.payloadArity == 2 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 0 {
+                /*
+                 * Create new node with remaining pair. The new node will a) either become the new root
+                 * returned, or b) unwrapped and inlined during returning.
+                 */
+                let newDataMap: Bitmap
+                if shift == 0 { newDataMap = (dataMap ^ bitpos) } else { newDataMap = bitposFrom(maskFrom(keyHash, 0)) }
+                if index == 0 {
+                    return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: getPayload(1))
+                } else {
+                    return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: getPayload(0))
+                }
+            } else if self.payloadArity == 1 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
+                /*
+                 * Create new node with collision node. The new node will a) either become the new root
+                 * returned, or b) unwrapped and inlined during returning.
+                 */
+                let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).hash, 0))
+                return BitmapIndexedMapNode(collMap: newCollMap, arrayLiteral: getHashCollisionNode(0))
+            } else { return copyAndRemoveValue(bitpos) }
         }
 
         guard (nodeMap & bitpos) == 0 else {
@@ -197,8 +192,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             let subNode = self.getBitmapIndexedNode(index)
 
             let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
+            guard effect.modified else { return self }
 
-            if !effect.modified { return self }
             switch subNodeNew.sizePredicate {
             case .sizeEmpty:
                 preconditionFailure("Sub-node must have at least one element.")
@@ -232,8 +227,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             let subNode = self.getHashCollisionNode(index)
 
             let subNodeNew = subNode.removed(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
+            guard effect.modified else { return self }
 
-            if !effect.modified { return self }
             switch subNodeNew.sizePredicate {
             case .sizeEmpty:
                 preconditionFailure("Sub-node must have at least one element.")
