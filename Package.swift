@@ -54,8 +54,6 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-
-    .executable(name: "swift-collections-benchmark", targets: ["swift-collections-benchmark"]),
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
