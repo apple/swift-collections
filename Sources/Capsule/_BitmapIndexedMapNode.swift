@@ -196,7 +196,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             case .sizeOne:
                 precondition(self.bitmapIndexedNodeArity >= 1)
 
-                if self.payloadArity == 0 && self.bitmapIndexedNodeArity == 1 && self.hashCollisionNodeArity == 0 {
+                if self.isCandiateForCompaction {
                     // escalate singleton
                     return subNodeNew
                 } else {
@@ -207,11 +207,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             case .sizeMoreThanOne:
                 precondition(self.bitmapIndexedNodeArity >= 1)
 
-                let isNodeThatOnlyHashOneSingleHashCollisionSubNode =
-                    subNodeNew.payloadArity == 0 && subNodeNew.bitmapIndexedNodeArity == 0 && subNodeNew.hashCollisionNodeArity == 1
-
-                if (isNodeThatOnlyHashOneSingleHashCollisionSubNode) {
-                    if self.payloadArity == 0 && self.bitmapIndexedNodeArity == 1 && self.hashCollisionNodeArity == 0 {
+                if (subNodeNew.isWrappingSingleHashCollisionNode) {
+                    if self.isCandiateForCompaction {
                         // escalate node that has only a single hash-collision sub-node
                         return subNodeNew
                     } else {
@@ -239,7 +236,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
             case .sizeOne:
                 // TODO simplify hash-collision compaction (if feasible)
-                if self.payloadArity == 0 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
+                if self.isCandiateForCompaction {
                     // escalate singleton
                     // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
                     let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
@@ -257,6 +254,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         return self
     }
+
+    var isCandiateForCompaction: Bool { payloadArity == 0 && nodeArity == 1 }
+
+    var isWrappingSingleHashCollisionNode: Bool { payloadArity == 0 && bitmapIndexedNodeArity == 0 && hashCollisionNodeArity == 1 }
 
     func mergeTwoKeyValPairs(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ key1: Key, _ value1: Value, _ keyHash1: Int, _ shift: Int) -> BitmapIndexedMapNode<Key, Value> {
         precondition(keyHash0 != keyHash1)
