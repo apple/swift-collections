@@ -14,7 +14,6 @@ extension OrderedSet {
   /// conformance.
   @frozen
   public struct UnorderedView {
-    public typealias Element = OrderedSet.Element
 
     @usableFromInline
     internal var _base: OrderedSet
@@ -302,7 +301,7 @@ extension OrderedSet.UnorderedView {
   @inlinable
   @inline(__always)
   @discardableResult
-  public mutating func remove(_ member: Self.Element) -> Self.Element? {
+    public mutating func remove(_ member: OrderedSet.Element) -> OrderedSet.Element? {
     _base.remove(member)
   }
 }
