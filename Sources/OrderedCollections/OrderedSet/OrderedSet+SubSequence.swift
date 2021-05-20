@@ -48,8 +48,6 @@ extension OrderedSet.SubSequence {
 }
 
 extension OrderedSet.SubSequence: Sequence {
-  // A type representing the collection’s elements.
-  public typealias Element = OrderedSet.Element
   /// The type that allows iteration over the collection's elements.
   public typealias Iterator = IndexingIterator<Self>
 
