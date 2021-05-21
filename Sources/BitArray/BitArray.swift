@@ -8,7 +8,7 @@
 public struct BitArray {
     var storage : [UInt]
     
-    func printHi() {
+    public func printHi() {
         print("Hey! You made it!")
     }
 }
