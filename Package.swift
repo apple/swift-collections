@@ -65,7 +65,6 @@ let package = Package(
     // BitArray
     .target(
         name: "BitArray",
-        dependencies: ["BitArray"],
         path: "Sources/BitArray",
         swiftSettings: settings),
         
