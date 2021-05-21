@@ -7,4 +7,8 @@
 
 public struct BitArray {
     var storage : [UInt]
+    
+    func printHi() {
+        print("Hey! You made it!")
+    }
 }
