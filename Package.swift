@@ -54,6 +54,7 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "PriorityQueue", targets: ["PriorityQueue"]),
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
@@ -114,7 +115,17 @@ let package = Package(
       name: "DequeTests",
       dependencies: ["DequeModule", "CollectionsTestSupport"],
       swiftSettings: settings),
-
+    
+    // PriorityQueue<Element>
+    .target(
+      name: "PriorityQueue",
+      swiftSettings: settings),
+    .testTarget(
+      name: "PriorityQueueTests",
+      dependencies: ["PriorityQueue", "CollectionsTestSupport"],
+      swiftSettings: settings),
+    
+    
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
