@@ -8,6 +8,6 @@
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
-//RANDOM
+
 @_exported import DequeModule
 @_exported import OrderedCollections
