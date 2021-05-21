@@ -6,5 +6,5 @@
 //
 
 public struct BitArray {
-    var
+    var storage : [UInt]
 }
