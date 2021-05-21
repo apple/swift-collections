@@ -1,0 +1,10 @@
+//
+//  File.swift
+//  
+//
+//  Created by Mahanaz Atiqullah on 5/21/21.
+//
+
+public struct BitArray {
+    
+}
