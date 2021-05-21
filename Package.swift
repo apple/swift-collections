@@ -54,12 +54,18 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "BitArray", targets: ["BitArray"])
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
     .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.1"),
   ],
   targets: [
+    .target(
+        name: "BitArray",
+        dependencies: [],
+        path: "Sources/BitArray",
+        swiftSettings: settings),
     .target(
       name: "Collections",
       dependencies: [
