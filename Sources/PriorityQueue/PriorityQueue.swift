@@ -18,7 +18,7 @@ public enum HeapType{
 /*
  *  Implements a PriorityQueue using an array-based min/max binary heap.
  */
-struct PriorityQueue<Element:Comparable>{
+public struct PriorityQueue<Element:Comparable>{
     
     //The underlying storage for the min/max heap
     private var storage:[Element];
@@ -36,13 +36,10 @@ struct PriorityQueue<Element:Comparable>{
     /*
      *  Adds an element to the Priority Queue
      *  @param  value  the element to add to the Priority Queue
-     *  @return  true if value could be added, false otherwise
      */
-    public mutating func enqueue(value:Element) -> Bool{
+    public mutating func enqueue(value:Element){
         storage.append(value)
         swimUp(elementIndex: storage.count-1);
-        
-        return true;
     }
     
     /*
@@ -206,6 +203,14 @@ struct PriorityQueue<Element:Comparable>{
      */
     public func size() -> Int{
         return storage.count;
+    }
+    
+    /*
+     *  Determines the heap type of the current priority queue
+     *  @return  the heap type of the current priority queue
+     */
+    public func getPriorityQueueType() -> HeapType{
+        return storageType;
     }
     
 }
