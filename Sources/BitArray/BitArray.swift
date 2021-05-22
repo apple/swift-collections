@@ -6,7 +6,9 @@
 //
 
 public struct BitArray {
-    var storage : [UInt]
+    var storage : [UInt8]
+    
+    public init() {}
     
     public func printHi() {
         print("Hey! You made it!")
