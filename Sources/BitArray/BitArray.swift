@@ -13,5 +13,7 @@ public struct BitArray {
 }
 
 extension BitArray {
-    
+    public func test() {
+        print("Entered test function")
+    }
 }
