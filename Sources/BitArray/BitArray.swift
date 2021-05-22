@@ -10,11 +10,8 @@ public struct BitArray {
     
     public init() {}
     
-    public func printHi() {
-        print("Hey! You made it!")
-    }
+}
+
+extension BitArray {
     
-    public func test() {
-        print("test")
-    }
 }
