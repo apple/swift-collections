@@ -13,4 +13,8 @@ public struct BitArray {
     public func printHi() {
         print("Hey! You made it!")
     }
+    
+    public func test() {
+        print("test")
+    }
 }
