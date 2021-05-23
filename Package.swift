@@ -66,6 +66,7 @@ let package = Package(
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "PriorityQueue",
       ],
       path: "Sources/Collections",
       swiftSettings: settings),
