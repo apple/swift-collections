@@ -204,5 +204,68 @@ final class PriorityQueueTests: CollectionTestCase {
         intermediateValues = 0
         expectEqual(intermediateValues, 0)
     }
+    
+    func test_priorityQueueSequenceConformance(){
+        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
+        minQueue.enqueue(value: 7)
+        minQueue.enqueue(value: 2)
+        minQueue.enqueue(value: 8)
+        minQueue.enqueue(value: 10)
+        minQueue.enqueue(value: 29)
+        minQueue.enqueue(value: 34)
+        minQueue.enqueue(value: 67)
+        minQueue.enqueue(value: 88)
+        minQueue.enqueue(value: 72)
+        minQueue.enqueue(value: 59)
+        minQueue.enqueue(value: 26)
+        minQueue.enqueue(value: 10674)
+        minQueue.enqueue(value: 39)
+        minQueue.enqueue(value: 2)
+        var calculatedOutput = ""
+        for value in minQueue{
+            calculatedOutput += "\(value) "
+        }
+        var expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 10674 "
+        expectEqual(expectedOutput, calculatedOutput)
+        minQueue.enqueue(value: 102)
+        minQueue.enqueue(value: 124)
+        calculatedOutput = ""
+        for value in minQueue{
+            calculatedOutput += "\(value) "
+        }
+        //expectedOutput should be updated with new values
+        expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 102 124 10674 "
+        expectEqual(expectedOutput, calculatedOutput)
+        
+        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
+        maxQueue.enqueue(value: 7)
+        maxQueue.enqueue(value: 2)
+        maxQueue.enqueue(value: 8)
+        maxQueue.enqueue(value: 10)
+        maxQueue.enqueue(value: 29)
+        maxQueue.enqueue(value: 34)
+        maxQueue.enqueue(value: 67)
+        maxQueue.enqueue(value: 88)
+        maxQueue.enqueue(value: 72)
+        maxQueue.enqueue(value: 59)
+        maxQueue.enqueue(value: 26)
+        maxQueue.enqueue(value: 10674)
+        maxQueue.enqueue(value: 39)
+        maxQueue.enqueue(value: 2)
+        calculatedOutput = ""
+        for value in maxQueue{
+            calculatedOutput += "\(value) "
+        }
+        expectedOutput = "10674 88 72 67 59 39 34 29 26 10 8 7 2 2 "
+        expectEqual(expectedOutput, calculatedOutput)
+        minQueue.enqueue(value: 102)
+        minQueue.enqueue(value: 124)
+        calculatedOutput = ""
+        for value in maxQueue{
+            calculatedOutput += "\(value) "
+        }
+        //expectedOutput should be updated with new values
+        expectedOutput = "10674 124 102 88 72 67 59 39 34 29 26 10 8 7 2 2 "
+    }
 
 }
