@@ -183,6 +183,17 @@ public struct PriorityQueue<Element:Comparable>{
     }
     
     /*
+     *  Determines the element with the highest/lowest priority, depending on the heap type
+     *  @return  the element with the highest/lowest priority, or nil if no elements exist
+     */
+    public func peek() -> Element?{
+        if(isEmpty() == true){
+            return nil;
+        }
+        return storage[0];
+    }
+    
+    /*
      *  Determines whether the Priority Queue is full.
      *  @return  true if the PriorityQueue is full, false otherwise
      */

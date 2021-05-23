@@ -267,5 +267,36 @@ final class PriorityQueueTests: CollectionTestCase {
         //expectedOutput should be updated with new values
         expectedOutput = "10674 124 102 88 72 67 59 39 34 29 26 10 8 7 2 2 "
     }
+    
+    func test_peek(){
+        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
+        var intermediateValues:Int //to prevent a lot of warnings
+        expectEqual(minQueue.peek(), nil)
+        minQueue.enqueue(value: 5)
+        minQueue.enqueue(value: 26)
+        minQueue.enqueue(value: 12)
+        minQueue.enqueue(value: 23)
+        minQueue.enqueue(value: 12)
+        expectEqual(minQueue.peek(), 5)
+        intermediateValues = minQueue.dequeue()!
+        intermediateValues = minQueue.dequeue()!
+        expectEqual(minQueue.peek(), 12)
+        
+        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
+        expectEqual(maxQueue.peek(), nil)
+        maxQueue.enqueue(value: 5)
+        maxQueue.enqueue(value: 26)
+        maxQueue.enqueue(value: 12)
+        maxQueue.enqueue(value: 23)
+        maxQueue.enqueue(value: 12)
+        expectEqual(maxQueue.peek(), 26)
+        intermediateValues = maxQueue.dequeue()!
+        intermediateValues = maxQueue.dequeue()!
+        expectEqual(maxQueue.peek(), 12)
+        
+        //to prevent warnings of variable written to but not read
+        intermediateValues = 0
+        expectEqual(intermediateValues, 0)
+    }
 
 }
