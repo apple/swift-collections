@@ -24,7 +24,7 @@ extension PriorityQueue:Sequence{
         
         /*
          *  Determines the next element in the iterator
-         *  @return  the next element in the iterator
+         *  @return  the next element in the iterator, or nil if it doesn't exist
          */
         public mutating func next() -> Element? {
             return snapshotPriorityQueue.dequeue() ?? nil
