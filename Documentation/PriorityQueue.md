@@ -2,7 +2,7 @@
 A sequence implementing a binary heap based priority queue.
 
 ## Declaration
-```
+```swift
 import PriorityQueue
 public struct PriorityQueue<Element>
 ```
@@ -10,13 +10,13 @@ public struct PriorityQueue<Element>
 ## Overview
 `PriorityQueue` is a queue that orders its elements according to their natural ordering, while maintaining efficient enqueue and dequeue operations. During construction `PriorityQueue` must be passed a `HeapType` which indicates whether larger or smaller elements have a higher priority. 
 
-```
+```swift
 var numbers = PriorityQueue<Int>(HeapType.min)
 ```
 
 `PriorityQueue`s do not conform to the Collections protocol, and thus are unable to be accessed and mutated like their counterparts. Because of this, functions such as `enqueue(value:)`, `dequeue()` , and `peek()` are used to insert, remove, and read elements respectively. 
 
-```
+```swift
 numbers.enqueue(value: 5)
 numbers.enqueue(value: -3)
 numbers.enqueue(value: 13)
@@ -27,7 +27,7 @@ print(numbers.peek()) //prints 5
 
 `PriorityQueue`s, however, conform to the Sequence protocol, which provides a familiar method of traversing through them.
 
-```
+```swift
 var sum:Int
 for value in numbers {
 	sum += value
