@@ -8,7 +8,9 @@
 public struct BitArray {
     var storage : [UInt8]
     
-    public init() {}
+    public init() {
+        storage = []
+    }
     
 }
 
