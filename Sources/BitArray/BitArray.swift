@@ -5,6 +5,8 @@
 //  Created by Mahanaz Atiqullah on 5/21/21.
 //
 
+import Foundation
+
 public struct BitArray {
     typealias UNIT = UInt8  // created for experimental purposes to make it easier to test different UInts without having to change a lot of the code
     
@@ -56,9 +58,19 @@ extension BitArray: Collection {
     }
     
     private func query(value: UNIT, at position: Int) -> Int {
-        
-        #warning("incomplete: Bit operations")
-        return 1
+        // I'm going to start by writing a very inefficient, but working algorithm
+        var val: Int = Int(value) // copy passed in value
+        var power = 512 // prevents me from calculating pow(2,x) every time
+        for i in stride(from: 8, to: position-1, by: -1) {
+            power = power/2
+            if (i == position) {
+                if (val >= power) { return 1 } else { return 0 }
+            } else if (val >= power) {
+                val -= power
+            }
+        }
+        fatalError("Query function did not find a value")
+        return 0
     }
     
     public func index(after i: Int) -> Int {
