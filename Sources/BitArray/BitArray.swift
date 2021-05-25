@@ -76,6 +76,7 @@ extension BitArray: Collection {
         fatalError("Query function did not find a value")
     }
     
+    
     public func index(after i: Int) -> Int {
         #warning("Wth is this.")
         return i
