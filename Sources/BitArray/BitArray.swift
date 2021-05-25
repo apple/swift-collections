@@ -24,17 +24,22 @@ public struct BitArray {
 
 // NOTE: Research @inlinable
 
-extension BitArray {
-    public func test() {
-        print("Nice! We're in test function!")
+extension BitArray { // shouldn't I conform these to Collection as well
+    
+    public mutating func append(_ newValue: Bool) { // will abtracting reduce performance?
+        if (excess == 0) {
+            if (newValue == true) {
+                self.storage.append(1)
+            } else {
+                self.storage.append(0)
+            }
+        } else if (newValue == true) {
+            self.storage[storage.count-1] += UInt8(pow(2, Double(excess)))
+        }
+        adjustExcess()
     }
     
-    mutating func append(_ newValue: Bool) {
-        
-        adjustExcess() // will abtracting reduce performance?
-    }
-    
-    mutating private func adjustExcess(){
+    private mutating func adjustExcess(){
         if (self.excess == 7) {
             self.excess = 0
         } else {
@@ -47,8 +52,7 @@ extension BitArray: Collection {
     
     //THE FUN FUNCTION
     public subscript(position: Int) -> Bool {
-        #warning("This is definitely wrong. Just have this here to get it to conform to collection for now")
-        // first get the appropriate element in storage
+        // I'm going to start by writing a very inefficient, but working algorithm
         let index: Int = position/UNIT.bitWidth
         let subPosition: Int = position - index*UNIT.bitWidth
         
@@ -82,7 +86,9 @@ extension BitArray: Collection {
     }
     
     public var endIndex: Int {
-        return self.storage.count + Int(excess)
+        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - Int(excess)) - 1
     }
+    
+    public var count: Int { get { endIndex + 1 } } // would this work for count?
     
 }
