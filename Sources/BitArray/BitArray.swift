@@ -8,9 +8,11 @@
 public struct BitArray {
     typealias UNIT = UInt8  // created for experimental purposes to make it easier to test different UInts without having to change a lot of the code
     var storage : [UNIT]
+    var size: Int // Not sure if this is the best way to go about this
     
     public init() {
         storage = []
+        size = 0
     }
     
 }
@@ -25,6 +27,7 @@ extension BitArray {
     
     mutating func append(_ newValue: Bool) {
         
+        self.size += 1
     }
 }
 
@@ -58,15 +61,7 @@ extension BitArray: Collection {
     }
     
     public var endIndex: Int {
-        get {
-          return _getCount()
-        }
-    }
-    
-    internal func _getCount() -> Int {
-        #warning("fix this get count function to be, ummm, appropriate lol. Oh! And also try to see how this is internally gonna differ from an array. Especially considering the storage literally is an array.")
-        return self.storage.count*UNIT.bitWidth // for now
-        //return _buffer.immutableCount
+        return self.count
     }
     
 }
