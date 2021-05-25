@@ -7,12 +7,14 @@
 
 public struct BitArray {
     typealias UNIT = UInt8  // created for experimental purposes to make it easier to test different UInts without having to change a lot of the code
+    
+    // Will start off storing elements little-endian just because I have a hunch the calculations might be cleaner
     var storage : [UNIT]
-    var size: Int // Not sure if this is the best way to go about this
+    var excess: UInt8 // I've been playng around with this variable to get some sort of size going. This probably isn't the best way but I'm working on it and evolving it. First I had this as 'size' which basically stored the count, but that was very obviously problematic, even if I just wanted it to get things initially working. Besides, only storing the 'excess' is probably closer to the solution Im anticipating to have
     
     public init() {
         storage = []
-        size = 0
+        excess = 0
     }
     
 }
@@ -27,7 +29,15 @@ extension BitArray {
     
     mutating func append(_ newValue: Bool) {
         
-        self.size += 1
+        adjustExcess() // will abtracting reduce performance?
+    }
+    
+    mutating private func adjustExcess(){
+        if (self.excess == 7) {
+            self.excess = 0
+        } else {
+            self.excess += 1
+        }
     }
 }
 
@@ -40,12 +50,12 @@ extension BitArray: Collection {
         let index: Int = position/UNIT.bitWidth
         let subPosition: Int = position - index*UNIT.bitWidth
         
-        let value = query(index: self.storage[index], at: subPosition)
+        let value = query(value: self.storage[index], at: subPosition)
         
         if(value == 0) {return false} else if (value == 1) {return true} else { fatalError("Querying in subscript function returned a value other than 1 or 0")}
     }
     
-    private func query(index: UNIT, at position: Int) -> Int {
+    private func query(value: UNIT, at position: Int) -> Int {
         
         #warning("incomplete: Bit operations")
         return 1
@@ -61,7 +71,7 @@ extension BitArray: Collection {
     }
     
     public var endIndex: Int {
-        return self.count
+        return self.storage.count + Int(excess)
     }
     
 }
