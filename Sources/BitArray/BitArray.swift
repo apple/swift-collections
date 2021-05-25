@@ -24,8 +24,11 @@ extension BitArray {
 }
 
 extension BitArray: Collection {
+    
+    //THE FUN FUNCTION
     public subscript(position: Int) -> Bool {
         #warning("This is definitely wrong. Just have this here to get it to conform to collection for now")
+        
         return true
     }
     
