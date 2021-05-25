@@ -70,7 +70,6 @@ extension BitArray: Collection {
             }
         }
         fatalError("Query function did not find a value")
-        return 0
     }
     
     public func index(after i: Int) -> Int {
