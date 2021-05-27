@@ -141,7 +141,7 @@ extension Deque: RangeReplaceableCollection {
     _storage.update { handle in
       assert(handle.startSlot == .zero)
       let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
-      let done: Void? = elements.withContiguousStorageIfAvailable { source in
+      let done: Void? = elements._withContiguousStorageIfAvailable_SR14663 { source in
         target._initialize(from: source)
       }
       if done == nil {
@@ -198,7 +198,7 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: Amortized O(`newElements.count`).
   @inlinable
   public mutating func append<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
-    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
+    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedAppend(contentsOf: source) }
     }
@@ -240,7 +240,7 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: Amortized O(`newElements.count`).
   @inlinable
   public mutating func append<C: Collection>(contentsOf newElements: C) where C.Element == Element {
-    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
+    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedAppend(contentsOf: source) }
     }
