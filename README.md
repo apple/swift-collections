@@ -16,6 +16,8 @@ The package currently provides the following implementations:
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
+- `PriorityQueue<Element>`, a queue whose elements are ordered by priority. This uses a `MinMaxHeap<Element>` as its backing store.
+
 [Deque]: Documentation/Deque.md
 [OrderedSet]: Documentation/OrderedSet.md
 [OrderedDictionary]: Documentation/OrderedDictionary.md
