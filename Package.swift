@@ -69,6 +69,7 @@ let package = Package(
         "PriorityQueue",
       ],
       path: "Sources/Collections",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // Testing support module
@@ -111,6 +112,7 @@ let package = Package(
     // Deque<Element>
     .target(
       name: "DequeModule",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "DequeTests",
@@ -130,6 +132,7 @@ let package = Package(
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "OrderedCollectionsTests",
