@@ -27,7 +27,7 @@ extension PriorityQueue:Sequence{
          *  @return  the next element in the iterator, or nil if it doesn't exist
          */
         public mutating func next() -> Element? {
-            return _base.dequeue() ?? nil
+            return _base.remove() ?? nil
         }
         
     }

@@ -15,65 +15,65 @@ import PriorityQueue
 
 final class PriorityQueueTests: CollectionTestCase {
     
-    func test_enqueue() {
+    func test_insert() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
-        minQueue.enqueue(value: 5)
-        minQueue.enqueue(value: 26)
-        minQueue.enqueue(value: 12)
-        minQueue.enqueue(value: 23)
-        minQueue.enqueue(value: 12)
+        minQueue.insert(value: 5)
+        minQueue.insert(value: 26)
+        minQueue.insert(value: 12)
+        minQueue.insert(value: 23)
+        minQueue.insert(value: 12)
         expectEqual(minQueue.count(), 5)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
-        maxQueue.enqueue(value: 5)
-        maxQueue.enqueue(value: 26)
-        maxQueue.enqueue(value: 12)
-        maxQueue.enqueue(value: 23)
-        maxQueue.enqueue(value: 12)
+        maxQueue.insert(value: 5)
+        maxQueue.insert(value: 26)
+        maxQueue.insert(value: 12)
+        maxQueue.insert(value: 23)
+        maxQueue.insert(value: 12)
         expectEqual(maxQueue.count(), 5)
     }
     
-    func test_dequeue() {
+    func test_remove() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
-        minQueue.enqueue(value: 7)
-        minQueue.enqueue(value: 2)
-        minQueue.enqueue(value: 8)
-        minQueue.enqueue(value: 10)
-        minQueue.enqueue(value: 29)
-        minQueue.enqueue(value: 34)
-        minQueue.enqueue(value: 67)
-        minQueue.enqueue(value: 88)
-        minQueue.enqueue(value: 72)
-        minQueue.enqueue(value: 59)
-        minQueue.enqueue(value: 26)
-        minQueue.enqueue(value: 10674)
-        minQueue.enqueue(value: 39)
-        minQueue.enqueue(value: 2)
+        minQueue.insert(value: 7)
+        minQueue.insert(value: 2)
+        minQueue.insert(value: 8)
+        minQueue.insert(value: 10)
+        minQueue.insert(value: 29)
+        minQueue.insert(value: 34)
+        minQueue.insert(value: 67)
+        minQueue.insert(value: 88)
+        minQueue.insert(value: 72)
+        minQueue.insert(value: 59)
+        minQueue.insert(value: 26)
+        minQueue.insert(value: 10674)
+        minQueue.insert(value: 39)
+        minQueue.insert(value: 2)
         var calculatedOutput = ""
         while(!minQueue.isEmpty()) {
-            calculatedOutput += "\(minQueue.dequeue()!) "
+            calculatedOutput += "\(minQueue.remove()!) "
         }
         var expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 10674 "
         expectEqual(expectedOutput, calculatedOutput)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
-        maxQueue.enqueue(value: 7)
-        maxQueue.enqueue(value: 2)
-        maxQueue.enqueue(value: 8)
-        maxQueue.enqueue(value: 10)
-        maxQueue.enqueue(value: 29)
-        maxQueue.enqueue(value: 34)
-        maxQueue.enqueue(value: 67)
-        maxQueue.enqueue(value: 88)
-        maxQueue.enqueue(value: 72)
-        maxQueue.enqueue(value: 59)
-        maxQueue.enqueue(value: 26)
-        maxQueue.enqueue(value: 10674)
-        maxQueue.enqueue(value: 39)
-        maxQueue.enqueue(value: 2)
+        maxQueue.insert(value: 7)
+        maxQueue.insert(value: 2)
+        maxQueue.insert(value: 8)
+        maxQueue.insert(value: 10)
+        maxQueue.insert(value: 29)
+        maxQueue.insert(value: 34)
+        maxQueue.insert(value: 67)
+        maxQueue.insert(value: 88)
+        maxQueue.insert(value: 72)
+        maxQueue.insert(value: 59)
+        maxQueue.insert(value: 26)
+        maxQueue.insert(value: 10674)
+        maxQueue.insert(value: 39)
+        maxQueue.insert(value: 2)
         calculatedOutput = ""
         while(!maxQueue.isEmpty()) {
-            calculatedOutput += "\(maxQueue.dequeue()!) "
+            calculatedOutput += "\(maxQueue.remove()!) "
         }
         expectedOutput = "10674 88 72 67 59 39 34 29 26 10 8 7 2 2 "
         expectEqual(expectedOutput, calculatedOutput)
@@ -84,30 +84,30 @@ final class PriorityQueueTests: CollectionTestCase {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.isEmpty(), true)
-        minQueue.enqueue(value: 55);
-        minQueue.enqueue(value: 24)
-        minQueue.enqueue(value: 69)
-        minQueue.enqueue(value: 32)
+        minQueue.insert(value: 55);
+        minQueue.insert(value: 24)
+        minQueue.insert(value: 69)
+        minQueue.insert(value: 32)
         expectEqual(minQueue.isEmpty(), false)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
+        intermediateValues = minQueue.remove()!
+        intermediateValues = minQueue.remove()!
         expectEqual(minQueue.isEmpty(), false)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
+        intermediateValues = minQueue.remove()!
+        intermediateValues = minQueue.remove()!
         expectEqual(minQueue.isEmpty(), true)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
         expectEqual(maxQueue.isEmpty(), true)
-        maxQueue.enqueue(value: 55);
-        maxQueue.enqueue(value: 24)
-        maxQueue.enqueue(value: 69)
-        maxQueue.enqueue(value: 32)
+        maxQueue.insert(value: 55);
+        maxQueue.insert(value: 24)
+        maxQueue.insert(value: 69)
+        maxQueue.insert(value: 32)
         expectEqual(maxQueue.isEmpty(), false)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
+        intermediateValues = maxQueue.remove()!
+        intermediateValues = maxQueue.remove()!
         expectEqual(maxQueue.isEmpty(), false)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
+        intermediateValues = maxQueue.remove()!
+        intermediateValues = maxQueue.remove()!
         expectEqual(maxQueue.isEmpty(), true)
         
         //to prevent warnings of variable written to but not read
@@ -119,30 +119,30 @@ final class PriorityQueueTests: CollectionTestCase {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.count(), 0)
-        minQueue.enqueue(value: 55);
-        minQueue.enqueue(value: 24)
-        minQueue.enqueue(value: 69)
-        minQueue.enqueue(value: 32)
+        minQueue.insert(value: 55);
+        minQueue.insert(value: 24)
+        minQueue.insert(value: 69)
+        minQueue.insert(value: 32)
         expectEqual(minQueue.count(), 4)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
+        intermediateValues = minQueue.remove()!
+        intermediateValues = minQueue.remove()!
         expectEqual(minQueue.count(), 2)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
+        intermediateValues = minQueue.remove()!
+        intermediateValues = minQueue.remove()!
         expectEqual(minQueue.count(), 0)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
         expectEqual(maxQueue.count(), 0)
-        maxQueue.enqueue(value: 55);
-        maxQueue.enqueue(value: 24)
-        maxQueue.enqueue(value: 69)
-        maxQueue.enqueue(value: 32)
+        maxQueue.insert(value: 55);
+        maxQueue.insert(value: 24)
+        maxQueue.insert(value: 69)
+        maxQueue.insert(value: 32)
         expectEqual(maxQueue.count(), 4)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
+        intermediateValues = maxQueue.remove()!
+        intermediateValues = maxQueue.remove()!
         expectEqual(maxQueue.count(), 2)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
+        intermediateValues = maxQueue.remove()!
+        intermediateValues = maxQueue.remove()!
         expectEqual(maxQueue.count(), 0)
         
         //to prevent warnings of variable written to but not read
@@ -154,16 +154,16 @@ final class PriorityQueueTests: CollectionTestCase {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.getPriorityQueueType(), .min)
-        minQueue.enqueue(value: 55)
-        minQueue.enqueue(value: 63)
-        intermediateValues = minQueue.dequeue()!
+        minQueue.insert(value: 55)
+        minQueue.insert(value: 63)
+        intermediateValues = minQueue.remove()!
         expectEqual(minQueue.getPriorityQueueType(), .min)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
         expectEqual(maxQueue.getPriorityQueueType(), .max)
-        maxQueue.enqueue(value: 55)
-        maxQueue.enqueue(value: 63)
-        intermediateValues = maxQueue.dequeue()!
+        maxQueue.insert(value: 55)
+        maxQueue.insert(value: 63)
+        intermediateValues = maxQueue.remove()!
         expectEqual(maxQueue.getPriorityQueueType(), .max)
         
         //to prevent warnings of variable written to but not read
@@ -173,28 +173,28 @@ final class PriorityQueueTests: CollectionTestCase {
     
     func test_priorityQueueSequenceConformance() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
-        minQueue.enqueue(value: 7)
-        minQueue.enqueue(value: 2)
-        minQueue.enqueue(value: 8)
-        minQueue.enqueue(value: 10)
-        minQueue.enqueue(value: 29)
-        minQueue.enqueue(value: 34)
-        minQueue.enqueue(value: 67)
-        minQueue.enqueue(value: 88)
-        minQueue.enqueue(value: 72)
-        minQueue.enqueue(value: 59)
-        minQueue.enqueue(value: 26)
-        minQueue.enqueue(value: 10674)
-        minQueue.enqueue(value: 39)
-        minQueue.enqueue(value: 2)
+        minQueue.insert(value: 7)
+        minQueue.insert(value: 2)
+        minQueue.insert(value: 8)
+        minQueue.insert(value: 10)
+        minQueue.insert(value: 29)
+        minQueue.insert(value: 34)
+        minQueue.insert(value: 67)
+        minQueue.insert(value: 88)
+        minQueue.insert(value: 72)
+        minQueue.insert(value: 59)
+        minQueue.insert(value: 26)
+        minQueue.insert(value: 10674)
+        minQueue.insert(value: 39)
+        minQueue.insert(value: 2)
         var calculatedOutput = ""
         for value in minQueue {
             calculatedOutput += "\(value) "
         }
         var expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 10674 "
         expectEqual(expectedOutput, calculatedOutput)
-        minQueue.enqueue(value: 102)
-        minQueue.enqueue(value: 124)
+        minQueue.insert(value: 102)
+        minQueue.insert(value: 124)
         calculatedOutput = ""
         for value in minQueue {
             calculatedOutput += "\(value) "
@@ -204,28 +204,28 @@ final class PriorityQueueTests: CollectionTestCase {
         expectEqual(expectedOutput, calculatedOutput)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
-        maxQueue.enqueue(value: 7)
-        maxQueue.enqueue(value: 2)
-        maxQueue.enqueue(value: 8)
-        maxQueue.enqueue(value: 10)
-        maxQueue.enqueue(value: 29)
-        maxQueue.enqueue(value: 34)
-        maxQueue.enqueue(value: 67)
-        maxQueue.enqueue(value: 88)
-        maxQueue.enqueue(value: 72)
-        maxQueue.enqueue(value: 59)
-        maxQueue.enqueue(value: 26)
-        maxQueue.enqueue(value: 10674)
-        maxQueue.enqueue(value: 39)
-        maxQueue.enqueue(value: 2)
+        maxQueue.insert(value: 7)
+        maxQueue.insert(value: 2)
+        maxQueue.insert(value: 8)
+        maxQueue.insert(value: 10)
+        maxQueue.insert(value: 29)
+        maxQueue.insert(value: 34)
+        maxQueue.insert(value: 67)
+        maxQueue.insert(value: 88)
+        maxQueue.insert(value: 72)
+        maxQueue.insert(value: 59)
+        maxQueue.insert(value: 26)
+        maxQueue.insert(value: 10674)
+        maxQueue.insert(value: 39)
+        maxQueue.insert(value: 2)
         calculatedOutput = ""
         for value in maxQueue {
             calculatedOutput += "\(value) "
         }
         expectedOutput = "10674 88 72 67 59 39 34 29 26 10 8 7 2 2 "
         expectEqual(expectedOutput, calculatedOutput)
-        minQueue.enqueue(value: 102)
-        minQueue.enqueue(value: 124)
+        minQueue.insert(value: 102)
+        minQueue.insert(value: 124)
         calculatedOutput = ""
         for value in maxQueue {
             calculatedOutput += "\(value) "
@@ -238,26 +238,26 @@ final class PriorityQueueTests: CollectionTestCase {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.peek(), nil)
-        minQueue.enqueue(value: 5)
-        minQueue.enqueue(value: 26)
-        minQueue.enqueue(value: 12)
-        minQueue.enqueue(value: 23)
-        minQueue.enqueue(value: 12)
+        minQueue.insert(value: 5)
+        minQueue.insert(value: 26)
+        minQueue.insert(value: 12)
+        minQueue.insert(value: 23)
+        minQueue.insert(value: 12)
         expectEqual(minQueue.peek(), 5)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
+        intermediateValues = minQueue.remove()!
+        intermediateValues = minQueue.remove()!
         expectEqual(minQueue.peek(), 12)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
         expectEqual(maxQueue.peek(), nil)
-        maxQueue.enqueue(value: 5)
-        maxQueue.enqueue(value: 26)
-        maxQueue.enqueue(value: 12)
-        maxQueue.enqueue(value: 23)
-        maxQueue.enqueue(value: 12)
+        maxQueue.insert(value: 5)
+        maxQueue.insert(value: 26)
+        maxQueue.insert(value: 12)
+        maxQueue.insert(value: 23)
+        maxQueue.insert(value: 12)
         expectEqual(maxQueue.peek(), 26)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
+        intermediateValues = maxQueue.remove()!
+        intermediateValues = maxQueue.remove()!
         expectEqual(maxQueue.peek(), 12)
         
         //to prevent warnings of variable written to but not read
