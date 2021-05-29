@@ -16,10 +16,10 @@ extension PriorityQueue:Sequence{
      */
     public struct Iterator:IteratorProtocol{
         //the priority queue at a specific moment
-        private var snapshotPriorityQueue:PriorityQueue
+        private var _base:PriorityQueue
         
-        public init(snapshotPriorityQueue:PriorityQueue){
-            self.snapshotPriorityQueue = snapshotPriorityQueue
+        internal init(_base:PriorityQueue){
+            self._base = _base
         }
         
         /*
@@ -27,7 +27,7 @@ extension PriorityQueue:Sequence{
          *  @return  the next element in the iterator, or nil if it doesn't exist
          */
         public mutating func next() -> Element? {
-            return snapshotPriorityQueue.dequeue() ?? nil
+            return _base.dequeue() ?? nil
         }
         
     }
@@ -37,7 +37,7 @@ extension PriorityQueue:Sequence{
      *  @return  the iterator for the priority queue
      */
     public func makeIterator() -> Iterator {
-        return Iterator(snapshotPriorityQueue: self)
+        return Iterator(_base: self)
     }
     
     

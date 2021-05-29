@@ -15,14 +15,14 @@ import PriorityQueue
 
 final class PriorityQueueTests: CollectionTestCase {
     
-    func test_enqueue(){
+    func test_enqueue() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
         minQueue.enqueue(value: 5)
         minQueue.enqueue(value: 26)
         minQueue.enqueue(value: 12)
         minQueue.enqueue(value: 23)
         minQueue.enqueue(value: 12)
-        expectEqual(minQueue.size(), 5)
+        expectEqual(minQueue.count(), 5)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
         maxQueue.enqueue(value: 5)
@@ -30,10 +30,10 @@ final class PriorityQueueTests: CollectionTestCase {
         maxQueue.enqueue(value: 12)
         maxQueue.enqueue(value: 23)
         maxQueue.enqueue(value: 12)
-        expectEqual(maxQueue.size(), 5)
+        expectEqual(maxQueue.count(), 5)
     }
     
-    func test_dequeue(){
+    func test_dequeue() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
         minQueue.enqueue(value: 7)
         minQueue.enqueue(value: 2)
@@ -50,7 +50,7 @@ final class PriorityQueueTests: CollectionTestCase {
         minQueue.enqueue(value: 39)
         minQueue.enqueue(value: 2)
         var calculatedOutput = ""
-        while(!minQueue.isEmpty()){
+        while(!minQueue.isEmpty()) {
             calculatedOutput += "\(minQueue.dequeue()!) "
         }
         var expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 10674 "
@@ -72,49 +72,15 @@ final class PriorityQueueTests: CollectionTestCase {
         maxQueue.enqueue(value: 39)
         maxQueue.enqueue(value: 2)
         calculatedOutput = ""
-        while(!maxQueue.isEmpty()){
+        while(!maxQueue.isEmpty()) {
             calculatedOutput += "\(maxQueue.dequeue()!) "
         }
         expectedOutput = "10674 88 72 67 59 39 34 29 26 10 8 7 2 2 "
         expectEqual(expectedOutput, calculatedOutput)
     }
-    
-    func test_isFull(){
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
-        var intermediateValues:Int //to prevent a lot of warnings
-        expectEqual(minQueue.isFull(), false)
-        minQueue.enqueue(value: 55);
-        minQueue.enqueue(value: 24)
-        minQueue.enqueue(value: 69)
-        minQueue.enqueue(value: 32)
-        expectEqual(minQueue.isFull(), false)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
-        expectEqual(minQueue.isFull(), false)
-        intermediateValues = minQueue.dequeue()!
-        intermediateValues = minQueue.dequeue()!
-        expectEqual(minQueue.isFull(), false)
-        
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
-        expectEqual(maxQueue.isFull(), false)
-        maxQueue.enqueue(value: 55);
-        maxQueue.enqueue(value: 24)
-        maxQueue.enqueue(value: 69)
-        maxQueue.enqueue(value: 32)
-        expectEqual(maxQueue.isFull(), false)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
-        expectEqual(maxQueue.isFull(), false)
-        intermediateValues = maxQueue.dequeue()!
-        intermediateValues = maxQueue.dequeue()!
-        expectEqual(maxQueue.isFull(), false)
-        
-        //to prevent warnings of variable written to but not read
-        intermediateValues = 0
-        expectEqual(intermediateValues, 0)
-    }
 
-    func test_isEmpty(){
+
+    func test_isEmpty() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.isEmpty(), true)
@@ -149,42 +115,42 @@ final class PriorityQueueTests: CollectionTestCase {
         expectEqual(intermediateValues, 0)
     }
     
-    func test_size(){
+    func test_count() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
-        expectEqual(minQueue.size(), 0)
+        expectEqual(minQueue.count(), 0)
         minQueue.enqueue(value: 55);
         minQueue.enqueue(value: 24)
         minQueue.enqueue(value: 69)
         minQueue.enqueue(value: 32)
-        expectEqual(minQueue.size(), 4)
+        expectEqual(minQueue.count(), 4)
         intermediateValues = minQueue.dequeue()!
         intermediateValues = minQueue.dequeue()!
-        expectEqual(minQueue.size(), 2)
+        expectEqual(minQueue.count(), 2)
         intermediateValues = minQueue.dequeue()!
         intermediateValues = minQueue.dequeue()!
-        expectEqual(minQueue.size(), 0)
+        expectEqual(minQueue.count(), 0)
         
         var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
-        expectEqual(maxQueue.size(), 0)
+        expectEqual(maxQueue.count(), 0)
         maxQueue.enqueue(value: 55);
         maxQueue.enqueue(value: 24)
         maxQueue.enqueue(value: 69)
         maxQueue.enqueue(value: 32)
-        expectEqual(maxQueue.size(), 4)
+        expectEqual(maxQueue.count(), 4)
         intermediateValues = maxQueue.dequeue()!
         intermediateValues = maxQueue.dequeue()!
-        expectEqual(maxQueue.size(), 2)
+        expectEqual(maxQueue.count(), 2)
         intermediateValues = maxQueue.dequeue()!
         intermediateValues = maxQueue.dequeue()!
-        expectEqual(maxQueue.size(), 0)
+        expectEqual(maxQueue.count(), 0)
         
         //to prevent warnings of variable written to but not read
         intermediateValues = 0
         expectEqual(intermediateValues, 0)
     }
     
-    func test_getPriorityQueueType(){
+    func test_getPriorityQueueType() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.getPriorityQueueType(), .min)
@@ -205,7 +171,7 @@ final class PriorityQueueTests: CollectionTestCase {
         expectEqual(intermediateValues, 0)
     }
     
-    func test_priorityQueueSequenceConformance(){
+    func test_priorityQueueSequenceConformance() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
         minQueue.enqueue(value: 7)
         minQueue.enqueue(value: 2)
@@ -222,7 +188,7 @@ final class PriorityQueueTests: CollectionTestCase {
         minQueue.enqueue(value: 39)
         minQueue.enqueue(value: 2)
         var calculatedOutput = ""
-        for value in minQueue{
+        for value in minQueue {
             calculatedOutput += "\(value) "
         }
         var expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 10674 "
@@ -230,7 +196,7 @@ final class PriorityQueueTests: CollectionTestCase {
         minQueue.enqueue(value: 102)
         minQueue.enqueue(value: 124)
         calculatedOutput = ""
-        for value in minQueue{
+        for value in minQueue {
             calculatedOutput += "\(value) "
         }
         //expectedOutput should be updated with new values
@@ -253,7 +219,7 @@ final class PriorityQueueTests: CollectionTestCase {
         maxQueue.enqueue(value: 39)
         maxQueue.enqueue(value: 2)
         calculatedOutput = ""
-        for value in maxQueue{
+        for value in maxQueue {
             calculatedOutput += "\(value) "
         }
         expectedOutput = "10674 88 72 67 59 39 34 29 26 10 8 7 2 2 "
@@ -261,14 +227,14 @@ final class PriorityQueueTests: CollectionTestCase {
         minQueue.enqueue(value: 102)
         minQueue.enqueue(value: 124)
         calculatedOutput = ""
-        for value in maxQueue{
+        for value in maxQueue {
             calculatedOutput += "\(value) "
         }
         //expectedOutput should be updated with new values
         expectedOutput = "10674 124 102 88 72 67 59 39 34 29 26 10 8 7 2 2 "
     }
     
-    func test_peek(){
+    func test_peek() {
         var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.peek(), nil)

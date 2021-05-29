@@ -10,56 +10,57 @@
 //===----------------------------------------------------------------------===//
 
 //Indicates a min or max heap
-public enum HeapType{
-    case max;
-    case min;
-}
+public enum HeapType {
+    case max
+    case min
+} 
 
 /*
  *  Implements a PriorityQueue using an array-based min/max binary heap.
  */
-public struct PriorityQueue<Element:Comparable>{
+public struct PriorityQueue<Element: Comparable> {
     
     //The underlying storage for the min/max heap
-    private var storage:[Element];
+    private var _storage: [Element]
     
     //Indicates the type of binary heap "storage" is
-    private let storageType:HeapType;
+    private let _storageType: HeapType
     
-    //initialize instance variables
-    //eventually add a constructor that accepts a Sequence and generates the underlying storage in O(n) instead of O(nlogn)
-    public init(priorityQueueType:HeapType){
-        storage = [Element]()
-        storageType = priorityQueueType
+    /*
+     *eventually add a constructor that accepts a Sequence and generates the underlying storage in O(n) instead of O(nlogn)
+     */
+    public init(priorityQueueType: HeapType) {
+        _storage = [Element]()
+        _storageType = priorityQueueType
     }
     
     /*
      *  Adds an element to the Priority Queue
      *  @param  value  the element to add to the Priority Queue
      */
-    public mutating func enqueue(value:Element){
-        storage.append(value)
-        swimUp(elementIndex: storage.count-1);
+    public mutating func insert(value: Element) {
+        _storage.append(value)
+        _swimUp(elementIndex: _storage.count-1)
     }
     
     /*
      *  Moves a specified element down the array (towards index zero) until it's in its natural position
      *  @param  elementIndex  the index of the specified element
      */
-    private mutating func swimUp(elementIndex:Int){
-        var parentIndex = getParent(index: elementIndex)
+    private mutating func _swimUp(elementIndex: Int) {
+        var parentIndex = _getParent(index: elementIndex)
         var currentIndex = elementIndex
         var temp:Element;
         while(parentIndex != -1){
-            if(compare(firstElement: storage[currentIndex], secondElement: storage[parentIndex]) < 0){
+            if(_compare(firstElement: _storage[currentIndex], secondElement: _storage[parentIndex]) < 0){
                 //swap currentElement with parentIndex to preserve binary heap order
-                temp = storage[parentIndex]
-                storage[parentIndex] = storage[currentIndex]
-                storage[currentIndex] = temp
+                temp = _storage[parentIndex]
+                _storage[parentIndex] = _storage[currentIndex]
+                _storage[currentIndex] = temp
             }
             currentIndex = parentIndex
             //ends the loop when the parentIndex is at the root
-            parentIndex = (parentIndex == 0) ? -1 : getParent(index: parentIndex);
+            parentIndex = (parentIndex == 0) ? -1 : _getParent(index: parentIndex)
         }
     }
     
@@ -71,23 +72,23 @@ public struct PriorityQueue<Element:Comparable>{
                   0 if firstElement is equal to secondElement,
                   1 if firstElement goes after secondElement
      */
-    private func compare(firstElement:Element, secondElement:Element) -> Int{
+    private func _compare(firstElement: Element, secondElement: Element) -> Int {
         //doesn't depend on storageType
         if(firstElement == secondElement){
             return 0;
         }
         
-        if(storageType == .min){
+        if(_storageType == .min){
             if(firstElement < secondElement){
-                return -1;
+                return -1
             }else{
-                return 1;
+                return 1
             }
         }else{
             if(firstElement < secondElement){
-                return 1;
+                return 1
             }else{
-                return -1;
+                return -1
             }
         }
     }
@@ -97,9 +98,9 @@ public struct PriorityQueue<Element:Comparable>{
      *  @param  index  a valid index of a certian element
      *  @return  the index of a certain element's parent, or -1 if the element has no parent
      */
-    private func getParent(index:Int) -> Int{
+    private func _getParent(index: Int) -> Int {
         let parent = (index-1)/2
-        return (parent < 0) ? -1 : parent;
+        return (parent < 0) ? -1 : parent
     }
     
     /*
@@ -107,9 +108,9 @@ public struct PriorityQueue<Element:Comparable>{
      *  @param  index  a valid index of a certain element
      *  @return  the index of a certain element's left child, or -1 if the element has no left child
      */
-    private func getLeftChild(index:Int) -> Int{
+    private func _getLeftChild(index: Int) -> Int {
         let child = (2*index)+1
-        return (child >= size()) ? -1 : child;
+        return (child >= count()) ? -1 : child
     }
     
     /*
@@ -117,42 +118,44 @@ public struct PriorityQueue<Element:Comparable>{
      *  @param  index  a valid index of a certain element
      *  @return  the index of a certain element's right child, or -1 if the element has no right child
      */
-    private func getRightChild(index:Int) -> Int{
+    private func _getRightChild(index: Int) -> Int {
         let child = (2*index)+2
-        return (child >= size()) ? -1 : child;
+        return (child >= count()) ? -1 : child
     }
     
     /*
      *  Removes the item with highest/lowest priority in the Priority Queue
+        *func name needs to be more specific when min and max heap is implemented (both)
      *  @return  the item with highest/lowest priority or nil if the Priority Queue is empty
      */
-    public mutating func dequeue() -> Element?{
+    public mutating func remove() -> Element? {
         if(isEmpty() == true){
-            return nil;
+            return nil
         }
-        let removedElement = storage[0];
-        storage[0] = storage.last!
-        storage.removeLast()
-        sinkDown(elementIndex: 0)
-        return removedElement;
+        
+        let removedElement = _storage[0];
+        _storage[0] = _storage.last!
+        _storage.removeLast()
+        _sinkDown(elementIndex: 0)
+        return removedElement
     }
     
     /*
      *  Moves a specified element up the array (away from index zero) until it's in its natural position
      */
-    private mutating func sinkDown(elementIndex:Int){
+    private mutating func _sinkDown(elementIndex: Int) {
         var currentIndex = elementIndex
-        var leftChild = getLeftChild(index: elementIndex)
-        var rightChild = getRightChild(index: elementIndex)
+        var leftChild = _getLeftChild(index: elementIndex)
+        var rightChild = _getRightChild(index: elementIndex)
         var childToSwap:Int
         var temp:Element
         
         //loops until a swap is not needed or currentIndex has no children
-        while(true){
+        while(true) {
             //chooses which child to swap currentIndex with
             if(leftChild != -1 && rightChild != -1){
                 //both children are present
-                childToSwap = (compare(firstElement: storage[leftChild], secondElement: storage[rightChild]) < 0) ? leftChild : rightChild;
+                childToSwap = (_compare(firstElement: _storage[leftChild], secondElement: _storage[rightChild]) < 0) ? leftChild : rightChild;
             }else if(leftChild != -1){
                 //only left child present
                 childToSwap = leftChild
@@ -161,21 +164,21 @@ public struct PriorityQueue<Element:Comparable>{
                 childToSwap = rightChild
             }else{
                 //neither children present
-                break;
+                break
             }
             //swap currentIndex with appropriate child if needed
-            if(compare(firstElement: storage[childToSwap], secondElement: storage[currentIndex]) < 0){
-                temp = storage[currentIndex]
-                storage[currentIndex] = storage[childToSwap]
-                storage[childToSwap] = temp
+            if(_compare(firstElement: _storage[childToSwap], secondElement: _storage[currentIndex]) < 0){
+                temp = _storage[currentIndex]
+                _storage[currentIndex] = _storage[childToSwap]
+                _storage[childToSwap] = temp
                 
                 //updates children and current index in case swap caused more problems
                 currentIndex = childToSwap;
-                leftChild = getLeftChild(index: childToSwap)
-                rightChild = getRightChild(index: childToSwap)
+                leftChild = _getLeftChild(index: childToSwap)
+                rightChild = _getRightChild(index: childToSwap)
             }else{
                 //swap is not needed
-                break;
+                break
             }
         }
         
@@ -184,44 +187,37 @@ public struct PriorityQueue<Element:Comparable>{
     
     /*
      *  Determines the element with the highest/lowest priority, depending on the heap type
+        *func name needs to change when min and max heap is implemented (both)
      *  @return  the element with the highest/lowest priority, or nil if no elements exist
      */
-    public func peek() -> Element?{
+    public func peek() -> Element? {
         if(isEmpty() == true){
-            return nil;
+            return nil
         }
-        return storage[0];
-    }
-    
-    /*
-     *  Determines whether the Priority Queue is full.
-     *  @return  true if the PriorityQueue is full, false otherwise
-     */
-    public func isFull() -> Bool{
-        return false; //The resizable Priority Queue is never full
+        return _storage[0]
     }
     
     /*
      *  Determines whether the Priority Queue is empty.
      *  @return  true if the Priority Queue is empty, false otherwise
      */
-    public func isEmpty() -> Bool{
-        return size() == 0;
+    public func isEmpty() -> Bool {
+        return count() == 0
     }
     
     /*
      *  Determines the size of the Priority Queue
      */
-    public func size() -> Int{
-        return storage.count;
+    public func count() -> Int {
+        return _storage.count
     }
     
     /*
      *  Determines the heap type of the current priority queue
      *  @return  the heap type of the current priority queue
      */
-    public func getPriorityQueueType() -> HeapType{
-        return storageType;
+    public func getPriorityQueueType() -> HeapType {
+        return _storageType
     }
     
 }
