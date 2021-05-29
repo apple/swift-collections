@@ -9,16 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PriorityQueue:Sequence{
+/*
+ *  Change to PriorityQueue: Sequence once PriorityQueue.swift is made
+ */
+extension Heap: Sequence {
     
     /*
      *  Defines an iterator to conform to Sequence
      */
-    public struct Iterator:IteratorProtocol{
-        //the priority queue at a specific moment
-        private var _base:PriorityQueue
+    public struct Iterator:IteratorProtocol {
+
+        private var _base:Heap
         
-        internal init(_base:PriorityQueue){
+        internal init(_base:Heap) {
             self._base = _base
         }
         
@@ -33,8 +36,8 @@ extension PriorityQueue:Sequence{
     }
     
     /*
-     *  Creates the iterator for the priority queue
-     *  @return  the iterator for the priority queue
+     *  Creates the iterator for the heap
+     *  @return  the iterator for the heap
      */
     public func makeIterator() -> Iterator {
         return Iterator(_base: self)

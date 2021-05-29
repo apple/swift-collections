@@ -16,9 +16,9 @@ public enum HeapType {
 } 
 
 /*
- *  Implements a PriorityQueue using an array-based min/max binary heap.
+ *  Implements a min/max binary heap.
  */
-public struct PriorityQueue<Element: Comparable> {
+public struct Heap<Element: Comparable> {
     
     //The underlying storage for the min/max heap
     private var _storage: [Element]
@@ -29,25 +29,25 @@ public struct PriorityQueue<Element: Comparable> {
     /*
      *eventually add a constructor that accepts a Sequence and generates the underlying storage in O(n) instead of O(nlogn)
      */
-    public init(priorityQueueType: HeapType) {
+    public init(heapType: HeapType) {
         _storage = [Element]()
-        _storageType = priorityQueueType
+        _storageType = heapType
     }
     
     /*
-     *  Adds an element to the Priority Queue
-     *  @param  value  the element to add to the Priority Queue
+     *  Adds an element to the heap
+     *  @param  value  the element to add to the heap
      */
     public mutating func insert(value: Element) {
         _storage.append(value)
-        _swimUp(elementIndex: _storage.count-1)
+        _raise(elementIndex: _storage.count-1)
     }
     
     /*
      *  Moves a specified element down the array (towards index zero) until it's in its natural position
      *  @param  elementIndex  the index of the specified element
      */
-    private mutating func _swimUp(elementIndex: Int) {
+    private mutating func _raise(elementIndex: Int) {
         var parentIndex = _getParent(index: elementIndex)
         var currentIndex = elementIndex
         var temp:Element;
@@ -124,9 +124,9 @@ public struct PriorityQueue<Element: Comparable> {
     }
     
     /*
-     *  Removes the item with highest/lowest priority in the Priority Queue
+     *  Removes the min or max element in the heap
         *func name needs to be more specific when min and max heap is implemented (both)
-     *  @return  the item with highest/lowest priority or nil if the Priority Queue is empty
+     *  @return  the min or max element, or nil if the heap is empty
      */
     public mutating func remove() -> Element? {
         if(isEmpty() == true){
@@ -136,14 +136,14 @@ public struct PriorityQueue<Element: Comparable> {
         let removedElement = _storage[0];
         _storage[0] = _storage.last!
         _storage.removeLast()
-        _sinkDown(elementIndex: 0)
+        _lower(elementIndex: 0)
         return removedElement
     }
     
     /*
      *  Moves a specified element up the array (away from index zero) until it's in its natural position
      */
-    private mutating func _sinkDown(elementIndex: Int) {
+    private mutating func _lower(elementIndex: Int) {
         var currentIndex = elementIndex
         var leftChild = _getLeftChild(index: elementIndex)
         var rightChild = _getRightChild(index: elementIndex)
@@ -186,9 +186,9 @@ public struct PriorityQueue<Element: Comparable> {
     }
     
     /*
-     *  Determines the element with the highest/lowest priority, depending on the heap type
+     *  Determines the min or max element, depending on the heap type
         *func name needs to change when min and max heap is implemented (both)
-     *  @return  the element with the highest/lowest priority, or nil if no elements exist
+     *  @return  the min or max element, or nil if no elements exist
      */
     public func peek() -> Element? {
         if(isEmpty() == true){
@@ -198,25 +198,25 @@ public struct PriorityQueue<Element: Comparable> {
     }
     
     /*
-     *  Determines whether the Priority Queue is empty.
-     *  @return  true if the Priority Queue is empty, false otherwise
+     *  Determines whether the heap is empty.
+     *  @return  true if the heap is empty, false otherwise
      */
     public func isEmpty() -> Bool {
         return count() == 0
     }
     
     /*
-     *  Determines the size of the Priority Queue
+     *  Determines the size of the heap
      */
     public func count() -> Int {
         return _storage.count
     }
     
     /*
-     *  Determines the heap type of the current priority queue
-     *  @return  the heap type of the current priority queue
+     *  Determines the heap type of the current heap
+     *  @return  the heap type of the current heap
      */
-    public func getPriorityQueueType() -> HeapType {
+    public func getHeapType() -> HeapType {
         return _storageType
     }
     

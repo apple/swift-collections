@@ -13,10 +13,10 @@ import XCTest
 import CollectionsTestSupport
 import PriorityQueue
 
-final class PriorityQueueTests: CollectionTestCase {
+final class HeapTests: CollectionTestCase {
     
     func test_insert() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
+        var minQueue = Heap<Int>(heapType: HeapType.min)
         minQueue.insert(value: 5)
         minQueue.insert(value: 26)
         minQueue.insert(value: 12)
@@ -24,7 +24,7 @@ final class PriorityQueueTests: CollectionTestCase {
         minQueue.insert(value: 12)
         expectEqual(minQueue.count(), 5)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
+        var maxQueue = Heap<Int>(heapType: HeapType.max)
         maxQueue.insert(value: 5)
         maxQueue.insert(value: 26)
         maxQueue.insert(value: 12)
@@ -34,7 +34,7 @@ final class PriorityQueueTests: CollectionTestCase {
     }
     
     func test_remove() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
+        var minQueue = Heap<Int>(heapType: HeapType.min)
         minQueue.insert(value: 7)
         minQueue.insert(value: 2)
         minQueue.insert(value: 8)
@@ -56,7 +56,7 @@ final class PriorityQueueTests: CollectionTestCase {
         var expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 10674 "
         expectEqual(expectedOutput, calculatedOutput)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
+        var maxQueue = Heap<Int>(heapType: HeapType.max)
         maxQueue.insert(value: 7)
         maxQueue.insert(value: 2)
         maxQueue.insert(value: 8)
@@ -81,7 +81,7 @@ final class PriorityQueueTests: CollectionTestCase {
 
 
     func test_isEmpty() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
+        var minQueue = Heap<Int>(heapType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.isEmpty(), true)
         minQueue.insert(value: 55);
@@ -96,7 +96,7 @@ final class PriorityQueueTests: CollectionTestCase {
         intermediateValues = minQueue.remove()!
         expectEqual(minQueue.isEmpty(), true)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
+        var maxQueue = Heap<Int>(heapType: HeapType.max);
         expectEqual(maxQueue.isEmpty(), true)
         maxQueue.insert(value: 55);
         maxQueue.insert(value: 24)
@@ -116,7 +116,7 @@ final class PriorityQueueTests: CollectionTestCase {
     }
     
     func test_count() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
+        var minQueue = Heap<Int>(heapType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.count(), 0)
         minQueue.insert(value: 55);
@@ -131,7 +131,7 @@ final class PriorityQueueTests: CollectionTestCase {
         intermediateValues = minQueue.remove()!
         expectEqual(minQueue.count(), 0)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
+        var maxQueue = Heap<Int>(heapType: HeapType.max);
         expectEqual(maxQueue.count(), 0)
         maxQueue.insert(value: 55);
         maxQueue.insert(value: 24)
@@ -150,29 +150,29 @@ final class PriorityQueueTests: CollectionTestCase {
         expectEqual(intermediateValues, 0)
     }
     
-    func test_getPriorityQueueType() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min);
+    func test_getHeapType() {
+        var minQueue = Heap<Int>(heapType: HeapType.min);
         var intermediateValues:Int //to prevent a lot of warnings
-        expectEqual(minQueue.getPriorityQueueType(), .min)
+        expectEqual(minQueue.getHeapType(), .min)
         minQueue.insert(value: 55)
         minQueue.insert(value: 63)
         intermediateValues = minQueue.remove()!
-        expectEqual(minQueue.getPriorityQueueType(), .min)
+        expectEqual(minQueue.getHeapType(), .min)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max);
-        expectEqual(maxQueue.getPriorityQueueType(), .max)
+        var maxQueue = Heap<Int>(heapType: HeapType.max);
+        expectEqual(maxQueue.getHeapType(), .max)
         maxQueue.insert(value: 55)
         maxQueue.insert(value: 63)
         intermediateValues = maxQueue.remove()!
-        expectEqual(maxQueue.getPriorityQueueType(), .max)
+        expectEqual(maxQueue.getHeapType(), .max)
         
         //to prevent warnings of variable written to but not read
         intermediateValues = 0
         expectEqual(intermediateValues, 0)
     }
     
-    func test_priorityQueueSequenceConformance() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
+    func test_heapSequenceConformance() {
+        var minQueue = Heap<Int>(heapType: HeapType.min)
         minQueue.insert(value: 7)
         minQueue.insert(value: 2)
         minQueue.insert(value: 8)
@@ -203,7 +203,7 @@ final class PriorityQueueTests: CollectionTestCase {
         expectedOutput = "2 2 7 8 10 26 29 34 39 59 67 72 88 102 124 10674 "
         expectEqual(expectedOutput, calculatedOutput)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
+        var maxQueue = Heap<Int>(heapType: HeapType.max)
         maxQueue.insert(value: 7)
         maxQueue.insert(value: 2)
         maxQueue.insert(value: 8)
@@ -235,7 +235,7 @@ final class PriorityQueueTests: CollectionTestCase {
     }
     
     func test_peek() {
-        var minQueue = PriorityQueue<Int>(priorityQueueType: HeapType.min)
+        var minQueue = Heap<Int>(heapType: HeapType.min)
         var intermediateValues:Int //to prevent a lot of warnings
         expectEqual(minQueue.peek(), nil)
         minQueue.insert(value: 5)
@@ -248,7 +248,7 @@ final class PriorityQueueTests: CollectionTestCase {
         intermediateValues = minQueue.remove()!
         expectEqual(minQueue.peek(), 12)
         
-        var maxQueue = PriorityQueue<Int>(priorityQueueType: HeapType.max)
+        var maxQueue = Heap<Int>(heapType: HeapType.max)
         expectEqual(maxQueue.peek(), nil)
         maxQueue.insert(value: 5)
         maxQueue.insert(value: 26)
