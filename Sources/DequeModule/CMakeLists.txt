@@ -12,6 +12,7 @@ add_library(DequeModule
   _DequeBufferHeader.swift
   _DequeSlot.swift
   _UnsafeWrappedBuffer.swift
+  Compatibility.swift
   Deque._Storage.swift
   Deque._UnsafeHandle.swift
   Deque.swift
