@@ -48,8 +48,13 @@ extension Deque._Storage {
   internal init(minimumCapacity: Int) {
     let object = _DequeBuffer<Element>.create(
       minimumCapacity: minimumCapacity,
-      makingHeaderWith: { object in
-        _DequeBufferHeader(capacity: object.capacity, count: 0, startSlot: .zero)
+      makingHeaderWith: {
+        #if os(OpenBSD)
+        let capacity = minimumCapacity
+        #else
+        let capacity = $0.capacity
+        #endif
+        return _DequeBufferHeader(capacity: capacity, count: 0, startSlot: .zero)
       })
     self.init(_buffer: _Buffer(unsafeBufferObject: object))
   }

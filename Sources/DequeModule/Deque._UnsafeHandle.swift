@@ -298,8 +298,13 @@ extension Deque._UnsafeHandle {
     let object = _DequeBuffer<Element>.create(
       minimumCapacity: minimumCapacity,
       makingHeaderWith: {
-        _DequeBufferHeader(
-          capacity: $0.capacity,
+        #if os(OpenBSD)
+        let capacity = minimumCapacity
+        #else
+        let capacity = $0.capacity
+        #endif
+        return _DequeBufferHeader(
+          capacity: capacity,
           count: count,
           startSlot: .zero)
       })
@@ -327,8 +332,13 @@ extension Deque._UnsafeHandle {
     let object = _DequeBuffer<Element>.create(
       minimumCapacity: minimumCapacity,
       makingHeaderWith: {
-        _DequeBufferHeader(
-          capacity: $0.capacity,
+        #if os(OpenBSD)
+        let capacity = minimumCapacity
+        #else
+        let capacity = $0.capacity
+        #endif
+        return _DequeBufferHeader(
+          capacity: capacity,
           count: count,
           startSlot: .zero)
       })
