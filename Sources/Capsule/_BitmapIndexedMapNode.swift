@@ -26,6 +26,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         self.bitmap1 = dataMap ^ collMap
         self.bitmap2 = nodeMap ^ collMap
         self.content = content
+
+        assert(count - payloadArity >= 2 * nodeArity)
     }
 
     convenience init(dataMap: Bitmap = 0, nodeMap: Bitmap = 0, collMap: Bitmap = 0, arrayLiteral content: Any...) {
@@ -45,6 +47,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     // TODO improve performance of variadic implementation or consider specializing for singleton nodes
     convenience init(collMap: Bitmap, arrayLiteral elements: HashCollisionMapNode<Key, Value>...) {
         self.init(0, 0, collMap, elements)
+    }
+
+    var count: Int {
+        self.reduce(0, { count, _ in count + 1 })
     }
 
     func get(_ key: Key, _ keyHash: Int, _ shift: Int) -> Value? {
@@ -519,5 +525,11 @@ extension BitmapIndexedMapNode: Equatable where Value: Equatable {
         }
 
         return true
+    }
+}
+
+extension BitmapIndexedMapNode: Sequence {
+    public __consuming func makeIterator() -> MapKeyValueTupleIterator<Key, Value> {
+        return MapKeyValueTupleIterator(rootNode: self)
     }
 }
