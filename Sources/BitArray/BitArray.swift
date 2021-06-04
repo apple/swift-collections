@@ -24,7 +24,7 @@ public struct BitArray {
 
 // NOTE: Research @inlinable
 
-extension BitArray { // shouldn't I conform these to Collection as well
+extension BitArray {
     
     public mutating func append(_ newValue: Bool) { // will abtracting reduce performance?
         if (excess == 0) {
@@ -48,38 +48,29 @@ extension BitArray { // shouldn't I conform these to Collection as well
     }
 }
 
+
 extension BitArray: Collection {
     
-    //THE FUN FUNCTION
     public subscript(position: Int) -> Bool {
-        // I'm going to start by writing a very inefficient, but working algorithm
+        
+        if (position >= endIndex || position < startIndex) {
+            fatalError("Index out of bounds")
+        }
+        
         let index: Int = position/UNIT.bitWidth
         let subPosition: Int = position - index*UNIT.bitWidth
-        
-        let value = query(value: self.storage[index], at: subPosition)
-        
-        if(value == 0) {return false} else if (value == 1) {return true} else { fatalError("Querying in subscript function returned a value other than 1 or 0")}
+        return query(value: self.storage[index], at: subPosition)
     }
     
-    private func query(value: UNIT, at position: Int) -> Int {
-        // I'm going to start by writing a very inefficient, but working algorithm
-        var val: Int = Int(value) // copy passed in value
-        var power = 512 // prevents me from calculating pow(2,x) every time
-        for i in stride(from: 8, to: position-1, by: -1) {
-            power = power/2
-            if (i == position) {
-                if (val >= power) { return 1 } else { return 0 }
-            } else if (val >= power) {
-                val -= power
-            }
-        }
-        fatalError("Query function did not find a value")
+    private func query(value: UNIT, at position: Int) -> Bool {
+        let mask: UInt8 = 1 << position
+        if (value & mask > 0) { return true } else { return false }
     }
     
     
     public func index(after i: Int) -> Int {
-        #warning("Wth is this.")
-        return i
+        if (i == endIndex) { return i }
+        else { return i + 1 }
     }
     
     public var startIndex: Int {
@@ -87,9 +78,9 @@ extension BitArray: Collection {
     }
     
     public var endIndex: Int {
-        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - Int(excess)) - 1
+        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - Int(excess))
     }
     
-    public var count: Int { get { endIndex + 1 } } // would this work for count?
+    public var count: Int { get { endIndex } } // would this work for count?
     
 }
