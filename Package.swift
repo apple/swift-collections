@@ -55,6 +55,7 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
+    .library(name: "Capsule", targets: ["Capsule"]),
   ],
   targets: [
     .target(
@@ -63,6 +64,7 @@ let package = Package(
         "DequeModule",
         "OrderedCollections",
         "PriorityQueueModule",
+        "Capsule",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],

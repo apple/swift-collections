@@ -28,21 +28,28 @@ public struct HashMap<Key, Value> where Key: Hashable {
         self.init(map.rootNode, map.cachedKeySetHashCode, map.cachedSize)
     }
 
+    public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
+        let map = keysAndValues.reduce(Self()) { (map, element) in let (key, value) = element
+            return map.inserting(key: key, value: value)
+        }
+        self.init(map)
+    }
+
     ///
     /// Inspecting a Dictionary
     ///
 
-    var isEmpty: Bool { cachedSize == 0 }
+    public var isEmpty: Bool { cachedSize == 0 }
 
     public var count: Int { cachedSize }
 
-    var capacity: Int { count }
+    public var capacity: Int { count }
 
     ///
     /// Accessing Keys and Values
     ///
 
-    public subscript(_ key: Key) -> Value? {
+    public subscript(key: Key) -> Value? {
         get {
             return get(key)
         }
@@ -55,8 +62,13 @@ public struct HashMap<Key, Value> where Key: Hashable {
         }
     }
 
-    public subscript(_ key: Key, default: () -> Value) -> Value {
-        return get(key) ?? `default`()
+    public subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
+        get {
+            return get(key) ?? defaultValue()
+        }
+        mutating set(value) {
+            insert(isKnownUniquelyReferenced(&self.rootNode), key: key, value: value)
+        }
     }
 
     public func contains(_ key: Key) -> Bool {
@@ -106,6 +118,14 @@ public struct HashMap<Key, Value> where Key: Hashable {
         } else { return self }
     }
 
+    // TODO signature adopted from `Dictionary`, unify with API
+    @discardableResult
+    public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
+        let oldValue = get(key)
+        insert(key: key, value: value)
+        return oldValue
+    }
+
     public mutating func delete(_ key: Key) {
         let mutate = isKnownUniquelyReferenced(&self.rootNode)
         delete(mutate, key: key)
@@ -133,6 +153,16 @@ public struct HashMap<Key, Value> where Key: Hashable {
         if effect.modified {
             return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize - 1)
         } else { return self }
+    }
+
+    // TODO signature adopted from `Dictionary`, unify with API
+    @discardableResult
+    public mutating func removeValue(forKey key: Key) -> Value? {
+        if let value = get(key) {
+            delete(key)
+            return value
+        }
+        return nil
     }
 }
 
