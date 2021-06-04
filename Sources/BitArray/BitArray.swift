@@ -23,7 +23,7 @@ public struct BitArray {
 
 extension BitArray {
     
-    public mutating func append(_ newValue: Bool) { // will abtracting reduce performance?
+    public mutating func append(_ newValue: Bool) {
         if (excess == 0) {
             if (newValue == true) {
                 self.storage.append(1)
@@ -46,35 +46,3 @@ extension BitArray {
 }
 
 
-extension BitArray: Collection {
-    
-    public subscript(position: Int) -> Bool {
-        
-        if (position >= endIndex || position < startIndex) {
-            fatalError("Index out of bounds")
-        }
-        
-        let index: Int = position/UNIT.bitWidth
-        let subPosition: Int = position - index*UNIT.bitWidth
-        
-        let mask: UInt8 = 1 << subPosition
-        if (storage[index] & mask == 0) { return false } else { return true }
-    }
-    
-    
-    public func index(after i: Int) -> Int {
-        if (i == endIndex) { return i }
-        else { return i + 1 }
-    }
-    
-    public var startIndex: Int {
-        return 0
-    }
-    
-    public var endIndex: Int {
-        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - Int(excess))
-    }
-    
-    public var count: Int { get { endIndex } } // would this work for count?
-    
-}
