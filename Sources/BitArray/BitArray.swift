@@ -59,12 +59,9 @@ extension BitArray: Collection {
         
         let index: Int = position/UNIT.bitWidth
         let subPosition: Int = position - index*UNIT.bitWidth
-        return query(value: self.storage[index], at: subPosition)
-    }
-    
-    private func query(value: UNIT, at position: Int) -> Bool {
-        let mask: UInt8 = 1 << position
-        if (value & mask > 0) { return true } else { return false }
+        
+        let mask: UInt8 = 1 << subPosition
+        if (storage[index] & mask == 0) { return false } else { return true }
     }
     
     
