@@ -29,10 +29,11 @@ public struct HashMap<Key, Value> where Key: Hashable {
     }
 
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
-        let map = keysAndValues.reduce(Self()) { (map, element) in let (key, value) = element
-            return map.inserting(key: key, value: value)
+        var builder = Self()
+        keysAndValues.forEach { key, value in
+            builder.insert(key: key, value: value)
         }
-        self.init(map)
+        self.init(builder)
     }
 
     ///
