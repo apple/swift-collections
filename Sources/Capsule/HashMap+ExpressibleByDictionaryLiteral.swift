@@ -10,6 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 extension HashMap: ExpressibleByDictionaryLiteral {
+    @inlinable
+    @inline(__always)
     public init(dictionaryLiteral elements: (Key, Value)...) {
         self.init(uniqueKeysWithValues: elements)
     }

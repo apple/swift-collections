@@ -28,6 +28,8 @@ public struct HashMap<Key, Value> where Key: Hashable {
         self.init(map.rootNode, map.cachedKeySetHashCode, map.cachedSize)
     }
 
+    @inlinable
+    @inline(__always)
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
         var builder = Self()
         keysAndValues.forEach { key, value in
