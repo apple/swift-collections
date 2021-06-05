@@ -200,7 +200,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 preconditionFailure("Sub-node must have at least one element.")
 
             case .sizeOne:
-                precondition(self.bitmapIndexedNodeArity >= 1)
+                assert(self.bitmapIndexedNodeArity >= 1)
 
                 if self.isCandiateForCompaction {
                     // escalate singleton
@@ -211,7 +211,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 }
 
             case .sizeMoreThanOne:
-                precondition(self.bitmapIndexedNodeArity >= 1)
+                assert(self.bitmapIndexedNodeArity >= 1)
 
                 if (subNodeNew.isWrappingSingleHashCollisionNode) {
                     if self.isCandiateForCompaction {
@@ -266,7 +266,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     var isWrappingSingleHashCollisionNode: Bool { payloadArity == 0 && bitmapIndexedNodeArity == 0 && hashCollisionNodeArity == 1 }
 
     func mergeTwoKeyValPairs(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ key1: Key, _ value1: Value, _ keyHash1: Int, _ shift: Int) -> BitmapIndexedMapNode<Key, Value> {
-        precondition(keyHash0 != keyHash1)
+        assert(keyHash0 != keyHash1)
 
         let mask0 = maskFrom(keyHash0, shift)
         let mask1 = maskFrom(keyHash1, shift)
@@ -287,7 +287,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     func mergeKeyValPairAndCollisionNode(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ node1: HashCollisionMapNode<Key, Value>, _ nodeHash1: Int, _ shift: Int) -> BitmapIndexedMapNode<Key, Value> {
-        precondition(keyHash0 != nodeHash1)
+        assert(keyHash0 != nodeHash1)
 
         let mask0 = maskFrom(keyHash0, shift)
         let mask1 = maskFrom(nodeHash1, shift)
