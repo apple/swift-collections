@@ -25,7 +25,7 @@ class HashMapTests: CollectionTestCase {
 //    expectGreaterThanOrEqual(d.values.elements.capacity, 1000)
 //    expectEqual(d.keys.__unstable.reservedScale, 0)
 //  }
-//
+
 //  func test_init_minimumCapacity_persistent() {
 //    let d = HashMap<String, Int>(minimumCapacity: 1000, persistent: true)
 //    expectGreaterThanOrEqual(d.keys.__unstable.capacity, 1000)
@@ -41,7 +41,7 @@ class HashMapTests: CollectionTestCase {
 //      "three": 3,
 //    ]
 //    let d = HashMap(uncheckedUniqueKeysWithValues: items)
-//    expectEqualElements(d, items)
+//    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
 //  }
 
 //  func test_uniqueKeysWithValues_labeled_tuples() {
@@ -52,31 +52,30 @@ class HashMapTests: CollectionTestCase {
 //      "three": 3,
 //    ]
 //    let d = HashMap(uncheckedUniqueKeysWithValues: items)
-//    expectEqualElements(d, items)
+//    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
 //  }
 
-//  func test_uniqueKeysWithValues_unlabeled_tuples() {
-//    let items: [(String, Int)] = [
-//      ("zero", 0),
-//      ("one", 1),
-//      ("two", 2),
-//      ("three", 3),
-//    ]
-//    let d = HashMap(uncheckedUniqueKeysWithValues: items)
-//    expectEqualElements(d, items)
-//  }
+  func test_uniqueKeysWithValues_unlabeled_tuples() {
+    let items: [(String, Int)] = [
+      ("zero", 0),
+      ("one", 1),
+      ("two", 2),
+      ("three", 3),
+    ]
+    let d = HashMap(uncheckedUniqueKeysWithValues: items)
+    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
+  }
 
-//  func test_uniqueKeys_values() {
-//    let d = HashMap(
-//    uncheckedUniqueKeys: ["zero", "one", "two", "three"],
-//      values: [0, 1, 2, 3])
-//    expectEqualElements(d, [
-//      (key: "zero", value: 0),
-//      (key: "one", value: 1),
-//      (key: "two", value: 2),
-//      (key: "three", value: 3),
-//    ])
-//  }
+  func test_uniqueKeys_values() {
+    let items: [(key: String, value: Int)] = [
+      (key: "zero", value: 0),
+      (key: "one", value: 1),
+      (key: "two", value: 2),
+      (key: "three", value: 3)
+    ]
+    let d = HashMap(uncheckedUniqueKeys: ["zero", "one", "two", "three"], values: [0, 1, 2, 3])
+    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
+  }
 
 //  func test_uniquing_initializer_labeled_tuples() {
 //    let items: KeyValuePairs<String, Int> = [
