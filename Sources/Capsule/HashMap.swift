@@ -184,7 +184,7 @@ public struct MapKeyValueTupleIterator<Key: Hashable, Value> {
 }
 
 extension MapKeyValueTupleIterator: IteratorProtocol {
-    public mutating func next() -> (Key, Value)? {
+    public mutating func next() -> (key: Key, value: Value)? {
         guard baseIterator.hasNext() else { return nil }
 
         let payload: (Key, Value)
@@ -211,7 +211,7 @@ public struct MapKeyValueTupleReverseIterator<Key: Hashable, Value> {
 }
 
 extension MapKeyValueTupleReverseIterator: IteratorProtocol {
-    public mutating func next() -> (Key, Value)? {
+    public mutating func next() -> (key: Key, value: Value)? {
         guard baseIterator.hasNext() else { return nil }
 
         let payload: (Key, Value)
