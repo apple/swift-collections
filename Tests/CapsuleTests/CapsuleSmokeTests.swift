@@ -404,37 +404,6 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 }
 
-fileprivate final class CollidableInt: CustomStringConvertible, Equatable, Hashable {
-    let value: Int
-    let hashValue: Int
-
-    fileprivate init(_ value: Int) {
-        self.value = value
-        self.hashValue = value
-    }
-
-    fileprivate init(_ value: Int, _ hashValue: Int) {
-        self.value = value
-        self.hashValue = hashValue
-    }
-
-    var description: String {
-        return "\(value) [hash = \(hashValue)]"
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(hashValue)
-    }
-
-    static func == (lhs: CollidableInt, rhs: CollidableInt) -> Bool {
-        if lhs.value == rhs.value {
-            precondition(lhs.hashValue == rhs.hashValue)
-            return true
-        }
-        return false
-    }
-}
-
 final class BitmapSmokeTests: CollectionTestCase {
     func test_BitPartitionSize_isValid() {
         expectTrue(bitPartitionSize > 0)
