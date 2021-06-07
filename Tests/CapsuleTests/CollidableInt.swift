@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-final class CollidableInt: CustomStringConvertible, Equatable, Hashable {
+final class CollidableInt: CustomStringConvertible, CustomDebugStringConvertible, Equatable, Hashable {
     let value: Int
     let hashValue: Int
 
@@ -24,6 +24,10 @@ final class CollidableInt: CustomStringConvertible, Equatable, Hashable {
     }
 
     var description: String {
+        return "\(value)"
+    }
+
+    var debugDescription: String {
         return "\(value) [hash = \(hashValue)]"
     }
 
