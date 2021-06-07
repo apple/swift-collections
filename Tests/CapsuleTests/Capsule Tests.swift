@@ -168,13 +168,13 @@ class HashMapTests: CollectionTestCase {
     expectTrue(d0.isEmpty)
 
     let d1: HashMap<String, Int> = [
-      "one": 1,
-      "two": 2,
-      "three": 3,
-      "four": 4,
+      "1~one": 1,
+      "2~two": 2,
+      "3~three": 3,
+      "4~four": 4,
     ]
-    expectEqualElements(d1.map { $0.key }, ["one", "two", "three", "four"])
-    expectEqualElements(d1.map { $0.value }, [1, 2, 3, 4])
+    expectEqualElements(d1.map { $0.key }.sorted(), ["1~one", "2~two", "3~three", "4~four"])
+    expectEqualElements(d1.map { $0.value }.sorted(), [1, 2, 3, 4])
   }
 
 //  func test_keys() {
@@ -956,12 +956,8 @@ class HashMapTests: CollectionTestCase {
       [[100: 1], [100: 1]],
       [[1: 1], [1: 1]],
       [[100: 100], [100: 100]],
-      [[1: 100, 2: 200], [1: 100, 2: 200]],
-      [[2: 200, 1: 100], [2: 200, 1: 100]],
-      [[1: 100, 2: 200, 3: 300], [1: 100, 2: 200, 3: 300]],
-      [[2: 200, 1: 100, 3: 300], [2: 200, 1: 100, 3: 300]],
-      [[3: 300, 2: 200, 1: 100], [3: 300, 2: 200, 1: 100]],
-      [[3: 300, 1: 100, 2: 200], [3: 300, 1: 100, 2: 200]]
+      [[1: 100, 2: 200], [2: 200, 1: 100]],
+      [[1: 100, 2: 200, 3: 300], [1: 100, 3: 300, 2: 200], [2: 200, 1: 100, 3: 300], [2: 200, 3: 300, 1: 100], [3: 300, 1: 100, 2: 200], [3: 300, 2: 200, 1: 100]]
     ]
     checkHashable(equivalenceClasses: samples)
   }
@@ -1369,7 +1365,7 @@ class HashMapTests: CollectionTestCase {
         let (d, keys, values) = tracker.persistentDictionary(keys: 0 ..< count)
         let items = zip(keys, values).map { (key: $0.0, value: $0.1) }
         checkSequence(
-          { d },
+          { d.sorted(by: <) },
           expectedContents: items,
           by: { $0.key == $1.0 && $0.value == $1.1 })
       }
