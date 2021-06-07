@@ -909,16 +909,16 @@ class HashMapTests: CollectionTestCase {
 //    })
 //  }
 
-//  func test_CustomStringConvertible() {
-//    let a: HashMap<Int, Int> = [:]
-//    expectEqual(a.description, "[:]")
-//
-//    let b: HashMap<Int, Int> = [0: 1]
-//    expectEqual(b.description, "[0: 1]")
-//
-//    let c: HashMap<Int, Int> = [0: 1, 2: 3, 4: 5]
-//    expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
-//  }
+  func test_CustomStringConvertible() {
+    let a: HashMap<CollidableInt, Int> = [:]
+    expectEqual(a.description, "[:]")
+
+    let b: HashMap<CollidableInt, Int> = [CollidableInt(0): 1]
+    expectEqual(b.description, "[0: 1]")
+
+    let c: HashMap<CollidableInt, Int> = [CollidableInt(0): 1, CollidableInt(2): 3, CollidableInt(4): 5]
+    expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
+  }
 
 //  func test_CustomDebugStringConvertible() {
 //    let a: HashMap<Int, Int> = [:]
