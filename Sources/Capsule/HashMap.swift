@@ -52,6 +52,8 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
     public var count: Int { cachedSize }
 
+    public var underestimatedCount: Int { cachedSize }
+
     public var capacity: Int { count }
 
     ///
