@@ -38,6 +38,12 @@ public struct HashMap<Key, Value> where Key: Hashable {
         self.init(builder)
     }
 
+    @inlinable
+    @inline(__always)
+    public init<Keys: Sequence, Values: Sequence>(uniqueKeys keys: Keys, values: Values) where Keys.Element == Key, Values.Element == Value {
+        self.init(uniqueKeysWithValues: zip(keys, values))
+    }
+
     ///
     /// Inspecting a Dictionary
     ///
