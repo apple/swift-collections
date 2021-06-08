@@ -35,6 +35,16 @@ public struct PriorityQueue<Element: Comparable> {
         storage.count
     }
 
+    /// A read-only view into the underlying heap.
+    ///
+    /// In the current implementation, the elements aren't _arbitrarily_ ordered, as a min-max heap
+    /// is used for storage. However, no guarantees are given as to the ordering of the elements.
+    ///
+    /// - Complexity: O(1)
+    public var unordered: [Element] {
+        storage
+    }
+
     /// Creates an empty queue.
     public init() {
         storage = []

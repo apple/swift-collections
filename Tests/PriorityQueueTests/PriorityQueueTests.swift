@@ -27,6 +27,11 @@ final class PriorityQueueTests: XCTestCase {
         XCTAssertEqual(queue.count, 1)
     }
 
+    func test_unordered() {
+        let queue = PriorityQueue<Int>((1...10))
+        XCTAssertEqual(Set(queue.unordered), Set(1...10))
+    }
+
     struct Task: Comparable {
         let name: String
         let priority: Int
