@@ -351,8 +351,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     // TODO replace 'manual' move semantics with pointer arithmetic for obtaining reference
     // to pass into `isKnownUniquelyReferenced`
     private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
-        let fakeNode = BitmapIndexedMapNode()
-
         var realNode = content[slotIndex] as AnyObject
         content[slotIndex] = fakeNode
 
@@ -597,6 +595,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
     }
 }
+
+fileprivate let fakeNode = BitmapIndexedMapNode<Int, Int>()
 
 extension BitmapIndexedMapNode: Equatable where Value: Equatable {
     static func == (lhs: BitmapIndexedMapNode<Key, Value>, rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
