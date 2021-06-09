@@ -92,12 +92,12 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
-            return self.getBitmapIndexedNode(index).node.get(key, keyHash, shift + bitPartitionSize)
+            return self.getBitmapIndexedNode(index).get(key, keyHash, shift + bitPartitionSize)
         }
 
         guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
-            return self.getHashCollisionNode(index).node.get(key, keyHash, shift + bitPartitionSize)
+            return self.getHashCollisionNode(index).get(key, keyHash, shift + bitPartitionSize)
         }
 
         return nil
@@ -115,12 +115,12 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
-            return self.getBitmapIndexedNode(index).node.containsKey(key, keyHash, shift + bitPartitionSize)
+            return self.getBitmapIndexedNode(index).containsKey(key, keyHash, shift + bitPartitionSize)
         }
 
         guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
-            return self.getHashCollisionNode(index).node.containsKey(key, keyHash, shift + bitPartitionSize)
+            return self.getHashCollisionNode(index).containsKey(key, keyHash, shift + bitPartitionSize)
         }
 
         return false
@@ -154,9 +154,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
-            let (subNode, isSubNodeKnownUniquelyReferenced) = self.getBitmapIndexedNode(index)
+            let subNodeModifyInPlace = self.isBitmapIndexedNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+            let subNode = self.getBitmapIndexedNode(index)
 
-            let subNodeNew = subNode.updateOrUpdating(isStorageKnownUniquelyReferenced && isSubNodeKnownUniquelyReferenced, key, value, keyHash, shift + bitPartitionSize, &effect)
+            let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
             guard effect.modified else { return self }
 
             return copyAndSetBitmapIndexedNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
@@ -164,12 +165,13 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
-            let (subNode, isSubNodeKnownUniquelyReferenced) = self.getHashCollisionNode(index)
+            let subNodeModifyInPlace = self.isHashCollisionNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+            let subNode = self.getHashCollisionNode(index)
 
             let collisionHash = subNode.hash
 
             if keyHash == collisionHash {
-                let subNodeNew = subNode.updateOrUpdating(isStorageKnownUniquelyReferenced && isSubNodeKnownUniquelyReferenced, key, value, keyHash, shift + bitPartitionSize, &effect)
+                let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
                 guard effect.modified else { return self }
 
                 return copyAndSetHashCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
@@ -207,16 +209,17 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 }
             } else if self.payloadArity == 1 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
                 // create potential new root: will a) become new root, or b) unwrapped on another level
-                let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).node.hash, 0))
-                return BitmapIndexedMapNode(collMap: newCollMap, arrayLiteral: getHashCollisionNode(0).node)
+                let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).hash, 0))
+                return BitmapIndexedMapNode(collMap: newCollMap, arrayLiteral: getHashCollisionNode(0))
             } else { return copyAndRemoveValue(isStorageKnownUniquelyReferenced, bitpos) }
         }
 
         guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
-            let (subNode, isSubNodeKnownUniquelyReferenced) = self.getBitmapIndexedNode(index)
+            let subNodeModifyInPlace = self.isBitmapIndexedNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+            let subNode = self.getBitmapIndexedNode(index)
 
-            let subNodeNew = subNode.removeOrRemoving(isStorageKnownUniquelyReferenced && isSubNodeKnownUniquelyReferenced, key, keyHash, shift + bitPartitionSize, &effect)
+            let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
             guard effect.modified else { return self }
 
             switch subNodeNew.sizePredicate {
@@ -243,7 +246,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                         return subNodeNew
                     } else {
                         // unwrap hash-collision sub-node
-                        return copyAndMigrateFromNodeToCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getHashCollisionNode(0).node)
+                        return copyAndMigrateFromNodeToCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getHashCollisionNode(0))
                     }
                 }
 
@@ -254,9 +257,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
-            let (subNode, isSubNodeKnownUniquelyReferenced) = self.getHashCollisionNode(index)
+            let subNodeModifyInPlace = self.isHashCollisionNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
+            let subNode = self.getHashCollisionNode(index)
 
-            let subNodeNew = subNode.removeOrRemoving(isStorageKnownUniquelyReferenced && isSubNodeKnownUniquelyReferenced, key, keyHash, shift + bitPartitionSize, &effect)
+            let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
             guard effect.modified else { return self }
 
             switch subNodeNew.sizePredicate {
@@ -330,36 +334,38 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
 
-    func getBitmapIndexedNode(_ index: Int) -> (node: BitmapIndexedMapNode<Key, Value>, isKnownUniquelyReferenced: Bool) {
-        let slotIndex = content.count - 1 - index
+    func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
+        content[content.count - 1 - index] as! BitmapIndexedMapNode<Key, Value>
+    }
 
-        // TODO replace 'manual' move semantics with pointer arithmetic for obtaining reference
-        // to pass into `isKnownUniquelyReferenced`
-        var realNode = content[slotIndex] as! BitmapIndexedMapNode<Key, Value>
+    private func isBitmapIndexedNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
+        let slotIndex = content.count - 1 - index
+        return isTrieNodeKnownUniquelyReferenced(slotIndex, isParentNodeKnownUniquelyReferenced)
+    }
+
+    private func isHashCollisionNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
+        let slotIndex = content.count - 1 - bitmapIndexedNodeArity - index
+        return isTrieNodeKnownUniquelyReferenced(slotIndex, isParentNodeKnownUniquelyReferenced)
+    }
+
+    // TODO replace 'manual' move semantics with pointer arithmetic for obtaining reference
+    // to pass into `isKnownUniquelyReferenced`
+    private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
+        var realNode = content[slotIndex] as AnyObject
         content[slotIndex] = fakeNode
 
         let isKnownUniquelyReferenced = isKnownUniquelyReferenced(&realNode)
         content[slotIndex] = realNode
 
-        return (realNode, isKnownUniquelyReferenced)
+        return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
 
     var hasHashCollisionNodes: Bool { collMap != 0 }
 
     var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
 
-    func getHashCollisionNode(_ index: Int) -> (node: HashCollisionMapNode<Key, Value>, isKnownUniquelyReferenced: Bool) {
-        let slotIndex = content.count - 1 - bitmapIndexedNodeArity - index
-
-        // TODO replace 'manual' move semantics with pointer arithmetic for obtaining reference
-        // to pass into `isKnownUniquelyReferenced`
-        var realNode = content[slotIndex] as! HashCollisionMapNode<Key, Value>
-        content[slotIndex] = fakeNode
-
-        let isKnownUniquelyReferenced = isKnownUniquelyReferenced(&realNode)
-        content[slotIndex] = realNode
-
-        return (realNode, isKnownUniquelyReferenced)
+    func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+        return content[content.count - 1 - bitmapIndexedNodeArity - index] as! HashCollisionMapNode<Key, Value>
     }
 
     var hasNodes: Bool { (nodeMap | collMap) != 0 }
@@ -368,9 +374,9 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     func getNode(_ index: Int) -> TrieNode<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
         if index < bitmapIndexedNodeArity {
-            return .bitmapIndexed(getBitmapIndexedNode(index).node)
+            return .bitmapIndexed(getBitmapIndexedNode(index))
         } else {
-            return .hashCollision(getHashCollisionNode(index).node)
+            return .hashCollision(getHashCollisionNode(index))
         }
     }
 
@@ -609,13 +615,13 @@ extension BitmapIndexedMapNode: Equatable where Value: Equatable {
         }
 
         for index in 0..<lhs.bitmapIndexedNodeArity {
-            if lhs.getBitmapIndexedNode(index).node != rhs.getBitmapIndexedNode(index).node {
+            if lhs.getBitmapIndexedNode(index) != rhs.getBitmapIndexedNode(index) {
                 return false
             }
         }
 
         for index in 0..<lhs.hashCollisionNodeArity {
-            if lhs.getHashCollisionNode(index).node != rhs.getHashCollisionNode(index).node {
+            if lhs.getHashCollisionNode(index) != rhs.getHashCollisionNode(index) {
                 return false
             }
         }
