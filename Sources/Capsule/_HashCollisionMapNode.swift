@@ -76,7 +76,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var bitmapIndexedNodeArity: Int { 0 }
 
-    func getBitmapIndexedNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+    func getBitmapIndexedNode(_ index: Int) -> (node: HashCollisionMapNode<Key, Value>, isKnownUniquelyReferenced: Bool) {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 
@@ -84,7 +84,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var hashCollisionNodeArity: Int { 0 }
 
-    func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+    func getHashCollisionNode(_ index: Int) -> (node: HashCollisionMapNode<Key, Value>, isKnownUniquelyReferenced: Bool) {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 

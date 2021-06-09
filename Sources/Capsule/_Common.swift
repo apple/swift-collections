@@ -116,13 +116,13 @@ protocol Node {
 
     var bitmapIndexedNodeArity: Int { get }
 
-    func getBitmapIndexedNode(_ index: Int) -> ReturnBitmapIndexedNode
+    func getBitmapIndexedNode(_ index: Int) -> (node: ReturnBitmapIndexedNode, isKnownUniquelyReferenced: Bool)
 
     var hasHashCollisionNodes: Bool { get }
 
     var hashCollisionNodeArity: Int { get }
 
-    func getHashCollisionNode(_ index: Int) -> ReturnHashCollisionNode
+    func getHashCollisionNode(_ index: Int) -> (node: ReturnHashCollisionNode, isKnownUniquelyReferenced: Bool)
 
     var hasNodes: Bool { get }
 
