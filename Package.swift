@@ -54,7 +54,7 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-    .library(name: "BitArray", targets: ["BitArray"])
+    .library(name: "BitArrayModule", targets: ["BitArrayModule"])
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
@@ -64,8 +64,8 @@ let package = Package(
     
     // BitArray
     .target(
-        name: "BitArray",
-        path: "Sources/BitArray",
+        name: "BitArrayModule",
+        path: "Sources/BitArrayModule",
         swiftSettings: settings),
         
     .target(
