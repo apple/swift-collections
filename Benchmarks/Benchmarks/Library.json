@@ -766,6 +766,44 @@
     },
     {
       "kind": "group",
+      "title": "PriorityQueue",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "operations",
+          "tasks": [
+            "PriorityQueue<Int> init from range",
+            "PriorityQueue<Int> insert",
+            "PriorityQueue<Int> removeMax",
+            "PriorityQueue<Int> removeMin"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "initializers",
+          "tasks": [
+            "PriorityQueue<Int> init from range"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "insert",
+          "tasks": [
+            "PriorityQueue<Int> insert"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "remove",
+          "tasks": [
+            "PriorityQueue<Int> removeMax",
+            "PriorityQueue<Int> removeMin"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
       "title": "Against other Swift collections",
       "directory": "stdlib",
       "contents": [
