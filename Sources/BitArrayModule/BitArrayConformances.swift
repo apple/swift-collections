@@ -30,7 +30,9 @@ extension BitArray: Collection {
     }
     
     public var endIndex: Int {
-        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - Int(excess))
+        var remaining = Int(excess)
+        if (excess == 0) { remaining = UNIT.bitWidth }
+        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
     }
     
     public var count: Int { get { endIndex } } // would this work for count?

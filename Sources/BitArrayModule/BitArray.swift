@@ -14,5 +14,8 @@ public struct BitArray {
     
     public init() { }
     
+    public func getStorageCount() -> Int {
+        return self.storage.count
+    }
     
 }

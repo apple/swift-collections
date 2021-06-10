@@ -23,9 +23,7 @@ public mutating func append(_ newValue: Bool) {
         if (excess == 0) {
             storage.append(1)
         } else {
-            let mask: UInt8 = 1 << excess
-            print(mask)
-            storage[storage.endIndex-1] += mask
+            storage[storage.endIndex-1] += (1 << excess)
         }
         adjustExcess()
     }
