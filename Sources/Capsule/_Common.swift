@@ -15,7 +15,7 @@ func computeHash<T: Hashable>(_ value: T) -> Int {
     value.hashValue
 }
 
-typealias Bitmap = Int64
+typealias Bitmap = Int32
 
 let bitPartitionSize: Int = 5
 
