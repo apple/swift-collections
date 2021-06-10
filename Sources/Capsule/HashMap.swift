@@ -43,11 +43,14 @@ public struct HashMap<Key, Value> where Key: Hashable {
     @inline(__always)
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
         var builder = Self()
+        var expectedCount = 0
         keysAndValues.forEach { key, value in
-            guard !builder.contains(key) else {
+            builder.insert(key: key, value: value)
+            expectedCount += 1
+
+            guard expectedCount == builder.count else {
                 preconditionFailure("Duplicate key: '\(key)'")
             }
-            builder.insert(key: key, value: value)
         }
         self.init(builder)
     }
