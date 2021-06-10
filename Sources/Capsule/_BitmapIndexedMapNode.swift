@@ -57,23 +57,33 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         assert(count - payloadArity >= 2 * nodeArity)
     }
 
-    convenience init(dataMap: Bitmap = 0, nodeMap: Bitmap = 0, collMap: Bitmap = 0, arrayLiteral content: Any...) {
-        self.init(dataMap, nodeMap, collMap, content)
+    convenience init() {
+        self.init(0, 0, 0, [])
     }
 
-    // TODO improve performance of variadic implementation or consider specializing for two key-value tuples
-    convenience init(dataMap: Bitmap, arrayLiteral elements: (Key, Value)...) {
-        self.init(dataMap, 0, 0, elements.flatMap { [$0.0, $0.1] })
+    convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
+        let elements: [Any] = [firstKey, firstValue]
+        self.init(dataMap, 0, 0, elements)
     }
 
-    // TODO improve performance of variadic implementation or consider specializing for singleton nodes
-    convenience init(nodeMap: Bitmap, arrayLiteral elements: BitmapIndexedMapNode<Key, Value>...) {
+    convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) {
+        let elements: [Any] = [firstKey, firstValue, secondKey, secondValue]
+        self.init(dataMap, 0, 0, elements)
+    }
+
+    convenience init(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) {
+        let elements = [firstNode]
         self.init(0, nodeMap, 0, elements)
     }
 
-    // TODO improve performance of variadic implementation or consider specializing for singleton nodes
-    convenience init(collMap: Bitmap, arrayLiteral elements: HashCollisionMapNode<Key, Value>...) {
+    convenience init(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) {
+        let elements = [firstNode]
         self.init(0, 0, collMap, elements)
+    }
+
+    convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
+        let elements: [Any] = [firstKey, firstValue, firstNode]
+        self.init(dataMap, 0, collMap, elements)
     }
 
     var count: Int {
@@ -201,16 +211,18 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 if shift == 0 {
                     // keep remaining pair on root level
                     let newDataMap = (dataMap ^ bitpos)
-                    return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: getPayload(1 - index))
+                    let (remainingKey, remainingValue) = getPayload(1 - index)
+                    return BitmapIndexedMapNode(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 } else {
                     // create potential new root: will a) become new root, or b) inlined on another level
                     let newDataMap = bitposFrom(maskFrom(keyHash, 0))
-                    return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: getPayload(1 - index))
+                    let (remainingKey, remainingValue) = getPayload(1 - index)
+                    return BitmapIndexedMapNode(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 }
             } else if self.payloadArity == 1 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
                 // create potential new root: will a) become new root, or b) unwrapped on another level
                 let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).hash, 0))
-                return BitmapIndexedMapNode(collMap: newCollMap, arrayLiteral: getHashCollisionNode(0))
+                return BitmapIndexedMapNode(collMap: newCollMap, firstNode: getHashCollisionNode(0))
             } else { return copyAndRemoveValue(isStorageKnownUniquelyReferenced, bitpos) }
         }
 
@@ -273,7 +285,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                     // escalate singleton
                     // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
                     let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
-                    return BitmapIndexedMapNode(dataMap: newDataMap, arrayLiteral: subNodeNew.getPayload(0))
+                    let (remainingKey, remainingValue) = subNodeNew.getPayload(0)
+                    return BitmapIndexedMapNode(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 } else {
                     // inline value
                     return copyAndMigrateFromCollisionNodeToInline(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getPayload(0))
@@ -301,15 +314,15 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         if mask0 != mask1 {
             // unique prefixes, payload fits on same level
             if mask0 < mask1 {
-                return BitmapIndexedMapNode(dataMap: bitposFrom(mask0) | bitposFrom(mask1), arrayLiteral: (key0, value0), (key1, value1))
+                return BitmapIndexedMapNode(dataMap: bitposFrom(mask0) | bitposFrom(mask1), firstKey: key0, firstValue: value0, secondKey: key1, secondValue: value1)
             } else {
-                return BitmapIndexedMapNode(dataMap: bitposFrom(mask1) | bitposFrom(mask0), arrayLiteral: (key1, value1), (key0, value0))
+                return BitmapIndexedMapNode(dataMap: bitposFrom(mask1) | bitposFrom(mask0), firstKey: key1, firstValue: value1, secondKey: key0, secondValue: value0)
             }
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
             let node = mergeTwoKeyValPairs(key0, value0, keyHash0, key1, value1, keyHash1, shift + bitPartitionSize)
 
-            return BitmapIndexedMapNode(nodeMap: bitposFrom(mask0), arrayLiteral: node)
+            return BitmapIndexedMapNode(nodeMap: bitposFrom(mask0), firstNode: node)
         }
     }
 
@@ -321,12 +334,12 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         if mask0 != mask1 {
             // unique prefixes, payload and collision node fit on same level
-            return BitmapIndexedMapNode(dataMap: bitposFrom(mask0), collMap: bitposFrom(mask1), arrayLiteral: key0, value0, node1)
+            return BitmapIndexedMapNode(dataMap: bitposFrom(mask0), collMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: node1)
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
             let node = mergeKeyValPairAndCollisionNode(key0, value0, keyHash0, node1, nodeHash1, shift + bitPartitionSize)
 
-            return BitmapIndexedMapNode(nodeMap: bitposFrom(mask0), arrayLiteral: node)
+            return BitmapIndexedMapNode(nodeMap: bitposFrom(mask0), firstNode: node)
         }
     }
 
