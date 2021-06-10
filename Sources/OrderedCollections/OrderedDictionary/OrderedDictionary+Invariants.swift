@@ -14,7 +14,7 @@ extension OrderedDictionary {
   @inline(never) @_effects(releasenone)
   public func _checkInvariants() {
     precondition(_keys.count == _values.count)
-    _keys.__unstable._checkInvariants()
+    self._keys._checkInvariants()
   }
   #else
   @inline(__always) @inlinable
