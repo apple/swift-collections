@@ -90,9 +90,11 @@ public struct HashMap<Key, Value> where Key: Hashable {
         }
         mutating set(optionalValue) {
             if let value = optionalValue {
-                insert(isKnownUniquelyReferenced(&self.rootNode), key: key, value: value)
+                let mutate = isKnownUniquelyReferenced(&self.rootNode)
+                insert(mutate, key: key, value: value)
             } else {
-                delete(isKnownUniquelyReferenced(&self.rootNode), key: key)
+                let mutate = isKnownUniquelyReferenced(&self.rootNode)
+                delete(mutate, key: key)
             }
         }
     }
@@ -102,7 +104,8 @@ public struct HashMap<Key, Value> where Key: Hashable {
             return get(key) ?? defaultValue()
         }
         mutating set(value) {
-            insert(isKnownUniquelyReferenced(&self.rootNode), key: key, value: value)
+            let mutate = isKnownUniquelyReferenced(&self.rootNode)
+            insert(mutate, key: key, value: value)
         }
     }
 
