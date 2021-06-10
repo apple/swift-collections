@@ -12,9 +12,11 @@
 fileprivate var tupleLength: Int { 2 }
 
 final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
+    typealias Storage = [Any]
+
     var bitmap1: Bitmap
     var bitmap2: Bitmap
-    var content: [Any]
+    var content: Storage
 
     var dataMap: Bitmap {
         get {
@@ -49,7 +51,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
     }
 
-    init(_ dataMap: Bitmap, _ nodeMap: Bitmap, _ collMap: Bitmap, _ content: [Any]) {
+    init(_ dataMap: Bitmap, _ nodeMap: Bitmap, _ collMap: Bitmap, _ content: Storage) {
         self.bitmap1 = dataMap ^ collMap
         self.bitmap2 = nodeMap ^ collMap
         self.content = content
@@ -62,27 +64,27 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
-        let elements: [Any] = [firstKey, firstValue]
+        let elements: Storage = [firstKey, firstValue]
         self.init(dataMap, 0, 0, elements)
     }
 
     convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) {
-        let elements: [Any] = [firstKey, firstValue, secondKey, secondValue]
+        let elements: Storage = [firstKey, firstValue, secondKey, secondValue]
         self.init(dataMap, 0, 0, elements)
     }
 
     convenience init(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) {
-        let elements = [firstNode]
+        let elements: Storage = [firstNode]
         self.init(0, nodeMap, 0, elements)
     }
 
     convenience init(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) {
-        let elements = [firstNode]
+        let elements: Storage = [firstNode]
         self.init(0, 0, collMap, elements)
     }
 
     convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
-        let elements: [Any] = [firstKey, firstValue, firstNode]
+        let elements: Storage = [firstKey, firstValue, firstNode]
         self.init(dataMap, 0, collMap, elements)
     }
 
