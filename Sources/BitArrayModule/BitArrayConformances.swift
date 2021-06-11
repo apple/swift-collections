@@ -6,19 +6,6 @@
 //
 
 extension BitArray: Collection {
-    
-    public subscript(position: Int) -> Bool {
-        
-        if (position >= endIndex || position < startIndex) {
-            fatalError("Index out of bounds")
-        }
-        
-        let index: Int = position/UNIT.bitWidth
-        let subPosition: Int = position - index*UNIT.bitWidth
-        
-        let mask: UInt8 = 1 << subPosition
-        if (storage[index] & mask == 0) { return false } else { return true }
-     }
      
     public func index(after i: Int) -> Int {
         if (i == endIndex) { return i }
@@ -29,13 +16,13 @@ extension BitArray: Collection {
         return 0
     }
     
-    public var endIndex: Int {
+    public var count: Int {
         var remaining = Int(excess)
         if (excess == 0) { remaining = UNIT.bitWidth }
         return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
     }
     
-    public var count: Int { get { endIndex } } // would this work for count?
+    public var endIndex: Int { get { if (count == 0) { return count + 1} else { return count } } } // switched count and endIndex code and altered closure to meet this "edge case"
    
 }
 
@@ -45,6 +32,35 @@ extension BitArray: BidirectionalCollection {
     public func index(before i: Int) -> Int {
         return i - 1
     }
+    
+}
+
+extension BitArray: MutableCollection {
+    public subscript(position: Int) -> Bool {
+        // how can I retain some of my code from get to use in set
+        get { // I read online that _read is not officially part of the language yet, and to change this to get
+            if (position >= endIndex || position < startIndex) {
+                fatalError("Index out of bounds")
+            }
+            
+            let index: Int = position/UNIT.bitWidth
+            let subPosition: Int = position - index*UNIT.bitWidth
+            
+            let mask: UInt8 = 1 << subPosition
+            if (storage[index] & mask == 0) { return false } else { return true }
+        }
+        set(newValue) {
+            let index: Int = position/UNIT.bitWidth
+            let subPosition: Int = position - index*UNIT.bitWidth
+            let mask: UInt8 = 1 << subPosition
+            
+            var newValInt: UInt8
+            if (newValue) { newValInt = 1 } else { newValInt = 0 }
+            
+            if (storage[index] & mask == newValInt) {  } else {  storage[index] = storage[index] ^ mask}
+        }
+    }
+    
     
 }
 

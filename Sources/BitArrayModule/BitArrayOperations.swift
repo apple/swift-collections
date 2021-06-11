@@ -13,7 +13,7 @@ import  Foundation
 
 extension BitArray {
     
-public mutating func append(_ newValue: Bool) {
+    public mutating func append(_ newValue: Bool) {
         if (!newValue) {
             if(excess == 0) { storage.append(0)}
             adjustExcess() // excess += 1
@@ -35,4 +35,11 @@ public mutating func append(_ newValue: Bool) {
             self.excess += 1
         }
     }
+    
+    // for testing
+    public mutating func clear() {
+        self.storage = []
+        self.excess = 0
+    }
+    
 }

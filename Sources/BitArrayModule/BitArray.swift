@@ -14,8 +14,16 @@ public struct BitArray {
     
     public init() { }
     
+    // for testing ONLY
+    #warning("Remove in final")
     public func getStorageCount() -> Int {
         return self.storage.count
+    }
+    
+    // for testing ONLY
+    #warning("Remove in final")
+    public func getExcessCount() -> UInt8 {
+        return self.excess
     }
     
 }

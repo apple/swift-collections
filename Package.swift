@@ -67,6 +67,10 @@ let package = Package(
         name: "BitArrayModule",
         path: "Sources/BitArrayModule",
         swiftSettings: settings),
+    .testTarget(
+      name: "BitArrayTests",
+      dependencies: ["BitArrayModule", "CollectionsTestSupport"],
+      swiftSettings: settings),
         
     .target(
       name: "Collections",
