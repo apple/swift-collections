@@ -5,7 +5,6 @@
 //  Created by Mahanaz Atiqullah on 6/9/21.
 //
 
-import Foundation
 import XCTest
 import CollectionsTestSupport
 @_spi(Testing) import BitArrayModule
@@ -83,9 +82,9 @@ final class BitArrayTest: CollectionTestCase {
             }
         }
         
-        let valArray: [Bool] = [true, false, true, false, false, true, true, false, false, true, true, false]
+        /*let valArray: [Bool] = [true, false, true, false, false, true, true, false, false, true, true, false]
         
-        /*for i in 0..<testArray.endIndex {
+        for i in 0..<testArray.endIndex {
             for value in valArray {
                 testArray[i] = value
                 XCTAssertEqual(testArray[i], value)
