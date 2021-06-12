@@ -315,7 +315,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 // modify current node (set replacement node)
                 return copyAndSetHashCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
             }
-       }
+        }
 
         return self
     }
