@@ -54,10 +54,9 @@ extension BitArray: MutableCollection {
             let subPosition: Int = position - index*UNIT.bitWidth
             let mask: UInt8 = 1 << subPosition
             
-            var newValInt: UInt8
-            if (newValue) { newValInt = 1 } else { newValInt = 0 }
+            var currentVal: Bool { get { if (storage[index] & mask == 0) { return false } else { return true } } }
             
-            if (storage[index] & mask == newValInt) {  } else {  storage[index] = storage[index] ^ mask}
+            if (currentVal == newValue) {  } else {  storage[index] = storage[index] ^ mask}
         }
     }
     
