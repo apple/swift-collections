@@ -11,6 +11,8 @@ import CollectionsTestSupport
 
 final class BitArrayTest: CollectionTestCase {
     
+    // DEFINITELY needs improvement lol. I can imagine this looking like a terrible butcher to the experienced eye.
+    
     var testArray = BitArray()
     
     func testAppend() {
@@ -67,6 +69,10 @@ final class BitArrayTest: CollectionTestCase {
         XCTAssertEqual(testArray.startIndex, 0)
         XCTAssertEqual(testArray.getStorageCount(), 13)
         XCTAssertEqual(testArray.getExcessCount(), 5)
+    }
+    
+    func testForFatalErrorOnOutOfBoundsIndex(){
+        
     }
     
     func testSubscriptSetOnly() {

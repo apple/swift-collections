@@ -8,17 +8,17 @@
 extension BitArray: Collection {
      
     public func index(after i: Int) -> Int {
-        if (i == endIndex) { return i }
-        else { return i + 1 }
+        /* if (i == endIndex) { return i }  // Removed due to conversation about putting all checks within subscript function
+        else { return i + 1 } */
+        return i + 1
     }
     
-    public var startIndex: Int {
+    public var startIndex: Int { // would it be worth making this a stored propery (public var startIndex: Int = 0) and place it in BitArray.swift ?
         return 0
     }
     
     public var count: Int {
-        var remaining = Int(excess)
-        if (excess == 0) { remaining = UNIT.bitWidth }
+        var remaining: Int { get { if (excess == 0) { return UNIT.bitWidth } else { return Int(excess)}} }
         return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
     }
     
@@ -29,18 +29,21 @@ extension BitArray: Collection {
 
 extension BitArray: BidirectionalCollection {
     
-    public func index(before i: Int) -> Int {
+    public func index(before i: Int) -> Int { // no checks since, from out conversation, we'll be doing all checks within subscript
         return i - 1
     }
     
 }
 
 extension BitArray: MutableCollection {
-    public subscript(position: Int) -> Bool {
+    public subscript(position: Int) -> Bool  {
         // how can I retain some of my code from get to use in set
+        
         get { // I read online that _read is not officially part of the language yet, and to change this to get
+            
+            // any other checks needed?
             if (position >= endIndex || position < startIndex) {
-                fatalError("Index out of bounds")
+                fatalError("Index out of bounds") // can we do something other than this? And how do we test for this?
             }
             
             let index: Int = position/UNIT.bitWidth
