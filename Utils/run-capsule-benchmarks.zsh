@@ -38,7 +38,7 @@ for benchmark in ${benchmarks[@]}; do
     done
 
     rm "results-$benchmark" && rm "chart-$benchmark.png"
-    swift run -c release swift-collections-benchmark run "results-$benchmark" --tasks-file=$tasks_file --cycles=1
-    swift run -c release swift-collections-benchmark render "results-$benchmark" "chart-$benchmark.png"
+    swift run -Xswiftc -Ounchecked -c release swift-collections-benchmark run "results-$benchmark" --tasks-file=$tasks_file --cycles=1
+    swift run -Xswiftc -Ounchecked -c release swift-collections-benchmark render "results-$benchmark" "chart-$benchmark.png"
     # open "chart-$benchmark.png"
 done
