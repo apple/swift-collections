@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-fileprivate var tupleLength: Int { 2 }
-
 final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     typealias Storage = [Any]
 
@@ -65,7 +63,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     var dataSliceInvariant: Bool {
-        (0 ..< payloadArity).allSatisfy { index in (content[tupleLength * index], content[tupleLength * index + 1]) is ReturnPayload }
+        (0 ..< payloadArity).allSatisfy { index in content[index] is ReturnPayload }
     }
 
     var nodeSliceInvariant: Bool {
@@ -81,12 +79,12 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
-        let elements: Storage = [firstKey, firstValue]
+        let elements: Storage = [(firstKey, firstValue)]
         self.init(dataMap, 0, 0, elements)
     }
 
     convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) {
-        let elements: Storage = [firstKey, firstValue, secondKey, secondValue]
+        let elements: Storage = [(firstKey, firstValue), (secondKey, secondValue)]
         self.init(dataMap, 0, 0, elements)
     }
 
@@ -101,7 +99,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
-        let elements: Storage = [firstKey, firstValue, firstNode]
+        let elements: Storage = [(firstKey, firstValue), firstNode]
         self.init(dataMap, 0, collMap, elements)
     }
 
@@ -416,10 +414,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var payloadArity: Int { dataMap.nonzeroBitCount }
 
-    func getPayload(_ index: Int) -> (key: Key, value: Value) {
-        (content[tupleLength * index + 0] as! Key,
-         content[tupleLength * index + 1] as! Value)
-    }
+    func getPayload(_ index: Int) -> (key: Key, value: Value) { content[index] as! ReturnPayload }
 
     var sizePredicate: SizePredicate { SizePredicate(self) }
 
@@ -430,17 +425,18 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     func collIndex(_ bitpos: Bitmap) -> Int { (collMap & (bitpos &- 1)).nonzeroBitCount }
 
     func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
-        let idx = tupleLength * dataIndex(bitpos) + 1
+        let idx = dataIndex(bitpos)
+        let (key, _) = self.content[idx] as! ReturnPayload
 
         if isStorageKnownUniquelyReferenced {
             // no copying if already editable
-            self.content[idx] = newValue
+            self.content[idx] = (key, newValue)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
-            dst[idx] = newValue
+            dst[idx] = (key, newValue)
 
             return BitmapIndexedMapNode(dataMap, nodeMap, collMap, dst)
         }
@@ -472,55 +468,55 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     func copyAndInsertValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
-        let idx = tupleLength * dataIndex(bitpos)
+        let idx = dataIndex(bitpos)
 
         if isStorageKnownUniquelyReferenced {
             self.dataMap |= bitpos
-            self.content.insert(contentsOf: [key, value], at: idx)
+            self.content.insert((key, value), at: idx)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
-            dst.insert(contentsOf: [key, value], at: idx)
+            dst.insert((key, value), at: idx)
 
             return BitmapIndexedMapNode(dataMap | bitpos, nodeMap, collMap, dst)
         }
     }
 
     func copyAndRemoveValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap) -> BitmapIndexedMapNode<Key, Value> {
-        let idx = tupleLength * dataIndex(bitpos)
+        let idx = dataIndex(bitpos)
 
         if isStorageKnownUniquelyReferenced {
             self.dataMap ^= bitpos
-            self.content.removeSubrange(idx..<idx+tupleLength)
+            self.content.remove(at: idx)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
-            dst.removeSubrange(idx..<idx+tupleLength)
+            dst.remove(at: idx)
 
             return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap, collMap, dst)
         }
     }
 
     func copyAndMigrateFromInlineToNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
-        let idxOld = tupleLength * dataIndex(bitpos)
-        let idxNew = self.content.count - tupleLength - nodeIndex(bitpos)
+        let idxOld = dataIndex(bitpos)
+        let idxNew = self.content.count - 1 /* tupleLength */ - nodeIndex(bitpos)
 
         if isStorageKnownUniquelyReferenced {
             self.dataMap ^= bitpos
             self.nodeMap |= bitpos
 
-            self.content.removeSubrange(idxOld..<idxOld+tupleLength)
+            self.content.remove(at: idxOld)
             self.content.insert(node, at: idxNew)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
-            dst.removeSubrange(idxOld..<idxOld+tupleLength)
+            dst.remove(at: idxOld)
             dst.insert(node, at: idxNew)
 
             return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap | bitpos, collMap, dst)
@@ -528,21 +524,21 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     func copyAndMigrateFromInlineToCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
-        let idxOld = tupleLength * dataIndex(bitpos)
-        let idxNew = self.content.count - tupleLength - bitmapIndexedNodeArity - collIndex(bitpos)
+        let idxOld = dataIndex(bitpos)
+        let idxNew = self.content.count - 1 /* tupleLength */ - bitmapIndexedNodeArity - collIndex(bitpos)
 
         if isStorageKnownUniquelyReferenced {
             self.dataMap ^= bitpos
             self.collMap |= bitpos
 
-            self.content.removeSubrange(idxOld..<idxOld+tupleLength)
+            self.content.remove(at: idxOld)
             self.content.insert(node, at: idxNew)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
-            dst.removeSubrange(idxOld..<idxOld+tupleLength)
+            dst.remove(at: idxOld)
             dst.insert(node, at: idxNew)
 
             return BitmapIndexedMapNode(dataMap ^ bitpos, nodeMap, collMap | bitpos, dst)
@@ -551,21 +547,21 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     func copyAndMigrateFromNodeToInline(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
         let idxOld = self.content.count - 1 - nodeIndex(bitpos)
-        let idxNew = tupleLength * dataIndex(bitpos)
+        let idxNew = dataIndex(bitpos)
 
         if isStorageKnownUniquelyReferenced {
             self.dataMap |= bitpos
             self.nodeMap ^= bitpos
 
             self.content.remove(at: idxOld)
-            self.content.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
+            self.content.insert(tuple, at: idxNew)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
             dst.remove(at: idxOld)
-            dst.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
+            dst.insert(tuple, at: idxNew)
 
             return BitmapIndexedMapNode(dataMap | bitpos, nodeMap ^ bitpos, collMap, dst)
         }
@@ -573,21 +569,21 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     func copyAndMigrateFromCollisionNodeToInline(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
         let idxOld = self.content.count - 1 - bitmapIndexedNodeArity - collIndex(bitpos)
-        let idxNew = tupleLength * dataIndex(bitpos)
+        let idxNew = dataIndex(bitpos)
 
         if isStorageKnownUniquelyReferenced {
             self.dataMap |= bitpos
             self.collMap ^= bitpos
 
             self.content.remove(at: idxOld)
-            self.content.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
+            self.content.insert(tuple, at: idxNew)
 
             assert(contentInvariant)
             return self
         } else {
             var dst = self.content
             dst.remove(at: idxOld)
-            dst.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
+            dst.insert(tuple, at: idxNew)
 
             return BitmapIndexedMapNode(dataMap | bitpos, nodeMap, collMap ^ bitpos, dst)
         }
