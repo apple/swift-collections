@@ -56,7 +56,24 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         self.bitmap2 = nodeMap ^ collMap
         self.content = content
 
+        assert(contentInvariant)
         assert(count - payloadArity >= 2 * nodeArity)
+    }
+
+    var contentInvariant: Bool {
+        dataSliceInvariant && nodeSliceInvariant && collSliceInvariant
+    }
+
+    var dataSliceInvariant: Bool {
+        (0 ..< payloadArity).allSatisfy { index in (content[tupleLength * index], content[tupleLength * index + 1]) is ReturnPayload }
+    }
+
+    var nodeSliceInvariant: Bool {
+        (0 ..< bitmapIndexedNodeArity).allSatisfy { index in content[content.count - 1 - index] is ReturnBitmapIndexedNode }
+    }
+
+    var collSliceInvariant: Bool {
+        (0 ..< hashCollisionNodeArity).allSatisfy { index in content[content.count - 1 - bitmapIndexedNodeArity - index] is ReturnHashCollisionNode }
     }
 
     convenience init() {
@@ -419,6 +436,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             // no copying if already editable
             self.content[idx] = newValue
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -443,6 +461,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             // no copying if already editable
             self.content[idx] = newNode
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -459,6 +478,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.dataMap |= bitpos
             self.content.insert(contentsOf: [key, value], at: idx)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -475,6 +495,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.dataMap ^= bitpos
             self.content.removeSubrange(idx..<idx+tupleLength)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -495,6 +516,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.content.removeSubrange(idxOld..<idxOld+tupleLength)
             self.content.insert(node, at: idxNew)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -516,6 +538,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.content.removeSubrange(idxOld..<idxOld+tupleLength)
             self.content.insert(node, at: idxNew)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -537,6 +560,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.content.remove(at: idxOld)
             self.content.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -558,6 +582,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.content.remove(at: idxOld)
             self.content.insert(contentsOf: [tuple.key, tuple.value], at: idxNew)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -579,6 +604,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.content.remove(at: idxOld)
             self.content.insert(node, at: idxNew)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
@@ -600,6 +626,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             self.content.remove(at: idxOld)
             self.content.insert(node, at: idxNew)
 
+            assert(contentInvariant)
             return self
         } else {
             var dst = self.content
