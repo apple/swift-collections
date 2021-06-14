@@ -12,14 +12,9 @@
 typealias Header = (bitmap1: Bitmap, bitmap2: Bitmap)
 typealias Element = Any
 
-fileprivate let fixedCapacity = 32
+fileprivate let fixedCapacity = Bitmap.bitWidth
 
 final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, MapNode where Key: Hashable {
-    // typealias Storage = [Any]
-
-//    var bitmap1: Bitmap
-//    var bitmap2: Bitmap
-//    var content: Storage
 
     var dataMap: Bitmap {
         get {
@@ -132,21 +127,16 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value) -> Self {
-        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (dataMap, 0) } as! Self
+        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (dataMap, 0) }
         result.withUnsafeMutablePointerToElements {
-//            $0[0] = (firstKey, firstValue)
-
             $0.initialize(to: (firstKey, firstValue))
         }
-        return result
+        return result as! Self
     }
 
     static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) -> Self {
         let result = Self.create(minimumCapacity: fixedCapacity) { _ in (dataMap, 0) }
         result.withUnsafeMutablePointerToElements {
-//            $0[0] = (firstKey, firstValue)
-//            $0[1] = (secondKey, secondValue)
-
             $0.initialize(to: (firstKey, firstValue))
             $0.successor().initialize(to: (secondKey, secondValue))
         }
@@ -154,30 +144,28 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (0, nodeMap) } as! Self
+        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (0, nodeMap) }
         result.withUnsafeMutablePointerToElements {
-            // $0[result.capacity - 1] = firstNode
-
             $0.advanced(by: result.capacity - 1).initialize(to: firstNode)
         }
-        return result
+        return result as! Self
     }
 
     static func create(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (collMap, collMap) } as! Self
+        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (collMap, collMap) }
         result.withUnsafeMutablePointerToElements {
-            $0[result.capacity - 1] = firstNode
+            $0.advanced(by: result.capacity - 1).initialize(to: firstNode)
         }
-        return result
+        return result as! Self
     }
 
     static func create(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (dataMap | collMap, collMap) } as! Self
+        let result = Self.create(minimumCapacity: fixedCapacity) { _ in (dataMap | collMap, collMap) }
         result.withUnsafeMutablePointerToElements {
-            $0[0] = (firstKey, firstValue)
-            $0[result.capacity - 1] = firstNode
+            $0.initialize(to: (firstKey, firstValue))
+            $0.advanced(by: result.capacity - 1).initialize(to: firstNode)
         }
-        return result
+        return result as! Self
     }
 
     var count: Int {
@@ -234,6 +222,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
+        let dataMap = self.dataMap
         guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let (key0, value0) = self.getPayload(index)
@@ -256,6 +245,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             }
         }
 
+        let nodeMap = self.nodeMap
         guard (nodeMap & bitpos) == 0 else {
             let index = indexFrom(nodeMap, mask, bitpos)
             let subNodeModifyInPlace = self.isBitmapIndexedNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
@@ -267,6 +257,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             return copyAndSetBitmapIndexedNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
         }
 
+        let collMap = self.collMap
         guard (collMap & bitpos) == 0 else {
             let index = indexFrom(collMap, mask, bitpos)
             let subNodeModifyInPlace = self.isHashCollisionNodeKnownUniquelyReferenced(index, isStorageKnownUniquelyReferenced)
@@ -543,20 +534,24 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     func copyAndInsertValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
-        let idx = dataIndex(bitpos)
-
 //        if isStorageKnownUniquelyReferenced {
-            self.dataMap |= bitpos
-            // self.content.insert((key, value), at: idx)
+            self.withUnsafeMutablePointers { header, elements in
+                let (bitmap1, bitmap2) = header.pointee
+                let dataMap = bitmap1 ^ (bitmap1 & bitmap2)
 
-            self.withUnsafeMutablePointerToElements { elements in
+                let idx = indexFrom(dataMap, bitpos)
+                let cnt = dataMap.nonzeroBitCount
+
                 let elementsAtIdx = elements.advanced(by: idx)
 
                 // shift to right
-                elementsAtIdx.successor().moveInitialize(from: elementsAtIdx, count: payloadArity - idx)
+                elementsAtIdx.successor().moveInitialize(from: elementsAtIdx, count: cnt - idx)
 
                 // insert
                 elementsAtIdx.initialize(to: (key, value))
+
+                // update metadata
+                header.initialize(to: (bitmap1 | bitpos, bitmap2))
             }
 
             assert(contentInvariant)
@@ -588,14 +583,18 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     func copyAndMigrateFromInlineToNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
-        let idxOld = dataIndex(bitpos)
-        let idxNew = capacity - 1 /* tupleLength */ - nodeIndex(bitpos)
+        // let idxOld = dataIndex(bitpos)
+        // let idxNew = capacity - 1 /* tupleLength */ - nodeIndex(bitpos)
 
 //        if isStorageKnownUniquelyReferenced {
-            self.dataMap ^= bitpos
-            self.nodeMap |= bitpos
+            self.withUnsafeMutablePointers { header, elements in
+                let (bitmap1, bitmap2) = header.pointee
+                let dataMap = bitmap1 ^ (bitmap1 & bitmap2)
+                let nodeMap = bitmap2 ^ (bitmap1 & bitmap2)
 
-            self.withUnsafeMutablePointerToElements { elements in
+                let idxOld = indexFrom(dataMap, bitpos)
+                let idxNew = capacity - 1 /* tupleLength */ - indexFrom(nodeMap, bitpos)
+
                 let elementsAtIdx = elements.advanced(by: idxOld)
 
                 // shift to left
@@ -604,6 +603,9 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
                 // insert
                 // elementsAtIdx.initialize(to: (key, value))
                 elements.advanced(by: idxNew).initialize(to: node)
+
+                // update metadata
+                header.initialize(to: (bitmap1 ^ bitpos, bitmap2 | bitpos))
             }
 
             assert(contentInvariant)
