@@ -21,7 +21,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
     }
 
     public init() {
-        self.init(BitmapIndexedMapNode(), 0, 0)
+        self.init(BitmapIndexedMapNode.create(), 0, 0)
     }
 
     public init(_ map: HashMap<Key, Value>) {
