@@ -163,15 +163,12 @@ public struct PriorityQueue<Element: Comparable> {
             return nil
         }
 
-        guard storage.count > 1 else {
-            // The element to remove is the only element
-            return storage.removeLast()
+        var removed = storage.removeLast()
+
+        if index < storage.count {
+            swap(&removed, &storage[index])
+            _trickleDown(startingAt: index)
         }
-
-        _swapAt(index, storage.endIndex - 1)
-        let removed = storage.removeLast()
-
-        _trickleDown(startingAt: index)
 
         return removed
     }
