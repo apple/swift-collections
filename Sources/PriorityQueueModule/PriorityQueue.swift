@@ -91,14 +91,14 @@ public struct PriorityQueue<Element: Comparable> {
     /// Removes and returns the element with the lowest priority, if available.
     ///
     /// - Complexity: O(log n)
-    public mutating func removeMin() -> Element? {
+    public mutating func popMin() -> Element? {
         return _remove(at: 0)
     }
 
     /// Removes and returns the element with the highest priority, if available.
     ///
     /// - Complexity: O(log n)
-    public mutating func removeMax() -> Element? {
+    public mutating func popMax() -> Element? {
         switch storage.count {
         case 0, 1, 2:
             // If count is 0, `popLast` will return `nil`

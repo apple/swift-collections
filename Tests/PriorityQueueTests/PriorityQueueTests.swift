@@ -9,7 +9,7 @@ final class PriorityQueueTests: XCTestCase {
         queue.insert(42)
         XCTAssertFalse(queue.isEmpty)
 
-        let _ = queue.removeMin()
+        let _ = queue.popMin()
         XCTAssertTrue(queue.isEmpty)
     }
 
@@ -23,7 +23,7 @@ final class PriorityQueueTests: XCTestCase {
         queue.insert(40)
         XCTAssertEqual(queue.count, 2)
 
-        _ = queue.removeMin()
+        _ = queue.popMin()
         XCTAssertEqual(queue.count, 1)
     }
 
@@ -83,94 +83,94 @@ final class PriorityQueueTests: XCTestCase {
         XCTAssertEqual(90, queue.max())
     }
 
-    func test_removeMin() {
+    func test_popMin() {
         var queue = PriorityQueue<Int>()
-        XCTAssertNil(queue.removeMin())
+        XCTAssertNil(queue.popMin())
 
         queue.insert(7)
-        XCTAssertEqual(queue.removeMin(), 7)
+        XCTAssertEqual(queue.popMin(), 7)
 
         queue.insert(12)
         queue.insert(9)
-        XCTAssertEqual(queue.removeMin(), 9)
+        XCTAssertEqual(queue.popMin(), 9)
 
         queue.insert(13)
         queue.insert(1)
         queue.insert(4)
-        XCTAssertEqual(queue.removeMin(), 1)
+        XCTAssertEqual(queue.popMin(), 1)
 
         for i in (1...20).shuffled() {
             queue.insert(i)
         }
 
-        XCTAssertEqual(queue.removeMin(), 1)
-        XCTAssertEqual(queue.removeMin(), 2)
-        XCTAssertEqual(queue.removeMin(), 3)
-        XCTAssertEqual(queue.removeMin(), 4)
-        XCTAssertEqual(queue.removeMin(), 4)  // One 4 was still in the queue from before
-        XCTAssertEqual(queue.removeMin(), 5)
-        XCTAssertEqual(queue.removeMin(), 6)
-        XCTAssertEqual(queue.removeMin(), 7)
-        XCTAssertEqual(queue.removeMin(), 8)
-        XCTAssertEqual(queue.removeMin(), 9)
-        XCTAssertEqual(queue.removeMin(), 10)
-        XCTAssertEqual(queue.removeMin(), 11)
-        XCTAssertEqual(queue.removeMin(), 12)
-        XCTAssertEqual(queue.removeMin(), 12)  // One 12 was still in the queue from before
-        XCTAssertEqual(queue.removeMin(), 13)
-        XCTAssertEqual(queue.removeMin(), 13)  // One 13 was still in the queue from before
-        XCTAssertEqual(queue.removeMin(), 14)
-        XCTAssertEqual(queue.removeMin(), 15)
-        XCTAssertEqual(queue.removeMin(), 16)
-        XCTAssertEqual(queue.removeMin(), 17)
-        XCTAssertEqual(queue.removeMin(), 18)
-        XCTAssertEqual(queue.removeMin(), 19)
-        XCTAssertEqual(queue.removeMin(), 20)
+        XCTAssertEqual(queue.popMin(), 1)
+        XCTAssertEqual(queue.popMin(), 2)
+        XCTAssertEqual(queue.popMin(), 3)
+        XCTAssertEqual(queue.popMin(), 4)
+        XCTAssertEqual(queue.popMin(), 4)  // One 4 was still in the queue from before
+        XCTAssertEqual(queue.popMin(), 5)
+        XCTAssertEqual(queue.popMin(), 6)
+        XCTAssertEqual(queue.popMin(), 7)
+        XCTAssertEqual(queue.popMin(), 8)
+        XCTAssertEqual(queue.popMin(), 9)
+        XCTAssertEqual(queue.popMin(), 10)
+        XCTAssertEqual(queue.popMin(), 11)
+        XCTAssertEqual(queue.popMin(), 12)
+        XCTAssertEqual(queue.popMin(), 12)  // One 12 was still in the queue from before
+        XCTAssertEqual(queue.popMin(), 13)
+        XCTAssertEqual(queue.popMin(), 13)  // One 13 was still in the queue from before
+        XCTAssertEqual(queue.popMin(), 14)
+        XCTAssertEqual(queue.popMin(), 15)
+        XCTAssertEqual(queue.popMin(), 16)
+        XCTAssertEqual(queue.popMin(), 17)
+        XCTAssertEqual(queue.popMin(), 18)
+        XCTAssertEqual(queue.popMin(), 19)
+        XCTAssertEqual(queue.popMin(), 20)
     }
 
-    func test_removeMax() {
+    func test_popMax() {
         var queue = PriorityQueue<Int>()
-        XCTAssertNil(queue.removeMax())
+        XCTAssertNil(queue.popMax())
 
         queue.insert(7)
-        XCTAssertEqual(queue.removeMax(), 7)
+        XCTAssertEqual(queue.popMax(), 7)
 
         queue.insert(12)
         queue.insert(9)
-        XCTAssertEqual(queue.removeMax(), 12)
+        XCTAssertEqual(queue.popMax(), 12)
 
         queue.insert(13)
         queue.insert(1)
         queue.insert(4)
-        XCTAssertEqual(queue.removeMax(), 13)
+        XCTAssertEqual(queue.popMax(), 13)
 
         for i in (1...20).shuffled() {
             queue.insert(i)
         }
 
-        XCTAssertEqual(queue.removeMax(), 20)
-        XCTAssertEqual(queue.removeMax(), 19)
-        XCTAssertEqual(queue.removeMax(), 18)
-        XCTAssertEqual(queue.removeMax(), 17)
-        XCTAssertEqual(queue.removeMax(), 16)
-        XCTAssertEqual(queue.removeMax(), 15)
-        XCTAssertEqual(queue.removeMax(), 14)
-        XCTAssertEqual(queue.removeMax(), 13)
-        XCTAssertEqual(queue.removeMax(), 12)
-        XCTAssertEqual(queue.removeMax(), 11)
-        XCTAssertEqual(queue.removeMax(), 10)
-        XCTAssertEqual(queue.removeMax(), 9)
-        XCTAssertEqual(queue.removeMax(), 9)  // One 9 was still in the queue from before
-        XCTAssertEqual(queue.removeMax(), 8)
-        XCTAssertEqual(queue.removeMax(), 7)
-        XCTAssertEqual(queue.removeMax(), 6)
-        XCTAssertEqual(queue.removeMax(), 5)
-        XCTAssertEqual(queue.removeMax(), 4)
-        XCTAssertEqual(queue.removeMax(), 4)  // One 4 was still in the queue from before
-        XCTAssertEqual(queue.removeMax(), 3)
-        XCTAssertEqual(queue.removeMax(), 2)
-        XCTAssertEqual(queue.removeMax(), 1)
-        XCTAssertEqual(queue.removeMax(), 1)  // One 1 was still in the queue from before
+        XCTAssertEqual(queue.popMax(), 20)
+        XCTAssertEqual(queue.popMax(), 19)
+        XCTAssertEqual(queue.popMax(), 18)
+        XCTAssertEqual(queue.popMax(), 17)
+        XCTAssertEqual(queue.popMax(), 16)
+        XCTAssertEqual(queue.popMax(), 15)
+        XCTAssertEqual(queue.popMax(), 14)
+        XCTAssertEqual(queue.popMax(), 13)
+        XCTAssertEqual(queue.popMax(), 12)
+        XCTAssertEqual(queue.popMax(), 11)
+        XCTAssertEqual(queue.popMax(), 10)
+        XCTAssertEqual(queue.popMax(), 9)
+        XCTAssertEqual(queue.popMax(), 9)  // One 9 was still in the queue from before
+        XCTAssertEqual(queue.popMax(), 8)
+        XCTAssertEqual(queue.popMax(), 7)
+        XCTAssertEqual(queue.popMax(), 6)
+        XCTAssertEqual(queue.popMax(), 5)
+        XCTAssertEqual(queue.popMax(), 4)
+        XCTAssertEqual(queue.popMax(), 4)  // One 4 was still in the queue from before
+        XCTAssertEqual(queue.popMax(), 3)
+        XCTAssertEqual(queue.popMax(), 2)
+        XCTAssertEqual(queue.popMax(), 1)
+        XCTAssertEqual(queue.popMax(), 1)  // One 1 was still in the queue from before
     }
 
     // MARK: -
@@ -209,9 +209,9 @@ final class PriorityQueueTests: XCTestCase {
         XCTAssertEqual(queue.max(), higherPriorityTask)
     }
 
-    func test_removeMin_struct() {
+    func test_popMin_struct() {
         var queue = PriorityQueue<Task>()
-        XCTAssertNil(queue.removeMin())
+        XCTAssertNil(queue.popMin())
 
         let lowPriorityTask = Task(name: "Do something when you have time", priority: 1)
         queue.insert(lowPriorityTask)
@@ -222,15 +222,15 @@ final class PriorityQueueTests: XCTestCase {
         let urgentTask = Task(name: "Urgent", priority: 100)
         queue.insert(urgentTask)
 
-        XCTAssertEqual(queue.removeMin(), lowPriorityTask)
-        XCTAssertEqual(queue.removeMin(), highPriorityTask)
-        XCTAssertEqual(queue.removeMin(), urgentTask)
-        XCTAssertNil(queue.removeMin())
+        XCTAssertEqual(queue.popMin(), lowPriorityTask)
+        XCTAssertEqual(queue.popMin(), highPriorityTask)
+        XCTAssertEqual(queue.popMin(), urgentTask)
+        XCTAssertNil(queue.popMin())
     }
 
-    func test_removeMax_struct() {
+    func test_popMax_struct() {
         var queue = PriorityQueue<Task>()
-        XCTAssertNil(queue.removeMax())
+        XCTAssertNil(queue.popMax())
 
         let lowPriorityTask = Task(name: "Do something when you have time", priority: 1)
         queue.insert(lowPriorityTask)
@@ -241,10 +241,10 @@ final class PriorityQueueTests: XCTestCase {
         let urgentTask = Task(name: "Urgent", priority: 100)
         queue.insert(urgentTask)
 
-        XCTAssertEqual(queue.removeMax(), urgentTask)
-        XCTAssertEqual(queue.removeMax(), highPriorityTask)
-        XCTAssertEqual(queue.removeMax(), lowPriorityTask)
-        XCTAssertNil(queue.removeMax())
+        XCTAssertEqual(queue.popMax(), urgentTask)
+        XCTAssertEqual(queue.popMax(), highPriorityTask)
+        XCTAssertEqual(queue.popMax(), lowPriorityTask)
+        XCTAssertNil(queue.popMax())
     }
 
     // MARK: -
@@ -270,25 +270,25 @@ final class PriorityQueueTests: XCTestCase {
         var queue = PriorityQueue((1...20).shuffled())
         XCTAssertEqual(queue.max(), 20)
 
-        XCTAssertEqual(queue.removeMin(), 1)
-        XCTAssertEqual(queue.removeMax(), 20)
-        XCTAssertEqual(queue.removeMin(), 2)
-        XCTAssertEqual(queue.removeMax(), 19)
-        XCTAssertEqual(queue.removeMin(), 3)
-        XCTAssertEqual(queue.removeMax(), 18)
-        XCTAssertEqual(queue.removeMin(), 4)
-        XCTAssertEqual(queue.removeMax(), 17)
-        XCTAssertEqual(queue.removeMin(), 5)
-        XCTAssertEqual(queue.removeMax(), 16)
-        XCTAssertEqual(queue.removeMin(), 6)
-        XCTAssertEqual(queue.removeMax(), 15)
-        XCTAssertEqual(queue.removeMin(), 7)
-        XCTAssertEqual(queue.removeMax(), 14)
-        XCTAssertEqual(queue.removeMin(), 8)
-        XCTAssertEqual(queue.removeMax(), 13)
-        XCTAssertEqual(queue.removeMin(), 9)
-        XCTAssertEqual(queue.removeMax(), 12)
-        XCTAssertEqual(queue.removeMin(), 10)
-        XCTAssertEqual(queue.removeMax(), 11)
+        XCTAssertEqual(queue.popMin(), 1)
+        XCTAssertEqual(queue.popMax(), 20)
+        XCTAssertEqual(queue.popMin(), 2)
+        XCTAssertEqual(queue.popMax(), 19)
+        XCTAssertEqual(queue.popMin(), 3)
+        XCTAssertEqual(queue.popMax(), 18)
+        XCTAssertEqual(queue.popMin(), 4)
+        XCTAssertEqual(queue.popMax(), 17)
+        XCTAssertEqual(queue.popMin(), 5)
+        XCTAssertEqual(queue.popMax(), 16)
+        XCTAssertEqual(queue.popMin(), 6)
+        XCTAssertEqual(queue.popMax(), 15)
+        XCTAssertEqual(queue.popMin(), 7)
+        XCTAssertEqual(queue.popMax(), 14)
+        XCTAssertEqual(queue.popMin(), 8)
+        XCTAssertEqual(queue.popMax(), 13)
+        XCTAssertEqual(queue.popMin(), 9)
+        XCTAssertEqual(queue.popMax(), 12)
+        XCTAssertEqual(queue.popMin(), 10)
+        XCTAssertEqual(queue.popMax(), 11)
     }
 }
