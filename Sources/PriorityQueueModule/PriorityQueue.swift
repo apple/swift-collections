@@ -100,7 +100,7 @@ public struct PriorityQueue<Element: Comparable> {
             return storage.popLast()
         default:
             // The max item is the larger of the two items in the first max level
-            let maxIdx = 1 + (storage[1] < storage[2] ? 1 : 0)
+            let maxIdx = storage[2] > storage[1] ? 2 : 1
             return _remove(at: maxIdx)
         }
     }
