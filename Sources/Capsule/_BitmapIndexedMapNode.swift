@@ -821,3 +821,29 @@ extension BitmapIndexedMapNode: Sequence {
         return MapKeyValueTupleIterator(rootNode: self)
     }
 }
+
+@inline(__always)
+fileprivate func explode(header: Header) -> (dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) {
+    let collMap = header.bitmap1 & header.bitmap2
+    let dataMap = header.bitmap1 ^ collMap
+    let nodeMap = header.bitmap2 ^ collMap
+
+    assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
+
+    return (dataMap, nodeMap, collMap)
+}
+
+@inline(__always)
+fileprivate func implode(dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) -> Header {
+    assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
+
+    let bitmap1 = dataMap ^ collMap
+    let bitmap2 = nodeMap ^ collMap
+
+    return (bitmap1, bitmap2)
+}
+
+@inline(__always)
+fileprivate func map<T>(header: (dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap), _ transform: (Bitmap) -> T) -> (T, T, T) {
+    return (transform(header.dataMap), transform(header.nodeMap), transform(header.collMap))
+}
