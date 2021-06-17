@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-typealias Header = (bitmap1: Bitmap, bitmap2: Bitmap)
 typealias Element = Any
 
 fileprivate let initialMinimumCapacity = 4
@@ -25,28 +24,28 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
     @inline(__always)
     var dataMap: Bitmap {
-        header.bitmap1 & ~header.bitmap2
+        header.dataMap
     }
 
     @inline(__always)
     var nodeMap: Bitmap {
-        header.bitmap2 & ~header.bitmap1
+        header.nodeMap
     }
 
     @inline(__always)
     var collMap: Bitmap {
-        header.bitmap1 & header.bitmap2
+        header.collMap
     }
 
     @inline(__always)
     func withUnsafeMutablePointerRanges<R>(transformRanges transform: (Range<UnsafeMutablePointer<Element>>, Range<UnsafeMutablePointer<Element>>) -> R) -> R {
         self.withUnsafeMutablePointerToElements { elements in
-            let(dataMap, trieMap) = explode(header: header)
+            let(dataCnt, trieCnt) = header.explodedMap { bitmap in bitmap.nonzeroBitCount }
 
             let range = elements ..< elements.advanced(by: capacity)
 
-            let dataRange = range.prefix(dataMap.nonzeroBitCount)
-            let trieRange = range.suffix(trieMap.nonzeroBitCount)
+            let dataRange = range.prefix(dataCnt)
+            let trieRange = range.suffix(trieCnt)
 
             return transform(dataRange, trieRange)
         }
@@ -103,11 +102,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create() -> Self {
-        Self.create(minimumCapacity: initialMinimumCapacity) { _ in (0, 0) } as! Self
+        Self.create(minimumCapacity: initialMinimumCapacity) { _ in Header(bitmap1: 0, bitmap2: 0) } as! Self
     }
 
     static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value) -> Self {
-        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in (dataMap, 0) }
+        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in Header(bitmap1: dataMap, bitmap2: 0) }
         result.withUnsafeMutablePointerToElements {
             $0.initialize(to: (firstKey, firstValue))
         }
@@ -115,7 +114,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) -> Self {
-        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in (dataMap, 0) }
+        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in Header(bitmap1: dataMap, bitmap2: 0) }
         result.withUnsafeMutablePointerToElements {
             $0.initialize(to: (firstKey, firstValue))
             $0.successor().initialize(to: (secondKey, secondValue))
@@ -124,7 +123,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in (0, nodeMap) }
+        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in Header(bitmap1: 0, bitmap2: nodeMap) }
         result.withUnsafeMutablePointerToElements {
             $0.advanced(by: result.capacity - 1).initialize(to: firstNode)
         }
@@ -132,7 +131,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in (collMap, collMap) }
+        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in Header(bitmap1: collMap, bitmap2: collMap) }
         result.withUnsafeMutablePointerToElements {
             $0.advanced(by: result.capacity - 1).initialize(to: firstNode)
         }
@@ -140,7 +139,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     static func create(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in (dataMap | collMap, collMap) }
+        let result = Self.create(minimumCapacity: initialMinimumCapacity) { _ in Header(bitmap1: dataMap | collMap, bitmap2: collMap) }
         result.withUnsafeMutablePointerToElements {
             $0.initialize(to: (firstKey, firstValue))
             $0.advanced(by: result.capacity - 1).initialize(to: firstNode)
@@ -813,38 +812,65 @@ extension BitmapIndexedMapNode: Sequence {
     }
 }
 
-@inline(__always)
-fileprivate func explode(header: Header) -> (dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) {
-    let collMap = header.bitmap1 & header.bitmap2
-    let dataMap = header.bitmap1 & ~header.bitmap2
-    let nodeMap = header.bitmap2 & ~header.bitmap1
+struct Header {
+    var bitmap1: Bitmap
+    var bitmap2: Bitmap
 
-    assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
+    @inline(__always)
+    var dataMap: Bitmap {
+        bitmap1 & ~bitmap2
+    }
 
-    return (dataMap, nodeMap, collMap)
+    @inline(__always)
+    var nodeMap: Bitmap {
+        bitmap2 & ~bitmap1
+    }
+
+    @inline(__always)
+    var collMap: Bitmap {
+        bitmap1 & bitmap2
+    }
+
+    @inline(__always)
+    var trieMap: Bitmap {
+        bitmap2
+    }
 }
 
-@inline(__always)
-fileprivate func explode(header: Header) -> (dataMap: Bitmap, trieMap: Bitmap) {
-    let dataMap = header.bitmap1 & ~header.bitmap2
-    let trieMap = header.bitmap2
+extension Header {
+    @inline(__always)
+    func exploded() -> (dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) {
+        assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
 
-    assert((dataMap | trieMap).nonzeroBitCount == dataMap.nonzeroBitCount + trieMap.nonzeroBitCount)
+        return (dataMap, nodeMap, collMap)
+    }
 
-    return (dataMap, trieMap)
-}
+    @inline(__always)
+    func exploded() -> (dataMap: Bitmap, trieMap: Bitmap) {
+        assert((dataMap | trieMap).nonzeroBitCount == dataMap.nonzeroBitCount + trieMap.nonzeroBitCount)
 
-@inline(__always)
-fileprivate func implode(dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) -> Header {
-    assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
+        return (dataMap, trieMap)
+    }
 
-    let bitmap1 = dataMap ^ collMap
-    let bitmap2 = nodeMap ^ collMap
+    @inline(__always)
+    fileprivate func imploded(dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) -> Self {
+        assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
 
-    return (bitmap1, bitmap2)
-}
+        return Self(bitmap1: dataMap ^ collMap, bitmap2: nodeMap ^ collMap)
+    }
 
-@inline(__always)
-fileprivate func map<T>(header: (dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap), _ transform: (Bitmap) -> T) -> (T, T, T) {
-    return (transform(header.dataMap), transform(header.nodeMap), transform(header.collMap))
+    @inline(__always)
+    func map<T>(_ transform: (Self) -> T) -> T {
+        return transform(self)
+    }
+
+    @inline(__always)
+    func explodedMap<T>(_ transform: (Bitmap) -> T) -> (T, T) {
+        return (transform(dataMap), transform(trieMap))
+    }
+
+    @inline(__always)
+    func explodedMap<T>(_ transform: (Bitmap) -> T) -> (T, T, T) {
+        return (transform(dataMap), transform(nodeMap), transform(collMap))
+    }
 }
