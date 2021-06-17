@@ -52,7 +52,7 @@ public struct PriorityQueue<Element: Comparable> {
 
     /// Inserts the given element into the queue.
     ///
-    /// - Complexity: O(log n)
+    /// - Complexity: O(log `count`) / 2
     public mutating func insert(_ element: Element) {
         storage.append(element)
         _bubbleUp(startingAt: storage.endIndex - 1)
@@ -83,14 +83,14 @@ public struct PriorityQueue<Element: Comparable> {
 
     /// Removes and returns the element with the lowest priority, if available.
     ///
-    /// - Complexity: O(log n)
+    /// - Complexity: O(log `count`) / 2
     public mutating func popMin() -> Element? {
         return _remove(at: 0)
     }
 
     /// Removes and returns the element with the highest priority, if available.
     ///
-    /// - Complexity: O(log n)
+    /// - Complexity: O(log `count`) / 2
     public mutating func popMax() -> Element? {
         switch storage.count {
         case 0, 1, 2:
