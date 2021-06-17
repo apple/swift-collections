@@ -77,14 +77,7 @@ public struct PriorityQueue<Element: Comparable> {
             return storage.last
         default:
             // We have at least 3 items -- return the larger of the two in the first max level
-            let leftIdx = _leftChildIndex(of: 0)
-            let rightIdx = _rightChildIndex(of: 0)
-
-            let left = storage[leftIdx]
-            let right = storage[rightIdx]
-
-            // Both indexes are valid -- return the larger of the two
-            return Swift.max(left, right)
+            return Swift.max(storage[1], storage[2])
         }
     }
 
