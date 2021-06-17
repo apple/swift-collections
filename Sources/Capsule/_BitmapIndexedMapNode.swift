@@ -17,14 +17,9 @@ fileprivate let initialMinimumCapacity = 4
 final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, MapNode where Key: Hashable {
 
     deinit {
-        self.withUnsafeMutablePointerToElements { elements in
-            let range = elements ..< elements.advanced(by: capacity)
-
-            let dataRange = range.prefix(payloadArity)
+        self.withUnsafeMutablePointerRanges { dataRange, trieRange in
             dataRange.startIndex.deinitialize(count: dataRange.count)
-
-            let nodeRange = range.suffix(nodeArity)
-            nodeRange.startIndex.deinitialize(count: nodeRange.count)
+            trieRange.startIndex.deinitialize(count: trieRange.count)
         }
     }
 
@@ -61,14 +56,28 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         }
     }
 
+    @inline(__always)
+    func withUnsafeMutablePointerRanges<R>(transformRanges transform: (Range<UnsafeMutablePointer<Element>>, Range<UnsafeMutablePointer<Element>>) -> R) -> R {
+        self.withUnsafeMutablePointerToElements { elements in
+            let(dataMap, trieMap) = explode(header: header)
+
+            let range = elements ..< elements.advanced(by: capacity)
+
+            let dataRange = range.prefix(dataMap.nonzeroBitCount)
+            let trieRange = range.suffix(trieMap.nonzeroBitCount)
+
+            return transform(dataRange, trieRange)
+        }
+    }
+
     func copy(withCapacityFactor factor: Int = 1) -> Self {
         let src = self
         let dst = Self.create(minimumCapacity: capacity * factor) { _ in header } as! Self
 
-        src.withUnsafeMutablePointerToElements { srcElements in
-            dst.withUnsafeMutablePointerToElements { dstElements in
-                dstElements.initialize(from: srcElements, count: src.payloadArity)
-                dstElements.advanced(by: dst.capacity - dst.nodeArity).initialize(from: srcElements.advanced(by: src.capacity - src.nodeArity), count: src.nodeArity)
+        src.withUnsafeMutablePointerRanges { srcDataRange, srcTrieRange in
+            dst.withUnsafeMutablePointerRanges { dstDataRange, dstTrieRange in
+                dstDataRange.startIndex.initialize(from: srcDataRange.startIndex, count: srcDataRange.count)
+                dstTrieRange.startIndex.initialize(from: srcTrieRange.startIndex, count: srcTrieRange.count)
             }
         }
 
@@ -831,6 +840,16 @@ fileprivate func explode(header: Header) -> (dataMap: Bitmap, nodeMap: Bitmap, c
     assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
 
     return (dataMap, nodeMap, collMap)
+}
+
+@inline(__always)
+fileprivate func explode(header: Header) -> (dataMap: Bitmap, trieMap: Bitmap) {
+    let dataMap = header.bitmap1 & ~header.bitmap2
+    let trieMap = header.bitmap2
+
+    assert((dataMap | trieMap).nonzeroBitCount == dataMap.nonzeroBitCount + trieMap.nonzeroBitCount)
+
+    return (dataMap, trieMap)
 }
 
 @inline(__always)
