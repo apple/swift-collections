@@ -569,12 +569,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy(withCapacityFactor: count < capacity ? 1 : 2)
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let idx = indexFrom(dst.dataMap, bitpos)
-            let cnt = dst.dataMap.nonzeroBitCount
-
-            Self.rangeInsert((key, value), at: idx, intoRange: elements ..< elements.advanced(by: cnt))
+        dst.withUnsafeMutablePointerRanges { dataRange, _ in
+            let dataIdx = indexFrom(dataMap, bitpos)
+            Self.rangeInsert((key, value), at: dataIdx, intoRange: dataRange)
         }
+
         // update metadata: `dataMap | bitpos, nodeMap, collMap`
         dst.header.bitmap1 |= bitpos
 
@@ -592,12 +591,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let dataIdx = indexFrom(dst.dataMap, bitpos)
-            let dataCnt = dst.dataMap.nonzeroBitCount
-
-            Self.rangeRemove(at: dataIdx, fromRange: elements ..< elements.advanced(by: dataCnt))
+        dst.withUnsafeMutablePointerRanges { dataRange, _ in
+            let dataIdx = indexFrom(dataMap, bitpos)
+            Self.rangeRemove(at: dataIdx, fromRange: dataRange)
         }
+
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
         dst.header.bitmap1 ^= bitpos
 
@@ -615,17 +613,14 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let dataIdx = indexFrom(dst.dataMap, bitpos)
-            let dataCnt = dst.dataMap.nonzeroBitCount
+        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
+            let dataIdx = indexFrom(dataMap, bitpos)
+            Self.rangeRemove(at: dataIdx, fromRange: dataRange)
 
-            Self.rangeRemove(at: dataIdx, fromRange: elements ..< elements.advanced(by: dataCnt))
-
-            let trieIdx = indexFrom(dst.nodeMap, bitpos) // only nodeMap
-            let trieCnt = (dst.nodeMap | dst.collMap).nonzeroBitCount // but trieCnt
-
-            Self.rangeInsertReversed(node, at: trieIdx, intoRange: (elements ..< elements.advanced(by: dst.capacity)).suffix(trieCnt))
+            let nodeIdx = indexFrom(nodeMap, bitpos)
+            Self.rangeInsertReversed(node, at: nodeIdx, intoRange: trieRange)
         }
+
         // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
         dst.header.bitmap1 ^= bitpos
         dst.header.bitmap2 |= bitpos
@@ -644,17 +639,14 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let dataIdx = indexFrom(dst.dataMap, bitpos)
-            let dataCnt = dst.dataMap.nonzeroBitCount
+        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
+            let dataIdx = indexFrom(dataMap, bitpos)
+            Self.rangeRemove(at: dataIdx, fromRange: dataRange)
 
-            Self.rangeRemove(at: dataIdx, fromRange: elements ..< elements.advanced(by: dataCnt))
-
-            let trieIdx = dst.nodeMap.nonzeroBitCount + indexFrom(dst.collMap, bitpos) // offset + collMap
-            let trieCnt = (dst.nodeMap | dst.collMap).nonzeroBitCount // trieCnt
-
-            Self.rangeInsertReversed(node, at: trieIdx, intoRange: (elements ..< elements.advanced(by: dst.capacity)).suffix(trieCnt))
+            let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
+            Self.rangeInsertReversed(node, at: collIdx, intoRange: trieRange)
         }
+
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap | bitpos`
         dst.header.bitmap2 |= bitpos
 
@@ -672,17 +664,14 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let trieIdx = indexFrom(dst.nodeMap, bitpos) // only nodeMap
-            let trieCnt = (dst.nodeMap | dst.collMap).nonzeroBitCount // but trieCnt
+        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
+            let nodeIdx = indexFrom(nodeMap, bitpos)
+            Self.rangeRemoveReversed(at: nodeIdx, fromRange: trieRange)
 
-            Self.rangeRemoveReversed(at: trieIdx, fromRange: (elements ..< elements.advanced(by: dst.capacity)).suffix(trieCnt))
-
-            let dataIdx = indexFrom(dst.dataMap, bitpos)
-            let dataCnt = dst.dataMap.nonzeroBitCount
-
-            Self.rangeInsert(tuple, at: dataIdx, intoRange: elements ..< elements.advanced(by: dataCnt))
+            let dataIdx = indexFrom(dataMap, bitpos)
+            Self.rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
         }
+
         // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
         dst.header.bitmap1 |= bitpos
         dst.header.bitmap2 ^= bitpos
@@ -701,17 +690,14 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let trieIdx = dst.nodeMap.nonzeroBitCount + indexFrom(dst.collMap, bitpos) // offset + collMap
-            let trieCnt = (dst.nodeMap | dst.collMap).nonzeroBitCount // trieCnt
+        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
+            let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
+            Self.rangeRemoveReversed(at: collIdx, fromRange: trieRange)
 
-            Self.rangeRemoveReversed(at: trieIdx, fromRange: (elements ..< elements.advanced(by: dst.capacity)).suffix(trieCnt))
-
-            let dataIdx = indexFrom(dst.dataMap, bitpos)
-            let dataCnt = dst.dataMap.nonzeroBitCount
-
-            Self.rangeInsert(tuple, at: dataIdx, intoRange: elements ..< elements.advanced(by: dataCnt))
+            let dataIdx = indexFrom(dataMap, bitpos)
+            Self.rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
         }
+
         // update metadata: `dataMap | bitpos, nodeMap, collMap ^ bitpos`
         dst.header.bitmap2 ^= bitpos
 
@@ -729,16 +715,14 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let trieIdxOld = dst.nodeMap.nonzeroBitCount + dst.collIndex(bitpos)
-            let trieIdxNew = dst.nodeIndex(bitpos)
-            let trieCnt = (dst.nodeMap | dst.collMap).nonzeroBitCount
+        dst.withUnsafeMutablePointerRanges { _, trieRange in
+            let collIdx = nodeMap.nonzeroBitCount + collIndex(bitpos)
+            let nodeIdx = nodeIndex(bitpos)
 
-            let trieRange = (elements ..< elements.advanced(by: dst.capacity)).suffix(trieCnt)
-
-            Self.rangeRemoveReversed(at: trieIdxOld, fromRange: trieRange)
-            Self.rangeInsertReversed(node, at: trieIdxNew, intoRange: trieRange)
+            Self.rangeRemoveReversed(at: collIdx, fromRange: trieRange)
+            Self.rangeInsertReversed(node, at: nodeIdx, intoRange: trieRange)
         }
+
         // update metadata: `dataMap, nodeMap | bitpos, collMap ^ bitpos`
         dst.header.bitmap1 ^= bitpos
 
@@ -756,16 +740,14 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerToElements { elements in
-            let trieIdxOld = dst.nodeIndex(bitpos)
-            let trieIdxNew = dst.nodeMap.nonzeroBitCount - 1 + dst.collIndex(bitpos)
-            let trieCnt = (dst.nodeMap | dst.collMap).nonzeroBitCount
+        dst.withUnsafeMutablePointerRanges { _, trieRange in
+            let nodeIdx = nodeIndex(bitpos)
+            let collIdx = nodeMap.nonzeroBitCount - 1 + collIndex(bitpos)
 
-            let trieRange = (elements ..< elements.advanced(by: dst.capacity)).suffix(trieCnt)
-
-            Self.rangeRemoveReversed(at: trieIdxOld, fromRange: trieRange)
-            Self.rangeInsertReversed(node, at: trieIdxNew, intoRange: trieRange)
+            Self.rangeRemoveReversed(at: nodeIdx, fromRange: trieRange)
+            Self.rangeInsertReversed(node, at: collIdx, intoRange: trieRange)
         }
+
         // update metadata: `dataMap, nodeMap ^ bitpos, collMap | bitpos`
         dst.header.bitmap1 |= bitpos
 
