@@ -92,7 +92,7 @@ public struct PriorityQueue<Element: Comparable> {
     ///
     /// - Complexity: O(log n)
     public mutating func removeMin() -> Element? {
-        return _delete(at: 0)
+        return _remove(at: 0)
     }
 
     /// Removes and returns the element with the highest priority, if available.
@@ -108,7 +108,7 @@ public struct PriorityQueue<Element: Comparable> {
         default:
             // The max item is the larger of the two items in the first max level
             let maxIdx = 1 + (storage[1] < storage[2] ? 1 : 0)
-            return _delete(at: maxIdx)
+            return _remove(at: maxIdx)
         }
     }
 
@@ -165,7 +165,7 @@ public struct PriorityQueue<Element: Comparable> {
     // MARK: -
 
     @discardableResult
-    private mutating func _delete(at index: Int) -> Element? {
+    private mutating func _remove(at index: Int) -> Element? {
         guard storage.count > index else {
             return nil
         }
