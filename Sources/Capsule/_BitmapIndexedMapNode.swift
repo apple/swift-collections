@@ -23,37 +23,19 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         }
     }
 
+    @inline(__always)
     var dataMap: Bitmap {
-        get {
-            header.bitmap1 ^ (header.bitmap1 & header.bitmap2)
-        }
-        set(dataMap) {
-            header.bitmap1 = dataMap ^ collMap
-        }
+        header.bitmap1 & ~header.bitmap2
     }
 
+    @inline(__always)
     var nodeMap: Bitmap {
-        get {
-            header.bitmap2 ^ (header.bitmap1 & header.bitmap2)
-        }
-        set(nodeMap) {
-            header.bitmap2 = nodeMap ^ collMap
-        }
+        header.bitmap2 & ~header.bitmap1
     }
 
+    @inline(__always)
     var collMap: Bitmap {
-        get {
-            header.bitmap1 & header.bitmap2
-        }
-        set(collMap) {
-            // be careful when referencing `dataMap` or `nodeMap`, since both have a dependency on `collMap`
-
-            header.bitmap1 ^= self.collMap
-            header.bitmap2 ^= self.collMap
-
-            header.bitmap1 ^= collMap
-            header.bitmap2 ^= collMap
-        }
+        header.bitmap1 & header.bitmap2
     }
 
     @inline(__always)
@@ -834,8 +816,8 @@ extension BitmapIndexedMapNode: Sequence {
 @inline(__always)
 fileprivate func explode(header: Header) -> (dataMap: Bitmap, nodeMap: Bitmap, collMap: Bitmap) {
     let collMap = header.bitmap1 & header.bitmap2
-    let dataMap = header.bitmap1 ^ collMap
-    let nodeMap = header.bitmap2 ^ collMap
+    let dataMap = header.bitmap1 & ~header.bitmap2
+    let nodeMap = header.bitmap2 & ~header.bitmap1
 
     assert((dataMap | nodeMap | collMap).nonzeroBitCount == dataMap.nonzeroBitCount + nodeMap.nonzeroBitCount + collMap.nonzeroBitCount)
 
