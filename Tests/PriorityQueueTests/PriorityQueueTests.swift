@@ -305,14 +305,15 @@ final class PriorityQueueTests: XCTestCase {
 
     func test_levelCalculation() {
         // Check alternating min and max levels in the queue
+        let q = PriorityQueue<Int>()
         var isMin = true
         for exp in 0...12 {
             // Check [2^exp, 2^(exp + 1))
             for i in Int(pow(2, Double(exp)))..<Int(pow(2, Double(exp + 1))) {
                 if isMin {
-                    XCTAssertTrue(_minMaxHeapIsMinLevel(i), "\(i) should be on a max level")
+                    XCTAssertTrue(q._minMaxHeapIsMinLevel(i), "\(i) should be on a max level")
                 } else {
-                    XCTAssertFalse(_minMaxHeapIsMinLevel(i), "\(i) should be on a min level")
+                    XCTAssertFalse(q._minMaxHeapIsMinLevel(i), "\(i) should be on a min level")
                 }
             }
 

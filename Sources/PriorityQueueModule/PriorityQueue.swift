@@ -299,6 +299,16 @@ public struct PriorityQueue<Element: Comparable> {
 
     // MARK: - Helpers
 
+    /// Returns `true` if `count` elements falls on a min level in a min-max heap.
+    ///
+    /// - Precondition: `count` must be > 0.
+    @inline(__always)
+    internal func _minMaxHeapIsMinLevel(_ count: Int) -> Bool {
+        precondition(count > 0)
+
+        return count._binaryLogarithm() & 0b1 == 0
+    }
+
     /// Swaps the elements in the heap at the given indices.
     @inline(__always)
     private mutating func _swapAt(_ i: Int, _ j: Int) {
@@ -380,16 +390,6 @@ public struct PriorityQueue<Element: Comparable> {
 
         return Swift.min(index * 4 + 6, storage.count - 1)
     }
-}
-
-/// Returns `true` if `count` elements falls on a min level in a min-max heap.
-///
-/// - Precondition: `count` must be > 0.
-@inline(__always)
-func _minMaxHeapIsMinLevel(_ count: Int) -> Bool {
-    precondition(count > 0)
-
-    return count._binaryLogarithm() & 0b1 == 0
 }
 
 // MARK: -
