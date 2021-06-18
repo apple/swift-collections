@@ -379,7 +379,7 @@ extension PriorityQueue {
     public init<C: Collection>(_ collection: C) where C.Element == Element {
         storage = Array(collection)
 
-        for idx in (0...(storage.count / 2)).reversed() {
+        for idx in (0..<(storage.count / 2)).reversed() {
             _trickleDown(startingAt: idx)
         }
     }
