@@ -126,6 +126,8 @@ final class PriorityQueueTests: XCTestCase {
         XCTAssertEqual(queue.popMin(), 18)
         XCTAssertEqual(queue.popMin(), 19)
         XCTAssertEqual(queue.popMin(), 20)
+
+        XCTAssertNil(queue.popMin())
     }
 
     func test_popMax() {
@@ -171,6 +173,58 @@ final class PriorityQueueTests: XCTestCase {
         XCTAssertEqual(queue.popMax(), 2)
         XCTAssertEqual(queue.popMax(), 1)
         XCTAssertEqual(queue.popMax(), 1)  // One 1 was still in the queue from before
+
+        XCTAssertNil(queue.popMax())
+    }
+
+    func test_removeMin() {
+        var queue = PriorityQueue<Int>((1...20).shuffled())
+
+        XCTAssertEqual(queue.removeMin(), 1)
+        XCTAssertEqual(queue.removeMin(), 2)
+        XCTAssertEqual(queue.removeMin(), 3)
+        XCTAssertEqual(queue.removeMin(), 4)
+        XCTAssertEqual(queue.removeMin(), 5)
+        XCTAssertEqual(queue.removeMin(), 6)
+        XCTAssertEqual(queue.removeMin(), 7)
+        XCTAssertEqual(queue.removeMin(), 8)
+        XCTAssertEqual(queue.removeMin(), 9)
+        XCTAssertEqual(queue.removeMin(), 10)
+        XCTAssertEqual(queue.removeMin(), 11)
+        XCTAssertEqual(queue.removeMin(), 12)
+        XCTAssertEqual(queue.removeMin(), 13)
+        XCTAssertEqual(queue.removeMin(), 14)
+        XCTAssertEqual(queue.removeMin(), 15)
+        XCTAssertEqual(queue.removeMin(), 16)
+        XCTAssertEqual(queue.removeMin(), 17)
+        XCTAssertEqual(queue.removeMin(), 18)
+        XCTAssertEqual(queue.removeMin(), 19)
+        XCTAssertEqual(queue.removeMin(), 20)
+    }
+
+    func test_removeMax() {
+        var queue = PriorityQueue<Int>((1...20).shuffled())
+
+        XCTAssertEqual(queue.removeMax(), 20)
+        XCTAssertEqual(queue.removeMax(), 19)
+        XCTAssertEqual(queue.removeMax(), 18)
+        XCTAssertEqual(queue.removeMax(), 17)
+        XCTAssertEqual(queue.removeMax(), 16)
+        XCTAssertEqual(queue.removeMax(), 15)
+        XCTAssertEqual(queue.removeMax(), 14)
+        XCTAssertEqual(queue.removeMax(), 13)
+        XCTAssertEqual(queue.removeMax(), 12)
+        XCTAssertEqual(queue.removeMax(), 11)
+        XCTAssertEqual(queue.removeMax(), 10)
+        XCTAssertEqual(queue.removeMax(), 9)
+        XCTAssertEqual(queue.removeMax(), 8)
+        XCTAssertEqual(queue.removeMax(), 7)
+        XCTAssertEqual(queue.removeMax(), 6)
+        XCTAssertEqual(queue.removeMax(), 5)
+        XCTAssertEqual(queue.removeMax(), 4)
+        XCTAssertEqual(queue.removeMax(), 3)
+        XCTAssertEqual(queue.removeMax(), 2)
+        XCTAssertEqual(queue.removeMax(), 1)
     }
 
     // MARK: -
