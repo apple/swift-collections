@@ -347,11 +347,13 @@ final class PriorityQueueTests: XCTestCase {
     XCTAssertEqual(queue.popMax(), 11)
   }
 
+  func test_initializer_fromSequence() {
+    let queue = PriorityQueue((1...).prefix(20))
+    XCTAssertEqual(queue.count, 20)
+  }
+
   func test_sequenceConformance() {
-    var queue = PriorityQueue<Int>()
-    for val in (0...50).shuffled() {
-      queue.insert(val)
-    }
+    let queue = PriorityQueue<Int>((0...50).shuffled())
 
     var increment = 0
     for val in queue.ascending {

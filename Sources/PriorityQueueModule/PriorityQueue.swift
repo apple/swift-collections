@@ -475,5 +475,16 @@ extension PriorityQueue {
       _trickleDown(startingAt: idx)
     }
   }
+
+  /// Initializes a queue from a sequence.
+  ///
+  /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
+  public init<S: Sequence>(_ elements: S) where S.Element == Element {
+    storage = Array(elements)
+
+    for idx in (0..<(storage.count / 2)).reversed() {
+      _trickleDown(startingAt: idx)
+    }
+  }
 }
 
