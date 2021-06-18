@@ -205,7 +205,7 @@ public struct PriorityQueue<Element: Comparable> {
     }
 
     private mutating func _trickleDownMin(startingAt index: Int) {
-        guard let (smallestDescendantIdx, isChild) = _indexOfChildOrGrandchild(of: index, sortedUsing: <) else {
+        guard let (smallestDescendantIdx, isChild) = _indexOfLowestPriorityChildOrGrandchild(of: index) else {
             // We have no descendants -- no need to trickle down further
             return
         }
@@ -230,7 +230,7 @@ public struct PriorityQueue<Element: Comparable> {
     }
 
     private mutating func _trickleDownMax(startingAt index: Int) {
-        guard let (largestDescendantIdx, isChild) = _indexOfChildOrGrandchild(of: index, sortedUsing: >) else {
+        guard let (largestDescendantIdx, isChild) = _indexOfHighestPriorityChildOrGrandchild(of: index) else {
             // We have no descendants -- no need to trickle down further
             return
         }
@@ -254,16 +254,13 @@ public struct PriorityQueue<Element: Comparable> {
         }
     }
 
-    /// Returns the smallest or largest child or grandchild of the element at the given index,
-    /// as determined by the predicate.
+    /// Returns the lowest priority child or grandchild of the element at the given index.
     ///
     /// Returns `nil` if the element has no descendants.
     ///
-    /// - parameter index: The index of the item whose descendants should be compared.
-    /// - parameter predicate: Returns `true` if its first argument should be ordered before its second argument.
-    private func _indexOfChildOrGrandchild(
-        of index: Int,
-        sortedUsing predicate: (Element, Element) -> Bool
+    /// - parameter index: The index of the element whose descendants should be compared.
+    private func _indexOfLowestPriorityChildOrGrandchild(
+        of index: Int
     ) -> (index: Int, isChild: Bool)? {
         guard let leftChildIdx = _leftChildIndex(of: index) else {
             return nil
@@ -276,7 +273,7 @@ public struct PriorityQueue<Element: Comparable> {
         }
 
         // Compare the two children
-        if predicate(storage[rightChildIdx], storage[leftChildIdx]) {
+        if storage[rightChildIdx] < storage[leftChildIdx] {
             result.index = rightChildIdx
         }
 
@@ -288,7 +285,47 @@ public struct PriorityQueue<Element: Comparable> {
 
         // Iterate through the grandchildren
         for i in firstGrandchildIdx...lastGrandchildIdx {
-            if predicate(storage[i], storage[result.index]) {
+            if storage[i] < storage[result.index] {
+                result.index = i
+                result.isChild = false
+            }
+        }
+
+        return result
+    }
+
+    /// Returns the highest priority child or grandchild of the element at the given index.
+    ///
+    /// Returns `nil` if the element has no descendants.
+    ///
+    /// - parameter index: The index of the item whose descendants should be compared.
+    private func _indexOfHighestPriorityChildOrGrandchild(
+        of index: Int
+    ) -> (index: Int, isChild: Bool)? {
+        guard let leftChildIdx = _leftChildIndex(of: index) else {
+            return nil
+        }
+
+        var result: (index: Int, isChild: Bool) = (leftChildIdx, true)
+
+        guard let rightChildIdx = _rightChildIndex(of: index) else {
+            return result
+        }
+
+        // Compare the two children
+        if storage[rightChildIdx] > storage[leftChildIdx] {
+            result.index = rightChildIdx
+        }
+
+        guard let firstGrandchildIdx = _firstGrandchildIndex(of: index),
+              let lastGrandchildIdx = _lastGrandchildIndex(of: index)
+        else {
+            return result
+        }
+
+        // Iterate through the grandchildren
+        for i in firstGrandchildIdx...lastGrandchildIdx {
+            if storage[i] > storage[result.index] {
                 result.index = i
                 result.isChild = false
             }
