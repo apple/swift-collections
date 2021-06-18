@@ -20,6 +20,7 @@ benchmark.addDequeBenchmarks()
 benchmark.addOrderedSetBenchmarks()
 benchmark.addOrderedDictionaryBenchmarks()
 benchmark.addPriorityQueueBenchmarks()
+benchmark.addCFBinaryHeapBenchmarks()
 benchmark.addCppBenchmarks()
 
 benchmark.chartLibrary = try benchmark.loadReferenceLibrary()

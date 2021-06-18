@@ -11,6 +11,7 @@
 
 import CollectionsBenchmark
 import PriorityQueueModule
+import CppBenchmarks
 
 extension Benchmark {
     public mutating func addPriorityQueueBenchmarks() {
@@ -60,5 +61,42 @@ extension Benchmark {
                 blackHole(queue)
             }
         }
+    }
+}
+
+// MARK: -
+
+extension Benchmark {
+    public mutating func addCFBinaryHeapBenchmarks() {
+      self.addSimple(
+        title: "CFBinaryHeap insert",
+        input: [Int].self
+      ) { input in
+        let heap = BinaryHeap()
+        for i in input {
+          heap.insert(i)
+        }
+        precondition(heap.count == input.count)
+        blackHole(heap)
+      }
+
+      self.add(
+        title: "CFBinaryHeap removeMinimumValue",
+        input: [Int].self
+      ) { input in
+        return { timer in
+          let heap = BinaryHeap()
+          for i in input {
+            heap.insert(i)
+          }
+
+          while heap.count > 0 {
+            let min = heap.popMinimum()
+            blackHole(min)
+          }
+          precondition(heap.count == 0)
+          blackHole(heap)
+        }
+      }
     }
 }
