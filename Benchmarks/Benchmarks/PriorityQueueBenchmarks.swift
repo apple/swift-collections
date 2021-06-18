@@ -40,7 +40,7 @@ extension Benchmark {
         ) { input in
             return { timer in
                 var queue = PriorityQueue(input)
-                while let max = queue.removeMax() {
+                while let max = queue.popMax() {
                     blackHole(max)
                 }
                 precondition(queue.isEmpty)
@@ -54,7 +54,7 @@ extension Benchmark {
         ) { input in
             return { timer in
                 var queue = PriorityQueue(input)
-                while let min = queue.removeMin() {
+                while let min = queue.popMin() {
                     blackHole(min)
                 }
                 precondition(queue.isEmpty)
