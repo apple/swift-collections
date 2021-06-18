@@ -31,21 +31,19 @@ extension PriorityQueue {
         //returns the next element in the priority queue depending on the iteration direction
         public mutating func next() -> Element? {
             if(_direction == .ascending){
-               return _base.removeMin()
+               return _base.popMin()
             }
-            return _base.removeMax()
+            return _base.popMax()
         }
     }
-    
+
     /// Returns an iterator that orders elements from lowest to highest priority
     var ascending: Iterator {
         return Iterator(_base: self, _direction: .ascending)
     }
-    
+
     /// Returns an iterator that orders elements from highest to lowest priority
     var descending: Iterator {
         return Iterator(_base: self, _direction: .descending)
     }
-
-
 }
