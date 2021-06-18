@@ -35,7 +35,7 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PriorityQueue<Int> removeMax",
+      title: "PriorityQueue<Int> popMax",
       input: [Int].self
     ) { input in
       return { timer in
@@ -49,7 +49,7 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PriorityQueue<Int> removeMin",
+      title: "PriorityQueue<Int> popMin",
       input: [Int].self
     ) { input in
       return { timer in

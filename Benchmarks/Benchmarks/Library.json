@@ -774,8 +774,8 @@
           "tasks": [
             "PriorityQueue<Int> init from range",
             "PriorityQueue<Int> insert",
-            "PriorityQueue<Int> removeMax",
-            "PriorityQueue<Int> removeMin"
+            "PriorityQueue<Int> popMax",
+            "PriorityQueue<Int> popMin"
           ]
         },
         {
@@ -796,8 +796,8 @@
           "kind": "chart",
           "title": "remove",
           "tasks": [
-            "PriorityQueue<Int> removeMax",
-            "PriorityQueue<Int> removeMin"
+            "PriorityQueue<Int> popMax",
+            "PriorityQueue<Int> popMin"
           ]
         }
       ]
