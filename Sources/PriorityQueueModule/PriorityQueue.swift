@@ -272,15 +272,25 @@ public struct PriorityQueue<Element: Comparable> {
             return result
         }
 
-        // Compare the two children
-        if storage[rightChildIdx] < storage[leftChildIdx] {
-            result.index = rightChildIdx
-        }
-
         guard let firstGrandchildIdx = _firstGrandchildIndex(of: index),
               let lastGrandchildIdx = _lastGrandchildIndex(of: index)
         else {
+            // We have no grandchildren -- compare the two children instead
+            if storage[rightChildIdx] < storage[leftChildIdx] {
+                result.index = rightChildIdx
+            }
+
             return result
+        }
+
+        // If we have 4 grandchildren, we can skip comparing the children as the
+        // heap invariants will ensure that the grandchildren will be smaller.
+        // Otherwise, we need to do the comparison.
+        if lastGrandchildIdx != firstGrandchildIdx + 3 {
+            // Compare the two children
+            if storage[rightChildIdx] < storage[leftChildIdx] {
+                result.index = rightChildIdx
+            }
         }
 
         // Iterate through the grandchildren
@@ -312,15 +322,25 @@ public struct PriorityQueue<Element: Comparable> {
             return result
         }
 
-        // Compare the two children
-        if storage[rightChildIdx] > storage[leftChildIdx] {
-            result.index = rightChildIdx
-        }
-
         guard let firstGrandchildIdx = _firstGrandchildIndex(of: index),
               let lastGrandchildIdx = _lastGrandchildIndex(of: index)
         else {
+            // We have no grandchildren -- compare the two children instead
+            if storage[rightChildIdx] > storage[leftChildIdx] {
+                result.index = rightChildIdx
+            }
+
             return result
+        }
+
+        // If we have 4 grandchildren, we can skip comparing the children as the
+        // heap invariants will ensure that the grandchildren will be larger.
+        // Otherwise, we need to do the comparison.
+        if lastGrandchildIdx != firstGrandchildIdx + 3 {
+            // Compare the two children
+            if storage[rightChildIdx] > storage[leftChildIdx] {
+                result.index = rightChildIdx
+            }
         }
 
         // Iterate through the grandchildren
