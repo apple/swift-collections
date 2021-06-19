@@ -6,67 +6,87 @@
 //
 
 extension BitArray: Collection {
-     
-    public func index(after i: Int) -> Int {
-        /* if (i == endIndex) { return i }  // Removed due to conversation about putting all checks within subscript function
-        else { return i + 1 } */
-        return i + 1
-    }
     
-    public var startIndex: Int { // would it be worth making this a stored propery (public var startIndex: Int = 0) and place it in BitArray.swift ?
-        return 0
-    }
+    // Ask about two-space indent coding style
+     
+    public func index(after i: Int) -> Int { return i + 1 }
     
     public var count: Int {
-        var remaining: Int { get { if (excess == 0) { return UNIT.bitWidth } else { return Int(excess)}} }
-        return (self.storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
+        
+        let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
+        return (storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
+        
     }
     
-    public var endIndex: Int { get { if (count == 0) { return count + 1} else { return count } } } // switched count and endIndex code and altered closure to meet this "edge case"
+    public var startIndex: Int { return 0 }
+    
+    public var endIndex: Int { return count }
    
 }
 
 
 extension BitArray: BidirectionalCollection {
     
-    public func index(before i: Int) -> Int { // no checks since, from out conversation, we'll be doing all checks within subscript
-        return i - 1
-    }
+    public func index(before i: Int) -> Int { return i - 1 }
     
 }
 
 extension BitArray: MutableCollection {
+    
     public subscript(position: Int) -> Bool  {
-        // how can I retain some of my code from get to use in set
         
-        get { // I read online that _read is not officially part of the language yet, and to change this to get
+        get {
             
             // any other checks needed?
             if (position >= endIndex || position < startIndex) {
                 fatalError("Index out of bounds") // can we do something other than this? And how do we test for this?
             }
             
-            let index: Int = position/UNIT.bitWidth
-            let subPosition: Int = position - index*UNIT.bitWidth
+            let (index, mask) = _split(_position: position)
             
-            let mask: UInt8 = 1 << subPosition
-            if (storage[index] & mask == 0) { return false } else { return true }
+            return (storage[index] & mask != 0)
+            
         }
-        set(newValue) {
-            let index: Int = position/UNIT.bitWidth
-            let subPosition: Int = position - index*UNIT.bitWidth
-            let mask: UInt8 = 1 << subPosition
+        set {
             
-            var currentVal: Bool { get { if (storage[index] & mask == 0) { return false } else { return true } } }
+            let (index, mask) = _split(_position: position)
             
-            if (currentVal == newValue) {  } else {  storage[index] = storage[index] ^ mask}
+            /*
+            var currentVal: Bool { return (storage[index] & mask != 0) }
+            if (currentVal != newValue) { storage[index] ^= mask }
+            */
+            
+            /* Above is the original (modified) code
+             This code is implementing XOR, which is used to toggle bits, hence is only executed if the bit NEEDS to be changed
+             Therefore, simplifying the code to:
+                storage[index] ^= mask
+             doesn't work.
+             
+             If we wanted to force the change regardless of whether the change was needed (currentVal != newValue), we can do:
+             if (newValue) { storage[index] |= mask } else { storage[index] &= 0 }
+
+             */
+            
+            var currentVal: Bool { return (storage[index] & mask != 0) }
+            if (currentVal != newValue) { storage[index] ^= mask }
+            
         }
+
     }
     
+    internal func _split(_position: Int) -> (Int, UInt8) { // is internal, private, or fileprivate better here
+        
+        let index: Int = _position/UNIT.bitWidth
+        let subPosition: Int = _position - index*UNIT.bitWidth
+        let mask: UInt8 = 1 << subPosition
+        
+        return (index, mask)
+        
+    }
     
 }
 
 extension BitArray: RandomAccessCollection, RangeReplaceableCollection {
     // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
-    // ... that's all for RangeReplaceable?? -- ADD FUNCTION
+    // ADD REPLACESUBRANGE
 }

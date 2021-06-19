@@ -9,8 +9,6 @@
 
 // NOTE: Research @inlinable
 
-import  Foundation
-
 extension BitArray {
     
     public mutating func append(_ newValue: Bool) {
@@ -39,10 +37,12 @@ extension BitArray {
         }
     }
     
-    // This function is here only to be used in the Unit Testing. I would typically put a warning to remind me to remove it later, but I was wondering if it would a cool function to expose?
-    public mutating func clear() {
+   /* public mutating func removeAll() {
         self.storage = []
         self.excess = 0
-    }
+    }*/
     
 }
+
+// testArray.formBitwiseOr(with: b) - mutating
+// testArray.bitwiseOr(with: b) - NONmutating

@@ -7,22 +7,20 @@
 
 import XCTest
 import CollectionsTestSupport
-@_spi(Testing) import BitArrayModule
+@testable import BitArrayModule
 
 final class BitArrayTest: CollectionTestCase {
     
     // DEFINITELY needs improvement lol. I can imagine this looking like a terrible butcher to the experienced eye.
-    
-    var testArray = BitArray()
+    let limit = 100 // if change limit, change getStorageCount and getExcessCount tests as well
     
     func testAppend() {
-        let limit = 100 // if change limit, change getStorageCount and getExcessCount tests as well
+        var testArray = BitArray()
         var value = Bool.random()
         
         for i in 0...limit {
             testArray.append(value)
             XCTAssertEqual(testArray[i], value)
-            
             XCTAssertEqual(testArray.count, i+1)
             XCTAssertEqual(testArray.endIndex, i+1)
             XCTAssertEqual(testArray.startIndex, 0)
@@ -36,31 +34,31 @@ final class BitArrayTest: CollectionTestCase {
         XCTAssertEqual(testArray.getExcessCount(), 5)
     }
     
-    func testClear() {
-        if (testArray.count <= 10) {
-            for _ in 0...10 {
-                testArray.append(Bool.random())
-            }
+    func testRemoveAll() {
+        var testArray = BitArray()
+        var value = Bool.random()
+        
+        for _ in 0...limit {
+            testArray.append(value)
+            value = Bool.random()
         }
         
-        testArray.clear()
+        testArray.removeAll()
         
         XCTAssertEqual(testArray.count, 0)
-        XCTAssertEqual(testArray.endIndex, 1)
+        XCTAssertEqual(testArray.endIndex, 0)
         XCTAssertEqual(testArray.startIndex, 0)
         XCTAssertEqual(testArray.getStorageCount(), 0)
         XCTAssertEqual(testArray.getExcessCount(), 0)
     }
     
     func testSubscriptReturnOnly() {
-        testArray.clear()
-        
-        let limit = 100 // if change limit, change getStorageCount and getExcessCount tests as well
+        var testArray = BitArray()
         var value = Bool.random()
         
-        for i in 0...limit {
+        
+        for _ in 0...limit {
             testArray.append(value)
-            XCTAssertEqual(testArray[i], value)
             value = Bool.random()
         }
         
@@ -71,56 +69,26 @@ final class BitArrayTest: CollectionTestCase {
         XCTAssertEqual(testArray.getExcessCount(), 5)
     }
     
-    func testForFatalErrorOnOutOfBoundsIndex(){
-        
-    }
-    
     func testSubscriptSetOnly() {
         
-        // size up the array
-        if (testArray.count < 100) {
-            var value = Bool.random()
-            for i in 0 ... 100 {
-                testArray.append(value)
-                XCTAssertEqual(testArray[i], value)
-                value = Bool.random()
-                if (testArray.count >= 101) { break }
-            }
+        var testArray = BitArray()
+        var value = Bool.random()
+        
+        
+        for _ in 0...limit {
+            testArray.append(value)
+            value = Bool.random()
         }
         
-        /*let valArray: [Bool] = [true, false, true, false, false, true, true, false, false, true, true, false]
-        
         for i in 0..<testArray.endIndex {
-            for value in valArray {
-                testArray[i] = value
-                XCTAssertEqual(testArray[i], value)
-            }
-        }*/
-        
-        for i in 0..<testArray.endIndex {
-            testArray[i] = true
-            XCTAssertEqual(testArray[i], true)
+            let setVal = Bool.random()
+            testArray[i] = setVal
+            XCTAssertEqual(testArray[i], setVal)
+            XCTAssertNotEqual(testArray[i], !setVal)
             
-            testArray[i] = true
-            XCTAssertEqual(testArray[i], true)
-            
-            testArray[i] = false
-            XCTAssertEqual(testArray[i], false)
-            
-            testArray[i] = true
-            XCTAssertEqual(testArray[i], true)
-            
-            testArray[i] = false
-            XCTAssertEqual(testArray[i], false)
-            
-            testArray[i] = false
-            XCTAssertEqual(testArray[i], false)
-            
-            testArray[i] = true
-            XCTAssertEqual(testArray[i], true)
-            
-            testArray[i] = true
-            XCTAssertEqual(testArray[i], true)
+            testArray[i] = !setVal
+            XCTAssertEqual(testArray[i], !setVal)
+            XCTAssertNotEqual(testArray[i], setVal)
         }
         
     }
