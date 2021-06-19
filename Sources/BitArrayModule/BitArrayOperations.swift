@@ -43,6 +43,3 @@ extension BitArray {
     }*/
     
 }
-
-// testArray.formBitwiseOr(with: b) - mutating
-// testArray.bitwiseOr(with: b) - NONmutating

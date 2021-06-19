@@ -93,4 +93,23 @@ final class BitArrayTest: CollectionTestCase {
         
     }
     
+    func testformBitwiseOr(){
+        var testArray = BitArray()
+        var testArray2 = BitArray()
+        var value = Bool.random()
+        
+        
+        for _ in 0...limit {
+            testArray.append(value)
+            value = Bool.random()
+        }
+        
+        for _ in 0...limit/2 {
+            testArray2.append(value)
+            value = Bool.random()
+        }
+        
+        testArray.formBitwiseOr(with: testArray2)
+    }
+    
 }
