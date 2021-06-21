@@ -37,12 +37,12 @@ extension PriorityQueue {
   }
 
   /// Returns an iterator that orders elements from lowest to highest priority
-  var ascending: Iterator {
+  public var ascending: Iterator {
     return Iterator(_base: self, _direction: .ascending)
   }
 
   /// Returns an iterator that orders elements from highest to lowest priority
-  var descending: Iterator {
+  public var descending: Iterator {
     return Iterator(_base: self, _direction: .descending)
   }
 }
