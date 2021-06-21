@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-import func Foundation.ceil
-
 func computeHash<T: Hashable>(_ value: T) -> Int {
     value.hashValue
 }
@@ -23,7 +21,7 @@ let bitPartitionMask: Int = (1 << bitPartitionSize) - 1
 
 let hashCodeLength: Int = Int.bitWidth
 
-let maxDepth = Int(ceil(Double(hashCodeLength) / Double(bitPartitionSize)))
+let maxDepth = Int((Double(hashCodeLength) / Double(bitPartitionSize)).rounded(.up))
 
 func maskFrom(_ hash: Int, _ shift: Int) -> Int {
     (hash >> shift) & bitPartitionMask
