@@ -352,6 +352,17 @@ final class PriorityQueueTests: XCTestCase {
     XCTAssertEqual(queue.count, 20)
   }
 
+  func test_initializer_fromArrayLiteral() {
+    var queue: PriorityQueue = [1, 3, 5, 7, 9]
+    XCTAssertEqual(queue.count, 5)
+
+    XCTAssertEqual(queue.popMax(), 9)
+    XCTAssertEqual(queue.popMax(), 7)
+    XCTAssertEqual(queue.popMax(), 5)
+    XCTAssertEqual(queue.popMax(), 3)
+    XCTAssertEqual(queue.popMax(), 1)
+  }
+
   func test_sequenceConformance() {
     let queue = PriorityQueue<Int>((0...50).shuffled())
 
