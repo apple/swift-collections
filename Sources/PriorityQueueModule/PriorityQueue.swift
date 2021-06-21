@@ -465,17 +465,6 @@ public struct PriorityQueue<Element: Comparable> {
 // MARK: -
 
 extension PriorityQueue {
-  /// Initializes a queue from a collection.
-  ///
-  /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
-  public init<C: Collection>(_ collection: C) where C.Element == Element {
-    storage = Array(collection)
-
-    for idx in (0..<(storage.count / 2)).reversed() {
-      _trickleDown(startingAt: idx)
-    }
-  }
-
   /// Initializes a queue from a sequence.
   ///
   /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
