@@ -65,10 +65,6 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         return dst
     }
 
-    var content: UnsafeMutablePointer<Element> {
-        self.withUnsafeMutablePointerToElements { return $0 }
-    }
-
     var invariant: Bool {
         guard contentInvariant else {
             return false
@@ -90,15 +86,15 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     var dataSliceInvariant: Bool {
-        (0 ..< payloadArity).allSatisfy { index in content[index] is ReturnPayload }
+        (0 ..< payloadArity).allSatisfy { index in getElement(index) is ReturnPayload }
     }
 
     var nodeSliceInvariant: Bool {
-        (0 ..< bitmapIndexedNodeArity).allSatisfy { index in content[capacity - 1 - index] is ReturnBitmapIndexedNode }
+        (0 ..< bitmapIndexedNodeArity).allSatisfy { index in getElement(capacity - 1 - index) is ReturnBitmapIndexedNode }
     }
 
     var collSliceInvariant: Bool {
-        (0 ..< hashCollisionNodeArity).allSatisfy { index in content[capacity - 1 - bitmapIndexedNodeArity - index] is ReturnHashCollisionNode }
+        (0 ..< hashCollisionNodeArity).allSatisfy { index in getElement(capacity - 1 - bitmapIndexedNodeArity - index) is ReturnHashCollisionNode }
     }
 
     static func create() -> Self {
@@ -409,7 +405,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
 
     func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
-        content[capacity - 1 - index] as! BitmapIndexedMapNode<Key, Value>
+        getElement(capacity - 1 - index) as! BitmapIndexedMapNode<Key, Value>
     }
 
     private func isBitmapIndexedNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
@@ -432,12 +428,16 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
 
+    func getElement(_ index: Int) -> Element {
+        self.withUnsafeMutablePointerToElements { elements in elements[index] }
+    }
+
     var hasHashCollisionNodes: Bool { collMap != 0 }
 
     var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
 
     func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
-        return content[capacity - 1 - bitmapIndexedNodeArity - index] as! HashCollisionMapNode<Key, Value>
+        return getElement(capacity - 1 - bitmapIndexedNodeArity - index) as! HashCollisionMapNode<Key, Value>
     }
 
     var hasNodes: Bool { (nodeMap | collMap) != 0 }
@@ -456,7 +456,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
     var payloadArity: Int { dataMap.nonzeroBitCount }
 
-    func getPayload(_ index: Int) -> (key: Key, value: Value) { content[index] as! ReturnPayload }
+    func getPayload(_ index: Int) -> (key: Key, value: Value) { getElement(index) as! ReturnPayload }
 
     var sizePredicate: SizePredicate { SizePredicate(self) }
 
@@ -480,9 +480,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         }
 
         let idx = dataIndex(bitpos)
-        let (key, _) = dst.content[idx] as! ReturnPayload
 
-        dst.content[idx] = (key, newValue)
+        dst.withUnsafeMutablePointerToElements { elements in
+            let (key, _) = elements[idx] as! ReturnPayload
+            elements[idx] = (key, newValue)
+        }
 
         assert(dst.contentInvariant)
         return dst
@@ -508,7 +510,9 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.content[idx] = newNode
+        dst.withUnsafeMutablePointerToElements { elements in
+            elements[idx] = newNode
+        }
 
         assert(dst.contentInvariant)
         return dst
