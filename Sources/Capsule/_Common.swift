@@ -291,7 +291,7 @@ struct ChampBaseReverseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node
     }
 }
 
-func rangeInsert(_ element: Any, at index: Int, intoRange range: Range<UnsafeMutablePointer<Any>>) {
+func rangeInsert<T>(_ element: T, at index: Int, intoRange range: Range<UnsafeMutablePointer<T>>) {
     let seq = range.dropFirst(index)
 
     let src = seq.startIndex
@@ -303,7 +303,7 @@ func rangeInsert(_ element: Any, at index: Int, intoRange range: Range<UnsafeMut
 }
 
 // `index` is the logical index starting at the rear, indexing to the left
-func rangeInsertReversed(_ element: Any, at index: Int, intoRange range: Range<UnsafeMutablePointer<Any>>) {
+func rangeInsertReversed<T>(_ element: T, at index: Int, intoRange range: Range<UnsafeMutablePointer<T>>) {
     let seq = range.dropLast(index)
 
     let src = seq.startIndex
@@ -315,7 +315,7 @@ func rangeInsertReversed(_ element: Any, at index: Int, intoRange range: Range<U
     seq.endIndex.predecessor().initialize(to: element)
 }
 
-func rangeRemove(at index: Int, fromRange range: Range<UnsafeMutablePointer<Any>>) {
+func rangeRemove<T>(at index: Int, fromRange range: Range<UnsafeMutablePointer<T>>) {
     let seq = range.dropFirst(index + 1)
 
     let src = seq.startIndex
@@ -326,7 +326,7 @@ func rangeRemove(at index: Int, fromRange range: Range<UnsafeMutablePointer<Any>
 }
 
 // `index` is the logical index starting at the rear, indexing to the left
-func rangeRemoveReversed(at index: Int, fromRange range: Range<UnsafeMutablePointer<Any>>) {
+func rangeRemoveReversed<T>(at index: Int, fromRange range: Range<UnsafeMutablePointer<T>>) {
     let seq = range.dropLast(index + 1)
 
     let src = seq.startIndex
