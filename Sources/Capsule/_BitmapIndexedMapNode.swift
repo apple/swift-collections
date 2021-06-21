@@ -514,51 +514,6 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         return dst
     }
 
-    static func rangeInsert(_ element: Any, at index: Int, intoRange range: Range<UnsafeMutablePointer<Any>>) {
-        let seq = range.dropFirst(index)
-
-        let src = seq.startIndex
-        let dst = src.successor()
-
-        dst.moveInitialize(from: src, count: seq.count)
-
-        src.initialize(to: element)
-    }
-
-    // `index` is the logical index starting at the rear, indexing to the left
-    static func rangeInsertReversed(_ element: Any, at index: Int, intoRange range: Range<UnsafeMutablePointer<Any>>) {
-        let seq = range.dropLast(index)
-
-        let src = seq.startIndex
-        let dst = src.predecessor()
-
-        dst.moveInitialize(from: src, count: seq.count)
-
-        // requires call to predecessor on "past the end" position
-        seq.endIndex.predecessor().initialize(to: element)
-    }
-
-    static func rangeRemove(at index: Int, fromRange range: Range<UnsafeMutablePointer<Any>>) {
-        let seq = range.dropFirst(index + 1)
-
-        let src = seq.startIndex
-        let dst = src.predecessor()
-
-        dst.deinitialize(count: 1)
-        dst.moveInitialize(from: src, count: seq.count)
-    }
-
-    // `index` is the logical index starting at the rear, indexing to the left
-    static func rangeRemoveReversed(at index: Int, fromRange range: Range<UnsafeMutablePointer<Any>>) {
-        let seq = range.dropLast(index + 1)
-
-        let src = seq.startIndex
-        let dst = src.successor()
-
-        seq.endIndex.deinitialize(count: 1)
-        dst.moveInitialize(from: src, count: seq.count)
-    }
-
     func copyAndInsertValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
@@ -571,7 +526,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         dst.withUnsafeMutablePointerRanges { dataRange, _ in
             let dataIdx = indexFrom(dataMap, bitpos)
-            Self.rangeInsert((key, value), at: dataIdx, intoRange: dataRange)
+            rangeInsert((key, value), at: dataIdx, intoRange: dataRange)
         }
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap`
@@ -593,7 +548,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         dst.withUnsafeMutablePointerRanges { dataRange, _ in
             let dataIdx = indexFrom(dataMap, bitpos)
-            Self.rangeRemove(at: dataIdx, fromRange: dataRange)
+            rangeRemove(at: dataIdx, fromRange: dataRange)
         }
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
@@ -615,10 +570,10 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
             let dataIdx = indexFrom(dataMap, bitpos)
-            Self.rangeRemove(at: dataIdx, fromRange: dataRange)
+            rangeRemove(at: dataIdx, fromRange: dataRange)
 
             let nodeIdx = indexFrom(nodeMap, bitpos)
-            Self.rangeInsertReversed(node, at: nodeIdx, intoRange: trieRange)
+            rangeInsertReversed(node, at: nodeIdx, intoRange: trieRange)
         }
 
         // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
@@ -641,10 +596,10 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
             let dataIdx = indexFrom(dataMap, bitpos)
-            Self.rangeRemove(at: dataIdx, fromRange: dataRange)
+            rangeRemove(at: dataIdx, fromRange: dataRange)
 
             let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
-            Self.rangeInsertReversed(node, at: collIdx, intoRange: trieRange)
+            rangeInsertReversed(node, at: collIdx, intoRange: trieRange)
         }
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap | bitpos`
@@ -666,10 +621,10 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
             let nodeIdx = indexFrom(nodeMap, bitpos)
-            Self.rangeRemoveReversed(at: nodeIdx, fromRange: trieRange)
+            rangeRemoveReversed(at: nodeIdx, fromRange: trieRange)
 
             let dataIdx = indexFrom(dataMap, bitpos)
-            Self.rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
+            rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
         }
 
         // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
@@ -692,10 +647,10 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
             let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
-            Self.rangeRemoveReversed(at: collIdx, fromRange: trieRange)
+            rangeRemoveReversed(at: collIdx, fromRange: trieRange)
 
             let dataIdx = indexFrom(dataMap, bitpos)
-            Self.rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
+            rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
         }
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap ^ bitpos`
@@ -719,8 +674,8 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             let collIdx = nodeMap.nonzeroBitCount + collIndex(bitpos)
             let nodeIdx = nodeIndex(bitpos)
 
-            Self.rangeRemoveReversed(at: collIdx, fromRange: trieRange)
-            Self.rangeInsertReversed(node, at: nodeIdx, intoRange: trieRange)
+            rangeRemoveReversed(at: collIdx, fromRange: trieRange)
+            rangeInsertReversed(node, at: nodeIdx, intoRange: trieRange)
         }
 
         // update metadata: `dataMap, nodeMap | bitpos, collMap ^ bitpos`
@@ -744,8 +699,8 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             let nodeIdx = nodeIndex(bitpos)
             let collIdx = nodeMap.nonzeroBitCount - 1 + collIndex(bitpos)
 
-            Self.rangeRemoveReversed(at: nodeIdx, fromRange: trieRange)
-            Self.rangeInsertReversed(node, at: collIdx, intoRange: trieRange)
+            rangeRemoveReversed(at: nodeIdx, fromRange: trieRange)
+            rangeInsertReversed(node, at: collIdx, intoRange: trieRange)
         }
 
         // update metadata: `dataMap, nodeMap ^ bitpos, collMap | bitpos`
