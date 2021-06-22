@@ -497,7 +497,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dataRange.startIndex[idx] = (key, newValue)
         }
 
-        assert(dst.contentInvariant)
+        assert(dst.invariant)
         return dst
     }
 
@@ -525,7 +525,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             trieRange.startIndex[idx] = newNode as AnyObject
         }
 
-        assert(dst.contentInvariant)
+        assert(dst.invariant)
         return dst
     }
 
