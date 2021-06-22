@@ -112,7 +112,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
     static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value) -> Self {
         let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: dataMap, bitmap2: 0) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, nodeRange in
+        result.withUnsafeMutablePointerRanges { dataRange, _ in
             dataRange.startIndex.initialize(to: (firstKey, firstValue))
         }
         return result
@@ -120,7 +120,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
     static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) -> Self {
         let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: dataMap, bitmap2: 0) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, nodeRange in
+        result.withUnsafeMutablePointerRanges { dataRange, _ in
             dataRange.startIndex.initialize(to: (firstKey, firstValue))
             dataRange.startIndex.successor().initialize(to: (secondKey, secondValue))
         }
@@ -129,25 +129,25 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
     static func create(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) -> Self {
         let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: 0, bitmap2: nodeMap) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, nodeRange in
-            nodeRange.startIndex.initialize(to: firstNode)
+        result.withUnsafeMutablePointerRanges { _, trieRange in
+            trieRange.startIndex.initialize(to: firstNode)
         }
         return result
     }
 
     static func create(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
         let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: collMap, bitmap2: collMap) }  as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, nodeRange in
-            nodeRange.startIndex.initialize(to: firstNode)
+        result.withUnsafeMutablePointerRanges { _, trieRange in
+            trieRange.startIndex.initialize(to: firstNode)
         }
         return result
     }
 
     static func create(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
         let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: dataMap | collMap, bitmap2: collMap) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, nodeRange in
+        result.withUnsafeMutablePointerRanges { dataRange, trieRange in
             dataRange.startIndex.initialize(to: (firstKey, firstValue))
-            nodeRange.startIndex.initialize(to: firstNode)
+            trieRange.startIndex.initialize(to: firstNode)
         }
         return result
     }
@@ -414,8 +414,8 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
 
     func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
-        self.withUnsafeMutablePointerRanges { _, nodeRange in
-            nodeRange.startIndex[index] as! BitmapIndexedMapNode<Key, Value>
+        self.withUnsafeMutablePointerRanges { _, trieRange in
+            trieRange.startIndex[index] as! BitmapIndexedMapNode<Key, Value>
         }
     }
 
@@ -442,8 +442,8 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
 
     func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
-        self.withUnsafeMutablePointerRanges { _, nodeRange in
-            nodeRange.startIndex[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
+        self.withUnsafeMutablePointerRanges { _, trieRange in
+            trieRange.startIndex[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
         }
     }
 
@@ -521,8 +521,8 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { _, nodeRange in
-            nodeRange.startIndex[idx] = newNode as AnyObject
+        dst.withUnsafeMutablePointerRanges { _, trieRange in
+            trieRange.startIndex[idx] = newNode as AnyObject
         }
 
         assert(dst.contentInvariant)
