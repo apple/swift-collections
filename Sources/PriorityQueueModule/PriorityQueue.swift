@@ -20,11 +20,13 @@ import Swift
 ///
 /// The implementation is based off [this paper](http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf).
 public struct PriorityQueue<Element: Comparable> {
-  private var storage: [Element]
+  @usableFromInline
+  internal var storage: [Element]
 
   /// A Boolean value indicating whether or not the queue is empty.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public var isEmpty: Bool {
     storage.isEmpty
   }
@@ -32,6 +34,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// The number of elements in the queue.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public var count: Int {
     storage.count
   }
@@ -43,11 +46,13 @@ public struct PriorityQueue<Element: Comparable> {
   /// to the ordering of the elements.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public var unordered: [Element] {
     storage
   }
 
   /// Creates an empty queue.
+  @inlinable
   public init() {
     storage = []
   }
@@ -55,6 +60,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// Inserts the given element into the queue.
   ///
   /// - Complexity: O(log `count`) / 2
+  @inlinable
   public mutating func insert(_ element: Element) {
     storage.append(element)
     _bubbleUp(startingAt: storage.endIndex - 1)
@@ -63,6 +69,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the element with the lowest priority, if available.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func min() -> Element? {
     storage.first
   }
@@ -70,6 +77,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the element with the highest priority, if available.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func max() -> Element? {
     switch storage.count {
     case 0, 1, 2:
@@ -88,6 +96,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// Removes and returns the element with the lowest priority, if available.
   ///
   /// - Complexity: O(log `count`)
+  @inlinable
   public mutating func popMin() -> Element? {
     return _remove(at: 0)
   }
@@ -95,6 +104,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// Removes and returns the element with the highest priority, if available.
   ///
   /// - Complexity: O(log `count`)
+  @inlinable
   public mutating func popMax() -> Element? {
     switch storage.count {
     case 0, 1, 2:
@@ -115,6 +125,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// The queue *must not* be empty.
   ///
   /// - Complexity: O(log `count`)
+  @inlinable
   public mutating func removeMin() -> Element {
     precondition(!isEmpty)
 
@@ -126,6 +137,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// The queue *must not* be empty.
   ///
   /// - Complexity: O(log `count`)
+  @inlinable
   public mutating func removeMax() -> Element {
     precondition(!isEmpty)
 
@@ -134,7 +146,8 @@ public struct PriorityQueue<Element: Comparable> {
 
   // MARK: -
 
-  private mutating func _bubbleUp(startingAt index: Int) {
+  @inlinable
+  internal mutating func _bubbleUp(startingAt index: Int) {
     guard let parentIdx = _parentIndex(of: index) else {
       // We're already at the root -- can't go any further
       return
@@ -160,7 +173,8 @@ public struct PriorityQueue<Element: Comparable> {
     }
   }
 
-  private mutating func _bubbleUpMin(startingAt index: Int) {
+  @inlinable
+  internal mutating func _bubbleUpMin(startingAt index: Int) {
     guard let grandparentIdx = _grandparentIndex(of: index) else { return }
 
     if storage[index] < storage[grandparentIdx] {
@@ -169,7 +183,8 @@ public struct PriorityQueue<Element: Comparable> {
     }
   }
 
-  private mutating func _bubbleUpMax(startingAt index: Int) {
+  @inlinable
+  internal mutating func _bubbleUpMax(startingAt index: Int) {
     guard let grandparentIdx = _grandparentIndex(of: index) else { return }
 
     if storage[index] > storage[grandparentIdx] {
@@ -181,7 +196,8 @@ public struct PriorityQueue<Element: Comparable> {
   // MARK: -
 
   @discardableResult
-  private mutating func _remove(at index: Int) -> Element? {
+  @inlinable
+  internal mutating func _remove(at index: Int) -> Element? {
     guard storage.count > index else {
       return nil
     }
@@ -198,7 +214,8 @@ public struct PriorityQueue<Element: Comparable> {
 
   // MARK: -
 
-  private mutating func _trickleDown(startingAt index: Int) {
+  @inlinable
+  internal mutating func _trickleDown(startingAt index: Int) {
     // Figure out if `index` is on an even or odd level
     let levelIsMin = _minMaxHeapIsMinLevel(index + 1)
 
@@ -209,7 +226,8 @@ public struct PriorityQueue<Element: Comparable> {
     }
   }
 
-  private mutating func _trickleDownMin(startingAt index: Int) {
+  @inlinable
+  internal mutating func _trickleDownMin(startingAt index: Int) {
     guard let (smallestDescendantIdx, isChild) =
             _indexOfLowestPriorityChildOrGrandchild(of: index)
     else {
@@ -236,7 +254,8 @@ public struct PriorityQueue<Element: Comparable> {
     }
   }
 
-  private mutating func _trickleDownMax(startingAt index: Int) {
+  @inlinable
+  internal mutating func _trickleDownMax(startingAt index: Int) {
     guard let (largestDescendantIdx, isChild) =
             _indexOfHighestPriorityChildOrGrandchild(of: index)
     else {
@@ -270,7 +289,8 @@ public struct PriorityQueue<Element: Comparable> {
   ///
   /// - parameter index: The index of the element whose descendants should be
   ///                    compared.
-  private func _indexOfLowestPriorityChildOrGrandchild(
+  @inlinable
+  internal func _indexOfLowestPriorityChildOrGrandchild(
     of index: Int
   ) -> (index: Int, isChild: Bool)? {
     guard let leftChildIdx = _leftChildIndex(of: index) else {
@@ -322,7 +342,8 @@ public struct PriorityQueue<Element: Comparable> {
   ///
   /// - parameter index: The index of the item whose descendants should be
   ///                    compared.
-  private func _indexOfHighestPriorityChildOrGrandchild(
+  @inlinable
+  internal func _indexOfHighestPriorityChildOrGrandchild(
     of index: Int
   ) -> (index: Int, isChild: Bool)? {
     guard let leftChildIdx = _leftChildIndex(of: index) else {
@@ -373,6 +394,7 @@ public struct PriorityQueue<Element: Comparable> {
   ///
   /// - Precondition: `count` must be > 0.
   @inline(__always)
+  @inlinable
   internal func _minMaxHeapIsMinLevel(_ count: Int) -> Bool {
     precondition(count > 0)
 
@@ -381,7 +403,8 @@ public struct PriorityQueue<Element: Comparable> {
 
   /// Swaps the elements in the heap at the given indices.
   @inline(__always)
-  private mutating func _swapAt(_ i: Int, _ j: Int) {
+  @inlinable
+  internal mutating func _swapAt(_ i: Int, _ j: Int) {
     let tmp = storage[i]
     storage[i] = storage[j]
     storage[j] = tmp
@@ -390,7 +413,8 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the parent index of the given `index`
   /// or `nil` if the index has no parent (i.e. `index == 0`).
   @inline(__always)
-  private func _parentIndex(of index: Int) -> Int? {
+  @inlinable
+  internal func _parentIndex(of index: Int) -> Int? {
     guard index > 0 else {
       return nil
     }
@@ -401,7 +425,8 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the grandparent index of the given `index`
   /// or `nil` if the index has no grandparent.
   @inline(__always)
-  private func _grandparentIndex(of index: Int) -> Int? {
+  @inlinable
+  internal func _grandparentIndex(of index: Int) -> Int? {
     guard index > 2 else {
       return nil
     }
@@ -412,7 +437,8 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the first child index of the given `index`
   /// or `nil` if the index has no children.
   @inline(__always)
-  private func _leftChildIndex(of index: Int) -> Int? {
+  @inlinable
+  internal func _leftChildIndex(of index: Int) -> Int? {
     let childIdx = index * 2 + 1
     guard childIdx < storage.count else {
       return nil
@@ -424,7 +450,8 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the right child index of the given `index`
   /// or `nil` if the index has no right child.
   @inline(__always)
-  private func _rightChildIndex(of index: Int) -> Int? {
+  @inlinable
+  internal func _rightChildIndex(of index: Int) -> Int? {
     let childIdx = index * 2 + 2
     guard childIdx < storage.count else {
       return nil
@@ -436,7 +463,8 @@ public struct PriorityQueue<Element: Comparable> {
   /// Returns the first grandchild index of the given `index`
   /// or `nil` if the index has no grandchildren.
   @inline(__always)
-  private func _firstGrandchildIndex(of index: Int) -> Int? {
+  @inlinable
+  internal func _firstGrandchildIndex(of index: Int) -> Int? {
     let grandchildIdx = index * 4 + 3
     guard grandchildIdx < storage.count else {
       return nil
@@ -452,7 +480,8 @@ public struct PriorityQueue<Element: Comparable> {
   /// returned by this function is the same as that returned by
   /// `_firstGrandchildIndex`.
   @inline(__always)
-  private func _lastGrandchildIndex(of index: Int) -> Int? {
+  @inlinable
+  internal func _lastGrandchildIndex(of index: Int) -> Int? {
     guard _firstGrandchildIndex(of: index) != nil else {
       // There are no grandchildren of the node at `index`
       return nil
@@ -468,6 +497,7 @@ extension PriorityQueue {
   /// Initializes a queue from a sequence.
   ///
   /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
+  @inlinable
   public init<S: Sequence>(_ elements: S) where S.Element == Element {
     storage = Array(elements)
 
@@ -476,4 +506,3 @@ extension PriorityQueue {
     }
   }
 }
-

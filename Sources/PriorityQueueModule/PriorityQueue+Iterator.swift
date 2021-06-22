@@ -19,15 +19,20 @@ extension PriorityQueue {
       case descending
     }
 
-    private var _base: PriorityQueue
-    private let _direction: IterationDirection
+    @usableFromInline
+    internal var _base: PriorityQueue
 
+    @usableFromInline
+    internal let _direction: IterationDirection
+
+    @inlinable
     public init(_base: PriorityQueue, _direction:IterationDirection) {
       self._base = _base
       self._direction = _direction
     }
 
-    //returns the next element in the priority queue depending on the iteration direction
+    // Returns the next element in the priority queue depending on the iteration direction
+    @inlinable
     public mutating func next() -> Element? {
       if(_direction == .ascending){
         return _base.popMin()
@@ -37,11 +42,13 @@ extension PriorityQueue {
   }
 
   /// Returns an iterator that orders elements from lowest to highest priority
+  @inlinable
   public var ascending: Iterator {
     return Iterator(_base: self, _direction: .ascending)
   }
 
   /// Returns an iterator that orders elements from highest to lowest priority
+  @inlinable
   public var descending: Iterator {
     return Iterator(_base: self, _direction: .descending)
   }
