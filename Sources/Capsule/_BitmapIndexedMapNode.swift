@@ -185,7 +185,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             let subNode = self.getBitmapIndexedNode(index)
 
             let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-            guard effect.modified else { return self }
+            guard effect.modified && subNode !== subNodeNew else { return self }
 
             return copyAndSetBitmapIndexedNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
         }
@@ -199,7 +199,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
             if keyHash == collisionHash {
                 let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-                guard effect.modified else { return self }
+                guard effect.modified && subNode !== subNodeNew else { return self }
 
                 return copyAndSetHashCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
             } else {
