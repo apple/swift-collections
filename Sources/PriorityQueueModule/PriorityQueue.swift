@@ -146,6 +146,7 @@ public struct PriorityQueue<Element: Comparable> {
 
   // MARK: -
 
+  @inline(__always)
   @inlinable
   internal mutating func _bubbleUp(startingAt index: Int) {
     guard let parentIdx = _parentIndex(of: index) else {
@@ -178,13 +179,10 @@ public struct PriorityQueue<Element: Comparable> {
   internal mutating func _bubbleUpMin(startingAt index: Int) {
     var index = index
       
-    while true {
-      guard let grandparentIdx = _grandparentIndex(of: index) else { return }
-
-      if storage[index] < storage[grandparentIdx] {
-          _swapAt(index, grandparentIdx)
-          index = grandparentIdx
-      } else { return }
+    while let grandparentIdx = _grandparentIndex(of: index),
+          storage[index] < storage[grandparentIdx] {
+      _swapAt(index, grandparentIdx)
+      index = grandparentIdx
     }
   }
 
@@ -193,13 +191,10 @@ public struct PriorityQueue<Element: Comparable> {
   internal mutating func _bubbleUpMax(startingAt index: Int) {
     var index = index
       
-    while true {
-      guard let grandparentIdx = _grandparentIndex(of: index) else { return }
-
-      if storage[index] > storage[grandparentIdx] {
-        _swapAt(index, grandparentIdx)
-        index = grandparentIdx
-      } else { return }
+    while let grandparentIdx = _grandparentIndex(of: index),
+          storage[index] > storage[grandparentIdx] {
+      _swapAt(index, grandparentIdx)
+      index = grandparentIdx
     }
   }
 
@@ -242,29 +237,24 @@ public struct PriorityQueue<Element: Comparable> {
   internal mutating func _trickleDownMin(startingAt index: Int) {
     var index = index
 
-    while true {
-      guard let (smallestDescendantIdx, isChild) =
-              _indexOfLowestPriorityChildOrGrandchild(of: index)
-      else {
-        // We have no descendants -- no need to trickle down further
-        return
-      }
+    while let (smallestDescendantIdx, isChild) =
+          _indexOfLowestPriorityChildOrGrandchild(of: index) {
 
       if storage[smallestDescendantIdx] < storage[index] {
         _swapAt(smallestDescendantIdx, index)
-      }
 
-      if isChild {
-        return
-      }
-        
-      // Smallest is a grandchild
-      let parentIdx = _parentIndex(of: smallestDescendantIdx)!
-      if storage[smallestDescendantIdx] > storage[parentIdx] {
-        _swapAt(smallestDescendantIdx, parentIdx)
-      }
+        if isChild {
+          return
+        }
+          
+        // Smallest is a grandchild
+        let parentIdx = _parentIndex(of: smallestDescendantIdx)!
+        if storage[smallestDescendantIdx] > storage[parentIdx] {
+          _swapAt(smallestDescendantIdx, parentIdx)
+        }
 
-      index = smallestDescendantIdx
+        index = smallestDescendantIdx
+      } else { return }
     }
   }
 
@@ -273,29 +263,24 @@ public struct PriorityQueue<Element: Comparable> {
   internal mutating func _trickleDownMax(startingAt index: Int) {
     var index = index
       
-    while true {
-      guard let (largestDescendantIdx, isChild) =
-              _indexOfHighestPriorityChildOrGrandchild(of: index)
-      else {
-        // We have no descendants -- no need to trickle down further
-        return
-      }
+    while let (largestDescendantIdx, isChild) =
+          _indexOfHighestPriorityChildOrGrandchild(of: index) {
 
       if storage[largestDescendantIdx] > storage[index] {
         _swapAt(largestDescendantIdx, index)
-      }
         
-      if isChild {
-        return
-      }
+        if isChild {
+          return
+        }
 
-      // Largest is a grandchild
-      let parentIdx = _parentIndex(of: largestDescendantIdx)!
-      if storage[largestDescendantIdx] < storage[parentIdx] {
-        _swapAt(largestDescendantIdx, parentIdx)
-      }
+        // Largest is a grandchild
+        let parentIdx = _parentIndex(of: largestDescendantIdx)!
+        if storage[largestDescendantIdx] < storage[parentIdx] {
+          _swapAt(largestDescendantIdx, parentIdx)
+        }
 
-      index = largestDescendantIdx
+        index = largestDescendantIdx
+      } else { return }
     }
   }
   /// Returns the lowest priority child or grandchild of the element at the
