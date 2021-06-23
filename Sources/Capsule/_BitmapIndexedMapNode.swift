@@ -47,10 +47,10 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             let dataElements = elements.advanced(by: fixedTrieCapacity)
             let dataRange = dataElements ..< dataElements.advanced(by: dataCnt)
 
-            return elements.withMemoryRebound(to: AnyObject.self, capacity: trieCnt) { trieElements in
-                let trieRange = trieElements ..< trieElements.advanced(by: trieCnt)
-                return transform(dataRange, trieRange)
-            }
+            let trieElements = UnsafeMutableRawPointer(elements).bindMemory(to: AnyObject.self, capacity: trieCnt)
+            let trieRange = trieElements ..< trieElements.advanced(by: trieCnt)
+
+            return transform(dataRange, trieRange)
         }
     }
 
