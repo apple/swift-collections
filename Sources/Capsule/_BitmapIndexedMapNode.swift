@@ -11,7 +11,7 @@
 
 typealias Element = Any
 
-fileprivate let fixedTrieCapacity = 8
+fileprivate let fixedTrieCapacity = Bitmap.bitWidth * MemoryLayout<AnyObject>.size / MemoryLayout<Element>.size
 
 fileprivate let initialDataCapacity = 4
 
