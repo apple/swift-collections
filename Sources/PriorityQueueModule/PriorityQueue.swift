@@ -181,7 +181,7 @@ public struct PriorityQueue<Element: Comparable> {
   @inlinable
   internal mutating func _bubbleUpMin(startingAt index: Int) {
     var index = index
-      
+
     while let grandparentIdx = _grandparentIndex(of: index),
           storage[index] < storage[grandparentIdx] {
       _swapAt(index, grandparentIdx)
@@ -193,7 +193,7 @@ public struct PriorityQueue<Element: Comparable> {
   @inlinable
   internal mutating func _bubbleUpMax(startingAt index: Int) {
     var index = index
-      
+
     while let grandparentIdx = _grandparentIndex(of: index),
           storage[index] > storage[grandparentIdx] {
       _swapAt(index, grandparentIdx)
@@ -241,15 +241,14 @@ public struct PriorityQueue<Element: Comparable> {
     var index = index
 
     while let (smallestDescendantIdx, isChild) =
-          _indexOfLowestPriorityChildOrGrandchild(of: index) {
-
+            _indexOfLowestPriorityChildOrGrandchild(of: index) {
       if storage[smallestDescendantIdx] < storage[index] {
         _swapAt(smallestDescendantIdx, index)
 
         if isChild {
           return
         }
-          
+
         // Smallest is a grandchild
         let parentIdx = _parentIndex(of: smallestDescendantIdx)!
         if storage[smallestDescendantIdx] > storage[parentIdx] {
@@ -257,7 +256,9 @@ public struct PriorityQueue<Element: Comparable> {
         }
 
         index = smallestDescendantIdx
-      } else { return }
+      } else {
+        return
+      }
     }
   }
 
@@ -265,13 +266,12 @@ public struct PriorityQueue<Element: Comparable> {
   @inlinable
   internal mutating func _trickleDownMax(startingAt index: Int) {
     var index = index
-      
-    while let (largestDescendantIdx, isChild) =
-          _indexOfHighestPriorityChildOrGrandchild(of: index) {
 
+    while let (largestDescendantIdx, isChild) =
+            _indexOfHighestPriorityChildOrGrandchild(of: index) {
       if storage[largestDescendantIdx] > storage[index] {
         _swapAt(largestDescendantIdx, index)
-        
+
         if isChild {
           return
         }
@@ -283,7 +283,9 @@ public struct PriorityQueue<Element: Comparable> {
         }
 
         index = largestDescendantIdx
-      } else { return }
+      } else {
+        return
+      }
     }
   }
   /// Returns the lowest priority child or grandchild of the element at the
