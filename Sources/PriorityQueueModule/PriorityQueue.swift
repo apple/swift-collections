@@ -64,6 +64,7 @@ public struct PriorityQueue<Element: Comparable> {
   public mutating func insert(_ element: Element) {
     storage.append(element)
     _bubbleUp(startingAt: storage.endIndex - 1)
+    _checkInvariants()
   }
 
   /// Returns the element with the lowest priority, if available.
@@ -98,6 +99,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// - Complexity: O(log `count`)
   @inlinable
   public mutating func popMin() -> Element? {
+    defer { _checkInvariants() }
     return _remove(at: 0)
   }
 
@@ -106,6 +108,7 @@ public struct PriorityQueue<Element: Comparable> {
   /// - Complexity: O(log `count`)
   @inlinable
   public mutating func popMax() -> Element? {
+    defer { _checkInvariants() }
     switch storage.count {
     case 0, 1, 2:
       // If count is 0, `popLast` will return `nil`
@@ -507,5 +510,7 @@ extension PriorityQueue {
     for idx in (0..<(storage.count / 2)).reversed() {
       _trickleDown(startingAt: idx)
     }
+
+    _checkInvariants()
   }
 }
