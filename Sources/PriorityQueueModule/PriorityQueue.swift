@@ -288,6 +288,7 @@ public struct PriorityQueue<Element: Comparable> {
       }
     }
   }
+
   /// Returns the lowest priority child or grandchild of the element at the
   /// given index.
   ///
