@@ -60,6 +60,40 @@ final class PriorityQueueTests: XCTestCase {
     XCTAssertEqual(queue.count, 1)
   }
 
+  func test_insert_contentsOf() {
+    var queue = PriorityQueue<Int>()
+    queue.insert(contentsOf: (1...10).shuffled())
+    XCTAssertEqual(queue.count, 10)
+    XCTAssertEqual(queue.popMax(), 10)
+    XCTAssertEqual(queue.popMin(), 1)
+
+    queue.insert(contentsOf: (21...50).shuffled())
+    XCTAssertEqual(queue.count, 38)
+    XCTAssertEqual(queue.max(), 50)
+    XCTAssertEqual(queue.min(), 2)
+
+    queue.insert(contentsOf: [-10, -9, -8, -7, -6, -5].shuffled())
+    XCTAssertEqual(queue.count, 44)
+    XCTAssertEqual(queue.min(), -10)
+  }
+
+  func test_insert_contentsOf_withSequenceFunction() {
+    func addTwo(_ i: Int) -> Int {
+      i + 2
+    }
+
+    let evens = sequence(first: 0, next: addTwo(_:)).prefix(20)
+    var queue = PriorityQueue(evens)
+    XCTAssertEqual(queue.count, 20)
+
+    queue.insert(contentsOf: sequence(first: 1, next: addTwo(_:)).prefix(20))
+    XCTAssertEqual(queue.count, 40)
+
+    for (idx, i) in queue.ascending.enumerated() {
+      XCTAssertEqual(idx, i)
+    }
+  }
+
   func test_min() {
     var queue = PriorityQueue<Int>()
     XCTAssertNil(queue.min())

@@ -774,6 +774,7 @@
           "tasks": [
             "PriorityQueue<Int> init from range",
             "PriorityQueue<Int> insert",
+            "PriorityQueue<Int> insert(contentsOf:)",
             "PriorityQueue<Int> popMax",
             "PriorityQueue<Int> popMin"
           ]
@@ -789,7 +790,8 @@
           "kind": "chart",
           "title": "insert",
           "tasks": [
-            "PriorityQueue<Int> insert"
+            "PriorityQueue<Int> insert",
+            "PriorityQueue<Int> insert(contentsOf:)"
           ]
         },
         {

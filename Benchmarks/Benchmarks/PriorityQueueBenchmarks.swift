@@ -35,6 +35,18 @@ extension Benchmark {
     }
 
     self.add(
+      title: "PriorityQueue<Int> insert(contentsOf:)",
+      input: ([Int], [Int]).self
+    ) { (existing, new) in
+      return { timer in
+        var queue = PriorityQueue(existing)
+        queue.insert(contentsOf: new)
+        precondition(queue.count == existing.count + new.count)
+        blackHole(queue)
+      }
+    }
+
+    self.add(
       title: "PriorityQueue<Int> popMax",
       input: [Int].self
     ) { input in

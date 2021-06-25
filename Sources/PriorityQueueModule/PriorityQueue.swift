@@ -516,4 +516,15 @@ extension PriorityQueue {
 
     _checkInvariants()
   }
+
+  /// Inserts the elements in the given sequence into the priority queue.
+  ///
+  /// - Parameter newElements: The new elements to insert into the queue.
+  ///
+  /// - Complexity: O(n * log `count`), where `n` is the length of `newElements`.
+  public mutating func insert<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
+    for element in newElements {
+      insert(element)
+    }
+  }
 }
