@@ -506,6 +506,8 @@ extension PriorityQueue {
   /// Initializes a queue from a sequence.
   ///
   /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
+  ///
+  /// - Complexity: O(n), where `n` is the length of `elements`.
   @inlinable
   public init<S: Sequence>(_ elements: S) where S.Element == Element {
     storage = Array(elements)
