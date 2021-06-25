@@ -93,23 +93,166 @@ final class BitArrayTest: CollectionTestCase {
         
     }
     
-    func testformBitwiseOr(){
+    func testformBitwiseOR(){
         var testArray = BitArray()
         var testArray2 = BitArray()
-        var value = Bool.random()
         
-        
-        for _ in 0...limit {
-            testArray.append(value)
-            value = Bool.random()
+        for i in 0...limit {
+            testArray.append((i%2 == 0))
         }
         
-        for _ in 0...limit/2 {
-            testArray2.append(value)
-            value = Bool.random()
+        for i in 0...limit {
+            testArray2.append((i%2 != 0))
         }
         
-        testArray.formBitwiseOr(with: testArray2)
+        
+        testArray.formBitwiseOR(with: testArray2)
+        
+        var resultStorage: [UInt8] = []
+        
+        for _ in 0..<12 {
+            resultStorage.append(255)
+        }
+        resultStorage.append(31)
+        
+        XCTAssertEqual(testArray.storage.count, 13)
+        XCTAssertEqual(testArray.storage, resultStorage)
+        
+    }
+    
+    func testformBitwiseAND(){
+        var testArray = BitArray()
+        var testArray2 = BitArray()
+        
+        for i in 0...limit {
+            testArray.append((i%2 == 0))
+        }
+        
+        for i in 0...limit {
+            testArray2.append((i%2 != 0))
+        }
+        
+        
+        testArray.formBitwiseAND(with: testArray2)
+        
+        var resultStorage: [UInt8] = []
+        
+        for _ in 0..<12 {
+            resultStorage.append(0)
+        }
+        resultStorage.append(0)
+        
+        XCTAssertEqual(testArray.storage.count, 13)
+        XCTAssertEqual(testArray.storage, resultStorage)
+        
+    }
+    
+    func testformBitwiseXOR(){
+        var testArray = BitArray()
+        var testArray2 = BitArray()
+        
+        for i in 0...limit {
+            testArray.append((i%2 == 0))
+        }
+        
+        for i in 0...limit {
+            testArray2.append((i%2 != 0))
+        }
+        
+        
+        testArray.formBitwiseXOR(with: testArray2)
+        
+        var resultStorage: [UInt8] = []
+        
+        for _ in 0..<12 {
+            resultStorage.append(255)
+        }
+        resultStorage.append(31)
+        
+        XCTAssertEqual(testArray.storage.count, 13)
+        XCTAssertEqual(testArray.storage, resultStorage)
+        
+    }
+    
+    func testBitwiseOR(){
+        var testArray = BitArray()
+        var testArray2 = BitArray()
+        
+        for i in 0...limit {
+            testArray.append((i%2 == 0))
+        }
+        
+        for i in 0...limit {
+            testArray2.append((i%2 != 0))
+        }
+        
+        
+        let newArr = testArray.bitwiseOR(with: testArray2)
+        
+        var resultStorage: [UInt8] = []
+        
+        for _ in 0..<12 {
+            resultStorage.append(255)
+        }
+        resultStorage.append(31)
+        
+        XCTAssertEqual(testArray.storage.count, 13)
+        XCTAssertEqual(newArr.storage, resultStorage)
+        
+    }
+    
+    func testBitwiseAND(){
+        var testArray = BitArray()
+        var testArray2 = BitArray()
+        
+        for i in 0...limit {
+            testArray.append((i%2 == 0))
+        }
+        
+        for i in 0...limit {
+            testArray2.append((i%2 != 0))
+        }
+        
+        
+        let newArr = testArray.bitwiseAND(with: testArray2)
+        
+        var resultStorage: [UInt8] = []
+        
+        for _ in 0..<12 {
+            resultStorage.append(0)
+        }
+        resultStorage.append(0)
+        
+        XCTAssertEqual(testArray.storage.count, 13)
+        XCTAssertEqual(newArr.storage, resultStorage)
+        
+    }
+    
+    func testBitwiseXOR(){
+        var testArray = BitArray()
+        var testArray2 = BitArray()
+        
+        for i in 0...limit {
+            testArray.append((i%2 == 0))
+        }
+        
+        for i in 0...limit {
+            testArray2.append((i%2 != 0))
+        }
+        
+        
+        let newArr = testArray.bitwiseXOR(with: testArray2)
+        
+        var resultStorage: [UInt8] = []
+        
+        for _ in 0..<12 {
+            resultStorage.append(255)
+        }
+        resultStorage.append(31)
+        
+        XCTAssertEqual(testArray.storage.count, 13)
+        XCTAssertEqual(newArr.storage, resultStorage)
+        
     }
     
 }
