@@ -36,10 +36,5 @@ extension BitArray {
             self.excess += 1
         }
     }
-    
-   /* public mutating func removeAll() {
-        self.storage = []
-        self.excess = 0
-    }*/
-    
+
 }
