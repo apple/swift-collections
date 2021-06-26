@@ -38,38 +38,14 @@ extension BitArray: MutableCollection {
         get {
             
             // any other checks needed?
-            if (position >= endIndex || position < startIndex) {
-                fatalError("Index out of bounds") // can we do something other than this? And how do we test for this?
-            }
+            precondition(position < endIndex && position >= startIndex, "Index out of bounds")
             
             let (index, mask) = _split(_position: position)
-            
             return (storage[index] & mask != 0)
-            
         }
         set {
-            
             let (index, mask) = _split(_position: position)
-            
-            /*
-            var currentVal: Bool { return (storage[index] & mask != 0) }
-            if (currentVal != newValue) { storage[index] ^= mask }
-            */
-            
-            /* Above is the original (modified) code
-             This code is implementing XOR, which is used to toggle bits, hence is only executed if the bit NEEDS to be changed
-             Therefore, simplifying the code to:
-                storage[index] ^= mask
-             doesn't work.
-             
-             If we wanted to force the change regardless of whether the change was needed (currentVal != newValue), we can do:
-             if (newValue) { storage[index] |= mask } else { storage[index] &= 0 }
-
-             */
-            
-            var currentVal: Bool { return (storage[index] & mask != 0) }
-            if (currentVal != newValue) { storage[index] ^= mask }
-            
+            if (newValue) { storage[index] |= mask } else { storage[index] &= ~mask }
         }
 
     }

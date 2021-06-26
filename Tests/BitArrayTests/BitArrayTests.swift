@@ -82,6 +82,7 @@ final class BitArrayTest: CollectionTestCase {
         
         for i in 0..<testArray.endIndex {
             let setVal = Bool.random()
+            let copy = testArray
             testArray[i] = setVal
             XCTAssertEqual(testArray[i], setVal)
             XCTAssertNotEqual(testArray[i], !setVal)
@@ -89,6 +90,11 @@ final class BitArrayTest: CollectionTestCase {
             testArray[i] = !setVal
             XCTAssertEqual(testArray[i], !setVal)
             XCTAssertNotEqual(testArray[i], setVal)
+            
+            // testing that previous values are unaffected
+            for j in 0..<i {
+                XCTAssertEqual(copy[j], testArray[j])
+            }
         }
         
     }
