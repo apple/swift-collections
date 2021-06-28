@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-fileprivate let fixedTrieCapacity = Bitmap.bitWidth
-
 fileprivate let initialDataCapacity = 4
 fileprivate let initialTrieCapacity = 1
 
@@ -30,8 +28,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     private var rootBaseAddress: UnsafeMutableRawPointer { UnsafeMutableRawPointer(trieBaseAddress) }
 
     deinit {
-        // TODO use bitmaps since count is more or less capacity?
-
         dataBaseAddress.deinitialize(count: header.dataCount)
         trieBaseAddress.deinitialize(count: header.trieCount)
 
@@ -104,7 +100,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).suffix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
     }
 
-    // default initializer
     init(dataCapacity: Int, trieCapacity: Int) {
         let (dataBaseAddress, trieBaseAddress) = Self._allocate(dataCapacity: dataCapacity, trieCapacity: trieCapacity)
 
@@ -131,7 +126,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: dataMap, bitmap2: 0)
 
-        // dataBuffer[0] = (firstKey, firstValue)
+//        self.dataBaseAddress[0] = (firstKey, firstValue)
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
 
@@ -143,8 +138,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: dataMap, bitmap2: 0)
 
-//        dataBuffer[0] = (firstKey, firstValue)
-//        dataBuffer[1] = (secondKey, secondValue)
+//        self.dataBaseAddress[0] = (firstKey, firstValue)
+//        self.dataBaseAddress[1] = (secondKey, secondValue)
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.dataBaseAddress.successor().initialize(to: (secondKey, secondValue))
@@ -157,7 +152,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: 0, bitmap2: nodeMap)
 
-//        trieBuffer[0] = firstNode
+//        self.trieBaseAddress[0] = firstNode
 
         self.trieBaseAddress.initialize(to: firstNode)
 
@@ -169,7 +164,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: collMap, bitmap2: collMap)
 
-//        trieBuffer[0] = firstNode
+//        self.trieBaseAddress[0] = firstNode
 
         self.trieBaseAddress.initialize(to: firstNode)
 
@@ -181,8 +176,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: dataMap | collMap, bitmap2: collMap)
 
-//        dataBuffer[0] = (firstKey, firstValue)
-//        trieBuffer[0] = firstNode
+//        self.dataBaseAddress[0] = (firstKey, firstValue)
+//        self.trieBaseAddress[0] = firstNode
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.trieBaseAddress.initialize(to: firstNode)
