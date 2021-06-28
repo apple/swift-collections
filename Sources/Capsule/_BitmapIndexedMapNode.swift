@@ -32,8 +32,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     deinit {
         // TODO use bitmaps since count is more or less capacity?
 
-        dataBaseAddress.deinitialize(count: header.dataMap.nonzeroBitCount)
-        trieBaseAddress.deinitialize(count: header.trieMap.nonzeroBitCount)
+        dataBaseAddress.deinitialize(count: header.dataCount)
+        trieBaseAddress.deinitialize(count: header.trieCount)
 
         rootBaseAddress.deallocate()
     }
@@ -73,8 +73,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let dst = Self(dataCapacity: src.dataCapacity * dataFactor, trieCapacity: src.trieCapacity * trieFactor)
 
         dst.header = src.header
-        dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataMap.nonzeroBitCount)
-        dst.trieBaseAddress.initialize(from: src.trieBaseAddress, count: src.header.trieMap.nonzeroBitCount)
+        dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataCount)
+        dst.trieBaseAddress.initialize(from: src.trieBaseAddress, count: src.header.trieCount)
 
         assert(dst.invariant)
         return dst
@@ -97,11 +97,11 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     var nodeSliceInvariant: Bool {
-        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieMap.nonzeroBitCount).prefix(bitmapIndexedNodeArity).allSatisfy { $0 is ReturnBitmapIndexedNode }
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).prefix(bitmapIndexedNodeArity).allSatisfy { $0 is ReturnBitmapIndexedNode }
     }
 
     var collSliceInvariant: Bool {
-        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieMap.nonzeroBitCount).suffix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).suffix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
     }
 
     // default initializer
@@ -447,9 +447,9 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
     }
 
-    var hasBitmapIndexedNodes: Bool { nodeMap != 0 }
+    var hasBitmapIndexedNodes: Bool { header.nodeMap != 0 }
 
-    var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
+    var bitmapIndexedNodeArity: Int { header.nodeCount }
 
     func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
         trieBaseAddress[index] as! BitmapIndexedMapNode<Key, Value>
@@ -471,17 +471,19 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
 
-    var hasHashCollisionNodes: Bool { collMap != 0 }
+    var hasHashCollisionNodes: Bool { header.collMap != 0 }
 
-    var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
+    var hashCollisionNodeArity: Int { header.collCount }
 
     func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
         trieBaseAddress[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
     }
 
-    var hasNodes: Bool { (nodeMap | collMap) != 0 }
+    // TODO rename, not accurate any more
+    var hasNodes: Bool { header.trieMap != 0 }
 
-    var nodeArity: Int { (nodeMap | collMap).nonzeroBitCount }
+    // TODO rename, not accurate any more
+    var nodeArity: Int { header.trieCount }
 
     func getNode(_ index: Int) -> TrieNode<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
         if index < bitmapIndexedNodeArity {
@@ -491,9 +493,9 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
     }
 
-    var hasPayload: Bool { dataMap != 0 }
+    var hasPayload: Bool { header.dataMap != 0 }
 
-    var payloadArity: Int { dataMap.nonzeroBitCount }
+    var payloadArity: Int { header.dataCount }
 
     func getPayload(_ index: Int) -> (key: Key, value: Value) {
         dataBaseAddress[index] // as! ReturnPayload
@@ -506,10 +508,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     func nodeIndex(_ bitpos: Bitmap) -> Int { (nodeMap & (bitpos &- 1)).nonzeroBitCount }
 
     func collIndex(_ bitpos: Bitmap) -> Int { (collMap & (bitpos &- 1)).nonzeroBitCount }
-
-    // TODO deprecate?
-    /// The number of (non-contiguous) occupied buffer cells.
-    final var count: Int { (header.bitmap1 | header.bitmap2).nonzeroBitCount }
 
     func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
@@ -562,7 +560,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForData = dataMap.nonzeroBitCount < dataCapacity
+        let hasRoomForData = header.dataCount < dataCapacity
 
         if isStorageKnownUniquelyReferenced && hasRoomForData {
             dst = src
@@ -571,7 +569,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
 
         let dataIdx = indexFrom(dataMap, bitpos)
-        rangeInsert((key, value), at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
+        rangeInsert((key, value), at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataCount)
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap`
         dst.header.bitmap1 |= bitpos
@@ -591,7 +589,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
 
         let dataIdx = indexFrom(dataMap, bitpos)
-        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
+        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
         dst.header.bitmap1 ^= bitpos
@@ -604,7 +602,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieCapacity
+        let hasRoomForTrie = header.trieCount < trieCapacity
 
         if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
@@ -613,10 +611,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
 
         let dataIdx = indexFrom(dataMap, bitpos)
-        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
+        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
         let nodeIdx = indexFrom(nodeMap, bitpos)
-        rangeInsert(node, at: nodeIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
+        rangeInsert(node, at: nodeIdx, into: dst.trieBaseAddress, count: dst.header.trieCount)
 
         // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
         dst.header.bitmap1 ^= bitpos
@@ -630,7 +628,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieCapacity
+        let hasRoomForTrie = header.trieCount < trieCapacity
 
         if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
@@ -639,10 +637,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
 
         let dataIdx = indexFrom(dataMap, bitpos)
-        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
+        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
         let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
-        rangeInsert(node, at: collIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
+        rangeInsert(node, at: collIdx, into: dst.trieBaseAddress, count: dst.header.trieCount)
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap | bitpos`
         dst.header.bitmap2 |= bitpos
@@ -662,10 +660,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
 
         let nodeIdx = indexFrom(nodeMap, bitpos)
-        rangeRemove(at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
+        rangeRemove(at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieCount)
 
         let dataIdx = indexFrom(dataMap, bitpos)
-        rangeInsert(tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
+        rangeInsert(tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataCount)
 
         // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
         dst.header.bitmap1 |= bitpos
@@ -686,10 +684,10 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
 
         let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
-        rangeRemove(at: collIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
+        rangeRemove(at: collIdx, from: dst.trieBaseAddress, count: dst.header.trieCount)
 
         let dataIdx = indexFrom(dataMap, bitpos)
-        rangeInsert(tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
+        rangeInsert(tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataCount)
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap ^ bitpos`
         dst.header.bitmap2 ^= bitpos
@@ -711,8 +709,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let collIdx = nodeMap.nonzeroBitCount + collIndex(bitpos)
         let nodeIdx = nodeIndex(bitpos)
 
-        rangeRemove(at: collIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
-        rangeInsert(node, at: nodeIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount - 1)  // TODO check, but moving one less should be accurate
+        rangeRemove(at: collIdx, from: dst.trieBaseAddress, count: dst.header.trieCount)
+        rangeInsert(node, at: nodeIdx, into: dst.trieBaseAddress, count: dst.header.trieCount - 1) // TODO check, but moving one less should be accurate
 
         // update metadata: `dataMap, nodeMap | bitpos, collMap ^ bitpos`
         dst.header.bitmap1 ^= bitpos
@@ -734,8 +732,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let nodeIdx = nodeIndex(bitpos)
         let collIdx = nodeMap.nonzeroBitCount - 1 + collIndex(bitpos)
 
-        rangeRemove(at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
-        rangeInsert(node, at: collIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount - 1) // TODO check, but moving one less should be accurate
+        rangeRemove(at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieCount)
+        rangeInsert(node, at: collIdx, into: dst.trieBaseAddress, count: dst.header.trieCount - 1) // TODO check, but moving one less should be accurate
 
         // update metadata: `dataMap, nodeMap ^ bitpos, collMap | bitpos`
         dst.header.bitmap1 |= bitpos
@@ -806,6 +804,14 @@ struct Header {
     var trieMap: Bitmap {
         bitmap2
     }
+
+    var dataCount: Int { dataMap.nonzeroBitCount }
+
+    var nodeCount: Int { nodeMap.nonzeroBitCount }
+
+    var collCount: Int { collMap.nonzeroBitCount }
+
+    var trieCount: Int { trieMap.nonzeroBitCount }
 }
 
 extension Header {
