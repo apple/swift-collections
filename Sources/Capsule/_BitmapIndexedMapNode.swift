@@ -9,19 +9,33 @@
 //
 //===----------------------------------------------------------------------===//
 
-typealias Element = Any
+fileprivate let fixedTrieCapacity = Bitmap.bitWidth
 
-fileprivate let fixedTrieCapacity = Bitmap.bitWidth * MemoryLayout<AnyObject>.size / MemoryLayout<Element>.size
+fileprivate let initialDataCapacity = 8
+fileprivate let initialTrieCapacity = 4
 
-fileprivate let initialDataCapacity = 4
+final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
-final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, MapNode where Key: Hashable {
+    typealias DataBufferElement = ReturnPayload // `ReturnPayload` or `Any`
+    typealias TrieBufferElement = AnyObject
+
+    var header: Header
+
+    var dataBuffer: UnsafeMutableBufferPointer<DataBufferElement>
+    var trieBuffer: UnsafeMutableBufferPointer<TrieBufferElement>
+
+    var dataBaseAddress: UnsafeMutablePointer<DataBufferElement> { dataBuffer.baseAddress! }
+    var trieBaseAddress: UnsafeMutablePointer<TrieBufferElement> { trieBuffer.baseAddress! }
+
+    private var rootBaseAddress: UnsafeMutableRawPointer { UnsafeMutableRawPointer(trieBuffer.baseAddress!) }
 
     deinit {
-        self.withUnsafeMutablePointerRanges { dataRange, trieRange in
-            dataRange.startIndex.deinitialize(count: dataRange.count)
-            trieRange.startIndex.deinitialize(count: trieRange.count)
-        }
+        // TODO use bitmaps since count is more or less capacity?
+
+        dataBaseAddress.deinitialize(count: header.dataMap.nonzeroBitCount)
+        trieBaseAddress.deinitialize(count: header.trieMap.nonzeroBitCount)
+
+        rootBaseAddress.deallocate()
     }
 
     @inline(__always)
@@ -39,32 +53,43 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         header.collMap
     }
 
-    @inline(__always)
-    func withUnsafeMutablePointerRanges<R>(transformRanges transform: (Range<UnsafeMutablePointer<Element>>, Range<UnsafeMutablePointer<AnyObject>>) -> R) -> R {
-        self.withUnsafeMutablePointerToElements { elements in
-            let(dataCnt, trieCnt) = header.explodedMap { bitmap in bitmap.nonzeroBitCount }
+    @inlinable
+    static func _allocate(dataCapacity: Int, trieCapacity: Int) -> (dataBuffer: UnsafeMutableBufferPointer<DataBufferElement>, trieBuffer: UnsafeMutableBufferPointer<TrieBufferElement>) {
 
-            let dataElements = elements.advanced(by: fixedTrieCapacity)
-            let dataRange = dataElements ..< dataElements.advanced(by: dataCnt)
+        let dataCapacityInBytes = dataCapacity * MemoryLayout<DataBufferElement>.stride
+        let trieCapacityInBytes = trieCapacity * MemoryLayout<TrieBufferElement>.stride
 
-            let trieElements = UnsafeMutableRawPointer(elements).bindMemory(to: AnyObject.self, capacity: trieCnt)
-            let trieRange = trieElements ..< trieElements.advanced(by: trieCnt)
+        let memory = UnsafeMutableRawPointer.allocate(
+            byteCount: dataCapacityInBytes + trieCapacityInBytes,
+            alignment: 8)
 
-            return transform(dataRange, trieRange)
-        }
+        let dataBuffer = UnsafeMutableBufferPointer(
+            start: memory.advanced(by: trieCapacityInBytes).bindMemory(to: DataBufferElement.self, capacity: dataCapacity),
+            count: dataCapacity)
+
+        let trieBuffer = UnsafeMutableBufferPointer(
+            start: memory.bindMemory(to: TrieBufferElement.self, capacity: trieCapacity),
+            count: trieCapacity)
+
+        return (dataBuffer, trieBuffer)
     }
 
-    func copy(withCapacityFactor factor: Int = 1) -> Self {
+    func copy(withDataCapacityFactor dataFactor: Int = 1, withTrieCapacityFactor trieFactor: Int = 1) -> Self {
         let src = self
-        let dst = Self.create(minimumCapacity: fixedTrieCapacity + (capacity - fixedTrieCapacity) * factor) { _ in header } as! Self
 
-        src.withUnsafeMutablePointerRanges { srcDataRange, srcTrieRange in
-            dst.withUnsafeMutablePointerRanges { dstDataRange, dstTrieRange in
-                dstDataRange.startIndex.initialize(from: srcDataRange.startIndex, count: srcDataRange.count)
-                dstTrieRange.startIndex.initialize(from: srcTrieRange.startIndex, count: srcTrieRange.count)
-            }
-        }
+        let (dstDataBuffer, dstTrieBuffer) = Self._allocate(dataCapacity: src.dataBuffer.count * dataFactor, trieCapacity: src.trieBuffer.count * trieFactor)
 
+        let dst = Self()
+        dst.header = src.header
+        dst.dataBuffer = dstDataBuffer
+        dst.trieBuffer = dstTrieBuffer
+//        dst.dataBaseAddress = dstDataBuffer.baseAddress!
+//        dst.trieBaseAddress = dstTrieBuffer.baseAddress!
+
+        dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataMap.nonzeroBitCount)
+        dst.trieBaseAddress.initialize(from: src.trieBaseAddress, count: src.header.trieMap.nonzeroBitCount)
+
+        assert(dst.invariant)
         return dst
     }
 
@@ -77,9 +102,9 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             return false
         }
 
-        guard count <= capacity else {
-            return false
-        }
+//        guard count <= capacity else {
+//            return false
+//        }
 
         return true
     }
@@ -89,67 +114,111 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     var dataSliceInvariant: Bool {
-        self.withUnsafeMutablePointerRanges { dataRange, _ in
-            dataRange.allSatisfy { pointer in pointer.pointee is ReturnPayload }
-        }
+        dataBuffer.prefix(payloadArity).allSatisfy { $0 is ReturnPayload }
     }
 
     var nodeSliceInvariant: Bool {
-        self.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.prefix(bitmapIndexedNodeArity).allSatisfy { pointer in pointer.pointee is ReturnBitmapIndexedNode }
-        }
+        trieBuffer.prefix(bitmapIndexedNodeArity).allSatisfy { $0 is ReturnBitmapIndexedNode }
     }
 
     var collSliceInvariant: Bool {
-        self.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.suffix(hashCollisionNodeArity).allSatisfy { pointer in pointer.pointee is ReturnHashCollisionNode }
-        }
+        trieBuffer.dropFirst(bitmapIndexedNodeArity).prefix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
     }
 
-    static func create() -> Self {
-        Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: 0, bitmap2: 0) } as! Self
+    init() {
+        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: 0, bitmap2: 0)
+        self.dataBuffer = dataBuffer
+        self.trieBuffer = trieBuffer
+//        self.dataBaseAddress = dataBuffer.baseAddress!
+//        self.trieBaseAddress = trieBuffer.baseAddress!
+
+        assert(self.invariant)
     }
 
-    static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value) -> Self {
-        let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: dataMap, bitmap2: 0) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, _ in
-            dataRange.startIndex.initialize(to: (firstKey, firstValue))
-        }
-        return result
+    init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
+        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: dataMap, bitmap2: 0)
+        self.dataBuffer = dataBuffer
+        self.trieBuffer = trieBuffer
+//        self.dataBaseAddress = dataBuffer.baseAddress!
+//        self.trieBaseAddress = trieBuffer.baseAddress!
+
+        // dataBuffer[0] = (firstKey, firstValue)
+
+        dataBuffer.baseAddress!.initialize(to: (firstKey, firstValue))
+
+        assert(self.invariant)
     }
 
-    static func create(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) -> Self {
-        let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: dataMap, bitmap2: 0) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, _ in
-            dataRange.startIndex.initialize(to: (firstKey, firstValue))
-            dataRange.startIndex.successor().initialize(to: (secondKey, secondValue))
-        }
-        return result
+    init(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) {
+        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: dataMap, bitmap2: 0)
+        self.dataBuffer = dataBuffer
+        self.trieBuffer = trieBuffer
+//        self.dataBaseAddress = dataBuffer.baseAddress!
+//        self.trieBaseAddress = trieBuffer.baseAddress!
+
+//        dataBuffer[0] = (firstKey, firstValue)
+//        dataBuffer[1] = (secondKey, secondValue)
+
+        dataBuffer.baseAddress!.initialize(to: (firstKey, firstValue))
+        dataBuffer.baseAddress!.successor().initialize(to: (secondKey, secondValue))
+
+        assert(self.invariant)
     }
 
-    static func create(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: 0, bitmap2: nodeMap) } as! Self
-        result.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.startIndex.initialize(to: firstNode)
-        }
-        return result
+    init(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) {
+        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: 0, bitmap2: nodeMap)
+        self.dataBuffer = dataBuffer
+        self.trieBuffer = trieBuffer
+//        self.dataBaseAddress = dataBuffer.baseAddress!
+//        self.trieBaseAddress = trieBuffer.baseAddress!
+
+//        trieBuffer[0] = firstNode
+
+        trieBuffer.baseAddress!.initialize(to: firstNode)
+
+        assert(self.invariant)
     }
 
-    static func create(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: collMap, bitmap2: collMap) }  as! Self
-        result.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.startIndex.initialize(to: firstNode)
-        }
-        return result
+    init(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) {
+        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: collMap, bitmap2: collMap)
+        self.dataBuffer = dataBuffer
+        self.trieBuffer = trieBuffer
+//        self.dataBaseAddress = dataBuffer.baseAddress!
+//        self.trieBaseAddress = trieBuffer.baseAddress!
+
+//        trieBuffer[0] = firstNode
+
+        trieBuffer.baseAddress!.initialize(to: firstNode)
+
+        assert(self.invariant)
     }
 
-    static func create(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) -> Self {
-        let result = Self.create(minimumCapacity: fixedTrieCapacity + initialDataCapacity) { _ in Header(bitmap1: dataMap | collMap, bitmap2: collMap) } as! Self
-        result.withUnsafeMutablePointerRanges { dataRange, trieRange in
-            dataRange.startIndex.initialize(to: (firstKey, firstValue))
-            trieRange.startIndex.initialize(to: firstNode)
-        }
-        return result
+    init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
+        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: dataMap | collMap, bitmap2: collMap)
+        self.dataBuffer = dataBuffer
+        self.trieBuffer = trieBuffer
+//        self.dataBaseAddress = dataBuffer.baseAddress!
+//        self.trieBaseAddress = trieBuffer.baseAddress!
+
+//        dataBuffer[0] = (firstKey, firstValue)
+//        trieBuffer[0] = firstNode
+
+        dataBuffer.baseAddress!.initialize(to: (firstKey, firstValue))
+        trieBuffer.baseAddress!.initialize(to: firstNode)
+
+        assert(self.invariant)
     }
 
     var recursiveCount: Int {
@@ -278,17 +347,17 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
                     // keep remaining pair on root level
                     let newDataMap = (dataMap ^ bitpos)
                     let (remainingKey, remainingValue) = getPayload(1 - index)
-                    return Self.create(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
+                    return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 } else {
                     // create potential new root: will a) become new root, or b) inlined on another level
                     let newDataMap = bitposFrom(maskFrom(keyHash, 0))
                     let (remainingKey, remainingValue) = getPayload(1 - index)
-                    return Self.create(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
+                    return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 }
             } else if self.payloadArity == 1 && self.bitmapIndexedNodeArity == 0 && self.hashCollisionNodeArity == 1 {
                 // create potential new root: will a) become new root, or b) unwrapped on another level
                 let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).hash, 0))
-                return Self.create(collMap: newCollMap, firstNode: getHashCollisionNode(0))
+                return Self(collMap: newCollMap, firstNode: getHashCollisionNode(0))
             } else { return copyAndRemoveValue(isStorageKnownUniquelyReferenced, bitpos) }
         }
 
@@ -352,7 +421,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
                     // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
                     let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
                     let (remainingKey, remainingValue) = subNodeNew.getPayload(0)
-                    return Self.create(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
+                    return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 } else {
                     // inline value
                     return copyAndMigrateFromCollisionNodeToInline(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getPayload(0))
@@ -380,15 +449,15 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         if mask0 != mask1 {
             // unique prefixes, payload fits on same level
             if mask0 < mask1 {
-                return Self.create(dataMap: bitposFrom(mask0) | bitposFrom(mask1), firstKey: key0, firstValue: value0, secondKey: key1, secondValue: value1)
+                return Self(dataMap: bitposFrom(mask0) | bitposFrom(mask1), firstKey: key0, firstValue: value0, secondKey: key1, secondValue: value1)
             } else {
-                return Self.create(dataMap: bitposFrom(mask1) | bitposFrom(mask0), firstKey: key1, firstValue: value1, secondKey: key0, secondValue: value0)
+                return Self(dataMap: bitposFrom(mask1) | bitposFrom(mask0), firstKey: key1, firstValue: value1, secondKey: key0, secondValue: value0)
             }
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
             let node = mergeTwoKeyValPairs(key0, value0, keyHash0, key1, value1, keyHash1, shift + bitPartitionSize)
 
-            return Self.create(nodeMap: bitposFrom(mask0), firstNode: node)
+            return Self(nodeMap: bitposFrom(mask0), firstNode: node)
         }
     }
 
@@ -400,12 +469,12 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
         if mask0 != mask1 {
             // unique prefixes, payload and collision node fit on same level
-            return Self.create(dataMap: bitposFrom(mask0), collMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: node1)
+            return Self(dataMap: bitposFrom(mask0), collMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: node1)
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
             let node = mergeKeyValPairAndCollisionNode(key0, value0, keyHash0, node1, nodeHash1, shift + bitPartitionSize)
 
-            return Self.create(nodeMap: bitposFrom(mask0), firstNode: node)
+            return Self(nodeMap: bitposFrom(mask0), firstNode: node)
         }
     }
 
@@ -414,9 +483,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
 
     func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
-        self.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.startIndex[index] as! BitmapIndexedMapNode<Key, Value>
-        }
+        trieBuffer[index] as! BitmapIndexedMapNode<Key, Value>
     }
 
     private func isBitmapIndexedNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
@@ -430,9 +497,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     }
 
     private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
-        let isKnownUniquelyReferenced = self.withUnsafeMutablePointerRanges { _, trieRange in
-            Swift.isKnownUniquelyReferenced(&trieRange.startIndex.advanced(by: slotIndex).pointee)
-        }
+        let isKnownUniquelyReferenced = Swift.isKnownUniquelyReferenced(&trieBuffer[slotIndex])
 
         return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
@@ -442,9 +507,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
 
     func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
-        self.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.startIndex[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
-        }
+        trieBuffer[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
     }
 
     var hasNodes: Bool { (nodeMap | collMap) != 0 }
@@ -464,9 +527,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
     var payloadArity: Int { dataMap.nonzeroBitCount }
 
     func getPayload(_ index: Int) -> (key: Key, value: Value) {
-        self.withUnsafeMutablePointerRanges { dataRange, _ in
-            dataRange.startIndex[index] as! ReturnPayload
-        }
+        dataBuffer[index] // as! ReturnPayload
     }
 
     var sizePredicate: SizePredicate { SizePredicate(self) }
@@ -477,6 +538,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
 
     func collIndex(_ bitpos: Bitmap) -> Int { (collMap & (bitpos &- 1)).nonzeroBitCount }
 
+    // TODO deprecate?
     /// The number of (non-contiguous) occupied buffer cells.
     final var count: Int { (header.bitmap1 | header.bitmap2).nonzeroBitCount }
 
@@ -490,12 +552,12 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, _ in
-            let idx = dataIndex(bitpos)
+        let idx = dataIndex(bitpos)
 
-            let (key, _) = dataRange.startIndex[idx] as! ReturnPayload
-            dataRange.startIndex[idx] = (key, newValue)
-        }
+//        let (key, _) = dst.dataBuffer[idx] // as! ReturnPayload
+//        dst.dataBuffer[idx] = (key, newValue)
+
+        dst.dataBuffer[idx].value = newValue
 
         assert(dst.invariant)
         return dst
@@ -521,9 +583,7 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { _, trieRange in
-            trieRange.startIndex[idx] = newNode as AnyObject
-        }
+        dst.trieBuffer[idx] = newNode as TrieBufferElement
 
         assert(dst.invariant)
         return dst
@@ -533,18 +593,16 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForData = dataMap.nonzeroBitCount < (capacity - fixedTrieCapacity)
+        let hasRoomForData = dataMap.nonzeroBitCount < dataBuffer.count
 
         if isStorageKnownUniquelyReferenced && hasRoomForData {
             dst = src
         } else {
-            dst = src.copy(withCapacityFactor: hasRoomForData ? 1 : 2)
+            dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, _ in
-            let dataIdx = indexFrom(dataMap, bitpos)
-            rangeInsert((key, value), at: dataIdx, intoRange: dataRange)
-        }
+        let dataIdx = indexFrom(dataMap, bitpos)
+        rangeInsert((key, value), at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap`
         dst.header.bitmap1 |= bitpos
@@ -563,10 +621,8 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, _ in
-            let dataIdx = indexFrom(dataMap, bitpos)
-            rangeRemove(at: dataIdx, fromRange: dataRange)
-        }
+        let dataIdx = indexFrom(dataMap, bitpos)
+        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
         dst.header.bitmap1 ^= bitpos
@@ -579,19 +635,19 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        if isStorageKnownUniquelyReferenced {
+        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieBuffer.count
+
+        if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
         } else {
-            dst = src.copy()
+            dst = src.copy(withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
-            let dataIdx = indexFrom(dataMap, bitpos)
-            rangeRemove(at: dataIdx, fromRange: dataRange)
+        let dataIdx = indexFrom(dataMap, bitpos)
+        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
 
-            let nodeIdx = indexFrom(nodeMap, bitpos)
-            rangeInsert(node, at: nodeIdx, intoRange: trieRange)
-        }
+        let nodeIdx = indexFrom(nodeMap, bitpos)
+        rangeInsert(node, at: nodeIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
 
         // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
         dst.header.bitmap1 ^= bitpos
@@ -605,19 +661,19 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        if isStorageKnownUniquelyReferenced {
+        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieBuffer.count
+
+        if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
         } else {
-            dst = src.copy()
+            dst = src.copy(withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
-            let dataIdx = indexFrom(dataMap, bitpos)
-            rangeRemove(at: dataIdx, fromRange: dataRange)
+        let dataIdx = indexFrom(dataMap, bitpos)
+        rangeRemove(at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
 
-            let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
-            rangeInsert(node, at: collIdx, intoRange: trieRange)
-        }
+        let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
+        rangeInsert(node, at: collIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap | bitpos`
         dst.header.bitmap2 |= bitpos
@@ -636,13 +692,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
-            let nodeIdx = indexFrom(nodeMap, bitpos)
-            rangeRemove(at: nodeIdx, fromRange: trieRange)
+        let nodeIdx = indexFrom(nodeMap, bitpos)
+        rangeRemove(at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
 
-            let dataIdx = indexFrom(dataMap, bitpos)
-            rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
-        }
+        let dataIdx = indexFrom(dataMap, bitpos)
+        rangeInsert(tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
 
         // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
         dst.header.bitmap1 |= bitpos
@@ -662,13 +716,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { dataRange, trieRange in
-            let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
-            rangeRemove(at: collIdx, fromRange: trieRange)
+        let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
+        rangeRemove(at: collIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
 
-            let dataIdx = indexFrom(dataMap, bitpos)
-            rangeInsert(tuple, at: dataIdx, intoRange: dataRange)
-        }
+        let dataIdx = indexFrom(dataMap, bitpos)
+        rangeInsert(tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataMap.nonzeroBitCount)
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap ^ bitpos`
         dst.header.bitmap2 ^= bitpos
@@ -687,13 +739,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { _, trieRange in
-            let collIdx = nodeMap.nonzeroBitCount + collIndex(bitpos)
-            let nodeIdx = nodeIndex(bitpos)
+        let collIdx = nodeMap.nonzeroBitCount + collIndex(bitpos)
+        let nodeIdx = nodeIndex(bitpos)
 
-            rangeRemove(at: collIdx, fromRange: trieRange)
-            rangeInsert(node, at: nodeIdx, intoRange: trieRange)
-        }
+        rangeRemove(at: collIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
+        rangeInsert(node, at: nodeIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount - 1)  // TODO check, but moving one less should be accurate
 
         // update metadata: `dataMap, nodeMap | bitpos, collMap ^ bitpos`
         dst.header.bitmap1 ^= bitpos
@@ -712,13 +762,11 @@ final class BitmapIndexedMapNode<Key, Value>: ManagedBuffer<Header, Element>, Ma
             dst = src.copy()
         }
 
-        dst.withUnsafeMutablePointerRanges { _, trieRange in
-            let nodeIdx = nodeIndex(bitpos)
-            let collIdx = nodeMap.nonzeroBitCount - 1 + collIndex(bitpos)
+        let nodeIdx = nodeIndex(bitpos)
+        let collIdx = nodeMap.nonzeroBitCount - 1 + collIndex(bitpos)
 
-            rangeRemove(at: nodeIdx, fromRange: trieRange)
-            rangeInsert(node, at: collIdx, intoRange: trieRange)
-        }
+        rangeRemove(at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount)
+        rangeInsert(node, at: collIdx, into: dst.trieBaseAddress, count: dst.header.trieMap.nonzeroBitCount - 1) // TODO check, but moving one less should be accurate
 
         // update metadata: `dataMap, nodeMap ^ bitpos, collMap | bitpos`
         dst.header.bitmap1 |= bitpos

@@ -302,6 +302,18 @@ func rangeInsert<T>(_ element: T, at index: Int, intoRange range: Range<UnsafeMu
     src.initialize(to: element)
 }
 
+// NEW
+@inlinable
+@inline(__always)
+func rangeInsert<T>(_ element: T, at index: Int, into baseAddress: UnsafeMutablePointer<T>, count: Int) {
+    let src = baseAddress.advanced(by: index)
+    let dst = src.successor()
+
+    dst.moveInitialize(from: src, count: count - index)
+
+    src.initialize(to: element)
+}
+
 // `index` is the logical index starting at the rear, indexing to the left
 func rangeInsertReversed<T>(_ element: T, at index: Int, intoRange range: Range<UnsafeMutablePointer<T>>) {
     let seq = range.dropLast(index)
@@ -323,6 +335,17 @@ func rangeRemove<T>(at index: Int, fromRange range: Range<UnsafeMutablePointer<T
 
     dst.deinitialize(count: 1)
     dst.moveInitialize(from: src, count: seq.count)
+}
+
+// NEW
+@inlinable
+@inline(__always)
+func rangeRemove<T>(at index: Int, from baseAddress: UnsafeMutablePointer<T>, count: Int) {
+    let src = baseAddress.advanced(by: index + 1)
+    let dst = src.predecessor()
+
+    dst.deinitialize(count: 1)
+    dst.moveInitialize(from: src, count: count - index - 1)
 }
 
 // `index` is the logical index starting at the rear, indexing to the left
