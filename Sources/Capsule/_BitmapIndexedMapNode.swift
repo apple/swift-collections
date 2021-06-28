@@ -11,8 +11,8 @@
 
 fileprivate let fixedTrieCapacity = Bitmap.bitWidth
 
-fileprivate let initialDataCapacity = 8
-fileprivate let initialTrieCapacity = 4
+fileprivate let initialDataCapacity = 4
+fileprivate let initialTrieCapacity = 1
 
 final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
@@ -21,13 +21,13 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var header: Header
 
-    var dataBuffer: UnsafeMutableBufferPointer<DataBufferElement>
-    var trieBuffer: UnsafeMutableBufferPointer<TrieBufferElement>
+    let dataCapacity: Int // TODO constrain type
+    let trieCapacity: Int // TODO constrain type
 
-    var dataBaseAddress: UnsafeMutablePointer<DataBufferElement> { dataBuffer.baseAddress! }
-    var trieBaseAddress: UnsafeMutablePointer<TrieBufferElement> { trieBuffer.baseAddress! }
+    let dataBaseAddress: UnsafeMutablePointer<DataBufferElement>
+    let trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
 
-    private var rootBaseAddress: UnsafeMutableRawPointer { UnsafeMutableRawPointer(trieBuffer.baseAddress!) }
+    private var rootBaseAddress: UnsafeMutableRawPointer { UnsafeMutableRawPointer(trieBaseAddress) }
 
     deinit {
         // TODO use bitmaps since count is more or less capacity?
@@ -54,8 +54,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     @inlinable
-    static func _allocate(dataCapacity: Int, trieCapacity: Int) -> (dataBuffer: UnsafeMutableBufferPointer<DataBufferElement>, trieBuffer: UnsafeMutableBufferPointer<TrieBufferElement>) {
-
+    static func _allocate(dataCapacity: Int, trieCapacity: Int) -> (dataBaseAddress: UnsafeMutablePointer<DataBufferElement>, trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>) {
         let dataCapacityInBytes = dataCapacity * MemoryLayout<DataBufferElement>.stride
         let trieCapacityInBytes = trieCapacity * MemoryLayout<TrieBufferElement>.stride
 
@@ -63,29 +62,17 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             byteCount: dataCapacityInBytes + trieCapacityInBytes,
             alignment: 8)
 
-        let dataBuffer = UnsafeMutableBufferPointer(
-            start: memory.advanced(by: trieCapacityInBytes).bindMemory(to: DataBufferElement.self, capacity: dataCapacity),
-            count: dataCapacity)
+        let dataBaseAddress = memory.advanced(by: trieCapacityInBytes).bindMemory(to: DataBufferElement.self, capacity: dataCapacity)
+        let trieBaseAddress = memory.bindMemory(to: TrieBufferElement.self, capacity: trieCapacity)
 
-        let trieBuffer = UnsafeMutableBufferPointer(
-            start: memory.bindMemory(to: TrieBufferElement.self, capacity: trieCapacity),
-            count: trieCapacity)
-
-        return (dataBuffer, trieBuffer)
+        return (dataBaseAddress, trieBaseAddress)
     }
 
     func copy(withDataCapacityFactor dataFactor: Int = 1, withTrieCapacityFactor trieFactor: Int = 1) -> Self {
         let src = self
+        let dst = Self(dataCapacity: src.dataCapacity * dataFactor, trieCapacity: src.trieCapacity * trieFactor)
 
-        let (dstDataBuffer, dstTrieBuffer) = Self._allocate(dataCapacity: src.dataBuffer.count * dataFactor, trieCapacity: src.trieBuffer.count * trieFactor)
-
-        let dst = Self()
         dst.header = src.header
-        dst.dataBuffer = dstDataBuffer
-        dst.trieBuffer = dstTrieBuffer
-//        dst.dataBaseAddress = dstDataBuffer.baseAddress!
-//        dst.trieBaseAddress = dstTrieBuffer.baseAddress!
-
         dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataMap.nonzeroBitCount)
         dst.trieBaseAddress.initialize(from: src.trieBaseAddress, count: src.header.trieMap.nonzeroBitCount)
 
@@ -102,121 +89,103 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             return false
         }
 
-//        guard count <= capacity else {
-//            return false
-//        }
-
         return true
     }
 
     var contentInvariant: Bool {
-        dataSliceInvariant && nodeSliceInvariant && collSliceInvariant
-    }
-
-    var dataSliceInvariant: Bool {
-        dataBuffer.prefix(payloadArity).allSatisfy { $0 is ReturnPayload }
+        nodeSliceInvariant && collSliceInvariant
     }
 
     var nodeSliceInvariant: Bool {
-        trieBuffer.prefix(bitmapIndexedNodeArity).allSatisfy { $0 is ReturnBitmapIndexedNode }
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieMap.nonzeroBitCount).prefix(bitmapIndexedNodeArity).allSatisfy { $0 is ReturnBitmapIndexedNode }
     }
 
     var collSliceInvariant: Bool {
-        trieBuffer.dropFirst(bitmapIndexedNodeArity).prefix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieMap.nonzeroBitCount).suffix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
     }
 
-    init() {
-        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+    // default initializer
+    init(dataCapacity: Int, trieCapacity: Int) {
+        let (dataBaseAddress, trieBaseAddress) = Self._allocate(dataCapacity: dataCapacity, trieCapacity: trieCapacity)
 
         self.header = Header(bitmap1: 0, bitmap2: 0)
-        self.dataBuffer = dataBuffer
-        self.trieBuffer = trieBuffer
-//        self.dataBaseAddress = dataBuffer.baseAddress!
-//        self.trieBaseAddress = trieBuffer.baseAddress!
+        self.dataBaseAddress = dataBaseAddress
+        self.trieBaseAddress = trieBaseAddress
+
+        self.dataCapacity = dataCapacity
+        self.trieCapacity = trieCapacity
 
         assert(self.invariant)
     }
 
-    init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
-        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+    convenience init() {
+        self.init(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+
+        self.header = Header(bitmap1: 0, bitmap2: 0)
+
+        assert(self.invariant)
+    }
+
+    convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
+        self.init()
 
         self.header = Header(bitmap1: dataMap, bitmap2: 0)
-        self.dataBuffer = dataBuffer
-        self.trieBuffer = trieBuffer
-//        self.dataBaseAddress = dataBuffer.baseAddress!
-//        self.trieBaseAddress = trieBuffer.baseAddress!
 
         // dataBuffer[0] = (firstKey, firstValue)
 
-        dataBuffer.baseAddress!.initialize(to: (firstKey, firstValue))
+        self.dataBaseAddress.initialize(to: (firstKey, firstValue))
 
         assert(self.invariant)
     }
 
-    init(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) {
-        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+    convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value, secondKey: Key, secondValue: Value) {
+        self.init()
 
         self.header = Header(bitmap1: dataMap, bitmap2: 0)
-        self.dataBuffer = dataBuffer
-        self.trieBuffer = trieBuffer
-//        self.dataBaseAddress = dataBuffer.baseAddress!
-//        self.trieBaseAddress = trieBuffer.baseAddress!
 
 //        dataBuffer[0] = (firstKey, firstValue)
 //        dataBuffer[1] = (secondKey, secondValue)
 
-        dataBuffer.baseAddress!.initialize(to: (firstKey, firstValue))
-        dataBuffer.baseAddress!.successor().initialize(to: (secondKey, secondValue))
+        self.dataBaseAddress.initialize(to: (firstKey, firstValue))
+        self.dataBaseAddress.successor().initialize(to: (secondKey, secondValue))
 
         assert(self.invariant)
     }
 
-    init(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) {
-        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+    convenience init(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) {
+        self.init()
 
         self.header = Header(bitmap1: 0, bitmap2: nodeMap)
-        self.dataBuffer = dataBuffer
-        self.trieBuffer = trieBuffer
-//        self.dataBaseAddress = dataBuffer.baseAddress!
-//        self.trieBaseAddress = trieBuffer.baseAddress!
 
 //        trieBuffer[0] = firstNode
 
-        trieBuffer.baseAddress!.initialize(to: firstNode)
+        self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
     }
 
-    init(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) {
-        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+    convenience init(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) {
+        self.init()
 
         self.header = Header(bitmap1: collMap, bitmap2: collMap)
-        self.dataBuffer = dataBuffer
-        self.trieBuffer = trieBuffer
-//        self.dataBaseAddress = dataBuffer.baseAddress!
-//        self.trieBaseAddress = trieBuffer.baseAddress!
 
 //        trieBuffer[0] = firstNode
 
-        trieBuffer.baseAddress!.initialize(to: firstNode)
+        self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
     }
 
-    init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
-        let (dataBuffer, trieBuffer) = Self._allocate(dataCapacity: initialDataCapacity, trieCapacity: initialTrieCapacity)
+    convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
+        self.init()
 
         self.header = Header(bitmap1: dataMap | collMap, bitmap2: collMap)
-        self.dataBuffer = dataBuffer
-        self.trieBuffer = trieBuffer
-//        self.dataBaseAddress = dataBuffer.baseAddress!
-//        self.trieBaseAddress = trieBuffer.baseAddress!
 
 //        dataBuffer[0] = (firstKey, firstValue)
 //        trieBuffer[0] = firstNode
 
-        dataBuffer.baseAddress!.initialize(to: (firstKey, firstValue))
-        trieBuffer.baseAddress!.initialize(to: firstNode)
+        self.dataBaseAddress.initialize(to: (firstKey, firstValue))
+        self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
     }
@@ -483,7 +452,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     var bitmapIndexedNodeArity: Int { nodeMap.nonzeroBitCount }
 
     func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
-        trieBuffer[index] as! BitmapIndexedMapNode<Key, Value>
+        trieBaseAddress[index] as! BitmapIndexedMapNode<Key, Value>
     }
 
     private func isBitmapIndexedNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
@@ -497,7 +466,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 
     private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
-        let isKnownUniquelyReferenced = Swift.isKnownUniquelyReferenced(&trieBuffer[slotIndex])
+        let isKnownUniquelyReferenced = Swift.isKnownUniquelyReferenced(&trieBaseAddress[slotIndex])
 
         return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
@@ -507,7 +476,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     var hashCollisionNodeArity: Int { collMap.nonzeroBitCount }
 
     func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
-        trieBuffer[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
+        trieBaseAddress[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
     }
 
     var hasNodes: Bool { (nodeMap | collMap) != 0 }
@@ -527,7 +496,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     var payloadArity: Int { dataMap.nonzeroBitCount }
 
     func getPayload(_ index: Int) -> (key: Key, value: Value) {
-        dataBuffer[index] // as! ReturnPayload
+        dataBaseAddress[index] // as! ReturnPayload
     }
 
     var sizePredicate: SizePredicate { SizePredicate(self) }
@@ -557,7 +526,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 //        let (key, _) = dst.dataBuffer[idx] // as! ReturnPayload
 //        dst.dataBuffer[idx] = (key, newValue)
 
-        dst.dataBuffer[idx].value = newValue
+        dst.dataBaseAddress[idx].value = newValue
 
         assert(dst.invariant)
         return dst
@@ -583,7 +552,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
             dst = src.copy()
         }
 
-        dst.trieBuffer[idx] = newNode as TrieBufferElement
+        dst.trieBaseAddress[idx] = newNode as TrieBufferElement
 
         assert(dst.invariant)
         return dst
@@ -593,7 +562,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForData = dataMap.nonzeroBitCount < dataBuffer.count
+        let hasRoomForData = dataMap.nonzeroBitCount < dataCapacity
 
         if isStorageKnownUniquelyReferenced && hasRoomForData {
             dst = src
@@ -635,7 +604,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieBuffer.count
+        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieCapacity
 
         if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
@@ -661,7 +630,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieBuffer.count
+        let hasRoomForTrie = header.trieMap.nonzeroBitCount < trieCapacity
 
         if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
