@@ -69,6 +69,15 @@ extension Benchmark {
     }
 
     self.addSimple(
+      title: "ZipRAC<Range<Int>, String> (bad case)",
+      input: Int.self
+    ) { size in
+      let z = zipRAC(0..<size, bigString)
+      let c = z.suffix(2).lazy.map(\.0).reduce(0, +)
+      blackHole(c)
+    }
+
+    self.addSimple(
       title: "ZipDispatch<Range<Int>, Array<Character>>",
       input: Int.self
     ) { size in

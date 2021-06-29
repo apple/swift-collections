@@ -222,7 +222,7 @@ extension Zip2Collection._Index: Comparable {
 }
 
 @inlinable
-public func zipRAC<Base1: RandomAccessCollection, Base2: RandomAccessCollection>(
+public func zipRAC<Base1, Base2>(
   _ base1: Base1, _ base2: Base2
 ) -> Zip2RandomAccessCollection<Base1, Base2> {
   return Zip2RandomAccessCollection(base1, base2)
@@ -230,7 +230,7 @@ public func zipRAC<Base1: RandomAccessCollection, Base2: RandomAccessCollection>
 
 @frozen
 public struct Zip2RandomAccessCollection<Base1, Base2>
-  where Base1: RandomAccessCollection, Base2: RandomAccessCollection
+  where Base1: BidirectionalCollection, Base2: BidirectionalCollection
 {
   @usableFromInline
   internal let _base1: Base1
