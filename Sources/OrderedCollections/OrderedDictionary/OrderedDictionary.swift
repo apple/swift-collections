@@ -248,8 +248,6 @@ extension OrderedDictionary {
 }
 
 extension OrderedDictionary {
-  public typealias Index = Int
-
   /// A Boolean value indicating whether the dictionary is empty.
   ///
   /// - Complexity: O(1)
