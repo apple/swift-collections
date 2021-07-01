@@ -7,7 +7,6 @@
 
 extension BitArray: Collection {
     
-    // Ask about two-space indent coding style
      
     public func index(after i: Int) -> Int { return i + 1 }
     
@@ -50,7 +49,7 @@ extension BitArray: MutableCollection {
 
     }
     
-    internal func _split(_position: Int) -> (Int, UInt8) { // is internal, private, or fileprivate better here
+    internal func _split(_position: Int) -> (Int, UInt8) { // made internal so other files can access
         
         let index: Int = _position/UNIT.bitWidth
         let subPosition: Int = _position - index*UNIT.bitWidth
@@ -65,4 +64,14 @@ extension BitArray: MutableCollection {
 extension BitArray: RandomAccessCollection, RangeReplaceableCollection {
     // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
     // ADD REPLACESUBRANGE
+}
+
+extension BitArray: Equatable {
+    public static func == (lhs: BitArray, rhs: BitArray) -> Bool {
+        if (lhs.storage == rhs.storage) {
+            return true
+        } else {
+            return false
+        }
+    }
 }

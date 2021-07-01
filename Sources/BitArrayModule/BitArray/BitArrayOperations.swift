@@ -36,5 +36,16 @@ extension BitArray {
             self.excess += 1
         }
     }
+    
+    /* TOGGLE FUNCTION ALREADY EXISTS AND WORKS??? */
+    /*public mutating func toggle(at position: Int) -> Bool { // returns the new value. I don't know, I felt like having it return some contaxt as to what happened might be useful for a developer
+        
+        precondition(position < endIndex && position >= startIndex, "Index out of bounds")
+        
+        let (index, mask) = _split(_position: position)
+        storage[index] ^= mask
+        
+        return self[position]
+    }*/
 
 }

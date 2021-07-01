@@ -7,7 +7,7 @@
 
 public struct BitSet {
     
-    var storage: [UInt8] = []
+    var storage = BitArray() // Doesn't this technically make this an ordered set?
     
     public init() { }
     

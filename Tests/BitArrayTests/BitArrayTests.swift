@@ -261,4 +261,30 @@ final class BitArrayTest: CollectionTestCase {
         
     }
     
+    func testToggle() { // toggle function already works?
+        var testArray = BitArray()
+        var value = Bool.random()
+        
+        
+        for _ in 0...limit {
+            testArray.append(value)
+            value = Bool.random()
+        }
+        
+        var copyArray = testArray
+        
+        // will take each value and toggle it back and forth 4 times, making sure the rest of the array is unaffected each time
+        for i in 0...limit {
+            copyArray = testArray
+            value = testArray[i]
+            
+            testArray[i].toggle()
+            XCTAssertEqual(!value, testArray[i])
+            testArray[i].toggle()
+            XCTAssertEqual(value, testArray[i])
+            XCTAssertEqual(copyArray, testArray)
+        }
+        
+    }
+    
 }
