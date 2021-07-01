@@ -15,6 +15,17 @@ extension BitSet {
                     self.storage[i] = true
                 }
             }
+        } else if (self.storage.count < with.storage.count){
+            for i in 0..<self.storage.count {
+                if (self.storage[i] || with.storage[i]) {
+                    self.storage[i] = true
+                }
+            }
+            for i in self.storage.count..<with.storage.count {
+                if(with.storage[i]) {
+                    self.append(i)
+                }
+            }
         } else {
             for i in 0..<self.storage.count {
                 if (self.storage[i] || with.storage[i]) {

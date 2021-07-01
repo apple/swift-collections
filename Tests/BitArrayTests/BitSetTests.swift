@@ -70,6 +70,8 @@ final class BitSetTest: CollectionTestCase {
     }
     
     func testFormUnion() {
+        
+        // SAME SIZE && UNION SETS ALL BITS TO TRUE
         var sampleBitSet = BitSet()
         var sampleBitSet2 = BitSet()
         var valDeterminer: Bool = Bool.random()
@@ -86,6 +88,26 @@ final class BitSetTest: CollectionTestCase {
         sampleBitSet.formUnion(with: sampleBitSet2)
         
         XCTAssertEqual(sampleBitSet.storage.storage, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 15])
+        
+        var sampleBitSet3 = BitSet()
+        var sampleBitSet4 = BitSet()
+        
+        for i in 0..<50 {
+            if (valDeterminer) {
+                sampleBitSet3.append(i)
+            } else {
+                sampleBitSet4.append(i)
+            }
+            valDeterminer = Bool.random()
+        }
+        
+        for i in 50..<100 {
+            sampleBitSet4.append(i)
+        }
+        
+        sampleBitSet3.formUnion(with: sampleBitSet4)
+        
+        XCTAssertEqual(sampleBitSet3.storage.storage, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 15])
     }
     
 }
