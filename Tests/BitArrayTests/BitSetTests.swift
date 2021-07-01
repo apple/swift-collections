@@ -69,4 +69,23 @@ final class BitSetTest: CollectionTestCase {
         XCTAssertEqual(num4, testBitSet.storage.storage[3])
     }
     
+    func testFormUnion() {
+        var sampleBitSet = BitSet()
+        var sampleBitSet2 = BitSet()
+        var valDeterminer: Bool = Bool.random()
+        
+        for i in 0..<100 {
+            if (valDeterminer) {
+                sampleBitSet.append(i)
+            } else {
+                sampleBitSet2.append(i)
+            }
+            valDeterminer = Bool.random()
+        }
+        
+        sampleBitSet.formUnion(with: sampleBitSet2)
+        
+        XCTAssertEqual(sampleBitSet.storage.storage, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 15])
+    }
+    
 }
