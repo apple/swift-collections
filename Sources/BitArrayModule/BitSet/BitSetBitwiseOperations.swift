@@ -10,27 +10,21 @@ extension BitSet {
     // in these implementations, the BitArray type storages do NOT have to be of same length, whereas for the current implementation of Bitwise Operations for BitArray, they do
     public mutating func formUnion(with: BitSet) {
         if (with.storage.count < self.storage.count) {
-            for i in 0..<with.storage.count {
-                if (self.storage[i] || with.storage[i]) {
-                    self.storage[i] = true
-                }
+            for i in 0..<with.storage.storage.count {
+                self.storage.storage[i] |= with.storage.storage[i]
             }
         } else if (self.storage.count < with.storage.count){
-            for i in 0..<self.storage.count {
-                if (self.storage[i] || with.storage[i]) {
-                    self.storage[i] = true
-                }
+            for j in 0..<self.storage.storage.count {
+                self.storage.storage[j] |= with.storage.storage[j]
             }
-            for i in self.storage.count..<with.storage.count {
-                if(with.storage[i]) {
-                    self.append(i)
+            for a in self.storage.count..<with.storage.count { // why does this work and doing storage.storage like the other for-loops not?
+                if(with.storage[a]) {
+                    self.append(a)
                 }
             }
         } else {
-            for i in 0..<self.storage.count {
-                if (self.storage[i] || with.storage[i]) {
-                    self.storage[i] = true
-                }
+            for b in 0..<self.storage.storage.count {
+                self.storage.storage[b] |= with.storage.storage[b]
             }
         }
     }
