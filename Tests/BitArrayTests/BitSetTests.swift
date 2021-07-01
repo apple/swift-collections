@@ -24,7 +24,7 @@ final class BitSetTest: CollectionTestCase {
         for i in 0..<8 {
             if (valDeterminer) {
                 testBitSet.append(i)
-                num1 += (1 << i)
+                num1 += (1 << (i%8))
             }
             
             valDeterminer = Bool.random()
@@ -35,7 +35,7 @@ final class BitSetTest: CollectionTestCase {
         for i in 8..<16 {
             if (valDeterminer) {
                 testBitSet.append(i)
-                num2 += (1 << i)
+                num2 += (1 << (i%8))
             }
             valDeterminer = Bool.random()
         }
@@ -46,7 +46,7 @@ final class BitSetTest: CollectionTestCase {
         for i in 16..<24 {
             if (valDeterminer) {
                 testBitSet.append(i)
-                num3 += (1 << i)
+                num3 += (1 << (i%8))
             }
             valDeterminer = Bool.random()
         }
@@ -58,7 +58,7 @@ final class BitSetTest: CollectionTestCase {
         for i in 24..<32 {
             if (valDeterminer) {
                 testBitSet.append(i)
-                num4 += (1 << i)
+                num4 += (1 << (i%8))
             }
             valDeterminer = Bool.random()
         }
