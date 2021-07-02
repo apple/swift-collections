@@ -8,6 +8,7 @@
 extension BitSet {
     
     // in these implementations, the BitArray type storages do NOT have to be of same length, whereas for the current implementation of Bitwise Operations for BitArray, they do
+    // needs revision and proper testing
     public mutating func formUnion(with: BitSet) {
         if (with.storage.count < self.storage.count) {
             for i in 0..<with.storage.storage.count {
@@ -26,6 +27,18 @@ extension BitSet {
             for b in 0..<self.storage.storage.count {
                 self.storage.storage[b] |= with.storage.storage[b]
             }
+        }
+    }
+    
+    public mutating func formIntersection(with: BitSet) {
+        let size: Int = (self.storage.storage.count >= with.storage.storage.count) ? with.storage.storage.count : self.storage.storage.count // take the set with the smaller BitArray
+        
+        for i in 0..<size {
+            self.storage.storage[i] &= with.storage.storage[i]
+        }
+        
+        for i in size..<self.storage.storage.count {
+            self.storage.storage[i] = 0
         }
     }
     
