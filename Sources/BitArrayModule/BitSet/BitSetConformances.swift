@@ -21,6 +21,7 @@ extension BitSet: Collection {
                 if (byte & mask != 0) {
                     count += 1
                 }
+                mask = 1
             }
         }
         

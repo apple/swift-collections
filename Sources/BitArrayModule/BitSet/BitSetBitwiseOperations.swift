@@ -42,4 +42,27 @@ extension BitSet {
         }
     }
     
+    public func intArrayView() -> [Int] { // previously named 'asAnIntArray' -- also probably needs to go into diff file
+        var arrayView: [Int] = []
+        
+        var mask: UInt8 = 0
+        
+        for i in 0..<storage.storage.count {
+            for j in 0..<8 {
+                mask <<= j
+                if (storage.storage[i] & mask != 0) {
+                    arrayView.append(i*BitArray.UNIT.bitWidth + j)
+                }
+                mask = 1
+            }
+        }
+        return arrayView
+    }
+    
+    public func cartesianProduct(with: BitSet) -> [(Int, Int)] {
+        var cartesianProduct: [(Int, Int)] = []
+        
+        return cartesianProduct
+    }
+    
 }

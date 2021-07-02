@@ -20,13 +20,16 @@ final class BitSetTest: CollectionTestCase {
         var num3: UInt8 = 0
         var num4: UInt8 = 0
         var valDeterminer: Bool = Bool.random()
+        var count = 0
         
         for i in 0..<8 {
             if (valDeterminer) {
                 testBitSet.append(i)
                 num1 += (1 << (i%8))
+                count += 1
             }
             
+            XCTAssertEqual(testBitSet.count, count)
             valDeterminer = Bool.random()
         }
         
@@ -36,8 +39,10 @@ final class BitSetTest: CollectionTestCase {
             if (valDeterminer) {
                 testBitSet.append(i)
                 num2 += (1 << (i%8))
+                count += 1
             }
             valDeterminer = Bool.random()
+            XCTAssertEqual(testBitSet.count, count)
         }
         
         XCTAssertEqual(num1, testBitSet.storage.storage[0])
@@ -47,8 +52,10 @@ final class BitSetTest: CollectionTestCase {
             if (valDeterminer) {
                 testBitSet.append(i)
                 num3 += (1 << (i%8))
+                count += 1
             }
             valDeterminer = Bool.random()
+            XCTAssertEqual(testBitSet.count, count)
         }
         
         XCTAssertEqual(num1, testBitSet.storage.storage[0])
@@ -59,8 +66,11 @@ final class BitSetTest: CollectionTestCase {
             if (valDeterminer) {
                 testBitSet.append(i)
                 num4 += (1 << (i%8))
+                count += 1
             }
             valDeterminer = Bool.random()
+            
+            XCTAssertEqual(testBitSet.count, count)
         }
         
         XCTAssertEqual(num1, testBitSet.storage.storage[0])
@@ -108,6 +118,23 @@ final class BitSetTest: CollectionTestCase {
         sampleBitSet3.formUnion(with: sampleBitSet4)
         
         XCTAssertEqual(sampleBitSet3.storage.storage, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 15])
+    }
+    
+    func testIntArrayView() {
+        var testBitSet = BitSet()
+        var resultArray: [Int] = []
+        var valDeterminer: Bool = Bool.random()
+        
+        for i in 0..<100 {
+            if (valDeterminer) {
+                testBitSet.append(i)
+                resultArray.append(i)
+            }
+            valDeterminer = Bool.random()
+        }
+
+        
+        XCTAssertEqual(testBitSet.intArrayView(), resultArray)
     }
     
 }
