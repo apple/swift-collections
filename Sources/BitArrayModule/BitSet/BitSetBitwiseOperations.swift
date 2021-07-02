@@ -59,8 +59,14 @@ extension BitSet {
         return arrayView
     }
     
-    public func cartesianProduct(with: BitSet) -> [(Int, Int)] {
+    public func cartesianProduct(with: BitSet) -> [(Int, Int)] { // consider looking into 'zip' design
         var cartesianProduct: [(Int, Int)] = []
+        
+        for i in self.intArrayView() {
+            for j in with.intArrayView() {
+                cartesianProduct.append((i,j))
+            }
+        }
         
         return cartesianProduct
     }

@@ -137,4 +137,20 @@ final class BitSetTest: CollectionTestCase {
         XCTAssertEqual(testBitSet.intArrayView(), resultArray)
     }
     
+    func testCartesianProduct() {
+        var bitSet1 = BitSet()
+        var bitSet2 = BitSet()
+        let numbers = [0, 1, 3, 5, 7, 9]
+        
+        for i in numbers {
+            bitSet1.append(i)
+            bitSet2.append(i)
+        }
+        
+        let result1 = bitSet1.cartesianProduct(with: bitSet2)
+        let result2 = bitSet2.cartesianProduct(with: bitSet1)
+        
+    }
+    
+    
 }
