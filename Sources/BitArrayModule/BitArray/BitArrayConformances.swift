@@ -68,7 +68,7 @@ extension BitArray: RandomAccessCollection, RangeReplaceableCollection {
 
 extension BitArray: Equatable {
     public static func == (lhs: BitArray, rhs: BitArray) -> Bool {
-        if (lhs.storage == rhs.storage) {
+        if ((lhs.storage == rhs.storage) && (lhs.excess == rhs.excess)) {
             return true
         } else {
             return false
