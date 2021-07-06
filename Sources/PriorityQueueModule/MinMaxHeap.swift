@@ -63,7 +63,7 @@ public struct MinMaxHeap<Element: Comparable> {
 
   /// Inserts the given element into the heap.
   ///
-  /// - Complexity: O(log `count`) / 2
+  /// - Complexity: O(log `count`)
   @inlinable
   public mutating func insert(_ element: Element) {
     storage.append(element)
