@@ -67,7 +67,7 @@ public struct MinMaxHeap<Element: Comparable> {
   @inlinable
   public mutating func insert(_ element: Element) {
     storage.append(element)
-    _bubbleUp(startingAt: storage.endIndex - 1)
+    _bubbleUp(elementAt: storage.endIndex - 1)
     _checkInvariants()
   }
 
@@ -155,7 +155,7 @@ public struct MinMaxHeap<Element: Comparable> {
 
   @inline(__always)
   @inlinable
-  internal mutating func _bubbleUp(startingAt index: Int) {
+  internal mutating func _bubbleUp(elementAt index: Int) {
     guard let parentIdx = _parentIndex(of: index) else {
       // We're already at the root -- can't go any further
       return
@@ -167,23 +167,23 @@ public struct MinMaxHeap<Element: Comparable> {
     if levelIsMin {
       if storage[index] > storage[parentIdx] {
         _swapAt(index, parentIdx)
-        _bubbleUpMax(startingAt: parentIdx)
+        _bubbleUpMax(elementAt: parentIdx)
       } else {
-        _bubbleUpMin(startingAt: index)
+        _bubbleUpMin(elementAt: index)
       }
     } else {
       if storage[index] < storage[parentIdx] {
         _swapAt(index, parentIdx)
-        _bubbleUpMin(startingAt: parentIdx)
+        _bubbleUpMin(elementAt: parentIdx)
       } else {
-        _bubbleUpMax(startingAt: index)
+        _bubbleUpMax(elementAt: index)
       }
     }
   }
 
   @inline(__always)
   @inlinable
-  internal mutating func _bubbleUpMin(startingAt index: Int) {
+  internal mutating func _bubbleUpMin(elementAt index: Int) {
     var index = index
 
     while let grandparentIdx = _grandparentIndex(of: index),
@@ -195,7 +195,7 @@ public struct MinMaxHeap<Element: Comparable> {
 
   @inline(__always)
   @inlinable
-  internal mutating func _bubbleUpMax(startingAt index: Int) {
+  internal mutating func _bubbleUpMax(elementAt index: Int) {
     var index = index
 
     while let grandparentIdx = _grandparentIndex(of: index),
@@ -218,7 +218,7 @@ public struct MinMaxHeap<Element: Comparable> {
 
     if index < storage.count {
       swap(&removed, &storage[index])
-      _trickleDown(startingAt: index)
+      _trickleDown(elementAt: index)
     }
 
     return removed
@@ -228,20 +228,20 @@ public struct MinMaxHeap<Element: Comparable> {
 
   @inline(__always)
   @inlinable
-  internal mutating func _trickleDown(startingAt index: Int) {
+  internal mutating func _trickleDown(elementAt index: Int) {
     // Figure out if `index` is on an even or odd level
     let levelIsMin = _minMaxHeapIsMinLevel(index + 1)
 
     if levelIsMin {
-      _trickleDownMin(startingAt: index)
+      _trickleDownMin(elementAt: index)
     } else {
-      _trickleDownMax(startingAt: index)
+      _trickleDownMax(elementAt: index)
     }
   }
  
   @inline(__always)
   @inlinable
-  internal mutating func _trickleDownMin(startingAt index: Int) {
+  internal mutating func _trickleDownMin(elementAt index: Int) {
     var index = index
 
     while let (smallestDescendantIdx, isChild) =
@@ -268,7 +268,7 @@ public struct MinMaxHeap<Element: Comparable> {
 
   @inline(__always)
   @inlinable
-  internal mutating func _trickleDownMax(startingAt index: Int) {
+  internal mutating func _trickleDownMax(elementAt index: Int) {
     var index = index
 
     while let (largestDescendantIdx, isChild) =
@@ -517,7 +517,7 @@ extension MinMaxHeap {
     storage = Array(elements)
 
     for idx in (0..<(storage.count / 2)).reversed() {
-      _trickleDown(startingAt: idx)
+      _trickleDown(elementAt: idx)
     }
 
     _checkInvariants()
