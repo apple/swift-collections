@@ -802,7 +802,59 @@
               ]
             }
           ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "PriorityQueue",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "operations",
+          "tasks": [
+            "Heap<Int> init from range",
+            "Heap<Int> insert",
+            "Heap<Int> insert(contentsOf:)",
+            "Heap<Int> popMax",
+            "Heap<Int> popMin",
+            "PriorityQueue<Int, Int> insert",
+            "PriorityQueue<Int, Int> popMax",
+            "PriorityQueue<Int, Int> popMin",
+            "PriorityQueue<Task, Int> insert",
+            "PriorityQueue<Task, Int> popMax",
+            "PriorityQueue<Task, Int> popMin"
+          ]
         },
+        {
+          "kind": "chart",
+          "title": "initializers",
+          "tasks": [
+            "Heap<Int> init from range"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "insert",
+          "tasks": [
+            "Heap<Int> insert",
+            "Heap<Int> insert(contentsOf:)",
+            "PriorityQueue<Int, Int> insert",
+            "PriorityQueue<Task, Int> insert"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "remove",
+          "tasks": [
+            "Heap<Int> popMax",
+            "Heap<Int> popMin",
+            "PriorityQueue<Int, Int> popMax",
+            "PriorityQueue<Int, Int> popMin",
+            "PriorityQueue<Task, Int> popMax",
+            "PriorityQueue<Task, Int> popMin"
+          ]
+        }
       ]
     },
     {
