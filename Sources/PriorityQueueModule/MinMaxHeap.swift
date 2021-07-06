@@ -528,6 +528,7 @@ extension MinMaxHeap {
   /// - Parameter newElements: The new elements to insert into the heap.
   ///
   /// - Complexity: O(n * log `count`), where `n` is the length of `newElements`.
+  @inlinable
   public mutating func insert<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
     for element in newElements {
       insert(element)
