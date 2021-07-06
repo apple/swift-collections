@@ -11,8 +11,7 @@
 
 import Swift
 
-/// A double-ended priority queue built on top of a [Min-Max Heap](https://en.wikipedia.org/wiki/Min-max_heap)
-/// data structure.
+/// A [Min-Max Heap](https://en.wikipedia.org/wiki/Min-max_heap) data structure.
 ///
 /// In a min-max heap, each node at an even level in the tree is less than all
 /// its descendants, while each node at an odd level in the tree is greater than
@@ -24,11 +23,11 @@ import Swift
 /// M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte. October 1986.
 /// Min-Max Heaps and Generalized Priority Queues. Communications of the ACM.
 /// 29(10):996-1000.
-public struct PriorityQueue<Element: Comparable> {
+public struct MinMaxHeap<Element: Comparable> {
   @usableFromInline
   internal var storage: [Element]
 
-  /// A Boolean value indicating whether or not the queue is empty.
+  /// A Boolean value indicating whether or not the heap is empty.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -36,7 +35,7 @@ public struct PriorityQueue<Element: Comparable> {
     storage.isEmpty
   }
 
-  /// The number of elements in the queue.
+  /// The number of elements in the heap.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -56,13 +55,13 @@ public struct PriorityQueue<Element: Comparable> {
     storage
   }
 
-  /// Creates an empty queue.
+  /// Creates an empty heap.
   @inlinable
   public init() {
     storage = []
   }
 
-  /// Inserts the given element into the queue.
+  /// Inserts the given element into the heap.
   ///
   /// - Complexity: O(log `count`) / 2
   @inlinable
@@ -130,7 +129,7 @@ public struct PriorityQueue<Element: Comparable> {
 
   /// Removes and returns the element with the lowest priority.
   ///
-  /// The queue *must not* be empty.
+  /// The heap *must not* be empty.
   ///
   /// - Complexity: O(log `count`)
   @inlinable
@@ -142,7 +141,7 @@ public struct PriorityQueue<Element: Comparable> {
 
   /// Removes and returns the element with the highest priority.
   ///
-  /// The queue *must not* be empty.
+  /// The heap *must not* be empty.
   ///
   /// - Complexity: O(log `count`)
   @inlinable
@@ -507,8 +506,8 @@ public struct PriorityQueue<Element: Comparable> {
 
 // MARK: -
 
-extension PriorityQueue {
-  /// Initializes a queue from a sequence.
+extension MinMaxHeap {
+  /// Initializes a heap from a sequence.
   ///
   /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
   ///
@@ -524,9 +523,9 @@ extension PriorityQueue {
     _checkInvariants()
   }
 
-  /// Inserts the elements in the given sequence into the priority queue.
+  /// Inserts the elements in the given sequence into the heap.
   ///
-  /// - Parameter newElements: The new elements to insert into the queue.
+  /// - Parameter newElements: The new elements to insert into the heap.
   ///
   /// - Complexity: O(n * log `count`), where `n` is the length of `newElements`.
   public mutating func insert<S: Sequence>(contentsOf newElements: S) where S.Element == Element {

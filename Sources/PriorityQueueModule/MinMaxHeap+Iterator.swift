@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PriorityQueue {
+extension MinMaxHeap {
 
   /// Adds sequence conformance to both the min and max view of the priority queue
   public struct Iterator: Sequence, IteratorProtocol {
@@ -20,13 +20,13 @@ extension PriorityQueue {
     }
 
     @usableFromInline
-    internal var _base: PriorityQueue
+    internal var _base: MinMaxHeap
 
     @usableFromInline
     internal let _direction: IterationDirection
 
     @inlinable
-    public init(_base: PriorityQueue, _direction:IterationDirection) {
+    public init(_base: MinMaxHeap, _direction:IterationDirection) {
       self._base = _base
       self._direction = _direction
     }

@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PriorityQueue: ExpressibleByArrayLiteral {
+extension MinMaxHeap: ExpressibleByArrayLiteral {
   /// Creates a new priority queue from the contents of an array literal.
   ///
   /// **Do not call this initializer directly.** It is used by the compiler when

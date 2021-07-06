@@ -14,19 +14,19 @@ import PriorityQueueModule
 import CppBenchmarks
 
 extension Benchmark {
-  public mutating func addPriorityQueueBenchmarks() {
+  public mutating func addMinMaxHeapBenchmarks() {
     self.addSimple(
-      title: "PriorityQueue<Int> init from range",
+      title: "MinMaxHeap<Int> init from range",
       input: Int.self
     ) { size in
-      blackHole(PriorityQueue(0..<size))
+      blackHole(MinMaxHeap(0..<size))
     }
 
     self.addSimple(
-      title: "PriorityQueue<Int> insert",
+      title: "MinMaxHeap<Int> insert",
       input: [Int].self
     ) { input in
-      var queue = PriorityQueue<Int>()
+      var queue = MinMaxHeap<Int>()
       for i in input {
         queue.insert(i)
       }
@@ -35,11 +35,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PriorityQueue<Int> insert(contentsOf:)",
+      title: "MinMaxHeap<Int> insert(contentsOf:)",
       input: ([Int], [Int]).self
     ) { (existing, new) in
       return { timer in
-        var queue = PriorityQueue(existing)
+        var queue = MinMaxHeap(existing)
         queue.insert(contentsOf: new)
         precondition(queue.count == existing.count + new.count)
         blackHole(queue)
@@ -47,11 +47,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PriorityQueue<Int> popMax",
+      title: "MinMaxHeap<Int> popMax",
       input: [Int].self
     ) { input in
       return { timer in
-        var queue = PriorityQueue(input)
+        var queue = MinMaxHeap(input)
         while let max = queue.popMax() {
           blackHole(max)
         }
@@ -61,11 +61,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PriorityQueue<Int> popMin",
+      title: "MinMaxHeap<Int> popMin",
       input: [Int].self
     ) { input in
       return { timer in
-        var queue = PriorityQueue(input)
+        var queue = MinMaxHeap(input)
         while let min = queue.popMin() {
           blackHole(min)
         }

@@ -12,7 +12,7 @@
 import Swift
 import Foundation
 
-extension PriorityQueue {
+extension MinMaxHeap {
   #if COLLECTIONS_INTERNAL_CHECKS
   @inlinable
   @inline(never)

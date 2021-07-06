@@ -772,34 +772,34 @@
           "kind": "chart",
           "title": "operations",
           "tasks": [
-            "PriorityQueue<Int> init from range",
-            "PriorityQueue<Int> insert",
-            "PriorityQueue<Int> insert(contentsOf:)",
-            "PriorityQueue<Int> popMax",
-            "PriorityQueue<Int> popMin"
+            "MinMaxHeap<Int> init from range",
+            "MinMaxHeap<Int> insert",
+            "MinMaxHeap<Int> insert(contentsOf:)",
+            "MinMaxHeap<Int> popMax",
+            "MinMaxHeap<Int> popMin"
           ]
         },
         {
           "kind": "chart",
           "title": "initializers",
           "tasks": [
-            "PriorityQueue<Int> init from range"
+            "MinMaxHeap<Int> init from range"
           ]
         },
         {
           "kind": "chart",
           "title": "insert",
           "tasks": [
-            "PriorityQueue<Int> insert",
-            "PriorityQueue<Int> insert(contentsOf:)"
+            "MinMaxHeap<Int> insert",
+            "MinMaxHeap<Int> insert(contentsOf:)"
           ]
         },
         {
           "kind": "chart",
           "title": "remove",
           "tasks": [
-            "PriorityQueue<Int> popMax",
-            "PriorityQueue<Int> popMin"
+            "MinMaxHeap<Int> popMax",
+            "MinMaxHeap<Int> popMin"
           ]
         }
       ]

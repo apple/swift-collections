@@ -19,7 +19,7 @@ benchmark.addDictionaryBenchmarks()
 benchmark.addDequeBenchmarks()
 benchmark.addOrderedSetBenchmarks()
 benchmark.addOrderedDictionaryBenchmarks()
-benchmark.addPriorityQueueBenchmarks()
+benchmark.addMinMaxHeapBenchmarks()
 benchmark.addCFBinaryHeapBenchmarks()
 benchmark.addCppBenchmarks()
 
