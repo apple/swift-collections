@@ -162,7 +162,7 @@ public struct MinMaxHeap<Element: Comparable> {
     }
 
     // Figure out if `index` is on an even or odd level
-    let levelIsMin = _minMaxHeapIsMinLevel(index + 1)
+    let levelIsMin = _minMaxHeapIsMinLevel(index)
 
     if levelIsMin {
       if storage[index] > storage[parentIdx] {
@@ -230,7 +230,7 @@ public struct MinMaxHeap<Element: Comparable> {
   @inlinable
   internal mutating func _trickleDown(elementAt index: Int) {
     // Figure out if `index` is on an even or odd level
-    let levelIsMin = _minMaxHeapIsMinLevel(index + 1)
+    let levelIsMin = _minMaxHeapIsMinLevel(index)
 
     if levelIsMin {
       _trickleDownMin(elementAt: index)
@@ -403,15 +403,15 @@ public struct MinMaxHeap<Element: Comparable> {
 
   // MARK: - Helpers
 
-  /// Returns `true` if `count` elements falls on a min level in a min-max heap.
+  /// Returns `true` if `index` falls on a min level in a min-max heap.
   ///
-  /// - Precondition: `count` must be > 0.
+  /// - Precondition: `index` must be non-negative.
   @inline(__always)
   @inlinable
-  internal func _minMaxHeapIsMinLevel(_ count: Int) -> Bool {
-    precondition(count > 0)
+  internal func _minMaxHeapIsMinLevel(_ index: Int) -> Bool {
+    precondition(index >= 0)
 
-    return count._binaryLogarithm() & 0b1 == 0
+    return (index + 1)._binaryLogarithm() & 0b1 == 0
   }
 
   /// Swaps the elements in the heap at the given indices.

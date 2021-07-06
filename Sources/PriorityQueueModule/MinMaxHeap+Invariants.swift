@@ -49,7 +49,7 @@ extension MinMaxHeap {
     while let elementIdx = indicesToVisit.popLast() {
       let element = storage[elementIdx]
 
-      let isMinLevel = _minMaxHeapIsMinLevel(elementIdx + 1)
+      let isMinLevel = _minMaxHeapIsMinLevel(elementIdx)
 
       var descendantIndicesToVisit = [Int]()
 

@@ -354,7 +354,7 @@ final class MinMaxHeapTests: XCTestCase {
     var isMin = true
     for exp in 0...12 {
       // Check [2^exp, 2^(exp + 1))
-      for i in Int(pow(2, Double(exp)))..<Int(pow(2, Double(exp + 1))) {
+      for i in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
         if isMin {
           XCTAssertTrue(q._minMaxHeapIsMinLevel(i), "\(i) should be on a max level")
         } else {
