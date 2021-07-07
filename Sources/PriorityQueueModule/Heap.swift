@@ -23,7 +23,7 @@ import Swift
 /// M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte. October 1986.
 /// Min-Max Heaps and Generalized Priority Queues. Communications of the ACM.
 /// 29(10):996-1000.
-public struct MinMaxHeap<Element: Comparable> {
+public struct Heap<Element: Comparable> {
   @usableFromInline
   internal var storage: [Element]
 
@@ -43,11 +43,11 @@ public struct MinMaxHeap<Element: Comparable> {
     storage.count
   }
 
-  /// A read-only view into the underlying heap.
+  /// A read-only view into the underlying array.
   ///
-  /// In the current implementation, the elements aren't _arbitrarily_ ordered,
-  /// as a min-max heap is used for storage. However, no guarantees are given as
-  /// to the ordering of the elements.
+  /// Note: The elements aren't _arbitrarily_ ordered (it is, after all, a
+  /// heap). However, no guarantees are given as to the ordering of the elements
+  /// or that this won't change in future versions of the library.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -506,7 +506,7 @@ public struct MinMaxHeap<Element: Comparable> {
 
 // MARK: -
 
-extension MinMaxHeap {
+extension Heap {
   /// Initializes a heap from a sequence.
   ///
   /// Utilizes [Floyd's linear-time heap construction algorithm](https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).

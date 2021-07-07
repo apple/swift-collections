@@ -12,7 +12,7 @@
 import Swift
 import Foundation
 
-extension MinMaxHeap {
+extension Heap {
   #if COLLECTIONS_INTERNAL_CHECKS
   @inlinable
   @inline(never)

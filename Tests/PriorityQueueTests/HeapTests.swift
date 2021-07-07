@@ -12,9 +12,9 @@
 import XCTest
 @testable import PriorityQueueModule
 
-final class MinMaxHeapTests: XCTestCase {
+final class HeapTests: XCTestCase {
   func test_isEmpty() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     XCTAssertTrue(heap.isEmpty)
 
     heap.insert(42)
@@ -25,7 +25,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_count() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     XCTAssertEqual(heap.count, 0)
 
     heap.insert(20)
@@ -39,7 +39,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_unordered() {
-    let heap = MinMaxHeap<Int>((1...10))
+    let heap = Heap<Int>((1...10))
     XCTAssertEqual(Set(heap.unordered), Set(1...10))
   }
 
@@ -53,7 +53,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_insert() {
-    var heap = MinMaxHeap<Task>()
+    var heap = Heap<Task>()
 
     XCTAssertEqual(heap.count, 0)
     heap.insert(Task(name: "Hello, world", priority: 50))
@@ -61,7 +61,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_insert_contentsOf() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     heap.insert(contentsOf: (1...10).shuffled())
     XCTAssertEqual(heap.count, 10)
     XCTAssertEqual(heap.popMax(), 10)
@@ -83,7 +83,7 @@ final class MinMaxHeapTests: XCTestCase {
     }
 
     let evens = sequence(first: 0, next: addTwo(_:)).prefix(20)
-    var heap = MinMaxHeap(evens)
+    var heap = Heap(evens)
     XCTAssertEqual(heap.count, 20)
 
     heap.insert(contentsOf: sequence(first: 1, next: addTwo(_:)).prefix(20))
@@ -95,7 +95,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_min() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     XCTAssertNil(heap.min())
 
     heap.insert(5)
@@ -112,7 +112,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_max() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     XCTAssertNil(heap.max())
 
     heap.insert(42)
@@ -129,7 +129,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_popMin() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     XCTAssertNil(heap.popMin())
 
     heap.insert(7)
@@ -176,7 +176,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_popMax() {
-    var heap = MinMaxHeap<Int>()
+    var heap = Heap<Int>()
     XCTAssertNil(heap.popMax())
 
     heap.insert(7)
@@ -223,7 +223,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_removeMin() {
-    var heap = MinMaxHeap<Int>((1...20).shuffled())
+    var heap = Heap<Int>((1...20).shuffled())
 
     XCTAssertEqual(heap.removeMin(), 1)
     XCTAssertEqual(heap.removeMin(), 2)
@@ -248,7 +248,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_removeMax() {
-    var heap = MinMaxHeap<Int>((1...20).shuffled())
+    var heap = Heap<Int>((1...20).shuffled())
 
     XCTAssertEqual(heap.removeMax(), 20)
     XCTAssertEqual(heap.removeMax(), 19)
@@ -275,7 +275,7 @@ final class MinMaxHeapTests: XCTestCase {
   // MARK: -
 
   func test_min_struct() {
-    var heap = MinMaxHeap<Task>()
+    var heap = Heap<Task>()
     XCTAssertNil(heap.min())
 
     let firstTask = Task(name: "Do something", priority: 10)
@@ -292,7 +292,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_max_struct() {
-    var heap = MinMaxHeap<Task>()
+    var heap = Heap<Task>()
     XCTAssertNil(heap.max())
 
     let firstTask = Task(name: "Do something", priority: 10)
@@ -309,7 +309,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_popMin_struct() {
-    var heap = MinMaxHeap<Task>()
+    var heap = Heap<Task>()
     XCTAssertNil(heap.popMin())
 
     let lowPriorityTask = Task(name: "Do something when you have time", priority: 1)
@@ -328,7 +328,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_popMax_struct() {
-    var heap = MinMaxHeap<Task>()
+    var heap = Heap<Task>()
     XCTAssertNil(heap.popMax())
 
     let lowPriorityTask = Task(name: "Do something when you have time", priority: 1)
@@ -350,7 +350,7 @@ final class MinMaxHeapTests: XCTestCase {
 
   func test_levelCalculation() {
     // Check alternating min and max levels in the heap
-    let q = MinMaxHeap<Int>()
+    let q = Heap<Int>()
     var isMin = true
     for exp in 0...12 {
       // Check [2^exp, 2^(exp + 1))
@@ -367,7 +367,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_initializer_fromCollection() {
-    var heap = MinMaxHeap((1...20).shuffled())
+    var heap = Heap((1...20).shuffled())
     XCTAssertEqual(heap.max(), 20)
 
     XCTAssertEqual(heap.popMin(), 1)
@@ -393,12 +393,12 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_initializer_fromSequence() {
-    let heap = MinMaxHeap((1...).prefix(20))
+    let heap = Heap((1...).prefix(20))
     XCTAssertEqual(heap.count, 20)
   }
 
   func test_initializer_fromArrayLiteral() {
-    var heap: MinMaxHeap = [1, 3, 5, 7, 9]
+    var heap: Heap = [1, 3, 5, 7, 9]
     XCTAssertEqual(heap.count, 5)
 
     XCTAssertEqual(heap.popMax(), 9)
@@ -409,7 +409,7 @@ final class MinMaxHeapTests: XCTestCase {
   }
 
   func test_sequenceConformance() {
-    let heap = MinMaxHeap<Int>((0...50).shuffled())
+    let heap = Heap<Int>((0...50).shuffled())
 
     var increment = 0
     for val in heap.ascending {

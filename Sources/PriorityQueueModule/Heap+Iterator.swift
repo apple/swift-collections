@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension MinMaxHeap {
-
-  /// Adds sequence conformance to both the min and max view of the priority queue
+extension Heap {
+  /// Adds sequence conformance to both the min and max view of the heap
   public struct Iterator: Sequence, IteratorProtocol {
 
     public enum IterationDirection {
@@ -20,18 +19,18 @@ extension MinMaxHeap {
     }
 
     @usableFromInline
-    internal var _base: MinMaxHeap
+    internal var _base: Heap
 
     @usableFromInline
     internal let _direction: IterationDirection
 
     @inlinable
-    public init(_base: MinMaxHeap, _direction:IterationDirection) {
+    public init(_base: Heap, _direction:IterationDirection) {
       self._base = _base
       self._direction = _direction
     }
 
-    // Returns the next element in the priority queue depending on the iteration direction
+    // Returns the next element in the heap depending on the iteration direction
     @inlinable
     public mutating func next() -> Element? {
       if(_direction == .ascending){
