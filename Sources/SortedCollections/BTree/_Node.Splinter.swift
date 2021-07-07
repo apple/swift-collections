@@ -28,6 +28,12 @@ extension _Node {
     @usableFromInline
     internal var rightChild: _Node<Key, Value>
     
+    /// Converts the splinter object to a node.
+    /// - Parameters:
+    ///   - node: The node generating the splinter. Becomes the returned
+    ///     node's left child.
+    ///   - capacity: The desired capacity of the new node.
+    /// - Returns: A new node of `capacity` with a single element.
     @inlinable
     @inline(__always)
     internal func toNode(from node: _Node<Key, Value>, withCapacity capacity: Int) -> _Node {

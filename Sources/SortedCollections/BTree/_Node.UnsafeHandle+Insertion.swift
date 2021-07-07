@@ -45,6 +45,8 @@ extension _Node.UnsafeHandle {
   @inlinable
   @inline(__always)
   internal func setAnyValue(_ value: Value, forKey key: Key) -> InsertionResult {
+    assertMutable()
+    
     let insertionIndex = self.lastSlot(for: key)
 
     if 0 < insertionIndex && insertionIndex <= self.numElements &&

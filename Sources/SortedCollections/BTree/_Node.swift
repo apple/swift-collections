@@ -133,7 +133,6 @@ extension _Node {
   /// Ensure that this storage refers to a uniquely held buffer by copying
   /// elements if necessary.
   @inlinable
-  @inline(__always)
   internal mutating func ensureUnique() {
     if !isKnownUniquelyReferenced(&self.storage) {
       self = _Node(copyingFrom: self)

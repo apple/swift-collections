@@ -165,6 +165,7 @@ extension _BTree {
   }
   
   /// Removes the key-value pair corresponding to the first found instance of the key.
+  ///
   /// This may not be the first instance of the key. This is marginally more efficient for trees
   /// that do not have duplicates.
   ///
@@ -177,55 +178,18 @@ extension _BTree {
   internal mutating func removeAny(key: Key) -> Element? {
     invalidateIndices()
     
-    func deleteWithin(node handle: Node.UnsafeHandle) -> Element? {
-      let slot = handle.firstSlot(for: key)
-      
-//      if slot < handle.numElements && handle[keyAt: slot] == key {
-//        // We have found the key
-//        if handle.isLeaf {
-//          // Check if removing the element will make the element undersized
-//          if handle.numElements <= handle.minCapacity {
-//            // Undersized node
-//            return handle.
-//          } else {
-//            return handle.removeElement(at: slot)
-//          }
-//        } else {
-//          if handle.numElements <= handle.minCapacity {
-//            // Undersized node.
-//          } else {
-//            // Swap with the
-//          }
-//        }
-//      } else {
-//        if handle.isLeaf {
-//          // If we're in a leaf node and didn't find the key, it does
-//          // not exist.
-//          return nil
-//        } else {
-//          // Sanity-check
-//          assert(slot < handle.numChildren, "Attempt to remove from invalid child.")
-//          assert()
-//          
-//          let childElement = handle[childAt: slot].update { deleteWithin(node: $0) }
-//          
-//          //
-//        }
-//      }
-      
-      return nil
-    }
-    
     // TODO: Don't create CoW copy until needed.
-    return self.root.update { deleteWithin(node: $0) }
+    // TODO: Handle root deletion
+    return self.root.update { $0.removeAny(key: key) }
   }
 }
 
 // MARK: Read Operations
 extension _BTree {  
-  /// Returns the value corresponding to the first found instance of the key. This may
-  /// not be the first instance of the key. This is marginally more efficient for trees
-  /// that do not have duplicates.
+  /// Returns the value corresponding to the first found instance of the key.
+  ///
+  /// This may not be the first instance of the key. This is marginally more efficient
+  /// for trees that do not have duplicates.
   ///
   /// - Parameter key: The key to search for
   /// - Returns: `nil` if the key was not found. Otherwise, the previous value.

@@ -148,6 +148,10 @@ extension _Node {
     
     // TODO: not sure what the branch predictor would do for this, given
     // this is perfectly impredictable without context.
+    /// Whether the node is the bottom-most node (a leaf) within its tree.
+    ///
+    /// This is equivalent to whether or not the node contains any keys. For leaf nodes,
+    /// calling certain operations which depend on children may trap.
     @inlinable
     @inline(__always)
     internal var isLeaf: Bool { children == nil }
@@ -158,6 +162,16 @@ extension _Node {
     @inlinable
     @inline(__always)
     internal var minCapacity: Int { (capacity + 1) / 2 - 1 }
+    
+    /// Whether an element can be removed without triggering a rebalance.
+    @inlinable
+    @inline(__always)
+    internal var isAboveMinCapacity: Bool { numElements > minCapacity }
+    
+    /// Whether the node contains at least the minimum number of keys.
+    @inlinable
+    @inline(__always)
+    internal var isBalanced: Bool { numElements >= minCapacity }
   }
 }
 
@@ -257,23 +271,6 @@ extension _Node.UnsafeHandle {
     
     return end
   }
-  
-  /// Searches the node and its children for a given value
-  @inlinable
-  internal func findValue(for key: Key) -> Value? {
-    // TODO: get rid of this method (suboptimal implementation).
-    let slot = self.firstSlot(for: key)
-    
-    if slot < self.numElements && self[keyAt: slot] == key {
-      return self[valueAt: slot]
-    } else {
-      if self.isLeaf {
-        return nil
-      } else {
-        return self[childAt: slot].read { $0.findValue(for: key) }
-      }
-    }
-  }
 }
 
 // MARK: Element-wise Buffer Operations
@@ -333,7 +330,7 @@ extension _Node.UnsafeHandle {
     assert(sourceSlot + count <= self.capacity + 1, "Cannot move children beyond source buffer capacity.")
     assert(destinationSlot + count <= newHandle.capacity + 1, "Cannot move children beyond destination buffer capacity.")
     assert(!newHandle.isLeaf, "Cannot move children to a leaf node")
-    assert(!self.isLeaf, "Cannot move chidlren from a leaf node")
+    assert(!self.isLeaf, "Cannot move children from a leaf node")
     
     self.assertMutable()
     newHandle.assertMutable()
@@ -342,7 +339,8 @@ extension _Node.UnsafeHandle {
       .moveInitialize(from: self.children.unsafelyUnwrapped.advanced(by: sourceSlot), count: count)
   }
   
-  /// Inserts a new element somewhere into the handle.
+  /// Inserts a new element into an uninitialized slot in node.
+  ///
   /// - Parameters:
   ///   - element: The element to insert which the node will take ownership of.
   ///   - slot: An uninitialized slot in the buffer to insert the element into.
@@ -366,6 +364,9 @@ extension _Node.UnsafeHandle {
   ///
   /// This may leave a hold within the node's buffer so it is critical to ensure that
   /// it is filled, either by inserting a new element or some other operation.
+  ///
+  /// Additionally, this does not touch the children of the node, so it is important to
+  /// ensure those are correctly handled.
   ///
   /// - Parameter slot: The in-bounds slot of an element to move out
   /// - Returns: A tuple of the key and value.
@@ -416,15 +417,19 @@ extension _Node.UnsafeHandle {
   
   /// Removes a key-value pair from a given slot within the node. This is assumed to
   /// run on a leaf.
-  /// 
+  ///
+  /// This does not touch the children of the node, so it is important to ensure those are
+  /// correctly handled.
+  ///
+  /// This operation adjusts the stored counts on the node as appropriate.
+  ///
   /// - Parameter slot: The slot to remove which must be in-bounds.
-  /// - Returns: The element that was removed..
+  /// - Returns: The element that was removed.
   /// - Warning: This does not perform any balancing or rotation.
   @inlinable
   @inline(__always)
   internal func removeElement(at slot: Int) -> _Node.Element {
     assertMutable()
-    assert(self.isLeaf, "Attempt to call removeElement(at:) on a leaf.")
     assert(slot < self.numElements, "Attempt to remove out-of-bounds element.")
     
     let element = self.moveElement(at: slot)
@@ -437,19 +442,12 @@ extension _Node.UnsafeHandle {
       count: self.numElements - slot - 1
     )
     
+    // TODO: handle children
+    
     self.numElements -= 1
     self.numTotalElements -= 1
     
     return element
-  }
-  
-  // TODO: see if this optimizes neatly to getrid of memmove
-  /// Removes the last key-value pair from the node. This is assumed to run on a
-  /// non-empty leaf.
-  @inlinable
-  @inline(__always)
-  internal func popElement() -> _Node.Element {
-    return self.removeElement(at: self.numElements - 1)
   }
 }
 
