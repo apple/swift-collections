@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 cmake_minimum_required(VERSION 3.16)
-project(swift-collections
+project(SwiftCollections
   LANGUAGES C Swift)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
