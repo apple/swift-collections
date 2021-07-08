@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 cmake_minimum_required(VERSION 3.16)
-project(swift-collections
+project(SwiftCollections
   LANGUAGES C Swift)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
@@ -29,9 +29,4 @@ add_subdirectory(Sources)
 # if(BUILD_TESTING)
 #   add_subdirectory(Tests)
 # endif()
-
-get_property(SWIFT_COLLECTIONS_EXPORTS GLOBAL PROPERTY SWIFT_COLLECTIONS_EXPORTS)
-export(TARGETS ${SWIFT_COLLECTIONS_EXPORTS}
-  NAMESPACE SwiftCollections::
-  FILE swift-collections-config.cmake
-  EXPORT_LINK_INTERFACE_LIBRARIES)
+add_subdirectory(cmake/modules)
