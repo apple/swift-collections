@@ -29,9 +29,4 @@ add_subdirectory(Sources)
 # if(BUILD_TESTING)
 #   add_subdirectory(Tests)
 # endif()
-
-get_property(SWIFT_COLLECTIONS_EXPORTS GLOBAL PROPERTY SWIFT_COLLECTIONS_EXPORTS)
-export(TARGETS ${SWIFT_COLLECTIONS_EXPORTS}
-  NAMESPACE SwiftCollections::
-  FILE swift-collections-config.cmake
-  EXPORT_LINK_INTERFACE_LIBRARIES)
+add_subdirectory(cmake/modules)
