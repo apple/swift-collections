@@ -81,6 +81,10 @@ let package = Package(
           .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
       ]
     ),
+    .testTarget(
+      name: "CollectionsTestSupportTests",
+      dependencies: ["CollectionsTestSupport"],
+      swiftSettings: settings),
 
     // Benchmarking
     .target(
