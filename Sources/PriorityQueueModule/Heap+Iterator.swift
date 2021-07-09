@@ -13,7 +13,8 @@ extension Heap {
   /// Adds sequence conformance to both the min and max view of the heap
   public struct Iterator: Sequence, IteratorProtocol {
 
-    public enum IterationDirection {
+    @usableFromInline
+    enum IterationDirection {
       case ascending
       case descending
     }
@@ -25,7 +26,7 @@ extension Heap {
     internal let _direction: IterationDirection
 
     @inlinable
-    public init(_base: Heap, _direction:IterationDirection) {
+    init(_base: Heap, _direction:IterationDirection) {
       self._base = _base
       self._direction = _direction
     }
