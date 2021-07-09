@@ -17,6 +17,7 @@ add_library(DequeModule
   Deque._UnsafeHandle.swift
   Deque.swift
   Deque+Codable.swift
+  Deque+Collection.swift
   Deque+CustomDebugStringConvertible.swift
   Deque+CustomReflectable.swift
   Deque+CustomStringConvertible.swift
@@ -24,10 +25,6 @@ add_library(DequeModule
   Deque+ExpressibleByArrayLiteral.swift
   Deque+Extras.swift
   Deque+Hashable.swift
-  Deque+MutableCollection.swift
-  Deque+RandomAccessCollection.swift
-  Deque+RangeReplaceableCollection.swift
-  Deque+Sequence.swift
   Deque+Testing.swift
   UnsafeMutableBufferPointer+Utilities.swift)
 set_target_properties(DequeModule PROPERTIES
