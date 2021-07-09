@@ -43,7 +43,7 @@ public enum UnderestimatedCountBehavior {
 /// A Sequence that implements the protocol contract in the most
 /// narrow way possible.
 ///
-/// This sequence is consumed when its generator is advanced.
+/// This sequence is consumed when its iterator is advanced.
 public struct MinimalSequence<T>: Sequence, CustomDebugStringConvertible {
   public let timesMakeIteratorCalled = ResettableValue(0)
 
