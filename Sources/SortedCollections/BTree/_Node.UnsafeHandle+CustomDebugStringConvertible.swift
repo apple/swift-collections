@@ -14,7 +14,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   #if DEBUG
   private enum PrintPosition { case start, end, middle }
   private func indentDescription(_ node: _Node<Key, Value>.UnsafeHandle, position: PrintPosition) -> String {
-    let label = "(\(node.numTotalElements))"
+    let label = "(\(node.numElements)/\(node.numTotalElements))"
     
     let spaces = String(repeating: " ", count: label.count)
     
@@ -54,6 +54,20 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   
   /// A textual representation of this instance, suitable for debugging.
   private func describeNode(_ node: _Node<Key, Value>.UnsafeHandle) -> String {
+    if node.numElements == 0 {
+      var result = ""
+      if !node.isLeaf {
+        node[childAt: 0].read { handle in
+          result += indentDescription(handle, position: .start) + "\n"
+        }
+        
+        result += "┗━ << EMPTY >>"
+      } else {
+        result = "╺━ << EMPTY >>"
+      }
+      return result
+    }
+    
     var result = ""
     for slot in 0..<node.numElements {
       if !node.isLeaf {

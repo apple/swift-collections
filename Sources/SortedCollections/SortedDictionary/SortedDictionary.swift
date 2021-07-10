@@ -107,7 +107,6 @@ extension SortedDictionary {
       if let newValue = newValue {
         self._root.setAnyValue(newValue, forKey: key)
       } else {
-        // TODO: Removal
         self._root.removeAny(key: key)
       }
     }

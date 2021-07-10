@@ -180,12 +180,61 @@ extension _BTree {
     
     // TODO: Don't create CoW copy until needed.
     // TODO: Handle root deletion
-    return self.root.update { $0.removeAny(key: key) }
+    let removedElement = self.root.update { $0.removeAny(key: key) }
+    
+    // Check if the tree height needs to be reduced
+    if self.root.read({ $0.numElements == 0 && !$0.isLeaf }) {
+      let newRoot: Node = self.root.update { handle in
+        let newRoot = handle.moveChild(at: 0)
+        handle.drop()
+        return newRoot
+      }
+      
+      self.root = newRoot
+    }
+    
+    return removedElement
   }
 }
 
 // MARK: Read Operations
-extension _BTree {  
+extension _BTree {
+  /// Determines if a key exists within a tree.
+  ///
+  /// - Parameter key: The key to search for.
+  /// - Returns: Whether or not the key was found.
+  @inlinable
+  internal func contains(key: Key) -> Bool {
+    // the retain/release calls
+    // Retain
+    var node: Node? = self.root
+    
+    while let currentNode = node {
+      let found: Bool = currentNode.read { handle in
+        let slot = handle.firstSlot(for: key)
+        
+        if slot < handle.numElements && handle[keyAt: slot] == key {
+          return true
+        } else {
+          if handle.isLeaf {
+            node = nil
+          } else {
+            // Release
+            // Retain
+            node = handle[childAt: slot]
+          }
+        }
+        
+        return false
+      }
+      
+      if found { return true }
+    }
+    
+    return false
+  }
+  
+  
   /// Returns the value corresponding to the first found instance of the key.
   ///
   /// This may not be the first instance of the key. This is marginally more efficient

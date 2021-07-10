@@ -10,10 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 extension _BTree {
+  
   /// An index to an element of the BTree represented as a path.
-  /// - Warning: operations using this type do not perform checks if the
-  ///     tree is still valid. Therefore, operations using this may result in
-  ///     undefined behavior if the tree is muated or deallocated.
   @usableFromInline
   internal struct Index: Comparable {
     /// The path to the element in the BTree. A `nil` value indicates

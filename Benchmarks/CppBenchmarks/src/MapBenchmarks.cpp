@@ -51,11 +51,20 @@ auto find(custom_map* map, intptr_t value)
 }
 
 void
-cpp_map_lookups(void *ptr, const intptr_t *start, size_t count, bool expectMatch)
+cpp_map_lookups(void *ptr, const intptr_t *start, size_t count)
 {
   auto map = static_cast<custom_map *>(ptr);
   for (auto it = start; it < start + count; ++it) {
-    auto found = find(map, *it) != map->end();
-    if (found != expectMatch) { abort(); }
+    auto isCorrect = find(map, *it)->second == *it * 2;
+    if (!isCorrect) { abort(); }
+  }
+}
+
+void
+cpp_map_subscript(void *ptr, const intptr_t *start, size_t count)
+{
+  auto map = static_cast<custom_map *>(ptr);
+  for (auto it = start; it < start + count; ++it) {
+    black_hole((*map)[*it]);
   }
 }

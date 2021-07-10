@@ -78,6 +78,12 @@ extension _Node {
         }
       }
       
+      precondition(
+        isLeaf ||
+          numTotalElements == numElements + (0...numElements).reduce(into: 0, { $0 + self[childAt: $1].read({ $0.numElements }) }),
+        "Total number of elements out of sync."
+      )
+      
       if !isLeaf {
         for i in 0..<numElements {
           let key = self[keyAt: i]
@@ -161,7 +167,7 @@ extension _Node {
     /// Defined as `ceil(capacity)/2 - 1`.
     @inlinable
     @inline(__always)
-    internal var minCapacity: Int { (capacity + 1) / 2 - 1 }
+    internal var minCapacity: Int { capacity / 2 }
     
     /// Whether an element can be removed without triggering a rebalance.
     @inlinable
@@ -172,6 +178,18 @@ extension _Node {
     @inlinable
     @inline(__always)
     internal var isBalanced: Bool { numElements >= minCapacity }
+    
+    
+    /// Indicates that the node has no more children and is ready for deallocation
+    ///
+    /// It is critical to ensure that there are absolutely no children or element references
+    /// still owned by this node, or else it may result in a serious memory leak.
+    @inlinable
+    @inline(__always)
+    internal func drop() {
+      assert(self.numElements == 0, "Cannot drop non-empty node")
+      self.header.pointee.children = nil
+    }
   }
 }
 
@@ -205,6 +223,8 @@ extension _Node.UnsafeHandle {
   }
   
   // TODO: consider implementing `_modify` for these subscripts
+  /// Returns the child at a given slot as a Node object
+  /// - Warning: During mutations, re-accessing the same child slot is invalid.
   @inlinable
   @inline(__always)
   internal subscript(childAt slot: Int) -> _Node {
@@ -341,6 +361,9 @@ extension _Node.UnsafeHandle {
   
   /// Inserts a new element into an uninitialized slot in node.
   ///
+  /// This ensures that a child is provided where appropriate and may trap if a right
+  /// child is not provided iff the node is a leaf.
+  ///
   /// - Parameters:
   ///   - element: The element to insert which the node will take ownership of.
   ///   - slot: An uninitialized slot in the buffer to insert the element into.
@@ -352,12 +375,50 @@ extension _Node.UnsafeHandle {
     assert(slot < self.capacity, "Cannot insert beyond node capacity.")
     assert(self.isLeaf == (rightChild == nil), "A child can only be inserted iff the node is a leaf.")
     
-    self.keys.advanced(by: slot).initialize(to: element.key)
-    self.values.advanced(by: slot).initialize(to: element.value)
+    self.setElement(element, at: slot)
     
     if let rightChild = rightChild {
       self.children.unsafelyUnwrapped.advanced(by: slot + 1).initialize(to: rightChild)
     }
+  }
+  
+  /// Inserts a new element into an uninitialized slot in node.
+  ///
+  /// This ensures that a child is provided where appropriate and may trap if a left
+  /// child is not provided iff the node is a leaf.
+  ///
+  /// - Parameters:
+  ///   - element: The element to insert which the node will take ownership of.
+  ///   - slot: An uninitialized slot in the buffer to insert the element into.
+  /// - Warning: This does not adjust the buffer counts.
+  @inlinable
+  @inline(__always)
+  internal func setElement(_ element: _Node.Element, withLeftChild leftChild: _Node?, at slot: Int) {
+    assertMutable()
+    assert(slot < self.capacity, "Cannot insert beyond node capacity.")
+    assert(self.isLeaf == (leftChild == nil), "A child can only be inserted iff the node is a leaf.")
+    
+    self.setElement(element, at: slot)
+    
+    if let leftChild = leftChild {
+      self.children.unsafelyUnwrapped.advanced(by: slot).initialize(to: leftChild)
+    }
+  }
+  
+  /// Inserts a new element into an uninitialized slot in node.
+  ///
+  /// - Parameters:
+  ///   - element: The element to insert which the node will take ownership of.
+  ///   - slot: An uninitialized slot in the buffer to insert the element into.
+  /// - Warning: This does not adjust the buffer counts.
+  @inlinable
+  @inline(__always)
+  internal func setElement(_ element: _Node.Element, at slot: Int) {
+    assertMutable()
+    assert(slot < self.capacity, "Cannot insert beyond node capacity.")
+    
+    self.keys.advanced(by: slot).initialize(to: element.key)
+    self.values.advanced(by: slot).initialize(to: element.value)
   }
   
   /// Moves an element out of the handle and returns it.
@@ -381,6 +442,24 @@ extension _Node.UnsafeHandle {
       key: self.keys.advanced(by: slot).move(),
       value: self.values.advanced(by: slot).move()
     )
+  }
+  
+  /// Moves an element out of the handle and returns it.
+  ///
+  /// This may leave a hold within the node's buffer so it is critical to ensure that
+  /// it is filled, either by inserting a new child or some other operation.
+  ///
+  /// - Parameter slot: The in-bounds slot of an chile to move out
+  /// - Returns: The child node object.
+  /// - Warning: This does not adjust buffer counts
+  @inlinable
+  @inline(__always)
+  internal func moveChild(at slot: Int) -> _Node {
+    assertMutable()
+    assert(!self.isLeaf, "Can only move a child on a non-leaf node.")
+    assert(slot < self.numChildren, "Attempted to move out-of-bounds child.")
+    
+    return self.children.unsafelyUnwrapped.advanced(by: slot).move()
   }
   
   /// Recomputes the total amount of elements in two nodes.
@@ -415,8 +494,43 @@ extension _Node.UnsafeHandle {
     checkInvariants()
   }
   
-  /// Removes a key-value pair from a given slot within the node. This is assumed to
+  /// Removes a child node pair from a given slot within the node. This is assumed to
   /// run on a leaf.
+  ///
+  /// This is effectively the same as ``_Node.UnsafeHandle.moveChild(at:)``
+  /// however, this also moves surrounding elements as to prevent gaps from appearing
+  /// within the buffer.
+  ///
+  /// This does not touch the elements in the node, so it is important to ensure those are
+  /// correctly handled.
+  ///
+  /// This operation does adjust the stored total counts on the node as appropriate.
+  ///
+  /// - Parameter slot: The slot to remove which must be in-bounds.
+  /// - Returns: The child that was removed.
+  /// - Warning: This performs neither balancing, rotation, or count updates.
+  @inlinable
+  @inline(__always)
+  internal func removeChild(at slot: Int) -> _Node {
+    assertMutable()
+    assert(slot < self.numChildren, "Attempt to remove out-of-bounds child.")
+    
+    let child = self.moveChild(at: slot)
+    
+    // Shift everything else over to the left
+    self.moveChildren(
+      toHandle: self,
+      fromSlot: slot + 1,
+      toSlot: slot,
+      count: self.numChildren - slot - 1
+    )
+    
+    self.numTotalElements -= child.read({ $0.numTotalElements })
+    
+    return child
+  }
+  
+  /// Removes a key-value pair from a given slot within the node.
   ///
   /// This does not touch the children of the node, so it is important to ensure those are
   /// correctly handled.
@@ -442,8 +556,6 @@ extension _Node.UnsafeHandle {
       count: self.numElements - slot - 1
     )
     
-    // TODO: handle children
-    
     self.numElements -= 1
     self.numTotalElements -= 1
     
@@ -453,8 +565,8 @@ extension _Node.UnsafeHandle {
 
 // MARK: Tree-Wise Operations
 extension _Node.UnsafeHandle {
-  @usableFromInline
-  internal typealias ElementReference = (handle: _Node.UnsafeHandle, slot: Int)
+//  @usableFromInline
+//  internal typealias ElementReference = (handle: _Node.UnsafeHandle, slot: Int)
   
   // TODO: see if these closures optimize well
   /// Obtains a handle to the node's immediate predecessor.  If a predecessor
