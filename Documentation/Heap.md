@@ -100,7 +100,7 @@ while let max = heap2.popMax() {
 
 To remove the smallest element, we remove and return the element at index 0. The element at the end of the backing array is put in its place at index 0, and then we trickle it down to where it belongs in the heap. To remove the largest element, we do the same except the index is whatever the index of the largest element is (see above) instead of 0.
 
-We also have non-optional flavors that assume the queue isn't empty, `removeMin()` and `removeMax()`.
+We also have non-optional flavors that assume the heap isn't empty, `removeMin()` and `removeMax()`.
 
 ### Iteration
 
