@@ -5,16 +5,24 @@
 //  Created by Mahanaz Atiqullah on 6/25/21.
 //
 
-extension BitSet: Collection {
+extension BitSet: Collection, BidirectionalCollection {
     
-    public func index(after i: Int) -> Int {
-        return i + 1
+    
+    public func index(after: BitSet.Index) -> BitSet.Index {
+        return after
+    }
+    
+    public func index(before: BitSet.Index) -> BitSet.Index {
+        return before
+    }
+    
+    public func index(_ index: BitSet.Index, offsetBy distance: Int) -> BitSet.Index {
+        return index
     }
     
     public var count: Int {
         var mask: UInt8 = 1
         var count = 0
-        
         for byte in storage.storage {
             for j in 0..<8 {
                 mask <<= j
@@ -24,31 +32,22 @@ extension BitSet: Collection {
                 mask = 1
             }
         }
-        
         return count
     }
     
-    public var startIndex: Int { return 0 }
+    public var startIndex: BitSet.Index { return BitSet.Index(startIndex: storage.firstTrueIndex()) }
     
-    public var endIndex: Int { return count }
+    public var endIndex: BitSet.Index { return BitSet.Index(startIndex: storage.firstTrueIndex()) }
     
-}
-
-extension BitSet: BidirectionalCollection {
-    public func index(before i: Int) -> Int { return i - 1 }
 }
 
 extension BitSet: MutableCollection {
-    public subscript(position: Int) -> Bool { // How do we even want this function to work? Currently I just have it working like the BitArray, but that doesn't sound like it makes sense. I mean if this is a set... does it even work like an array? And the fact that this is technically sorted... hmm...
+    public subscript(position: BitSet.Index) -> Int {
         get {
-            precondition(position < endIndex && position >= startIndex, "Index out of bounds")
             
-            let (index, mask) = _split(_position: position)
-            return (storage.storage[index] & mask != 0)
         }
         set {
-            let (index, mask) = _split(_position: position)
-            if (newValue) { storage.storage[index] |= mask } else { storage.storage[index] &= ~mask }
+            
         }
     }
     

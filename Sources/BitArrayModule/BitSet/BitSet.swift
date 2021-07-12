@@ -11,4 +11,11 @@ public struct BitSet {
     
     public init() { }
     
+    public struct Index {
+        var bitArrayIndex: Int
+        public init(startIndex: Int) {
+            bitArrayIndex = startIndex
+        }
+    }
+    
 }
