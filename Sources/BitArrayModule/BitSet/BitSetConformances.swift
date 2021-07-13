@@ -8,16 +8,44 @@
 extension BitSet: Collection, BidirectionalCollection {
     
     
-    public func index(after: BitSet.Index) -> BitSet.Index {
-        return after
+    public func index(after: Index) -> Index { // mutates passed in Index
+        // Add preconditions
+        for i in (after.bitArrayIndex+1)..<storage.count {
+            if (storage[i]) {
+                return Index(bitArrayIndex: i)
+            }
+        }
+        fatalError("After not found :(")
     }
     
-    public func index(before: BitSet.Index) -> BitSet.Index {
-        return before
+    public func index(before: Index) -> Index {
+        // Add preconditions
+        for i in stride(from: (before.bitArrayIndex-1), through: 0, by: -1) {
+            if (storage[i]) {
+                return Index(bitArrayIndex: i)
+            }
+        }
+        fatalError("Before not found :(")
     }
     
-    public func index(_ index: BitSet.Index, offsetBy distance: Int) -> BitSet.Index {
-        return index
+    public func index(_ index: Index, offsetBy distance: Int) -> Index {
+        // Add preconditions
+        if (distance == 0) {
+            return index
+        } else if (distance > 1) {
+            for i in (index.bitArrayIndex+1)..<storage.count {
+                if (storage[i]) {
+                    return Index(bitArrayIndex: i)
+                }
+            }
+        } else {
+            for i in stride(from: index.bitArrayIndex-1, through: 0, by: -1) {
+                if (storage[i]) {
+                    return Index(bitArrayIndex: i)
+                }
+            }
+        }
+        fatalError("Index not found :(")
     }
     
     public var count: Int {
@@ -35,19 +63,19 @@ extension BitSet: Collection, BidirectionalCollection {
         return count
     }
     
-    public var startIndex: BitSet.Index { return BitSet.Index(startIndex: storage.firstTrueIndex()) }
+    public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // test first(where: {}) instead
     
-    public var endIndex: BitSet.Index { return BitSet.Index(startIndex: storage.firstTrueIndex()) }
+    public var endIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // needs completing
     
 }
 
 extension BitSet: MutableCollection {
-    public subscript(position: BitSet.Index) -> Int {
+    public subscript(position: Index) -> Int {
         get {
-            
+            return position.bitArrayIndex
         }
         set {
-            
+            // what to do here?
         }
     }
     
