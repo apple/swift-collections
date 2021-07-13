@@ -54,6 +54,23 @@ extension BitArray {
         return -1 // big problem
     }
     
+    public func lastTrueIndex() -> Int {
+        var counter = storage.count
+        for item in storage.reversed() {
+            counter -= 1
+            if (item > 0) {
+                for pointer in 0..<8 {
+                    if ( (item & (1 << pointer)) > 0 ) {
+                        return pointer + counter*BitArray.UNIT.bitWidth
+                    }
+                }
+            } else {
+                fatalError("Error in first true index function")
+            }
+        }
+        return -1 // big problem
+    }
+    
     /* TOGGLE FUNCTION ALREADY EXISTS AND WORKS??? */
     /*public mutating func toggle(at position: Int) -> Bool { // returns the new value. I don't know, I felt like having it return some contaxt as to what happened might be useful for a developer
         

@@ -65,7 +65,7 @@ extension BitSet: Collection, BidirectionalCollection {
     
     public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // test first(where: {}) instead
     
-    public var endIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // needs completing
+    public var endIndex: Index { return Index(bitArrayIndex: storage.lastTrueIndex()) }
     
 }
 
