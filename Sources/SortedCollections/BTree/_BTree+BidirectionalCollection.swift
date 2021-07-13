@@ -26,7 +26,7 @@ extension _BTree: BidirectionalCollection {
   @inlinable
   internal var startIndex: Index {
     if count == 0 { return Index(nil, forTree: self) }
-    var depth = 0
+    var depth: UInt8 = 0
     var currentNode = self.root
     while !currentNode.read({ $0.isLeaf }) {
       // TODO: figure out how to avoid the swift retain here
@@ -37,7 +37,7 @@ extension _BTree: BidirectionalCollection {
     let path = UnsafePath(
       node: currentNode,
       slot: 0,
-      childSlots: Array<Int>(repeating: 0, count: depth),
+      childSlots: PackedOffsetList(depth: depth),
       offset: 0
     )
     
@@ -238,8 +238,7 @@ extension _BTree {
   /// - Returns: If found, returns a path to the element. Otherwise, `nil`.
   @inlinable
   internal func anyIndex(forKey key: Key) -> Index? {
-    var childSlots = [Int]()
-    childSlots.reserveCapacity(BTREE_MAX_DEPTH)
+    var childSlots = PackedOffsetList()
     var node: Node? = self.root
     
     while let currentNode = node {
@@ -251,7 +250,7 @@ extension _BTree {
           if handle.isLeaf {
             node = nil
           } else {
-            childSlots.append(keySlot)
+            childSlots.append(UInt16(keySlot))
             node = handle[childAt: keySlot]
           }
           
@@ -279,8 +278,7 @@ extension _BTree {
       return Index(nil, forTree: self)
     }
     
-    var childSlots = [Int]()
-    childSlots.reserveCapacity(BTREE_MAX_DEPTH)
+    var childSlots = PackedOffsetList()
     
     var node: _Node = self.root
     var startIndex = 0
@@ -292,7 +290,7 @@ extension _BTree {
           let endIndex = startIndex + child.read({ $0.numTotalElements })
           
           if offset < endIndex {
-            childSlots.append(childSlot)
+            childSlots.append(UInt16(childSlot))
             node = child
             return nil
           } else if offset == endIndex {

@@ -20,58 +20,10 @@ extension _BTree {
   ///   safety, use ``_BTree.Index`` instead
   @usableFromInline
   internal struct UnsafePath {
-    @usableFromInline
-    internal struct PackedOffsetList {
-      @usableFromInline
-      internal var depth: UInt8
-      
-      @usableFromInline
-      internal var offsets: UInt64
-      
-      @inlinable
-      @inline(__always)
-      internal init() {
-        self.depth = 0
-        self.offsets = 0
-      }
-      
-      @inlinable
-      @inline(__always)
-      internal mutating func pop() {
-        assert(depth != 0, "Attempted to ascend from root path.")
-        self.depth &-= 1
-      }
-      
-      @inlinable
-      @inline(__always)
-      internal mutating func move(by slots: UInt16) {
-        let level: UInt8 = depth << 4
-        let mask: UInt64 = UInt64(0xFFFF) << level
-        
-        var oldSlot = (offsets & mask) >> level
-        oldSlot &+= UInt64(slots)
-        
-        offsets = (offsets & ~mask) | (oldSlot << level)
-      }
-      
-      @inlinable
-      @inline(__always)
-      internal mutating func child(at slot: UInt16) {
-        assert(depth != 3, "Attempted to exceed maximum depth.")
-        depth &+= 1
-        
-        let level: UInt8 = depth << 4
-        let mask: UInt64 = UInt64(0xFFFF) << level
-        
-        offsets = (offsets & ~mask) | (UInt64(slot) << level)
-      }
-    }
-    
-    // TODO: potentially make compact (U)Int8/16 type to be more compact
     /// The position of each of the parent nodes in their parents. The path's depth
     /// is offsets.count + 1
     @usableFromInline
-    internal var childSlots: Array<Int>
+    internal var childSlots: PackedOffsetList
     
     @usableFromInline
     internal unowned(unsafe) var node: Node.Storage
@@ -110,7 +62,7 @@ extension _BTree {
     internal init(
       node: Node,
       slot: Int,
-      childSlots: Array<Int>,
+      childSlots: PackedOffsetList,
       offset: Int
     ) {
       self.init(node: node.storage, slot: slot, childSlots: childSlots, offset: offset)
@@ -126,7 +78,7 @@ extension _BTree {
     internal init(
       node: Node.Storage,
       slot: Int,
-      childSlots: Array<Int>,
+      childSlots: PackedOffsetList,
       offset: Int
     ) {
       self.node = node
@@ -164,17 +116,17 @@ extension _BTree.UnsafePath: Comparable {
   /// - Complexity: O(`log n`)
   @inlinable
   public static func <(lhs: _BTree.UnsafePath, rhs: _BTree.UnsafePath) -> Bool {
-    for i in 0..<min(lhs.childSlots.count, rhs.childSlots.count) {
+    for i in 0..<min(lhs.childSlots.depth, rhs.childSlots.depth) {
       if lhs.childSlots[i] < rhs.childSlots[i] {
         return true
       }
     }
     
-    if lhs.childSlots.count < rhs.childSlots.count {
-      let rhsOffset = rhs.childSlots[lhs.childSlots.count - 1]
+    if lhs.childSlots.depth < rhs.childSlots.depth {
+      let rhsOffset = rhs.childSlots[lhs.childSlots.depth - 1]
       return lhs.slot < rhsOffset
-    } else if rhs.childSlots.count < lhs.childSlots.count {
-      let lhsOffset = lhs.childSlots[rhs.childSlots.count - 1]
+    } else if rhs.childSlots.depth < lhs.childSlots.depth {
+      let lhsOffset = lhs.childSlots[rhs.childSlots.depth - 1]
       return lhsOffset <= rhs.slot
     } else {
       return lhs.slot < rhs.slot

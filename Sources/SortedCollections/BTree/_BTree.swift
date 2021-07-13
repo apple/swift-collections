@@ -14,15 +14,11 @@
 
 /// Internal node capacity for BTree
 @usableFromInline
-internal let BTREE_INTERNAL_CAPACITY = 16
+internal let _BTREE_INTERNAL_CAPACITY = 16
 
 /// Leaf node capacity for BTree
 @usableFromInline
-internal let BTREE_LEAF_CAPACITY = 470
-
-/// An expected rough upper bound for BTree depth
-@usableFromInline
-internal let BTREE_MAX_DEPTH = 10
+internal let _BTREE_LEAF_CAPACITY = 470
 
 /// A bidirectional collection representing a BTree which efficiently stores its
 /// elements in sorted order and maintains roughly `O(log count)`
@@ -71,7 +67,7 @@ internal struct _BTree<Key: Comparable, Value> {
   ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than `leafCapacity`.
   @inlinable
   @inline(__always)
-  internal init(leafCapacity: Int = BTREE_LEAF_CAPACITY, internalCapacity: Int = BTREE_INTERNAL_CAPACITY) {
+  internal init(leafCapacity: Int = _BTREE_LEAF_CAPACITY, internalCapacity: Int = _BTREE_INTERNAL_CAPACITY) {
     self.init(
       rootedAt: Node(withCapacity: leafCapacity, isLeaf: true),
       leafCapacity: leafCapacity,
@@ -100,7 +96,7 @@ internal struct _BTree<Key: Comparable, Value> {
   ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than `leafCapacity`.
   @inlinable
   @inline(__always)
-  internal init(rootedAt root: Node, leafCapacity: Int = BTREE_LEAF_CAPACITY, internalCapacity: Int = BTREE_INTERNAL_CAPACITY) {
+  internal init(rootedAt root: Node, leafCapacity: Int = _BTREE_LEAF_CAPACITY, internalCapacity: Int = _BTREE_INTERNAL_CAPACITY) {
     self.root = root
     self.internalCapacity = internalCapacity
     self.age = Int32(truncatingIfNeeded: ObjectIdentifier(root.storage).hashValue)
