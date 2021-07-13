@@ -20,7 +20,7 @@ extension SortedDictionary: Equatable where Value: Equatable {
   /// - Parameters:
   ///   - lhs: A value to compare.
   ///   - rhs: Another value to compare.
-  /// - Complexity: O(`n log n`)
+  /// - Complexity: O(`n`)
   @inlinable
   public static func ==(lhs: SortedDictionary<Key, Value>, rhs: SortedDictionary<Key, Value>) -> Bool {
     if lhs.count != rhs.count { return false }

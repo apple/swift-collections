@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+// TODO: add custom forEach?
+// TODO: benchmark
+
 //extension SortedDictionary: Sequence {
 //  /// An iterator over the elements of the sorted dictionary
 //  public struct Iterator: IteratorProtocol {

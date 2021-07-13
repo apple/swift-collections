@@ -9,19 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SortedDictionary: BidirectionalCollection {
-  /// The number of elements in the sorted dictionary.
+extension SortedSet: BidirectionalCollection {
+  /// The number of elements in the sorted set.
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var count: Int { self._root.count }
   
-  /// A Boolean value that indicates whether the dictionary is empty.
+  /// A Boolean value that indicates whether the set is empty.
   @inlinable
   @inline(__always)
   public var isEmpty: Bool { self._root.isEmpty }
   
-  /// The position of the first element in a nonempty dictionary.
+  /// The position of the first element in a nonempty set.
   ///
   /// If the collection is empty, `startIndex` is equal to `endIndex`.
   ///

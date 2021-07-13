@@ -39,21 +39,29 @@ public struct SortedDictionary<Key: Comparable, Value> {
   internal init(_rootedAt tree: _Tree) {
     self._root = tree
   }
+}
+
+// MARK: Accessing Keys and Values
+extension SortedDictionary {
+  public typealias Keys = SortedSet<Key>
+  public typealias Values = Array<Value>
   
-  /// Creates a dictionary from a sequence of key-value pairs which must
-  /// be unique.
-  /// - Complexity: O(`n log n`)
+  // TODO: check if unsafeBitCast is acceptable
+  /// A read-only collection view for the keys contained in this dictionary, as
+  /// an `SortedSet`.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public init<S>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S: Sequence, S.Element == Element {
-    self.init()
-    
-    for (key, value) in keysAndValues {
-      self._root.setAnyValue(value, forKey: key)
-    }
-  }
+  public var keys: Keys { return SortedSet(_rootedAt: unsafeBitCast(self._root, to: _BTree<Key, ()>.self)) }
+  
+  // TODO: mutability of values?
+  /// A mutable collection view containing the values in this dictionary.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var values: Values { fatalError("TODO: implement") }
 }
 
 // MARK: Mutations
@@ -63,15 +71,17 @@ extension SortedDictionary {
   ///
   /// Use this method instead of key-based subscripting when you need to
   /// know whether the new value supplants the value of an existing key. If
-  /// the value of an existing key is updated, `updateValue(_:forKey:)` returns
-  /// the original value.
+  /// the value of an existing key is updated, `updateValue(_:forKey:)`
+  /// returns the original value.
   /// 
   /// - Parameters:
   ///   - value: The new value to add to the dictionary.
   ///   - key: The key to associate with value. If key already exists in the
   ///       dictionary, value replaces the existing associated value. If key
-  ///       isn’t already a key of the dictionary, the (key, value) pair is added.
-  /// - Returns: The value that was replaced, or nil if a new key-value pair was added.
+  ///       isn’t already a key of the dictionary, the `(key, value)` pair
+  ///       is added.
+  /// - Returns: The value that was replaced, or nil if a new key-value
+  ///     pair was added.
   /// - Complexity: O(`log n`)
   @inlinable
   @discardableResult
@@ -80,61 +90,78 @@ extension SortedDictionary {
   }
 }
 
-// MARK: Subscripts
+// MARK: Removing Keys and Values
 extension SortedDictionary {
-  /// Accesses the value associated with the key for both read and write operations
+  /// Removes the given key and its associated value from the sorted dictionary.
   ///
-  /// This key-based subscript returns the value for the given key if the key is found in
-  /// the dictionary, or nil if the key is not found.
+  /// Calling this method invalidates any existing indices for use with this sorted dictionary.
   ///
-  /// When you assign a value for a key and that key already exists, the dictionary overwrites
-  /// the existing value. If the dictionary doesn’t contain the key, the key and value are added
-  /// as a new key-value pair.
-  ///
-  /// - Parameter key: The key to find in the dictionary.
-  /// - Returns: The value associated with key if key is in the dictionary; otherwise, nil.
-  /// - Complexity: O(`log n`)
+  /// - Parameter key: The key to remove along with its associated value.
+  /// - Returns: The value that was removed, or `nil` if the key was not present
+  ///     in the dictionary.
+  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
+  ///   dictionary
   @inlinable
   @inline(__always)
-  public subscript(key: Key) -> Value? {
-    get {
-      return self._root.anyValue(for: key)
+  public mutating func removeValue(forKey key: Key) -> Value? {
+    return self._root.removeAny(key: key)?.value
+  }
+}
+
+// MARK: Transforming a Dictionary
+extension SortedDictionary {
+  /// Returns a new dictionary containing the keys of this dictionary with the values
+  /// transformed by the given closure.
+  ///
+  /// - Parameter transform: A closure that transforms a value. transform accepts
+  ///     each value of the dictionary in order as its parameter and returns a transformed
+  ///     value of the same or of a different type.
+  /// - Returns: A sorted dictionary containing the keys and transformed values of
+  ///     this dictionary.
+  /// - Complexity: O(`n`)
+  @inlinable
+  @inline(__always)
+  public func mapValues<T>(
+    _ transform: (Value) throws -> T
+  ) rethrows -> SortedDictionary<Key, T> {
+    // TODO: Optimize to reuse dictionary structure.
+    // TODO: optimize to use identify fastest iteration method
+    // TODO: optimize CoW checks
+    var newDictionary = SortedDictionary<Key, T>()
+    
+    for (key, value) in self {
+      newDictionary.updateValue(try transform(value), forKey: key)
     }
     
-    // TODO: implement _modify
-    
-    mutating set {
-      if let newValue = newValue {
-        self._root.setAnyValue(newValue, forKey: key)
-      } else {
-        self._root.removeAny(key: key)
-      }
-    }
+    return newDictionary
   }
   
-  /// Accesses the value with the given key. If the dictionary doesn’t contain the given
-  /// key, accesses the provided default value as if the key and default value existed
-  /// in the dictionary.
+  /// Returns a new dictionary containing only the key-value pairs that have non-nil values
+  /// as the result of transformation by the given closure.
   ///
-  /// Use this subscript when you want either the value for a particular key or, when that
-  /// key is not present in the dictionary, a default value.
+  /// Use this method to receive a dictionary with non-optional values when your transformation
+  /// produces optional values.
   ///
-  /// - Parameters:
-  ///   - key: The key the look up in the dictionary.
-  ///   - defaultValue: The default value to use if key doesn’t exist in the dictionary.
-  /// - Returns: The value associated with key in the dictionary; otherwise, defaultValue.
-  /// - Complexity: O(`log n`)
-  @inlinable
-  @inline(__always)
-  public subscript(
-    key: Key, default defaultValue: @autoclosure () -> Value
-  ) -> Value {
-    get {
-      return self[key] ?? defaultValue()
+  /// - Parameter transform: A closure that transforms a value. `transform` accepts
+  ///     each value of the dictionary as its parameter and returns an optional transformed
+  ///     value of the same or of a different type.
+  /// - Returns: A sorted dictionary containing the keys and non-nil transformed values
+  ///     of this dictionary.
+  /// - Complexity: O(`n`)
+  func compactMapValues<T>(
+    _ transform: (Value) throws -> T?
+  ) rethrows -> SortedDictionary<Key, T> {
+    // TODO: Optimize to reuse dictionary structure.
+    // TODO: optimize to use identify fastest iteration method
+    // TODO: optimize CoW checks
+    var newDictionary = SortedDictionary<Key, T>()
+    
+    for (key, value) in self {
+      if let value = try transform(value) {
+        newDictionary.updateValue(value, forKey: key)
+      }
     }
     
-    mutating set {
-      self[key] = newValue
-    }
+    return newDictionary
   }
 }

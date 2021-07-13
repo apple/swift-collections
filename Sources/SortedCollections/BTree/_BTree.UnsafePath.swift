@@ -111,7 +111,8 @@ extension _BTree {
       node: Node,
       slot: Int,
       childSlots: Array<Int>,
-      offset: Int) {
+      offset: Int
+    ) {
       self.init(node: node.storage, slot: slot, childSlots: childSlots, offset: offset)
     }
     

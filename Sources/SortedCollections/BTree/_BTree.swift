@@ -164,6 +164,22 @@ extension _BTree {
     return nil
   }
   
+  /// Verifies if the tree is balanced post-removal
+  /// - Warning: This does not invalidate indices.
+  @inlinable
+  @inline(__always)
+  internal mutating func _balanceRoot() {
+    if self.root.read({ $0.numElements == 0 && !$0.isLeaf }) {
+      let newRoot: Node = self.root.update { handle in
+        let newRoot = handle.moveChild(at: 0)
+        handle.drop()
+        return newRoot
+      }
+      
+      self.root = newRoot
+    }
+  }
+  
   /// Removes the key-value pair corresponding to the first found instance of the key.
   ///
   /// This may not be the first instance of the key. This is marginally more efficient for trees
@@ -179,21 +195,81 @@ extension _BTree {
     invalidateIndices()
     
     // TODO: Don't create CoW copy until needed.
-    // TODO: Handle root deletion
     let removedElement = self.root.update { $0.removeAny(key: key) }
     
     // Check if the tree height needs to be reduced
-    if self.root.read({ $0.numElements == 0 && !$0.isLeaf }) {
-      let newRoot: Node = self.root.update { handle in
-        let newRoot = handle.moveChild(at: 0)
-        handle.drop()
-        return newRoot
-      }
-      
-      self.root = newRoot
-    }
+    self._balanceRoot()
     
     return removedElement
+  }
+  
+  /// Removes the first element of a tree, if it exists.
+  ///
+  /// - Returns: The moved first element of the tree.
+  @inlinable
+  @discardableResult
+  internal mutating func popLast() -> Element? {
+    invalidateIndices()
+    
+    if self.count == 0 { return nil }
+    
+    let removedElement = self.root.update { $0.popLastElement() }
+    self._balanceRoot()
+    return removedElement
+  }
+  
+  /// Removes the first element of a tree, if it exists.
+  ///
+  /// - Returns: The moved first element of the tree.
+  @inlinable
+  @discardableResult
+  internal mutating func popFirst() -> Element? {
+    invalidateIndices()
+    
+    if self.count == 0 { return nil }
+    
+    let removedElement = self.root.update { $0.popFirstElement() }
+    self._balanceRoot()
+    return removedElement
+  }
+  
+  /// Removes the element of a tree at a given offset.
+  ///
+  /// - Parameter offset: the offset which must be in-bounds.
+  /// - Returns: The moved element of the tree
+  @inlinable
+  @discardableResult
+  internal mutating func remove(at offset: Int) -> Element {
+    invalidateIndices()
+    let removedElement = self.root.update { $0.remove(at: offset) }
+    self._balanceRoot()
+    return removedElement
+  }
+  
+  /// Removes the element of a tree at a given index.
+  ///
+  /// - Parameter index: a valid index of the tree, not `endIndex`
+  /// - Returns: The moved element of the tree
+  @inlinable
+  @discardableResult
+  internal mutating func remove(at index: Index) -> Element {
+    invalidateIndices()
+    guard let path = index.path else { preconditionFailure("Index out of bounds.") }
+    return self.remove(at: path.offset)
+  }
+  
+  /// Removes the elements in the specified subrange from the collection.
+  @inlinable
+  internal mutating func removeSubrange(_ bounds: Range<Index>) {
+    guard let startPath = bounds.lowerBound.path else { preconditionFailure("Index out of bounds.") }
+    guard let _ = bounds.upperBound.path else { preconditionFailure("Index out of bounds.") }
+    
+    let rangeSize = self.distance(from: bounds.lowerBound, to: bounds.upperBound)
+    let startOffset = startPath.offset
+    
+    for _ in 0..<rangeSize {
+      self.remove(at: startOffset)
+    }
   }
 }
 
@@ -233,7 +309,6 @@ extension _BTree {
     
     return false
   }
-  
   
   /// Returns the value corresponding to the first found instance of the key.
   ///

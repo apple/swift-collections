@@ -36,8 +36,8 @@ extension _Node.UnsafeHandle {
       } else {
         // Deletion within an internal node
         
-        // TODO: potentially be smarter about using the predecessor or successor.0
-        let predecessor = self[childAt: slot].update { $0.popElement() }
+        // TODO: potentially be smarter about using the predecessor or successor.
+        let predecessor = self[childAt: slot].update { $0.popLastElement() }
         
         // Reduce the element count.
         self.numTotalElements -= 1
@@ -84,6 +84,77 @@ extension _Node.UnsafeHandle {
     }
   }
   
+  /// Removes the element of the tree rooted at this node, at a given offset.
+  ///
+  /// This may leave the node it is called upon unbalanced so it is important to
+  /// ensure the tree above this is balanced. This does adjust child counts
+  ///
+  /// - Parameter offset: the offset which must be in-bounds.
+  /// - Returns: The moved element of the tree
+  @inlinable
+  @inline(__always)
+  internal func remove(at offset: Int) -> _Node.Element {
+    assertMutable()
+    assert(0 <= offset && offset < self.numTotalElements, "Cannot remove with out-of-bounds offset.")
+    
+    if self.isLeaf {
+      return self.removeElement(at: offset)
+    } else {
+      var startIndex = 0
+      for childSlot in 0..<self.numChildren {
+        let endIndex = startIndex + self[childAt: childSlot].read { $0.numTotalElements }
+        
+        if offset < endIndex {
+          return self[childAt: childSlot].update { $0.remove(at: offset - startIndex) }
+        } else if offset == endIndex {
+          let predecessor = self[childAt: childSlot].update { $0.popLastElement() }
+          
+          self.numTotalElements -= 1
+          
+          // Replace the current element with the predecessor.
+          let element = self.moveElement(at: childSlot)
+          self.setElement(predecessor, at: childSlot)
+          
+          // Balance the predecessor child slot, as the pop operation may have
+          // brought it out of balance.
+          self.balance(at: childSlot)
+          
+          return element
+        } else {
+          startIndex = endIndex + 1
+        }
+      }
+      
+      preconditionFailure("B-Tree in invalid state.")
+    }
+  }
+  
+  /// Removes the first element of a tree, balancing the tree.
+  ///
+  /// This may leave the node it is called upon unbalanced so it is important to
+  /// ensure the tree above this is balanced. This does adjust child counts
+  ///
+  /// - Returns: The moved first element of the tree.
+  @inlinable
+  @inline(__always)
+  internal func popFirstElement() -> _Node.Element {
+    assertMutable()
+    
+    if self.isLeaf {
+      // At a leaf, it is trivial to pop the last element
+      // removeElement(at:) automatically updates the counts.
+      return self.removeElement(at: 0)
+    } else {
+      // Remove the subtree's element
+      let poppedElement = self[childAt: 0].update { $0.popFirstElement() }
+      
+      self.numTotalElements -= 1
+      
+      self.balance(at: self.numChildren - 1)
+      return poppedElement
+    }
+  }
+  
   /// Removes the last element of a tree, balancing the tree.
   ///
   /// This may leave the node it is called upon unbalanced so it is important to
@@ -92,16 +163,16 @@ extension _Node.UnsafeHandle {
   /// - Returns: The moved last element of the tree.
   @inlinable
   @inline(__always)
-  internal func popElement() -> _Node.Element {
+  internal func popLastElement() -> _Node.Element {
     assertMutable()
     
     if self.isLeaf {
       // At a leaf, it is trivial to pop the last element
-      // removeElement(at:) automatically updates the counts.
+      // popLastElement(at:) automatically updates the counts.
       return self.removeElement(at: self.numElements - 1)
     } else {
       // Remove the subtree's element
-      let poppedElement = self[childAt: self.numChildren - 1].update { $0.popElement() }
+      let poppedElement = self[childAt: self.numChildren - 1].update { $0.popLastElement() }
       
       self.numTotalElements -= 1
       
