@@ -8,7 +8,7 @@
 extension BitSet: Collection, BidirectionalCollection {
     
     
-    public func index(after: Index) -> Index { // mutates passed in Index
+    public func index(after: Index) -> Index {
         // Add preconditions
         for i in (after.bitArrayIndex+1)..<storage.count {
             if (storage[i]) {
@@ -63,19 +63,15 @@ extension BitSet: Collection, BidirectionalCollection {
         return count
     }
     
+    // when items are appended or removed, do these need to be recalculated, and is that does automatically?
     public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // test first(where: {}) instead
     
     public var endIndex: Index { return Index(bitArrayIndex: storage.lastTrueIndex()) }
     
-}
 
-extension BitSet: MutableCollection {
     public subscript(position: Index) -> Int {
         get {
             return position.bitArrayIndex
-        }
-        set {
-            // what to do here?
         }
     }
     
@@ -86,7 +82,6 @@ extension BitSet: MutableCollection {
         
         return (index, mask)
     }
-    
     
 }
 

@@ -16,4 +16,8 @@ extension BitSet {
         
         storage[newIndex] = true
     }
+    
+    public mutating func remove(_ index: Int) { // will "remove" regardless of whether it existed or not
+        storage[index] = false
+    }
 }
