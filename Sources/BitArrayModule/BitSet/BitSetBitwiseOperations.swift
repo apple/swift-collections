@@ -42,6 +42,7 @@ extension BitSet {
         }
     }
     
+    // SHOULD COME WITH SET ALGEBRA ONCE CONFORMED
     public func intArrayView() -> [Int] { // previously named 'asAnIntArray' -- also probably needs to go into diff file
         var arrayView: [Int] = []
         
