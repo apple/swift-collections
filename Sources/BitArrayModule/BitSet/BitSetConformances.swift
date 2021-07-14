@@ -76,7 +76,7 @@ extension BitSet: Collection, BidirectionalCollection {
                 }
             }
         } else {
-            for i in stride(from: index.bitArrayIndex-1, through: 0, by: -1) {
+            for i in (0..<index.bitArrayIndex).reversed() { // orignally had 'stride(from: index.bitArrayIndex-1, through: 0, by: -1)'
                 if (storage[i]) {
                     counter += 1
                 }
