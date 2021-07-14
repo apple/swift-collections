@@ -61,23 +61,31 @@ extension BitSet: Collection, BidirectionalCollection {
     }
     
     public func index(_ index: Index, offsetBy distance: Int) -> Index {
-        // Add preconditions
+        precondition((startIndex.bitArrayIndex <= index.bitArrayIndex) && (endIndex.bitArrayIndex >= index.bitArrayIndex), "Given Index is out of range")
+        precondition((storage[index.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
+        var counter = 0
         if (distance == 0) {
             return index
         } else if (distance > 1) {
             for i in (index.bitArrayIndex+1)..<storage.count {
                 if (storage[i]) {
+                    counter += 1
+                }
+                if (counter == distance) {
                     return Index(bitArrayIndex: i)
                 }
             }
         } else {
             for i in stride(from: index.bitArrayIndex-1, through: 0, by: -1) {
                 if (storage[i]) {
+                    counter += 1
+                }
+                if (counter == distance) {
                     return Index(bitArrayIndex: i)
                 }
             }
         }
-        fatalError("Index not found :(")
+        fatalError("Passed in distance points to an Index beyond the scope of the set") // Wondering if there is a simple way to put this as a precondition instead. Would be possible if the Indices were able to keep track of what number element of the Set it points to?
     }
     
 }
