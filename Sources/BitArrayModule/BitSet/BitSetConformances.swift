@@ -90,7 +90,7 @@ extension BitSet: Collection, BidirectionalCollection {
     
 }
 
-extension BitSet: ExpressibleByArrayLiteral {
+/*extension BitSet: ExpressibleByArrayLiteral {
     public init(arrayLiteral elements: Int...) {
         for element in elements {
             self.append(element)
@@ -98,7 +98,7 @@ extension BitSet: ExpressibleByArrayLiteral {
     }
     
     public typealias ArrayLiteralElement = Int
-}
+}*/
 
 
 extension BitSet: RandomAccessCollection, RangeReplaceableCollection {
