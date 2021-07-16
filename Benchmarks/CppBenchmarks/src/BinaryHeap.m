@@ -20,9 +20,9 @@
 
 static CFComparisonResult HeapCompare(const void *lhs, const void *rhs, void *context)
 {
-  if (*(NSInteger *)lhs == *(NSInteger *)rhs) {
+  if ((NSInteger)lhs == (NSInteger)rhs) {
     return  kCFCompareEqualTo;
-  } else if (*(NSInteger *)lhs < *(NSInteger *)rhs) {
+  } else if ((NSInteger)lhs < (NSInteger)rhs) {
     return kCFCompareLessThan;
   } else {
     return kCFCompareGreaterThan;
@@ -58,19 +58,15 @@ static CFComparisonResult HeapCompare(const void *lhs, const void *rhs, void *co
 
 - (void)insert:(NSInteger)value
 {
-  NSInteger *val = malloc(sizeof(NSInteger));
-  *val = value;
-  CFBinaryHeapAddValue(_storage, val);
+  CFBinaryHeapAddValue(_storage, (const void *)value);
 }
 
 - (NSInteger)popMinimum
 {
-  const NSInteger *val = CFBinaryHeapGetMinimum(_storage);
+  const NSInteger val = (NSInteger)CFBinaryHeapGetMinimum(_storage);
   CFBinaryHeapRemoveMinimumValue(_storage);
 
-  NSInteger value = *val;
-  free((void *)val);
-  return value;
+  return val;
 }
 
 @end
