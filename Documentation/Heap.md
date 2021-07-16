@@ -118,6 +118,16 @@ for val in heap.descending {
 
 ### Performance
 
+| Operation | Complexity |
+|-----------|------------|
+| Insert | O(log n) |
+| Get smallest element | O(1) |
+| Get largest element | O(1) |
+| Remove smallest element | O(log n) |
+| Remove largest element | O(log n) |
+
+In all of the above, `n` is the number of elements in the heap.
+
 ## Implementation Details
 
 The implementation is based off [Atkinson et al. Min-Max Heaps and Generalized Priority Queues (1986)](http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf).
