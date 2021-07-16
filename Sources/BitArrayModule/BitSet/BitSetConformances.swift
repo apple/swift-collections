@@ -101,12 +101,7 @@ extension BitSet: Collection, BidirectionalCollection {
 }*/
 
 
-extension BitSet: RandomAccessCollection {
+extension BitSet: RandomAccessCollection { // Add RangeReplaceable
     // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
     // ADD REPLACESUBRANGE
 }
-
-/*
- extension BitSet: RangeReplaceableCollection {
- }
-*/
