@@ -18,19 +18,15 @@
   CFBinaryHeapRef _storage;
 }
 
-static const void *HeapRetain(CFAllocatorRef allocator, const void *object)
-{
-  return CFRetain(object);
-}
-
-static void HeapRelease(CFAllocatorRef allocator, const void *object)
-{
-  CFRelease(object);
-}
-
 static CFComparisonResult HeapCompare(const void *lhs, const void *rhs, void *context)
 {
-  return (CFComparisonResult)[(__bridge id)lhs compare:(__bridge id)rhs];
+  if (*(NSInteger *)lhs == *(NSInteger *)rhs) {
+    return  kCFCompareEqualTo;
+  } else if (*(NSInteger *)lhs < *(NSInteger *)rhs) {
+    return kCFCompareLessThan;
+  } else {
+    return kCFCompareGreaterThan;
+  }
 }
 
 - (instancetype)init
@@ -39,8 +35,8 @@ static CFComparisonResult HeapCompare(const void *lhs, const void *rhs, void *co
   {
     CFBinaryHeapCallBacks callbacks = (CFBinaryHeapCallBacks){
       .version = 0,
-      .retain = &HeapRetain,
-      .release = &HeapRelease,
+      .retain = NULL,
+      .release = NULL,
       .copyDescription = &CFCopyDescription,
       .compare = &HeapCompare
     };
@@ -62,15 +58,19 @@ static CFComparisonResult HeapCompare(const void *lhs, const void *rhs, void *co
 
 - (void)insert:(NSInteger)value
 {
-  NSNumber *val = @(value);
-  CFBinaryHeapAddValue(_storage, (__bridge const void *)val);
+  NSInteger *val = malloc(sizeof(NSInteger));
+  *val = value;
+  CFBinaryHeapAddValue(_storage, val);
 }
 
 - (NSInteger)popMinimum
 {
-  NSNumber *val = CFBinaryHeapGetMinimum(_storage);
+  const NSInteger *val = CFBinaryHeapGetMinimum(_storage);
   CFBinaryHeapRemoveMinimumValue(_storage);
-  return val.integerValue;
+
+  NSInteger value = *val;
+  free((void *)val);
+  return value;
 }
 
 @end
