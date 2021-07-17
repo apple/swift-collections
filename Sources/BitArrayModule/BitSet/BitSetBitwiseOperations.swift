@@ -71,5 +71,4 @@ extension BitSet {
         
         return cartesianProduct
     }
-    
 }*/

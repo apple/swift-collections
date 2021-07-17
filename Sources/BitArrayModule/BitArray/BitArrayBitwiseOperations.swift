@@ -42,11 +42,10 @@ extension BitArray {
         return bitArrayOR
     }
     
-    public func bitwiseAND(with: BitArray) -> BitArray{ // arrays of different length?
+    public func bitwiseAND(with: BitArray) -> BitArray{
+        precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
         
         var bitArrayAND = BitArray()
-        
-        precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
         
         for i in 0..<self.storage.count {
             bitArrayAND.storage.append(self.storage[i] & with.storage[i])
@@ -56,10 +55,9 @@ extension BitArray {
     }
     
     public func bitwiseXOR(with: BitArray) -> BitArray{ // arrays of different length?
+        precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
         
         var bitArrayXOR = BitArray()
-        
-        precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
         
         for i in 0..<self.storage.count {
             bitArrayXOR.storage.append(self.storage[i] ^ with.storage[i])
@@ -67,4 +65,54 @@ extension BitArray {
         
         return bitArrayXOR
     }
+}
+
+extension BitArray {
+    
+    public static func | (lhs: BitArray, rhs: BitArray) -> BitArray {
+        precondition(lhs.storage.count == rhs.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
+        
+        var bitArrayOR = BitArray()
+        
+        for i in 0..<lhs.storage.count {
+            bitArrayOR.storage.append(lhs.storage[i] | rhs.storage[i])
+        }
+        
+        return bitArrayOR
+    }
+    
+    public static func & (lhs: BitArray, rhs: BitArray) -> BitArray {
+        precondition(lhs.storage.count == rhs.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
+        
+        var bitArrayAND = BitArray()
+        
+        for i in 0..<lhs.storage.count {
+            bitArrayAND.storage.append(lhs.storage[i] & rhs.storage[i])
+        }
+        
+        return bitArrayAND
+    }
+    
+    public static func ^ (lhs: BitArray, rhs: BitArray) -> BitArray {
+        precondition(lhs.storage.count == rhs.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
+        
+        var bitArrayXOR = BitArray()
+        
+        for i in 0..<lhs.storage.count {
+            bitArrayXOR.storage.append(lhs.storage[i] ^ rhs.storage[i])
+        }
+        
+        return bitArrayXOR
+    }
+    
+    public static prefix func ~ (_ bitArray: BitArray) -> BitArray {
+        var bitArrayNOT = BitArray()
+        
+        for i in 0..<bitArray.storage.count {
+            bitArrayNOT.storage.append(~bitArray.storage[i])
+        }
+        
+        return bitArrayNOT
+    }
+    
 }

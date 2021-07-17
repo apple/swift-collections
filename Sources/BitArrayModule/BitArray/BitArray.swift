@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  BitArray.swift
 //  
 //
 //  Created by Mahanaz Atiqullah on 5/21/21.

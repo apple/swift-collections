@@ -8,10 +8,14 @@
 extension BitSet: Collection, BidirectionalCollection {
     
     // when items are appended or removed, do these need to be recalculated, and is that does automatically?
+    
+    public var isEmpty: Bool { return count == 0 }
+    
     public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // test first(where: {}) instead
     
-    public var endIndex: Index { return Index(bitArrayIndex: storage.lastTrueIndex()) }
-    
+    public var endIndex: Index { return Index(bitArrayIndex: storage.lastTrueIndex()) } // use endIndex of BitArray
+    // let mySet: BitSet = BitSet()
+    // let mySet: BitSet = [3,5,7]
     public var count: Int {
         var mask: UInt8 = 1
         var count = 0
@@ -101,7 +105,8 @@ extension BitSet: Collection, BidirectionalCollection {
 }*/
 
 
-extension BitSet: RandomAccessCollection { // Add RangeReplaceable
+extension BitSet: RandomAccessCollection {
+    // Add RangeReplaceable
     // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
     // ADD REPLACESUBRANGE
 }

@@ -11,7 +11,7 @@ extension BitSet: SetAlgebra {
         while (storage.count-1 < newMember) {
             storage.storage.append(0)
         }
-        
+        // check if member already existed -> false
         storage[newMember] = true
         
         return (true, newMember) // umm when would this ever be false?
@@ -61,6 +61,8 @@ extension BitSet: SetAlgebra {
         for i in size..<self.storage.storage.count {
             newBitSet.storage.storage[i] = 0
         }
+        
+        return newBitSet
     }
     
     public __consuming func symmetricDifference(_ other: __owned BitSet) -> BitSet {

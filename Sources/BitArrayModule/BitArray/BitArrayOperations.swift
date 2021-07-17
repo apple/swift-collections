@@ -37,7 +37,7 @@ extension BitArray {
         }
     }
     
-    public func firstTrueIndex() -> Int { // very bad function
+    internal func firstTrueIndex() -> Int { // very bad function
         var counter = -1
         for item in storage {
             counter += 1
@@ -51,10 +51,10 @@ extension BitArray {
                 fatalError("Error in first true index function")
             }
         }
-        return -1 // big problem
+        return endIndex // If public, return nil/optional
     }
     
-    public func lastTrueIndex() -> Int {
+    internal func lastTrueIndex() -> Int {
         var counter = storage.count
         for item in storage.reversed() {
             counter -= 1
@@ -68,7 +68,7 @@ extension BitArray {
                 fatalError("Error in first true index function")
             }
         }
-        return -1 // big problem
+        return endIndex // big problem
     }
     
     /* TOGGLE FUNCTION ALREADY EXISTS AND WORKS??? */
