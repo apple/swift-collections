@@ -29,6 +29,8 @@ public struct BitArray {
       }
       counter += 1
     }
+    
+    excess = UInt8(elements.count%8)
   }
   
   public init(_ bitSet: BitSet) {

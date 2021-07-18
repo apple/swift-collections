@@ -21,7 +21,7 @@ final class BitArrayTest: CollectionTestCase {
     XCTAssertEqual(bitArray.storage, [181, 2])
     XCTAssertEqual(bitArray.excess, 2)
     XCTAssertEqual(bitArray.endIndex, bitArray.count)
-    XCTAssertEqual(bitArray.endIndex, 9)
+    XCTAssertEqual(bitArray.endIndex, 10)
   }
   
   func testRemoveAll() {
