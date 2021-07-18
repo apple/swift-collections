@@ -30,8 +30,8 @@ final class BitArrayTest: CollectionTestCase {
         XCTAssertEqual(testArray.count, 0)
         XCTAssertEqual(testArray.endIndex, 0)
         XCTAssertEqual(testArray.startIndex, 0)
-        XCTAssertEqual(testArray.getStorageCount(), 0)
-        XCTAssertEqual(testArray.getExcessCount(), 0)
+        //XCTAssertEqual(testArray.getStorageCount(), 0)
+        //XCTAssertEqual(testArray.getExcessCount(), 0)
     }
     
     func testSubscriptReturnOnly() {
@@ -47,8 +47,8 @@ final class BitArrayTest: CollectionTestCase {
         XCTAssertEqual(testArray.count, limit+1)
         XCTAssertEqual(testArray.endIndex, limit+1)
         XCTAssertEqual(testArray.startIndex, 0)
-        XCTAssertEqual(testArray.getStorageCount(), 13)
-        XCTAssertEqual(testArray.getExcessCount(), 5)
+        //XCTAssertEqual(testArray.getStorageCount(), 13)
+        //XCTAssertEqual(testArray.getExcessCount(), 5)
     }
     
     func testSubscriptSetOnly() {
