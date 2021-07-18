@@ -14,4 +14,31 @@ public struct BitArray {
   
   public init() { }
   
+  public init<S>(_ elements: S) where S : Sequence, Bool == S.Element {
+    // to be implemented
+  }
+  
+  public init(arrayLiteral elements: Bool...) {
+    var counter = 0
+    for i in 0..<elements.endIndex {
+      if (counter%8 == 0) {
+        storage.append(0)
+      }
+      if (elements[i]) {
+        self[i] = true
+      }
+      counter += 1
+    }
+  }
+  
+  public init(_ bitSet: BitSet) {
+    storage = bitSet.storage.storage
+    excess = bitSet.storage.excess
+  }
+  
+  // What is this?
+  /*public init(repeating repeatedValue: Bool, count: Int) {
+    
+  }*/
+  
 }

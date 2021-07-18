@@ -8,25 +8,31 @@
 extension BitArray: Collection {
   
   
-  public func index(after i: Int) -> Int { return i + 1 }
-  
-  public var count: Int {
-    
-    let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
-    return (storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
-    
+  public func index(after i: Int) -> Int {
+    return i + 1
   }
   
-  public var startIndex: Int { return 0 }
+  public var count: Int {
+    let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
+    return (storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
+  }
   
-  public var endIndex: Int { return count }
+  public var startIndex: Int {
+    return 0
+  }
+  
+  public var endIndex: Int {
+    return count
+  }
   
 }
 
 
 extension BitArray: BidirectionalCollection {
   
-  public func index(before i: Int) -> Int { return i - 1 }
+  public func index(before i: Int) -> Int {
+    return i - 1
+  }
   
 }
 
@@ -35,7 +41,6 @@ extension BitArray: MutableCollection {
   public subscript(position: Int) -> Bool  {
     
     get {
-      
       // any other checks needed?
       precondition(position < endIndex && position >= startIndex, "Index out of bounds")
       
@@ -49,7 +54,7 @@ extension BitArray: MutableCollection {
     
   }
   
-  internal func _split(_position: Int) -> (Int, UInt8) { // made internal so other files can access
+  private func _split(_position: Int) -> (Int, UInt8) {
     
     let index: Int = _position/UNIT.bitWidth
     let subPosition: Int = _position - index*UNIT.bitWidth

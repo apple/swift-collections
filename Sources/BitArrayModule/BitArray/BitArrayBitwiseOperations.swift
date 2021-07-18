@@ -6,8 +6,7 @@
 //
 
 extension BitArray {
-  
-  
+
   public mutating func formBitwiseOR(with: BitArray) {
     
     precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")

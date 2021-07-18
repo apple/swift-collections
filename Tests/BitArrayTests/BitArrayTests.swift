@@ -14,7 +14,15 @@ final class BitArrayTest: CollectionTestCase {
   // DEFINITELY needs improvement lol. I can imagine this looking like a terrible butcher to the experienced eye.
   let limit = 100 // if change limit, change getStorageCount and getExcessCount tests as well
   
-  
+  func testArrayLitInit() {
+    
+    let bitArray = BitArray(arrayLiteral: true, false, true, false, true, true, false, true, false, true)
+    
+    XCTAssertEqual(bitArray.storage, [181, 2])
+    XCTAssertEqual(bitArray.excess, 2)
+    XCTAssertEqual(bitArray.endIndex, bitArray.count)
+    XCTAssertEqual(bitArray.endIndex, 9)
+  }
   
   func testRemoveAll() {
     var testArray = BitArray()

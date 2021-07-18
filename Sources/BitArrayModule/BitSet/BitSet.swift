@@ -11,6 +11,20 @@ public struct BitSet {
   
   public init() { }
   
+  public init<S>(_ sequence: __owned S) where S : Sequence, Int == S.Element {
+    // to be implemented
+  }
+  
+  public init(arrayLiteral elements: Int...) {
+    let largest = elements.max()
+    for index in elements {
+    }
+  }
+  
+  public init(_ bitArray: BitArray) {
+    storage = bitArray
+  }
+  
   public struct Index {
     var bitArrayIndex: Int
     internal init(bitArrayIndex: Int) { // considering to make it 'public init(_ bitArrayIndex: Int)'

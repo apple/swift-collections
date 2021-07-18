@@ -28,7 +28,6 @@ extension BitArray {
     _adjustExcess()
   }
   
-  // there is a potential to remove adjustExcess(), since the if-else block within adjustExcess() would only be need if newValue == true && excess != 0 (basically only if we get to the else block at the end of the append function). Basides that, all other cases would be excess += 1
   private mutating func _adjustExcess(){
     if (self.excess == 7) {
       self.excess = 0
@@ -37,7 +36,7 @@ extension BitArray {
     }
   }
   
-  internal func firstTrueIndex() -> Int { // very bad function
+  internal func firstTrueIndex() -> Int {
     var counter = -1
     for item in storage {
       counter += 1
@@ -51,7 +50,7 @@ extension BitArray {
         fatalError("Error in first true index function")
       }
     }
-    return endIndex // If public, return nil/optional
+    return endIndex // If public, return nil/optional and probably not have the fatalError()
   }
   
   internal func lastTrueIndex() -> Int {
@@ -68,18 +67,11 @@ extension BitArray {
         fatalError("Error in first true index function")
       }
     }
-    return endIndex // big problem
+    return endIndex
   }
   
-  /* TOGGLE FUNCTION ALREADY EXISTS AND WORKS??? */
-  /*public mutating func toggle(at position: Int) -> Bool { // returns the new value. I don't know, I felt like having it return some contaxt as to what happened might be useful for a developer
-   
-   precondition(position < endIndex && position >= startIndex, "Index out of bounds")
-   
-   let (index, mask) = _split(_position: position)
-   storage[index] ^= mask
-   
-   return self[position]
-   }*/
+  public func asBitSet() -> BitSet {
+    return BitSet(self)
+  }
   
 }

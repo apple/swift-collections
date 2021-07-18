@@ -20,4 +20,8 @@ extension BitSet {
   public mutating func remove(_ index: Int) { // will "remove" regardless of whether it existed or not
     storage[index] = false
   }
+  
+  public func asBitArray() -> BitArray {
+    return BitArray(self)
+  }
 }
