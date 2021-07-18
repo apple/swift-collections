@@ -92,15 +92,15 @@ final class NodeTests: CollectionTestCase {
           
           let splinter: _Node<Int, Int>.Splinter? = node.update { handle in
             let index = handle.lastSlot(for: newKey)
-            return handle.immediatelyInsert(element: (newKey, newKey * 2), withRightChild: nil, at: index)
+            return handle.insertElement(element: (newKey, newKey * 2), withRightChild: nil, atSlot: index)
           }
           insertSortedValue(newKey, into: &array)
           
           expectNil(splinter)
           node.read { handle in
-            let keys = UnsafeBufferPointer(start: handle.keys, count: handle.numElements)
+            let keys = UnsafeBufferPointer(start: handle.keys, count: handle.elementCount)
             expectEqualElements(keys, array)
-            expectEqual(handle.numTotalElements, count + 1)
+            expectEqual(handle.subtreeCount, count + 1)
           }
         }
       }

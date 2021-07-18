@@ -37,7 +37,7 @@ extension _BTree: BidirectionalCollection {
     let path = UnsafePath(
       node: currentNode,
       slot: 0,
-      childSlots: PackedOffsetList(depth: depth),
+      childSlots: FixedSizeArray(repeating: 0, depth: depth),
       offset: 0
     )
     
@@ -78,7 +78,7 @@ extension _BTree: BidirectionalCollection {
     }
     
     let shouldSeekWithinLeaf = Node(path.node).read({
-      $0.isLeaf && _fastPath(path.slot + 1 < $0.numElements)
+      $0.isLeaf && _fastPath(path.slot + 1 < $0.elementCount)
     })
     
     if shouldSeekWithinLeaf {
@@ -238,13 +238,13 @@ extension _BTree {
   /// - Returns: If found, returns a path to the element. Otherwise, `nil`.
   @inlinable
   internal func anyIndex(forKey key: Key) -> Index? {
-    var childSlots = PackedOffsetList()
+    var childSlots = UnsafePath.Offsets(repeating: 0)
     var node: Node? = self.root
     
     while let currentNode = node {
       let path: UnsafePath? = currentNode.read { handle in
-        let keySlot = handle.firstSlot(for: key)
-        if keySlot < handle.numElements && handle[keyAt: keySlot] == key {
+        let keySlot = handle.startSlot(forKey: key)
+        if keySlot < handle.elementCount && handle[keyAt: keySlot] == key {
           return UnsafePath(node: currentNode.storage, slot: keySlot, childSlots: childSlots, offset: 0)
         } else {
           if handle.isLeaf {
@@ -278,16 +278,16 @@ extension _BTree {
       return Index(nil, forTree: self)
     }
     
-    var childSlots = PackedOffsetList()
+    var childSlots = UnsafePath.Offsets(repeating: 0)
     
     var node: _Node = self.root
     var startIndex = 0
     
     while !node.read({ $0.isLeaf }) {
       let internalPath: UnsafePath? = node.read { handle in
-        for childSlot in 0..<handle.numChildren {
+        for childSlot in 0..<handle.childCount {
           let child = handle[childAt: childSlot]
-          let endIndex = startIndex + child.read({ $0.numTotalElements })
+          let endIndex = startIndex + child.read({ $0.subtreeCount })
           
           if offset < endIndex {
             childSlots.append(UInt16(childSlot))

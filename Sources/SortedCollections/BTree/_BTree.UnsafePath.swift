@@ -20,11 +20,15 @@ extension _BTree {
   ///   safety, use ``_BTree.Index`` instead
   @usableFromInline
   internal struct UnsafePath {
+    @usableFromInline
+    internal typealias Offsets = FixedSizeArray<UInt16>
+    
     /// The position of each of the parent nodes in their parents. The path's depth
     /// is offsets.count + 1
     @usableFromInline
-    internal var childSlots: PackedOffsetList
+    internal var childSlots: Offsets
     
+    // TODO: switch to Unmanaged<Node.Storage>
     @usableFromInline
     internal unowned(unsafe) var node: Node.Storage
     
@@ -62,7 +66,7 @@ extension _BTree {
     internal init(
       node: Node,
       slot: Int,
-      childSlots: PackedOffsetList,
+      childSlots: Offsets,
       offset: Int
     ) {
       self.init(node: node.storage, slot: slot, childSlots: childSlots, offset: offset)
@@ -78,7 +82,7 @@ extension _BTree {
     internal init(
       node: Node.Storage,
       slot: Int,
-      childSlots: PackedOffsetList,
+      childSlots: Offsets,
       offset: Int
     ) {
       self.node = node

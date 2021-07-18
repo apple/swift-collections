@@ -28,6 +28,15 @@ func btreeOfSize(
 }
 
 final class BTreeTests: CollectionTestCase {
+  func test_iterator() {
+    btreeOfSize(100) { tree, kvs in
+      for (treeElem, kv) in zip(tree, kvs) {
+        expectEqual(treeElem.key, kv.key)
+        expectEqual(treeElem.value, kv.value)
+      }
+    }
+  }
+  
   func test_indexToElementAtOffset() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
       btreeOfSize(count) { btree, kvs in

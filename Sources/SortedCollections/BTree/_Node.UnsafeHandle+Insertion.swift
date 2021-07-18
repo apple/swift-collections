@@ -12,8 +12,9 @@
 // MARK: Tree Insertions
 extension _Node.UnsafeHandle {
   @usableFromInline
+  @frozen
   internal enum InsertionResult {
-    case updated(previousValue: Value)
+    case updated(previousElement: _Node.Element)
     case splintered(_Node.Splinter)
     case inserted
 
@@ -28,8 +29,8 @@ extension _Node.UnsafeHandle {
     }
   }
 
-  /// Inserts an element in the tree, starting at the current node, returning a possible
-  /// splinter, or the previous value for any matching key if updating a node.
+  /// Insert or update an element in the tree. Starts at the current node, returning a
+  /// possible splinter, or the previous value for any matching key if updating a node.
   ///
   /// In the case of duplicates, this is marginally more efficient, however, this may update
   /// any element with a key equal to the provided one in the tree. For this reason, refrain
@@ -41,42 +42,52 @@ extension _Node.UnsafeHandle {
   /// - Parameters:
   ///   - value: The value to insert or update.
   ///   - key: The key to equate.
+  ///   - updatingKey: If the key is found, whether it should be updated.
   /// - Returns: A representation of the possible results of the update/insertion.
   @inlinable
   @inline(__always)
-  internal func setAnyValue(_ value: Value, forKey key: Key) -> InsertionResult {
+  // updateAnyValue(_ value:, forKey key:, updatingKey:)
+  internal func setAnyValue(_ value: Value, forKey key: Key, updatingKey: Bool) -> InsertionResult {
     assertMutable()
     
-    let insertionIndex = self.lastSlot(for: key)
+    let insertionIndex = self.endSlot(forKey: key)
 
-    if 0 < insertionIndex && insertionIndex <= self.numElements &&
+    if 0 < insertionIndex && insertionIndex <= self.elementCount &&
         self[keyAt: insertionIndex - 1] == key {
-      // TODO: potential copy of `value`. See if there is a way to prevent this.
-      let oldValue = self.values.advanced(by: insertionIndex - 1).move()
-      self.values.advanced(by: insertionIndex - 1).initialize(to: value)
-      return .updated(previousValue: oldValue)
+      if updatingKey {
+        // TODO: concerned about copy here
+        let oldKey = self.keys.advanced(by: insertionIndex - 1).pointee
+        
+        let oldValue = self.values.advanced(by: insertionIndex - 1).move()
+        self.values.advanced(by: insertionIndex - 1).initialize(to: value)
+        
+        return .updated(previousElement: (oldKey, oldValue))
+      } else {
+        let oldElement = self.exchangeElement(atSlot: insertionIndex - 1, with: (key, value))
+        return .updated(previousElement: oldElement)
+      }
     }
 
     // We need to try to insert as deep as possible as first, and have the splinter
     // bubble up.
     if self.isLeaf {
-      let maybeSplinter = self.immediatelyInsert(
-        element: (key, value),
+      let maybeSplinter = self.insertElement(
+        (key, value),
         withRightChild: nil,
-        at: insertionIndex
+        atSlot: insertionIndex
       )
       return InsertionResult(from: maybeSplinter)
     } else {
-      let result = self[childAt: insertionIndex].update { $0.setAnyValue(value, forKey: key) }
+      let result = self[childAt: insertionIndex].update { $0.setAnyValue(value, forKey: key, updatingKey: updatingKey) }
 
       switch result {
       case .updated:
         return result
       case .splintered(let splinter):
-        let maybeSplinter = self.immediatelyInsert(splinter: splinter, at: insertionIndex)
+        let maybeSplinter = self.insertSplinter(splinter, atSlot: insertionIndex)
         return InsertionResult(from: maybeSplinter)
       case .inserted:
-        self.numTotalElements += 1
+        self.subtreeCount += 1
         return .inserted
       }
     }
@@ -96,19 +107,20 @@ extension _Node.UnsafeHandle {
   /// - Warning: Ensure you insert the node in a valid order as to not break the node's
   ///     sorted invariant.
   @inlinable
-  internal func immediatelyInsert(
-    element: _Node.Element,
+  internal func insertElement(
+    _ element: _Node.Element,
     withRightChild rightChild: _Node?,
-    at insertionSlot: Int
+    atSlot insertionSlot: Int
   ) -> _Node.Splinter? {
     assertMutable()
-    assert(self.isLeaf == (rightChild == nil), "A child can only be inserted iff the node is a leaf.")
+    assert(self.isLeaf == (rightChild == nil),
+           "A child can only be inserted iff the node is a leaf.")
     
     // If we have a full B-Tree, we'll need to splinter
-    if self.numElements == self.capacity {
+    if self.elementCount == self.capacity {
       // Right median == left median for BTrees with odd capacity
-      let rightMedian = self.numElements / 2
-      let leftMedian = (self.numElements - 1) / 2
+      let rightMedian = self.elementCount / 2
+      let leftMedian = (self.elementCount - 1) / 2
       
       var splinterElement: _Node.Element
       var rightNode = _Node(withCapacity: self.capacity, isLeaf: self.isLeaf)
@@ -116,139 +128,147 @@ extension _Node.UnsafeHandle {
       if insertionSlot == rightMedian {
         splinterElement = element
         
-        let numLeftElements = rightMedian
-        let numRightElements = self.numElements - rightMedian
+        let leftElementCount = rightMedian
+        let rightElementCount = self.elementCount - rightMedian
         
-        rightNode.update { handle in
-          self.moveElements(toHandle: handle, fromSlot: rightMedian, toSlot: 0, count: numRightElements)
+        rightNode.update { rightHandle in
+          self.moveInitializeElements(
+            count: rightElementCount,
+            fromSlot: rightMedian,
+            toSlot: 0, of: rightHandle
+          )
           
-          // TODO: also possible to do !self.isLeaf and force unwrap right child to
-          // help the compiler avoid this branch.
           if !self.isLeaf {
-            handle.children.unsafelyUnwrapped.initialize(to: rightChild.unsafelyUnwrapped)
-            self.moveChildren(toHandle: handle, fromSlot: rightMedian + 1, toSlot: 1, count: numRightElements)
+            rightHandle.children.unsafelyUnwrapped
+              .initialize(to: rightChild.unsafelyUnwrapped)
+            
+            self.moveInitializeChildren(
+              count: rightElementCount,
+              fromSlot: rightMedian + 1,
+              toSlot: 1, of: rightHandle
+            )
           }
           
-          self.numElements = numLeftElements
-          handle.numElements = numRightElements
+          self.elementCount = leftElementCount
+          rightHandle.elementCount = rightElementCount
           
-          self.recomputeTotalElementCount(withRightSplit: handle)
+          self._adjustSubtreeCount(afterSplittingTo: rightHandle)
         }
       } else if insertionSlot > rightMedian {
         // This branch is almost certainly correct
-        splinterElement = self.moveElement(at: rightMedian)
+        splinterElement = self.moveElement(atSlot: rightMedian)
         
-        rightNode.update { handle in
+        rightNode.update { rightHandle in
           let insertionSlotInRightNode = insertionSlot - (rightMedian + 1)
           
-          self.moveElements(
-            toHandle: handle,
+          self.moveInitializeElements(
+            count: insertionSlotInRightNode,
             fromSlot: rightMedian + 1,
-            toSlot: 0,
-            count: insertionSlotInRightNode
+            toSlot: 0, of: rightHandle
           )
           
-          self.moveElements(
-            toHandle: handle,
+          self.moveInitializeElements(
+            count: self.elementCount - insertionSlot,
             fromSlot: insertionSlot,
-            toSlot: insertionSlotInRightNode + 1,
-            count: self.numElements - insertionSlot
+            toSlot: insertionSlotInRightNode + 1, of: rightHandle
           )
           
           if !self.isLeaf {
-            self.moveChildren(
-              toHandle: handle,
+            self.moveInitializeChildren(
+              count: insertionSlot - rightMedian,
               fromSlot: rightMedian + 1,
-              toSlot: 0,
-              count: insertionSlot - rightMedian
+              toSlot: 0, of: rightHandle
             )
             
-            self.moveChildren(
-              toHandle: handle,
+            self.moveInitializeChildren(
+              count: self.elementCount - insertionSlot,
               fromSlot: insertionSlot + 1,
-              toSlot: insertionSlotInRightNode + 2,
-              count: self.numElements - insertionSlot
+              toSlot: insertionSlotInRightNode + 2, of: rightHandle
             )
           }
           
-          handle.setElement(element, withRightChild: rightChild, at: insertionSlotInRightNode)
+          rightHandle.initializeElement(
+            atSlot: insertionSlotInRightNode,
+            to: element,
+            withRightChild: rightChild
+          )
           
-          handle.numElements = self.numElements - rightMedian
-          self.numElements = rightMedian
+          rightHandle.elementCount = self.elementCount - rightMedian
+          self.elementCount = rightMedian
           
-          self.recomputeTotalElementCount(withRightSplit: handle)
+          self._adjustSubtreeCount(afterSplittingTo: rightHandle)
         }
       } else {
         // insertionSlot < rightMedian
-        splinterElement = self.moveElement(at: leftMedian)
+        splinterElement = self.moveElement(atSlot: leftMedian)
         
-        rightNode.update { handle in
-          self.moveElements(
-            toHandle: handle,
+        rightNode.update { rightHandle in
+          self.moveInitializeElements(
+            count: self.elementCount - leftMedian - 1,
             fromSlot: leftMedian + 1,
-            toSlot: 0,
-            count: self.numElements - leftMedian - 1
+            toSlot: 0, of : rightHandle
           )
           
-          self.moveElements(
-            toHandle: self,
+          self.moveInitializeElements(
+            count: leftMedian - insertionSlot,
             fromSlot: insertionSlot,
-            toSlot: insertionSlot + 1,
-            count: leftMedian - insertionSlot
+            toSlot: insertionSlot + 1, of: self
           )
           
           if !self.isLeaf {
-            self.moveChildren(
-              toHandle: handle,
+            self.moveInitializeChildren(
+              count: self.elementCount - leftMedian,
               fromSlot: leftMedian + 1,
-              toSlot: 0,
-              count: self.numElements - leftMedian
+              toSlot: 0, of: rightHandle
             )
             
-            self.moveChildren(
-              toHandle: self,
+            self.moveInitializeChildren(
+              count: leftMedian - insertionSlot,
               fromSlot: insertionSlot + 1,
-              toSlot: insertionSlot + 2,
-              count: leftMedian - insertionSlot
+              toSlot: insertionSlot + 2, of: self
             )
           }
           
-          self.setElement(element, withRightChild: rightChild, at: insertionSlot)
+          self.initializeElement(
+            atSlot: insertionSlot,
+            to: element, withRightChild: rightChild
+          )
           
-          handle.numElements = self.numElements - leftMedian - 1
-          self.numElements = leftMedian + 1
+          rightHandle.elementCount = self.elementCount - leftMedian - 1
+          self.elementCount = leftMedian + 1
           
-          self.recomputeTotalElementCount(withRightSplit: handle)
+          self._adjustSubtreeCount(afterSplittingTo: rightHandle)
         }
       }
       
       return _Node.Splinter(
-        median: splinterElement,
+        element: splinterElement,
         rightChild: rightNode
       )
     } else {
+      // TODO: see if this can be simplified
       // Shift over elements near the insertion slot.
-      let numElemsToShift = self.numElements - insertionSlot
-      self.moveElements(
-        toHandle: self,
+      self.moveInitializeElements(
+        count: self.elementCount - insertionSlot,
         fromSlot: insertionSlot,
-        toSlot: insertionSlot + 1,
-        count: numElemsToShift
+        toSlot: insertionSlot + 1, of: self
       )
       
       if !self.isLeaf {
-        let numChildrenToShift = self.numChildren - insertionSlot - 1
-        self.moveChildren(
-          toHandle: self,
+        self.moveInitializeChildren(
+          count: self.childCount - insertionSlot - 1,
           fromSlot: insertionSlot + 1,
-          toSlot: insertionSlot + 2,
-          count: numChildrenToShift
+          toSlot: insertionSlot + 2, of: self
         )
       }
       
-      self.setElement(element, withRightChild: rightChild, at: insertionSlot)
-      self.numElements += 1
-      self.numTotalElements += 1
+      self.initializeElement(
+        atSlot: insertionSlot,
+        to: element, withRightChild: rightChild
+      )
+      
+      self.elementCount += 1
+      self.subtreeCount += 1
       
       return nil
     }
@@ -261,7 +281,50 @@ extension _Node.UnsafeHandle {
   /// - Returns: Another splinter which may need to be propagated upward
   @inlinable
   @inline(__always)
-  internal func immediatelyInsert(splinter: _Node.Splinter, at insertionSlot: Int) -> _Node.Splinter? {
-    return self.immediatelyInsert(element: splinter.median, withRightChild: splinter.rightChild, at: insertionSlot)
+  internal func insertSplinter(
+    _ splinter: _Node.Splinter,
+    atSlot insertionSlot: Int
+  ) -> _Node.Splinter? {
+    return self.insertElement(
+      splinter.element,
+      withRightChild: splinter.rightChild,
+      atSlot: insertionSlot
+    )
+  }
+  
+  /// Recomputes the total amount of elements in two nodes.
+  ///
+  /// This updates the subtree counts for both the current handle and also the provided `rightHandle`.
+  ///
+  /// Use this to recompute the tracked total element counts for the current node when it
+  /// splits. This performs a shallow recalculation, assuming that its children's counts are
+  /// already accurate.
+  ///
+  /// - Parameter rightHandle: A handle to the right-half of the split.
+  @inlinable
+  @inline(__always)
+  internal func _adjustSubtreeCount(
+    afterSplittingTo rightHandle: _Node.UnsafeHandle
+  ) {
+    assertMutable()
+    rightHandle.assertMutable()
+    
+    let originalTotalElements = self.subtreeCount
+    var totalChildElements = 0
+    
+    if !self.isLeaf {
+      // Calculate total amount of child elements
+      // TODO: potentially evaluate min(left.children, right.children),
+      // but the cost of the branch will likely exceed the cost of 1 comparison
+      for i in 0..<self.childCount {
+        totalChildElements += self[childAt: i].storage.header.totalElements
+      }
+    }
+    
+    assert(totalChildElements >= 0,
+           "Cannot have negative number of child elements.")
+    
+    self.subtreeCount = self.elementCount + totalChildElements
+    rightHandle.subtreeCount = originalTotalElements - self.subtreeCount
   }
 }

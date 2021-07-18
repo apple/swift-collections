@@ -17,8 +17,8 @@ extension _Node {
       capacity: Int,
       count: Int,
       totalElements: Int,
-      values: _Node<Key, Value>.Buffer<Value>,
-      children: _Node<Key, Value>.Buffer<_Node<Key, Value>>?
+      values: UnsafeMutablePointer<Value>,
+      children: UnsafeMutablePointer<_Node<Key, Value>>?
     ) {
       self.capacity = capacity
       self.count = count
@@ -40,29 +40,45 @@ extension _Node {
     
     /// Pointer to the buffer containing the corresponding values.
     @usableFromInline
-    internal var values: Buffer<Value>
+    internal var values: UnsafeMutablePointer<Value>
     
     /// Pointer to the buffer containing the elements.
     @usableFromInline
-    internal var children: Buffer<_Node<Key, Value>>?
+    internal var children: UnsafeMutablePointer<_Node<Key, Value>>?
   }
   
   /// Represents the underlying data for a node in the heap.
   @usableFromInline
   internal class Storage: ManagedBuffer<_Node.Header, Key> {
+    /// Allows **read-only** access to the underlying data behind the node.
+    ///
+    /// - Parameter body: A closure with a handle which allows interacting with the node
+    /// - Returns: The value the closure body returns, if any.
+    @inlinable
+    @inline(__always)
+    internal func read<R>(_ body: (UnsafeHandle) throws -> R) rethrows -> R {
+      return try self.withUnsafeMutablePointers { header, keys in
+        let handle = UnsafeHandle(
+          keys: keys,
+          values: header.pointee.values,
+          children: header.pointee.children,
+          header: header,
+          isMutable: false
+        )
+        return try body(handle)
+      }
+    }
+
+    
     @inlinable
     deinit {
       self.withUnsafeMutablePointers { header, elements in
-        _ = header.pointee.values.withUnsafeMutablePointerToElements { values in
-          values.deinitialize(count: header.pointee.count)
-        }
-        
-        _ = header.pointee.children?.withUnsafeMutablePointerToElements { children in
-          children.deinitialize(count: header.pointee.count + 1)
-        }
+        header.pointee.values.deallocate()
+        header.pointee.children?.deallocate()
         
         elements.deinitialize(count: header.pointee.count)
       }
     }
   }
 }
+

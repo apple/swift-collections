@@ -46,17 +46,14 @@ internal struct _Node<Key: Comparable, Value> {
       }
     }
     
-    oldNode.storage.header.values.withUnsafeMutablePointerToElements { oldValues in
-      self.storage.header.values.withUnsafeMutablePointerToElements { newValues in
-        newValues.initialize(from: oldValues, count: count)
-      }
-    }
+    self.storage.header.values
+      .initialize(from: oldNode.storage.header.values, count: count)
     
-    oldNode.storage.header.children?.withUnsafeMutablePointerToElements { oldChildren in
-      self.storage.header.children!.withUnsafeMutablePointerToElements { newChildren in
-        newChildren.initialize(from: oldChildren, count: count + 1)
-      }
-    }
+    self.storage.header.children?
+      .initialize(
+        from: oldNode.storage.header.children.unsafelyUnwrapped,
+        count: count + 1
+      )
   }
   
   /// Creates and allocates a new node.
@@ -70,9 +67,9 @@ internal struct _Node<Key: Comparable, Value> {
         capacity: capacity,
         count: 0,
         totalElements: 0,
-        values: Buffer<Value>.create(minimumCapacity: capacity) { _ in BufferHeader() },
+        values: UnsafeMutablePointer<Value>.allocate(capacity: capacity),
         children: isLeaf ? nil
-          : Buffer<_Node<Key, Value>>.create(minimumCapacity: capacity + 1) { _ in BufferHeader() }
+          : UnsafeMutablePointer<_Node>.allocate(capacity: capacity + 1)
       )
     }
     
@@ -89,31 +86,7 @@ extension _Node {
   @inlinable
   @inline(__always)
   internal func read<R>(_ body: (UnsafeHandle) throws -> R) rethrows -> R {
-    return try self.storage.withUnsafeMutablePointers { header, keys in
-      try header.pointee.values.withUnsafeMutablePointerToElements { values in
-        if let childrenPtr = header.pointee.children {
-          return try childrenPtr.withUnsafeMutablePointerToElements { children in
-            let handle = UnsafeHandle(
-              keys: keys,
-              values: values,
-              children: children,
-              header: header,
-              isMutable: false
-            )
-            return try body(handle)
-          }
-        } else {
-          let handle = UnsafeHandle(
-            keys: keys,
-            values: values,
-            children: nil,
-            header: header,
-            isMutable: false
-          )
-          return try body(handle)
-        }
-      }
-    }
+    return try self.storage.read(body)
   }
   
   /// Allows mutable access to the underlying data behind the node.
@@ -126,7 +99,7 @@ extension _Node {
     self.ensureUnique()
     return try self.read { handle in
       defer { handle.checkInvariants() }
-      return try body(UnsafeHandle(mutableCopyOf: handle))
+      return try body(UnsafeHandle(mutating: handle))
     }
   }
   

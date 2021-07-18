@@ -15,14 +15,14 @@ extension _Node {
   internal struct Splinter {
     @inlinable
     @inline(__always)
-    internal init(median: Element, rightChild: _Node<Key, Value>) {
-      self.median = median
+    internal init(element: Element, rightChild: _Node<Key, Value>) {
+      self.element = element
       self.rightChild = rightChild
     }
     
     /// The former median element which should be propogated upward.
     @usableFromInline
-    internal let median: Element
+    internal let element: Element
     
     /// The right product of the node split.
     @usableFromInline
@@ -36,17 +36,19 @@ extension _Node {
     /// - Returns: A new node of `capacity` with a single element.
     @inlinable
     @inline(__always)
-    internal func toNode(from node: _Node<Key, Value>, withCapacity capacity: Int) -> _Node {
+    internal func toNode(leftChild: _Node<Key, Value>, capacity: Int) -> _Node {
       var newNode = _Node(withCapacity: capacity, isLeaf: false)
       newNode.update { handle in
-        handle.keys.initialize(to: median.key)
-        handle.values.initialize(to: median.value)
+        handle.keys.initialize(to: element.key)
+        handle.values.initialize(to: element.value)
         
-        handle.children.unsafelyUnwrapped.initialize(to: node)
+        handle.children.unsafelyUnwrapped.initialize(to: leftChild)
         handle.children.unsafelyUnwrapped.advanced(by: 1).initialize(to: self.rightChild)
         
-        handle.numElements = 1
-        handle.numTotalElements = 1 + node.storage.header.totalElements + self.rightChild.storage.header.totalElements
+        handle.elementCount = 1
+        handle.subtreeCount = 1 +
+          leftChild.storage.header.totalElements +
+          self.rightChild.storage.header.totalElements
       }
       return newNode
     }

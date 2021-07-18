@@ -22,4 +22,11 @@ extension SortedSet {
     position._index.ensureValid(for: self._root)
     return self._root[position._index].key
   }
+  
+//  @inlinable
+//  public subscript(in range: Range<Element>) -> SubSequence {
+//    let start = self.firstIndex(of: range.lowerBound)
+//    let end = self.firstIndex(of: range.upperBound)
+//    return Slice(base: self, bounds: start..<end)
+//  }
 }

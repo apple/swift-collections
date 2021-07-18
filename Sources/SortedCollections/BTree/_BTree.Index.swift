@@ -25,7 +25,7 @@ extension _BTree {
     
     /// The age of the tree when this index was captures.
     @usableFromInline
-    internal let age: Int32
+    internal let version: Int
     
     // TODO: optimize this to potentially avoid capturing a weak
     // reference for `nil` or endIndex by using another mechanism
@@ -35,7 +35,7 @@ extension _BTree {
     internal init(_ path: UnsafePath?, forTree tree: _BTree) {
       self.path = path
       self.root = tree.root.storage
-      self.age = tree.age
+      self.version = tree.version
     }
     
     @inlinable
@@ -64,7 +64,7 @@ extension _BTree {
     @inline(__always)
     internal func ensureValid(for tree: _BTree) {
       precondition(
-        self.root === tree.root.storage && self.age == tree.age,
+        self.root === tree.root.storage && self.version == tree.version,
         "Attempt to use an invalid index.")
     }
     
@@ -73,7 +73,7 @@ extension _BTree {
     @inline(__always)
     internal func ensureValid(with index: Index) {
       precondition(
-        self.root != nil && self.root === index.root && self.age == index.age,
+        self.root != nil && self.root === index.root && self.version == index.version,
         "Attempt to use an invalid indices.")
     }
   }

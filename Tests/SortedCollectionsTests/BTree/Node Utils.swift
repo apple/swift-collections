@@ -34,7 +34,7 @@ struct NodeTemplate {
   
   func matches(_ node: _Node<Int, Int>) -> Bool {
     return node.read { handle in
-      if self.keys.count != handle.numElements { return false }
+      if self.keys.count != handle.elementCount { return false }
       if (self.children == nil) != handle.isLeaf { return false }
       
       if let children = self.children {

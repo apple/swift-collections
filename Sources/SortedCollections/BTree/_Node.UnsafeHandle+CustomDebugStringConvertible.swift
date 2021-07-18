@@ -14,7 +14,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   #if DEBUG
   private enum PrintPosition { case start, end, middle }
   private func indentDescription(_ node: _Node<Key, Value>.UnsafeHandle, position: PrintPosition) -> String {
-    let label = "(\(node.numElements)/\(node.numTotalElements))"
+    let label = "(\(node.elementCount)/\(node.subtreeCount))"
     
     let spaces = String(repeating: " ", count: label.count)
     
@@ -54,7 +54,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   
   /// A textual representation of this instance, suitable for debugging.
   private func describeNode(_ node: _Node<Key, Value>.UnsafeHandle) -> String {
-    if node.numElements == 0 {
+    if node.elementCount == 0 {
       var result = ""
       if !node.isLeaf {
         node[childAt: 0].read { handle in
@@ -69,7 +69,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
     }
     
     var result = ""
-    for slot in 0..<node.numElements {
+    for slot in 0..<node.elementCount {
       if !node.isLeaf {
         let child = node[childAt: slot]
         let childDescription = child.read {
@@ -79,9 +79,9 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
       }
       
       if node.isLeaf {
-        if node.numElements == 1 {
+        if node.elementCount == 1 {
           result += "╺━ "
-        } else if slot == node.numElements - 1 {
+        } else if slot == node.elementCount - 1 {
           result += "┗━ "
         } else if slot == 0 {
           result += "┏━ "
@@ -95,7 +95,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
       debugPrint(node[keyAt: slot], terminator: ": ", to: &result)
       debugPrint(node[valueAt: slot], terminator: "", to: &result)
       
-      if !node.isLeaf && slot == node.numElements - 1 {
+      if !node.isLeaf && slot == node.elementCount - 1 {
         let childDescription = node[childAt: slot + 1].read {
           indentDescription($0, position: .end)
         }
@@ -116,7 +116,7 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   public var debugDescription: String {
     var result = "Node<\(Key.self), \(Value.self)>(["
     var first = true
-    for slot in 0..<self.numElements {
+    for slot in 0..<self.elementCount {
       if first {
         first = false
       } else {
@@ -128,7 +128,10 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
     }
     result += "], "
     if let children = self.children {
-      debugPrint(Array(UnsafeBufferPointer(start: children, count: self.numChildren)), terminator: ")", to: &result)
+      debugPrint(Array(UnsafeBufferPointer(
+        start: children,
+        count: self.childCount
+      )), terminator: ")", to: &result)
     } else {
       result += "[])"
     }

@@ -26,16 +26,16 @@ extension SortedDictionary {
   @inline(__always)
   public subscript(key: Key) -> Value? {
     get {
-      return self._root.anyValue(for: key)
+      return self._root.findAnyValue(forKey: key)
     }
     
     // TODO: implement efficient _modify
     
-    mutating set {
+    set {
       if let newValue = newValue {
         self._root.setAnyValue(newValue, forKey: key)
       } else {
-        self._root.removeAny(key: key)
+        self._root.removeAnyElement(forKey: key)
       }
     }
   }

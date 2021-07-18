@@ -35,10 +35,10 @@ extension _Node {
         }
       }
       
-      let totalChildElements = children?.reduce(0, { $0 + $1.read({ $0.numTotalElements }) })
+      let totalChildElements = children?.reduce(0, { $0 + $1.read({ $0.subtreeCount }) })
       
-      handle.numElements = keyValuePairs.count
-      handle.numTotalElements = keyValuePairs.count + (totalChildElements ?? 0)
+      handle.elementCount = keyValuePairs.count
+      handle.subtreeCount = keyValuePairs.count + (totalChildElements ?? 0)
     }
   }
   
@@ -47,14 +47,14 @@ extension _Node {
   public func toArray() -> [Element] {
     self.read { handle in
       if handle.isLeaf {
-        return Array((0..<handle.numElements).map { handle[elementAt: $0] })
+        return Array((0..<handle.elementCount).map { handle[elementAt: $0] })
       } else {
         var elements = [Element]()
-        for i in 0..<handle.numElements {
+        for i in 0..<handle.elementCount {
           elements.append(contentsOf: handle[childAt: i].toArray())
           elements.append(handle[elementAt: i])
         }
-        elements.append(contentsOf: handle[childAt: handle.numElements].toArray())
+        elements.append(contentsOf: handle[childAt: handle.elementCount].toArray())
         return elements
       }
     }

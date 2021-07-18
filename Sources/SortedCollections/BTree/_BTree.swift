@@ -9,17 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO: decide node capacity. Currently exploring 470 v 1050
-// TODO: better benchmarking here
-
-/// Internal node capacity for BTree
-@usableFromInline
-internal let _BTREE_INTERNAL_CAPACITY = 16
-
-/// Leaf node capacity for BTree
-@usableFromInline
-internal let _BTREE_LEAF_CAPACITY = 470
-
 /// A bidirectional collection representing a BTree which efficiently stores its
 /// elements in sorted order and maintains roughly `O(log count)`
 /// performance for most operations.
@@ -29,17 +18,32 @@ internal let _BTREE_LEAF_CAPACITY = 470
 ///   collections.
 @usableFromInline
 internal struct _BTree<Key: Comparable, Value> {
-  @usableFromInline
-  typealias Element = (key: Key, value: Value)
+  
+  // TODO: decide node capacity. Currently exploring 470 v 1050
+  // TODO: better benchmarking here
+  
+  /// Internal node capacity for BTree
+  @inlinable
+  @inline(__always)
+  static internal var defaultInternalCapacity: Int { 16 }
+  
+  /// Leaf node capacity for BTree
+  @inlinable
+  @inline(__always)
+  static internal var defaultLeafCapacity: Int { 500 }
   
   @usableFromInline
-  typealias Node = _Node<Key, Value>
+  internal typealias Element = (key: Key, value: Value)
+  
+  @usableFromInline
+  internal typealias Node = _Node<Key, Value>
   
   /// The underlying node behind this local BTree
   @usableFromInline
   internal var root: Node
   
   // TODO: remove
+  // TODO: compute capacity based on key/value size.
   /// The capacity of each of the internal nodes
   @usableFromInline
   internal var internalCapacity: Int
@@ -48,7 +52,7 @@ internal struct _BTree<Key: Comparable, Value> {
   /// impossible for two BTrees to have the same age by pure
   /// coincidence.
   @usableFromInline
-  internal var age: Int32
+  internal var version: Int
   
   /// Creates an empty BTree rooted at a specific node with a specified uniform capacity
   /// - Parameter capacity: The key capacity of all nodes.
@@ -67,7 +71,7 @@ internal struct _BTree<Key: Comparable, Value> {
   ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than `leafCapacity`.
   @inlinable
   @inline(__always)
-  internal init(leafCapacity: Int = _BTREE_LEAF_CAPACITY, internalCapacity: Int = _BTREE_INTERNAL_CAPACITY) {
+  internal init(leafCapacity: Int = defaultLeafCapacity, internalCapacity: Int = defaultInternalCapacity) {
     self.init(
       rootedAt: Node(withCapacity: leafCapacity, isLeaf: true),
       leafCapacity: leafCapacity,
@@ -96,10 +100,10 @@ internal struct _BTree<Key: Comparable, Value> {
   ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than `leafCapacity`.
   @inlinable
   @inline(__always)
-  internal init(rootedAt root: Node, leafCapacity: Int = _BTREE_LEAF_CAPACITY, internalCapacity: Int = _BTREE_INTERNAL_CAPACITY) {
+  internal init(rootedAt root: Node, leafCapacity: Int = defaultLeafCapacity, internalCapacity: Int = defaultInternalCapacity) {
     self.root = root
     self.internalCapacity = internalCapacity
-    self.age = Int32(truncatingIfNeeded: ObjectIdentifier(root.storage).hashValue)
+    self.version = ObjectIdentifier(root.storage).hashValue
   }
 }
 
@@ -110,24 +114,7 @@ extension _BTree {
   @inlinable
   @inline(__always)
   internal mutating func invalidateIndices() {
-    self.age &+= 1
-  }
-  
-  @usableFromInline
-  internal enum InsertionResult {
-    case updated(previousValue: Value)
-    case splintered(Node.Splinter)
-    case inserted
-    
-    @inlinable
-    @inline(__always)
-    internal init(from splinter: Node.Splinter?) {
-      if let splinter = splinter {
-        self = .splintered(splinter)
-      } else {
-        self = .inserted
-      }
-    }
+    self.version &+= 1
   }
   
   /// Inserts an element into the BTree, or updates it if it already exists within the tree. If there are
@@ -137,22 +124,29 @@ extension _BTree {
   /// inconsistent results on trees with duplicates.
   ///
   /// - Parameters:
-  ///   - element: The key-value pair to insert
-  /// - Returns: If updated, the previous value for the key.
+  ///   - value: The value to set corresponding to the key.
+  ///   - key: The key to search for.
+  ///   - updatingKey: If the key is found, whether it should be updated.
+  /// - Returns: If updated, the previous element.
   /// - Complexity: O(`log n`)
   @inlinable
   @discardableResult
-  internal mutating func setAnyValue(_ value: Value, forKey key: Key) -> Value? {
+  // updateAnyValue(_:forKey:)
+  internal mutating func setAnyValue(
+    _ value: Value,
+    forKey key: Key,
+    updatingKey: Bool = false
+  ) -> Element? {
     invalidateIndices()
     
-    let result = self.root.update { $0.setAnyValue(value, forKey: key) }
+    let result = self.root.update { $0.setAnyValue(value, forKey: key, updatingKey: updatingKey) }
     switch result {
     case let .updated(previousValue):
       return previousValue
     case let .splintered(splinter):
       self.root = splinter.toNode(
-        from: self.root,
-        withCapacity: self.internalCapacity
+        leftChild: self.root,
+        capacity: self.internalCapacity
       )
     default: break
     }
@@ -165,9 +159,9 @@ extension _BTree {
   @inlinable
   @inline(__always)
   internal mutating func _balanceRoot() {
-    if self.root.read({ $0.numElements == 0 && !$0.isLeaf }) {
+    if self.root.read({ $0.elementCount == 0 && !$0.isLeaf }) {
       let newRoot: Node = self.root.update { handle in
-        let newRoot = handle.moveChild(at: 0)
+        let newRoot = handle.moveChild(atSlot: 0)
         handle.drop()
         return newRoot
       }
@@ -181,91 +175,22 @@ extension _BTree {
   /// This may not be the first instance of the key. This is marginally more efficient for trees
   /// that do not have duplicates.
   ///
-  /// If the key is not found, the tree is not modified, although the age of the tree may change.
+  /// If the key is not found, the tree is not modified, although the version of the tree may change.
   ///
   /// - Parameter key: The key to remove in the tree
   /// - Returns: The key-value pair which was removed. `nil` if not removed.
   @inlinable
   @discardableResult
-  internal mutating func removeAny(key: Key) -> Element? {
+  internal mutating func removeAnyElement(forKey key: Key) -> Element? {
     invalidateIndices()
     
     // TODO: Don't create CoW copy until needed.
-    let removedElement = self.root.update { $0.removeAny(key: key) }
+    let removedElement = self.root.update { $0.removeAnyElement(forKey: key) }
     
     // Check if the tree height needs to be reduced
     self._balanceRoot()
     
     return removedElement
-  }
-  
-  /// Removes the first element of a tree, if it exists.
-  ///
-  /// - Returns: The moved first element of the tree.
-  @inlinable
-  @discardableResult
-  internal mutating func popLast() -> Element? {
-    invalidateIndices()
-    
-    if self.count == 0 { return nil }
-    
-    let removedElement = self.root.update { $0.popLastElement() }
-    self._balanceRoot()
-    return removedElement
-  }
-  
-  /// Removes the first element of a tree, if it exists.
-  ///
-  /// - Returns: The moved first element of the tree.
-  @inlinable
-  @discardableResult
-  internal mutating func popFirst() -> Element? {
-    invalidateIndices()
-    
-    if self.count == 0 { return nil }
-    
-    let removedElement = self.root.update { $0.popFirstElement() }
-    self._balanceRoot()
-    return removedElement
-  }
-  
-  /// Removes the element of a tree at a given offset.
-  ///
-  /// - Parameter offset: the offset which must be in-bounds.
-  /// - Returns: The moved element of the tree
-  @inlinable
-  @discardableResult
-  internal mutating func remove(at offset: Int) -> Element {
-    invalidateIndices()
-    let removedElement = self.root.update { $0.remove(at: offset) }
-    self._balanceRoot()
-    return removedElement
-  }
-  
-  /// Removes the element of a tree at a given index.
-  ///
-  /// - Parameter index: a valid index of the tree, not `endIndex`
-  /// - Returns: The moved element of the tree
-  @inlinable
-  @discardableResult
-  internal mutating func remove(at index: Index) -> Element {
-    invalidateIndices()
-    guard let path = index.path else { preconditionFailure("Index out of bounds.") }
-    return self.remove(at: path.offset)
-  }
-  
-  /// Removes the elements in the specified subrange from the collection.
-  @inlinable
-  internal mutating func removeSubrange(_ bounds: Range<Index>) {
-    guard let startPath = bounds.lowerBound.path else { preconditionFailure("Index out of bounds.") }
-    guard let _ = bounds.upperBound.path else { preconditionFailure("Index out of bounds.") }
-    
-    let rangeSize = self.distance(from: bounds.lowerBound, to: bounds.upperBound)
-    let startOffset = startPath.offset
-    
-    for _ in 0..<rangeSize {
-      self.remove(at: startOffset)
-    }
   }
 }
 
@@ -283,9 +208,9 @@ extension _BTree {
     
     while let currentNode = node {
       let found: Bool = currentNode.read { handle in
-        let slot = handle.firstSlot(for: key)
+        let slot = handle.startSlot(forKey: key)
         
-        if slot < handle.numElements && handle[keyAt: slot] == key {
+        if slot < handle.elementCount && handle[keyAt: slot] == key {
           return true
         } else {
           if handle.isLeaf {
@@ -315,28 +240,26 @@ extension _BTree {
   /// - Returns: `nil` if the key was not found. Otherwise, the previous value.
   /// - Complexity: O(`log n`)
   @inlinable
-  internal func anyValue(for key: Key) -> Value? {
-    // the retain/release calls
-    // Retain
-    var node: Node? = self.root
+  internal func findAnyValue(forKey key: Key) -> Value? {
+    var node: Unmanaged<Node.Storage>? = .passUnretained(self.root.storage)
     
     while let currentNode = node {
-      let value: Value? = currentNode.read { handle in
-        let slot = handle.firstSlot(for: key)
-        
-        if slot < handle.numElements && handle[keyAt: slot] == key {
-          return handle[valueAt: slot]
-        } else {
-          if handle.isLeaf {
-            node = nil
+      let value: Value? = currentNode._withUnsafeGuaranteedRef { storage -> Value? in
+        storage.read { handle in
+          let slot = handle.startSlot(forKey: key)
+          
+          if slot < handle.elementCount && handle[keyAt: slot] == key {
+            return handle[valueAt: slot]
           } else {
-            // Release
-            // Retain
-            node = handle[childAt: slot]
+            if handle.isLeaf {
+              node = nil
+            } else {
+              node = .passUnretained(handle[childAt: slot].storage)
+            }
           }
+          
+          return nil
         }
-        
-        return nil
       }
       
       if let value = value { return value }

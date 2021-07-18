@@ -10,8 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 extension SortedDictionary {
-  /// A view of an sorted dictionary's values as a standalone collection.
-  public struct Values {
+  /// A view of an sorted dictionary's Keys as a standalone collection.
+  public struct Keys {
     @usableFromInline
     internal var _base: SortedDictionary
     
@@ -23,16 +23,16 @@ extension SortedDictionary {
   }
 }
 
-extension SortedDictionary.Values: Sequence {
+extension SortedDictionary.Keys: Sequence {
   /// The element type of the collection.
-  public typealias Element = Value
+  public typealias Element = Key
 
   /// The type that allows iteration over the collection's elements.
   public typealias Iterator = IndexingIterator<Self>
 }
 
-extension SortedDictionary.Values: BidirectionalCollection {
-  /// The index type for a dictionary's values view.
+extension SortedDictionary.Keys: BidirectionalCollection {
+  /// The index type for a dictionary's keys view.
   public typealias Index = SortedDictionary.Index
   
   /// The number of elements in the collection.
@@ -187,7 +187,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   }
 }
 
-extension SortedDictionary.Values {
+extension SortedDictionary.Keys {
   /// Accesses the element at the specified position.
   ///
   /// - Parameter index: The position of the element to access. `index` must be
@@ -196,7 +196,7 @@ extension SortedDictionary.Values {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public subscript(position: Index) -> Value {
-    self._base[position].value
+  public subscript(position: Index) -> Key {
+    self._base[position].key
   }
 }

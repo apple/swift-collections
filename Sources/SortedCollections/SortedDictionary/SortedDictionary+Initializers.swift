@@ -75,7 +75,7 @@ extension SortedDictionary {
       let key = try keyForValue(value)
       
       // TODO: optimize to avoid CoW copying the array
-      if var group = self._root.anyValue(for: key) {
+      if var group = self._root.findAnyValue(forKey: key) {
         group.append(value)
         self._root.setAnyValue(group, forKey: key)
       } else {

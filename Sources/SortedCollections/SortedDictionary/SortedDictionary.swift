@@ -43,25 +43,33 @@ public struct SortedDictionary<Key: Comparable, Value> {
 
 // MARK: Accessing Keys and Values
 extension SortedDictionary {
-  public typealias Keys = SortedSet<Key>
-  public typealias Values = Array<Value>
-  
-  // TODO: check if unsafeBitCast is acceptable
   /// A read-only collection view for the keys contained in this dictionary, as
   /// an `SortedSet`.
   ///
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var keys: Keys { return SortedSet(_rootedAt: unsafeBitCast(self._root, to: _BTree<Key, ()>.self)) }
+  public var keys: Keys { Keys(_base: self) }
   
-  // TODO: mutability of values?
   /// A mutable collection view containing the values in this dictionary.
   ///
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var values: Values { fatalError("TODO: implement") }
+  public var values: Values {
+    // TODO: consider implementing a _read accessor.
+    get {
+      Values(_base: self)
+    }
+    
+    _modify {
+      // TODO: avoid allocating a new node
+      var values = Values(_base: SortedDictionary())
+      swap(&self, &values._base)
+      defer { self = values._base }
+      yield &values
+    }
+  }
 }
 
 // MARK: Mutations
@@ -82,11 +90,12 @@ extension SortedDictionary {
   ///       is added.
   /// - Returns: The value that was replaced, or nil if a new key-value
   ///     pair was added.
-  /// - Complexity: O(`log n`)
+  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
+  ///   dictionary.
   @inlinable
   @discardableResult
   public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
-    return self._root.setAnyValue(value, forKey: key)
+    self._root.setAnyValue(value, forKey: key)?.value
   }
 }
 
@@ -100,11 +109,11 @@ extension SortedDictionary {
   /// - Returns: The value that was removed, or `nil` if the key was not present
   ///     in the dictionary.
   /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   dictionary
+  ///   dictionary.
   @inlinable
   @inline(__always)
   public mutating func removeValue(forKey key: Key) -> Value? {
-    return self._root.removeAny(key: key)?.value
+    return self._root.removeAnyElement(forKey: key)?.value
   }
 }
 
