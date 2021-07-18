@@ -20,7 +20,7 @@ extension SortedSet {
     self.init()
     
     for element in elements {
-      self._root.setAnyValue((), forKey: element)
+      self._root.updateAnyValue((), forKey: element)
     }
   }
   

@@ -21,7 +21,7 @@ extension SortedDictionary {
     self.init()
     
     for (key, value) in keysAndValues {
-      self._root.setAnyValue(value, forKey: key)
+      self._root.updateAnyValue(value, forKey: key)
     }
   }
   
@@ -40,7 +40,7 @@ extension SortedDictionary {
     // in debug v production v unchecked builds?
     
     for (key, value) in keysAndValues {
-      self._root.setAnyValue(value, forKey: key)
+      self._root.updateAnyValue(value, forKey: key)
     }
   }
   
@@ -77,9 +77,9 @@ extension SortedDictionary {
       // TODO: optimize to avoid CoW copying the array
       if var group = self._root.findAnyValue(forKey: key) {
         group.append(value)
-        self._root.setAnyValue(group, forKey: key)
+        self._root.updateAnyValue(group, forKey: key)
       } else {
-        self._root.setAnyValue([value], forKey: key)
+        self._root.updateAnyValue([value], forKey: key)
       }
     }
   }

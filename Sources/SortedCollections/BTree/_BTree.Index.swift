@@ -41,7 +41,7 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal static func ==(lhs: Index, rhs: Index) -> Bool {
-      return lhs.path?.node === rhs.path?.node
+      return lhs.path?.offset == rhs.path?.offset
     }
     
     @inlinable
@@ -73,7 +73,9 @@ extension _BTree {
     @inline(__always)
     internal func ensureValid(with index: Index) {
       precondition(
-        self.root != nil && self.root === index.root && self.version == index.version,
+        self.root != nil &&
+          self.root === index.root &&
+          self.version == index.version,
         "Attempt to use an invalid indices.")
     }
   }

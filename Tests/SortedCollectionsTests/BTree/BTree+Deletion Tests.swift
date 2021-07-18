@@ -14,10 +14,10 @@ import CollectionsTestSupport
 
 final class NodeDeletionTests: CollectionTestCase {
   func test_singleDeletion() {
-    withEvery("size", in: [1, 2, 4, 8, 16, 32, 64, 128, 2000]) { size in
+    withEvery("size", in: [1, 2, 4, 8, 16, 32, 64, 128]) { size in
       withEvery("key", in: 0..<size) { key in
         btreeOfSize(size) { tree, kvs in
-          tree.removeAny(key: key)
+          tree.removeAnyElement(forKey: key)
           
           var comparisonKeys = Array(0..<size)
           comparisonKeys.remove(at: key)

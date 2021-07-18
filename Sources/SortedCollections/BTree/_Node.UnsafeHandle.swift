@@ -70,33 +70,34 @@ extension _Node {
     internal func checkInvariants() {
       // TODO: move non-constant time checks to _BTree
       
-      assert(isLeaf || childCount == elementCount + 1,
+      assert(isLeaf || childCount == subtreeCount + 1,
              "Node must be either leaf or a child on the side of each key.")
-      assert(elementCount >= 0, "Node cannot have negative number of elements")
-      assert(subtreeCount >= elementCount,
+      assert(subtreeCount >= 0, "Node cannot have negative number of elements")
+      assert(subtreeCount >= subtreeCount,
              "Subtree count cannot be less than the node element count.")
       
-      if elementCount > 1 {
-        for i in 0..<(elementCount - 1) {
+      if subtreeCount > 1 {
+        for i in 0..<(subtreeCount - 1) {
           precondition(self[keyAt: i] <= self[keyAt: i + 1], "Node is out-of-order.")
         }
       }
       
       precondition(
         isLeaf ||
-          subtreeCount == elementCount + (0...elementCount).reduce(into: 0, { $0 + self[childAt: $1].read({ $0.elementCount }) }),
+          subtreeCount == subtreeCount +
+          (0...subtreeCount).reduce(into: 0, { $0 + self[childAt: $1].read({ $0.subtreeCount }) }),
         "Total number of elements out of sync."
       )
       
       if !isLeaf {
-        for i in 0..<elementCount {
+        for i in 0..<subtreeCount {
           let key = self[keyAt: i]
-          let child = self[childAt: i].read({ $0[keyAt: $0.elementCount - 1] })
+          let child = self[childAt: i].read({ $0[keyAt: $0.subtreeCount - 1] })
           precondition(child <= key, "Left subtree must be less or equal to than its parent key.")
         }
         
-        let key = self[keyAt: elementCount - 1]
-        let child = self[childAt: elementCount].read({ $0[keyAt: $0.elementCount - 1] })
+        let key = self[keyAt: subtreeCount - 1]
+        let child = self[childAt: subtreeCount].read({ $0[keyAt: $0.subtreeCount - 1] })
         precondition(child >= key, "Right subtree must be greater than or equal to than its parent key.")
         
         // Ensure if one child is a leaf, then all children are leaves
@@ -142,9 +143,9 @@ extension _Node {
     @inlinable
     @inline(__always)
     internal var subtreeCount: Int {
-      get { header.pointee.totalElements }
+      get { header.pointee.subtreeCount }
       nonmutating set {
-        assertMutable(); header.pointee.totalElements = newValue
+        assertMutable(); header.pointee.subtreeCount = newValue
       }
     }
     

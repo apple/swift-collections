@@ -28,9 +28,8 @@ extension _BTree {
     @usableFromInline
     internal var childSlots: Offsets
     
-    // TODO: switch to Unmanaged<Node.Storage>
     @usableFromInline
-    internal unowned(unsafe) var node: Node.Storage
+    internal var node: Unmanaged<Node.Storage>
     
     @usableFromInline
     internal var slot: Int
@@ -85,7 +84,7 @@ extension _BTree {
       childSlots: Offsets,
       offset: Int
     ) {
-      self.node = node
+      self.node = .passUnretained(node)
       self.slot = slot
       self.childSlots = childSlots
       self.offset = offset
@@ -97,7 +96,16 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal var element: Element {
-      return Node(self.node).read { $0[elementAt: self.slot] }
+      return self.readNode { $0[elementAt: self.slot] }
+    }
+    
+    /// Operators on a handle of the node
+    @inlinable
+    @inline(__always)
+    internal func readNode<R>(
+      _ body: (Node.UnsafeHandle) throws -> R
+    ) rethrows -> R {
+      return try self.node._withUnsafeGuaranteedRef { try $0.read(body) }
     }
   }
 }
@@ -110,7 +118,7 @@ extension _BTree.UnsafePath: Equatable {
   @inlinable
   public static func ==(lhs: _BTree.UnsafePath, rhs: _BTree.UnsafePath) -> Bool {
     // We assume the parents are the same
-    return lhs.node === rhs.node && lhs.slot == rhs.slot
+    return lhs.node.toOpaque() == rhs.node.toOpaque() && lhs.slot == rhs.slot
   }
 }
 

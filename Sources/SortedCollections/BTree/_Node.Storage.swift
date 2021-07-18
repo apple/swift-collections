@@ -24,7 +24,7 @@ extension _Node {
       self.count = count
       self.values = values
       self.children = children
-      self.totalElements = totalElements
+      self.subtreeCount = totalElements
     }
     
     @usableFromInline
@@ -36,7 +36,7 @@ extension _Node {
     
     /// The total amount of elements contained underneath this node
     @usableFromInline
-    internal var totalElements: Int
+    internal var subtreeCount: Int
     
     /// Pointer to the buffer containing the corresponding values.
     @usableFromInline

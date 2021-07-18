@@ -46,8 +46,11 @@ extension _Node.UnsafeHandle {
   /// - Returns: A representation of the possible results of the update/insertion.
   @inlinable
   @inline(__always)
-  // updateAnyValue(_ value:, forKey key:, updatingKey:)
-  internal func setAnyValue(_ value: Value, forKey key: Key, updatingKey: Bool) -> InsertionResult {
+  internal func updateAnyValue(
+    _ value: Value,
+    forKey key: Key,
+    updatingKey: Bool
+  ) -> InsertionResult {
     assertMutable()
     
     let insertionIndex = self.endSlot(forKey: key)
@@ -63,7 +66,11 @@ extension _Node.UnsafeHandle {
         
         return .updated(previousElement: (oldKey, oldValue))
       } else {
-        let oldElement = self.exchangeElement(atSlot: insertionIndex - 1, with: (key, value))
+        let oldElement = self.exchangeElement(
+          atSlot: insertionIndex - 1,
+          with: (key, value)
+        )
+        
         return .updated(previousElement: oldElement)
       }
     }
@@ -78,14 +85,16 @@ extension _Node.UnsafeHandle {
       )
       return InsertionResult(from: maybeSplinter)
     } else {
-      let result = self[childAt: insertionIndex].update { $0.setAnyValue(value, forKey: key, updatingKey: updatingKey) }
+      let result = self[childAt: insertionIndex].update {
+        $0.updateAnyValue(value, forKey: key, updatingKey: updatingKey)
+      }
 
       switch result {
       case .updated:
         return result
       case .splintered(let splinter):
-        let maybeSplinter = self.insertSplinter(splinter, atSlot: insertionIndex)
-        return InsertionResult(from: maybeSplinter)
+        let splinter = self.insertSplinter(splinter, atSlot: insertionIndex)
+        return InsertionResult(from: splinter)
       case .inserted:
         self.subtreeCount += 1
         return .inserted
@@ -317,7 +326,7 @@ extension _Node.UnsafeHandle {
       // TODO: potentially evaluate min(left.children, right.children),
       // but the cost of the branch will likely exceed the cost of 1 comparison
       for i in 0..<self.childCount {
-        totalChildElements += self[childAt: i].storage.header.totalElements
+        totalChildElements += self[childAt: i].storage.header.subtreeCount
       }
     }
     

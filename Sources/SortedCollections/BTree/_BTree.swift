@@ -25,12 +25,12 @@ internal struct _BTree<Key: Comparable, Value> {
   /// Internal node capacity for BTree
   @inlinable
   @inline(__always)
-  static internal var defaultInternalCapacity: Int { 16 }
+  static internal var defaultInternalCapacity: Int { 64 }
   
   /// Leaf node capacity for BTree
   @inlinable
   @inline(__always)
-  static internal var defaultLeafCapacity: Int { 500 }
+  static internal var defaultLeafCapacity: Int { 2000 }
   
   @usableFromInline
   internal typealias Element = (key: Key, value: Value)
@@ -42,19 +42,35 @@ internal struct _BTree<Key: Comparable, Value> {
   @usableFromInline
   internal var root: Node
   
-  // TODO: remove
-  // TODO: compute capacity based on key/value size.
   /// The capacity of each of the internal nodes
   @usableFromInline
   internal var internalCapacity: Int
   
-  /// A metric to uniquely identify a given BTree's state. It is not
-  /// impossible for two BTrees to have the same age by pure
+  /// A metric to uniquely identify a given B-Tree's state. It is not
+  /// impossible for two B-Trees to have the same age by pure
   /// coincidence.
   @usableFromInline
   internal var version: Int
   
-  /// Creates an empty BTree rooted at a specific node with a specified uniform capacity
+  /// Creates an empty B-Tree with an automatically determined optimal capacity.
+  @inlinable
+  @inline(__always)
+  internal init() {
+    let leafCapacity = Swift.min(
+      16,
+      _BTree.defaultLeafCapacity / MemoryLayout<Key>.stride
+    )
+    
+    let internalCapacity = Swift.min(
+      16,
+      _BTree.defaultInternalCapacity / MemoryLayout<Key>.stride
+    )
+    
+    let root = Node(withCapacity: leafCapacity, isLeaf: true)
+    self.init(rootedAt: root, internalCapacity: internalCapacity)
+  }
+  
+  /// Creates an empty B-Tree rooted at a specific node with a specified uniform capacity
   /// - Parameter capacity: The key capacity of all nodes.
   @inlinable
   @inline(__always)
@@ -68,39 +84,24 @@ internal struct _BTree<Key: Comparable, Value> {
   /// Creates an empty BTree which creates node with specified capacities
   /// - Parameters:
   ///   - leafCapacity: The capacity of the leaf nodes. This is the initial buffer used to allocate.
-  ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than `leafCapacity`.
+  ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than
+  ///       `leafCapacity`.
   @inlinable
   @inline(__always)
-  internal init(leafCapacity: Int = defaultLeafCapacity, internalCapacity: Int = defaultInternalCapacity) {
+  internal init(leafCapacity: Int, internalCapacity: Int) {
     self.init(
       rootedAt: Node(withCapacity: leafCapacity, isLeaf: true),
-      leafCapacity: leafCapacity,
       internalCapacity: internalCapacity
     )
   }
   
-  /// Creates a BTree rooted at a specific node with a specified uniform capacity
+  /// Creates a BTree rooted at a specific nodey
   /// - Parameters:
   ///   - root: The root node.
-  ///   - capacity: The key capacity of all nodes.
+  ///   - internalCapacity: The key capacity of new internal nodes.
   @inlinable
   @inline(__always)
-  internal init(rootedAt root: Node, capacity: Int) {
-    self.init(
-      rootedAt: root,
-      leafCapacity: capacity,
-      internalCapacity: capacity
-    )
-  }
-  
-  /// Creates a BTree rooted at a specific node.
-  /// - Parameters:
-  ///   - root: The root node.
-  ///   - leafCapacity: The capacity of the leaf nodes. This is the initial buffer used to allocate.
-  ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than `leafCapacity`.
-  @inlinable
-  @inline(__always)
-  internal init(rootedAt root: Node, leafCapacity: Int = defaultLeafCapacity, internalCapacity: Int = defaultInternalCapacity) {
+  internal init(rootedAt root: Node, internalCapacity: Int) {
     self.root = root
     self.internalCapacity = internalCapacity
     self.version = ObjectIdentifier(root.storage).hashValue
@@ -131,15 +132,14 @@ extension _BTree {
   /// - Complexity: O(`log n`)
   @inlinable
   @discardableResult
-  // updateAnyValue(_:forKey:)
-  internal mutating func setAnyValue(
+  internal mutating func updateAnyValue(
     _ value: Value,
     forKey key: Key,
     updatingKey: Bool = false
   ) -> Element? {
     invalidateIndices()
     
-    let result = self.root.update { $0.setAnyValue(value, forKey: key, updatingKey: updatingKey) }
+    let result = self.root.update { $0.updateAnyValue(value, forKey: key, updatingKey: updatingKey) }
     switch result {
     case let .updated(previousValue):
       return previousValue
@@ -188,6 +188,24 @@ extension _BTree {
     let removedElement = self.root.update { $0.removeAnyElement(forKey: key) }
     
     // Check if the tree height needs to be reduced
+    self._balanceRoot()
+    
+    return removedElement
+  }
+}
+
+// MARK: Removal Opertations
+extension _BTree {
+  /// Removes the element of a tree at a given offset.
+  ///
+  /// - Parameter offset: the offset which must be in-bounds.
+  /// - Returns: The moved element of the tree
+  @inlinable
+  @inline(__always)
+  @discardableResult
+  internal mutating func remove(atOffset offset: Int) -> Element {
+    invalidateIndices()
+    let removedElement = self.root.update { $0.remove(at: offset) }
     self._balanceRoot()
     
     return removedElement

@@ -42,14 +42,14 @@ final class NodeBalancingTests: CollectionTestCase {
 
     var btree = t.toBTree(ofCapacity: 2)
     print(btree.debugDescription)
-    btree.removeAny(key: 0)
-    btree.removeAny(key: 1)
-    btree.removeAny(key: 2)
-    btree.removeAny(key: 3)
-    btree.removeAny(key: 4)
-    btree.removeAny(key: 5)
-    btree.removeAny(key: 6)
-    btree.removeAny(key: 18)
+    btree.removeAnyElement(forKey: 0)
+    btree.removeAnyElement(forKey: 1)
+    btree.removeAnyElement(forKey: 2)
+    btree.removeAnyElement(forKey: 3)
+    btree.removeAnyElement(forKey: 4)
+    btree.removeAnyElement(forKey: 5)
+    btree.removeAnyElement(forKey: 6)
+    btree.removeAnyElement(forKey: 18)
     print(btree.debugDescription)
 //    print(SortedDictionary<Int, Int>(_rootedAt: btree))
   }
@@ -71,7 +71,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
     
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.rotateRight(at: 0) }
+    node.update { $0.rotateRight(atSlot: 0) }
     
     expectTrue(
       tree {
@@ -98,7 +98,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
     
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.rotateRight(at: 0) }
+    node.update { $0.rotateRight(atSlot: 0) }
     
     expectTrue(
       tree {
@@ -126,7 +126,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
     
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.rotateLeft(at: 0) }
+    node.update { $0.rotateLeft(atSlot: 0) }
     
     expectTrue(
       tree {
@@ -153,7 +153,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
     
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.rotateLeft(at: 0) }
+    node.update { $0.rotateLeft(atSlot: 0) }
     
     expectTrue(
       tree {
@@ -172,7 +172,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
     
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.rotateLeft(at: 0) }
+    node.update { $0.rotateLeft(atSlot: 0) }
     
     expectTrue(
       tree {
@@ -198,7 +198,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
     
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.collapse(at: 0) }
+    node.update { $0.collapse(atSlot: 0) }
     
     expectTrue(
       tree {
@@ -223,7 +223,7 @@ final class NodeBalancingTests: CollectionTestCase {
     }
 
     var node = t.toNode(ofCapacity: 2)
-    node.update { $0.collapse(at: 0) }
+    node.update { $0.collapse(atSlot: 0) }
     
     expectTrue(
       tree {

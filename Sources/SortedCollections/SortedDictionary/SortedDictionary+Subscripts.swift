@@ -33,7 +33,7 @@ extension SortedDictionary {
     
     set {
       if let newValue = newValue {
-        self._root.setAnyValue(newValue, forKey: key)
+        self._root.updateAnyValue(newValue, forKey: key)
       } else {
         self._root.removeAnyElement(forKey: key)
       }

@@ -47,8 +47,8 @@ extension _Node {
         
         handle.elementCount = 1
         handle.subtreeCount = 1 +
-          leftChild.storage.header.totalElements +
-          self.rightChild.storage.header.totalElements
+          leftChild.storage.header.subtreeCount +
+          self.rightChild.storage.header.subtreeCount
       }
       return newNode
     }

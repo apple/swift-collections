@@ -14,7 +14,7 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  internal var count: Int { self.root.storage.header.totalElements }
+  internal var count: Int { self.root.storage.header.subtreeCount }
   
   /// A Boolean value that indicates whether the BTree is empty.
   @inlinable
@@ -61,7 +61,8 @@ extension _BTree: BidirectionalCollection {
   /// - Parameters:
   ///   - start: A valid index of the collection.
   ///   - end: Another valid index of the collection. If end is equal to start, the result is zero.
-  /// - Returns: The distance between start and end. The result can be negative only if the collection conforms to the BidirectionalCollection protocol.
+  /// - Returns: The distance between start and end. The result can be negative only if the collection
+  ///     conforms to the BidirectionalCollection protocol.
   /// - Complexity: O(1)
   @inlinable
   internal func distance(from start: Index, to end: Index) -> Int {
@@ -77,9 +78,9 @@ extension _BTree: BidirectionalCollection {
       preconditionFailure("Attempt to advance out of collection bounds.")
     }
     
-    let shouldSeekWithinLeaf = Node(path.node).read({
+    let shouldSeekWithinLeaf = path.readNode {
       $0.isLeaf && _fastPath(path.slot + 1 < $0.elementCount)
-    })
+    }
     
     if shouldSeekWithinLeaf {
       // Continue searching within the same leaf
@@ -143,10 +144,10 @@ extension _BTree: BidirectionalCollection {
     
     // TODO: optimization for searching within children
     
-    if var path = i.path, path.node.header.children == nil {
+    if var path = i.path, path.readNode({ $0.isLeaf }) {
       // Check if the target element will be in the same node
       let targetSlot = path.slot + distance
-      if 0 <= targetSlot && targetSlot < path.node.header.count {
+      if 0 <= targetSlot && targetSlot < path.readNode({ $0.elementCount }) {
         path.slot = targetSlot
         path.offset = newIndex
         i.path = path

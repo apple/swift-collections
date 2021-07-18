@@ -35,6 +35,13 @@ extension _BTree: Sequence {
       self.offsets = .init(repeating: 0)
       self.parents = .init(repeating: .passUnretained(tree.root.storage))
       
+      // Simple case for an empty tree
+      if self.tree.isEmpty {
+        self.currentNode = .passUnretained(tree.root.storage)
+        self.slot = -1
+        return
+      }
+      
       // TODO: maybe convert to unowned(unsafe)
       var node = tree.root
       while !node.read({ $0.isLeaf }) {
@@ -52,6 +59,7 @@ extension _BTree: Sequence {
     @inlinable
     @inline(__always)
     internal mutating func next() -> Element? {
+      // Check slot sentinel value for end of tree.
       if _slowPath(self.slot == -1) {
         return nil
       }
@@ -63,11 +71,13 @@ extension _BTree: Sequence {
             if !handle.isLeaf {
               self.parents.append(self.currentNode)
               self.offsets.append(UInt16(self.slot + 1))
+              
+              // TODO: make these descents Unmanaged
               var node = handle[childAt: self.slot + 1]
               
               while !node.read({ $0.isLeaf }) {
-                self.offsets.append(0)
                 self.parents.append(.passUnretained(node.storage))
+                self.offsets.append(0)
                 node = node.read({ $0[childAt: 0] })
               }
               
@@ -78,6 +88,11 @@ extension _BTree: Sequence {
                 self.slot += 1
               } else {
                 while true {
+                  if self.parents.depth == 0 {
+                    self.slot = -1
+                    break
+                  }
+                  
                   // If we are at a leaf, then ascend to the
                   let parent = self.parents.pop()
                   let offset = self.offsets.pop()
@@ -87,9 +102,6 @@ extension _BTree: Sequence {
                   if offset < parentElements {
                     self.currentNode = parent
                     self.slot = Int(offset)
-                    break
-                  } else if self.parents.depth == 0 {
-                    self.slot = -1
                     break
                   }
                 }

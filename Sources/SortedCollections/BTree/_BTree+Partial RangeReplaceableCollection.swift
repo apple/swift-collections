@@ -22,7 +22,7 @@ extension _BTree {
     // TODO: optimize implementation to O(n)
     var newTree: _BTree = _BTree()
     for element in self where try isIncluded(element) {
-      newTree.setAnyValue(element.value, forKey: element.key)
+      newTree.updateAnyValue(element.value, forKey: element.key)
     }
     return newTree
   }
@@ -102,29 +102,6 @@ extension _BTree {
     }
   }
   
-  // MARK: Offset Removal
-  /// Removes the element of a tree at a given offset.
-  ///
-  /// - Parameter offset: the offset which must be in-bounds.
-  /// - Returns: The moved element of the tree
-  @inlinable
-  @inline(__always)
-  @discardableResult
-  internal mutating func remove(at offset: Int) -> Element {
-    invalidateIndices()
-    let removedElement = self.root.update { $0.remove(at: offset) }
-    self._balanceRoot()
-    return removedElement
-  }
-  
-  @inlinable
-  @inline(__always)
-  internal mutating func removeAll() {
-    invalidateIndices()
-    // TODO: potentially use empty storage class.
-    self.root = _Node(withCapacity: _BTree.defaultLeafCapacity, isLeaf: true)
-  }
-  
   // MARK: Index Removal
   /// Removes the element of a tree at a given index.
   ///
@@ -136,7 +113,16 @@ extension _BTree {
   internal mutating func remove(at index: Index) -> Element {
     invalidateIndices()
     guard let path = index.path else { preconditionFailure("Index out of bounds.") }
-    return self.remove(at: path.offset)
+    return self.remove(atOffset: path.offset)
+  }
+  
+  // MARK: Bulk Removal
+  @inlinable
+  @inline(__always)
+  internal mutating func removeAll() {
+    invalidateIndices()
+    // TODO: potentially use empty storage class.
+    self.root = _Node(withCapacity: _BTree.defaultLeafCapacity, isLeaf: true)
   }
   
   /// Removes the elements in the specified subrange from the collection.
@@ -149,7 +135,7 @@ extension _BTree {
     let startOffset = startPath.offset
     
     for _ in 0..<rangeSize {
-      self.remove(at: startOffset)
+      self.remove(atOffset: startOffset)
     }
   }
 

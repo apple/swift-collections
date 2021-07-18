@@ -47,7 +47,7 @@ extension _Node.UnsafeHandle {
         
         // Balance the predecessor child slot, as the pop operation may have
         // brought it out of balance.
-        self.balance(at: slot)
+        self.balance(atSlot: slot)
         
         return element
       }
@@ -77,7 +77,7 @@ extension _Node.UnsafeHandle {
         // extra memmove being performed.
         
         // Determine if the child needs to be rebalanced
-        self.balance(at: slot)
+        self.balance(atSlot: slot)
         
         return removedElement
       }
@@ -124,7 +124,7 @@ extension _Node.UnsafeHandle {
         
         // Balance the predecessor child slot, as the pop operation may have
         // brought it out of balance.
-        self.balance(at: childSlot)
+        self.balance(atSlot: childSlot)
         
         return element
       } else {
@@ -157,7 +157,7 @@ extension _Node.UnsafeHandle {
     
     self.subtreeCount -= 1
     
-    self.balance(at: self.childCount - 1)
+    self.balance(atSlot: self.childCount - 1)
     return poppedElement
   }
   
@@ -185,7 +185,7 @@ extension _Node.UnsafeHandle {
     
     self.subtreeCount -= 1
     
-    self.balance(at: self.childCount - 1)
+    self.balance(atSlot: self.childCount - 1)
     return poppedElement
   }
 }
@@ -203,8 +203,7 @@ extension _Node.UnsafeHandle {
   ///
   /// - Parameter slot: The slot containing the child to balance.
   @inlinable
-  // balance(atSlot slot:)
-  internal func balance(at slot: Int) {
+  internal func balance(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.childCount,
            "Cannot balance out-of-bounds slot.")
@@ -215,18 +214,18 @@ extension _Node.UnsafeHandle {
     
     if slot > 0 && self[childAt: slot - 1].read({ $0.isShrinkable }) {
       // We can rotate from the left node to the right node
-      self.rotateRight(at: slot - 1)
+      self.rotateRight(atSlot: slot - 1)
     } else if slot < self.childCount - 1 &&
                 self[childAt: slot + 1].read({ $0.isShrinkable }) {
       // We can rotate from the right node to the left node
-      self.rotateLeft(at: slot)
+      self.rotateLeft(atSlot: slot)
     } else if slot == self.childCount - 1 {
       // In the special case the deficient child at the end,
       // it'll be merged with it's left sibling.
-      self.collapse(at: slot - 1)
+      self.collapse(atSlot: slot - 1)
     } else {
       // Otherwise collapse the child with its right sibling.
-      self.collapse(at: slot)
+      self.collapse(atSlot: slot)
     }
   }
   
@@ -238,8 +237,7 @@ extension _Node.UnsafeHandle {
   /// - Parameter slot: The slot containing the child to balance.
   @inlinable
   @inline(__always)
-  // rotateRight(atSlot slot:)
-  internal func rotateRight(at slot: Int) {
+  internal func rotateRight(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Cannot rotate out-of-bounds slot.")
@@ -311,7 +309,7 @@ extension _Node.UnsafeHandle {
   /// - Parameter slot: The slot containing the child to balance.
   @inlinable
   @inline(__always)
-  internal func rotateLeft(at slot: Int) {
+  internal func rotateLeft(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Cannot rotate out-of-bounds slot.")
@@ -387,8 +385,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: Calling this may result in empty nodes and a state which breaks the
   ///     B-Tree invariants, ensure the tree is further balanced after this.`
   @inlinable
-  @inline(__always)
-  internal func collapse(at slot: Int) {
+  internal func collapse(atSlot slot: Int) {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
            "Cannot collapse out-of-bounds slot")

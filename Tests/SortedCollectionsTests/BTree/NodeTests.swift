@@ -91,8 +91,8 @@ final class NodeTests: CollectionTestCase {
           let newKey = position * 2 + 1
           
           let splinter: _Node<Int, Int>.Splinter? = node.update { handle in
-            let index = handle.lastSlot(for: newKey)
-            return handle.insertElement(element: (newKey, newKey * 2), withRightChild: nil, atSlot: index)
+            let index = handle.endSlot(forKey: newKey)
+            return handle.insertElement((newKey, newKey * 2), withRightChild: nil, atSlot: index)
           }
           insertSortedValue(newKey, into: &array)
           
@@ -114,7 +114,7 @@ final class NodeTests: CollectionTestCase {
           withEveryNode(ofCapacity: capacity, keys: keys, duplicates: duplicates) { node, array, duplicatedKey  in
             node.read { handle in
               expectEqual(
-                handle.firstSlot(for: duplicatedKey),
+                handle.startSlot(forKey: duplicatedKey),
                 findFirstIndexOf(duplicatedKey, in: array)
               )
             }
@@ -131,7 +131,7 @@ final class NodeTests: CollectionTestCase {
           withEveryNode(ofCapacity: capacity, keys: keys, duplicates: duplicates) { node, array, duplicatedKey  in
             node.read { handle in
               expectEqual(
-                handle.lastSlot(for: duplicatedKey),
+                handle.endSlot(forKey: duplicatedKey),
                 findLastIndexOf(duplicatedKey, in: array)
               )
             }

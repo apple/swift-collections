@@ -25,7 +25,7 @@ struct NodeTemplate {
   }
   
   func toBTree(ofCapacity capacity: Int) -> _BTree<Int, Int> {
-    return _BTree(rootedAt: self.toNode(ofCapacity: capacity), capacity: capacity)
+    return _BTree(rootedAt: self.toNode(ofCapacity: capacity), internalCapacity: capacity)
   }
   
   func matches(_ btree: _BTree<Int, Int>) -> Bool {

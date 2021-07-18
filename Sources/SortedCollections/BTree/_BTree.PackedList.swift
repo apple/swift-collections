@@ -9,15 +9,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-@usableFromInline
-internal let _PACKED_OFFSET_LIST_MAX_SIZE = 16
-
 extension _BTree {
   /// A stack-allocated list of some values.
+  /// 
   /// - Warning: This may hold strong references to objects after they
   ///     do not put non-trivial types in this.
   @usableFromInline
   internal struct FixedSizeArray<Value> {
+    @inlinable
+    @inline(__always)
+    internal static var maxSize: UInt8 { 16 }
+    
     @usableFromInline
     internal var depth: UInt8
     
@@ -45,7 +47,8 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal mutating func append(_ offset: Value) {
-      assert(depth < _PACKED_OFFSET_LIST_MAX_SIZE, "Out of bounds access in offset list.")
+      assert(depth < FixedSizeArray.maxSize,
+             "Out of bounds access in offset list.")
       self.depth &+= 1
       self[self.depth] = offset
     }
@@ -63,7 +66,8 @@ extension _BTree {
     @inline(__always)
     internal subscript(_ offset: UInt8) -> Value {
       get {
-        assert(offset <= depth && depth <= _PACKED_OFFSET_LIST_MAX_SIZE, "Out of bounds access in offset list.")
+        assert(offset <= depth && depth <= FixedSizeArray.maxSize,
+               "Out of bounds access in offset list.")
         
         switch offset {
         case 0: return self.values.0
@@ -87,7 +91,9 @@ extension _BTree {
       }
       
       _modify {
-        assert(offset <= depth && depth <= _PACKED_OFFSET_LIST_MAX_SIZE, "Out of bounds access in offset list.")
+        assert(offset <= depth && depth <= FixedSizeArray.maxSize,
+               "Out of bounds access in offset list.")
+        
         switch offset {
         case 0: yield &self.values.0
         case 1: yield &self.values.1

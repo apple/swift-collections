@@ -32,13 +32,13 @@ internal struct _Node<Key: Comparable, Value> {
   internal init(copyingFrom oldNode: _Node) {
     let capacity = oldNode.storage.header.capacity
     let count = oldNode.storage.header.count
-    let totalElements = oldNode.storage.header.totalElements
+    let totalElements = oldNode.storage.header.subtreeCount
     let isLeaf = oldNode.storage.header.children == nil
     
     self.init(withCapacity: capacity, isLeaf: isLeaf)
     
     self.storage.header.count = count
-    self.storage.header.totalElements = totalElements
+    self.storage.header.subtreeCount = totalElements
     
     oldNode.storage.withUnsafeMutablePointerToElements { oldKeys in
       self.storage.withUnsafeMutablePointerToElements { newKeys in

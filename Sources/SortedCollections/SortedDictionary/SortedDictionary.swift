@@ -95,7 +95,7 @@ extension SortedDictionary {
   @inlinable
   @discardableResult
   public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
-    self._root.setAnyValue(value, forKey: key)?.value
+    self._root.updateAnyValue(value, forKey: key)?.value
   }
 }
 
