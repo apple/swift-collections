@@ -128,6 +128,10 @@ for val in heap.descending {
 
 In all of the above, `n` is the number of elements in the heap.
 
+![Heap performance graph](Images/Heap%20Performance.png)
+
+The above graph was generated in release mode on a MacBook Pro (16-inch, 2019) with a 2.3 GHz 8-Core Intel Core i9 using the benchmarks defined in the `swift-collections-benchmark` target.
+
 ## Implementation Details
 
 The implementation is based off [Atkinson et al. Min-Max Heaps and Generalized Priority Queues (1986)](http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf).
