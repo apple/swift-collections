@@ -50,8 +50,7 @@ public struct BitArray {
     if (repeatedValue) {
       let bytes: Int = (Int(count%8) > 0) ? (count/8)+1 : count/8
       for _ in 1...bytes {
-        storage.append(255) 
-        // _appendByte(byteValue: 255, resultingExcess: 0)
+        storage.append(255)
       }
       
       excess = UInt8(count%8)
@@ -70,11 +69,6 @@ public struct BitArray {
       excess = UInt8(count%8)
     }
   }
-  
-//  public mutating func _appendByte(byteValue: UInt8, resultingExcess: UInt8) {
-//    storage.append(byteValue)
-//    excess = resultingExcess
-//  }
   
   public init(_ bitSet: BitSet) {
     storage = bitSet.storage.storage
