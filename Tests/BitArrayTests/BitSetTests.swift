@@ -13,6 +13,17 @@ final class BitSetTest: CollectionTestCase {
   
   let limit = 100
   
+  func testSetInits() {
+    let sequence = [0, 1, 3, 5, 7, 9, 15, 16, 17]
+    let bitSet = BitSet(sequence)
+    let bitSet2: BitSet = [0, 1, 3, 5, 7, 9, 15, 16, 17]
+    let bitSet3 = BitSet(arrayLiteral: 0, 1, 3, 5, 7, 9, 15, 16, 17)
+    
+    XCTAssertEqual(bitSet, bitSet2)
+    XCTAssertEqual(bitSet3, bitSet2)
+    XCTAssertEqual(bitSet.storage.storage, [171, 130, 3])
+  }
+  
   func testAppend() {
     var testBitSet = BitSet()
     var num1: UInt8 = 0

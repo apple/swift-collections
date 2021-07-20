@@ -7,17 +7,32 @@
 
 public struct BitSet {
   
-  var storage = BitArray() // Doesn't this technically make this an ordered set?
+  var storage = BitArray()
   
   public init() { }
   
   public init<S>(_ sequence: __owned S) where S : Sequence, Int == S.Element {
-    // to be implemented
+    guard let max = sequence.max() else {
+      // sequence must be empty and nothing needs to be done
+      return
+    }
+    let bytes: Int = (max/8) + 1
+    
+    for _ in 0..<bytes {
+      storage.storage.append(0)
+    }
+    
+    for value in sequence {
+      storage[value] = true
+    }
   }
   
   public init(arrayLiteral elements: Int...) {
-    let largest = elements.max()
-    for index in elements {
+    for value in elements {
+      while (value >= storage.count) {
+        storage.storage.append(0)
+      }
+      storage[value] = true
     }
   }
   
