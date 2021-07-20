@@ -15,32 +15,70 @@ public struct BitArray {
   public init() { }
   
   public init<S>(_ elements: S) where S : Sequence, Bool == S.Element {
-    // to be implemented
+    var counter = 0
+    for value in elements {
+      if (counter%8 == 0) {
+        storage.append(0)
+      }
+      if (value) {
+        self[counter] = true
+      }
+      counter += 1
+    }
+    
+    excess = UInt8(counter%8)
   }
   
   public init(arrayLiteral elements: Bool...) {
-    var counter = 0
     for i in 0..<elements.endIndex {
-      if (counter%8 == 0) {
+      if (i%8 == 0) {
         storage.append(0)
       }
       if (elements[i]) {
         self[i] = true
       }
-      counter += 1
     }
     
     excess = UInt8(elements.count%8)
   }
   
+  public init(repeating repeatedValue: Bool, count: Int) {
+    if (count == 0) {
+      return
+    }
+    
+    if (repeatedValue) {
+      let bytes: Int = (Int(count%8) > 0) ? (count/8)+1 : count/8
+      for _ in 1...bytes {
+        storage.append(255) 
+        // _appendByte(byteValue: 255, resultingExcess: 0)
+      }
+      
+      excess = UInt8(count%8)
+      
+      // flip remaining bits back to 0
+      let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
+      
+      for i in remaining..<8 {
+        storage[bytes-1] ^= (1<<i)
+      }
+    } else {
+      let bytes: Int = (count%8 > 0) ? (count/8)+1 : count/8
+      for _ in 1...bytes {
+        storage.append(0)
+      }
+      excess = UInt8(count%8)
+    }
+  }
+  
+//  public mutating func _appendByte(byteValue: UInt8, resultingExcess: UInt8) {
+//    storage.append(byteValue)
+//    excess = resultingExcess
+//  }
+  
   public init(_ bitSet: BitSet) {
     storage = bitSet.storage.storage
     excess = bitSet.storage.excess
   }
-  
-  // What is this?
-  /*public init(repeating repeatedValue: Bool, count: Int) {
-    
-  }*/
   
 }

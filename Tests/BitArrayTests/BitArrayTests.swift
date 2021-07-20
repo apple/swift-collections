@@ -16,12 +16,78 @@ final class BitArrayTest: CollectionTestCase {
   
   func testArrayLitInit() {
     
+    let array = [true, false, true, false, true, true, false, true, false, true]
+    
     let bitArray = BitArray(arrayLiteral: true, false, true, false, true, true, false, true, false, true)
+    let bitArray2 = BitArray(array)
     
     XCTAssertEqual(bitArray.storage, [181, 2])
     XCTAssertEqual(bitArray.excess, 2)
     XCTAssertEqual(bitArray.endIndex, bitArray.count)
     XCTAssertEqual(bitArray.endIndex, 10)
+    
+    XCTAssertEqual(bitArray2.storage, [181, 2])
+    XCTAssertEqual(bitArray2.excess, 2)
+    XCTAssertEqual(bitArray2.endIndex, bitArray.count)
+    XCTAssertEqual(bitArray2.endIndex, 10)
+    
+    XCTAssertEqual(bitArray2, bitArray)
+    
+  }
+  
+  func testRepeatingValInit() {
+    let bitArray1 = BitArray(repeating: true, count: 0)
+    let bitArray2 = BitArray(repeating: true, count: 1)
+    let bitArray3 = BitArray(repeating: true, count: 7)
+    let bitArray4 = BitArray(repeating: true, count: 8)
+    let bitArray5 = BitArray(repeating: true, count: 9)
+    let bitArray6 = BitArray(repeating: true, count: 15)
+    let bitArray7 = BitArray(repeating: true, count: 16)
+    let bitArray8 = BitArray(repeating: true, count: 17)
+    
+    let falseBitArray1 = BitArray(repeating: false, count: 0)
+    let falseBitArray2 = BitArray(repeating: false, count: 1)
+    let falseBitArray3 = BitArray(repeating: false, count: 7)
+    let falseBitArray4 = BitArray(repeating: false, count: 8)
+    let falseBitArray5 = BitArray(repeating: false, count: 9)
+    let falseBitArray6 = BitArray(repeating: false, count: 15)
+    let falseBitArray7 = BitArray(repeating: false, count: 16)
+    let falseBitArray8 = BitArray(repeating: false, count: 17)
+    
+    XCTAssertEqual(bitArray1.storage, [])
+    XCTAssertEqual(bitArray1.count, 0)
+    XCTAssertEqual(bitArray2.storage, [1])
+    XCTAssertEqual(bitArray2.count, 1)
+    XCTAssertEqual(bitArray3.storage, [127])
+    XCTAssertEqual(bitArray3.count, 7)
+    XCTAssertEqual(bitArray4.storage, [255])
+    XCTAssertEqual(bitArray4.count, 8)
+    XCTAssertEqual(bitArray5.storage, [255, 1])
+    XCTAssertEqual(bitArray5.count, 9)
+    XCTAssertEqual(bitArray6.storage, [255, 127])
+    XCTAssertEqual(bitArray6.count, 15)
+    XCTAssertEqual(bitArray7.storage, [255, 255])
+    XCTAssertEqual(bitArray7.count, 16)
+    XCTAssertEqual(bitArray8.storage, [255, 255, 1])
+    XCTAssertEqual(bitArray8.count, 17)
+    
+    XCTAssertEqual(falseBitArray1.storage, [])
+    XCTAssertEqual(falseBitArray1.count, 0)
+    XCTAssertEqual(falseBitArray2.storage, [0])
+    XCTAssertEqual(falseBitArray2.count, 1)
+    XCTAssertEqual(falseBitArray3.storage, [0])
+    XCTAssertEqual(falseBitArray3.count, 7)
+    XCTAssertEqual(falseBitArray4.storage, [0])
+    XCTAssertEqual(falseBitArray4.count, 8)
+    XCTAssertEqual(falseBitArray5.storage, [0, 0])
+    XCTAssertEqual(falseBitArray5.count, 9)
+    XCTAssertEqual(falseBitArray6.storage, [0, 0])
+    XCTAssertEqual(falseBitArray6.count, 15)
+    XCTAssertEqual(falseBitArray7.storage, [0, 0])
+    XCTAssertEqual(falseBitArray7.count, 16)
+    XCTAssertEqual(falseBitArray8.storage, [0, 0, 0])
+    XCTAssertEqual(falseBitArray8.count, 17)
+  
   }
   
   func testRemoveAll() {
