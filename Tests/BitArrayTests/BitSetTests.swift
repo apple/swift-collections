@@ -35,7 +35,7 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 0..<8 {
       if (valDeterminer) {
-        testBitSet.append(i)
+        testBitSet.forceInsert(i)
         num1 += (1 << (i%8))
         count += 1
       }
@@ -48,7 +48,7 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 8..<16 {
       if (valDeterminer) {
-        testBitSet.append(i)
+        testBitSet.forceInsert(i)
         num2 += (1 << (i%8))
         count += 1
       }
@@ -61,7 +61,7 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 16..<24 {
       if (valDeterminer) {
-        testBitSet.append(i)
+        testBitSet.forceInsert(i)
         num3 += (1 << (i%8))
         count += 1
       }
@@ -75,7 +75,7 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 24..<32 {
       if (valDeterminer) {
-        testBitSet.append(i)
+        testBitSet.forceInsert(i)
         num4 += (1 << (i%8))
         count += 1
       }
@@ -99,9 +99,9 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 0..<100 {
       if (valDeterminer) {
-        sampleBitSet.append(i)
+        sampleBitSet.forceInsert(i)
       } else {
-        sampleBitSet2.append(i)
+        sampleBitSet2.forceInsert(i)
       }
       valDeterminer = Bool.random()
     }
@@ -115,15 +115,15 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 0..<50 {
       if (valDeterminer) {
-        sampleBitSet3.append(i)
+        sampleBitSet3.forceInsert(i)
       } else {
-        sampleBitSet4.append(i)
+        sampleBitSet4.forceInsert(i)
       }
       valDeterminer = Bool.random()
     }
     
     for i in 50..<100 {
-      sampleBitSet4.append(i)
+      sampleBitSet4.forceInsert(i)
     }
     
     //sampleBitSet3.formUnion(with: sampleBitSet4)
@@ -138,7 +138,7 @@ final class BitSetTest: CollectionTestCase {
     
     for i in 0..<100 {
       if (valDeterminer) {
-        testBitSet.append(i)
+        testBitSet.forceInsert(i)
         resultArray.append(i)
       }
       valDeterminer = Bool.random()
@@ -154,8 +154,8 @@ final class BitSetTest: CollectionTestCase {
     let numbers = [0, 1, 3, 5, 7, 9]
     
     for i in numbers {
-      bitSet1.append(i)
-      bitSet2.append(i)
+      bitSet1.forceInsert(i)
+      bitSet2.forceInsert(i)
     }
     
     //let result1 = bitSet1.cartesianProduct(with: bitSet2)

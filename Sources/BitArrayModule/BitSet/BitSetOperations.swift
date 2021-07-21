@@ -7,21 +7,27 @@
 
 extension BitSet {
   
-  public mutating func append(_ newIndex: Int) { // Should it be Int? Does it really matter?
-    
-    // making sure the BitArray storage is big enough
-    while (storage.count-1 < newIndex) {
-      storage.storage.append(0)
-    }
-    
-    storage[newIndex] = true
-  }
-  
-  public mutating func remove(_ index: Int) { // will "remove" regardless of whether it existed or not
-    storage[index] = false
+  public func contains(indexValue: Int) -> Bool {
+    return storage[indexValue]
   }
   
   public func asBitArray() -> BitArray {
     return BitArray(self)
+  }
+  
+  public mutating func dropExcessFalses() { // lol needs a better name
+    // remove excess bytes
+    let bitArrayEndByteIndex = storage.storage.endIndex-1
+    while (storage.storage[storage.storage.endIndex-1] == 0) {
+      storage.storage.removeLast()
+    }
+    
+    // adjust excess value for storage: BitArray
+    for i in (0...storage.excess).reversed() {
+      if (((1<<i) & storage.storage[bitArrayEndByteIndex]) > 0) {
+        storage.excess = i
+        break
+      }
+    }
   }
 }

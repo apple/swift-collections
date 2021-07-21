@@ -54,7 +54,7 @@ extension BitSet: Equatable {
       }
       for a in other.storage.count..<self.storage.count {
         if(self.storage[a]) {
-          newBitSet.append(a)
+          newBitSet.forceInsert(a)
         }
       }
     } else if (self.storage.count < other.storage.count){
@@ -64,7 +64,7 @@ extension BitSet: Equatable {
       }
       for b in self.storage.count..<other.storage.count {
         if(other.storage[b]) {
-          newBitSet.append(b)
+          newBitSet.forceInsert(b)
         }
       }
     } else {
@@ -109,7 +109,7 @@ extension BitSet: Equatable {
       }
       for a in self.storage.count..<other.storage.count { // why does this work and doing storage.storage like the other for-loops not?
         if(other.storage[a]) {
-          self.append(a)
+          self.forceInsert(a)
         }
       }
     } else {
