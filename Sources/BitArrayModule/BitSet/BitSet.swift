@@ -5,7 +5,7 @@
 //  Created by Mahanaz Atiqullah on 6/25/21.
 //
 
-public struct BitSet {
+public struct BitSet: ExpressibleByArrayLiteral {
   
   var storage = BitArray()
   

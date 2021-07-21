@@ -94,17 +94,6 @@ extension BitSet: Collection, BidirectionalCollection {
   
 }
 
-/*extension BitSet: ExpressibleByArrayLiteral {
- public init(arrayLiteral elements: Int...) {
- for element in elements {
- self.append(element)
- }
- }
- 
- public typealias ArrayLiteralElement = Int
- }*/
-
-
 extension BitSet: RandomAccessCollection {
   // Add RangeReplaceable
   // Index is an Integer type which already is Strideable, hence nothing for RandomAccess

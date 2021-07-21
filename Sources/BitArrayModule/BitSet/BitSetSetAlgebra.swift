@@ -5,19 +5,45 @@
 //  Created by Mahanaz Atiqullah on 7/14/21.
 //
 
-extension BitSet: SetAlgebra {
+extension BitSet: Equatable {
   
-  public mutating func insert(_ newMember: __owned Int) -> (inserted: Bool, memberAfterInsert: Int) { // what is the difference between insert and update?
+  public mutating func insert(_ newMember: __owned Int) -> Bool {
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
     }
-    // check if member already existed -> false
-    storage[newMember] = true
     
-    return (true, newMember) // umm when would this ever be false?
+    if (storage[newMember]) {
+      return false
+    } else {
+      storage[newMember] = true
+      return true
+    }
+    /* // alternative:
+     let returnVal = !storage[newMember]
+     storage[newMember] = true
+     return returnVal
+     */
   }
   
-  // what is '__consuming' and '__owned'?
+  public mutating func forceInsert(_ newMember: __owned Int) {
+    while (storage.count-1 < newMember) {
+      storage.storage.append(0)
+    }
+    storage[newMember] = true
+  }
+  
+  public mutating func remove(_ member: Int) -> Bool {
+    if (member >= storage.endIndex) {
+      return false // I chose to do this instead of crash since this is a Set, and there aren't really array index limits to a set
+    }
+    
+    // alternative: similar to how its done in insert function
+    let returnVal = storage[member]
+    storage[member] = false
+    return returnVal
+  }
+  
+  // what is '__consuming' and '__owned'? 
   public __consuming func union(_ other: __owned BitSet) -> BitSet { // Will need to simplify later (by adjusting the BitArray functions to that they can be called from here
     var newBitSet = BitSet()
     
@@ -26,7 +52,7 @@ extension BitSet: SetAlgebra {
         let newVal: UInt8 = self.storage.storage[i] | other.storage.storage[i]
         newBitSet.storage.storage.append(newVal)
       }
-      for a in other.storage.count..<self.storage.count { // why does this work and doing storage.storage like the other for-loops not?
+      for a in other.storage.count..<self.storage.count {
         if(self.storage[a]) {
           newBitSet.append(a)
         }
@@ -36,7 +62,7 @@ extension BitSet: SetAlgebra {
         let newVal = storage.storage[j] | other.storage.storage[j]
         newBitSet.storage.storage.append(newVal)
       }
-      for b in self.storage.count..<other.storage.count { // why does this work and doing storage.storage like the other for-loops not?
+      for b in self.storage.count..<other.storage.count {
         if(other.storage[b]) {
           newBitSet.append(b)
         }
@@ -71,24 +97,6 @@ extension BitSet: SetAlgebra {
     return copy
   }
   
-  public mutating func remove(_ member: Int) -> Int? {
-    let returnVal: Int? = (storage[member]) ? member : nil
-    storage[member] = false
-    return returnVal
-  }
-  
-  public mutating func update(with newMember: __owned Int) -> Int? { // use this INSTEAD of append?
-    // what is the purpose of returning what was already in the set? (there are no duplicates in this set, right?)
-    while (storage.count-1 < newMember) {
-      storage.storage.append(0)
-    }
-    
-    let returnVal: Int? = (storage[newMember]) ? newMember : nil
-    
-    storage[newMember] = true
-    
-    return returnVal
-  }
   
   public mutating func formUnion(_ other: __owned BitSet) {
     if (other.storage.count < self.storage.count) {
@@ -134,7 +142,5 @@ extension BitSet: SetAlgebra {
   public static func == (lhs: BitSet, rhs: BitSet) -> Bool {
     return (lhs.storage == rhs.storage) // BitArray also conforms to Equatable, so we good here
   }
-  
-  
   
 }
