@@ -14,8 +14,8 @@ extension SortedDictionary {
   /// - Complexity: O(`log n`)
   @inlinable
   public func index(forKey key: Key) -> Index? {
-    if let index = self._root.anyIndex(forKey: key) {
-      return Index(index)
+    if let path = self._root.findAnyPath(forKey: key) {
+      return Index(_Tree.Index(path, forTree: self._root))
     } else {
       return nil
     }

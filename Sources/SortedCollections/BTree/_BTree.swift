@@ -262,8 +262,8 @@ extension _BTree {
     var node: Unmanaged<Node.Storage>? = .passUnretained(self.root.storage)
     
     while let currentNode = node {
-      let value: Value? = currentNode._withUnsafeGuaranteedRef { storage -> Value? in
-        storage.read { handle in
+      let value: Value? = currentNode._withUnsafeGuaranteedRef {
+        $0.read { handle in
           let slot = handle.startSlot(forKey: key)
           
           if slot < handle.elementCount && handle[keyAt: slot] == key {
@@ -284,5 +284,97 @@ extension _BTree {
     }
     
     return nil
+  }
+  
+  /// Returns the path corresponding to the first found instance of the key. This may
+  /// not be the first instance of the key. This is marginally more efficient for trees
+  /// that do not have duplicates.
+  ///
+  /// - Parameter key: The key to search for within the tree.
+  /// - Returns: If found, returns a path to the element. Otherwise, `nil`.
+  @inlinable
+  internal func findAnyPath(forKey key: Key) -> UnsafePath? {
+    var childSlots = UnsafePath.Offsets(repeating: 0)
+    var node: Unmanaged<Node.Storage>? = .passUnretained(self.root.storage)
+    
+    while let currentNode = node {
+      let path: UnsafePath? = currentNode._withUnsafeGuaranteedRef { storage in
+        storage.read { handle in
+          let keySlot = handle.startSlot(forKey: key)
+          if keySlot < handle.elementCount && handle[keyAt: keySlot] == key {
+            return UnsafePath(
+              node: .passUnretained(storage),
+              slot: keySlot,
+              childSlots: childSlots,
+              offset: 0
+            )
+          } else {
+            if handle.isLeaf {
+              node = nil
+            } else {
+              childSlots.append(UInt16(keySlot))
+              node = .passUnretained(handle[childAt: keySlot].storage)
+            }
+            
+            return nil
+          }
+        }
+      }
+      
+      if let path = path { return path }
+    }
+    
+    return nil
+  }
+  
+  /// Obtains the path to the element at a specified integer offset within the tree.
+  ///
+  /// - Parameter offset: The absolute offset that must be in-bounds or the last position.
+  /// - Returns: An unsafe path to the element, or `nil` if corresponds to the last position.
+  @inlinable
+  internal func path(atOffset offset: Int) -> UnsafePath? {
+    assert(offset <= self.count, "Index out of bounds.")
+
+    // Return nil path if at the end of the tree
+    if offset == self.count {
+      return nil
+    }
+    
+    var childSlots = UnsafePath.Offsets(repeating: 0)
+    
+    var node: _Node = self.root
+    var startIndex = 0
+    
+    while !node.read({ $0.isLeaf }) {
+      let internalPath: UnsafePath? = node.read { handle in
+        for childSlot in 0..<handle.childCount {
+          let child = handle[childAt: childSlot]
+          let endIndex = startIndex + child.read({ $0.subtreeCount })
+          
+          if offset < endIndex {
+            childSlots.append(UInt16(childSlot))
+            node = child
+            return nil
+          } else if offset == endIndex {
+            // We've found the node we want
+            return UnsafePath(node: node, slot: childSlot, childSlots: childSlots, offset: offset)
+          } else {
+            startIndex = endIndex + 1
+          }
+        }
+        
+        // TODO: convert into debug-only preconditionFaliure
+        preconditionFailure("In-bounds index not found within tree.")
+      }
+      
+      if let internalPath = internalPath { return internalPath }
+    }
+    
+    return UnsafePath(
+      node: node,
+      slot: offset - startIndex,
+      childSlots: childSlots,
+      offset: offset
+    )
   }
 }

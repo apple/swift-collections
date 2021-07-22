@@ -9,12 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SortedDictionary: CustomReflectable {
-  // TODO: Review this implementation
-  // TODO: Implement nice playground output.
-  
+extension SortedSet: CustomReflectable {
   /// The custom mirror for this instance.
   public var customMirror: Mirror {
-    Mirror(self, unlabeledChildren: self, displayStyle: .dictionary)
+    Mirror(self, unlabeledChildren: self, displayStyle: .set)
   }
 }

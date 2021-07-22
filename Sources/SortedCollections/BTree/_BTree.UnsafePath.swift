@@ -13,11 +13,11 @@
 // TODO: potentially make operations mutating.
 
 extension _BTree {
-  /// Represents a specific element in a BTree. This holds strong references to the
+  /// Represents a specific element in a BTree. This does not hold any references to the
   /// element it points to.
   /// - Warning: Operations on this path will trap if the underlying node is deallocated.
   ///   and they become invalid if the tree is mutated, however this is not checked. For
-  ///   safety, use ``_BTree.Index`` instead
+  ///   safety, use ``_BTree.Index`` instead with its validation methods.
   @usableFromInline
   internal struct UnsafePath {
     @usableFromInline
@@ -68,7 +68,7 @@ extension _BTree {
       childSlots: Offsets,
       offset: Int
     ) {
-      self.init(node: node.storage, slot: slot, childSlots: childSlots, offset: offset)
+      self.init(node: .passUnretained(node.storage), slot: slot, childSlots: childSlots, offset: offset)
     }
     
     /// Creates a path representing a sequence of nodes to an element.
@@ -79,12 +79,12 @@ extension _BTree {
     ///   - index: The absolute offset of this path's element in the tree.
     @inlinable
     internal init(
-      node: Node.Storage,
+      node: Unmanaged<Node.Storage>,
       slot: Int,
       childSlots: Offsets,
       offset: Int
     ) {
-      self.node = .passUnretained(node)
+      self.node = node
       self.slot = slot
       self.childSlots = childSlots
       self.offset = offset
@@ -96,7 +96,7 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal var element: Element {
-      return self.readNode { $0[elementAt: self.slot] }
+      self.readNode { $0[elementAt: self.slot] }
     }
     
     /// Operators on a handle of the node
@@ -125,23 +125,9 @@ extension _BTree.UnsafePath: Equatable {
 // MARK: Comparable
 extension _BTree.UnsafePath: Comparable {
   /// Returns true if the first path points to an element before the second path
-  /// - Complexity: O(`log n`)
+  /// - Complexity: O(1)
   @inlinable
   public static func <(lhs: _BTree.UnsafePath, rhs: _BTree.UnsafePath) -> Bool {
-    for i in 0..<min(lhs.childSlots.depth, rhs.childSlots.depth) {
-      if lhs.childSlots[i] < rhs.childSlots[i] {
-        return true
-      }
-    }
-    
-    if lhs.childSlots.depth < rhs.childSlots.depth {
-      let rhsOffset = rhs.childSlots[lhs.childSlots.depth - 1]
-      return lhs.slot < rhsOffset
-    } else if rhs.childSlots.depth < lhs.childSlots.depth {
-      let lhsOffset = lhs.childSlots[rhs.childSlots.depth - 1]
-      return lhsOffset <= rhs.slot
-    } else {
-      return lhs.slot < rhs.slot
-    }
+    return lhs.offset < rhs.offset
   }
 }

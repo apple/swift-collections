@@ -14,8 +14,8 @@ extension SortedSet {
   /// - Complexity: O(`log n`)
   @inlinable
   public func firstIndex(of element: Element) -> Index? {
-    if let index = self._root.anyIndex(forKey: element) {
-      return Index(index)
+    if let path = self._root.findAnyPath(forKey: element) {
+      return Index(_Tree.Index(path, forTree: self._root))
     } else {
       return nil
     }

@@ -23,10 +23,10 @@ extension SortedSet {
     return self._root[position._index].key
   }
   
-//  @inlinable
-//  public subscript(in range: Range<Element>) -> SubSequence {
-//    let start = self.firstIndex(of: range.lowerBound)
-//    let end = self.firstIndex(of: range.upperBound)
-//    return Slice(base: self, bounds: start..<end)
-//  }
+  @inlinable
+  public subscript(range: Range<Element>) -> Slice<Self> {
+    let start = self._root.startIndex(forKey: range.lowerBound)
+    let end = self._root.startIndex(forKey: range.upperBound)
+    return Slice(base: self, bounds: Index(start)..<Index(end))
+  }
 }

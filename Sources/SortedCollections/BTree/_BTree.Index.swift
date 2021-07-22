@@ -12,6 +12,8 @@
 extension _BTree {
   
   /// An index to an element of the BTree represented as a path.
+  /// - Warning: This has the capability to perform safety checks, however they must be explicitly be
+  ///     performed using the validation methods.
   @usableFromInline
   internal struct Index: Comparable {
     /// The path to the element in the BTree. A `nil` value indicates

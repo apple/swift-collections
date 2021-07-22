@@ -9,21 +9,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SortedDictionary: CustomStringConvertible, CustomDebugStringConvertible {
+extension SortedSet: CustomStringConvertible, CustomDebugStringConvertible {
   // TODO: see if there is way to reduce boilerplate here
   
   @inlinable
   public var description: String {
-    if isEmpty { return "[:]" }
     var result = "["
     var first = true
-    for (key, value) in self {
+    for element in self {
       if first {
         first = false
       } else {
         result += ", "
       }
-      result += "\(key): \(value)"
+      print(element, terminator: "", to: &result)
     }
     result += "]"
     return result
@@ -31,24 +30,18 @@ extension SortedDictionary: CustomStringConvertible, CustomDebugStringConvertibl
   
   @inlinable
   public var debugDescription: String {
-    var result = "SortedDictionary<\(Key.self), \(Value.self)>("
-    if isEmpty {
-      result += "[:]"
-    } else {
-      result += "["
-      var first = true
-      for (key, value) in self {
-        if first {
-          first = false
-        } else {
-          result += ", "
-        }
-        
-        debugPrint(key, value, separator: ": ", terminator: "", to: &result)
+    var result = "SortedSet<\(Element.self)>(["
+    var first = true
+    for element in self {
+      if first {
+        first = false
+      } else {
+        result += ", "
       }
-      result += "]"
+      
+      debugPrint(element, terminator: "", to: &result)
     }
-    result += ")"
+    result += "])"
     return result
   }
 }

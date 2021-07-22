@@ -9,12 +9,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SortedDictionary: CustomReflectable {
-  // TODO: Review this implementation
-  // TODO: Implement nice playground output.
-  
-  /// The custom mirror for this instance.
-  public var customMirror: Mirror {
-    Mirror(self, unlabeledChildren: self, displayStyle: .dictionary)
+extension SortedSet: Hashable where Element: Hashable {
+  /// Hashes the essential components of this value by feeding them
+  /// into the given hasher.
+  /// - Parameter hasher: The hasher to use when combining
+  ///     the components of this instance.
+  /// - Complexity: O(`n`)
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.count)
+    for element in self {
+      hasher.combine(element)
+    }
   }
 }

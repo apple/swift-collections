@@ -151,6 +151,7 @@ extension SortedSet {
   internal mutating func removeSubrange<R: RangeExpression>(
     _ bounds: R
   ) where R.Bound == Index {
+    // TODO: optimize to not perform excessive traversals
     let bounds = bounds.relative(to: self)
     
     bounds.upperBound._index.ensureValid(for: self._root)

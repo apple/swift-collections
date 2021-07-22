@@ -11,7 +11,7 @@
 
 extension SortedDictionary: Hashable where Key: Hashable, Value: Hashable {
   /// Hashes the essential components of this value by feeding them
-  /// into the givenhasher.
+  /// into the given hasher.
   /// - Parameter hasher: The hasher to use when combining
   ///     the components of this instance.
   /// - Complexity: O(`n`)
