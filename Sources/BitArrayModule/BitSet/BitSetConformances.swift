@@ -12,15 +12,15 @@ extension BitSet: Collection, BidirectionalCollection {
   public var isEmpty: Bool { return count == 0 }
   
   public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // test first(where: {}) instead
+    // leaving it like this might be correct if firstTrueIndex was fast enough -- BENCHMARKS
   
-  public var endIndex: Index { return Index(bitArrayIndex: storage.lastTrueIndex()) } // use endIndex of BitArray
-  // let mySet: BitSet = BitSet()
-  // let mySet: BitSet = [3,5,7]
-  public var count: Int {
+  public var endIndex: Index { return Index(bitArrayIndex: storage.endIndex) }
+
+  public var count: Int { // .nonZeroBitCount
     var mask: UInt8 = 1
     var count = 0
     for byte in storage.storage {
-      for j in 0..<8 {
+        for j in 0..<(BitArray.UNIT.bitWidth){
         mask <<= j
         if (byte & mask != 0) {
           count += 1
@@ -92,10 +92,4 @@ extension BitSet: Collection, BidirectionalCollection {
     fatalError("Passed in distance points to an Index beyond the scope of the set") // Wondering if there is a simple way to put this as a precondition instead. Would be possible if the Indices were able to keep track of what number element of the Set it points to?
   }
   
-}
-
-extension BitSet: RandomAccessCollection {
-  // Add RangeReplaceable
-  // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
-  // ADD REPLACESUBRANGE
 }

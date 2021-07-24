@@ -29,7 +29,7 @@ extension BitArray {
   }
   
   private mutating func _adjustExcess(){
-    if (self.excess == 7) {
+    if (self.excess == (UNIT.bitWidth-1)) {
       self.excess = 0
     } else {
       self.excess += 1
@@ -41,7 +41,7 @@ extension BitArray {
     for item in storage {
       counter += 1
       if (item > 0) {
-        for pointer in 0..<8 {
+        for pointer in 0..<(UNIT.bitWidth) {
           if ( (item & (1 << pointer)) > 0 ) {
             return pointer + counter*BitArray.UNIT.bitWidth
           }
@@ -58,7 +58,7 @@ extension BitArray {
     for item in storage.reversed() {
       counter -= 1
       if (item > 0) {
-        for pointer in 0..<8 {
+        for pointer in 0..<(UNIT.bitWidth) {
           if ( (item & (1 << pointer)) > 0 ) {
             return pointer + counter*BitArray.UNIT.bitWidth
           }
@@ -68,10 +68,6 @@ extension BitArray {
       }
     }
     return endIndex
-  }
-  
-  public func asBitSet() -> BitSet {
-    return BitSet(self)
   }
   
 }

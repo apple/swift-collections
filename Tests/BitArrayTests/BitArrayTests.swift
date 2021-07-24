@@ -99,7 +99,7 @@ final class BitArrayTest: CollectionTestCase {
       value = Bool.random()
     }
     
-    testArray.removeAll()
+    //testArray.removeAll()
     
     XCTAssertEqual(testArray.count, 0)
     XCTAssertEqual(testArray.endIndex, 0)

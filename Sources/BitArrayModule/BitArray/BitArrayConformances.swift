@@ -66,17 +66,13 @@ extension BitArray: MutableCollection {
   
 }
 
-extension BitArray: RandomAccessCollection, RangeReplaceableCollection {
+extension BitArray: RandomAccessCollection {
   // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
   // ADD REPLACESUBRANGE
 }
 
 extension BitArray: Equatable {
-  public static func == (lhs: BitArray, rhs: BitArray) -> Bool {
-    if ((lhs.storage == rhs.storage) && (lhs.excess == rhs.excess)) {
-      return true
-    } else {
-      return false
+    public static func == (lhs: BitArray, rhs: BitArray) -> Bool {
+        return ((lhs.excess == rhs.excess) && (lhs.storage == rhs.storage))
     }
-  }
 }

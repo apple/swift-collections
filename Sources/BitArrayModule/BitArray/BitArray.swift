@@ -15,9 +15,10 @@ public struct BitArray {
   public init() { }
   
   public init<S>(_ elements: S) where S : Sequence, Bool == S.Element {
-    var counter = 0
+    storage.reserveCapacity(elements.underestimatedCount / UNIT.bitWidth)
+    /*var counter = 0
     for value in elements {
-      if (counter%8 == 0) {
+      if (counter%(UNIT.bitWidth) == 0) {
         storage.append(0)
       }
       if (value) {
@@ -26,12 +27,13 @@ public struct BitArray {
       counter += 1
     }
     
-    excess = UInt8(counter%8)
+    excess = UInt8(counter%(UNIT.bitWidth))
+     */
   }
   
   public init(arrayLiteral elements: Bool...) {
     for i in 0..<elements.endIndex {
-      if (i%8 == 0) {
+        if (i%(UNIT.bitWidth) == 0) {
         storage.append(0)
       }
       if (elements[i]) {
@@ -39,7 +41,7 @@ public struct BitArray {
       }
     }
     
-    excess = UInt8(elements.count%8)
+    excess = UInt8(elements.count%(UNIT.bitWidth))
   }
   
   public init(repeating repeatedValue: Bool, count: Int) {
@@ -48,25 +50,25 @@ public struct BitArray {
     }
     
     if (repeatedValue) {
-      let bytes: Int = (Int(count%8) > 0) ? (count/8)+1 : count/8
+      let bytes: Int = (Int(count%(UNIT.bitWidth)) > 0) ? (count/(UNIT.bitWidth))+1 : count/(UNIT.bitWidth)
       for _ in 1...bytes {
         storage.append(255)
       }
       
-      excess = UInt8(count%8)
+      excess = UInt8(count%(UNIT.bitWidth))
       
       // flip remaining bits back to 0
       let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
       
-      for i in remaining..<8 {
+      for i in remaining..<(UNIT.bitWidth) {
         storage[bytes-1] ^= (1<<i)
       }
     } else {
-      let bytes: Int = (count%8 > 0) ? (count/8)+1 : count/8
+      let bytes: Int = (count%(UNIT.bitWidth) > 0) ? (count/(UNIT.bitWidth))+1 : count/(UNIT.bitWidth)
       for _ in 1...bytes {
         storage.append(0)
       }
-      excess = UInt8(count%8)
+      excess = UInt8(count%(UNIT.bitWidth))
     }
   }
   

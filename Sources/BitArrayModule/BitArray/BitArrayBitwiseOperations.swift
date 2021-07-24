@@ -45,7 +45,7 @@ extension BitArray {
     var mask: UInt8 = 1 << self.excess
     
     // flip the last bits past excess that aren't part of the set back to 0
-    for _ in 1...(8-self.excess) {
+    for _ in 1...((UNIT.bitWidth)-Int(self.excess)) {
       self.storage[self.endIndex-1] ^= mask
       mask <<= 1
     }
@@ -99,7 +99,7 @@ extension BitArray {
     var mask: UInt8 = 1 << self.excess
     
     // flip the last bits past excess that aren't part of the set back to 0
-    for _ in 1...(8-self.excess) {
+    for _ in 1...((UNIT.bitWidth)-Int(self.excess)) {
       lastByte ^= mask
       mask <<= 1
     }
@@ -159,7 +159,7 @@ extension BitArray {
     var mask: UInt8 = 1 << bitArray.excess
     
     // flip the last bits past excess that aren't part of the set back to 0
-    for _ in 1...(8-bitArray.excess) {
+    for _ in 1...((UNIT.bitWidth)-Int(bitArray.excess)) {
       lastByte ^= mask
       mask <<= 1
     }

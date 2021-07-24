@@ -11,10 +11,8 @@ extension BitSet {
     return storage[indexValue]
   }
   
-  public func asBitArray() -> BitArray {
-    return BitArray(self)
-  }
   
+    //INCORPORATE THIS INTO REMOVE
   public mutating func dropExcessFalses() { // lol needs a better name
     // remove excess bytes
     let bitArrayEndByteIndex = storage.storage.endIndex-1

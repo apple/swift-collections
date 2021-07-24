@@ -16,7 +16,7 @@ public struct BitSet: ExpressibleByArrayLiteral {
       // sequence must be empty and nothing needs to be done
       return
     }
-    let bytes: Int = (max/8) + 1
+    let bytes: Int = (max/BitArray.UNIT.bitWidth) + 1
     
     for _ in 0..<bytes {
       storage.storage.append(0)
