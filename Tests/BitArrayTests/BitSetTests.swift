@@ -108,7 +108,7 @@ final class BitSetTest: CollectionTestCase {
     
     //sampleBitSet.formUnion(with: sampleBitSet2)
     
-    XCTAssertEqual(sampleBitSet.storage.storage, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 15])
+    XCTAssertEqual(sampleBitSet.storage.storage, [BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, 15])
     
     var sampleBitSet3 = BitSet()
     var sampleBitSet4 = BitSet()
@@ -128,7 +128,7 @@ final class BitSetTest: CollectionTestCase {
     
     //sampleBitSet3.formUnion(with: sampleBitSet4)
     
-    XCTAssertEqual(sampleBitSet3.storage.storage, [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 15])
+    XCTAssertEqual(sampleBitSet3.storage.storage, [BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, 15])
   }
   
   func testIntArrayView() {

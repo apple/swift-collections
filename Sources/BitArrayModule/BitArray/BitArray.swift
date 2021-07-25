@@ -16,32 +16,16 @@ public struct BitArray {
   
   public init<S>(_ elements: S) where S : Sequence, Bool == S.Element {
     storage.reserveCapacity(elements.underestimatedCount / UNIT.bitWidth)
-    /*var counter = 0
     for value in elements {
-      if (counter%(UNIT.bitWidth) == 0) {
-        storage.append(0)
-      }
-      if (value) {
-        self[counter] = true
-      }
-      counter += 1
+        self.append(value)
     }
-    
-    excess = UInt8(counter%(UNIT.bitWidth))
-     */
   }
   
   public init(arrayLiteral elements: Bool...) {
-    for i in 0..<elements.endIndex {
-        if (i%(UNIT.bitWidth) == 0) {
-        storage.append(0)
-      }
-      if (elements[i]) {
-        self[i] = true
-      }
+    storage.reserveCapacity(elements.underestimatedCount / UNIT.bitWidth) // for this, why not just use count?
+    for value in elements {
+        self.append(value)
     }
-    
-    excess = UInt8(elements.count%(UNIT.bitWidth))
   }
   
   public init(repeating repeatedValue: Bool, count: Int) {
@@ -51,23 +35,18 @@ public struct BitArray {
     
     if (repeatedValue) {
       let bytes: Int = (Int(count%(UNIT.bitWidth)) > 0) ? (count/(UNIT.bitWidth))+1 : count/(UNIT.bitWidth)
-      for _ in 1...bytes {
-        storage.append(255)
-      }
-      
+      storage = Array(repeating: UNIT.max, count: bytes)
       excess = UInt8(count%(UNIT.bitWidth))
       
       // flip remaining bits back to 0
       let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
-      
       for i in remaining..<(UNIT.bitWidth) {
         storage[bytes-1] ^= (1<<i)
       }
+      
     } else {
       let bytes: Int = (count%(UNIT.bitWidth) > 0) ? (count/(UNIT.bitWidth))+1 : count/(UNIT.bitWidth)
-      for _ in 1...bytes {
-        storage.append(0)
-      }
+      storage = Array(repeating: 0, count: bytes)
       excess = UInt8(count%(UNIT.bitWidth))
     }
   }

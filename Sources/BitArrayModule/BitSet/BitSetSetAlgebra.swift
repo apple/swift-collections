@@ -7,7 +7,7 @@
 
 extension BitSet: Equatable {
   
-    @discardableResult
+  @discardableResult
   public mutating func insert(_ newMember: __owned Int) -> Bool {
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
@@ -23,7 +23,7 @@ extension BitSet: Equatable {
      return returnVal
      
      defer { storage[member] = true }
-       return storage[member]
+     return storage[member]
      */
   }
   
@@ -34,7 +34,7 @@ extension BitSet: Equatable {
     storage[newMember] = true
   }
   
-    @discardableResult
+  @discardableResult
   public mutating func remove(_ member: Int) -> Bool {
     if (member >= storage.endIndex) {
       return false // I chose to do this instead of crash since this is a Set, and there aren't really array index limits to a set
@@ -46,7 +46,7 @@ extension BitSet: Equatable {
     return returnVal
   }
   
-  // what is '__consuming' and '__owned'? 
+  // what is '__consuming' and '__owned'?
   public __consuming func union(_ other: __owned BitSet) -> BitSet { // Will need to simplify later (by adjusting the BitArray functions to that they can be called from here
     var newBitSet = BitSet()
     
