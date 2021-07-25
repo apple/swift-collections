@@ -5,7 +5,7 @@
 //  Created by Mahanaz Atiqullah on 6/4/21.
 //
 
-extension BitArray: Collection {
+extension BitArray: Collection, RandomAccessCollection {
   
   
   public func index(after i: Int) -> Int {
@@ -64,11 +64,6 @@ extension BitArray: MutableCollection {
     
   }
   
-}
-
-extension BitArray: RandomAccessCollection {
-  // Index is an Integer type which already is Strideable, hence nothing for RandomAccess
-  // ADD REPLACESUBRANGE
 }
 
 extension BitArray: Equatable {
