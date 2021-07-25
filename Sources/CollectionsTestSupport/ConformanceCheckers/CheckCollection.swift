@@ -203,7 +203,7 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
 
   // Check `distance(from:to:)`
   withEvery("i", in: allIndices.indices) { i in
-    withEvery("j", in: allIndices.indices) { j in
+    withEvery("j", in: allIndices.indices[i...]) { j in
       let d = collection.distance(from: allIndices[i], to: allIndices[j])
       expectEqual(d, j - i)
     }

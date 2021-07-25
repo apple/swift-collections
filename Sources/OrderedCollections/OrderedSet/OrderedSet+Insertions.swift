@@ -144,7 +144,7 @@ extension OrderedSet {
   ///
   /// - Returns: A pair `(inserted, index)`, where `inserted` is a Boolean value
   ///    indicating whether the operation added a new element, and `index` is
-  ///    the index of `item` in the resulting set. If `inserted` is true, then
+  ///    the index of `item` in the resulting set. If `inserted` is false, then
   ///    the returned `index` may be different from the index requested.
   ///
   /// - Complexity: The operation is expected to perform amortized

@@ -13,9 +13,6 @@
 internal class _DequeBuffer<Element>: ManagedBuffer<_DequeBufferHeader, Element> {
   @inlinable
   deinit {
-    let storage = Deque<Element>._Storage(self)
-    storage.update { handle in
-    }
     self.withUnsafeMutablePointers { header, elements in
       header.pointee._checkInvariants()
 
