@@ -8,7 +8,7 @@
 extension BitArray {
   
   // Need to make sure the lack of adjusting excess doesn't do anything weird here
-
+  
   public mutating func formBitwiseOR(with: BitArray) {
     
     precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
@@ -53,120 +53,68 @@ extension BitArray {
   }
   
   public func bitwiseOR(with: BitArray) -> BitArray{
-    
-    precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
-    
-    var bitArrayOR = BitArray()
-    
-    for i in 0..<self.storage.count {
-      bitArrayOR.storage.append(self.storage[i] | with.storage[i])
-    }
-    return bitArrayOR
+    var copy = self
+    copy.formBitwiseOR(with: with)
+    return copy
   }
   
   public func bitwiseAND(with: BitArray) -> BitArray{
-    precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
-    
-    var bitArrayAND = BitArray()
-    
-    for i in 0..<self.storage.count {
-      bitArrayAND.storage.append(self.storage[i] & with.storage[i])
-    }
-    
-    return bitArrayAND
+    var copy = self
+    copy.formBitwiseAND(with: with)
+    return copy
   }
   
   public func bitwiseXOR(with: BitArray) -> BitArray{
-    precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
-    
-    var bitArrayXOR = BitArray()
-    
-    for i in 0..<self.storage.count {
-      bitArrayXOR.storage.append(self.storage[i] ^ with.storage[i])
-    }
-    
-    return bitArrayXOR
+    var copy = self
+    copy.formBitwiseXOR(with: with)
+    return copy
   }
   
   public func bitwiseNOT() -> BitArray {
-    var bitArrayNOT = BitArray()
-    
-    for i in 0..<self.storage.count {
-      bitArrayNOT.storage.append(~self.storage[i])
-    }
-    
-    var lastByte = self.storage[self.endIndex-1]
-    var mask: UInt8 = 1 << self.excess
-    
-    // flip the last bits past excess that aren't part of the set back to 0
-    for _ in 1...((UNIT.bitWidth)-Int(self.excess)) {
-      lastByte ^= mask
-      mask <<= 1
-    }
-    
-    bitArrayNOT.storage.append(lastByte)
-    
-    return bitArrayNOT
+    var copy = self
+    copy.formBitwiseNOT()
+    return copy
   }
 }
+
+// Overloaded Operators
 
 extension BitArray {
   
   public static func | (lhs: BitArray, rhs: BitArray) -> BitArray {
-    precondition(lhs.storage.count == rhs.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
-    
-    var bitArrayOR = BitArray()
-    
-    for i in 0..<lhs.storage.count {
-      bitArrayOR.storage.append(lhs.storage[i] | rhs.storage[i])
-    }
-    
-    return bitArrayOR
+    var copy = lhs
+    copy.formBitwiseOR(with: rhs)
+    return copy
   }
   
   public static func & (lhs: BitArray, rhs: BitArray) -> BitArray {
-    precondition(lhs.storage.count == rhs.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
-    
-    var bitArrayAND = BitArray()
-    
-    for i in 0..<lhs.storage.count {
-      bitArrayAND.storage.append(lhs.storage[i] & rhs.storage[i])
-    }
-    
-    return bitArrayAND
+    var copy = lhs
+    copy.formBitwiseAND(with: rhs)
+    return copy
   }
   
   public static func ^ (lhs: BitArray, rhs: BitArray) -> BitArray {
-    precondition(lhs.storage.count == rhs.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
-    
-    var bitArrayXOR = BitArray()
-    
-    for i in 0..<lhs.storage.count {
-      bitArrayXOR.storage.append(lhs.storage[i] ^ rhs.storage[i])
-    }
-    
-    return bitArrayXOR
+    var copy = lhs
+    copy.formBitwiseXOR(with: rhs)
+    return copy
   }
   
   public static prefix func ~ (_ bitArray: BitArray) -> BitArray {
-    var bitArrayNOT = BitArray()
-    
-    for i in 0..<bitArray.storage.count {
-      bitArrayNOT.storage.append(~bitArray.storage[i])
-    }
-    
-    var lastByte = bitArray.storage[bitArray.endIndex-1]
-    var mask: UInt8 = 1 << bitArray.excess
-    
-    // flip the last bits past excess that aren't part of the set back to 0
-    for _ in 1...((UNIT.bitWidth)-Int(bitArray.excess)) {
-      lastByte ^= mask
-      mask <<= 1
-    }
-    
-    bitArrayNOT.storage.append(lastByte)
-    
-    return bitArrayNOT
+    var copy = bitArray
+    copy.formBitwiseNOT()
+    return copy
+  }
+  
+  public static func |= (lhs: inout BitArray, rhs: BitArray) {
+    lhs.formBitwiseOR(with: rhs)
+  }
+  
+  public static func &= (lhs: inout BitArray, rhs: BitArray) {
+    lhs.formBitwiseAND(with: rhs)
+  }
+  
+  public static func ^= (lhs: inout BitArray, rhs: BitArray) {
+    lhs.formBitwiseXOR(with: rhs)
   }
   
 }
