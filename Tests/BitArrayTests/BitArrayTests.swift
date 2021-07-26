@@ -168,7 +168,7 @@ final class BitArrayTest: CollectionTestCase {
     }
     
     
-    testArray.formBitwiseOR(with: testArray2)
+    testArray.formBitwiseOr(with: testArray2)
     
     var resultStorage: [UInt8] = []
     
@@ -195,7 +195,7 @@ final class BitArrayTest: CollectionTestCase {
     }
     
     
-    testArray.formBitwiseAND(with: testArray2)
+    testArray.formBitwiseAnd(with: testArray2)
     
     var resultStorage: [UInt8] = []
     
@@ -222,7 +222,7 @@ final class BitArrayTest: CollectionTestCase {
     }
     
     
-    testArray.formBitwiseXOR(with: testArray2)
+    testArray.formBitwiseXor(with: testArray2)
     
     var resultStorage: [UInt8] = []
     
@@ -249,7 +249,7 @@ final class BitArrayTest: CollectionTestCase {
     }
     
     
-    let newArr = testArray.bitwiseOR(with: testArray2)
+    let newArr = testArray.bitwiseOr(with: testArray2)
     
     var resultStorage: [UInt8] = []
     
@@ -276,7 +276,7 @@ final class BitArrayTest: CollectionTestCase {
     }
     
     
-    let newArr = testArray.bitwiseAND(with: testArray2)
+    let newArr = testArray.bitwiseAnd(with: testArray2)
     
     var resultStorage: [UInt8] = []
     
@@ -303,7 +303,7 @@ final class BitArrayTest: CollectionTestCase {
     }
     
     
-    let newArr = testArray.bitwiseXOR(with: testArray2)
+    let newArr = testArray.bitwiseXor(with: testArray2)
     
     var resultStorage: [UInt8] = []
     

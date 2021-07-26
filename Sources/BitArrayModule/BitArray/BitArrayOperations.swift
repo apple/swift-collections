@@ -36,7 +36,7 @@ extension BitArray {
     }
   }
   
-  internal func firstTrueIndex() -> Int? {
+  internal func firstTrueIndex() -> Int {
     var counter = -1
     for item in storage {
       counter += 1
@@ -44,7 +44,7 @@ extension BitArray {
         return item.leadingZeroBitCount + counter*UNIT.bitWidth
       }
     }
-    return nil // If public, return nil/optional and probably not have the fatalError()
+    return endIndex // If public, return nil/optional and probably not have the fatalError()
   }
   
   internal func lastTrueIndex() -> Int? {
