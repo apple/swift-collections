@@ -11,22 +11,15 @@ extension BitSet: Collection, BidirectionalCollection {
   
   public var isEmpty: Bool { return count == 0 }
   
-  public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) } // test first(where: {}) instead
-    // leaving it like this might be correct if firstTrueIndex was fast enough -- BENCHMARKS
+  public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) }
+  // leaving it like this might be correct if firstTrueIndex was fast enough -- BENCHMARKS
   
   public var endIndex: Index { return Index(bitArrayIndex: storage.endIndex) }
-
-  public var count: Int { // .nonZeroBitCount
-    var mask: UInt8 = 1
+  
+  public var count: Int {
     var count = 0
     for byte in storage.storage {
-        for j in 0..<(BitArray.UNIT.bitWidth){
-        mask <<= j
-        if (byte & mask != 0) {
-          count += 1
-        }
-        mask = 1
-      }
+      count += byte.nonzeroBitCount
     }
     return count
   }
@@ -44,33 +37,36 @@ extension BitSet: Collection, BidirectionalCollection {
     precondition((storage[after.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
     precondition((startIndex.bitArrayIndex <= after.bitArrayIndex) && (endIndex.bitArrayIndex >= after.bitArrayIndex), "Given Index is out of range")
     precondition(after.bitArrayIndex != endIndex.bitArrayIndex, "Passed in Index is already the endIndex, and has no existing Indexes after it")
+    // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
     for i in (after.bitArrayIndex+1)..<storage.count {
       if (storage[i]) {
         return Index(bitArrayIndex: i)
       }
     }
-    fatalError("After not found :(")
+    fatalError("After not found :(") // Problematic IMO
   }
   
   public func index(before: Index) -> Index {
     precondition((storage[before.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
     precondition((startIndex.bitArrayIndex <= before.bitArrayIndex) && (endIndex.bitArrayIndex >= before.bitArrayIndex), "Given Index is out of range")
     precondition(before.bitArrayIndex != startIndex.bitArrayIndex, "Passed in Index is already the startIndex, and has no existing Indexes before it")
+    // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
     for i in stride(from: (before.bitArrayIndex-1), through: 0, by: -1) {
       if (storage[i]) {
         return Index(bitArrayIndex: i)
       }
     }
-    fatalError("Before not found :(")
+    fatalError("Before not found :(") // Problematic IMO
   }
   
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
     precondition((startIndex.bitArrayIndex <= index.bitArrayIndex) && (endIndex.bitArrayIndex >= index.bitArrayIndex), "Given Index is out of range")
     precondition((storage[index.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
+    // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
     var counter = 0
     if (distance == 0) {
       return index
-    } else if (distance > 1) {
+    } else if (distance > 0) {
       for i in (index.bitArrayIndex+1)..<storage.count {
         if (storage[i]) {
           counter += 1
@@ -80,7 +76,7 @@ extension BitSet: Collection, BidirectionalCollection {
         }
       }
     } else {
-      for i in (0..<index.bitArrayIndex).reversed() { // orignally had 'stride(from: index.bitArrayIndex-1, through: 0, by: -1)'
+      for i in (0..<index.bitArrayIndex).reversed() {
         if (storage[i]) {
           counter += 1
         }

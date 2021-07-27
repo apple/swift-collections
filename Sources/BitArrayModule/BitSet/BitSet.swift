@@ -12,17 +12,10 @@ public struct BitSet: ExpressibleByArrayLiteral {
   public init() { }
   
   public init<S>(_ sequence: __owned S) where S : Sequence, Int == S.Element {
-    guard let max = sequence.max() else {
-      // sequence must be empty and nothing needs to be done
-      return
-    }
-    let bytes: Int = (max/BitArray.UNIT.bitWidth) + 1
-    
-    for _ in 0..<bytes {
-      storage.storage.append(0)
-    }
-    
     for value in sequence {
+      while (value >= storage.count) {
+        storage.storage.append(0)
+      }
       storage[value] = true
     }
   }
@@ -37,12 +30,12 @@ public struct BitSet: ExpressibleByArrayLiteral {
   }
   
   public init(_ bitArray: BitArray) {
-    storage = bitArray
+    storage = bitArray // Is this assignment working properly? How do I know? In other languages, assigning an array to a variable doesn't work quite right...
   }
   
   public struct Index {
     var bitArrayIndex: Int
-    internal init(bitArrayIndex: Int) { // considering to make it 'public init(_ bitArrayIndex: Int)'
+    internal init(bitArrayIndex: Int) {
       self.bitArrayIndex = bitArrayIndex
     }
   }
