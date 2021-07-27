@@ -8,26 +8,27 @@
 extension BitSet: Equatable {
   
   @discardableResult
-  public mutating func insert(_ newMember: __owned Int) -> Bool {
-    while (storage.count-1 < newMember) {
-      storage.storage.append(0)
+  public mutating func insert(_ newMember: Int) -> Bool {
+    if (newMember >= storage.count) {
+        let padding = (newMember - storage.count + 1)%8
+        storage.storage += Array(repeating: 0, count: padding)
     }
+    /*while (storage.count-1 < newMember) {
+      storage.storage.append(0)
+    }*/
     
     let returnVal = !storage[newMember]
     storage[newMember] = true
     return returnVal
     
     /* // alternative:
-     let returnVal = !storage[newMember]
-     storage[newMember] = true
-     return returnVal
      
      defer { storage[member] = true }
      return storage[member]
      */
   }
   
-  public mutating func forceInsert(_ newMember: __owned Int) {
+  public mutating func forceInsert(_ newMember: Int) {
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
     }
@@ -46,62 +47,28 @@ extension BitSet: Equatable {
     return returnVal
   }
   
-  // what is '__consuming' and '__owned'?
-  public __consuming func union(_ other: __owned BitSet) -> BitSet { // Will need to simplify later (by adjusting the BitArray functions to that they can be called from here
-    var newBitSet = BitSet()
-    
-    if (other.storage.count < self.storage.count) {
-      for i in 0..<other.storage.storage.count {
-        let newVal: UInt8 = self.storage.storage[i] | other.storage.storage[i]
-        newBitSet.storage.storage.append(newVal)
-      }
-      for a in other.storage.count..<self.storage.count {
-        if(self.storage[a]) {
-          newBitSet.forceInsert(a)
-        }
-      }
-    } else if (self.storage.count < other.storage.count){
-      for j in 0..<self.storage.storage.count {
-        let newVal = storage.storage[j] | other.storage.storage[j]
-        newBitSet.storage.storage.append(newVal)
-      }
-      for b in self.storage.count..<other.storage.count {
-        if(other.storage[b]) {
-          newBitSet.forceInsert(b)
-        }
-      }
-    } else {
-      for c in 0..<self.storage.storage.count {
-        let newVal = self.storage.storage[c] | other.storage.storage[c]
-        newBitSet.storage.storage.append(newVal)
-      }
-    }
+  // what is '__consuming'
+  public __consuming func union(_ other: BitSet) -> BitSet { // Will need to simplify later (by adjusting the BitArray functions to that they can be called from here
+    var newBitSet = self
+    newBitSet.formUnion(other)
     return newBitSet
   }
   
   public __consuming func intersection(_ other: BitSet) -> BitSet {
-    let size: Int = (self.storage.storage.count >= other.storage.storage.count) ? other.storage.storage.count : self.storage.storage.count // take the set with the smaller BitArray
     var newBitSet = BitSet()
-    
-    for i in 0..<size {
-      newBitSet.storage.storage.append(self.storage.storage[i] & other.storage.storage[i])
-    }
-    
-    for i in size..<self.storage.storage.count {
-      newBitSet.storage.storage[i] = 0
-    }
-    
+    newBitSet.formIntersection(other)
     return newBitSet
   }
   
-  public __consuming func symmetricDifference(_ other: __owned BitSet) -> BitSet {
+  public __consuming func symmetricDifference(_ other: BitSet) -> BitSet {
     var copy = self
     copy.formSymmetricDifference(other)
     return copy
   }
   
   
-  public mutating func formUnion(_ other: __owned BitSet) {
+  public mutating func formUnion(_ other: BitSet) {
+    
     if (other.storage.count < self.storage.count) {
       for i in 0..<other.storage.storage.count {
         self.storage.storage[i] |= other.storage.storage[i]
@@ -110,7 +77,7 @@ extension BitSet: Equatable {
       for j in 0..<self.storage.storage.count {
         self.storage.storage[j] |= other.storage.storage[j]
       }
-      for a in self.storage.count..<other.storage.count { // why does this work and doing storage.storage like the other for-loops not?
+      for a in self.storage.count..<other.storage.count {
         if(other.storage[a]) {
           self.forceInsert(a)
         }
@@ -135,7 +102,7 @@ extension BitSet: Equatable {
     }
   }
   
-  public mutating func formSymmetricDifference(_ other: __owned BitSet) { // can be optimized later
+  public mutating func formSymmetricDifference(_ other: BitSet) { // can be optimized later
     self.formIntersection(other)
     for i in 0..<self.storage.storage.count {
       self.storage.storage[i] = ~self.storage.storage[i]
