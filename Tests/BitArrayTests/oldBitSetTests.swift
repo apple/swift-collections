@@ -9,7 +9,7 @@ import XCTest
 import CollectionsTestSupport
 @testable import BitArrayModule
 
-final class BitSetTest: CollectionTestCase {
+final class oldBitSetTest: CollectionTestCase {
   
   let limit = 100
   
