@@ -99,6 +99,37 @@ extension SortedDictionary {
     set {
       self[key] = newValue
     }
+    
+    _modify {
+      var (cursor, found) = self._root.findAnyCursor(forKey: key)
+      
+      var value: Value
+      if found {
+        value = cursor.updateCurrentNode { handle, slot in
+          handle.pointerToValue(atSlot: slot).move()
+        }
+      } else {
+        value = defaultValue()
+      }
+      
+      defer {
+        if found {
+          cursor.updateCurrentNode { handle, slot in
+            handle.pointerToValue(atSlot: slot).initialize(to: value)
+          }
+        } else {
+          cursor.insertElement(
+            (key, value),
+            capacity: self._root.internalCapacity
+          )
+        }
+        
+        cursor.apply(to: &self._root)
+      }
+      
+      yield &value
+    }
+
   }
   
   /// Accesses the key-value pair at the specified position.

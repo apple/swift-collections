@@ -222,7 +222,7 @@ extension _Node.UnsafeHandle {
   internal func pointerToChild(
     atSlot slot: Int
   ) -> UnsafeMutablePointer<_Node> {
-    assert(0 <= slot && slot < self.elementCount,
+    assert(0 <= slot && slot < self.childCount,
            "Node child slot out of bounds.")
     assert(!isLeaf, "Cannot access children of leaf node.")
     return self.children.unsafelyUnwrapped.advanced(by: slot)

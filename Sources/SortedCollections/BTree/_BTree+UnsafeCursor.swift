@@ -42,11 +42,8 @@ extension _BTree {
     /// This property is what takes ownership of the tree during the lifetime of the cursor. Once the cursor
     /// is consumed, it is set to nil and it is invalid to use the cursor.
     @usableFromInline
-    internal var __root: Node.Storage?
+    internal var _root: Node.Storage?
     
-    @inlinable
-    @inline(__always)
-    internal var root: Node.Storage { __root.unsafelyUnwrapped }
     
     /// Position of each of the parent nodes in their parents, including the bottom-most node.
     ///
@@ -68,17 +65,6 @@ extension _BTree {
     internal var path: Path
     
     /// Bottom most node that the index point to.
-    // TODO: look at implementing _modify accessor.
-    @usableFromInline
-    internal var currentNode: Unmanaged<Node.Storage> {
-      get { path[path.depth - 1] }
-      set { path[path.depth - 1] = newValue }
-    }
-    
-    /// Slot within the bottom most node which the index points to.
-    @inlinable
-    @inline(__always)
-    internal var slot: Int { Int(slots[slots.depth - 1]) }
     
     /// The depth at which the last instance of sequential unique nodes starting at the root was found.
     ///
@@ -106,50 +92,48 @@ extension _BTree {
       root: Node.Storage,
       slots: FixedSizeArray<_BTree.Slot>,
       path: Path,
-      lastUniqueDepth: Int,
-      // Debug-only properties
-      isConcrete: Bool
+      lastUniqueDepth: Int
     ) {
       // Slots and path should be non-empty
       assert(slots.depth >= 1, "Invalid tree cursor.")
       assert(path.depth >= 1, "Invalid tree cursor.")
       
-      self.__root = root
+      self._root = root
       self.slots = slots
       self.path = path
       self.lastUniqueDepth = lastUniqueDepth
-      
-      #if COLLECTIONS_INTERNAL_CHECKS
-      self.isConcrete = isConcrete
-      #endif
     }
     
     // MARK: Internal Checks
-    #if COLLECTIONS_INTERNAL_CHECKS
-    /// A concrete cursor is one that refers to a specific element, not just a generic position.
-    @usableFromInline internal let isConcrete: Bool
-    #endif
-    
-    /// Check that this cursor is concrete
+    /// Check that this cursor is still valid
+    ///
     /// Every member that operates on the element of the cursor must start by calling this function.
     ///
     /// Note that this is a noop in release builds.
     @inlinable
     @inline(__always)
-    internal func assertConcrete() {
+    internal func assertValid() {
       #if COLLECTIONS_INTERNAL_CHECKS
-      assert(self.isConcrete,
-             "Attempt to operate on an element using a non-concrete cursor.")
+      assert(self._root != nil,
+             "Attempt to operate on an element using an invalid cursor.")
       #endif
     }
     
-    // MARK: Basic Cursor Operations
+    // MARK: Core Cursor Operations
     /// Finishes operating on a cursor and restores a tree
     @inlinable
     @inline(__always)
     internal mutating func apply(to tree: inout _BTree) {
+      assertValid()
       assert(tree.root._storage == nil, "Must apply to same tree as original.")
-      swap(&tree.root._storage, &self.__root)
+      swap(&tree.root._storage, &self._root)
+    }
+    
+    /// Declares that the cursor is completely unique
+    @inlinable
+    @inline(__always)
+    internal mutating func _declareUnique() {
+      self.lastUniqueDepth = Int(path.depth)
     }
     
     /// Operators on a handle of the node
@@ -157,9 +141,14 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal func readCurrentNode<R>(
-      _ body: (Node.UnsafeHandle) throws -> R
+      _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> R {
-      return try currentNode._withUnsafeGuaranteedRef { try $0.read(body) }
+      assertValid()
+      
+      let slot = Int(slots[slots.depth - 1])
+      return try path[path.depth - 1]._withUnsafeGuaranteedRef {
+        try $0.read({ try body($0, slot) })
+      }
     }
     
     /// Updates the node at a given depth.
@@ -170,19 +159,26 @@ extension _BTree {
       at depth: Int8,
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> (node: Node, result: R) {
-      var node = Node(path[depth].takeUnretainedValue())
+      assertValid()
+      
       let slot = Int(slots[depth])
       let isOnUniquePath = depth <= lastUniqueDepth
-      let result = try node.update(isUnique: isOnUniquePath) {
-        try body($0, slot)
+      
+      return try path[depth]._withUnsafeGuaranteedRef { storage in
+        if isOnUniquePath {
+          let result = try storage.updateGuaranteedUnique({ try body($0, slot) })
+          return (Node(storage), result)
+        } else {
+          let storage = storage.copy()
+          path[depth] = .passUnretained(storage)
+          let result = try storage.updateGuaranteedUnique({ try body($0, slot) })
+          return (Node(storage), result)
+        }
       }
-      path[depth] = .passUnretained(node.storage)
-      return (node, result)
     }
     
     
-    // MARK: Mutating with the Cursor
-    
+    // MARK: Mutations with the Cursor
     /// Operates on a handle of the node.
     ///
     /// This MUST be followed by an operation which consumes the cursor and returns the new tree, as
@@ -197,7 +193,8 @@ extension _BTree {
     internal mutating func updateCurrentNode<R>(
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> R {
-      defer { self.lastUniqueDepth = .max }
+      assertValid()
+      defer { self._declareUnique() }
       
       // Update the bottom-most node
       var (node, result) = try self.updateNode(at: path.depth - 1, body)
@@ -224,6 +221,8 @@ extension _BTree {
               _ = handle.exchangeChild(atSlot: slot, with: child)
             }
           }
+          
+          return result
         } else {
           // depth < lastUniqueDepth
           
@@ -235,7 +234,7 @@ extension _BTree {
         depth -= 1
       }
       
-      self.__root = node.storage
+      self._root = node.storage
       return result
     }
     
@@ -254,7 +253,8 @@ extension _BTree {
       _ element: Node.Element,
       capacity: Int
     ) {
-      defer { self.lastUniqueDepth = .max }
+      assertValid()
+      defer { self._declareUnique() }
       
       // TODO: make this not invalidate the cursor by updating slots
       
@@ -283,9 +283,9 @@ extension _BTree {
       
       if let splinter = splinter {
         let newRoot = splinter.toNode(leftChild: node, capacity: capacity)
-        self.__root = newRoot.storage
+        self._root = newRoot.storage
       } else {
-        self.__root = node.storage
+        self._root = node.storage
       }
     }
     
@@ -295,7 +295,8 @@ extension _BTree {
     /// - Complexity: O(`log n`). Ascends the tree once.
     @inlinable
     internal mutating func removeElement(hasValueHole: Bool = false) {
-      defer { self.lastUniqueDepth = .max }
+      assertValid()
+      defer { self._declareUnique() }
       
       var (node, _) = self.updateNode(
         at: path.depth - 1
@@ -337,6 +338,7 @@ extension _BTree {
       while depth >= 0 {
         var (newNode, _) = self.updateNode(at: depth) { (handle, slot) in
           handle.exchangeChild(atSlot: slot, with: node)
+          handle.subtreeCount -= 1
           handle.balance(atSlot: slot)
         }
         
@@ -349,7 +351,7 @@ extension _BTree {
         depth -= 1
       }
       
-      self.__root = node.storage
+      self._root = node.storage
     }
   }
   
@@ -375,7 +377,6 @@ extension _BTree {
     var parents =
       UnsafeCursor.Path(repeating: .passUnretained(self.root.storage))
     
-    // TODO: swap
     var ownedRoot: Node.Storage
     do {
       var tempRoot: Node.Storage? = nil
@@ -423,7 +424,7 @@ extension _BTree {
       if shouldStop { break }
     }
     
-    assert(slot != -1 && lastUniqueDepth != -1, "B-Tree sanity check fail.")
+    assert(slot != -1, "B-Tree sanity check fail.")
     
     parents.append(node)
     slots.append(UInt16(slot))
@@ -432,8 +433,7 @@ extension _BTree {
       root: ownedRoot,
       slots: slots,
       path: parents,
-      lastUniqueDepth: lastUniqueDepth,
-      isConcrete: found
+      lastUniqueDepth: lastUniqueDepth
     )
     
     return (cursor, found)

@@ -73,7 +73,7 @@ final class SortedDictionaryTests: CollectionTestCase {
   }
   
   func test_updateValue() {
-    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
+    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64, 512]) { count in
       var sortedDictionary: SortedDictionary<Int, Int> = [:]
       
       for i in 0..<count {
@@ -83,6 +83,54 @@ final class SortedDictionaryTests: CollectionTestCase {
       
       for i in 0..<count {
         expectEqual(sortedDictionary[i], -i)
+      }
+    }
+  }
+  
+  func test_modifySubscriptRemoval() {
+    func modify(_ value: inout Int?, setTo newValue: Int?) {
+      value = newValue
+    }
+    
+    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64, 512]) { count in
+      let kvs = (0..<count).map { (key: $0, value: -$0) }
+      
+      withEvery("key", in: 0..<count) { key in
+        var d = SortedDictionary<Int, Int>(uniqueKeysWithValues: kvs)
+        
+        withEvery("isShared", in: [false, true]) { isShared in
+          withHiddenCopies(if: isShared, of: &d) { d in
+            modify(&d[key], setTo: nil)
+            var comparisonKeys = Array(0..<count)
+            comparisonKeys.remove(at: key)
+          
+            expectEqual(d.count, count - 1)
+            expectEqualElements(d.map { $0.key }, comparisonKeys)
+          }
+        }
+      }
+    }
+  }
+  
+  func test_modifySubscriptInsertUpdate() {
+    func modify(_ value: inout Int?, setTo newValue: Int?) {
+      value = newValue
+    }
+
+    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64, 512]) { count in
+      withEvery("isShared", in: [false, true]) { isShared in
+        var d: SortedDictionary<Int, Int> = [:]
+
+        withHiddenCopies(if: isShared, of: &d) { d in
+          for i in 0..<count {
+            modify(&d[i], setTo: i)
+            modify(&d[i], setTo: -i)
+          }
+
+          for i in 0..<count {
+            expectEqual(d[i], -i)
+          }
+        }
       }
     }
   }

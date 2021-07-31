@@ -69,7 +69,7 @@ extension _BTree {
     internal mutating func append(_ value: __owned Value) {
       assert(depth < FixedSizeArray.maxSize,
              "Out of bounds access in fixed sized array.")
-      self.depth &+= 1
+      defer { self.depth &+= 1 }
       self[self.depth] = value
     }
     
@@ -79,8 +79,9 @@ extension _BTree {
     internal mutating func prepend(_ value: __owned Value) {
       assert(depth < FixedSizeArray.maxSize,
              "Out of bounds access in fixed sized array.")
-      self.depth &+= 1
+      defer { self.depth &+= 1 }
       self._shiftOffset(&self.start, by: -1)
+      self[self.start] = value
     }
     
     /// Pops a value from the end of offset list
@@ -88,7 +89,7 @@ extension _BTree {
     @inline(__always)
     internal mutating func pop() -> Value {
       assert(depth > 0, "Cannot pop empty fixed sized array")
-      defer { self.depth &-= 1 }
+      self.depth &-= 1
       return self[self.depth]
     }
     
