@@ -36,7 +36,10 @@ extension _Node {
     /// - Returns: A new node of `capacity` with a single element.
     @inlinable
     @inline(__always)
-    internal func toNode(leftChild: _Node<Key, Value>, capacity: Int) -> _Node {
+    internal __consuming func toNode(
+      leftChild: _Node<Key, Value>,
+      capacity: Int
+    ) -> _Node {
       var newNode = _Node(withCapacity: capacity, isLeaf: false)
       newNode.update { handle in
         handle.keys.initialize(to: element.key)

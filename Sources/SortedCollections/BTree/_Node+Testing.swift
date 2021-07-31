@@ -47,12 +47,12 @@ extension _Node {
   public func toArray() -> [Element] {
     self.read { handle in
       if handle.isLeaf {
-        return Array((0..<handle.elementCount).map { handle[elementAt: $0] })
+        return Array((0..<handle.elementCount).map { handle[elementAtSlot: $0] })
       } else {
         var elements = [Element]()
         for i in 0..<handle.elementCount {
           elements.append(contentsOf: handle[childAt: i].toArray())
-          elements.append(handle[elementAt: i])
+          elements.append(handle[elementAtSlot: i])
         }
         elements.append(contentsOf: handle[childAt: handle.elementCount].toArray())
         return elements

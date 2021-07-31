@@ -32,11 +32,17 @@ internal struct _BTree<Key: Comparable, Value> {
   @inline(__always)
   static internal var defaultLeafCapacity: Int { 2000 }
   
+  /// The element type of the collection.
   @usableFromInline
   internal typealias Element = (key: Key, value: Value)
   
+  /// The type of each node in the tree
   @usableFromInline
   internal typealias Node = _Node<Key, Value>
+  
+  /// A size large enough to represent any slot within a node
+  @usableFromInline
+  internal typealias Slot = UInt16
   
   /// The underlying node behind this local BTree
   @usableFromInline
@@ -293,20 +299,21 @@ extension _BTree {
   /// - Parameter key: The key to search for within the tree.
   /// - Returns: If found, returns a path to the element. Otherwise, `nil`.
   @inlinable
-  internal func findAnyPath(forKey key: Key) -> UnsafePath? {
-    var childSlots = UnsafePath.Offsets(repeating: 0)
-    var node: Unmanaged<Node.Storage>? = .passUnretained(self.root.storage)
+  internal func findAnyIndex(forKey key: Key) -> Index? {
+    var childSlots = Index.Offsets(repeating: 0)
+    var node: Unmanaged? = .passUnretained(self.root.storage)
     
     while let currentNode = node {
-      let path: UnsafePath? = currentNode._withUnsafeGuaranteedRef { storage in
+      let index: Index? = currentNode._withUnsafeGuaranteedRef { storage in
         storage.read { handle in
           let keySlot = handle.startSlot(forKey: key)
           if keySlot < handle.elementCount && handle[keyAt: keySlot] == key {
-            return UnsafePath(
+            return Index(
               node: .passUnretained(storage),
               slot: keySlot,
               childSlots: childSlots,
-              offset: 0
+              offset: 0,
+              forTree: self
             )
           } else {
             if handle.isLeaf {
@@ -321,7 +328,7 @@ extension _BTree {
         }
       }
       
-      if let path = path { return path }
+      if let index = index { return index }
     }
     
     return nil
@@ -332,49 +339,185 @@ extension _BTree {
   /// - Parameter offset: The absolute offset that must be in-bounds or the last position.
   /// - Returns: An unsafe path to the element, or `nil` if corresponds to the last position.
   @inlinable
-  internal func path(atOffset offset: Int) -> UnsafePath? {
+  internal func index(atOffset offset: Int) -> Index {
     assert(offset <= self.count, "Index out of bounds.")
 
     // Return nil path if at the end of the tree
     if offset == self.count {
-      return nil
+      return self.endIndex
     }
     
-    var childSlots = UnsafePath.Offsets(repeating: 0)
+    var childSlots = Index.Offsets(repeating: 0)
     
-    var node: _Node = self.root
+    var node: Unmanaged<Node.Storage> = .passUnretained(self.root.storage)
     var startIndex = 0
     
-    while !node.read({ $0.isLeaf }) {
-      let internalPath: UnsafePath? = node.read { handle in
-        for childSlot in 0..<handle.childCount {
-          let child = handle[childAt: childSlot]
-          let endIndex = startIndex + child.read({ $0.subtreeCount })
-          
-          if offset < endIndex {
-            childSlots.append(UInt16(childSlot))
-            node = child
-            return nil
-          } else if offset == endIndex {
-            // We've found the node we want
-            return UnsafePath(node: node, slot: childSlot, childSlots: childSlots, offset: offset)
-          } else {
-            startIndex = endIndex + 1
+    while true {
+      let index: Index? = node._withUnsafeGuaranteedRef { storage in
+        storage.read({ handle in
+          if handle.isLeaf {
+            return Index(
+              node: node,
+              slot: offset - startIndex,
+              childSlots: childSlots,
+              offset: offset,
+              forTree: self
+            )
           }
-        }
-        
-        // TODO: convert into debug-only preconditionFaliure
-        preconditionFailure("In-bounds index not found within tree.")
+          
+          for childSlot in 0..<handle.childCount {
+            let childSubtreeCount =
+              handle[childAt: childSlot].read({ $0.subtreeCount })
+            
+            let endIndex = startIndex + childSubtreeCount
+            
+            if offset < endIndex {
+              childSlots.append(UInt16(childSlot))
+              node = .passUnretained(handle[childAt: childSlot].storage)
+              return nil
+            } else if offset == endIndex {
+              // We've found the node we want
+              return Index(
+                node: node,
+                slot: childSlot,
+                childSlots: childSlots,
+                offset: offset,
+                forTree: self
+              )
+            } else {
+              startIndex = endIndex + 1
+              continue
+            }
+          }
+          
+          // TODO: convert into debug-only preconditionFaliure
+          preconditionFailure("In-bounds index not found within tree.")
+        })
       }
       
-      if let internalPath = internalPath { return internalPath }
+      if let index = index { return index }
+    }
+  }
+}
+
+// MARK: Custom Indexing Operations
+extension _BTree {
+  /// Returns a path to the key at absolute offset `i`.
+  /// - Parameter offset: 0-indexed offset within BTree bounds, else may panic.
+  /// - Returns: the index of the appropriate element.
+  /// - Complexity: O(`log n`)
+  
+
+  /// Obtains the start index for a key (or where it would exist).
+  @inlinable
+  internal func startIndex(forKey key: Key) -> Index {
+    var childSlots = Index.Offsets(repeating: 0)
+    var targetSlot: Int = 0
+    var offset = 0
+    
+    func search(in node: Node) -> Unmanaged<Node.Storage>? {
+      node.read({ handle in
+        let slot = handle.startSlot(forKey: key)
+        if slot < handle.elementCount {
+          if handle.isLeaf {
+            offset += slot
+            targetSlot = slot
+            return .passUnretained(node.storage)
+          } else {
+            // Calculate offset by summing previous subtrees
+            for i in 0...slot {
+              offset += handle[childAt: i].read({ $0.subtreeCount })
+            }
+            
+            let currentOffset = offset
+            let currentDepth = childSlots.depth
+            childSlots.append(UInt16(slot))
+            
+            if let foundEarlier = search(in: handle[childAt: slot]) {
+              return foundEarlier
+            } else {
+              childSlots.depth = currentDepth
+              targetSlot = slot
+              offset = currentOffset
+              
+              return .passUnretained(node.storage)
+            }
+          }
+        } else {
+          // Start index exceeds node and is therefore not in this.
+          return nil
+        }
+      })
     }
     
-    return UnsafePath(
-      node: node,
-      slot: offset - startIndex,
-      childSlots: childSlots,
-      offset: offset
-    )
+    if let targetChild = search(in: self.root) {
+      return Index(
+        node: targetChild,
+        slot: targetSlot,
+        childSlots: childSlots,
+        offset: offset,
+        forTree: self
+      )
+    } else {
+      return endIndex
+    }
   }
+  
+  /// Obtains the last index at which a value less than or equal to the key appears.
+  @inlinable
+  internal func lastIndex(forKey key: Key) -> Index {
+    var childSlots = Index.Offsets(repeating: 0)
+    var targetSlot: Int = 0
+    var offset = 0
+    
+    func search(in node: Node) -> Unmanaged<Node.Storage>? {
+      node.read({ handle in
+        let slot = handle.endSlot(forKey: key) - 1
+        if slot > 0 {
+          // Sanity Check
+          assert(slot < handle.elementCount, "Slot out of bounds.")
+          
+          if handle.isLeaf {
+            offset += slot
+            targetSlot = slot
+            return .passUnretained(node.storage)
+          } else {
+            for i in 0...slot {
+              offset += handle[childAt: i].read({ $0.subtreeCount })
+            }
+            
+            let currentOffset = offset
+            let currentDepth = childSlots.depth
+            childSlots.append(UInt16(slot + 1))
+            
+            if let foundLater = search(in: handle[childAt: slot + 1]) {
+              return foundLater
+            } else {
+              childSlots.depth = currentDepth
+              targetSlot = slot
+              offset = currentOffset
+              
+              return .passUnretained(node.storage)
+            }
+          }
+        } else {
+          // Start index exceeds node and is therefore not in this.
+          return nil
+        }
+      })
+    }
+    
+    if let targetChild = search(in: self.root) {
+      return Index(
+        node: targetChild,
+        slot: targetSlot,
+        childSlots: childSlots,
+        offset: offset,
+        forTree: self
+      )
+    } else {
+      return endIndex
+    }
+  }
+  
 }

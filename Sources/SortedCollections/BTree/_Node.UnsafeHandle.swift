@@ -68,44 +68,7 @@ extension _Node {
     @inline(never)
     @usableFromInline
     internal func checkInvariants() {
-      // TODO: move non-constant time checks to _BTree
-      
-      assert(isLeaf || childCount == subtreeCount + 1,
-             "Node must be either leaf or a child on the side of each key.")
-      assert(subtreeCount >= 0, "Node cannot have negative number of elements")
-      assert(subtreeCount >= subtreeCount,
-             "Subtree count cannot be less than the node element count.")
-      
-      if subtreeCount > 1 {
-        for i in 0..<(subtreeCount - 1) {
-          precondition(self[keyAt: i] <= self[keyAt: i + 1], "Node is out-of-order.")
-        }
-      }
-      
-      precondition(
-        isLeaf ||
-          subtreeCount == subtreeCount +
-          (0...subtreeCount).reduce(into: 0, { $0 + self[childAt: $1].read({ $0.subtreeCount }) }),
-        "Total number of elements out of sync."
-      )
-      
-      if !isLeaf {
-        for i in 0..<subtreeCount {
-          let key = self[keyAt: i]
-          let child = self[childAt: i].read({ $0[keyAt: $0.subtreeCount - 1] })
-          precondition(child <= key, "Left subtree must be less or equal to than its parent key.")
-        }
-        
-        let key = self[keyAt: subtreeCount - 1]
-        let child = self[childAt: subtreeCount].read({ $0[keyAt: $0.subtreeCount - 1] })
-        precondition(child >= key, "Right subtree must be greater than or equal to than its parent key.")
-        
-        // Ensure if one child is a leaf, then all children are leaves
-        let nextLevelIsLeaf = self[childAt: 0].read({ $0.isLeaf })
-        for i in 0..<childCount {
-          precondition(self[childAt: i].read({ $0.isLeaf }) == nextLevelIsLeaf, "All children must be the same depth.")
-        }
-      }
+      // TODO: go over invariant checks again
     }
     #else
     @inlinable
@@ -114,6 +77,7 @@ extension _Node {
     #endif // COLLECTIONS_INTERNAL_CHECKS
     
     /// Creates a mutable version of this handle
+    /// - Warning: Calling this circumvents the CoW checks. 
     @inlinable
     @inline(__always)
     internal init(mutating handle: UnsafeHandle) {
@@ -203,12 +167,23 @@ extension _Node.UnsafeHandle {
   // TODO: elementAtSlot & others
   @inlinable
   @inline(__always)
-  internal subscript(elementAt slot: Int) -> _Node.Element {
+  internal subscript(elementAtSlot slot: Int) -> _Node.Element {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node element subscript out of bounds.")
       return (key: self.keys[slot], value: self.values[slot])
     }
+  }
+  
+  
+  @inlinable
+  @inline(__always)
+  internal func pointerToKey(
+    atSlot slot: Int
+  ) -> UnsafeMutablePointer<Key> {
+    assert(0 <= slot && slot < self.elementCount,
+           "Node key slot out of bounds.")
+    return self.keys.advanced(by: slot)
   }
   
   @inlinable
@@ -221,6 +196,17 @@ extension _Node.UnsafeHandle {
     }
   }
   
+  
+  @inlinable
+  @inline(__always)
+  internal func pointerToValue(
+    atSlot slot: Int
+  ) -> UnsafeMutablePointer<Value> {
+    assert(0 <= slot && slot < self.elementCount,
+           "Node value slot out of bounds.")
+    return self.values.advanced(by: slot)
+  }
+  
   @inlinable
   @inline(__always)
   internal subscript(valueAt slot: Int) -> Value {
@@ -229,6 +215,17 @@ extension _Node.UnsafeHandle {
              "Node values subscript out of bounds.")
       return self.values[slot]
     }
+  }
+  
+  @inlinable
+  @inline(__always)
+  internal func pointerToChild(
+    atSlot slot: Int
+  ) -> UnsafeMutablePointer<_Node> {
+    assert(0 <= slot && slot < self.elementCount,
+           "Node child slot out of bounds.")
+    assert(!isLeaf, "Cannot access children of leaf node.")
+    return self.children.unsafelyUnwrapped.advanced(by: slot)
   }
   
   /// Returns the child at a given slot as a Node object
@@ -518,6 +515,7 @@ extension _Node.UnsafeHandle {
   /// - Returns: The old element from the slot.
   @inlinable
   @inline(__always)
+  @discardableResult
   internal func exchangeElement(
     atSlot slot: Int,
     with newElement: _Node.Element
@@ -529,6 +527,28 @@ extension _Node.UnsafeHandle {
     let oldElement = self.moveElement(atSlot: slot)
     self.initializeElement(atSlot: slot, to: newElement)
     return oldElement
+  }
+  
+  /// Swaps the child at a given slot, returning the old one
+  /// - Parameters:
+  ///   - slot: The initialized slot at which to swap the child
+  ///   - newElement: The new child to insert
+  /// - Returns: The old child from the slot.
+  @inlinable
+  @inline(__always)
+  @discardableResult
+  internal func exchangeChild(
+    atSlot slot: Int,
+    with newChild: _Node
+  ) -> _Node {
+    assertMutable()
+    assert(!self.isLeaf, "Cannot exchange children on a leaf node.")
+    assert(0 <= slot && slot < self.childCount,
+           "Attempted to swap out-of-bounds element.")
+    
+    let oldChild = self.moveChild(atSlot: slot)
+    self.pointerToChild(atSlot: slot).initialize(to: newChild)
+    return oldChild
   }
   
   /// Removes a child node pair from a given slot within the node. This is assumed to
@@ -579,6 +599,7 @@ extension _Node.UnsafeHandle {
   /// - Warning: This does not perform any balancing or rotation.
   @inlinable
   @inline(__always)
+  @discardableResult
   internal func removeElement(atSlot slot: Int) -> _Node.Element {
     assertMutable()
     assert(0 <= slot && slot < self.elementCount,
@@ -597,5 +618,40 @@ extension _Node.UnsafeHandle {
     self.subtreeCount -= 1
     
     return element
+  }
+  
+  /// Removes a **key** from a given slot within the node.
+  ///
+  /// This does not touch the children of the node, so it is important to ensure those are
+  /// correctly handled.
+  ///
+  /// This assumes the value buffer at the slot is deallocated
+  ///
+  /// This operation adjusts the stored counts on the node as appropriate.
+  ///
+  /// - Parameter slot: The slot to remove which must be in-bounds.
+  /// - Returns: The element that was removed.
+  /// - Warning: This does not perform any balancing or rotation.
+  @inlinable
+  @inline(__always)
+  @discardableResult
+  internal func removeElementWithoutValue(atSlot slot: Int) -> Key {
+    assertMutable()
+    assert(0 <= slot && slot < self.elementCount,
+           "Attempt to remove out-of-bounds element.")
+    
+    let key = self.pointerToKey(atSlot: slot).move()
+    
+    // Shift everything else over to the left
+    self.moveInitializeElements(
+      count: self.elementCount - slot - 1,
+      fromSlot: slot + 1,
+      toSlot: slot, of: self
+    )
+    
+    self.elementCount -= 1
+    self.subtreeCount -= 1
+    
+    return key
   }
 }

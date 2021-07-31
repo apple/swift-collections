@@ -16,7 +16,7 @@ extension _BTree: Sequence {
     internal let tree: _BTree
     
     @usableFromInline
-    internal var offsets: UnsafePath.Offsets
+    internal var offsets: Index.Offsets
     
     @usableFromInline
     internal var parents: FixedSizeArray<Unmanaged<Node.Storage>>
@@ -109,7 +109,7 @@ extension _BTree: Sequence {
             }
           }
           
-          return storage.read({ $0[elementAt: self.slot] })
+          return storage.read({ $0[elementAtSlot: self.slot] })
         })
       }
     }

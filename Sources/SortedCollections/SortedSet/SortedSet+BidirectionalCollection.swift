@@ -47,37 +47,37 @@ extension SortedSet: BidirectionalCollection {
   
   @inlinable
   public func formIndex(after index: inout Index) {
-    index._index.ensureValid(for: self._root)
+    index._index.ensureValid(forTree: self._root)
     self._root.formIndex(after: &index._index)
   }
   
   @inlinable
   public func index(after index: Index) -> Index {
-    index._index.ensureValid(for: self._root)
+    index._index.ensureValid(forTree: self._root)
     return Index(self._root.index(after: index._index))
   }
   
   @inlinable
   public func formIndex(before index: inout Index) {
-    index._index.ensureValid(for: self._root)
+    index._index.ensureValid(forTree: self._root)
     self._root.formIndex(before: &index._index)
   }
   
   @inlinable
   public func index(before index: Index) -> Index {
-    index._index.ensureValid(for: self._root)
+    index._index.ensureValid(forTree: self._root)
     return Index(self._root.index(before: index._index))
   }
   
   @inlinable
   public func formIndex(_ i: inout Index, offsetBy distance: Int) {
-    i._index.ensureValid(for: self._root)
+    i._index.ensureValid(forTree: self._root)
     self._root.formIndex(&i._index, offsetBy: distance)
   }
   
   @inlinable
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
-    i._index.ensureValid(for: self._root)
+    i._index.ensureValid(forTree: self._root)
     return Index(self._root.index(i._index, offsetBy: distance))
   }
 }

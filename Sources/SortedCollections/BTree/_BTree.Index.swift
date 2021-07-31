@@ -15,11 +15,31 @@ extension _BTree {
   /// - Warning: This has the capability to perform safety checks, however they must be explicitly be
   ///     performed using the validation methods.
   @usableFromInline
-  internal struct Index: Comparable {
-    /// The path to the element in the BTree. A `nil` value indicates
-    /// the endIndex
+  internal struct Index {
+    /// A fixed-size array large enough to represent all offsets within a B-Tree index
     @usableFromInline
-    internal var path: UnsafePath?
+    internal typealias Offsets = FixedSizeArray<Slot>
+    
+    /// The position of each of the parent nodes in their parents. The path's depth
+    /// is offsets.count + 1
+    @usableFromInline
+    internal var childSlots: Offsets
+    
+    /// The bottom most node that the index point to
+    ///
+    /// This is equal to `root` to indicate the `endIndex`
+    @usableFromInline
+    internal var node: Unmanaged<Node.Storage>
+    
+    /// The slot within the bottom most node which the index points to.
+    ///
+    /// This is equal to `-1` to indicate the `endIndex`
+    @usableFromInline
+    internal var slot: Int
+    
+    /// The absolute offset of the path's element in the entire tree.
+    @usableFromInline
+    internal var offset: Int
     
     /// The tree that this index references.
     @usableFromInline
@@ -29,42 +49,37 @@ extension _BTree {
     @usableFromInline
     internal let version: Int
     
-    // TODO: optimize this to potentially avoid capturing a weak
-    // reference for `nil` or endIndex by using another mechanism
-    // to perform validity checks.
+    /// Creates an index represented as a sequence of nodes to an element.
+    /// - Parameters:
+    ///   - node: The node to which this index points.
+    ///   - slot: The specific slot within node where the path points
+    ///   - childSlots: The children's offsets for this path.
+    ///   - index: The absolute offset of this path's element in the tree.
+    ///   - tree: The tree of this index.
     @inlinable
     @inline(__always)
-    internal init(_ path: UnsafePath?, forTree tree: _BTree) {
-      self.path = path
+    internal init(
+      node: Unmanaged<Node.Storage>,
+      slot: Int,
+      childSlots: Offsets,
+      offset: Int,
+      forTree tree: _BTree
+    ) {
+      self.node = node
+      self.slot = slot
+      self.childSlots = childSlots
+      self.offset = offset
+      
       self.root = tree.root.storage
       self.version = tree.version
     }
     
-    @inlinable
-    @inline(__always)
-    internal static func ==(lhs: Index, rhs: Index) -> Bool {
-      return lhs.path?.offset == rhs.path?.offset
-    }
     
-    @inlinable
-    @inline(__always)
-    internal static func <(lhs: Index, rhs: Index) -> Bool {
-      switch (lhs.path, rhs.path) {
-      case let (lhsPath?, rhsPath?):
-        return lhsPath < rhsPath
-      case (_?, nil):
-        return true
-      case (nil, _?):
-        return false
-      case (nil, nil):
-        return false
-      }
-    }
-    
+    // MARK: Index Validation
     /// Ensures the precondition that the index is valid for a given dictionary.
     @inlinable
     @inline(__always)
-    internal func ensureValid(for tree: _BTree) {
+    internal func ensureValid(forTree tree: _BTree) {
       precondition(
         self.root === tree.root.storage && self.version == tree.version,
         "Attempt to use an invalid index.")
@@ -80,5 +95,48 @@ extension _BTree {
           self.version == index.version,
         "Attempt to use an invalid indices.")
     }
+  }
+}
+
+// MARK: Index Read Operations
+extension _BTree.Index {
+  /// Operators on a handle of the node
+  /// - Warning: Ensure this is never called on an endIndex.
+  @inlinable
+  @inline(__always)
+  internal func readNode<R>(
+    _ body: (_BTree.Node.UnsafeHandle) throws -> R
+  ) rethrows -> R {
+    assert(self.slot != -1, "Invalid operation to read end index.")
+    return try self.node._withUnsafeGuaranteedRef { try $0.read(body) }
+  }
+  
+  /// Gets the element the path points to.
+  @inlinable
+  @inline(__always)
+  internal var element: _BTree.Element {
+    assert(self.slot != -1, "Cannot dereference out-of-bounds slot.")
+    return self.readNode { $0[elementAtSlot: self.slot] }
+  }
+}
+
+// MARK: Comparable
+extension _BTree.Index: Comparable {
+  /// Returns true if two indices are identical (point to the same node).
+  /// - Precondition: expects both indices are from the same B-Tree.
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  internal static func ==(lhs: Self, rhs: Self) -> Bool {
+    return lhs.offset == rhs.offset
+  }
+  
+  /// Returns true if the first path points to an element before the second path
+  /// - Precondition: expects both indices are from the same B-Tree.
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  internal static func <(lhs: Self, rhs: Self) -> Bool {
+    return lhs.offset < rhs.offset
   }
 }

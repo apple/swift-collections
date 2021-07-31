@@ -29,7 +29,41 @@ extension SortedDictionary {
       return self._root.findAnyValue(forKey: key)
     }
     
-    // TODO: implement efficient _modify
+    _modify {
+      var (cursor, found) = self._root.findAnyCursor(forKey: key)
+      
+      var value: Value?
+      if found {
+        value = cursor.updateCurrentNode { handle, slot in
+          handle.pointerToValue(atSlot: slot).move()
+        }
+      }
+      
+      defer {
+        if found {
+          if let value = value {
+            cursor.updateCurrentNode { handle, slot in
+              handle.pointerToValue(atSlot: slot).initialize(to: value)
+            }
+          } else {
+            cursor.removeElement(hasValueHole: true)
+          }
+        } else {
+          if let value = value {
+            cursor.insertElement(
+              (key, value),
+              capacity: self._root.internalCapacity
+            )
+          } else {
+            // no-op
+          }
+        }
+        
+        cursor.apply(to: &self._root)
+      }
+      
+      yield &value
+    }
     
     set {
       if let newValue = newValue {
@@ -62,9 +96,7 @@ extension SortedDictionary {
       return self[key] ?? defaultValue()
     }
     
-    // TODO: implement efficient _modify
-    
-    mutating set {
+    set {
       self[key] = newValue
     }
   }
@@ -97,7 +129,7 @@ extension SortedDictionary {
   /// - Complexity: O(1)
   @inlinable
   public subscript(position: Index) -> Element {
-    position._index.ensureValid(for: self._root)
+    position._index.ensureValid(forTree: self._root)
     return self._root[position._index]
   }
 }

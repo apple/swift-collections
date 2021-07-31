@@ -10,7 +10,9 @@
 //===----------------------------------------------------------------------===//
 
 extension _BTree {
-  /// A stack-allocated list of some values.
+  /// A stack-allocated deque of some values.
+  ///
+  /// The supports efficient removals from and insertions to the beginning and end.
   /// 
   /// - Warning: This may hold strong references to objects after they
   ///     do not put non-trivial types in this.
@@ -18,10 +20,13 @@ extension _BTree {
   internal struct FixedSizeArray<Value> {
     @inlinable
     @inline(__always)
-    internal static var maxSize: UInt8 { 16 }
+    internal static var maxSize: Int8 { 16 }
     
     @usableFromInline
-    internal var depth: UInt8
+    internal var start: Int8
+    
+    @usableFromInline
+    internal var depth: Int8
     
     @usableFromInline
     internal var values: (
@@ -33,7 +38,8 @@ extension _BTree {
     
     @inlinable
     @inline(__always)
-    internal init(repeating initialValue: Value, depth: UInt8 = 0) {
+    internal init(repeating initialValue: Value, depth: Int8 = 0) {
+      self.start = 0
       self.depth = depth
       self.values = (
         initialValue, initialValue, initialValue, initialValue,
@@ -43,31 +49,69 @@ extension _BTree {
       )
     }
     
+    /// Calculates the real underlying offset for a depth
+    @inlinable
+    @inline(__always)
+    internal func _underlyingOffset(for position: Int8) -> Int8 {
+      return (self.start &+ position) % FixedSizeArray.maxSize
+    }
+    
+    /// Shifts a real offset by some amount
+    @inlinable
+    @inline(__always)
+    internal func _shiftOffset(_ position: inout Int8, by offset: Int8) {
+      position = (position + FixedSizeArray.maxSize + offset) % FixedSizeArray.maxSize
+    }
+    
     /// Appends a value to the offset list
     @inlinable
     @inline(__always)
-    internal mutating func append(_ offset: Value) {
+    internal mutating func append(_ value: __owned Value) {
       assert(depth < FixedSizeArray.maxSize,
-             "Out of bounds access in offset list.")
+             "Out of bounds access in fixed sized array.")
       self.depth &+= 1
-      self[self.depth] = offset
+      self[self.depth] = value
     }
     
-    /// Pops a value from the offset list
+    /// Prepends a value to the offset list
+    @inlinable
+    @inline(__always)
+    internal mutating func prepend(_ value: __owned Value) {
+      assert(depth < FixedSizeArray.maxSize,
+             "Out of bounds access in fixed sized array.")
+      self.depth &+= 1
+      self._shiftOffset(&self.start, by: -1)
+    }
+    
+    /// Pops a value from the end of offset list
     @inlinable
     @inline(__always)
     internal mutating func pop() -> Value {
-      assert(depth > 0, "Cannot pop empty list")
+      assert(depth > 0, "Cannot pop empty fixed sized array")
       defer { self.depth &-= 1 }
       return self[self.depth]
     }
     
+    /// Removes a value from the front of offset list
     @inlinable
     @inline(__always)
-    internal subscript(_ offset: UInt8) -> Value {
+    internal mutating func shift() -> Value {
+      assert(depth > 0, "Cannot shift empty fixed sized array")
+      defer {
+        self.depth &-= 1
+        self._shiftOffset(&self.start, by: 1)
+      }
+      return self[0]
+    }
+    
+    @inlinable
+    @inline(__always)
+    internal subscript(_ position: Int8) -> Value {
       get {
-        assert(offset <= depth && depth <= FixedSizeArray.maxSize,
-               "Out of bounds access in offset list.")
+        assert(position <= depth && depth <= FixedSizeArray.maxSize,
+               "Out of bounds access in fixed sized array.")
+        
+        let offset = _underlyingOffset(for: position)
         
         switch offset {
         case 0: return self.values.0
@@ -91,8 +135,10 @@ extension _BTree {
       }
       
       _modify {
-        assert(offset <= depth && depth <= FixedSizeArray.maxSize,
-               "Out of bounds access in offset list.")
+        assert(position <= depth && depth <= FixedSizeArray.maxSize,
+               "Out of bounds access in fixed sized array.")
+        
+        let offset = _underlyingOffset(for: position)
         
         switch offset {
         case 0: yield &self.values.0

@@ -13,9 +13,9 @@ extension SortedSet {
   /// Returns the index for a given element, if it exists
   /// - Complexity: O(`log n`)
   @inlinable
-  public func firstIndex(of element: Element) -> Index? {
-    if let path = self._root.findAnyPath(forKey: element) {
-      return Index(_Tree.Index(path, forTree: self._root))
+  public func index(of element: Element) -> Index? {
+    if let index = self._root.findAnyIndex(forKey: element) {
+      return Index(index)
     } else {
       return nil
     }

@@ -9,6 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This contains `_BTree`'s general implementation of BidirectionalCollection.
+// These operations are bounds in contrast to most other methods on _BTree as
+// they are designed to be easily propogated to a higher-level data type.
+// However, they still do not perform index validation
+
 extension _BTree: BidirectionalCollection {
   /// The total number of elements contained within the BTree
   /// - Complexity: O(1)
@@ -26,36 +31,45 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(`log n`)
   @inlinable
   internal var startIndex: Index {
-    if count == 0 { return Index(nil, forTree: self) }
-    var depth: UInt8 = 0
-    var currentNode = self.root
-    while !currentNode.read({ $0.isLeaf }) {
-      // TODO: figure out how to avoid the swift retain here
-      currentNode = currentNode.read({ $0[childAt: 0] })
-      depth += 1
+    if count == 0 { return endIndex }
+    var depth: Int8 = 0
+    var currentNode: Unmanaged = .passUnretained(self.root.storage)
+    while true {
+      let shouldStop: Bool = currentNode._withUnsafeGuaranteedRef {
+        $0.read { handle in
+          if handle.isLeaf {
+            return true
+          } else {
+            depth += 1
+            currentNode = .passUnretained(handle[childAt: 0].storage)
+            return false
+          }
+        }
+      }
+      
+      if shouldStop { break }
     }
     
-    let path = UnsafePath(
+    return Index(
       node: currentNode,
       slot: 0,
       childSlots: FixedSizeArray(repeating: 0, depth: depth),
-      offset: 0
+      offset: 0,
+      forTree: self
     )
-    
-    return Index(path, forTree: self)
   }
   
   /// Returns a sentinel value for the last element
   /// - Complexity: O(1)
   @inlinable
-  internal var endIndex: Index { Index(nil, forTree: self) }
-  
-  /// Gets the effective offset of an index
-  /// - Warning: this does not
-  @inlinable
-  @inline(__always)
-  internal func offset(of index: Index) -> Int {
-    return index.path?.offset ?? self.count
+  internal var endIndex: Index {
+    Index(
+      node: .passUnretained(self.root.storage),
+      slot: -1,
+      childSlots: Index.Offsets(repeating: 0),
+      offset: self.count,
+      forTree: self
+    )
   }
   
   /// Returns the distance between two indices.
@@ -67,7 +81,7 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(1)
   @inlinable
   internal func distance(from start: Index, to end: Index) -> Int {
-    return self.offset(of: end) - self.offset(of: start)
+    return end.offset - start.offset
   }
   
   /// Replaces the given index with its successor.
@@ -75,19 +89,17 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(`log n`) in the worst-case.
   @inlinable
   internal func formIndex(after index: inout Index) {
-    guard var path = index.path else {
-      preconditionFailure("Attempt to advance out of collection bounds.")
-    }
+    precondition(index.offset < self.count,
+                 "Attempt to advance out of collection bounds.")
     
-    let shouldSeekWithinLeaf = path.readNode {
-      $0.isLeaf && _fastPath(path.slot + 1 < $0.elementCount)
+    let shouldSeekWithinLeaf = index.readNode {
+      $0.isLeaf && _fastPath(index.slot + 1 < $0.elementCount)
     }
     
     if shouldSeekWithinLeaf {
       // Continue searching within the same leaf
-      path.slot += 1
-      path.offset += 1
-      index.path = path
+      index.slot += 1
+      index.offset += 1
     } else {
       self.formIndex(&index, offsetBy: 1)
     }
@@ -109,7 +121,8 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(`log n`) in the worst-case.
   @inlinable
   internal func formIndex(before index: inout Index) {
-    assert(!self.isEmpty && self.offset(of: index) != 0, "Attempt to advance out of collection bounds.")
+    precondition(!self.isEmpty && index.offset != 0,
+                 "Attempt to advance out of collection bounds.")
     // TODO: implement more efficient logic to better move through the tree
     self.formIndex(&index, offsetBy: -1)
   }
@@ -135,29 +148,29 @@ extension _BTree: BidirectionalCollection {
   /// - Complexity: O(`log n`) in the worst-case.
   @inlinable
   internal func formIndex(_ i: inout Index, offsetBy distance: Int) {
-    let newIndex = self.offset(of: i) + distance
-    assert(0 <= newIndex && newIndex <= self.count, "Attempt to advance out of collection bounds.")
+    let newIndex = i.offset + distance
+    precondition(0 <= newIndex && newIndex <= self.count,
+                 "Attempt to advance out of collection bounds.")
     
     if newIndex == self.count {
-      i.path = nil
+      i = endIndex
       return
     }
     
     // TODO: optimization for searching within children
     
-    if var path = i.path, path.readNode({ $0.isLeaf }) {
+    if i != endIndex && i.readNode({ $0.isLeaf }) {
       // Check if the target element will be in the same node
-      let targetSlot = path.slot + distance
-      if 0 <= targetSlot && targetSlot < path.readNode({ $0.elementCount }) {
-        path.slot = targetSlot
-        path.offset = newIndex
-        i.path = path
+      let targetSlot = i.slot + distance
+      if 0 <= targetSlot && targetSlot < i.readNode({ $0.elementCount }) {
+        i.slot = targetSlot
+        i.offset = newIndex
         return
       }
     }
     
     // Otherwise, re-seek
-    i = Index(self.path(atOffset: newIndex), forTree: self)
+    i = self.index(atOffset: newIndex)
   }
   
   /// Returns an index that is the specified distance from the given index.
@@ -175,177 +188,11 @@ extension _BTree: BidirectionalCollection {
     return newIndex
   }
   
-  /// Offsets the given index by the specified distance, or so that it equals the given limiting index.
-  ///
-  /// - Parameters:
-  ///   - i: A valid index of the collection.
-  ///   - distance: The distance to offset `i`.
-  ///   - limit: A valid index of the collection to use as a limit. If `distance > 0`, a limit that is
-  ///       less than `i` has no effect. Likewise, if `distance < 0`, a limit that is greater than `i`
-  ///       has no effect.
-  /// - Returns: `true` if `i` has been offset by exactly `distance` steps without going beyond
-  ///     `limit`; otherwise, `false`. When the return value is `false`, the value of `i` is equal
-  ///     to `limit`.
-  /// - Complexity: O(`log n`) in the worst-case.
-  @inlinable
-  internal func formIndex(_ i: inout Index, offsetBy distance: Int, limitedBy limit: Index) -> Bool {
-    let distanceToLimit = self.distance(from: i, to: limit)
-    if distance < 0 ? distanceToLimit > distance : distanceToLimit < distance {
-      self.formIndex(&i, offsetBy: distanceToLimit)
-      return false
-    } else {
-      self.formIndex(&i, offsetBy: distance)
-      return true
-    }
-  }
-  
-  /// Returns an index that is the specified distance from the given index, unless that distance
-  /// is beyond a given limiting index.
-  ///
-  /// - Parameters:
-  ///   - i: A valid index of the collection.
-  ///   - distance: The distance to offset `i`.
-  ///   - limit: A valid index of the collection to use as a limit. If `distance > 0`, a `limit`
-  ///       that is less than `i` has no effect. Likewise, if `distance < 0`, a `limit` that is
-  ///       greater twhan `i` has no effect.
-  /// - Returns: An index offset by `distance` from the index `i`, unless that index would
-  ///     be beyond `limit` in the direction of movement. In that case, the method returns `nil`.
-  @inlinable
-  internal func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    let distanceToLimit = self.distance(from: i, to: limit)
-    if distance < 0 ? distanceToLimit > distance : distanceToLimit < distance {
-      return nil
-    } else {
-      var newIndex = i
-      self.formIndex(&newIndex, offsetBy: distance)
-      return newIndex
-    }
-  }
-  
   @inlinable
   @inline(__always)
   internal subscript(index: Index) -> Element {
-    assert(index.path != nil, "Attempt to subscript out of range index.")
-    return index.path.unsafelyUnwrapped.element
+    // Ensure we don't attempt to dereference the endIndex
+    precondition(index != endIndex, "Attempt to subscript out of range index.")
+    return index.element
   }
-}
-
-// MARK: Custom Indexing Operations
-extension _BTree {
-  /// Returns a path to the key at absolute offset `i`.
-  /// - Parameter offset: 0-indexed offset within BTree bounds, else may panic.
-  /// - Returns: the index of the appropriate element.
-  /// - Complexity: O(`log n`)
-  
-
-  /// Obtains the start index for a key (or where it would exist).
-  @inlinable
-  internal func startIndex(forKey key: Key) -> Index {
-    var childSlots = UnsafePath.Offsets(repeating: 0)
-    var targetSlot: Int = 0
-    var offset = 0
-    
-    func search(in node: Node) -> Unmanaged<Node.Storage>? {
-      node.read({ handle in
-        let slot = handle.startSlot(forKey: key)
-        if slot < handle.elementCount {
-          if handle.isLeaf {
-            offset += slot
-            targetSlot = slot
-            return .passUnretained(node.storage)
-          } else {
-            // Calculate offset by summing previous subtrees
-            for i in 0...slot {
-              offset += handle[childAt: i].read({ $0.subtreeCount })
-            }
-            
-            let currentOffset = offset
-            let currentDepth = childSlots.depth
-            childSlots.append(UInt16(slot))
-            
-            if let foundEarlier = search(in: handle[childAt: slot]) {
-              return foundEarlier
-            } else {
-              childSlots.depth = currentDepth
-              targetSlot = slot
-              offset = currentOffset
-              
-              return .passUnretained(node.storage)
-            }
-          }
-        } else {
-          // Start index exceeds node and is therefore not in this.
-          return nil
-        }
-      })
-    }
-    
-    if let targetChild = search(in: self.root) {
-      return Index(UnsafePath(
-        node: targetChild,
-        slot: targetSlot,
-        childSlots: childSlots,
-        offset: offset
-      ), forTree: self)
-    } else {
-      return Index(nil, forTree: self)
-    }
-  }
-  
-  /// Obtains the last index at which a value less than or equal to the key appears.
-  @inlinable
-  internal func lastIndex(forKey key: Key) -> Index {
-    var childSlots = UnsafePath.Offsets(repeating: 0)
-    var targetSlot: Int = 0
-    var offset = 0
-    
-    func search(in node: Node) -> Unmanaged<Node.Storage>? {
-      node.read({ handle in
-        let slot = handle.endSlot(forKey: key) - 1
-        if slot > 0 {
-          // Sanity Check
-          assert(slot < handle.elementCount, "Slot out of bounds.")
-          
-          if handle.isLeaf {
-            offset += slot
-            targetSlot = slot
-            return .passUnretained(node.storage)
-          } else {
-            for i in 0...slot {
-              offset += handle[childAt: i].read({ $0.subtreeCount })
-            }
-            
-            let currentOffset = offset
-            let currentDepth = childSlots.depth
-            childSlots.append(UInt16(slot + 1))
-            
-            if let foundLater = search(in: handle[childAt: slot + 1]) {
-              return foundLater
-            } else {
-              childSlots.depth = currentDepth
-              targetSlot = slot
-              offset = currentOffset
-              
-              return .passUnretained(node.storage)
-            }
-          }
-        } else {
-          // Start index exceeds node and is therefore not in this.
-          return nil
-        }
-      })
-    }
-    
-    if let targetChild = search(in: self.root) {
-      return Index(UnsafePath(
-        node: targetChild,
-        slot: targetSlot,
-        childSlots: childSlots,
-        offset: offset
-      ), forTree: self)
-    } else {
-      return Index(nil, forTree: self)
-    }
-  }
-  
 }

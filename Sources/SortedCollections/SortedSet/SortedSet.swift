@@ -52,6 +52,6 @@ extension SortedSet {
   @inlinable
   @inline(__always)
   public subscript(offset absoluteOffset: Int) -> Element {
-    return self._root.path(atOffset: absoluteOffset).unsafelyUnwrapped.element.key
+    return self._root.index(atOffset: absoluteOffset).element.key
   }
 }

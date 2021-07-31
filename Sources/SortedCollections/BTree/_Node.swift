@@ -14,9 +14,16 @@ internal struct _Node<Key: Comparable, Value> {
   @usableFromInline
   typealias Element = (key: Key, value: Value)
   
-  /// Strong reference to the node's underlying data
   @usableFromInline
-  internal var storage: Storage
+  internal var _storage: Storage?
+  
+  /// Strong reference to the node's underlying data
+  @inlinable
+  @inline(__always)
+  internal var storage: Storage {
+    get { _storage.unsafelyUnwrapped }
+    set { _storage = newValue }
+  }
   
   /// Creates a node wrapping a Storage object in order to interact with it.
   /// - Parameter storage: Underlying node storage.
@@ -30,30 +37,7 @@ internal struct _Node<Key: Comparable, Value> {
   @inlinable
   @inline(__always)
   internal init(copyingFrom oldNode: _Node) {
-    let capacity = oldNode.storage.header.capacity
-    let count = oldNode.storage.header.count
-    let totalElements = oldNode.storage.header.subtreeCount
-    let isLeaf = oldNode.storage.header.children == nil
-    
-    self.init(withCapacity: capacity, isLeaf: isLeaf)
-    
-    self.storage.header.count = count
-    self.storage.header.subtreeCount = totalElements
-    
-    oldNode.storage.withUnsafeMutablePointerToElements { oldKeys in
-      self.storage.withUnsafeMutablePointerToElements { newKeys in
-        newKeys.initialize(from: oldKeys, count: count)
-      }
-    }
-    
-    self.storage.header.values
-      .initialize(from: oldNode.storage.header.values, count: count)
-    
-    self.storage.header.children?
-      .initialize(
-        from: oldNode.storage.header.children.unsafelyUnwrapped,
-        count: count + 1
-      )
+    self.storage = oldNode.storage.copy()
   }
   
   /// Creates and allocates a new node.
@@ -62,18 +46,7 @@ internal struct _Node<Key: Comparable, Value> {
   ///   - isLeaf: whether or not the node is a leaf (it does not have any children).
   @inlinable
   internal init(withCapacity capacity: Int, isLeaf: Bool) {
-    let storage = Storage.create(minimumCapacity: capacity) { _ in
-      Header(
-        capacity: capacity,
-        count: 0,
-        totalElements: 0,
-        values: UnsafeMutablePointer<Value>.allocate(capacity: capacity),
-        children: isLeaf ? nil
-          : UnsafeMutablePointer<_Node>.allocate(capacity: capacity + 1)
-      )
-    }
-    
-    self.storage = unsafeDowncast(storage, to: Storage.self)
+    self.storage = Storage.create(withCapacity: capacity, isLeaf: isLeaf)
   }
 }
 
@@ -95,8 +68,31 @@ extension _Node {
   /// - Returns: The value the closure body returns, if any.
   @inlinable
   @inline(__always)
-  internal mutating func update<R>(_ body: (UnsafeHandle) throws -> R) rethrows -> R {
+  internal mutating func update<R>(
+    _ body: (UnsafeHandle) throws -> R
+  ) rethrows -> R {
     self.ensureUnique()
+    return try self.read { handle in
+      defer { handle.checkInvariants() }
+      return try body(UnsafeHandle(mutating: handle))
+    }
+  }
+  
+  /// Allows mutable access to the underlying data behind the node.
+  /// - Parameters:
+  ///   - isUnique: Whether the node is unique or needs to be copied
+  ///   - body: A closure with a handle which allows interacting with the node
+  /// - Returns: The value the closure body returns, if any.
+  @inlinable
+  @inline(__always)
+  internal mutating func update<R>(
+    isUnique: Bool,
+    _ body: (UnsafeHandle) throws -> R
+  ) rethrows -> R {
+    if !isUnique {
+      self = _Node(copyingFrom: self)
+    }
+    
     return try self.read { handle in
       defer { handle.checkInvariants() }
       return try body(UnsafeHandle(mutating: handle))

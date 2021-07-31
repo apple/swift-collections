@@ -37,11 +37,11 @@ final class BTreeTests: CollectionTestCase {
     }
   }
   
-  func test_indexToElementAtOffset() {
+  func test_indexAtOffset() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
       btreeOfSize(count) { btree, kvs in
         for i in 0..<count {
-          let index = btree.indexToElement(at: i)
+          let index = btree.index(atOffset: i)
           expectEqual(btree[index].key, i)
         }
       }
@@ -93,10 +93,10 @@ final class BTreeTests: CollectionTestCase {
       btreeOfSize(count) { btree, kvs in
         withEvery("baseIndex", in: 0...count) { baseIndex in
           withEvery("distance", in: 0...(count - baseIndex)) { distance in
-            var index = btree.indexToElement(at: baseIndex)
+            var index = btree.index(atOffset: baseIndex)
             btree.formIndex(&index, offsetBy: distance)
             
-            let expectedIndex = btree.indexToElement(at: baseIndex + distance)
+            let expectedIndex = btree.index(atOffset: baseIndex + distance)
             
             expectEqual(index, expectedIndex)
           }
@@ -110,10 +110,10 @@ final class BTreeTests: CollectionTestCase {
       btreeOfSize(count) { btree, kvs in
         withEvery("baseIndex", in: 0...count) { baseIndex in
           withEvery("distance", in: 0...baseIndex) { distance in
-            var index = btree.indexToElement(at: baseIndex)
+            var index = btree.index(atOffset: baseIndex)
             btree.formIndex(&index, offsetBy: -distance)
             
-            let expectedIndex = btree.indexToElement(at: baseIndex - distance)
+            let expectedIndex = btree.index(atOffset: baseIndex - distance)
             
             expectEqual(index, expectedIndex)
           }

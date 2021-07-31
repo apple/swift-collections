@@ -135,7 +135,7 @@ extension SortedDictionary {
   @inlinable
   @inline(__always)
   public mutating func remove(at index: Index) -> Element {
-    index._index.ensureValid(for: self._root)
+    index._index.ensureValid(forTree: self._root)
     return self._root.remove(at: index._index)
   }
   
@@ -153,8 +153,8 @@ extension SortedDictionary {
   ) where R.Bound == Index {
     let bounds = bounds.relative(to: self)
     
-    bounds.upperBound._index.ensureValid(for: self._root)
-    bounds.lowerBound._index.ensureValid(for: self._root)
+    bounds.upperBound._index.ensureValid(forTree: self._root)
+    bounds.lowerBound._index.ensureValid(forTree: self._root)
     
     return self._root.removeSubrange(Range(uncheckedBounds: (bounds.lowerBound._index, bounds.upperBound._index)))
   }

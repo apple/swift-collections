@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SortedSet: Equatable where Element: Equatable {
+extension SortedSet: Equatable {
   // TODO: look into more efficient ways to implement this
   
   /// Returns a Boolean value indicating whether two values are equal.

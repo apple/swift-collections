@@ -19,7 +19,7 @@ extension SortedSet {
   /// - Complexity: O(1)
   @inlinable
   public subscript(position: Index) -> Element {
-    position._index.ensureValid(for: self._root)
+    position._index.ensureValid(forTree: self._root)
     return self._root[position._index].key
   }
   

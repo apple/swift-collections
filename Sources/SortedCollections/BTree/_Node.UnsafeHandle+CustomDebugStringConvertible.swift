@@ -13,12 +13,12 @@
 extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   #if DEBUG
   private enum PrintPosition { case start, end, middle }
-  private func indentDescription(_ node: _Node<Key, Value>.UnsafeHandle, position: PrintPosition) -> String {
-    let label = "(\(node.elementCount)/\(node.subtreeCount))"
+  private func indentDescription(_ _node: _Node<Key, Value>.UnsafeHandle, position: PrintPosition) -> String {
+    let label = "(\(_node.elementCount)/\(_node.subtreeCount))"
     
     let spaces = String(repeating: " ", count: label.count)
     
-    let lines = describeNode(node).split(separator: "\n")
+    let lines = describeNode(_node).split(separator: "\n")
     return lines.enumerated().map({ index, line in
       var lineToInsert = line
       let middle = (lines.count - 1) / 2
@@ -53,11 +53,11 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   }
   
   /// A textual representation of this instance, suitable for debugging.
-  private func describeNode(_ node: _Node<Key, Value>.UnsafeHandle) -> String {
-    if node.elementCount == 0 {
+  private func describeNode(_ _node: _Node<Key, Value>.UnsafeHandle) -> String {
+    if _node.elementCount == 0 {
       var result = ""
-      if !node.isLeaf {
-        node[childAt: 0].read { handle in
+      if !_node.isLeaf {
+        _node[childAt: 0].read { handle in
           result += indentDescription(handle, position: .start) + "\n"
         }
         
@@ -69,19 +69,19 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
     }
     
     var result = ""
-    for slot in 0..<node.elementCount {
-      if !node.isLeaf {
-        let child = node[childAt: slot]
+    for slot in 0..<_node.elementCount {
+      if !_node.isLeaf {
+        let child = _node[childAt: slot]
         let childDescription = child.read {
           indentDescription($0, position: slot == 0 ? .start : .middle)
         }
         result += childDescription + "\n"
       }
       
-      if node.isLeaf {
-        if node.elementCount == 1 {
+      if _node.isLeaf {
+        if _node.elementCount == 1 {
           result += "╺━ "
-        } else if slot == node.elementCount - 1 {
+        } else if slot == _node.elementCount - 1 {
           result += "┗━ "
         } else if slot == 0 {
           result += "┏━ "
@@ -92,11 +92,11 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
         result += "┣━ "
       }
       
-      debugPrint(node[keyAt: slot], terminator: ": ", to: &result)
-      debugPrint(node[valueAt: slot], terminator: "", to: &result)
+      debugPrint(_node[keyAt: slot], terminator: ": ", to: &result)
+      debugPrint(_node[valueAt: slot], terminator: "", to: &result)
       
-      if !node.isLeaf && slot == node.elementCount - 1 {
-        let childDescription = node[childAt: slot + 1].read {
+      if !_node.isLeaf && slot == _node.elementCount - 1 {
+        let childDescription = _node[childAt: slot + 1].read {
           indentDescription($0, position: .end)
         }
         result += "\n" + childDescription

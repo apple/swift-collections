@@ -112,8 +112,8 @@ extension _BTree {
   @discardableResult
   internal mutating func remove(at index: Index) -> Element {
     invalidateIndices()
-    guard let path = index.path else { preconditionFailure("Index out of bounds.") }
-    return self.remove(atOffset: path.offset)
+    guard index != endIndex else { preconditionFailure("Index out of bounds.") }
+    return self.remove(atOffset: index.offset)
   }
   
   // MARK: Bulk Removal
@@ -128,11 +128,11 @@ extension _BTree {
   /// Removes the elements in the specified subrange from the collection.
   @inlinable
   internal mutating func removeSubrange(_ bounds: Range<Index>) {
-    guard let startPath = bounds.lowerBound.path else { preconditionFailure("Index out of bounds.") }
-    guard let _ = bounds.upperBound.path else { preconditionFailure("Index out of bounds.") }
+    guard bounds.lowerBound != endIndex else { preconditionFailure("Index out of bounds.") }
+    guard bounds.upperBound != endIndex else { preconditionFailure("Index out of bounds.") }
     
     let rangeSize = self.distance(from: bounds.lowerBound, to: bounds.upperBound)
-    let startOffset = startPath.offset
+    let startOffset = bounds.lowerBound.offset
     
     for _ in 0..<rangeSize {
       self.remove(atOffset: startOffset)
