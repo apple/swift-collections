@@ -13,10 +13,23 @@ final class BitArrayTest: CollectionTestCase {
   
   let sizes: [Int] = _getSizes(BitArray.UNIT.bitWidth)
   
+  func testEmptyInit() {
+    let emptyBitArray = BitArray()
+    expectEqual(emptyBitArray.storage, [])
+    expectEqual(emptyBitArray.excess, 0)
+    expectEqual(emptyBitArray.count, 0)
+    expectEqual(emptyBitArray.startIndex, 0)
+    expectEqual(emptyBitArray.endIndex, 0)
+    expectEqual(emptyBitArray, emptyBitArray)
+  }
+  
   func testSequenceInitializer() {
     withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.UNIT.bitWidth) { boolArray in
       let testBitArray: BitArray = BitArray(boolArray)
       expectEqual(Array(testBitArray), boolArray)
+      expectEqual(testBitArray.count, boolArray.count)
+      expectEqual(testBitArray.endIndex, boolArray.count)
+      expectEqual(testBitArray.excess, UInt8(boolArray.count%8))
     }
   }
   
@@ -29,41 +42,49 @@ final class BitArrayTest: CollectionTestCase {
     // Using manually created Bool Arrays
     let testBitArray1: BitArray = []
     expectEqual(Array(testBitArray1), [])
+    expectEqual(testBitArray1.count, 0)
     
     let testBitArray2: BitArray = [true]
     expectEqual(Array(testBitArray2), [true])
     expectEqual(testBitArray2.storage, [1])
     expectEqual(testBitArray2.excess, 1)
+    expectEqual(testBitArray2.count, 1)
     
     let testBitArray3: BitArray = [false]
     expectEqual(Array(testBitArray3), [false])
     expectEqual(testBitArray3.storage, [0])
     expectEqual(testBitArray3.excess, 1)
+    expectEqual(testBitArray3.count, 1)
     
     let testBitArray4: BitArray = [true, true, true, true, true, true, true, true]
     expectEqual(Array(testBitArray4), [true, true, true, true, true, true, true, true])
     expectEqual(testBitArray4.storage, [255])
     expectEqual(testBitArray4.excess, 0)
+    expectEqual(testBitArray4.count, 8)
     
     let testBitArray4B: BitArray = [true, true, true, true, true, true, true, true, true]
     expectEqual(Array(testBitArray4B), [true, true, true, true, true, true, true, true, true])
     expectEqual(testBitArray4B.storage, [255, 1])
     expectEqual(testBitArray4B.excess, 1)
+    expectEqual(testBitArray4B.count, 9)
     
     let testBitArray5: BitArray = [false, false, false, false, false, false, false, false]
     expectEqual(Array(testBitArray5), [false, false, false, false, false, false, false, false])
     expectEqual(testBitArray5.storage, [0])
     expectEqual(testBitArray5.excess, 0)
+    expectEqual(testBitArray5.count, 8)
     
     let testBitArray5B: BitArray = [false, false, false, false, false, false, false, false, false]
     expectEqual(Array(testBitArray5B), [false, false, false, false, false, false, false, false, false])
     expectEqual(testBitArray5B.storage, [0, 0])
     expectEqual(testBitArray5B.excess, 1)
+    expectEqual(testBitArray5B.count, 9)
     
     let testBitArray6: BitArray = [true, false, true, false, false, false, true]
     expectEqual(Array(testBitArray6), [true, false, true, false, false, false, true])
     expectEqual(testBitArray6.storage, [69])
     expectEqual(testBitArray6.excess, 7)
+    expectEqual(testBitArray6.count, 7)
   }
   
   func testRepeatingInit() {
@@ -71,8 +92,8 @@ final class BitArrayTest: CollectionTestCase {
       let trueArray = Array(repeating: true, count: count)
       let falseArray = Array(repeating: false, count: count)
       
-      let trueBitArray = BitArray(trueArray)
-      let falseBitArray = BitArray(falseArray)
+      let trueBitArray = BitArray(repeating: true, count: count)
+      let falseBitArray = BitArray(repeating: false, count: count)
       
       let repeatCount = (count%8 == 0) ? Int(count/8) : Int(count/8) + 1
       let expectedFalseStorage: [UInt8] = Array(repeating: 0, count: repeatCount)
@@ -114,6 +135,8 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(falseBitArray.storage, expectedFalseStorage)
       expectEqual(trueBitArray.excess, expectedExcess)
       expectEqual(falseBitArray.excess, expectedExcess)
+      expectEqual(trueBitArray.count, trueArray.count)
+      expectEqual(falseBitArray.count, falseArray.count)
     }
   }
   
