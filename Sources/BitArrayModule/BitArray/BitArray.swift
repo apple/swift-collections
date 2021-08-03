@@ -10,7 +10,7 @@ public struct BitArray: ExpressibleByArrayLiteral {
   
   // Will start off storing elements little-endian just because I have a hunch the calculations might be cleaner
   var storage : [UNIT] = []
-  var excess: UInt8 = 0
+  var excess: UNIT = 0
   
   public init() { }
   
@@ -36,7 +36,7 @@ public struct BitArray: ExpressibleByArrayLiteral {
     if (repeatedValue) {
       let bytes: Int = (Int(count%(UNIT.bitWidth)) > 0) ? (count/(UNIT.bitWidth))+1 : count/(UNIT.bitWidth)
       storage = Array(repeating: UNIT.max, count: bytes)
-      excess = UInt8(count%(UNIT.bitWidth))
+      excess = UNIT(count%(UNIT.bitWidth))
       
       // flip remaining bits back to 0
       let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
@@ -47,7 +47,7 @@ public struct BitArray: ExpressibleByArrayLiteral {
     } else {
       let bytes: Int = (count%(UNIT.bitWidth) > 0) ? (count/(UNIT.bitWidth))+1 : count/(UNIT.bitWidth)
       storage = Array(repeating: 0, count: bytes)
-      excess = UInt8(count%(UNIT.bitWidth))
+      excess = UNIT(count%(UNIT.bitWidth))
     }
   }
   

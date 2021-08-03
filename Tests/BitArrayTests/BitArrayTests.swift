@@ -11,6 +11,7 @@ import CollectionsTestSupport
 
 final class BitArrayTest: CollectionTestCase {
   
+  typealias UNIT = BitArray.UNIT
   let sizes: [Int] = _getSizes(BitArray.UNIT.bitWidth)
   
   func testEmptyInit() {
@@ -29,7 +30,7 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(Array(testBitArray), boolArray)
       expectEqual(testBitArray.count, boolArray.count)
       expectEqual(testBitArray.endIndex, boolArray.count)
-      expectEqual(testBitArray.excess, UInt8(boolArray.count%8))
+      expectEqual(testBitArray.excess, UNIT(boolArray.count%8))
     }
   }
   
@@ -96,8 +97,8 @@ final class BitArrayTest: CollectionTestCase {
       let falseBitArray = BitArray(repeating: false, count: count)
       
       let repeatCount = (count%8 == 0) ? Int(count/8) : Int(count/8) + 1
-      let expectedFalseStorage: [UInt8] = Array(repeating: 0, count: repeatCount)
-      var expectedTrueStorage: [UInt8] = Array(repeating: 255, count: repeatCount)
+      let expectedFalseStorage: [UNIT] = Array(repeating: 0, count: repeatCount)
+      var expectedTrueStorage: [UNIT] = Array(repeating: 255, count: repeatCount)
       if (count%8 != 0) {
         expectedTrueStorage.removeLast()
         switch count%8 {
@@ -127,7 +128,7 @@ final class BitArrayTest: CollectionTestCase {
           break
         }
       }
-      let expectedExcess: UInt8 = UInt8(count%8)
+      let expectedExcess: UNIT = UNIT(count%8)
       
       expectEqual(Array(trueBitArray), trueArray)
       expectEqual(Array(falseBitArray), falseArray)

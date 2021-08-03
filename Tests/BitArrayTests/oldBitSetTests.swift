@@ -11,6 +11,7 @@ import CollectionsTestSupport
 
 final class oldBitSetTest: CollectionTestCase {
   
+    typealias UNIT = BitArray.UNIT
   let limit = 100
   
   func testSetInits() {
@@ -26,10 +27,10 @@ final class oldBitSetTest: CollectionTestCase {
   
   func testAppend() {
     var testBitSet = BitSet()
-    var num1: UInt8 = 0
-    var num2: UInt8 = 0
-    var num3: UInt8 = 0
-    var num4: UInt8 = 0
+    var num1: UNIT = 0
+    var num2: UNIT = 0
+    var num3: UNIT = 0
+    var num4: UNIT = 0
     var valDeterminer: Bool = Bool.random()
     var count = 0
     

@@ -14,6 +14,8 @@ final class oldBitArrayTest: CollectionTestCase {
   // DEFINITELY needs improvement lol. I can imagine this looking like a terrible butcher to the experienced eye.
   let limit = 100 // if change limit, change getStorageCount and getExcessCount tests as well
   
+  typealias UNIT = BitArray.UNIT
+  
   func testArrayLitInit() {
     
     let array = [true, false, true, false, true, true, false, true, false, true]
@@ -87,7 +89,7 @@ final class oldBitArrayTest: CollectionTestCase {
     XCTAssertEqual(falseBitArray7.count, 16)
     XCTAssertEqual(falseBitArray8.storage, [0, 0, 0])
     XCTAssertEqual(falseBitArray8.count, 17)
-  
+    
   }
   
   func testRemoveAll() {
@@ -170,7 +172,7 @@ final class oldBitArrayTest: CollectionTestCase {
     
     testArray.formBitwiseOr(with: testArray2)
     
-    var resultStorage: [UInt8] = []
+    var resultStorage: [UNIT] = []
     
     for _ in 0..<12 {
       resultStorage.append(BitArray.UNIT.max)
@@ -197,7 +199,7 @@ final class oldBitArrayTest: CollectionTestCase {
     
     testArray.formBitwiseAnd(with: testArray2)
     
-    var resultStorage: [UInt8] = []
+    var resultStorage: [UNIT] = []
     
     for _ in 0..<12 {
       resultStorage.append(0)
@@ -224,7 +226,7 @@ final class oldBitArrayTest: CollectionTestCase {
     
     testArray.formBitwiseXor(with: testArray2)
     
-    var resultStorage: [UInt8] = []
+    var resultStorage: [UNIT] = []
     
     for _ in 0..<12 {
       resultStorage.append(BitArray.UNIT.max)
@@ -251,7 +253,7 @@ final class oldBitArrayTest: CollectionTestCase {
     
     let newArr = testArray.bitwiseOr(with: testArray2)
     
-    var resultStorage: [UInt8] = []
+    var resultStorage: [UNIT] = []
     
     for _ in 0..<12 {
       resultStorage.append(BitArray.UNIT.max)
@@ -278,7 +280,7 @@ final class oldBitArrayTest: CollectionTestCase {
     
     let newArr = testArray.bitwiseAnd(with: testArray2)
     
-    var resultStorage: [UInt8] = []
+    var resultStorage: [UNIT] = []
     
     for _ in 0..<12 {
       resultStorage.append(0)
@@ -305,7 +307,7 @@ final class oldBitArrayTest: CollectionTestCase {
     
     let newArr = testArray.bitwiseXor(with: testArray2)
     
-    var resultStorage: [UInt8] = []
+    var resultStorage: [UNIT] = []
     
     for _ in 0..<12 {
       resultStorage.append(BitArray.UNIT.max)

@@ -42,7 +42,7 @@ extension BitArray {
       self.storage[i] = ~self.storage[i]
     }
     
-    var mask: UInt8 = 1 << self.excess
+    var mask: UNIT = 1 << self.excess
     
     // flip the last bits past excess that aren't part of the set back to 0
     for _ in 1...((UNIT.bitWidth)-Int(self.excess)) {

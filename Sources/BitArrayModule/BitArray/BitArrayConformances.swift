@@ -54,11 +54,11 @@ extension BitArray: MutableCollection {
     
   }
   
-  private func _split(_position: Int) -> (Int, UInt8) {
+  private func _split(_position: Int) -> (Int, UNIT) {
     
     let index: Int = _position/UNIT.bitWidth
     let subPosition: Int = _position - index*UNIT.bitWidth
-    let mask: UInt8 = 1 << subPosition
+    let mask: UNIT = 1 << subPosition
     
     return (index, mask)
     
