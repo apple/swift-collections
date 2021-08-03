@@ -140,23 +140,30 @@ final class BitArrayTest: CollectionTestCase {
     }
   }
   
-  func testAppendOne() { // depends on initializer tests passing
+  func testAppend() { // depends on initializer tests passing
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: BitArray.UNIT.bitWidth) { layout in
-      var appendTrueBitArray = BitArray(layout)
-      var appendFalseBitArray = BitArray(layout)
-      appendTrueBitArray.append(true)
-      appendFalseBitArray.append(false)
+      var bitArray = BitArray(layout)
+      var bitArrayInverse = BitArray(layout)
       
-      var layoutCopyToAddTrue = layout
-      layoutCopyToAddTrue.append(true)
-      var layoutCopyToAddFalse = layout
-      layoutCopyToAddFalse.append(false)
+      var layoutCopy = layout
+      var layoutCopyInverse = layout
       
-      expectEqual(Array(appendTrueBitArray), layoutCopyToAddTrue)
-      expectEqual(appendTrueBitArray.count, layoutCopyToAddTrue.count)
-      
-      expectEqual(Array(appendFalseBitArray), layoutCopyToAddFalse)
-      expectEqual(appendFalseBitArray.count, layoutCopyToAddFalse.count)
+      var value = true
+      for _ in 0...(2*BitArray.UNIT.bitWidth+1) {
+        
+        bitArray.append(value)
+        bitArrayInverse.append(!value)
+        layoutCopy.append(value)
+        layoutCopyInverse.append(!value)
+        
+        expectEqual(Array(bitArray), layoutCopy)
+        expectEqual(bitArray.count, layoutCopy.count)
+        
+        expectEqual(Array(bitArrayInverse), layoutCopyInverse)
+        expectEqual(bitArrayInverse.count, layoutCopyInverse.count)
+        
+        value = Bool.random()
+      }
     }
   }
 }
