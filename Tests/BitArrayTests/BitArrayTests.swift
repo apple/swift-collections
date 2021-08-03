@@ -140,9 +140,23 @@ final class BitArrayTest: CollectionTestCase {
     }
   }
   
-  func testAppend() {
+  func testAppendOne() { // depends on initializer tests passing
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: BitArray.UNIT.bitWidth) { layout in
-      print(layout)
+      var appendTrueBitArray = BitArray(layout)
+      var appendFalseBitArray = BitArray(layout)
+      appendTrueBitArray.append(true)
+      appendFalseBitArray.append(false)
+      
+      var layoutCopyToAddTrue = layout
+      layoutCopyToAddTrue.append(true)
+      var layoutCopyToAddFalse = layout
+      layoutCopyToAddFalse.append(false)
+      
+      expectEqual(Array(appendTrueBitArray), layoutCopyToAddTrue)
+      expectEqual(appendTrueBitArray.count, layoutCopyToAddTrue.count)
+      
+      expectEqual(Array(appendFalseBitArray), layoutCopyToAddFalse)
+      expectEqual(appendFalseBitArray.count, layoutCopyToAddFalse.count)
     }
   }
 }

@@ -38,13 +38,20 @@ extension BitArray {
   
   public mutating func remove(at: Int) {
     self[at] = false
-    // needs work
+    for index in (at+1)..<endIndex {
+      if(self[index]) {
+        self[index-1] = true
+        self[index] = false
+      }
+    }
+    
   }
   
   public mutating func removeLast() {
     self[endIndex-1] = false
-    excess -= 1
   }
+  
+  
   
   internal func firstTrueIndex() -> Int {
     var counter = -1
