@@ -112,17 +112,17 @@ final class BitArrayTest: CollectionTestCase {
           expectedTrueStorage.append(7)
           break
         case 4:
-            expectedTrueStorage.append(15)
-            break
+          expectedTrueStorage.append(15)
+          break
         case 5:
-            expectedTrueStorage.append(31)
-            break
+          expectedTrueStorage.append(31)
+          break
         case 6:
-            expectedTrueStorage.append(63)
-            break
+          expectedTrueStorage.append(63)
+          break
         case 7:
-            expectedTrueStorage.append(127)
-            break
+          expectedTrueStorage.append(127)
+          break
         default:
           fatalError("I shouldn't be here.")
           break
@@ -183,6 +183,32 @@ final class BitArrayTest: CollectionTestCase {
         expectEqual(Array(bitArray), layoutCopy)
         expectEqual(bitArray.count, layoutCopy.count)
         expectEqual(bitArray.count, (layout.count-i-1))
+      }
+    }
+  }
+  
+  func testRemoveLastRange() {
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+      // cannot test empty array
+      if (layout.count == 0) {
+        
+      } else {
+        var bitArrayForReuse = BitArray(layout)
+        var layoutCopyForReuse = layout
+        
+        print("The layout is \(layout) and the count is \(layout.count)")
+        
+        for removeAmount in 1..<layout.count {
+          bitArrayForReuse.removeLast(removeAmount)
+          layoutCopyForReuse.removeLast(removeAmount)
+          
+          expectEqual(Array(bitArrayForReuse), layoutCopyForReuse)
+          expectEqual(bitArrayForReuse.count, layoutCopyForReuse.count)
+          expectEqual(bitArrayForReuse.count, (layout.count-removeAmount))
+          
+          bitArrayForReuse = BitArray(layout)
+          layoutCopyForReuse = layout
+        }
       }
     }
   }
