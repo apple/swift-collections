@@ -142,7 +142,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testAppend() { // depends on initializer tests passing
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: BitArray.UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
       var bitArray = BitArray(layout)
       var bitArrayInverse = BitArray(layout)
       
@@ -164,6 +164,34 @@ final class BitArrayTest: CollectionTestCase {
         expectEqual(bitArrayInverse.count, layoutCopyInverse.count)
         
         value = Bool.random()
+      }
+    }
+  }
+  
+  func testRemoveLast() {
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+      var bitArray = BitArray(layout)
+      var bitArrayInverse = BitArray(layout)
+      
+      var layoutCopy = layout
+      var layoutCopyInverse = layout
+      
+      
+      // remove every bool until end
+      for i in 0..<bitArray.endIndex {
+        
+        bitArray.removeLast()
+        bitArrayInverse.removeLast()
+        layoutCopy.removeLast()
+        layoutCopyInverse.removeLast()
+        
+        expectEqual(Array(bitArray), layoutCopy)
+        expectEqual(bitArray.count, layoutCopy.count)
+        expectEqual(bitArray.count, (layout.count-i-1))
+        
+        expectEqual(Array(bitArrayInverse), layoutCopyInverse)
+        expectEqual(bitArrayInverse.count, layoutCopyInverse.count)
+        expectEqual(bitArrayInverse.count, (layout.count-i-1))
       }
     }
   }
