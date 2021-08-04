@@ -186,10 +186,20 @@ final class BitArrayTest: CollectionTestCase {
       }
     }
   }
+  
   func testRemoveAll() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
       var bitArray = BitArray(layout)
-      var bitArrayInverse = BitArray(layout)
+      var layoutCopy = layout
+      
+      bitArray.removeAll()
+      layoutCopy.removeAll()
+      
+      expectEqual(bitArray.storage.count, 0)
+      expectEqual(bitArray.storage, [])
+      expectEqual(bitArray.count, 0)
+      expectEqual(bitArray.excess, 0)
+      expectEqual(Array(bitArray), layoutCopy)
     }
   }
 }
