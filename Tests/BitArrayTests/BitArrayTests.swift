@@ -177,7 +177,7 @@ final class BitArrayTest: CollectionTestCase {
       // remove every bool until end
       for i in 0..<bitArray.endIndex {
         
-        bitArray.removeLast()
+        expectEqual(bitArray.removeLast(), layout[layout.endIndex-i-1])
         layoutCopy.removeLast()
         
         expectEqual(Array(bitArray), layoutCopy)
@@ -189,14 +189,12 @@ final class BitArrayTest: CollectionTestCase {
   
   func testRemoveLastRange() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
-      // cannot test empty array
       if (layout.count == 0) {
-        
+        // cannot test empty array without tests crashing
       } else {
         var bitArrayForReuse = BitArray(layout)
         var layoutCopyForReuse = layout
         
-        print("The layout is \(layout) and the count is \(layout.count)")
         
         for removeAmount in 1..<layout.count {
           bitArrayForReuse.removeLast(removeAmount)
@@ -210,6 +208,26 @@ final class BitArrayTest: CollectionTestCase {
           layoutCopyForReuse = layout
         }
       }
+    }
+  }
+  
+  func testRemoveAt() {
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+      var bitArrayForReuse = BitArray(layout)
+      var layoutCopyForReuse = layout
+      
+      for removeIndex in 0..<layout.count {
+        expectEqual(bitArrayForReuse.remove(at: removeIndex), layout[removeIndex])
+        layoutCopyForReuse.remove(at: removeIndex)
+        
+        expectEqual(Array(bitArrayForReuse), layoutCopyForReuse)
+        expectEqual(bitArrayForReuse.count, layoutCopyForReuse.count)
+        expectEqual(bitArrayForReuse.count, (layout.count-1))
+        
+        bitArrayForReuse = BitArray(layout)
+        layoutCopyForReuse = layout
+      }
+      
     }
   }
   

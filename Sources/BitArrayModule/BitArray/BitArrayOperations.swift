@@ -36,9 +36,11 @@ extension BitArray {
     }
   }
   
-  public mutating func remove(at: Int) {
+  @discardableResult
+  public mutating func remove(at: Int) -> Bool {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove.")
     precondition(at < endIndex && at >= 0, "The index entered is out of range")
+    let returnVal = self[at]
     self[at] = false
     for index in (at+1)..<endIndex {
       if(self[index]) {
@@ -47,6 +49,7 @@ extension BitArray {
       }
     }
     _adjustExcessForRemove()
+    return returnVal
   }
   
   @discardableResult
@@ -75,8 +78,8 @@ extension BitArray {
       return
     }
     storage.removeLast()
-    let range = rangeSize - Int(elementsInLastByte)
     excess = 0
+    let range = rangeSize - Int(elementsInLastByte)
     let removeableBytes: Int = range/(UNIT.bitWidth)
     storage.removeLast(removeableBytes)
     
