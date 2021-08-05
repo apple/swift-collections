@@ -160,15 +160,15 @@ extension BitArray {
      } */
   }
   
-  internal func firstTrueIndex() -> Int {
+  internal func firstTrueIndex() -> Int? {
     var counter = -1
     for item in storage {
       counter += 1
       if (item > 0) {
-        return item.leadingZeroBitCount + counter*UNIT.bitWidth
+        return item.trailingZeroBitCount + counter*UNIT.bitWidth
       }
     }
-    return endIndex // If public, return nil/optional and probably not have the fatalError()
+    return nil // If public, return nil/optional and probably not have the fatalError()
   }
   
   internal func lastTrueIndex() -> Int? {
@@ -176,7 +176,7 @@ extension BitArray {
     for item in storage.reversed() {
       counter -= 1
       if (item > 0) {
-        return item.trailingZeroBitCount + counter*UNIT.bitWidth
+        return (UNIT.bitWidth-item.leadingZeroBitCount) + counter*UNIT.bitWidth - 1
       }
     }
     return nil

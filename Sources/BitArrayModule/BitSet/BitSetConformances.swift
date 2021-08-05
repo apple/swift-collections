@@ -11,8 +11,15 @@ extension BitSet: Collection, BidirectionalCollection {
   
   public var isEmpty: Bool { return count == 0 }
   
-  public var startIndex: Index { return Index(bitArrayIndex: storage.firstTrueIndex()) }
+  public var startIndex: Index { return _getStartIndex() }
   // leaving it like this might be correct if firstTrueIndex was fast enough -- BENCHMARKS
+  
+  private func _getStartIndex() -> Index {
+    let storageFirstTrueResult = storage.firstTrueIndex()
+    let index: Int = (storageFirstTrueResult == nil) ? storage.endIndex : storageFirstTrueResult!
+    
+    return Index(bitArrayIndex: index)
+  }
   
   public var endIndex: Index { return Index(bitArrayIndex: storage.endIndex) }
   
