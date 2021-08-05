@@ -322,6 +322,7 @@ final class BitArrayTest: CollectionTestCase {
           
           //test form
           firstBitArray.formBitwiseOr(with: secondBitArray)
+          expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
         }
       }
@@ -330,27 +331,28 @@ final class BitArrayTest: CollectionTestCase {
   
   func testBitwiseAnd() {
     withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-        var firstBitArray = BitArray(firstLayout)
-        withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
-            let secondBitArray = BitArray(secondLayout)
-            if (firstLayout.count == secondLayout.count) {
-                var expectedArray: [Bool] = []
-                for index in 0..<firstLayout.endIndex {
-                    let value = (firstLayout[index] && secondLayout[index])
-                    expectedArray.append(value)
-                }
-                
-                // test non-form
-                let resultBitArray = firstBitArray.bitwiseAnd(with: secondBitArray)
-                expectEqual(Array(resultBitArray), expectedArray)
-                
-                //test form
-                firstBitArray.formBitwiseAnd(with: secondBitArray)
-                expectEqual(Array(firstBitArray), expectedArray)
-            } else {
-                print("Count is not the same for these arrays, so cannot test.")
-            }
+      var firstBitArray = BitArray(firstLayout)
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        let secondBitArray = BitArray(secondLayout)
+        if (firstLayout.count == secondLayout.count) {
+          var expectedArray: [Bool] = []
+          for index in 0..<firstLayout.endIndex {
+            let value = (firstLayout[index] && secondLayout[index])
+            expectedArray.append(value)
+          }
+          
+          // test non-form
+          let resultBitArray = firstBitArray.bitwiseAnd(with: secondBitArray)
+          expectEqual(Array(resultBitArray), expectedArray)
+          
+          //test form
+          firstBitArray.formBitwiseAnd(with: secondBitArray)
+          expectEqual(firstBitArray, resultBitArray)
+          expectEqual(Array(firstBitArray), expectedArray)
+        } else {
+          print("Count is not the same for these arrays, so cannot test.")
         }
+      }
     }
   }
   
