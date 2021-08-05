@@ -13,7 +13,7 @@ extension BitArray {
     
     precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
     
-    for i in 0..<self.storage.count {
+    for i in 0..<self.storage.endIndex {
       self.storage[i] |= with.storage[i]
     }
   }

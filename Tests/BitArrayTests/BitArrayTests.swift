@@ -303,4 +303,53 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(bitArray.lastTrueIndex(), layout.lastIndex(where: {$0 == true}))
     }
   }
+  
+  func testBitwiseOr() {
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
+      var firstBitArray = BitArray(firstLayout)
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        let secondBitArray = BitArray(secondLayout)
+        if (firstLayout.count == secondLayout.count) {
+          var expectedArray: [Bool] = []
+          for index in 0..<firstLayout.endIndex {
+            let value = (firstLayout[index] || secondLayout[index])
+            expectedArray.append(value)
+          }
+          
+          // test non-form
+          let resultBitArray = firstBitArray.bitwiseOr(with: secondBitArray)
+          expectEqual(Array(resultBitArray), expectedArray)
+          
+          //test form
+          firstBitArray.formBitwiseOr(with: secondBitArray)
+          expectEqual(Array(firstBitArray), expectedArray)
+        }
+      }
+    }
+  }
+  
+  func testBitwiseAnd() {
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
+        var firstBitArray = BitArray(firstLayout)
+        withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+            let secondBitArray = BitArray(secondLayout)
+            if (firstLayout.count == secondLayout.count) {
+                var expectedArray: [Bool] = []
+                for index in 0..<firstLayout.endIndex {
+                    let value = (firstLayout[index] && secondLayout[index])
+                    expectedArray.append(value)
+                }
+                
+                // test non-form
+                let resultBitArray = firstBitArray.bitwiseAnd(with: secondBitArray)
+                expectEqual(Array(resultBitArray), expectedArray)
+                
+                //test form
+                firstBitArray.formBitwiseAnd(with: secondBitArray)
+                expectEqual(Array(firstBitArray), expectedArray)
+            }
+        }
+    }
+  }
+  
 }
