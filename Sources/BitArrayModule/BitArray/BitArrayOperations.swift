@@ -40,16 +40,17 @@ extension BitArray {
   public mutating func remove(at: Int) -> Bool {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove.")
     precondition(at < endIndex && at >= 0, "The index entered is out of range")
-    let returnVal = self[at]
-    self[at] = false
-    for index in (at+1)..<endIndex {
-      if(self[index]) {
-        self[index-1] = true
-        self[index] = false
+    defer {
+      self[at] = false
+      for index in (at+1)..<endIndex {
+        if(self[index]) {
+          self[index-1] = true
+          self[index] = false
+        }
       }
+      _adjustExcessForRemove()
     }
-    _adjustExcessForRemove()
-    return returnVal
+    return self[at]
   }
   
   @discardableResult
@@ -107,7 +108,9 @@ extension BitArray {
   
   @discardableResult
   public mutating func removeFirst() -> Bool {
+    precondition(self.count != 0, "The bit array is empty. There are no items to remove")
     defer {
+      self[0] = false
       for index in 1..<endIndex {
         if(self[index]) {
           self[index-1] = true
@@ -120,21 +123,41 @@ extension BitArray {
   }
   
   public mutating func removeFirst(_ rangeSize: Int) {
+    precondition(self.count != 0, "The bit array is empty. There are no items to remove")
+    precondition(rangeSize < endIndex, "The input rangeSize is invalidly larger than the bit array itself.")
+    precondition(rangeSize > 0, "The input rangeSize must be a positive number.")
     let removeableBytes: Int = rangeSize/(UNIT.bitWidth)
     storage.removeFirst(removeableBytes)
     
-    if (rangeSize%(UNIT.bitWidth) != 0) {
-      for i in 0..<rangeSize%(UNIT.bitWidth) {
-        self[i] = false
-        _adjustExcessForRemove() // slower option
-      }
-      for i in rangeSize%(UNIT.bitWidth)..<self.endIndex {
-        if (self[i]) {
-          self[i-1] = true
-          self[i] = false
-        }
+    let remainingElemCount = Int(rangeSize%(UNIT.bitWidth))
+    
+    // this will hve a terrible run time, but it works and I'm having trouble getting the code below to work atm
+    if (remainingElemCount != 0) {
+      for _ in 1...remainingElemCount {
+        removeFirst()
       }
     }
+    
+    /* if (remainingElemCount != 0) {
+     for i in 0..<remainingElemCount {
+     self[i] = false
+     }
+     for i in remainingElemCount..<endIndex {
+     if (self[i]) {
+     self[i-remainingElemCount] = true
+     self[i] = false
+     }
+     }
+     if (remainingElemCount > excess) {
+     excess = UNIT(UNIT.bitWidth) - (UNIT(remainingElemCount)-excess)
+     self.removeLast(remainingElemCount)
+     } else if (remainingElemCount == excess) {
+     excess = 0
+     } else {
+     excess -= UNIT(remainingElemCount)
+     }
+     //excess = (remainingElemCount > excess) ? UNIT(UNIT.bitWidth)-UNIT(remainingElemCount) : (excess-UNIT(remainingElemCount))
+     } */
   }
   
   internal func firstTrueIndex() -> Int {

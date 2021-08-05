@@ -168,6 +168,49 @@ final class BitArrayTest: CollectionTestCase {
     }
   }
   
+  func testRemoveFirst() {
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+      var bitArray = BitArray(layout)
+      var layoutCopy = layout
+      
+      
+      // remove every bool until end
+      for i in 0..<bitArray.endIndex {
+        
+        expectEqual(bitArray.removeFirst(), layout[i])
+        layoutCopy.removeFirst()
+        
+        expectEqual(Array(bitArray), layoutCopy)
+        expectEqual(bitArray.count, layoutCopy.count)
+        expectEqual(bitArray.count, (layout.count-i-1))
+      }
+    }
+  }
+  
+  func testRemoveFirstRange() {
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+      if (layout.count == 0) {
+        // cannot test empty array without tests crashing
+      } else {
+        var bitArrayForReuse = BitArray(layout)
+        var layoutCopyForReuse = layout
+        
+        
+        for removeAmount in 1..<layout.count {
+          bitArrayForReuse.removeFirst(removeAmount)
+          layoutCopyForReuse.removeFirst(removeAmount)
+          
+          expectEqual(Array(bitArrayForReuse), layoutCopyForReuse)
+          expectEqual(bitArrayForReuse.count, layoutCopyForReuse.count)
+          expectEqual(bitArrayForReuse.count, (layout.count-removeAmount))
+          
+          bitArrayForReuse = BitArray(layout)
+          layoutCopyForReuse = layout
+        }
+      }
+    }
+  }
+  
   func testRemoveLast() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
       var bitArray = BitArray(layout)
