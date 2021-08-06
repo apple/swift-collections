@@ -11,7 +11,7 @@ add_library(PriorityQueueModule
   Heap.swift
   Heap+ExpressibleByArrayLiteral.swift
   Heap+Invariants.swift
-  Heap+Iterator.swift)
+  Heap+OrderedViews.swift)
 set_target_properties(PriorityQueueModule PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
