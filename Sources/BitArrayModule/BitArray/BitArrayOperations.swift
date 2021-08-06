@@ -143,24 +143,11 @@ extension BitArray {
         }
       }
       
-      if(remainingElemCount >= excess) {
-        storage.removeLast()
-      }
-      
       excess = UNIT(newCount)%UNIT((UNIT.bitWidth))
       
-      /*for _ in 1...remainingElemCount {
-       _adjustExcessForRemove()
-       }*/
-      /*if (remainingElemCount > excess) {
-       excess = UNIT(UNIT.bitWidth) - (UNIT(remainingElemCount)-excess)
-       self.removeLast(remainingElemCount)
-       } else if (remainingElemCount == excess) {
-       excess = 0
-       } else {
-       excess -= UNIT(remainingElemCount)
-       }*/
-      //excess = (remainingElemCount > excess) ? UNIT(UNIT.bitWidth)-UNIT(remainingElemCount) : (excess-UNIT(remainingElemCount))
+      if (count != newCount) {
+        storage.removeLast()
+      }
     }
   }
   
