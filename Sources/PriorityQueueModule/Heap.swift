@@ -134,8 +134,6 @@ public struct Heap<Element: Comparable> {
   /// - Complexity: O(log `count`)
   @inlinable
   public mutating func removeMin() -> Element {
-    precondition(!isEmpty)
-
     return popMin()!
   }
 
@@ -146,8 +144,6 @@ public struct Heap<Element: Comparable> {
   /// - Complexity: O(log `count`)
   @inlinable
   public mutating func removeMax() -> Element {
-    precondition(!isEmpty)
-
     return popMax()!
   }
 
@@ -516,7 +512,7 @@ extension Heap {
   public init<S: Sequence>(_ elements: S) where S.Element == Element {
     storage = Array(elements)
 
-    for idx in (0..<(storage.count / 2)).reversed() {
+    for idx in (0 ..< (storage.count / 2)).reversed() {
       _trickleDown(elementAt: idx)
     }
 

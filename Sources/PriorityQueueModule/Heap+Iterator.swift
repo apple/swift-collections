@@ -26,15 +26,15 @@ extension Heap {
     internal let _direction: IterationDirection
 
     @inlinable
-    init(_base: Heap, _direction:IterationDirection) {
+    init(_base: Heap, direction: IterationDirection) {
       self._base = _base
-      self._direction = _direction
+      self._direction = direction
     }
 
     // Returns the next element in the heap depending on the iteration direction
     @inlinable
     public mutating func next() -> Element? {
-      if(_direction == .ascending){
+      if _direction == .ascending {
         return _base.popMin()
       }
       return _base.popMax()
@@ -44,12 +44,12 @@ extension Heap {
   /// Returns an iterator that orders elements from lowest to highest priority
   @inlinable
   public var ascending: Iterator {
-    return Iterator(_base: self, _direction: .ascending)
+    return Iterator(_base: self, direction: .ascending)
   }
 
   /// Returns an iterator that orders elements from highest to lowest priority
   @inlinable
   public var descending: Iterator {
-    return Iterator(_base: self, _direction: .descending)
+    return Iterator(_base: self, direction: .descending)
   }
 }

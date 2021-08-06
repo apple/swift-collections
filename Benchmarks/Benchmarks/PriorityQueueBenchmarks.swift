@@ -52,8 +52,10 @@ extension Benchmark {
     ) { input in
       return { timer in
         var queue = Heap(input)
-        while let max = queue.popMax() {
-          blackHole(max)
+        timer.measure {
+          while let max = queue.popMax() {
+            blackHole(max)
+          }
         }
         precondition(queue.isEmpty)
         blackHole(queue)
@@ -66,8 +68,10 @@ extension Benchmark {
     ) { input in
       return { timer in
         var queue = Heap(input)
-        while let min = queue.popMin() {
-          blackHole(min)
+        timer.measure {
+          while let min = queue.popMin() {
+            blackHole(min)
+          }
         }
         precondition(queue.isEmpty)
         blackHole(queue)
@@ -102,9 +106,11 @@ extension Benchmark {
           heap.insert(i)
         }
 
-        while heap.count > 0 {
-          let min = heap.popMinimum()
-          blackHole(min)
+        timer.measure {
+          while heap.count > 0 {
+            let min = heap.popMinimum()
+            blackHole(min)
+          }
         }
         precondition(heap.count == 0)
         blackHole(heap)
