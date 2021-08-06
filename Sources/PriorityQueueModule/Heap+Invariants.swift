@@ -53,7 +53,7 @@ extension Heap {
     var indicesToVisit: [Int] = [0]
 
     while let elementIdx = indicesToVisit.popLast() {
-      let element = storage[elementIdx]
+      let element = _storage[elementIdx]
 
       let isMinLevel = _minMaxHeapIsMinLevel(elementIdx)
 
@@ -73,11 +73,11 @@ extension Heap {
       // Compare the current element against its descendants
       while let idx = descendantIndicesToVisit.popLast() {
         if isMinLevel {
-          precondition(element <= storage[idx],
-            "Element '\(storage[idx])' at index \(idx) should be >= '\(element)'")
+          precondition(element <= _storage[idx],
+            "Element '\(_storage[idx])' at index \(idx) should be >= '\(element)'")
         } else {
-          precondition(element >= storage[idx],
-            "Element '\(storage[idx])' at index \(idx) should be <= '\(element)'")
+          precondition(element >= _storage[idx],
+            "Element '\(_storage[idx])' at index \(idx) should be <= '\(element)'")
         }
 
         if let rightIdx = _rightChildIndex(of: idx) {
