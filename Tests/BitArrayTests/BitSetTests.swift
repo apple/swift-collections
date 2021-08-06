@@ -27,7 +27,7 @@ final class BitSetTest: CollectionTestCase {
       }
       
       let expectedStartIndex = (expectedResult.count == 0) ? bitArray.endIndex : expectedResult[0]
-      let expectedEndIndex = (expectedResult.count == 0) ? bitArray.endIndex : expectedResult[expectedResult.endIndex-1]
+      let expectedEndIndex = bitArray.endIndex
       
       expectEqual(Array(bitSet), expectedResult)
       expectEqual(bitSet.count, expectedResult.count)

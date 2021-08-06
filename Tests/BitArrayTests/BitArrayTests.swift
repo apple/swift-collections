@@ -329,6 +329,31 @@ final class BitArrayTest: CollectionTestCase {
     }
   }
   
+  func testBitwiseOrOperators() {
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        var firstBitArray = BitArray(firstLayout)
+        let secondBitArray = BitArray(secondLayout)
+        if (firstLayout.count == secondLayout.count) {
+          var expectedArray: [Bool] = []
+          for index in 0..<firstLayout.endIndex {
+            let value = (firstLayout[index] || secondLayout[index])
+            expectedArray.append(value)
+          }
+          
+          // test non-form
+          let resultBitArray = firstBitArray | secondBitArray
+          expectEqual(Array(resultBitArray), expectedArray)
+          
+          //test form
+          firstBitArray |= secondBitArray
+          expectEqual(firstBitArray, resultBitArray)
+          expectEqual(Array(firstBitArray), expectedArray)
+        }
+      }
+    }
+  }
+  
   func testBitwiseAnd() {
     withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
       withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
@@ -347,6 +372,31 @@ final class BitArrayTest: CollectionTestCase {
           
           //test form
           firstBitArray.formBitwiseAnd(with: secondBitArray)
+          expectEqual(firstBitArray, resultBitArray)
+          expectEqual(Array(firstBitArray), expectedArray)
+        }
+      }
+    }
+  }
+  
+  func testBitwiseAndOperators() {
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        var firstBitArray = BitArray(firstLayout)
+        let secondBitArray = BitArray(secondLayout)
+        if (firstLayout.count == secondLayout.count) {
+          var expectedArray: [Bool] = []
+          for index in 0..<firstLayout.endIndex {
+            let value = (firstLayout[index] && secondLayout[index])
+            expectedArray.append(value)
+          }
+          
+          // test non-form
+          let resultBitArray = firstBitArray & secondBitArray
+          expectEqual(Array(resultBitArray), expectedArray)
+          
+          //test form
+          firstBitArray &= secondBitArray
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
         }
@@ -376,6 +426,56 @@ final class BitArrayTest: CollectionTestCase {
           expectEqual(Array(firstBitArray), expectedArray)
         }
       }
+    }
+  }
+  
+  func testBitwiseXorOperators() {
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        var firstBitArray = BitArray(firstLayout)
+        let secondBitArray = BitArray(secondLayout)
+        if (firstLayout.count == secondLayout.count) {
+          var expectedArray: [Bool] = []
+          for index in 0..<firstLayout.endIndex {
+            let value = (firstLayout[index] != secondLayout[index])
+            expectedArray.append(value)
+          }
+          
+          // test non-form
+          let resultBitArray = firstBitArray ^ secondBitArray
+          expectEqual(Array(resultBitArray), expectedArray)
+          
+          //test form
+          firstBitArray ^= secondBitArray
+          expectEqual(firstBitArray, resultBitArray)
+          expectEqual(Array(firstBitArray), expectedArray)
+        }
+      }
+    }
+  }
+  
+  func testBitwiseNot() {
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+      var bitArray = BitArray(layout)
+      var bitArrayCopy = bitArray
+      var expectedArray: [Bool] = []
+      
+      for value in layout {
+        expectedArray.append(!value)
+      }
+      bitArray.formBitwiseNot()
+      let newCopy = ~bitArrayCopy
+      bitArrayCopy = ~bitArrayCopy
+      
+      
+      expectEqual(Array(bitArray), expectedArray)
+      expectEqual(BitArray(expectedArray), bitArray)
+      
+      expectEqual(Array(newCopy), expectedArray)
+      expectEqual(BitArray(expectedArray), newCopy)
+      
+      expectEqual(Array(bitArrayCopy), expectedArray)
+      expectEqual(BitArray(expectedArray), bitArrayCopy)
     }
   }
 }

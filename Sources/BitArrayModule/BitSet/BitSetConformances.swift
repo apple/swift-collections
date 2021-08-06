@@ -50,7 +50,7 @@ extension BitSet: Collection, BidirectionalCollection {
         return Index(bitArrayIndex: i)
       }
     }
-    fatalError("After not found :(") // Problematic IMO
+    return endIndex
   }
   
   public func index(before: Index) -> Index {
@@ -63,7 +63,7 @@ extension BitSet: Collection, BidirectionalCollection {
         return Index(bitArrayIndex: i)
       }
     }
-    fatalError("Before not found :(") // Problematic IMO
+    fatalError("Before not found :(")
   }
   
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
