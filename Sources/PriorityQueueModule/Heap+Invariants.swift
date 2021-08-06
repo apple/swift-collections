@@ -14,34 +14,40 @@ import Foundation
 
 extension Heap {
   #if COLLECTIONS_INTERNAL_CHECKS
+  /// Iterates through all the levels in the heap, ensuring that items in min
+  /// levels are smaller than all their descendants and items in max levels
+  /// are larger than all their descendants.
+  ///
+  /// The min-max heap indices are structured like this:
+  ///
+  /// ```
+  /// min               0
+  /// max        1             2
+  /// min      3   4         5     6
+  /// max     7 8 9 10     11 12 13 14
+  /// min    15...
+  /// ...
+  /// ```
+  ///
+  /// The iteration happens in depth-first order, so the descendants of the
+  /// element at index 0 are checked to ensure they are >= that element. This is
+  /// repeated for each child of the element at index 0 (inverting the
+  /// comparison at each level).
+  ///
+  /// In the case of 7 elements total (spread across 3 levels), the checking
+  /// happens in the following order:
+  ///
+  /// ```
+  /// compare >= 0: 1, 3, 4, 2, 5, 6
+  /// compare <= 1: 3, 4
+  /// compare >= 3: (no children)
+  /// compare >= 4: (no children)
+  /// compare <= 2: 5, 6
+  /// compare >= 5: (no children)
+  /// compare >= 6: (no children)
+  /// ```
   @inlinable
   @inline(never)
-  // Iterates through all the levels in the heap, ensuring that items in min
-  // levels are smaller than all their descendants and items in max levels
-  // are larger than all their descendants.
-  //
-  // The min-max heap indices are structured like this:
-  //  min               0
-  //  max        1             2
-  //  min      3   4         5     6
-  //  max     7 8 9 10     11 12 13 14
-  //  min    15...
-  //  ...
-  //
-  // The iteration happens in depth-first order, so the descendants of the
-  // element at index 0 are checked to ensure they are >= that element. This is
-  // repeated for each child of the element at index 0 (inverting the
-  // comparison at each level).
-  //
-  // In the case of 7 elements total (spread across 3 levels), the checking
-  // happens in the following order:
-  //   compare >= 0: 1, 3, 4, 2, 5, 6
-  //   compare <= 1: 3, 4
-  //   compare >= 3: (no children)
-  //   compare >= 4: (no children)
-  //   compare <= 2: 5, 6
-  //   compare >= 5: (no children)
-  //   compare >= 6: (no children)
   internal func _checkInvariants() {
     guard count > 1 else { return }
     var indicesToVisit: [Int] = [0]
