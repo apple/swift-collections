@@ -306,8 +306,8 @@ final class BitArrayTest: CollectionTestCase {
   
   func testBitwiseOr() {
     withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      var firstBitArray = BitArray(firstLayout)
       withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
           var expectedArray: [Bool] = []
@@ -324,8 +324,6 @@ final class BitArrayTest: CollectionTestCase {
           firstBitArray.formBitwiseOr(with: secondBitArray)
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
-        } else {
-          print("Count is not the same for these arrays, so cannot test.")
         }
       }
     }
@@ -333,8 +331,8 @@ final class BitArrayTest: CollectionTestCase {
   
   func testBitwiseAnd() {
     withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      var firstBitArray = BitArray(firstLayout)
       withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
           var expectedArray: [Bool] = []
@@ -351,11 +349,33 @@ final class BitArrayTest: CollectionTestCase {
           firstBitArray.formBitwiseAnd(with: secondBitArray)
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
-        } else {
-          print("Count is not the same for these arrays, so cannot test.")
         }
       }
     }
   }
   
+  func testBitwiseXor() {
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+        var firstBitArray = BitArray(firstLayout)
+        let secondBitArray = BitArray(secondLayout)
+        if (firstLayout.count == secondLayout.count) {
+          var expectedArray: [Bool] = []
+          for index in 0..<firstLayout.endIndex {
+            let value = (firstLayout[index] != secondLayout[index])
+            expectedArray.append(value)
+          }
+          
+          // test non-form
+          let resultBitArray = firstBitArray.bitwiseXor(with: secondBitArray)
+          expectEqual(Array(resultBitArray), expectedArray)
+          
+          //test form
+          firstBitArray.formBitwiseXor(with: secondBitArray)
+          expectEqual(firstBitArray, resultBitArray)
+          expectEqual(Array(firstBitArray), expectedArray)
+        }
+      }
+    }
+  }
 }

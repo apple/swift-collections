@@ -127,39 +127,44 @@ extension BitArray {
     precondition(rangeSize < endIndex, "The input rangeSize is invalidly larger than the bit array itself.")
     precondition(rangeSize > 0, "The input rangeSize must be a positive number.")
     let removeableBytes: Int = rangeSize/(UNIT.bitWidth)
+    let newCount = self.count-rangeSize
     storage.removeFirst(removeableBytes)
     
     let remainingElemCount = Int(rangeSize%(UNIT.bitWidth))
     
-    // this will hve a terrible run time, but it works and I'm having trouble getting the code below to work atm
     if (remainingElemCount != 0) {
-      for _ in 1...remainingElemCount {
-        removeFirst()
+      for i in 0..<remainingElemCount {
+        self[i] = false
       }
+      for i in remainingElemCount..<endIndex {
+        if (self[i]) {
+          self[i-remainingElemCount] = true
+          self[i] = false
+        }
+      }
+      
+      if(remainingElemCount >= excess) {
+        storage.removeLast()
+      }
+      
+      excess = UNIT(newCount)%UNIT((UNIT.bitWidth))
+      
+      /*for _ in 1...remainingElemCount {
+       _adjustExcessForRemove()
+       }*/
+      /*if (remainingElemCount > excess) {
+       excess = UNIT(UNIT.bitWidth) - (UNIT(remainingElemCount)-excess)
+       self.removeLast(remainingElemCount)
+       } else if (remainingElemCount == excess) {
+       excess = 0
+       } else {
+       excess -= UNIT(remainingElemCount)
+       }*/
+      //excess = (remainingElemCount > excess) ? UNIT(UNIT.bitWidth)-UNIT(remainingElemCount) : (excess-UNIT(remainingElemCount))
     }
-    
-    /* if (remainingElemCount != 0) {
-     for i in 0..<remainingElemCount {
-     self[i] = false
-     }
-     for i in remainingElemCount..<endIndex {
-     if (self[i]) {
-     self[i-remainingElemCount] = true
-     self[i] = false
-     }
-     }
-     if (remainingElemCount > excess) {
-     excess = UNIT(UNIT.bitWidth) - (UNIT(remainingElemCount)-excess)
-     self.removeLast(remainingElemCount)
-     } else if (remainingElemCount == excess) {
-     excess = 0
-     } else {
-     excess -= UNIT(remainingElemCount)
-     }
-     //excess = (remainingElemCount > excess) ? UNIT(UNIT.bitWidth)-UNIT(remainingElemCount) : (excess-UNIT(remainingElemCount))
-     } */
   }
   
+  // make public
   internal func firstTrueIndex() -> Int? {
     var counter = -1
     for item in storage {
