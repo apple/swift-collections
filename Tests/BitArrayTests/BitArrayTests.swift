@@ -324,6 +324,8 @@ final class BitArrayTest: CollectionTestCase {
           firstBitArray.formBitwiseOr(with: secondBitArray)
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
+        } else {
+          print("Count is not the same for these arrays, so cannot test.")
         }
       }
     }
