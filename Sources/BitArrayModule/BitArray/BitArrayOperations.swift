@@ -29,7 +29,7 @@ extension BitArray {
   }
   
   private mutating func _adjustExcessForAppend(){
-    if (self.excess == (UNIT.bitWidth-1)) {
+    if (self.excess == (WORD.bitWidth-1)) {
       self.excess = 0
     } else {
       self.excess += 1
@@ -67,7 +67,7 @@ extension BitArray {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove.")
     precondition(rangeSize < endIndex, "The input amount is invalidly larger than the array itself.")
     precondition(rangeSize > 0, "Input amount must be a positive number.")
-    let elementsInLastByte: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
+    let elementsInLastByte: Int = (excess == 0) ? WORD.bitWidth : Int(excess)
     if (rangeSize < elementsInLastByte) {
       for _ in 1...rangeSize {
         removeLast()
@@ -81,18 +81,18 @@ extension BitArray {
     storage.removeLast()
     excess = 0
     let range = rangeSize - Int(elementsInLastByte)
-    let removeableBytes: Int = range/(UNIT.bitWidth)
+    let removeableBytes: Int = range/(WORD.bitWidth)
     storage.removeLast(removeableBytes)
     
     // slower than necessary
-    for _ in 0..<range%(UNIT.bitWidth) {
+    for _ in 0..<range%(WORD.bitWidth) {
       removeLast()
     }
   }
   
   private mutating func _adjustExcessForRemove() {
     if (excess == 0) {
-      excess = UNIT(UNIT.bitWidth-1)
+      excess = WORD(WORD.bitWidth-1)
     } else {
       excess -= 1
       if (excess == 0) {
@@ -126,11 +126,11 @@ extension BitArray {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove")
     precondition(rangeSize < endIndex, "The input rangeSize is invalidly larger than the bit array itself.")
     precondition(rangeSize > 0, "The input rangeSize must be a positive number.")
-    let removeableBytes: Int = rangeSize/(UNIT.bitWidth)
+    let removeableBytes: Int = rangeSize/(WORD.bitWidth)
     let newCount = self.count-rangeSize
     storage.removeFirst(removeableBytes)
     
-    let remainingElemCount = Int(rangeSize%(UNIT.bitWidth))
+    let remainingElemCount = Int(rangeSize%(WORD.bitWidth))
     
     if (remainingElemCount != 0) {
       for i in 0..<remainingElemCount {
@@ -143,7 +143,7 @@ extension BitArray {
         }
       }
       
-      excess = UNIT(newCount)%UNIT((UNIT.bitWidth))
+      excess = WORD(newCount)%WORD((WORD.bitWidth))
       
       if (count != newCount) {
         storage.removeLast()
@@ -157,7 +157,7 @@ extension BitArray {
     for item in storage {
       counter += 1
       if (item > 0) {
-        return item.trailingZeroBitCount + counter*UNIT.bitWidth
+        return item.trailingZeroBitCount + counter*WORD.bitWidth
       }
     }
     return nil // If public, return nil/optional and probably not have the fatalError()
@@ -168,7 +168,7 @@ extension BitArray {
     for item in storage.reversed() {
       counter -= 1
       if (item > 0) {
-        return (UNIT.bitWidth-item.leadingZeroBitCount) + counter*UNIT.bitWidth - 1
+        return (WORD.bitWidth-item.leadingZeroBitCount) + counter*WORD.bitWidth - 1
       }
     }
     return nil

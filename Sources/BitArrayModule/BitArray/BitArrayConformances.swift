@@ -13,8 +13,8 @@ extension BitArray: Collection, RandomAccessCollection {
   }
   
   public var count: Int {
-    let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
-    return (storage.count)*UNIT.bitWidth - (UNIT.bitWidth - remaining)
+    let remaining: Int = (excess == 0) ? WORD.bitWidth : Int(excess)
+    return (storage.count)*WORD.bitWidth - (WORD.bitWidth - remaining)
   }
   
   public var startIndex: Int {
@@ -54,11 +54,11 @@ extension BitArray: MutableCollection {
     
   }
   
-  private func _split(_position: Int) -> (Int, UNIT) {
+  private func _split(_position: Int) -> (Int, WORD) {
     
-    let index: Int = _position/UNIT.bitWidth
-    let subPosition: Int = _position - index*UNIT.bitWidth
-    let mask: UNIT = 1 << subPosition
+    let index: Int = _position/WORD.bitWidth
+    let subPosition: Int = _position - index*WORD.bitWidth
+    let mask: WORD = 1 << subPosition
     
     return (index, mask)
     

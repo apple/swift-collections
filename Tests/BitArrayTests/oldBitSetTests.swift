@@ -11,7 +11,7 @@ import CollectionsTestSupport
 
 final class oldBitSetTest: CollectionTestCase {
   
-    typealias UNIT = BitArray.UNIT
+    typealias UNIT = BitArray.WORD
   let limit = 100
   
   func testSetInits() {
@@ -109,7 +109,7 @@ final class oldBitSetTest: CollectionTestCase {
     
     //sampleBitSet.formUnion(with: sampleBitSet2)
     
-    XCTAssertEqual(sampleBitSet.storage.storage, [BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, 15])
+    XCTAssertEqual(sampleBitSet.storage.storage, [BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, 15])
     
     var sampleBitSet3 = BitSet()
     var sampleBitSet4 = BitSet()
@@ -129,7 +129,7 @@ final class oldBitSetTest: CollectionTestCase {
     
     //sampleBitSet3.formUnion(with: sampleBitSet4)
     
-    XCTAssertEqual(sampleBitSet3.storage.storage, [BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, BitArray.UNIT.max, 15])
+    XCTAssertEqual(sampleBitSet3.storage.storage, [BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, BitArray.WORD.max, 15])
   }
   
   func testIntArrayView() {

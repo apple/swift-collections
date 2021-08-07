@@ -42,16 +42,16 @@ extension BitArray {
       return
     }
     
-    let remaining: Int = (excess == 0) ? UNIT.bitWidth : Int(excess)
+    let remaining: Int = (excess == 0) ? WORD.bitWidth : Int(excess)
     
     for i in 0..<self.storage.endIndex {
       self.storage[i] = ~self.storage[i]
     }
     
-    var mask: UNIT = 1 << remaining
+    var mask: WORD = 1 << remaining
     
     // flip the last bits past excess that aren't part of the set back to 0
-    for _ in 1...((UNIT.bitWidth)-Int(excess)) {
+    for _ in 1...((WORD.bitWidth)-Int(excess)) {
       self.storage[storage.endIndex-1] ^= mask
       mask <<= 1
     }

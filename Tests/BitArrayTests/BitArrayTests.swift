@@ -11,8 +11,8 @@ import CollectionsTestSupport
 
 final class BitArrayTest: CollectionTestCase {
   
-  typealias UNIT = BitArray.UNIT
-  let sizes: [Int] = _getSizes(BitArray.UNIT.bitWidth)
+  typealias WORD = BitArray.WORD
+  let sizes: [Int] = _getSizes(BitArray.WORD.bitWidth)
   
   func testEmptyInit() {
     let emptyBitArray = BitArray()
@@ -25,17 +25,17 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testSequenceInitializer() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.UNIT.bitWidth) { boolArray in
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.WORD.bitWidth) { boolArray in
       let testBitArray: BitArray = BitArray(boolArray)
       expectEqual(Array(testBitArray), boolArray)
       expectEqual(testBitArray.count, boolArray.count)
       expectEqual(testBitArray.endIndex, boolArray.count)
-      expectEqual(testBitArray.excess, UNIT(boolArray.count%8))
+      expectEqual(testBitArray.excess, WORD(boolArray.count%8))
     }
   }
   
   func testExpressibleByArrayLiteral() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.UNIT.bitWidth) { boolArray in
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.WORD.bitWidth) { boolArray in
       let testBitArray = BitArray(boolArray)
       expectEqual(Array(testBitArray), boolArray)
     }
@@ -97,8 +97,8 @@ final class BitArrayTest: CollectionTestCase {
       let falseBitArray = BitArray(repeating: false, count: count)
       
       let repeatCount = (count%8 == 0) ? Int(count/8) : Int(count/8) + 1
-      let expectedFalseStorage: [UNIT] = Array(repeating: 0, count: repeatCount)
-      var expectedTrueStorage: [UNIT] = Array(repeating: 255, count: repeatCount)
+      let expectedFalseStorage: [WORD] = Array(repeating: 0, count: repeatCount)
+      var expectedTrueStorage: [WORD] = Array(repeating: 255, count: repeatCount)
       if (count%8 != 0) {
         expectedTrueStorage.removeLast()
         switch count%8 {
@@ -128,7 +128,7 @@ final class BitArrayTest: CollectionTestCase {
           break
         }
       }
-      let expectedExcess: UNIT = UNIT(count%8)
+      let expectedExcess: WORD = WORD(count%8)
       
       expectEqual(Array(trueBitArray), trueArray)
       expectEqual(Array(falseBitArray), falseArray)
@@ -142,7 +142,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testAppend() { // depends on initializer tests passing
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArray = BitArray(layout)
       var bitArrayInverse = BitArray(layout)
       
@@ -150,7 +150,7 @@ final class BitArrayTest: CollectionTestCase {
       var layoutCopyInverse = layout
       
       var value = true
-      for _ in 0...(2*BitArray.UNIT.bitWidth+1) {
+      for _ in 0...(2*BitArray.WORD.bitWidth+1) {
         
         bitArray.append(value)
         bitArrayInverse.append(!value)
@@ -169,7 +169,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testRemoveFirst() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArray = BitArray(layout)
       var layoutCopy = layout
       
@@ -188,7 +188,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testRemoveFirstRange() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       if (layout.count == 0) {
         // cannot test empty array without tests crashing
       } else {
@@ -212,7 +212,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testRemoveLast() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArray = BitArray(layout)
       var layoutCopy = layout
       
@@ -231,7 +231,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testRemoveLastRange() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       if (layout.count == 0) {
         // cannot test empty array without tests crashing
       } else {
@@ -255,7 +255,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testRemoveAt() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArrayForReuse = BitArray(layout)
       var layoutCopyForReuse = layout
       
@@ -275,7 +275,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testRemoveAll() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArray = BitArray(layout)
       var layoutCopy = layout
       
@@ -291,22 +291,27 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testFirstTrueIndex() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       let bitArray = BitArray(layout)
       expectEqual(bitArray.firstTrueIndex(), layout.firstIndex(where: {$0 == true}))
     }
   }
-  
+  func testFirstTrue() {
+    let boolArr = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
+    let bitArr = BitArray(boolArr)
+    
+    expectEqual(bitArr.firstTrueIndex(), nil)
+  }
   func testLastTrueIndex() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       let bitArray = BitArray(layout)
       expectEqual(bitArray.lastTrueIndex(), layout.lastIndex(where: {$0 == true}))
     }
   }
   
   func testBitwiseOr() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
         var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
@@ -330,8 +335,8 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testBitwiseOrOperators() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
         var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
@@ -355,8 +360,8 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testBitwiseAnd() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
         var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
@@ -380,8 +385,8 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testBitwiseAndOperators() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
         var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
@@ -405,8 +410,8 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testBitwiseXor() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
         var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
@@ -430,8 +435,8 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testBitwiseXorOperators() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { secondLayout in
+    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
+      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
         var firstBitArray = BitArray(firstLayout)
         let secondBitArray = BitArray(secondLayout)
         if (firstLayout.count == secondLayout.count) {
@@ -455,7 +460,7 @@ final class BitArrayTest: CollectionTestCase {
   }
   
   func testBitwiseNot() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: UNIT.bitWidth) { layout in
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArray = BitArray(layout)
       var bitArrayCopy = bitArray
       var expectedArray: [Bool] = []
@@ -463,8 +468,8 @@ final class BitArrayTest: CollectionTestCase {
       for value in layout {
         expectedArray.append(!value)
       }
+      let newCopy = bitArray.bitwiseNot()
       bitArray.formBitwiseNot()
-      let newCopy = ~bitArrayCopy
       bitArrayCopy = ~bitArrayCopy
       
       
@@ -476,6 +481,7 @@ final class BitArrayTest: CollectionTestCase {
       
       expectEqual(Array(bitArrayCopy), expectedArray)
       expectEqual(BitArray(expectedArray), bitArrayCopy)
+      expectEqual(bitArray, newCopy)
     }
   }
 }

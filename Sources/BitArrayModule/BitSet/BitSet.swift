@@ -18,6 +18,13 @@ public struct BitSet: ExpressibleByArrayLiteral {
       }
       storage[value] = true
     }
+    
+    // clean up overly excess false values
+    while(storage.storage.count != 0 && storage.storage[storage.storage.endIndex-1] == 0) {
+      storage.storage.removeLast()
+    }
+    
+    storage.excess = 0
   }
   
   public init(arrayLiteral elements: Int...) {
@@ -27,10 +34,24 @@ public struct BitSet: ExpressibleByArrayLiteral {
       }
       storage[value] = true
     }
+    
+    // clean up overly excess false values
+    while(storage.storage.count != 0 && storage.storage[storage.storage.endIndex-1] == 0) {
+      storage.storage.removeLast()
+    }
+    
+    storage.excess = 0
   }
   
   public init(_ bitArray: BitArray) {
-    storage = bitArray // Is this assignment working properly? How do I know? In other languages, assigning an array to a variable doesn't work quite right...
+    storage = bitArray
+    
+    // clean up overly excess false values
+    while(storage.storage.count != 0 && storage.storage[storage.storage.endIndex-1] == 0) {
+      storage.storage.removeLast()
+    }
+    
+    storage.excess = 0
   }
   
   public struct Index {
