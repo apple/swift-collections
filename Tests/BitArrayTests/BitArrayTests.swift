@@ -34,7 +34,7 @@ final class BitArrayTest: CollectionTestCase {
     }
   }
   
-  func testExpressibleByArrayLiteral() {
+  func testExpressibleByArrayLiteralAndArrayLiteralInit() {
     withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.WORD.bitWidth) { boolArray in
       let testBitArray = BitArray(boolArray)
       expectEqual(Array(testBitArray), boolArray)
@@ -296,12 +296,7 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(bitArray.firstTrueIndex(), layout.firstIndex(where: {$0 == true}))
     }
   }
-  func testFirstTrue() {
-    let boolArr = [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]
-    let bitArr = BitArray(boolArr)
-    
-    expectEqual(bitArr.firstTrueIndex(), nil)
-  }
+
   func testLastTrueIndex() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       let bitArray = BitArray(layout)
