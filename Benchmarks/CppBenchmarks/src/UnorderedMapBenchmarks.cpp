@@ -9,12 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "UnorderedMapBenchmarks.h"
 #include <unordered_map>
 #include <cstdlib>
 #include <algorithm>
+#include "UnorderedMapBenchmarks.h"
 #include "CustomHash.h"
-#include "utils.h"
+#include "Utils.h"
 
 typedef std::unordered_map<intptr_t, intptr_t, custom_intptr_hash> custom_map;
 

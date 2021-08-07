@@ -9,13 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "UnorderedSetBenchmarks.h"
 #include <unordered_set>
 #include <cstdlib>
 #include <functional>
 #include <algorithm>
+#include "UnorderedSetBenchmarks.h"
 #include "CustomHash.h"
-#include "utils.h"
+#include "Utils.h"
 
 typedef std::unordered_set<intptr_t, custom_intptr_hash> custom_set;
 

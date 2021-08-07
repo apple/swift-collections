@@ -93,8 +93,11 @@ let package = Package(
       name: "Benchmarks",
       dependencies: [
         .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
-        "CppBenchmarks",
         "Collections",
+        "CppBenchmarks",
+        .target(
+          name: "FoundationBenchmarks",
+          condition: .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
       ],
       path: "Benchmarks/Benchmarks",
       resources: [
@@ -104,6 +107,11 @@ let package = Package(
     .target(
       name: "CppBenchmarks",
       path: "Benchmarks/CppBenchmarks"
+    ),
+    .target(
+      name: "FoundationBenchmarks",
+      dependencies: ["CppBenchmarks"],
+      path: "Benchmarks/FoundationBenchmarks"
     ),
     .target(
       name: "swift-collections-benchmark",
