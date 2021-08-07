@@ -9,10 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "DequeBenchmarks.h"
 #include <deque>
 #include <algorithm>
-#include "utils.h"
+#include "DequeBenchmarks.h"
+#include "Utils.h"
 
 void *
 cpp_deque_create(const intptr_t *start, size_t count)

@@ -23,6 +23,13 @@ extension Benchmark {
     }
 
     self.addSimple(
+      title: "Heap<Int> init from buffer",
+      input: [Int].self
+    ) { input in
+      blackHole(Heap(input))
+    }
+
+    self.addSimple(
       title: "Heap<Int> insert",
       input: [Int].self
     ) { input in
@@ -77,46 +84,5 @@ extension Benchmark {
         blackHole(queue)
       }
     }
-  }
-}
-
-// MARK: -
-
-extension Benchmark {
-  public mutating func addCFBinaryHeapBenchmarks() {
-    #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-    self.addSimple(
-      title: "CFBinaryHeap insert",
-      input: [Int].self
-    ) { input in
-      let heap = BinaryHeap()
-      for i in input {
-        heap.insert(i)
-      }
-      precondition(heap.count == input.count)
-      blackHole(heap)
-    }
-
-    self.add(
-      title: "CFBinaryHeap removeMinimumValue",
-      input: [Int].self
-    ) { input in
-      return { timer in
-        let heap = BinaryHeap()
-        for i in input {
-          heap.insert(i)
-        }
-
-        timer.measure {
-          while heap.count > 0 {
-            let min = heap.popMinimum()
-            blackHole(min)
-          }
-        }
-        precondition(heap.count == 0)
-        blackHole(heap)
-      }
-    }
-    #endif
   }
 }

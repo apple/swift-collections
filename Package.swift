@@ -93,8 +93,8 @@ let package = Package(
       name: "Benchmarks",
       dependencies: [
         .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
-        "CppBenchmarks",
         "Collections",
+        "CppBenchmarks",
       ],
       path: "Benchmarks/Benchmarks",
       resources: [

@@ -20,8 +20,10 @@ benchmark.addDequeBenchmarks()
 benchmark.addOrderedSetBenchmarks()
 benchmark.addOrderedDictionaryBenchmarks()
 benchmark.addHeapBenchmarks()
-benchmark.addCFBinaryHeapBenchmarks()
 benchmark.addCppBenchmarks()
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+benchmark.addFoundationBenchmarks()
+#endif
 
 benchmark.chartLibrary = try benchmark.loadReferenceLibrary()
 
