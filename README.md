@@ -16,6 +16,8 @@ The package currently provides the following implementations:
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
+- [`Heap<Element>`](Documentation/Heap.md], a min-max heap backed by an array.
+
 [Deque]: Documentation/Deque.md
 [OrderedSet]: Documentation/OrderedSet.md
 [OrderedDictionary]: Documentation/OrderedDictionary.md
@@ -224,4 +226,3 @@ Like all Swift.org projects, we would like the Swift Collections project to fost
 The current code owner of this package is Karoy Lorentey ([@lorentey](https://github.com/lorentey)). You can contact him [on the Swift forums](https://forums.swift.org/u/lorentey/summary), or by writing an email to klorentey at apple dot com. (Please keep it related to this project.)
 
 In case of moderation issues, you can also directly contact a member of the [Swift Core Team](https://swift.org/community/#community-structure).
-

@@ -54,6 +54,7 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
@@ -65,6 +66,7 @@ let package = Package(
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "PriorityQueueModule",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -130,6 +132,16 @@ let package = Package(
       name: "OrderedCollectionsTests",
       dependencies: ["OrderedCollections", "CollectionsTestSupport"],
       swiftSettings: settings),
+
+    // PriorityQueue<Element>
+    .target(
+        name: "PriorityQueueModule",
+        exclude: ["CMakeLists.txt"],
+        swiftSettings: settings),
+    .testTarget(
+        name: "PriorityQueueTests",
+        dependencies: ["PriorityQueueModule"],
+        swiftSettings: settings),
   ],
   cxxLanguageStandard: .cxx1z
 )

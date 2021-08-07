@@ -9,6 +9,21 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
+#ifndef BinaryHeap_h
+#define BinaryHeap_h
+
+#if __APPLE__ // CFBinaryHeap only exists on Apple platforms
+
+@import Foundation;
+
+@interface BinaryHeap: NSObject
+
+@property (nonatomic, readonly) NSUInteger count;
+
+- (void)insert:(NSInteger)value;
+- (NSInteger)popMinimum;
+
+@end
+
+#endif // __APPLE__
+#endif /* BinaryHeap_h */

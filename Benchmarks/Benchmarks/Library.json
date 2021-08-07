@@ -766,6 +766,46 @@
     },
     {
       "kind": "group",
+      "title": "PriorityQueue",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "operations",
+          "tasks": [
+            "Heap<Int> init from range",
+            "Heap<Int> insert",
+            "Heap<Int> insert(contentsOf:)",
+            "Heap<Int> popMax",
+            "Heap<Int> popMin"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "initializers",
+          "tasks": [
+            "Heap<Int> init from range"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "insert",
+          "tasks": [
+            "Heap<Int> insert",
+            "Heap<Int> insert(contentsOf:)"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "remove",
+          "tasks": [
+            "Heap<Int> popMax",
+            "Heap<Int> popMin"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
       "title": "Against other Swift collections",
       "directory": "stdlib",
       "contents": [
