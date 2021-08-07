@@ -12,6 +12,8 @@
 #ifndef BinaryHeap_h
 #define BinaryHeap_h
 
+#if __APPLE__ // CFBinaryHeap only exists on Apple platforms
+
 @import Foundation;
 
 @interface BinaryHeap: NSObject
@@ -23,4 +25,5 @@
 
 @end
 
+#endif // __APPLE__
 #endif /* BinaryHeap_h */
