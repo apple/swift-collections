@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifdef __APPLE__ // CFBinaryHeap only exists on Apple platforms
+
 #import <stdint.h>
 #import "CoreFoundation/CoreFoundation.h"
 #import "Utils.h"
@@ -79,3 +81,5 @@ fnd_binary_heap_remove_min_all(void *ptr)
     CFBinaryHeapRemoveMinimumValue((CFBinaryHeapRef)ptr);
   }
 }
+
+#endif // __APPLE__

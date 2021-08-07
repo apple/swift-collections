@@ -12,6 +12,8 @@
 #ifndef FOUNDATIONBENCHMARKS_CFBINARYHEAP_H
 #define FOUNDATIONBENCHMARKS_CFBINARYHEAP_H
 
+#ifdef __APPLE__ // CFBinaryHeap only exists on Apple platforms
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -40,5 +42,7 @@ extern void fnd_binary_heap_remove_min_all(void *ptr);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* __APPLE__ */
 
 #endif /* FOUNDATIONBENCHMARKS_CFBINARYHEAP_H */
