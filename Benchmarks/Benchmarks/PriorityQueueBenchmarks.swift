@@ -84,6 +84,7 @@ extension Benchmark {
 
 extension Benchmark {
   public mutating func addCFBinaryHeapBenchmarks() {
+    #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
     self.addSimple(
       title: "CFBinaryHeap insert",
       input: [Int].self
@@ -116,5 +117,6 @@ extension Benchmark {
         blackHole(heap)
       }
     }
+    #endif
   }
 }
