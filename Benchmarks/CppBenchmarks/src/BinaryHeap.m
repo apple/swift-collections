@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if __APPLE__ // CFBinaryHeap only exists on Apple platforms
+
 #import <Foundation/Foundation.h>
 
 #import "BinaryHeap.h"
@@ -70,3 +72,5 @@ static CFComparisonResult HeapCompare(const void *lhs, const void *rhs, void *co
 }
 
 @end
+
+#endif // __APPLE__
