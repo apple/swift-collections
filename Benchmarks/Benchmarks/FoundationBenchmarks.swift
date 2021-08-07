@@ -12,48 +12,26 @@
 import CollectionsBenchmark
 
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-import FoundationBenchmarks
+import Foundation
 
-internal class FoundationBinaryHeap {
-  var ptr: UnsafeMutableRawPointer?
-
-  init(_ input: [Int]) {
-    self.ptr = input.withUnsafeBufferPointer { buffer in
-      fnd_binary_heap_create(buffer.baseAddress, buffer.count)
-    }
-  }
-
-  convenience init() {
-    self.init([])
-  }
-
-  deinit {
-    destroy()
-  }
-
-  func destroy() {
-    if let ptr = ptr {
-      fnd_binary_heap_destroy(ptr)
-    }
-    ptr = nil
-  }
-
-  func add(_ value: Int) {
-    fnd_binary_heap_add(ptr, value)
-  }
-
-  func add(_ values: [Int]) {
-    values.withUnsafeBufferPointer { buffer in
-      fnd_binary_heap_add_loop(ptr, buffer.baseAddress, buffer.count)
-    }
-  }
-
-  func removeMin() -> Int {
-    fnd_binary_heap_remove_min(ptr)
-  }
-
-  func removeAll() {
-    fnd_binary_heap_remove_min_all(ptr)
+extension CFBinaryHeap {
+  internal static func _create(capacity: Int) -> CFBinaryHeap {
+    var callbacks = CFBinaryHeapCallBacks(
+      version: 0,
+      retain: nil,
+      release: nil,
+      copyDescription: { value in
+        let result = "\(Int(bitPattern: value))" as NSString
+        return Unmanaged.passRetained(result)
+      },
+      compare: { left, right, context in
+        let left = Int(bitPattern: left)
+        let right = Int(bitPattern: right)
+        if left == right { return .compareEqualTo }
+        if left < right { return .compareLessThan }
+        return .compareGreaterThan
+      })
+    return CFBinaryHeapCreate(kCFAllocatorDefault, capacity, &callbacks, nil)
   }
 }
 #endif
@@ -66,9 +44,31 @@ extension Benchmark {
     ) { input in
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
       return { timer in
-        let heap = FoundationBinaryHeap()
+        let heap = CFBinaryHeap._create(capacity: 0)
         timer.measure {
-          heap.add(input)
+          for value in input {
+            CFBinaryHeapAddValue(heap, UnsafeRawPointer(bitPattern: value))
+          }
+        }
+        blackHole(heap)
+      }
+#else
+      // CFBinaryHeap isn't available
+      return nil
+#endif
+    }
+
+    self.add(
+      title: "CFBinaryHeapAddValue, reserving capacity",
+      input: [Int].self
+    ) { input in
+#if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+      return { timer in
+        let heap = CFBinaryHeap._create(capacity: input.count)
+        timer.measure {
+          for value in input {
+            CFBinaryHeapAddValue(heap, UnsafeRawPointer(bitPattern: value))
+          }
         }
         blackHole(heap)
       }
@@ -83,9 +83,15 @@ extension Benchmark {
     ) { input in
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
       return { timer in
-        let heap = FoundationBinaryHeap(input)
+        let heap = CFBinaryHeap._create(capacity: input.count)
+        for value in input {
+          CFBinaryHeapAddValue(heap, UnsafeRawPointer(bitPattern: value))
+        }
         timer.measure {
-          heap.removeAll()
+          for _ in 0 ..< input.count {
+            blackHole(CFBinaryHeapGetMinimum(heap))
+            CFBinaryHeapRemoveMinimumValue(heap)
+          }
         }
         blackHole(heap)
       }

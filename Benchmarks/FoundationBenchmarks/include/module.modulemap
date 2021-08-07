@@ -1,4 +1,0 @@
-module FoundationBenchmarks {
-  header "CFBinaryHeapBenchmarks.h"
-  export *
-}
