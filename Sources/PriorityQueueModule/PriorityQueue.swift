@@ -11,8 +11,7 @@
 
 import Swift
 
-/// A double-ended priority queue built on top of a [Min-Max Heap](https://en.wikipedia.org/wiki/Min-max_heap)
-/// data structure.
+/// A double-ended priority queue built on top of `Heap`.
 public struct PriorityQueue<Value, Priority: Comparable> {
   public typealias Element = (value: Value, priority: Priority)
 

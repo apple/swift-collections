@@ -22,13 +22,14 @@ The package currently provides the following implementations:
 
 The following data structures are currently being worked on but they aren't ready for inclusion in a tagged release:
 
-- [`Heap`][Heap] and [`PriorityQueue`](https://github.com/apple/swift-collections/pull/51), min-max heaps backed by an array.
+- [`Heap`][Heap] and [`PriorityQueue`][PriorityQueue], min-max heaps backed by an array.
 - [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
 - [`HashSet` and `HashMap`](https://github.com/apple/swift-collections/pull/31), persistent hashed collections implemented as Compressed Hash-Array Mapped Prefix-Trees (CHAMP).
 - [`BitArray` and `BitSet`](https://github.com/apple/swift-collections/pull/83), dynamic bit vectors.
 - [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
 
 [Heap]: Documentation/Heap.md
+[PriorityQueue]: Documentation/PriorityQueue.md
 
 Swift Collections uses the same modularization approach as [**Swift Numerics**](https://github.com/apple/swift-numerics): it provides a standalone module for each thematic group of data structures it implements. For instance, if you only need a double-ended queue type, you can pull in only that by importing `DequeModule`. `OrderedSet` and `OrderedDictionary` share much of the same underlying implementation, so they are provided by a single module, called `OrderedCollections`. However, there is also a top-level `Collections` module that gives you every collection type with a single import statement:
 
