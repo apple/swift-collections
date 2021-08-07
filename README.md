@@ -16,7 +16,7 @@ The package currently provides the following implementations:
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
-- [`Heap<Element>`](Documentation/Heap.md], a min-max heap backed by an array.
+- [`Heap<Element>`](Documentation/Heap.md), a min-max heap backed by an array.
 
 [Deque]: Documentation/Deque.md
 [OrderedSet]: Documentation/OrderedSet.md
