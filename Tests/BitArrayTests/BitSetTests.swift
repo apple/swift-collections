@@ -158,4 +158,48 @@ final class BitSetTest: CollectionTestCase {
     XCTAssertTrue(testBitSet7.startIndex < testBitSet7.endIndex)
   }
   
+  func testInsertAndContains() {
+    var values: [Int] = [0]
+    for value in 1...2*WORD.bitWidth+13 {
+      values.append(value)
+    }
+    values.append(3320)
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
+      withTheirBitSetLayout("bitSet", ofLayout: layout) { bitSetIntArray in
+        var bitSet = BitSet(bitSetIntArray)
+        var intArrayCopy = bitSetIntArray
+        
+        for value in values {
+          if (!intArrayCopy.contains(value)) {
+            intArrayCopy.append(value)
+            expectFalse(bitSet.contains(value))
+          }
+          bitSet.insert(value)
+          expectEqual(Array(bitSet), intArrayCopy.sorted())
+          expectTrue(bitSet.contains(value))
+        }
+        
+        expectFalse(bitSet.contains(999999))
+        
+      }
+    }
+    
+    //test with empty initializer
+    var bitSet = BitSet()
+    var layout: [Int] = []
+    
+    for value in values {
+      if (!layout.contains(value)) {
+        layout.append(value)
+        expectFalse(bitSet.contains(value))
+      }
+      bitSet.insert(value)
+      expectEqual(Array(bitSet), layout.sorted())
+      expectTrue(bitSet.contains(value))
+    }
+    
+    expectFalse(bitSet.contains(999999))
+
+  }
+  
 }

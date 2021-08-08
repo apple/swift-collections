@@ -10,8 +10,8 @@ extension BitSet: Equatable {
   @discardableResult
   public mutating func insert(_ newMember: Int) -> Bool {
     if (newMember >= storage.count) {
-        let padding = (newMember - storage.count + 1)%8
-        storage.storage += Array(repeating: 0, count: padding)
+        let padding: Double = (Double(newMember - storage.count + 1)/Double(BitArray.WORD.bitWidth)).rounded(.up)
+        storage.storage += Array(repeating: 0, count: Int(padding))
     }
     /*while (storage.count-1 < newMember) {
       storage.storage.append(0)
