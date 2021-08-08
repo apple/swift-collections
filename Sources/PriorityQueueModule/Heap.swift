@@ -149,6 +149,7 @@ public struct Heap<Element: Comparable> {
 
   // MARK: -
 
+  @inline(__always)
   @inlinable
   internal mutating func _bubbleUp(elementAt index: Int) {
     guard let parentIdx = _parentIndex(of: index) else {
@@ -176,6 +177,7 @@ public struct Heap<Element: Comparable> {
     }
   }
 
+  @inline(__always)
   @inlinable
   internal mutating func _bubbleUpMin(elementAt index: Int) {
     var index = index
@@ -187,6 +189,7 @@ public struct Heap<Element: Comparable> {
     }
   }
 
+  @inline(__always)
   @inlinable
   internal mutating func _bubbleUpMax(elementAt index: Int) {
     var index = index
@@ -219,6 +222,7 @@ public struct Heap<Element: Comparable> {
 
   // MARK: -
 
+  @inline(__always)
   @inlinable
   internal mutating func _trickleDown(elementAt index: Int) {
     // Figure out if `index` is on an even or odd level
@@ -231,6 +235,7 @@ public struct Heap<Element: Comparable> {
     }
   }
  
+  @inline(__always)
   @inlinable
   internal mutating func _trickleDownMin(elementAt index: Int) {
     var index = index
@@ -257,6 +262,7 @@ public struct Heap<Element: Comparable> {
     }
   }
 
+  @inline(__always)
   @inlinable
   internal mutating func _trickleDownMax(elementAt index: Int) {
     var index = index
@@ -290,6 +296,7 @@ public struct Heap<Element: Comparable> {
   ///
   /// - parameter index: The index of the element whose descendants should be
   ///                    compared.
+  @inline(__always)
   @inlinable
   internal func _indexOfLowestPriorityChildOrGrandchild(
     of index: Int
@@ -343,6 +350,7 @@ public struct Heap<Element: Comparable> {
   ///
   /// - parameter index: The index of the item whose descendants should be
   ///                    compared.
+  @inline(__always)
   @inlinable
   internal func _indexOfHighestPriorityChildOrGrandchild(
     of index: Int
