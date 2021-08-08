@@ -17,12 +17,14 @@ import Swift
 /// its descendants, while each node at an odd level in the tree is greater than
 /// all of its descendants.
 ///
-/// The implementation is based off [Atkinson et al. Min-Max Heaps and
-/// Generalized Priority Queues (1986)](http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf).
+/// The implementation is based on [Atkinson 1986]:
 ///
-/// M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte. October 1986.
-/// Min-Max Heaps and Generalized Priority Queues. Communications of the ACM.
-/// 29(10):996-1000.
+/// [Atkinson 1986]: https://doi.org/10.1145/6617.6621
+///
+/// M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte.
+/// "Min-Max Heaps and Generalized Priority Queues."
+/// *Communications of the ACM*, vol. 29, no. 10, Oct. 1986., pp. 996-1000,
+/// doi:[10.1145/6617.6621](https://doi.org/10.1145/6617.6621)
 public struct Heap<Element: Comparable> {
   @usableFromInline
   internal var _storage: [Element]
