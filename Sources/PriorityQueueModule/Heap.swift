@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Swift
-
 /// A [Min-Max Heap](https://en.wikipedia.org/wiki/Min-max_heap) data structure.
 ///
 /// In a min-max heap, each node at an even level in the tree is less than all
