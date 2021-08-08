@@ -10,25 +10,19 @@ extension BitSet: Equatable {
   @discardableResult
   public mutating func insert(_ newMember: Int) -> Bool {
     if (newMember >= storage.count) {
+        // can also try ceil()
         let padding: Double = (Double(newMember - storage.count + 1)/Double(BitArray.WORD.bitWidth)).rounded(.up)
         storage.storage += Array(repeating: 0, count: Int(padding))
     }
-    /*while (storage.count-1 < newMember) {
-      storage.storage.append(0)
-    }*/
     
     let returnVal = !storage[newMember]
     storage[newMember] = true
     return returnVal
-    
-    /* // alternative:
-     
-     defer { storage[member] = true }
-     return storage[member]
-     */
+
   }
   
   public mutating func forceInsert(_ newMember: Int) {
+    // alternative shown in insert func above
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
     }
@@ -38,10 +32,9 @@ extension BitSet: Equatable {
   @discardableResult
   public mutating func remove(_ member: Int) -> Bool {
     if (member >= storage.endIndex) {
-      return false // I chose to do this instead of crash since this is a Set, and there aren't really array index limits to a set
+      return false
     }
     
-    // alternative: similar to how its done in insert function
     let returnVal = storage[member]
     storage[member] = false
     return returnVal
