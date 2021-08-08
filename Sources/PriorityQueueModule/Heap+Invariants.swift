@@ -20,33 +20,33 @@ extension Heap {
   @inline(never)
   internal func _checkInvariants() {
     guard count > 1 else { return }
-    _checkInvariants(index: 0, min: nil, max: nil)
+    _checkInvariants(node: .root, min: nil, max: nil)
   }
 
   @inlinable
-  internal func _checkInvariants(index: Int, min: Element?, max: Element?) {
-    let value = _storage[index]
+  internal func _checkInvariants(node: _Node, min: Element?, max: Element?) {
+    let value = _element(at: node)
     if let min = min {
       precondition(value >= min,
-                   "Element '\(value)' at index \(index) should be >= '\(min)'")
+                   "Element \(value) at \(node) is less than min \(min)")
     }
     if let max = max {
       precondition(value <= max,
-                   "Element '\(value)' at index \(index) should be <= '\(max)'")
+                   "Element \(value) at \(node) is greater than max \(max)")
     }
-    if _minMaxHeapIsMinLevel(index) {
-      if let left = _leftChildIndex(of: index) {
-        _checkInvariants(index: left, min: value, max: max)
+    if node.isMinLevel {
+      if let left = node.leftChild(limit: count) {
+        _checkInvariants(node: left, min: value, max: max)
       }
-      if let right = _rightChildIndex(of: index) {
-        _checkInvariants(index: right, min: value, max: max)
+      if let right = node.rightChild(limit: count) {
+        _checkInvariants(node: right, min: value, max: max)
       }
     } else {
-      if let left = _leftChildIndex(of: index) {
-        _checkInvariants(index: left, min: min, max: value)
+      if let left = node.leftChild(limit: count) {
+        _checkInvariants(node: left, min: min, max: value)
       }
-      if let right = _rightChildIndex(of: index) {
-        _checkInvariants(index: right, min: min, max: value)
+      if let right = node.rightChild(limit: count) {
+        _checkInvariants(node: right, min: min, max: value)
       }
     }
   }

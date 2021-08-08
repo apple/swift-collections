@@ -350,18 +350,13 @@ final class HeapTests: XCTestCase {
 
   func test_levelCalculation() {
     // Check alternating min and max levels in the heap
-    let q = Heap<Int>()
     var isMin = true
     for exp in 0...12 {
       // Check [2^exp, 2^(exp + 1))
-      for i in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
-        if isMin {
-          XCTAssertTrue(q._minMaxHeapIsMinLevel(i), "\(i) should be on a max level")
-        } else {
-          XCTAssertFalse(q._minMaxHeapIsMinLevel(i), "\(i) should be on a min level")
-        }
+      for offset in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
+        let node = _Node(offset: offset)
+        XCTAssertEqual(node.isMinLevel, isMin)
       }
-
       isMin.toggle()
     }
   }
