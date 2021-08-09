@@ -9,7 +9,7 @@ extension BitSet: Equatable {
   
   @discardableResult
   public mutating func insert(_ newMember: Int) -> Bool {
-    precondition(member >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
+    precondition(newMember >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
     if (newMember >= storage.count) {
         // can also try ceil()
         let padding: Double = (Double(newMember - storage.count + 1)/Double(BitArray.WORD.bitWidth)).rounded(.up)
@@ -23,7 +23,7 @@ extension BitSet: Equatable {
   }
   
   public mutating func forceInsert(_ newMember: Int) {
-    precondition(member >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
+    precondition(newMember >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
     // alternative shown in insert func above
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
