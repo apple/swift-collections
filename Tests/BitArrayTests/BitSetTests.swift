@@ -272,10 +272,11 @@ final class BitSetTest: CollectionTestCase {
         }
         
         for _ in layout {
+          
           guard let removing = intArrayCopy.randomElement() else {
-            print("Error in removing")
-            break
+            continue
           }
+          
           expectTrue(bitSet.contains(removing))
           intArrayCopy.removeAll(where: {$0 == removing})
           expectTrue(bitSet.remove(removing))
@@ -284,6 +285,66 @@ final class BitSetTest: CollectionTestCase {
         }
         
         expectTrue(bitSet.isEmpty)
+      }
+    }
+  }
+  
+  func testUnion() {
+    withSomeUsefulBoolArrays("boolArray1", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolLayout1 in
+      withTheirBitSetLayout("bitSetLayout1", ofLayout: boolLayout1) { bitSetLayout1 in
+        withSomeUsefulBoolArrays("boolArray2", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolArray2 in
+          withTheirBitSetLayout("bitSetLayout2", ofLayout: boolArray2) { bitSetLayout2 in
+            var bitSet1 = BitSet(bitSetLayout1)
+            let bitSet2 = BitSet(bitSetLayout2)
+            let intArrayCopy1 = bitSetLayout1
+            let intArrayCopy2 = bitSetLayout2
+            
+            var expectedResult = intArrayCopy1
+            for value in intArrayCopy2 {
+              if (!intArrayCopy1.contains(value)) {
+                expectedResult.append(value)
+              }
+            }
+            
+            let nonFormUnion = bitSet1.union(bitSet2)
+            bitSet1.formUnion(bitSet2)
+            
+            expectEqual(bitSet1, nonFormUnion)
+            expectEqual(Array(bitSet1), expectedResult.sorted())
+            expectEqual(Array(nonFormUnion), expectedResult.sorted())
+          }
+        }
+      }
+    }
+  }
+  
+  func testIntersection() {
+    withSomeUsefulBoolArrays("boolArray1", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolLayout1 in
+      withTheirBitSetLayout("bitSetLayout1", ofLayout: boolLayout1) { bitSetLayout1 in
+        withSomeUsefulBoolArrays("boolArray2", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolArray2 in
+          withTheirBitSetLayout("bitSetLayout2", ofLayout: boolArray2) { bitSetLayout2 in
+            var bitSet1 = BitSet(bitSetLayout1)
+            let bitSet2 = BitSet(bitSetLayout2)
+            let intArrayCopy1 = bitSetLayout1
+            let intArrayCopy2 = bitSetLayout2
+            
+            var expectedResult: [Int] = []
+            
+            for value in intArrayCopy1 {
+                if (intArrayCopy2.contains(value)) {
+                    expectedResult.append(value)
+                }
+            }
+            
+            
+            let nonFormIntersection = bitSet1.intersection(bitSet2)
+            bitSet1.formIntersection(bitSet2)
+            
+            expectEqual(bitSet1, nonFormIntersection)
+            expectEqual(Array(bitSet1), expectedResult.sorted())
+            expectEqual(Array(nonFormIntersection), expectedResult.sorted())
+          }
+        }
       }
     }
   }

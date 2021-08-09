@@ -51,7 +51,7 @@ extension BitSet: Equatable {
   }
   
   public __consuming func intersection(_ other: BitSet) -> BitSet {
-    var newBitSet = BitSet()
+    var newBitSet = self
     newBitSet.formIntersection(other)
     return newBitSet
   }
