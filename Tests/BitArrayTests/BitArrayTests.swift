@@ -141,6 +141,33 @@ final class BitArrayTest: CollectionTestCase {
     }
   }
   
+  func testBitSetInit() {
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { bitArrayLayout in
+      withTheirBitSetLayout("bitSet", ofLayout: bitArrayLayout) { bitSetLayout in
+        let bitArray = BitArray(bitArrayLayout)
+        let bitSet = BitSet(bitSetLayout)
+        let bitArrayFromSet = BitArray(bitSet)
+        
+        // only need to see if true values are in correct location
+        if(bitArray.storage.count > bitArrayFromSet.storage.count) {
+          for index in 0..<bitArrayFromSet.storage.count {
+            expectEqual(bitArray.storage[index], bitArrayFromSet.storage[index])
+          }
+          for index in bitArrayFromSet.storage.count..<bitArray.storage.count {
+            expectEqual(bitArray.storage[index], 0)
+          }
+        } else if (bitArray.storage.count < bitArrayFromSet.storage.count){
+          for index in 0..<bitArray.storage.count {
+            expectEqual(bitArrayFromSet.storage[index], bitArray.storage[index])
+          }
+          for index in bitArray.storage.count..<bitArrayFromSet.storage.count {
+            expectEqual(bitArrayFromSet.storage[index], 0)
+          }
+        }
+      }
+    }
+  }
+  
   func testAppend() { // depends on initializer tests passing
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       var bitArray = BitArray(layout)
@@ -296,7 +323,7 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(bitArray.firstTrueIndex(), layout.firstIndex(where: {$0 == true}))
     }
   }
-
+  
   func testLastTrueIndex() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       let bitArray = BitArray(layout)
