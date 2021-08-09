@@ -394,7 +394,7 @@ final class BitSetTest: CollectionTestCase {
     withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { bitArrayLayout in
       withTheirBitSetLayout("bitSet", ofLayout: bitArrayLayout) { bitSetLayout in
         let bitSet = BitSet(bitSetLayout)
-        print(bitSet.count)
+        //print(bitSet.count)
         if (bitSetLayout.count != 0 && bitSet.count != 0) {
           let reverseIndexCounter = bitSetLayout.endIndex-1
           //for item in bitSet.reversed() {
