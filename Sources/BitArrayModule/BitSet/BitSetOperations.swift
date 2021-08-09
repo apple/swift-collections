@@ -7,7 +7,7 @@
 
 extension BitSet {
   
-  public func contains(indexValue: Int) -> Bool {
+  public func contains(_ indexValue: Int) -> Bool {
     
     precondition(indexValue >= 0, "Input must be a positive number")
     if (indexValue >= storage.count) {

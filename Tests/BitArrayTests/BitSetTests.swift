@@ -202,7 +202,7 @@ final class BitSetTest: CollectionTestCase {
     
   }
   
-  func testForceInsertAndContains() {
+  func testForceInsertAndContainsAndIsEmpty() {
     var values: [Int] = [0]
     for value in 1...2*WORD.bitWidth+13 {
       values.append(value)
@@ -212,6 +212,12 @@ final class BitSetTest: CollectionTestCase {
       withTheirBitSetLayout("bitSet", ofLayout: layout) { bitSetIntArray in
         var bitSet = BitSet(bitSetIntArray)
         var intArrayCopy = bitSetIntArray
+        
+        if (intArrayCopy.isEmpty) {
+          expectTrue(bitSet.isEmpty)
+        } else {
+          expectFalse(bitSet.isEmpty)
+        }
         
         for value in values {
           if (!intArrayCopy.contains(value)) {
@@ -232,6 +238,8 @@ final class BitSetTest: CollectionTestCase {
     var bitSet = BitSet()
     var layout: [Int] = []
     
+    expectTrue(bitSet.isEmpty)
+    
     for value in values {
       if (!layout.contains(value)) {
         layout.append(value)
@@ -240,9 +248,43 @@ final class BitSetTest: CollectionTestCase {
       bitSet.forceInsert(value)
       expectEqual(Array(bitSet), layout.sorted())
       expectTrue(bitSet.contains(value))
+      expectFalse(bitSet.isEmpty)
     }
     
     expectFalse(bitSet.contains(999999))
     
+  }
+  
+  func testRemove() {
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
+      withTheirBitSetLayout("bitSetIntLayout", ofLayout: layout) { bitSetIntLayout in
+        var bitSet = BitSet(bitSetIntLayout)
+        var intArrayCopy = bitSetIntLayout
+        
+        // do some beyond the scope
+        for value in (4*WORD.bitWidth)...(7*WORD.bitWidth) {
+          expectFalse(bitSet.remove(value))
+        }
+        
+        // trying removing one more than the last value
+        if (bitSetIntLayout.count != 0) {
+          expectFalse(bitSet.remove(bitSetIntLayout[bitSetIntLayout.endIndex-1]+1))
+        }
+        
+        for _ in layout {
+          guard let removing = intArrayCopy.randomElement() else {
+            print("Error in removing")
+            break
+          }
+          expectTrue(bitSet.contains(removing))
+          intArrayCopy.removeAll(where: {$0 == removing})
+          expectTrue(bitSet.remove(removing))
+          expectFalse(bitSet.contains(removing))
+          expectEqual(Array(bitSet), intArrayCopy)
+        }
+        
+        expectTrue(bitSet.isEmpty)
+      }
+    }
   }
 }
