@@ -306,12 +306,14 @@ final class BitSetTest: CollectionTestCase {
               }
             }
             
+            expectedResult = expectedResult.sorted()
+            
             let nonFormUnion = bitSet1.union(bitSet2)
             bitSet1.formUnion(bitSet2)
             
             expectEqual(bitSet1, nonFormUnion)
-            expectEqual(Array(bitSet1), expectedResult.sorted())
-            expectEqual(Array(nonFormUnion), expectedResult.sorted())
+            expectEqual(Array(bitSet1), expectedResult)
+            expectEqual(Array(nonFormUnion), expectedResult)
           }
         }
       }
@@ -331,18 +333,57 @@ final class BitSetTest: CollectionTestCase {
             var expectedResult: [Int] = []
             
             for value in intArrayCopy1 {
-                if (intArrayCopy2.contains(value)) {
-                    expectedResult.append(value)
-                }
+              if (intArrayCopy2.contains(value)) {
+                expectedResult.append(value)
+              }
             }
             
+            expectedResult = expectedResult.sorted()
             
             let nonFormIntersection = bitSet1.intersection(bitSet2)
             bitSet1.formIntersection(bitSet2)
             
             expectEqual(bitSet1, nonFormIntersection)
-            expectEqual(Array(bitSet1), expectedResult.sorted())
-            expectEqual(Array(nonFormIntersection), expectedResult.sorted())
+            expectEqual(Array(bitSet1), expectedResult)
+            expectEqual(Array(nonFormIntersection), expectedResult)
+          }
+        }
+      }
+    }
+  }
+  
+  func testSymmetricDifference() {
+    withSomeUsefulBoolArrays("boolArray1", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolLayout1 in
+      withTheirBitSetLayout("bitSetLayout1", ofLayout: boolLayout1) { bitSetLayout1 in
+        withSomeUsefulBoolArrays("boolArray2", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolArray2 in
+          withTheirBitSetLayout("bitSetLayout2", ofLayout: boolArray2) { bitSetLayout2 in
+            var bitSet1 = BitSet(bitSetLayout1)
+            let bitSet2 = BitSet(bitSetLayout2)
+            let intArrayCopy1 = bitSetLayout1
+            let intArrayCopy2 = bitSetLayout2
+            
+            var expectedResult: [Int] = []
+            
+            for value in intArrayCopy1 {
+              if (!intArrayCopy2.contains(value)) {
+                expectedResult.append(value)
+              }
+            }
+            
+            for value in intArrayCopy2 {
+              if (!intArrayCopy1.contains(value)) {
+                expectedResult.append(value)
+              }
+            }
+            
+            expectedResult = expectedResult.sorted()
+            
+            let nonFormSymmetricDifference = bitSet1.symmetricDifference(bitSet2)
+            bitSet1.formSymmetricDifference(bitSet2)
+            
+            expectEqual(bitSet1, nonFormSymmetricDifference)
+            expectEqual(Array(bitSet1), expectedResult)
+            expectEqual(Array(nonFormSymmetricDifference), expectedResult)
           }
         }
       }

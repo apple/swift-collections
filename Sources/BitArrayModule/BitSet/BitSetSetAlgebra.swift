@@ -11,15 +11,15 @@ extension BitSet: Equatable {
   public mutating func insert(_ newMember: Int) -> Bool {
     precondition(newMember >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
     if (newMember >= storage.count) {
-        // can also try ceil()
-        let padding: Double = (Double(newMember - storage.count + 1)/Double(BitArray.WORD.bitWidth)).rounded(.up)
-        storage.storage += Array(repeating: 0, count: Int(padding))
+      // can also try ceil()
+      let padding: Double = (Double(newMember - storage.count + 1)/Double(BitArray.WORD.bitWidth)).rounded(.up)
+      storage.storage += Array(repeating: 0, count: Int(padding))
     }
     
     let returnVal = !storage[newMember]
     storage[newMember] = true
     return returnVal
-
+    
   }
   
   public mutating func forceInsert(_ newMember: Int) {
@@ -44,7 +44,7 @@ extension BitSet: Equatable {
   }
   
   // what is '__consuming'
-  public __consuming func union(_ other: BitSet) -> BitSet { // Will need to simplify later (by adjusting the BitArray functions to that they can be called from here
+  public __consuming func union(_ other: BitSet) -> BitSet {
     var newBitSet = self
     newBitSet.formUnion(other)
     return newBitSet
@@ -57,9 +57,9 @@ extension BitSet: Equatable {
   }
   
   public __consuming func symmetricDifference(_ other: BitSet) -> BitSet {
-    var copy = self
-    copy.formSymmetricDifference(other)
-    return copy
+    var newBitSet = self
+    newBitSet.formSymmetricDifference(other)
+    return newBitSet
   }
   
   
@@ -99,9 +99,18 @@ extension BitSet: Equatable {
   }
   
   public mutating func formSymmetricDifference(_ other: BitSet) { // can be optimized later
-    self.formIntersection(other)
-    for i in 0..<self.storage.storage.count {
-      self.storage.storage[i] = ~self.storage.storage[i]
+    
+    if (other.storage.storage.count > self.storage.storage.count) {
+      for i in 0..<self.storage.storage.count {
+        self.storage.storage[i] ^= other.storage.storage[i]
+      }
+      for i in self.storage.storage.count..<other.storage.storage.count {
+        self.storage.storage.append(other.storage.storage[i])
+      }
+    } else {
+      for i in 0..<other.storage.storage.count {
+        self.storage.storage[i] ^= other.storage.storage[i]
+      }
     }
   }
   
