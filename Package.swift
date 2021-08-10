@@ -77,6 +77,7 @@ let package = Package(
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "BitArrayModule",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],

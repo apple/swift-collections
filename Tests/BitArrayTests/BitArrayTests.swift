@@ -506,4 +506,16 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(bitArray, newCopy)
     }
   }
+  
+  func testIndexBefore() {
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
+      let bitArray = BitArray(layout)
+      
+      for _ in bitArray.reversed() {
+        // Just making sure it compiles should suffice
+      }
+      
+      expectEqual(Array(bitArray.reversed()), layout.reversed())
+    }
+  }
 }
