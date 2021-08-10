@@ -28,6 +28,6 @@ extension SortedDictionary: ExpressibleByDictionaryLiteral {
   /// - Complexity: O(`n log n`)
   @inlinable
   public init(dictionaryLiteral elements: (Key, Value)...) {
-    self.init(uniqueKeysWithValues: elements)
+    self.init(keysWithValues: elements)
   }
 }

@@ -26,7 +26,7 @@ extension _Node {
       for (index, pair) in sortedKeyValuePairs.enumerated() {
         let (key, value) = pair
         handle.keys.advanced(by: index).initialize(to: key)
-        handle.values.advanced(by: index).initialize(to: value)
+        handle.values?.advanced(by: index).initialize(to: value)
       }
       
       if let children = children {
@@ -47,12 +47,12 @@ extension _Node {
   public func toArray() -> [Element] {
     self.read { handle in
       if handle.isLeaf {
-        return Array((0..<handle.elementCount).map { handle[elementAtSlot: $0] })
+        return Array((0..<handle.elementCount).map { handle[elementAt: $0] })
       } else {
         var elements = [Element]()
         for i in 0..<handle.elementCount {
           elements.append(contentsOf: handle[childAt: i].toArray())
-          elements.append(handle[elementAtSlot: i])
+          elements.append(handle[elementAt: i])
         }
         elements.append(contentsOf: handle[childAt: handle.elementCount].toArray())
         return elements

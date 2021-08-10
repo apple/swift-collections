@@ -13,7 +13,7 @@
 extension _Node.UnsafeHandle {
   @usableFromInline
   @frozen
-  internal enum InsertionResult {
+  internal enum UpdateResult {
     case updated(previousElement: _Node.Element)
     case splintered(_Node.Splinter)
     case inserted
@@ -50,7 +50,7 @@ extension _Node.UnsafeHandle {
     _ value: Value,
     forKey key: Key,
     updatingKey: Bool
-  ) -> InsertionResult {
+  ) -> UpdateResult {
     assertMutable()
     
     let insertionIndex = self.endSlot(forKey: key)
@@ -61,8 +61,13 @@ extension _Node.UnsafeHandle {
         // TODO: concerned about copy here
         let oldKey = self.keys.advanced(by: insertionIndex - 1).pointee
         
-        let oldValue = self.values.advanced(by: insertionIndex - 1).move()
-        self.values.advanced(by: insertionIndex - 1).initialize(to: value)
+        let oldValue: Value
+        if _Node.hasValues {
+          oldValue = self.pointerToValue(atSlot: insertionIndex - 1).move()
+          self.pointerToValue(atSlot: insertionIndex - 1).initialize(to: value)
+        } else {
+          oldValue = _Node.dummyValue
+        }
         
         return .updated(previousElement: (oldKey, oldValue))
       } else {
@@ -83,7 +88,7 @@ extension _Node.UnsafeHandle {
         withRightChild: nil,
         atSlot: insertionIndex
       )
-      return InsertionResult(from: maybeSplinter)
+      return UpdateResult(from: maybeSplinter)
     } else {
       let result = self[childAt: insertionIndex].update {
         $0.updateAnyValue(value, forKey: key, updatingKey: updatingKey)
@@ -94,7 +99,7 @@ extension _Node.UnsafeHandle {
         return result
       case .splintered(let splinter):
         let splinter = self.insertSplinter(splinter, atSlot: insertionIndex)
-        return InsertionResult(from: splinter)
+        return UpdateResult(from: splinter)
       case .inserted:
         self.subtreeCount += 1
         return .inserted
@@ -167,9 +172,9 @@ extension _Node.UnsafeHandle {
         // This branch is almost certainly correct
         splinterElement = self.moveElement(atSlot: rightMedian)
         
+        let insertionSlotInRightNode = insertionSlot - (rightMedian + 1)
+        
         rightNode.update { rightHandle in
-          let insertionSlotInRightNode = insertionSlot - (rightMedian + 1)
-          
           self.moveInitializeElements(
             count: insertionSlotInRightNode,
             fromSlot: rightMedian + 1,

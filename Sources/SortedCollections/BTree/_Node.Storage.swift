@@ -17,7 +17,7 @@ extension _Node {
       capacity: Int,
       count: Int,
       totalElements: Int,
-      values: UnsafeMutablePointer<Value>,
+      values: UnsafeMutablePointer<Value>?,
       children: UnsafeMutablePointer<_Node<Key, Value>>?
     ) {
       self.capacity = capacity
@@ -40,7 +40,7 @@ extension _Node {
     
     /// Pointer to the buffer containing the corresponding values.
     @usableFromInline
-    internal var values: UnsafeMutablePointer<Value>
+    internal var values: UnsafeMutablePointer<Value>?
     
     /// Pointer to the buffer containing the elements.
     @usableFromInline
@@ -94,7 +94,9 @@ extension _Node {
           capacity: capacity,
           count: 0,
           totalElements: 0,
-          values: UnsafeMutablePointer<Value>.allocate(capacity: capacity),
+          values:
+            Value.self == Void.self ? nil
+            : UnsafeMutablePointer<Value>.allocate(capacity: capacity),
           children: isLeaf ? nil
             : UnsafeMutablePointer<_Node>.allocate(capacity: capacity + 1)
         )
@@ -123,8 +125,13 @@ extension _Node {
         }
       }
       
-      newStorage.header.values
-        .initialize(from: self.header.values, count: count)
+      if _Node.hasValues {
+        newStorage.header.values.unsafelyUnwrapped
+          .initialize(
+            from: self.header.values.unsafelyUnwrapped,
+            count: count
+          )
+      }
       
       newStorage.header.children?
         .initialize(
@@ -138,7 +145,7 @@ extension _Node {
     @inlinable
     deinit {
       self.withUnsafeMutablePointers { header, elements in
-        header.pointee.values.deallocate()
+        header.pointee.values?.deallocate()
         header.pointee.children?.deallocate()
         
         elements.deinitialize(count: header.pointee.count)

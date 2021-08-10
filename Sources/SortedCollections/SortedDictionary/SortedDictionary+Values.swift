@@ -28,7 +28,28 @@ extension SortedDictionary.Values: Sequence {
   public typealias Element = Value
 
   /// The type that allows iteration over the collection's elements.
-  public typealias Iterator = IndexingIterator<Self>
+  public struct Iterator: IteratorProtocol {
+    @usableFromInline
+    internal var _iterator: SortedDictionary.Iterator
+    
+    @inlinable
+    @inline(__always)
+    internal init(_ _iterator: SortedDictionary.Iterator) {
+      self._iterator = _iterator
+    }
+    
+    @inlinable
+    @inline(__always)
+    public mutating func next() -> Element? {
+      _iterator.next()?.value
+    }
+  }
+  
+  @inlinable
+  @inline(__always)
+  public __consuming func makeIterator() -> Iterator {
+    Iterator(_base.makeIterator())
+  }
 }
 
 extension SortedDictionary.Values: BidirectionalCollection {
@@ -51,8 +72,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   ///
   /// If the collection is empty, `startIndex` is equal to `endIndex`.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   sorted dictionary.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   public var startIndex: Index { self._base.startIndex }
@@ -90,8 +110,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   ///
   /// - Parameter i: A valid index of the collection.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   sorted dictionary.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   public func formIndex(after index: inout Index) {
@@ -107,8 +126,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   ///
   /// - Returns: The index immediately after `i`.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   sorted dictionary.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   public func index(after index: Index) -> Index {
@@ -122,8 +140,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   ///
   /// - Parameter i: A valid index of the collection.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   sorted dictionary.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   public func formIndex(before index: inout Index) {
@@ -156,8 +173,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   ///   - i: A valid index of the collection.
   ///   - distance: The distance to offset `i`.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   sorted dictionary.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   public func formIndex(_ i: inout Index, offsetBy distance: Int) {
@@ -178,8 +194,7 @@ extension SortedDictionary.Values: BidirectionalCollection {
   ///   `index(after:)`. If `distance` is negative, this is the same value as
   ///   the result of `abs(distance)` calls to `index(before:)`.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the
-  ///   sorted dictionary.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {

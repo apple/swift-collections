@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _BTree {
+  
   /// A stack-allocated deque of some values.
   ///
   /// The supports efficient removals from and insertions to the beginning and end.
@@ -105,6 +106,25 @@ extension _BTree {
       return self[0]
     }
     
+    /// If the fixed size array is empty
+    @inlinable
+    @inline(__always)
+    internal var isEmpty: Bool { depth == 0 }
+    
+    /// Refers to the last value in the list
+    @inlinable
+    @inline(__always)
+    internal var last: Value {
+      get {
+        assert(depth > 0, "Out of bounds access in fixed sized array")
+        return self[depth - 1]
+      }
+      
+      _modify {
+        yield &self[depth - 1]
+      }
+    }
+    
     @inlinable
     @inline(__always)
     internal subscript(_ position: Int8) -> Value {
@@ -114,51 +134,25 @@ extension _BTree {
         
         let offset = _underlyingOffset(for: position)
         
-        switch offset {
-        case 0: return self.values.0
-        case 1: return self.values.1
-        case 2: return self.values.2
-        case 3: return self.values.3
-        case 4: return self.values.4
-        case 5: return self.values.5
-        case 6: return self.values.6
-        case 7: return self.values.7
-        case 8: return self.values.8
-        case 9: return self.values.9
-        case 10: return self.values.10
-        case 11: return self.values.11
-        case 12: return self.values.12
-        case 13: return self.values.13
-        case 14: return self.values.14
-        case 15: return self.values.15
-        default: preconditionFailure("Packed offset list too small.")
+        return withUnsafePointer(to: self.values) { values in
+          values.withMemoryRebound(to: Value.self, capacity: Int(FixedSizeArray.maxSize)) { buffer in
+            buffer.advanced(by: Int(offset)).pointee
+          }
         }
       }
       
-      _modify {
+      set {
         assert(position <= depth && depth <= FixedSizeArray.maxSize,
                "Out of bounds access in fixed sized array.")
         
         let offset = _underlyingOffset(for: position)
         
-        switch offset {
-        case 0: yield &self.values.0
-        case 1: yield &self.values.1
-        case 2: yield &self.values.2
-        case 3: yield &self.values.3
-        case 4: yield &self.values.4
-        case 5: yield &self.values.5
-        case 6: yield &self.values.6
-        case 7: yield &self.values.7
-        case 8: yield &self.values.8
-        case 9: yield &self.values.9
-        case 10: yield &self.values.10
-        case 11: yield &self.values.11
-        case 12: yield &self.values.12
-        case 13: yield &self.values.13
-        case 14: yield &self.values.14
-        case 15: yield &self.values.15
-        default: preconditionFailure("Packed offset list too small.")
+        return withUnsafeMutablePointer(to: &self.values) { values in
+          values.withMemoryRebound(to: Value.self, capacity: Int(FixedSizeArray.maxSize)) { buffer in
+            let ptr = buffer.advanced(by: Int(offset))
+            ptr.deinitialize(count: 1)
+            ptr.initialize(to: newValue)
+          }
         }
       }
     }

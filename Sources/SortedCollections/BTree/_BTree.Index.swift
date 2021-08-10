@@ -116,7 +116,7 @@ extension _BTree.Index {
   @inline(__always)
   internal var element: _BTree.Element {
     assert(self.slot != -1, "Cannot dereference out-of-bounds slot.")
-    return self.readNode { $0[elementAtSlot: self.slot] }
+    return self.readNode { $0[elementAt: self.slot] }
   }
 }
 

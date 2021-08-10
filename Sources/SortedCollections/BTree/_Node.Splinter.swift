@@ -43,7 +43,9 @@ extension _Node {
       var newNode = _Node(withCapacity: capacity, isLeaf: false)
       newNode.update { handle in
         handle.keys.initialize(to: element.key)
-        handle.values.initialize(to: element.value)
+        if _Node.hasValues {
+          handle.values.unsafelyUnwrapped.initialize(to: element.value)
+        }
         
         handle.children.unsafelyUnwrapped.initialize(to: leftChild)
         handle.children.unsafelyUnwrapped.advanced(by: 1).initialize(to: self.rightChild)

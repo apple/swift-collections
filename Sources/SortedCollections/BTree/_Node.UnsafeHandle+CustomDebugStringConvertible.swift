@@ -92,8 +92,12 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
         result += "┣━ "
       }
       
-      debugPrint(_node[keyAt: slot], terminator: ": ", to: &result)
-      debugPrint(_node[valueAt: slot], terminator: "", to: &result)
+      if _Node.hasValues {
+        debugPrint(_node[keyAt: slot], terminator: ": ", to: &result)
+        debugPrint(_node[valueAt: slot], terminator: "", to: &result)
+      } else {
+        debugPrint(_node[keyAt: slot], terminator: "", to: &result)
+      }
       
       if !_node.isLeaf && slot == _node.elementCount - 1 {
         let childDescription = _node[childAt: slot + 1].read {
@@ -122,9 +126,13 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
       } else {
         result += ", "
       }
-      result += "("
-      debugPrint(self[keyAt: slot], terminator: ", ", to: &result)
-      debugPrint(self[valueAt: slot], terminator: ")", to: &result)
+      if _Node.hasValues {
+        result += "("
+        debugPrint(self[keyAt: slot], terminator: ", ", to: &result)
+        debugPrint(self[valueAt: slot], terminator: ")", to: &result)
+      } else {
+        debugPrint(self[keyAt: slot], terminator: "", to: &result)
+      }
     }
     result += "], "
     if let children = self.children {

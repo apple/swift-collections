@@ -10,23 +10,27 @@
 //===----------------------------------------------------------------------===//
 
 extension SortedSet {
-  /// Accesses the member at the specified position.
-  ///
-  /// - Parameter position: The position of the key-value pair to access.
-  ///     `position` must be a valid index of the sorted set and not equal
-  ///     to `endIndex`.
-  /// - Returns: A member of the set.
-  /// - Complexity: O(1)
   @inlinable
   public subscript(position: Index) -> Element {
     position._index.ensureValid(forTree: self._root)
     return self._root[position._index].key
   }
   
+  /// Returns a sequence of elements in the collection bounded by the provided
+  /// range.
+  ///
+  /// This is particularly useful when applied with a bound corresponding to some
+  /// group of elements.
+  ///
+  ///     let students: SortedSet = ...
+  ///     students["A"..<"B"]  // Sequence of students with names beginning with "A"
+  ///
+  /// - Complexity: O(log(`self.count`))
   @inlinable
-  public subscript(range: Range<Element>) -> Slice<Self> {
-    let start = self._root.startIndex(forKey: range.lowerBound)
-    let end = self._root.startIndex(forKey: range.upperBound)
-    return Slice(base: self, bounds: Index(start)..<Index(end))
+  public subscript(range: Range<Element>) -> SubSequence {
+    let start = _root.startIndex(forKey: range.lowerBound)
+    let end = _root.startIndex(forKey: range.upperBound)
+    let range = _Tree.SubSequence(base: _root, bounds: start..<end)
+    return SubSequence(range)
   }
 }

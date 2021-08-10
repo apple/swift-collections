@@ -20,11 +20,11 @@ extension _BTree {
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> _BTree {
     // TODO: optimize implementation to O(n)
-    var newTree: _BTree = _BTree()
+    var builder = Builder()
     for element in self where try isIncluded(element) {
-      newTree.updateAnyValue(element.value, forKey: element.key)
+      builder.append(element)
     }
-    return newTree
+    return builder.finish()
   }
 
   

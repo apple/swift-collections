@@ -33,8 +33,7 @@ extension SortedSet: SetAlgebra {
   ///     method returns `(false, oldMember)`, where `oldMember` is the element
   ///     that was equal to `newMember`. In some cases, `oldMember` may be
   ///     distinguishable from `newMember` by identity comparison or some other means.
-  /// - Complexity: O(`log n`) where `n` is the number of members in the
-  ///   sorted set.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   @discardableResult
@@ -54,6 +53,7 @@ extension SortedSet: SetAlgebra {
   /// - Returns: An element equal to `newMember` if the set already contained such a
   ///     member; otherwise, `nil`. In some cases, the returned element may be distinguishable
   ///     from `newMember` by identity comparison or some other means.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   @discardableResult
@@ -70,8 +70,7 @@ extension SortedSet: SetAlgebra {
   ///    distinguishable from `newMember` by identity comparison or some other
   ///    means.
   ///
-  /// - Complexity: O(`log n`) where `n` is the number of members in the
-  ///   sorted set.
+  /// - Complexity: O(log(`self.count`))
   @inlinable
   @inline(__always)
   @discardableResult
@@ -80,12 +79,30 @@ extension SortedSet: SetAlgebra {
   }
   
   // MARK: Combining Sets
-  // TODO: add optimized implementations
+  /// Returns a new set with the elements of both this and the given set.
+  ///
+  /// - Parameter other: A sorted set of the same type as the current set.
+  /// - Returns: A new sorted set with the unique elements of this set and `other`.
+  /// - Note: if this set and `other` contain elements that are equal but
+  ///   distinguishable (e.g. via `===`), the element from the second set is inserted.
+  /// - Complexity: O(max(`self.count`, `other.count`))
   @inlinable
   public func union(_ other: __owned Self) -> Self {
-    var newSet = self
-    newSet.formUnion(other)
-    return newSet
+    var builder = _Tree.Builder()
+    
+    var it1 = self.makeIterator()
+    var it2 = other.makeIterator()
+    
+    while let e1 = it1.next(), let e2 = it2.next() {
+      if e1 <= e2 {
+        builder.append((e1, ()))
+//        while 
+      } else {
+        builder.append((e2, ()))
+      }
+    }
+    
+    return SortedSet(_rootedAt: builder.finish())
   }
   
   @inlinable
@@ -135,8 +152,10 @@ extension SortedSet: SetAlgebra {
   ///
   /// - Parameter other: A set of the same type as the current set.
   /// - Returns: `true` if the set is a subset of other; otherwise, `false`.
+  /// - Complexity: O(max(`self.count`, `other.count`))
   @inlinable
   public func isSubset(of other: SortedSet<Element>) -> Bool {
+    // TODO: could be worthwhile to evaluate recursive approach
     if self.count > other.count { return false }
     
     var superIterator = other.makeIterator()

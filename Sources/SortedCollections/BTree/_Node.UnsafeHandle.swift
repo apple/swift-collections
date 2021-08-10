@@ -19,7 +19,7 @@ extension _Node {
     internal let keys: UnsafeMutablePointer<Key>
     
     @usableFromInline
-    internal let values: UnsafeMutablePointer<Value>
+    internal let values: UnsafeMutablePointer<Value>?
     
     @usableFromInline
     internal let children: UnsafeMutablePointer<_Node<Key, Value>>?
@@ -28,7 +28,7 @@ extension _Node {
     @inline(__always)
     internal init(
       keys: UnsafeMutablePointer<Key>,
-      values: UnsafeMutablePointer<Value>,
+      values: UnsafeMutablePointer<Value>?,
       children: UnsafeMutablePointer<_Node<Key, Value>>?,
       header: UnsafeMutablePointer<Header>,
       isMutable: Bool
@@ -118,8 +118,8 @@ extension _Node {
     @inlinable
     @inline(__always)
     internal var childCount: Int {
-      assert(!self.isLeaf, "Cannot access the child count on a leaf.")
-      return self.elementCount &+ 1
+      assert(!isLeaf, "Cannot access the child count on a leaf.")
+      return elementCount &+ 1
     }
     
     /// Whether the node is the bottom-most node (a leaf) within its tree.
@@ -147,8 +147,25 @@ extension _Node {
     @inline(__always)
     internal var isBalanced: Bool { elementCount >= minimumElementCount }
     
+    /// Whether the immediate node does not have space for an additional element
+    @inlinable
+    @inline(__always)
+    internal var isFull: Bool { elementCount == capacity }
+    
     
     // TODO: see if deinitializer can add 0 element check for internal nodes.
+    /// Checks uniqueness of a child.
+    ///
+    /// - Warning: Will trap if executed on leaf nodes
+    @inlinable
+    @inline(__always)
+    internal func isChildUnique(atSlot slot: Int) -> Bool {
+      assert(!self.isLeaf, "Cannot access children on leaf.")
+      return isKnownUniquelyReferenced(
+        &self.pointerToChild(atSlot: slot).pointee._storage
+      )
+    }
+    
     /// Indicates that the node has no more children and is ready for deallocation
     ///
     /// It is critical to ensure that there are absolutely no children or element references
@@ -156,8 +173,32 @@ extension _Node {
     @inlinable
     @inline(__always)
     internal func drop() {
+      assertMutable()
       assert(self.elementCount == 0, "Cannot drop non-empty node")
+      self.header.pointee.children?.deallocate()
       self.header.pointee.children = nil
+    }
+    
+    // TODO: test performance between __consuming and passing UnsafeHandle as
+    // inout.
+    /// Converts a leaf node into an internal node, without adjusting its capacity.
+    /// - Returns: A new unsafe handle to operate on. The old node is still mutated.
+    @inlinable
+    @inline(__always)
+    internal __consuming func convertToInternalNode() -> UnsafeHandle {
+      assertMutable()
+      assert(self.isLeaf, "Already internal node.")
+      let children: UnsafeMutablePointer<_Node> =
+        .allocate(capacity: self.capacity + 1)
+      
+      self.header.pointee.children = children
+      return UnsafeHandle(
+        keys: self.keys,
+        values: self.values,
+        children: children,
+        header: self.header,
+        isMutable: self.isMutable
+      )
     }
   }
 }
@@ -167,11 +208,11 @@ extension _Node.UnsafeHandle {
   // TODO: elementAtSlot & others
   @inlinable
   @inline(__always)
-  internal subscript(elementAtSlot slot: Int) -> _Node.Element {
+  internal subscript(elementAt slot: Int) -> _Node.Element {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node element subscript out of bounds.")
-      return (key: self.keys[slot], value: self.values[slot])
+      return (key: self[keyAt: slot], value: self[valueAt: slot])
     }
   }
   
@@ -202,9 +243,10 @@ extension _Node.UnsafeHandle {
   internal func pointerToValue(
     atSlot slot: Int
   ) -> UnsafeMutablePointer<Value> {
-    assert(0 <= slot && slot < self.elementCount,
+    assert(0 <= slot && slot < elementCount,
            "Node value slot out of bounds.")
-    return self.values.advanced(by: slot)
+    assert(_Node.hasValues, "Node does not have value buffer.")
+    return values.unsafelyUnwrapped.advanced(by: slot)
   }
   
   @inlinable
@@ -213,7 +255,18 @@ extension _Node.UnsafeHandle {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node values subscript out of bounds.")
-      return self.values[slot]
+      assert(_Node.hasValues, "Node does not have value buffer.")
+      return self.pointerToValue(atSlot: slot).pointee
+    }
+    
+    nonmutating _modify {
+      assertMutable()
+      assert(0 <= slot && slot < self.elementCount,
+             "Node values subscript out of bounds.")
+      assert(_Node.hasValues, "Node does not have value buffer.")
+      var value = self.pointerToValue(atSlot: slot).move()
+      yield &value
+      self.pointerToValue(atSlot: slot).initialize(to: value)
     }
   }
   
@@ -241,6 +294,7 @@ extension _Node.UnsafeHandle {
     }
     
     nonmutating _modify {
+      assertMutable()
       assert(!isLeaf, "Cannot modify children of leaf node.")
       assert(0 <= slot && slot < self.childCount,
              "Node child subscript out of bounds")
@@ -338,8 +392,13 @@ extension _Node.UnsafeHandle {
     target.keys.advanced(by: destinationSlot)
       .moveInitialize(from: self.keys.advanced(by: sourceSlot), count: count)
     
-    target.values.advanced(by: destinationSlot)
-      .moveInitialize(from: self.values.advanced(by: sourceSlot), count: count)
+    if _Node.hasValues {
+      target.values.unsafelyUnwrapped.advanced(by: destinationSlot)
+        .moveInitialize(
+          from: self.values.unsafelyUnwrapped.advanced(by: sourceSlot),
+          count: count
+        )
+    }
   }
   
   /// Moves children from the current handle to a new handle
@@ -462,7 +521,9 @@ extension _Node.UnsafeHandle {
            "Cannot insert beyond node capacity.")
     
     self.keys.advanced(by: slot).initialize(to: element.key)
-    self.values.advanced(by: slot).initialize(to: element.value)
+    if _Node.hasValues {
+      self.values.unsafelyUnwrapped.advanced(by: slot).initialize(to: element.value)
+    }
   }
   
   /// Moves an element out of the handle and returns it.
@@ -484,8 +545,10 @@ extension _Node.UnsafeHandle {
            "Attempted to move out-of-bounds element.")
     
     return (
-      key: self.keys.advanced(by: slot).move(),
-      value: self.values.advanced(by: slot).move()
+      key: self.pointerToKey(atSlot: slot).move(),
+      value: _Node.hasValues
+        ? self.pointerToValue(atSlot: slot).move()
+        : _Node.dummyValue
     )
   }
   
@@ -506,6 +569,56 @@ extension _Node.UnsafeHandle {
            "Attempted to move out-of-bounds child.")
     
     return self.children.unsafelyUnwrapped.advanced(by: slot).move()
+  }
+  
+  /// Inserts an element at the end of the node
+  ///
+  /// This adjusts element counts.
+  ///
+  /// - Parameter newElement: The new element to insert.
+  @inlinable
+  @inline(__always)
+  internal func appendElement(_ element: _Node.Element) {
+    assertMutable()
+    assert(elementCount < capacity, "Cannot append into full node")
+    assert(elementCount == 0 || self[keyAt: elementCount - 1] <= element.key,
+           "Cannot append out-of-order element.")
+    
+    initializeElement(
+      atSlot: capacity - 1,
+      to: element
+    )
+    
+    elementCount += 1
+    subtreeCount += 1
+  }
+  
+  /// Inserts a splinter at the end of the node
+  @inlinable
+  @inline(__always)
+  internal func appendSplinter(_ splinter: _Node.Splinter) -> _Node.Splinter? {
+    assertMutable()
+    return self.appendElement(
+      splinter.element,
+      withRightChild: splinter.rightChild
+    )
+  }
+  
+  /// Appends a new element with a provided right child.
+  @inlinable
+  @inline(__always)
+  internal func appendElement(
+    _ element: _Node.Element,
+    withRightChild rightChild: _Node) -> _Node.Splinter? {
+    assertMutable()
+    assert(elementCount < capacity, "Cannot append into full node")
+    assert(elementCount == 0 || self[keyAt: elementCount - 1] <= element.key,
+           "Cannot append out-of-order element.")
+    return insertElement(
+      element,
+      withRightChild: rightChild,
+      atSlot: elementCount
+    )
   }
   
   /// Swaps the element at a given slot, returning the old one.

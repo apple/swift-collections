@@ -238,6 +238,28 @@ extension _BTree {
       return result
     }
     
+    /// Moves the value from the cursor's position
+    @inlinable
+    @inline(__always)
+    internal mutating func moveValue() -> Value {
+      guard Node.hasValues else { return Node.dummyValue }
+
+      return self.updateCurrentNode { handle, slot in
+        handle.pointerToValue(atSlot: slot).move()
+      }
+    }
+    
+    /// Initializes a value for a cursor that points to an element that has a hole for its value.
+    @inlinable
+    @inline(__always)
+    internal mutating func initializeValue(to value: Value) {
+      guard Node.hasValues else { return }
+      
+      self.updateCurrentNode { handle, slot in
+        handle.pointerToValue(atSlot: slot).initialize(to: value)
+      }
+    }
+    
     /// Inserts a key-value pair at a position within the tree.
     ///
     /// Invalidates the cursor. Returns a splinter object which owning the new tree.
@@ -256,8 +278,6 @@ extension _BTree {
       assertValid()
       defer { self._declareUnique() }
       
-      // TODO: make this not invalidate the cursor by updating slots
-      
       var (node, splinter) = self.updateNode(at: path.depth - 1) { handle, slot in
         handle.insertElement(element, withRightChild: nil, atSlot: slot)
       }
@@ -265,8 +285,6 @@ extension _BTree {
       // Start the node above the bottom-most node, and propogate up the change
       var depth = path.depth - 2
       while depth >= 0 {
-        // TODO: optimize this by stopping descent once we reach the unique
-        // section
         if splinter == nil && depth < lastUniqueDepth { return }
         
         let (newNode, _) = self.updateNode(at: depth) { (handle, slot) in
@@ -410,7 +428,7 @@ extension _BTree {
               slots.append(UInt16(slot))
               
               node = .passUnretained(handle[childAt: slot].storage)
-              if isOnUniquePath && isKnownUniquelyReferenced(&handle[childAt: slot].storage) {
+              if isOnUniquePath && handle.isChildUnique(atSlot: slot) {
                 lastUniqueDepth += 1
               } else {
                 isOnUniquePath = false

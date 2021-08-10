@@ -521,3 +521,20 @@ extension _BTree {
   }
   
 }
+
+// MARK: Immutable Operatoins
+extension _BTree {
+  @inlinable
+  @inline(__always)
+  public func mapValues<T>(
+    _ transform: (Value) throws -> T
+  ) rethrows -> _BTree<Key, T> {
+    // TODO: explore forEach vs iteration speed
+    let root = try _Node<Key, T>(
+      mappingFrom: self.root,
+      transform
+    )
+    
+    return _BTree<Key, T>(rootedAt: root, internalCapacity: internalCapacity)
+  }
+}

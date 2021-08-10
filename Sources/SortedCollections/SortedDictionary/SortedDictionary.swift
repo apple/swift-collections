@@ -73,6 +73,60 @@ extension SortedDictionary {
 
 // MARK: Mutations
 extension SortedDictionary {
+  /// Ensures that the specified key exists in the dictionary (by appending one
+  /// with the supplied default value if necessary), then calls `body` to update
+  /// it in place.
+  ///
+  /// You can use this method to perform in-place operations on values in the
+  /// dictionary, whether or not `Value` has value semantics. The following
+  /// example uses this method while counting the occurrences of each letter
+  /// in a string:
+  ///
+  ///     let message = "Hello, Elle!"
+  ///     var letterCounts: SortedDictionary<Character, Int> = [:]
+  ///     for letter in message {
+  ///         letterCounts.modifyValue(forKey: letter, default: 0) { count in
+  ///             count += 1
+  ///         }
+  ///     }
+  ///     // letterCounts == ["H": 1, "e": 2, "l": 4, "o": 1, ...]
+  ///
+  /// - Parameters:
+  ///   - key: The key to look up. If `key` does not already exist
+  ///      in the dictionary, it is inserted with the supplied default value.
+  ///   - defaultValue: The default value to append if `key` doesn't exist in
+  ///      the dictionary.
+  ///   - body: A function that performs an in-place mutation on the dictionary
+  ///      value.
+  ///
+  /// - Returns: The return value of `body`.
+  ///
+  /// - Complexity: O(log(`self.count`))
+  @inlinable
+  public mutating func modifyValue<R>(
+    forKey key: Key,
+    default defaultValue: @autoclosure () -> Value,
+    _ body: (inout Value) throws -> R
+  ) rethrows -> R {
+    var (cursor, found) = self._root.findAnyCursor(forKey: key)
+    let r: R
+    
+    if found {
+      r = try cursor.updateCurrentNode { handle, slot in
+        try body(&handle[valueAt: slot])
+      }
+    } else {
+      var value = defaultValue()
+      r = try body(&value)
+      cursor.insertElement((key, value), capacity: self._root.internalCapacity)
+    }
+    
+    cursor.apply(to: &self._root)
+    
+    return r
+  }
+  
+  
   /// Updates the value stored in the dictionary for the given key, or
   /// adds a new key-value pair if the key does not exist.
   ///
@@ -132,16 +186,8 @@ extension SortedDictionary {
   public func mapValues<T>(
     _ transform: (Value) throws -> T
   ) rethrows -> SortedDictionary<Key, T> {
-    // TODO: Optimize to reuse dictionary structure.
-    // TODO: optimize to use identify fastest iteration method
-    // TODO: optimize CoW checks
-    var newDictionary = SortedDictionary<Key, T>()
-    
-    for (key, value) in self {
-      newDictionary.updateValue(try transform(value), forKey: key)
-    }
-    
-    return newDictionary
+    let tree = try self._root.mapValues(transform)
+    return SortedDictionary<Key, T>(_rootedAt: tree)
   }
   
   /// Returns a new dictionary containing only the key-value pairs that have non-nil values
@@ -162,14 +208,14 @@ extension SortedDictionary {
     // TODO: Optimize to reuse dictionary structure.
     // TODO: optimize to use identify fastest iteration method
     // TODO: optimize CoW checks
-    var newDictionary = SortedDictionary<Key, T>()
+    var builder = _BTree<Key, T>.Builder()
     
     for (key, value) in self {
-      if let value = try transform(value) {
-        newDictionary.updateValue(value, forKey: key)
+      if let newValue = try transform(value) {
+        builder.append((key, newValue))
       }
     }
     
-    return newDictionary
+    return SortedDictionary<Key, T>(_rootedAt: builder.finish())
   }
 }

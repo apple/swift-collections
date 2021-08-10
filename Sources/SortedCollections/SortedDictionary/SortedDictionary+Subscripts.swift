@@ -34,17 +34,13 @@ extension SortedDictionary {
       
       var value: Value?
       if found {
-        value = cursor.updateCurrentNode { handle, slot in
-          handle.pointerToValue(atSlot: slot).move()
-        }
+        value = cursor.moveValue()
       }
       
       defer {
         if found {
           if let value = value {
-            cursor.updateCurrentNode { handle, slot in
-              handle.pointerToValue(atSlot: slot).initialize(to: value)
-            }
+            cursor.initializeValue(to: value)
           } else {
             cursor.removeElement(hasValueHole: true)
           }
@@ -105,18 +101,14 @@ extension SortedDictionary {
       
       var value: Value
       if found {
-        value = cursor.updateCurrentNode { handle, slot in
-          handle.pointerToValue(atSlot: slot).move()
-        }
+        value = cursor.moveValue()
       } else {
         value = defaultValue()
       }
       
       defer {
         if found {
-          cursor.updateCurrentNode { handle, slot in
-            handle.pointerToValue(atSlot: slot).initialize(to: value)
-          }
+          cursor.initializeValue(to: value)
         } else {
           cursor.insertElement(
             (key, value),

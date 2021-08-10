@@ -12,11 +12,11 @@
 extension SortedDictionary {
   /// Creates a dictionary from a sequence of key-value pairs which must
   /// be unique.
-  /// - Complexity: O(`n log n`)
+  /// - Complexity: O(`self.count` * log(`self.count`))
   @inlinable
   @inline(__always)
   public init<S>(
-    uniqueKeysWithValues keysAndValues: S
+    keysWithValues keysAndValues: S
   ) where S: Sequence, S.Element == Element {
     self.init()
     
@@ -31,17 +31,21 @@ extension SortedDictionary {
   @inlinable
   @inline(__always)
   public init<S>(
-    uniqueSortedKeysWithValues keysAndValues: S
+    sortedKeysWithValues keysAndValues: S
   ) where S: Sequence, S.Element == Element {
     self.init()
     
-    // TODO: implement O(n) version using BTree
-    // TODO: should this validate the sorted invariant
-    // in debug v production v unchecked builds?
+    var builder = _Tree.Builder()
     
+    var previousKey: Key? = nil
     for (key, value) in keysAndValues {
-      self._root.updateAnyValue(value, forKey: key)
+      assert(previousKey != nil && previousKey.unsafelyUnwrapped < key,
+             "Sequence out of order.")
+      builder.append((key, value))
+      previousKey = key
     }
+    
+    self.init(_rootedAt: builder.finish())
   }
   
   /// Creates a new sorted dictionary whose keys are the groupings returned

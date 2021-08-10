@@ -13,10 +13,10 @@ import CollectionsTestSupport
 @_spi(Testing) @testable import SortedCollections
 
 final class SortedDictionaryTests: CollectionTestCase {
-  func test_uniqueKeysAndValues() {
-    withEvery("count", in: [0, 1, 2, 4, 8, 16, 32, 64, 128]) { count in
+  func test_keysAndValues() {
+    withEvery("count", in: [0, 1, 2, 4, 8, 16, 32, 64, 128, 1024, 4096]) { count in
       let kvs = (0..<count).map { (key: $0, value: $0) }
-      let sortedDictionary = SortedDictionary<Int, Int>(uniqueKeysWithValues: kvs)
+      let sortedDictionary = SortedDictionary<Int, Int>(keysWithValues: kvs)
       expectEqual(sortedDictionary.count, count)
     }
   }
@@ -61,7 +61,7 @@ final class SortedDictionaryTests: CollectionTestCase {
     withEvery("count", in: [0, 1, 2, 3, 4, 8, 16, 64]) { count in
       for i in 0...count {
         let kvs = (0..<count).map { (key: $0 * 2 + 1, value: $0) }
-        var sortedDictionary = SortedDictionary<Int, Int>(uniqueKeysWithValues: kvs)
+        var sortedDictionary = SortedDictionary<Int, Int>(keysWithValues: kvs)
         sortedDictionary[i * 2] = -i
         
         var comparison = Array(kvs)
@@ -96,7 +96,7 @@ final class SortedDictionaryTests: CollectionTestCase {
       let kvs = (0..<count).map { (key: $0, value: -$0) }
       
       withEvery("key", in: 0..<count) { key in
-        var d = SortedDictionary<Int, Int>(uniqueKeysWithValues: kvs)
+        var d = SortedDictionary<Int, Int>(keysWithValues: kvs)
         
         withEvery("isShared", in: [false, true]) { isShared in
           withHiddenCopies(if: isShared, of: &d) { d in
