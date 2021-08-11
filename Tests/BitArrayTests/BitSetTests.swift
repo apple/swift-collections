@@ -394,9 +394,13 @@ final class BitSetTest: CollectionTestCase {
     withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { bitArrayLayout in
       withTheirBitSetLayout("bitSet", ofLayout: bitArrayLayout) { bitSetLayout in
         let bitSet = BitSet(bitSetLayout)
+        var layoutCopy = bitSetLayout
+        layoutCopy.reverse()
         
+        var secondValueIndex = 0
         for value in bitSet.reversed() {
-          // 
+          expectEqual(value, layoutCopy[secondValueIndex])
+          secondValueIndex += 1
         }
       }
     }
