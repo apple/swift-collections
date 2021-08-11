@@ -20,7 +20,17 @@ extension Benchmark {
     ) { input in
       blackHole(BitSet(input))
     }
-
+    
+    self.add(
+      title: "BitSet init from BitArray",
+      input: [Bool].self
+    ) { input in
+      let bitArray = BitArray(input)
+      return { timer in
+        blackHole(BitSet(bitArray))
+      }
+    }
+    
     self.add(
       title: "BitSet contains",
       input: [Int].self
@@ -32,7 +42,7 @@ extension Benchmark {
         }
       }
     }
-
+    
     self.add(
       title: "BitSet contains (out of bounds)",
       input: [Int].self
@@ -44,7 +54,7 @@ extension Benchmark {
         }
       }
     }
-
+    
     self.add(
       title: "BitSet remove",
       input: [Int].self
