@@ -31,16 +31,18 @@ extension CFMutableBitVector {
 
 extension Benchmark {
   internal mutating func _addCFBitVectorBenchmarks() {
-    self.addSimple(
+    self.add(
       title: "CFBitVector create from integer buffer",
       input: [Int].self
     ) { input in
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-      let trueCount = input.count / 2
-      let bits = CFMutableBitVector._create(
-        count: input.count,
-        trueBits: input[..<trueCount])
-      blackHole(bits)
+      return { timer in
+        let trueCount = input.count / 2
+        let bits = CFMutableBitVector._create(
+          count: input.count,
+          trueBits: input[..<trueCount])
+        blackHole(bits)
+      }
 #else
       // CFBitVector isn't available
       return nil
