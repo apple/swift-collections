@@ -14,5 +14,6 @@ import CollectionsBenchmark
 extension Benchmark {
   public mutating func addFoundationBenchmarks() {
     _addCFBinaryHeapBenchmarks()
+    _addCFBitVectorBenchmarks()
   }
 }
