@@ -52,6 +52,16 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SparseSetTests"
+               BuildableName = "SparseSetTests"
+               BlueprintName = "SparseSetTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "PriorityQueueTests"
                BuildableName = "PriorityQueueTests"
                BlueprintName = "PriorityQueueTests"
