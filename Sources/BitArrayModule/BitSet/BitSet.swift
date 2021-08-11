@@ -19,11 +19,6 @@ public struct BitSet: ExpressibleByArrayLiteral {
       storage[value] = true
     }
     
-    // clean up overly excess false values
-    while(storage.storage.count != 0 && storage.storage[storage.storage.endIndex-1] == 0) {
-      storage.storage.removeLast()
-    }
-    
     storage.excess = 0
   }
   
@@ -33,11 +28,6 @@ public struct BitSet: ExpressibleByArrayLiteral {
         storage.storage.append(0)
       }
       storage[value] = true
-    }
-    
-    // clean up overly excess false values
-    while(storage.storage.count != 0 && storage.storage[storage.storage.endIndex-1] == 0) {
-      storage.storage.removeLast()
     }
     
     storage.excess = 0
