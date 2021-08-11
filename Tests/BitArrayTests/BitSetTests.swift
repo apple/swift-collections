@@ -393,7 +393,11 @@ final class BitSetTest: CollectionTestCase {
   func testIndexBefore() {
     withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { bitArrayLayout in
       withTheirBitSetLayout("bitSet", ofLayout: bitArrayLayout) { bitSetLayout in
+        let bitSet = BitSet(bitSetLayout)
         
+        for value in bitSet.reversed() {
+          // 
+        }
       }
     }
   }

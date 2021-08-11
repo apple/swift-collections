@@ -55,10 +55,11 @@ extension BitSet: Collection, BidirectionalCollection {
   }
   
   public func index(before: Index) -> Index {
-    precondition((startIndex.bitArrayIndex <= before.bitArrayIndex) && (endIndex.bitArrayIndex > before.bitArrayIndex), "Given Index is out of range")
-    precondition( (storage[before.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
     precondition(before.bitArrayIndex != startIndex.bitArrayIndex, "Passed in Index is already the startIndex, and has no existing Indexes before it")
+    precondition((startIndex.bitArrayIndex < before.bitArrayIndex) && (endIndex.bitArrayIndex >= before.bitArrayIndex), "Given Index is out of range")
+    precondition( ((before == endIndex) || (storage[before.bitArrayIndex])), "Index passed in is invalid: does not exist in the set")
     // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
+    
     for i in stride(from: (before.bitArrayIndex-1), through: 0, by: -1) {
       if (storage[i]) {
         return Index(bitArrayIndex: i)
