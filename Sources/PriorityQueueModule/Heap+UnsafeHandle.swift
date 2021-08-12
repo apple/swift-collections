@@ -66,7 +66,20 @@ extension Heap._UnsafeHandle {
 }
 
 extension Heap._UnsafeHandle {
-  @inline(__always)
+  // Note: the releasenone annotation here tells the compiler that this function
+  // will not release any strong references, so it doesn't need to worry about
+  // retaining things. This is true in the sense that `bubbleUp` just reorders
+  // storage contents, but it does call `Element.<`, which we cannot really
+  // promise anything about -- it may release things!
+  //
+  // FWIW, I think `Element`'s Comparable implementation can only cause the
+  // heap's storage to be released if it included an exclusivity violation --
+  // `bubbleUp` is only ever called from mutating heap members, after all.
+  // So if there is an issue, I think it would be triggered by the `Comparable`
+  // implementation releasing something inside `Element`, and/or by the
+  // `releasenone` annotation here having an effect in client code that called
+  // into `Heap`.
+  @_effects(releasenone)
   @inlinable
   internal func bubbleUp(_ node: _Node) {
     guard let parent = node.parent() else {
@@ -91,6 +104,7 @@ extension Heap._UnsafeHandle {
     }
   }
 
+  @_effects(releasenone)
   @inline(__always)
   @inlinable
   internal func bubbleUpMin(_ node: _Node) {
@@ -103,6 +117,7 @@ extension Heap._UnsafeHandle {
     }
   }
 
+  @_effects(releasenone)
   @inline(__always)
   @inlinable
   internal func bubbleUpMax(_ node: _Node) {
