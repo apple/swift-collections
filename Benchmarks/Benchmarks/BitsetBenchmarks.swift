@@ -13,6 +13,7 @@ import CollectionsBenchmark
 import BitArrayModule
 
 extension Benchmark {
+  
   public mutating func addBitSetBenchmarks() {
     self.addSimple(
       title: "BitSet init from buffer",
@@ -23,9 +24,10 @@ extension Benchmark {
     
     self.add(
       title: "BitSet init from BitArray",
-      input: [Bool].self
+      input: [Int].self
     ) { input in
-      let bitArray = BitArray(input)
+      let boolInput = input.toBoolArrayByEvens()
+      let bitArray = BitArray(boolInput)
       return { timer in
         blackHole(BitSet(bitArray))
       }
@@ -71,3 +73,18 @@ extension Benchmark {
     }
   }
 }
+
+extension Collection where Element == Int {
+  fileprivate func toBoolArrayByEvens() -> [Bool] {
+    var boolArray: [Bool] = []
+    for element in self {
+      if(element%2 == 0) {
+        boolArray.append(true)
+      } else {
+        boolArray.append(false)
+      }
+    }
+    return boolArray
+  }
+}
+
