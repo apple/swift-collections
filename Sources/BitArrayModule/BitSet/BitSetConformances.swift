@@ -70,7 +70,8 @@ extension BitSet: Collection, BidirectionalCollection {
   
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
     precondition((startIndex.bitArrayIndex <= index.bitArrayIndex) && (endIndex.bitArrayIndex >= index.bitArrayIndex), "Given Index is out of range")
-    precondition((storage[index.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
+    precondition((index == endIndex) || (storage[index.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
+    precondition(self.count != 0, "Set is empty and has no indexes to iterate through")
     // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
     var counter = 0
     if (distance == 0) {
@@ -84,15 +85,17 @@ extension BitSet: Collection, BidirectionalCollection {
           return Index(bitArrayIndex: i)
         }
       }
+      fatalError("positive distance not found")
     } else {
       for i in (0..<index.bitArrayIndex).reversed() {
         if (storage[i]) {
-          counter += 1
+          counter -= 1
         }
         if (counter == distance) {
           return Index(bitArrayIndex: i)
         }
       }
+      fatalError("negative distance not found")
     }
     fatalError("Passed in distance points to an Index beyond the scope of the set") // Wondering if there is a simple way to put this as a precondition instead. Would be possible if the Indices were able to keep track of what number element of the Set it points to?
   }

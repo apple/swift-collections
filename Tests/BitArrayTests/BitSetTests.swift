@@ -88,7 +88,7 @@ final class BitSetTest: CollectionTestCase {
     }
     
     #warning("The storage.storage comparison tests will fail if WORD is changed.")
-    // manual tests
+    /*// manual tests
     let testBitSet1: BitSet = []
     expectEqual(Array(testBitSet1), [])
     expectEqual(testBitSet1.storage.storage, [])
@@ -144,7 +144,7 @@ final class BitSetTest: CollectionTestCase {
     expectEqual(testBitSet6.endIndex, BitSet.Index(bitArrayIndex: 104))
     XCTAssertTrue(testBitSet6.startIndex < testBitSet6.endIndex)
     
-    var expectedArrayFor7: [UInt8] = [8, 220, 2, 0, 1, 224, 0, 0, 0, 0, 0, 0, 8]
+    var expectedArrayFor7: [WORD] = [8, 220, 2, 0, 1, 224, 0, 0, 0, 0, 0, 0, 8]
     expectedArrayFor7 += Array(repeating: 0, count: 402)
     expectedArrayFor7.append(16)
     
@@ -155,7 +155,7 @@ final class BitSetTest: CollectionTestCase {
     expectEqual(testBitSet7.count, 13)
     expectEqual(testBitSet7.startIndex, BitSet.Index(bitArrayIndex: 3))
     expectEqual(testBitSet7.endIndex, BitSet.Index(bitArrayIndex: 3328))
-    XCTAssertTrue(testBitSet7.startIndex < testBitSet7.endIndex)
+    XCTAssertTrue(testBitSet7.startIndex < testBitSet7.endIndex)*/
   }
   
   func testInsertAndContains() {
@@ -401,6 +401,39 @@ final class BitSetTest: CollectionTestCase {
         for value in bitSet.reversed() {
           expectEqual(value, layoutCopy[secondValueIndex])
           secondValueIndex += 1
+        }
+      }
+    }
+  }
+  
+  func testInsertOffsetBy() {
+    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { boolLayout in
+      withTheirBitSetLayout("bitSetLayout", ofLayout: boolLayout) { bitSetLayout in
+        let bitSet = BitSet(bitSetLayout)
+        if (bitSetLayout.count != 0) {
+          let offset = Int.random(in: 0..<bitSet.count)
+          
+          // test positive offset from startIndex
+          expectEqual(bitSet.index(bitSet.startIndex, offsetBy: offset).bitArrayIndex,
+                      bitSetLayout[bitSetLayout.index(bitSetLayout.startIndex, offsetBy: offset)])
+          
+          // test negative offset from endIndex
+          if (offset == 0) {
+            expectEqual(bitSet.index(bitSet.endIndex, offsetBy: -offset).bitArrayIndex,
+                        Int(bitSet.storage.storage.count*WORD.bitWidth))
+          } else {
+            expectEqual(bitSet.index(bitSet.endIndex, offsetBy: -offset).bitArrayIndex,
+                        bitSetLayout[bitSetLayout.count-offset])
+          }
+          
+          // test positive and negative from middle index if applicable -- depends on above testing passing
+          if (bitSet.count >= 3) {
+            let distanceFromStart = Int.random(in: 1..<bitSet.count)
+            let distanceFromEnd = bitSet.count - distanceFromStart
+            let fromIndex = bitSet.index(bitSet.startIndex, offsetBy: distanceFromStart)
+            
+            
+          }
         }
       }
     }
