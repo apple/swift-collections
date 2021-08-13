@@ -37,7 +37,7 @@ extension CFBinaryHeap {
 #endif
 
 extension Benchmark {
-  public mutating func addFoundationBenchmarks() {
+  internal mutating func _addCFBinaryHeapBenchmarks() {
     self.add(
       title: "CFBinaryHeapAddValue",
       input: [Int].self
