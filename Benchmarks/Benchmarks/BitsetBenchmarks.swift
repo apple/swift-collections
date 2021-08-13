@@ -67,6 +67,17 @@ extension Benchmark {
         blackHole(set.insert(insertVal))
       }
     }
+    //NOTE TO SELF: do compare inserts
+    self.add(
+      title: "BitSet forceInsert",
+      input: [Int].self
+    ) { input in
+      var set = BitSet(input[0 ..< input.count / 2])
+      let insertVal = Int.random(in: 0...input.count)
+      return { timer in
+        blackHole(set.forceInsert(insertVal))
+      }
+    }
     
   }
 }
