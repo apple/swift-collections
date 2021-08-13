@@ -23,20 +23,9 @@ extension Heap {
 
   @inlinable @inline(__always)
   mutating func _update<R>(_ body: (_UnsafeHandle) -> R) -> R {
-    #if false
-    @inline(__always)
-    func _body(
-      _ buffer: inout UnsafeMutableBufferPointer<Element>
-    ) -> R {
-      body(_UnsafeHandle(buffer))
-    }
-
-    return _storage.withUnsafeMutableBufferPointer(_body)
-    #else
     _storage.withUnsafeMutableBufferPointer { buffer in
       body(_UnsafeHandle(buffer))
     }
-    #endif
   }
 }
 
