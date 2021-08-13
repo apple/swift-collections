@@ -242,6 +242,7 @@ extension SparseSet.Elements.SubSequence: RandomAccessCollection {
   ///     `distance > 0`, `limit` has no effect if it is less than `i`.
   ///     Likewise, if `distance < 0`, `limit` has no effect if it is greater
   ///     than `i`.
+  ///     
   /// - Returns: An index offset by `distance` from the index `i`, unless that
   ///   index would be beyond `limit` in the direction of movement. In that
   ///   case, the method returns `nil`.

@@ -124,7 +124,7 @@ extension SparseSet.SparseStorage {
     _buffer.header.capacity
   }
 
-  /// Resize this index table to a new capacity.
+  /// Resize this storage to a new capacity.
   ///
   /// The underlying buffer is replaced with a new one and its contents are
   /// copied.
@@ -135,7 +135,7 @@ extension SparseSet.SparseStorage {
     _buffer = Buffer.bufferWith(capacity: newCapacity, contentsOf: _buffer)
   }
 
-  /// Resize this index table to a new capacity.
+  /// Resize this storage to a new capacity.
   ///
   /// The underlying buffer is replaced with a new one. The contents of the
   /// new buffer is initialized from the provided `keys` collection. This
@@ -150,9 +150,9 @@ extension SparseSet.SparseStorage {
     _buffer = Buffer.bufferWith(capacity: newCapacity, keys: keys)
   }
 
-  /// Rebuilds the index data for the given key data.
+  /// Rebuilds the index data for the given keys.
   ///
-  /// - Parameter indices: A collection of keys.
+  /// - Parameter keys: A collection of keys.
   @inlinable
   internal mutating func reindex<C: Collection>(keys: C) where C.Element == Key {
     assert(capacity >= keys.max().map { Int($0) + 1 } ?? 0)

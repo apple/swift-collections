@@ -295,7 +295,7 @@ extension SparseSet {
   /// - Note: Do not use this subscript to modify sparse set values if the
   ///   sparse set's `Value` type is a class. In that case, the default value
   ///   and key are not written back to the sparse set after an operation. (For
-  ///   a variant of this operation that supports this usecase, see
+  ///   a variant of this operation that supports this use case, see
   ///   `modifyValue(forKey:default:_:)`.)
   ///
   /// - Parameters:
@@ -486,6 +486,7 @@ extension SparseSet {
   /// - Parameter transform: A closure that transforms a value. `transform`
   ///   accepts each value of the sparse set as its parameter and returns a
   ///   transformed value of the same or of a different type.
+  ///
   /// - Returns: A sparse set containing the keys and transformed values of
   ///   this sparse set.
   ///
