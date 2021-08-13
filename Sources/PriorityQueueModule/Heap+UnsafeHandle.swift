@@ -63,6 +63,13 @@ extension Heap._UnsafeHandle {
   internal func swapAt(_ i: _Node, _ j: _Node) {
     buffer.swapAt(i.offset, j.offset)
   }
+
+  /// Swaps the element at the given node with the supplied value.
+  @inlinable @inline(__always)
+  internal func swapAt(_ i: _Node, with value: inout Element) {
+    let p = buffer.baseAddress.unsafelyUnwrapped + i.offset
+    swap(&p.pointee, &value)
+  }
 }
 
 extension Heap._UnsafeHandle {
@@ -132,19 +139,10 @@ extension Heap._UnsafeHandle {
 }
 
 extension Heap._UnsafeHandle {
-  @inline(__always)
-  @inlinable
-  internal func trickleDown(_ node: _Node) {
-    if node.isMinLevel {
-      trickleDownMin(node)
-    } else {
-      trickleDownMax(node)
-    }
-  }
-
-  @inline(__always)
+  @_effects(releasenone)
   @inlinable
   internal func trickleDownMin(_ node: _Node) {
+    assert(node.isMinLevel)
     var node = node
 
     while let minDescendant = minChildOrGrandchild(of: node) {
@@ -167,9 +165,10 @@ extension Heap._UnsafeHandle {
     }
   }
 
-  @inline(__always)
+  @_effects(releasenone)
   @inlinable
   internal func trickleDownMax(_ node: _Node) {
+    assert(!node.isMinLevel)
     var node = node
 
     while let maxDescendant = maxChildOrGrandchild(of: node) {

@@ -106,8 +106,20 @@ public struct Heap<Element: Comparable> {
   /// - Complexity: O(log `count`)
   @inlinable
   public mutating func popMin() -> Element? {
-    defer { _checkInvariants() }
-    return _remove(.root)
+    guard _storage.count > 0 else { return nil }
+
+    var removed = _storage.removeLast()
+
+    if _storage.count > 0 {
+      _update { handle in
+        let minNode = _Node.root
+        handle.swapAt(minNode, with: &removed)
+        handle.trickleDownMin(minNode)
+      }
+    }
+
+    _checkInvariants()
+    return removed
   }
 
   /// Removes and returns the element with the highest priority, if available.
@@ -115,19 +127,26 @@ public struct Heap<Element: Comparable> {
   /// - Complexity: O(log `count`)
   @inlinable
   public mutating func popMax() -> Element? {
-    defer { _checkInvariants() }
-    guard count > 2 else {
-      // If count is 0, `popLast` will return `nil`
-      // If count is 1, the last (and only) item is the max
-      // If count is 2, the last item is the max (as it's the only item in the
-      // first max level)
-      return _storage.popLast()
+    guard _storage.count > 2 else { return _storage.popLast() }
+
+    var removed = _storage.removeLast()
+
+    _update { handle in
+      if handle.count == 2 {
+        if handle.buffer[1] > removed {
+          handle.swapAt(.leftMax, with: &removed)
+        }
+      } else {
+        let maxNode = handle.buffer[2] > handle.buffer[1]
+          ? _Node.rightMax
+          : _Node.leftMax
+        handle.swapAt(maxNode, with: &removed)
+        handle.trickleDownMax(maxNode)
+      }
     }
-    // The max item is the larger of the two items in the first max level
-    let max = _storage.withUnsafeBufferPointer { buffer in
-      _Node(offset: buffer[2] >  buffer[1] ? 2 : 1, level: 1)
-    }
-    return _remove(max)
+
+    _checkInvariants()
+    return removed
   }
 
   /// Removes and returns the element with the lowest priority.
@@ -148,30 +167,6 @@ public struct Heap<Element: Comparable> {
   @inlinable
   public mutating func removeMax() -> Element {
     return popMax()!
-  }
-
-  // MARK: -
-
-  @discardableResult
-  @inline(__always)
-  @inlinable
-  internal mutating func _remove(_ node: _Node) -> Element? {
-    guard _storage.count > node.offset else {
-      return nil
-    }
-
-    var removed = _storage.removeLast()
-
-    if node.offset < _storage.count {
-      _update { handle in
-        let p = handle.buffer.baseAddress.unsafelyUnwrapped
-        swap(&removed, &(p + node.offset).pointee)
-        //swap(&removed, &handle[node])
-        handle.trickleDown(node)
-      }
-    }
-
-    return removed
   }
 }
 

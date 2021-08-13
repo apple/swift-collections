@@ -77,9 +77,22 @@ extension _Node {
 }
 
 extension _Node {
+  /// The root node in the heap.
   @inlinable @inline(__always)
   internal static var root: Self {
     Self.init(offset: 0, level: 0)
+  }
+
+  /// The first max node in the heap. (I.e., the left child of the root.)
+  @inlinable @inline(__always)
+  internal static var leftMax: Self {
+    Self.init(offset: 1, level: 1)
+  }
+
+  /// The second max node in the heap. (I.e., the right child of the root.)
+  @inlinable @inline(__always)
+  internal static var rightMax: Self {
+    Self.init(offset: 2, level: 1)
   }
 
   @inlinable
