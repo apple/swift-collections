@@ -58,19 +58,16 @@ extension Benchmark {
     }
     
     self.add(
-      title: "BitSet remove",
+      title: "BitSet insert",
       input: [Int].self
     ) { input in
+      var set = BitSet(input[0 ..< input.count / 2])
+      let insertVal = Int.random(in: 0...input.count)
       return { timer in
-        var set = BitSet(0 ..< input.count / 2)
-        timer.measure {
-          for value in input {
-            blackHole(set.remove(value))
-          }
-        }
-        precondition(set.isEmpty)
+        blackHole(set.insert(insertVal))
       }
     }
+    
   }
 }
 
