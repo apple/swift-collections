@@ -44,6 +44,11 @@ extension SparseSet.SparseStorage {
   internal struct Header {
     @usableFromInline
     internal var capacity: Int
+
+    @inlinable
+    internal init(capacity: Int) {
+      self.capacity = capacity
+    }
   }
 }
 
@@ -57,7 +62,7 @@ extension SparseSet.SparseStorage {
     ///   - keys: A collection of keys.
     ///
     /// - Returns: A new buffer.
-    @usableFromInline
+    @inlinable
     internal static func bufferWith<C: Collection>(capacity: Int, keys: C) -> Buffer where C.Element == Key {
       assert(capacity >= keys.max().map { Int($0) + 1 } ?? 0)
       let newBuffer = Buffer.create(
@@ -81,7 +86,7 @@ extension SparseSet.SparseStorage {
     /// - Parameter buffer: The buffer to clone.
     ///
     /// - Returns: A new buffer.
-    @usableFromInline
+    @inlinable
     internal static func bufferWith(contentsOf buffer: Buffer) -> Buffer {
       return Buffer.bufferWith(capacity: buffer.capacity, contentsOf: buffer)
     }
@@ -96,7 +101,7 @@ extension SparseSet.SparseStorage {
     ///   - buffer: The data to populate the new buffer with.
     ///
     /// - Returns: A new buffer.
-    @usableFromInline
+    @inlinable
     internal static func bufferWith(capacity: Int, contentsOf buffer: Buffer) -> Buffer {
       let newBuffer = Buffer.create(
         minimumCapacity: capacity,
@@ -148,7 +153,7 @@ extension SparseSet.SparseStorage {
   /// Rebuilds the index data for the given key data.
   ///
   /// - Parameter indices: A collection of keys.
-  @usableFromInline
+  @inlinable
   internal mutating func reindex<C: Collection>(keys: C) where C.Element == Key {
     assert(capacity >= keys.max().map { Int($0) + 1 } ?? 0)
     _buffer.withUnsafeMutablePointerToElements { ptr in
