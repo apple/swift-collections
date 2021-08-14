@@ -18,7 +18,7 @@ extension Heap: ExpressibleByArrayLiteral {
   /// square brackets. You can use an array literal anywhere a heap is expected
   /// by the type context.
   ///
-  /// - Parameter elements: A variadic list of elements of the new set.
+  /// - Parameter elements: A variadic list of elements of the new heap.
   public init(arrayLiteral elements: Element...) {
     self.init(elements)
   }

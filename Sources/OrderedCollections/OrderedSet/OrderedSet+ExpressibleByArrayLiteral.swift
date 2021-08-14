@@ -12,16 +12,16 @@
 extension OrderedSet: ExpressibleByArrayLiteral {
   /// Creates a new ordered set from the contents of an array literal.
   ///
-  /// Duplicate elements in the literal are allowed, but the resulting
+  /// Duplicate elements in the literal are allowed, but the resulting ordered
   /// set will only contain the first occurrence of each.
   ///
   /// Do not call this initializer directly. It is used by the compiler when
-  /// you use an array literal. Instead, create a new set using an array
+  /// you use an array literal. Instead, create a new ordered set using an array
   /// literal as its value by enclosing a comma-separated list of values in
-  /// square brackets. You can use an array literal anywhere a set is expected
-  /// by the type context.
+  /// square brackets. You can use an array literal anywhere an ordered set is
+  /// expected by the type context.
   ///
-  /// - Parameter elements: A variadic list of elements of the new set.
+  /// - Parameter elements: A variadic list of elements of the new ordered set.
   ///
   /// - Complexity: O(`elements.count`) if `Element` implements
   ///    high-quality hashing.
