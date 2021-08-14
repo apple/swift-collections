@@ -1,10 +1,13 @@
+//===----------------------------------------------------------------------===//
 //
-//  BitArray.swift
-//  
+// This source file is part of the Swift Collections open source project
 //
-//  Created by Mahanaz Atiqullah on 5/21/21.
+// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
 //
-
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
 public struct BitArray: ExpressibleByArrayLiteral {
   typealias WORD = UInt  // created for experimental purposes to make it easier to test different UInts without having to change much of the code
   
