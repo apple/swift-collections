@@ -30,7 +30,7 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(Array(testBitArray), boolArray)
       expectEqual(testBitArray.count, boolArray.count)
       expectEqual(testBitArray.endIndex, boolArray.count)
-      expectEqual(testBitArray.excess, WORD(boolArray.count%8))
+      expectEqual(testBitArray.excess, WORD(boolArray.count%WORD.bitWidth))
     }
   }
   
@@ -39,96 +39,75 @@ final class BitArrayTest: CollectionTestCase {
       let testBitArray = BitArray(boolArray)
       expectEqual(Array(testBitArray), boolArray)
     }
-    //?
+    
     // Using manually created Bool Arrays
     let testBitArray1: BitArray = []
     expectEqual(Array(testBitArray1), [])
+    expectEqual(testBitArray1.excess, WORD(testBitArray1.count%WORD.bitWidth))
     expectEqual(testBitArray1.count, 0)
     
     let testBitArray2: BitArray = [true]
     expectEqual(Array(testBitArray2), [true])
     expectEqual(testBitArray2.storage, [1])
-    expectEqual(testBitArray2.excess, 1)
+    expectEqual(testBitArray2.excess, WORD(testBitArray2.count%WORD.bitWidth))
     expectEqual(testBitArray2.count, 1)
     
     let testBitArray3: BitArray = [false]
     expectEqual(Array(testBitArray3), [false])
     expectEqual(testBitArray3.storage, [0])
-    expectEqual(testBitArray3.excess, 1)
+    expectEqual(testBitArray3.excess, WORD(testBitArray3.count%WORD.bitWidth))
     expectEqual(testBitArray3.count, 1)
     
     let testBitArray4: BitArray = [true, true, true, true, true, true, true, true]
     expectEqual(Array(testBitArray4), [true, true, true, true, true, true, true, true])
     expectEqual(testBitArray4.storage, [255])
-    expectEqual(testBitArray4.excess, 0)
+    expectEqual(testBitArray4.excess, WORD(testBitArray4.count%WORD.bitWidth))
     expectEqual(testBitArray4.count, 8)
     
     let testBitArray4B: BitArray = [true, true, true, true, true, true, true, true, true]
     expectEqual(Array(testBitArray4B), [true, true, true, true, true, true, true, true, true])
-    expectEqual(testBitArray4B.storage, [255, 1])
-    expectEqual(testBitArray4B.excess, 1)
+    expectEqual(testBitArray4B.excess, WORD(testBitArray4B.count%WORD.bitWidth))
     expectEqual(testBitArray4B.count, 9)
     
     let testBitArray5: BitArray = [false, false, false, false, false, false, false, false]
     expectEqual(Array(testBitArray5), [false, false, false, false, false, false, false, false])
     expectEqual(testBitArray5.storage, [0])
-    expectEqual(testBitArray5.excess, 0)
+    expectEqual(testBitArray5.excess, WORD(testBitArray5.count%WORD.bitWidth))
     expectEqual(testBitArray5.count, 8)
     
     let testBitArray5B: BitArray = [false, false, false, false, false, false, false, false, false]
     expectEqual(Array(testBitArray5B), [false, false, false, false, false, false, false, false, false])
-    expectEqual(testBitArray5B.storage, [0, 0])
-    expectEqual(testBitArray5B.excess, 1)
+    expectEqual(testBitArray5B.excess, WORD(testBitArray5B.count%WORD.bitWidth))
     expectEqual(testBitArray5B.count, 9)
     
     let testBitArray6: BitArray = [true, false, true, false, false, false, true]
     expectEqual(Array(testBitArray6), [true, false, true, false, false, false, true])
     expectEqual(testBitArray6.storage, [69])
-    expectEqual(testBitArray6.excess, 7)
+    expectEqual(testBitArray6.excess, WORD(testBitArray6.count%WORD.bitWidth))
     expectEqual(testBitArray6.count, 7)
   }
   
   func testRepeatingInit() {
-    for count in 0...50 {
+    for count in 0...3*(WORD.bitWidth) {
       let trueArray = Array(repeating: true, count: count)
       let falseArray = Array(repeating: false, count: count)
       
       let trueBitArray = BitArray(repeating: true, count: count)
       let falseBitArray = BitArray(repeating: false, count: count)
       
-      let repeatCount = (count%8 == 0) ? Int(count/8) : Int(count/8) + 1
+      let repeatCount = (count%(WORD.bitWidth) == 0) ? Int(count/(WORD.bitWidth)) : Int(count/(WORD.bitWidth)) + 1
       let expectedFalseStorage: [WORD] = Array(repeating: 0, count: repeatCount)
-      var expectedTrueStorage: [WORD] = Array(repeating: 255, count: repeatCount)
-      if (count%8 != 0) {
+      var expectedTrueStorage: [WORD] = Array(repeating: WORD.max, count: repeatCount)
+      if (count%(WORD.bitWidth) != 0) {
         expectedTrueStorage.removeLast()
-        switch count%8 {
-        case 1:
-          expectedTrueStorage.append(1)
-          break
-        case 2:
-          expectedTrueStorage.append(3)
-          break
-        case 3:
-          expectedTrueStorage.append(7)
-          break
-        case 4:
-          expectedTrueStorage.append(15)
-          break
-        case 5:
-          expectedTrueStorage.append(31)
-          break
-        case 6:
-          expectedTrueStorage.append(63)
-          break
-        case 7:
-          expectedTrueStorage.append(127)
-          break
-        default:
-          fatalError("I shouldn't be here.")
-          break
+        let remaining = count%(WORD.bitWidth)
+        var valueToAdd: WORD = 0
+        for shift in 0..<remaining {
+          valueToAdd += (WORD(1) << shift)
         }
+        expectedTrueStorage.append(valueToAdd)
       }
-      let expectedExcess: WORD = WORD(count%8)
+      let expectedExcess: WORD = WORD(count%WORD.bitWidth)
       
       expectEqual(Array(trueBitArray), trueArray)
       expectEqual(Array(falseBitArray), falseArray)
@@ -512,7 +491,7 @@ final class BitArrayTest: CollectionTestCase {
       let bitArray = BitArray(layout)
       
       for _ in bitArray.reversed() {
-        // Just making sure it compiles should suffice
+        // Just making sure it runs should suffice
       }
       
       expectEqual(Array(bitArray.reversed()), layout.reversed())

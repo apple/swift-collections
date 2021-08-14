@@ -67,6 +67,7 @@ extension Benchmark {
         blackHole(set.insert(insertVal))
       }
     }
+
     //NOTE TO SELF: do compare inserts
     self.add(
       title: "BitSet forceInsert",

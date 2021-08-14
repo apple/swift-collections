@@ -6,7 +6,7 @@
 //
 
 public struct BitArray: ExpressibleByArrayLiteral {
-  typealias WORD = UInt8  // created for experimental purposes to make it easier to test different UInts without having to change a lot of the code
+  typealias WORD = UInt  // created for experimental purposes to make it easier to test different UInts without having to change a lot of the code
   
   // Will start off storing elements little-endian just because I have a hunch the calculations might be cleaner
   var storage : [WORD] = []
