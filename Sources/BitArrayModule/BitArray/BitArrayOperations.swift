@@ -15,7 +15,7 @@ extension BitArray {
     
     if (!newValue) {
       if(excess == 0) { storage.append(0)}
-      _adjustExcessForAppend() // excess += 1
+      _adjustExcessForAppend()
       return
     }
     
@@ -151,8 +151,8 @@ extension BitArray {
     }
   }
   
-  // make public
-  internal func firstTrueIndex() -> Int? {
+
+  public func firstTrueIndex() -> Int? {
     var counter = -1
     for item in storage {
       counter += 1
@@ -160,10 +160,10 @@ extension BitArray {
         return item.trailingZeroBitCount + counter*WORD.bitWidth
       }
     }
-    return nil // If public, return nil/optional and probably not have the fatalError()
+    return nil
   }
   
-  internal func lastTrueIndex() -> Int? {
+  public func lastTrueIndex() -> Int? {
     var counter = storage.count
     for item in storage.reversed() {
       counter -= 1

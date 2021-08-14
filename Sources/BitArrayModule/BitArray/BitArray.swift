@@ -6,9 +6,8 @@
 //
 
 public struct BitArray: ExpressibleByArrayLiteral {
-  typealias WORD = UInt  // created for experimental purposes to make it easier to test different UInts without having to change a lot of the code
+  typealias WORD = UInt  // created for experimental purposes to make it easier to test different UInts without having to change much of the code
   
-  // Will start off storing elements little-endian just because I have a hunch the calculations might be cleaner
   var storage : [WORD] = []
   var excess: WORD = 0
   
@@ -22,7 +21,7 @@ public struct BitArray: ExpressibleByArrayLiteral {
   }
   
   public init(arrayLiteral elements: Bool...) {
-    storage.reserveCapacity(elements.underestimatedCount / WORD.bitWidth) // for this, why not just use count?
+    storage.reserveCapacity(elements.underestimatedCount / WORD.bitWidth)
     for value in elements {
         self.append(value)
     }

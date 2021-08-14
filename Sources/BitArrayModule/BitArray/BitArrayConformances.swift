@@ -41,7 +41,6 @@ extension BitArray: MutableCollection {
   public subscript(position: Int) -> Bool  {
     
     get {
-      // any other checks needed?
       precondition(position < endIndex && position >= startIndex, "Index out of bounds")
       
       let (index, mask) = _split(_position: position)

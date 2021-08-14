@@ -7,7 +7,6 @@
 
 extension BitSet: Collection, BidirectionalCollection {
   
-  // when items are appended or removed, do these need to be recalculated, and is that does automatically?
   
   public var isEmpty: Bool { return count == 0 }
   
@@ -40,12 +39,11 @@ extension BitSet: Collection, BidirectionalCollection {
     }
   }
   
-  // Do I need to keep the check in Index since the checks exist in subscript? I feel like I at least need to keep the range ones since subcript doesn't check that we're alreadt at the end/beginning or not?
   public func index(after: Index) -> Index {
     precondition((startIndex.bitArrayIndex <= after.bitArrayIndex) && (endIndex.bitArrayIndex > after.bitArrayIndex), "Given Index is out of range")
     precondition((storage[after.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
     precondition(after.bitArrayIndex != endIndex.bitArrayIndex, "Passed in Index is already the endIndex, and has no existing Indexes after it")
-    // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
+    // Potentially optimizeable using leadingZeroCount/trailingZeroCount
     for i in (after.bitArrayIndex+1)..<storage.count {
       if (storage[i]) {
         return Index(bitArrayIndex: i)
@@ -58,7 +56,7 @@ extension BitSet: Collection, BidirectionalCollection {
     precondition(before.bitArrayIndex != startIndex.bitArrayIndex, "Passed in Index is already the startIndex, and has no existing Indexes before it")
     precondition((startIndex.bitArrayIndex < before.bitArrayIndex) && (endIndex.bitArrayIndex >= before.bitArrayIndex), "Given Index is out of range")
     precondition( ((before == endIndex) || (storage[before.bitArrayIndex])), "Index passed in is invalid: does not exist in the set")
-    // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
+    // Potentially optimizeable using leadingZeroCount/trailingZeroCount
     
     for i in stride(from: (before.bitArrayIndex-1), through: 0, by: -1) {
       if (storage[i]) {
@@ -72,7 +70,7 @@ extension BitSet: Collection, BidirectionalCollection {
     precondition((startIndex.bitArrayIndex <= index.bitArrayIndex) && (endIndex.bitArrayIndex >= index.bitArrayIndex), "Given Index is out of range")
     precondition((index == endIndex) || (storage[index.bitArrayIndex]), "Index passed in is invalid: does not exist in the set")
     precondition(self.count != 0, "Set is empty and has no indexes to iterate through")
-    // Optimize using storage.storage and leadingZeroCount/trailingZeroCount when benchmarking... I could do that now but Imma save this so I can feel the satisfaction of scoring faster numbers 🤪
+    // Potentially optimizeable using leadingZeroCount/trailingZeroCount
     var counter = 0
     if (distance == 0) {
       return index
@@ -97,7 +95,7 @@ extension BitSet: Collection, BidirectionalCollection {
       }
       fatalError("negative distance not found")
     }
-    fatalError("Passed in distance points to an Index beyond the scope of the set") // Wondering if there is a simple way to put this as a precondition instead. Would be possible if the Indices were able to keep track of what number element of the Set it points to?
+    fatalError("Passed in distance points to an Index beyond the scope of the set")
   }
   
 }

@@ -24,7 +24,6 @@ extension BitSet: Equatable {
   
   public mutating func forceInsert(_ newMember: Int) {
     precondition(newMember >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
-    // alternative shown in insert func above
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
     }
@@ -43,7 +42,6 @@ extension BitSet: Equatable {
     return returnVal
   }
   
-  // what is '__consuming'
   public __consuming func union(_ other: BitSet) -> BitSet {
     var newBitSet = self
     newBitSet.formUnion(other)
@@ -115,7 +113,7 @@ extension BitSet: Equatable {
   }
   
   public static func == (lhs: BitSet, rhs: BitSet) -> Bool {
-    return (lhs.storage == rhs.storage) // BitArray also conforms to Equatable, so we good here
+    return (lhs.storage == rhs.storage)
   }
   
 }

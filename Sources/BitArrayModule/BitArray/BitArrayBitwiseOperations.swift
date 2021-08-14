@@ -7,7 +7,6 @@
 
 extension BitArray {
   
-  // Need to make sure the lack of adjusting excess doesn't do anything weird here
   
   public mutating func formBitwiseOr(with: BitArray) {
     
