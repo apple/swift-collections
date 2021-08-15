@@ -428,11 +428,15 @@ final class BitSetTest: CollectionTestCase {
           
           // test positive and negative from middle index if applicable -- depends on above testing passing
           if (bitSet.count >= 3) {
-            let distanceFromStart = Int.random(in: 1..<bitSet.count)
-            let distanceFromEnd = bitSet.count - distanceFromStart
+            let distanceFromStart = Int.random(in: 1..<bitSet.count-1)
+            let distanceFromEnd = (bitSet.count-1) - distanceFromStart
             let fromIndex = bitSet.index(bitSet.startIndex, offsetBy: distanceFromStart)
             
+            let negativeOffset = -(Int.random(in: 1...distanceFromStart))
+            let positiveOffset = Int.random(in: 1...distanceFromEnd)
             
+            expectEqual(bitSet.index(fromIndex, offsetBy: negativeOffset).bitArrayIndex, bitSetLayout[bitSetLayout.index(distanceFromStart, offsetBy: negativeOffset)])
+            expectEqual(bitSet.index(fromIndex, offsetBy: positiveOffset).bitArrayIndex, bitSetLayout[bitSetLayout.index(distanceFromStart, offsetBy: positiveOffset)])
           }
         }
       }

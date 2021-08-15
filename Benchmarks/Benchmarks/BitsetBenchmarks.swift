@@ -67,7 +67,7 @@ extension Benchmark {
         blackHole(set.insert(insertVal))
       }
     }
-
+    
     //NOTE TO SELF: do compare inserts
     self.add(
       title: "BitSet forceInsert",
@@ -77,6 +77,32 @@ extension Benchmark {
       let insertVal = Int.random(in: 0...input.count)
       return { timer in
         blackHole(set.forceInsert(insertVal))
+      }
+    }
+    
+    self.add(
+      title: "BitSet bitwise Union",
+      input: [Int].self
+    ) { input in
+      let set = BitSet(input[0 ..< input.count / 2])
+      let secondSet = BitSet(input[input.count / 4 ..< 3*(input.count / 4)])
+      set.contains(5)
+      secondSet.contains(5)
+      return { timer in
+        blackHole(set.intersection(secondSet))
+      }
+    }
+    
+    self.add(
+      title: "non BitSet bitwise Union",
+      input: [Int].self
+    ) { input in
+      let set = Set(input[0 ..< input.count / 2])
+      let secondSet = Set(input[input.count / 4 ..< 3*(input.count / 4)])
+      set.contains(5)
+      secondSet.contains(5)
+      return { timer in
+        blackHole(set.intersection(secondSet))
       }
     }
     
