@@ -16,23 +16,62 @@ extension _Node {
     internal init(
       capacity: Int,
       count: Int,
-      totalElements: Int,
+      subtreeCount: Int,
+      depth: Int,
       values: UnsafeMutablePointer<Value>?,
       children: UnsafeMutablePointer<_Node<Key, Value>>?
     ) {
-      self.capacity = capacity
-      self.count = count
+      self._internalCounts = 0
       self.values = values
       self.children = children
-      self.subtreeCount = totalElements
+      self.subtreeCount = subtreeCount
+      
+      self.capacity = capacity
+      self.count = count
+      self.depth = depth
     }
     
+    // Packed integer to store all node counts.
     @usableFromInline
-    internal var capacity: Int
+    internal var _internalCounts: UInt64
     
     /// Refers to the amount of keys in the node.
-    @usableFromInline
-    internal var count: Int
+    @inlinable
+    @inline(__always)
+    internal var count: Int {
+      get { Int((_internalCounts & 0xFFFFFFF000000000) >> 40) }
+      set {
+        assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid count.")
+        assert(newValue <= capacity, "Count cannot exceed capacity.")
+        _internalCounts &= ~0xFFFFFFF000000000
+        _internalCounts |= UInt64(newValue) << 40
+      }
+    }
+    
+    /// The total amount of keys possible to store within the node.
+    @inlinable
+    @inline(__always)
+    internal var capacity: Int {
+      get { Int((_internalCounts & 0x0000000FFFFFFF00) >> 8) }
+      set {
+        assert(0 <= newValue && newValue <= 0xFFFFFFF, "Invalid capacity.")
+        assert(newValue >= count, "Capacity cannot be below count.")
+        _internalCounts &= ~0x0000000FFFFFFF00
+        _internalCounts |= UInt64(newValue) << 8
+      }
+    }
+    
+    /// The depth of the node represented as the number of nodes below the current one.
+    @inlinable
+    @inline(__always)
+    internal var depth: Int {
+      get { Int(_internalCounts & 0x00000000000000FF) }
+      set {
+        assert(0 <= newValue && newValue <= 0xFF, "Invalid depth.")
+        _internalCounts &= ~0x00000000000000FF
+        _internalCounts |= UInt64(newValue)
+      }
+    }
     
     /// The total amount of elements contained underneath this node
     @usableFromInline
@@ -93,7 +132,8 @@ extension _Node {
         Header(
           capacity: capacity,
           count: 0,
-          totalElements: 0,
+          subtreeCount: 0,
+          depth: 0,
           values:
             Value.self == Void.self ? nil
             : UnsafeMutablePointer<Value>.allocate(capacity: capacity),
@@ -111,13 +151,15 @@ extension _Node {
     internal func copy() -> Storage {
       let capacity = self.header.capacity
       let count = self.header.count
-      let totalElements = self.header.subtreeCount
+      let subtreeCount = self.header.subtreeCount
+      let depth = self.header.depth
       let isLeaf = self.header.children == nil
       
       let newStorage = Storage.create(withCapacity: capacity, isLeaf: isLeaf)
       
       newStorage.header.count = count
-      newStorage.header.subtreeCount = totalElements
+      newStorage.header.subtreeCount = subtreeCount
+      newStorage.header.depth = depth
       
       self.withUnsafeMutablePointerToElements { oldKeys in
         newStorage.withUnsafeMutablePointerToElements { newKeys in
@@ -145,8 +187,19 @@ extension _Node {
     @inlinable
     deinit {
       self.withUnsafeMutablePointers { header, elements in
-        header.pointee.values?.deallocate()
-        header.pointee.children?.deallocate()
+        let count = header.pointee.count
+        
+        if _Node.hasValues {
+          let values = header.pointee.values.unsafelyUnwrapped
+          values.deinitialize(count: count)
+          values.deallocate()
+        }
+        
+        
+        if let children = header.pointee.children {
+          children.deinitialize(count: count + 1)
+          children.deallocate()
+        }
         
         elements.deinitialize(count: header.pointee.count)
       }

@@ -13,11 +13,103 @@ import CollectionsTestSupport
 @_spi(Testing) @testable import SortedCollections
 
 final class SortedDictionaryTests: CollectionTestCase {
-  func test_keysAndValues() {
+  func test_empty() {
+    let d = SortedDictionary<Int, String>()
+    expectEqualElements(d, [])
+    expectEqual(d.count, 0)
+  }
+  
+  func test_keysWithValues_unique() {
+    let items: KeyValuePairs<Int, String> = [
+      3: "three",
+      1: "one",
+      0: "zero",
+      2: "two",
+    ]
+    let d = SortedDictionary<Int, String>(keysWithValues: items)
+    expectEqualElements(d, [
+      (key: 0, value: "zero"),
+      (key: 1, value: "one"),
+      (key: 2, value: "two"),
+      (key: 3, value: "three")
+    ])
+  }
+  
+  func test_keysWithValues_bulk() {
     withEvery("count", in: [0, 1, 2, 4, 8, 16, 32, 64, 128, 1024, 4096]) { count in
       let kvs = (0..<count).map { (key: $0, value: $0) }
       let sortedDictionary = SortedDictionary<Int, Int>(keysWithValues: kvs)
       expectEqual(sortedDictionary.count, count)
+    }
+  }
+  
+  func test_keysWithValues_duplicates() {
+    let items: KeyValuePairs<Int, String> = [
+      3: "three",
+      1: "one",
+      1: "one-1",
+      0: "zero",
+      3: "three-1",
+      2: "two",
+    ]
+    let d = SortedDictionary<Int, String>(keysWithValues: items)
+    expectEqualElements(d, [
+      (key: 0, value: "zero"),
+      (key: 1, value: "one-1"),
+      (key: 2, value: "two"),
+      (key: 3, value: "three-1")
+    ])
+  }
+  
+  func test_grouping_initializer() {
+    let items: [String] = [
+      "one", "two", "three", "four", "five",
+      "six", "seven", "eight", "nine", "ten"
+    ]
+    let d = SortedDictionary<Int, [String]>(grouping: items, by: { $0.count })
+    expectEqualElements(d, [
+      (key: 3, value: ["one", "two", "six", "ten"]),
+      (key: 4, value: ["four", "five", "nine"]),
+      (key: 5, value: ["three", "seven", "eight"]),
+    ])
+  }
+  
+  func test_ExpressibleByDictionaryLiteral() {
+    let d0: SortedDictionary<Int, String> = [:]
+    expectTrue(d0.isEmpty)
+
+    let d1: SortedDictionary<Int, String> = [
+      1: "one",
+      2: "two",
+      3: "three",
+      4: "four",
+    ]
+    expectEqualElements(d1.map { $0.key }, [1, 2, 3, 4])
+    expectEqualElements(d1.map { $0.value }, ["one", "two", "three", "four"])
+  }
+  
+  func test_counts() {
+    withEvery("count", in: 0 ..< 30) { count in
+      withLifetimeTracking { tracker in
+        let (d, _) = tracker.sortedDictionary(keys: 0 ..< count)
+        expectEqual(d.isEmpty, count == 0)
+        expectEqual(d.count, count)
+        expectEqual(d.underestimatedCount, count)
+      }
+    }
+  }
+  
+  func test_bidirectionalCollection() {
+    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
+      withLifetimeTracking { tracker in
+        let (d, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+        
+        checkBidirectionalCollection(
+          d,
+          expectedContents: kvs,
+          by: { $0.key == $1.key && $0.value == $1.value }
+        )
+      }
     }
   }
   

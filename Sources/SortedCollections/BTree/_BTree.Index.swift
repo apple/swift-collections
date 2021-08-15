@@ -18,7 +18,7 @@ extension _BTree {
   internal struct Index {
     /// A fixed-size array large enough to represent all offsets within a B-Tree index
     @usableFromInline
-    internal typealias Offsets = FixedSizeArray<Slot>
+    internal typealias Offsets = _FixedSizeArray<Slot>
     
     /// The position of each of the parent nodes in their parents. The path's depth
     /// is offsets.count + 1

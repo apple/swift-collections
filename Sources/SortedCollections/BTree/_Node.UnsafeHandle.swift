@@ -39,15 +39,25 @@ extension _Node {
       self.header = header
       
       #if COLLECTIONS_INTERNAL_CHECKS
-      self.isMutable = isMutable
+      self._isMutable = isMutable
       #endif
     }
     
     // MARK: Mutablility Checks
     #if COLLECTIONS_INTERNAL_CHECKS
     @usableFromInline
-    internal let isMutable: Bool
+    internal let _isMutable: Bool
     #endif
+    
+    @inlinable
+    @inline(__always)
+    internal var isMutable: Bool {
+      #if COLLECTIONS_INTERNAL_CHECKS
+      return _isMutable
+      #else
+      return true
+      #endif
+    }
     
     /// Check that this handle supports mutating operations.
     /// Every member that mutates node data must start by calling this function.
@@ -58,7 +68,7 @@ extension _Node {
     @inline(__always)
     internal func assertMutable() {
       #if COLLECTIONS_INTERNAL_CHECKS
-      assert(self.isMutable,
+      assert(self._isMutable,
              "Attempt to mutate a node through a read-only handle")
       #endif
     }
@@ -68,7 +78,8 @@ extension _Node {
     @inline(never)
     @usableFromInline
     internal func checkInvariants() {
-      // TODO: go over invariant checks again
+      assert(depth != 0 || self.isLeaf,
+             "Cannot have non-leaf of zero depth.")
     }
     #else
     @inlinable
@@ -110,6 +121,16 @@ extension _Node {
       get { header.pointee.subtreeCount }
       nonmutating set {
         assertMutable(); header.pointee.subtreeCount = newValue
+      }
+    }
+    
+    /// The depth of the node represented as the number of nodes below the current one.
+    @inlinable
+    @inline(__always)
+    internal var depth: Int {
+      get { header.pointee.depth }
+      nonmutating set {
+        assertMutable(); header.pointee.depth = newValue
       }
     }
     
@@ -571,11 +592,7 @@ extension _Node.UnsafeHandle {
     return self.children.unsafelyUnwrapped.advanced(by: slot).move()
   }
   
-  /// Inserts an element at the end of the node
-  ///
-  /// This adjusts element counts.
-  ///
-  /// - Parameter newElement: The new element to insert.
+  /// Appends a new element.
   @inlinable
   @inline(__always)
   internal func appendElement(_ element: _Node.Element) {
@@ -584,41 +601,33 @@ extension _Node.UnsafeHandle {
     assert(elementCount == 0 || self[keyAt: elementCount - 1] <= element.key,
            "Cannot append out-of-order element.")
     
-    initializeElement(
-      atSlot: capacity - 1,
-      to: element
-    )
+    initializeElement(atSlot: elementCount, to: element)
     
     elementCount += 1
     subtreeCount += 1
   }
   
-  /// Inserts a splinter at the end of the node
-  @inlinable
-  @inline(__always)
-  internal func appendSplinter(_ splinter: _Node.Splinter) -> _Node.Splinter? {
-    assertMutable()
-    return self.appendElement(
-      splinter.element,
-      withRightChild: splinter.rightChild
-    )
-  }
   
   /// Appends a new element with a provided right child.
   @inlinable
   @inline(__always)
   internal func appendElement(
     _ element: _Node.Element,
-    withRightChild rightChild: _Node) -> _Node.Splinter? {
+    withRightChild rightChild: _Node)  {
     assertMutable()
+    assert(!self.isLeaf, "Cannot append on leaf.")
     assert(elementCount < capacity, "Cannot append into full node")
     assert(elementCount == 0 || self[keyAt: elementCount - 1] <= element.key,
            "Cannot append out-of-order element.")
-    return insertElement(
-      element,
-      withRightChild: rightChild,
-      atSlot: elementCount
+    
+    initializeElement(
+      atSlot: elementCount,
+      to: element,
+      withRightChild: rightChild
     )
+    
+    elementCount += 1
+    subtreeCount += 1 + rightChild.storage.header.subtreeCount
   }
   
   /// Swaps the element at a given slot, returning the old one.

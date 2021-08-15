@@ -37,7 +37,7 @@ extension _BTree {
   @usableFromInline
   internal struct UnsafeCursor {
     @usableFromInline
-    internal typealias Path = FixedSizeArray<Unmanaged<Node.Storage>>
+    internal typealias Path = _FixedSizeArray<Unmanaged<Node.Storage>>
     
     /// This property is what takes ownership of the tree during the lifetime of the cursor. Once the cursor
     /// is consumed, it is set to nil and it is invalid to use the cursor.
@@ -58,7 +58,7 @@ extension _BTree {
     ///     │1│3│ │7│9│
     ///     └─┴─┘ └─┴─┘
     @usableFromInline
-    internal var slots: FixedSizeArray<_BTree.Slot>
+    internal var slots: _FixedSizeArray<_BTree.Slot>
     
     /// This stores a list of the nodes from top-to-bottom.
     @usableFromInline
@@ -90,7 +90,7 @@ extension _BTree {
     @inline(__always)
     internal init(
       root: Node.Storage,
-      slots: FixedSizeArray<_BTree.Slot>,
+      slots: _FixedSizeArray<_BTree.Slot>,
       path: Path,
       lastUniqueDepth: Int
     ) {
@@ -127,6 +127,7 @@ extension _BTree {
       assertValid()
       assert(tree.root._storage == nil, "Must apply to same tree as original.")
       swap(&tree.root._storage, &self._root)
+      tree.checkInvariants()
     }
     
     /// Declares that the cursor is completely unique
@@ -140,7 +141,7 @@ extension _BTree {
     /// - Warning: Ensure this is never called on an endIndex.
     @inlinable
     @inline(__always)
-    internal func readCurrentNode<R>(
+    internal mutating func readCurrentNode<R>(
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> R {
       assertValid()
@@ -156,7 +157,7 @@ extension _BTree {
     @inlinable
     @inline(__always)
     internal mutating func updateNode<R>(
-      at depth: Int8,
+      atDepth depth: Int8,
       _ body: (Node.UnsafeHandle, Int) throws -> R
     ) rethrows -> (node: Node, result: R) {
       assertValid()
@@ -197,14 +198,14 @@ extension _BTree {
       defer { self._declareUnique() }
       
       // Update the bottom-most node
-      var (node, result) = try self.updateNode(at: path.depth - 1, body)
+      var (node, result) = try self.updateNode(atDepth: path.depth - 1, body)
       
       // Start the node above the bottom-most node, and propogate up the change
       var depth = path.depth - 2
       while depth >= 0 {
         if depth > lastUniqueDepth {
           // If we're on a
-          let (newNode, _) = self.updateNode(at: depth) { (handle, slot) in
+          let (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in
             _ = handle.exchangeChild(atSlot: slot, with: node)
           }
           
@@ -278,20 +279,20 @@ extension _BTree {
       assertValid()
       defer { self._declareUnique() }
       
-      var (node, splinter) = self.updateNode(at: path.depth - 1) { handle, slot in
+      var (node, splinter) = self.updateNode(atDepth: path.depth - 1) { handle, slot in
         handle.insertElement(element, withRightChild: nil, atSlot: slot)
       }
 
       // Start the node above the bottom-most node, and propogate up the change
       var depth = path.depth - 2
       while depth >= 0 {
-        if splinter == nil && depth < lastUniqueDepth { return }
-        
-        let (newNode, _) = self.updateNode(at: depth) { (handle, slot) in
+        let (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in
           handle.exchangeChild(atSlot: slot, with: node)
           
           if let lastSplinter = splinter {
             splinter = handle.insertSplinter(lastSplinter, atSlot: slot)
+          } else {
+            handle.subtreeCount += 1
           }
         }
         
@@ -317,7 +318,7 @@ extension _BTree {
       defer { self._declareUnique() }
       
       var (node, _) = self.updateNode(
-        at: path.depth - 1
+        atDepth: path.depth - 1
       ) { handle, slot in
         if handle.isLeaf {
           // Deletion within a leaf
@@ -354,7 +355,7 @@ extension _BTree {
       // Balance the parents
       var depth = path.depth - 2
       while depth >= 0 {
-        var (newNode, _) = self.updateNode(at: depth) { (handle, slot) in
+        var (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in
           handle.exchangeChild(atSlot: slot, with: node)
           handle.subtreeCount -= 1
           handle.balance(atSlot: slot)

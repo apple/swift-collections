@@ -53,7 +53,7 @@ extension _BTree: BidirectionalCollection {
     return Index(
       node: currentNode,
       slot: 0,
-      childSlots: FixedSizeArray(repeating: 0, depth: depth),
+      childSlots: _FixedSizeArray(repeating: 0, depth: depth),
       offset: 0,
       forTree: self
     )
@@ -194,5 +194,11 @@ extension _BTree: BidirectionalCollection {
     // Ensure we don't attempt to dereference the endIndex
     precondition(index != endIndex, "Attempt to subscript out of range index.")
     return index.element
+  }
+  
+  @inlinable
+  @inline(__always)
+  internal subscript(bounds: Range<Index>) -> SubSequence {
+    return SubSequence(base: self, bounds: bounds)
   }
 }

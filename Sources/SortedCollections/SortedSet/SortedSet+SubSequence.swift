@@ -248,6 +248,16 @@ extension SortedSet.SubSequence: BidirectionalCollection {
   }
   
   @inlinable
+  public subscript(bounds: Range<Index>) -> SubSequence {
+    bounds.lowerBound._index.ensureValid(forTree: _subSequence.base)
+    bounds.upperBound._index.ensureValid(forTree: _subSequence.base)
+    
+    let bound = bounds.lowerBound._index..<bounds.upperBound._index
+    
+    return SubSequence(_subSequence[bound])
+  }
+  
+  @inlinable
   @inline(__always)
   public func _failEarlyRangeCheck(_ index: Index, bounds: Range<Index>) {
     _subSequence._failEarlyRangeCheck(
@@ -266,3 +276,39 @@ extension SortedSet.SubSequence: BidirectionalCollection {
   }
 }
 
+extension SortedSet.SubSequence: Equatable {
+  /// Returns a Boolean value indicating whether two values are equal.
+  ///
+  /// Equality is the inverse of inequality. For any values `a` and `b`,
+  /// `a == b` implies that `a != b` is false.
+  ///
+  /// - Parameters:
+  ///   - lhs: A value to compare.
+  ///   - rhs: Another value to compare.
+  /// - Complexity: O(`self.count`)
+  @inlinable
+  public static func ==(lhs: Self, rhs: Self) -> Bool {
+    if lhs.count != rhs.count { return false }
+    for (k1, k2) in zip(lhs, rhs) {
+      if k1 != k2 {
+        return false
+      }
+    }
+    return true
+  }
+}
+
+extension SortedSet.SubSequence: Hashable where Element: Hashable {
+  /// Hashes the essential components of this value by feeding them
+  /// into the given hasher.
+  /// - Parameter hasher: The hasher to use when combining
+  ///     the components of this instance.
+  /// - Complexity: O(`self.count`)
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.count)
+    for element in self {
+      hasher.combine(element)
+    }
+  }
+}

@@ -33,6 +33,8 @@ extension _Node {
         for (index, child) in children.enumerated() {
           handle.children!.advanced(by: index).initialize(to: child)
         }
+        
+        handle.depth = handle[childAt: 0].storage.header.depth + 1
       }
       
       let totalChildElements = children?.reduce(0, { $0 + $1.read({ $0.subtreeCount }) })

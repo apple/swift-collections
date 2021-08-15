@@ -10,64 +10,247 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
+import SortedCollections
 
 extension Benchmark {
   public mutating func addSortedDictionaryBenchmarks() {
-//    self.add(
-//      title: "SortedDictionary<Int, Int> init(uniqueKeysWithValues:)",
-//      input: [Int].self
-//    ) { input in
-//      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
-//
-//      return { timer in
-//        blackHole(SortedDictionary(uniqueKeysWithValues: keysAndValues))
-//      }
-//    }
-//
-//    self.add(
-//      title: "SortedDictionary<Int, Int> subscript, append",
-//      input: [Int].self
-//    ) { input in
-//      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
-//      var sortedDictionary = SortedDictionary<Int, Int>()
-//
-//      return { timer in
-//        for (key, value) in keysAndValues {
-//          sortedDictionary[key] = value
-//        }
-//        blackHole(sortedDictionary)
-//      }
-//    }
-//
-//    self.add(
-//      title: "SortedDictionary<Int, Int> subscript, successful lookups",
-//      input: ([Int], [Int]).self
-//    ) { input, lookups in
-//      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
-//      let sortedDictionary = SortedDictionary<Int, Int>(uniqueKeysWithValues: keysAndValues)
-//
-//      return { timer in
-//        for key in lookups {
-//          precondition(sortedDictionary._root.contains(key: key))
-//        }
-//      }
-//    }
+    self.add(
+      title: "SortedDictionary<Int, Int> init(keysWithValues:)",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+
+      return { timer in
+        blackHole(SortedDictionary(keysWithValues: keysAndValues))
+      }
+    }
     
     self.add(
-      title: "SortedDictionary<Int, Int>._BTree subscript, successful lookups",
+      title: "SortedDictionary<Int, Int> init(sortedKeysWithValues:)",
+      input: Int.self
+    ) { input in
+      let keysAndValues = (0..<input).lazy.map { (key: $0, value: 2 * $0) }
+
+      return { timer in
+        blackHole(SortedDictionary(sortedKeysWithValues: keysAndValues))
+      }
+    }
+
+    self.add(
+      title: "SortedDictionary<Int, Int> sequential iteration",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let d = SortedDictionary(keysWithValues: keysAndValues)
+      
+      return { timer in
+        for item in d {
+          blackHole(item)
+        }
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> forEach iteration",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let d = SortedDictionary(keysWithValues: keysAndValues)
+      
+      return { timer in
+        d.forEach({ blackHole($0) })
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int>.Keys sequential iteration",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let d = SortedDictionary(keysWithValues: keysAndValues)
+      
+      return { timer in
+        for item in d.keys {
+          blackHole(item)
+        }
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int>.Values sequential iteration",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let d = SortedDictionary(keysWithValues: keysAndValues)
+      
+      return { timer in
+        for item in d.values {
+          blackHole(item)
+        }
+      }
+    }
+
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
-      var tree = _BTree<Int, Int>()
-      
-      for (k, v) in keysAndValues {
-        tree.setAnyValue(v, forKey: k)
-      }
+      let sortedDictionary = SortedDictionary(
+        keysWithValues: input.map { ($0, 2 * $0) })
 
       return { timer in
         for key in lookups {
-          precondition(tree.contains(key: key))
+          precondition(sortedDictionary[key] == key * 2)
         }
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, unsuccessful lookups",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let sortedDictionary = SortedDictionary(
+        keysWithValues: input.map { ($0, 2 * $0) })
+      
+      let c = input.count
+      return { timer in
+        for key in lookups {
+          precondition(sortedDictionary[key + c] == nil)
+        }
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, setter append",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      var sortedDictionary = SortedDictionary<Int, Int>()
+
+      return { timer in
+        for (key, value) in keysAndValues {
+          sortedDictionary[key] = value
+        }
+        blackHole(sortedDictionary)
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, setter noop",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = SortedDictionary(
+          keysWithValues: input.map { ($0, 2 * $0) })
+        
+        let c = input.count
+        timer.measure {
+          for i in lookups {
+            d[i + c] = nil
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, setter update",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = SortedDictionary(
+          keysWithValues: input.map { ($0, 2 * $0) })
+        
+        timer.measure {
+          for i in lookups {
+            d[i] = 0
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, setter remove",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = SortedDictionary(
+          keysWithValues: input.map { ($0, 2 * $0) })
+        
+        timer.measure {
+          for i in lookups {
+            d[i] = nil
+          }
+        }
+        precondition(d.count == 0)
+        blackHole(d)
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, _modify insert",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = SortedDictionary<Int, Int>()
+        
+        @inline(__always)
+        func modify(_ i: inout Int?, to value: Int?) {
+          i = value
+        }
+        
+        timer.measure {
+          for i in lookups {
+            modify(&d[i], to: i * 2)
+          }
+        }
+        
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, _modify update",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = SortedDictionary(
+          keysWithValues: input.map { ($0, 2 * $0) })
+        
+        timer.measure {
+          for i in lookups {
+            d[i]! *= 2
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> subscript, _modify remove",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = SortedDictionary(
+          keysWithValues: input.map { ($0, 2 * $0) })
+        
+        @inline(__always)
+        func modify(_ i: inout Int?, to value: Int?) {
+          i = value
+        }
+        
+        timer.measure {
+          for i in lookups {
+            modify(&d[i], to: nil)
+          }
+        }
+        
+        precondition(d.count == 0)
+        blackHole(d)
       }
     }
   }

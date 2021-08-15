@@ -20,7 +20,7 @@ extension SortedSet: Equatable {
   /// - Parameters:
   ///   - lhs: A value to compare.
   ///   - rhs: Another value to compare.
-  /// - Complexity: O(`n`)
+  /// - Complexity: O(`self.count`)
   @inlinable
   public static func ==(lhs: Self, rhs: Self) -> Bool {
     // TODO: optimize/benchmarking by comparing node identity.

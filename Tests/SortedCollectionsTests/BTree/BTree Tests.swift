@@ -125,12 +125,11 @@ final class BTreeTests: CollectionTestCase {
   func test_bidirectionalCollection() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
       btreeOfSize(count) { btree, kvs in
-        // TODO: ensure checkBidirectionalCollection implementation is correct
-//        checkBidirectionalCollection(
-//          btree,
-//          expectedContents: kvs,
-//          by: { $0.key == $1.key && $0.value == $1.value }
-//        )
+        checkBidirectionalCollection(
+          btree,
+          expectedContents: kvs,
+          by: { $0.key == $1.key && $0.value == $1.value }
+        )
       }
     }
   }

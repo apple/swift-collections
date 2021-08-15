@@ -40,22 +40,12 @@ extension _Node {
       leftChild: _Node<Key, Value>,
       capacity: Int
     ) -> _Node {
-      var newNode = _Node(withCapacity: capacity, isLeaf: false)
-      newNode.update { handle in
-        handle.keys.initialize(to: element.key)
-        if _Node.hasValues {
-          handle.values.unsafelyUnwrapped.initialize(to: element.value)
-        }
-        
-        handle.children.unsafelyUnwrapped.initialize(to: leftChild)
-        handle.children.unsafelyUnwrapped.advanced(by: 1).initialize(to: self.rightChild)
-        
-        handle.elementCount = 1
-        handle.subtreeCount = 1 +
-          leftChild.storage.header.subtreeCount +
-          self.rightChild.storage.header.subtreeCount
-      }
-      return newNode
+      return _Node(
+        leftChild: leftChild,
+        seperator: element,
+        rightChild: rightChild,
+        capacity: capacity
+      )
     }
   }
 }

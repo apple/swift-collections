@@ -41,33 +41,40 @@ extension _BTree: Sequence {
     internal let tree: _BTree
     
     @usableFromInline
-    internal var slots: FixedSizeArray<Slot>
+    internal var slots: [Slot]
     
     @usableFromInline
-    internal var path: FixedSizeArray<Unmanaged<Node.Storage>>
+    internal var path: [Unmanaged<Node.Storage>]
     
     /// Creates an iterator to the element within a tree corresponding to a specific index
     @inlinable
     @inline(__always)
     internal init(forTree tree: _BTree, startingAt index: Index) {
       self.tree = tree
-      self.slots = index.childSlots
-      self.slots.append(UInt16(index.slot))
       
-      self.path = .init(repeating: .passUnretained(tree.root.storage))
-      
-      if self.tree.isEmpty {
+      if _slowPath(self.tree.isEmpty || index.slot == -1) {
+        self.slots = []
+        self.path = []
         return
       }
       
+      self.slots = []
+      for d in 0..<index.childSlots.depth {
+        slots.append(index.childSlots[d])
+      }
+      self.slots.append(UInt16(index.slot))
+      
+      self.path = []
+      
       var node: Unmanaged = .passUnretained(tree.root.storage)
+      self.path.append(node)
       for depth in 0..<index.childSlots.depth {
         let childSlot = index.childSlots[depth]
-        self.path.append(node)
         
         node._withUnsafeGuaranteedRef {
           $0.read { handle in
             node = .passUnretained(handle[childAt: Int(childSlot)].storage)
+            self.path.append(node)
           }
         }
       }
@@ -79,8 +86,8 @@ extension _BTree: Sequence {
     internal init(forTree tree: _BTree) {
       self.tree = tree
       
-      self.slots = .init(repeating: 0)
-      self.path = .init(repeating: .passUnretained(tree.root.storage))
+      self.slots = []
+      self.path = []
       
       // Simple case for an empty tree
       if self.tree.isEmpty {
@@ -107,64 +114,72 @@ extension _BTree: Sequence {
     
     @inlinable
     @inline(__always)
+    internal mutating func _advanceState(withLeaf handle: Node.UnsafeHandle) {
+      // If we're not a leaf, descend to the next child
+      if !handle.isLeaf {
+        // Go to the right child
+        self.slots[self.slots.count - 1] += 1
+        var nextNode: Unmanaged? = .passUnretained(handle[childAt: Int(self.slots[self.slots.count - 1])].storage)
+        
+        while let node = nextNode {
+          self.path.append(node)
+          self.slots.append(0)
+          
+          node._withUnsafeGuaranteedRef {
+            $0.read { handle in
+              if handle.isLeaf {
+                nextNode = nil
+              } else {
+                nextNode = .passUnretained(handle[childAt: 0].storage)
+              }
+            }
+          }
+        }
+      } else {
+        if _fastPath(self.slots[self.slots.count - 1] < handle.elementCount - 1) {
+          self.slots[self.slots.count - 1] += 1
+        } else {
+          _ = path.removeLast()
+          _ = slots.removeLast()
+          
+          while !path.isEmpty {
+            let parent = path[path.count - 1]
+            let slot = slots[slots.count - 1]
+            
+            let parentElementCount = parent._withUnsafeGuaranteedRef {
+              $0.read({ $0.elementCount })
+            }
+            
+            if slot < parentElementCount {
+              break
+            } else {
+              _ = path.removeLast()
+              _ = slots.removeLast()
+            }
+          }
+        }
+      }
+    }
+    
+    @inlinable
+    @inline(never)
     internal mutating func next() -> Element? {
       // Check slot sentinel value for end of tree.
       if _slowPath(path.isEmpty) {
         return nil
       }
       
-      return path.last._withUnsafeGuaranteedRef { storage in
-        storage.read({ handle in
-          defer {
-            // If we're not a leaf, descend to the next child
-            if !handle.isLeaf {
-              // Go to the right child
-              slots.last += 1
-              var nextNode: Unmanaged? = .passUnretained(handle[childAt: Int(slots.last)].storage)
-              
-              while let node = nextNode {
-                self.path.append(node)
-                self.slots.append(0)
-                
-                node._withUnsafeGuaranteedRef {
-                  $0.read { handle in
-                    if handle.isLeaf {
-                      nextNode = nil
-                    } else {
-                      nextNode = .passUnretained(handle[childAt: 0].storage)
-                    }
-                  }
-                }
-              }
-            } else {
-              if slots.last < handle.elementCount - 1 {
-                slots.last += 1
-              } else {
-                _ = path.pop()
-                _ = slots.pop()
-                
-                while !path.isEmpty {
-                  let parent = path.last
-                  let slot = slots.last
-                  
-                  let parentElementCount = parent._withUnsafeGuaranteedRef {
-                    $0.read({ $0.elementCount })
-                  }
-                  
-                  if slot < parentElementCount {
-                    break
-                  } else {
-                    _ = path.pop()
-                    _ = slots.pop()
-                  }
-                }
-              }
-            }
-          }
-          
-          return storage.read({ $0[elementAt: Int(slots.last)] })
+      let element = path[path.count - 1]._withUnsafeGuaranteedRef {
+        $0.read { $0[elementAt: Int(slots[slots.count - 1])] }
+      }
+      
+      path[path.count - 1]._withUnsafeGuaranteedRef {
+        $0.read({ handle in
+          self._advanceState(withLeaf: handle)
         })
       }
+      
+      return element
     }
   }
   

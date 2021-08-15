@@ -9,17 +9,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SortedSet: Hashable where Element: Hashable {
-  /// Hashes the essential components of this value by feeding them
-  /// into the given hasher.
-  /// - Parameter hasher: The hasher to use when combining
-  ///     the components of this instance.
-  /// - Complexity: O(`self.count`)
-  @inlinable
-  public func hash(into hasher: inout Hasher) {
-    hasher.combine(self.count)
-    for element in self {
-      hasher.combine(element)
-    }
+import CollectionsTestSupport
+@_spi(Testing) @testable import SortedCollections
+
+class SortedDictionaryKeysTests: CollectionTestCase {
+  func test_keys() {
+    let d: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "three",
+      4: "four",
+    ]
+    expectEqualElements(d.keys, [1, 2, 3, 4])
   }
 }

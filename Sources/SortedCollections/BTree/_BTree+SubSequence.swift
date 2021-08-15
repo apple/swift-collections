@@ -163,6 +163,12 @@ extension _BTree.SubSequence: BidirectionalCollection {
     return _base[position]
   }
   
+  @inlinable
+  public subscript(bounds: Range<Index>) -> SubSequence {
+    _failEarlyRangeCheck(bounds, bounds: startIndex..<endIndex)
+    return _base[bounds]
+  }
+  
   // TODO: implement optimized `var indices`
   
   @inlinable

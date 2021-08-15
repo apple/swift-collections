@@ -11,7 +11,6 @@
 
 extension SortedDictionary: Sequence {
   @inlinable
-  @inline(__always)
   public func forEach(_ body: (Element) throws -> Void) rethrows {
     try self._root.forEach(body)
   }
@@ -33,7 +32,6 @@ extension SortedDictionary: Sequence {
     ///     otherwise, `nil`.
     /// - Complexity: O(1) amortized over the entire sequence.
     @inlinable
-    @inline(__always)
     public mutating func next() -> Element? {
       return self._iterator.next()
     }
@@ -43,7 +41,6 @@ extension SortedDictionary: Sequence {
   ///
   /// - Complexity: O(log(`self.count`))
   @inlinable
-  @inline(__always)
   public __consuming func makeIterator() -> Iterator {
     return Iterator(_base: self)
   }

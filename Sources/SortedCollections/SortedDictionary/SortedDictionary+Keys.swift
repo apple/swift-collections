@@ -214,3 +214,40 @@ extension SortedDictionary.Keys {
     self._base[position].key
   }
 }
+
+extension SortedDictionary.Keys: Equatable {
+  /// Returns a Boolean value indicating whether two values are equal.
+  ///
+  /// Equality is the inverse of inequality. For any values `a` and `b`,
+  /// `a == b` implies that `a != b` is false.
+  ///
+  /// - Parameters:
+  ///   - lhs: A value to compare.
+  ///   - rhs: Another value to compare.
+  /// - Complexity: O(`self.count`)
+  @inlinable
+  public static func ==(lhs: Self, rhs: Self) -> Bool {
+    if lhs.count != rhs.count { return false }
+    for (e1, e2) in zip(lhs, rhs) {
+      if e1 == e2 {
+        return false
+      }
+    }
+    return true
+  }
+}
+
+extension SortedDictionary.Keys: Hashable where Key: Hashable {
+  /// Hashes the essential components of this value by feeding them
+  /// into the given hasher.
+  /// - Parameter hasher: The hasher to use when combining
+  ///     the components of this instance.
+  /// - Complexity: O(`self.count`)
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.count)
+    for key in self {
+      hasher.combine(key)
+    }
+  }
+}

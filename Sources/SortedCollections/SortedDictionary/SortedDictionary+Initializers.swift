@@ -10,14 +10,41 @@
 //===----------------------------------------------------------------------===//
 
 extension SortedDictionary {
-  /// Creates a dictionary from a sequence of key-value pairs which must
-  /// be unique.
-  /// - Complexity: O(`self.count` * log(`self.count`))
+  /// Creates a dictionary from a sequence of key-value pairs.
+  ///
+  /// If duplicates are encountered the last instance of the key-value pair is the one
+  /// that is kept.
+  ///
+  /// - Parameter keysAndValues: A sequence of key-value pairs to use
+  ///     for the new dictionary.
+  /// - Complexity: O(`n` * log(`n`)) where `n` is the number of elements in
+  ///     the sequence.
   @inlinable
   @inline(__always)
   public init<S>(
     keysWithValues keysAndValues: S
-  ) where S: Sequence, S.Element == Element {
+  ) where S: Sequence, S.Element == (key: Key, value: Value) {
+    self.init()
+    
+    for (key, value) in keysAndValues {
+      self._root.updateAnyValue(value, forKey: key, updatingKey: true)
+    }
+  }
+  
+  /// Creates a dictionary from a sequence of key-value pairs.
+  ///
+  /// If duplicates are encountered the last instance of the key-value pair is the one
+  /// that is kept.
+  ///
+  /// - Parameter keysAndValues: A sequence of key-value pairs to use
+  ///     for the new dictionary.
+  /// - Complexity: O(`n` * log(`n`)) where `n` is the number of elements in
+  ///     the sequence.
+  @inlinable
+  @inline(__always)
+  public init<S>(
+    keysWithValues keysAndValues: S
+  ) where S: Sequence, S.Element == (Key, Value) {
     self.init()
     
     for (key, value) in keysAndValues {
@@ -25,16 +52,49 @@ extension SortedDictionary {
     }
   }
   
-  /// Creates a dictionary from a sequence of **sorted** key-value pairs
-  /// which must be unique.
-  /// - Complexity: O(`n`)
+  /// Creates a dictionary from a sequence of **sorted** key-value pairs.
+  ///
+  /// This is a more efficient alternative to ``init(keysWithValues:)`` which offers
+  /// better asymptotic performance, and also reduces memory usage when constructing a
+  /// sorted dictionary on a pre-sorted sequence.
+  ///
+  /// - Parameter keysAndValues: A sequence of key-value pairs in non-decreasing
+  ///     comparison order for the new dictionary.
+  /// - Complexity: O(`n`) where `n` is the number of elements in the
+  ///     sequence.
   @inlinable
   @inline(__always)
   public init<S>(
     sortedKeysWithValues keysAndValues: S
-  ) where S: Sequence, S.Element == Element {
-    self.init()
+  ) where S: Sequence, S.Element == (key: Key, value: Value) {
+    var builder = _Tree.Builder()
     
+    var previousKey: Key? = nil
+    for (key, value) in keysAndValues {
+      precondition(previousKey == nil || previousKey.unsafelyUnwrapped < key,
+             "Sequence out of order.")
+      builder.append((key, value))
+      previousKey = key
+    }
+    
+    self.init(_rootedAt: builder.finish())
+  }
+  
+  /// Creates a dictionary from a sequence of **sorted** key-value pairs.
+  ///
+  /// This is a more efficient alternative to ``init(keysWithValues:)`` which offers
+  /// better asymptotic performance, and also reduces memory usage when constructing a
+  /// sorted dictionary on a pre-sorted sequence.
+  ///
+  /// - Parameter keysAndValues: A sequence of key-value pairs in non-decreasing
+  ///     comparison order for the new dictionary.
+  /// - Complexity: O(`n`) where `n` is the number of elements in the
+  ///     sequence.
+  @inlinable
+  @inline(__always)
+  public init<S>(
+    sortedKeysWithValues keysAndValues: S
+  ) where S: Sequence, S.Element == (Key, Value) {
     var builder = _Tree.Builder()
     
     var previousKey: Key? = nil

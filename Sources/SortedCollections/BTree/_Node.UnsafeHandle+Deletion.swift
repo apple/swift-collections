@@ -59,8 +59,6 @@ extension _Node.UnsafeHandle {
       } else {
         // Sanity-check
         assert(slot < self.childCount, "Attempt to remove from invalid child.")
-        assert(self.isLeaf || self.elementCount >= self.minimumElementCount,
-               "Encountered unbalanced subtree.")
         
         let removedElement = self[childAt: slot].update({
           $0.removeAnyElement(forKey: key)

@@ -22,15 +22,29 @@ internal struct _BTree<Key: Comparable, Value> {
   // TODO: decide node capacity. Currently exploring 470 v 1050
   // TODO: better benchmarking here
   
-  /// Internal node capacity for BTree
+  /// Internal node size in bytes for B-Tree
   @inlinable
   @inline(__always)
-  static internal var defaultInternalCapacity: Int { 64 }
+  internal static var defaultInternalSize: Int { 128 }
   
-  /// Leaf node capacity for BTree
+  /// Recommended node size of a given B-Tree
   @inlinable
   @inline(__always)
-  static internal var defaultLeafCapacity: Int { 2000 }
+  internal static var defaultInternalCapacity: Int {
+    Swift.min(16, _BTree.defaultInternalSize / MemoryLayout<Key>.stride)
+  }
+  
+  /// Leaf node capacity for B-Tree
+  @inlinable
+  @inline(__always)
+  internal static var defaultLeafSize: Int { 2000 }
+  
+  /// Recommended node size of a given B-Tree
+  @inlinable
+  @inline(__always)
+  internal static var defaultLeafCapacity: Int {
+    Swift.min(16, _BTree.defaultLeafSize / MemoryLayout<Key>.stride)
+  }
   
   /// The element type of the collection.
   @usableFromInline
@@ -62,18 +76,8 @@ internal struct _BTree<Key: Comparable, Value> {
   @inlinable
   @inline(__always)
   internal init() {
-    let leafCapacity = Swift.min(
-      16,
-      _BTree.defaultLeafCapacity / MemoryLayout<Key>.stride
-    )
-    
-    let internalCapacity = Swift.min(
-      16,
-      _BTree.defaultInternalCapacity / MemoryLayout<Key>.stride
-    )
-    
-    let root = Node(withCapacity: leafCapacity, isLeaf: true)
-    self.init(rootedAt: root, internalCapacity: internalCapacity)
+    let root = Node(withCapacity: _BTree.defaultLeafCapacity, isLeaf: true)
+    self.init(rootedAt: root, internalCapacity: _BTree.defaultInternalCapacity)
   }
   
   /// Creates an empty B-Tree rooted at a specific node with a specified uniform capacity
@@ -144,6 +148,7 @@ extension _BTree {
     updatingKey: Bool = false
   ) -> Element? {
     invalidateIndices()
+    defer { self.checkInvariants() }
     
     let result = self.root.update { $0.updateAnyValue(value, forKey: key, updatingKey: updatingKey) }
     switch result {
@@ -189,12 +194,14 @@ extension _BTree {
   @discardableResult
   internal mutating func removeAnyElement(forKey key: Key) -> Element? {
     invalidateIndices()
+    defer { self.checkInvariants() }
     
     // TODO: Don't create CoW copy until needed.
     let removedElement = self.root.update { $0.removeAnyElement(forKey: key) }
     
     // Check if the tree height needs to be reduced
     self._balanceRoot()
+    self.checkInvariants()
     
     return removedElement
   }
@@ -211,6 +218,8 @@ extension _BTree {
   @discardableResult
   internal mutating func remove(atOffset offset: Int) -> Element {
     invalidateIndices()
+    defer { self.checkInvariants() }
+    
     let removedElement = self.root.update { $0.remove(at: offset) }
     self._balanceRoot()
     

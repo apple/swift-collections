@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import CollectionsTestSupport
 @_spi(Testing) @testable import SortedCollections
 
 struct NodeTemplate {

@@ -155,4 +155,20 @@ extension SortedDictionary {
     position._index.ensureValid(forTree: self._root)
     return self._root[position._index]
   }
+  
+  /// Accesses a contiguous subrange of the collection's elements.
+  ///
+  /// - Parameter bounds: A range of the collection's indices. The bounds of
+  ///   the range must be valid indices of the collection.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public subscript(bounds: Range<Index>) -> SubSequence {
+    bounds.lowerBound._index.ensureValid(forTree: _root)
+    bounds.upperBound._index.ensureValid(forTree: _root)
+    
+    let bound = bounds.lowerBound._index..<bounds.upperBound._index
+    
+    return SubSequence(_root[bound])
+  }
 }

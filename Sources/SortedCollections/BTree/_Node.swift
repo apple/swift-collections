@@ -30,6 +30,37 @@ internal struct _Node<Key: Comparable, Value> {
     self._storage = storage
   }
   
+  /// Creates a new node from a left, right, and seperator.
+  @inlinable
+  internal init(
+    leftChild: __owned _Node,
+    seperator: __owned Element,
+    rightChild: __owned _Node,
+    capacity: Int
+  ) {
+    assert(
+      leftChild.storage.header.depth == rightChild.storage.header.depth,
+      "Left and right nodes of a splinter must have equal depth"
+    )
+    
+    self.init(withCapacity: capacity, isLeaf: false)
+    self.storage.updateGuaranteedUnique { handle in
+      handle.keys.initialize(to: seperator.key)
+      if _Node.hasValues {
+        handle.values.unsafelyUnwrapped.initialize(to: seperator.value)
+      }
+      
+      handle.children.unsafelyUnwrapped.initialize(to: leftChild)
+      handle.children.unsafelyUnwrapped.advanced(by: 1).initialize(to: rightChild)
+      
+      handle.elementCount = 1
+      handle.subtreeCount = 1 +
+        leftChild.storage.header.subtreeCount +
+        rightChild.storage.header.subtreeCount
+      handle.depth = leftChild.storage.header.depth + 1
+    }
+  }
+  
   /// Creates a new node with values modified by a transformation closure
   @inlinable
   @inline(__always)
@@ -118,6 +149,103 @@ internal struct _Node<Key: Comparable, Value> {
   internal static var dummyValue: Value {
     assert(!hasValues, "Cannot get dummy value on tree with value buffer.")
     return unsafeBitCast((), to: Value.self)
+  }
+}
+
+// MARK: Join Subroutine
+extension _Node {
+  /// Joins the current node with another node of potentially differing depths.
+  ///
+  /// If you know that your nodes are the same depth, then use
+  /// ``_Node.UnsafeHandle.concatenateWith(node:seperatedBy:)``.
+  ///
+  /// - Parameters:
+  ///   - leftNode:A well-formed node with elements less than or equal to `seperator`. This
+  ///       node is **consumed and invalided** when this method is called.
+  ///   - rightNode: A well-formed node with elements greater than or equal to `seperator`. This
+  ///       node is **consumed and invalided** when this method is called.
+  ///   - seperator: An element greater than or equal to all elements in the current node.
+  /// - Returns: A new node containing both the right and left node combined. This may or may not be
+  ///     referentially identical to one of the old nodes.
+  @inlinable
+  internal static func join(
+    _ leftNode: inout _Node,
+    with rightNode: inout _Node,
+    seperatedBy seperator: __owned _Node.Element,
+    capacity: Int
+  ) -> _Node {
+    let leftNodeDepth = leftNode.storage.header.depth
+    let leftNodeSubtreeCount = leftNode.storage.header.subtreeCount
+    let rightNodeDepth = rightNode.storage.header.depth
+    let rightNodeSubtreeCount = rightNode.storage.header.subtreeCount
+    
+    func prepending(
+      atDepth depth: Int,
+      onto node: inout _Node
+    ) -> _Node.Splinter? {
+      if depth == 0 {
+        let splinter = leftNode.update {
+          $0.concatenateWith(node: &node, seperatedBy: seperator)
+        }
+        node = leftNode
+        return splinter
+      } else {
+        return node.update { handle in
+          let splinter = prepending(atDepth: depth - 1, onto: &handle[childAt: 0])
+          handle.subtreeCount += leftNodeSubtreeCount
+          if let splinter = splinter {
+            return handle.insertSplinter(splinter, atSlot: 0)
+          } else {
+            handle.subtreeCount += 1
+            return nil
+          }
+        }
+      }
+    }
+    
+    func appending(
+      atDepth depth: Int,
+      onto node: _Node.UnsafeHandle
+    ) -> _Node.Splinter? {
+      assert(node.depth >= depth, "Cannot graft at a depth deeper than the node.")
+      
+      if depth == 0 {
+        // Graft at the current node
+        return node.concatenateWith(node: &rightNode, seperatedBy: seperator)
+      } else {
+        let endSlot = node.childCount - 1
+        let splinter = node[childAt: endSlot].update {
+          appending(atDepth: depth - 1, onto: $0)
+        }
+          
+        node.subtreeCount += rightNodeSubtreeCount
+        
+        if let splinter = splinter {
+          return node.insertSplinter(splinter, atSlot: endSlot)
+        } else {
+          node.subtreeCount += 1
+          return nil
+        }
+      }
+    }
+    
+    if leftNodeDepth >= rightNodeDepth {
+      let splinter = leftNode.update {
+        appending(atDepth: leftNodeDepth - rightNodeDepth, onto: $0)
+      }
+      if let splinter = splinter {
+        return splinter.toNode(leftChild: leftNode, capacity: capacity)
+      } else {
+        return leftNode
+      }
+    } else {
+      let splinter = prepending(atDepth: rightNodeDepth - leftNodeDepth, onto: &rightNode)
+      if let splinter = splinter {
+        return splinter.toNode(leftChild: rightNode, capacity: capacity)
+      } else {
+        return rightNode
+      }
+    }
   }
 }
 
