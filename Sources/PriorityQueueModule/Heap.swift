@@ -203,6 +203,10 @@ extension Heap {
   public mutating func insert<S: Sequence>(
     contentsOf newElements: S
   ) where S.Element == Element {
+    if count == 0 {
+      self = Self(newElements)
+      return
+    }
     _storage.reserveCapacity(count + newElements.underestimatedCount)
     for element in newElements {
       insert(element)
