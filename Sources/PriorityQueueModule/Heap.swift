@@ -25,8 +25,16 @@
 /// doi:[10.1145/6617.6621](https://doi.org/10.1145/6617.6621)
 public struct Heap<Element: Comparable> {
   @usableFromInline
-  internal var _storage: [Element]
+  internal var _storage: ContiguousArray<Element>
 
+  /// Creates an empty heap.
+  @inlinable
+  public init() {
+    _storage = []
+  }
+}
+
+extension Heap {
   /// A Boolean value indicating whether or not the heap is empty.
   ///
   /// - Complexity: O(1)
@@ -52,13 +60,7 @@ public struct Heap<Element: Comparable> {
   /// - Complexity: O(1)
   @inlinable
   public var unordered: [Element] {
-    _storage
-  }
-
-  /// Creates an empty heap.
-  @inlinable
-  public init() {
-    _storage = []
+    Array(_storage)
   }
 
   /// Inserts the given element into the heap.
@@ -183,7 +185,7 @@ extension Heap {
     //
     // FIXME: See if a more cache friendly algorithm would be faster.
 
-    _storage = Array(elements)
+    _storage = ContiguousArray(elements)
     guard _storage.count > 1 else { return }
 
     _update { handle in
