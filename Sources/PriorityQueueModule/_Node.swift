@@ -95,9 +95,14 @@ extension _Node {
     Self.init(offset: 2, level: 1)
   }
 
-  @inlinable
+  @inlinable @inline(__always)
   internal var isMinLevel: Bool {
     Self.isMinLevel(level)
+  }
+
+  @inlinable @inline(__always)
+  internal var isRoot: Bool {
+    offset == 0
   }
 }
 
@@ -105,8 +110,8 @@ extension _Node {
   /// Returns the parent of this index, or `nil` if the index has no parent
   /// (i.e. when this is the root index).
   @inlinable @inline(__always)
-  internal func parent() -> Self? {
-    guard offset > 0 else { return nil }
+  internal func parent() -> Self {
+    assert(!isRoot)
     return Self(offset: (offset &- 1) / 2, level: level &- 1)
   }
 
@@ -118,35 +123,26 @@ extension _Node {
     return Self(offset: (offset &- 3) / 4, level: level &- 2)
   }
 
-  /// Returns the left child of this index or `nil` if the index has no
-  /// children.
+  /// Returns the left child of this node.
   @inlinable @inline(__always)
-  internal func leftChild(limit: Int) -> Self? {
-    let left = offset * 2 &+ 1
-    guard left < limit else { return nil }
-    return Self(offset: left, level: level &+ 1)
+  internal func leftChild() -> Self {
+    Self(offset: offset &* 2 &+ 1, level: level &+ 1)
   }
 
-  /// Returns the right child of this index or `nil` if the index has no
-  /// right child.
+  /// Returns the right child of this node.
   @inlinable @inline(__always)
-  internal func rightChild(limit: Int) -> Self? {
-    let right = offset * 2 &+ 2
-    guard right < limit else { return nil }
-    return Self(offset: right, level: level &+ 1)
+  internal func rightChild() -> Self {
+    Self(offset: offset &* 2 &+ 2, level: level &+ 1)
   }
 
-  /// Returns the grandchildren of this index or `nil` if the index has no
-  /// grandchildren.
-  @inlinable
-  internal func grandchildren(limit: Int) -> ClosedRange<Self>? {
-    let start = offset * 4 &+ 3
-    guard start < limit else { return nil }
-    let end = min(offset * 4 &+ 6, limit &- 1)
-    return ClosedRange(
-      uncheckedBounds: (
-        lower: Self(offset: start, level: level &+ 2),
-        upper: Self(offset: end, level: level &+ 2)))
+  @inlinable @inline(__always)
+  internal func firstGrandchild() -> Self {
+    Self(offset: offset &* 4 &+ 3, level: level &+ 2)
+  }
+
+  @inlinable @inline(__always)
+  internal func lastGrandchild() -> Self {
+    Self(offset: offset &* 4 &+ 6, level: level &+ 2)
   }
 
   @inlinable
@@ -165,11 +161,6 @@ extension _Node {
 }
 
 extension ClosedRange where Bound == _Node {
-  @inlinable @inline(__always)
-  internal var _count: Int {
-    upperBound.offset - lowerBound.offset + 1
-  }
-
   @inlinable @inline(__always)
   internal func _forEach(_ body: (_Node) -> Void) {
     assert(

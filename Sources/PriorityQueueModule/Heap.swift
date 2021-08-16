@@ -135,13 +135,11 @@ extension Heap {
 
     _update { handle in
       if handle.count == 2 {
-        if handle.buffer[1] > removed {
+        if handle[.leftMax] > removed {
           handle.swapAt(.leftMax, with: &removed)
         }
       } else {
-        let maxNode = handle.buffer[2] > handle.buffer[1]
-          ? _Node.rightMax
-          : _Node.leftMax
+        let maxNode = handle.maxValue(.rightMax, .leftMax)
         handle.swapAt(maxNode, with: &removed)
         handle.trickleDownMax(maxNode)
       }

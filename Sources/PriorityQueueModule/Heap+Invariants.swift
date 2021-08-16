@@ -25,7 +25,7 @@ extension Heap {
 
   @inlinable
   internal func _checkInvariants(node: _Node, min: Element?, max: Element?) {
-    let value = _element(at: node)
+    let value = _storage[node.offset]
     if let min = min {
       precondition(value >= min,
                    "Element \(value) at \(node) is less than min \(min)")
@@ -34,18 +34,20 @@ extension Heap {
       precondition(value <= max,
                    "Element \(value) at \(node) is greater than max \(max)")
     }
+    let left = node.leftChild()
+    let right = node.rightChild()
     if node.isMinLevel {
-      if let left = node.leftChild(limit: count) {
+      if left.offset < count {
         _checkInvariants(node: left, min: value, max: max)
       }
-      if let right = node.rightChild(limit: count) {
+      if right.offset < count {
         _checkInvariants(node: right, min: value, max: max)
       }
     } else {
-      if let left = node.leftChild(limit: count) {
+      if left.offset < count {
         _checkInvariants(node: left, min: min, max: value)
       }
-      if let right = node.rightChild(limit: count) {
+      if right.offset < count {
         _checkInvariants(node: right, min: min, max: value)
       }
     }

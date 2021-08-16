@@ -47,6 +47,24 @@ extension Heap._UnsafeHandle {
     }
   }
 
+  @inlinable @inline(__always)
+  internal func ptr(to node: _Node) -> UnsafeMutablePointer<Element> {
+    assert(node.offset < count)
+    return buffer.baseAddress! + node.offset
+  }
+
+  /// Move the value at the specified node out of the buffer, leaving it
+  /// uninitialized.
+  @inlinable @inline(__always)
+  internal func extract(_ node: _Node) -> Element {
+    ptr(to: node).move()
+  }
+
+  @inlinable @inline(__always)
+  internal func initialize(_ node: _Node, to value: __owned Element) {
+    ptr(to: node).initialize(to: value)
+  }
+
   /// Swaps the elements in the heap at the given indices.
   @inlinable @inline(__always)
   internal func swapAt(_ i: _Node, _ j: _Node) {
@@ -58,6 +76,17 @@ extension Heap._UnsafeHandle {
   internal func swapAt(_ i: _Node, with value: inout Element) {
     let p = buffer.baseAddress.unsafelyUnwrapped + i.offset
     swap(&p.pointee, &value)
+  }
+
+
+  @inlinable @inline(__always)
+  internal func minValue(_ a: _Node, _ b: _Node) -> _Node {
+    self[a] < self[b] ? a : b
+  }
+
+  @inlinable @inline(__always)
+  internal func maxValue(_ a: _Node, _ b: _Node) -> _Node {
+    self[a] < self[b] ? b : a
   }
 }
 
@@ -78,10 +107,11 @@ extension Heap._UnsafeHandle {
   @_effects(releasenone)
   @inlinable
   internal func bubbleUp(_ node: _Node) {
-    guard let parent = node.parent() else {
-      // We're already at the root -- can't go any further
+    if node.isRoot {
+      // We're can't go any further
       return
     }
+    let parent = node.parent()
 
     if node.isMinLevel {
       if self[node] > self[parent] {
@@ -128,158 +158,231 @@ extension Heap._UnsafeHandle {
 }
 
 extension Heap._UnsafeHandle {
-  @_effects(releasenone)
+  /// Sink the item at `node` to its correct position in the heap.
+  /// The given node must be minimum-ordered.
   @inlinable
   internal func trickleDownMin(_ node: _Node) {
     assert(node.isMinLevel)
     var node = node
+    var value = extract(node)
+    _trickleDownMin(node: &node, value: &value)
+    initialize(node, to: value)
+  }
 
-    while let minDescendant = minChildOrGrandchild(of: node) {
-      guard self[minDescendant] < self[node] else {
-        return
+  @inlinable @inline(__always)
+  internal func _trickleDownMin(node: inout _Node, value: inout Element) {
+    // Note: `_Node` is quite the useless abstraction here, as we don't need
+    // to look at its `level` property, and we need to move sideways amongst
+    // siblings/cousins in the tree, for which we don't have direct operations.
+    // Luckily, all the `_Node` business gets optimized away, so this only
+    // affects the readability of the code, not its performance.
+    // The alternative would be to reintroduce offset-based parent/child
+    // navigation methods, which seems less palatable.
+
+    var gc0 = node.firstGrandchild()
+    while gc0.offset &+ 3 < count {
+      // Invariant: buffer slot at `node` is uninitialized
+
+      // We have four grandchildren, so we don't need to compare children.
+      let gc1 = _Node(offset: gc0.offset &+ 1, level: gc0.level)
+      let minA = minValue(gc0, gc1)
+
+      let gc2 = _Node(offset: gc0.offset &+ 2, level: gc0.level)
+      let gc3 = _Node(offset: gc0.offset &+ 3, level: gc0.level)
+      let minB = minValue(gc2, gc3)
+
+      let min = minValue(minA, minB)
+      guard self[min] < value else {
+        return // We're done -- `node` is a good place for `value`.
       }
-      swapAt(minDescendant, node)
 
-      if minDescendant.level == node.level + 1 {
-        return
+      initialize(node, to: extract(min))
+      node = min
+      gc0 = node.firstGrandchild()
+
+      let parent = min.parent()
+      if self[parent] < value {
+        swapAt(parent, with: &value)
       }
+    }
 
-      // Smallest is a grandchild
-      let parent = minDescendant.parent()!
-      if self[minDescendant] > self[parent] {
-        swapAt(minDescendant, parent)
-      }
+    // At this point, we don't have a full complement of grandchildren, but
+    // we haven't finished sinking the item.
 
-      node = minDescendant
+    let c0 = node.leftChild()
+    if c0.offset >= count {
+      return // No more descendants to consider.
+    }
+    let min = _minDescendant(c0: c0, gc0: gc0)
+    guard self[min] < value else {
+      return // We're done.
+    }
+
+    initialize(node, to: extract(min))
+    node = min
+
+    if min < gc0 { return }
+
+    // If `min` was a grandchild, check the parent.
+    let parent = min.parent()
+    if self[parent] < value {
+      initialize(node, to: extract(parent))
+      node = parent
     }
   }
 
-  @_effects(releasenone)
+  /// Returns the node holding the minimal item amongst the children &
+  /// grandchildren of a node in the tree. The parent node is not specified;
+  /// instead, this function takes the nodes corresponding to its first child
+  /// (`c0`) and first grandchild (`gc0`).
+  ///
+  /// There must be at least one child, but there must not be a full complement
+  /// of 4 grandchildren. (Other cases are handled directly above.)
+  ///
+  /// This method is an implementation detail of `trickleDownMin`. Do not call
+  /// it directly.
+  @inlinable
+  internal func _minDescendant(c0: _Node, gc0: _Node) -> _Node {
+    assert(c0.offset < count)
+    assert(gc0.offset + 3 >= count)
+
+    if gc0.offset < count {
+      if gc0.offset &+ 2 < count {
+        // We have three grandchildren. We don't need to compare direct children.
+        let gc1 = _Node(offset: gc0.offset &+ 1, level: gc0.level)
+        let gc2 = _Node(offset: gc0.offset &+ 2, level: gc0.level)
+        return minValue(minValue(gc0, gc1), gc2)
+      }
+
+      let c1 = _Node(offset: c0.offset &+ 1, level: c0.level)
+      let m = minValue(c1, gc0)
+      if gc0.offset &+ 1 < count {
+        // Two grandchildren.
+        let gc1 = _Node(offset: gc0.offset &+ 1, level: gc0.level)
+        return minValue(m, gc1)
+      }
+
+      // One grandchild.
+      return m
+    }
+
+    let c1 = _Node(offset: c0.offset &+ 1, level: c0.level)
+    if c1.offset < count {
+      return minValue(c0, c1)
+    }
+
+    return c0
+  }
+
+  /// Sink the item at `node` to its correct position in the heap.
+  /// The given node must be maximum-ordered.
   @inlinable
   internal func trickleDownMax(_ node: _Node) {
     assert(!node.isMinLevel)
     var node = node
+    var value = extract(node)
 
-    while let maxDescendant = maxChildOrGrandchild(of: node) {
-      guard self[maxDescendant] > self[node] else {
-        return
+    _trickleDownMax(node: &node, value: &value)
+    initialize(node, to: value)
+  }
+
+  @inlinable @inline(__always)
+  internal func _trickleDownMax(node: inout _Node, value: inout Element) {
+    // See note on `_Node` in `_trickleDownMin` above.
+
+    var gc0 = node.firstGrandchild()
+    while gc0.offset &+ 3 < count {
+      // Invariant: buffer slot at `node` is uninitialized
+
+      // We have four grandchildren, so we don't need to compare children.
+      let gc1 = _Node(offset: gc0.offset &+ 1, level: gc0.level)
+      let maxA = maxValue(gc0, gc1)
+
+      let gc2 = _Node(offset: gc0.offset &+ 2, level: gc0.level)
+      let gc3 = _Node(offset: gc0.offset &+ 3, level: gc0.level)
+      let maxB = maxValue(gc2, gc3)
+
+      let max = maxValue(maxA, maxB)
+      guard value < self[max] else {
+        return // We're done -- `node` is a good place for `value`.
       }
-      swapAt(maxDescendant, node)
 
-      if maxDescendant.level == node.level + 1 {
-        return
+      initialize(node, to: extract(max))
+      node = max
+      gc0 = node.firstGrandchild()
+
+      let parent = max.parent()
+      if value < self[parent] {
+        swapAt(parent, with: &value)
       }
+    }
 
-      // Largest is a grandchild
-      let parent = maxDescendant.parent()!
-      if self[maxDescendant] < self[parent] {
-        swapAt(maxDescendant, parent)
-      }
+    // At this point, we don't have a full complement of grandchildren, but
+    // we haven't finished sinking the item.
 
-      node = maxDescendant
+    let c0 = node.leftChild()
+    if c0.offset >= count {
+      return // No more descendants to consider.
+    }
+    let max = _maxDescendant(c0: c0, gc0: gc0)
+    guard value < self[max] else {
+      return // We're done.
+    }
+
+    initialize(node, to: extract(max))
+    node = max
+
+    if max < gc0 { return }
+
+    // If `max` was a grandchild, check the parent.
+    let parent = max.parent()
+    if value < self[parent] {
+      initialize(node, to: extract(parent))
+      node = parent
     }
   }
 
-  /// Returns the lowest priority child or grandchild of the element at the
-  /// given index.
+  /// Returns the node holding the maximal item amongst the children &
+  /// grandchildren of a node in the tree. The parent node is not specified;
+  /// instead, this function takes the nodes corresponding to its first child
+  /// (`c0`) and first grandchild (`gc0`).
   ///
-  /// Returns `nil` if the element has no descendants.
+  /// There must be at least one child, but there must not be a full complement
+  /// of 4 grandchildren. (Other cases are handled directly above.)
   ///
-  /// - parameter index: The index of the element whose descendants should be
-  ///                    compared.
-  @inline(__always)
+  /// This method is an implementation detail of `trickleDownMax`. Do not call
+  /// it directly.
   @inlinable
-  internal func minChildOrGrandchild(of node: _Node) -> _Node? {
-    assert(node.isMinLevel)
-    guard let leftChild = node.leftChild(limit: count) else {
-      return nil
-    }
+  internal func _maxDescendant(c0: _Node, gc0: _Node) -> _Node {
+    assert(c0.offset < count)
+    assert(gc0.offset + 3 >= count)
 
-    guard let rightChild = node.rightChild(limit: count) else {
-      return leftChild
-    }
-
-    guard let grandchildren = node.grandchildren(limit: count) else {
-      // We have no grandchildren -- compare the two children instead
-      return (self[rightChild] < self[leftChild] ? rightChild : leftChild)
-    }
-
-    var minValue = self[leftChild]
-    var minNode = leftChild
-
-    // If we have at least 3 grandchildren, we can skip comparing the children
-    // as the heap invariants will ensure that the grandchildren will be smaller.
-    // Otherwise, we need to do the comparison.
-    if grandchildren._count < 3 {
-      // Compare the two children
-      let rightValue = self[rightChild]
-      if rightValue < minValue {
-        minValue = rightValue
-        minNode = rightChild
+    if gc0.offset < count {
+      if gc0.offset &+ 2 < count {
+        // We have three grandchildren. We don't need to compare direct children.
+        let gc1 = _Node(offset: gc0.offset &+ 1, level: gc0.level)
+        let gc2 = _Node(offset: gc0.offset &+ 2, level: gc0.level)
+        return maxValue(maxValue(gc0, gc1), gc2)
       }
-    }
 
-    // Iterate through the grandchildren
-    grandchildren._forEach { grandchild in
-      let value = self[grandchild]
-      if value < minValue {
-        minValue = value
-        minNode = grandchild
+      let c1 = _Node(offset: c0.offset &+ 1, level: c0.level)
+      let m = maxValue(c1, gc0)
+      if gc0.offset &+ 1 < count {
+        // Two grandchildren.
+        let gc1 = _Node(offset: gc0.offset &+ 1, level: gc0.level)
+        return maxValue(m, gc1)
       }
+
+      // One grandchild.
+      return m
     }
 
-    return minNode
-  }
-
-  /// Returns the highest priority child or grandchild of the element at the
-  /// given index.
-  ///
-  /// Returns `nil` if the element has no descendants.
-  ///
-  /// - parameter index: The index of the item whose descendants should be
-  ///                    compared.
-  @inline(__always)
-  @inlinable
-  internal func maxChildOrGrandchild(of node: _Node) -> _Node? {
-    assert(!node.isMinLevel)
-    guard let leftChild = node.leftChild(limit: count) else {
-      return nil
+    let c1 = _Node(offset: c0.offset &+ 1, level: c0.level)
+    if c1.offset < count {
+      return maxValue(c0, c1)
     }
 
-    guard let rightChild = node.rightChild(limit: count) else {
-      return leftChild
-    }
-
-    guard let grandchildren = node.grandchildren(limit: count) else {
-      // We have no grandchildren -- compare the two children instead
-      return (self[rightChild] > self[leftChild] ? rightChild : leftChild)
-    }
-
-    var maxValue = self[leftChild]
-    var maxNode = leftChild
-
-    // If we have at least 3 grandchildren, we can skip comparing the children
-    // as the heap invariants will ensure that the grandchildren will be smaller.
-    // Otherwise, we need to do the comparison.
-    if grandchildren._count < 3 {
-      // Compare the two children
-      let rightValue = self[rightChild]
-      if rightValue > maxValue {
-        maxValue = rightValue
-        maxNode = rightChild
-      }
-    }
-
-    // Iterate through the grandchildren
-    grandchildren._forEach { grandchild in
-      let value = self[grandchild]
-      if value > maxValue {
-        maxValue = value
-        maxNode = grandchild
-      }
-    }
-
-    return maxNode
+    return c0
   }
 }
 
