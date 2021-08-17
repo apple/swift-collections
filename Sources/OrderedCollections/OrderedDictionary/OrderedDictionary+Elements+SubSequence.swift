@@ -53,19 +53,20 @@ extension OrderedDictionary.Elements.SubSequence {
 extension OrderedDictionary.Elements.SubSequence {
   /// Returns the index for the given key.
   ///
-  /// If the given key is found in the dictionary, this method returns an index
-  /// into the dictionary that corresponds with the key-value pair.
+  /// If the given key is found in the dictionary slice, this method returns an
+  /// index into the dictionary that corresponds with the key-value pair.
   ///
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
-  ///     let index = countryCodes.index(forKey: "JP")
+  ///     let slice = countryCodes.elements[1...]
+  ///     let index = slice.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[index!].value): '\(countryCodes[index!].key)'.")
+  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
-  /// - Parameter key: The key to find in the dictionary.
+  /// - Parameter key: The key to find in the dictionary slice.
   ///
   /// - Returns: The index for `key` and its associated value if `key` is in
-  ///    the dictionary; otherwise, `nil`.
+  ///    the dictionary slice; otherwise, `nil`.
   ///
   /// - Complexity: Expected to be O(1) on average, if `Key` implements
   ///    high-quality hashing.
