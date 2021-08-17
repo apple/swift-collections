@@ -98,15 +98,24 @@ extension Heap._UnsafeHandle {
     let parent = node.parent()
 
     var node = node
-    if node.isMinLevel == (self[node] > self[parent]) {
+    if (node.isMinLevel && self[node] > self[parent])
+        || (!node.isMinLevel && self[node] < self[parent]){
       swapAt(node, parent)
       node = parent
     }
 
-    while let grandparent = node.grandParent(),
-          node.isMinLevel == (self[node] < self[grandparent]) {
-      swapAt(node, grandparent)
-      node = grandparent
+    if node.isMinLevel {
+      while let grandparent = node.grandParent(),
+            self[node] < self[grandparent] {
+        swapAt(node, grandparent)
+        node = grandparent
+      }
+    } else {
+      while let grandparent = node.grandParent(),
+            self[node] > self[grandparent] {
+        swapAt(node, grandparent)
+        node = grandparent
+      }
     }
   }
 }
