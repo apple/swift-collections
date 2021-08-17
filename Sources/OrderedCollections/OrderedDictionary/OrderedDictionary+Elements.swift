@@ -79,9 +79,9 @@ extension OrderedDictionary.Elements {
   /// into the dictionary that corresponds with the key-value pair.
   ///
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
-  ///     let index = countryCodes.index(forKey: "JP")
+  ///     let index = countryCodes.elements.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[index!].value): '\(countryCodes[index!].key)'.")
+  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary.
