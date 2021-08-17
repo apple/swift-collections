@@ -134,29 +134,30 @@ The above graph was generated in release mode on a MacBook Pro (16-inch, 2019) w
 
 ## Implementation Details
 
-The implementation is based off [Atkinson et al. Min-Max Heaps and Generalized Priority Queues (1986)](http://akira.ruc.dk/~keld/teaching/algoritmedesign_f03/Artikler/02/Atkinson86.pdf).
+The implementation is based on the min-max heap data structure as introduced by [Atkinson et al. 1986].
 
-In a min-max heap, each node at an even level in the tree is less than all its descendants, while each node at an odd level in the tree is greater than all of its descendants.
+[Atkinson et al. 1986]: https://doi.org/10.1145/6617.6621
 
-["A min-max heap is a complete binary tree data structure."](https://en.wikipedia.org/wiki/Min-max_heap) This means that all the levels in the tree are filled except the last and that they are filled from left to right. The tree can be stored in an array:
+Min-max heaps are complete binary trees represented implicitly as an array of their elements. Each node at an even level in the tree is less than or equal to all its descendants, while each node at an odd level in the tree is greater or equal to all of its descendants.
 
 ```
 // Min-max heap:
-level 0:                 8
-level 1:         71              41
-level 2:     31      10      11      16
-level 3:   46  51  31  21  13
+level 0 (min):         ┌────── A ──────┐
+level 1 (max):     ┌── J ──┐       ┌── G ──┐
+level 2 (min):   ┌ D ┐   ┌ B       F       C
+level 3 (max):   I   E   H 
 
 // Array representation:
-[8, 71, 41, 31, 10, 11, 16, 46, 51, 31, 21, 13]
+["A", "J", "G", "D", "B", "F", "C", "I", "E", "H"]
 ```
 
-**Heap property**: Each element in an even level in the tree is less than all its descendants; each element in an odd level in the tree is greater than all its descendants. _Mutations to the heap **must** maintain this heap property._
+By the min-max property above, the root node is an on even level, so its value ("A" in this example) must be the minimum of the entire heap. Its two children are on an odd level, so they hold the maximum value for their respective subtrees; it follows that one of them holds the maximum value for the whole tree -- in this case, "J". Accessing the minimum and maximum values in the heap can therefore be done in O(1) comparisons.
 
-The levels start at 0 (even), so the smallest element in the tree is at the root. In the example above, the root of the tree is 8, which is the smallest element. The next level in the tree (containing 71 and 41) is a max level, so those elements are greater than all their respective descendants. Because this is the first max level in the tree, the largest element in the tree is one of the two elements (71).
-
-Note that the comparisons only take into account descendants — it is possible, for example, for elements at a lower level to be larger than elements in a different branch that are higher up the tree. In the example above, 41 isn't the second-largest element in the tree, but _it is_ the largest element in the right branch of the root node.
+Mutations of the heap (insertions, removals) must ensure that items remain arranged in a way that maintain the min-max property. Inserting a single new element or removing the current minimum/maximum can be done by rearranging items on a single path in the tree; accordingly, these operations execute O(log(`count`)) comparisons/swaps.
 
 ---
 
-M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte. October 1986. Min-Max Heaps and Generalized Priority Queues. Communications of the ACM. 29(10):996-1000.
+M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte.
+"Min-Max Heaps and Generalized Priority Queues."
+*Communications of the ACM*, vol. 29, no. 10, Oct. 1986., pp. 996-1000,
+doi:[10.1145/6617.6621](https://doi.org/10.1145/6617.6621)
