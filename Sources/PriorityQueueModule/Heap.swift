@@ -11,13 +11,13 @@
 
 /// A [Min-Max Heap](https://en.wikipedia.org/wiki/Min-max_heap) data structure.
 ///
-/// In a min-max heap, each node at an even level in the tree is less than all
-/// its descendants, while each node at an odd level in the tree is greater than
-/// all of its descendants.
+/// In a min-max heap, each node at an even level in the tree is less than or
+/// equal to all its descendants, while each node at an odd level in the tree is
+/// greater than or equal to all of its descendants.
 ///
-/// The implementation is based on [Atkinson 1986]:
+/// The implementation is based on [Atkinson et al. 1986]:
 ///
-/// [Atkinson 1986]: https://doi.org/10.1145/6617.6621
+/// [Atkinson et al. 1986]: https://doi.org/10.1145/6617.6621
 ///
 /// M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte.
 /// "Min-Max Heaps and Generalized Priority Queues."
