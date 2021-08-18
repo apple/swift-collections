@@ -1,0 +1,64 @@
+{
+  "kind": "group",
+  "title": "Priority Queue Benchmarks",
+  "directory": "Results",
+  "contents": [
+    {
+      "kind": "group",
+      "title": "PriorityQueue Operations",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "operations",
+          "tasks": [
+            "PriorityQueue<Task, Int> insert",
+            "PriorityQueue<Task, Int> popMax",
+            "PriorityQueue<Task, Int> popMin"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "insert",
+          "tasks": [
+            "PriorityQueue<Task, Int> insert",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "remove",
+          "tasks": [
+            "PriorityQueue<Task, Int> popMax",
+            "PriorityQueue<Task, Int> popMin"
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "PriorityQueue vs Heap",
+      "directory": "PriorityQueue + Heap",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "insert",
+          "tasks": [
+            "PriorityQueue<Int, Int> insert",
+            "PriorityQueue<Task, Int> insert",
+            "Heap<Int> insert",
+            "Heap<Task> insert"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "pop",
+          "tasks": [
+            "PriorityQueue<Task, Int> popMin",
+            "PriorityQueue<Task, Int> popMax",
+            "Heap<Task> popMin",
+            "Heap<Task> popMax"
+          ]
+        },
+      ]
+    }
+  ]
+}

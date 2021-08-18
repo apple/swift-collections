@@ -83,5 +83,70 @@ extension Benchmark {
         blackHole(heap)
       }
     }
+
+    // MARK: Small Struct Benchmarks
+
+    self.addSimple(
+      title: "Heap<Task> insert",
+      input: [Int].self
+    ) { input in
+      var heap = Heap<HeapTask>()
+      for i in input {
+        heap.insert(HeapTask(priority: i))
+      }
+      precondition(heap.count == input.count)
+      blackHole(heap)
+    }
+    self.add(
+      title: "Heap<Task> popMax",
+      input: [Int].self
+    ) { input in
+      return { timer in
+        var heap = Heap(input.map { HeapTask(priority: $0) })
+        timer.measure {
+          while let max = heap.popMax() {
+            blackHole(max)
+          }
+        }
+        precondition(heap.isEmpty)
+        blackHole(heap)
+      }
+    }
+
+    self.add(
+      title: "Heap<Task> popMin",
+      input: [Int].self
+    ) { input in
+      return { timer in
+        var heap = Heap(input.map { HeapTask(priority: $0) })
+        timer.measure {
+          while let min = heap.popMin() {
+            blackHole(min)
+          }
+        }
+        precondition(heap.isEmpty)
+        blackHole(heap)
+      }
+    }
+  }
+
+  struct HeapTask: Comparable {
+    let name: String
+    let priority: Int
+    let work: () -> Void
+
+    init(name: String = "", priority: Int, work: @escaping () -> Void = {}) {
+      self.name = name
+      self.priority = priority
+      self.work = work
+    }
+
+    static func < (lhs: Self, rhs: Self) -> Bool {
+      lhs.priority < rhs.priority
+    }
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+      lhs.priority == rhs.priority
+    }
   }
 }
