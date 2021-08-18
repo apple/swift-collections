@@ -55,6 +55,7 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
+    .library(name: "SparseSetModule", targets: ["SparseSetModule"]),
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
@@ -67,6 +68,7 @@ let package = Package(
         "DequeModule",
         "OrderedCollections",
         "PriorityQueueModule",
+        "SparseSetModule",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -142,6 +144,16 @@ let package = Package(
         name: "PriorityQueueTests",
         dependencies: ["PriorityQueueModule"],
         swiftSettings: settings),
+
+    // SparseSet<Key, Value>
+    .target(
+      name: "SparseSetModule",
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
+    .testTarget(
+      name: "SparseSetTests",
+      dependencies: ["SparseSetModule", "CollectionsTestSupport"],
+      swiftSettings: settings),
   ],
   cxxLanguageStandard: .cxx1z
 )

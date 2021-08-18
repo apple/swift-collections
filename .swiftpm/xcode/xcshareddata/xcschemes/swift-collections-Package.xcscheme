@@ -146,6 +146,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SparseSetModule"
+               BuildableName = "SparseSetModule"
+               BlueprintName = "SparseSetModule"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -191,6 +205,16 @@
                BlueprintIdentifier = "PriorityQueueTests"
                BuildableName = "PriorityQueueTests"
                BlueprintName = "PriorityQueueTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SparseSetTests"
+               BuildableName = "SparseSetTests"
+               BlueprintName = "SparseSetTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
