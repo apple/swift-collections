@@ -32,12 +32,12 @@ extension Benchmark {
       title: "Heap<Int> insert",
       input: [Int].self
     ) { input in
-      var queue = Heap<Int>()
+      var heap = Heap<Int>()
       for i in input {
-        queue.insert(i)
+        heap.insert(i)
       }
-      precondition(queue.count == input.count)
-      blackHole(queue)
+      precondition(heap.count == input.count)
+      blackHole(heap)
     }
 
     self.add(
@@ -45,10 +45,10 @@ extension Benchmark {
       input: ([Int], [Int]).self
     ) { (existing, new) in
       return { timer in
-        var queue = Heap(existing)
-        queue.insert(contentsOf: new)
-        precondition(queue.count == existing.count + new.count)
-        blackHole(queue)
+        var heap = Heap(existing)
+        heap.insert(contentsOf: new)
+        precondition(heap.count == existing.count + new.count)
+        blackHole(heap)
       }
     }
 
@@ -57,14 +57,14 @@ extension Benchmark {
       input: [Int].self
     ) { input in
       return { timer in
-        var queue = Heap(input)
+        var heap = Heap(input)
         timer.measure {
-          while let max = queue.popMax() {
+          while let max = heap.popMax() {
             blackHole(max)
           }
         }
-        precondition(queue.isEmpty)
-        blackHole(queue)
+        precondition(heap.isEmpty)
+        blackHole(heap)
       }
     }
 
@@ -73,14 +73,14 @@ extension Benchmark {
       input: [Int].self
     ) { input in
       return { timer in
-        var queue = Heap(input)
+        var heap = Heap(input)
         timer.measure {
-          while let min = queue.popMin() {
+          while let min = heap.popMin() {
             blackHole(min)
           }
         }
-        precondition(queue.isEmpty)
-        blackHole(queue)
+        precondition(heap.isEmpty)
+        blackHole(heap)
       }
     }
   }
