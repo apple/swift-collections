@@ -13,16 +13,6 @@ import CollectionsBenchmark
 import PriorityQueueModule
 
 extension Benchmark {
-  struct Task {
-    let name: String
-    let work: () -> Void
-
-    init(name: String = "", work: @escaping () -> Void = {}) {
-      self.name = name
-      self.work = work
-    }
-  }
-
   public mutating func addPriorityQueueBenchmarks() {
     self.addSimple(
       title: "PriorityQueue<Int, Int> insert",
@@ -42,8 +32,10 @@ extension Benchmark {
     ) { input in
       return { timer in
         var queue = PriorityQueue(input.map({ ($0, $0) }))
-        while let max = queue.popMax() {
-          blackHole(max)
+        timer.measure {
+          while let max = queue.popMax() {
+            blackHole(max)
+          }
         }
         precondition(queue.isEmpty)
         blackHole(queue)
@@ -56,8 +48,10 @@ extension Benchmark {
     ) { input in
       return { timer in
         var queue = PriorityQueue(input.map({ ($0, $0) }))
-        while let min = queue.popMin() {
-          blackHole(min)
+        timer.measure {
+          while let min = queue.popMin() {
+            blackHole(min)
+          }
         }
         precondition(queue.isEmpty)
         blackHole(queue)
@@ -65,6 +59,16 @@ extension Benchmark {
     }
 
     // MARK: Small Struct Benchmarks
+
+    struct Task {
+      let name: String
+      let work: () -> Void
+
+      init(name: String = "", work: @escaping () -> Void = {}) {
+        self.name = name
+        self.work = work
+      }
+    }
 
     self.addSimple(
       title: "PriorityQueue<Task, Int> insert",
@@ -86,8 +90,10 @@ extension Benchmark {
         var queue = PriorityQueue<Task, Int>(
           input.map({ (Task(name: $0.description), $0) })
         )
-        while let max = queue.popMax() {
-          blackHole(max)
+        timer.measure {
+          while let max = queue.popMax() {
+            blackHole(max)
+          }
         }
         precondition(queue.isEmpty)
         blackHole(queue)
@@ -102,8 +108,10 @@ extension Benchmark {
         var queue = PriorityQueue(
           input.map({ (Task(name: $0.description), $0) })
         )
-        while let min = queue.popMin() {
-          blackHole(min)
+        timer.measure {
+          while let min = queue.popMin() {
+            blackHole(min)
+          }
         }
         precondition(queue.isEmpty)
         blackHole(queue)
