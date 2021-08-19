@@ -31,7 +31,16 @@ extension _Node {
       self.depth = depth
     }
     
-    // Packed integer to store all node counts.
+    /// Packed integer to store all node counts.
+    ///
+    /// This is represented as:
+    ///
+    ///              subtreeCount
+    ///              vvvvvvv
+    ///     0x0000000FFFFFFF00
+    ///       ^^^^^^^       ^^
+    ///       count         depth
+    ///
     @usableFromInline
     internal var _internalCounts: UInt64
     
@@ -86,7 +95,23 @@ extension _Node {
     internal var children: UnsafeMutablePointer<_Node<Key, Value>>?
   }
   
-  /// Represents the underlying data for a node in the heap.
+  /// Represents the underlying data for a node.
+  ///
+  /// Generally, this shouldn't be directly accessed. However, in performance-critical code where operating
+  /// on a ``_Node`` may create unwanted ARC traffic, or other concern, this provides a few low-level
+  /// and unsafe APIs for operations.
+  ///
+  /// A node contains a tail-allocated contiguous buffer of keys, and also may maintain pointers to buffers
+  /// for the corresponding values and children.
+  ///
+  /// There are two types of nodes distinguished "leaf" and "internal" nodes. Leaf nodes do not have a
+  /// buffer allocated for their children in the underlying storage class.
+  ///
+  /// Additionally, a node does not have a value buffer allocated in some cases. Specifically, when the
+  /// value type is `Void`, no value buffer is allocated. ``_Node.hasValues`` can be used to check
+  /// whether a value buffer exists for a given set of generic parameters. Additionally, when a value buffer
+  /// does not exist, ``_Node.dummyValue`` can be used to obtain a valid value within the type system
+  /// that can be passed to APIs.
   @usableFromInline
   internal class Storage: ManagedBuffer<_Node.Header, Key> {    
     /// Allows **read-only** access to the underlying data behind the node.
@@ -108,7 +133,13 @@ extension _Node {
       }
     }
     
-    /// Allows **mutable** access to the underlying data behind the node.
+    /// Dangerously allows **mutable** access to the underlying data behind the node.
+    ///
+    /// This does **not** perform CoW checks and so when calling this, one must be certain that the
+    /// storage class is indeed unique. Generally this is the wrong function to call, and should only be used
+    /// when the callee has created and is guaranteed to be the only owner during the execution of the
+    /// update callback, _and_ it has been identified that ``_Node.update(_:)`` or other alternatives
+    /// result in noticable slow-down.
     ///
     /// - Parameter body: A closure with a handle which allows interacting with the node
     /// - Returns: The value the closure body returns, if any.
@@ -121,7 +152,10 @@ extension _Node {
       try self.read { try body(UnsafeHandle(mutating: $0)) }
     }
     
-    /// Creates a new storage instance
+    /// Creates a new storage object.
+    ///
+    /// It is generally recommend to use the ``_Node.init(withCapacity:, isLeaf:)``
+    /// initializer instead to create a new node.
     @inlinable
     @inline(__always)
     internal static func create(
@@ -145,7 +179,9 @@ extension _Node {
       return unsafeDowncast(storage, to: Storage.self)
     }
     
-    /// Copies an existing storage to a new storage
+    /// Copies an existing storage to a new storage.
+    ///
+    /// It is generally recommended to use the ``_Node.init(copyingFrom:)`` initializer.
     @inlinable
     @inline(__always)
     internal func copy() -> Storage {

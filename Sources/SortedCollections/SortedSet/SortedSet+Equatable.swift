@@ -10,8 +10,6 @@
 //===----------------------------------------------------------------------===//
 
 extension SortedSet: Equatable {
-  // TODO: look into more efficient ways to implement this
-  
   /// Returns a Boolean value indicating whether two values are equal.
   ///
   /// Equality is the inverse of inequality. For any values `a` and `b`,

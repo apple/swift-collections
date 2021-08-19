@@ -12,6 +12,10 @@
 extension _BTree {
   /// Provides an interface for efficiently constructing a filled B-Tree from sorted data.
   ///
+  /// A builder supports duplicate keys, in which case they are inserted in the same order they are recieved.
+  /// However, is the `deduplicating` parameter is passed as `true`, operations will silently drop
+  /// duplicates.
+  ///
   /// This type has a few advantages when constructing a B-Tree over other approaches such as manually
   /// inserting each element or using a cursor:
   ///
@@ -101,11 +105,19 @@ extension _BTree {
     @usableFromInline
     internal let internalCapacity: Int
     
+    @usableFromInline
+    internal let deduplicating: Bool
+    
+    @usableFromInline
+    internal var lastKey: Key?
+    
     /// Creates a new B-Tree builder with default capacities
+    /// - Parameter deduplicating: Whether duplicates should be removed.
     @inlinable
     @inline(__always)
-    internal init() {
+    internal init(deduplicating: Bool = false) {
       self.init(
+        deduplicating: deduplicating,
         leafCapacity: _BTree.defaultLeafCapacity,
         internalCapacity: _BTree.defaultInternalCapacity
       )
@@ -113,19 +125,27 @@ extension _BTree {
     
     /// Creates a new B-Tree builder with a custom uniform capacity configuration
     /// - Parameters:
+    ///   - deduplicating: Whether duplicates should be removed.
     ///   - capacity: The amount of elements per node.
     @inlinable
     @inline(__always)
-    internal init(capacity: Int) {
-      self.init(leafCapacity: capacity, internalCapacity: capacity)
+    internal init(deduplicating: Bool = false, capacity: Int) {
+      self.init(
+        deduplicating: deduplicating,
+        leafCapacity: capacity,
+        internalCapacity: capacity
+      )
     }
     
     /// Creates a new B-Tree builder with a custom capacity configuration
     /// - Parameters:
-    ///   - capacity: The amount of elements per node.
+    ///   - deduplicating: Whether duplicates should be removed.
+    ///   - leafCapacity: The amount of elements per leaf node.
+    ///   - internalCapacity: The amount of elements per internal node.
     @inlinable
     @inline(__always)
     internal init(
+      deduplicating: Bool = false,
       leafCapacity: Int,
       internalCapacity: Int
     ) {
@@ -138,6 +158,8 @@ extension _BTree {
       self._seedling = Node(withCapacity: leafCapacity, isLeaf: true)
       self.leafCapacity = leafCapacity
       self.internalCapacity = internalCapacity
+      self.deduplicating = deduplicating
+      self.lastKey = nil
     }
     
     /// Pops a sapling and it's associated seperator
@@ -176,8 +198,16 @@ extension _BTree {
     /// Appends a new element to the tree
     /// - Parameter element: Element which is after all previous elements in sorted order.
     @inlinable
-    @inline(__always)
     internal mutating func append(_ element: __owned Element) {
+      assert(lastKey == nil || lastKey! <= element.key,
+             "New element must be non-decreasing.")
+      defer { lastKey = element.key }
+      if deduplicating {
+        if let lastKey = lastKey {
+          if lastKey == element.key { return }
+        }
+      }
+      
       switch state {
       case .addingSeperator:
         completeSeedling(withSeperator: element)
@@ -200,7 +230,6 @@ extension _BTree {
     /// Declares that the current seedling is finished with insertion and creates a new seedling to
     /// further operate on.
     @inlinable
-    @inline(__always)
     internal mutating func completeSeedling(
       withSeperator newSeperator: __owned Element
     ) {
@@ -311,7 +340,6 @@ extension _BTree {
     ///
     /// - Returns: A usable, fully-filled B-Tree
     @inlinable
-    @inline(__always)
     internal mutating func finish() -> _BTree {
       var root: Node = seedling
       _seedling = nil
@@ -329,5 +357,14 @@ extension _BTree {
       tree.checkInvariants()
       return tree
     }
+  }
+}
+
+extension _BTree.Builder where Value == Void {
+  /// Appends a value to a B-Tree builder without values.
+  @inlinable
+  @inline(__always)
+  internal mutating func append(_ key: __owned Key) {
+    self.append((key, ()))
   }
 }

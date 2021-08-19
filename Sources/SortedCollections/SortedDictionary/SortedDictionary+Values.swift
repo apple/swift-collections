@@ -210,10 +210,27 @@ extension SortedDictionary.Values {
   ///
   /// - Complexity: O(1)
   @inlinable
-  @inline(__always)
   public subscript(position: Index) -> Value {
-    // TODO: add setter & _modify attributes
-    self._base[position].value
+    get {
+      self._base[position].value
+    }
+    
+    _modify {
+      position._index.ensureValid(forTree: self._base._root)
+      
+      // Ensure we don't attempt to dereference the endIndex
+      precondition(position != endIndex, "Attempt to subscript out of range index.")
+      
+      var cursor = self._base._root.takeCursor(at: position._index)
+      var value = cursor.moveValue()
+      
+      defer {
+        cursor.initializeValue(to: value)
+        cursor.apply(to: &self._base._root)
+      }
+      
+      yield &value
+    }
   }
 }
 

@@ -19,9 +19,6 @@
 @usableFromInline
 internal struct _BTree<Key: Comparable, Value> {
   
-  // TODO: decide node capacity. Currently exploring 470 v 1050
-  // TODO: better benchmarking here
-  
   /// Internal node size in bytes for B-Tree
   @inlinable
   @inline(__always)
@@ -72,6 +69,19 @@ internal struct _BTree<Key: Comparable, Value> {
   @usableFromInline
   internal var version: Int
   
+  /// Creates a dummy B-Tree with no underlying node storage class.
+  ///
+  /// It is invalid and a serious error to ever attempt to read or write to such a B-Tree.
+  @inlinable
+  @inline(__always)
+  internal static var dummy: _BTree {
+    _BTree(
+      _rootedAtNode: _Node.dummy,
+      internalCapacity: 0,
+      version: 0
+    )
+  }
+  
   /// Creates an empty B-Tree with an automatically determined optimal capacity.
   @inlinable
   @inline(__always)
@@ -91,7 +101,7 @@ internal struct _BTree<Key: Comparable, Value> {
     )
   }
   
-  /// Creates an empty BTree which creates node with specified capacities
+  /// Creates an empty B-Tree which creates node with specified capacities
   /// - Parameters:
   ///   - leafCapacity: The capacity of the leaf nodes. This is the initial buffer used to allocate.
   ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than
@@ -105,7 +115,7 @@ internal struct _BTree<Key: Comparable, Value> {
     )
   }
   
-  /// Creates a BTree rooted at a specific nodey
+  /// Creates a B-Tree rooted at a specific nodey
   /// - Parameters:
   ///   - root: The root node.
   ///   - internalCapacity: The key capacity of new internal nodes.
@@ -115,6 +125,18 @@ internal struct _BTree<Key: Comparable, Value> {
     self.root = root
     self.internalCapacity = internalCapacity
     self.version = ObjectIdentifier(root.storage).hashValue
+  }
+  
+  @inlinable
+  @inline(__always)
+  internal init(
+    _rootedAtNode root: Node,
+    internalCapacity: Int,
+    version: Int
+  ) {
+    self.root = root
+    self.internalCapacity = internalCapacity
+    self.version = version
   }
 }
 
@@ -196,7 +218,9 @@ extension _BTree {
     invalidateIndices()
     defer { self.checkInvariants() }
     
-    // TODO: Don't create CoW copy until needed.
+    // TODO: It is possible that there is a single transient CoW copied made
+    // if the removal results in the CoW copied node being completely removed
+    // from the tree.
     let removedElement = self.root.update { $0.removeAnyElement(forKey: key) }
     
     // Check if the tree height needs to be reduced
@@ -311,23 +335,30 @@ extension _BTree {
   internal func findAnyIndex(forKey key: Key) -> Index? {
     var childSlots = Index.Offsets(repeating: 0)
     var node: Unmanaged? = .passUnretained(self.root.storage)
+    var offset: Int = 0
     
     while let currentNode = node {
       let index: Index? = currentNode._withUnsafeGuaranteedRef { storage in
         storage.read { handle in
           let keySlot = handle.startSlot(forKey: key)
+          offset += keySlot
+          
           if keySlot < handle.elementCount && handle[keyAt: keySlot] == key {
             return Index(
               node: .passUnretained(storage),
               slot: keySlot,
               childSlots: childSlots,
-              offset: 0,
+              offset: offset,
               forTree: self
             )
           } else {
             if handle.isLeaf {
               node = nil
             } else {
+              for i in 0..<keySlot {
+                offset += handle[childAt: i].storage.header.subtreeCount
+              }
+              
               childSlots.append(UInt16(keySlot))
               node = .passUnretained(handle[childAt: keySlot].storage)
             }
@@ -399,7 +430,6 @@ extension _BTree {
             }
           }
           
-          // TODO: convert into debug-only preconditionFaliure
           preconditionFailure("In-bounds index not found within tree.")
         })
       }
@@ -538,7 +568,6 @@ extension _BTree {
   public func mapValues<T>(
     _ transform: (Value) throws -> T
   ) rethrows -> _BTree<Key, T> {
-    // TODO: explore forEach vs iteration speed
     let root = try _Node<Key, T>(
       mappingFrom: self.root,
       transform

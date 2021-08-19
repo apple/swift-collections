@@ -19,7 +19,6 @@ extension _BTree {
   public func filter(
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> _BTree {
-    // TODO: optimize implementation to O(n)
     var builder = Builder()
     for element in self where try isIncluded(element) {
       builder.append(element)

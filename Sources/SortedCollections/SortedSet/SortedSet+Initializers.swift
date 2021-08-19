@@ -24,5 +24,30 @@ extension SortedSet {
     }
   }
   
-  // TODO: potentially add unconditional
+  /// Creates a dictionary from a sequence of **sorted** elements.
+  ///
+  /// This is a more efficient alternative to ``init(_:)`` which offers
+  /// better asymptotic performance, and also reduces memory usage when constructing a
+  /// sorted set on a pre-sorted sequence.
+  ///
+  /// - Parameter elements: A sequence of elements in non-decreasing comparison order for the
+  ///     new set.
+  /// - Complexity: O(`n`) where `n` is the number of elements in the
+  ///     sequence.
+  @inlinable
+  public init<S: Sequence>(
+    sortedElements elements: S
+  ) where S.Element == Element {
+    var builder = _Tree.Builder()
+    
+    var previousElement: Element? = nil
+    for element in elements {
+      precondition(previousElement != nil && previousElement! < element,
+             "Sequence out of order.")
+      builder.append(element)
+      previousElement = element
+    }
+    
+    self.init(_rootedAt: builder.finish())
+  }
 }

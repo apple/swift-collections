@@ -30,7 +30,7 @@ extension SortedDictionary {
     }
     
     _modify {
-      var (cursor, found) = self._root.findAnyCursor(forKey: key)
+      var (cursor, found) = self._root.takeCursor(forKey: key)
       
       var value: Value?
       if found {
@@ -97,7 +97,7 @@ extension SortedDictionary {
     }
     
     _modify {
-      var (cursor, found) = self._root.findAnyCursor(forKey: key)
+      var (cursor, found) = self._root.takeCursor(forKey: key)
       
       var value: Value
       if found {
@@ -152,8 +152,10 @@ extension SortedDictionary {
   /// - Complexity: O(1)
   @inlinable
   public subscript(position: Index) -> Element {
-    position._index.ensureValid(forTree: self._root)
-    return self._root[position._index]
+    get {
+      position._index.ensureValid(forTree: self._root)
+      return self._root[position._index]
+    }
   }
   
   /// Accesses a contiguous subrange of the collection's elements.

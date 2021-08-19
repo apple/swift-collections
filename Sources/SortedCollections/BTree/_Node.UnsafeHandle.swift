@@ -10,6 +10,32 @@
 //===----------------------------------------------------------------------===//
 
 extension _Node {
+  /// A handle allowing potentially mutable operations to be performed.
+  ///
+  /// An ``UnsafeHandle`` should never be constructed directly. It is instead used when modifying a
+  /// node through its closure APIs, such as:
+  ///
+  ///     let nodeMedian = node.read { handle in
+  ///       let medianSlot = handle.elementCount
+  ///       return handle[elementAt: medianSlot]
+  ///     }
+  ///
+  /// The unsafe handle provides a variety of methods to ease operations on a node. This includes
+  /// low-level operations such as `moveElement(_:atSlot:)` or `pointerToValue(at:)` and
+  /// higher level operations such as `insertElement(_:)`.
+  ///
+  /// There are two variants of an ``UnsafeHandle``. A mutable and immuable one.
+  /// ``_Node.update(_:)`` is an example of a method which vends a mutable unsafe handle. Only a
+  /// mutable unsafe handle can performed unsafe operations. This exists to ensure CoW-unsafe
+  /// operations are not performed.
+  ///
+  /// Whene performing operations relating to children, it is important to know that not all nodes have
+  /// children, or a children buffer allocated. Check the ``isLeaf`` property before accessing any
+  /// properties or calling any methods which may interact with children.
+  ///
+  /// Additionally, when performing operations on values, a value buffer may not always be allocated.
+  /// Check ``_Node.hasValues`` before performing such operations. Note that element-wise
+  /// operations of the handle already perform such value checks and this step is not necessary.
   @usableFromInline
   internal struct UnsafeHandle {
     @usableFromInline
@@ -174,7 +200,6 @@ extension _Node {
     internal var isFull: Bool { elementCount == capacity }
     
     
-    // TODO: see if deinitializer can add 0 element check for internal nodes.
     /// Checks uniqueness of a child.
     ///
     /// - Warning: Will trap if executed on leaf nodes
@@ -199,34 +224,11 @@ extension _Node {
       self.header.pointee.children?.deallocate()
       self.header.pointee.children = nil
     }
-    
-    // TODO: test performance between __consuming and passing UnsafeHandle as
-    // inout.
-    /// Converts a leaf node into an internal node, without adjusting its capacity.
-    /// - Returns: A new unsafe handle to operate on. The old node is still mutated.
-    @inlinable
-    @inline(__always)
-    internal __consuming func convertToInternalNode() -> UnsafeHandle {
-      assertMutable()
-      assert(self.isLeaf, "Already internal node.")
-      let children: UnsafeMutablePointer<_Node> =
-        .allocate(capacity: self.capacity + 1)
-      
-      self.header.pointee.children = children
-      return UnsafeHandle(
-        keys: self.keys,
-        values: self.values,
-        children: children,
-        header: self.header,
-        isMutable: self.isMutable
-      )
-    }
   }
 }
 
 // MARK: Subscript
 extension _Node.UnsafeHandle {
-  // TODO: elementAtSlot & others
   @inlinable
   @inline(__always)
   internal subscript(elementAt slot: Int) -> _Node.Element {

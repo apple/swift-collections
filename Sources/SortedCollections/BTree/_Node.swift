@@ -9,11 +9,36 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A single node within a B-Tree, containing keys, values, and children.
+///
+/// A node is merely struct wrapper of the ``_Node.Storage`` class. This does not and should not
+/// contain any other properties. By using a ``_Node`` over the underlying storage class, operations can
+/// be performed with automatic copy-on-write (CoW) checks such as through the ``update(_:)``
+/// method.
+///
+/// Refer to ``_Node.Storage`` for more information on the allocation and structure of the underlying
+/// buffers of a node.
+///
+/// You cannot operate or read directly from a node. Instead use `read(_:)` and `update(_:)` to make
+/// modifications to a node.
+///
+///     let nodeMedian = node.read { handle in
+///       let medianSlot = handle.elementCount
+///       return handle[elementAt: medianSlot]
+///     }
+///
+/// Refer to ``_Node.UnsafeHandle`` for the APIs available when operating on a node in such a
+/// manner.
 @usableFromInline
 internal struct _Node<Key: Comparable, Value> {
   @usableFromInline
   typealias Element = (key: Key, value: Value)
   
+  /// An optional parameter to the storage. Use ``storage`` instead
+  ///
+  /// This will never be `nil` during a valid access of ``_Node``. However, to support moving the
+  /// underlying storage instance for internal and unsafe operations, this is made optional as an
+  /// implementation artifact.
   @usableFromInline
   internal var _storage: Storage?
   
@@ -21,6 +46,22 @@ internal struct _Node<Key: Comparable, Value> {
   @inlinable
   @inline(__always)
   internal var storage: Storage { _storage.unsafelyUnwrapped }
+  
+  /// An instance of a ``_Node`` with no underlying storage allocated.
+  ///
+  /// Use this when you need a dummy node. It is invalid to ever attempt to read or write to this node.
+  @inlinable
+  @inline(__always)
+  internal static var dummy: _Node {
+    _Node(_underlyingStorage: nil)
+  }
+  
+  /// Creates a node with a potentially empty underlying storage.
+  @inlinable
+  @inline(__always)
+  internal init(_underlyingStorage storage: Storage?) {
+    self._storage = storage
+  }
   
   /// Creates a node wrapping a Storage object in order to interact with it.
   /// - Parameter storage: Underlying node storage.
@@ -310,6 +351,8 @@ extension _Node {
 
 // MARK: Equatable
 extension _Node: Equatable {
+  /// Whether two nodes are the same underlying reference in memory.
+  /// - Warning: This **does not** compare the keys at all.
   @inlinable
   @inline(__always)
   internal static func ==(lhs: _Node, rhs: _Node) -> Bool {

@@ -36,7 +36,6 @@ extension SortedSet {
 
 // MARK: Equatable
 extension SortedSet.Index: Equatable {
-  // TODO: Potentially validate if lhs & rhs aren't pointing to deallocated dictionaries.
   @inlinable
   public static func ==(lhs: SortedSet.Index, rhs: SortedSet.Index) -> Bool {
     lhs._index.ensureValid(with: rhs._index)

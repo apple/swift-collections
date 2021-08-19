@@ -132,6 +132,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SortedCollections"
+               BuildableName = "SortedCollections"
+               BlueprintName = "SortedCollections"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -177,6 +191,16 @@
                BlueprintIdentifier = "PriorityQueueTests"
                BuildableName = "PriorityQueueTests"
                BlueprintName = "PriorityQueueTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SortedCollectionsTests"
+               BuildableName = "SortedCollectionsTests"
+               BlueprintName = "SortedCollectionsTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

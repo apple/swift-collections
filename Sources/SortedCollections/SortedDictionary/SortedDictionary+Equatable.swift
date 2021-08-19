@@ -10,8 +10,6 @@
 //===----------------------------------------------------------------------===//
 
 extension SortedDictionary: Equatable where Value: Equatable {
-  // TODO: look into more efficient ways to implement this
-  
   /// Returns a Boolean value indicating whether two values are equal.
   ///
   /// Equality is the inverse of inequality. For any values `a` and `b`,
@@ -23,7 +21,7 @@ extension SortedDictionary: Equatable where Value: Equatable {
   /// - Complexity: O(`self.count`)
   @inlinable
   public static func ==(lhs: SortedDictionary<Key, Value>, rhs: SortedDictionary<Key, Value>) -> Bool {
-    // TODO: optimize/benchmarking by comparing node identity.
+    // TODO: optimize/benchmarking by comparing node identity/shared subtrees.
     if lhs.count != rhs.count { return false }
     for ((k1, v1), (k2, v2)) in zip(lhs, rhs) {
       if k1 != k2 || v1 != v2 {

@@ -71,7 +71,7 @@ extension SortedDictionary {
     
     var previousKey: Key? = nil
     for (key, value) in keysAndValues {
-      precondition(previousKey == nil || previousKey.unsafelyUnwrapped < key,
+      precondition(previousKey == nil || previousKey! < key,
              "Sequence out of order.")
       builder.append((key, value))
       previousKey = key
@@ -99,7 +99,7 @@ extension SortedDictionary {
     
     var previousKey: Key? = nil
     for (key, value) in keysAndValues {
-      assert(previousKey != nil && previousKey.unsafelyUnwrapped < key,
+      precondition(previousKey == nil || previousKey! < key,
              "Sequence out of order.")
       builder.append((key, value))
       previousKey = key
@@ -134,16 +134,10 @@ extension SortedDictionary {
     by keyForValue: (S.Element) throws -> Key
   ) rethrows where Value == [S.Element], S : Sequence {
     self.init()
-    // TODO: implement some way to take advantage of S.underestimateCapacity
     for value in values {
       let key = try keyForValue(value)
-      
-      // TODO: optimize to avoid CoW copying the array
-      if var group = self._root.findAnyValue(forKey: key) {
+      self.modifyValue(forKey: key, default: []) { group in
         group.append(value)
-        self._root.updateAnyValue(group, forKey: key)
-      } else {
-        self._root.updateAnyValue([value], forKey: key)
       }
     }
   }

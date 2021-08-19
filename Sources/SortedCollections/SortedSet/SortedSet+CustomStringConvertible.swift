@@ -10,8 +10,6 @@
 //===----------------------------------------------------------------------===//
 
 extension SortedSet: CustomStringConvertible, CustomDebugStringConvertible {
-  // TODO: see if there is way to reduce boilerplate here
-  
   @inlinable
   public var description: String {
     var result = "["

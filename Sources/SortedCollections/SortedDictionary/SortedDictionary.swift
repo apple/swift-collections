@@ -62,8 +62,8 @@ extension SortedDictionary {
     }
     
     _modify {
-      // TODO: avoid allocating a new node
-      var values = Values(_base: SortedDictionary())
+      let dummyDict = SortedDictionary(_rootedAt: _BTree.dummy)
+      var values = Values(_base: dummyDict)
       swap(&self, &values._base)
       defer { self = values._base }
       yield &values
@@ -108,7 +108,7 @@ extension SortedDictionary {
     default defaultValue: @autoclosure () -> Value,
     _ body: (inout Value) throws -> R
   ) rethrows -> R {
-    var (cursor, found) = self._root.findAnyCursor(forKey: key)
+    var (cursor, found) = self._root.takeCursor(forKey: key)
     let r: R
     
     if found {

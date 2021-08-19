@@ -94,7 +94,6 @@ extension _BTree: Sequence {
         return
       }
       
-      // TODO: maybe convert to unowned(unsafe)
       var nextNode: Unmanaged? = .passUnretained(tree.root.storage)
       while let node = nextNode {
         self.path.append(node)

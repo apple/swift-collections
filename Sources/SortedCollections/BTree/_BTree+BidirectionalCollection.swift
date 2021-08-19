@@ -26,7 +26,7 @@ extension _BTree: BidirectionalCollection {
   @inline(__always)
   internal var isEmpty: Bool { self.count == 0 }
   
-  // TODO: look into O(1) implementation
+  // TODO: further consider O(1) implementation
   /// Locates the first element and returns a proper path to it, or nil if the BTree is empty.
   /// - Complexity: O(`log n`)
   @inlinable
@@ -92,6 +92,8 @@ extension _BTree: BidirectionalCollection {
     precondition(index.offset < self.count,
                  "Attempt to advance out of collection bounds.")
     
+    // TODO: this might be redundant given the fact the same (but generalized)
+    // logic is implemented in offsetBy
     let shouldSeekWithinLeaf = index.readNode {
       $0.isLeaf && _fastPath(index.slot + 1 < $0.elementCount)
     }
@@ -123,7 +125,6 @@ extension _BTree: BidirectionalCollection {
   internal func formIndex(before index: inout Index) {
     precondition(!self.isEmpty && index.offset != 0,
                  "Attempt to advance out of collection bounds.")
-    // TODO: implement more efficient logic to better move through the tree
     self.formIndex(&index, offsetBy: -1)
   }
   

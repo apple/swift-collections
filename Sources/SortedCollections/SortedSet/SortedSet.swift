@@ -35,23 +35,3 @@ public struct SortedSet<Element: Comparable> {
     self._root = tree
   }
 }
-
-// MARK: Testing for Membership
-
-// MARK: Adding Elements
-extension SortedSet {
-  // TODO: document
-  @inlinable
-  @inline(__always)
-  @discardableResult
-  public mutating func remove(atOffset offset: Int) -> Element {
-    return self._root.remove(atOffset: offset).key
-  }
-  
-  // TODO: document
-  @inlinable
-  @inline(__always)
-  public subscript(offset absoluteOffset: Int) -> Element {
-    return self._root.index(atOffset: absoluteOffset).element.key
-  }
-}

@@ -58,7 +58,7 @@ extension _Node.UnsafeHandle {
     if 0 < insertionIndex && insertionIndex <= self.elementCount &&
         self[keyAt: insertionIndex - 1] == key {
       if updatingKey {
-        // TODO: concerned about copy here
+        // TODO: Potential transient ARC traffic here.
         let oldKey = self.keys.advanced(by: insertionIndex - 1).pointee
         
         let oldValue: Value
@@ -264,7 +264,7 @@ extension _Node.UnsafeHandle {
         rightChild: rightNode
       )
     } else {
-      // TODO: see if this can be simplified
+      // TODO: potentially extract out this logic to reduce code duplication.
       // Shift over elements near the insertion slot.
       self.moveInitializeElements(
         count: self.elementCount - insertionSlot,

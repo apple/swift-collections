@@ -441,8 +441,7 @@ extension _Node.UnsafeHandle {
         self.subtreeCount += 1
         
         // TODO: might be more optimal to memcpy the right child, and avoid
-        // potentially creating a CoW copy of it. This will require more
-        // thinking
+        // potentially creating a CoW copy of it. 
         
         // Move the right child's elements into the left child
         //        ┌─┐

@@ -379,15 +379,73 @@ extension _BTree {
   /// This 'consumes' the tree, however it expects the callee to retain the root of the tree for the duration of
   /// the cursors lifetime.
   ///
-  /// - Parameters:
-  ///   - key: The key to search for
-  ///   - mutable: whether a mutable cursor should be returned.
+  /// - Parameter key: The key to search for
   /// - Returns: A `cursor` to the key or where the key should be inserted, and a `found`
   ///     parameter indicating whether or not the key exists within the tree, iff `found` is true, the cursor
   ///     is concrete.
   /// - Complexity: O(`log n`)
   @inlinable
-  internal mutating func findAnyCursor(
+  internal mutating func takeCursor(at index: Index) -> UnsafeCursor {
+    var slots = index.childSlots
+    slots.append(UInt16(index.slot))
+    
+    // Initialize parents with some dummy value filling it.
+    var parents =
+      UnsafeCursor.Path(repeating: .passUnretained(self.root.storage))
+    
+    var ownedRoot: Node.Storage
+    do {
+      var tempRoot: Node.Storage? = nil
+      swap(&tempRoot, &self.root._storage)
+      ownedRoot = tempRoot.unsafelyUnwrapped
+    }
+    
+    var node: Unmanaged<Node.Storage> = .passUnretained(ownedRoot)
+    
+    // The depth containing the first instance of a shared
+    var lastUniqueDepth = isKnownUniquelyReferenced(&ownedRoot) ? 0 : -1
+    var isOnUniquePath = isKnownUniquelyReferenced(&ownedRoot)
+    
+    for d in 0..<index.childSlots.depth {
+      node._withUnsafeGuaranteedRef { storage in
+        storage.read { handle in
+          parents.append(node)
+          
+          let slot = Int(index.childSlots[d])
+          node = .passUnretained(handle[childAt: slot].storage)
+          if isOnUniquePath && handle.isChildUnique(atSlot: slot) {
+            lastUniqueDepth += 1
+          } else {
+            isOnUniquePath = false
+          }
+        }
+      }
+    }
+    
+    parents.append(node)
+    
+    let cursor = UnsafeCursor(
+      root: ownedRoot,
+      slots: slots,
+      path: parents,
+      lastUniqueDepth: lastUniqueDepth
+    )
+    
+    return cursor
+  }
+
+  /// Obtains a cursor to a given element in the tree.
+  ///
+  /// This 'consumes' the tree, however it expects the callee to retain the root of the tree for the duration of
+  /// the cursors lifetime.
+  ///
+  /// - Parameter key: The key to search for
+  /// - Returns: A `cursor` to the key or where the key should be inserted, and a `found`
+  ///     parameter indicating whether or not the key exists within the tree, iff `found` is true, the cursor
+  ///     is concrete.
+  /// - Complexity: O(`log n`)
+  @inlinable
+  internal mutating func takeCursor(
     forKey key: Key
   ) -> (cursor: UnsafeCursor, found: Bool) {
     var slots = Index.Offsets(repeating: 0)
