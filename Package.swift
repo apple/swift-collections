@@ -55,10 +55,6 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
   ],
-  dependencies: [
-    // This is only used in the benchmark executable target.
-    .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.1"),
-  ],
   targets: [
     .target(
       name: "Collections",
@@ -86,31 +82,6 @@ let package = Package(
       dependencies: ["CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // Benchmarking
-    .target(
-      name: "Benchmarks",
-      dependencies: [
-        .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
-        "CppBenchmarks",
-        "Collections",
-      ],
-      path: "Benchmarks/Benchmarks",
-      resources: [
-        .copy("Library.json"),
-      ]
-    ),
-    .target(
-      name: "CppBenchmarks",
-      path: "Benchmarks/CppBenchmarks"
-    ),
-    .target(
-      name: "swift-collections-benchmark",
-      dependencies: [
-        "Benchmarks",
-      ],
-      path: "Benchmarks/swift-collections-benchmark"
-    ),
-
     // Deque<Element>
     .target(
       name: "DequeModule",
@@ -130,6 +101,5 @@ let package = Package(
       name: "OrderedCollectionsTests",
       dependencies: ["OrderedCollections", "CollectionsTestSupport"],
       swiftSettings: settings),
-  ],
-  cxxLanguageStandard: .cxx1z
+  ]
 )
