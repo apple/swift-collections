@@ -8,6 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(OrderedCollections
+  "HashTable/_HashTable.swift"
   "HashTable/_HashTable+Bucket.swift"
   "HashTable/_HashTable+BucketIterator.swift"
   "HashTable/_HashTable+Constants.swift"
@@ -15,8 +16,8 @@ add_library(OrderedCollections
   "HashTable/_Hashtable+Header.swift"
   "HashTable/_HashTable+Testing.swift"
   "HashTable/_HashTable+UnsafeHandle.swift"
-  "HashTable/_HashTable.swift"
 
+  "OrderedDictionary/OrderedDictionary.swift"
   "OrderedDictionary/OrderedDictionary+Codable.swift"
   "OrderedDictionary/OrderedDictionary+CustomDebugStringConvertible.swift"
   "OrderedDictionary/OrderedDictionary+CustomReflectable.swift"
@@ -32,8 +33,9 @@ add_library(OrderedCollections
   "OrderedDictionary/OrderedDictionary+Partial RangeReplaceableCollection.swift"
   "OrderedDictionary/OrderedDictionary+Sequence.swift"
   "OrderedDictionary/OrderedDictionary+Values.swift"
-  "OrderedDictionary/OrderedDictionary.swift"
+  "OrderedDictionary/OrderedDictionary+Deprecations.swift"
 
+  "OrderedSet/OrderedSet.swift"
   "OrderedSet/OrderedSet+Codable.swift"
   "OrderedSet/OrderedSet+CustomDebugStringConvertible.swift"
   "OrderedSet/OrderedSet+CustomReflectable.swift"
@@ -56,7 +58,6 @@ add_library(OrderedCollections
   "OrderedSet/OrderedSet+Testing.swift"
   "OrderedSet/OrderedSet+UnorderedView.swift"
   "OrderedSet/OrderedSet+UnstableInternals.swift"
-  "OrderedSet/OrderedSet.swift"
 
   "Utilities/_UnsafeBitset.swift"
   "Utilities/RandomAccessCollection+Offsets.swift")
