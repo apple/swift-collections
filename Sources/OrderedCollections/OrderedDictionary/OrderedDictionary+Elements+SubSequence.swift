@@ -50,34 +50,6 @@ extension OrderedDictionary.Elements.SubSequence {
   }
 }
 
-extension OrderedDictionary.Elements.SubSequence {
-  /// Returns the index for the given key.
-  ///
-  /// If the given key is found in the dictionary slice, this method returns an
-  /// index into the dictionary that corresponds with the key-value pair.
-  ///
-  ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
-  ///     let slice = countryCodes.elements[1...]
-  ///     let index = slice.index(forKey: "JP")
-  ///
-  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
-  ///     // Prints "Country code for Japan: 'JP'."
-  ///
-  /// - Parameter key: The key to find in the dictionary slice.
-  ///
-  /// - Returns: The index for `key` and its associated value if `key` is in
-  ///    the dictionary slice; otherwise, `nil`.
-  ///
-  /// - Complexity: Expected to be O(1) on average, if `Key` implements
-  ///    high-quality hashing.
-  @inlinable
-  public func index(forKey key: Key) -> Int? {
-    guard let index = _base.index(forKey: key) else { return nil }
-    guard _bounds.contains(index) else { return nil }
-    return index
-  }
-}
-
 extension OrderedDictionary.Elements.SubSequence: Sequence {
   // A type representing the collection’s elements.
   public typealias Element = OrderedDictionary.Element
@@ -290,7 +262,7 @@ extension OrderedDictionary.Elements.SubSequence: RandomAccessCollection {
   @inlinable
   public subscript(position: Int) -> Element {
     precondition(_bounds.contains(position), "Index out of range")
-    return _base[offset: position]
+    return (_base._keys[position], _base._values[position])
   }
 
   /// Accesses a contiguous subrange of the dictionary's elements.

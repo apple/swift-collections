@@ -105,7 +105,7 @@ for character in text {
 (This isn't currently available on the regular `Dictionary`.)
 
 The `Dictionary` type's original `updateValue(_:forKey:)` method is also
-available, and so is `index(forKey:)`, grouping/uniquing initializers
+available, and so are grouping/uniquing initializers
 (`init(uniqueKeysWithValues:)`, `init(_:uniquingKeysWith:)`,
 `init(grouping:by:)`), methods for merging one dictionary with another
 (`merge`, `merging`), filtering dictionary entries (`filter(_:)`),
