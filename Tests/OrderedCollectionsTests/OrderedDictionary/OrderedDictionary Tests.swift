@@ -606,7 +606,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_default_closure_update() {
+  func test_updateValue_forKey_default_closure_update() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
@@ -616,7 +616,7 @@ class OrderedDictionaryTests: CollectionTestCase {
             let fallback = tracker.instance(for: -2)
             withHiddenCopies(if: isShared, of: &d) { d in
               let key = keys[offset]
-              d.modifyValue(forKey: key, default: fallback) { value in
+              d.updateValue(forKey: key, default: fallback) { value in
                 expectEqual(value, values[offset])
                 value = replacement
               }
@@ -633,7 +633,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_default_closure_insert() {
+  func test_updateValue_forKey_default_closure_insert() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
@@ -644,7 +644,7 @@ class OrderedDictionaryTests: CollectionTestCase {
           withEvery("offset", in: 0 ..< count) { offset in
             withHiddenCopies(if: isShared, of: &d) { d in
               let key = keys[offset]
-              d.modifyValue(forKey: key, default: fallback) { value in
+              d.updateValue(forKey: key, default: fallback) { value in
                 expectEqual(value, fallback)
                 value = values[offset]
               }
@@ -661,7 +661,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_insertingDefault_at_closure_update() {
+  func test_updateValue_forKey_insertingDefault_at_closure_update() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
@@ -672,7 +672,7 @@ class OrderedDictionaryTests: CollectionTestCase {
             withHiddenCopies(if: isShared, of: &d) { d in
               let key = keys[offset]
               let value = values[offset]
-              d.modifyValue(forKey: key, insertingDefault: fallback, at: 0) { v in
+              d.updateValue(forKey: key, insertingDefault: fallback, at: 0) { v in
                 expectEqual(v, value)
                 v = replacement
               }
@@ -689,7 +689,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_insertingDefault_at_closure_insert() {
+  func test_updateValue_forKey_insertingDefault_at_closure_insert() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
@@ -701,7 +701,7 @@ class OrderedDictionaryTests: CollectionTestCase {
             withHiddenCopies(if: isShared, of: &d) { d in
               let key = keys[count - 1 - offset]
               let value = values[count - 1 - offset]
-              d.modifyValue(forKey: key, insertingDefault: fallback, at: 0) { v in
+              d.updateValue(forKey: key, insertingDefault: fallback, at: 0) { v in
                 expectEqual(v, fallback)
                 v = value
               }

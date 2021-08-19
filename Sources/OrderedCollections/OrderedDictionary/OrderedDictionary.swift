@@ -79,13 +79,13 @@
 ///
 /// If the `Value` type implements reference semantics, or when you need to
 /// perform a series of individual mutations on the values, the closure-based
-/// `modifyValue(forKey:default:_:)` method provides an easier-to-use
+/// `updateValue(forKey:default:_:)` method provides an easier-to-use
 /// alternative to the defaulted key-based subscript.
 ///
 ///     let text = "short string"
 ///     var counts: OrderedDictionary<Character, Int> = [:]
 ///     for character in text {
-///       counts.modifyValue(forKey: character, default: 0) { value in
+///       counts.updateValue(forKey: character, default: 0) { value in
 ///         value += 1
 ///       }
 ///     }
@@ -641,7 +641,7 @@ extension OrderedDictionary {
   ///     let message = "Hello, Elle!"
   ///     var letterCounts: [Character: Int] = [:]
   ///     for letter in message {
-  ///         letterCounts.modifyValue(forKey: letter, default: 0) { count in
+  ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
   ///             count += 1
   ///         }
   ///     }
@@ -660,10 +660,10 @@ extension OrderedDictionary {
   /// - Complexity: expected complexity is amortized O(1), if `Key` implements
   ///    high-quality hashing. (Ignoring the complexity of calling `body`.)
   @inlinable
-  public mutating func modifyValue<R>(
+  public mutating func updateValue<R>(
     forKey key: Key,
     default defaultValue: @autoclosure () -> Value,
-    _ body: (inout Value) throws -> R
+    with body: (inout Value) throws -> R
   ) rethrows -> R {
     let (index, bucket) = _keys._find(key)
     if let index = index {
@@ -687,7 +687,7 @@ extension OrderedDictionary {
   ///     let message = "Hello, Elle!"
   ///     var letterCounts: [Character: Int] = [:]
   ///     for letter in message {
-  ///         letterCounts.modifyValue(forKey: letter, default: 0) { count in
+  ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
   ///             count += 1
   ///         }
   ///     }
@@ -706,11 +706,11 @@ extension OrderedDictionary {
   /// - Complexity: expected complexity is amortized O(1), if `Key` implements
   ///    high-quality hashing. (Ignoring the complexity of calling `body`.)
   @inlinable
-  public mutating func modifyValue<R>(
+  public mutating func updateValue<R>(
     forKey key: Key,
     insertingDefault defaultValue: @autoclosure () -> Value,
     at index: Int,
-    _ body: (inout Value) throws -> R
+    with body: (inout Value) throws -> R
   ) rethrows -> R {
     let (existingIndex, bucket) = _keys._find(key)
     if let existingIndex = existingIndex {
