@@ -295,7 +295,7 @@ extension Benchmark {
         values: input.map { 2 * $0 })
       return { timer in
         for i in lookups {
-          precondition(d.index(forKey: i) != nil)
+          precondition(d.keys.firstIndex(of: i) != nil)
         }
       }
     }
@@ -309,7 +309,7 @@ extension Benchmark {
         values: input.map { 2 * $0 })
       return { timer in
         for i in lookups {
-          precondition(d.index(forKey: lookups.count + i) == nil)
+          precondition(d.keys.firstIndex(of: lookups.count + i) == nil)
         }
       }
     }
