@@ -2,7 +2,7 @@
 
 set -eu
 
-srcroot="$(dirname "$0")/.."
+srcroot="$(dirname "$0")/../Benchmarks"
 results="batch.results"
 
 command="${1:-help}"
@@ -12,7 +12,7 @@ run() {
   local flags
   flags="-c release"
   flags="$flags -Xswiftc -Xllvm -Xswiftc -align-module-to-page-size"
-  swift run --package-path "$srcroot" $flags swift-collections-benchmark "$@"
+  swift run --package-path "$srcroot" $flags benchmark "$@"
 }
 
 case "$command" in
