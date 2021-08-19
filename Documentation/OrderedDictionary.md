@@ -88,14 +88,14 @@ for character in text {
 
 If the `Value` type implements reference semantics, or when you need to
 perform a series of individual mutations on the values, the closure-based
-`modifyValue(forKey:default:_:)` method provides an easier-to-use
+`updateValue(forKey:default:with:)` method provides an easier-to-use
 alternative to the defaulted key-based subscript.
 
 ```swift
 let text = "short string"
 var counts: OrderedDictionary<Character, Int> = [:]
 for character in text {
-  counts.modifyValue(forKey: character, default: 0) { value in
+  counts.updateValue(forKey: character, default: 0) { value in
     value += 1
   }
 }
