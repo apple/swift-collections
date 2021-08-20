@@ -290,7 +290,7 @@ extension OrderedDictionary.Elements.SubSequence: RandomAccessCollection {
   @inlinable
   public subscript(position: Int) -> Element {
     precondition(_bounds.contains(position), "Index out of range")
-    return _base[offset: position]
+    return (_base._keys[position], _base._values[position])
   }
 
   /// Accesses a contiguous subrange of the dictionary's elements.
