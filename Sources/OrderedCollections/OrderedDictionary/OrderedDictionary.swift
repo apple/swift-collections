@@ -287,20 +287,6 @@ extension OrderedDictionary {
   public func index(forKey key: Key) -> Int? {
     _keys.firstIndex(of: key)
   }
-
-  /// Accesses the element at the specified index. This can be used to
-  /// perform in-place mutations on dictionary values.
-  ///
-  /// - Parameter offset: The offset of the element to access, measured from
-  ///   the start of the collection. `offset` must be greater than or equal to
-  ///   `0` and less than `count`.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public subscript(offset offset: Int) -> Element {
-    (_keys[offset], _values[offset])
-  }
 }
 
 extension OrderedDictionary {

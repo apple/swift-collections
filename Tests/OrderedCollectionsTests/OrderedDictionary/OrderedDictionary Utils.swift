@@ -17,8 +17,7 @@ extension LifetimeTracker {
     keys: Keys
   ) -> (
     dictionary: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>>,
-    keys: [LifetimeTracked<Int>],
-    values: [LifetimeTracked<Int>]
+    expected: [(key: LifetimeTracked<Int>, value: LifetimeTracked<Int>)]
   )
   where Keys.Element == Int
   {
@@ -26,6 +25,6 @@ extension LifetimeTracker {
     let keys = self.instances(for: k)
     let values = self.instances(for: k.map { $0 + 100 })
     let dictionary = OrderedDictionary(uniqueKeys: keys, values: values)
-    return (dictionary, keys, values)
+    return (dictionary, (0 ..< k.count).map { (key: keys[$0], value: values[$0]) })
   }
 }

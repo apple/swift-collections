@@ -10,7 +10,27 @@
 //===----------------------------------------------------------------------===//
 
 extension OrderedDictionary {
-  @available(*, deprecated, renamed: "updateValue(forKey:default:with:)")
+  /// Accesses the element at the specified index. This can be used to
+  /// perform in-place mutations on dictionary values.
+  ///
+  /// - Parameter offset: The offset of the element to access, measured from
+  ///   the start of the collection. `offset` must be greater than or equal to
+  ///   `0` and less than `count`.
+  ///
+  /// - Complexity: O(1)
+  @available(*, deprecated, // since 0.0.6
+              message: "Please use `elements[offset]`")
+  @inlinable
+  @inline(__always)
+  public subscript(offset offset: Int) -> Element {
+    (_keys[offset], _values[offset])
+  }
+}
+
+extension OrderedDictionary {
+  // Deprecated since 0.0.6
+  @available(*, deprecated, // since 0.0.6
+              renamed: "updateValue(forKey:default:with:)")
   @inlinable
   public mutating func modifyValue<R>(
     forKey key: Key,
@@ -20,7 +40,8 @@ extension OrderedDictionary {
     try self.updateValue(forKey: key, default: defaultValue(), with: body)
   }
 
-  @available(*, deprecated, renamed: "updateValue(forKey:insertingDefault:at:with:)")
+  @available(*, deprecated, // since 0.0.6
+              renamed: "updateValue(forKey:insertingDefault:at:with:)")
   @inlinable
   public mutating func modifyValue<R>(
     forKey key: Key,
