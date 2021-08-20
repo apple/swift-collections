@@ -59,7 +59,6 @@ class OrderedDictionaryElementsTests: CollectionTestCase {
     }
   }
 
-  @available(*, deprecated)
   func test_index_forKey() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
@@ -475,7 +474,6 @@ class OrderedDictionaryElementsTests: CollectionTestCase {
     }
   }
 
-  @available(*, deprecated)
   func test_slice_index_forKey() {
     withEvery("count", in: 0 ..< 30) { count in
       withEveryRange("range", in: 0 ..< count) { range in

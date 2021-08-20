@@ -200,7 +200,6 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  @available(*, deprecated)
   func test_index_forKey() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
