@@ -88,10 +88,10 @@ extension SparseSet.Elements.SubSequence: Sequence {
 
     @inlinable
     @inline(__always)
-    internal init(_ base: SparseSet.Elements.SubSequence) {
-      self._base = base._base
-      self._end = base._bounds.upperBound
-      self._index = base._bounds.lowerBound
+    internal init(_base: SparseSet.Elements.SubSequence) {
+      self._base = _base._base
+      self._end = _base._bounds.upperBound
+      self._index = _base._bounds.lowerBound
     }
 
     /// Advances to the next element and returns it, or `nil` if no next
@@ -102,7 +102,7 @@ extension SparseSet.Elements.SubSequence: Sequence {
     public mutating func next() -> Element? {
       guard _index < _end else { return nil }
       defer { _index += 1 }
-      return (_base._dense._keys[_index], _base._dense._values[_index])
+      return (_base._dense.keys[_index], _base._dense.values[_index])
     }
   }
 
@@ -110,7 +110,7 @@ extension SparseSet.Elements.SubSequence: Sequence {
   @inlinable
   @inline(__always)
   public func makeIterator() -> Iterator {
-    Iterator(self)
+    Iterator(_base: self)
   }
 }
 
@@ -255,7 +255,7 @@ extension SparseSet.Elements.SubSequence: RandomAccessCollection {
     offsetBy distance: Int,
     limitedBy limit: Int
   ) -> Int? {
-    _base._dense._keys.index(i, offsetBy: distance, limitedBy: limit)
+    _base._dense.keys.index(i, offsetBy: distance, limitedBy: limit)
   }
 
   /// Returns the distance between two indices.

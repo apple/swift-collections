@@ -18,6 +18,6 @@ extension SparseSet: Equatable where Value: Equatable {
   /// - Complexity: O(`min(left.count, right.count)`)
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
-    left._dense._keys == right._dense._keys && left._dense._values == right._dense._values
+    left._dense.keys == right._dense.keys && left._dense.values == right._dense.values
   }
 }

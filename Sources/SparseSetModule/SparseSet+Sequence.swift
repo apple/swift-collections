@@ -39,7 +39,7 @@ extension SparseSet: Sequence {
     @inlinable
     public mutating func next() -> Element? {
       guard _position < _base._dense.count else { return nil }
-      let result = (_base._dense._keys[_position], _base._dense._values[_position])
+      let result = (_base._dense.keys[_position], _base._dense.values[_position])
       _position += 1
       return result
     }

@@ -11,35 +11,35 @@
 
 extension SparseSet {
   @usableFromInline
-  internal struct SparseStorage {
+  internal struct _SparseStorage {
     @usableFromInline
-    var _buffer: Buffer
+    var buffer: Buffer
 
     @inlinable
     @inline(__always)
     init(_ buffer: Buffer) {
-      self._buffer = buffer
+      self.buffer = buffer
     }
 
     @inlinable
     internal init<C: Collection>(withCapacity capacity: Int, keys: C) where C.Element == Key {
-      self._buffer = Buffer.bufferWith(capacity: capacity, keys: keys)
+      self.buffer = Buffer.bufferWith(capacity: capacity, keys: keys)
     }
 
     @inlinable
     internal init(withCapacity capacity: Int) {
-      self._buffer = Buffer.bufferWith(capacity: capacity, keys: EmptyCollection<Key>())
+      self.buffer = Buffer.bufferWith(capacity: capacity, keys: EmptyCollection<Key>())
     }
 
     @inlinable
     internal init<C: Collection>(keys: C) where C.Element == Key {
       let universeSize: Int = keys.max().map { Int($0) + 1 } ?? 0
-      self._buffer = Buffer.bufferWith(capacity: universeSize, keys: keys)
+      self.buffer = Buffer.bufferWith(capacity: universeSize, keys: keys)
     }
   }
 }
 
-extension SparseSet.SparseStorage {
+extension SparseSet._SparseStorage {
   @usableFromInline
   internal struct Header {
     @usableFromInline
@@ -52,7 +52,7 @@ extension SparseSet.SparseStorage {
   }
 }
 
-extension SparseSet.SparseStorage {
+extension SparseSet._SparseStorage {
   @usableFromInline
   internal final class Buffer: ManagedBuffer<Header, Key> {
     /// Create a buffer populated with the given key data.
@@ -118,10 +118,10 @@ extension SparseSet.SparseStorage {
   }
 }
 
-extension SparseSet.SparseStorage {
+extension SparseSet._SparseStorage {
   @inlinable
   internal var capacity: Int {
-    _buffer.header.capacity
+    buffer.header.capacity
   }
 
   /// Resize this storage to a new capacity.
@@ -132,7 +132,7 @@ extension SparseSet.SparseStorage {
   /// - Parameter newCapacity: The new capacity of the storage.
   @usableFromInline
   internal mutating func resize(to newCapacity: Int) {
-    _buffer = Buffer.bufferWith(capacity: newCapacity, contentsOf: _buffer)
+    buffer = Buffer.bufferWith(capacity: newCapacity, contentsOf: buffer)
   }
 
   /// Resize this storage to a new capacity.
@@ -147,7 +147,7 @@ extension SparseSet.SparseStorage {
   ///   - keys: A collection of keys.
   @usableFromInline
   internal mutating func resize<C: Collection>(to newCapacity: Int, keys: C) where C.Element == Key {
-    _buffer = Buffer.bufferWith(capacity: newCapacity, keys: keys)
+    buffer = Buffer.bufferWith(capacity: newCapacity, keys: keys)
   }
 
   /// Rebuilds the index data for the given keys.
@@ -156,7 +156,7 @@ extension SparseSet.SparseStorage {
   @inlinable
   internal mutating func reindex<C: Collection>(keys: C) where C.Element == Key {
     assert(capacity >= keys.max().map { Int($0) + 1 } ?? 0)
-    _buffer.withUnsafeMutablePointerToElements { ptr in
+    buffer.withUnsafeMutablePointerToElements { ptr in
       for(i, key) in keys.enumerated() {
         let index = Int(key)
         precondition(index >= 0, "Negative key")
@@ -167,16 +167,16 @@ extension SparseSet.SparseStorage {
   }
 }
 
-extension SparseSet.SparseStorage {
+extension SparseSet._SparseStorage {
   @inlinable
   internal subscript(position: Key) -> Int {
     get {
-      _buffer.withUnsafeMutablePointerToElements { ptr in
+      buffer.withUnsafeMutablePointerToElements { ptr in
         Int(ptr[Int(position)])
       }
     }
     set {
-      _buffer.withUnsafeMutablePointerToElements { ptr in
+      buffer.withUnsafeMutablePointerToElements { ptr in
         ptr[Int(position)] = Key(newValue)
       }
     }

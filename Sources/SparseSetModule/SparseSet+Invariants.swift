@@ -15,13 +15,13 @@ extension SparseSet {
   @inline(never)
   internal func _checkInvariants() {
     // Check there are the same number of keys as values.
-    precondition(_dense._keys.count == _dense._values.count)
+    precondition(_dense.keys.count == _dense.values.count)
     // Check that the sparse storage buffer has sufficient capacity.
     let universeSize: Int = keys.max().map { Int($0) + 1 } ?? 0
     precondition(_sparse.capacity >= universeSize)
     // Check that the keys' positions in the dense storage agree with those
     // given by the sparse storage.
-    for (i, key) in _dense._keys.enumerated() {
+    for (i, key) in _dense.keys.enumerated() {
       precondition(_sparse[key] == i)
     }
   }

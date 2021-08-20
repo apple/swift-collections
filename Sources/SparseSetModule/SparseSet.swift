@@ -11,21 +11,21 @@
 
 public struct SparseSet<Key, Value> where Key: FixedWidthInteger, Key.Stride == Int {
   @usableFromInline
-  internal var _dense: DenseStorage
+  internal var _dense: _DenseStorage
 
   @inlinable
   @inline(__always)
-  internal var _sparse: SparseStorage {
+  internal var _sparse: _SparseStorage {
     get {
-      SparseStorage(__sparseBuffer)
+      _SparseStorage(__sparseBuffer)
     }
     set {
-      __sparseBuffer = newValue._buffer
+      __sparseBuffer = newValue.buffer
     }
   }
 
   @usableFromInline
-  internal var __sparseBuffer: SparseStorage.Buffer
+  internal var __sparseBuffer: _SparseStorage.Buffer
 }
 
 // MARK: -
@@ -38,7 +38,7 @@ extension SparseSet {
   @inlinable
   @inline(__always)
   public var keys: Array<Key> {
-    Array(_dense._keys)
+    Array(_dense.keys)
   }
 
   /// A mutable collection view containing the values in this sparse set.
@@ -113,7 +113,7 @@ extension SparseSet {
   @inlinable
   @inline(__always)
   public subscript(offset offset: Int) -> Element {
-    (_dense._keys[offset], _dense._values[offset])
+    (_dense.keys[offset], _dense.values[offset])
   }
 }
 
@@ -137,8 +137,8 @@ extension SparseSet {
   @inlinable
   public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
     if let existingIndex = _find(key: key) {
-      let existingValue = _dense._values[existingIndex]
-      _dense._values[existingIndex] = value
+      let existingValue = _dense.values[existingIndex]
+      _dense.values[existingIndex] = value
       return existingValue
     }
     _append(value: value, key: key)
@@ -170,11 +170,11 @@ extension SparseSet {
     _ body: (inout Value) throws -> R
   ) rethrows -> R {
     if let existingIndex = _find(key: key) {
-      return try body(&_dense._values[existingIndex])
+      return try body(&_dense.values[existingIndex])
     }
     _append(value: defaultValue(), key: key)
     let i = _dense.count - 1
-    return try body(&_dense._values[i])
+    return try body(&_dense.values[i])
   }
 
   /// Removes the given key and its associated value from the sparse set.
@@ -227,7 +227,7 @@ extension SparseSet {
   public subscript(key: Key) -> Value? {
     get {
       guard let index = _find(key: key) else { return nil }
-      return _dense._values[index]
+      return _dense.values[index]
     }
     set {
       // We have a separate `set` in addition to `_modify` in hopes of getting
@@ -236,7 +236,7 @@ extension SparseSet {
       let index = _find(key: key)
       switch (index, newValue) {
       case let (index?, newValue?): // Assign
-        _dense._values[index] = newValue
+        _dense.values[index] = newValue
       case let (index?, nil): // Remove
         _remove(at: index)
       case let (nil, newValue?): // Insert
@@ -253,23 +253,23 @@ extension SparseSet {
       // or swap keys too depending on whether we are are assigning or removing.
       var value: Value? = nil
       if let index = index {
-        _dense._values.swapAt(index, _dense._values.count - 1)
-        value = _dense._values.removeLast()
+        _dense.values.swapAt(index, _dense.values.count - 1)
+        value = _dense.values.removeLast()
       }
 
       defer {
         switch (index, value) {
         case let (index?, value?): // Assign
-          _dense._values.append(value)
-          _dense._values.swapAt(index, _dense._values.count - 1)
+          _dense.values.append(value)
+          _dense.values.swapAt(index, _dense.values.count - 1)
         case let (index?, nil): // Remove
           _ensureUnique()
-          if index < _dense._values.count {
-            let shiftedKey = _dense._keys.removeLast()
-            _dense._keys[index] = shiftedKey
+          if index < _dense.values.count {
+            let shiftedKey = _dense.keys.removeLast()
+            _dense.keys[index] = shiftedKey
             _sparse[shiftedKey] = index
           } else {
-            _dense._keys.removeLast()
+            _dense.keys.removeLast()
           }
         case let (nil, value?): // Insert
           _append(value: value, key: key)
@@ -317,7 +317,7 @@ extension SparseSet {
   ) -> Value {
     get {
       guard let index = _find(key: key) else { return defaultValue() }
-      return _dense._values[index]
+      return _dense.values[index]
     }
     _modify {
       let index: Int
@@ -329,12 +329,12 @@ extension SparseSet {
         _append(value: defaultValue(), key: key)
       }
 
-      var value: Value = _dense._values.withUnsafeMutableBufferPointer { buffer in
+      var value: Value = _dense.values.withUnsafeMutableBufferPointer { buffer in
         assert(index < buffer.count)
         return (buffer.baseAddress! + index).move()
       }
       defer {
-        _dense._values.withUnsafeMutableBufferPointer { buffer in
+        _dense.values.withUnsafeMutableBufferPointer { buffer in
           assert(index < buffer.count)
           (buffer.baseAddress! + index).initialize(to: value)
         }
@@ -367,7 +367,7 @@ extension SparseSet {
   ) rethrows where S.Element == (key: Key, value: Value) {
     for (key, value) in keysAndValues {
       if let index = _find(key: key) {
-        try { $0 = try combine($0, value) }(&_dense._values[index])
+        try { $0 = try combine($0, value) }(&_dense.values[index])
       } else {
         _append(value: value, key: key)
       }
@@ -496,8 +496,8 @@ extension SparseSet {
     _ transform: (Value) throws -> T
   ) rethrows -> SparseSet<Key, T> {
     SparseSet<Key, T>(
-      uniqueKeys: _dense._keys,
-      values: ContiguousArray(try _dense._values.map(transform)))
+      uniqueKeys: _dense.keys,
+      values: ContiguousArray(try _dense.values.map(transform)))
   }
 
   /// Returns a new sparse set containing only the key-value pairs that have
@@ -538,7 +538,7 @@ extension SparseSet {
   /// of keys in the sparse set is small relative to the universe size. This
   /// constant is the density threshold which determines which strategy we use.
   @usableFromInline
-  internal static var sparseDensityThresholdForCopyAll: Double { 0.1 }
+  internal static var _sparseDensityThresholdForCopyAll: Double { 0.1 }
 
   /// Ensures that the sparse data storage buffer is uniquely referenced,
   /// copying it if necessary.
@@ -550,10 +550,10 @@ extension SparseSet {
   internal mutating func _ensureUnique() {
     if !isKnownUniquelyReferenced(&__sparseBuffer) {
       let density = Double(_dense.count) / Double(_sparse.capacity)
-      if density > SparseSet.sparseDensityThresholdForCopyAll {
+      if density > SparseSet._sparseDensityThresholdForCopyAll {
         __sparseBuffer = .bufferWith(contentsOf: __sparseBuffer)
       } else {
-        __sparseBuffer = .bufferWith(capacity: _sparse.capacity, keys: _dense._keys)
+        __sparseBuffer = .bufferWith(capacity: _sparse.capacity, keys: _dense.keys)
       }
     }
   }
@@ -594,7 +594,7 @@ extension SparseSet {
     guard index >= 0 && index < _dense.count else {
       return nil
     }
-    if _dense._keys[index] == key {
+    if _dense.keys[index] == key {
       return index
     }
     return nil
@@ -615,11 +615,11 @@ extension SparseSet {
     defer { _checkInvariants() }
     if index < _dense.count - 1 {
       _ensureUnique()
-      let existingKey = _dense._keys[index]
-      let existingValue = _dense._values[index]
+      let existingKey = _dense.keys[index]
+      let existingValue = _dense.values[index]
       let (shiftedKey, shiftedValue) = _dense.removeLast()
-      _dense._keys[index] = shiftedKey
-      _dense._values[index] = shiftedValue
+      _dense.keys[index] = shiftedKey
+      _dense.values[index] = shiftedValue
       _sparse[shiftedKey] = index
       return (existingKey, existingValue)
     } else {
@@ -632,11 +632,11 @@ extension SparseSet {
     guard i != j else { return }
     defer { _checkInvariants() }
     _ensureUnique()
-    _dense._values.swapAt(i, j)
-    let keyA = _dense._keys[i]
-    let keyB = _dense._keys[j]
-    _dense._keys[i] = keyB
-    _dense._keys[j] = keyA
+    _dense.values.swapAt(i, j)
+    let keyA = _dense.keys[i]
+    let keyB = _dense.keys[j]
+    _dense.keys[i] = keyB
+    _dense.keys[j] = keyA
     _sparse[keyA] = j
     _sparse[keyB] = i
   }

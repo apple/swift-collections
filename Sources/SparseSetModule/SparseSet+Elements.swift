@@ -50,7 +50,7 @@ extension SparseSet.Elements {
   @inlinable
   @inline(__always)
   public var keys: Array<Key> {
-    Array(_base._dense._keys)
+    Array(_base._dense.keys)
   }
 
   /// A mutable collection view containing the values in this collection.
@@ -234,7 +234,7 @@ extension SparseSet.Elements: RandomAccessCollection {
     offsetBy distance: Int,
     limitedBy limit: Int
   ) -> Int? {
-    _base._dense._keys.index(i, offsetBy: distance, limitedBy: limit)
+    _base._dense.keys.index(i, offsetBy: distance, limitedBy: limit)
   }
 
   /// Returns the distance between two indices.
@@ -263,7 +263,7 @@ extension SparseSet.Elements: RandomAccessCollection {
   @inlinable
   @inline(__always)
   public subscript(position: Int) -> Element {
-    (_base._dense._keys[position], _base._dense._values[position])
+    (_base._dense.keys[position], _base._dense.values[position])
   }
 
   /// Accesses a contiguous subrange of the sparse set's elements.
@@ -300,19 +300,19 @@ extension SparseSet.Elements: RandomAccessCollection {
   @inlinable
   @inline(__always)
   public func _failEarlyRangeCheck(_ index: Int, bounds: Range<Int>) {
-    _base._dense._keys._failEarlyRangeCheck(index, bounds: bounds)
+    _base._dense.keys._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
   public func _failEarlyRangeCheck(_ index: Int, bounds: ClosedRange<Int>) {
-    _base._dense._keys._failEarlyRangeCheck(index, bounds: bounds)
+    _base._dense.keys._failEarlyRangeCheck(index, bounds: bounds)
   }
 
   @inlinable
   @inline(__always)
   public func _failEarlyRangeCheck(_ range: Range<Int>, bounds: Range<Int>) {
-    _base._dense._keys._failEarlyRangeCheck(range, bounds: bounds)
+    _base._dense.keys._failEarlyRangeCheck(range, bounds: bounds)
   }
 }
 

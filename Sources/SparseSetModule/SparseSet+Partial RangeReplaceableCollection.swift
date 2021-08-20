@@ -20,7 +20,7 @@ extension SparseSet {
   public mutating func removeAll(keepingCapacity: Bool = false) {
     _dense.removeAll(keepingCapacity: keepingCapacity)
     if !keepingCapacity {
-      _sparse = SparseStorage(withCapacity: 0)
+      _sparse = _SparseStorage(withCapacity: 0)
     }
     _checkInvariants()
   }
@@ -59,7 +59,7 @@ extension SparseSet {
   public mutating func removeSubrange(_ bounds: Range<Int>) {
     guard !bounds.isEmpty else { return }
     defer { _checkInvariants() }
-    let finalSegment = bounds.endIndex ..< _dense._keys.endIndex
+    let finalSegment = bounds.endIndex ..< _dense.keys.endIndex
     let regionToMove: Range<Int>?
     if bounds.count <= finalSegment.count {
       regionToMove = finalSegment.endIndex - bounds.count ..< finalSegment.endIndex
@@ -70,22 +70,22 @@ extension SparseSet {
     }
     if let regionToMove = regionToMove {
       _ensureUnique()
-      _dense._keys.withUnsafeMutableBufferPointer { ptr in
+      _dense.keys.withUnsafeMutableBufferPointer { ptr in
         ptr.baseAddress!.advanced(by: bounds.startIndex)
           .assign(from: ptr.baseAddress!.advanced(by: regionToMove.startIndex),
                   count: regionToMove.count)
       }
-      _dense._values.withUnsafeMutableBufferPointer { ptr in
+      _dense.values.withUnsafeMutableBufferPointer { ptr in
         ptr.baseAddress!.advanced(by: bounds.startIndex)
           .assign(from: ptr.baseAddress!.advanced(by: regionToMove.startIndex),
                   count: regionToMove.count)
       }
-      for (i, key) in _dense._keys[regionToMove].enumerated() {
+      for (i, key) in _dense.keys[regionToMove].enumerated() {
         _sparse[key] = bounds.startIndex + i
       }
     }
-    _dense._keys.removeLast(bounds.count)
-    _dense._values.removeLast(bounds.count)
+    _dense.keys.removeLast(bounds.count)
+    _dense.values.removeLast(bounds.count)
   }
 
   /// Removes the specified subrange of elements from the collection.
@@ -103,7 +103,7 @@ extension SparseSet {
   public mutating func removeSubrange<R: RangeExpression>(
     _ bounds: R
   ) where R.Bound == Int {
-    removeSubrange(bounds.relative(to: _dense._keys))
+    removeSubrange(bounds.relative(to: _dense.keys))
   }
 
   /// Removes the last element of a non-empty sparse set.
@@ -127,8 +127,8 @@ extension SparseSet {
   public mutating func removeLast(_ n: Int) {
     precondition(n >= 0, "Can't remove a negative number of elements")
     precondition(n <= count, "Can't remove more elements than there are in the collection")
-    _dense._keys.removeLast(n)
-    _dense._values.removeLast(n)
+    _dense.keys.removeLast(n)
+    _dense.values.removeLast(n)
     _checkInvariants()
   }
 
@@ -180,7 +180,7 @@ extension SparseSet {
   ) rethrows {
     guard !isEmpty else { return }
     for i in (0 ..< count).reversed() {
-      let element = (key: _dense._keys[i], value: _dense._values[i])
+      let element = (key: _dense.keys[i], value: _dense.values[i])
       if try shouldBeRemoved(element) {
         _remove(at: i)
       }

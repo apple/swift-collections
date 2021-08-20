@@ -49,8 +49,8 @@ extension SparseSet {
   ) rethrows -> Int {
     _ensureUnique()
 
-    var low = _dense._keys.startIndex
-    var high = _dense._keys.endIndex
+    var low = _dense.keys.startIndex
+    var high = _dense.keys.endIndex
 
     while true {
       // Invariants at this point:
@@ -61,7 +61,7 @@ extension SparseSet {
       // Find next element from `lo` that may not be in the right place.
       while true {
         if low == high { return low }
-        if try belongsInSecondPartition((_dense._keys[low], _dense._values[low])) { break }
+        if try belongsInSecondPartition((_dense.keys[low], _dense.values[low])) { break }
         low += 1
       }
 
@@ -69,7 +69,7 @@ extension SparseSet {
       while true {
         high -= 1
         if low == high { return low }
-        if try !belongsInSecondPartition((_dense._keys[high], _dense._values[high])) { break }
+        if try !belongsInSecondPartition((_dense.keys[high], _dense.values[high])) { break }
       }
 
       // Swap the two elements.
@@ -126,10 +126,10 @@ extension SparseSet {
     let temp = try self.sorted(by: areInIncreasingOrder)
     precondition(temp.count == self.count)
     temp.withUnsafeBufferPointer { source in
-      _dense._keys = ContiguousArray(source.lazy.map { $0.key })
-      _dense._values = ContiguousArray(source.lazy.map { $0.value })
+      _dense.keys = ContiguousArray(source.lazy.map { $0.key })
+      _dense.values = ContiguousArray(source.lazy.map { $0.value })
     }
-    _sparse.reindex(keys: _dense._keys)
+    _sparse.reindex(keys: _dense.keys)
   }
 }
 
@@ -185,8 +185,8 @@ extension SparseSet {
   ) {
     guard count > 1 else { return }
     _ensureUnique()
-    var keys = _dense._keys
-    var values = _dense._values
+    var keys = _dense.keys
+    var values = _dense.values
     self = [:]
     var amount = keys.count
     var current = 0
@@ -208,8 +208,8 @@ extension SparseSet {
   @inlinable
   public mutating func reverse() {
     _ensureUnique()
-    _dense._keys.reverse()
-    _dense._values.reverse()
-    _sparse.reindex(keys: _dense._keys)
+    _dense.keys.reverse()
+    _dense.values.reverse()
+    _sparse.reindex(keys: _dense.keys)
   }
 }

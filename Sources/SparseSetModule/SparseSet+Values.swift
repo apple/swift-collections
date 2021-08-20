@@ -31,7 +31,7 @@ extension SparseSet.Values {
     @inlinable
     @inline(__always)
     public var elements: Array<Value> {
-        Array(_base._dense._values)
+        Array(_base._dense.values)
     }
 }
 
@@ -60,7 +60,7 @@ extension SparseSet.Values {
     public func withUnsafeBufferPointer<R>(
         _ body: (UnsafeBufferPointer<Element>) throws -> R
     ) rethrows -> R {
-        try _base._dense._values.withUnsafeBufferPointer(body)
+        try _base._dense.values.withUnsafeBufferPointer(body)
     }
 
     /// Calls the given closure with a pointer to the collection's mutable
@@ -88,7 +88,7 @@ extension SparseSet.Values {
     public mutating func withUnsafeMutableBufferPointer<R>(
         _ body: (inout UnsafeMutableBufferPointer<Element>) throws -> R
     ) rethrows -> R {
-        try _base._dense._values.withUnsafeMutableBufferPointer(body)
+        try _base._dense.values.withUnsafeMutableBufferPointer(body)
     }
 }
 
@@ -231,7 +231,7 @@ extension SparseSet.Values: RandomAccessCollection {
     offsetBy distance: Int,
     limitedBy limit: Int
   ) -> Int? {
-    _base._dense._values.index(i, offsetBy: distance, limitedBy: limit)
+    _base._dense.values.index(i, offsetBy: distance, limitedBy: limit)
   }
 
   /// Returns the distance between two indices.
@@ -265,7 +265,7 @@ extension SparseSet.Values: RandomAccessCollection {
   public func withContiguousStorageIfAvailable<R>(
     _ body: (UnsafeBufferPointer<Value>) throws -> R
   ) rethrows -> R? {
-    try _base._dense._values.withUnsafeBufferPointer(body)
+    try _base._dense.values.withUnsafeBufferPointer(body)
   }
 }
 
@@ -281,10 +281,10 @@ extension SparseSet.Values: MutableCollection {
   @inline(__always)
   public subscript(position: Int) -> Value {
     get {
-      _base._dense._values[position]
+      _base._dense.values[position]
     }
     _modify {
-      yield &_base._dense._values[position]
+      yield &_base._dense.values[position]
     }
   }
 
@@ -304,7 +304,7 @@ extension SparseSet.Values: MutableCollection {
   @inlinable
   @inline(__always)
   public mutating func swapAt(_ i: Int, _ j: Int) {
-    _base._dense._values.swapAt(i, j)
+    _base._dense.values.swapAt(i, j)
   }
 
   /// Reorders the elements of the collection such that all the elements that
@@ -333,7 +333,7 @@ extension SparseSet.Values: MutableCollection {
   public mutating func partition(
     by belongsInSecondPartition: (Value) throws -> Bool
   ) rethrows -> Int {
-    try _base._dense._values.partition(by: belongsInSecondPartition)
+    try _base._dense.values.partition(by: belongsInSecondPartition)
   }
 
   /// Call `body(b)`, where `b` is an unsafe buffer pointer to the collection's
@@ -358,7 +358,7 @@ extension SparseSet.Values: MutableCollection {
   public mutating func withContiguousMutableStorageIfAvailable<R>(
     _ body: (inout UnsafeMutableBufferPointer<Element>) throws -> R
   ) rethrows -> R? {
-    try _base._dense._values.withUnsafeMutableBufferPointer(body)
+    try _base._dense.values.withUnsafeMutableBufferPointer(body)
   }
 }
 

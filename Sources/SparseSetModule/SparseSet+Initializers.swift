@@ -12,11 +12,11 @@
 extension SparseSet {
   @inlinable
   public init(minimumCapacity: Int, universeSize: Int? = nil) {
-    self._dense = DenseStorage(minimumCapacity: minimumCapacity)
-    let sparse = SparseStorage(
+    self._dense = _DenseStorage(minimumCapacity: minimumCapacity)
+    let sparse = _SparseStorage(
       withCapacity: universeSize ?? minimumCapacity,
       keys: EmptyCollection<Key>())
-    self.__sparseBuffer = sparse._buffer
+    self.__sparseBuffer = sparse.buffer
   }
 
   @inlinable
@@ -115,15 +115,15 @@ extension SparseSet {
     let values = ContiguousArray(values)
     precondition(keys.count == values.count,
                  "Mismatching element counts between keys and values")
-    self._dense = DenseStorage(_keys: keys, _values: values)
+    self._dense = _DenseStorage(keys: keys, values: values)
     let universeSize: Int = keys.max().map { Int($0) + 1 } ?? 0
-    var sparse = SparseStorage(withCapacity: universeSize)
+    var sparse = _SparseStorage(withCapacity: universeSize)
     for (i, key) in keys.enumerated() {
       let existingIndex = sparse[key]
       precondition(existingIndex < 0 || existingIndex >= i || keys[existingIndex] != key, "Duplicate key: '\(key)'")
       sparse[key] = i
     }
-    __sparseBuffer = sparse._buffer
+    __sparseBuffer = sparse.buffer
     _checkInvariants()
   }
 }
@@ -261,9 +261,9 @@ extension SparseSet {
   ) where Keys.Element == Key, Values.Element == Value {
     let keys = ContiguousArray(keys)
     let values = ContiguousArray(values)
-    self._dense = DenseStorage(_keys: keys, _values: values)
-    let sparse = SparseStorage(keys: keys)
-    __sparseBuffer = sparse._buffer
+    self._dense = _DenseStorage(keys: keys, values: values)
+    let sparse = _SparseStorage(keys: keys)
+    __sparseBuffer = sparse.buffer
     _checkInvariants()
   }
 

@@ -23,8 +23,8 @@ final class SparseSetTests: CollectionTestCase {
 
   func test_init_minimumCapacity_universeSize() {
     let s = SparseSet<Int, Int>(minimumCapacity: 1_000, universeSize: 10_000)
-    expectGreaterThanOrEqual(s._dense._keys.capacity, 1_000)
-    expectGreaterThanOrEqual(s._dense._values.capacity, 1_000)
+    expectGreaterThanOrEqual(s._dense.keys.capacity, 1_000)
+    expectGreaterThanOrEqual(s._dense.values.capacity, 1_000)
     expectEqual(s._sparse.capacity, 10_000)
   }
 

@@ -11,67 +11,67 @@
 
 extension SparseSet {
   @usableFromInline
-  internal struct DenseStorage {
+  internal struct _DenseStorage {
     @usableFromInline
-    internal var _keys: ContiguousArray<Key>
+    internal var keys: ContiguousArray<Key>
 
     @usableFromInline
-    internal var _values: ContiguousArray<Value>
+    internal var values: ContiguousArray<Value>
 
     @usableFromInline
-    internal init(_keys: ContiguousArray<Key>, _values: ContiguousArray<Value>) {
-      self._keys = _keys
-      self._values = _values
+    internal init(keys: ContiguousArray<Key>, values: ContiguousArray<Value>) {
+      self.keys = keys
+      self.values = values
     }
   }
 }
 
-extension SparseSet.DenseStorage {
+extension SparseSet._DenseStorage {
   @usableFromInline
   internal init() {
-    self._keys = []
-    self._values = []
+    self.keys = []
+    self.values = []
   }
 
   @usableFromInline
   internal init(minimumCapacity: Int) {
     var keys: ContiguousArray<Key> = []
     keys.reserveCapacity(minimumCapacity)
-    self._keys = keys
+    self.keys = keys
     var values: ContiguousArray<Value> = []
     values.reserveCapacity(minimumCapacity)
-    self._values = values
+    self.values = values
   }
 }
 
-extension SparseSet.DenseStorage {
+extension SparseSet._DenseStorage {
   @inlinable
   @inline(__always)
-  public var isEmpty: Bool { _keys.isEmpty }
+  public var isEmpty: Bool { keys.isEmpty }
 
   @inlinable
   @inline(__always)
-  public var count: Int { _keys.count }
+  public var count: Int { keys.count }
 }
 
-extension SparseSet.DenseStorage {
+extension SparseSet._DenseStorage {
   @inlinable
   internal mutating func removeAll(keepingCapacity: Bool) {
-    _keys.removeAll(keepingCapacity: keepingCapacity)
-    _values.removeAll(keepingCapacity: keepingCapacity)
+    keys.removeAll(keepingCapacity: keepingCapacity)
+    values.removeAll(keepingCapacity: keepingCapacity)
   }
 }
 
-extension SparseSet.DenseStorage {
+extension SparseSet._DenseStorage {
   @inlinable
   internal mutating func append(value: Value, key: Key) {
-    _keys.append(key)
-    _values.append(value)
+    keys.append(key)
+    values.append(value)
   }
 
   @inlinable
   @discardableResult
   internal mutating func removeLast() -> (key: Key, value: Value) {
-    return (key: _keys.removeLast(), value: _values.removeLast())
+    return (key: keys.removeLast(), value: values.removeLast())
   }
 }
