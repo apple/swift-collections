@@ -32,13 +32,13 @@ public struct SparseSet<Key, Value> where Key: FixedWidthInteger, Key.Stride == 
 
 extension SparseSet {
   /// A read-only collection view for the keys contained in this sparse set, as
-  /// a `ContiguousArray`.
+  /// an `Array`.
   ///
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var keys: ContiguousArray<Key> {
-    _dense._keys
+  public var keys: Array<Key> {
+    Array(_dense._keys)
   }
 
   /// A mutable collection view containing the values in this sparse set.

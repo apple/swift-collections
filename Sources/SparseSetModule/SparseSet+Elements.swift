@@ -49,8 +49,8 @@ extension SparseSet.Elements {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var keys: ContiguousArray<Key> {
-    _base._dense._keys
+  public var keys: Array<Key> {
+    Array(_base._dense._keys)
   }
 
   /// A mutable collection view containing the values in this collection.

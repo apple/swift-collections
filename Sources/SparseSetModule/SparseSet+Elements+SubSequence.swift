@@ -36,7 +36,7 @@ extension SparseSet.Elements.SubSequence {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var keys: ContiguousArray<Key>.SubSequence {
+  public var keys: Array<Key>.SubSequence {
     _base.keys[_bounds]
   }
 
