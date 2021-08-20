@@ -10,13 +10,13 @@
 //===----------------------------------------------------------------------===//
 extension BitSet {
   
-  public func contains(_ indexValue: Int) -> Bool {
+  public func contains(_ member: Int) -> Bool {
     
-    precondition(indexValue >= 0, "Input must be a positive number")
-    if (indexValue >= storage.count) {
+    precondition(member >= 0, "Input must be a positive number")
+    if (member >= storage.count) {
       return false
     }
-    return storage[indexValue]
+    return storage[member]
   }
   
 }
