@@ -18,7 +18,7 @@ extension Benchmark {
       title: "SortedDictionary<Int, Int> init(keysWithValues:)",
       input: [Int].self
     ) { input in
-      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let keysAndValues = input.map { (key: $0, value: 2 * $0) }
 
       return { timer in
         blackHole(SortedDictionary(keysWithValues: keysAndValues))
@@ -35,6 +35,20 @@ extension Benchmark {
         blackHole(SortedDictionary(sortedKeysWithValues: keysAndValues))
       }
     }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> sort, then init(sortedKeysWithValues:)",
+      input: [Int].self
+    ) { input in
+      return { timer in
+        var keysAndValues = input.map { (key: $0, value: 2 * $0) }
+
+        timer.measure {
+          keysAndValues.sort(by: { $0.key < $1.key })
+          blackHole(SortedDictionary(sortedKeysWithValues: keysAndValues))
+        }
+      }
+    }
 
     self.add(
       title: "SortedDictionary<Int, Int> sequential iteration",
@@ -46,6 +60,38 @@ extension Benchmark {
       return { timer in
         for item in d {
           blackHole(item)
+        }
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> index-based iteration",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let d = SortedDictionary(keysWithValues: keysAndValues)
+      
+      return { timer in
+        var i = d.startIndex
+        while i != d.endIndex {
+          blackHole(d[i])
+          d.formIndex(after: &i)
+        }
+      }
+    }
+    
+    self.add(
+      title: "SortedDictionary<Int, Int> offset-based iteration",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.lazy.map { (key: $0, value: 2 * $0) }
+      let d = SortedDictionary(keysWithValues: keysAndValues)
+      
+      return { timer in
+        for offset in 0..<keysAndValues.count {
+          var i = d.endIndex
+          d.formIndex(&i, offsetBy: offset - d.count)
+          blackHole(d[i])
         }
       }
     }

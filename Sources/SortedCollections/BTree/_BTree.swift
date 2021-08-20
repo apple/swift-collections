@@ -19,28 +19,28 @@
 @usableFromInline
 internal struct _BTree<Key: Comparable, Value> {
   
-  /// Internal node size in bytes for B-Tree
-  @inlinable
-  @inline(__always)
-  internal static var defaultInternalSize: Int { 128 }
-  
   /// Recommended node size of a given B-Tree
   @inlinable
   @inline(__always)
   internal static var defaultInternalCapacity: Int {
-    Swift.min(16, _BTree.defaultInternalSize / MemoryLayout<Key>.stride)
+    #if DEBUG
+    return 4
+    #else
+    let capacityInBytes = 128
+    return Swift.min(16, capacityInBytes / MemoryLayout<Key>.stride)
+    #endif
   }
-  
-  /// Leaf node capacity for B-Tree
-  @inlinable
-  @inline(__always)
-  internal static var defaultLeafSize: Int { 2000 }
   
   /// Recommended node size of a given B-Tree
   @inlinable
   @inline(__always)
   internal static var defaultLeafCapacity: Int {
-    Swift.min(16, _BTree.defaultLeafSize / MemoryLayout<Key>.stride)
+    #if DEBUG
+    return 5
+    #else
+    let capacityInBytes = 2000
+    return Swift.min(16, capacityInBytes / MemoryLayout<Key>.stride)
+    #endif
   }
   
   /// The element type of the collection.

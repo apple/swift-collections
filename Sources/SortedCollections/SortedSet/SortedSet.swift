@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// An sorted collection of unique elements.
+/// A collection which maintains unique members in ascending sorted order.
 public struct SortedSet<Element: Comparable> {
   @usableFromInline
   internal typealias _Tree = _BTree<Element, ()>

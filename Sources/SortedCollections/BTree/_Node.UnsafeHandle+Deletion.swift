@@ -155,7 +155,7 @@ extension _Node.UnsafeHandle {
     
     self.subtreeCount -= 1
     
-    self.balance(atSlot: self.childCount - 1)
+    self.balance(atSlot: 0)
     return poppedElement
   }
   

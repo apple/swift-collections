@@ -235,7 +235,11 @@ extension _Node.UnsafeHandle {
     get {
       assert(0 <= slot && slot < self.elementCount,
              "Node element subscript out of bounds.")
-      return (key: self[keyAt: slot], value: self[valueAt: slot])
+      if _Node.hasValues {
+        return (key: self[keyAt: slot], value: self[valueAt: slot])
+      } else {
+        return (key: self[keyAt: slot], value: _Node.dummyValue)
+      }
     }
   }
   

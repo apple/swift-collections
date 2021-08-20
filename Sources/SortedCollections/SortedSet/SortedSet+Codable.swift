@@ -16,7 +16,7 @@ extension SortedSet: Encodable where Element: Encodable {
   @inlinable
   public func encode(to encoder: Encoder) throws {
     var container = encoder.unkeyedContainer()
-    for element in self {
+    try self.forEach { element in
       try container.encode(element)
     }
   }
@@ -32,17 +32,21 @@ extension SortedSet: Decodable where Element: Decodable {
   @inlinable
   public init(from decoder: Decoder) throws {
     var container = try decoder.unkeyedContainer()
-
-    self.init()
+    var builder = _Tree.Builder(deduplicating: true)
+    var previousElement: Element? = nil
+    
     while !container.isAtEnd {
       let element = try container.decode(Element.self)
-      let (inserted, _) = self.insert(element)
-      if !inserted {
+      guard previousElement == nil || previousElement! < element else {
         let context = DecodingError.Context(
           codingPath: container.codingPath,
-          debugDescription: "Duplicate key at offset \(container.currentIndex - 1)")
+          debugDescription: "Decoded elements out of order.")
         throw DecodingError.dataCorrupted(context)
       }
+      builder.append(element)
+      previousElement = element
     }
+    
+    self.init(_rootedAt: builder.finish())
   }
 }

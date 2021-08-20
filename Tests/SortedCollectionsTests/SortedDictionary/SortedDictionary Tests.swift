@@ -164,7 +164,7 @@ final class SortedDictionaryTests: CollectionTestCase {
     }
   }
   
-  func test_updateValue() {
+  func test_subscriptSet() {
     withEvery("count", in: [1, 2, 4, 8, 16, 32, 64, 512]) { count in
       var sortedDictionary: SortedDictionary<Int, Int> = [:]
       
@@ -175,6 +175,59 @@ final class SortedDictionaryTests: CollectionTestCase {
       
       for i in 0..<count {
         expectEqual(sortedDictionary[i], -i)
+      }
+    }
+  }
+  
+  func test_modifyValue_forKey_default_closure_update() {
+    withEvery("count", in: 0 ..< 30) { count in
+      withEvery("offset", in: 0 ..< count) { offset in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var (d, kvs) = tracker.sortedDictionary(keys: 0 ..< count)
+            let replacement = tracker.instance(for: -1)
+            let fallback = tracker.instance(for: -2)
+            withHiddenCopies(if: isShared, of: &d) { d in
+              let (key, expectedValue) = kvs[offset]
+              d.modifyValue(forKey: key, default: fallback) { value in
+                expectEqual(value, expectedValue)
+                value = replacement
+              }
+              kvs[offset].1 = replacement
+              withEvery("kv", in: kvs) { (k, v) in
+                let actualValue = d[k]
+                expectEqual(actualValue, v)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_modifyValue_forKey_default_closure_insert() {
+    withEvery("count", in: 0 ..< 30) { count in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          let keys = tracker.instances(for: 0 ..< count)
+          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          var d: SortedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+          let fallback = tracker.instance(for: -2)
+          withEvery("offset", in: 0 ..< count) { offset in
+            withHiddenCopies(if: isShared, of: &d) { d in
+              let key = keys[offset]
+              d.modifyValue(forKey: key, default: fallback) { value in
+                expectEqual(value, fallback)
+                value = values[offset]
+              }
+              expectEqual(d.count, offset + 1)
+              withEvery("i", in: 0 ... offset) { i in
+                let v = d[keys[i]]
+                expectEqual(v, values[i])
+              }
+            }
+          }
+        }
       }
     }
   }

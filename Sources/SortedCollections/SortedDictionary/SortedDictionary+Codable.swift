@@ -30,7 +30,7 @@ extension SortedDictionary: Encodable where Key: Codable, Value: Codable {
   public func encode(to encoder: Encoder) throws {
     // Encode contents as an array of alternating key-value pairs.
     var container = encoder.unkeyedContainer()
-    for (key, value) in self {
+    try self.forEach { (key, value) in
       try container.encode(key)
       try container.encode(value)
     }
@@ -42,8 +42,9 @@ extension SortedDictionary: Decodable where Key: Decodable, Value: Decodable {
   public init(from decoder: Decoder) throws {
     // We expect to be encoded as an array of alternating key-value pairs.
     var container = try decoder.unkeyedContainer()
+    var builder = _Tree.Builder(deduplicating: true)
+    var previousKey: Key? = nil
 
-    self.init()
     while !container.isAtEnd {
       let key = try container.decode(Key.self)
       
@@ -57,13 +58,18 @@ extension SortedDictionary: Decodable where Key: Decodable, Value: Decodable {
       }
       
       let value = try container.decode(Value.self)
-      let oldValue = self.updateValue(value, forKey: key)
-      if oldValue != nil {
+      
+      guard previousKey == nil || previousKey! < key else {
         let context = DecodingError.Context(
           codingPath: container.codingPath,
-          debugDescription: "Duplicate key at offset \(container.currentIndex - 1)")
+          debugDescription: "Decoded elements out of order.")
         throw DecodingError.dataCorrupted(context)
       }
+      
+      builder.append((key, value))
+      previousKey = key
     }
+    
+    self.init(_rootedAt: builder.finish())
   }
 }
