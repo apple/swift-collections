@@ -5,6 +5,9 @@
       location = "group:">
    </FileRef>
    <FileRef
+      location = "group:Benchmarks">
+   </FileRef>
+   <FileRef
       location = "group:../swift-collections-benchmark">
    </FileRef>
 </Workspace>
