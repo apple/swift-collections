@@ -31,7 +31,7 @@ extension _BTree {
   
   /// Removes the first element of a tree, if it exists.
   ///
-  /// - Returns: The moved first element of the tree.
+  /// - Returns: The moved last element of the tree.
   @inlinable
   @discardableResult
   internal mutating func popLast() -> Element? {

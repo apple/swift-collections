@@ -12,21 +12,10 @@
 extension _BTree {
   /// A mutable cursor to an element of the B-Tree represented as a path.
   ///
-  /// There are two variants of a B-Tree cursor, a 'concrete' cursor which points at a specific element which
-  /// already exists in the tree, and a 'non-concrete' cursor which points to a specific slot, representing an
-  /// element which does not exist within the tree. It is therefore an invalid operation to operate on a
-  /// non-concrete cursor's element (as it may be out-of-bounds). However, you can convert a
-  /// non-concrete cursor to a concrete cursor using the
-  /// ``_BTree.UnsafeCursor.makeConcrete()`` operation. Concrete cursor checks are no-ops in
-  /// non-debug builds.
-  ///
   /// Cursors consume the original tree on which they were created. It is undefined behavior to operate or
-  /// read a tree on which a cursor was created. While this is the case, the original tree must remain alive
-  /// for the entire lifetime of a cursor. Certain cursor operations, will yield a new tree root which can be
-  /// used to obtain a usable tree reference. It is invalid to use a cursor after such operations.
-  ///
-  /// If you wish to retrieve your tree and an operation yielding a new tree root has not been called yet, you
-  /// may use ``_BTree.UnsafeCursor.finish()``.
+  /// read a tree on which a cursor was created. A cursor strongly references the tree on which it was
+  /// operating on. Once operations with a cursor are finished, the tree can be restored using
+  /// `_BTree.UnsafeCursor.apply(to:)`.
   ///
   /// This is a heavier alternative to ``_BTree.Index``, however this allows mutable operations to be
   /// efficiently performed.
@@ -380,9 +369,7 @@ extension _BTree {
   /// the cursors lifetime.
   ///
   /// - Parameter key: The key to search for
-  /// - Returns: A `cursor` to the key or where the key should be inserted, and a `found`
-  ///     parameter indicating whether or not the key exists within the tree, iff `found` is true, the cursor
-  ///     is concrete.
+  /// - Returns: A cursor to the key or where the key should be inserted.
   /// - Complexity: O(`log n`)
   @inlinable
   internal mutating func takeCursor(at index: Index) -> UnsafeCursor {
@@ -441,8 +428,7 @@ extension _BTree {
   ///
   /// - Parameter key: The key to search for
   /// - Returns: A `cursor` to the key or where the key should be inserted, and a `found`
-  ///     parameter indicating whether or not the key exists within the tree, iff `found` is true, the cursor
-  ///     is concrete.
+  ///     parameter indicating whether or not the key exists within the tree.
   /// - Complexity: O(`log n`)
   @inlinable
   internal mutating func takeCursor(
