@@ -323,11 +323,11 @@ final class BitArrayTest: CollectionTestCase {
           }
           
           // test non-form
-          let resultBitArray = firstBitArray.bitwiseOr(with: secondBitArray)
+          let resultBitArray = firstBitArray.bitwiseOr(secondBitArray)
           expectEqual(Array(resultBitArray), expectedArray)
           
           //test form
-          firstBitArray.formBitwiseOr(with: secondBitArray)
+          firstBitArray.formBitwiseOr(secondBitArray)
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
         }
@@ -373,11 +373,11 @@ final class BitArrayTest: CollectionTestCase {
           }
           
           // test non-form
-          let resultBitArray = firstBitArray.bitwiseAnd(with: secondBitArray)
+          let resultBitArray = firstBitArray.bitwiseAnd(secondBitArray)
           expectEqual(Array(resultBitArray), expectedArray)
           
           //test form
-          firstBitArray.formBitwiseAnd(with: secondBitArray)
+          firstBitArray.formBitwiseAnd(secondBitArray)
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
         }
@@ -423,11 +423,11 @@ final class BitArrayTest: CollectionTestCase {
           }
           
           // test non-form
-          let resultBitArray = firstBitArray.bitwiseXor(with: secondBitArray)
+          let resultBitArray = firstBitArray.bitwiseXor(secondBitArray)
           expectEqual(Array(resultBitArray), expectedArray)
           
           //test form
-          firstBitArray.formBitwiseXor(with: secondBitArray)
+          firstBitArray.formBitwiseXor(secondBitArray)
           expectEqual(firstBitArray, resultBitArray)
           expectEqual(Array(firstBitArray), expectedArray)
         }

@@ -46,19 +46,19 @@ extension BitSet: Equatable {
     return returnVal
   }
   
-  public __consuming func union(_ other: BitSet) -> BitSet {
+  public func union(_ other: BitSet) -> BitSet {
     var newBitSet = self
     newBitSet.formUnion(other)
     return newBitSet
   }
   
-  public __consuming func intersection(_ other: BitSet) -> BitSet {
+  public func intersection(_ other: BitSet) -> BitSet {
     var newBitSet = self
     newBitSet.formIntersection(other)
     return newBitSet
   }
   
-  public __consuming func symmetricDifference(_ other: BitSet) -> BitSet {
+  public func symmetricDifference(_ other: BitSet) -> BitSet {
     var newBitSet = self
     newBitSet.formSymmetricDifference(other)
     return newBitSet

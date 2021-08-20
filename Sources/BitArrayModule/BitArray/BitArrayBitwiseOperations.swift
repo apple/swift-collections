@@ -12,30 +12,30 @@
 extension BitArray {
   
   
-  public mutating func formBitwiseOr(with: BitArray) {
+  public mutating func formBitwiseOr(_ other: BitArray) {
     
-    precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
+    precondition(self.storage.count == other.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
     
     for i in 0..<self.storage.endIndex {
-      self.storage[i] |= with.storage[i]
+      self.storage[i] |= other.storage[i]
     }
   }
   
-  public mutating func formBitwiseAnd(with: BitArray) {
+  public mutating func formBitwiseAnd(_ other: BitArray) {
     
-    precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
+    precondition(self.storage.count == other.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
     
     for i in 0..<self.storage.count {
-      self.storage[i] &= with.storage[i]
+      self.storage[i] &= other.storage[i]
     }
   }
   
-  public mutating func formBitwiseXor(with: BitArray) {
+  public mutating func formBitwiseXor(_ other: BitArray) {
     
-    precondition(self.storage.count == with.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
+    precondition(self.storage.count == other.storage.count, "Bitwise operations on BitArrays of different length is currently not supported")
     
     for i in 0..<self.storage.count {
-      self.storage[i] ^= with.storage[i]
+      self.storage[i] ^= other.storage[i]
     }
   }
   
@@ -61,21 +61,21 @@ extension BitArray {
     
   }
   
-  public func bitwiseOr(with: BitArray) -> BitArray{
+  public func bitwiseOr(_ other: BitArray) -> BitArray{
     var copy = self
-    copy.formBitwiseOr(with: with)
+    copy.formBitwiseOr(other)
     return copy
   }
   
-  public func bitwiseAnd(with: BitArray) -> BitArray{
+  public func bitwiseAnd(_ other: BitArray) -> BitArray{
     var copy = self
-    copy.formBitwiseAnd(with: with)
+    copy.formBitwiseAnd(other)
     return copy
   }
   
-  public func bitwiseXor(with: BitArray) -> BitArray{
+  public func bitwiseXor(_ other: BitArray) -> BitArray{
     var copy = self
-    copy.formBitwiseXor(with: with)
+    copy.formBitwiseXor(other)
     return copy
   }
   
@@ -92,19 +92,19 @@ extension BitArray {
   
   public static func | (lhs: BitArray, rhs: BitArray) -> BitArray {
     var copy = lhs
-    copy.formBitwiseOr(with: rhs)
+    copy.formBitwiseOr(rhs)
     return copy
   }
   
   public static func & (lhs: BitArray, rhs: BitArray) -> BitArray {
     var copy = lhs
-    copy.formBitwiseAnd(with: rhs)
+    copy.formBitwiseAnd(rhs)
     return copy
   }
   
   public static func ^ (lhs: BitArray, rhs: BitArray) -> BitArray {
     var copy = lhs
-    copy.formBitwiseXor(with: rhs)
+    copy.formBitwiseXor(rhs)
     return copy
   }
   
@@ -115,15 +115,15 @@ extension BitArray {
   }
   
   public static func |= (lhs: inout BitArray, rhs: BitArray) {
-    lhs.formBitwiseOr(with: rhs)
+    lhs.formBitwiseOr(rhs)
   }
   
   public static func &= (lhs: inout BitArray, rhs: BitArray) {
-    lhs.formBitwiseAnd(with: rhs)
+    lhs.formBitwiseAnd(rhs)
   }
   
   public static func ^= (lhs: inout BitArray, rhs: BitArray) {
-    lhs.formBitwiseXor(with: rhs)
+    lhs.formBitwiseXor(rhs)
   }
   
 }

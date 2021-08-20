@@ -8,7 +8,7 @@
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
-public struct BitArray: ExpressibleByArrayLiteral {
+public struct BitArray: ExpressibleByArrayLiteral, Codable {
   typealias WORD = UInt  // created for experimental purposes to make it easier to test different UInts without having to change much of the code
   
   var storage : [WORD] = []
@@ -59,3 +59,5 @@ public struct BitArray: ExpressibleByArrayLiteral {
   }
   
 }
+
+

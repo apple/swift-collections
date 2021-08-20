@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-public struct BitSet: ExpressibleByArrayLiteral {
+public struct BitSet: ExpressibleByArrayLiteral, Codable {
   
   var storage = BitArray()
   
