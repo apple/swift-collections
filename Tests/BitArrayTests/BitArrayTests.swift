@@ -299,14 +299,14 @@ final class BitArrayTest: CollectionTestCase {
   func testFirstTrueIndex() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       let bitArray = BitArray(layout)
-      expectEqual(bitArray.firstTrueIndex(), layout.firstIndex(where: {$0 == true}))
+      expectEqual(bitArray.firstTrue(), layout.firstIndex(where: {$0 == true}))
     }
   }
   
   func testLastTrueIndex() {
     withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
       let bitArray = BitArray(layout)
-      expectEqual(bitArray.lastTrueIndex(), layout.lastIndex(where: {$0 == true}))
+      expectEqual(bitArray.lastTrue(), layout.lastIndex(where: {$0 == true}))
     }
   }
   

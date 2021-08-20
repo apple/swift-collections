@@ -18,7 +18,7 @@ extension BitSet: Collection, BidirectionalCollection {
   // leaving it like this might be correct if firstTrueIndex was fast enough -- BENCHMARKS
   
   private func _getStartIndex() -> Index {
-    guard let index = storage.firstTrueIndex() else {
+    guard let index = storage.firstTrue() else {
       return Index(bitArrayIndex: storage.endIndex)
     }
     

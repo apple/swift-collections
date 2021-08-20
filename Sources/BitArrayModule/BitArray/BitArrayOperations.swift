@@ -63,24 +63,24 @@ extension BitArray {
     return self[endIndex-1]
   }
   
-  public mutating func removeLast(_ rangeSize: Int){
+  public mutating func removeLast(_ k: Int){
     precondition(self.count != 0, "The bit array is empty. There are no items to remove.")
-    precondition(rangeSize < endIndex, "The input amount is invalidly larger than the array itself.")
-    precondition(rangeSize > 0, "Input amount must be a positive number.")
+    precondition(k < endIndex, "The input amount is invalidly larger than the array itself.")
+    precondition(k > 0, "Input amount must be a positive number.")
     let elementsInLastByte: Int = (excess == 0) ? WORD.bitWidth : Int(excess)
-    if (rangeSize < elementsInLastByte) {
-      for _ in 1...rangeSize {
+    if (k < elementsInLastByte) {
+      for _ in 1...k {
         removeLast()
       }
       return
-    } else if (rangeSize == elementsInLastByte) {
+    } else if (k == elementsInLastByte) {
       storage.removeLast()
       excess = 0
       return
     }
     storage.removeLast()
     excess = 0
-    let range = rangeSize - Int(elementsInLastByte)
+    let range = k - Int(elementsInLastByte)
     let removeableBytes: Int = range/(WORD.bitWidth)
     storage.removeLast(removeableBytes)
     
@@ -152,7 +152,7 @@ extension BitArray {
   }
   
 
-  public func firstTrueIndex() -> Int? {
+  public func firstTrue() -> Int? {
     var counter = -1
     for item in storage {
       counter += 1
@@ -163,7 +163,7 @@ extension BitArray {
     return nil
   }
   
-  public func lastTrueIndex() -> Int? {
+  public func lastTrue() -> Int? {
     var counter = storage.count
     for item in storage.reversed() {
       counter -= 1
