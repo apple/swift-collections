@@ -31,6 +31,7 @@ public struct BitArray: ExpressibleByArrayLiteral, Codable {
   }
   
   public init(repeating repeatedValue: Bool, count: Int) {
+    precondition(count >= 0, "Count must be greater than or equal to 0")
     if (count == 0) {
       return
     }

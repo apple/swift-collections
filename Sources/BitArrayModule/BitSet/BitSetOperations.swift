@@ -13,9 +13,11 @@ extension BitSet {
   public func contains(_ member: Int) -> Bool {
     
     precondition(member >= 0, "Input must be a positive number")
-    if (member >= storage.count) {
+    if (member >= storage.count) {"[0, 3, 4, 6]"
       return false
     }
+    var set = Set<Int>()
+    set.union(set)
     return storage[member]
   }
   

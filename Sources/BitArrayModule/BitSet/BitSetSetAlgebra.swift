@@ -26,7 +26,7 @@ extension BitSet: Equatable {
     
   }
   
-  public mutating func forceInsert(_ newMember: Int) {
+  internal mutating func _forceInsert(_ newMember: Int) {
     precondition(newMember >= 0, "Inserts can only be executed with a positive number. Bit sets do not hold negative values.")
     while (storage.count-1 < newMember) {
       storage.storage.append(0)
@@ -77,7 +77,7 @@ extension BitSet: Equatable {
       }
       for a in self.storage.count..<other.storage.count {
         if(other.storage[a]) {
-          self.forceInsert(a)
+          self._forceInsert(a)
         }
       }
     } else {

@@ -69,6 +69,7 @@ extension Benchmark {
     }
     
     //NOTE TO SELF: do compare inserts
+    /*
     self.add(
       title: "BitSet forceInsert",
       input: [Int].self
@@ -76,12 +77,38 @@ extension Benchmark {
       var set = BitSet(input[0 ..< input.count / 2])
       let insertVal = Int.random(in: 0...input.count)
       return { timer in
-        blackHole(set.forceInsert(insertVal))
+        blackHole(set._forceInsert(insertVal))
+      }
+    }*/
+    
+    self.add(
+      title: "BitSet Union Operation",
+      input: [Int].self
+    ) { input in
+      let set = BitSet(input[0 ..< input.count / 2])
+      let secondSet = BitSet(input[input.count / 4 ..< 3*(input.count / 4)])
+      set.contains(5)
+      secondSet.contains(5)
+      return { timer in
+        blackHole(set.union(secondSet))
       }
     }
     
     self.add(
-      title: "BitSet bitwise Union",
+      title: "Set<Int> Union Operation",
+      input: [Int].self
+    ) { input in
+      let set = Set(input[0 ..< input.count / 2])
+      let secondSet = Set(input[input.count / 4 ..< 3*(input.count / 4)])
+      set.contains(5)
+      secondSet.contains(5)
+      return { timer in
+        blackHole(set.union(secondSet))
+      }
+    }
+    
+    self.add(
+      title: "BitSet Intersection Operation",
       input: [Int].self
     ) { input in
       let set = BitSet(input[0 ..< input.count / 2])
@@ -94,7 +121,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "non BitSet bitwise Union",
+      title: "Set<Int> Intersection Operation",
       input: [Int].self
     ) { input in
       let set = Set(input[0 ..< input.count / 2])
@@ -105,6 +132,69 @@ extension Benchmark {
         blackHole(set.intersection(secondSet))
       }
     }
+    
+    self.add(
+      title: "BitSet Symmetric Difference",
+      input: [Int].self
+    ) { input in
+      let set = BitSet(input[0 ..< input.count / 2])
+      let secondSet = BitSet(input[input.count / 4 ..< 3*(input.count / 4)])
+      set.contains(5)
+      secondSet.contains(5)
+      return { timer in
+        blackHole(set.symmetricDifference(secondSet))
+      }
+    }
+    
+    self.add(
+      title: "Set<Int> Symmetric Difference",
+      input: [Int].self
+    ) { input in
+      let set = Set(input[0 ..< input.count / 2])
+      let secondSet = Set(input[input.count / 4 ..< 3*(input.count / 4)])
+      set.contains(5)
+      secondSet.contains(5)
+      return { timer in
+        blackHole(set.symmetricDifference(secondSet))
+      }
+    }
+    
+    self.add(
+      title: "BitSet startIndex",
+      input: [Int].self
+    ) { input in
+      var set: BitSet
+      if (input.count == 0) {
+        set = []
+      } else {
+        let amount = Int.random(in: 0...(input.count/2))
+        if (amount == 0) {set = []}
+        set = BitSet(input[0 ..< amount])
+      }
+      set.contains(5)
+      return { timer in
+        blackHole(set.startIndex)
+      }
+    }
+    
+    self.add(
+      title: "Set<Int> startIndex",
+      input: [Int].self
+    ) { input in
+      var set: Set<Int>
+      if (input.count == 0) {
+        set = []
+      } else {
+        let amount = Int.random(in: 0...(input.count/2))
+        if (amount == 0) {set = []}
+        set = Set(input[0 ..< amount])
+      }
+      return { timer in
+        blackHole(set.startIndex)
+      }
+    }
+    
+
     
   }
 }
