@@ -122,15 +122,15 @@ extension BitArray {
     return self[0]
   }
   
-  public mutating func removeFirst(_ rangeSize: Int) {
+  public mutating func removeFirst(_ k: Int) {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove")
-    precondition(rangeSize < endIndex, "The input rangeSize is invalidly larger than the bit array itself.")
-    precondition(rangeSize > 0, "The input rangeSize must be a positive number.")
-    let removeableBytes: Int = rangeSize/(WORD.bitWidth)
-    let newCount = self.count-rangeSize
+    precondition(k < endIndex, "The input rangeSize is invalidly larger than the bit array itself.")
+    precondition(k > 0, "The input rangeSize must be a positive number.")
+    let removeableBytes: Int = k/(WORD.bitWidth)
+    let newCount = self.count-k
     storage.removeFirst(removeableBytes)
     
-    let remainingElemCount = Int(rangeSize%(WORD.bitWidth))
+    let remainingElemCount = Int(k%(WORD.bitWidth))
     
     if (remainingElemCount != 0) {
       for i in 0..<remainingElemCount {
