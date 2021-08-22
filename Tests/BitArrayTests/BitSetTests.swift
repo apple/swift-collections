@@ -224,7 +224,7 @@ final class BitSetTest: CollectionTestCase {
             intArrayCopy.append(value)
             expectFalse(bitSet.contains(value))
           }
-          bitSet.forceInsert(value)
+          bitSet._forceInsert(value)
           expectEqual(Array(bitSet), intArrayCopy.sorted())
           expectTrue(bitSet.contains(value))
         }
@@ -245,7 +245,7 @@ final class BitSetTest: CollectionTestCase {
         layout.append(value)
         expectFalse(bitSet.contains(value))
       }
-      bitSet.forceInsert(value)
+      bitSet._forceInsert(value)
       expectEqual(Array(bitSet), layout.sorted())
       expectTrue(bitSet.contains(value))
       expectFalse(bitSet.isEmpty)
