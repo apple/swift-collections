@@ -10,8 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension OrderedDictionary {
-  /// Accesses the element at the specified index. This can be used to
-  /// perform in-place mutations on dictionary values.
+  /// Accesses the element at the specified index.
   ///
   /// - Parameter offset: The offset of the element to access, measured from
   ///   the start of the collection. `offset` must be greater than or equal to
