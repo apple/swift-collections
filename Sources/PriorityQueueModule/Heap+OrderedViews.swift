@@ -12,6 +12,7 @@
 extension Heap {
   /// A view of a `Heap`'s elements, as a `Sequence` from the smallest to
   /// largest element.
+  @frozen
   public struct AscendingView: Sequence, IteratorProtocol {
     @usableFromInline
     internal var _base: Heap
@@ -30,6 +31,7 @@ extension Heap {
 
   /// A view of a `Heap`'s elements, as a `Sequence` from the largest to
   /// smallest element.
+  @frozen
   public struct DescendingView: Sequence, IteratorProtocol {
     @usableFromInline
     internal var _base: Heap
