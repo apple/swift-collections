@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Deque {
+  @frozen
   @usableFromInline
   struct _Storage {
     @usableFromInline

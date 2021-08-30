@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_fixed_layout
 @usableFromInline
 internal class _DequeBuffer<Element>: ManagedBuffer<_DequeBufferHeader, Element> {
   @inlinable
