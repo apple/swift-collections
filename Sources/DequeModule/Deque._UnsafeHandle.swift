@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Deque {
+  @frozen
   @usableFromInline
   internal struct _UnsafeHandle {
     @usableFromInline
