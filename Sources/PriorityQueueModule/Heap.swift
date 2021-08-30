@@ -23,6 +23,7 @@
 /// "Min-Max Heaps and Generalized Priority Queues."
 /// *Communications of the ACM*, vol. 29, no. 10, Oct. 1986., pp. 996-1000,
 /// doi:[10.1145/6617.6621](https://doi.org/10.1145/6617.6621)
+@frozen
 public struct Heap<Element: Comparable> {
   @usableFromInline
   internal var _storage: ContiguousArray<Element>
