@@ -26,8 +26,8 @@ extension OrderedSet {
 
     @inlinable
     @inline(__always)
-    internal init(base: OrderedSet, bounds: Range<Int>) {
-      self._base = base
+    internal init(_base: OrderedSet, bounds: Range<Int>) {
+      self._base = _base
       self._bounds = bounds
     }
   }
@@ -289,7 +289,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
   @inline(__always)
   public subscript(bounds: Range<Int>) -> SubSequence {
     _failEarlyRangeCheck(bounds, bounds: startIndex ..< endIndex)
-    return SubSequence(base: _base, bounds: bounds)
+    return SubSequence(_base: _base, bounds: bounds)
   }
 
   /// A Boolean value indicating whether the collection is empty.

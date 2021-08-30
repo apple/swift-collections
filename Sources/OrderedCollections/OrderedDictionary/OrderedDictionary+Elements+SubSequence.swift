@@ -96,10 +96,10 @@ extension OrderedDictionary.Elements.SubSequence: Sequence {
 
     @inlinable
     @inline(__always)
-    internal init(_ base: OrderedDictionary.Elements.SubSequence) {
-      self._base = base._base
-      self._end = base._bounds.upperBound
-      self._index = base._bounds.lowerBound
+    internal init(_base: OrderedDictionary.Elements.SubSequence) {
+      self._base = _base._base
+      self._end = _base._bounds.upperBound
+      self._index = _base._bounds.lowerBound
     }
 
     /// Advances to the next element and returns it, or `nil` if no next
@@ -118,7 +118,7 @@ extension OrderedDictionary.Elements.SubSequence: Sequence {
   @inlinable
   @inline(__always)
   public func makeIterator() -> Iterator {
-    Iterator(self)
+    Iterator(_base: self)
   }
 }
 
