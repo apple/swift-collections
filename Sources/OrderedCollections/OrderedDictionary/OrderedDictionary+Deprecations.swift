@@ -17,30 +17,29 @@ extension OrderedDictionary {
   ///   `0` and less than `count`.
   ///
   /// - Complexity: O(1)
-  @available(*, deprecated, // since 0.0.6
-              message: "Please use `elements[offset]`")
+  @available(*, unavailable, // deprecated in 0.0.6, obsoleted in 1.0.0
+    message: "Please use `elements[offset]`")
   @inlinable
   @inline(__always)
   public subscript(offset offset: Int) -> Element {
-    (_keys[offset], _values[offset])
+    fatalError()
   }
 }
 
 extension OrderedDictionary {
-  // Deprecated since 0.0.6
-  @available(*, deprecated, // since 0.0.6
-              renamed: "updateValue(forKey:default:with:)")
+  @available(*, unavailable, // deprecated in 0.0.6, obsoleted in 1.0.0
+    renamed: "updateValue(forKey:default:with:)")
   @inlinable
   public mutating func modifyValue<R>(
     forKey key: Key,
     default defaultValue: @autoclosure () -> Value,
     _ body: (inout Value) throws -> R
   ) rethrows -> R {
-    try self.updateValue(forKey: key, default: defaultValue(), with: body)
+    fatalError()
   }
 
-  @available(*, deprecated, // since 0.0.6
-              renamed: "updateValue(forKey:insertingDefault:at:with:)")
+  @available(*, unavailable, // deprecated in 0.0.6, obsoleted in 1.0.0
+    renamed: "updateValue(forKey:insertingDefault:at:with:)")
   @inlinable
   public mutating func modifyValue<R>(
     forKey key: Key,
@@ -48,10 +47,6 @@ extension OrderedDictionary {
     at index: Int,
     _ body: (inout Value) throws -> R
   ) rethrows -> R {
-    try self.updateValue(
-      forKey: key,
-      insertingDefault: defaultValue(),
-      at: index,
-      with: body)
+    fatalError()
   }
 }

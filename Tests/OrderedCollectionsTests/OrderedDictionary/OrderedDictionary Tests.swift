@@ -213,19 +213,6 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  @available(*, deprecated)
-  func test_subscript_offset() {
-    withEvery("count", in: 0 ..< 30) { count in
-      withLifetimeTracking { tracker in
-        let (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
-        withEvery("offset", in: 0 ..< count) { offset in
-          let item = d[offset: offset]
-          expectEqual(item, reference[offset])
-        }
-      }
-    }
-  }
-
   func test_subscript_getter() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
