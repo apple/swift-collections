@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import CollectionsTestSupport
+import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
 
 final class MutableCollectiontests: CollectionTestCase {

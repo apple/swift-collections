@@ -11,7 +11,7 @@
 
 #if DEBUG // These unit tests need access to OrderedSet internals
 import XCTest
-import CollectionsTestSupport
+import _CollectionsTestSupport
 @_spi(Testing) @testable import OrderedCollections
 
 class HashTableTests: CollectionTestCase {

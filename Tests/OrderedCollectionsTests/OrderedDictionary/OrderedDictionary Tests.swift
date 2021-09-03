@@ -12,7 +12,7 @@
 import XCTest
 @_spi(Testing) import OrderedCollections
 
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {
