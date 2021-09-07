@@ -86,6 +86,7 @@ extension OrderedSet._UnstableInternals {
       }
     }
     base._table = new
+    base._checkInvariants()
   }
 
   @_spi(Testing)
@@ -95,6 +96,7 @@ extension OrderedSet._UnstableInternals {
     persistent: Bool
   ) {
     base._reserveCapacity(minimumCapacity, persistent: persistent)
+    base._checkInvariants()
   }
 }
 
@@ -121,5 +123,6 @@ extension OrderedSet {
       scale < _HashTable.minimumScale ? nil : table)
     precondition(self._scale == scale)
     precondition(self._bias == bias)
+    _checkInvariants()
   }
 }
