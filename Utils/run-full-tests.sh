@@ -13,6 +13,9 @@
 # Build & test this package in as many configurations as possible.
 # It is a good idea to run this script before each release to uncover
 # potential problems not covered by the usual CI runs.
+#
+# Note that this is not a fully automated solution -- some manual editing will
+# sometimes be required when e.g. testing the package on older Xcode releases.
 
 set -eu
 
