@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if DEBUG
 import XCTest
 @testable import PriorityQueueModule
 
@@ -419,3 +420,4 @@ final class HeapTests: XCTestCase {
     }
   }
 }
+#endif
