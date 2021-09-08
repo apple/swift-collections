@@ -11,7 +11,7 @@
 
 import XCTest
 @_spi(Testing) import OrderedCollections
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {

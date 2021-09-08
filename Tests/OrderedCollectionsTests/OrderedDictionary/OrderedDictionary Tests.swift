@@ -12,7 +12,7 @@
 import XCTest
 @_spi(Testing) import OrderedCollections
 
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -209,19 +209,6 @@ class OrderedDictionaryTests: CollectionTestCase {
         }
         expectNil(d.index(forKey: tracker.instance(for: -1)))
         expectNil(d.index(forKey: tracker.instance(for: count)))
-      }
-    }
-  }
-
-  @available(*, deprecated)
-  func test_subscript_offset() {
-    withEvery("count", in: 0 ..< 30) { count in
-      withLifetimeTracking { tracker in
-        let (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
-        withEvery("offset", in: 0 ..< count) { offset in
-          let item = d[offset: offset]
-          expectEqual(item, reference[offset])
-        }
       }
     }
   }

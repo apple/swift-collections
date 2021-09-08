@@ -68,7 +68,7 @@ let package = Package(
 
     // Testing support module
     .target(
-      name: "CollectionsTestSupport",
+      name: "_CollectionsTestSupport",
       dependencies: [],
       swiftSettings: settings,
       linkerSettings: [
@@ -79,7 +79,7 @@ let package = Package(
     ),
     .testTarget(
       name: "CollectionsTestSupportTests",
-      dependencies: ["CollectionsTestSupport"],
+      dependencies: ["_CollectionsTestSupport"],
       swiftSettings: settings),
 
     // Deque<Element>
@@ -89,7 +89,7 @@ let package = Package(
       swiftSettings: settings),
     .testTarget(
       name: "DequeTests",
-      dependencies: ["DequeModule", "CollectionsTestSupport"],
+      dependencies: ["DequeModule", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
@@ -99,7 +99,7 @@ let package = Package(
       swiftSettings: settings),
     .testTarget(
       name: "OrderedCollectionsTests",
-      dependencies: ["OrderedCollections", "CollectionsTestSupport"],
+      dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
   ]
 )
