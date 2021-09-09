@@ -250,7 +250,7 @@ public struct OrderedSet<Element> where Element: Hashable
     _ table: _HashTable? = nil
   ) {
     self.__storage = table?._storage
-    self._elements = ContiguousArray(_uniqueElements)
+    self._elements = _uniqueElements
   }
 
   @inlinable
