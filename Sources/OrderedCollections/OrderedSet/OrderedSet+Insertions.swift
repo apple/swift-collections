@@ -10,17 +10,18 @@
 //===----------------------------------------------------------------------===//
 
 extension OrderedSet {
-  /// Append a new member to the end of the set, without verifying
-  /// that the set doesn't already contain it.
+  /// Append a new item to the end of the set, assuming it's not already
+  /// a member.
   ///
-  /// This operation performs no hashing operations unless it needs to
-  /// reallocate the hash table.
+  /// In optimized builds, this does not check for duplicates.
   ///
+  /// - Parameter item: The item to add to the set. The item must no be already
+  ///    a member.
   /// - Complexity: Expected to be O(1) on average if `Element`
   ///    implements high-quality hashing.
   @inlinable
   internal mutating func _appendNew(_ item: Element) {
-    assert(!contains(item))
+    assert(!contains(item), "Duplicate item")
     _elements.append(item)
     guard _elements.count <= _capacity else {
       _regenerateHashTable()

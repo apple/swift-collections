@@ -300,6 +300,7 @@ extension OrderedDictionary {
       _keys._appendNew(key)
       _values.append(value)
     }
+    _checkInvariants()
   }
 
   /// Creates a new dictionary from the key-value pairs in the given sequence,
