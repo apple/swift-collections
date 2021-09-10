@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CollectionsTestSupport
+import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
 
 internal struct DequeLayout: CustomStringConvertible {

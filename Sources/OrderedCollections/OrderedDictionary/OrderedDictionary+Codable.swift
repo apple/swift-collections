@@ -82,5 +82,6 @@ extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
       _keys._appendNew(key, in: bucket)
       _values.append(value)
     }
+    _checkInvariants()
   }
 }

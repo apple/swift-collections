@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import CollectionsTestSupport
+import _CollectionsTestSupport
 @_spi(Testing) import OrderedCollections
 
 struct OrderedSetLayout: Hashable, CustomStringConvertible {

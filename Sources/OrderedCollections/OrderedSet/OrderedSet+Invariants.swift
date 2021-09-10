@@ -13,7 +13,7 @@ extension OrderedSet {
   #if COLLECTIONS_INTERNAL_CHECKS
   @inlinable
   @inline(never) @_effects(releasenone)
-  internal func _checkInvariants() {
+  public func _checkInvariants() {
     if _table == nil {
       precondition(_elements.count <= _HashTable.maximumUnhashedCount,
                    "Oversized set without a hash table")
