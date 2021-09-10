@@ -12,7 +12,7 @@
 import XCTest
 @_spi(Testing) import OrderedCollections
 
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class OrderedDictionaryValueTests: CollectionTestCase {
   func test_values_getter() {

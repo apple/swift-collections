@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 final class DequeTests: CollectionTestCase {
   func testMinimalSequence() {

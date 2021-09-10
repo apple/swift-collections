@@ -350,7 +350,7 @@ extension OrderedDictionary {
     }
     set {
       // We have a separate `set` in addition to `_modify` in hopes of getting
-      // rid of `_modify`'s swapAt dance in the usua case where the calle just
+      // rid of `_modify`'s swapAt dance in the usual case where the caller just
       // wants to assign a new value.
       let (index, bucket) = _keys._find(key)
       switch (index, newValue) {
@@ -365,6 +365,7 @@ extension OrderedDictionary {
       case (nil, nil): // Noop
         break
       }
+      _checkInvariants()
     }
     _modify {
       let (index, bucket) = _keys._find(key)
@@ -394,6 +395,7 @@ extension OrderedDictionary {
         case (nil, nil): // Noop
           break
         }
+        _checkInvariants()
       }
 
       yield &value
