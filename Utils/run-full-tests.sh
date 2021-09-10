@@ -27,7 +27,7 @@ bold_off="$(tput sgr0)"
 
 spm_flags=""
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
     swift="xcrun swift"
 else
     swift="swift"
