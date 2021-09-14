@@ -131,7 +131,6 @@ extension BitArray {
     storage.removeFirst(removeableBytes)
     
     let remainingElemCount = Int(k%(WORD.bitWidth))
-    
     if (remainingElemCount != 0) {
       for i in 0..<remainingElemCount {
         self[i] = false

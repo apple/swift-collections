@@ -442,6 +442,15 @@ final class BitSetTest: CollectionTestCase {
       }
     }
   }
+    func testc() {
+        let a: BitSet = []
+        var b = a
+        b.insert(100)
+        b.remove(100)
+        //expectEqual(a,b)
+        let bitArray: BitArray = [ false, true]
+        print(bitArray.firstIndex(of: true))
+    }
 }
 
 extension BitSet {
