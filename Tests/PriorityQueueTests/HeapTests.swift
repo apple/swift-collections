@@ -406,18 +406,21 @@ final class HeapTests: XCTestCase {
 
   func test_sequenceConformance() {
     let heap = Heap<Int>((0...50).shuffled())
+    let sorted = heap.ascending, reverseSorted = heap.descending
 
     var increment = 0
-    for val in heap.ascending {
+    for val in sorted {
       XCTAssertEqual(increment, val)
       increment += 1
     }
+    XCTAssertLessThanOrEqual(sorted.underestimatedCount, 51)
 
     increment = 50
-    for val in heap.descending {
+    for val in reverseSorted {
       XCTAssertEqual(increment, val)
       increment -= 1
     }
+    XCTAssertLessThanOrEqual(reverseSorted.underestimatedCount, 51)
   }
 }
 #endif

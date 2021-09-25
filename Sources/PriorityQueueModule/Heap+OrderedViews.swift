@@ -27,6 +27,11 @@ extension Heap {
     public mutating func next() -> Element? {
       return _base.popMin()
     }
+
+    @inlinable @inline(__always)
+    public var underestimatedCount: Int {
+      _base.count
+    }
   }
 
   /// A view of a `Heap`'s elements, as a `Sequence` from the largest to
@@ -45,6 +50,11 @@ extension Heap {
     @inlinable
     public mutating func next() -> Element? {
       return _base.popMax()
+    }
+
+    @inlinable @inline(__always)
+    public var underestimatedCount: Int {
+      _base.count
     }
   }
 
