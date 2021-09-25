@@ -52,6 +52,15 @@ extension Heap {
     _storage.count
   }
 
+  /// A view of a `Heap`'s underlying storage of elements.
+  ///
+  /// The correspondence between an element's storage position and its order
+  /// ranking is private to `Heap`, and may change between revisions.
+  ///
+  /// - Warning: If `Element` is a reference type, do not mutate elements such
+  ///   that their relative order rankings change.
+  public typealias UnorderedView = [Element]
+
   /// A read-only view into the underlying array.
   ///
   /// Note: The elements aren't _arbitrarily_ ordered (it is, after all, a
@@ -60,7 +69,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public var unordered: [Element] {
+  public var unordered: UnorderedView {
     Array(_storage)
   }
 
