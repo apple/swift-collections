@@ -404,6 +404,19 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap.popMax(), 1)
   }
 
+  func test_containment() {
+    let cast: Heap = ["Vivien", "Marlon", "Kim", "Karl"]
+    XCTAssertTrue(cast.contains("Karl"))
+    XCTAssertTrue(cast.contains("Kim"))
+    XCTAssertTrue(cast.contains("Marlon"))
+    XCTAssertTrue(cast.contains("Vivien"))
+
+    // Misses; before, within, and after the contained elements
+    XCTAssertFalse(cast.contains("James"))
+    XCTAssertFalse(cast.contains("Timmie"))
+    XCTAssertFalse(cast.contains("Zoe"))
+  }
+
   func test_sequenceConformance() {
     let heap = Heap<Int>((0...50).shuffled())
     let sorted = heap.ascending, reverseSorted = heap.descending
@@ -414,6 +427,8 @@ final class HeapTests: XCTestCase {
       increment += 1
     }
     XCTAssertLessThanOrEqual(sorted.underestimatedCount, 51)
+    XCTAssertTrue(sorted.contains(25))
+    XCTAssertFalse(sorted.contains(-3))
 
     increment = 50
     for val in reverseSorted {
@@ -421,6 +436,8 @@ final class HeapTests: XCTestCase {
       increment -= 1
     }
     XCTAssertLessThanOrEqual(reverseSorted.underestimatedCount, 51)
+    XCTAssertTrue(reverseSorted.contains(25))
+    XCTAssertFalse(reverseSorted.contains(60))
   }
 }
 #endif

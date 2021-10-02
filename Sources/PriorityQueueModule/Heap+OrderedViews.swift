@@ -32,6 +32,11 @@ extension Heap {
     public var underestimatedCount: Int {
       _base.count
     }
+
+    @inlinable @inline(__always)
+    public func _customContainsEquatableElement(_ element: Element) -> Bool? {
+      return _base.contains(element)
+    }
   }
 
   /// A view of a `Heap`'s elements, as a `Sequence` from the largest to
@@ -55,6 +60,11 @@ extension Heap {
     @inlinable @inline(__always)
     public var underestimatedCount: Int {
       _base.count
+    }
+
+    @inlinable @inline(__always)
+    public func _customContainsEquatableElement(_ element: Element) -> Bool? {
+      return _base.contains(element)
     }
   }
 

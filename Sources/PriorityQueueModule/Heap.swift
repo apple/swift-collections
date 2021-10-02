@@ -221,3 +221,30 @@ extension Heap {
     }
   }
 }
+
+// MARK: -
+
+extension Heap {
+  /// Returns a Boolean value indicating whether the heap contains the given
+  /// element.
+  ///
+  /// This example checks to see whether a favorite actor is in a heap storing a
+  /// movie's cast.
+  ///
+  ///     let cast: Heap = ["Vivien", "Marlon", "Kim", "Karl"]
+  ///     print(cast.contains("Marlon"))
+  ///     // Prints "true"
+  ///     print(cast.contains("James"))
+  ///     // Prints "false"
+  ///
+  /// - Parameter element: The element to find in the heap.
+  /// - Returns: `true` if the element was found in the heap; otherwise,
+  ///   `false`.
+  ///
+  /// - Complexity: O(log `count`).
+  @inlinable
+  public func contains(_ element: Element) -> Bool {
+    // Obviously, change this to take advantage of the heap properties.
+    return _storage.contains(element)
+  }
+}
