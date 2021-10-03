@@ -244,7 +244,75 @@ extension Heap {
   /// - Complexity: O(log `count`).
   @inlinable
   public func contains(_ element: Element) -> Bool {
-    // Obviously, change this to take advantage of the heap properties.
-    return _storage.contains(element)
+    #if true
+    // Pre-allocate an array for all potential searched-for nodes.  (Only
+    // appending will happen, no removals nor random inserts, to minimize cache
+    // invalidation.)
+    var nodes = [_Node]()
+    nodes.reserveCapacity(count)
+    if !isEmpty {
+      nodes.append(.root)
+    }
+
+    // Do a breadth-first search.
+    var i = nodes.startIndex, areMinLevels = true
+    while i < nodes.endIndex {
+      let limit = nodes.endIndex
+      let outsideCheck: (Element, Element) -> Bool = areMinLevels ? (<) : (>)
+      while i < limit {
+        // Equality and out-of-bounds checks
+        let node = nodes[i], nodeElement = _storage[node.offset]
+        guard element != nodeElement else { return true }
+        defer { nodes.formIndex(after: &i) }
+        guard !outsideCheck(element, nodeElement) else { continue }
+
+        // Target may be within node's subtree.  Queue up its direct child nodes
+        // to check.  (We're appending as we go, but `Array` always uses
+        // `0..<count` as indices, so index values are never invalidated)
+        if case let leftNode = node.leftChild(), leftNode.offset < count {
+          nodes.append(leftNode)
+        }
+        if case let rightNode = node.rightChild(), rightNode.offset < count {
+          nodes.append(rightNode)
+        }
+      }
+      areMinLevels.toggle()
+    }
+    return false
+    #else
+    // Do a depth-based search.
+    guard !isEmpty else { return false }
+
+    func _contains(
+      _ target: Element, within node: _Node, isMinLevel: Bool
+    ) -> Bool {
+      // Direct check
+      let nodeElement = _storage[node.offset]
+      if target == nodeElement {
+        return true
+      }
+
+      // Out-of-bounds check
+      if (isMinLevel ? (<) : (>))(target, nodeElement) {
+        return false
+      }
+
+      // Left sub-tree
+      let leftNode = node.leftChild()
+      guard leftNode.offset < count else { return false }  // Also no right tree
+
+      if _contains(target, within: leftNode, isMinLevel: !isMinLevel) {
+        return true  // short circuit
+      }
+
+      // Right sub-tree
+      let rightNode = node.rightChild()
+      guard rightNode.offset < count else { return false }
+
+      return _contains(target, within: rightNode, isMinLevel: !isMinLevel)
+    }
+
+    return _contains(element, within: .root, isMinLevel: true)
+    #endif
   }
 }

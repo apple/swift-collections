@@ -415,6 +415,10 @@ final class HeapTests: XCTestCase {
     XCTAssertFalse(cast.contains("James"))
     XCTAssertFalse(cast.contains("Timmie"))
     XCTAssertFalse(cast.contains("Zoe"))
+
+    // Check empty container
+    let empty = Heap<Double>()
+    XCTAssertFalse(empty.contains(5.0))
   }
 
   func test_sequenceConformance() {
