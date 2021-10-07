@@ -497,4 +497,17 @@ final class BitArrayTest: CollectionTestCase {
       expectEqual(Array(bitArray.reversed()), layout.reversed())
     }
   }
+  
+  func testEqualAfterModification() {
+    var bitArray = [true, false, true]
+    let bitArrayCopy = bitArray
+    XCTAssertEqual(bitArray, bitArrayCopy)
+    bitArray.removeLast()
+    bitArray.append(true)
+    XCTAssertEqual(bitArray, bitArrayCopy)
+      
+    bitArray.append(true)
+    bitArray.remove(at: bitArray.endIndex-1)
+    XCTAssertEqual(bitArray, bitArrayCopy)
+  }
 }
