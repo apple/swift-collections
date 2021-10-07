@@ -62,7 +62,17 @@ extension BitArray {
     }
     return self[endIndex-1]
   }
-  
+  /// Removes the last several values in the end of the BitArray
+  ///
+  /// The following example removes the last 3 elements of a BitArray
+  ///     var bitArray: BitArray = [true, false, true, false, false, true]
+  ///     bitArray.removeLast(3)
+  ///     print(Array(bitArray))
+  ///     Prints "[true, false, true]"
+  ///
+  /// - Parameters:
+  ///   - k: an integer that represents the number of values desired to be removed from the beginning.
+  ///`k` must be a positive number, and less than the `count` value of self
   public mutating func removeLast(_ k: Int){
     precondition(self.count != 0, "The bit array is empty. There are no items to remove.")
     precondition(k < endIndex, "The input amount is invalidly larger than the array itself.")
@@ -105,7 +115,7 @@ extension BitArray {
     storage = []
     excess = 0
   }
-  
+
   @discardableResult
   public mutating func removeFirst() -> Bool {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove")
@@ -121,7 +131,18 @@ extension BitArray {
     }
     return self[0]
   }
-  
+  /// Removes the first several values in the beginning of the BitArray
+  /// self must not be empty
+  ///
+  /// The following example removes the first 3 elements of a BitArray
+  ///     var bitArray: BitArray = [true, false, true, false, true]
+  ///     bitArray.removeFirst(3)
+  ///     print(Array(bitArray))
+  ///     Prints "[false, true]"
+  ///
+  /// - Parameters:
+  ///   - k: an integer that represents the number of values desired to be removed from the beginning.
+  ///`k` must be a positive number, and less than the `count` value of `self`
   public mutating func removeFirst(_ k: Int) {
     precondition(self.count != 0, "The bit array is empty. There are no items to remove")
     precondition(k < endIndex, "The input rangeSize is invalidly larger than the bit array itself.")
@@ -149,8 +170,22 @@ extension BitArray {
       }
     }
   }
-  
-
+  /// Returns the index of the first true value in the BitArray.
+  /// If there are no true values in the BitArray, the function returns nil
+  ///
+  ///     Examples:
+  ///     let bitArray: BitArray = [false, true, false, true]
+  ///     let firstTrue: Int? = bitArray.firstTrue()
+  ///     print(firstTrue)
+  ///     Prints "2"
+  ///
+  ///     let allFalseBitArray: BitArray = [false, false, false]
+  ///     let firstTrue: Int? = allFalseBitArray.firstTrue()
+  ///     print(firstTrue)
+  ///     Prints "nil"
+  ///
+  /// - Returns: An optional integer value of the index where the first true was found.
+  /// If there are no true values in the BitArray, the function returns `nil`
   public func firstTrue() -> Int? {
     var counter = -1
     for item in storage {
@@ -161,7 +196,22 @@ extension BitArray {
     }
     return nil
   }
-  
+  /// Returns the index of the last true value in the BitArray.
+  /// If there are no true values in the BitArray, the function returns nil
+  ///
+  ///     Examples:
+  ///     let bitArray: BitArray = [false, true, false, true]
+  ///     let lastTrue: Int? = bitArray.lastTrue()
+  ///     print(lastTrue)
+  ///     Prints "2"
+  ///
+  ///     let allFalseBitArray: BitArray = [false, false, false]
+  ///     let lastTrue: Int? = allFalseBitArray.lastTrue()
+  ///     print(lastTrue)
+  ///     Prints "nil"
+  ///
+  /// - Returns: An optional integer value of the index where the last true was found
+  /// If there are no true values in the BitArray, the function returns `nil`
   public func lastTrue() -> Int? {
     var counter = storage.count
     for item in storage.reversed() {
