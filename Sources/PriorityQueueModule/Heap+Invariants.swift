@@ -19,36 +19,16 @@ extension Heap {
   @inlinable
   @inline(never)
   internal func _checkInvariants() {
-    guard count > 1 else { return }
-    _checkInvariants(node: .root, min: nil, max: nil)
-  }
-
-  @inlinable
-  internal func _checkInvariants(node: _Node, min: Element?, max: Element?) {
-    let value = _storage[node.offset]
-    if let min = min {
-      precondition(value >= min,
-                   "Element \(value) at \(node) is less than min \(min)")
-    }
-    if let max = max {
-      precondition(value <= max,
-                   "Element \(value) at \(node) is greater than max \(max)")
-    }
-    let left = node.leftChild()
-    let right = node.rightChild()
-    if node.isMinLevel {
-      if left.offset < count {
-        _checkInvariants(node: left, min: value, max: max)
-      }
-      if right.offset < count {
-        _checkInvariants(node: right, min: value, max: max)
-      }
-    } else {
-      if left.offset < count {
-        _checkInvariants(node: left, min: min, max: value)
-      }
-      if right.offset < count {
-        _checkInvariants(node: right, min: min, max: value)
+    if let (value, node, boundary) = _someHeapViolation() {
+      switch boundary {
+      case .lessThan(let min):
+        preconditionFailure(
+          "Element \(value) at \(node) is less than min \(min)"
+        )
+      case .greaterThan(let max):
+        preconditionFailure(
+          "Element \(value) at \(node) is greater than max \(max)"
+        )
       }
     }
   }
@@ -57,4 +37,58 @@ extension Heap {
   @inline(__always)
   public func _checkInvariants() {}
   #endif  // COLLECTIONS_INTERNAL_CHECKS
+
+  /// Returns any violation of the min-max heap property.
+  @inlinable
+  internal func _someHeapViolation()
+  -> (value: Element, node: _Node, kind: _BoundaryViolation)? {
+    guard !_storage.isEmpty else { return nil }
+
+    /// Returns any violation of the min-max heap property within the sub-heap
+    /// whose root is at the given node for the given value bounds.
+    func _someSubHeapViolation(node: _Node, min: Element?, max: Element?)
+    -> (value: Element, node: _Node, kind: _BoundaryViolation)? {
+      // Check the sub-heap's root's bounds.
+      let value = _storage[node.offset]
+      if let min = min, value < min {
+        return (value, node, .lessThan(min: min))
+      }
+      if let max = max, value > max {
+        return (value, node, .greaterThan(max: max))
+      }
+
+      // Check the child sub-heaps.
+      var nextMin = min, nextMax = max
+      if node.isMinLevel {
+        nextMin = value
+      } else {
+        nextMax = value
+      }
+
+      if case let leftNode = node.leftChild(),
+         leftNode.offset < count,
+         let result = _someSubHeapViolation(node: leftNode, min: nextMin,
+                                            max: nextMax) {
+        return result
+      }
+      if case let rightNode = node.rightChild(),
+         rightNode.offset < count,
+         let result = _someSubHeapViolation(node: rightNode, min: nextMin,
+                                            max: nextMax) {
+        return result
+      }
+      return nil
+    }
+
+    return _someSubHeapViolation(node: .root, min: nil, max: nil)
+  }
+
+  /// The manner the min-max heap property is violated.
+  @usableFromInline
+  internal enum _BoundaryViolation {
+    /// An element had a value less than the supplied lower bound.
+    case lessThan(min: Element)
+    /// An element had a value greater than the supplied upper bound.
+    case greaterThan(max: Element)
+  }
 }
