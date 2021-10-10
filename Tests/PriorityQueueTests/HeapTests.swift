@@ -393,6 +393,33 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap.count, 20)
   }
 
+  func test_initializer_withChecking() {
+    XCTAssertNotNil(Heap(raw: EmptyCollection<Int>()))
+    XCTAssertNotNil(Heap(raw: CollectionOfOne("a")))
+    XCTAssertNotNil(Heap(raw: repeatElement(2.0, count: 15)))
+
+    // As these test non-identical multi-element sources, they may need to be
+    // updated whenever the internal storage format changes.
+
+    let twoElements = Heap(raw: [1, 2])
+    XCTAssertEqual(twoElements?.unordered, [1, 2])
+    XCTAssertNil(Heap(raw: [2, 1]))
+
+    let threeElements = Heap(raw: 1...3)
+    XCTAssertEqual(threeElements?.unordered, [1, 2, 3])
+
+    let otherThreeElements = Heap(raw: [1, 3, 2])
+    XCTAssertEqual(otherThreeElements?.unordered, [1, 3, 2])
+    XCTAssertNil(Heap(raw: [2, 1, 3]))
+    XCTAssertNil(Heap(raw: [2, 3, 1]))
+    XCTAssertNil(Heap(raw: [3, 1, 2]))
+    XCTAssertNil(Heap(raw: [3, 2, 1]))
+
+    // Errors past the first two layers.
+    XCTAssertNil(Heap(raw: [1, 2, 3, 0, 2, 3, 2]))  // 0 >= 1 is false
+    XCTAssertNil(Heap(raw: [1, 2, 3, 1, 4, 3, 1]))  // 4 <= 2 is false
+  }
+
   func test_initializer_fromArrayLiteral() {
     var heap: Heap = [1, 3, 5, 7, 9]
     XCTAssertEqual(heap.count, 5)
