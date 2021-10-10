@@ -53,6 +53,7 @@ let package = Package(
   products: [
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
+    .library(name: "MultiSets", targets: ["MultiSets"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
   ],
@@ -61,6 +62,7 @@ let package = Package(
       name: "Collections",
       dependencies: [
         "DequeModule",
+        "MultiSets",
         "OrderedCollections",
         "PriorityQueueModule",
       ],
@@ -92,6 +94,15 @@ let package = Package(
     .testTarget(
       name: "DequeTests",
       dependencies: ["DequeModule", "_CollectionsTestSupport"],
+      swiftSettings: settings),
+
+    // CountedSet<Element>
+    .target(
+      name: "MultiSets",
+      swiftSettings: settings),
+    .testTarget(
+      name: "MultiSetsTests",
+      dependencies: ["MultiSets", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>

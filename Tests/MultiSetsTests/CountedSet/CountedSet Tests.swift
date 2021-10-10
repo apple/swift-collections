@@ -9,7 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import MultiSets
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
+import XCTest
+@_spi(Testing) import MultiSets
+
+import _CollectionsTestSupport
+
+class CountedSetTests: CollectionTestCase {
+}
