@@ -22,6 +22,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
   option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
 endif()
 
+if(NOT CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  find_package(dispatch CONFIG QUIET)
+  find_package(Foundation CONFIG QUIET)
+endif()
+
 include(CTest)
 include(SwiftSupport)
 

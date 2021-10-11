@@ -16,6 +16,11 @@ add_library(PriorityQueueModule
   Heap+UnsafeHandle.swift)
 set_target_properties(PriorityQueueModule PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+if(Foundation_FOUND AND dispatch_FOUND)
+  target_link_libraries(PriorityQueueModule PUBLIC
+    $<$<NOT:$<PLATFORM_ID:Darwin>>:dispatch>
+    $<$<NOT:$<PLATFORM_ID:Darwin>>:Foundation>)
+endif()
 
 _install_target(PriorityQueueModule)
 set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS PriorityQueueModule)
