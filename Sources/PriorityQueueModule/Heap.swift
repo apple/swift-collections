@@ -205,6 +205,73 @@ extension Heap {
   public mutating func removeMax() -> Element {
     return popMax()!
   }
+
+  /// Changes the element with the lowest priority to the given value, then
+  /// redetermines which element in the heap has the lowest priority.
+  ///
+  /// - Precondition: `!isEmpty`.
+  ///
+  /// - Parameter replacement: The value overwriting the current lowest-priority
+  ///   element.
+  /// - Returns: The outgoing value of the overwritten element.
+  /// - Postcondition: When not equal, the multiplicity of the outgoing value
+  ///   will decrease by one, while the multiplicity of the incoming value will
+  ///   increase by one.  If the altered element now has a priority that is
+  ///   greater than any of the untargeted elements (if such exist), then
+  ///   `min()` will point to a different element.
+  ///
+  /// - Complexity: O(log `count`)
+  @inlinable @discardableResult
+  public mutating func replaceMin(with replacement: Element) -> Element {
+    guard !isEmpty else { preconditionFailure("No element to replace") }
+
+    var removed = replacement
+    _update { handle in
+      let minNode = _Node.root
+      handle.swapAt(minNode, with: &removed)
+      handle.trickleDownMin(minNode)
+    }
+    _checkInvariants()
+    return removed
+  }
+
+  /// Changes the element with the highest priority to the given value, then
+  /// redetermines which element in the heap has the highest priority.
+  ///
+  /// - Precondition: `!isEmpty`.
+  ///
+  /// - Parameter replacement: The value overwriting the current
+  ///   highest-priority element.
+  /// - Returns: The outgoing value of the overwritten element.
+  /// - Postcondition: When not equal, the multiplicity of the outgoing value
+  ///   will decrease by one, while the multiplicity of the incoming value will
+  ///   increase by one.  If the altered element now has a priority that is less
+  ///   than any of the untargeted elements (if such exist), then `max()` will
+  ///   point to a different element.
+  ///
+  /// - Complexity: O(log `count`)
+  @inlinable @discardableResult
+  public mutating func replaceMax(with replacement: Element) -> Element {
+    guard !isEmpty else { preconditionFailure("No element to replace") }
+
+    var removed = replacement
+    _update { handle in
+      switch handle.count {
+      case 1:
+        handle.swapAt(.root, with: &removed)
+      case 2:
+        handle.swapAt(.leftMax, with: &removed)
+        handle.bubbleUp(.leftMax)
+      default:
+        let maxNode = handle.maxValue(.leftMax, .rightMax)
+        handle.swapAt(maxNode, with: &removed)
+        handle.bubbleUp(maxNode)  // This must happen first
+        handle.trickleDownMax(maxNode)  // Either new element or dethroned min
+      }
+    }
+    _checkInvariants()
+    return removed
+  }
 }
 
 // MARK: -
