@@ -90,9 +90,12 @@ final class HeapTests: XCTestCase {
     heap.insert(contentsOf: sequence(first: 1, next: addTwo(_:)).prefix(20))
     XCTAssertEqual(heap.count, 40)
 
-    for (idx, i) in heap.ascending.enumerated() {
-      XCTAssertEqual(idx, i)
+    var i = 0
+    while let min = heap.popMin() {
+      XCTAssertEqual(min, i)
+      i += 1
     }
+    XCTAssertEqual(i, 40)
   }
 
   func test_min() {
@@ -402,22 +405,6 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap.popMax(), 5)
     XCTAssertEqual(heap.popMax(), 3)
     XCTAssertEqual(heap.popMax(), 1)
-  }
-
-  func test_sequenceConformance() {
-    let heap = Heap<Int>((0...50).shuffled())
-
-    var increment = 0
-    for val in heap.ascending {
-      XCTAssertEqual(increment, val)
-      increment += 1
-    }
-
-    increment = 50
-    for val in heap.descending {
-      XCTAssertEqual(increment, val)
-      increment -= 1
-    }
   }
 }
 #endif
