@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-@_spi(Testing) import MultiSets
+@testable import MultiSets
 
 import _CollectionsTestSupport
 
