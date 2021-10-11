@@ -10,7 +10,6 @@
 //===----------------------------------------------------------------------===//
 
 import Swift
-import Foundation
 
 extension Heap {
   #if COLLECTIONS_INTERNAL_CHECKS
