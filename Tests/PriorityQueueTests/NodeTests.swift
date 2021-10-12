@@ -11,7 +11,7 @@
 
 #if DEBUG // These unit tests need access to PriorityQueueModule internals
 import XCTest
-@_spi(Testing) @testable import PriorityQueueModule
+@testable import PriorityQueueModule
 
 class NodeTests: XCTestCase {
   func test_levelCalculation() {
