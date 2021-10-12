@@ -13,24 +13,28 @@ import Swift
 
 /// A double-ended priority queue built on top of `Heap`.
 public struct PriorityQueue<Value, Priority: Comparable> {
-  public typealias Element = (value: Value, priority: Priority)
+  public typealias Pair = (value: Value, priority: Priority)
 
-  public struct Pair: Comparable {
+  @usableFromInline
+  struct Element: Comparable {
     @usableFromInline let value: Value
     let priority: Priority
     let insertionCounter: UInt64
 
-    public init(value: Value, priority: Priority, insertionCounter: UInt64) {
+    @usableFromInline
+    init(value: Value, priority: Priority, insertionCounter: UInt64) {
       self.value = value
       self.priority = priority
       self.insertionCounter = insertionCounter
     }
 
-    public static func == (lhs: Self, rhs: Self) -> Bool {
+    @usableFromInline
+    static func == (lhs: Self, rhs: Self) -> Bool {
       lhs.priority == rhs.priority
     }
 
-    public static func < (lhs: Self, rhs: Self) -> Bool {
+    @usableFromInline
+    static func < (lhs: Self, rhs: Self) -> Bool {
       if lhs.priority < rhs.priority {
         return true
       } else if lhs.priority == rhs.priority {
@@ -42,7 +46,7 @@ public struct PriorityQueue<Value, Priority: Comparable> {
   }
 
   @usableFromInline
-  internal var _base: Heap<Pair>
+  internal var _base: Heap<Element>
 
   @usableFromInline
   internal var _insertionCounter: UInt64 = 0
@@ -78,7 +82,7 @@ public struct PriorityQueue<Value, Priority: Comparable> {
   public mutating func insert(_ value: Value, priority: Priority) {
     defer { _insertionCounter += 1 }
 
-    let pair = Pair(
+    let pair = Element(
       value: value,
       priority: priority,
       insertionCounter: _insertionCounter
@@ -147,12 +151,12 @@ extension PriorityQueue {
   ///
   /// - Complexity: O(n), where `n` is the length of `elements`.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Element {
+  public init<S: Sequence>(_ elements: S) where S.Element == Pair {
     _base = Heap(
       elements
         .enumerated()
         .map({
-          Pair(
+          Element(
             value: $0.element.value,
             priority: $0.element.priority,
             insertionCounter: UInt64($0.offset)

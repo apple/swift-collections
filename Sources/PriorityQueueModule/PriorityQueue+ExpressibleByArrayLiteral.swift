@@ -23,7 +23,7 @@ extension PriorityQueue: ExpressibleByArrayLiteral {
   /// - Parameter elements: A variadic list of tuples containing the element
   ///                       and its priority (in that order).
   @inlinable
-  public init(arrayLiteral elements: Element...) {
+  public init(arrayLiteral elements: Pair...) {
     self.init(elements)
   }
 }

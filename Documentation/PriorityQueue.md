@@ -18,11 +18,11 @@ This implementation is built on top of the [`Heap`](Documentation/Heap.md), whic
 
 ## Implementation Details
 
-We define a small `Pair` struct to hold the `Value`, `Priority`, and insertion order of an element. This is the type that is stored in the underlying `Heap`.
+We define a small `_Element` struct to hold the `Value`, `Priority`, and insertion order of an element. This is the type that is stored in the underlying `Heap`.
 
 ```swift
 public struct PriorityQueue<Value, Priority: Comparable> {
-  public struct Pair: Comparable {
+  public struct _Element: Comparable {
     let value: Value
     let priority: Priority
     let insertionCounter: UInt64
@@ -43,11 +43,11 @@ public struct PriorityQueue<Value, Priority: Comparable> {
   }
 
   ...
-  internal var _base: Heap<Pair>
+  internal var _base: Heap<_Element>
   ...
 ```
 
-All of the querying and removal functions wrap those on `Heap` and simply return the `Value` in the `Pair`.
+All of the querying and removal functions wrap those on `Heap` and simply return the `Value` in the `_Element`.
 
 ### Insertion
 
