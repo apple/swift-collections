@@ -28,23 +28,6 @@ public struct Heap<Element: Comparable> {
   @usableFromInline
   internal var _storage: ContiguousArray<Element>
 
-  /// Creates a heap from the given sequence, whether said sequence conforms to
-  /// an implicit data structure for a min-max heap or not.
-  ///
-  /// - Warning: This initializer is meant only as a shared implementation for
-  ///   the public initializers.  Those initializers need to either ensure the
-  ///   input is already valid, condition the input to be valid afterwards, or
-  ///   flag an error if the input is invalid.  No other code should call this
-  ///   initializer.
-  ///
-  /// - Precondition: `s` is finite.
-  ///
-  /// - Complexity: O(*n*), where *n* is the length of `s`.
-  @inlinable @inline(__always)
-  internal init<S: Sequence>(unchecked s: S) where S.Element == Element {
-    _storage = .init(s)
-  }
-
   /// Creates a heap from the given sequence, assuming said sequence is already
   /// an implicit data structure for a binary min-max heap, failing otherwise.
   ///
@@ -58,7 +41,7 @@ public struct Heap<Element: Comparable> {
   /// - Complexity: O(*n*), where *n* is the length of `storage`.
   @inlinable
   public init?<S: Sequence>(raw storage: S) where S.Element == Element {
-    self.init(unchecked: storage)
+    _storage = .init(storage)
     if _someHeapViolation() != nil {
       return nil
     }
