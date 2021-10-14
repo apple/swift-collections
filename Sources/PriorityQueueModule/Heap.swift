@@ -29,22 +29,20 @@ public struct Heap<Element: Comparable> {
   internal var _storage: ContiguousArray<Element>
 
   /// Creates a heap from the given sequence, assuming said sequence is already
-  /// an implicit data structure for a binary min-max heap, failing otherwise.
+  /// an implicit data structure for a binary min-max heap.
   ///
-  /// - Precondition: `storage` is finite.
+  /// - Precondition: `storage` is finite, and it already matches the implicit
+  ///   data structure for a binary min-max heap.
   ///
   /// - Parameter storage: The elements of the heap.
-  /// - Postcondition: If the initializer doesn't fail:
-  ///   `unordered.elementsEqual(s)`, where *s* is a sequence with the same
-  ///   elements as pre-call `storage`.
+  /// - Postcondition: `unordered.elementsEqual(s)`, where *s* is a sequence
+  ///   with the same elements as pre-call `storage`.
   ///
   /// - Complexity: O(*n*), where *n* is the length of `storage`.
   @_alwaysEmitIntoClient
-  internal init?<S: Sequence>(_raw storage: S) where S.Element == Element {
+  internal init<S: Sequence>(_raw storage: S) where S.Element == Element {
     _storage = .init(storage)
-    if _someHeapViolation() != nil {
-      return nil
-    }
+    _checkInvariants()
   }
 
   /// Creates an empty heap.

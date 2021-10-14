@@ -326,14 +326,14 @@ final class HeapTests: XCTestCase {
 
     // Check the finer details.  As these peek into the stored structure, they
     // may need to be updated whenever the internal format changes.
-    var heap2 = Heap(_raw: [1])!
+    var heap2 = Heap(_raw: [1])
     XCTAssertEqual(heap2.max(), 1)
     XCTAssertEqual(Array(heap2.unordered), [1])
     XCTAssertEqual(heap2.replaceMax(with: 2), 1)
     XCTAssertEqual(heap2.max(), 2)
     XCTAssertEqual(Array(heap2.unordered), [2])
 
-    heap2 = Heap(_raw: [1, 2])!
+    heap2 = Heap(_raw: [1, 2])
     XCTAssertEqual(heap2.max(), 2)
     XCTAssertEqual(Array(heap2.unordered), [1, 2])
     XCTAssertEqual(heap2.replaceMax(with: 3), 2)
@@ -343,7 +343,7 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap2.max(), 1)
     XCTAssertEqual(Array(heap2.unordered), [0, 1])
 
-    heap2 = Heap(_raw: [5, 20, 31, 16, 8, 7, 18])!
+    heap2 = Heap(_raw: [5, 20, 31, 16, 8, 7, 18])
     XCTAssertEqual(heap2.max(), 31)
     XCTAssertEqual(Array(heap2.unordered), [5, 20, 31, 16, 8, 7, 18])
     XCTAssertEqual(heap2.replaceMax(with: 29), 31)
