@@ -204,7 +204,7 @@ extension Heap {
   /// - Complexity: O(log `count`)
   @inlinable @discardableResult
   public mutating func replaceMin(with replacement: Element) -> Element {
-    guard !isEmpty else { preconditionFailure("No element to replace") }
+    precondition(!isEmpty, "No element to replace")
 
     var removed = replacement
     _update { handle in
@@ -233,7 +233,7 @@ extension Heap {
   /// - Complexity: O(log `count`)
   @inlinable @discardableResult
   public mutating func replaceMax(with replacement: Element) -> Element {
-    guard !isEmpty else { preconditionFailure("No element to replace") }
+    precondition(!isEmpty, "No element to replace")
 
     var removed = replacement
     _update { handle in
