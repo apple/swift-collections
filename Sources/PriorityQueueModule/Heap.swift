@@ -39,8 +39,8 @@ public struct Heap<Element: Comparable> {
   ///   elements as pre-call `storage`.
   ///
   /// - Complexity: O(*n*), where *n* is the length of `storage`.
-  @inlinable
-  public init?<S: Sequence>(raw storage: S) where S.Element == Element {
+  @_alwaysEmitIntoClient
+  internal init?<S: Sequence>(_raw storage: S) where S.Element == Element {
     _storage = .init(storage)
     if _someHeapViolation() != nil {
       return nil
