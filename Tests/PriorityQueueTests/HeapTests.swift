@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG
 import XCTest
-@testable import PriorityQueueModule
+import PriorityQueueModule
 
 final class HeapTests: XCTestCase {
   func test_isEmpty() {
@@ -352,19 +351,6 @@ final class HeapTests: XCTestCase {
 
   // MARK: -
 
-  func test_levelCalculation() {
-    // Check alternating min and max levels in the heap
-    var isMin = true
-    for exp in 0...12 {
-      // Check [2^exp, 2^(exp + 1))
-      for offset in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
-        let node = _Node(offset: offset)
-        XCTAssertEqual(node.isMinLevel, isMin)
-      }
-      isMin.toggle()
-    }
-  }
-
   func test_initializer_fromCollection() {
     var heap = Heap((1...20).shuffled())
     XCTAssertEqual(heap.max(), 20)
@@ -407,4 +393,3 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap.popMax(), 1)
   }
 }
-#endif
