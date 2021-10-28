@@ -105,7 +105,7 @@ final class PriorityQueueTests: XCTestCase {
     queue.insert("Baz 0", priority: 0)
     queue.insert("Baz 1", priority: 1)
 
-    let ordered = Array(queue.ascending)
+    let ordered = Array(sequence(state: queue, next: { $0.popMin() }))
 
     XCTAssertEqual(
       ordered,
@@ -146,21 +146,5 @@ final class PriorityQueueTests: XCTestCase {
 
     XCTAssertEqual(queue.popMax(), "Urgent")
     XCTAssertEqual(queue.popMin(), "Low")
-  }
-
-  // MARK: -
-
-  func test_sequenceConformance() {
-    let queue = PriorityQueue<Int, Int>(
-      (0..<50).map({ ($0, $0) }).shuffled()
-    )
-
-    for (idx, val) in queue.ascending.enumerated() {
-      XCTAssertEqual(idx, val)
-    }
-
-    for (idx, val) in queue.descending.enumerated() {
-      XCTAssertEqual(50 - (idx + 1), val)
-    }
   }
 }
