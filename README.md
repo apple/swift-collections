@@ -102,7 +102,7 @@ If you find something that looks like a bug, please open a [Bug Report][bugrepor
 
 ### Working on the package
 
-We have some basic [documentation on package internals](./Documentation/Development/Internals/) that will help you get started.
+We have some basic [documentation on package internals](./Documentation/Internals/README.md) that will help you get started.
 
 By submitting a pull request, you represent that you have the right to license your contribution to Apple and the community, and agree by submitting the patch that your contributions are licensed under the [Swift License](https://swift.org/LICENSE.txt), a copy of which is [provided in this repository](LICENSE.txt).
 
