@@ -16,7 +16,7 @@ public struct PriorityQueue<Value, Priority: Comparable> {
   public typealias Pair = (value: Value, priority: Priority)
 
   @usableFromInline
-  struct Element: Comparable {
+  struct _Element: Comparable {
     @usableFromInline let value: Value
     let priority: Priority
     let insertionCounter: UInt64
@@ -46,7 +46,7 @@ public struct PriorityQueue<Value, Priority: Comparable> {
   }
 
   @usableFromInline
-  internal var _base: Heap<Element>
+  internal var _base: Heap<_Element>
 
   @usableFromInline
   internal var _insertionCounter: UInt64 = 0
@@ -82,7 +82,7 @@ public struct PriorityQueue<Value, Priority: Comparable> {
   public mutating func insert(_ value: Value, priority: Priority) {
     defer { _insertionCounter += 1 }
 
-    let pair = Element(
+    let pair = _Element(
       value: value,
       priority: priority,
       insertionCounter: _insertionCounter
@@ -156,7 +156,7 @@ extension PriorityQueue {
       elements
         .enumerated()
         .map({
-          Element(
+          _Element(
             value: $0.element.value,
             priority: $0.element.priority,
             insertionCounter: UInt64($0.offset)
