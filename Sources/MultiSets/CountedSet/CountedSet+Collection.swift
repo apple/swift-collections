@@ -55,9 +55,9 @@ extension CountedSet: Collection {
 
   @inlinable
   public func index(after i: Index) -> Index {
-    guard i.position + 1 < _storage[i.storageIndex].value else {
+    guard i.position + 1 < rawValue[i.storageIndex].value else {
       return Index(
-        storageIndex: _storage.index(after: i.storageIndex),
+        storageIndex: rawValue.index(after: i.storageIndex),
         position: 0
       )
     }
@@ -67,7 +67,7 @@ extension CountedSet: Collection {
 
   @inlinable
   public subscript(position: Index) -> Element {
-    let keyPair = _storage[position.storageIndex]
+    let keyPair = rawValue[position.storageIndex]
     precondition(
       position.position < keyPair.value,
       "Attempting to access CountedSet elements using an invalid index"
@@ -77,11 +77,11 @@ extension CountedSet: Collection {
 
   @inlinable
   public var startIndex: Index {
-    Index(storageIndex: _storage.startIndex, position: 0)
+    Index(storageIndex: rawValue.startIndex, position: 0)
   }
 
   @inlinable
   public var endIndex: Index {
-    Index(storageIndex: _storage.endIndex, position: 0)
+    Index(storageIndex: rawValue.endIndex, position: 0)
   }
 }

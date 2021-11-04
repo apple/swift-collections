@@ -11,9 +11,13 @@
 
 /// An unordered, counted multiset.
 @frozen
-public struct CountedSet<Element: Hashable> {
+public struct CountedSet<Element: Hashable>: RawRepresentable {
+  // Allows internal setter to be referenced from inlined code
   @usableFromInline
-  internal var _storage = [Element: Int]()
+  internal var _storage = RawValue()
+
+  @inlinable @inline(__always)
+  public var rawValue: [Element: Int] { _storage }
 
   /// Creates an empty counted set with preallocated space for at least the
   /// specified number of unique elements.
@@ -24,5 +28,11 @@ public struct CountedSet<Element: Hashable> {
   @inlinable
   public init(minimumCapacity: Int) {
     self._storage = .init(minimumCapacity: minimumCapacity)
+  }
+
+  @inlinable
+  public init?(rawValue: [Element: Int]) {
+    guard rawValue.values.allSatisfy({ $0.signum() == 1 }) else { return nil }
+    _storage = rawValue
   }
 }
