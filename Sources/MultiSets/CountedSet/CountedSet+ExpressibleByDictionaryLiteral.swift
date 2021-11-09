@@ -26,14 +26,10 @@ extension CountedSet: ExpressibleByDictionaryLiteral {
   /// - Parameter elements: The element-multiplicity pairs that will make up the
   /// new counted set.
   /// - Precondition: Each element must be unique.
-  /// - Precondition: Each multiplicity must be positive.
   @inlinable
-  public init(dictionaryLiteral elements: (Element, Int)...) {
+  public init(dictionaryLiteral elements: (Element, UInt)...) {
     _storage = RawValue(
-      uniqueKeysWithValues: elements.lazy.map {
-        precondition($0.1.signum() == 1)
-        return $0
-      }
+      uniqueKeysWithValues: elements.lazy.filter { $0.1 > .zero }
     )
   }
 }

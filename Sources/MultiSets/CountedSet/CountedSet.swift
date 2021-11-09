@@ -17,7 +17,7 @@ public struct CountedSet<Element: Hashable>: RawRepresentable {
   internal var _storage = RawValue()
 
   @inlinable @inline(__always)
-  public var rawValue: [Element: Int] { _storage }
+  public var rawValue: [Element: UInt] { _storage }
 
   /// Creates an empty counted set with preallocated space for at least the
   /// specified number of unique elements.
@@ -31,8 +31,8 @@ public struct CountedSet<Element: Hashable>: RawRepresentable {
   }
 
   @inlinable
-  public init?(rawValue: [Element: Int]) {
-    guard rawValue.values.allSatisfy({ $0.signum() == 1 }) else { return nil }
+  public init?(rawValue: [Element: UInt]) {
+    guard rawValue.values.allSatisfy({ $0 > .zero }) else { return nil }
     _storage = rawValue
   }
 }

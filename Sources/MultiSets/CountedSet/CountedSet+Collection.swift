@@ -18,7 +18,7 @@ extension CountedSet: Collection {
     /// This is used to distinguish between indices that point to elements with
     /// different values.
     @usableFromInline
-    let storageIndex: Dictionary<Element, Int>.Index
+    let storageIndex: Dictionary<Element, UInt>.Index
 
     /// The relative position of the element.
     ///
@@ -33,7 +33,7 @@ extension CountedSet: Collection {
     /// is retrieved using the `storageIndex` and compared with the `position`
     /// to determine the index's validity.
     @usableFromInline
-    let position: Int
+    let position: UInt
 
     @inlinable
     public static func < (
@@ -47,7 +47,7 @@ extension CountedSet: Collection {
     }
 
     @usableFromInline
-    init(storageIndex: Dictionary<Element, Int>.Index, position: Int) {
+    init(storageIndex: Dictionary<Element, UInt>.Index, position: UInt) {
       self.storageIndex = storageIndex
       self.position = position
     }

@@ -17,6 +17,25 @@ extension CountedSet: Sequence {
   /// to preserve compatibility with older versions of Swift.
   @inlinable
   public func makeIterator() -> AnyIterator<Element> {
-    AnyIterator(_storage.lazy.flatMap(repeatElement).makeIterator())
+    AnyIterator(
+      _storage
+      .lazy
+      .map { (key, value) -> [Repeated<Element>] in
+        let repetitions = value.quotientAndRemainder(
+          dividingBy: UInt(Int.max)
+        )
+
+        var result = [Repeated<Element>](
+          repeating: repeatElement(key, count: .max),
+          count: Int(repetitions.quotient)
+        )
+        result.append(repeatElement(key, count: Int(repetitions.remainder)))
+
+        return result
+      }
+      .joined()
+      .joined()
+      .makeIterator()
+    )
   }
 }
