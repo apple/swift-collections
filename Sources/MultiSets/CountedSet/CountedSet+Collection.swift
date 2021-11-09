@@ -75,6 +75,15 @@ extension CountedSet: Collection {
     return keyPair.key
   }
 
+  ///  The number of elements in the set.
+  ///
+  /// - Complexity: O(*k*), where *k* is the number of unique elements in the
+  /// set.
+  @inlinable
+  public var count: Int {
+    Int(rawValue.values.reduce(.zero, +))
+  }
+
   @inlinable
   public var startIndex: Index {
     Index(storageIndex: rawValue.startIndex, position: 0)
@@ -83,5 +92,14 @@ extension CountedSet: Collection {
   @inlinable
   public var endIndex: Index {
     Index(storageIndex: rawValue.endIndex, position: 0)
+  }
+
+  /// A value equal to the number of unique elements in the set.
+  ///
+  /// - Complexity: O(*k*), where *k* is the number of unique elements in the
+  /// set.
+  @inlinable
+  public var underestimatedCount: Int {
+    rawValue.count
   }
 }
