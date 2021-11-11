@@ -132,10 +132,12 @@ public func withSomeRanges<T: Strideable>(
 /// - Parameters:
 ///    - `enabled`: if `false`, then no copies are made -- the values are passed to `body` with no processing.
 ///    - `value`: The collection value that is being tested.
+///    - `checker`: An optional function that is used to check the consistency of the hidden copy.
 ///    - `body`: A closure performing a mutation on `value`.
 public func withHiddenCopies<S: Sequence, R>(
   if enabled: Bool,
   of value: inout S,
+  checker: (S) -> Void = { _ in },
   file: StaticString = #file, line: UInt = #line,
   _ body: (inout S) throws -> R
 ) rethrows -> R where S.Element: Equatable {
@@ -144,6 +146,7 @@ public func withHiddenCopies<S: Sequence, R>(
   let expected = Array(value)
   let result = try body(&value)
   expectEqualElements(copy, expected, file: file, line: line)
+  checker(copy)
   return result
 }
 
@@ -156,6 +159,7 @@ public func withHiddenCopies<S: Sequence, R>(
 /// - Parameters:
 ///    - `enabled`: if `false`, then no copies are made -- the values are passed to `body` with no processing.
 ///    - `value`: The collection value that is being tested.
+///    - `checker`: An optional function that is used to check the consistency of the hidden copy.
 ///    - `body`: A closure performing a mutation on `value`.
 public func withHiddenCopies<
   S: Sequence,
@@ -165,6 +169,7 @@ public func withHiddenCopies<
 >(
   if enabled: Bool,
   of value: inout S,
+  checker: (S) -> Void = { _ in },
   file: StaticString = #file, line: UInt = #line,
   _ body: (inout S) throws -> R
 ) rethrows -> R where S.Element == (key: Key, value: Value) {
@@ -173,5 +178,6 @@ public func withHiddenCopies<
   let expected = Array(value)
   let result = try body(&value)
   expectEqualElements(copy, expected, file: file, line: line)
+  checker(copy)
   return result
 }
