@@ -129,6 +129,7 @@ extension OrderedSet {
       return
     }
 
+    _ensureUnique()
     _table!.update { hashTable in
       assert(!hashTable.isOccupied(bucket))
       hashTable.adjustContents(preparingForInsertionOfElementAtOffset: index, in: _elements)
