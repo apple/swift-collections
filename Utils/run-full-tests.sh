@@ -22,27 +22,28 @@ set -eu
 cd "$(dirname $0)/.."
 
 build_dir="$(mktemp -d "/tmp/$(basename $0).XXXXX")"
+
 bold_on="$(tput bold)"
 bold_off="$(tput sgr0)"
 
+red_on="$(tput setaf 1)"
+red_off="$(tput sgr0)"
+
 spm_flags=""
 
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
     swift="xcrun swift"
 else
     swift="swift"
     spm_flags="$spm_flags -j 1"
+
+    if $swift --version | grep 'Swift version 5\.3\.' > /dev/null; then
+        spm_flags="$spm_flags --enable-test-discovery"
+    fi
 fi
 
 echo "Build output logs are saved in $bold_on$build_dir$bold_off"
-swift --version
-
-report_failure() {
-    logs="$1"
-    echo "  ${bold_on}Failed.${bold_off} See $logs for full console output."
-    tail -10 "$logs"
-    exit 1
-}
+$swift --version
 
 _count=0
 try() {
@@ -53,9 +54,15 @@ try() {
     output="$build_dir/$count.$label.log"
     echo "$bold_on[$count $label]$bold_off $@"
     start="$(date +%s)"
-    "$@" >"$output" 2>&1 || report_failure "$output"
-    end="$(date +%s)"
-    echo "  Completed in $(($end - $start))s"
+    if "$@" >"$output" 2>&1; then
+        end="$(date +%s)"
+        echo "  Completed in $(($end - $start))s"
+    else
+        end="$(date +%s)"
+        echo "  ${red_on}${bold_on}Failed in $(($end - $start))s.${bold_off}${red_off}" \
+             "${red_on}See $output for full console output.${red_off}"
+        tail -10 "$output" | sed 's/^/  /'
+    fi
 }
 
 # Build using SPM
@@ -67,29 +74,36 @@ cmake_build_dir="$build_dir/cmake"
 try "cmake.generate" cmake -S . -B "$cmake_build_dir" -G Ninja
 try "cmake.build-with-ninja" ninja -C "$cmake_build_dir"
 
+# Build using xcodebuild
+try_xcodebuild() {
+    label="$1"
+    destination="$2"
+    shift 2
+    
+    try "$label" \
+        xcrun xcodebuild -scheme swift-collections-Package \
+        -configuration Release \
+        -destination "$destination" \
+        -derivedDataPath "$build_dir/xcodebuild" \
+        "$@"
+}
+
 if [ "$(uname)" = "Darwin" ]; then
     # Build using xcodebuild
-    try "xcodebuild.build" \
-        xcodebuild -scheme swift-collections-Package \
-        -configuration Release \
-        -destination "generic/platform=macOS" \
-        -destination "generic/platform=macOS,variant=Mac Catalyst" \
-        -destination "generic/platform=iOS" \
-        -destination "generic/platform=iOS Simulator" \
-        -destination "generic/platform=watchOS" \
-        -destination "generic/platform=watchOS Simulator" \
-        -destination "generic/platform=tvOS" \
-        -destination "generic/platform=tvOS Simulator" \
-        clean build
-    try "xcodebuild.test" \
-        xcodebuild -scheme swift-collections-Package \
-        -configuration Release \
-        -destination "platform=macOS" \
-        -destination "platform=macOS,variant=Mac Catalyst" \
-        -destination "platform=iOS Simulator,name=iPhone 12" \
-        -destination "platform=watchOS Simulator,name=Apple Watch Series 6 - 44mm" \
-        -destination "platform=tvOS Simulator,name=Apple TV 4K (at 1080p) (2nd generation)" \
-        test
+    try_xcodebuild "xcodebuild.build.macOS" "generic/platform=macOS" build
+    try_xcodebuild "xcodebuild.build.macCatalyst" "generic/platform=macOS,variant=Mac Catalyst" build
+    try_xcodebuild "xcodebuild.build.iOS" "generic/platform=iOS" build
+    try_xcodebuild "xcodebuild.build.iOS-simulator" "generic/platform=iOS Simulator" build
+    try_xcodebuild "xcodebuild.build.watchOS" "generic/platform=watchOS" build
+    try_xcodebuild "xcodebuild.build.watchOS-simulator" "generic/platform=watchOS Simulator" build
+    try_xcodebuild "xcodebuild.build.tvOS" "generic/platform=tvOS" build
+    try_xcodebuild "xcodebuild.build.tvOS-simulator" "generic/platform=tvOS Simulator" build
+
+    try_xcodebuild "xcodebuild.test.macOS" "platform=macOS" test
+    try_xcodebuild "xcodebuild.test.macCatalyst" "platform=macOS,variant=Mac Catalyst" test
+    try_xcodebuild "xcodebuild.test.iOS-simulator" "platform=iOS Simulator,name=iPhone 12" test
+    try_xcodebuild "xcodebuild.test.watchOS-simulator" "platform=watchOS Simulator,name=Apple Watch Series 6 - 44mm" test
+    try_xcodebuild "xcodebuild.test.tvOS-simulator" "platform=tvOS Simulator,name=Apple TV 4K (at 1080p) (2nd generation)" test
 fi
 
 # Build benchmarks
