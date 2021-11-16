@@ -41,7 +41,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           withLifetimeTracking { tracker in
             var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.values[offset] = replacement
               reference[offset].value = replacement
               expectEqualElements(d.values, reference.map { $0.value })
@@ -95,7 +95,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
               let t = reference[i].value
               reference[i].value = reference[j].value
               reference[j].value = t
-              withHiddenCopies(if: isShared, of: &d) { d in
+              withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
                 d.values.swapAt(i, j)
                 expectEqualElements(d.values, reference.map { $0.value })
                 expectEqual(d[reference[i].key], reference[i].value)
@@ -118,7 +118,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
               keys: (0 ..< count).shuffled(using: &rng))
             var values = reference.map { $0.value }
             let expectedPivot = values.partition { $0.payload < 100 + count / 2 }
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let actualPivot = d.values.partition { $0.payload < 100 + count / 2 }
               expectEqual(actualPivot, expectedPivot)
               expectEqualElements(d.values, values)
@@ -139,7 +139,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
           typealias R = [LifetimeTracked<Int>]
           let actual =
-            withHiddenCopies(if: isShared, of: &d) { d -> R in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d -> R in
               d.values.withUnsafeBufferPointer { buffer -> R in
                 Array(buffer)
               }
@@ -158,7 +158,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           let replacement = tracker.instances(for: (0 ..< count).map { -$0 })
           typealias R = [LifetimeTracked<Int>]
           let actual =
-            withHiddenCopies(if: isShared, of: &d) { d -> R in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d -> R in
               d.values.withUnsafeMutableBufferPointer { buffer -> R in
                 let result = Array(buffer)
                 expectEqual(buffer.count, replacement.count, trapping: true)
@@ -186,7 +186,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
           let replacement = tracker.instances(for: (0 ..< count).map { -$0 })
           typealias R = [LifetimeTracked<Int>]
           let actual =
-            withHiddenCopies(if: isShared, of: &d) { d -> R? in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d -> R? in
               d.values.withContiguousMutableStorageIfAvailable { buffer -> R in
                 let result = Array(buffer)
                 expectEqual(buffer.count, replacement.count, trapping: true)

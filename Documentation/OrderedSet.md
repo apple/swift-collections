@@ -101,7 +101,7 @@ let b: OrderedSet = [3, 2, 1, 0]
 a == b // false
 a.unordered == b.unordered // true
 
-func frobnicate<S: OrderedSet>(_ set: S) { ... }
+func frobnicate<S: SetAlgebra>(_ set: S) { ... }
 frobnicate(a) // error: `OrderedSet<String>` does not conform to `SetAlgebra`
 frobnicate(a.unordered) // OK
 ```
