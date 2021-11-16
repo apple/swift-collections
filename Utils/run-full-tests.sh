@@ -36,10 +36,14 @@ if [ "$(uname)" = "Darwin" ]; then
 else
     swift="swift"
     spm_flags="$spm_flags -j 1"
+
+    if $swift --version | grep 'Swift version 5\.3\.' > /dev/null; then
+        spm_flags="$spm_flags --enable-test-discovery"
+    fi
 fi
 
 echo "Build output logs are saved in $bold_on$build_dir$bold_off"
-swift --version
+$swift --version
 
 _count=0
 try() {
