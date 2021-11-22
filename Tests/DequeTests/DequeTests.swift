@@ -301,18 +301,69 @@ final class DequeTests: CollectionTestCase {
     }
   }
 
-  func test_prependManyFromArray() {
+  func test_prependManyFromContiguousArray_asCollection() {
     withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("prependCount", in: 0 ..< 10) { prependCount in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (deque, contents) = tracker.deque(with: layout)
-            let extra = tracker.instances(for: layout.count ..< layout.count + prependCount)
+            let extraRange = layout.count ..< layout.count + prependCount
+            let extra = ContiguousArray(tracker.instances(for: extraRange))
             withHiddenCopies(if: isShared, of: &deque) { deque in
               contents.insert(contentsOf: extra, at: 0)
               deque.prepend(contentsOf: extra)
               expectEqualElements(deque, contents)
             }
+          }
+        }
+      }
+    }
+  }
+
+  func test_prependManyFromContiguousArray_asSequence() {
+    // This calls the Sequence-based `Deque.prepend` overload, even if
+    // `elements` happens to be of a Collection type.
+    func prependSequence<S: Sequence>(
+      contentsOf elements: S,
+      to deque: inout Deque<S.Element>
+    ) {
+      deque.prepend(contentsOf: elements)
+    }
+
+    withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("prependCount", in: 0 ..< 10) { prependCount in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var (deque, contents) = tracker.deque(with: layout)
+            let extraRange = layout.count ..< layout.count + prependCount
+            let extra = ContiguousArray(tracker.instances(for: extraRange))
+            withHiddenCopies(if: isShared, of: &deque) { deque in
+              contents.insert(contentsOf: extra, at: 0)
+              prependSequence(contentsOf: extra, to: &deque)
+              expectEqualElements(deque, contents)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_prependManyFromBridgedArray() {
+    // https://github.com/apple/swift-collections/issues/27
+    withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("appendCount", in: 0 ..< 10) { appendCount in
+        withEvery("isShared", in: [false, true]) { isShared in
+          var contents: [NSObject] = (0 ..< layout.count).map { _ in NSObject() }
+          var deque = Deque(layout: layout, contents: contents)
+          let extra: [NSObject] = (0 ..< appendCount)
+            .map { _ in NSObject() }
+            .withUnsafeBufferPointer { buffer in
+              NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
+            }
+          withHiddenCopies(if: isShared, of: &deque) { deque in
+            contents.insert(contentsOf: extra, at: 0)
+            deque.prepend(contentsOf: extra)
+            expectEquivalentElements(deque, contents, by: ===)
           }
         }
       }

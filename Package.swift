@@ -54,19 +54,33 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "BitArrayModule", targets: ["BitArrayModule"])
   ],
   dependencies: [
     // This is only used in the benchmark executable target.
     .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.1"),
   ],
   targets: [
+    
+    // BitArray
+    .target(
+        name: "BitArrayModule",
+        path: "Sources/BitArrayModule",
+        swiftSettings: settings),
+    .testTarget(
+      name: "BitArrayTests",
+      dependencies: ["BitArrayModule", "CollectionsTestSupport"],
+      swiftSettings: settings),
+        
     .target(
       name: "Collections",
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "BitArrayModule",
       ],
       path: "Sources/Collections",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // Testing support module
@@ -80,6 +94,10 @@ let package = Package(
           .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
       ]
     ),
+    .testTarget(
+      name: "CollectionsTestSupportTests",
+      dependencies: ["CollectionsTestSupport"],
+      swiftSettings: settings),
 
     // Benchmarking
     .target(
@@ -109,6 +127,7 @@ let package = Package(
     // Deque<Element>
     .target(
       name: "DequeModule",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "DequeTests",
@@ -118,6 +137,7 @@ let package = Package(
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "OrderedCollectionsTests",
