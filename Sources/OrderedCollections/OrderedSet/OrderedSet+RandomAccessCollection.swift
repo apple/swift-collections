@@ -244,7 +244,7 @@ extension OrderedSet: RandomAccessCollection {
   @inlinable
   public subscript(bounds: Range<Int>) -> SubSequence {
     _failEarlyRangeCheck(bounds, bounds: startIndex ..< endIndex)
-    return SubSequence(base: self, bounds: bounds)
+    return SubSequence(_base: self, bounds: bounds)
   }
 
   /// A Boolean value indicating whether the collection is empty.

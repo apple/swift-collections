@@ -7,5 +7,6 @@ module CppBenchmarks {
   header "UnorderedMapBenchmarks.h"
   header "MapBenchmarks.h"
   header "PriorityQueueBenchmarks.h"
+  header "VectorBoolBenchmarks.h"
   export *
 }

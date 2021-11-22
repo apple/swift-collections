@@ -10,20 +10,6 @@
 //===----------------------------------------------------------------------===//
 
 extension OrderedSet {
-  @inlinable
-  internal init(_uncheckedUniqueElements elements: ContiguousArray<Element>) {
-#if DEBUG
-    self.init(_uniqueElements: elements)
-#else
-    guard elements.count > _HashTable.maximumUnhashedCount else {
-      self.init(_uniqueElements: elements, nil)
-      return
-    }
-    let table = _HashTable.create(uncheckedUniqueElements: elements)
-    self.init(_uniqueElements: elements, table)
-#endif
-  }
-
   /// Creates a set with the contents of the given sequence, which
   /// must not include duplicate elements.
   ///
@@ -44,7 +30,18 @@ extension OrderedSet {
   @inline(__always)
   public init<S: Sequence>(uncheckedUniqueElements elements: S)
   where S.Element == Element {
-    self.init(_uncheckedUniqueElements: ContiguousArray<Element>(elements))
+    let elements = ContiguousArray<Element>(elements)
+#if DEBUG
+    let (table, firstDupe) = _HashTable.create(untilFirstDuplicateIn: elements)
+    precondition(firstDupe == elements.endIndex,
+                 "Duplicate elements found in input")
+#else
+    let table = _HashTable.create(uncheckedUniqueElements: elements)
+#endif
+    self.init(
+      _uniqueElements: elements,
+      elements.count > _HashTable.maximumUnhashedCount ? table : nil)
+    _checkInvariants()
   }
 }
 

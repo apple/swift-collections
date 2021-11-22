@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@frozen
 @usableFromInline
 internal struct _UnsafeWrappedBuffer<Element> {
   @usableFromInline
@@ -51,6 +52,7 @@ internal struct _UnsafeWrappedBuffer<Element> {
   internal var count: Int { first.count + (second?.count ?? 0) }
 }
 
+@frozen
 @usableFromInline
 internal struct _UnsafeMutableWrappedBuffer<Element> {
   @usableFromInline

@@ -282,7 +282,7 @@ extension OrderedDictionary {
     self.init()
     for value in values {
       let key = try keyForValue(value)
-      self.modifyValue(forKey: key, default: Value()) { array in
+      self.updateValue(forKey: key, default: Value()) { array in
         array.append(value)
       }
     }
@@ -300,6 +300,7 @@ extension OrderedDictionary {
       _keys._appendNew(key)
       _values.append(value)
     }
+    _checkInvariants()
   }
 
   /// Creates a new dictionary from the key-value pairs in the given sequence,

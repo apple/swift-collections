@@ -51,6 +51,7 @@ extension OrderedDictionary {
     let pivot = try _values.withUnsafeMutableBufferPointer { values in
       try _keys._partition(values: values, by: belongsInSecondPartition)
     }
+    _checkInvariants()
     return pivot
   }
 }
@@ -103,6 +104,7 @@ extension OrderedDictionary {
       _keys = OrderedSet(uncheckedUniqueElements: source.lazy.map { $0.key })
       _values = ContiguousArray(source.lazy.map { $0.value })
     }
+    _checkInvariants()
   }
 }
 

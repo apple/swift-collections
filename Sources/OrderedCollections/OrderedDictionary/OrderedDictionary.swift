@@ -79,13 +79,13 @@
 ///
 /// If the `Value` type implements reference semantics, or when you need to
 /// perform a series of individual mutations on the values, the closure-based
-/// `modifyValue(forKey:default:_:)` method provides an easier-to-use
+/// `updateValue(forKey:default:_:)` method provides an easier-to-use
 /// alternative to the defaulted key-based subscript.
 ///
 ///     let text = "short string"
 ///     var counts: OrderedDictionary<Character, Int> = [:]
 ///     for character in text {
-///       counts.modifyValue(forKey: character, default: 0) { value in
+///       counts.updateValue(forKey: character, default: 0) { value in
 ///         value += 1
 ///       }
 ///     }
@@ -272,7 +272,7 @@ extension OrderedDictionary {
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
   ///     let index = countryCodes.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[index!].value): '\(countryCodes[index!].key)'.")
+  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary.
@@ -286,20 +286,6 @@ extension OrderedDictionary {
   @inline(__always)
   public func index(forKey key: Key) -> Int? {
     _keys.firstIndex(of: key)
-  }
-
-  /// Accesses the element at the specified index. This can be used to
-  /// perform in-place mutations on dictionary values.
-  ///
-  /// - Parameter offset: The offset of the element to access, measured from
-  ///   the start of the collection. `offset` must be greater than or equal to
-  ///   `0` and less than `count`.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public subscript(offset offset: Int) -> Element {
-    (_keys[offset], _values[offset])
   }
 }
 
@@ -364,7 +350,7 @@ extension OrderedDictionary {
     }
     set {
       // We have a separate `set` in addition to `_modify` in hopes of getting
-      // rid of `_modify`'s swapAt dance in the usua case where the calle just
+      // rid of `_modify`'s swapAt dance in the usual case where the caller just
       // wants to assign a new value.
       let (index, bucket) = _keys._find(key)
       switch (index, newValue) {
@@ -379,6 +365,7 @@ extension OrderedDictionary {
       case (nil, nil): // Noop
         break
       }
+      _checkInvariants()
     }
     _modify {
       let (index, bucket) = _keys._find(key)
@@ -408,6 +395,7 @@ extension OrderedDictionary {
         case (nil, nil): // Noop
           break
         }
+        _checkInvariants()
       }
 
       yield &value
@@ -641,7 +629,7 @@ extension OrderedDictionary {
   ///     let message = "Hello, Elle!"
   ///     var letterCounts: [Character: Int] = [:]
   ///     for letter in message {
-  ///         letterCounts.modifyValue(forKey: letter, default: 0) { count in
+  ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
   ///             count += 1
   ///         }
   ///     }
@@ -660,10 +648,10 @@ extension OrderedDictionary {
   /// - Complexity: expected complexity is amortized O(1), if `Key` implements
   ///    high-quality hashing. (Ignoring the complexity of calling `body`.)
   @inlinable
-  public mutating func modifyValue<R>(
+  public mutating func updateValue<R>(
     forKey key: Key,
     default defaultValue: @autoclosure () -> Value,
-    _ body: (inout Value) throws -> R
+    with body: (inout Value) throws -> R
   ) rethrows -> R {
     let (index, bucket) = _keys._find(key)
     if let index = index {
@@ -687,7 +675,7 @@ extension OrderedDictionary {
   ///     let message = "Hello, Elle!"
   ///     var letterCounts: [Character: Int] = [:]
   ///     for letter in message {
-  ///         letterCounts.modifyValue(forKey: letter, default: 0) { count in
+  ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
   ///             count += 1
   ///         }
   ///     }
@@ -706,11 +694,11 @@ extension OrderedDictionary {
   /// - Complexity: expected complexity is amortized O(1), if `Key` implements
   ///    high-quality hashing. (Ignoring the complexity of calling `body`.)
   @inlinable
-  public mutating func modifyValue<R>(
+  public mutating func updateValue<R>(
     forKey key: Key,
     insertingDefault defaultValue: @autoclosure () -> Value,
     at index: Int,
-    _ body: (inout Value) throws -> R
+    with body: (inout Value) throws -> R
   ) rethrows -> R {
     let (existingIndex, bucket) = _keys._find(key)
     if let existingIndex = existingIndex {

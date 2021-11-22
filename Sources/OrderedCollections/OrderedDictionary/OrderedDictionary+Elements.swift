@@ -79,9 +79,9 @@ extension OrderedDictionary.Elements {
   /// into the dictionary that corresponds with the key-value pair.
   ///
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
-  ///     let index = countryCodes.index(forKey: "JP")
+  ///     let index = countryCodes.elements.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[index!].value): '\(countryCodes[index!].key)'.")
+  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary.
@@ -261,8 +261,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
     end - start
   }
 
-  /// Accesses the element at the specified position. This can be used to
-  /// perform in-place mutations on dictionary values.
+  /// Accesses the element at the specified position.
   ///
   /// - Parameter index: The position of the element to access. `index` must be
   ///   greater than or equal to `startIndex` and less than `endIndex`.

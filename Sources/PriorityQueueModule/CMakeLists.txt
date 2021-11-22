@@ -8,10 +8,11 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(PriorityQueueModule
+  _Node.swift
   Heap.swift
   Heap+ExpressibleByArrayLiteral.swift
   Heap+Invariants.swift
-  Heap+OrderedViews.swift)
+  Heap+UnsafeHandle.swift)
 set_target_properties(PriorityQueueModule PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

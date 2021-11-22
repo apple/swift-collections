@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-@testable import PriorityQueueModule
+import PriorityQueueModule
 
 final class HeapTests: XCTestCase {
   func test_isEmpty() {
@@ -89,9 +89,12 @@ final class HeapTests: XCTestCase {
     heap.insert(contentsOf: sequence(first: 1, next: addTwo(_:)).prefix(20))
     XCTAssertEqual(heap.count, 40)
 
-    for (idx, i) in heap.ascending.enumerated() {
-      XCTAssertEqual(idx, i)
+    var i = 0
+    while let min = heap.popMin() {
+      XCTAssertEqual(min, i)
+      i += 1
     }
+    XCTAssertEqual(i, 40)
   }
 
   func test_min() {
@@ -348,24 +351,6 @@ final class HeapTests: XCTestCase {
 
   // MARK: -
 
-  func test_levelCalculation() {
-    // Check alternating min and max levels in the heap
-    let q = Heap<Int>()
-    var isMin = true
-    for exp in 0...12 {
-      // Check [2^exp, 2^(exp + 1))
-      for i in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
-        if isMin {
-          XCTAssertTrue(q._minMaxHeapIsMinLevel(i), "\(i) should be on a max level")
-        } else {
-          XCTAssertFalse(q._minMaxHeapIsMinLevel(i), "\(i) should be on a min level")
-        }
-      }
-
-      isMin.toggle()
-    }
-  }
-
   func test_initializer_fromCollection() {
     var heap = Heap((1...20).shuffled())
     XCTAssertEqual(heap.max(), 20)
@@ -406,21 +391,5 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap.popMax(), 5)
     XCTAssertEqual(heap.popMax(), 3)
     XCTAssertEqual(heap.popMax(), 1)
-  }
-
-  func test_sequenceConformance() {
-    let heap = Heap<Int>((0...50).shuffled())
-
-    var increment = 0
-    for val in heap.ascending {
-      XCTAssertEqual(increment, val)
-      increment += 1
-    }
-
-    increment = 50
-    for val in heap.descending {
-      XCTAssertEqual(increment, val)
-      increment -= 1
-    }
   }
 }

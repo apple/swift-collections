@@ -57,10 +57,6 @@ let package = Package(
     .library(name: "SortedCollections", targets: ["SortedCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
   ],
-  dependencies: [
-    // This is only used in the benchmark executable target.
-    .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.1"),
-  ],
   targets: [
     .target(
       name: "Collections",
@@ -76,7 +72,7 @@ let package = Package(
 
     // Testing support module
     .target(
-      name: "CollectionsTestSupport",
+      name: "_CollectionsTestSupport",
       dependencies: [],
       swiftSettings: settings,
       linkerSettings: [
@@ -87,33 +83,8 @@ let package = Package(
     ),
     .testTarget(
       name: "CollectionsTestSupportTests",
-      dependencies: ["CollectionsTestSupport"],
+      dependencies: ["_CollectionsTestSupport"],
       swiftSettings: settings),
-
-    // Benchmarking
-    .target(
-      name: "Benchmarks",
-      dependencies: [
-        .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
-        "Collections",
-        "CppBenchmarks",
-      ],
-      path: "Benchmarks/Benchmarks",
-      resources: [
-        .copy("Library.json"),
-      ]
-    ),
-    .target(
-      name: "CppBenchmarks",
-      path: "Benchmarks/CppBenchmarks"
-    ),
-    .target(
-      name: "swift-collections-benchmark",
-      dependencies: [
-        "Benchmarks",
-      ],
-      path: "Benchmarks/swift-collections-benchmark"
-    ),
 
     // Deque<Element>
     .target(
@@ -122,7 +93,7 @@ let package = Package(
       swiftSettings: settings),
     .testTarget(
       name: "DequeTests",
-      dependencies: ["DequeModule", "CollectionsTestSupport"],
+      dependencies: ["DequeModule", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
@@ -132,18 +103,9 @@ let package = Package(
       swiftSettings: settings),
     .testTarget(
       name: "OrderedCollectionsTests",
-      dependencies: ["OrderedCollections", "CollectionsTestSupport"],
+      dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
     
-    // SortedDictionary<Key, Value>
-    .target(
-      name: "SortedCollections",
-      swiftSettings: settings),
-    .testTarget(
-      name: "SortedCollectionsTests",
-      dependencies: ["SortedCollections", "CollectionsTestSupport"],
-      swiftSettings: settings),
-      
     // PriorityQueue<Element>
     .target(
         name: "PriorityQueueModule",
@@ -153,6 +115,14 @@ let package = Package(
         name: "PriorityQueueTests",
         dependencies: ["PriorityQueueModule"],
         swiftSettings: settings),
-  ],
-  cxxLanguageStandard: .cxx1z
+
+    // SortedDictionary<Key, Value>
+    .target(
+      name: "SortedCollections",
+      swiftSettings: settings),
+    .testTarget(
+      name: "SortedCollectionsTests",
+      dependencies: ["SortedCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
+  ]
 )

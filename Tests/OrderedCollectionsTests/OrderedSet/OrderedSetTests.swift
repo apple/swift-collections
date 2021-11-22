@@ -11,7 +11,7 @@
 
 import XCTest
 @_spi(Testing) import OrderedCollections
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {
@@ -356,7 +356,7 @@ class OrderedSetTests: CollectionTestCase {
         let count = layout.count
         withEvery("offset", in: 0 ... count) { offset in
           var set = OrderedSet<Int>(layout: layout)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             let i = set.index(set.startIndex, offsetBy: offset)
             let (inserted, index) = set.insert(count, at: i)
             expectTrue(inserted)
@@ -511,7 +511,7 @@ class OrderedSetTests: CollectionTestCase {
         let count = layout.count
         withEvery("a", in: 0 ..< count) { a in
           var set = OrderedSet(layout: layout)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             let b = count - a - 1
             let ai = set._index(at: a)
             let bi = set._index(at: b)
@@ -535,7 +535,7 @@ class OrderedSetTests: CollectionTestCase {
         withEvery("isShared", in: [false, true]) { isShared in
           let count = layout.count
           var set = OrderedSet(layout: layout)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             let pivot = set.partition(by: { $0.isMultiple(of: 2) })
             withEvery("item", in: 0 ..< count) { item in
               expectNotNil(set.firstIndex(of: item)) { index in
@@ -559,7 +559,7 @@ class OrderedSetTests: CollectionTestCase {
         withEvery("isShared", in: [false, true]) { isShared in
           let count = layout.count
           var set = OrderedSet(layout: layout)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             do {
               let pivot = set.partition(by: { _ in false })
               expectEqual(pivot, set.endIndex)
@@ -585,7 +585,7 @@ class OrderedSetTests: CollectionTestCase {
           var rng = RepeatableRandomNumberGenerator(seed: seed)
           let contents = (0 ..< count).shuffled(using: &rng)
           var set = OrderedSet(layout: layout, contents: contents)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             set.sort()
             expectEqualElements(set, 0 ..< count)
 
@@ -605,7 +605,7 @@ class OrderedSetTests: CollectionTestCase {
           let count = layout.count
           var contents = Array(0 ..< count)
           var set = OrderedSet(layout: layout, contents: 0 ..< count)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             var rng1 = RepeatableRandomNumberGenerator(seed: seed)
             contents.shuffle(using: &rng1)
 
@@ -637,7 +637,7 @@ class OrderedSetTests: CollectionTestCase {
         let count = layout.count
         var contents = Array(0 ..< count)
         var set = OrderedSet(layout: layout, contents: 0 ..< count)
-        withHiddenCopies(if: isShared, of: &set) { set in
+        withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
           contents.reverse()
           set.reverse()
           expectEqualElements(set, contents)
@@ -651,7 +651,7 @@ class OrderedSetTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< layout.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           var set = OrderedSet(layout: layout)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             let count = layout.count
             let index = set._index(at: offset)
             let old = set.remove(at: index)
@@ -698,7 +698,7 @@ class OrderedSetTests: CollectionTestCase {
       withEvery("item", in: 0 ..< layout.count) { item in
         withEvery("isShared", in: [false, true]) { isShared in
           var set = OrderedSet(layout: layout)
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             let count = layout.count
             let old = set.remove(item)
             expectEqual(old, item)
@@ -738,7 +738,7 @@ class OrderedSetTests: CollectionTestCase {
           var set = OrderedSet(layout: layout)
           let low = offsetRange.lowerBound
           let high = offsetRange.upperBound
-          withHiddenCopies(if: isShared, of: &set) { set in
+          withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
             let count = layout.count
             let removedRange = set._indexRange(at: low ..< high)
             set.removeSubrange(removedRange)

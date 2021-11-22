@@ -11,7 +11,7 @@
 
 import XCTest
 import OrderedCollections
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class MeasuringHashable: Hashable {
   static var equalityChecks = 0

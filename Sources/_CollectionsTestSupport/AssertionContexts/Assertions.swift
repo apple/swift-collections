@@ -188,6 +188,20 @@ public func expectEqual<T: Equatable>(
     message, trapping: trapping, file: file, line: line)
 }
 
+public func expectEqual<Key: Equatable, Value: Equatable>(
+  _ left: (key: Key, value: Value), _ right: (key: Key, value: Value),
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  if left == right { return }
+  _expectFailure(
+    "'\(left)' is not equal to '\(right)'",
+    message, trapping: trapping, file: file, line: line)
+}
+
+
 public func expectEqual<T: Equatable>(
   _ left: T?, _ right: T?,
   _ message: @autoclosure () -> String = "",
