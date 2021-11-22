@@ -165,6 +165,7 @@ extension OrderedSet {
         result._appendNew(item)
       }
     }
+    result._checkInvariants()
     return result
   }
 
@@ -244,7 +245,9 @@ extension OrderedSet {
           bitset.insert(index)
         }
       }
-      return self._extractSubset(using: bitset)
+      let result = self._extractSubset(using: bitset)
+      result._checkInvariants()
+      return result
     }
   }
 
@@ -304,6 +307,7 @@ extension OrderedSet {
         for offset in bitset2 {
           result._appendNew(other._elements[offset])
         }
+        result._checkInvariants()
         return result
       }
     }
@@ -411,6 +415,7 @@ extension OrderedSet {
       for item in new._elements {
         result._appendNew(item)
       }
+      result._checkInvariants()
       return result
     }
   }
@@ -574,7 +579,9 @@ extension OrderedSet {
         }
       }
       assert(difference.count > 0)
-      return _extractSubset(using: difference)
+      let result = _extractSubset(using: difference)
+      result._checkInvariants()
+      return result
     }
   }
 }

@@ -6,7 +6,7 @@
 //
 
 import XCTest
-import CollectionsTestSupport
+import _CollectionsTestSupport
 @testable import BitArrayModule
 
 final class BitArrayTest: CollectionTestCase {

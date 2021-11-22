@@ -14,6 +14,8 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+
 // FIXME: Is putting this in a separate compilation unit enough to make
 // sure the function call is always emitted?
 
@@ -35,4 +37,6 @@ static inline const T *identity(const T *value)
 {
   return static_cast<const T *>(_identity(value));
 }
+
+#endif /* __cplusplus */
 #endif /* BLACK_HOLE_H */

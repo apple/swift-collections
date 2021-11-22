@@ -16,6 +16,7 @@ extension Deque: Sequence {
   // conversions from indices to storage slots.
 
   /// An iterator over the members of a deque.
+  @frozen
   public struct Iterator: IteratorProtocol {
     @usableFromInline
     internal var _storage: Deque._Storage
@@ -671,7 +672,7 @@ extension Deque: RangeReplaceableCollection {
     }
 
     let underestimatedCount = newElements.underestimatedCount
-    reserveCapacity(count + underestimatedCount)
+    _storage.ensureUnique(minimumCapacity: count + underestimatedCount)
     var it: S.Iterator = _storage.update { target in
       let gaps = target.availableSegments()
       let (it, copied) = gaps.initialize(fromSequencePrefix: newElements)
@@ -712,7 +713,7 @@ extension Deque: RangeReplaceableCollection {
 
     let c = newElements.count
     guard c > 0 else { return }
-    reserveCapacity(count + c)
+    _storage.ensureUnique(minimumCapacity: count + c)
     _storage.update { target in
       let gaps = target.availableSegments().prefix(c)
       gaps.initialize(from: newElements)

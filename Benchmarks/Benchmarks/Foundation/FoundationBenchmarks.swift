@@ -9,34 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "utils.h"
+import CollectionsBenchmark
 
-void
-black_hole(intptr_t value)
-{
-  // Do nothing.
-}
-
-void
-black_hole(void *value)
-{
-  // Do nothing.
-}
-
-intptr_t
-identity(intptr_t value)
-{
-  return value;
-}
-
-void *
-_identity(void *value)
-{
-  return value;
-}
-
-const void *
-_identity(const void *value)
-{
-  return value;
+extension Benchmark {
+  public mutating func addFoundationBenchmarks() {
+    _addCFBinaryHeapBenchmarks()
+    _addCFBitVectorBenchmarks()
+  }
 }

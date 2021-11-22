@@ -9,10 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "VectorBenchmarks.h"
 #include <vector>
 #include <algorithm>
-#include "utils.h"
+#include "VectorBenchmarks.h"
+#include "Utils.h"
 
 void *
 cpp_vector_create(const intptr_t *start, size_t count)

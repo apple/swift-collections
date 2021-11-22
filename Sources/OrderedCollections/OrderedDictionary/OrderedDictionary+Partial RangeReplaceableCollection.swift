@@ -178,6 +178,7 @@ extension OrderedDictionary {
         by: shouldBeRemoved)
     }
     removeSubrange(pivot...)
+    _checkInvariants()
   }
 }
 

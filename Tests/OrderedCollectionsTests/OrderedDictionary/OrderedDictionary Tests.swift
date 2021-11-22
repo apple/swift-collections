@@ -12,7 +12,7 @@
 import XCTest
 @_spi(Testing) import OrderedCollections
 
-import CollectionsTestSupport
+import _CollectionsTestSupport
 
 class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -192,7 +192,7 @@ class OrderedDictionaryTests: CollectionTestCase {
   func test_counts() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
-        let (d, _, _) = tracker.orderedDictionary(keys: 0 ..< count)
+        let (d, _) = tracker.orderedDictionary(keys: 0 ..< count)
         expectEqual(d.isEmpty, count == 0)
         expectEqual(d.count, count)
         expectEqual(d.underestimatedCount, count)
@@ -203,9 +203,9 @@ class OrderedDictionaryTests: CollectionTestCase {
   func test_index_forKey() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
-        let (d, keys, _) = tracker.orderedDictionary(keys: 0 ..< count)
+        let (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
         withEvery("offset", in: 0 ..< count) { offset in
-          expectEqual(d.index(forKey: keys[offset]), offset)
+          expectEqual(d.index(forKey: reference[offset].key), offset)
         }
         expectNil(d.index(forKey: tracker.instance(for: -1)))
         expectNil(d.index(forKey: tracker.instance(for: count)))
@@ -213,25 +213,12 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_subscript_offset() {
-    withEvery("count", in: 0 ..< 30) { count in
-      withLifetimeTracking { tracker in
-        let (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-        withEvery("offset", in: 0 ..< count) { offset in
-          let item = d[offset: offset]
-          expectEqual(item.key, keys[offset])
-          expectEqual(item.value, values[offset])
-        }
-      }
-    }
-  }
-
   func test_subscript_getter() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
-        let (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+        let (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
         withEvery("offset", in: 0 ..< count) { offset in
-          expectEqual(d[keys[offset]], values[offset])
+          expectEqual(d[reference[offset].key], reference[offset].value)
         }
         expectNil(d[tracker.instance(for: -1)])
         expectNil(d[tracker.instance(for: count)])
@@ -244,16 +231,12 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              d[keys[offset]] = replacement
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              d[reference[offset].key] = replacement
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -266,16 +249,11 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              d[keys[offset]] = nil
-              keys.remove(at: offset)
-              values.remove(at: offset)
-              withEvery("i", in: 0 ..< count - 1) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              d[reference[offset].key] = nil
+              reference.remove(at: offset)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -289,15 +267,12 @@ class OrderedDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d[keys[offset]] = values[offset]
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqualElements(d, reference.prefix(offset + 1))
             }
           }
         }
@@ -309,16 +284,12 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
-          var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+          var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
           let key = tracker.instance(for: -1)
-          withHiddenCopies(if: isShared, of: &d) { d in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             d[key] = nil
           }
-          withEvery("i", in: 0 ..< count) { i in
-            let (k, v) = d[offset: i]
-            expectEqual(k, keys[i])
-            expectEqual(v, values[i])
-          }
+          expectEqualElements(d, reference)
         }
       }
     }
@@ -336,16 +307,12 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              mutate(&d[keys[offset]]) { $0 = replacement }
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              mutate(&d[reference[offset].key]) { $0 = replacement }
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -358,20 +325,14 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[offset]
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let key = reference[offset].key
               mutate(&d[key]) { v in
-                expectEqual(v, values[offset])
+                expectEqual(v, reference[offset].value)
                 v = nil
               }
-              keys.remove(at: offset)
-              values.remove(at: offset)
-              withEvery("i", in: 0 ..< count - 1) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              reference.remove(at: offset)
             }
           }
         }
@@ -385,19 +346,16 @@ class OrderedDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               mutate(&d[keys[offset]]) { v in
                 expectNil(v)
                 v = values[offset]
               }
               expectEqual(d.count, offset + 1)
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqualElements(d, reference.prefix(offset + 1))
             }
           }
         }
@@ -409,19 +367,15 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
-          var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+          var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
           let key = tracker.instance(for: -1)
-          withHiddenCopies(if: isShared, of: &d) { d in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             mutate(&d[key]) { v in
               expectNil(v)
               v = nil
             }
           }
-          withEvery("i", in: 0 ..< count) { i in
-            let (k, v) = d[offset: i]
-            expectEqual(k, keys[i])
-            expectEqual(v, values[i])
-          }
+          expectEqualElements(d, reference)
         }
       }
     }
@@ -431,11 +385,11 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
-          let (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+          let (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
           let fallback = tracker.instance(for: -1)
           withEvery("offset", in: 0 ..< count) { offset in
-            let key = keys[offset]
-            expectEqual(d[key, default: fallback], values[offset])
+            let key = reference[offset].key
+            expectEqual(d[key, default: fallback], reference[offset].value)
           }
           expectEqual(
             d[tracker.instance(for: -1), default: fallback],
@@ -453,21 +407,17 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
             let fallback = tracker.instance(for: -1)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[offset]
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let key = reference[offset].key
               mutate(&d[key, default: fallback]) { v in
-                expectEqual(v, values[offset])
+                expectEqual(v, reference[offset].value)
                 v = replacement
               }
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -481,21 +431,18 @@ class OrderedDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           let fallback = tracker.instance(for: -1)
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let key = keys[offset]
               mutate(&d[key, default: fallback]) { v in
                 expectEqual(v, fallback)
                 v = values[offset]
               }
               expectEqual(d.count, offset + 1)
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqualElements(d, reference.prefix(offset + 1))
             }
           }
         }
@@ -508,18 +455,14 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[offset]
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let key = reference[offset].key
               let old = d.updateValue(replacement, forKey: key)
-              expectEqual(old, values[offset])
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqual(old, reference[offset].value)
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -533,18 +476,15 @@ class OrderedDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let key = keys[offset]
               let old = d.updateValue(values[offset], forKey: key)
               expectNil(old)
               expectEqual(d.count, offset + 1)
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqualElements(d, reference.prefix(offset + 1))
             }
           }
         }
@@ -557,20 +497,16 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[offset]
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let key = reference[offset].key
               let (old, index) =
                 d.updateValue(replacement, forKey: key, insertingAt: 0)
-              expectEqual(old, values[offset])
+              expectEqual(old, reference[offset].value)
               expectEqual(index, offset)
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -584,9 +520,10 @@ class OrderedDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let key = keys[count - 1 - offset]
               let value = values[count - 1 - offset]
               let (old, index) =
@@ -594,11 +531,7 @@ class OrderedDictionaryTests: CollectionTestCase {
               expectNil(old)
               expectEqual(index, 0)
               expectEqual(d.count, offset + 1)
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[count - 1 - offset + i])
-                expectEqual(v, values[count - 1 - offset + i])
-              }
+              expectEqualElements(d, reference.suffix(offset + 1))
             }
           }
         }
@@ -606,26 +539,22 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_default_closure_update() {
+  func test_updateValue_forKey_default_closure_update() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
             let fallback = tracker.instance(for: -2)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[offset]
-              d.modifyValue(forKey: key, default: fallback) { value in
-                expectEqual(value, values[offset])
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let key = reference[offset].key
+              d.updateValue(forKey: key, default: fallback) { value in
+                expectEqual(value, reference[offset].value)
                 value = replacement
               }
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -633,27 +562,24 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_default_closure_insert() {
+  func test_updateValue_forKey_default_closure_insert() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           let fallback = tracker.instance(for: -2)
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let key = keys[offset]
-              d.modifyValue(forKey: key, default: fallback) { value in
+              d.updateValue(forKey: key, default: fallback) { value in
                 expectEqual(value, fallback)
                 value = values[offset]
               }
               expectEqual(d.count, offset + 1)
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqualElements(d, reference.prefix(offset + 1))
             }
           }
         }
@@ -661,27 +587,22 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_insertingDefault_at_closure_update() {
+  func test_updateValue_forKey_insertingDefault_at_closure_update() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let replacement = tracker.instance(for: -1)
             let fallback = tracker.instance(for: -2)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[offset]
-              let value = values[offset]
-              d.modifyValue(forKey: key, insertingDefault: fallback, at: 0) { v in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let (key, value) = reference[offset]
+              d.updateValue(forKey: key, insertingDefault: fallback, at: 0) { v in
                 expectEqual(v, value)
                 v = replacement
               }
-              values[offset] = replacement
-              withEvery("i", in: 0 ..< count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              reference[offset].value = replacement
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -689,28 +610,24 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_modifyValue_forKey_insertingDefault_at_closure_insert() {
+  func test_updateValue_forKey_insertingDefault_at_closure_insert() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
           let keys = tracker.instances(for: 0 ..< count)
           let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
+          let reference = zip(keys, values).map { (key: $0.0, value: $0.1) }
           var d: OrderedDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
           let fallback = tracker.instance(for: -2)
           withEvery("offset", in: 0 ..< count) { offset in
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys[count - 1 - offset]
-              let value = values[count - 1 - offset]
-              d.modifyValue(forKey: key, insertingDefault: fallback, at: 0) { v in
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let (key, value) = reference[count - 1 - offset]
+              d.updateValue(forKey: key, insertingDefault: fallback, at: 0) { v in
                 expectEqual(v, fallback)
                 v = value
               }
               expectEqual(d.count, offset + 1)
-              withEvery("i", in: 0 ... offset) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[count - 1 - offset + i])
-                expectEqual(v, values[count - 1 - offset + i])
-              }
+              expectEqualElements(d, reference.suffix(offset + 1))
             }
           }
         }
@@ -723,19 +640,13 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
-              let key = keys.remove(at: offset)
-              let expected = values.remove(at: offset)
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let (key, value) = reference.remove(at: offset)
               let actual = d.removeValue(forKey: key)
-              expectEqual(actual, expected)
+              expectEqual(actual, value)
 
-              expectEqual(d.count, values.count)
-              withEvery("i", in: 0 ..< values.count) { i in
-                let (k, v) = d[offset: i]
-                expectEqual(k, keys[i])
-                expectEqual(v, values[i])
-              }
+              expectEqualElements(d, reference)
               expectNil(d.removeValue(forKey: key))
             }
           }
@@ -1039,14 +950,13 @@ class OrderedDictionaryTests: CollectionTestCase {
         withEvery("j", in: 0 ..< count) { j in
           withEvery("isShared", in: [false, true]) { isShared in
             withLifetimeTracking { tracker in
-              var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-              keys.swapAt(i, j)
-              values.swapAt(i, j)
-              withHiddenCopies(if: isShared, of: &d) { d in
+              var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+              reference.swapAt(i, j)
+              withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
                 d.swapAt(i, j)
-                expectEqualElements(d.values, values)
-                expectEqual(d[keys[i]], values[i])
-                expectEqual(d[keys[j]], values[j])
+                expectEqualElements(d, reference)
+                expectEqual(d[reference[i].key], reference[i].value)
+                expectEqual(d[reference[j].key], reference[j].value)
               }
             }
           }
@@ -1061,14 +971,13 @@ class OrderedDictionaryTests: CollectionTestCase {
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var rng = RepeatableRandomNumberGenerator(seed: seed)
-            var (d, keys, values) = tracker.orderedDictionary(
+            var (d, reference) = tracker.orderedDictionary(
               keys: (0 ..< count).shuffled(using: &rng))
-            var items = Array(zip(keys, values))
-            let expectedPivot = items.partition { $0.0.payload < count / 2 }
-            withHiddenCopies(if: isShared, of: &d) { d in
+            let expectedPivot = reference.partition { $0.key.payload < count / 2 }
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let actualPivot = d.partition { $0.key.payload < count / 2 }
               expectEqual(actualPivot, expectedPivot)
-              expectEqualElements(d, items)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1082,13 +991,12 @@ class OrderedDictionaryTests: CollectionTestCase {
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var rng = RepeatableRandomNumberGenerator(seed: seed)
-            var (d, keys, values) = tracker.orderedDictionary(
+            var (d, reference) = tracker.orderedDictionary(
               keys: (0 ..< count).shuffled(using: &rng))
-            var items = Array(zip(keys, values))
-            items.sort(by: { $0.0 < $1.0 })
-            withHiddenCopies(if: isShared, of: &d) { d in
+            reference.sort(by: { $0.key < $1.key })
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.sort()
-              expectEqualElements(d, items)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1102,13 +1010,12 @@ class OrderedDictionaryTests: CollectionTestCase {
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var rng = RepeatableRandomNumberGenerator(seed: seed)
-            var (d, keys, values) = tracker.orderedDictionary(
+            var (d, reference) = tracker.orderedDictionary(
               keys: (0 ..< count).shuffled(using: &rng))
-            var items = Array(zip(keys, values))
-            items.sort(by: { $0.0 > $1.0 })
-            withHiddenCopies(if: isShared, of: &d) { d in
+            reference.sort(by: { $0.key > $1.key })
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.sort(by: { $0.key > $1.key })
-              expectEqualElements(d, items)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1124,7 +1031,7 @@ class OrderedDictionaryTests: CollectionTestCase {
             uniqueKeys: 0 ..< count,
             values: 100 ..< 100 + count)
           var items = (0 ..< count).map { (key: $0, value: 100 + $0) }
-          withHiddenCopies(if: isShared, of: &d) { d in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             expectEqualElements(d, items)
 
             var rng1 = RepeatableRandomNumberGenerator(seed: seed)
@@ -1165,12 +1072,11 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
-          var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-          var items = Array(zip(keys, values))
-          withHiddenCopies(if: isShared, of: &d) { d in
-            items.reverse()
+          var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+            reference.reverse()
             d.reverse()
-            expectEqualElements(d, items)
+            expectEqualElements(d, reference)
           }
         }
       }
@@ -1181,8 +1087,8 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
-          var (d, _, _) = tracker.orderedDictionary(keys: 0 ..< count)
-          withHiddenCopies(if: isShared, of: &d) { d in
+          var (d, _) = tracker.orderedDictionary(keys: 0 ..< count)
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             d.removeAll()
             expectEqual(d.keys.__unstable.scale, 0)
             expectEqualElements(d, [])
@@ -1196,9 +1102,9 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
-          var (d, _, _) = tracker.orderedDictionary(keys: 0 ..< count)
+          var (d, _) = tracker.orderedDictionary(keys: 0 ..< count)
           let origScale = d.keys.__unstable.scale
-          withHiddenCopies(if: isShared, of: &d) { d in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             d.removeAll(keepingCapacity: true)
             expectEqual(d.keys.__unstable.scale, origScale)
             expectEqualElements(d, [])
@@ -1213,16 +1119,13 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("offset", in: 0 ..< count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               let actual = d.remove(at: offset)
-              let expectedKey = keys.remove(at: offset)
-              let expectedValue = values.remove(at: offset)
-              expectEqual(actual.key, expectedKey)
-              expectEqual(actual.value, expectedValue)
-              expectEqualElements(
-                d,
-                zip(keys, values).map { (key: $0.0, value: $0.1) })
+              let expectedItem = reference.remove(at: offset)
+              expectEqual(actual.key, expectedItem.key)
+              expectEqual(actual.value, expectedItem.value)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1235,14 +1138,11 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEveryRange("range", in: 0 ..< count) { range in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.removeSubrange(range)
-              keys.removeSubrange(range)
-              values.removeSubrange(range)
-              expectEqualElements(
-                d,
-                zip(keys, values).map { (key: $0.0, value: $0.1) })
+              reference.removeSubrange(range)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1270,17 +1170,14 @@ class OrderedDictionaryTests: CollectionTestCase {
   func test_removeLast() {
     withEvery("isShared", in: [false, true]) { isShared in
       withLifetimeTracking { tracker in
-        var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< 30)
+        var (d, reference) = tracker.orderedDictionary(keys: 0 ..< 30)
         withEvery("i", in: 0 ..< d.count) { i in
-          withHiddenCopies(if: isShared, of: &d) { d in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             let actual = d.removeLast()
-            let expectedKey = keys.removeLast()
-            let expectedValue = values.removeLast()
-            expectEqual(actual.key, expectedKey)
-            expectEqual(actual.value, expectedValue)
-            expectEqualElements(
-              d,
-              zip(keys, values).map { (key: $0.0, value: $0.1) })
+            let ref = reference.removeLast()
+            expectEqual(actual.key, ref.key)
+            expectEqual(actual.value, ref.value)
+            expectEqualElements(d, reference)
           }
         }
       }
@@ -1290,17 +1187,14 @@ class OrderedDictionaryTests: CollectionTestCase {
   func test_removeFirst() {
     withEvery("isShared", in: [false, true]) { isShared in
       withLifetimeTracking { tracker in
-        var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< 30)
+        var (d, reference) = tracker.orderedDictionary(keys: 0 ..< 30)
         withEvery("i", in: 0 ..< d.count) { i in
-          withHiddenCopies(if: isShared, of: &d) { d in
+          withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
             let actual = d.removeFirst()
-            let expectedKey = keys.removeFirst()
-            let expectedValue = values.removeFirst()
-            expectEqual(actual.key, expectedKey)
-            expectEqual(actual.value, expectedValue)
-            expectEqualElements(
-              d,
-              zip(keys, values).map { (key: $0.0, value: $0.1) })
+            let expected = reference.removeFirst()
+            expectEqual(actual.key, expected.key)
+            expectEqual(actual.value, expected.value)
+            expectEqualElements(d, reference)
           }
         }
       }
@@ -1312,14 +1206,11 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("suffix", in: 0 ..< count) { suffix in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.removeLast(suffix)
-              keys.removeLast(suffix)
-              values.removeLast(suffix)
-              expectEqualElements(
-                d,
-                zip(keys, values).map { (key: $0.0, value: $0.1) })
+              reference.removeLast(suffix)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1332,14 +1223,11 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("prefix", in: 0 ..< count) { prefix in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            withHiddenCopies(if: isShared, of: &d) { d in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.removeFirst(prefix)
-              keys.removeFirst(prefix)
-              values.removeFirst(prefix)
-              expectEqualElements(
-                d,
-                zip(keys, values).map { (key: $0.0, value: $0.1) })
+              reference.removeFirst(prefix)
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1352,12 +1240,11 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("n", in: [2, 3, 4]) { n in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
-            var (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-            var items = zip(keys, values).map { (key: $0.0, value: $0.1) }
-            withHiddenCopies(if: isShared, of: &d) { d in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.removeAll(where: { !$0.key.payload.isMultiple(of: n) })
-              items.removeAll(where: { !$0.key.payload.isMultiple(of: n) })
-              expectEqualElements(d, items)
+              reference.removeAll(where: { !$0.key.payload.isMultiple(of: n) })
+              expectEqualElements(d, reference)
             }
           }
         }
@@ -1368,11 +1255,10 @@ class OrderedDictionaryTests: CollectionTestCase {
   func test_Sequence() {
     withEvery("count", in: 0 ..< 30) { count in
       withLifetimeTracking { tracker in
-        let (d, keys, values) = tracker.orderedDictionary(keys: 0 ..< count)
-        let items = zip(keys, values).map { (key: $0.0, value: $0.1) }
+        let (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
         checkSequence(
           { d },
-          expectedContents: items,
+          expectedContents: reference,
           by: { $0.key == $1.0 && $0.value == $1.1 })
       }
     }

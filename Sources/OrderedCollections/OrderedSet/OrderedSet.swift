@@ -89,7 +89,7 @@
 ///     a == b // false
 ///     a.unordered == b.unordered // true
 ///
-///     func frobnicate<S: OrderedSet>(_ set: S) { ... }
+///     func frobnicate<S: SetAlgebra>(_ set: S) { ... }
 ///     frobnicate(a) // error: `OrderedSet<String>` does not conform to `SetAlgebra`
 ///     frobnicate(a.unordered) // OK
 ///
@@ -247,10 +247,10 @@ public struct OrderedSet<Element> where Element: Hashable
   @inlinable
   internal init(
     _uniqueElements: ContiguousArray<Element>,
-    _ table: _HashTable? = nil
+    _ table: _HashTable?
   ) {
     self.__storage = table?._storage
-    self._elements = ContiguousArray(_uniqueElements)
+    self._elements = _uniqueElements
   }
 
   @inlinable

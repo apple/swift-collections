@@ -11,7 +11,7 @@
 
 #import "Hashing.h"
 #import "CustomHash.h"
-#import "utils.h"
+#import "Utils.h"
 
 cpp_hash_fn custom_hash_fn;
 

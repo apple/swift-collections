@@ -10,3 +10,4 @@ See https://swift.org/LICENSE.txt for license information
 add_subdirectory(Collections)
 add_subdirectory(DequeModule)
 add_subdirectory(OrderedCollections)
+add_subdirectory(PriorityQueueModule)

@@ -4,7 +4,7 @@
 //
 //  Created by Mahanaz Atiqullah on 7/15/21.
 //
-import CollectionsTestSupport
+import _CollectionsTestSupport
 @_spi(Testing) import BitArrayModule 
 
 func withSomeUsefulBoolArrays<C: Collection>(

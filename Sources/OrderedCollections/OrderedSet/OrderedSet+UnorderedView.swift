@@ -12,6 +12,7 @@
 extension OrderedSet {
   /// An unordered view into an ordered set, providing `SetAlgebra`
   /// conformance.
+  @frozen
   public struct UnorderedView {
     public typealias Element = OrderedSet.Element
 

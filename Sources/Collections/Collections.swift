@@ -11,4 +11,5 @@
 
 @_exported import DequeModule
 @_exported import OrderedCollections
+@_exported import PriorityQueueModule
 @_exported import BitArrayModule

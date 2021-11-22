@@ -215,7 +215,10 @@ extension OrderedSet {
   public mutating func removeAll(
     where shouldBeRemoved: (Element) throws -> Bool
   ) rethrows {
-    defer { _regenerateHashTable() }
+    defer {
+      _regenerateHashTable()
+      _checkInvariants()
+    }
     try _elements.removeAll(where: shouldBeRemoved)
   }
 }
