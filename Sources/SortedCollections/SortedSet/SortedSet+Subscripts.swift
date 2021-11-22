@@ -15,6 +15,15 @@ extension SortedSet {
     position._index.ensureValid(forTree: self._root)
     return self._root[position._index].key
   }
+
+  @inlinable
+  public subscript(bounds: Range<Index>) -> SubSequence {
+    bounds.lowerBound._index.ensureValid(forTree: self._root)
+    bounds.upperBound._index.ensureValid(forTree: self._root)
+    let bounds = bounds.lowerBound._index ..< bounds.upperBound._index
+    return SubSequence(_root[bounds])
+  }
+
   
   /// Returns a sequence of elements in the collection bounded by the provided
   /// range.
