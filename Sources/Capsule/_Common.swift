@@ -13,7 +13,7 @@ func computeHash<T: Hashable>(_ value: T) -> Int {
     value.hashValue
 }
 
-typealias Bitmap = Int32
+typealias Bitmap = UInt32
 
 let bitPartitionSize: Int = 5
 
@@ -36,7 +36,7 @@ func indexFrom(_ bitmap: Bitmap, _ bitpos: Bitmap) -> Int {
 }
 
 func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
-    (bitmap == -1) ? mask : indexFrom(bitmap, bitpos)
+    (bitmap == Bitmap.max) ? mask : indexFrom(bitmap, bitpos)
 }
 
 enum TrieNode<BitmapIndexedNode: Node, HashCollisionNode: Node> {
