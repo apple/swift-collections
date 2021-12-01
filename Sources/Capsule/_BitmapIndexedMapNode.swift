@@ -638,10 +638,12 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        if isStorageKnownUniquelyReferenced {
+        let hasRoomForData = header.dataCount < dataCapacity
+
+        if isStorageKnownUniquelyReferenced && hasRoomForData {
             dst = src
         } else {
-            dst = src.copy()
+            dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
         }
 
         let nodeIdx = indexFrom(nodeMap, bitpos)
@@ -662,10 +664,12 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
-        if isStorageKnownUniquelyReferenced {
+        let hasRoomForData = header.dataCount < dataCapacity
+
+        if isStorageKnownUniquelyReferenced && hasRoomForData {
             dst = src
         } else {
-            dst = src.copy()
+            dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
         }
 
         let collIdx = nodeMap.nonzeroBitCount + indexFrom(collMap, bitpos)
