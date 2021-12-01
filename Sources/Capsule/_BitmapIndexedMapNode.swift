@@ -14,6 +14,8 @@ fileprivate let initialTrieCapacity = 1
 
 final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
+    typealias ReturnPayload = (key: Key, value: Value)
+
     typealias DataBufferElement = ReturnPayload // `ReturnPayload` or `Any`
     typealias TrieBufferElement = AnyObject
 
