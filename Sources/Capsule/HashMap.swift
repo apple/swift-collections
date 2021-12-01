@@ -11,21 +11,19 @@
 
 public struct HashMap<Key, Value> where Key: Hashable {
     var rootNode: BitmapIndexedMapNode<Key, Value>
-    var cachedKeySetHashCode: Int
     var cachedSize: Int
 
-    fileprivate init(_ rootNode: BitmapIndexedMapNode<Key, Value>, _ cachedKeySetHashCode: Int, _ cachedSize: Int) {
+    fileprivate init(_ rootNode: BitmapIndexedMapNode<Key, Value>, _ cachedSize: Int) {
         self.rootNode = rootNode
-        self.cachedKeySetHashCode = cachedKeySetHashCode
         self.cachedSize = cachedSize
     }
 
     public init() {
-        self.init(BitmapIndexedMapNode(), 0, 0)
+        self.init(BitmapIndexedMapNode(), 0)
     }
 
     public init(_ map: HashMap<Key, Value>) {
-        self.init(map.rootNode, map.cachedKeySetHashCode, map.cachedSize)
+        self.init(map.rootNode, map.cachedSize)
     }
 
     // TODO consider removing `unchecked` version, since it's only referenced from within the test suite
@@ -131,11 +129,9 @@ public struct HashMap<Key, Value> where Key: Hashable {
         if effect.modified {
             if effect.replacedValue {
                 self.rootNode = newRootNode
-                // self.cachedKeySetHashCode = cachedKeySetHashCode
                 // self.cachedSize = cachedSize
             } else {
                 self.rootNode = newRootNode
-                self.cachedKeySetHashCode = cachedKeySetHashCode ^ keyHash
                 self.cachedSize = cachedSize + 1
             }
         }
@@ -149,9 +145,9 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
         if effect.modified {
             if effect.replacedValue {
-                return Self(newRootNode, cachedKeySetHashCode, cachedSize)
+                return Self(newRootNode, cachedSize)
             } else {
-                return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize + 1)
+                return Self(newRootNode, cachedSize + 1)
             }
         } else { return self }
     }
@@ -177,7 +173,6 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
         if effect.modified {
             self.rootNode = newRootNode
-            self.cachedKeySetHashCode = cachedKeySetHashCode ^ keyHash
             self.cachedSize = cachedSize - 1
         }
     }
@@ -189,7 +184,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
         let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
         if effect.modified {
-            return Self(newRootNode, cachedKeySetHashCode ^ keyHash, cachedSize - 1)
+            return Self(newRootNode, cachedSize - 1)
         } else { return self }
     }
 

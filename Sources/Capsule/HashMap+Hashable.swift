@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO settle on (commutative) hash semantics that is reconcilable with `cachedKeySetHashCode`
 extension HashMap: Hashable where Value: Hashable {
     public func hash(into hasher: inout Hasher) {
         var commutativeHash = 0

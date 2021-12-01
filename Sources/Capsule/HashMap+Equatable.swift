@@ -13,7 +13,6 @@
 extension HashMap: Equatable where Value: Equatable {
     public static func == (lhs: HashMap<Key, Value>, rhs: HashMap<Key, Value>) -> Bool {
         lhs.cachedSize == rhs.cachedSize &&
-            lhs.cachedKeySetHashCode == rhs.cachedKeySetHashCode &&
             (lhs.rootNode === rhs.rootNode || lhs.rootNode == rhs.rootNode)
     }
 }
