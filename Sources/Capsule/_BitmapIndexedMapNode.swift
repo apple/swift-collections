@@ -56,7 +56,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         let memory = UnsafeMutableRawPointer.allocate(
             byteCount: dataCapacityInBytes + trieCapacityInBytes,
-            alignment: 8)
+            alignment: Swift.max(MemoryLayout<DataBufferElement>.alignment, MemoryLayout<TrieBufferElement>.alignment))
 
         let dataBaseAddress = memory.advanced(by: trieCapacityInBytes).bindMemory(to: DataBufferElement.self, capacity: dataCapacity)
         let trieBaseAddress = memory.bindMemory(to: TrieBufferElement.self, capacity: trieCapacity)
