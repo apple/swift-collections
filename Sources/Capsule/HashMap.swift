@@ -111,7 +111,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
         rootNode.containsKey(key, computeHash(key), 0)
     }
 
-    public func get(_ key: Key) -> Value? {
+    func get(_ key: Key) -> Value? {
         rootNode.get(key, computeHash(key), 0)
     }
 

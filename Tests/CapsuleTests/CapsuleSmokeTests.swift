@@ -68,12 +68,12 @@ final class CapsuleSmokeTests: CollectionTestCase {
         res3[2] = "y" // in-place
 
         expectEqual(res2.count, 2)
-        expectEqual(res2.get(1), "a")
-        expectEqual(res2.get(2), "b")
+        expectEqual(res2[1], "a")
+        expectEqual(res2[2], "b")
 
         expectEqual(res3.count, 2)
-        expectEqual(res3.get(1), "x")
-        expectEqual(res3.get(2), "y")
+        expectEqual(res3[1], "x")
+        expectEqual(res3[2], "y")
     }
 
     func testTriggerOverwrite2() {
@@ -95,13 +95,13 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
         print("Yeah!")
 
-        expectEqual(res1.get(CollidableInt(10, 01)), "x")
-        expectEqual(res1.get(CollidableInt(11, 33)), "x")
-        expectEqual(res1.get(CollidableInt(20, 02)), "y")
+        expectEqual(res1[CollidableInt(10, 01)], "x")
+        expectEqual(res1[CollidableInt(11, 33)], "x")
+        expectEqual(res1[CollidableInt(20, 02)], "y")
 
-        expectEqual(res2.get(CollidableInt(10, 01)), "a")
-        expectEqual(res2.get(CollidableInt(11, 33)), "a")
-        expectEqual(res2.get(CollidableInt(20, 02)), "b")
+        expectEqual(res2[CollidableInt(10, 01)], "a")
+        expectEqual(res2[CollidableInt(11, 33)], "a")
+        expectEqual(res2[CollidableInt(20, 02)], "b")
 
     }
 
