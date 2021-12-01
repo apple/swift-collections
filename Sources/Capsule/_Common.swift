@@ -105,7 +105,7 @@ extension SizePredicate {
     }
 }
 
-protocol Node {
+protocol Node: AnyObject {
     associatedtype ReturnPayload
     associatedtype ReturnBitmapIndexedNode: Node
     associatedtype ReturnHashCollisionNode: Node
