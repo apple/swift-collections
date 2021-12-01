@@ -128,8 +128,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: dataMap, bitmap2: 0)
 
-//        self.dataBaseAddress[0] = (firstKey, firstValue)
-
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
 
         assert(self.invariant)
@@ -139,9 +137,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         self.init()
 
         self.header = Header(bitmap1: dataMap, bitmap2: 0)
-
-//        self.dataBaseAddress[0] = (firstKey, firstValue)
-//        self.dataBaseAddress[1] = (secondKey, secondValue)
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.dataBaseAddress.successor().initialize(to: (secondKey, secondValue))
@@ -154,8 +149,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: 0, bitmap2: nodeMap)
 
-//        self.trieBaseAddress[0] = firstNode
-
         self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
@@ -166,8 +159,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
         self.header = Header(bitmap1: collMap, bitmap2: collMap)
 
-//        self.trieBaseAddress[0] = firstNode
-
         self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
@@ -177,9 +168,6 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         self.init()
 
         self.header = Header(bitmap1: dataMap | collMap, bitmap2: collMap)
-
-//        self.dataBaseAddress[0] = (firstKey, firstValue)
-//        self.trieBaseAddress[0] = firstNode
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.trieBaseAddress.initialize(to: firstNode)
