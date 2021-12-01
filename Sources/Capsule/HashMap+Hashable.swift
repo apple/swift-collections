@@ -14,7 +14,7 @@ extension HashMap: Hashable where Value: Hashable {
     public func hash(into hasher: inout Hasher) {
         var commutativeHash = 0
         for (key, value) in self {
-            var elementHasher = Hasher()
+            var elementHasher = hasher
             elementHasher.combine(key)
             elementHasher.combine(value)
             commutativeHash ^= elementHasher.finalize()
