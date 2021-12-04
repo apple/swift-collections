@@ -49,6 +49,16 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "MultiSetsTests"
+               BuildableName = "MultiSetsTests"
+               BlueprintName = "MultiSetsTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

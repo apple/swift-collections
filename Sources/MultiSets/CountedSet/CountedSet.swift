@@ -19,6 +19,9 @@ public struct CountedSet<Element: Hashable>: RawRepresentable {
   @inlinable @inline(__always)
   public var rawValue: [Element: UInt] { _storage }
 
+  @inlinable
+  public var isEmpty: Bool { rawValue.isEmpty }
+
   /// Creates an empty counted set with preallocated space for at least the
   /// specified number of unique elements.
   ///
