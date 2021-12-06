@@ -10,6 +10,9 @@
 //===----------------------------------------------------------------------===//
 
 final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
+
+    typealias ReturnPayload = (key: Key, value: Value)
+
     let hash: Int
     let content: [(key: Key, value: Value)]
 
