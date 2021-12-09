@@ -146,19 +146,6 @@ extension Benchmark {
       blackHole(d)
     }
 
-    self.addSimple(
-      title: "HashMap<Int, Int> subscript, insert, reserving capacity",
-      input: [Int].self
-    ) { input in
-      var d: HashMap<Int, Int> = [:]
-      d.reserveCapacity(input.count)
-      for i in input {
-        d[i] = 2 * i
-      }
-      precondition(d.count == input.count)
-      blackHole(d)
-    }
-
     self.add(
       title: "HashMap<Int, Int> subscript, remove existing",
       input: ([Int], [Int]).self
