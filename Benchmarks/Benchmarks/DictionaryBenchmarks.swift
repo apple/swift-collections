@@ -145,6 +145,26 @@ extension Benchmark {
       blackHole(d)
     }
 
+    self.add(
+      title: "Dictionary<Int, Int> [COW] subscript, insert",
+      input: ([Int], [Int]).self
+    ) { input, insert in
+      return { timer in
+        let d = Dictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        let c = input.count
+        timer.measure {
+          for i in insert {
+            var e = d
+            e[c + i] = 2 * (c + i)
+            precondition(e.count == input.count + 1)
+            blackHole(e)
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+
     self.addSimple(
       title: "Dictionary<Int, Int> subscript, insert, reserving capacity",
       input: [Int].self
