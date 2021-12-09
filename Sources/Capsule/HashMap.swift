@@ -199,33 +199,77 @@ public struct HashMap<Key, Value> where Key: Hashable {
     }
 }
 
-public struct MapKeyValueTupleIterator<Key: Hashable, Value> {
-    private var baseIterator: ChampBaseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
+///
+/// Fixed-stack iterator for traversing a hash-trie. The iterator performs a
+/// depth-first pre-order traversal, which yields first all payload elements of the current
+/// node before traversing sub-nodes (left to right).
+///
+public struct MapKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
+
+    private var payloadIterator: UnsafeBufferPointer<(key: Key, value: Value)>.Iterator?
+
+    private var trieIteratorStackTop: UnsafeBufferPointer<AnyObject>.Iterator?
+    private var trieIteratorStackRemainder: [UnsafeBufferPointer<AnyObject>.Iterator]
 
     init(rootNode: BitmapIndexedMapNode<Key, Value>) {
-        self.baseIterator = ChampBaseIterator(rootNode: .bitmapIndexed(rootNode))
-    }
-}
+        trieIteratorStackRemainder = []
+        trieIteratorStackRemainder.reserveCapacity(maxDepth)
 
-extension MapKeyValueTupleIterator: IteratorProtocol {
+        if rootNode.hasNodes   { trieIteratorStackTop = makeTrieIterator(rootNode) }
+        if rootNode.hasPayload { payloadIterator = makePayloadIterator(rootNode) }
+    }
+
+    // TODO consider moving to `BitmapIndexedMapNode<Key, Value>`
+    private func makePayloadIterator(_ node: BitmapIndexedMapNode<Key, Value>) -> UnsafeBufferPointer<(key: Key, value: Value)>.Iterator {
+        UnsafeBufferPointer(start: node.dataBaseAddress, count: node.payloadArity).makeIterator()
+    }
+
+    // TODO consider moving to `BitmapIndexedMapNode<Key, Value>`
+    private func makeTrieIterator(_ node: BitmapIndexedMapNode<Key, Value>) -> UnsafeBufferPointer<AnyObject>.Iterator {
+        UnsafeBufferPointer(start: node.trieBaseAddress, count: node.nodeArity).makeIterator()
+    }
+
     public mutating func next() -> (key: Key, value: Value)? {
-        guard baseIterator.hasNext() else { return nil }
-
-        let payload: (Key, Value)
-
-        // TODO remove duplication in specialization
-        switch baseIterator.currentValueNode! {
-        case .bitmapIndexed(let node):
-            payload = node.getPayload(baseIterator.currentValueCursor)
-        case .hashCollision(let node):
-            payload = node.getPayload(baseIterator.currentValueCursor)
+        if let payload = payloadIterator?.next() {
+            return payload
         }
-        baseIterator.currentValueCursor += 1
 
-        return payload
+        while trieIteratorStackTop != nil {
+            if let nextAnyObject = trieIteratorStackTop!.next() {
+                switch nextAnyObject {
+                case let nextNode as BitmapIndexedMapNode<Key, Value>:
+                    if nextNode.hasNodes {
+                        trieIteratorStackRemainder.append(trieIteratorStackTop!)
+                        trieIteratorStackTop = makeTrieIterator(nextNode)
+                    }
+                    if nextNode.hasPayload {
+                        payloadIterator = makePayloadIterator(nextNode)
+                        return payloadIterator?.next()
+                    }
+                case let nextNode as HashCollisionMapNode<Key, Value>:
+                    payloadIterator = nextNode.content.withUnsafeBufferPointer { $0.makeIterator() }
+                    return payloadIterator?.next()
+                default:
+                    break
+                }
+            } else {
+                trieIteratorStackTop = trieIteratorStackRemainder.popLast()
+            }
+        }
+
+        // Clean-up state
+        payloadIterator = nil
+
+        assert(payloadIterator == nil)
+        assert(trieIteratorStackTop == nil)
+        assert(trieIteratorStackRemainder.isEmpty)
+
+        return nil
     }
 }
 
+// TODO consider reworking similar to `MapKeyValueTupleIterator`
+// (would require a reversed variant of `UnsafeBufferPointer<(key: Key, value: Value)>.Iterator`)
 public struct MapKeyValueTupleReverseIterator<Key: Hashable, Value> {
     private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
 
