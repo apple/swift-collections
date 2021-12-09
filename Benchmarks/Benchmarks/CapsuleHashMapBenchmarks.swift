@@ -138,7 +138,7 @@ extension Benchmark {
       title: "HashMap<Int, Int> subscript, insert",
       input: [Int].self
     ) { input in
-      var d: [Int: Int] = [:]
+      var d: HashMap<Int, Int> = [:]
       for i in input {
         d[i] = 2 * i
       }
@@ -150,7 +150,7 @@ extension Benchmark {
       title: "HashMap<Int, Int> subscript, insert, reserving capacity",
       input: [Int].self
     ) { input in
-      var d: [Int: Int] = [:]
+      var d: HashMap<Int, Int> = [:]
       d.reserveCapacity(input.count)
       for i in input {
         d[i] = 2 * i
