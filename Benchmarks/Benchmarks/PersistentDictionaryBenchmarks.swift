@@ -183,6 +183,25 @@ extension Benchmark {
     }
 
     self.add(
+      title: "PersistentDictionary<Int, Int> [COW] subscript, remove existing",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        timer.measure {
+          for i in lookups {
+            var e = d
+            e[i] = nil
+            precondition(e.count == input.count - 1)
+            blackHole(e)
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+
+    self.add(
       title: "PersistentDictionary<Int, Int> subscript, remove missing",
       input: ([Int], [Int]).self
     ) { input, lookups in
