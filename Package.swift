@@ -116,7 +116,7 @@ let package = Package(
         dependencies: ["PriorityQueueModule"],
         swiftSettings: settings),
 
-    // HashMap<Key, Value>
+    // PersistentDictionary<Key, Value>
     .target(
       name: "Capsule",
       swiftSettings: settings),

@@ -14,7 +14,7 @@ import _CollectionsTestSupport
 
 final class CapsuleSmokeTests: CollectionTestCase {
     func testSubscriptAdd() {
-        var map: HashMap<Int, String> = [1: "a", 2: "b"]
+        var map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
         map[3] = "x"
         map[4] = "y"
@@ -27,7 +27,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testSubscriptOverwrite() {
-        var map: HashMap<Int, String> = [1: "a", 2: "b"]
+        var map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
         map[1] = "x"
         map[2] = "y"
@@ -38,7 +38,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testSubscriptRemove() {
-        var map: HashMap<Int, String> = [1: "a", 2: "b"]
+        var map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
         map[1] = nil
         map[2] = nil
@@ -49,21 +49,21 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testTriggerOverwrite1() {
-        let map: HashMap<Int, String> = [1: "a", 2: "b"]
+        let map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
         _ = map
             .inserting(key: 1, value: "x") // triggers COW
             .inserting(key: 2, value: "y") // triggers COW
 
-        var res1: HashMap<Int, String> = [:]
+        var res1: PersistentDictionary<Int, String> = [:]
         res1.insert(key: 1, value: "a") // in-place
         res1.insert(key: 2, value: "b") // in-place
 
-        var res2: HashMap<Int, String> = [:]
+        var res2: PersistentDictionary<Int, String> = [:]
         res2[1] = "a" // in-place
         res2[2] = "b" // in-place
 
-        var res3: HashMap<Int, String> = res2
+        var res3: PersistentDictionary<Int, String> = res2
         res3[1] = "x" // triggers COW
         res3[2] = "y" // in-place
 
@@ -77,7 +77,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testTriggerOverwrite2() {
-        var res1: HashMap<CollidableInt, String> = [:]
+        var res1: PersistentDictionary<CollidableInt, String> = [:]
         res1.insert(key: CollidableInt(10, 01), value: "a") // in-place
         res1.insert(key: CollidableInt(11, 33), value: "a") // in-place
         res1.insert(key: CollidableInt(20, 02), value: "b") // in-place
@@ -88,7 +88,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
         print("Yeah!")
 
-        var res2: HashMap<CollidableInt, String> = res1
+        var res2: PersistentDictionary<CollidableInt, String> = res1
         res2.insert(key: CollidableInt(10, 01), value: "a") // triggers COW
         res2.insert(key: CollidableInt(11, 33), value: "a") // in-place
         res2.insert(key: CollidableInt(20, 02), value: "b") // in-place
@@ -108,14 +108,14 @@ final class CapsuleSmokeTests: CollectionTestCase {
     func testTriggerOverwrite3() {
         let upperBound = 1_000
 
-        var map1: HashMap<CollidableInt, String> = [:]
+        var map1: PersistentDictionary<CollidableInt, String> = [:]
         for index in 0..<upperBound {
             map1[CollidableInt(index)] = "+\(index)"
         }
 
         print("Populated `map1`")
 
-        var map2: HashMap<CollidableInt, String> = map1
+        var map2: PersistentDictionary<CollidableInt, String> = map1
         for index in 0..<upperBound {
             map2[CollidableInt(index)] = "-\(index)"
         }
@@ -132,7 +132,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
         print("Tested `map1` and `map2`")
 
-        var map3: HashMap<CollidableInt, String> = map2
+        var map3: PersistentDictionary<CollidableInt, String> = map2
         for index in 0..<upperBound {
             map3[CollidableInt(index)] = nil
 
@@ -156,7 +156,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testHashable() {
-        let map: HashMap<Int, String> = [1: "a", 2: "b"]
+        let map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
         let hashPair1 = hashPair(1, "a")
         let hashPair2 = hashPair(2, "b")
@@ -175,7 +175,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode1() {
-        let map: HashMap<CollidableInt, CollidableInt> = [:]
+        let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
 
 
         var res1 = map
@@ -186,7 +186,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res1.contains(CollidableInt(12, 1)))
 
         expectEqual(res1.count, 2)
-        expectEqual(HashMap.init([CollidableInt(11, 1): CollidableInt(11, 1), CollidableInt(12, 1): CollidableInt(12, 1)]), res1)
+        expectEqual(PersistentDictionary.init([CollidableInt(11, 1): CollidableInt(11, 1), CollidableInt(12, 1): CollidableInt(12, 1)]), res1)
 
 
         var res2 = res1
@@ -196,7 +196,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectFalse(res2.contains(CollidableInt(12, 1)))
 
         expectEqual(res2.count, 1)
-        expectEqual(HashMap.init([CollidableInt(11, 1): CollidableInt(11, 1)]), res2)
+        expectEqual(PersistentDictionary.init([CollidableInt(11, 1): CollidableInt(11, 1)]), res2)
 
 
         var res3 = res1
@@ -206,7 +206,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res3.contains(CollidableInt(12, 1)))
 
         expectEqual(res3.count, 1)
-        expectEqual(HashMap.init([CollidableInt(12, 1): CollidableInt(12, 1)]), res3)
+        expectEqual(PersistentDictionary.init([CollidableInt(12, 1): CollidableInt(12, 1)]), res3)
 
 
         var resX = res1
@@ -218,7 +218,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(resX.contains(CollidableInt(32769)))
 
         expectEqual(resX.count, 2)
-        expectEqual(HashMap.init([CollidableInt(11, 1): CollidableInt(11, 1), CollidableInt(32769): CollidableInt(32769)]), resX)
+        expectEqual(PersistentDictionary.init([CollidableInt(11, 1): CollidableInt(11, 1), CollidableInt(32769): CollidableInt(32769)]), resX)
 
 
         var resY = res1
@@ -230,11 +230,11 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectFalse(resY.contains(CollidableInt(32769)))
 
         expectEqual(resY.count, 2)
-        expectEqual(HashMap.init([CollidableInt(11, 1): CollidableInt(11, 1), CollidableInt(12, 1): CollidableInt(12, 1)]), resY)
+        expectEqual(PersistentDictionary.init([CollidableInt(11, 1): CollidableInt(11, 1), CollidableInt(12, 1): CollidableInt(12, 1)]), resY)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode2() {
-        let map: HashMap<CollidableInt, CollidableInt> = [:]
+        let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
 
 
         var res1 = map
@@ -245,7 +245,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res1.count, 2)
-        expectEqual(HashMap.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res1)
+        expectEqual(PersistentDictionary.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res1)
 
 
         var res2 = res1
@@ -256,7 +256,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res2.count, 3)
-        expectEqual(HashMap.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res2)
+        expectEqual(PersistentDictionary.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res2)
 
 
         var res3 = res2
@@ -266,11 +266,11 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
 
         expectEqual(res3.count, 2)
-        expectEqual(HashMap.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769)]), res3)
+        expectEqual(PersistentDictionary.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769)]), res3)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode3() {
-        let map: HashMap<CollidableInt, CollidableInt> = [:]
+        let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
 
 
         var res1 = map
@@ -281,7 +281,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res1.count, 2)
-        expectEqual(HashMap.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res1)
+        expectEqual(PersistentDictionary.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res1)
 
 
         var res2 = res1
@@ -292,7 +292,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res2.count, 3)
-        expectEqual(HashMap.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res2)
+        expectEqual(PersistentDictionary.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res2)
 
 
         var res3 = res2
@@ -302,14 +302,14 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res3.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res3.count, 2)
-        expectEqual(HashMap.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res3)
+        expectEqual(PersistentDictionary.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res3)
 
 
         expectEqual(res1, res3)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode4() {
-        let map: HashMap<CollidableInt, CollidableInt> = [:]
+        let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
 
 
         var res1 = map
@@ -320,7 +320,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res1.count, 2)
-        expectEqual(HashMap.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res1)
+        expectEqual(PersistentDictionary.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res1)
 
 
         var res2 = res1
@@ -331,7 +331,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res2.count, 3)
-        expectEqual(HashMap.init([CollidableInt(5): CollidableInt(5), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res2)
+        expectEqual(PersistentDictionary.init([CollidableInt(5): CollidableInt(5), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res2)
 
 
         var res3 = res2
@@ -341,14 +341,14 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res3.contains(CollidableInt(32769_2, 32769)))
 
         expectEqual(res3.count, 2)
-        expectEqual(HashMap.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res3)
+        expectEqual(PersistentDictionary.init([CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]), res3)
 
 
         expectEqual(res1, res3)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode5() {
-        let map: HashMap<CollidableInt, CollidableInt> = [:]
+        let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
 
 
         var res1 = map
@@ -363,7 +363,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res1.contains(CollidableInt(32770_2, 32770)))
 
         expectEqual(res1.count, 4)
-        expectEqual(HashMap.init([CollidableInt(1): CollidableInt(1), CollidableInt(1026): CollidableInt(1026), CollidableInt(32770_1, 32770): CollidableInt(32770_1, 32770), CollidableInt(32770_2, 32770): CollidableInt(32770_2, 32770)]), res1)
+        expectEqual(PersistentDictionary.init([CollidableInt(1): CollidableInt(1), CollidableInt(1026): CollidableInt(1026), CollidableInt(32770_1, 32770): CollidableInt(32770_1, 32770), CollidableInt(32770_2, 32770): CollidableInt(32770_2, 32770)]), res1)
 
 
         var res2 = res1
@@ -375,10 +375,10 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectTrue(res2.contains(CollidableInt(32770_2, 32770)))
 
         expectEqual(res2.count, 3)
-        expectEqual(HashMap.init([CollidableInt(1): CollidableInt(1), CollidableInt(32770_1, 32770): CollidableInt(32770_1, 32770), CollidableInt(32770_2, 32770): CollidableInt(32770_2, 32770)]), res2)
+        expectEqual(PersistentDictionary.init([CollidableInt(1): CollidableInt(1), CollidableInt(32770_1, 32770): CollidableInt(32770_1, 32770), CollidableInt(32770_2, 32770): CollidableInt(32770_2, 32770)]), res2)
     }
 
-    func inferSize<Key, Value>(_ map: HashMap<Key, Value>) -> Int {
+    func inferSize<Key, Value>(_ map: PersistentDictionary<Key, Value>) -> Int {
         var size = 0
 
         for _ in map {
@@ -388,14 +388,41 @@ final class CapsuleSmokeTests: CollectionTestCase {
         return size
     }
 
+    func testIteratorEnumeratesAllIfNoCollision() {
+        let upperBound = 1_000_000
+
+        var map1: PersistentDictionary<Int, String> = [:]
+        for index in 0..<upperBound {
+            map1[index] = "+\(index)"
+        }
+
+        var count = 0
+        for _ in map1 {
+            count = count + 1
+        }
+
+        expectEqual(map1.count, count)
+
+        doIterate(map1)
+    }
+
+    @inline(never)
+    func doIterate(_ map1: PersistentDictionary<Int, String>) {
+        var count = 0
+        for _ in map1 {
+            count = count + 1
+        }
+        expectEqual(map1.count, count)
+    }
+
     func testIteratorEnumeratesAll() {
-        let map1: HashMap<CollidableInt, String> = [
+        let map1: PersistentDictionary<CollidableInt, String> = [
             CollidableInt(11, 1): "a",
             CollidableInt(12, 1): "a",
             CollidableInt(32769): "b"
         ]
 
-        var map2: HashMap<CollidableInt, String> = [:]
+        var map2: PersistentDictionary<CollidableInt, String> = [:]
         for (key, value) in map1 {
             map2[key] = value
         }

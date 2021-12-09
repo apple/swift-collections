@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension HashMap: CustomStringConvertible {
+extension PersistentDictionary: CustomStringConvertible {
     public var description: String {
         guard count > 0 else {
             return "[:]"

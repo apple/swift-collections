@@ -16,7 +16,7 @@ extension LifetimeTracker {
   func persistentDictionary<Keys: Sequence>(
     keys: Keys
   ) -> (
-    dictionary: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>>,
+    dictionary: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>>,
     keys: [LifetimeTracked<Int>],
     values: [LifetimeTracked<Int>]
   )
@@ -25,7 +25,7 @@ extension LifetimeTracker {
     let k = Array(keys)
     let keys = self.instances(for: k)
     let values = self.instances(for: k.map { $0 + 100 })
-    let dictionary = HashMap(uniqueKeys: keys, values: values)
+    let dictionary = PersistentDictionary(uniqueKeys: keys, values: values)
     return (dictionary, keys, values)
   }
 }

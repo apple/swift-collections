@@ -13,22 +13,22 @@ import CollectionsBenchmark
 import Capsule
 
 extension Benchmark {
-  public mutating func addCapsuleHashMapBenchmarks() {
+  public mutating func addPersistentDictionaryBenchmarks() {
     self.add(
-      title: "HashMap<Int, Int> init(uniqueKeysWithValues:)",
+      title: "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
       input: [Int].self
     ) { input in
       let keysAndValues = input.map { ($0, 2 * $0) }
       return { timer in
-        blackHole(HashMap(uniqueKeysWithValues: keysAndValues))
+        blackHole(PersistentDictionary(uniqueKeysWithValues: keysAndValues))
       }
     }
 
     self.add(
-      title: "HashMap<Int, Int> sequential iteration",
+      title: "PersistentDictionary<Int, Int> sequential iteration",
       input: [Int].self
     ) { input in
-      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for item in d {
           blackHole(item)
@@ -37,10 +37,10 @@ extension Benchmark {
     }
 
 //    self.add(
-//      title: "HashMap<Int, Int>.Keys sequential iteration",
+//      title: "PersistentDictionary<Int, Int>.Keys sequential iteration",
 //      input: [Int].self
 //    ) { input in
-//      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
 //      return { timer in
 //        for item in d.keys {
 //          blackHole(item)
@@ -49,10 +49,10 @@ extension Benchmark {
 //    }
 //
 //    self.add(
-//      title: "HashMap<Int, Int>.Values sequential iteration",
+//      title: "PersistentDictionary<Int, Int>.Values sequential iteration",
 //      input: [Int].self
 //    ) { input in
-//      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
 //      return { timer in
 //        for item in d.values {
 //          blackHole(item)
@@ -61,10 +61,10 @@ extension Benchmark {
 //    }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, successful lookups",
+      title: "PersistentDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in lookups {
           precondition(d[i] == 2 * i)
@@ -73,10 +73,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, unsuccessful lookups",
+      title: "PersistentDictionary<Int, Int> subscript, unsuccessful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       let c = input.count
       return { timer in
         for i in lookups {
@@ -86,11 +86,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, noop setter",
+      title: "PersistentDictionary<Int, Int> subscript, noop setter",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in lookups {
@@ -103,11 +103,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, set existing",
+      title: "PersistentDictionary<Int, Int> subscript, set existing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d[i] = 0
@@ -119,11 +119,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, _modify",
+      title: "PersistentDictionary<Int, Int> subscript, _modify",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d[i]! *= 2
@@ -135,10 +135,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "HashMap<Int, Int> subscript, insert",
+      title: "PersistentDictionary<Int, Int> subscript, insert",
       input: [Int].self
     ) { input in
-      var d: HashMap<Int, Int> = [:]
+      var d: PersistentDictionary<Int, Int> = [:]
       for i in input {
         d[i] = 2 * i
       }
@@ -147,11 +147,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> [COW] subscript, insert",
+      title: "PersistentDictionary<Int, Int> [COW] subscript, insert",
       input: ([Int], [Int]).self
     ) { input, insert in
       return { timer in
-        let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in insert {
@@ -167,11 +167,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, remove existing",
+      title: "PersistentDictionary<Int, Int> subscript, remove existing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d[i] = nil
@@ -183,11 +183,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> subscript, remove missing",
+      title: "PersistentDictionary<Int, Int> subscript, remove missing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in lookups {
@@ -200,10 +200,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> defaulted subscript, successful lookups",
+      title: "PersistentDictionary<Int, Int> defaulted subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in lookups {
           precondition(d[i, default: -1] != -1)
@@ -212,10 +212,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> defaulted subscript, unsuccessful lookups",
+      title: "PersistentDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         let c = d.count
         for i in lookups {
@@ -225,11 +225,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> defaulted subscript, _modify existing",
+      title: "PersistentDictionary<Int, Int> defaulted subscript, _modify existing",
       input: [Int].self
     ) { input in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in input {
             d[i, default: -1] *= 2
@@ -241,11 +241,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> defaulted subscript, _modify missing",
+      title: "PersistentDictionary<Int, Int> defaulted subscript, _modify missing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in lookups {
@@ -258,10 +258,10 @@ extension Benchmark {
     }
 
 //    self.add(
-//      title: "HashMap<Int, Int> successful index(forKey:)",
+//      title: "PersistentDictionary<Int, Int> successful index(forKey:)",
 //      input: ([Int], [Int]).self
 //    ) { input, lookups in
-//      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
 //      return { timer in
 //        for i in lookups {
 //          precondition(d.index(forKey: i) != nil)
@@ -270,10 +270,10 @@ extension Benchmark {
 //    }
 //
 //    self.add(
-//      title: "HashMap<Int, Int> unsuccessful index(forKey:)",
+//      title: "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
 //      input: ([Int], [Int]).self
 //    ) { input, lookups in
-//      let d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
 //      return { timer in
 //        for i in lookups {
 //          precondition(d.index(forKey: lookups.count + i) == nil)
@@ -282,11 +282,11 @@ extension Benchmark {
 //    }
 
     self.add(
-      title: "HashMap<Int, Int> updateValue(_:forKey:), existing",
+      title: "PersistentDictionary<Int, Int> updateValue(_:forKey:), existing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d.updateValue(0, forKey: i)
@@ -298,11 +298,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> updateValue(_:forKey:), insert",
+      title: "PersistentDictionary<Int, Int> updateValue(_:forKey:), insert",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d.updateValue(0, forKey: input.count + i)
@@ -314,11 +314,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> random removals (existing keys)",
+      title: "PersistentDictionary<Int, Int> random removals (existing keys)",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             precondition(d.removeValue(forKey: i) != nil)
@@ -330,12 +330,12 @@ extension Benchmark {
     }
 
     self.add(
-      title: "HashMap<Int, Int> random removals (missing keys)",
+      title: "PersistentDictionary<Int, Int> random removals (missing keys)",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
         let c = input.count
-        var d = HashMap(uniqueKeysWithValues: input.lazy.map { (c + $0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { (c + $0, 2 * $0) })
         timer.measure {
           for i in lookups {
             precondition(d.removeValue(forKey: i) == nil)

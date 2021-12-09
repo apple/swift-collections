@@ -9,8 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension HashMap: Sequence {
-    public __consuming func makeIterator() -> MapKeyValueTupleIterator<Key, Value> {
-        return MapKeyValueTupleIterator(rootNode: rootNode)
+extension PersistentDictionary: ExpressibleByDictionaryLiteral {
+    @inlinable
+    @inline(__always)
+    public init(dictionaryLiteral elements: (Key, Value)...) {
+        self.init(uniqueKeysWithValues: elements)
     }
 }

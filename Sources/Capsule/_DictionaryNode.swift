@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-protocol MapNode: Node {
+protocol DictionaryNode: Node {
     associatedtype Key: Hashable
     associatedtype Value
 
@@ -17,7 +17,7 @@ protocol MapNode: Node {
 
     func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool
 
-    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnBitmapIndexedNode
+    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> ReturnBitmapIndexedNode
 
-    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> ReturnBitmapIndexedNode
+    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> ReturnBitmapIndexedNode
 }

@@ -9,10 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO check Dictionary semantics of Equatable (i.e., if it only compares keys or also values)
-extension HashMap: Equatable where Value: Equatable {
-    public static func == (lhs: HashMap<Key, Value>, rhs: HashMap<Key, Value>) -> Bool {
-        lhs.cachedSize == rhs.cachedSize &&
-            (lhs.rootNode === rhs.rootNode || lhs.rootNode == rhs.rootNode)
+extension PersistentDictionary: Sequence {
+    public __consuming func makeIterator() -> DictionaryKeyValueTupleIterator<Key, Value> {
+        return DictionaryKeyValueTupleIterator(rootNode: rootNode)
     }
 }

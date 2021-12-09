@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
+final class HashCollisionDictionaryNode<Key, Value>: DictionaryNode where Key: Hashable {
 
     typealias ReturnPayload = (key: Key, value: Value)
 
@@ -39,7 +39,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 //        return self.hash == hash && content.contains(where: { key == $0.key && value == $0.value })
 //    }
 
-    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
+    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> HashCollisionDictionaryNode<Key, Value> {
 
         // TODO check if key/value-pair check should be added (requires value to be Equitable)
         if self.containsKey(key, hash, shift) {
@@ -48,16 +48,16 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
             effect.setReplacedValue()
             // TODO check (performance of) slicing and materialization of array content
-            return HashCollisionMapNode(hash, Array(updatedContent))
+            return HashCollisionDictionaryNode(hash, Array(updatedContent))
         } else {
             effect.setModified()
-            return HashCollisionMapNode(hash, content + [(key, value)])
+            return HashCollisionDictionaryNode(hash, content + [(key, value)])
         }
     }
 
     // TODO rethink such that `precondition(content.count >= 2)` holds
-    // TODO consider returning either type of `BitmapIndexedMapNode` and `HashCollisionMapNode`
-    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout MapEffect) -> HashCollisionMapNode<Key, Value> {
+    // TODO consider returning either type of `BitmapIndexedDictionaryNode` and `HashCollisionDictionaryNode`
+    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> HashCollisionDictionaryNode<Key, Value> {
         if !self.containsKey(key, hash, shift) {
             return self
         } else {
@@ -68,9 +68,9 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 //            switch updatedContent.count {
 //            case 1:
 //                let (k, v) = updatedContent[0].self
-//                return BitmapIndexedMapNode<Key, Value>(bitposFrom(maskFrom(hash, 0)), 0, Array(arrayLiteral: k, v))
+//                return BitmapIndexedDictionaryNode<Key, Value>(bitposFrom(maskFrom(hash, 0)), 0, Array(arrayLiteral: k, v))
 //            default:
-            return HashCollisionMapNode(hash, updatedContent)
+            return HashCollisionDictionaryNode(hash, updatedContent)
 //            }
         }
     }
@@ -79,7 +79,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var bitmapIndexedNodeArity: Int { 0 }
 
-    func getBitmapIndexedNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+    func getBitmapIndexedNode(_ index: Int) -> HashCollisionDictionaryNode<Key, Value> {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 
@@ -87,7 +87,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var hashCollisionNodeArity: Int { 0 }
 
-    func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
+    func getHashCollisionNode(_ index: Int) -> HashCollisionDictionaryNode<Key, Value> {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 
@@ -95,7 +95,7 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var nodeArity: Int { 0 }
 
-    func getNode(_ index: Int) -> TrieNode<HashCollisionMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
+    func getNode(_ index: Int) -> TrieNode<HashCollisionDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>> {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 
@@ -108,8 +108,8 @@ final class HashCollisionMapNode<Key, Value>: MapNode where Key: Hashable {
     var sizePredicate: SizePredicate { SizePredicate(self) }
 }
 
-extension HashCollisionMapNode: Equatable where Value: Equatable {
-    static func == (lhs: HashCollisionMapNode<Key, Value>, rhs: HashCollisionMapNode<Key, Value>) -> Bool {
+extension HashCollisionDictionaryNode: Equatable where Value: Equatable {
+    static func == (lhs: HashCollisionDictionaryNode<Key, Value>, rhs: HashCollisionDictionaryNode<Key, Value>) -> Bool {
         Dictionary.init(uniqueKeysWithValues: lhs.content) == Dictionary.init(uniqueKeysWithValues: rhs.content)
     }
 }

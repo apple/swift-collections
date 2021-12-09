@@ -9,10 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension HashMap: ExpressibleByDictionaryLiteral {
-    @inlinable
-    @inline(__always)
-    public init(dictionaryLiteral elements: (Key, Value)...) {
-        self.init(uniqueKeysWithValues: elements)
+extension PersistentDictionary: Hashable where Value: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        var commutativeHash = 0
+        for (key, value) in self {
+            var elementHasher = hasher
+            elementHasher.combine(key)
+            elementHasher.combine(value)
+            commutativeHash ^= elementHasher.finalize()
+        }
+        hasher.combine(commutativeHash)
     }
 }

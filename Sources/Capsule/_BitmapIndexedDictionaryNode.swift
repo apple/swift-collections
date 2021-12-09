@@ -12,7 +12,7 @@
 fileprivate let initialDataCapacity = 4
 fileprivate let initialTrieCapacity = 1
 
-final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
+final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: Hashable {
 
     typealias ReturnPayload = (key: Key, value: Value)
 
@@ -144,7 +144,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         assert(self.invariant)
     }
 
-    convenience init(nodeMap: Bitmap, firstNode: BitmapIndexedMapNode<Key, Value>) {
+    convenience init(nodeMap: Bitmap, firstNode: BitmapIndexedDictionaryNode<Key, Value>) {
         self.init()
 
         self.header = Header(bitmap1: 0, bitmap2: nodeMap)
@@ -154,7 +154,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         assert(self.invariant)
     }
 
-    convenience init(collMap: Bitmap, firstNode: HashCollisionMapNode<Key, Value>) {
+    convenience init(collMap: Bitmap, firstNode: HashCollisionDictionaryNode<Key, Value>) {
         self.init()
 
         self.header = Header(bitmap1: collMap, bitmap2: collMap)
@@ -164,7 +164,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         assert(self.invariant)
     }
 
-    convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionMapNode<Key, Value>) {
+    convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionDictionaryNode<Key, Value>) {
         self.init()
 
         self.header = Header(bitmap1: dataMap | collMap, bitmap2: collMap)
@@ -225,7 +225,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return false
     }
 
-    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout MapEffect) -> BitmapIndexedMapNode<Key, Value> {
+    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -240,7 +240,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 let keyHash0 = computeHash(key0)
 
                 if keyHash0 == keyHash {
-                    let subNodeNew = HashCollisionMapNode(keyHash0, [(key0, value0), (key, value)])
+                    let subNodeNew = HashCollisionDictionaryNode(keyHash0, [(key0, value0), (key, value)])
                     effect.setModified()
                     return copyAndMigrateFromInlineToCollisionNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 } else {
@@ -285,7 +285,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return copyAndInsertValue(isStorageKnownUniquelyReferenced, bitpos, key, value)
     }
 
-    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout MapEffect) -> BitmapIndexedMapNode<Key, Value> {
+    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -372,7 +372,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
                 // TODO simplify hash-collision compaction (if feasible)
                 if self.isCandiateForCompaction {
                     // escalate singleton
-                    // convert `HashCollisionMapNode` to `BitmapIndexedMapNode` (logic moved/inlined from `HashCollisionMapNode`)
+                    // convert `HashCollisionDictionaryNode` to `BitmapIndexedDictionaryNode` (logic moved/inlined from `HashCollisionDictionaryNode`)
                     let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
                     let (remainingKey, remainingValue) = subNodeNew.getPayload(0)
                     return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
@@ -394,7 +394,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var isWrappingSingleHashCollisionNode: Bool { payloadArity == 0 && bitmapIndexedNodeArity == 0 && hashCollisionNodeArity == 1 }
 
-    func mergeTwoKeyValPairs(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ key1: Key, _ value1: Value, _ keyHash1: Int, _ shift: Int) -> BitmapIndexedMapNode<Key, Value> {
+    func mergeTwoKeyValPairs(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ key1: Key, _ value1: Value, _ keyHash1: Int, _ shift: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
         assert(keyHash0 != keyHash1)
 
         let mask0 = maskFrom(keyHash0, shift)
@@ -415,7 +415,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         }
     }
 
-    func mergeKeyValPairAndCollisionNode(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ node1: HashCollisionMapNode<Key, Value>, _ nodeHash1: Int, _ shift: Int) -> BitmapIndexedMapNode<Key, Value> {
+    func mergeKeyValPairAndCollisionNode(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ node1: HashCollisionDictionaryNode<Key, Value>, _ nodeHash1: Int, _ shift: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
         assert(keyHash0 != nodeHash1)
 
         let mask0 = maskFrom(keyHash0, shift)
@@ -436,8 +436,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var bitmapIndexedNodeArity: Int { header.nodeCount }
 
-    func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedMapNode<Key, Value> {
-        trieBaseAddress[index] as! BitmapIndexedMapNode<Key, Value>
+    func getBitmapIndexedNode(_ index: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
+        trieBaseAddress[index] as! BitmapIndexedDictionaryNode<Key, Value>
     }
 
     private func isBitmapIndexedNodeKnownUniquelyReferenced(_ index: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
@@ -460,8 +460,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     var hashCollisionNodeArity: Int { header.collCount }
 
-    func getHashCollisionNode(_ index: Int) -> HashCollisionMapNode<Key, Value> {
-        trieBaseAddress[bitmapIndexedNodeArity + index] as! HashCollisionMapNode<Key, Value>
+    func getHashCollisionNode(_ index: Int) -> HashCollisionDictionaryNode<Key, Value> {
+        trieBaseAddress[bitmapIndexedNodeArity + index] as! HashCollisionDictionaryNode<Key, Value>
     }
 
     // TODO rename, not accurate any more
@@ -470,7 +470,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     // TODO rename, not accurate any more
     var nodeArity: Int { header.trieCount }
 
-    func getNode(_ index: Int) -> TrieNode<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>> {
+    func getNode(_ index: Int) -> TrieNode<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>> {
         if index < bitmapIndexedNodeArity {
             return .bitmapIndexed(getBitmapIndexedNode(index))
         } else {
@@ -494,7 +494,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
 
     func collIndex(_ bitpos: Bitmap) -> Int { (collMap & (bitpos &- 1)).nonzeroBitCount }
 
-    func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newValue: Value) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newValue: Value) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -515,17 +515,17 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndSetBitmapIndexedNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newNode: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetBitmapIndexedNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newNode: BitmapIndexedDictionaryNode<Key, Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         let idx = self.nodeIndex(bitpos)
         return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, idx, newNode)
     }
 
-    func copyAndSetHashCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newNode: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndSetHashCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ newNode: HashCollisionDictionaryNode<Key, Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         let idx = bitmapIndexedNodeArity + self.collIndex(bitpos)
         return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, idx, newNode)
     }
 
-    private func copyAndSetTrieNode<T: MapNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ idx: Int, _ newNode: T) -> BitmapIndexedMapNode<Key, Value> {
+    private func copyAndSetTrieNode<T: DictionaryNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ idx: Int, _ newNode: T) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -541,7 +541,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndInsertValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ key: Key, _ value: Value) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndInsertValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ key: Key, _ value: Value) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -563,7 +563,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndRemoveValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndRemoveValue(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -583,7 +583,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndMigrateFromInlineToNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromInlineToNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: BitmapIndexedDictionaryNode<Key, Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -609,7 +609,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndMigrateFromInlineToCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromInlineToCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: HashCollisionDictionaryNode<Key, Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -634,7 +634,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndMigrateFromNodeToInline(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromNodeToInline(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -660,7 +660,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndMigrateFromCollisionNodeToInline(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromCollisionNodeToInline(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ tuple: (key: Key, value: Value)) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -685,7 +685,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndMigrateFromCollisionNodeToNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: BitmapIndexedMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromCollisionNodeToNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: BitmapIndexedDictionaryNode<Key, Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -708,7 +708,7 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
         return dst
     }
 
-    func copyAndMigrateFromNodeToCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: HashCollisionMapNode<Key, Value>) -> BitmapIndexedMapNode<Key, Value> {
+    func copyAndMigrateFromNodeToCollisionNode(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ node: HashCollisionDictionaryNode<Key, Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -732,8 +732,8 @@ final class BitmapIndexedMapNode<Key, Value>: MapNode where Key: Hashable {
     }
 }
 
-extension BitmapIndexedMapNode: Equatable where Value: Equatable {
-    static func == (lhs: BitmapIndexedMapNode<Key, Value>, rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
+extension BitmapIndexedDictionaryNode: Equatable where Value: Equatable {
+    static func == (lhs: BitmapIndexedDictionaryNode<Key, Value>, rhs: BitmapIndexedDictionaryNode<Key, Value>) -> Bool {
         lhs === rhs ||
             lhs.nodeMap == rhs.nodeMap &&
             lhs.dataMap == rhs.dataMap &&
@@ -741,7 +741,7 @@ extension BitmapIndexedMapNode: Equatable where Value: Equatable {
             deepContentEquality(lhs, rhs)
     }
 
-    private static func deepContentEquality(_ lhs: BitmapIndexedMapNode<Key, Value>, _ rhs: BitmapIndexedMapNode<Key, Value>) -> Bool {
+    private static func deepContentEquality(_ lhs: BitmapIndexedDictionaryNode<Key, Value>, _ rhs: BitmapIndexedDictionaryNode<Key, Value>) -> Bool {
         for index in 0..<lhs.payloadArity {
             if lhs.getPayload(index) != rhs.getPayload(index) {
                 return false
@@ -764,9 +764,9 @@ extension BitmapIndexedMapNode: Equatable where Value: Equatable {
     }
 }
 
-extension BitmapIndexedMapNode: Sequence {
-    public __consuming func makeIterator() -> MapKeyValueTupleIterator<Key, Value> {
-        return MapKeyValueTupleIterator(rootNode: self)
+extension BitmapIndexedDictionaryNode: Sequence {
+    public __consuming func makeIterator() -> DictionaryKeyValueTupleIterator<Key, Value> {
+        return DictionaryKeyValueTupleIterator(rootNode: self)
     }
 }
 

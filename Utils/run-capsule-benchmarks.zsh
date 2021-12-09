@@ -26,7 +26,7 @@ benchmarks=(
 declare -a classes
 classes=(
     "Dictionary<Int, Int>"
-    "HashMap<Int, Int>"
+    "PersistentDictionary<Int, Int>"
     # "OrderedDictionary<Int, Int>"
 )
 

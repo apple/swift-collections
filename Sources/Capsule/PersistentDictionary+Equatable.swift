@@ -9,15 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension HashMap: Hashable where Value: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        var commutativeHash = 0
-        for (key, value) in self {
-            var elementHasher = hasher
-            elementHasher.combine(key)
-            elementHasher.combine(value)
-            commutativeHash ^= elementHasher.finalize()
-        }
-        hasher.combine(commutativeHash)
+// TODO check Dictionary semantics of Equatable (i.e., if it only compares keys or also values)
+extension PersistentDictionary: Equatable where Value: Equatable {
+    public static func == (lhs: PersistentDictionary<Key, Value>, rhs: PersistentDictionary<Key, Value>) -> Bool {
+        lhs.cachedSize == rhs.cachedSize &&
+            (lhs.rootNode === rhs.rootNode || lhs.rootNode == rhs.rootNode)
     }
 }

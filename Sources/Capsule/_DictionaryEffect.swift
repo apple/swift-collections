@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct MapEffect {
+struct DictionaryEffect {
     var modified: Bool = false
     var replacedValue: Bool = false
 

@@ -12,22 +12,22 @@
 import _CollectionsTestSupport
 @testable import Capsule
 
-class HashMapTests: CollectionTestCase {
+class PersistentDictionaryTests: CollectionTestCase {
   func test_empty() {
-    let d = HashMap<String, Int>()
+    let d = PersistentDictionary<String, Int>()
     expectEqualElements(d, [])
     expectEqual(d.count, 0)
   }
 
 //  func test_init_minimumCapacity() {
-//    let d = HashMap<String, Int>(minimumCapacity: 1000)
+//    let d = PersistentDictionary<String, Int>(minimumCapacity: 1000)
 //    expectGreaterThanOrEqual(d.keys.__unstable.capacity, 1000)
 //    expectGreaterThanOrEqual(d.values.elements.capacity, 1000)
 //    expectEqual(d.keys.__unstable.reservedScale, 0)
 //  }
 
 //  func test_init_minimumCapacity_persistent() {
-//    let d = HashMap<String, Int>(minimumCapacity: 1000, persistent: true)
+//    let d = PersistentDictionary<String, Int>(minimumCapacity: 1000, persistent: true)
 //    expectGreaterThanOrEqual(d.keys.__unstable.capacity, 1000)
 //    expectGreaterThanOrEqual(d.values.elements.capacity, 1000)
 //    expectNotEqual(d.keys.__unstable.reservedScale, 0)
@@ -40,7 +40,7 @@ class HashMapTests: CollectionTestCase {
 //      "two": 2,
 //      "three": 3,
 //    ]
-//    let d = HashMap(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
 //    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
 //  }
 
@@ -51,7 +51,7 @@ class HashMapTests: CollectionTestCase {
 //      "two": 2,
 //      "three": 3,
 //    ]
-//    let d = HashMap(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
 //    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
 //  }
 
@@ -62,7 +62,7 @@ class HashMapTests: CollectionTestCase {
       ("two", 2),
       ("three", 3),
     ]
-    let d = HashMap(uncheckedUniqueKeysWithValues: items)
+    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
     expectEqualElements(d.sorted(by: <), items.sorted(by: <))
   }
 
@@ -73,7 +73,7 @@ class HashMapTests: CollectionTestCase {
       (key: "two", value: 2),
       (key: "three", value: 3)
     ]
-    let d = HashMap(uncheckedUniqueKeys: ["zero", "one", "two", "three"], values: [0, 1, 2, 3])
+    let d = PersistentDictionary(uncheckedUniqueKeys: ["zero", "one", "two", "three"], values: [0, 1, 2, 3])
     expectEqualElements(d.sorted(by: <), items.sorted(by: <))
   }
 
@@ -87,7 +87,7 @@ class HashMapTests: CollectionTestCase {
 //      "b": 1,
 //      "d": 3,
 //    ]
-//    let d = HashMap(items, uniquingKeysWith: +)
+//    let d = PersistentDictionary(items, uniquingKeysWith: +)
 //    expectEqualElements(d, [
 //      (key: "a", value: 5),
 //      (key: "b", value: 2),
@@ -106,7 +106,7 @@ class HashMapTests: CollectionTestCase {
 //      ("b", 1),
 //      ("d", 3),
 //    ]
-//    let d = HashMap(items, uniquingKeysWith: +)
+//    let d = PersistentDictionary(items, uniquingKeysWith: +)
 //    expectEqualElements(d, [
 //      (key: "a", value: 5),
 //      (key: "b", value: 2),
@@ -120,7 +120,7 @@ class HashMapTests: CollectionTestCase {
 //      "one", "two", "three", "four", "five",
 //      "six", "seven", "eight", "nine", "ten"
 //    ]
-//    let d = HashMap<Int, [String]>(grouping: items, by: { $0.count })
+//    let d = PersistentDictionary<Int, [String]>(grouping: items, by: { $0.count })
 //    expectEqualElements(d, [
 //      (key: 3, value: ["one", "two", "six", "ten"]),
 //      (key: 5, value: ["three", "seven", "eight"]),
@@ -135,7 +135,7 @@ class HashMapTests: CollectionTestCase {
 //      "two": 2,
 //      "three": 3,
 //    ]
-//    let d = HashMap(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
 //    expectEqualElements(d, items)
 //  }
 
@@ -146,12 +146,12 @@ class HashMapTests: CollectionTestCase {
 //      ("two", 2),
 //      ("three", 3),
 //    ]
-//    let d = HashMap(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
 //    expectEqualElements(d, items)
 //  }
 
 //  func test_uncheckedUniqueKeys_values() {
-//    let d = HashMap(
+//    let d = PersistentDictionary(
 //    uncheckedUniqueKeys: ["zero", "one", "two", "three"],
 //      values: [0, 1, 2, 3])
 //    expectEqualElements(d, [
@@ -163,10 +163,10 @@ class HashMapTests: CollectionTestCase {
 //  }
 
   func test_ExpressibleByDictionaryLiteral() {
-    let d0: HashMap<String, Int> = [:]
+    let d0: PersistentDictionary<String, Int> = [:]
     expectTrue(d0.isEmpty)
 
-    let d1: HashMap<String, Int> = [
+    let d1: PersistentDictionary<String, Int> = [
       "1~one": 1,
       "2~two": 2,
       "3~three": 3,
@@ -177,7 +177,7 @@ class HashMapTests: CollectionTestCase {
   }
 
 //  func test_keys() {
-//    let d: HashMap = [
+//    let d: PersistentDictionary = [
 //      "one": 1,
 //      "two": 2,
 //      "three": 3,
@@ -286,7 +286,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
 //              d[keys[offset]] = values[offset]
@@ -382,7 +382,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
 //              mutate(&d[keys[offset]]) { v in
@@ -478,7 +478,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          let fallback = tracker.instance(for: -1)
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
@@ -530,7 +530,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
 //              let key = keys[offset]
@@ -581,7 +581,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
 //              let key = keys[count - 1 - offset]
@@ -636,7 +636,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          let fallback = tracker.instance(for: -2)
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
@@ -692,7 +692,7 @@ class HashMapTests: CollectionTestCase {
 //        withLifetimeTracking { tracker in
 //          let keys = tracker.instances(for: 0 ..< count)
 //          let values = tracker.instances(for: (0 ..< count).map { 100 + $0 })
-//          var d: HashMap<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
+//          var d: PersistentDictionary<LifetimeTracked<Int>, LifetimeTracked<Int>> = [:]
 //          let fallback = tracker.instance(for: -2)
 //          withEvery("offset", in: 0 ..< count) { offset in
 //            withHiddenCopies(if: isShared, of: &d) { d in
@@ -742,7 +742,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
 //  func test_merge_labeled_tuple() {
-//    var d: HashMap = [
+//    var d: PersistentDictionary = [
 //      "one": 1,
 //      "two": 1,
 //      "three": 1,
@@ -767,7 +767,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
 //  func test_merge_unlabeled_tuple() {
-//    var d: HashMap = [
+//    var d: PersistentDictionary = [
 //      "one": 1,
 //      "two": 1,
 //      "three": 1,
@@ -792,7 +792,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
 //  func test_merging_labeled_tuple() {
-//    let d: HashMap = [
+//    let d: PersistentDictionary = [
 //      "one": 1,
 //      "two": 1,
 //      "three": 1,
@@ -823,7 +823,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
 //  func test_merging_unlabeled_tuple() {
-//    let d: HashMap = [
+//    let d: PersistentDictionary = [
 //      "one": 1,
 //      "two": 1,
 //      "three": 1,
@@ -855,7 +855,7 @@ class HashMapTests: CollectionTestCase {
 
 //  func test_filter() {
 //    let items = (0 ..< 100).map { ($0, 100 * $0) }
-//    let d = HashMap(uniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //
 //    var c = 0
 //    let d2 = d.filter { item in
@@ -873,7 +873,7 @@ class HashMapTests: CollectionTestCase {
 
 //  func test_mapValues() {
 //    let items = (0 ..< 100).map { ($0, 100 * $0) }
-//    let d = HashMap(uniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //
 //    var c = 0
 //    let d2 = d.mapValues { value -> String in
@@ -891,7 +891,7 @@ class HashMapTests: CollectionTestCase {
 
 //  func test_compactMapValue() {
 //    let items = (0 ..< 100).map { ($0, 100 * $0) }
-//    let d = HashMap(uniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //
 //    var c = 0
 //    let d2 = d.compactMapValues { value -> String? in
@@ -909,33 +909,33 @@ class HashMapTests: CollectionTestCase {
 //  }
 
   func test_CustomStringConvertible() {
-    let a: HashMap<CollidableInt, Int> = [:]
+    let a: PersistentDictionary<CollidableInt, Int> = [:]
     expectEqual(a.description, "[:]")
 
-    let b: HashMap<CollidableInt, Int> = [CollidableInt(0): 1]
+    let b: PersistentDictionary<CollidableInt, Int> = [CollidableInt(0): 1]
     expectEqual(b.description, "[0: 1]")
 
-    let c: HashMap<CollidableInt, Int> = [CollidableInt(0): 1, CollidableInt(2): 3, CollidableInt(4): 5]
+    let c: PersistentDictionary<CollidableInt, Int> = [CollidableInt(0): 1, CollidableInt(2): 3, CollidableInt(4): 5]
     expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
   }
 
 //  func test_CustomDebugStringConvertible() {
-//    let a: HashMap<Int, Int> = [:]
+//    let a: PersistentDictionary<Int, Int> = [:]
 //    expectEqual(a.debugDescription,
-//                "HashMap<Int, Int>([:])")
+//                "PersistentDictionary<Int, Int>([:])")
 //
-//    let b: HashMap<Int, Int> = [0: 1]
+//    let b: PersistentDictionary<Int, Int> = [0: 1]
 //    expectEqual(b.debugDescription,
-//                "HashMap<Int, Int>([0: 1])")
+//                "PersistentDictionary<Int, Int>([0: 1])")
 //
-//    let c: HashMap<Int, Int> = [0: 1, 2: 3, 4: 5]
+//    let c: PersistentDictionary<Int, Int> = [0: 1, 2: 3, 4: 5]
 //    expectEqual(c.debugDescription,
-//                "HashMap<Int, Int>([0: 1, 2: 3, 4: 5])")
+//                "PersistentDictionary<Int, Int>([0: 1, 2: 3, 4: 5])")
 //  }
 
 //  func test_customReflectable() {
 //    do {
-//      let d: HashMap<Int, Int> = [1: 2, 3: 4, 5: 6]
+//      let d: PersistentDictionary<Int, Int> = [1: 2, 3: 4, 5: 6]
 //      let mirror = Mirror(reflecting: d)
 //      expectEqual(mirror.displayStyle, .dictionary)
 //      expectNil(mirror.superclassMirror)
@@ -947,7 +947,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
   func test_Equatable_Hashable() {
-    let samples: [[HashMap<Int, Int>]] = [
+    let samples: [[PersistentDictionary<Int, Int>]] = [
       [[:], [:]],
       [[1: 100], [1: 100]],
       [[2: 200], [2: 200]],
@@ -962,20 +962,20 @@ class HashMapTests: CollectionTestCase {
   }
 
 //  func test_Encodable() throws {
-//    let d1: HashMap<Int, Int> = [:]
+//    let d1: PersistentDictionary<Int, Int> = [:]
 //    let v1: MinimalEncoder.Value = .array([])
 //    expectEqual(try MinimalEncoder.encode(d1), v1)
 //
-//    let d2: HashMap<Int, Int> = [0: 1]
+//    let d2: PersistentDictionary<Int, Int> = [0: 1]
 //    let v2: MinimalEncoder.Value = .array([.int(0), .int(1)])
 //    expectEqual(try MinimalEncoder.encode(d2), v2)
 //
-//    let d3: HashMap<Int, Int> = [0: 1, 2: 3]
+//    let d3: PersistentDictionary<Int, Int> = [0: 1, 2: 3]
 //    let v3: MinimalEncoder.Value =
 //      .array([.int(0), .int(1), .int(2), .int(3)])
 //    expectEqual(try MinimalEncoder.encode(d3), v3)
 //
-//    let d4 = HashMap(
+//    let d4 = PersistentDictionary(
 //      uniqueKeys: 0 ..< 100,
 //      values: (0 ..< 100).map { 100 * $0 })
 //    let v4: MinimalEncoder.Value =
@@ -984,7 +984,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
 //  func test_Decodable() throws {
-//    typealias OD = HashMap<Int, Int>
+//    typealias OD = PersistentDictionary<Int, Int>
 //    let d1: OD = [:]
 //    let v1: MinimalEncoder.Value = .array([])
 //    expectEqual(try MinimalDecoder.decode(v1, as: OD.self), d1)
@@ -998,7 +998,7 @@ class HashMapTests: CollectionTestCase {
 //      .array([.int(0), .int(1), .int(2), .int(3)])
 //    expectEqual(try MinimalDecoder.decode(v3, as: OD.self), d3)
 //
-//    let d4 = HashMap(
+//    let d4 = PersistentDictionary(
 //      uniqueKeys: 0 ..< 100,
 //      values: (0 ..< 100).map { 100 * $0 })
 //    let v4: MinimalEncoder.Value =
@@ -1113,7 +1113,7 @@ class HashMapTests: CollectionTestCase {
 //    withEvery("count", in: 0 ..< 30) { count in
 //      withEvery("isShared", in: [false, true]) { isShared in
 //        withEvery("seed", in: 0 ..< 10) { seed in
-//          var d = HashMap(
+//          var d = PersistentDictionary(
 //            uniqueKeys: 0 ..< count,
 //            values: 100 ..< 100 + count)
 //          var items = (0 ..< count).map { (key: $0, value: 100 + $0) }
@@ -1134,7 +1134,7 @@ class HashMapTests: CollectionTestCase {
 //      }
 //      if count >= 2 {
 //        // Check that shuffling with the system RNG does permute the elements.
-//        var d = HashMap(
+//        var d = PersistentDictionary(
 //          uniqueKeys: 0 ..< count,
 //          values: 100 ..< 100 + count)
 //        let original = d
@@ -1244,7 +1244,7 @@ class HashMapTests: CollectionTestCase {
 //  }
 
 //  func test_removeSubrange_rangeExpression() {
-//    let d = HashMap(uniqueKeys: 0 ..< 30, values: 100 ..< 130)
+//    let d = PersistentDictionary(uniqueKeys: 0 ..< 30, values: 100 ..< 130)
 //    let item = (0 ..< 30).map { (key: $0, value: 100 + $0) }
 //
 //    var d1 = d

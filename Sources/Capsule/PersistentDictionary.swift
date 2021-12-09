@@ -9,20 +9,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-public struct HashMap<Key, Value> where Key: Hashable {
-    var rootNode: BitmapIndexedMapNode<Key, Value>
+public struct PersistentDictionary<Key, Value> where Key: Hashable {
+    var rootNode: BitmapIndexedDictionaryNode<Key, Value>
     var cachedSize: Int
 
-    fileprivate init(_ rootNode: BitmapIndexedMapNode<Key, Value>, _ cachedSize: Int) {
+    fileprivate init(_ rootNode: BitmapIndexedDictionaryNode<Key, Value>, _ cachedSize: Int) {
         self.rootNode = rootNode
         self.cachedSize = cachedSize
     }
 
     public init() {
-        self.init(BitmapIndexedMapNode(), 0)
+        self.init(BitmapIndexedDictionaryNode(), 0)
     }
 
-    public init(_ map: HashMap<Key, Value>) {
+    public init(_ map: PersistentDictionary<Key, Value>) {
         self.init(map.rootNode, map.cachedSize)
     }
 
@@ -122,7 +122,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
     // querying `isKnownUniquelyReferenced(&self.rootNode)` from within the body of the function always yields `false`
     mutating func insert(_ isStorageKnownUniquelyReferenced: Bool, key: Key, value: Value) {
-        var effect = MapEffect()
+        var effect = DictionaryEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updateOrUpdating(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
 
@@ -139,7 +139,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
     // fluid/immutable API
     public func inserting(key: Key, value: Value) -> Self {
-        var effect = MapEffect()
+        var effect = DictionaryEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updateOrUpdating(false, key, value, keyHash, 0, &effect)
 
@@ -167,7 +167,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
     // querying `isKnownUniquelyReferenced(&self.rootNode)` from within the body of the function always yields `false`
     mutating func delete(_ isStorageKnownUniquelyReferenced: Bool, key: Key) {
-        var effect = MapEffect()
+        var effect = DictionaryEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removeOrRemoving(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
 
@@ -179,7 +179,7 @@ public struct HashMap<Key, Value> where Key: Hashable {
 
     // fluid/immutable API
     public func deleting(key: Key) -> Self {
-        var effect = MapEffect()
+        var effect = DictionaryEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
@@ -204,14 +204,14 @@ public struct HashMap<Key, Value> where Key: Hashable {
 /// depth-first pre-order traversal, which yields first all payload elements of the current
 /// node before traversing sub-nodes (left to right).
 ///
-public struct MapKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
+public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
 
     private var payloadIterator: UnsafeBufferPointer<(key: Key, value: Value)>.Iterator?
 
     private var trieIteratorStackTop: UnsafeBufferPointer<AnyObject>.Iterator?
     private var trieIteratorStackRemainder: [UnsafeBufferPointer<AnyObject>.Iterator]
 
-    init(rootNode: BitmapIndexedMapNode<Key, Value>) {
+    init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
         trieIteratorStackRemainder = []
         trieIteratorStackRemainder.reserveCapacity(maxDepth)
 
@@ -219,13 +219,13 @@ public struct MapKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
         if rootNode.hasPayload { payloadIterator = makePayloadIterator(rootNode) }
     }
 
-    // TODO consider moving to `BitmapIndexedMapNode<Key, Value>`
-    private func makePayloadIterator(_ node: BitmapIndexedMapNode<Key, Value>) -> UnsafeBufferPointer<(key: Key, value: Value)>.Iterator {
+    // TODO consider moving to `BitmapIndexedDictionaryNode<Key, Value>`
+    private func makePayloadIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<(key: Key, value: Value)>.Iterator {
         UnsafeBufferPointer(start: node.dataBaseAddress, count: node.payloadArity).makeIterator()
     }
 
-    // TODO consider moving to `BitmapIndexedMapNode<Key, Value>`
-    private func makeTrieIterator(_ node: BitmapIndexedMapNode<Key, Value>) -> UnsafeBufferPointer<AnyObject>.Iterator {
+    // TODO consider moving to `BitmapIndexedDictionaryNode<Key, Value>`
+    private func makeTrieIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<AnyObject>.Iterator {
         UnsafeBufferPointer(start: node.trieBaseAddress, count: node.nodeArity).makeIterator()
     }
 
@@ -237,7 +237,7 @@ public struct MapKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
         while trieIteratorStackTop != nil {
             if let nextAnyObject = trieIteratorStackTop!.next() {
                 switch nextAnyObject {
-                case let nextNode as BitmapIndexedMapNode<Key, Value>:
+                case let nextNode as BitmapIndexedDictionaryNode<Key, Value>:
                     if nextNode.hasNodes {
                         trieIteratorStackRemainder.append(trieIteratorStackTop!)
                         trieIteratorStackTop = makeTrieIterator(nextNode)
@@ -246,7 +246,7 @@ public struct MapKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
                         payloadIterator = makePayloadIterator(nextNode)
                         return payloadIterator?.next()
                     }
-                case let nextNode as HashCollisionMapNode<Key, Value>:
+                case let nextNode as HashCollisionDictionaryNode<Key, Value>:
                     payloadIterator = nextNode.content.withUnsafeBufferPointer { $0.makeIterator() }
                     return payloadIterator?.next()
                 default:
@@ -268,17 +268,17 @@ public struct MapKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
     }
 }
 
-// TODO consider reworking similar to `MapKeyValueTupleIterator`
+// TODO consider reworking similar to `DictionaryKeyValueTupleIterator`
 // (would require a reversed variant of `UnsafeBufferPointer<(key: Key, value: Value)>.Iterator`)
-public struct MapKeyValueTupleReverseIterator<Key: Hashable, Value> {
-    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedMapNode<Key, Value>, HashCollisionMapNode<Key, Value>>
+public struct DictionaryKeyValueTupleReverseIterator<Key: Hashable, Value> {
+    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>>
 
-    init(rootNode: BitmapIndexedMapNode<Key, Value>) {
+    init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
         self.baseIterator = ChampBaseReverseIterator(rootNode: .bitmapIndexed(rootNode))
     }
 }
 
-extension MapKeyValueTupleReverseIterator: IteratorProtocol {
+extension DictionaryKeyValueTupleReverseIterator: IteratorProtocol {
     public mutating func next() -> (key: Key, value: Value)? {
         guard baseIterator.hasNext() else { return nil }
 
