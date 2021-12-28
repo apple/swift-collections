@@ -7,7 +7,7 @@
 
 import XCTest
 import _CollectionsTestSupport
-@testable import BitArrayModule
+@testable import BitCollections
 
 final class BitArrayTest: CollectionTestCase {
   

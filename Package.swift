@@ -55,7 +55,7 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
-    .library(name: "BitArrayModule", targets: ["BitArrayModule"])
+    .library(name: "BitCollections", targets: ["BitCollections"])
   ],
   targets: [    
     .target(
@@ -64,7 +64,7 @@ let package = Package(
         "DequeModule",
         "OrderedCollections",
         "PriorityQueueModule",
-        "BitArrayModule",
+        "BitCollections",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -118,12 +118,12 @@ let package = Package(
       
     // BitArray
     .target(
-        name: "BitArrayModule",
-        path: "Sources/BitArrayModule",
+        name: "BitCollections",
+        path: "Sources/BitCollections",
         swiftSettings: settings),
     .testTarget(
-      name: "BitArrayTests",
-      dependencies: ["BitArrayModule", "_CollectionsTestSupport"],
+      name: "BitCollectionsTests",
+      dependencies: ["BitCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
   ]
 )

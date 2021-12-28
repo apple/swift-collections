@@ -104,6 +104,34 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitArrayModule"
+               BuildableName = "BitArrayModule"
+               BlueprintName = "BitArrayModule"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitCollections"
+               BuildableName = "BitCollections"
+               BlueprintName = "BitCollections"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -149,6 +177,26 @@
                BlueprintIdentifier = "PriorityQueueTests"
                BuildableName = "PriorityQueueTests"
                BlueprintName = "PriorityQueueTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitArrayTests"
+               BuildableName = "BitArrayTests"
+               BlueprintName = "BitArrayTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitCollectionsTests"
+               BuildableName = "BitCollectionsTests"
+               BlueprintName = "BitCollectionsTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

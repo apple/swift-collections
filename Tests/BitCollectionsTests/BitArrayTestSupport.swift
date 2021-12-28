@@ -5,7 +5,7 @@
 //  Created by Mahanaz Atiqullah on 7/15/21.
 //
 import _CollectionsTestSupport
-@_spi(Testing) import BitArrayModule 
+@_spi(Testing) import BitCollections 
 
 func withSomeUsefulBoolArrays<C: Collection>(
   _ label: String,
