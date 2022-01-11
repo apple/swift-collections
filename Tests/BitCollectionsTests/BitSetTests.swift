@@ -1,16 +1,440 @@
+//===----------------------------------------------------------------------===//
 //
-//  File.swift
-//  
+// This source file is part of the Swift Collections open source project
 //
-//  Created by Mahanaz Atiqullah on 8/5/21.
+// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
 //
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
 
 import XCTest
 import _CollectionsTestSupport
 @testable import BitCollections
 
 final class BitSetTest: CollectionTestCase {
-  
+  func test_empty_initializer() {
+    let set = BitSet()
+    expectEqual(set.count, 0)
+    expectTrue(set.isEmpty)
+    expectEqualElements(set, [])
+  }
+
+  func test_array_literal_initializer() {
+    let set0: BitSet = []
+    expectEqual(set0.count, 0)
+    expectTrue(set0.isEmpty)
+    expectEqualElements(set0, [])
+
+    let set1: BitSet = [0, 3, 50, 10, 21, 11, 3, 100, 300, 20]
+    expectEqual(set1.count, 9)
+    expectEqualElements(set1, [0, 3, 10, 11, 20, 21, 50, 100, 300])
+  }
+
+  func test_sequence_initializer() {
+    withEvery("i", in: 0 ..< 100) { i in
+      var rng = RepeatableRandomNumberGenerator(seed: i)
+      let input = (0 ..< 1000).shuffled(using: &rng).prefix(100)
+      let expected = input.sorted()
+      let actual = BitSet(input)
+      expectEqual(actual.count, expected.count)
+      expectEqualElements(actual, expected)
+
+      let actual2 = BitSet(actual)
+      expectEqualElements(actual2, actual)
+    }
+  }
+
+  func test_range_initializer() {
+    withEveryRange("range", in: 0 ..< 200) { range in
+      let set = BitSet(range)
+      expectEqualElements(set, range)
+    }
+  }
+
+  func test_collection_strides() {
+    withEvery("stride", in: [1, 2, 3, 5, 7, 8, 11, 13, 63, 79, 300]) { stride in
+      withEvery("count", in: [0, 1, 2, 5, 10, 20, 25]) { count in
+        let input = Swift.stride(from: 0, to: stride * count, by: stride)
+        let expected = Array(input)
+        let actual = BitSet(input)
+        checkBidirectionalCollection(actual, expectedContents: expected)
+      }
+    }
+  }
+
+  func withInterestingSets(
+    _ label: String,
+    maximum: Int,
+    file: StaticString = #file,
+    line: UInt = #line,
+    run body: (Set<Int>) -> Void
+  ) {
+    let context = TestContext.current
+    func yield(_ desc: String, _ set: Set<Int>) {
+      let entry = context.push(
+        "\(label): \(desc)", file: file, line: line)
+      defer { context.pop(entry) }
+      body(set)
+    }
+
+    yield("empty", [])
+    yield("full", Set(0 ..< maximum))
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    let c = 10
+
+    func randomSelection(_ desc: String, count: Int) {
+      // 1% filled
+      for i in 0 ..< c {
+        let set = Set((0 ..< maximum)
+                        .shuffled(using: &rng)
+                        .prefix(count))
+        yield("\(desc)/\(i)", set)
+      }
+    }
+    if maximum > 100 {
+      randomSelection("1%", count: maximum / 100)
+      randomSelection("9%", count: maximum / 100)
+    }
+    randomSelection("50%", count: maximum / 2)
+
+    let a = maximum / 3
+    let b = 2 * maximum / 3
+    yield("0..<a", Set(0 ..< a))
+    yield("a..<b", Set(a ..< b))
+    yield("b..<max", Set(b ..< maximum))
+    yield("0..<b", Set(0 ..< b))
+    yield("a..<max", Set(a ..< maximum))
+  }
+
+  func test_firstIndexOf_lastIndexOf() {
+    let max = 1000
+    withInterestingSets("input", maximum: max) { input in
+      let bits = BitSet(input)
+      withEvery("value", in: 0 ..< max) { value in
+        if input.contains(value) {
+          expectNotNil(bits.firstIndex(of: value)) { i in
+            expectEqual(bits[i], value)
+            expectNotNil(bits.lastIndex(of: value)) { j in
+              expectEqual(i, j)
+            }
+          }
+        } else {
+          expectNil(bits.firstIndex(of: value))
+          expectNil(bits.lastIndex(of: value))
+        }
+      }
+    }
+  }
+
+  func test_hashable() {
+    // This is a silly test, but it does exercise hashing a bit.
+    let classes: [[BitSet]] = [
+      [[]],
+      [[1]],
+      [[2]],
+      [[1, 5, 10], [10, 5, 1]],
+      [[1, 5, 11], [11, 5, 1]],
+      [[1, 5, 100], [100, 5, 1]],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
+  func test_contains() {
+    withInterestingSets("input", maximum: 1000) { input in
+      let bitset = BitSet(input)
+      withEvery("value", in: 0 ..< 1000) { value in
+        expectEqual(bitset.contains(value), input.contains(value))
+      }
+      expectFalse(bitset.contains(5000))
+    }
+  }
+
+  func test_contains_Int32() {
+    withInterestingSets("input", maximum: 1000) { input in
+      let bitset = BitSet(input)
+      withEvery("value", in: 0 ..< 1000) { value in
+        expectEqual(bitset.contains(Int32(value)), input.contains(value))
+      }
+      expectFalse(bitset.contains(5000 as Int32))
+    }
+  }
+
+  func checkInsert<F: FixedWidthInteger>(for type: F.Type, count: Int) {
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual: BitSet = []
+      var expected: Set<Int> = []
+      let input = (0 ..< count).shuffled(using: &rng)
+      withEvery("i", in: input.indices) { i in
+        let (i1, m1) = actual.insert(F(input[i]))
+        expected.insert(input[i])
+        expectTrue(i1)
+        expectEqual(m1, F(input[i]))
+        if i % 25 == 0 {
+          expectEqual(Array(actual), expected.sorted())
+        }
+        let (i2, m2) = actual.insert(F(input[i]))
+        expectFalse(i2)
+        expectEqual(m2, m1)
+      }
+      expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
+  func test_insert_Int() {
+    checkInsert(for: Int.self, count: 100)
+  }
+  func test_insert_Int32() {
+    checkInsert(for: Int32.self, count: 100)
+  }
+  func test_insert_UInt16() {
+    checkInsert(for: UInt16.self, count: 100)
+  }
+
+  func checkUpdate<F: FixedWidthInteger>(for type: F.Type, count: Int) {
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual: BitSet = []
+      var expected: Set<Int> = []
+      let input = (0 ..< count).shuffled(using: &rng)
+      withEvery("i", in: input.indices) { i in
+        let old = actual.update(with: F(input[i]))
+        expected.update(with: input[i])
+        expectEqual(old, F(input[i]))
+        if i % 25 == 0 {
+          expectEqual(Array(actual), expected.sorted())
+        }
+        expectNil(actual.update(with: F(input[i])))
+      }
+      expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
+  func test_update_Int() {
+    checkUpdate(for: Int.self, count: 100)
+  }
+  func test_update_Int32() {
+    checkUpdate(for: Int32.self, count: 100)
+  }
+  func test_update_UInt16() {
+    checkUpdate(for: UInt16.self, count: 100)
+  }
+
+  func test_remove_Int() {
+    func checkRemove<F: FixedWidthInteger>(for type: F.Type, count: Int) {
+      context.withTrace("\(type)") {
+        withEvery("seed", in: 0 ..< 10) { seed in
+          var rng = RepeatableRandomNumberGenerator(seed: seed)
+          var actual = BitSet(0 ..< count)
+          var expected = Set<Int>(0 ..< count)
+          let input = (0 ..< count).shuffled(using: &rng)
+          withEvery("i", in: input.indices) { i in
+            let v = input[i]
+            let old = actual.remove(F(v))
+            expected.remove(v)
+            expectEqual(old, F(v))
+            if i % 25 == 0 {
+              expectEqual(Array(actual), expected.sorted())
+            }
+            expectNil(actual.remove(F(v)))
+          }
+          expectEqual(Array(actual), expected.sorted())
+        }
+      }
+    }
+
+    checkRemove(for: Int.self, count: 100)
+    checkRemove(for: Int32.self, count: 100)
+    checkRemove(for: UInt16.self, count: 100)
+  }
+
+  func test_union_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.union(b).sorted()
+        let c = BitSet(a)
+        let d = BitSet(b)
+        let actual = c.union(d)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_union_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.union(b).sorted()
+        let c = BitSet(a)
+        let actual = c.union(b)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_formUnion_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.union(b).sorted()
+        var c = BitSet(a)
+        let d = BitSet(b)
+        c.formUnion(d)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_formUnion_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.union(b).sorted()
+        var c = BitSet(a)
+        c.formUnion(b)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_intersection_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.intersection(b).sorted()
+        let c = BitSet(a)
+        let d = BitSet(b)
+        let actual = c.intersection(d)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_intersection_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.intersection(b).sorted()
+        let c = BitSet(a)
+        let actual = c.intersection(b)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_formIntersection_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.intersection(b).sorted()
+        var c = BitSet(a)
+        let d = BitSet(b)
+        c.formIntersection(d)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_formIntersection_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.intersection(b).sorted()
+        var c = BitSet(a)
+        c.formIntersection(b)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_symmetricDifference_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.symmetricDifference(b).sorted()
+        let c = BitSet(a)
+        let d = BitSet(b)
+        let actual = c.symmetricDifference(d)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_symmetricDifference_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.symmetricDifference(b).sorted()
+        let c = BitSet(a)
+        let actual = c.symmetricDifference(b)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_formSymmetricDifference_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.symmetricDifference(b).sorted()
+        var c = BitSet(a)
+        let d = BitSet(b)
+        c.formSymmetricDifference(d)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_formSymmetricDifference_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.symmetricDifference(b).sorted()
+        var c = BitSet(a)
+        c.formSymmetricDifference(b)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_subtracting_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.subtracting(b).sorted()
+        let c = BitSet(a)
+        let d = BitSet(b)
+        let actual = c.subtracting(d)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_subtracting_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.subtracting(b).sorted()
+        let c = BitSet(a)
+        let actual = c.subtracting(b)
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_subtract_Self() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.subtracting(b).sorted()
+        var c = BitSet(a)
+        let d = BitSet(b)
+        c.subtract(d)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  func test_subtract_Set() {
+    withInterestingSets("a", maximum: 200) { a in
+      withInterestingSets("b", maximum: 200) { b in
+        let expected = a.subtracting(b).sorted()
+        var c = BitSet(a)
+        c.subtract(b)
+        expectEqualElements(c, expected)
+      }
+    }
+  }
+
+  #if false
   typealias WORD = BitArray.WORD
   let sizes = _getSizes(WORD.bitWidth)
   
@@ -451,11 +875,14 @@ final class BitSetTest: CollectionTestCase {
         let bitArray: BitArray = [ false, true]
         print(bitArray.firstIndex(of: true))
     }
+  #endif
 }
 
+#if false
 extension BitSet {
   typealias WORD = BitArray.WORD
   fileprivate func _getExpectedEndIndex() -> Int {
     self.storage.storage.count * WORD.bitWidth
   }
 }
+#endif

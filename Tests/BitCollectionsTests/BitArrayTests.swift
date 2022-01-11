@@ -9,6 +9,7 @@ import XCTest
 import _CollectionsTestSupport
 @testable import BitCollections
 
+#if false
 final class BitArrayTest: CollectionTestCase {
   
   typealias WORD = BitArray.WORD
@@ -511,3 +512,4 @@ final class BitArrayTest: CollectionTestCase {
     XCTAssertEqual(bitArray, bitArrayCopy)
   }
 }
+#endif
