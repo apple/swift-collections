@@ -5,11 +5,11 @@
 //  Created by Mahanaz Atiqullah on 7/27/21.
 //
 
+#if false
 import XCTest
 import _CollectionsTestSupport
 @testable import BitCollections
 
-#if false
 final class BitArrayTest: CollectionTestCase {
   
   typealias WORD = BitArray.WORD

@@ -66,6 +66,8 @@ public struct BitArray: ExpressibleByArrayLiteral, Codable {
       excess = WORD(count%(WORD.bitWidth))
     }
   }
+
+  #if false
   /// Creates a new BitArray using a BitSet, where the indices in the BitSet become the true values in the BitArray. The resulting BitArray often contains many padded false values at the end from empty bits that fill up the word
   ///
   /// The following example creates a BitArray initialized by a BitSet
@@ -82,7 +84,7 @@ public struct BitArray: ExpressibleByArrayLiteral, Codable {
     storage = bitSet.storage.storage
     excess = bitSet.storage.excess
   }
-  
+  #endif
 }
 
 
