@@ -2,89 +2,91 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
-public struct BitArray: ExpressibleByArrayLiteral, Codable {
-  typealias WORD = UInt  // created for experimental purposes to make it easier to test different UInts without having to change much of the code
-  
-  var storage : [WORD] = []
-  var excess: WORD = 0
-  
-  public init() { }
-  
-  public init<S>(_ elements: S) where S : Sequence, Bool == S.Element {
-    storage.reserveCapacity(elements.underestimatedCount / WORD.bitWidth)
-    for value in elements {
-      self.append(value)
-    }
-  }
-  
-  public init(arrayLiteral elements: Bool...) {
-    storage.reserveCapacity(elements.underestimatedCount / WORD.bitWidth)
-    for value in elements {
-      self.append(value)
-    }
-  }
-  /// Creates a new collection containing the specified number of a single, repeated `Bool`
-  ///
-  /// The following example creates a BitArray initialized with 5 true values
-  ///
-  ///     let fiveTrues = BitArray(repeating: true, count: 5)
-  ///     print(fiveTrues)
-  ///     // Prints "BitArray(storage: [31], excess: 5)"
-  ///     print(Array(fiveTrues))
-  ///     // Prints "[true, true, true, true, true]"
-  ///
-  /// - Parameters:
-  ///   - repeatedValue: The  `Bool` to repeat.
-  ///   - count: The number of times to repeat the value passed in the
-  ///     `repeating` parameter. `count` must be zero or greater.
-  public init(repeating repeatedValue: Bool, count: Int) {
-    precondition(count >= 0, "Count must be greater than or equal to 0")
-    if (count == 0) {
-      return
-    }
-    
-    if (repeatedValue) {
-      let bytes: Int = (Int(count%(WORD.bitWidth)) > 0) ? (count/(WORD.bitWidth))+1 : count/(WORD.bitWidth)
-      storage = Array(repeating: WORD.max, count: bytes)
-      excess = WORD(count%(WORD.bitWidth))
-      
-      // flip remaining bits back to 0
-      let remaining: Int = (excess == 0) ? WORD.bitWidth : Int(excess)
-      for i in remaining..<(WORD.bitWidth) {
-        storage[bytes-1] ^= (1<<i)
-      }
-      
-    } else {
-      let bytes: Int = (count%(WORD.bitWidth) > 0) ? (count/(WORD.bitWidth))+1 : count/(WORD.bitWidth)
-      storage = Array(repeating: 0, count: bytes)
-      excess = WORD(count%(WORD.bitWidth))
-    }
+
+public struct BitArray {
+  @usableFromInline
+  internal var _storage: [_Word]
+
+  @usableFromInline
+  internal var _count: UInt
+
+  @usableFromInline
+  internal init(_storage: [_Word], count: UInt) {
+    assert(count <= _storage.count * _Word.capacity)
+    assert(count > (_storage.count - 1) * _Word.capacity)
+    self._storage = _storage
+    self._count = count
   }
 
-  #if false
-  /// Creates a new BitArray using a BitSet, where the indices in the BitSet become the true values in the BitArray. The resulting BitArray often contains many padded false values at the end from empty bits that fill up the word
-  ///
-  /// The following example creates a BitArray initialized by a BitSet
-  ///     let bitSet: BitSet = [0, 1, 3, 5]
-  ///     let bitArray = BitArray(bitSet)
-  ///     print(bitArray)
-  ///     // Prints "BitArray(storage: [43], excess: 0)"
-  ///     print(Array(bitArray))
-  ///     // Prints "[true, true, false, true, false, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false]"
-  ///
-  /// - Parameters:
-  ///   - bitSet: An initialized BitSet
-  public init(_ bitSet: BitSet) {
-    storage = bitSet.storage.storage
-    excess = bitSet.storage.excess
+  @inline(__always)
+  internal init(_storage: [_Word], count: Int) {
+    self.init(_storage: _storage, count: UInt(count))
   }
-  #endif
 }
 
+extension BitArray {
+  @inline(__always)
+  internal func _read<R>(
+    _ body: (_UnsafeHandle) throws -> R
+  ) rethrows -> R {
+    try _storage.withUnsafeBufferPointer { words in
+      let handle = _UnsafeHandle(
+        words: words, count: _count, mutable: false)
+      return try body(handle)
+    }
+  }
 
+  @inline(__always)
+  internal mutating func _update<R>(
+    _ body: (inout _UnsafeHandle) throws -> R
+  ) rethrows -> R {
+    defer {
+      _checkInvariants()
+    }
+    return try _storage.withUnsafeMutableBufferPointer { words in
+      var handle = _UnsafeHandle(words: words, count: _count, mutable: true)
+      return try body(&handle)
+    }
+  }
+  
+  internal mutating func _removeLast() {
+    assert(_count > 0)
+    _count -= 1
+    let bit = _BitPosition(_count).bit
+    if bit == 0 {
+      _storage.removeLast()
+    } else {
+      _storage[_storage.count - 1].remove(bit)
+    }
+  }
+
+  internal mutating func _removeLast(_ n: Int) {
+    assert(n >= 0 && n <= _count)
+    guard n > 0 else { return }
+    let wordCount = _Word.wordCount(forBitCount: _count - UInt(n))
+    if wordCount < _storage.count {
+      _storage.removeLast(_storage.count - wordCount)
+    }
+    _count -= UInt(n)
+    let (word, bit) = _BitPosition(_count).split
+    if bit > 0 {
+      _storage[word].formIntersection(_Word(upTo: bit))
+    }
+  }
+
+  internal mutating func _extend(by n: Int) {
+    assert(n >= 0)
+    guard n > 0 else { return }
+    let orig = _storage.count
+    let new = _Word.wordCount(forBitCount: _count + UInt(n))
+    _storage.append(
+      contentsOf: repeatElement(.empty, count: new - orig))
+    _count += UInt(n)
+  }
+}

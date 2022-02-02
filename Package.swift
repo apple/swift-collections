@@ -26,7 +26,7 @@ var settings: [SwiftSetting]? = [
   // This is mostly useful while debugging an issue with the implementation of
   // the hash table itself. This setting should never be enabled in production
   // code.
-//  .define("COLLECTIONS_INTERNAL_CHECKS"),
+  .define("COLLECTIONS_INTERNAL_CHECKS"),
 
   // Hashing collections provided by this package usually seed their hash
   // function with the address of the memory location of their storage,

@@ -18,28 +18,11 @@ extension Collection {
   }
 }
 
-extension Collection {
+extension UnsafeBufferPointer {
   @inlinable
   @inline(__always)
-  internal func _rebased<Element>() -> UnsafeMutableBufferPointer<Element>
-  where Self == UnsafeMutableBufferPointer<Element>.SubSequence {
-    .init(rebasing: self)
-  }
-}
-
-extension UnsafeMutableBufferPointer {
-  @inlinable
-  @inline(__always)
-  internal func _assign(from source: Self) {
-    assert(source.count == self.count)
-    if count > 0 {
-      baseAddress!.assign(from: source.baseAddress!, count: count)
-    }
-  }
-
-  @inlinable
-  @inline(__always)
-  internal func _initialize(at index: Int, to value: Element) {
-    (baseAddress.unsafelyUnwrapped + index).initialize(to: value)
+  internal func _ptr(at index: Int) -> UnsafePointer<Element> {
+    assert(index >= 0 && index < count)
+    return baseAddress.unsafelyUnwrapped + index
   }
 }

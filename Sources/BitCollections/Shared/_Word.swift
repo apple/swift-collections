@@ -30,10 +30,23 @@ internal struct _Word {
   @inline(__always)
   internal init(from start: UInt, to end: UInt) {
     assert(start <= end && end <= _Word.capacity)
-    self = Self(upTo: end).subtracting(Self(upTo: start))
+    self = Self(upTo: end).symmetricDifference(Self(upTo: start))
   }
 }
 
+extension _Word: CustomStringConvertible {
+  @usableFromInline
+  internal var description: String {
+    String(value, radix: 16)
+  }
+}
+
+extension _Word {
+  @inline(__always)
+  internal static func wordCount(forBitCount count: UInt) -> Int {
+    return _BitPosition(count + UInt(_Word.capacity) - 1).word
+  }
+}
 extension _Word {
   @inlinable
   @inline(__always)
@@ -237,5 +250,19 @@ extension _Word {
   @inline(__always)
   internal mutating func subtract(_ other: Self) {
     self.value &= ~other.value
+  }
+}
+
+extension _Word {
+  @inline(__always)
+  internal func shiftedDown(by shift: UInt) -> Self {
+    assert(shift >= 0 && shift < Self.capacity)
+    return _Word(self.value &>> shift)
+  }
+
+  @inline(__always)
+  internal func shiftedUp(by shift: UInt) -> Self {
+    assert(shift >= 0 && shift < Self.capacity)
+    return _Word(self.value &<< shift)
   }
 }

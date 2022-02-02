@@ -1,515 +1,614 @@
+//===----------------------------------------------------------------------===//
 //
-//  File.swift
-//  
+// This source file is part of the Swift Collections open source project
 //
-//  Created by Mahanaz Atiqullah on 7/27/21.
+// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
 //
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
 
-#if false
 import XCTest
 import _CollectionsTestSupport
-@testable import BitCollections
+@_spi(Testing) import BitCollections
 
-final class BitArrayTest: CollectionTestCase {
-  
-  typealias WORD = BitArray.WORD
-  let sizes: [Int] = _getSizes(BitArray.WORD.bitWidth)
-  
-  func testEmptyInit() {
-    let emptyBitArray = BitArray()
-    expectEqual(emptyBitArray.storage, [])
-    expectEqual(emptyBitArray.excess, 0)
-    expectEqual(emptyBitArray.count, 0)
-    expectEqual(emptyBitArray.startIndex, 0)
-    expectEqual(emptyBitArray.endIndex, 0)
-    expectEqual(emptyBitArray, emptyBitArray)
-  }
-  
-  func testSequenceInitializer() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.WORD.bitWidth) { boolArray in
-      let testBitArray: BitArray = BitArray(boolArray)
-      expectEqual(Array(testBitArray), boolArray)
-      expectEqual(testBitArray.count, boolArray.count)
-      expectEqual(testBitArray.endIndex, boolArray.count)
-      expectEqual(testBitArray.excess, WORD(boolArray.count%WORD.bitWidth))
-    }
-  }
-  
-  func testExpressibleByArrayLiteralAndArrayLiteralInit() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: BitArray.WORD.bitWidth) { boolArray in
-      let testBitArray = BitArray(boolArray)
-      expectEqual(Array(testBitArray), boolArray)
-    }
-    
-    // Using manually created Bool Arrays
-    let testBitArray1: BitArray = []
-    expectEqual(Array(testBitArray1), [])
-    expectEqual(testBitArray1.excess, WORD(testBitArray1.count%WORD.bitWidth))
-    expectEqual(testBitArray1.count, 0)
-    
-    let testBitArray2: BitArray = [true]
-    expectEqual(Array(testBitArray2), [true])
-    expectEqual(testBitArray2.storage, [1])
-    expectEqual(testBitArray2.excess, WORD(testBitArray2.count%WORD.bitWidth))
-    expectEqual(testBitArray2.count, 1)
-    
-    let testBitArray3: BitArray = [false]
-    expectEqual(Array(testBitArray3), [false])
-    expectEqual(testBitArray3.storage, [0])
-    expectEqual(testBitArray3.excess, WORD(testBitArray3.count%WORD.bitWidth))
-    expectEqual(testBitArray3.count, 1)
-    
-    let testBitArray4: BitArray = [true, true, true, true, true, true, true, true]
-    expectEqual(Array(testBitArray4), [true, true, true, true, true, true, true, true])
-    expectEqual(testBitArray4.storage, [255])
-    expectEqual(testBitArray4.excess, WORD(testBitArray4.count%WORD.bitWidth))
-    expectEqual(testBitArray4.count, 8)
-    
-    let testBitArray4B: BitArray = [true, true, true, true, true, true, true, true, true]
-    expectEqual(Array(testBitArray4B), [true, true, true, true, true, true, true, true, true])
-    expectEqual(testBitArray4B.excess, WORD(testBitArray4B.count%WORD.bitWidth))
-    expectEqual(testBitArray4B.count, 9)
-    
-    let testBitArray5: BitArray = [false, false, false, false, false, false, false, false]
-    expectEqual(Array(testBitArray5), [false, false, false, false, false, false, false, false])
-    expectEqual(testBitArray5.storage, [0])
-    expectEqual(testBitArray5.excess, WORD(testBitArray5.count%WORD.bitWidth))
-    expectEqual(testBitArray5.count, 8)
-    
-    let testBitArray5B: BitArray = [false, false, false, false, false, false, false, false, false]
-    expectEqual(Array(testBitArray5B), [false, false, false, false, false, false, false, false, false])
-    expectEqual(testBitArray5B.excess, WORD(testBitArray5B.count%WORD.bitWidth))
-    expectEqual(testBitArray5B.count, 9)
-    
-    let testBitArray6: BitArray = [true, false, true, false, false, false, true]
-    expectEqual(Array(testBitArray6), [true, false, true, false, false, false, true])
-    expectEqual(testBitArray6.storage, [69])
-    expectEqual(testBitArray6.excess, WORD(testBitArray6.count%WORD.bitWidth))
-    expectEqual(testBitArray6.count, 7)
-  }
-  
-  func testRepeatingInit() {
-    for count in 0...3*(WORD.bitWidth) {
-      let trueArray = Array(repeating: true, count: count)
-      let falseArray = Array(repeating: false, count: count)
-      
-      let trueBitArray = BitArray(repeating: true, count: count)
-      let falseBitArray = BitArray(repeating: false, count: count)
-      
-      let repeatCount = (count%(WORD.bitWidth) == 0) ? Int(count/(WORD.bitWidth)) : Int(count/(WORD.bitWidth)) + 1
-      let expectedFalseStorage: [WORD] = Array(repeating: 0, count: repeatCount)
-      var expectedTrueStorage: [WORD] = Array(repeating: WORD.max, count: repeatCount)
-      if (count%(WORD.bitWidth) != 0) {
-        expectedTrueStorage.removeLast()
-        let remaining = count%(WORD.bitWidth)
-        var valueToAdd: WORD = 0
-        for shift in 0..<remaining {
-          valueToAdd += (WORD(1) << shift)
-        }
-        expectedTrueStorage.append(valueToAdd)
-      }
-      let expectedExcess: WORD = WORD(count%WORD.bitWidth)
-      
-      expectEqual(Array(trueBitArray), trueArray)
-      expectEqual(Array(falseBitArray), falseArray)
-      expectEqual(trueBitArray.storage, expectedTrueStorage)
-      expectEqual(falseBitArray.storage, expectedFalseStorage)
-      expectEqual(trueBitArray.excess, expectedExcess)
-      expectEqual(falseBitArray.excess, expectedExcess)
-      expectEqual(trueBitArray.count, trueArray.count)
-      expectEqual(falseBitArray.count, falseArray.count)
-    }
-  }
-  
-  func testBitSetInit() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { bitArrayLayout in
-      withTheirBitSetLayout("bitSet", ofLayout: bitArrayLayout) { bitSetLayout in
-        let bitArray = BitArray(bitArrayLayout)
-        let bitSet = BitSet(bitSetLayout)
-        let bitArrayFromSet = BitArray(bitSet)
-        
-        // only need to see if true values are in correct location
-        if(bitArray.storage.count > bitArrayFromSet.storage.count) {
-          for index in 0..<bitArrayFromSet.storage.count {
-            expectEqual(bitArray.storage[index], bitArrayFromSet.storage[index])
-          }
-          for index in bitArrayFromSet.storage.count..<bitArray.storage.count {
-            expectEqual(bitArray.storage[index], 0)
-          }
-        } else if (bitArray.storage.count < bitArrayFromSet.storage.count){
-          for index in 0..<bitArray.storage.count {
-            expectEqual(bitArrayFromSet.storage[index], bitArray.storage[index])
-          }
-          for index in bitArray.storage.count..<bitArrayFromSet.storage.count {
-            expectEqual(bitArrayFromSet.storage[index], 0)
-          }
-        }
-      }
-    }
-  }
-  
-  func testAppend() { // depends on initializer tests passing
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      var bitArray = BitArray(layout)
-      var bitArrayInverse = BitArray(layout)
-      
-      var layoutCopy = layout
-      var layoutCopyInverse = layout
-      
-      var value = true
-      for _ in 0...(2*BitArray.WORD.bitWidth+1) {
-        
-        bitArray.append(value)
-        bitArrayInverse.append(!value)
-        layoutCopy.append(value)
-        layoutCopyInverse.append(!value)
-        
-        expectEqual(Array(bitArray), layoutCopy)
-        expectEqual(bitArray.count, layoutCopy.count)
-        
-        expectEqual(Array(bitArrayInverse), layoutCopyInverse)
-        expectEqual(bitArrayInverse.count, layoutCopyInverse.count)
-        
-        value = Bool.random()
-      }
-    }
-  }
-  
-  func testRemoveFirst() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      var bitArray = BitArray(layout)
-      var layoutCopy = layout
-      
-      
-      // remove every bool until end
-      for i in 0..<bitArray.endIndex {
-        
-        expectEqual(bitArray.removeFirst(), layout[i])
-        layoutCopy.removeFirst()
-        
-        expectEqual(Array(bitArray), layoutCopy)
-        expectEqual(bitArray.count, layoutCopy.count)
-        expectEqual(bitArray.count, (layout.count-i-1))
-      }
-    }
-  }
-  
-  func testRemoveFirstRange() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      if (layout.count == 0) {
-        // cannot test empty array without tests crashing
-      } else {
-        var bitArrayForReuse = BitArray(layout)
-        var layoutCopyForReuse = layout
-        
-        
-        for removeAmount in 1..<layout.count {
-          bitArrayForReuse.removeFirst(removeAmount)
-          layoutCopyForReuse.removeFirst(removeAmount)
-          
-          expectEqual(Array(bitArrayForReuse), layoutCopyForReuse)
-          expectEqual(bitArrayForReuse.count, layoutCopyForReuse.count)
-          expectEqual(bitArrayForReuse.count, (layout.count-removeAmount))
-          
-          bitArrayForReuse = BitArray(layout)
-          layoutCopyForReuse = layout
-        }
-      }
-    }
-  }
-  
-  func testRemoveLast() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      var bitArray = BitArray(layout)
-      var layoutCopy = layout
-      
-      
-      // remove every bool until end
-      for i in 0..<bitArray.endIndex {
-        
-        expectEqual(bitArray.removeLast(), layout[layout.endIndex-i-1])
-        layoutCopy.removeLast()
-        
-        expectEqual(Array(bitArray), layoutCopy)
-        expectEqual(bitArray.count, layoutCopy.count)
-        expectEqual(bitArray.count, (layout.count-i-1))
-      }
-    }
-  }
-  
-  func testRemoveLastRange() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      if (layout.count == 0) {
-        // cannot test empty array without tests crashing
-      } else {
-        var bitArrayForReuse = BitArray(layout)
-        var layoutCopyForReuse = layout
-        
-        
-        for removeAmount in 1..<layout.count {
-          bitArrayForReuse.removeLast(removeAmount)
-          layoutCopyForReuse.removeLast(removeAmount)
-          
-          expectEqual(Array(bitArrayForReuse), layoutCopyForReuse)
-          expectEqual(bitArrayForReuse.count, layoutCopyForReuse.count)
-          expectEqual(bitArrayForReuse.count, (layout.count-removeAmount))
-          
-          bitArrayForReuse = BitArray(layout)
-          layoutCopyForReuse = layout
-        }
-      }
-    }
-  }
-  
-  func testRemoveAt() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      var bitArrayForReuse = BitArray(layout)
-      var layoutCopyForReuse = layout
-      
-      for removeIndex in 0..<layout.count {
-        expectEqual(bitArrayForReuse.remove(at: removeIndex), layout[removeIndex])
-        layoutCopyForReuse.remove(at: removeIndex)
-        
-        expectEqual(Array(bitArrayForReuse), layoutCopyForReuse)
-        expectEqual(bitArrayForReuse.count, layoutCopyForReuse.count)
-        expectEqual(bitArrayForReuse.count, (layout.count-1))
-        
-        bitArrayForReuse = BitArray(layout)
-        layoutCopyForReuse = layout
-      }
-      
-    }
-  }
-  
-  func testRemoveAll() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      var bitArray = BitArray(layout)
-      var layoutCopy = layout
-      
-      bitArray.removeAll()
-      layoutCopy.removeAll()
-      
-      expectEqual(bitArray.storage.count, 0)
-      expectEqual(bitArray.storage, [])
-      expectEqual(bitArray.count, 0)
-      expectEqual(bitArray.excess, 0)
-      expectEqual(Array(bitArray), layoutCopy)
-    }
-  }
-  
-  func testFirstTrueIndex() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      let bitArray = BitArray(layout)
-      expectEqual(bitArray.firstTrue(), layout.firstIndex(where: {$0 == true}))
-    }
-  }
-  
-  func testLastTrueIndex() {
-    withSomeUsefulBoolArrays("bitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      let bitArray = BitArray(layout)
-      expectEqual(bitArray.lastTrue(), layout.lastIndex(where: {$0 == true}))
-    }
-  }
-  
-  func testBitwiseOr() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
-        var firstBitArray = BitArray(firstLayout)
-        let secondBitArray = BitArray(secondLayout)
-        if (firstLayout.count == secondLayout.count) {
-          var expectedArray: [Bool] = []
-          for index in 0..<firstLayout.endIndex {
-            let value = (firstLayout[index] || secondLayout[index])
-            expectedArray.append(value)
-          }
-          
-          // test non-form
-          let resultBitArray = firstBitArray.bitwiseOr(secondBitArray)
-          expectEqual(Array(resultBitArray), expectedArray)
-          
-          //test form
-          firstBitArray.formBitwiseOr(secondBitArray)
-          expectEqual(firstBitArray, resultBitArray)
-          expectEqual(Array(firstBitArray), expectedArray)
-        }
-      }
-    }
-  }
-  
-  func testBitwiseOrOperators() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
-        var firstBitArray = BitArray(firstLayout)
-        let secondBitArray = BitArray(secondLayout)
-        if (firstLayout.count == secondLayout.count) {
-          var expectedArray: [Bool] = []
-          for index in 0..<firstLayout.endIndex {
-            let value = (firstLayout[index] || secondLayout[index])
-            expectedArray.append(value)
-          }
-          
-          // test non-form
-          let resultBitArray = firstBitArray | secondBitArray
-          expectEqual(Array(resultBitArray), expectedArray)
-          
-          //test form
-          firstBitArray |= secondBitArray
-          expectEqual(firstBitArray, resultBitArray)
-          expectEqual(Array(firstBitArray), expectedArray)
-        }
-      }
-    }
-  }
-  
-  func testBitwiseAnd() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
-        var firstBitArray = BitArray(firstLayout)
-        let secondBitArray = BitArray(secondLayout)
-        if (firstLayout.count == secondLayout.count) {
-          var expectedArray: [Bool] = []
-          for index in 0..<firstLayout.endIndex {
-            let value = (firstLayout[index] && secondLayout[index])
-            expectedArray.append(value)
-          }
-          
-          // test non-form
-          let resultBitArray = firstBitArray.bitwiseAnd(secondBitArray)
-          expectEqual(Array(resultBitArray), expectedArray)
-          
-          //test form
-          firstBitArray.formBitwiseAnd(secondBitArray)
-          expectEqual(firstBitArray, resultBitArray)
-          expectEqual(Array(firstBitArray), expectedArray)
-        }
-      }
-    }
-  }
-  
-  func testBitwiseAndOperators() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
-        var firstBitArray = BitArray(firstLayout)
-        let secondBitArray = BitArray(secondLayout)
-        if (firstLayout.count == secondLayout.count) {
-          var expectedArray: [Bool] = []
-          for index in 0..<firstLayout.endIndex {
-            let value = (firstLayout[index] && secondLayout[index])
-            expectedArray.append(value)
-          }
-          
-          // test non-form
-          let resultBitArray = firstBitArray & secondBitArray
-          expectEqual(Array(resultBitArray), expectedArray)
-          
-          //test form
-          firstBitArray &= secondBitArray
-          expectEqual(firstBitArray, resultBitArray)
-          expectEqual(Array(firstBitArray), expectedArray)
-        }
-      }
-    }
-  }
-  
-  func testBitwiseXor() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
-        var firstBitArray = BitArray(firstLayout)
-        let secondBitArray = BitArray(secondLayout)
-        if (firstLayout.count == secondLayout.count) {
-          var expectedArray: [Bool] = []
-          for index in 0..<firstLayout.endIndex {
-            let value = (firstLayout[index] != secondLayout[index])
-            expectedArray.append(value)
-          }
-          
-          // test non-form
-          let resultBitArray = firstBitArray.bitwiseXor(secondBitArray)
-          expectEqual(Array(resultBitArray), expectedArray)
-          
-          //test form
-          firstBitArray.formBitwiseXor(secondBitArray)
-          expectEqual(firstBitArray, resultBitArray)
-          expectEqual(Array(firstBitArray), expectedArray)
-        }
-      }
-    }
-  }
-  
-  func testBitwiseXorOperators() {
-    withSomeUsefulBoolArrays("firstBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { firstLayout in
-      withSomeUsefulBoolArrays("secondBitArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { secondLayout in
-        var firstBitArray = BitArray(firstLayout)
-        let secondBitArray = BitArray(secondLayout)
-        if (firstLayout.count == secondLayout.count) {
-          var expectedArray: [Bool] = []
-          for index in 0..<firstLayout.endIndex {
-            let value = (firstLayout[index] != secondLayout[index])
-            expectedArray.append(value)
-          }
-          
-          // test non-form
-          let resultBitArray = firstBitArray ^ secondBitArray
-          expectEqual(Array(resultBitArray), expectedArray)
-          
-          //test form
-          firstBitArray ^= secondBitArray
-          expectEqual(firstBitArray, resultBitArray)
-          expectEqual(Array(firstBitArray), expectedArray)
-        }
-      }
-    }
-  }
-  
-  func testBitwiseNot() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      var bitArray = BitArray(layout)
-      var bitArrayCopy = bitArray
-      var expectedArray: [Bool] = []
-      
-      for value in layout {
-        expectedArray.append(!value)
-      }
-      let newCopy = bitArray.bitwiseNot()
-      bitArray.formBitwiseNot()
-      bitArrayCopy = ~bitArrayCopy
-      
-      
-      expectEqual(Array(bitArray), expectedArray)
-      expectEqual(BitArray(expectedArray), bitArray)
-      
-      expectEqual(Array(newCopy), expectedArray)
-      expectEqual(BitArray(expectedArray), newCopy)
-      
-      expectEqual(Array(bitArrayCopy), expectedArray)
-      expectEqual(BitArray(expectedArray), bitArrayCopy)
-      expectEqual(bitArray, newCopy)
-    }
-  }
-  
-  func testIndexBefore() {
-    withSomeUsefulBoolArrays("boolArray", ofSizes: sizes, ofUnitBitWidth: WORD.bitWidth) { layout in
-      let bitArray = BitArray(layout)
-      
-      for _ in bitArray.reversed() {
-        // Just making sure it runs should suffice
-      }
-      
-      expectEqual(Array(bitArray.reversed()), layout.reversed())
-    }
-  }
-  
-  func testEqualAfterModification() {
-    var bitArray = [true, false, true]
-    let bitArrayCopy = bitArray
-    XCTAssertEqual(bitArray, bitArrayCopy)
-    bitArray.removeLast()
-    bitArray.append(true)
-    XCTAssertEqual(bitArray, bitArrayCopy)
-      
-    bitArray.append(true)
-    bitArray.remove(at: bitArray.endIndex-1)
-    XCTAssertEqual(bitArray, bitArrayCopy)
+extension BitArray {
+  static func _fromSequence<S: Sequence>(
+    _ value: S
+  ) -> BitArray where S.Element == Bool {
+    BitArray(value)
   }
 }
-#endif
+
+func randomBoolArray(count: Int) -> [Bool] {
+  var rng = SystemRandomNumberGenerator()
+  return randomBoolArray(count: count, using: &rng)
+}
+
+func randomBoolArray<R: RandomNumberGenerator>(
+  count: Int, using rng: inout R
+) -> [Bool] {
+  let wordCount = (count + UInt.bitWidth - 1) / UInt.bitWidth
+  var array: [Bool] = []
+  array.reserveCapacity(wordCount * UInt.bitWidth)
+  for _ in 0 ..< wordCount {
+    var word: UInt = rng.next()
+    for _ in 0 ..< UInt.bitWidth {
+      array.append(word & 1 == 1)
+      word &>>= 1
+    }
+  }
+  array.removeLast(array.count - count)
+  return array
+}
+
+final class BitArrayTests: CollectionTestCase {
+  func test_empty_initializer() {
+    let array = BitArray()
+    expectEqual(array.count, 0)
+    expectEqual(array.isEmpty, true)
+    expectEqual(array.startIndex, 0)
+    expectEqual(array.endIndex, 0)
+    expectEqualElements(array, [])
+  }
+  
+  func test_RandomAccessCollection() {
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    withEvery("count", in: [0, 1, 2, 13, 64, 65, 127, 128, 129]) { count in
+      let reference = randomBoolArray(count: count, using: &rng)
+      let value = BitArray(reference)
+      print(count)
+      checkBidirectionalCollection(
+        value, expectedContents: reference, maxSamples: 100)
+    }
+  }
+
+  func test_init_Sequence_BitArray() {
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    withEvery("count", in: [0, 1, 2, 13, 64, 65, 127, 128, 129]) { count in
+      let reference = BitArray(randomBoolArray(count: count, using: &rng))
+      let value = BitArray._fromSequence(reference)
+      expectEqualElements(value, reference)
+
+      let value2 = BitArray(reference)
+      expectEqualElements(value2, reference)
+    }
+  }
+
+  func test_init_Sequence_BitArray_SubSequence() {
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    withEvery("count", in: [0, 1, 2, 13, 64, 65, 127, 128, 129]) { count in
+      let array = randomBoolArray(count: count, using: &rng)
+      let ref = BitArray(array)
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 100) { range in
+        let value = BitArray._fromSequence(ref[range])
+        expectEqualElements(value, array[range])
+
+        let value2 = BitArray(ref[range])
+        expectEqualElements(value2, array[range])
+      }
+    }
+  }
+
+  func test_MutableCollection() {
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    withEvery("count", in: [0, 1, 2, 13, 64, 65, 127, 128, 129]) { count in
+      var ref = randomBoolArray(count: count, using: &rng)
+      let replacements = randomBoolArray(count: count, using: &rng)
+      var value = BitArray(ref)
+      withSome("i", in: 0 ..< count, maxSamples: 100) { i in
+        ref[i] = replacements[i]
+        value[i] = replacements[i]
+        expectEqualElements(value, ref)
+      }
+    }
+  }
+  
+  func test_fill() {
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    withEvery("count", in: [0, 1, 2, 13, 64, 65, 128, 129]) { count in
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 200) { range in
+        withEvery("v", in: [false, true]) { v in
+          var ref = randomBoolArray(count: count, using: &rng)
+          var value = BitArray(ref)
+          ref.replaceSubrange(range, with: repeatElement(v, count: range.count))
+          value.fill(in: range, with: v)
+          expectEqualElements(value, ref)
+        }
+      }
+      
+      var value = BitArray(randomBoolArray(count: count, using: &rng))
+      value.fill(with: false)
+      expectEqualElements(value, repeatElement(false, count: count))
+      value.fill(with: true)
+      expectEqualElements(value, repeatElement(true, count: count))
+    }
+  }
+  
+  func test_init_bitPattern() {
+    expectEqualElements(
+      BitArray(bitPattern: 42 as UInt8),
+      [false, true, false, true, false, true, false, false])
+
+    withSome(
+      "value", in: -1_000_000 ..< 1_000_000, maxSamples: 1000
+    ) { value in
+      let actual = BitArray(bitPattern: value)
+      var expected: [Bool] = []
+      var v = value
+      for _ in 0 ..< Int.bitWidth {
+        expected.append(v & 1 == 1)
+        v &>>= 1
+      }
+      expectEqualElements(actual, expected)
+    }
+  }
+  
+  func test_init_BitSet() {
+    expectEqualElements(BitArray(BitSet([])), [])
+    expectEqualElements(BitArray(BitSet([0])), [true])
+    expectEqualElements(BitArray(BitSet([1])), [false, true])
+    expectEqualElements(BitArray(BitSet([0, 1])), [true, true])
+    expectEqualElements(BitArray(BitSet([1, 2])), [false, true, true])
+    expectEqualElements(BitArray(BitSet([0, 2])), [true, false, true])
+
+    expectEqualElements(
+      BitArray(BitSet([1, 3, 6, 7])),
+      [false, true, false, true, false, false, true, true])
+
+    withEvery("count", in: [5, 63, 64, 65, 100, 1000]) { count in
+      var reference = randomBoolArray(count: count)
+      reference[reference.count - 1] = true // Fix the size of the bitset
+      let bitset = BitSet(reference.indices.filter { reference[$0] })
+      let actual = BitArray(bitset)
+      expectEqualElements(actual, reference)
+    }
+  }
+  
+  func test_init_repeating() {
+    withEvery("count", in: [0, 1, 2, 13, 63, 64, 65, 127, 128, 129, 1000]) { count in
+      withEvery("v", in: [false, true]) { v in
+        let value = BitArray(repeating: v, count: count)
+        let reference = repeatElement(v, count: count)
+        expectEqualElements(value, reference)
+      }
+    }
+  }
+  
+  func test_ExpressibleByArrayLiteral() {
+    let a: BitArray = []
+    expectEqualElements(a, [])
+
+    let b: BitArray = [true]
+    expectEqualElements(b, [true])
+
+    let c: BitArray = [true, false, false]
+    expectEqualElements(c, [true, false, false])
+
+    let d: BitArray = [true, false, false, false, true]
+    expectEqualElements(d, [true, false, false, false, true])
+
+    let e: BitArray = [
+      true, false, false, false, true, false, false,
+      true, true, false, false, true, false, false,
+      false, false, false, false, true, false, false,
+      true, false, true, false, true, false, false,
+      true, false, false, true, true, false, false,
+      true, false, false, false, false, false, false,
+      false, false, true, false, true, true, false,
+      true, false, false, false, true, false, true,
+      true, true, false, false, true, true, true,
+    ]
+    expectEqualElements(e, [
+      true, false, false, false, true, false, false,
+      true, true, false, false, true, false, false,
+      false, false, false, false, true, false, false,
+      true, false, true, false, true, false, false,
+      true, false, false, true, true, false, false,
+      true, false, false, false, false, false, false,
+      false, false, true, false, true, true, false,
+      true, false, false, false, true, false, true,
+      true, true, false, false, true, true, true,
+    ])
+  }
+  
+  func test_Hashable() {
+    // This is a silly test, but it does exercise hashing a bit.
+    let classes: [[BitArray]] = [
+      [[]],
+      [[false], [false]],
+      [[false, false], [false, false]],
+      [[false, false, true], [false, false, true]],
+      [[false, false, true, false, false],
+       [false, false, true, false, false]],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+  
+  func test_replaceSubrange_Array() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 50) { range in
+        withEvery(
+          "length", in: [0, 1, range.count, 2 * range.count]
+        ) { length in
+          var reference = randomBoolArray(count: count)
+          let replacement = randomBoolArray(count: length)
+          var actual = BitArray(reference)
+          
+          reference.replaceSubrange(range, with: replacement)
+          actual.replaceSubrange(range, with: replacement)
+          expectEqualElements(actual, reference)
+        }
+      }
+    }
+  }
+
+  func test_replaceSubrange_BitArray() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 50) { range in
+        withEvery(
+          "length", in: [0, 1, range.count, 2 * range.count]
+        ) { length in
+          var reference = randomBoolArray(count: count)
+          let value = BitArray(reference)
+          
+          let refReplacement = randomBoolArray(count: length)
+          let replacement = BitArray(refReplacement)
+          
+          reference.replaceSubrange(range, with: refReplacement)
+
+          var actual = value
+          actual.replaceSubrange(range, with: replacement)
+          expectEqualElements(actual, reference)
+
+          // Also check through the generic API
+          func forceCollection<C: Collection>(_ v: C) where C.Element == Bool {
+            var actual = value
+            actual.replaceSubrange(range, with: v)
+            expectEqualElements(actual, reference)
+          }
+          forceCollection(replacement)
+        }
+      }
+    }
+  }
+
+  func test_replaceSubrange_BitArray_SubSequence() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 25) { range in
+        withSomeRanges(
+          "replacementRange",
+          in: 0 ..< count,
+          maxSamples: 10
+        ) { replacementRange in
+          var reference = randomBoolArray(count: count)
+          let value = BitArray(reference)
+
+          let refReplacement = randomBoolArray(count: count)
+          let replacement = BitArray(refReplacement)
+
+          reference.replaceSubrange(
+            range, with: refReplacement[replacementRange])
+
+          var actual = value
+          actual.replaceSubrange(range, with: replacement[replacementRange])
+          expectEqualElements(actual, reference)
+
+          // Also check through the generic API
+          func forceCollection<C: Collection>(_ v: C) where C.Element == Bool {
+            var actual = value
+            actual.replaceSubrange(range, with: v)
+            expectEqualElements(actual, reference)
+          }
+          forceCollection(replacement[replacementRange])
+        }
+      }
+    }
+  }
+  
+  func test_append() {
+    withEvery("count", in: 0 ..< 129) { count in
+      withEvery("v", in: [false, true]) { v in
+        var reference = randomBoolArray(count: count)
+        var actual = BitArray(reference)
+        reference.append(v)
+        actual.append(v)
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+  
+  func test_append_Sequence() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSome("length", in: 0 ..< 256, maxSamples: 50) { length in
+        let reference = randomBoolArray(count: count)
+        let addition = randomBoolArray(count: length)
+        
+        let value = BitArray(reference)
+        
+        func check<S: Sequence>(_ addition: S) where S.Element == Bool {
+          var ref = reference
+          var actual = value
+          
+          ref.append(contentsOf: addition)
+          actual.append(contentsOf: addition)
+          expectEqualElements(actual, ref)
+        }
+        check(addition)
+        check(BitArray(addition))
+        check(BitArray(addition)[...])
+      }
+    }
+  }
+
+  func test_append_BitArray() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSome("length", in: 0 ..< 256, maxSamples: 50) { length in
+        var reference = randomBoolArray(count: count)
+        let addition = randomBoolArray(count: length)
+        
+        var actual = BitArray(reference)
+
+        reference.append(contentsOf: addition)
+        actual.append(contentsOf: BitArray(addition))
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+
+  func test_append_BitArray_SubSequence() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSomeRanges("range", in: 0 ..< 512, maxSamples: 50) { range in
+        var reference = randomBoolArray(count: count)
+        let addition = randomBoolArray(count: 512)
+        
+        var actual = BitArray(reference)
+
+        reference.append(contentsOf: addition[range])
+        actual.append(contentsOf: BitArray(addition)[range])
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+  
+  func test_insert() {
+    withEvery("count", in: 0 ..< 129) { count in
+      withSome("i", in: 0 ..< count + 1, maxSamples: 20) { i in
+        withEvery("v", in: [false, true]) { v in
+          var reference = randomBoolArray(count: count)
+          var actual = BitArray(reference)
+          reference.insert(v, at: i)
+          actual.insert(v, at: i)
+          expectEqualElements(actual, reference)
+        }
+      }
+    }
+  }
+  
+  func test_insert_contentsOf_Sequence() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSome("length", in: 0 ..< 256, maxSamples: 5) { length in
+        withSome("i", in: 0 ..< count + 1, maxSamples: 10) { i in
+          let reference = randomBoolArray(count: count)
+          let addition = randomBoolArray(count: length)
+          
+          let value = BitArray(reference)
+          
+          func check<C: Collection>(_ addition: C) where C.Element == Bool {
+            var ref = reference
+            var actual = value
+            
+            ref.insert(contentsOf: addition, at: i)
+            actual.insert(contentsOf: addition, at: i)
+            expectEqualElements(actual, ref)
+          }
+          check(addition)
+          check(BitArray(addition))
+          check(BitArray(addition)[...])
+        }
+      }
+    }
+  }
+
+  func test_insert_contentsOf_BitArray() {
+    withSome("count", in: 0 ..< 512, maxSamples: 10) { count in
+      print(count)
+      withSome("length", in: 0 ..< 256, maxSamples: 5) { length in
+        withSome("i", in: 0 ..< count + 1, maxSamples: 10) { i in
+          let reference = randomBoolArray(count: count)
+          let addition = randomBoolArray(count: length)
+          
+          let value = BitArray(reference)
+          
+          var ref = reference
+          var actual = value
+            
+          ref.insert(contentsOf: addition, at: i)
+          actual.insert(contentsOf: BitArray(addition), at: i)
+          expectEqualElements(actual, ref)
+        }
+      }
+    }
+  }
+  
+  func test_remove() {
+    withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
+      withSome("i", in: 0 ..< count, maxSamples: 30) { i in
+        var reference = randomBoolArray(count: count)
+        var actual = BitArray(reference)
+          
+        let v1 = reference.remove(at: i)
+        let v2 = actual.remove(at: i)
+        expectEqual(v2, v1)
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+  
+  func test_removeSubrange() {
+    withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 50) { range in
+        var reference = randomBoolArray(count: count)
+        var actual = BitArray(reference)
+        reference.removeSubrange(range)
+        actual.removeSubrange(range)
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+
+  func test_removeLast() {
+    withEvery("count", in: 1 ..< 512) { count in
+      var reference = randomBoolArray(count: count)
+      var actual = BitArray(reference)
+      let v1 = reference.removeLast()
+      let v2 = actual.removeLast()
+      expectEqual(v1, v2)
+      expectEqualElements(actual, reference)
+    }
+  }
+  
+  func test_removeFirst() {
+    withEvery("count", in: 1 ..< 512) { count in
+      var reference = randomBoolArray(count: count)
+      var actual = BitArray(reference)
+      let v1 = reference.removeFirst()
+      let v2 = actual.removeFirst()
+      expectEqual(v1, v2)
+      expectEqualElements(actual, reference)
+    }
+  }
+  
+  func test_removeFirst_n() {
+    withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
+      withSome("n", in: 0 ... count, maxSamples: 30) { n in
+        var reference = randomBoolArray(count: count)
+        var actual = BitArray(reference)
+          
+        reference.removeFirst(n)
+        actual.removeFirst(n)
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+
+  func test_removeLast_n() {
+    withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
+      withSome("n", in: 0 ... count, maxSamples: 30) { n in
+        var reference = randomBoolArray(count: count)
+        var actual = BitArray(reference)
+          
+        reference.removeLast(n)
+        actual.removeLast(n)
+        expectEqualElements(actual, reference)
+      }
+    }
+  }
+  
+  func test_removeAll() {
+    withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
+      withEvery("keep", in: [false, true]) { keep in
+        let reference = randomBoolArray(count: count)
+        var actual = BitArray(reference)
+        actual.removeAll(keepingCapacity: keep)
+        expectEqualElements(actual, [])
+        if keep {
+          expectGreaterThanOrEqual(actual._capacity, count)
+        } else {
+          expectEqual(actual._capacity, 0)
+        }
+      }
+    }
+  }
+  
+  func test_reserveCapacity() {
+    var bits = BitArray()
+    expectEqual(bits._capacity, 0)
+    bits.reserveCapacity(1)
+    expectGreaterThanOrEqual(bits._capacity, 1)
+    bits.reserveCapacity(0)
+    expectGreaterThanOrEqual(bits._capacity, 1)
+    bits.reserveCapacity(100)
+    expectGreaterThanOrEqual(bits._capacity, 100)
+    bits.reserveCapacity(0)
+    expectGreaterThanOrEqual(bits._capacity, 100)
+    bits.append(contentsOf: repeatElement(true, count: 1000))
+    expectGreaterThanOrEqual(bits._capacity, 1000)
+    bits.reserveCapacity(2000)
+    expectGreaterThanOrEqual(bits._capacity, 2000)
+  }
+  
+  func test_bitwiseOr() {
+    withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
+      withEvery("i", in: 0 ..< 10) { i in
+        let a = randomBoolArray(count: count)
+        let b = randomBoolArray(count: count)
+        
+        let c = BitArray(a)
+        let d = BitArray(b)
+        
+        let expected = zip(a, b).map { $0 || $1 }
+        let actual = c | d
+        
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_bitwiseAnd() {
+    withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
+      withEvery("i", in: 0 ..< 10) { i in
+        let a = randomBoolArray(count: count)
+        let b = randomBoolArray(count: count)
+        
+        let c = BitArray(a)
+        let d = BitArray(b)
+        
+        let expected = zip(a, b).map { $0 && $1 }
+        let actual = c & d
+        
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_bitwiseXor() {
+    withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
+      withEvery("i", in: 0 ..< 10) { i in
+        let a = randomBoolArray(count: count)
+        let b = randomBoolArray(count: count)
+        
+        let c = BitArray(a)
+        let d = BitArray(b)
+        
+        let expected = zip(a, b).map { $0 != $1 }
+        let actual = c ^ d
+        
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+
+  func test_bitwiseComplement() {
+    withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
+      withEvery("i", in: 0 ..< 10) { i in
+        let a = randomBoolArray(count: count)
+        
+        let b = BitArray(a)
+
+        let expected = a.map { !$0 }
+        let actual = ~b
+        
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+}

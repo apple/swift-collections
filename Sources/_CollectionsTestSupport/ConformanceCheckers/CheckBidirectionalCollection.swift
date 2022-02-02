@@ -43,6 +43,7 @@ extension BidirectionalCollection {
 public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence>(
   _ collection: C,
   expectedContents: S,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line
 ) where C.Element: Equatable, S.Element == C.Element {
@@ -50,6 +51,7 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
     collection,
     expectedContents: expectedContents,
     by: ==,
+    maxSamples: maxSamples,
     file: file,
     line: line)
 }
@@ -58,6 +60,7 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
   _ collection: C,
   expectedContents: S,
   by areEquivalent: (S.Element, S.Element) -> Bool,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line
 ) where S.Element == C.Element {
@@ -68,10 +71,12 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
   _checkCollection(
     collection, expectedContents: expectedContents,
     by: areEquivalent,
+    maxSamples: maxSamples,
     file: file, line: line)
   _checkBidirectionalCollection(
     collection, expectedContents: expectedContents,
     by: areEquivalent,
+    maxSamples: maxSamples,
     file: file, line: line)
 }
 
@@ -79,6 +84,7 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
   _ collection: C,
   expectedContents: S,
   by areEquivalent: (S.Element, S.Element) -> Bool,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line
 ) where S.Element == C.Element {
@@ -108,40 +114,39 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
 
   // Check the Indices associated type
   if C.self != C.Indices.self {
-    checkBidirectionalCollection(collection.indices, expectedContents: indicesByIndexAfter)
+    checkBidirectionalCollection(
+      collection.indices,
+      expectedContents: indicesByIndexAfter,
+      maxSamples: maxSamples)
   }
 
   var allIndices = indicesByIndexAfter
   allIndices.append(collection.endIndex)
 
-  // Check `index(_,offsetBy:)`
-  for (startOffset, start) in allIndices.enumerated() {
-    for endOffset in 0 ..< allIndices.count {
-      let end = collection.index(start, offsetBy: endOffset - startOffset)
-      expectEqual(end, allIndices[endOffset])
-      if endOffset < expectedContents.count {
-        expectEquivalent(
-          collection[end], expectedContents[endOffset],
-          by: areEquivalent)
-      }
-    }
-  }
+  withSomeRanges(
+    "range",
+    in: 0 ..< allIndices.count - 1,
+    maxSamples: maxSamples
+  ) { range in
+    let i = range.lowerBound
+    let j = range.upperBound
 
-  // Check `distance(from:to:)`
-  for i in allIndices.indices {
-    for j in allIndices.indices {
-      let d = collection.distance(from: allIndices[i], to: allIndices[j])
-      expectEqual(d, j - i)
+    // Check `index(_,offsetBy:)` with negative offsets
+    let a = collection.index(allIndices[j], offsetBy: i - j)
+    expectEqual(a, allIndices[i])
+    if i < expectedContents.count {
+      expectEquivalent(
+        collection[a], expectedContents[i],
+        by: areEquivalent)
     }
-  }
 
-  // Check slicing.
-  for i in 0 ..< allIndices.count {
-    for j in i ..< allIndices.count {
-      let range = allIndices[i] ..< allIndices[j]
-      let slice = collection[range]
-      expectEqualElements(slice._indicesByIndexBefore(), allIndices[i ..< j])
-      expectEqualElements(slice._indicesByFormIndexBefore(), allIndices[i ..< j])
-    }
+    // Check `distance(from:to:)` with decreasing indices
+    let d = collection.distance(from: allIndices[j], to: allIndices[i])
+    expectEqual(d, i - j)
+
+    // Check slicing.
+    let slice = collection[allIndices[i] ..< allIndices[j]]
+    expectEqualElements(slice._indicesByIndexBefore(), allIndices[i ..< j])
+    expectEqualElements(slice._indicesByFormIndexBefore(), allIndices[i ..< j])
   }
 }
