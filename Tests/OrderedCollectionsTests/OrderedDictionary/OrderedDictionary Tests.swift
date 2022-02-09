@@ -123,13 +123,39 @@ class OrderedDictionaryTests: CollectionTestCase {
       "one", "two", "three", "four", "five",
       "six", "seven", "eight", "nine", "ten"
     ]
-    let d = OrderedDictionary<Int, [String]>(grouping: items, by: { $0.count })
+    let d = OrderedDictionary<Int, ContiguousArray<String>>(
+      grouping: items, by: { $0.count })
     expectEqualElements(d, [
       (key: 3, value: ["one", "two", "six", "ten"]),
       (key: 5, value: ["three", "seven", "eight"]),
       (key: 4, value: ["four", "five", "nine"]),
-    ])
+    ] as [(key: Int, value: ContiguousArray<String>)])
   }
+
+  func test_grouping_initializer_inference() {
+    struct StatEvent: Equatable {
+       var name: String
+       var date: String
+       var hours: Int
+    }
+
+    let statEvents = [
+       StatEvent(name: "lunch", date: "01-01-2015", hours: 1),
+       StatEvent(name: "dinner", date: "01-01-2015", hours: 1),
+       StatEvent(name: "dinner", date: "01-01-2015", hours: 1),
+       StatEvent(name: "lunch", date: "01-01-2015", hours: 1),
+       StatEvent(name: "dinner", date: "01-01-2015", hours: 1)
+    ]
+
+    // We expect this to be inferred to `OrderedDictionary<String, [StatEvent]>`
+    let d = OrderedDictionary(grouping: statEvents, by: { $0.name })
+    let expected = [
+      (key: "lunch", value: [statEvents[0], statEvents[3]]),
+      (key: "dinner", value: [statEvents[1], statEvents[2], statEvents[4]]),
+    ]
+    expectEqualElements(d, expected)
+  }
+
 
   func test_uncheckedUniqueKeysWithValues_labeled_tuples() {
     let items: KeyValuePairs<String, Int> = [

@@ -279,6 +279,50 @@ extension OrderedDictionary {
     grouping values: S,
     by keyForValue: (S.Element) throws -> Key
   ) rethrows where Value: RangeReplaceableCollection, Value.Element == S.Element {
+    try self.init(_grouping: values, by: keyForValue)
+  }
+
+  /// Creates a new dictionary whose keys are the groupings returned by the
+  /// given closure and whose values are arrays of the elements that returned
+  /// each key.
+  ///
+  /// The arrays in the "values" position of the new dictionary each contain at
+  /// least one element, with the elements in the same order as the source
+  /// sequence.
+  ///
+  /// The following example declares an array of names, and then creates a
+  /// dictionary from that array by grouping the names by first letter:
+  ///
+  ///     let students = ["Kofi", "Abena", "Efua", "Kweku", "Akosua"]
+  ///     let studentsByLetter = OrderedDictionary(grouping: students, by: { $0.first! })
+  ///     // ["K": ["Kofi", "Kweku"], "A": ["Abena", "Akosua"], "E": ["Efua"]]
+  ///
+  /// The new `studentsByLetter` dictionary has three entries, with students'
+  /// names grouped by the keys `"E"`, `"K"`, and `"A"`.
+  ///
+  /// - Parameters:
+  ///   - values: A sequence of values to group into a dictionary.
+  ///   - keyForValue: A closure that returns a key for each element in
+  ///     `values`.
+  ///
+  /// - Complexity: Expected O(*n*) on average, where *n* is the count of
+  ///    values, if `Key` implements high-quality hashing.
+  @inlinable
+  public init<S: Sequence>(
+    grouping values: S,
+    by keyForValue: (S.Element) throws -> Key
+  ) rethrows where Value == [S.Element] {
+    // Note: this extra overload is necessary to make type inference work
+    // for the `Value` type -- we want it to default to `[S.Element`].
+    // (https://github.com/apple/swift-collections/issues/139)
+    try self.init(_grouping: values, by: keyForValue)
+  }
+
+  @inlinable
+  internal init<S: Sequence>(
+    _grouping values: S,
+    by keyForValue: (S.Element) throws -> Key
+  ) rethrows where Value: RangeReplaceableCollection, Value.Element == S.Element {
     self.init()
     for value in values {
       let key = try keyForValue(value)
