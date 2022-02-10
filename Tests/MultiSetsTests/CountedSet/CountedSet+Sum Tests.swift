@@ -9,7 +9,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import MultiSets
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
+import XCTest
+import MultiSets
+
+import _CollectionsTestSupport
+
+
+private let x: CountedSet<Character> = ["a": 1, "b": 2, "c": 3, "d": 4]
+private let y: CountedSet<Character> = ["e", "f", "a", "f"]
+
+class CountedSetSumTests: CollectionTestCase {
+  func testSum() {
+    XCTAssertEqual(
+      x + y,
+      ["a": 2, "b": 2, "c": 3, "d": 4, "e": 1, "f": 2]
+    )
+  }
+}

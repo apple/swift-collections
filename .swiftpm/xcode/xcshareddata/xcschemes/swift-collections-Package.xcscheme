@@ -104,6 +104,20 @@
                ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "MultiSets"
+               BuildableName = "MultiSets"
+               BlueprintName = "MultiSets"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -149,6 +163,16 @@
                BlueprintIdentifier = "PriorityQueueTests"
                BuildableName = "PriorityQueueTests"
                BlueprintName = "PriorityQueueTests"
+               ReferencedContainer = "container:">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "MultiSetsTests"
+               BuildableName = "MultiSetsTests"
+               BlueprintName = "MultiSetsTests"
                ReferencedContainer = "container:">
             </BuildableReference>
          </TestableReference>

@@ -9,7 +9,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import MultiSets
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
+import XCTest
+import MultiSets
+
+import _CollectionsTestSupport
+
+class CountedSetTests: CollectionTestCase {
+  func test_empty() {
+    let s = CountedSet<Int>()
+    expectEqualElements(s, [])
+    expectEqual(s.count, 0)
+  }
+
+  func test_init_minimumCapacity() {
+    let s = CountedSet<Int>(minimumCapacity: 1000)
+    expectGreaterThanOrEqual(s.rawValue.capacity, 1000)
+  }
+}
