@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-fileprivate let initialDataCapacity = 4
-fileprivate let initialTrieCapacity = 1
+fileprivate let initialDataCapacity: Capacity = 4
+fileprivate let initialTrieCapacity: Capacity = 1
 
 final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: Hashable {
 
@@ -21,8 +21,8 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
     var header: Header
 
-    let dataCapacity: Int // TODO constrain type
-    let trieCapacity: Int // TODO constrain type
+    let dataCapacity: Capacity
+    let trieCapacity: Capacity
 
     let dataBaseAddress: UnsafeMutablePointer<DataBufferElement>
     let trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
@@ -52,23 +52,23 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     }
 
     @inlinable
-    static func _allocate(dataCapacity: Int, trieCapacity: Int) -> (dataBaseAddress: UnsafeMutablePointer<DataBufferElement>, trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>) {
-        let dataCapacityInBytes = dataCapacity * MemoryLayout<DataBufferElement>.stride
-        let trieCapacityInBytes = trieCapacity * MemoryLayout<TrieBufferElement>.stride
+    static func _allocate(dataCapacity: Capacity, trieCapacity: Capacity) -> (dataBaseAddress: UnsafeMutablePointer<DataBufferElement>, trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>) {
+        let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<DataBufferElement>.stride
+        let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<TrieBufferElement>.stride
 
         let memory = UnsafeMutableRawPointer.allocate(
             byteCount: dataCapacityInBytes + trieCapacityInBytes,
             alignment: Swift.max(MemoryLayout<DataBufferElement>.alignment, MemoryLayout<TrieBufferElement>.alignment))
 
-        let dataBaseAddress = memory.advanced(by: trieCapacityInBytes).bindMemory(to: DataBufferElement.self, capacity: dataCapacity)
-        let trieBaseAddress = memory.bindMemory(to: TrieBufferElement.self, capacity: trieCapacity)
+        let dataBaseAddress = memory.advanced(by: trieCapacityInBytes).bindMemory(to: DataBufferElement.self, capacity: Int(dataCapacity))
+        let trieBaseAddress = memory.bindMemory(to: TrieBufferElement.self, capacity: Int(trieCapacity))
 
         return (dataBaseAddress, trieBaseAddress)
     }
 
-    func copy(withDataCapacityFactor dataFactor: Int = 1, withTrieCapacityFactor trieFactor: Int = 1) -> Self {
+    func copy(withDataCapacityFactor dataCapacityFactor: Capacity = 1, withTrieCapacityFactor trieCapacityFactor: Capacity = 1) -> Self {
         let src = self
-        let dst = Self(dataCapacity: src.dataCapacity * dataFactor, trieCapacity: src.trieCapacity * trieFactor)
+        let dst = Self(dataCapacity: src.dataCapacity &* dataCapacityFactor, trieCapacity: src.trieCapacity &* trieCapacityFactor)
 
         dst.header = src.header
         dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataCount)
@@ -102,7 +102,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).suffix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
     }
 
-    init(dataCapacity: Int, trieCapacity: Int) {
+    init(dataCapacity: Capacity, trieCapacity: Capacity) {
         let (dataBaseAddress, trieBaseAddress) = Self._allocate(dataCapacity: dataCapacity, trieCapacity: trieCapacity)
 
         self.header = Header(bitmap1: 0, bitmap2: 0)

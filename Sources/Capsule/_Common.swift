@@ -19,6 +19,8 @@ let bitPartitionSize: Int = 5
 
 let bitPartitionMask: Int = (1 << bitPartitionSize) - 1
 
+typealias Capacity = UInt8
+
 let hashCodeLength: Int = Int.bitWidth
 
 let maxDepth = Int((Double(hashCodeLength) / Double(bitPartitionSize)).rounded(.up))

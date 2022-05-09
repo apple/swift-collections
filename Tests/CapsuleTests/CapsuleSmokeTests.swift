@@ -437,4 +437,8 @@ final class BitmapSmokeTests: CollectionTestCase {
         expectTrue((2 << (bitPartitionSize - 1)) != 0)
         expectTrue((2 << (bitPartitionSize - 1)) <= Bitmap.bitWidth)
     }
+
+    func test_Capacity_isValid() {
+        expectTrue(Int(2 << bitPartitionSize) <= Int(Capacity.max))
+    }
 }
