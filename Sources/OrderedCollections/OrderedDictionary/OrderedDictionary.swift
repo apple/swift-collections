@@ -767,14 +767,18 @@ extension OrderedDictionary {
   ///
   ///     // Keeping existing value for key "a":
   ///     dictionary.merge(zip(["a", "c"], [3, 4])) { (current, _) in current }
-  ///     // ["b": 2, "a": 1, "c": 4]
+  ///     // ["a": 1, "b": 2, "c": 4]
   ///
   ///     // Taking the new value for key "a":
   ///     dictionary.merge(zip(["a", "d"], [5, 6])) { (_, new) in new }
-  ///     // ["b": 2, "a": 5, "c": 4, "d": 6]
+  ///     // ["a": 5, "b": 2, "c": 4, "d": 6]
+  ///
+  /// This operation preserves the order of keys in the original dictionary.
+  /// New key-value pairs are appended to the end in the order they appear in
+  /// the given sequence.
   ///
   /// - Parameters:
-  ///   - other: A sequence of key-value pairs.
+  ///   - keysAndValues: A sequence of key-value pairs.
   ///   - combine: A closure that takes the current and new values for any
   ///     duplicate keys. The closure returns the desired value for the final
   ///     dictionary.
@@ -813,14 +817,18 @@ extension OrderedDictionary {
   ///
   ///     // Keeping existing value for key "a":
   ///     dictionary.merge(zip(["a", "c"], [3, 4])) { (current, _) in current }
-  ///     // ["b": 2, "a": 1, "c": 4]
+  ///     // ["a": 1, "b": 2, "c": 4]
   ///
   ///     // Taking the new value for key "a":
   ///     dictionary.merge(zip(["a", "d"], [5, 6])) { (_, new) in new }
-  ///     // ["b": 2, "a": 5, "c": 4, "d": 6]
+  ///     // ["a": 5, "b": 2, "c": 4, "d": 6]
+  ///
+  /// This operation preserves the order of keys in the original dictionary.
+  /// New key-value pairs are appended to the end in the order they appear in
+  /// the given sequence.
   ///
   /// - Parameters:
-  ///   - other: A sequence of key-value pairs.
+  ///   - keysAndValues: A sequence of key-value pairs.
   ///   - combine: A closure that takes the current and new values for any
   ///     duplicate keys. The closure returns the desired value for the final
   ///     dictionary.
@@ -854,9 +862,9 @@ extension OrderedDictionary {
   ///     let newKeyValues = zip(["a", "b"], [3, 4])
   ///
   ///     let keepingCurrent = dictionary.merging(newKeyValues) { (current, _) in current }
-  ///     // ["b": 2, "a": 1]
+  ///     // ["a": 1, "b": 2]
   ///     let replacingCurrent = dictionary.merging(newKeyValues) { (_, new) in new }
-  ///     // ["b": 4, "a": 3]
+  ///     // ["a": 3, "b": 4]
   ///
   /// - Parameters:
   ///   - other: A sequence of key-value pairs.
@@ -865,7 +873,9 @@ extension OrderedDictionary {
   ///     dictionary.
   ///
   /// - Returns: A new dictionary with the combined keys and values of this
-  ///   dictionary and `other`.
+  ///    dictionary and `other`. The order of keys in the result dictionary
+  ///    matches that of `self`, with additional key-value pairs (if any)
+  ///    appended at the end in the order they appear in `other`.
   ///
   /// - Complexity: Expected to be O(`count` + *n*) on average, where *n* is the
   ///    number of elements in `keysAndValues`, if `Key` implements high-quality
@@ -897,9 +907,9 @@ extension OrderedDictionary {
   ///     let newKeyValues = zip(["a", "b"], [3, 4])
   ///
   ///     let keepingCurrent = dictionary.merging(newKeyValues) { (current, _) in current }
-  ///     // ["b": 2, "a": 1]
+  ///     // ["a": 1, "b": 2]
   ///     let replacingCurrent = dictionary.merging(newKeyValues) { (_, new) in new }
-  ///     // ["b": 4, "a": 3]
+  ///     // ["a": 3, "b": 4]
   ///
   /// - Parameters:
   ///   - other: A sequence of key-value pairs.
@@ -908,7 +918,9 @@ extension OrderedDictionary {
   ///     dictionary.
   ///
   /// - Returns: A new dictionary with the combined keys and values of this
-  ///   dictionary and `other`.
+  ///    dictionary and `other`. The order of keys in the result dictionary
+  ///    matches that of `self`, with additional key-value pairs (if any)
+  ///    appended at the end in the order they appear in `other`.
   ///
   /// - Complexity: Expected to be O(`count` + *n*) on average, where *n* is the
   ///    number of elements in `keysAndValues`, if `Key` implements high-quality
@@ -932,7 +944,8 @@ extension OrderedDictionary {
   ///   argument and returns a Boolean value indicating whether the pair
   ///   should be included in the returned dictionary.
   ///
-  /// - Returns: A dictionary of the key-value pairs that `isIncluded` allows.
+  /// - Returns: A dictionary of the key-value pairs that `isIncluded` allows,
+  ///    in the same order that they appear in `self`.
   ///
   /// - Complexity: O(`count`)
   @inlinable
@@ -956,7 +969,7 @@ extension OrderedDictionary {
   ///   accepts each value of the dictionary as its parameter and returns a
   ///   transformed value of the same or of a different type.
   /// - Returns: A dictionary containing the keys and transformed values of
-  ///   this dictionary.
+  ///   this dictionary, in the same order.
   ///
   /// - Complexity: O(`count`)
   @inlinable
@@ -991,7 +1004,7 @@ extension OrderedDictionary {
   ///   optional transformed value of the same or of a different type.
   ///
   /// - Returns: A dictionary containing the keys and non-`nil` transformed
-  ///   values of this dictionary.
+  ///   values of this dictionary, in the same order.
   ///
   /// - Complexity: O(`count`)
   @inlinable
