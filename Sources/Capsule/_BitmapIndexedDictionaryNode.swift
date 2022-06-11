@@ -66,9 +66,12 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         return (dataBaseAddress, trieBaseAddress)
     }
 
-    func copy(withDataCapacityFactor dataCapacityFactor: Capacity = 1, withTrieCapacityFactor trieCapacityFactor: Capacity = 1) -> Self {
+    func copy(withDataCapacityFactor dataCapacityFactor: Capacity = 1,
+              withDataCapacityShrinkFactor dataCapacityShrinkFactor: Capacity = 1,
+              withTrieCapacityFactor trieCapacityFactor: Capacity = 1,
+              withTrieCapacityShrinkFactor trieCapacityShrinkFactor: Capacity = 1) -> Self {
         let src = self
-        let dst = Self(dataCapacity: src.dataCapacity &* dataCapacityFactor, trieCapacity: src.trieCapacity &* trieCapacityFactor)
+        let dst = Self(dataCapacity: src.dataCapacity &* dataCapacityFactor / dataCapacityShrinkFactor, trieCapacity: src.trieCapacity &* trieCapacityFactor / trieCapacityShrinkFactor)
 
         dst.header = src.header
         dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataCount)
@@ -592,7 +595,15 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         if isStorageKnownUniquelyReferenced && hasRoomForTrie {
             dst = src
         } else {
-            dst = src.copy(withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
+            // TODO reconsider the details of the heuristic
+            //
+            // Since copying is necessary, check if the data section can be reduced.
+            // Keep at mininum the initial capacity.
+            //
+            // Notes currently can grow to a maximum size of 48 (tuple and sub-node) slots.
+            let tooMuchForData = Swift.max(header.dataCount * 2 - 1, 4) < dataCapacity
+            
+            dst = src.copy(withDataCapacityShrinkFactor: tooMuchForData ? 2 : 1, withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
         }
 
         let dataIdx = indexFrom(dataMap, bitpos)
