@@ -112,7 +112,7 @@ final class BitSetTest: CollectionTestCase {
     }
     if maximum > 100 {
       randomSelection("1%", count: maximum / 100)
-      randomSelection("9%", count: maximum / 100)
+      randomSelection("9%", count: 9 * maximum / 100)
     }
     randomSelection("50%", count: maximum / 2)
 
