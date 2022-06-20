@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-import BitArrayModule
+import BitCollections
 
 extension Benchmark {
   
