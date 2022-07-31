@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet: ExpressibleByArrayLiteral {
-  public init(arrayLiteral elements: Int...) {
+  public init(arrayLiteral elements: Element...) {
     self.init(elements)
   }
 }

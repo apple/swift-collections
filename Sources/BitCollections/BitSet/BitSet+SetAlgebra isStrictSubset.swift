@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public func isStrictSubset(of other: Self) -> Bool {
+extension _BitSet {
+  @usableFromInline
+  internal func isStrictSubset(of other: Self) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words
@@ -29,16 +30,30 @@ extension BitSet {
       }
     }
   }
+}
+
+extension BitSet {
+  @inlinable
+  public func isStrictSubset(of other: Self) -> Bool {
+    _core.isStrictSubset(of: other._core)
+  }
+
+  @inlinable
+  public func isStrictSubset<I: FixedWidthInteger>(
+    of other: BitSet<I>
+  ) -> Bool {
+    _core.isStrictSubset(of: other._core)
+  }
 
   @inlinable
   public func isStrictSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element: FixedWidthInteger
+  where S.Element == Element
   {
     if S.self == BitSet.self {
       return isStrictSubset(of: other as! BitSet)
     }
-    if S.self == Range<S.Element>.self {
-      return isStrictSubset(of: other as! Range<S.Element>)
+    if S.self == Range<Element>.self {
+      return isStrictSubset(of: other as! Range<Element>)
     }
 
     if isEmpty {
@@ -47,7 +62,7 @@ extension BitSet {
     }
 
     return _UnsafeHandle.withTemporaryBitset(
-      wordCount: _storage.count
+      wordCount: _core._storage.count
     ) { seen in
       var strict = false
       var it = other.makeIterator()
@@ -56,20 +71,27 @@ extension BitSet {
           strict = true
           continue
         }
-        if seen.insert(UInt(i)), seen._count == self._count {
+        if seen.insert(UInt(i)), seen._count == self.count {
           while !strict, let i = it.next() {
             strict = !self.contains(i)
           }
           return strict
         }
       }
-      assert(seen._count < self._count)
+      assert(seen._count < self.count)
       return false
     }
   }
 
   @inlinable
-  public func isStrictSubset<I: FixedWidthInteger>(of other: Range<I>) -> Bool {
+  public func isStrictSubset(of other: Range<Element>) -> Bool {
+    isSubset(of: other) && !isSuperset(of: other)
+  }
+
+  @inlinable
+  public func isStrictSubset<I: FixedWidthInteger>(
+    of other: Range<I>
+  ) -> Bool {
     isSubset(of: other) && !isSuperset(of: other)
   }
 }

@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public mutating func subtract(_ other: Self) {
+extension _BitSet {
+  @usableFromInline
+  internal mutating func subtract(_ other: Self) {
     _updateThenShrink { target, shrink in
       other._read { source in
         target.combineSharedPrefix(
@@ -21,6 +22,37 @@ extension BitSet {
     }
   }
 
+  @usableFromInline
+  internal mutating func subtract(_ next: () -> UInt?) {
+    _updateThenShrink { handle, shrink in
+      while let value = next() {
+        handle.remove(value)
+      }
+    }
+  }
+
+  @usableFromInline
+  internal mutating func subtract(_ other: Range<UInt>) {
+    guard !other.isEmpty else { return }
+    _updateThenShrink { handle, shrink in
+      handle.subtract(other)
+    }
+  }
+}
+
+extension BitSet {
+  @inlinable
+  public mutating func subtract(_ other: Self) {
+    _core.subtract(other._core)
+  }
+
+  @inlinable
+  public mutating func subtract<I: FixedWidthInteger>(
+    _ other: BitSet<I>
+  ) {
+    _core.subtract(other._core)
+  }
+
   @inlinable
   public mutating func subtract<S: Sequence>(
     _ other: __owned S
@@ -29,12 +61,12 @@ extension BitSet {
       self.subtract(other as! BitSet)
       return
     }
-    if S.self == Range<S.Element>.self {
-      self.subtract(other as! Range<S.Element>)
+    if S.self == Range<Element>.self {
+      self.subtract(other as! Range<Element>)
       return
     }
     var it = other.makeIterator()
-    _subtract {
+    _core.subtract {
       while let value = it.next() {
         if let value = UInt(exactly: value) {
           return value
@@ -44,27 +76,15 @@ extension BitSet {
     }
   }
 
-  @usableFromInline
-  internal mutating func _subtract(_ next: () -> UInt?) {
-    _updateThenShrink { handle, shrink in
-      while let value = next() {
-        handle.remove(value)
-      }
-    }
+  @inlinable
+  public mutating func subtract(_ other: Range<Element>) {
+    _core.subtract(other._clampedToUInt())
   }
 
   @inlinable
   public mutating func subtract<I: FixedWidthInteger>(
     _ other: Range<I>
   ) {
-    _subtract(other._clampedToUInt())
-  }
-
-  @usableFromInline
-  internal mutating func _subtract(_ other: Range<UInt>) {
-    guard !other.isEmpty else { return }
-    _updateThenShrink { handle, shrink in
-      handle.subtract(other)
-    }
+    _core.subtract(other._clampedToUInt())
   }
 }

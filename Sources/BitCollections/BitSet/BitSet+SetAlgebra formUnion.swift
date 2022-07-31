@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public mutating func formUnion(_ other: __owned Self) {
+extension _BitSet {
+  @usableFromInline
+  internal mutating func formUnion(_ other: __owned Self) {
     _ensureCapacity(limit: other._capacity)
     _update { target in
       other._read { source in
@@ -19,10 +20,26 @@ extension BitSet {
     }
   }
 
+  @usableFromInline
+  internal mutating func formUnion(_ other: Range<UInt>) {
+    guard !other.isEmpty else { return }
+    _ensureCapacity(limit: other.upperBound)
+    _update { handle in
+      handle.formUnion(other)
+    }
+  }
+}
+
+extension BitSet {
+  @inlinable
+  public mutating func formUnion(_ other: __owned Self) {
+    _core.formUnion(other._core)
+  }
+
   @inlinable
   public mutating func formUnion<S: Sequence>(
     _ other: __owned S
-  ) where S.Element: FixedWidthInteger {
+  ) where S.Element == Element {
     if S.self == BitSet.self {
       formUnion(other as! BitSet)
       return
@@ -37,22 +54,11 @@ extension BitSet {
   }
 
   @inlinable
-  public mutating func formUnion<I: FixedWidthInteger>(
-    _ other: Range<I>
-  ) {
+  public mutating func formUnion(_ other: Range<Element>) {
     guard let other = other._toUInt() else {
-      preconditionFailure("BitSet can only hold nonnegative integers")
+      preconditionFailure("Invalid range")
     }
-    _formUnion(other)
-  }
-
-
-  @usableFromInline
-  internal mutating func _formUnion(_ other: Range<UInt>) {
-    guard !other.isEmpty else { return }
-    _ensureCapacity(limit: other.upperBound)
-    _update { handle in
-      handle.formUnion(other)
-    }
+    _core.formUnion(other)
   }
 }
+

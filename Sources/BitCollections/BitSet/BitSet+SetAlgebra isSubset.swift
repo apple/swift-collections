@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public func isSubset(of other: Self) -> Bool {
+extension _BitSet {
+  @usableFromInline
+  internal func isSubset(of other: Self) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words
@@ -28,34 +29,56 @@ extension BitSet {
     }
   }
 
+  @usableFromInline
+  internal func isSubset(of other: Range<UInt>) -> Bool {
+    _read { $0.isSubset(of: other) }
+  }
+}
+
+extension BitSet {
+  @inlinable
+  public func isSubset(of other: Self) -> Bool {
+    _core.isSubset(of: other._core)
+  }
+
+  @inlinable
+  public func isSubset<I: FixedWidthInteger>(
+    of other: BitSet<I>
+  ) -> Bool {
+    _core.isSubset(of: other._core)
+  }
+
   @inlinable
   public func isSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element: FixedWidthInteger
+  where S.Element == Element
   {
     if S.self == BitSet.self {
       return self.isSubset(of: other as! BitSet)
     }
-    if S.self == Range<S.Element>.self  {
-      return self.isSubset(of: other as! Range<S.Element>)
+    if S.self == Range<Element>.self  {
+      return self.isSubset(of: other as! Range<Element>)
     }
     guard !isEmpty else { return true }
     var t = self
     for i in other {
       guard let i = UInt(exactly: i) else { continue }
-      if t.remove(i) != nil, t.isEmpty { return true }
+      if t._core.remove(i), t.isEmpty { return true }
     }
     assert(!t.isEmpty)
     return false
   }
 
   @inlinable
-  public func isSubset<I: FixedWidthInteger>(of other: Range<I>) -> Bool {
+  public func isSubset(of other: Range<Element>) -> Bool {
     guard !isEmpty else { return true }
-    return _isSubset(of: other._clampedToUInt())
+    return _core.isSubset(of: other._clampedToUInt())
   }
 
-  @usableFromInline
-  internal func _isSubset(of other: Range<UInt>) -> Bool {
-    _read { $0.isSubset(of: other) }
+  @inlinable
+  public func isSubset<I: FixedWidthInteger>(
+    of other: Range<I>
+  ) -> Bool {
+    guard !isEmpty else { return true }
+    return _core.isSubset(of: other._clampedToUInt())
   }
 }

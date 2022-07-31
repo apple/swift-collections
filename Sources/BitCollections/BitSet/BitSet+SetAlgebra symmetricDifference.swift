@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public __consuming func symmetricDifference(_ other: __owned Self) -> Self {
+extension _BitSet {
+  @usableFromInline
+  internal __consuming func symmetricDifference(_ other: __owned Self) -> Self {
     self._read { first in
       other._read { second in
         Self(
@@ -20,23 +21,27 @@ extension BitSet {
       }
     }
   }
+}
+
+extension BitSet {
+  public __consuming func symmetricDifference(_ other: __owned Self) -> Self {
+    BitSet(_core: _core.symmetricDifference(other._core))
+  }
 
   @inlinable
   public __consuming func symmetricDifference<S: Sequence>(
     _ other: __owned S
   ) -> Self
-  where S.Element: FixedWidthInteger
+  where S.Element == Element
   {
-    if S.self == Range<S.Element>.self {
-      return symmetricDifference(other as! Range<S.Element>)
+    if S.self == Range<Element>.self {
+      return symmetricDifference(other as! Range<Element>)
     }
     return symmetricDifference(BitSet(other))
   }
 
   @inlinable
-  public __consuming func symmetricDifference<I: FixedWidthInteger>(
-    _ other: Range<I>
-  ) -> Self {
+  public __consuming func symmetricDifference(_ other: Range<Element>) -> Self {
     var result = self
     result.formSymmetricDifference(other)
     return result

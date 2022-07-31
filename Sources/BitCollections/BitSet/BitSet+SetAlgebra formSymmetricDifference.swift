@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public mutating func formSymmetricDifference(_ other: __owned Self) {
+extension _BitSet {
+  @usableFromInline
+  internal mutating func formSymmetricDifference(_ other: __owned Self) {
     _ensureCapacity(limit: other._capacity)
     _updateThenShrink { target, shrink in
       other._read { source in
@@ -20,33 +21,42 @@ extension BitSet {
     }
   }
 
-  @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element: FixedWidthInteger {
-    if S.self == Range<S.Element>.self {
-      formSymmetricDifference(other as! Range<S.Element>)
-      return
-    }
-    formSymmetricDifference(BitSet(other))
-  }
-
-  @inlinable
-  public mutating func formSymmetricDifference<I: FixedWidthInteger>(
-    _ other: Range<I>
-  ) {
-    guard let other = other._toUInt() else {
-      preconditionFailure("BitSet can only hold nonnegative integers")
-    }
-    _formSymmetricDifference(other)
-  }
-
   @usableFromInline
-  internal mutating func _formSymmetricDifference(_ other: Range<UInt>) {
+  internal mutating func formSymmetricDifference(_ other: Range<UInt>) {
     guard !other.isEmpty else { return }
     _ensureCapacity(limit: other.upperBound)
     _updateThenShrink { handle, shrink in
       handle.formSymmetricDifference(other)
     }
+  }
+}
+
+extension BitSet {
+  @inlinable
+  public mutating func formSymmetricDifference(_ other: __owned Self) {
+    _core.formSymmetricDifference(other._core)
+  }
+
+  @inlinable
+  public mutating func formSymmetricDifference<S: Sequence>(
+    _ other: __owned S
+  ) where S.Element == Element {
+    if S.self == Range<S.Element>.self {
+      formSymmetricDifference(other as! Range<S.Element>)
+      return
+    }
+    _core.formSymmetricDifference(BitSet(other)._core)
+  }
+}
+
+extension BitSet {
+  @inlinable
+  public mutating func formSymmetricDifference(
+    _ other: Range<Element>
+  ) {
+    guard let other = other._toUInt() else {
+      preconditionFailure("Invalid range")
+    }
+    _core.formSymmetricDifference(other)
   }
 }

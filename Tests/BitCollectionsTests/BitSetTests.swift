@@ -15,14 +15,14 @@ import BitCollections
 
 final class BitSetTest: CollectionTestCase {
   func test_empty_initializer() {
-    let set = BitSet()
+    let set = BitSet<Int>()
     expectEqual(set.count, 0)
     expectTrue(set.isEmpty)
     expectEqualElements(set, [])
   }
 
   func test_array_literal_initializer() {
-    let set0: BitSet = []
+    let set0: BitSet<Int> = []
     expectEqual(set0.count, 0)
     expectTrue(set0.isEmpty)
     expectEqualElements(set0, [])
@@ -54,19 +54,19 @@ final class BitSetTest: CollectionTestCase {
   }
 
   func test_bitPattern_initializer() {
-    let s1 = BitSet(bitPattern: 0 as UInt)
+    let s1 = BitSet<Int>(bitPattern: 0 as UInt)
     expectEqualElements(s1, [])
 
-    let s2 = BitSet(bitPattern: 1 as UInt)
+    let s2 = BitSet<Int>(bitPattern: 1 as UInt)
     expectEqualElements(s2, [0])
 
-    let s3 = BitSet(bitPattern: 2 as UInt)
+    let s3 = BitSet<Int>(bitPattern: 2 as UInt)
     expectEqualElements(s3, [1])
 
-    let s4 = BitSet(bitPattern: 23)
+    let s4 = BitSet<Int>(bitPattern: 23)
     expectEqualElements(s4, [0, 1, 2, 4])
 
-    let s5 = BitSet(bitPattern: -1)
+    let s5 = BitSet<Int>(bitPattern: -1)
     expectEqualElements(s5, 0 ..< UInt.bitWidth)
   }
 
@@ -171,7 +171,7 @@ final class BitSetTest: CollectionTestCase {
 
   func test_contains_Int32() {
     withInterestingSets("input", maximum: 1000) { input in
-      let bitset = BitSet(input)
+      let bitset = BitSet(input.map { Int32($0) })
       withEvery("value", in: 0 ..< 1000) { value in
         expectEqual(bitset.contains(Int32(value)), input.contains(value))
       }
@@ -201,18 +201,18 @@ final class BitSetTest: CollectionTestCase {
   func checkInsert<F: FixedWidthInteger>(for type: F.Type, count: Int) {
     withEvery("seed", in: 0 ..< 10) { seed in
       var rng = RepeatableRandomNumberGenerator(seed: seed)
-      var actual: BitSet = []
-      var expected: Set<Int> = []
-      let input = (0 ..< count).shuffled(using: &rng)
+      var actual: BitSet<F> = []
+      var expected: Set<F> = []
+      let input = (0 ..< count).shuffled(using: &rng).map { F($0) }
       withEvery("i", in: input.indices) { i in
-        let (i1, m1) = actual.insert(F(input[i]))
+        let (i1, m1) = actual.insert(input[i])
         expected.insert(input[i])
         expectTrue(i1)
-        expectEqual(m1, F(input[i]))
+        expectEqual(m1, input[i])
         if i % 25 == 0 {
           expectEqual(Array(actual), expected.sorted())
         }
-        let (i2, m2) = actual.insert(F(input[i]))
+        let (i2, m2) = actual.insert(input[i])
         expectFalse(i2)
         expectEqual(m2, m1)
       }
@@ -233,17 +233,17 @@ final class BitSetTest: CollectionTestCase {
   func checkUpdate<F: FixedWidthInteger>(for type: F.Type, count: Int) {
     withEvery("seed", in: 0 ..< 10) { seed in
       var rng = RepeatableRandomNumberGenerator(seed: seed)
-      var actual: BitSet = []
-      var expected: Set<Int> = []
-      let input = (0 ..< count).shuffled(using: &rng)
+      var actual: BitSet<F> = []
+      var expected: Set<F> = []
+      let input = (0 ..< count).shuffled(using: &rng).map { F($0) }
       withEvery("i", in: input.indices) { i in
-        let old = actual.update(with: F(input[i]))
+        let old = actual.update(with: input[i])
         expected.update(with: input[i])
-        expectEqual(old, F(input[i]))
+        expectEqual(old, input[i])
         if i % 25 == 0 {
           expectEqual(Array(actual), expected.sorted())
         }
-        expectNil(actual.update(with: F(input[i])))
+        expectNil(actual.update(with: input[i]))
       }
       expectEqual(Array(actual), expected.sorted())
     }
@@ -264,9 +264,9 @@ final class BitSetTest: CollectionTestCase {
       context.withTrace("\(type)") {
         withEvery("seed", in: 0 ..< 10) { seed in
           var rng = RepeatableRandomNumberGenerator(seed: seed)
-          var actual = BitSet(0 ..< count)
-          var expected = Set<Int>(0 ..< count)
-          let input = (0 ..< count).shuffled(using: &rng)
+          var actual = BitSet<F>(0 ..< F(count))
+          var expected = Set<F>(0 ..< F(count))
+          let input = (0 ..< F(count)).shuffled(using: &rng)
 
           if F.isSigned {
             expectNil(actual.remove(F(-1)))
@@ -312,8 +312,11 @@ final class BitSetTest: CollectionTestCase {
         let actual = c.union(b)
         expectEqualElements(actual, expected)
 
-        func union<S: Sequence>(_ first: BitSet, _ second: S) -> BitSet
-        where S.Element: FixedWidthInteger {
+        func union<F: FixedWidthInteger, S: Sequence>(
+          _ first: BitSet<F>,
+          _ second: S
+        ) -> BitSet<F>
+        where S.Element == F {
           first.union(second)
         }
         expectEqualElements(union(c, BitSet(b)), expected)
@@ -323,7 +326,7 @@ final class BitSetTest: CollectionTestCase {
 
   func test_union_Range() {
     withEvery("step", in: [1, 5, 16, 23, 24, UInt.bitWidth]) { step in
-      let a = BitSet()
+      let a = BitSet<Int>()
 
       let b = a.union(0 ..< 5*step)
       expectEqualElements(b, 0 ..< 5*step)
@@ -365,8 +368,9 @@ final class BitSetTest: CollectionTestCase {
         c.formUnion(b)
         expectEqualElements(c, expected)
 
-        func union<S: Sequence>(_ first: inout BitSet, _ second: S)
-        where S.Element: FixedWidthInteger {
+        func union<F: FixedWidthInteger, S: Sequence>(
+          _ first: inout BitSet<F>, _ second: S)
+        where S.Element == F {
           first.formUnion(second)
         }
         var d = BitSet(a)
@@ -380,7 +384,7 @@ final class BitSetTest: CollectionTestCase {
 
   func test_formUnion_Range() {
     withEvery("step", in: [1, 5, 16, 23, 24, UInt.bitWidth]) { step in
-      var a = BitSet()
+      var a = BitSet<Int>()
 
       a.formUnion(0 ..< 5*step)
       expectEqualElements(a, 0 ..< 5*step)
@@ -425,8 +429,11 @@ final class BitSetTest: CollectionTestCase {
         expectEqualElements(c.intersection([-100]), [])
         expectEqualElements(c.intersection(-100 ..< -10), [])
 
-        func intersection<S: Sequence>(_ first: BitSet, _ second: S) -> BitSet
-        where S.Element: FixedWidthInteger {
+        func intersection<F: FixedWidthInteger, S: Sequence>(
+          _ first: BitSet<F>,
+          _ second: S
+        ) -> BitSet<F>
+        where S.Element == F {
           first.intersection(second)
         }
         let d = intersection(c, BitSet(b))
@@ -473,8 +480,11 @@ final class BitSetTest: CollectionTestCase {
   }
 
   func test_formIntersection_Sequence() {
-    func intersection<S: Sequence>(_ first: inout BitSet, _ second: S)
-    where S.Element: FixedWidthInteger {
+    func intersection<F: FixedWidthInteger, S: Sequence>(
+      _ first: inout BitSet<F>,
+      _ second: S
+    )
+    where S.Element == F {
       first.formIntersection(second)
     }
 
@@ -558,11 +568,11 @@ final class BitSetTest: CollectionTestCase {
         let actual = c.symmetricDifference(b)
         expectEqualElements(actual, expected)
 
-        func symmetricDifference<S: Sequence>(
-          _ first: BitSet,
+        func symmetricDifference<F: FixedWidthInteger, S: Sequence>(
+          _ first: BitSet<F>,
           _ second: S
-        ) -> BitSet
-        where S.Element: FixedWidthInteger {
+        ) -> BitSet<F>
+        where S.Element == F {
           first.symmetricDifference(second)
         }
         let d = symmetricDifference(c, BitSet(b))
@@ -579,7 +589,7 @@ final class BitSetTest: CollectionTestCase {
 
   func test_symmetricDifference_Range() {
     withEvery("step", in: [1, 5, 16, 23, 24, UInt.bitWidth]) { step in
-      let a = BitSet()
+      let a = BitSet<Int>()
 
       let b = a.symmetricDifference(0 ..< 10*step)
       expectEqualElements(b, 0 ..< 10*step)
@@ -618,10 +628,10 @@ final class BitSetTest: CollectionTestCase {
         c.formSymmetricDifference(b)
         expectEqualElements(c, expected)
 
-        func symmetricDifference<S: Sequence>(
-          _ first: inout BitSet,
+        func symmetricDifference<F: FixedWidthInteger, S: Sequence>(
+          _ first: inout BitSet<F>,
           _ second: S
-        ) where S.Element: FixedWidthInteger {
+        ) where S.Element == F {
           first.formSymmetricDifference(second)
         }
         var d = BitSet(a)
@@ -639,7 +649,7 @@ final class BitSetTest: CollectionTestCase {
 
   func test_formSymmetricDifference_Range() {
     withEvery("step", in: [1, 5, 16, 23, 24, UInt.bitWidth]) { step in
-      var a = BitSet()
+      var a = BitSet<Int>()
 
       a.formSymmetricDifference(0 ..< 10*step)
       expectEqualElements(a, 0 ..< 10*step)
@@ -672,10 +682,10 @@ final class BitSetTest: CollectionTestCase {
   }
 
   func test_subtracting_Sequence() {
-    func subtracting<S: Sequence>(
-      _ first: BitSet,
+    func subtracting<F: FixedWidthInteger, S: Sequence>(
+      _ first: BitSet<F>,
       _ second: S
-    ) -> BitSet
+    ) -> BitSet<F>
     where S.Element: FixedWidthInteger {
       first.subtracting(second)
     }
@@ -734,11 +744,11 @@ final class BitSetTest: CollectionTestCase {
   }
 
   func test_subtract_Sequence() {
-    func subtract<S: Sequence>(
-      _ first: inout BitSet,
+    func subtract<F: FixedWidthInteger, S: Sequence>(
+      _ first: inout BitSet<F>,
       _ second: S
     )
-    where S.Element: FixedWidthInteger {
+    where S.Element == F {
       first.subtract(second)
     }
 
@@ -819,7 +829,7 @@ final class BitSetTest: CollectionTestCase {
           let expected = test.expected.contains(input)
 
           func forceSequence<S: Sequence>(_ other: S) -> Bool
-          where S.Element: FixedWidthInteger {
+          where S.Element == Int {
             set.isSubset(of: other)
           }
 
@@ -868,7 +878,7 @@ final class BitSetTest: CollectionTestCase {
           let expected = test.expected.contains(input)
 
           func forceSequence<S: Sequence>(_ other: S) -> Bool
-          where S.Element: FixedWidthInteger {
+          where S.Element == Int {
             set.isStrictSubset(of: other)
           }
 
@@ -917,7 +927,7 @@ final class BitSetTest: CollectionTestCase {
           let expected = test.expected.contains(input)
 
           func forceSequence<S: Sequence>(_ other: S) -> Bool
-          where S.Element: FixedWidthInteger {
+          where S.Element == Int {
             set.isSuperset(of: other)
           }
 
@@ -966,7 +976,7 @@ final class BitSetTest: CollectionTestCase {
           let expected = test.expected.contains(input)
 
           func forceSequence<S: Sequence>(_ other: S) -> Bool
-          where S.Element: FixedWidthInteger {
+          where S.Element == Int {
             set.isStrictSuperset(of: other)
           }
 
@@ -1017,7 +1027,7 @@ final class BitSetTest: CollectionTestCase {
           let expected = test.expected.contains(input)
 
           func forceSequence<S: Sequence>(_ other: S) -> Bool
-          where S.Element: FixedWidthInteger {
+          where S.Element == Int {
             set.isDisjoint(with: other)
           }
 

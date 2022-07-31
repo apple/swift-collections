@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
-  public __consuming func intersection(_ other: Self) -> Self {
+extension _BitSet {
+  @usableFromInline
+  internal __consuming func intersection(_ other: Self) -> Self {
     self._read { first in
       other._read { second in
         Self(
@@ -20,26 +21,30 @@ extension BitSet {
       }
     }
   }
+}
+
+extension BitSet {
+  public __consuming func intersection(_ other: Self) -> Self {
+    Self(_core: _core.intersection(other._core))
+  }
 
   @inlinable
   public __consuming func intersection<S: Sequence>(
     _ other: __owned S
   ) -> Self
-  where S.Element: FixedWidthInteger
+  where S.Element == Element
   {
-    if S.self == BitSet.self {
+    if S.self == Self.self {
       return intersection(other as! BitSet)
     }
-    if S.self == Range<S.Element>.self {
-      return intersection(other as! Range<S.Element>)
+    if S.self == Range<Element>.self {
+      return intersection(other as! Range<Element>)
     }
     return intersection(BitSet(_validMembersOf: other))
   }
 
   @inlinable
-  public __consuming func intersection<I: FixedWidthInteger>(
-    _ other: Range<I>
-  ) -> Self {
+  public __consuming func intersection(_ other: Range<Element>) -> Self {
     var result = self
     result.formIntersection(other)
     return result

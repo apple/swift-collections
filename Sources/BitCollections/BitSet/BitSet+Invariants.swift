@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitSet {
+extension _BitSet {
 #if COLLECTIONS_INTERNAL_CHECKS
   @inline(never)
   @_effects(releasenone)
