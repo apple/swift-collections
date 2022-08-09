@@ -197,31 +197,33 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
-//  func test_index_forKey() {
-//    withEvery("count", in: 0 ..< 30) { count in
-//      withLifetimeTracking { tracker in
-//        let (d, keys, _) = tracker.persistentDictionary(keys: 0 ..< count)
-//        withEvery("offset", in: 0 ..< count) { offset in
-//          expectEqual(d.index(forKey: keys[offset]), offset)
-//        }
-//        expectNil(d.index(forKey: tracker.instance(for: -1)))
-//        expectNil(d.index(forKey: tracker.instance(for: count)))
-//      }
-//    }
-//  }
+    // TODO: determine how to best calculate the expected order of the hash-trie for testing purposes, without relying on the actual implementation
+    func test_index_forKey() {
+        withEvery("count", in: 0 ..< 30) { count in
+            withLifetimeTracking { tracker in
+                let (d, _, _) = tracker.persistentDictionary(keys: 0 ..< count)
+                withEvery("offset", in: 0 ..< count) { offset in
+                    expectEqual(d.index(forKey: d.keys[offset]), PersistentDictionaryIndex(value: offset)) // NOTE: uses the actual order `d.keys`
+                }
+                expectNil(d.index(forKey: tracker.instance(for: -1)))
+                expectNil(d.index(forKey: tracker.instance(for: count)))
+            }
+        }
+    }
 
-//  func test_subscript_offset() {
-//    withEvery("count", in: 0 ..< 30) { count in
-//      withLifetimeTracking { tracker in
-//        let (d, keys, values) = tracker.persistentDictionary(keys: 0 ..< count)
-//        withEvery("offset", in: 0 ..< count) { offset in
-//          let item = d[offset: offset]
-//          expectEqual(item.key, keys[offset])
-//          expectEqual(item.value, values[offset])
-//        }
-//      }
-//    }
-//  }
+    // TODO: determine how to best calculate the expected order of the hash-trie for testing purposes, without relying on the actual implementation
+    func test_subscript_offset() {
+        withEvery("count", in: 0 ..< 30) { count in
+            withLifetimeTracking { tracker in
+                let (d, _, _) = tracker.persistentDictionary(keys: 0 ..< count)
+                withEvery("offset", in: 0 ..< count) { offset in
+                    let item = d[PersistentDictionaryIndex(value: offset)]
+                    expectEqual(item.key, d.keys[offset])     // NOTE: uses the actual order `d.keys`
+                    expectEqual(item.value, d.values[offset]) // NOTE: uses the actual order `d.values`
+                }
+            }
+        }
+    }
 
   func test_subscript_getter() {
     withEvery("count", in: 0 ..< 30) { count in
