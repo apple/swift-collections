@@ -441,4 +441,26 @@ final class BitmapSmokeTests: CollectionTestCase {
     func test_Capacity_isValid() {
         expectTrue(Int(2 << bitPartitionSize) <= Int(Capacity.max))
     }
+
+    func test_Bitmap_nonzeroBits() {
+        let bitmap: Bitmap = 0b0100_0000_0000_1011
+
+        expectEqual(Array(bitmap.nonzeroBits()), [0, 1, 3, 14])
+        expectEqual(Array(bitmap.zeroBits()), (0 ..< Bitmap.bitWidth).filter { ![0, 1, 3, 14].contains($0) })
+    }
+
+    func test_Bitmap_nonzeroBitsToArray() {
+        let bitmap: Bitmap = 0b0100_0000_0000_1011
+
+        let counts = bitmap.nonzeroBits().reduce(
+            into: Array(repeating: 0, count: Bitmap.bitWidth), { counts, index in counts[index] = 1 })
+
+        expectEqual(counts.count, Bitmap.bitWidth)
+        expectEqual(counts.reduce(0, +), bitmap.nonzeroBitCount)
+        expectEqual(counts.reduce(0, +), 4)
+        expectEqual(counts[0], 1)
+        expectEqual(counts[1], 1)
+        expectEqual(counts[3], 1)
+        expectEqual(counts[14], 1)
+    }
 }

@@ -15,6 +15,37 @@ func computeHash<T: Hashable>(_ value: T) -> Int {
 
 typealias Bitmap = UInt32
 
+extension Bitmap {
+    public func nonzeroBits() -> NonzeroBits<Self> {
+        return NonzeroBits(from: self)
+    }
+
+    public func zeroBits() -> NonzeroBits<Self> {
+        return NonzeroBits(from: ~self)
+    }
+}
+
+public struct NonzeroBits<Bitmap>: Sequence, IteratorProtocol, CustomStringConvertible where Bitmap: BinaryInteger {
+    var bitmap: Bitmap
+
+    init(from bitmap: Bitmap) {
+        self.bitmap = bitmap
+    }
+
+    public mutating func next() -> Int? {
+        guard bitmap != 0 else { return nil }
+
+        let index = bitmap.trailingZeroBitCount
+        bitmap ^= 1 << index
+
+        return index
+    }
+
+    public var description: String {
+        "[\(self.map { $0.description }.joined(separator: ", "))]"
+    }
+}
+
 let bitPartitionSize: Int = 5
 
 let bitPartitionMask: Int = (1 << bitPartitionSize) - 1
