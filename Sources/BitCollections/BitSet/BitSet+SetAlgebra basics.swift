@@ -9,65 +9,55 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
+extension BitSet {
   @usableFromInline
-  internal func contains(_ member: UInt) -> Bool {
+  internal func _contains(_ member: UInt) -> Bool {
     _read { $0.contains(member) }
   }
-}
 
-extension BitSet {
-  @inlinable
-  public func contains(_ member: Element) -> Bool {
-    guard let value = UInt(exactly: member) else { return false }
-    return _core.contains(value)
-  }
-}
-
-extension _BitSet {
-  @usableFromInline
-  internal mutating func insert(
-    _ newMember: UInt
-  ) -> Bool {
-    _ensureCapacity(forValue: newMember)
-    return _update { $0.insert(newMember) }
+  public func contains(_ member: Int) -> Bool {
+    guard let member = UInt(exactly: member) else { return false }
+    return _contains(member)
   }
 }
 
 extension BitSet {
-  @inlinable
+  @discardableResult
+  public mutating func _insert(_ i: UInt) -> Bool {
+    _ensureCapacity(forValue: i)
+    let inserted = _update { $0.insert(i) }
+    return inserted
+  }
+
   @discardableResult
   public mutating func insert(
-    _ newMember: Element
-  ) -> (inserted: Bool, memberAfterInsert: Element) {
+    _ newMember: Int
+  ) -> (inserted: Bool, memberAfterInsert: Int) {
     guard let i = UInt(exactly: newMember) else {
       preconditionFailure("Value out of range")
     }
-    return (_core.insert(i), newMember)
+    return (_insert(i), newMember)
   }
 
-  @inlinable
   @discardableResult
-  public mutating func update(with newMember: Element) -> Element? {
+  public mutating func update(with newMember: Int) -> Int? {
     insert(newMember).inserted ? newMember : nil
   }
 }
 
-extension _BitSet {
+extension BitSet {
+  @discardableResult
   @usableFromInline
-  internal mutating func remove(_ member: UInt) -> Bool {
+  internal mutating func _remove(_ member: UInt) -> Bool {
     _updateThenShrink { handle, shrink in
       shrink = handle.remove(member)
       return shrink
     }
   }
-}
 
-extension BitSet {
-  @inlinable
   @discardableResult
-  public mutating func remove(_ member: Element) -> Element? {
+  public mutating func remove(_ member: Int) -> Int? {
     guard let m = UInt(exactly: member) else { return nil }
-    return _core.remove(m) ? member : nil
+    return _remove(m) ? member : nil
   }
 }

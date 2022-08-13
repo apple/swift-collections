@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
-  @usableFromInline
-  internal __consuming func union(_ other: __owned Self) -> Self {
+extension BitSet {
+  public __consuming func union(_ other: __owned Self) -> Self {
     self._read { first in
       other._read { second in
         Self(
@@ -21,19 +20,12 @@ extension _BitSet {
       }
     }
   }
-}
-
-extension BitSet {
-  @inlinable
-  public __consuming func union(_ other: __owned Self) -> Self {
-    BitSet(_core: _core.union(other._core))
-  }
 
   @inlinable
   public __consuming func union<S: Sequence>(
     _ other: __owned S
   ) -> Self
-  where S.Element == Element
+  where S.Element == Int
   {
     if S.self == BitSet.self {
       return union(other as! BitSet)
@@ -43,8 +35,7 @@ extension BitSet {
     return result
   }
 
-  @inlinable
-  public __consuming func union(_ other: Range<Element>) -> Self {
+  public __consuming func union(_ other: Range<Int>) -> Self {
     var result = self
     result.formUnion(other)
     return result

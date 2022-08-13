@@ -9,12 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
+extension BitSet {
   /// An unsafe-unowned bitset view over `UInt` storage, providing bit set
   /// primitives.
   @usableFromInline
   @frozen
-  internal struct UnsafeHandle {
+  internal struct _UnsafeHandle {
     /// An unsafe-unowned storage view.
     @usableFromInline
     internal let _words: UnsafeBufferPointer<_Word>
@@ -98,7 +98,7 @@ extension _BitSet {
   }
 }
 
-extension _BitSet.UnsafeHandle {
+extension BitSet._UnsafeHandle {
   @inlinable
   @inline(__always)
   internal var wordCount: Int {
@@ -112,7 +112,7 @@ extension _BitSet.UnsafeHandle {
   }
 }
 
-extension _BitSet.UnsafeHandle {
+extension BitSet._UnsafeHandle {
   @inlinable
   @inline(__always)
   static func withTemporaryBitset<R>(
@@ -170,7 +170,7 @@ extension _BitSet.UnsafeHandle {
   }
 }
 
-extension _BitSet.UnsafeHandle {
+extension BitSet._UnsafeHandle {
   @usableFromInline
   @_effects(readnone)
   @inline(__always)
@@ -275,7 +275,7 @@ extension _BitSet.UnsafeHandle {
   }
 }
 
-extension _BitSet.UnsafeHandle: Sequence {
+extension BitSet._UnsafeHandle: Sequence {
   @usableFromInline
   internal typealias Element = UInt
 
@@ -295,10 +295,10 @@ extension _BitSet.UnsafeHandle: Sequence {
   @frozen
   internal struct Iterator: IteratorProtocol {
     @usableFromInline
-    internal typealias _UnsafeHandle = _BitSet.UnsafeHandle
+    internal typealias _UnsafeHandle = BitSet._UnsafeHandle
 
     @usableFromInline
-    internal let bitset: _BitSet.UnsafeHandle
+    internal let bitset: _UnsafeHandle
 
     @usableFromInline
     internal var index: Int
@@ -331,7 +331,7 @@ extension _BitSet.UnsafeHandle: Sequence {
   }
 }
 
-extension _BitSet.UnsafeHandle: BidirectionalCollection {
+extension BitSet._UnsafeHandle: BidirectionalCollection {
   @usableFromInline
   internal typealias Index = _BitPosition
 
@@ -400,7 +400,7 @@ extension _BitSet.UnsafeHandle: BidirectionalCollection {
   }
 }
 
-extension _BitSet.UnsafeHandle {
+extension BitSet._UnsafeHandle {
   internal mutating func combineSharedPrefix(
     with other: Self,
     using function: (inout _Word, _Word) -> Void
@@ -414,7 +414,7 @@ extension _BitSet.UnsafeHandle {
   }
 }
 
-extension _BitSet.UnsafeHandle {
+extension BitSet._UnsafeHandle {
   internal func count(in range: Range<UInt>) -> Int {
     let l = Index(Swift.min(range.lowerBound, capacity))
     let u = Index(Swift.min(range.upperBound, capacity))

@@ -10,6 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet: Sequence {
+  public typealias Element = Int
+
   @inlinable
   @inline(__always)
   public var underestimatedCount: Int {
@@ -22,14 +24,14 @@ extension BitSet: Sequence {
   }
 
   public func _customContainsEquatableElement(
-    _ element: Element
+    _ element: Int
   ) -> Bool? {
     guard let element = UInt(exactly: element) else { return false }
-    return _core._read { $0.contains(element) }
+    return _contains(element)
   }
 
   public struct Iterator: IteratorProtocol {
-    internal typealias _UnsafeHandle = _BitSet.UnsafeHandle
+    internal typealias _UnsafeHandle = BitSet._UnsafeHandle
 
     internal let bitset: BitSet
     internal var index: Int
@@ -39,25 +41,25 @@ extension BitSet: Sequence {
     internal init(_ bitset: BitSet) {
       self.bitset = bitset
       self.index = 0
-      self.word = bitset._core._read { handle in
+      self.word = bitset._read { handle in
         guard handle.wordCount > 0 else { return .empty }
         return handle._words[0]
       }
     }
 
     @_effects(releasenone)
-    public mutating func next() -> Element? {
+    public mutating func next() -> Int? {
       if let bit = word.next() {
         let i = _UnsafeHandle.Index(word: index, bit: bit)
-        return Element(truncatingIfNeeded: i.value)
+        return Int(truncatingIfNeeded: i.value)
       }
-      return bitset._core._read { handle in
+      return bitset._read { handle in
         while (index + 1) < handle.wordCount {
           index += 1
           word = handle._words[index]
           if let bit = word.next() {
             let i = _UnsafeHandle.Index(word: index, bit: bit)
-            return Element(truncatingIfNeeded: i.value)
+            return Int(truncatingIfNeeded: i.value)
           }
         }
         return nil
@@ -67,28 +69,28 @@ extension BitSet: Sequence {
 }
 
 extension BitSet: Collection, BidirectionalCollection {
-  public var isEmpty: Bool { _core._count == 0 }
-  public var count: Int { _core._count }
+  public var isEmpty: Bool { _count == 0 }
+  public var count: Int { _count }
 
   public var startIndex: Index {
     // Note: This is O(n)
-    Index(_position: _core._read { $0.startIndex })
+    Index(_position: _read { $0.startIndex })
   }
 
   public var endIndex: Index {
-    Index(_position: .init(word: _core._storage.count, bit: 0))
+    Index(_position: .init(word: _storage.count, bit: 0))
   }
   
-  public subscript(position: Index) -> Element {
-    Element(position._position.value)
+  public subscript(position: Index) -> Int {
+    Int(bitPattern: position._position.value)
   }
   
   public func index(after index: Index) -> Index {
-    Index(_position: _core._read { $0.index(after: index._position) })
+    Index(_position: _read { $0.index(after: index._position) })
   }
   
   public func index(before index: Index) -> Index {
-    Index(_position: _core._read { $0.index(before: index._position) })
+    Index(_position: _read { $0.index(before: index._position) })
   }
 
   #if false // TODO: Specialize these
@@ -107,14 +109,12 @@ extension BitSet: Collection, BidirectionalCollection {
   }
   #endif
 
-  public func _customIndexOfEquatableElement(_ element: Element) -> Index?? {
+  public func _customIndexOfEquatableElement(_ element: Int) -> Index?? {
     guard contains(element) else { return .some(nil) }
-    return Index(_value: UInt(element))
+    return Index(_value: UInt(bitPattern: element))
   }
 
-  public func _customLastIndexOfEquatableElement(
-    _ element: Element
-  ) -> Index?? {
+  public func _customLastIndexOfEquatableElement(_ element: Int) -> Index?? {
     _customIndexOfEquatableElement(element)
   }
 }

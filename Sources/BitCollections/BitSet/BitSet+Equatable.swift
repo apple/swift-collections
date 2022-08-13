@@ -11,6 +11,6 @@
 
 extension BitSet: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
-    left._core._storage == right._core._storage
+    left._storage == right._storage
   }
 }

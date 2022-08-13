@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
-  @usableFromInline
-  internal func isStrictSubset(of other: Self) -> Bool {
+extension BitSet {
+  public func isStrictSubset(of other: Self) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words
@@ -30,30 +29,16 @@ extension _BitSet {
       }
     }
   }
-}
-
-extension BitSet {
-  @inlinable
-  public func isStrictSubset(of other: Self) -> Bool {
-    _core.isStrictSubset(of: other._core)
-  }
-
-  @inlinable
-  public func isStrictSubset<I: FixedWidthInteger>(
-    of other: BitSet<I>
-  ) -> Bool {
-    _core.isStrictSubset(of: other._core)
-  }
 
   @inlinable
   public func isStrictSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Element
+  where S.Element == Int
   {
     if S.self == BitSet.self {
       return isStrictSubset(of: other as! BitSet)
     }
-    if S.self == Range<Element>.self {
-      return isStrictSubset(of: other as! Range<Element>)
+    if S.self == Range<Int>.self {
+      return isStrictSubset(of: other as! Range<Int>)
     }
 
     if isEmpty {
@@ -62,7 +47,7 @@ extension BitSet {
     }
 
     return _UnsafeHandle.withTemporaryBitset(
-      wordCount: _core._storage.count
+      wordCount: _storage.count
     ) { seen in
       var strict = false
       var it = other.makeIterator()
@@ -83,15 +68,7 @@ extension BitSet {
     }
   }
 
-  @inlinable
-  public func isStrictSubset(of other: Range<Element>) -> Bool {
-    isSubset(of: other) && !isSuperset(of: other)
-  }
-
-  @inlinable
-  public func isStrictSubset<I: FixedWidthInteger>(
-    of other: Range<I>
-  ) -> Bool {
+  public func isStrictSubset(of other: Range<Int>) -> Bool {
     isSubset(of: other) && !isSuperset(of: other)
   }
 }

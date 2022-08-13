@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
-  @usableFromInline
-  internal func isSubset(of other: Self) -> Bool {
+extension BitSet {
+  public func isSubset(of other: Self) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words
@@ -29,56 +28,28 @@ extension _BitSet {
     }
   }
 
-  @usableFromInline
-  internal func isSubset(of other: Range<UInt>) -> Bool {
-    _read { $0.isSubset(of: other) }
-  }
-}
-
-extension BitSet {
-  @inlinable
-  public func isSubset(of other: Self) -> Bool {
-    _core.isSubset(of: other._core)
-  }
-
-  @inlinable
-  public func isSubset<I: FixedWidthInteger>(
-    of other: BitSet<I>
-  ) -> Bool {
-    _core.isSubset(of: other._core)
-  }
-
   @inlinable
   public func isSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Element
+  where S.Element == Int
   {
     if S.self == BitSet.self {
       return self.isSubset(of: other as! BitSet)
     }
-    if S.self == Range<Element>.self  {
-      return self.isSubset(of: other as! Range<Element>)
+    if S.self == Range<Int>.self  {
+      return self.isSubset(of: other as! Range<Int>)
     }
     guard !isEmpty else { return true }
     var t = self
     for i in other {
       guard let i = UInt(exactly: i) else { continue }
-      if t._core.remove(i), t.isEmpty { return true }
+      if t._remove(i), t.isEmpty { return true }
     }
     assert(!t.isEmpty)
     return false
   }
 
-  @inlinable
-  public func isSubset(of other: Range<Element>) -> Bool {
+  public func isSubset(of other: Range<Int>) -> Bool {
     guard !isEmpty else { return true }
-    return _core.isSubset(of: other._clampedToUInt())
-  }
-
-  @inlinable
-  public func isSubset<I: FixedWidthInteger>(
-    of other: Range<I>
-  ) -> Bool {
-    guard !isEmpty else { return true }
-    return _core.isSubset(of: other._clampedToUInt())
+    return _read { $0.isSubset(of: other._clampedToUInt()) }
   }
 }

@@ -10,9 +10,9 @@
 //===----------------------------------------------------------------------===//
 
 extension BitArray {
-  public init(_ set: BitSet<Index>) {
+  public init(_ set: BitSet) {
     guard let l = set.last else { self.init(); return }
-    self.init(_storage: set._core._storage, count: l + 1)
+    self.init(_storage: set._storage, count: l + 1)
   }
   
   public init<I: BinaryInteger>(bitPattern value: I) {

@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
-  @usableFromInline
-  internal mutating func formSymmetricDifference(_ other: __owned Self) {
+extension BitSet {
+  public mutating func formSymmetricDifference(_ other: __owned Self) {
     _ensureCapacity(limit: other._capacity)
     _updateThenShrink { target, shrink in
       other._read { source in
@@ -21,42 +20,27 @@ extension _BitSet {
     }
   }
 
-  @usableFromInline
-  internal mutating func formSymmetricDifference(_ other: Range<UInt>) {
+  @inlinable
+  public mutating func formSymmetricDifference<S: Sequence>(
+    _ other: __owned S
+  ) where S.Element == Int {
+    if S.self == Range<Int>.self {
+      formSymmetricDifference(other as! Range<Int>)
+      return
+    }
+    formSymmetricDifference(BitSet(other))
+  }
+}
+
+extension BitSet {
+  public mutating func formSymmetricDifference(_ other: Range<Int>) {
+    guard let other = other._toUInt() else {
+      preconditionFailure("Invalid range")
+    }
     guard !other.isEmpty else { return }
     _ensureCapacity(limit: other.upperBound)
     _updateThenShrink { handle, shrink in
       handle.formSymmetricDifference(other)
     }
-  }
-}
-
-extension BitSet {
-  @inlinable
-  public mutating func formSymmetricDifference(_ other: __owned Self) {
-    _core.formSymmetricDifference(other._core)
-  }
-
-  @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Element {
-    if S.self == Range<S.Element>.self {
-      formSymmetricDifference(other as! Range<S.Element>)
-      return
-    }
-    _core.formSymmetricDifference(BitSet(other)._core)
-  }
-}
-
-extension BitSet {
-  @inlinable
-  public mutating func formSymmetricDifference(
-    _ other: Range<Element>
-  ) {
-    guard let other = other._toUInt() else {
-      preconditionFailure("Invalid range")
-    }
-    _core.formSymmetricDifference(other)
   }
 }

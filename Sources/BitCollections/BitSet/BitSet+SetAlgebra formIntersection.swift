@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
-  @usableFromInline
-  internal mutating func formIntersection(_ other: Self) {
+extension BitSet {
+  public mutating func formIntersection(_ other: Self) {
     other._read { source in
       if source.wordCount < _storage.count {
         self._storage.removeLast(_storage.count - source.wordCount)
@@ -23,48 +22,29 @@ extension _BitSet {
     }
   }
 
-  @usableFromInline
-  internal mutating func formIntersection(_ other: Range<UInt>) {
-    guard let last = other.last else {
-      self = _BitSet()
+  @inlinable
+  public mutating func formIntersection<S: Sequence>(
+    _ other: __owned S
+  ) where S.Element == Int {
+    if S.self == Range<Int>.self {
+      formIntersection(other as! Range<Int>)
       return
     }
-    let lastWord = UnsafeHandle.Index(last).word
+    formIntersection(BitSet(_validMembersOf: other))
+  }
+
+  public mutating func formIntersection(_ other: Range<Int>) {
+    let other = other._clampedToUInt()
+    guard let last = other.last else {
+      self = BitSet()
+      return
+    }
+    let lastWord = _UnsafeHandle.Index(last).word
     if _storage.count - lastWord - 1 > 0 {
       _storage.removeLast(_storage.count - lastWord - 1)
     }
     _updateThenShrink { handle, shrink in
       handle.formIntersection(other)
     }
-  }
-}
-
-extension BitSet {
-  @inlinable
-  public mutating func formIntersection(_ other: Self) {
-    _core.formIntersection(other._core)
-  }
-
-  @inlinable
-  public mutating func formIntersection<I: FixedWidthInteger>(
-    _ other: BitSet<I>
-  ) {
-    _core.formIntersection(other._core)
-  }
-
-  @inlinable
-  public mutating func formIntersection<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Element {
-    if S.self == Range<S.Element>.self {
-      formIntersection(other as! Range<S.Element>)
-      return
-    }
-    formIntersection(BitSet(_validMembersOf: other))
-  }
-
-  @inlinable
-  public mutating func formIntersection(_ other: Range<Element>) {
-    _core.formIntersection(other._clampedToUInt())
   }
 }

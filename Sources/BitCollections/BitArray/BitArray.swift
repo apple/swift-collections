@@ -13,6 +13,8 @@ public struct BitArray {
   @usableFromInline
   internal var _storage: [_Word]
 
+  /// The number of bits in the bit array. This may less than the number of bits
+  /// in `_storage` if the last word isn't fully filled.
   @usableFromInline
   internal var _count: UInt
 

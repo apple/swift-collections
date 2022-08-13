@@ -9,9 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _BitSet {
-  @usableFromInline
-  internal func isDisjoint(with other: Self) -> Bool {
+extension BitSet {
+  public func isDisjoint(with other: Self) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words
@@ -24,34 +23,15 @@ extension _BitSet {
     }
   }
 
-  @usableFromInline
-  internal func isDisjoint(with other: Range<UInt>) -> Bool {
-    _read { $0.isDisjoint(with: other) }
-  }
-}
-
-extension BitSet {
-  @inlinable
-  public func isDisjoint(with other: Self) -> Bool {
-    _core.isDisjoint(with: other._core)
-  }
-
-  @inlinable
-  public func isDisjoint<I: FixedWidthInteger>(
-    with other: BitSet<I>
-  ) -> Bool {
-    _core.isDisjoint(with: other._core)
-  }
-
   @inlinable
   public func isDisjoint<S: Sequence>(with other: S) -> Bool
-  where S.Element == Element
+  where S.Element == Int
   {
     if S.self == BitSet.self {
       return self.isDisjoint(with: other as! BitSet)
     }
-    if S.self == Range<Element>.self  {
-      return self.isDisjoint(with: other as! Range<Element>)
+    if S.self == Range<Int>.self  {
+      return self.isDisjoint(with: other as! Range<Int>)
     }
     for value in other {
       guard !contains(value) else { return false }
@@ -61,15 +41,7 @@ extension BitSet {
 }
 
 extension BitSet {
-  @inlinable
-  public func isDisjoint(with other: Range<Element>) -> Bool {
-    _core.isDisjoint(with: other._clampedToUInt())
-  }
-
-  @inlinable
-  public func isDisjoint<I: FixedWidthInteger>(
-    with other: Range<I>
-  ) -> Bool {
-    _core.isDisjoint(with: other._clampedToUInt())
+  public func isDisjoint(with other: Range<Int>) -> Bool {
+    _read { $0.isDisjoint(with: other._clampedToUInt()) }
   }
 }

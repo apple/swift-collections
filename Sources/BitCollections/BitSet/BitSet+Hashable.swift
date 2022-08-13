@@ -11,6 +11,6 @@
 
 extension BitSet: Hashable {
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(_core._storage)
+    hasher.combine(_storage)
   }
 }

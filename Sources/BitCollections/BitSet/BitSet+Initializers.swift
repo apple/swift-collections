@@ -17,7 +17,7 @@ extension BitSet {
   @inlinable
   public init<S: Sequence>(
     _ elements: __owned S
-  ) where S.Element == Element {
+  ) where S.Element == Int {
     if S.self == BitSet.self {
       self = (elements as! BitSet)
       return
@@ -31,45 +31,38 @@ extension BitSet {
   @inlinable
   internal init<S: Sequence>(
     _validMembersOf elements: __owned S
-  ) where S.Element == Element {
+  ) where S.Element == Int {
     if S.self == BitSet.self {
       self = (elements as! BitSet)
       return
     }
-    if S.self == Range<Element>.self {
-      let r = (elements as! Range<Element>)
-      self.init(_core: _BitSet(r._clampedToUInt()))
+    if S.self == Range<Int>.self {
+      let r = (elements as! Range<Int>)
+      self.init(_range: r._clampedToUInt())
       return
     }
     self.init()
     for value in elements {
       guard let value = UInt(exactly: value) else { continue }
-      _ = self._core.insert(value)
+      self._insert(value)
     }
   }
 }
 
 extension BitSet {
-  @inlinable
-  public init(_ range: Range<Element>) {
-    guard
-      let lower = UInt(exactly: range.lowerBound),
-      let upper = UInt(exactly: range.upperBound)
-    else {
+  public init(_ range: Range<Int>) {
+    guard let range = range._toUInt() else {
       preconditionFailure("BitSet can only hold nonnegative integers")
     }
-    let range = Range(uncheckedBounds: (lower, upper))
-    self.init(_core: _BitSet(range))
+    self.init(_range: range)
   }
-}
 
-extension _BitSet {
   @usableFromInline
-  internal init(_ range: Range<UInt>) {
+  internal init(_range range: Range<UInt>) {
     _count = range.count
     _storage = []
-    let lower = UnsafeHandle.Index(range.lowerBound)
-    let upper = UnsafeHandle.Index(range.upperBound)
+    let lower = _UnsafeHandle.Index(range.lowerBound)
+    let upper = _UnsafeHandle.Index(range.upperBound)
     if lower.word > 0 {
       _storage.append(contentsOf: repeatElement(.empty, count: lower.word))
     }
@@ -98,9 +91,9 @@ extension BitSet {
   }
 }
 
-extension _BitSet {
+extension BitSet {
   internal init(
-    _combining handles: (UnsafeHandle, UnsafeHandle),
+    _combining handles: (_UnsafeHandle, _UnsafeHandle),
     includingTail: Bool,
     using function: (_Word, _Word) -> _Word
   ) {
