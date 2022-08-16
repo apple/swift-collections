@@ -14,6 +14,34 @@ extension BitSet {
     self.init(_storage: [], count: 0)
   }
 
+  @usableFromInline
+  init(_words: [_Word]) {
+    self._storage = _words
+    self._count = _words.reduce(into: 0, { $0 += $1.count })
+    _shrink()
+    _checkInvariants()
+  }
+  
+  @inlinable
+  public init<S: Sequence>(words: S) where S.Element == UInt {
+    self.init(_words: words.map { _Word($0) })
+  }
+  
+  @inlinable
+  public init<I: BinaryInteger>(bitPattern: I) {
+    self.init(words: bitPattern.words)
+  }
+
+  /// Initialize a new bit set from the bit pattern of the given bit array.
+  /// The resulting bit set will contain exactly those integers that address
+  /// `true` elements in the array.
+  ///
+  /// Note that this conversion is lossy -- it discards the precise length of
+  /// the input array.
+  public init(_ array: BitArray) {
+    self.init(_words: array._storage)
+  }
+
   @inlinable
   public init<S: Sequence>(
     _ elements: __owned S
@@ -79,15 +107,6 @@ extension BitSet {
     }
     _shrink()
     _checkInvariants()
-  }
-}
-
-extension BitSet {
-  @inlinable
-  public init<I: BinaryInteger>(bitPattern: I) {
-    let words = bitPattern.words.map { _Word($0) }
-    let count = words.reduce(into: 0) { $0 += $1.count }
-    self.init(_storage: words, count: count)
   }
 }
 

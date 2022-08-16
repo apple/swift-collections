@@ -52,6 +52,23 @@ final class BitSetTest: CollectionTestCase {
       expectEqualElements(set, range)
     }
   }
+  
+  func test_words_initializer() {
+    let s0 = BitSet(words: [])
+    expectEqualElements(s0, [])
+    
+    let s1 = BitSet(words: [23])
+    expectEqualElements(s1, [0, 1, 2, 4])
+    
+    let s2 = BitSet(words: [1, 1])
+    expectEqualElements(s2, [0, UInt.bitWidth])
+
+    let s3 = BitSet(words: [1, 2, 4])
+    expectEqualElements(s3, [0, UInt.bitWidth + 1, 2 * UInt.bitWidth + 2])
+
+    let s4 = BitSet(words: [UInt.max, UInt.max, UInt.max])
+    expectEqualElements(s4, 0 ..< 3 * UInt.bitWidth)
+  }
 
   func test_bitPattern_initializer() {
     let s1 = BitSet(bitPattern: 0 as UInt)
@@ -68,6 +85,21 @@ final class BitSetTest: CollectionTestCase {
 
     let s5 = BitSet(bitPattern: -1)
     expectEqualElements(s5, 0 ..< UInt.bitWidth)
+  }
+  
+  func test_BitArray_initializer() {
+    let a0: BitArray = []
+    let s0 = BitSet(a0)
+    expectEqualElements(s0, [])
+    
+    let a1: BitArray = [true, false, true]
+    let s1 = BitSet(a1)
+    expectEqualElements(s1, [0, 2])
+
+    var a2 = BitArray(repeatElement(false, count: 145))
+    a2.append(contentsOf: repeatElement(true, count: 277))
+    let s2 = BitSet(a2)
+    expectEqualElements(s2, 145 ..< 145 + 277)
   }
 
   func test_collection_strides() {

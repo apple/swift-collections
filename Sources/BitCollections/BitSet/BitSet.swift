@@ -25,6 +25,7 @@ public struct BitSet {
   init(_storage: [_Word], count: Int) {
     self._storage = _storage
     self._count = count
+    _checkInvariants()
   }
 }
 
