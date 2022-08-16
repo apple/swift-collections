@@ -82,13 +82,25 @@ extension BitArray {
     }
   }
 
-  internal mutating func _extend(by n: Int) {
+  internal mutating func _extend(by n: Int, with paddingBit: Bool = false) {
     assert(n >= 0)
     guard n > 0 else { return }
+    let newCount = _count + UInt(n)
     let orig = _storage.count
-    let new = _Word.wordCount(forBitCount: _count + UInt(n))
-    _storage.append(
-      contentsOf: repeatElement(.empty, count: new - orig))
-    _count += UInt(n)
+    let new = _Word.wordCount(forBitCount: newCount)
+    if paddingBit == false {
+      _storage.append(contentsOf: repeatElement(.empty, count: new - orig))
+    } else {
+      let (w1, b1) = _BitPosition(_count).split
+      let (w2, b2) = _BitPosition(newCount).split
+      if w1 < _storage.count {
+        _storage[w1].formUnion(_Word(upTo: b1).complement())
+      }
+      _storage.append(contentsOf: repeatElement(.allBits, count: new - orig))
+      if w2 < _storage.count {
+        _storage[w2].formIntersection(_Word(upTo: b2))
+      }
+    }
+    _count = newCount
   }
 }

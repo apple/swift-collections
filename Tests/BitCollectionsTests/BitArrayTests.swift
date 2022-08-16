@@ -611,4 +611,25 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_truncateOrExtend() {
+    withSome("oldCount", in: 0 ..< 512, maxSamples: 50) { oldCount in
+      withSome("newCount", in: 0 ... 1024, maxSamples: 30) { newCount in
+        withEvery("padding", in: [false, true]) { padding in
+          let array = randomBoolArray(count: oldCount)
+          
+          var bits = BitArray(array)
+          bits.truncateOrExtend(toCount: newCount, with: padding)
+          
+          let delta = newCount - oldCount
+          if delta >= 0 {
+            let expected = array + repeatElement(padding, count: delta)
+            expectEqualElements(bits, expected)
+          } else {
+            expectEqualElements(bits, array[0 ..< newCount])
+          }
+        }
+      }
+    }
+  }
 }
