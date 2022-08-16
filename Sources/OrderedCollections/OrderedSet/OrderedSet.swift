@@ -494,3 +494,26 @@ extension OrderedSet {
     return _elements.remove(at: index)
   }
 }
+
+extension OrderedSet {
+  /// Returns a new ordered set containing the values pairs of the ordered set
+  /// that satisfy the given predicate.
+  ///
+  /// - Parameter isIncluded: A closure that takes a value as its
+  ///   argument and returns a Boolean value indicating whether the value
+  ///   should be included in the returned dictionary.
+  ///
+  /// - Returns: An ordered set of the values that `isIncluded` allows.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public func filter(
+          _ isIncluded: (Element) throws -> Bool
+  ) rethrows -> Self {
+    var result: OrderedSet = Self(minimumCapacity: _minimumCapacity)
+    for element in self where try isIncluded(element) {
+      result._appendNew(element)
+    }
+    return result
+  }
+}

@@ -1360,4 +1360,22 @@ class OrderedSetTests: CollectionTestCase {
       }
     }
   }
+
+
+  func test_filter() {
+    let items = (0 ..< 100)
+    let s = OrderedSet(items)
+
+    var c = 0
+    let s2 = s.filter { item in
+      c += 1
+      return item.isMultiple(of: 2)
+    }
+    expectEqual(c, 100)
+    expectEqualElements(s, items)
+
+    expectEqualElements(s2, (0 ..< 50).compactMap { key in
+      return (2 * key)
+    })
+  }
 }
