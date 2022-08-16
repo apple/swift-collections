@@ -1020,4 +1020,13 @@ final class BitSetTest: CollectionTestCase {
       }
     }
   }
+  
+  func test_sorted() {
+    let s1: BitSet = [283, 3, 5, 6362, 0, 23]
+    let s2 = s1.sorted()
+    
+    expectTrue(type(of: s2) == BitSet.self)
+    expectEqualElements(s1, [0, 3, 5, 23, 283, 6362])
+    expectEqualElements(s2, [0, 3, 5, 23, 283, 6362])
+  }
 }
