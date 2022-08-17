@@ -508,7 +508,7 @@ extension OrderedSet {
   /// - Complexity: O(`count`)
   @inlinable
   public func filter(
-          _ isIncluded: (Element) throws -> Bool
+    _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
     var result: OrderedSet = Self(minimumCapacity: _minimumCapacity)
     for element in self where try isIncluded(element) {
