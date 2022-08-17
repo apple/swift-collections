@@ -73,6 +73,15 @@ extension _UnsafeBitset {
     run body: (inout _UnsafeBitset) throws -> Void
   ) rethrows {
     let wordCount = _UnsafeBitset.wordCount(forCapacity: capacity)
+#if compiler(>=5.6)
+    return try withUnsafeTemporaryAllocation(
+      of: Word.self, capacity: wordCount
+    ) { words in
+      words.initialize(repeating: .empty)
+      var bitset = Self(words: words, count: 0)
+      return try body(&bitset)
+    }
+#else
     if wordCount <= 2 {
       var buffer: (Word, Word) = (.empty, .empty)
       return try withUnsafeMutablePointer(to: &buffer) { p in
@@ -87,6 +96,7 @@ extension _UnsafeBitset {
     defer { words.deallocate() }
     var bitset = _UnsafeBitset(words: words, count: 0)
     return try body(&bitset)
+#endif
   }
 }
 
