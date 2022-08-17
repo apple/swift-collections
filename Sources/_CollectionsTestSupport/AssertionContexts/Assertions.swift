@@ -402,3 +402,7 @@ public func expectThrows<T>(
     errorHandler(error)
   }
 }
+
+public func expectType<T>(_ actual: T, _ expectedType: Any.Type) {
+  expectTrue(type(of: actual) == expectedType)
+}

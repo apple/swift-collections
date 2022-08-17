@@ -1373,4 +1373,11 @@ class OrderedSetTests: CollectionTestCase {
       }
     }
   }
+  func test_filter_type() {
+    let s = Set([1, 2, 3, 4]).filter { $0.isMultiple(of: 2) }
+    expectType(s, Set<Int>.self)
+
+    let os = OrderedSet([1, 2, 3, 4]).filter { $0.isMultiple(of: 2) }
+    expectType(os, OrderedSet<Int>.self)
+  }
 }
