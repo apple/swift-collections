@@ -10,6 +10,19 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given set.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     let b: BitSet = [5, 6]
+  ///     a.isDisjoint(with: b) // true
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public func isDisjoint(with other: Self) -> Bool {
     self._read { first in
       other._read { second in
@@ -23,6 +36,20 @@ extension BitSet {
     }
   }
 
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given sequence of integers.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     let b: BitSet = [5, 6, -10, 42]
+  ///     a.isDisjoint(with: b) // true
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isDisjoint<S: Sequence>(with other: S) -> Bool
   where S.Element == Int
@@ -38,9 +65,19 @@ extension BitSet {
     }
     return true
   }
-}
 
-extension BitSet {
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given range of integers.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     a.isDisjoint(with: -10 ..< 0) // true
+  ///
+  /// - Parameter other: A range of arbitrary integers.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isDisjoint(with other: Range<Int>) -> Bool {
     _read { $0.isDisjoint(with: other._clampedToUInt()) }
   }

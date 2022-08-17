@@ -14,6 +14,10 @@
 ///
 /// Bit sets implement `SetAlgebra` and provide efficient implementations
 /// for set operations based on standard binary logic operations.
+///
+/// See `BitArray` for an alternative form of the same underlying data
+/// structure, treating it as a mutable random-access collection of `Bool`
+/// values.
 public struct BitSet {
   @usableFromInline
   internal var _storage: [_Word]

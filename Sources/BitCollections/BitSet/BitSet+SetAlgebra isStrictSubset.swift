@@ -10,6 +10,26 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Returns a Boolean value that indicates whether this bit set is a strict
+  /// subset of the given set.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     let b: BitSet = [1, 2, 4]
+  ///     let c: BitSet = [0, 1]
+  ///     a.isStrictSubset(of: a) // false
+  ///     b.isStrictSubset(of: a) // true
+  ///     c.isStrictSubset(of: a) // false
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: Self) -> Bool {
     self._read { first in
       other._read { second in
@@ -30,6 +50,26 @@ extension BitSet {
     }
   }
 
+  /// Returns a Boolean value that indicates whether this bit set is a strict
+  /// subset of the values in a given sequence of integers.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  ///     let a = [1, 2, 3, 4, -10]
+  ///     let b: BitSet = [1, 2, 4]
+  ///     let c: BitSet = [0, 1]
+  ///     b.isStrictSubset(of: a) // true
+  ///     c.isStrictSubset(of: a) // false
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isStrictSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Int
@@ -68,6 +108,24 @@ extension BitSet {
     }
   }
 
+  /// Returns a Boolean value that indicates whether this set is a strict
+  /// subset of the given set.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  ///     let b: BitSet = [0, 1, 2]
+  ///     let c: BitSet = [2, 3, 4]
+  ///     b.isStrictSubset(of: -10 ..< 4) // true
+  ///     c.isStrictSubset(of: -10 ..< 4) // false
+  ///
+  /// - Parameter other: An arbitrary range of integers.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: Range<Int>) -> Bool {
     isSubset(of: other) && !isSuperset(of: other)
   }

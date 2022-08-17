@@ -10,6 +10,16 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Removes the elements of the given bit set from this set.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.subtract(other)
+  ///     // set is now [1, 3]
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func subtract(_ other: Self) {
     _updateThenShrink { target, shrink in
       other._read { source in
@@ -30,6 +40,17 @@ extension BitSet {
     }
   }
 
+  /// Removes the elements of the given sequence of integers from this set.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, -2, -4]
+  ///     set.subtract(other)
+  ///     // set is now [1, 3]
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public mutating func subtract<S: Sequence>(
     _ other: __owned S
@@ -61,6 +82,17 @@ extension BitSet {
     }
   }
 
+  /// Removes the elements of the given range of integers from this set.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     set.subtract(-10 ..< 3)
+  ///     // set is now [3, 4]
+  ///
+  /// - Parameter other: A range of arbitrary integers.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in self.
   public mutating func subtract(_ other: Range<Int>) {
     _subtract(other._clampedToUInt())
   }

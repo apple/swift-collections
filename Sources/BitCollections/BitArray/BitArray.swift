@@ -9,6 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// An ordered, random-access collection of `Bool` values, implemented as an
+/// uncompressed bitmap of as many bits as the count of the array.
+///
+/// Bit arrays implement `RangeReplaceableCollection` and `MutableCollection`
+/// and provide limited support for bitwise operations on same-sized arrays.
+///
+/// See `BitSet` for an alternative form of the same underlying data
+/// structure, treating it as a set of nonnegative integers corresponding to
+/// `true` bits.
 public struct BitArray {
   @usableFromInline
   internal var _storage: [_Word]

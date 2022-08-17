@@ -10,12 +10,16 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
-  @usableFromInline
-  internal mutating func formUnion(_ other: Range<UInt>) {
-  }
-}
-
-extension BitSet {
+  /// Adds the elements of the given set to this set.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.formUnion(other)
+  ///     // `set` is now `[0, 1, 2, 3, 4, 6]`
+  ///
+  /// - Parameter other: The set of elements to insert.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func formUnion(_ other: __owned Self) {
     _ensureCapacity(limit: other._capacity)
     _update { target in
@@ -25,6 +29,18 @@ extension BitSet {
     }
   }
 
+  /// Adds the elements of the given sequence to this set.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, 2, 0]
+  ///     set.formUnion(other)
+  ///     // `set` is now `[0, 1, 2, 3, 4, 6]`
+  ///
+  /// - Parameter other: A sequence of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in either
+  ///    input, and *k* is the complexity of iterating over all elements in
+  ///    `other`.
   @inlinable
   public mutating func formUnion<S: Sequence>(
     _ other: __owned S
@@ -42,6 +58,15 @@ extension BitSet {
     }
   }
 
+  /// Adds the elements of the given range of integers to this set.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     set.formUnion(3 ..< 7)
+  ///     // `set` is now `[1, 2, 3, 4, 5, 6]`
+  ///
+  /// - Parameter other: A range of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func formUnion(_ other: Range<Int>) {
     guard let other = other._toUInt() else {
       preconditionFailure("Invalid range")

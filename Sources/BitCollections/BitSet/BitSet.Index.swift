@@ -10,6 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// An opaque type that represents a position in a bit set.
+  ///
+  /// The elements of a bit set can be addressed simply by their value,
+  /// so the `Index` type could be defined to be `Int`, the same as `Element`.
+  /// However, `BitSet` uses an opaque wrapper instead, to prevent confusion:
+  /// it would otherwise be all too easy to accidentally use `i + 1` instead of
+  /// calling `index(after: i)`, and ending up with an invalid index.
   @frozen
   public struct Index {
     @usableFromInline
@@ -33,16 +40,26 @@ extension BitSet {
 }
 
 extension BitSet.Index: Comparable, Hashable {
+  /// Returns a Boolean value indicating whether two values are equal.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
     left._value == right._value
   }
 
+  /// Returns a Boolean value indicating whether the first value is ordered
+  /// before the second.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public static func < (left: Self, right: Self) -> Bool {
     left._value < right._value
   }
 
+  /// Hashes the essential components of this value by feeding them to the given hasher.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_value)

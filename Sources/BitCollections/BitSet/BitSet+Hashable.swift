@@ -10,6 +10,10 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet: Hashable {
+  /// Hashes the essential components of this value by feeding them into the
+  /// given hasher.
+  ///
+  /// Complexity: O(*max*) where *max* is the largest value stored in this set.
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_storage)
   }

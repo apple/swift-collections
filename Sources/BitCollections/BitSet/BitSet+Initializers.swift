@@ -10,6 +10,18 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Initializes a new, empty bit set.
+  ///
+  /// This is equivalent to initializing with an empty array literal.
+  /// For example:
+  ///
+  ///     let set1 = BitSet()
+  ///     print(set1.isEmpty) // true
+  ///
+  ///     let set2: BitSet = []
+  ///     print(set2.isEmpty) // true
+  ///
+  /// - Complexity: O(1)
   public init() {
     self.init(_storage: [], count: 0)
   }
@@ -22,26 +34,56 @@ extension BitSet {
     _checkInvariants()
   }
   
+  /// Initialize a new bit set from the raw bits of the supplied sequence of
+  /// words. (The term "words" is used here to mean a sequence of `UInt`
+  /// values, as in the `words` property of `BinaryInteger`.)
+  ///
+  /// The resulting bit set will contain precisely those integers that
+  /// correspond to `true` bits within `words`. Bits are counted from least
+  /// to most significant within each word.
+  ///
+  ///     let bits = BitSet(words: [5, 2])
+  ///     // bits is [0, 2, UInt.bitWidth + 1]
+  ///
+  /// - Complexity: O(`words.count`)
   @inlinable
   public init<S: Sequence>(words: S) where S.Element == UInt {
     self.init(_words: words.map { _Word($0) })
   }
   
+  /// Initialize a new bit set from the raw bits of the supplied integer value.
+  ///
+  /// The resulting bit set will contain precisely those integers that
+  /// correspond to `true` bits within `x`. Bits are counted from least
+  /// to most significant.
+  ///
+  ///     let bits = BitSet(bitPattern: 42)
+  ///     // bits is [1, 3, 5]
+  ///
+  /// - Complexity: O(`x.bitWidth`)
   @inlinable
-  public init<I: BinaryInteger>(bitPattern: I) {
-    self.init(words: bitPattern.words)
+  public init<I: BinaryInteger>(bitPattern x: I) {
+    self.init(words: x.words)
   }
 
-  /// Initialize a new bit set from the bit pattern of the given bit array.
+  /// Initialize a new bit set from the storage bits of the given bit array.
   /// The resulting bit set will contain exactly those integers that address
   /// `true` elements in the array.
   ///
   /// Note that this conversion is lossy -- it discards the precise length of
   /// the input array.
+  ///
+  /// - Complexity: O(`array.count`)
   public init(_ array: BitArray) {
     self.init(_words: array._storage)
   }
 
+  /// Create a new bit set containing the elements of a sequence.
+  ///
+  /// - Parameters:
+  ///   - elements: The sequence of elements to turn into a bit set.
+  ///
+  /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
   public init<S: Sequence>(
     _ elements: __owned S
@@ -78,6 +120,13 @@ extension BitSet {
 }
 
 extension BitSet {
+  /// Create a new bit set containing the elements of a range of integers.
+  ///
+  /// - Parameters:
+  ///   - range: The range to turn into a bit set. The range must not contain
+  ///      negative values.
+  ///
+  /// - Complexity: O(`range.upperBound`)
   public init(_ range: Range<Int>) {
     guard let range = range._toUInt() else {
       preconditionFailure("BitSet can only hold nonnegative integers")

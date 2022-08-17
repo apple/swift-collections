@@ -10,14 +10,22 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet: Sequence {
+  /// The type representing the bit set's elements.
+  /// Bit sets are collections of nonnegative integers.
   public typealias Element = Int
 
+  /// Returns the exact count of the bit set.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var underestimatedCount: Int {
     return count
   }
 
+  /// Returns an iterator over the elements of the bit set.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public func makeIterator() -> Iterator {
     return Iterator(self)
@@ -30,6 +38,7 @@ extension BitSet: Sequence {
     return _contains(element)
   }
 
+  /// An iterator over the members of a bit set.
   public struct Iterator: IteratorProtocol {
     internal typealias _UnsafeHandle = BitSet._UnsafeHandle
 
@@ -47,6 +56,17 @@ extension BitSet: Sequence {
       }
     }
 
+    /// Advances to the next element and returns it, or `nil` if no next element
+    /// exists.
+    ///
+    /// Once `nil` has been returned, all subsequent calls return `nil`.
+    ///
+    /// - Complexity:
+    ///   Each individual call has a worst case time complexity of O(*n*),
+    ///   where *n* is largest element in the set, as each call needs to
+    ///   search for the next `true` bit in the underlying storage.
+    ///   However, each storage bit is only visited once, so iterating over the
+    ///   entire set has the same O(*n*) complexity.
     @_effects(releasenone)
     public mutating func next() -> Int? {
       if let bit = word.next() {
@@ -69,14 +89,28 @@ extension BitSet: Sequence {
 }
 
 extension BitSet: Collection, BidirectionalCollection {
+  /// A Boolean value indicating whether the collection is empty.
+  ///
+  /// - Complexity: O(1)
   public var isEmpty: Bool { _count == 0 }
+
+  /// The number of elements in the bit set.
+  ///
+  /// - Complexity: O(1)
   public var count: Int { _count }
 
+  /// The position of the first element in a nonempty set, or `endIndex`
+  /// if the collection is empty.
+  ///
+  /// - Complexity: O(*min*) where *min* is the value of the first element.
   public var startIndex: Index {
-    // Note: This is O(n)
     Index(_position: _read { $0.startIndex })
   }
 
+  /// The collection’s “past the end” position--that is, the position one step
+  /// after the last valid subscript argument.
+  ///
+  /// - Complexity: O(1)
   public var endIndex: Index {
     Index(_position: .init(word: _storage.count, bit: 0))
   }
@@ -85,10 +119,33 @@ extension BitSet: Collection, BidirectionalCollection {
     Int(bitPattern: position._position.value)
   }
   
+  /// Returns the position immediately after the given index.
+  ///
+  /// - Parameter `index`: A valid index of the bit set. `index` must be less than `endIndex`.
+  ///
+  /// - Returns: The valid index immediately after `index`.
+  ///
+  /// - Complexity:
+  ///   O(*d*), where *d* is difference between the value of the member
+  ///   addressed by `index` and the member following it in the set.
+  ///   (Each call needs to search for the next `true` bit in the underlying
+  ///   storage.)
   public func index(after index: Index) -> Index {
     Index(_position: _read { $0.index(after: index._position) })
   }
   
+  /// Returns the position immediately before the given index.
+  ///
+  /// - Parameter `index`: A valid index of the bit set.
+  ///    `index` must be greater than `startIndex`.
+  ///
+  /// - Returns: The preceding valid index immediately before `index`.
+  ///
+  /// - Complexity:
+  ///   O(*d*), where *d* is difference between the value of the member
+  ///   addressed by `index` and the member preceding it in the set.
+  ///   (Each call needs to search for the next `true` bit in the underlying
+  ///   storage.)
   public func index(before index: Index) -> Index {
     Index(_position: _read { $0.index(before: index._position) })
   }

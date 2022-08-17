@@ -10,6 +10,16 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Removes the elements of this set that aren't also in the given one.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.formIntersection(other)
+  ///     // set is now [2, 4]
+  ///
+  /// - Parameter other: A bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
   public mutating func formIntersection(_ other: Self) {
     other._read { source in
       if source.wordCount < _storage.count {
@@ -22,6 +32,17 @@ extension BitSet {
     }
   }
 
+  /// Removes the elements of this set that aren't also in the given sequence.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     let other: Set<Int> = [6, 4, 2, 0]
+  ///     set.formIntersection(other)
+  ///     // set is now [2, 4]
+  ///
+  /// - Parameter other: A sequence of integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///     and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public mutating func formIntersection<S: Sequence>(
     _ other: __owned S
@@ -33,6 +54,15 @@ extension BitSet {
     formIntersection(BitSet(_validMembersOf: other))
   }
 
+  /// Removes the elements of this set that aren't also in the given range.
+  ///
+  ///     var set: BitSet = [1, 2, 3, 4]
+  ///     set.formIntersection(-10 ..< 3)
+  ///     // set is now [3, 4]
+  ///
+  /// - Parameter other: A range of integers.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public mutating func formIntersection(_ other: Range<Int>) {
     let other = other._clampedToUInt()
     guard let last = other.last else {

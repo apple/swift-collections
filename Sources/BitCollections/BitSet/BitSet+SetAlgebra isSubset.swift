@@ -10,6 +10,24 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the given set.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     let b: BitSet = [1, 2, 4]
+  ///     let c: BitSet = [0, 1]
+  ///     a.isSubset(of: a) // true
+  ///     b.isSubset(of: a) // true
+  ///     c.isSubset(of: a) // false
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: Self) -> Bool {
     self._read { first in
       other._read { second in
@@ -28,6 +46,24 @@ extension BitSet {
     }
   }
 
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the values in a given sequence of integers.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  ///     let a = [1, 2, 3, 4, -10]
+  ///     let b: BitSet = [1, 2, 4]
+  ///     let c: BitSet = [0, 1]
+  ///     b.isSubset(of: a) // true
+  ///     c.isSubset(of: a) // false
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Int
@@ -48,6 +84,22 @@ extension BitSet {
     return false
   }
 
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the given range of integers.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  ///     let b: BitSet = [0, 1, 2]
+  ///     let c: BitSet = [2, 3, 4]
+  ///     b.isSubset(of: -10 ..< 4) // true
+  ///     c.isSubset(of: -10 ..< 4) // false
+  ///
+  /// - Parameter other: An arbitrary range of integers.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: Range<Int>) -> Bool {
     guard !isEmpty else { return true }
     return _read { $0.isSubset(of: other._clampedToUInt()) }
