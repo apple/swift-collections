@@ -1361,21 +1361,16 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
-
   func test_filter() {
-    let items = (0 ..< 100)
-    let s = OrderedSet(items)
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      withEvery("factor", in: [1, 2, 3, 5, 10]) { factor in
+        let count = layout.count
+        let input = OrderedSet(layout: layout, contents: 0 ..< count)
+        let expected = (0 ..< count).filter { $0 % factor == 0 }
+        let actual = input.filter { $0 % factor == 0 }
 
-    var c = 0
-    let s2 = s.filter { item in
-      c += 1
-      return item.isMultiple(of: 2)
+        expectEqualElements(actual, expected)
+      }
     }
-    expectEqual(c, 100)
-    expectEqualElements(s, items)
-
-    expectEqualElements(s2, (0 ..< 50).compactMap { key in
-      return (2 * key)
-    })
   }
 }
