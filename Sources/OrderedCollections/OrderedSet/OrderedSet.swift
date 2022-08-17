@@ -514,6 +514,7 @@ extension OrderedSet {
     for element in self where try isIncluded(element) {
       result._appendNew(element)
     }
+    result._checkInvariants()
     return result
   }
 }
