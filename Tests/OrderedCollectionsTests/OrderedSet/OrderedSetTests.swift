@@ -1360,4 +1360,24 @@ class OrderedSetTests: CollectionTestCase {
       }
     }
   }
+
+  func test_filter() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      withEvery("factor", in: [1, 2, 3, 5, 10]) { factor in
+        let count = layout.count
+        let input = OrderedSet(layout: layout, contents: 0 ..< count)
+        let expected = (0 ..< count).filter { $0 % factor == 0 }
+        let actual = input.filter { $0 % factor == 0 }
+
+        expectEqualElements(actual, expected)
+      }
+    }
+  }
+  func test_filter_type() {
+    let s = Set([1, 2, 3, 4]).filter { $0.isMultiple(of: 2) }
+    expectType(s, Set<Int>.self)
+
+    let os = OrderedSet([1, 2, 3, 4]).filter { $0.isMultiple(of: 2) }
+    expectType(os, OrderedSet<Int>.self)
+  }
 }
