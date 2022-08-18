@@ -269,6 +269,25 @@ extension Benchmark {
       }
     }
 
+    for percent in [0, 25, 50, 75, 100] {
+      self.add(
+        title: "OrderedSet<Int> filter keeping \(percent)%",
+        input: [Int].self
+      ) { input in
+        let set = OrderedSet(input)
+        return { timer in
+          var r: OrderedSet<Int>!
+          timer.measure {
+            r = set.filter { $0 % 100 < percent }
+          }
+          let div = input.count / 100
+          let rem = input.count % 100
+          precondition(r.count == percent * div + Swift.min(rem, percent))
+          blackHole(r)
+        }
+      }
+    }
+
     let overlaps: [(String, (Int) -> Int)] = [
       ("0%",   { c in c }),
       ("25%",  { c in 3 * c / 4 }),
