@@ -508,25 +508,15 @@ extension OrderedSet {
   /// - Complexity: O(`count`)
   @inlinable
   public func filter(
-          _ isIncluded: (Element) throws -> Bool
+    _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
-    var result: OrderedSet = Self(minimumCapacity: _minimumCapacity)
-    for element in self where try isIncluded(element) {
-      result._appendNew(element)
+    try _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset in
+      for i in _elements.indices where try isIncluded(_elements[i]) {
+        bitset.insert(i)
+      }
+      let result = self._extractSubset(using: bitset)
+      result._checkInvariants()
+      return result
     }
-    result._checkInvariants()
-    return result
-//
-//    try _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset in
-//      bitset.insertAll(upTo: self.count)
-//      for element in self where try !isIncluded(element) {
-//        if let index = _find(element).index {
-//          bitset.remove(index)
-//        }
-//      }
-//      let result = self._extractSubset(using: bitset)
-//      result._checkInvariants()
-//      return result
-//    }
   }
 }

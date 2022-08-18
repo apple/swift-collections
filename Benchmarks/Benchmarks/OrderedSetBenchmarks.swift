@@ -267,52 +267,23 @@ extension Benchmark {
           }
         }
       }
+    }
 
+    for percent in [0, 25, 50, 75, 100] {
       self.add(
-        title: "OrderedSet<Int> filter",
-        input: ([Int]).self
-      ) { a in
+        title: "OrderedSet<Int> filter keeping \(percent)%",
+        input: [Int].self
+      ) { input in
+        let set = OrderedSet(input)
         return { timer in
-          let b = OrderedSet(a)
+          var r: OrderedSet<Int>!
           timer.measure {
-            blackHole(b.filter { $0.isMultiple(of: 2) })
+            r = set.filter { $0 % 100 < percent }
           }
-        }
-      }
-
-      self.add(
-        title: "OrderedSet<Int> filter - 1/3",
-        input: ([Int]).self
-      ) { a in
-        return { timer in
-          let b = OrderedSet(a)
-          timer.measure {
-            blackHole(b.filter { $0.isMultiple(of: 3) })
-          }
-        }
-      }
-
-      self.add(
-        title: "OrderedSet<Int> filter none",
-        input: ([Int]).self
-      ) { a in
-        return { timer in
-          let b = OrderedSet(a)
-          timer.measure {
-            blackHole(b.filter { _ in false })
-          }
-        }
-      }
-
-      self.add(
-        title: "OrderedSet<Int> filter all",
-        input: ([Int]).self
-      ) { a in
-        return { timer in
-          let b = OrderedSet(a)
-          timer.measure {
-            blackHole(b.filter { _ in true })
-          }
+          let div = input.count / 100
+          let rem = input.count % 100
+          precondition(r.count == percent * div + Swift.min(rem, percent))
+          blackHole(r)
         }
       }
     }
