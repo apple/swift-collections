@@ -516,5 +516,17 @@ extension OrderedSet {
     }
     result._checkInvariants()
     return result
+//
+//    try _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset in
+//      bitset.insertAll(upTo: self.count)
+//      for element in self where try !isIncluded(element) {
+//        if let index = _find(element).index {
+//          bitset.remove(index)
+//        }
+//      }
+//      let result = self._extractSubset(using: bitset)
+//      result._checkInvariants()
+//      return result
+//    }
   }
 }

@@ -267,6 +267,54 @@ extension Benchmark {
           }
         }
       }
+
+      self.add(
+        title: "OrderedSet<Int> filter",
+        input: ([Int]).self
+      ) { a in
+        return { timer in
+          let b = OrderedSet(a)
+          timer.measure {
+            blackHole(b.filter { $0.isMultiple(of: 2) })
+          }
+        }
+      }
+
+      self.add(
+        title: "OrderedSet<Int> filter - 1/3",
+        input: ([Int]).self
+      ) { a in
+        return { timer in
+          let b = OrderedSet(a)
+          timer.measure {
+            blackHole(b.filter { $0.isMultiple(of: 3) })
+          }
+        }
+      }
+
+      self.add(
+        title: "OrderedSet<Int> filter none",
+        input: ([Int]).self
+      ) { a in
+        return { timer in
+          let b = OrderedSet(a)
+          timer.measure {
+            blackHole(b.filter { _ in false })
+          }
+        }
+      }
+
+      self.add(
+        title: "OrderedSet<Int> filter all",
+        input: ([Int]).self
+      ) { a in
+        return { timer in
+          let b = OrderedSet(a)
+          timer.measure {
+            blackHole(b.filter { _ in true })
+          }
+        }
+      }
     }
 
     let overlaps: [(String, (Int) -> Int)] = [
