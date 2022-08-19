@@ -463,4 +463,17 @@ final class BitmapSmokeTests: CollectionTestCase {
         expectEqual(counts[3], 1)
         expectEqual(counts[14], 1)
     }
+
+    func test_Bitmap_enumerateCompactedArray() {
+        let bitmap: Bitmap = 0b0100_0000_0000_1011
+        let elements: [String] = ["zero", "one", "three", "fourteen"]
+
+        var zipIterator = zip(bitmap.nonzeroBits(), elements).makeIterator()
+
+        expectEqual(zipIterator.next()!, (0, "zero"))
+        expectEqual(zipIterator.next()!, (1, "one"))
+        expectEqual(zipIterator.next()!, (3, "three"))
+        expectEqual(zipIterator.next()!, (14, "fourteen"))
+        expectNil(zipIterator.next())
+    }
 }
