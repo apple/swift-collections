@@ -98,11 +98,26 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     }
 
     var nodeSliceInvariant: Bool {
-        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).prefix(bitmapIndexedNodeArity).allSatisfy { $0 is ReturnBitmapIndexedNode }
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).prefix(header.nodeCount).allSatisfy { $0 is ReturnBitmapIndexedNode }
     }
 
     var collSliceInvariant: Bool {
-        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).suffix(hashCollisionNodeArity).allSatisfy { $0 is ReturnHashCollisionNode }
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).suffix(header.collCount).allSatisfy { $0 is ReturnHashCollisionNode }
+    }
+
+    // TODO: should not materialize as `Array` for performance reasons
+    var _dataSlice: [ReturnPayload] {
+        UnsafeMutableBufferPointer(start: dataBaseAddress, count: header.dataCount).map { $0 }
+    }
+
+    // TODO: should not materialize as `Array` for performance reasons
+    var _nodeSlice: [ReturnBitmapIndexedNode] {
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).prefix(header.nodeCount).map { $0 as! ReturnBitmapIndexedNode }
+    }
+
+    // TODO: should not materialize as `Array` for performance reasons
+    var _collSlice: [ReturnHashCollisionNode] {
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).suffix(header.collCount).map { $0 as! ReturnHashCollisionNode }
     }
 
     init(dataCapacity: Capacity, trieCapacity: Capacity) {
