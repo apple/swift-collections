@@ -30,6 +30,8 @@
             "PersistentDictionary<Int, Int> updateValue(_:forKey:), insert",
             "PersistentDictionary<Int, Int> random removals (existing keys)",
             "PersistentDictionary<Int, Int> random removals (missing keys)",
+            "PersistentDictionary<Int, Int> successful index(forKey:)",
+            "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
           ]
         }
       ]
@@ -87,6 +89,24 @@
             "PersistentDictionary<Int, Int> subscript, remove existing",
             "Dictionary<Int, Int> subscript, remove existing",
             "OrderedDictionary<Int, Int> subscript, remove existing",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "index(forKey:), successful index(forKey:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> successful index(forKey:)",
+            "Dictionary<Int, Int> successful index(forKey:)",
+            "OrderedDictionary<Int, Int> successful index(forKey:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "index(forKey:), unsuccessful index(forKey:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
+            "Dictionary<Int, Int> unsuccessful index(forKey:)",
+            "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
           ]
         },
       ]

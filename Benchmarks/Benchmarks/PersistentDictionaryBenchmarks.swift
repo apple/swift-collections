@@ -276,29 +276,29 @@ extension Benchmark {
       }
     }
 
-//    self.add(
-//      title: "PersistentDictionary<Int, Int> successful index(forKey:)",
-//      input: ([Int], [Int]).self
-//    ) { input, lookups in
-//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
-//      return { timer in
-//        for i in lookups {
-//          precondition(d.index(forKey: i) != nil)
-//        }
-//      }
-//    }
-//
-//    self.add(
-//      title: "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
-//      input: ([Int], [Int]).self
-//    ) { input, lookups in
-//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
-//      return { timer in
-//        for i in lookups {
-//          precondition(d.index(forKey: lookups.count + i) == nil)
-//        }
-//      }
-//    }
+    self.add(
+      title: "PersistentDictionary<Int, Int> successful index(forKey:)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      return { timer in
+        for i in lookups {
+          precondition(d.index(forKey: i) != nil)
+        }
+      }
+    }
+
+    self.add(
+      title: "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      return { timer in
+        for i in lookups {
+          precondition(d.index(forKey: lookups.count + i) == nil)
+        }
+      }
+    }
 
     self.add(
       title: "PersistentDictionary<Int, Int> updateValue(_:forKey:), existing",
