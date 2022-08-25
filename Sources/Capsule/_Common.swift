@@ -143,23 +143,18 @@ protocol Node: AnyObject {
     associatedtype ReturnBitmapIndexedNode: Node
     associatedtype ReturnHashCollisionNode: Node
 
-    var hasBitmapIndexedNodes: Bool { get }
-
-    var bitmapIndexedNodeArity: Int { get }
-
-    func getBitmapIndexedNode(_ index: Int) -> ReturnBitmapIndexedNode
-
-    var hasHashCollisionNodes: Bool { get }
-
-    var hashCollisionNodeArity: Int { get }
-
-    func getHashCollisionNode(_ index: Int) -> ReturnHashCollisionNode
-
     var hasNodes: Bool { get }
 
     var nodeArity: Int { get }
 
+    @available(*, deprecated)
     func getNode(_ index: Int) -> TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
+
+    @available(*, deprecated)
+    func getBitmapIndexedNode(_ index: Int) -> ReturnBitmapIndexedNode
+
+    @available(*, deprecated)
+    func getHashCollisionNode(_ index: Int) -> ReturnHashCollisionNode
 
     var hasPayload: Bool { get }
 
