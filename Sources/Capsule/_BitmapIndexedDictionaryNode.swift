@@ -165,30 +165,20 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         assert(self.invariant)
     }
 
-    convenience init(nodeMap: Bitmap, firstNode: BitmapIndexedDictionaryNode<Key, Value>) {
+    convenience init<T: TrieBufferElement>(trieMap: Bitmap, firstNode: T) {
         self.init()
 
-        self.header = Header(dataMap: 0, trieMap: nodeMap)
+        self.header = Header(dataMap: 0, trieMap: trieMap)
 
         self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
     }
 
-    convenience init(collMap: Bitmap, firstNode: HashCollisionDictionaryNode<Key, Value>) {
+    convenience init<T: TrieBufferElement>(dataMap: Bitmap, trieMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: T) {
         self.init()
 
-        self.header = Header(dataMap: 0, trieMap: collMap)
-
-        self.trieBaseAddress.initialize(to: firstNode)
-
-        assert(self.invariant)
-    }
-
-    convenience init(dataMap: Bitmap, collMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: HashCollisionDictionaryNode<Key, Value>) {
-        self.init()
-
-        self.header = Header(dataMap: dataMap, trieMap: collMap)
+        self.header = Header(dataMap: dataMap, trieMap: trieMap)
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.trieBaseAddress.initialize(to: firstNode)
@@ -327,7 +317,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             } else if self.payloadArity == 1 && self.nodeArity /* rename */ == 1 && self.getTrieNode(0) is HashCollisionDictionaryNode<Key, Value> { /* TODO: is similar to `isWrappingSingleHashCollisionNode`? */
                 // create potential new root: will a) become new root, or b) unwrapped on another level
                 let newCollMap: Bitmap = bitposFrom(maskFrom(getHashCollisionNode(0).hash, 0))
-                return Self(collMap: newCollMap, firstNode: getHashCollisionNode(0))
+                return Self(trieMap: newCollMap, firstNode: getHashCollisionNode(0))
             } else { return copyAndRemoveValue(isStorageKnownUniquelyReferenced, bitpos) }
         }
 
@@ -426,7 +416,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
             let node = mergeTwoKeyValPairs(key0, value0, keyHash0, key1, value1, keyHash1, shift + bitPartitionSize)
 
-            return Self(nodeMap: bitposFrom(mask0), firstNode: node)
+            return Self(trieMap: bitposFrom(mask0), firstNode: node)
         }
     }
 
@@ -438,12 +428,12 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         if mask0 != mask1 {
             // unique prefixes, payload and collision node fit on same level
-            return Self(dataMap: bitposFrom(mask0), collMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: node1)
+            return Self(dataMap: bitposFrom(mask0), trieMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: node1)
         } else {
             // recurse: identical prefixes, payload must be disambiguated deeper in the trie
             let node = mergeKeyValPairAndCollisionNode(key0, value0, keyHash0, node1, nodeHash1, shift + bitPartitionSize)
 
-            return Self(nodeMap: bitposFrom(mask0), firstNode: node)
+            return Self(trieMap: bitposFrom(mask0), firstNode: node)
         }
     }
 
