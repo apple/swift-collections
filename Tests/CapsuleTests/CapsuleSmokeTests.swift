@@ -174,6 +174,26 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectEqual(inoutHasher.finalize(), expectedHashValue)
     }
 
+    func testCollisionNodeNotEqual() {
+        let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+
+        var res12 = map
+        res12[CollidableInt(1, 1)] = CollidableInt(1, 1)
+        res12[CollidableInt(2, 1)] = CollidableInt(2, 1)
+
+        var res13 = map
+        res13[CollidableInt(1, 1)] = CollidableInt(1, 1)
+        res13[CollidableInt(3, 1)] = CollidableInt(3, 1)
+
+        var res31 = map
+        res31[CollidableInt(3, 1)] = CollidableInt(3, 1)
+        res31[CollidableInt(1, 1)] = CollidableInt(1, 1)
+
+        expectEqual(res13, res31)
+        expectNotEqual(res13, res12)
+        expectNotEqual(res31, res12)
+    }
+
     func testCompactionWhenDeletingFromHashCollisionNode1() {
         let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
 
