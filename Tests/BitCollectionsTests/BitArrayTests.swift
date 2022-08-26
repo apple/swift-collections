@@ -644,4 +644,48 @@ final class BitArrayTests: CollectionTestCase {
     let a = Set((0..<10).map { _ in BitArray.random(count: 1000) })
     expectEqual(a.count, 10)
   }
+
+  func test_description() {
+    let a: BitArray = []
+    expectEqual("\(a)", "0")
+
+    let b: BitArray = [true, false, true, true, true]
+    expectEqual("\(b)", "10111")
+
+    let c: BitArray = [false, false, false, false, true, true, true, false]
+    expectEqual("\(c)", "00001110")
+  }
+
+  func test_debugDescription() {
+    let a: BitArray = []
+    expectEqual("\(String(reflecting: a))", "BitArray(0)")
+
+    let b: BitArray = [true, false, true, true, true]
+    expectEqual("\(String(reflecting: b))", "BitArray(10111)")
+
+    let c: BitArray = [false, false, false, false, true, true, true, false]
+    expectEqual("\(String(reflecting: c))", "BitArray(00001110)")
+  }
+
+  func test_mirror() {
+    func check<T>(_ v: T) -> String {
+      var str = ""
+      dump(v, to: &str)
+      return str
+    }
+
+    expectEqual(check(BitArray()), """
+      - 0 elements
+
+      """)
+
+    expectEqual(check([true, false, false] as BitArray), """
+      ▿ 3 elements
+        - true
+        - false
+        - false
+
+      """)
+  }
+
 }
