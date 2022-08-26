@@ -150,21 +150,27 @@ extension BitSet: Collection, BidirectionalCollection {
     Index(_position: _read { $0.index(before: index._position) })
   }
 
-  #if false // TODO: Specialize these
   public func distance(from start: Index, to end: Index) -> Int {
-    fatalError("Unimplemented")
+    _read { handle in
+      handle.distance(from: start._position, to: end._position)
+    }
   }
 
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
-    fatalError("Unimplemented")
+    _read { handle in
+      Index(_position: handle.index(index._position, offsetBy: distance))
+    }
   }
 
   public func index(
     _ i: Index, offsetBy distance: Int, limitedBy limit: Index
   ) -> Index? {
-    fatalError("Unimplemented")
+    _read { handle in
+      handle.index(
+        i._position, offsetBy: distance, limitedBy: limit._position)
+      .map { Index(_position: $0) }
+    }
   }
-  #endif
 
   public func _customIndexOfEquatableElement(_ element: Int) -> Index?? {
     guard contains(element) else { return .some(nil) }

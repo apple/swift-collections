@@ -42,6 +42,29 @@ extension _Word: CustomStringConvertible {
 }
 
 extension _Word {
+  /// Returns the `n`th member in `self`.
+  ///
+  /// - Parameter n: The offset of the element to retrieve. This value is
+  ///    decremented by the number of items found in this `self` towards the
+  ///    value we're looking for. (If the function returns non-nil, then `n`
+  ///    is set to `0` on return.)
+  /// - Returns: If this word contains enough members to satisfy the request,
+  ///    then this function returns the member found. Otherwise it returns nil.
+  @_effects(readnone)
+  @usableFromInline
+  func nthElement(_ n: inout UInt) -> UInt? {
+    value._nthSetBit(&n)
+  }
+  
+  @_effects(readnone)
+  @usableFromInline
+  func nthElementFromEnd(_ n: inout UInt) -> UInt? {
+    guard let i = value._reversed._nthSetBit(&n) else { return nil }
+    return UInt(UInt.bitWidth) &- 1 &- i
+  }
+}
+
+extension _Word {
   @inline(__always)
   internal static func wordCount(forBitCount count: UInt) -> Int {
     return _BitPosition(count + UInt(_Word.capacity) - 1).word
@@ -81,14 +104,14 @@ extension _Word {
 
   @inlinable
   @inline(__always)
-  internal var firstSetBit: UInt {
-    UInt(truncatingIfNeeded: value.trailingZeroBitCount)
+  internal var firstMember: UInt {
+    value._lastSetBit
   }
 
   @inlinable
   @inline(__always)
-  internal var lastSetBit: UInt {
-    UInt(truncatingIfNeeded: UInt.bitWidth &- 1 &- value.leadingZeroBitCount)
+  internal var lastMember: UInt {
+    value._firstSetBit
   }
 
   @inlinable

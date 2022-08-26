@@ -360,12 +360,17 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
   internal var startIndex: Index {
     let word = _words.firstIndex { !$0.isEmpty }
     guard let word = word else { return endIndex }
-    return Index(word: word, bit: _words[word].firstSetBit)
+    return Index(word: word, bit: _words[word].firstMember)
   }
 
   @inlinable
   internal var endIndex: Index {
     Index(word: wordCount, bit: 0)
+  }
+  
+  @inlinable
+  internal subscript(position: Index) -> UInt {
+    position.value
   }
 
   @usableFromInline
@@ -381,7 +386,7 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
       }
       w = _words[word]
     }
-    return Index(word: word, bit: w.firstSetBit)
+    return Index(word: word, bit: w.firstMember)
   }
 
   @usableFromInline
@@ -400,12 +405,128 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
       precondition(word >= 0, "Can't advance below startIndex")
       w = _words[word]
     }
-    return Index(word: word, bit: w.lastSetBit)
+    return Index(word: word, bit: w.lastMember)
   }
-
-  @inlinable
-  internal subscript(position: Index) -> UInt {
-    position.value
+  
+  @usableFromInline
+  internal func distance(from start: Index, to end: Index) -> Int {
+    precondition(start <= endIndex && end <= endIndex, "Index out of bounds")
+    let isNegative = end < start
+    let (start, end) = (Swift.min(start, end), Swift.max(start, end))
+    
+    let (w1, b1) = start.split
+    let (w2, b2) = end.split
+    
+    if w1 == w2 {
+      guard w1 < wordCount else { return 0 }
+      let mask = _Word(upTo: b1).symmetricDifference(_Word(upTo: b2))
+      let c = _words[w1].intersection(mask).count
+      return isNegative ? -c : c
+    }
+    
+    var c = 0
+    var w = w1
+    guard w < wordCount else { return isNegative ? -c : c }
+    
+    c &+= _words[w].subtracting(_Word(upTo: b1)).count
+    w &+= 1
+    while w < w2 {
+      c &+= _words[w].count
+      w &+= 1
+    }
+    guard w < wordCount else { return isNegative ? -c : c }
+    c &+= _words[w].intersection(_Word(upTo: b2)).count
+    return isNegative ? -c : c
+  }
+  
+  @usableFromInline
+  internal func index(_ i: Index, offsetBy distance: Int) -> Index {
+    precondition(i <= endIndex, "Index out of bounds")
+    guard distance != 0 else { return i }
+    var (w, b) = i.endSplit
+    var rem = distance.magnitude
+    if distance > 0 {
+      precondition(w < wordCount, "Index out of bounds")
+      if let v = _words[w].subtracting(_Word(upTo: b)).nthElement(&rem) {
+        return Index(word: w, bit: v)
+      }
+      while true {
+        w &+= 1
+        guard w < wordCount else { break }
+        if let v = _words[w].nthElement(&rem) {
+          return Index(word: w, bit: v)
+        }
+      }
+      precondition(rem == 0, "Index out of bounds")
+      return endIndex
+    } else { // distance < 0
+      rem -= 1
+      if w < wordCount {
+        if let v = _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&rem) {
+          return Index(word: w, bit: v)
+        }
+      }
+      while true {
+        precondition(w > 0, "Index out of bounds")
+        w &-= 1
+        if let v = _words[w].nthElementFromEnd(&rem) {
+          return Index(word: w, bit: v)
+        }
+      }
+    }
+  }
+  
+  @usableFromInline
+  internal func index(
+    _ i: Index, offsetBy distance: Int, limitedBy limit: Index
+  ) -> Index? {
+    precondition(i <= endIndex && limit <= endIndex, "Index out of bounds")
+    precondition(i == endIndex || contains(i.value), "Invalid index")
+    guard distance != 0 else { return i }
+    var remaining = distance.magnitude
+    if distance > 0 {
+      guard i <= limit else {
+        return self.index(i, offsetBy: distance)
+      }
+      var (w, b) = i.split
+      if w < wordCount,
+         let v = _words[w].subtracting(_Word(upTo: b)).nthElement(&remaining)
+      {
+        let r = Index(word: w, bit: v)
+        return r <= limit ? r : nil
+      }
+      let maxWord = Swift.min(wordCount - 1, limit.word)
+      while w < maxWord {
+        w &+= 1
+        if let v = _words[w].nthElement(&remaining) {
+          let r = Index(word: w, bit: v)
+          return r <= limit ? r : nil
+        }
+      }
+      return remaining == 0 && limit == endIndex ? endIndex : nil
+    }
+    
+    // distance < 0
+    guard i >= limit else {
+      return self.index(i, offsetBy: distance)
+    }
+    remaining &-= 1
+    var (w, b) = i.endSplit
+    if w < wordCount {
+      if let v = _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&remaining) {
+        let r = Index(word: w, bit: v)
+        return r >= limit ? r : nil
+      }
+    }
+    let minWord = limit.word
+    while w > minWord {
+      w &-= 1
+      if let v = _words[w].nthElementFromEnd(&remaining) {
+        let r = Index(word: w, bit: v)
+        return r >= limit ? r : nil
+      }
+    }
+    return nil
   }
 }
 
