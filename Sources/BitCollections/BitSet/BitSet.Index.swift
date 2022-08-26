@@ -39,28 +39,39 @@ extension BitSet {
   }
 }
 
-extension BitSet.Index: Comparable, Hashable {
+extension BitSet.Index: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    "\(_value)"
+  }
+}
+
+extension BitSet.Index: Equatable {
   /// Returns a Boolean value indicating whether two values are equal.
   ///
   /// - Complexity: O(1)
-  @inlinable
+  @inlinable @inline(__always)
   public static func ==(left: Self, right: Self) -> Bool {
     left._value == right._value
   }
+}
 
+extension BitSet.Index: Comparable {
   /// Returns a Boolean value indicating whether the first value is ordered
   /// before the second.
   ///
   /// - Complexity: O(1)
-  @inlinable
+  @inlinable @inline(__always)
   public static func < (left: Self, right: Self) -> Bool {
     left._value < right._value
   }
+}
 
+extension BitSet.Index: Hashable {
   /// Hashes the essential components of this value by feeding them to the given hasher.
   ///
   /// - Complexity: O(1)
-  @inlinable
+  @inlinable @inline(__always)
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_value)
   }

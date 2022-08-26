@@ -137,8 +137,8 @@ final class BitSetTest: CollectionTestCase {
       // 1% filled
       for i in 0 ..< c {
         let set = Set((0 ..< maximum)
-                        .shuffled(using: &rng)
-                        .prefix(count))
+          .shuffled(using: &rng)
+          .prefix(count))
         yield("\(desc)/\(i)", set)
       }
     }
@@ -1040,5 +1040,48 @@ final class BitSetTest: CollectionTestCase {
 
     let a = Set((0..<10).map { _ in BitSet.random(upTo: 1000) })
     expectEqual(a.count, 10)
+  }
+
+  func test_description() {
+    let a: BitSet = []
+    expectEqual("\(a)", "[]")
+
+    let b: BitSet = [1, 2, 3]
+    expectEqual("\(b)", "[1, 2, 3]")
+
+    let c: BitSet = [23, 652, 892, 19230]
+    expectEqual("\(c)", "[23, 652, 892, 19230]")
+  }
+
+  func test_debugDescription() {
+    let a: BitSet = []
+    expectEqual("\(String(reflecting: a))", "BitSet([])")
+
+    let b: BitSet = [1, 2, 3]
+    expectEqual("\(String(reflecting: b))", "BitSet([1, 2, 3])")
+
+    let c: BitSet = [23, 652, 892, 19230]
+    expectEqual("\(String(reflecting: c))", "BitSet([23, 652, 892, 19230])")
+  }
+
+  func test_mirror() {
+    func check<T>(_ v: T) -> String {
+      var str = ""
+      dump(v, to: &str)
+      return str
+    }
+
+    expectEqual(check(BitSet()), """
+      - 0 elements
+
+      """)
+
+    expectEqual(check([1, 2, 3] as BitSet), """
+      ▿ 3 elements
+        - 1
+        - 2
+        - 3
+
+      """)
   }
 }
