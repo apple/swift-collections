@@ -163,18 +163,64 @@ extension BitSet: Collection, BidirectionalCollection {
     Index(_position: _read { $0.index(before: index._position) })
   }
 
+  /// Returns the distance between two indices.
+  ///
+  /// - Parameters:
+  ///   - start: A valid index of the collection.
+  ///   - end: Another valid index of the collection. If `end` is equal to
+  ///     `start`, the result is zero.
+  /// - Returns: The distance between `start` and `end`.
+  ///
+  /// - Complexity: O(*d*), where *d* is the difference of the values
+  ///    addressed by the two input indices.
   public func distance(from start: Index, to end: Index) -> Int {
     _read { handle in
       handle.distance(from: start._position, to: end._position)
     }
   }
 
+  /// Returns an index that is the specified distance from the given index.
+  ///
+  /// The value passed as `distance` must not offset `i` beyond the bounds of
+  /// the collection.
+  ///
+  /// - Parameters:
+  ///   - i: A valid index of the collection.
+  ///   - distance: The distance to offset `i`.
+  /// - Returns: An index offset by `distance` from the index `i`. If
+  ///   `distance` is positive, this is the same value as the result of
+  ///   `distance` calls to `index(after:)`. If `distance` is negative, this
+  ///   is the same value as the result of `abs(distance)` calls to
+  ///   `index(before:)`.
+  ///
+  /// - Complexity: O(*d*), where *d* is the difference of the values
+  ///    addressed by `index` and the returned result.
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
     _read { handle in
       Index(_position: handle.index(index._position, offsetBy: distance))
     }
   }
 
+  /// Returns an index that is the specified distance from the given index,
+  /// unless that distance is beyond a given limiting index.
+  ///
+  /// The value passed as `distance` must not offset `i` beyond the bounds of
+  /// the collection, unless the index passed as `limit` prevents offsetting
+  /// beyond those bounds.
+  ///
+  /// - Parameters:
+  ///   - i: A valid index of the collection.
+  ///   - distance: The distance to offset `i`.
+  ///   - limit: A valid index of the collection to use as a limit. If
+  ///     `distance > 0`, a limit that is less than `i` has no effect.
+  ///     Likewise, if `distance < 0`, a limit that is greater than `i` has no
+  ///     effect.
+  /// - Returns: An index offset by `distance` from the index `i`, unless that
+  ///   index would be beyond `limit` in the direction of movement. In that
+  ///   case, the method returns `nil`.
+  ///
+  /// - Complexity: O(*d*), where *d* is the difference of the values
+  ///    addressed by `index` and the returned result.
   public func index(
     _ i: Index, offsetBy distance: Int, limitedBy limit: Index
   ) -> Index? {
