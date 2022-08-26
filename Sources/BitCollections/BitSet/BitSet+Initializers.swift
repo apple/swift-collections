@@ -23,13 +23,13 @@ extension BitSet {
   ///
   /// - Complexity: O(1)
   public init() {
-    self.init(_storage: [], count: 0)
+    self.init(_uncheckedStorage: [], count: 0)
   }
 
   @usableFromInline
-  init(_words: [_Word]) {
+  init(_words: [_Word], count: Int? = nil) {
     self._storage = _words
-    self._count = _words.reduce(into: 0, { $0 += $1.count })
+    self._count = count ?? _words.reduce(into: 0, { $0 += $1.count })
     _shrink()
     _checkInvariants()
   }

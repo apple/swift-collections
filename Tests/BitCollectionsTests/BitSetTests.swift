@@ -1084,4 +1084,20 @@ final class BitSetTest: CollectionTestCase {
 
       """)
   }
+
+  func test_filter() {
+    let a: BitSet = []
+    expectEqual(a.filter { $0.isMultiple(of: 4) }, [])
+
+    let b = BitSet(0 ..< 1000)
+    expectEqualElements(
+      b.filter { $0.isMultiple(of: 4) },
+      stride(from: 0, to: 1000, by: 4))
+
+    let c = BitSet(0 ..< 1000)
+    expectEqualElements(c.filter { _ in false }, [])
+
+    let d = BitSet(0 ..< 1000)
+    expectEqualElements(d.filter { _ in true }, 0 ..< 1000)
+  }
 }
