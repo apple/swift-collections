@@ -115,13 +115,26 @@ extension BitSet: Collection, BidirectionalCollection {
     Index(_position: .init(word: _storage.count, bit: 0))
   }
   
+  /// Accesses the element at the specified position.
+  ///
+  /// You can subscript a collection with any valid index other than the
+  /// collection's end index. The end index refers to the position one past
+  /// the last element of a collection, so it doesn't correspond with an
+  /// element.
+  ///
+  /// - Parameter position: The position of the element to access. `position`
+  ///   must be a valid index of the collection that is not equal to the
+  ///   `endIndex` property.
+  ///
+  /// - Complexity: O(1)
   public subscript(position: Index) -> Int {
     Int(bitPattern: position._position.value)
   }
   
   /// Returns the position immediately after the given index.
   ///
-  /// - Parameter `index`: A valid index of the bit set. `index` must be less than `endIndex`.
+  /// - Parameter `index`: A valid index of the bit set. `index` must be less
+  ///    than `endIndex`.
   ///
   /// - Returns: The valid index immediately after `index`.
   ///
