@@ -632,4 +632,16 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
+
+  func test_random() {
+    var rng = AllOnesRandomNumberGenerator()
+    for c in [0, 10, 64, 65, 77, 1200] {
+      let array = BitArray.random(count: c, using: &rng)
+      expectEqual(array.count, c)
+      expectEqualElements(array, repeatElement(true, count: c))
+    }
+
+    let a = Set((0..<10).map { _ in BitArray.random(count: 1000) })
+    expectEqual(a.count, 10)
+  }
 }

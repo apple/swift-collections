@@ -1029,4 +1029,16 @@ final class BitSetTest: CollectionTestCase {
     expectEqualElements(s1, [0, 3, 5, 23, 283, 6362])
     expectEqualElements(s2, [0, 3, 5, 23, 283, 6362])
   }
+
+  func test_random() {
+    var rng = AllOnesRandomNumberGenerator()
+    for c in [0, 10, 64, 65, 77, 1200] {
+      let set = BitSet.random(upTo: c, using: &rng)
+      expectEqual(set.count, c)
+      expectEqualElements(set, 0 ..< c)
+    }
+
+    let a = Set((0..<10).map { _ in BitSet.random(upTo: 1000) })
+    expectEqual(a.count, 10)
+  }
 }
