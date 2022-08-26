@@ -10,10 +10,18 @@
 //===----------------------------------------------------------------------===//
 
 extension BitArray {
+  /// Set every bit of this array to `value` (`true` by default).
+  ///
+  /// - Parameter value: The Boolean value to which to set the array's elements.
   public mutating func fill(with value: Bool = true) {
     fill(in: Range(uncheckedBounds: (0, count)), with: value)
   }
 
+  /// Set every bit of this array within the specified range to `value`
+  /// (`true` by default).
+  ///
+  /// - Parameter range: The range whose elements to overwrite.
+  /// - Parameter value: The Boolean value to which to set the array's elements.
   public mutating func fill(in range: Range<Int>, with value: Bool = true) {
     _update { handle in
       if value {

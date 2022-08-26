@@ -10,6 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 extension BitArray: ExpressibleByArrayLiteral {
+  /// Creates an instance initialized with the given elements.
+  @inlinable
   public init(arrayLiteral elements: Bool...) {
     self.init(elements)
   }

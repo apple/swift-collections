@@ -10,11 +10,19 @@
 //===----------------------------------------------------------------------===//
 
 extension BitArray {
+  /// Create and return a new bit array consisting of `count` random bits.
+  ///
+  /// - Parameter count: The number of random bits to generate.
   public static func random(count: Int) -> BitArray {
     var rng = SystemRandomNumberGenerator()
     return random(count: count, using: &rng)
   }
 
+  /// Create and return a new bit array consisting of `count` random bits,
+  /// using the given random number generator.
+  ///
+  /// - Parameter count: The number of random bits to generate.
+  /// - Parameter rng: The random number generator to use.
   public static func random<R: RandomNumberGenerator>(
     count: Int,
     using rng: inout R
