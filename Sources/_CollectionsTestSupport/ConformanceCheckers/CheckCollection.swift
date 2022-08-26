@@ -184,7 +184,6 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
       maxSamples: maxSamples)
   }
 
-  #if false
   // Check `index(_,offsetBy:limitedBy:)`
   let limits =
     Set([0, allIndices.count - 1, allIndices.count / 2])
@@ -203,7 +202,6 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
       }
     }
   }
-  #endif
   
   withSomeRanges(
     "range", in: 0 ..< allIndices.count - 1, maxSamples: maxSamples

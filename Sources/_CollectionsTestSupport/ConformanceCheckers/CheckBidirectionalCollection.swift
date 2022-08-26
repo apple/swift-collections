@@ -148,5 +148,25 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
     let slice = collection[allIndices[i] ..< allIndices[j]]
     expectEqualElements(slice._indicesByIndexBefore(), allIndices[i ..< j])
     expectEqualElements(slice._indicesByFormIndexBefore(), allIndices[i ..< j])
+    
+    // Check `index(_,offsetBy:limitedBy:)`
+    let limits =
+      Set([0, allIndices.count - 1, allIndices.count / 2])
+      .sorted()
+    withEvery("limit", in: limits) { limit in
+      withEvery("i", in: 0 ..< allIndices.count) { i in
+        let min = -i - (limit <= i ? 2 : 0)
+        withEvery("delta", in: stride(from: 0, through: min, by: -1)) { delta in
+          let actual = collection.index(
+            allIndices[i],
+            offsetBy: delta,
+            limitedBy: allIndices[limit])
+          let j = i + delta
+          let expected = i < limit || j >= limit ? allIndices[j] : nil
+          expectEqual(actual, expected)
+        }
+      }
+    }
+
   }
 }
