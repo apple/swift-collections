@@ -20,14 +20,135 @@
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CollectionsTestSupportTests"
+               BuildableName = "CollectionsTestSupportTests"
+               BlueprintName = "CollectionsTestSupportTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "OrderedCollectionsTests"
+               BuildableName = "OrderedCollectionsTests"
+               BlueprintName = "OrderedCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DequeTests"
+               BuildableName = "DequeTests"
+               BlueprintName = "DequeTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriorityQueueTests"
+               BuildableName = "PriorityQueueTests"
+               BlueprintName = "PriorityQueueTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitCollectionsTests"
+               BuildableName = "BitCollectionsTests"
+               BlueprintName = "BitCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      codeCoverageEnabled = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "CollectionsTestSupportTests"
+               BuildableName = "CollectionsTestSupportTests"
+               BlueprintName = "CollectionsTestSupportTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DequeTests"
+               BuildableName = "DequeTests"
+               BlueprintName = "DequeTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "OrderedCollectionsTests"
+               BuildableName = "OrderedCollectionsTests"
+               BlueprintName = "OrderedCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriorityQueueTests"
+               BuildableName = "PriorityQueueTests"
+               BlueprintName = "PriorityQueueTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitCollectionsTests"
+               BuildableName = "BitCollectionsTests"
+               BlueprintName = "BitCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
