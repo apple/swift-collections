@@ -50,15 +50,13 @@ extension _Word {
   ///    is set to `0` on return.)
   /// - Returns: If this word contains enough members to satisfy the request,
   ///    then this function returns the member found. Otherwise it returns nil.
-  @_effects(readnone)
-  @usableFromInline
-  func nthElement(_ n: inout UInt) -> UInt? {
+  @inline(never)
+  internal func nthElement(_ n: inout UInt) -> UInt? {
     value._nthSetBit(&n)
   }
   
-  @_effects(readnone)
-  @usableFromInline
-  func nthElementFromEnd(_ n: inout UInt) -> UInt? {
+  @inline(never)
+  internal func nthElementFromEnd(_ n: inout UInt) -> UInt? {
     guard let i = value._reversed._nthSetBit(&n) else { return nil }
     return UInt(UInt.bitWidth) &- 1 &- i
   }

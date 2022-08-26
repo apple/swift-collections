@@ -442,36 +442,39 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
   @usableFromInline
   internal func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
+    precondition(i == endIndex || contains(i.value), "Invalid index")
     guard distance != 0 else { return i }
-    var (w, b) = i.endSplit
-    var rem = distance.magnitude
+    var remaining = distance.magnitude
     if distance > 0 {
+      var (w, b) = i.split
       precondition(w < wordCount, "Index out of bounds")
-      if let v = _words[w].subtracting(_Word(upTo: b)).nthElement(&rem) {
+      if let v = _words[w].subtracting(_Word(upTo: b)).nthElement(&remaining) {
         return Index(word: w, bit: v)
       }
       while true {
         w &+= 1
         guard w < wordCount else { break }
-        if let v = _words[w].nthElement(&rem) {
+        if let v = _words[w].nthElement(&remaining) {
           return Index(word: w, bit: v)
         }
       }
-      precondition(rem == 0, "Index out of bounds")
+      precondition(remaining == 0, "Index out of bounds")
       return endIndex
-    } else { // distance < 0
-      rem -= 1
-      if w < wordCount {
-        if let v = _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&rem) {
-          return Index(word: w, bit: v)
-        }
+    }
+
+    // distance < 0
+    remaining -= 1
+    var (w, b) = i.endSplit
+    if w < wordCount {
+      if let v = _words[w].intersection(_Word(upTo: b)).nthElementFromEnd(&remaining) {
+        return Index(word: w, bit: v)
       }
-      while true {
-        precondition(w > 0, "Index out of bounds")
-        w &-= 1
-        if let v = _words[w].nthElementFromEnd(&rem) {
-          return Index(word: w, bit: v)
-        }
+    }
+    while true {
+      precondition(w > 0, "Index out of bounds")
+      w &-= 1
+      if let v = _words[w].nthElementFromEnd(&remaining) {
+        return Index(word: w, bit: v)
       }
     }
   }
