@@ -197,7 +197,9 @@ final class BitSetTest: CollectionTestCase {
         expectEqual(bitset.contains(value), input.contains(value))
       }
       expectFalse(bitset.contains(-1))
+      expectFalse(bitset.contains(Int.min))
       expectFalse(bitset.contains(5000))
+      expectFalse(bitset.contains(Int.max))
     }
   }
 
@@ -283,6 +285,120 @@ final class BitSetTest: CollectionTestCase {
         expectNil(actual.remove(v))
       }
       expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
+  func test_member_subscript_getter() {
+    withInterestingSets("input", maximum: 1000) { input in
+      let bitset = BitSet(input)
+      withEvery("value", in: 0 ..< 1000) { value in
+        expectEqual(bitset[member: value], input.contains(value))
+      }
+      expectFalse(bitset[member: -1])
+      expectFalse(bitset[member: Int.min])
+      expectFalse(bitset[member: 5000])
+      expectFalse(bitset[member: Int.max])
+    }
+  }
+
+  func test_member_subscript_setter_insert() {
+    let count = 100
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual: BitSet = []
+      var expected: Set<Int> = []
+      let input = (0 ..< count).shuffled(using: &rng)
+      withEvery("i", in: input.indices) { i in
+        actual[member: input[i]] = true
+        expected.insert(input[i])
+        expectEqual(actual.count, expected.count)
+        if i % 25 == 0 {
+          expectEqual(Array(actual), expected.sorted())
+        }
+        actual[member: input[i]] = true
+        expectEqual(actual.count, expected.count)
+      }
+      expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
+  func test_member_subscript_setter_remove() {
+    let count = 100
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual = BitSet(0 ..< count)
+      var expected = Set<Int>(0 ..< count)
+      let input = (0 ..< count).shuffled(using: &rng)
+
+      actual[member: -1] = false
+
+      withEvery("i", in: input.indices) { i in
+        let v = input[i]
+        actual[member: v] = false
+        expected.remove(v)
+        expectEqual(actual.count, expected.count)
+        if i % 25 == 0 {
+          expectEqual(Array(actual), expected.sorted())
+        }
+        actual[member: v] = false
+        expectEqual(actual.count, expected.count)
+      }
+      expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
+  func test_member_range_subscript() {
+    let bits: BitSet = [2, 5, 6, 8, 9]
+
+    let a = bits[members: 3..<7]
+    expectEqualElements(a, [5, 6])
+    expectEqual(a[a.startIndex], 5)
+    expectEqual(bits[a.endIndex], 8)
+
+    let b = bits[members: 4...]
+    expectEqualElements(b, [5, 6, 8, 9])
+    expectEqual(b[b.startIndex], 5)
+    expectEqual(b.endIndex, bits.endIndex)
+
+    let c = bits[members: ..<8]
+    expectEqualElements(c, [2, 5, 6])
+    expectEqual(c[c.startIndex], 2)
+    expectEqual(bits[c.endIndex], 8)
+
+    let d = bits[members: -10 ..< 100]
+    expectEqualElements(d, [2, 5, 6, 8, 9])
+    expectEqual(d.startIndex, bits.startIndex)
+    expectEqual(d.endIndex, bits.endIndex)
+
+    let e = bits[members: Int.min ..< Int.max]
+    expectEqualElements(e, [2, 5, 6, 8, 9])
+    expectEqual(e.startIndex, bits.startIndex)
+    expectEqual(e.endIndex, bits.endIndex)
+
+    let f = bits[members: -100 ..< -10]
+    expectEqualElements(f, [])
+    expectEqual(f.startIndex, bits.startIndex)
+    expectEqual(f.endIndex, bits.startIndex)
+
+    let g = bits[members: 10 ..< 100]
+    expectEqualElements(g, [])
+    expectEqual(g.startIndex, bits.endIndex)
+    expectEqual(g.endIndex, bits.endIndex)
+
+    let h = bits[members: 100 ..< 1000]
+    expectEqualElements(h, [])
+    expectEqual(h.startIndex, bits.endIndex)
+    expectEqual(h.endIndex, bits.endIndex)
+  }
+
+  func test_member_range_subscript_exhaustive() {
+    withInterestingSets("bits", maximum: 200) { reference in
+      let bits = BitSet(reference)
+      withEveryRange("range", in: 0 ..< reference.count) { range in
+        let actual = bits[members: range]
+        let expected = reference.filter { range.contains($0) }.sorted()
+        expectEqualElements(actual, expected)
+      }
     }
   }
 

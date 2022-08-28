@@ -23,7 +23,7 @@ extension BitSet {
   ///
   /// - Complexity: O(1)
   public init() {
-    self.init(_uncheckedStorage: [], count: 0)
+    self.init(_rawStorage: [], count: 0)
   }
 
   @usableFromInline

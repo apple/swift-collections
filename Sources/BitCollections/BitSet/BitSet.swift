@@ -26,7 +26,7 @@ public struct BitSet {
   internal var _count: Int
 
   @usableFromInline
-  init(_uncheckedStorage storage: [_Word], count: Int) {
+  init(_rawStorage storage: [_Word], count: Int) {
     self._storage = storage
     self._count = count
     _checkInvariants()
