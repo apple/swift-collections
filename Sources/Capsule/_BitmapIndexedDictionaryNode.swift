@@ -372,11 +372,11 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
                 guard effect.modified && subNode !== subNodeNew else { if effect.modified { count -= 1 } ; assert(self.invariant) ; return self }
 
-                switch subNodeNew.sizePredicate {
-                case .sizeEmpty:
+                switch subNodeNew.count {
+                case 0:
                     preconditionFailure("Sub-node must have at least one element.")
 
-                case .sizeOne:
+                case 1:
                     assert(self.nodeArity /*bitmapIndexedNodeArity???*/ >= 1)
 
                     if self.isCandiateForCompaction {
@@ -387,7 +387,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                         return copyAndMigrateFromNodeToInline(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getPayload(0))
                     }
 
-                case .sizeMoreThanOne:
+                case _:
                     assert(self.nodeArity /*bitmapIndexedNodeArity???*/ >= 1)
 
                     if (subNodeNew.isWrappingSingleHashCollisionNode) {
@@ -409,11 +409,11 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
                 guard effect.modified && subNode !== subNodeNew else { if effect.modified { count -= 1 } ; assert(self.invariant) ; return self }
 
-                switch subNodeNew.sizePredicate {
-                case .sizeEmpty:
+                switch subNodeNew.count {
+                case 0:
                     preconditionFailure("Sub-node must have at least one element.")
 
-                case .sizeOne:
+                case 1:
                     // TODO simplify hash-collision compaction (if feasible)
                     if self.isCandiateForCompaction {
                         // escalate singleton
@@ -426,7 +426,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                         return copyAndMigrateFromNodeToInline(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getPayload(0))
                     }
 
-                case .sizeMoreThanOne:
+                case _:
                     // modify current node (set replacement node)
                     return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
                 }
@@ -519,8 +519,6 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     func getPayload(_ index: Int) -> (key: Key, value: Value) {
         dataBaseAddress[index] // as! ReturnPayload
     }
-
-    var sizePredicate: SizePredicate { SizePredicate(self) }
 
     func dataIndex(_ bitpos: Bitmap) -> Int { (dataMap & (bitpos &- 1)).nonzeroBitCount }
 

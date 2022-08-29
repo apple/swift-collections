@@ -105,7 +105,7 @@ final class HashCollisionDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
     func getPayload(_ index: Int) -> (key: Key, value: Value) { content[index] }
 
-    var sizePredicate: SizePredicate { SizePredicate(self) }
+    var count: Int { content.count }
 }
 
 extension HashCollisionDictionaryNode: Equatable where Value: Equatable {
