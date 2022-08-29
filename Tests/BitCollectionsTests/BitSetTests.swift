@@ -402,6 +402,56 @@ final class BitSetTest: CollectionTestCase {
     }
   }
 
+  func test_Encodable() throws {
+    let b1: BitSet = []
+    let v1: MinimalEncoder.Value = .array([])
+    expectEqual(try MinimalEncoder.encode(b1), v1)
+
+    let b2: BitSet = [0, 1, 2, 3]
+    let v2: MinimalEncoder.Value = .array([.uint(15)])
+    expectEqual(try MinimalEncoder.encode(b2), v2)
+
+    let b3 = BitSet(0 ..< (2 * UInt.bitWidth + 17))
+    let v3: MinimalEncoder.Value = .array([.uint(UInt.max), .uint(UInt.max), .uint((1 << 17) - 1)])
+    expectEqual(try MinimalEncoder.encode(b3), v3)
+
+    let b4: BitSet = [5 * UInt.bitWidth + 23]
+    let v4: MinimalEncoder.Value = .array([
+      .uint(0),
+      .uint(0),
+      .uint(0),
+      .uint(0),
+      .uint(0),
+      .uint(1 << 23),
+    ])
+    expectEqual(try MinimalEncoder.encode(b4), v4)
+  }
+
+  func test_Decodable() throws {
+    let b1: BitSet = []
+    let v1: MinimalEncoder.Value = .array([])
+    expectEqual(try MinimalDecoder.decode(v1, as: BitSet.self), b1)
+
+    let b2: BitSet = [0, 1, 2, 3]
+    let v2: MinimalEncoder.Value = .array([.uint(15)])
+    expectEqual(try MinimalDecoder.decode(v2, as: BitSet.self), b2)
+
+    let b3 = BitSet(0 ..< (2 * UInt.bitWidth + 17))
+    let v3: MinimalEncoder.Value = .array([.uint(UInt.max), .uint(UInt.max), .uint((1 << 17) - 1)])
+    expectEqual(try MinimalDecoder.decode(v3, as: BitSet.self), b3)
+
+    let b4: BitSet = [5 * UInt.bitWidth + 23]
+    let v4: MinimalEncoder.Value = .array([
+      .uint(0),
+      .uint(0),
+      .uint(0),
+      .uint(0),
+      .uint(0),
+      .uint(1 << 23),
+    ])
+    expectEqual(try MinimalDecoder.decode(v4, as: BitSet.self), b4)
+  }
+
   func test_union_Self() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
