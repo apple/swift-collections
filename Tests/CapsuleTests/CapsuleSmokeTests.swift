@@ -470,6 +470,19 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
         expectEqual(map1, map2)
     }
+
+    func testIndexForKey() {
+        let map: PersistentDictionary<CollidableInt, String> = [
+            CollidableInt(11, 1): "a",
+            CollidableInt(12, 1): "a",
+            CollidableInt(32769): "b"
+        ]
+
+        expectEqual(map.index(forKey: CollidableInt(11, 1)), PersistentDictionaryIndex(value: 0))
+        expectEqual(map.index(forKey: CollidableInt(12, 1)), PersistentDictionaryIndex(value: 1))
+        expectEqual(map.index(forKey: CollidableInt(32769)), PersistentDictionaryIndex(value: 2))
+        expectNil(map.index(forKey: CollidableInt(13, 1)))
+    }
 }
 
 final class BitmapSmokeTests: CollectionTestCase {

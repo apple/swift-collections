@@ -17,6 +17,8 @@ protocol DictionaryNode: Node {
 
     func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool
 
+    func index(_ key: Key, _ hash: Int, _ shift: Int, _ skippedBefore: Int) -> PersistentDictionaryIndex?
+
     func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> ReturnBitmapIndexedNode
 
     func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> ReturnBitmapIndexedNode

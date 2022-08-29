@@ -27,18 +27,8 @@ extension PersistentDictionary: Collection {
     ///
     /// Returns the index for the given key.
     ///
-    // TODO: implement specialized method in `BitmapIndexedDictionaryNode`
     public func index(forKey key: Key) -> Self.Index? {
-        guard self.contains(key) else { return nil }
-
-        var intIndex = 0
-        var iterator = makeIterator()
-
-        while iterator.next()?.key != key {
-            intIndex += 1
-        }
-
-        return PersistentDictionaryIndex(value: intIndex)
+        return rootNode.index(key, computeHash(key), 0, 0) 
     }
 
     ///

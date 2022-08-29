@@ -78,6 +78,24 @@ enum TrieNode<BitmapIndexedNode: Node, HashCollisionNode: Node> {
 
     /// The convenience computed properties below are used in the base iterator implementations.
 
+    var object: AnyObject {
+        switch self {
+        case .bitmapIndexed(let node):
+            return node
+        case .hashCollision(let node):
+            return node
+        }
+    }
+
+    var count: Int {
+        switch self {
+        case .bitmapIndexed(let node):
+            return node.count
+        case .hashCollision(let node):
+            return node.count
+        }
+    }
+
     var hasPayload: Bool {
         switch self {
         case .bitmapIndexed(let node):
@@ -127,17 +145,13 @@ protocol Node: AnyObject {
     @available(*, deprecated)
     func getNode(_ index: Int) -> TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
 
-    @available(*, deprecated)
-    func getBitmapIndexedNode(_ index: Int) -> ReturnBitmapIndexedNode
-
-    @available(*, deprecated)
-    func getHashCollisionNode(_ index: Int) -> ReturnHashCollisionNode
-
     var hasPayload: Bool { get }
 
     var payloadArity: Int { get }
 
     func getPayload(_ index: Int) -> ReturnPayload
+
+    var count: Int { get }
 }
 
 ///
