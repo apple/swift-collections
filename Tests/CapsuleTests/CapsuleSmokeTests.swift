@@ -136,8 +136,8 @@ final class CapsuleSmokeTests: CollectionTestCase {
         for index in 0..<upperBound {
             map3[CollidableInt(index)] = nil
 
-            expectEqual(map3.cachedSize, inferSize(map3))
-            if map3.cachedSize != inferSize(map3) {
+            expectEqual(map3.count, inferSize(map3))
+            if map3.count != inferSize(map3) {
                 assertionFailure()
             }
 
@@ -192,6 +192,27 @@ final class CapsuleSmokeTests: CollectionTestCase {
         expectEqual(res13, res31)
         expectNotEqual(res13, res12)
         expectNotEqual(res31, res12)
+    }
+
+    func testCountForCopyOnWriteInsertion() {
+        let map = PersistentDictionary.init([CollidableInt(1): CollidableInt(1), CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769), CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)])
+        expectEqual(map.rootNode.count, 3)
+        expectEqual(map.rootNode.reduce(0, { count, _ in count + 1 }), 3)
+        expectTrue(map.rootNode.invariant)
+    }
+
+    func testCountForCopyOnWriteDeletion() {
+        var map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+
+        map[CollidableInt(32769)] = CollidableInt(32769)
+        map[CollidableInt(11, 1)] = CollidableInt(11, 1)
+        map[CollidableInt(12, 1)] = CollidableInt(12, 1)
+        map[CollidableInt(33, 33)] = CollidableInt(33, 33)
+        map[CollidableInt(11, 1)] = nil
+        map[CollidableInt(12, 1)] = nil
+        expectEqual(map.rootNode.count, 2)
+        expectEqual(map.rootNode.reduce(0, { count, _ in count + 1 }), 2)
+        expectTrue(map.rootNode.invariant)
     }
 
     func testCompactionWhenDeletingFromHashCollisionNode1() {

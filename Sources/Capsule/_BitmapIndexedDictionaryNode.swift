@@ -20,6 +20,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     typealias TrieBufferElement = AnyObject
 
     var header: Header
+    var count: Int
 
     let dataCapacity: Capacity
     let trieCapacity: Capacity
@@ -69,28 +70,48 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         let dst = Self(dataCapacity: src.dataCapacity &* dataCapacityFactor / dataCapacityShrinkFactor, trieCapacity: src.trieCapacity &* trieCapacityFactor / trieCapacityShrinkFactor)
 
         dst.header = src.header
+        dst.count = src.count
+
         dst.dataBaseAddress.initialize(from: src.dataBaseAddress, count: src.header.dataCount)
         dst.trieBaseAddress.initialize(from: src.trieBaseAddress, count: src.header.trieCount)
 
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
 
     var invariant: Bool {
+        guard headerInvariant else {
+            return false
+        }
+
         guard contentInvariant else {
             return false
         }
 
         let recursiveCount = self.reduce(0, { count, _ in count + 1 })
+
+        guard recursiveCount == count else {
+            return false
+        }
+
         guard recursiveCount - payloadArity >= 2 * nodeArity else {
             return false
         }
 
-        guard (header.dataMap & header.trieMap) == 0 else {
+        guard _nodeSlice.allSatisfy({ $0.invariant }) else {
+            return false
+        }
+
+        guard _collSlice.allSatisfy({ _ in true /* does not have explicit invariant yet */ }) else {
             return false
         }
 
         return true
+    }
+
+    var headerInvariant: Bool {
+        (header.dataMap & header.trieMap) == 0
     }
 
     var contentInvariant: Bool {
@@ -127,6 +148,8 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         let (dataBaseAddress, trieBaseAddress) = Self._allocate(dataCapacity: dataCapacity, trieCapacity: trieCapacity)
 
         self.header = Header(dataMap: 0, trieMap: 0)
+        self.count = 0
+
         self.dataBaseAddress = dataBaseAddress
         self.trieBaseAddress = trieBaseAddress
 
@@ -148,6 +171,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         self.init()
 
         self.header = Header(dataMap: dataMap, trieMap: 0)
+        self.count = 1
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
 
@@ -158,6 +182,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         self.init()
 
         self.header = Header(dataMap: dataMap, trieMap: 0)
+        self.count = 2
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.dataBaseAddress.successor().initialize(to: (secondKey, secondValue))
@@ -170,6 +195,14 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         self.header = Header(dataMap: 0, trieMap: trieMap)
 
+        switch firstNode {
+        case let firstNode as BitmapIndexedDictionaryNode<Key, Value>:
+            self.count = firstNode.count
+        case let firstNode as HashCollisionDictionaryNode<Key, Value>:
+            self.count = firstNode.content.count
+        default: break
+        }
+
         self.trieBaseAddress.initialize(to: firstNode)
 
         assert(self.invariant)
@@ -179,6 +212,14 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         self.init()
 
         self.header = Header(dataMap: dataMap, trieMap: trieMap)
+
+        switch firstNode {
+        case let firstNode as BitmapIndexedDictionaryNode<Key, Value>:
+            self.count = 1 + firstNode.count
+        case let firstNode as HashCollisionDictionaryNode<Key, Value>:
+            self.count = 1 + firstNode.content.count
+        default: break
+        }
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
         self.trieBaseAddress.initialize(to: firstNode)
@@ -266,9 +307,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 let subNode = self.getBitmapIndexedNode(index)
 
                 let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-                guard effect.modified && subNode !== subNodeNew else { return self }
+                guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
 
-                return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew)
+                return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
             } else {
                 let subNode = self.getHashCollisionNode(index)
 
@@ -276,13 +317,13 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
                 if keyHash == collisionHash {
                     let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-                    guard effect.modified && subNode !== subNodeNew else { return self }
+                    guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
 
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew)
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 += 1 })
                 } else {
                     let subNodeNew = mergeKeyValPairAndCollisionNode(key, value, keyHash, subNode, collisionHash, shift + bitPartitionSize)
                     effect.setModified()
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew)
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 += 1 })
                 }
             }
         }
@@ -298,7 +339,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let (key0, _) = self.getPayload(index)
-            guard key0 == key else { return self }
+            guard key0 == key else { assert(self.invariant) ; return self }
 
             effect.setModified()
             // TODO check globally usage of `bitmapIndexedNodeArity` and `hashCollisionNodeArity`
@@ -329,7 +370,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 let subNode = self.getBitmapIndexedNode(index)
 
                 let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
-                guard effect.modified else { return self }
+                guard effect.modified && subNode !== subNodeNew else { if effect.modified { count -= 1 } ; assert(self.invariant) ; return self }
 
                 switch subNodeNew.sizePredicate {
                 case .sizeEmpty:
@@ -355,18 +396,18 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                             return subNodeNew
                         } else {
                             // unwrap hash-collision sub-node
-                            return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew.getHashCollisionNode(0))
+                            return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew.getHashCollisionNode(0), updateCount: { $0 -= 1 })
                         }
                     }
 
                     // modify current node (set replacement node)
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew)
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
                 }
             } else {
                 let subNode = self.getHashCollisionNode(index)
 
                 let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
-                guard effect.modified else { return self }
+                guard effect.modified && subNode !== subNodeNew else { if effect.modified { count -= 1 } ; assert(self.invariant) ; return self }
 
                 switch subNodeNew.sizePredicate {
                 case .sizeEmpty:
@@ -387,7 +428,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
                 case .sizeMoreThanOne:
                     // modify current node (set replacement node)
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew)
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
                 }
             }
         }
@@ -499,11 +540,12 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         dst.dataBaseAddress[idx].value = newValue
 
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
 
-    private func copyAndSetTrieNode<T: DictionaryNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ idx: Int, _ newNode: T) -> BitmapIndexedDictionaryNode<Key, Value> {
+    private func copyAndSetTrieNode<T: DictionaryNode>(_ isStorageKnownUniquelyReferenced: Bool, _ bitpos: Bitmap, _ idx: Int, _ newNode: T, updateCount: (inout Int) -> Void) -> BitmapIndexedDictionaryNode<Key, Value> {
         let src: ReturnBitmapIndexedNode = self
         let dst: ReturnBitmapIndexedNode
 
@@ -515,6 +557,10 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         dst.trieBaseAddress[idx] = newNode as TrieBufferElement
 
+        // update metadata: `dataMap, nodeMap, collMap`
+        updateCount(&dst.count)
+
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
@@ -536,7 +582,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         // update metadata: `dataMap | bitpos, nodeMap, collMap`
         dst.header.dataMap |= bitpos
+        dst.count += 1
 
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
@@ -556,7 +604,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
         dst.header.dataMap ^= bitpos
+        dst.count -= 1
 
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
@@ -590,7 +640,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
         dst.header.dataMap ^= bitpos
         dst.header.trieMap |= bitpos
+        dst.count += 1 // assuming that `node.count == 2`
 
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
@@ -616,7 +668,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
         dst.header.dataMap |= bitpos
         dst.header.trieMap ^= bitpos
+        dst.count -= 1 // assuming that updated `node.count == 1`
 
+        assert(src.invariant)
         assert(dst.invariant)
         return dst
     }
@@ -627,6 +681,7 @@ extension BitmapIndexedDictionaryNode: Equatable where Value: Equatable {
     static func == (lhs: BitmapIndexedDictionaryNode<Key, Value>, rhs: BitmapIndexedDictionaryNode<Key, Value>) -> Bool {
         lhs === rhs ||
             lhs.header == rhs.header &&
+            lhs.count == rhs.count &&
             deepContentEquality(lhs, rhs)
     }
 

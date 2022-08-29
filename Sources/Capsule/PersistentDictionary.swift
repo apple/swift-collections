@@ -11,19 +11,17 @@
 
 public struct PersistentDictionary<Key, Value> where Key: Hashable {
     var rootNode: BitmapIndexedDictionaryNode<Key, Value>
-    var cachedSize: Int
 
-    fileprivate init(_ rootNode: BitmapIndexedDictionaryNode<Key, Value>, _ cachedSize: Int) {
+    fileprivate init(_ rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
         self.rootNode = rootNode
-        self.cachedSize = cachedSize
     }
 
     public init() {
-        self.init(BitmapIndexedDictionaryNode(), 0)
+        self.init(BitmapIndexedDictionaryNode())
     }
 
     public init(_ map: PersistentDictionary<Key, Value>) {
-        self.init(map.rootNode, map.cachedSize)
+        self.init(map.rootNode)
     }
 
     // TODO consider removing `unchecked` version, since it's only referenced from within the test suite
@@ -70,13 +68,13 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
     /// Inspecting a Dictionary
     ///
 
-    public var isEmpty: Bool { cachedSize == 0 }
+    public var isEmpty: Bool { rootNode.count == 0 }
 
-    public var count: Int { cachedSize }
+    public var count: Int { rootNode.count }
 
-    public var underestimatedCount: Int { cachedSize }
+    public var underestimatedCount: Int { rootNode.count }
 
-    public var capacity: Int { count }
+    public var capacity: Int { rootNode.count }
 
     ///
     /// Accessing Keys and Values
@@ -127,13 +125,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         let newRootNode = rootNode.updateOrUpdating(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
 
         if effect.modified {
-            if effect.replacedValue {
-                self.rootNode = newRootNode
-                // self.cachedSize = cachedSize
-            } else {
-                self.rootNode = newRootNode
-                self.cachedSize = cachedSize + 1
-            }
+            self.rootNode = newRootNode
         }
     }
 
@@ -144,11 +136,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         let newRootNode = rootNode.updateOrUpdating(false, key, value, keyHash, 0, &effect)
 
         if effect.modified {
-            if effect.replacedValue {
-                return Self(newRootNode, cachedSize)
-            } else {
-                return Self(newRootNode, cachedSize + 1)
-            }
+            return Self(newRootNode)
         } else { return self }
     }
 
@@ -173,7 +161,6 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
         if effect.modified {
             self.rootNode = newRootNode
-            self.cachedSize = cachedSize - 1
         }
     }
 
@@ -184,7 +171,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
         if effect.modified {
-            return Self(newRootNode, cachedSize - 1)
+            return Self(newRootNode)
         } else { return self }
     }
 
