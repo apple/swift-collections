@@ -195,8 +195,13 @@ extension BitSet._UnsafeHandle {
   }
 
   @inline(__always)
-  internal func isValid(_ element: UInt) -> Bool {
+  internal func isWithinBounds(_ element: UInt) -> Bool {
     element < capacity
+  }
+
+  @inline(__always)
+  internal func isReachable(_ index: Index) -> Bool {
+    index == endIndex || contains(index.value)
   }
 
   @inline(__always)
@@ -224,7 +229,7 @@ extension BitSet._UnsafeHandle {
   @discardableResult
   internal mutating func insert(_ element: UInt) -> Bool {
     ensureMutable()
-    assert(isValid(element))
+    assert(isWithinBounds(element))
     let index = Index(element)
     let inserted = _mutableWords[index.word].insert(index.bit)
     if inserted { _count += 1 }

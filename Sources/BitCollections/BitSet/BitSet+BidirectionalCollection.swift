@@ -144,7 +144,11 @@ extension BitSet: Collection, BidirectionalCollection {
   ///   (Each call needs to search for the next `true` bit in the underlying
   ///   storage.)
   public func index(after index: Index) -> Index {
-    Index(_position: _read { $0.index(after: index._position) })
+    _read { handle in
+      assert(handle.isReachable(index._position), "Invalid index")
+      let pos = handle.index(after: index._position)
+      return Index(_position: pos)
+    }
   }
   
   /// Returns the position immediately before the given index.
@@ -160,7 +164,11 @@ extension BitSet: Collection, BidirectionalCollection {
   ///   (Each call needs to search for the next `true` bit in the underlying
   ///   storage.)
   public func index(before index: Index) -> Index {
-    Index(_position: _read { $0.index(before: index._position) })
+    _read { handle in
+      assert(handle.isReachable(index._position), "Invalid index")
+      let pos = handle.index(before: index._position)
+      return Index(_position: pos)
+    }
   }
 
   /// Returns the distance between two indices.
@@ -175,7 +183,9 @@ extension BitSet: Collection, BidirectionalCollection {
   ///    addressed by the two input indices.
   public func distance(from start: Index, to end: Index) -> Int {
     _read { handle in
-      handle.distance(from: start._position, to: end._position)
+      assert(handle.isReachable(start._position), "Invalid start index")
+      assert(handle.isReachable(end._position), "Invalid end index")
+      return handle.distance(from: start._position, to: end._position)
     }
   }
 
@@ -197,7 +207,9 @@ extension BitSet: Collection, BidirectionalCollection {
   ///    addressed by `index` and the returned result.
   public func index(_ index: Index, offsetBy distance: Int) -> Index {
     _read { handle in
-      Index(_position: handle.index(index._position, offsetBy: distance))
+      assert(handle.isReachable(index._position), "Invalid index")
+      let pos = handle.index(index._position, offsetBy: distance)
+      return Index(_position: pos)
     }
   }
 
@@ -225,9 +237,11 @@ extension BitSet: Collection, BidirectionalCollection {
     _ i: Index, offsetBy distance: Int, limitedBy limit: Index
   ) -> Index? {
     _read { handle in
-      handle.index(
-        i._position, offsetBy: distance, limitedBy: limit._position)
-      .map { Index(_position: $0) }
+      assert(handle.isReachable(i._position), "Invalid index")
+      assert(handle.isReachable(limit._position), "Invalid limit index")
+      return handle.index(
+        i._position, offsetBy: distance, limitedBy: limit._position
+      ).map { Index(_position: $0) }
     }
   }
 
