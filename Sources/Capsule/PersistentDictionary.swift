@@ -193,12 +193,10 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 ///
 public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
 
-    typealias TrieBufferElement = TrieNode<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>>
-
     private var payloadIterator: UnsafeBufferPointer<(key: Key, value: Value)>.Iterator?
 
-    private var trieIteratorStackTop: UnsafeBufferPointer<TrieBufferElement>.Iterator?
-    private var trieIteratorStackRemainder: [UnsafeBufferPointer<TrieBufferElement>.Iterator]
+    private var trieIteratorStackTop: UnsafeBufferPointer<AnyObject>.Iterator?
+    private var trieIteratorStackRemainder: [UnsafeBufferPointer<AnyObject>.Iterator]
 
     init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
         trieIteratorStackRemainder = []
@@ -214,7 +212,7 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
     }
 
     // TODO consider moving to `BitmapIndexedDictionaryNode<Key, Value>`
-    private func makeTrieIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<TrieBufferElement>.Iterator {
+    private func makeTrieIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<AnyObject>.Iterator {
         UnsafeBufferPointer(start: node.trieBaseAddress, count: node.nodeArity).makeIterator()
     }
 
@@ -226,7 +224,7 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
         while trieIteratorStackTop != nil {
             if let nextAnyObject = trieIteratorStackTop!.next() {
                 switch nextAnyObject {
-                case .bitmapIndexed(let nextNode):
+                case let nextNode as BitmapIndexedDictionaryNode<Key, Value>:
                     if nextNode.hasNodes {
                         trieIteratorStackRemainder.append(trieIteratorStackTop!)
                         trieIteratorStackTop = makeTrieIterator(nextNode)
@@ -235,9 +233,11 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
                         payloadIterator = makePayloadIterator(nextNode)
                         return payloadIterator?.next()
                     }
-                case .hashCollision(let nextNode):
+                case let nextNode as HashCollisionDictionaryNode<Key, Value>:
                     payloadIterator = nextNode.content.withUnsafeBufferPointer { $0.makeIterator() }
                     return payloadIterator?.next()
+                default:
+                    fatalError("Should not reach here.") // TODO: rework to remove 'dummy' default clause
                 }
             } else {
                 trieIteratorStackTop = trieIteratorStackRemainder.popLast()

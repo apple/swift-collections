@@ -142,8 +142,9 @@ protocol Node: AnyObject {
 
     var nodeArity: Int { get }
 
-    @available(*, deprecated)
-    func getNode(_ index: Int) -> TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
+    func getNode(_ index: Int) -> AnyObject
+
+    func getNodeEnum(_ index: Int) -> TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
 
     var hasPayload: Bool { get }
 

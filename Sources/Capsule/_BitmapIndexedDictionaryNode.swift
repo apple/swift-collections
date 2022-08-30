@@ -17,7 +17,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     typealias ReturnPayload = (key: Key, value: Value)
 
     typealias DataBufferElement = ReturnPayload // `ReturnPayload` or `Any`
-    typealias TrieBufferElement = TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
+    typealias TrieBufferElement = AnyObject
 
     var header: Header
     var count: Int
@@ -95,11 +95,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             return false
         }
 
-        guard _trieSlice.allSatisfy({ if case .bitmapIndexed(let node) = $0 { return node.invariant } else { return true } }) else {
-            return false
-        }
-
-        guard _trieSlice.allSatisfy({ if case .hashCollision(_) = $0 { return true } else { return true /* does not have explicit invariant yet */ } }) else {
+        guard _trieSlice.allSatisfy({ _ in true /* TODO */ }) else {
             return false
         }
 
@@ -166,25 +162,25 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         assert(self.invariant)
     }
 
-    convenience init(trieMap: Bitmap, firstNode: TrieBufferElement) {
+    convenience init(trieMap: Bitmap, firstNode: TrieNode<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>>) {
         self.init()
 
         self.header = Header(dataMap: 0, trieMap: trieMap)
         self.count = firstNode.count
 
-        self.trieBaseAddress.initialize(to: firstNode)
+        self.trieBaseAddress.initialize(to: firstNode.object)
 
         assert(self.invariant)
     }
 
-    convenience init(dataMap: Bitmap, trieMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: TrieBufferElement) {
+    convenience init(dataMap: Bitmap, trieMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: TrieNode<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>>) {
         self.init()
 
         self.header = Header(dataMap: dataMap, trieMap: trieMap)
         self.count = 1 + firstNode.count
 
         self.dataBaseAddress.initialize(to: (firstKey, firstValue))
-        self.trieBaseAddress.initialize(to: firstNode)
+        self.trieBaseAddress.initialize(to: firstNode.object)
 
         assert(self.invariant)
     }
@@ -282,11 +278,11 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 if keyHash0 == keyHash {
                     let subNodeNew = HashCollisionDictionaryNode(keyHash0, [(key0, value0), (key, value)])
                     effect.setModified()
-                    return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, .hashCollision(subNodeNew))
+                    return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 } else {
                     let subNodeNew = mergeTwoKeyValPairs(key0, value0, keyHash0, key, value, keyHash, shift + bitPartitionSize)
                     effect.setModified()
-                    return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, .bitmapIndexed(subNodeNew))
+                    return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 }
             }
         }
@@ -300,7 +296,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
                 guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
 
-                return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, .bitmapIndexed(subNodeNew), updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
+                return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
             case .hashCollision(let subNode):
                 let collisionHash = subNode.hash
 
@@ -308,11 +304,11 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                     let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
                     guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
 
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, .hashCollision(subNodeNew), updateCount: { $0 += 1 })
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 += 1 })
                 } else {
                     let subNodeNew = mergeKeyValPairAndCollisionNode(key, value, keyHash, subNode, collisionHash, shift + bitPartitionSize)
                     effect.setModified()
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, .bitmapIndexed(subNodeNew), updateCount: { $0 += 1 })
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 += 1 })
                 }
             }
         }
@@ -384,12 +380,12 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                             return subNodeNew
                         } else {
                             // unwrap hash-collision sub-node
-                            return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew.getNodeEnum(0), updateCount: { $0 -= 1 })
+                            return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew.getNode(0), updateCount: { $0 -= 1 })
                         }
                     }
 
                     // modify current node (set replacement node)
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, .bitmapIndexed(subNodeNew), updateCount: { $0 -= 1 })
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
                 }
             case .hashCollision(let subNode):
                 let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
@@ -414,7 +410,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
                 case _:
                     // modify current node (set replacement node)
-                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, .hashCollision(subNodeNew), updateCount: { $0 -= 1 })
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
                 }
             }
         }
@@ -464,10 +460,8 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         }
     }
 
-    // TODO: verify using a `var` does void `isKnownUniquelyReferenced` check
     private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
-        var node = trieBaseAddress[slotIndex].object
-        let isKnownUniquelyReferenced = Swift.isKnownUniquelyReferenced(&node)
+        let isKnownUniquelyReferenced = Swift.isKnownUniquelyReferenced(&trieBaseAddress[slotIndex])
 
         return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
@@ -479,12 +473,19 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     var nodeArity: Int { header.trieCount }
 
     // TODO rename, not accurate any more
-    final func getNode(_ index: Int) -> TrieNode<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>> {
+    func getNode(_ index: Int) -> AnyObject {
         return trieBaseAddress[index]
     }
 
     final func getNodeEnum(_ index: Int) -> TrieNode<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>> {
-        trieBaseAddress[index]
+        switch trieBaseAddress[index] {
+        case let node as BitmapIndexedDictionaryNode<Key, Value>:
+            return .bitmapIndexed(node)
+        case let node as HashCollisionDictionaryNode<Key, Value>:
+            return .hashCollision(node)
+        default:
+            fatalError("Should not reach here.") // TODO: rework to remove 'dummy' default clause
+        }
     }
 
     var hasPayload: Bool { header.dataMap != 0 }
@@ -503,7 +504,14 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         }
 
         zip(header.trieMap.nonzeroBits(), _trieSlice).forEach { (index, trieNode) in
-            counts[index] = trieNode.count
+            switch trieNode {
+            case let trieNode as BitmapIndexedDictionaryNode<Key, Value>:
+                counts[index] = trieNode.count
+            case let trieNode as HashCollisionDictionaryNode<Key, Value>:
+                counts[index] = trieNode.count
+            default:
+                fatalError("Should not reach here.") // TODO: rework to remove 'dummy' default clause
+            }
         }
 
         return counts
@@ -515,7 +523,16 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         let dataIndex = indexFrom(dataMap, mask, bitpos)
         let trieIndex = indexFrom(trieMap, mask, bitpos)
 
-        let count = dataIndex + UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).prefix(upTo: trieIndex).map { $0.count }.reduce(0, +)
+        let count = dataIndex + UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).prefix(upTo: trieIndex).map {
+            switch $0 {
+            case let trieNode as BitmapIndexedDictionaryNode<Key, Value>:
+                return trieNode.count
+            case let trieNode as BitmapIndexedDictionaryNode<Key, Value>:
+                return trieNode.count
+            default:
+                fatalError("Should not reach here.") // TODO: rework to remove 'dummy' default clause
+            }
+        }.reduce(0, +)
 
         assert(count == counts.prefix(upTo: mask).reduce(0, +))
         return count

@@ -99,7 +99,11 @@ final class HashCollisionDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
     var nodeArity: Int { 0 }
 
-    func getNode(_ index: Int) -> TrieNode<HashCollisionDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>> {
+    func getNode(_ index: Int) -> AnyObject {
+        preconditionFailure("No sub-nodes present in hash-collision leaf node")
+    }
+
+    func getNodeEnum(_ index: Int) -> TrieNode<HashCollisionDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>> {
         preconditionFailure("No sub-nodes present in hash-collision leaf node")
     }
 
