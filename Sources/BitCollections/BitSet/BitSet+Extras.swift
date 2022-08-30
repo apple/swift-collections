@@ -10,6 +10,24 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Creates a new empty bit set with enough storage capacity to store values
+  /// up to the given maximum value without reallocating storage.
+  ///
+  /// - Parameter maximumValue: The desired maximum value.
+  public init(reservingCapacity maximumValue: Int) {
+    self.init()
+    self.reserveCapacity(maximumValue)
+  }
+
+  /// Prepares the bit set to store the specified maximum value without
+  /// reallocating storage.
+  ///
+  /// - Parameter maximumValue: The desired maximum value.
+  public mutating func reserveCapacity(_ maximumValue: Int) {
+    let wc = _Word.wordCount(forBitCount: UInt(Swift.max(0, maximumValue)) + 1)
+    _storage.reserveCapacity(wc)
+  }
+
   /// A subscript operation for querying or updating membership in this
   /// bit set as a boolean value.
   ///
