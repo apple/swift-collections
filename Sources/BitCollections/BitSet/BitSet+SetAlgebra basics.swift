@@ -33,8 +33,7 @@ extension BitSet {
   @discardableResult
   public mutating func _insert(_ i: UInt) -> Bool {
     _ensureCapacity(forValue: i)
-    let inserted = _update { $0.insert(i) }
-    return inserted
+    return _update { $0.insert(i) }
   }
 
   /// Inserts the given element in the set if it is not already present.

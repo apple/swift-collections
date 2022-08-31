@@ -27,7 +27,9 @@ extension BitSet {
     let wc = _Word.wordCount(forBitCount: UInt(Swift.max(0, maximumValue)) + 1)
     _storage.reserveCapacity(wc)
   }
+}
 
+extension BitSet {
   /// A subscript operation for querying or updating membership in this
   /// bit set as a boolean value.
   ///
@@ -57,11 +59,16 @@ extension BitSet {
       contains(member)
     }
     set {
-      if newValue {
-        insert(member)
-      } else {
-        remove(member)
+      guard let member = UInt(exactly: member) else {
+        precondition(!newValue, "Can't insert a negative value to a BitSet")
+        return
       }
+      if newValue {
+        _ensureCapacity(forValue: member)
+      } else if member > _capacity {
+        return
+      }
+      _update { handle in handle[member: member] = newValue }
     }
   }
 
@@ -131,9 +138,41 @@ extension BitSet {
     let bounds = bounds.relative(to: Int.min ..< Int.max)
     return self[members: bounds]
   }
+}
 
+extension BitSet {
   /// Returns the current set (already sorted).
   ///
   /// - Complexity: O(1)
   public func sorted() -> BitSet { self }
+
+
+  /// Returns a new bit set containing the elements of the set that satisfy the
+  /// given predicate.
+  ///
+  /// In this example, `filter(_:)` is used to include only even members.
+  ///
+  ///     let bits = BitSet(0 ..< 20)
+  ///     let evens = bits.filter { $0.isMultiple(of: 2) }
+  ///
+  ///     evens.isSubset(of: bits) // true
+  ///     evens.contains(5) // false
+  ///
+  /// - Parameter isIncluded: A closure that takes an element as its argument
+  ///   and returns a Boolean value indicating whether the element should be
+  ///   included in the returned set.
+  /// - Returns: A set of the elements that `isIncluded` allows.
+  public func filter(
+    _ isIncluded: (Element) throws -> Bool
+  ) rethrows -> Self {
+    var words = [_Word](repeating: .empty, count: _storage.count)
+    try words.withUnsafeMutableBufferPointer { buffer in
+      var target = _UnsafeHandle(words: buffer, mutable: true)
+      for i in self {
+        guard try isIncluded(i) else { continue }
+        target.insert(UInt(i))
+      }
+    }
+    return BitSet(_words: words)
+  }
 }

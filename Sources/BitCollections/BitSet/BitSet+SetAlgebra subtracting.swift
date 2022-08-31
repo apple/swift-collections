@@ -57,6 +57,10 @@ extension BitSet {
     return result
   }
 
+  public __consuming func subtracting(_ other: BitSet.Counted) -> Self {
+    subtracting(other._bits)
+  }
+
   /// Returns a new set containing the elements of this set that do not occur
   /// in the given range of integers.
   ///

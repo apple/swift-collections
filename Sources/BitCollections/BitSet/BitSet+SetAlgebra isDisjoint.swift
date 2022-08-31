@@ -57,6 +57,9 @@ extension BitSet {
     if S.self == BitSet.self {
       return self.isDisjoint(with: other as! BitSet)
     }
+    if S.self == BitSet.Counted.self {
+      return self.isDisjoint(with: other as! BitSet.Counted)
+    }
     if S.self == Range<Int>.self  {
       return self.isDisjoint(with: other as! Range<Int>)
     }
@@ -64,6 +67,10 @@ extension BitSet {
       guard !contains(value) else { return false }
     }
     return true
+  }
+
+  public func isDisjoint(with other: BitSet.Counted) -> Bool {
+    self.isDisjoint(with: other._bits)
   }
 
   /// Returns a Boolean value that indicates whether the set has no members in

@@ -14,8 +14,8 @@ extension BitSet {
   @inline(never)
   @_effects(releasenone)
   public func _checkInvariants() {
-    let actualCount = _storage.reduce(into: 0) { $0 += $1.count }
-    precondition(_count == actualCount, "Invalid count")
+    //let actualCount = _storage.reduce(into: 0) { $0 += $1.count }
+    //precondition(_count == actualCount, "Invalid count")
 
     precondition(_storage.isEmpty || !_storage.last!.isEmpty,
                  "Extraneous tail slot")

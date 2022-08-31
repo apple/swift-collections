@@ -35,7 +35,7 @@ extension BitSet {
       other._read { second in
         let w1 = first._words
         let w2 = second._words
-        if first.count >= second.count || w1.count > w2.count {
+        if w1.count > w2.count {
           return false
         }
         var strict = w1.count < w2.count
@@ -77,6 +77,9 @@ extension BitSet {
     if S.self == BitSet.self {
       return isStrictSubset(of: other as! BitSet)
     }
+    if S.self == BitSet.Counted.self {
+      return isStrictSubset(of: other as! BitSet.Counted)
+    }
     if S.self == Range<Int>.self {
       return isStrictSubset(of: other as! Range<Int>)
     }
@@ -86,26 +89,35 @@ extension BitSet {
       return it.next() != nil
     }
 
+    let selfCount = self.count
     return _UnsafeHandle.withTemporaryBitset(
       wordCount: _storage.count
     ) { seen in
       var strict = false
       var it = other.makeIterator()
+      var c = 0
       while let i = it.next() {
         guard self.contains(i) else {
           strict = true
           continue
         }
-        if seen.insert(UInt(i)), seen._count == self.count {
-          while !strict, let i = it.next() {
-            strict = !self.contains(i)
+        if seen.insert(UInt(i)) {
+          c += 1
+          if c == selfCount {
+            while !strict, let i = it.next() {
+              strict = !self.contains(i)
+            }
+            return strict
           }
-          return strict
         }
       }
-      assert(seen._count < self.count)
+      assert(c < selfCount)
       return false
     }
+  }
+
+  public func isStrictSubset(of other: BitSet.Counted) -> Bool {
+    isStrictSubset(of: other._bits)
   }
 
   /// Returns a Boolean value that indicates whether this set is a strict

@@ -33,7 +33,7 @@ extension BitSet {
       other._read { second in
         let w1 = first._words
         let w2 = second._words
-        if first.count > second.count || w1.count > w2.count {
+        if w1.count > w2.count {
           return false
         }
         for i in 0 ..< w1.count {
@@ -71,10 +71,13 @@ extension BitSet {
     if S.self == BitSet.self {
       return self.isSubset(of: other as! BitSet)
     }
+    if S.self == BitSet.Counted.self {
+      return self.isSubset(of: other as! BitSet.Counted)
+    }
     if S.self == Range<Int>.self  {
       return self.isSubset(of: other as! Range<Int>)
     }
-    guard !isEmpty else { return true }
+    if _storage.isEmpty { return true }
     var t = self
     for i in other {
       guard let i = UInt(exactly: i) else { continue }
@@ -82,6 +85,10 @@ extension BitSet {
     }
     assert(!t.isEmpty)
     return false
+  }
+
+  public func isSubset(of other: BitSet.Counted) -> Bool {
+    self.isSubset(of: other._bits)
   }
 
   /// Returns a Boolean value that indicates whether this set is a subset of
@@ -101,7 +108,6 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: Range<Int>) -> Bool {
-    guard !isEmpty else { return true }
-    return _read { $0.isSubset(of: other._clampedToUInt()) }
+    _read { $0.isSubset(of: other._clampedToUInt()) }
   }
 }

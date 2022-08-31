@@ -49,6 +49,10 @@ extension BitSet {
       formUnion(other as! BitSet)
       return
     }
+    if S.self == BitSet.Counted.self {
+      formUnion(other as! BitSet.Counted)
+      return
+    }
     if S.self == Range<Int>.self {
       formUnion(other as! Range<Int>)
       return
@@ -56,6 +60,10 @@ extension BitSet {
     for value in other {
       self.insert(value)
     }
+  }
+
+  public mutating func formUnion(_ other: __owned BitSet.Counted) {
+    formUnion(other._bits)
   }
 
   /// Adds the elements of the given range of integers to this set.

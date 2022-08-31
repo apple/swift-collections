@@ -133,27 +133,35 @@ extension _Word {
     value &= ~mask
     return removed
   }
+
+  @inlinable
+  @inline(__always)
+  internal mutating func update(_ bit: UInt, to value: Bool) {
+    assert(bit < UInt.bitWidth)
+    let mask: UInt = 1 &<< bit
+    if value {
+      self.value |= mask
+    } else {
+      self.value &= ~mask
+    }
+  }
 }
 
 extension _Word {
   @inlinable
   @inline(__always)
-  internal mutating func insertAll(upTo bit: UInt) -> Int {
+  internal mutating func insertAll(upTo bit: UInt) {
     assert(bit >= 0 && bit < Self.capacity)
     let mask: UInt = (1 as UInt &<< bit) &- 1
-    let oldCount = (value & mask).nonzeroBitCount
     value |= mask
-    return Int(truncatingIfNeeded: bit) - oldCount
   }
 
   @inlinable
   @inline(__always)
-  internal mutating func removeAll(upTo bit: UInt) -> Int {
+  internal mutating func removeAll(upTo bit: UInt) {
     assert(bit >= 0 && bit < Self.capacity)
     let mask = UInt.max &<< bit
-    let removed = (value & ~mask).nonzeroBitCount
     value &= mask
-    return removed
   }
 
   @inlinable

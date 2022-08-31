@@ -91,13 +91,20 @@ extension BitSet: Sequence {
 extension BitSet: Collection, BidirectionalCollection {
   /// A Boolean value indicating whether the collection is empty.
   ///
-  /// - Complexity: O(1)
-  public var isEmpty: Bool { _count == 0 }
+  /// - Complexity: O(*min*) where *min* is the value of the first element.
+  ///    (The complexity is O(1) if the set is empty.)
+  public var isEmpty: Bool { _storage.firstIndex { !$0.isEmpty } == nil }
 
   /// The number of elements in the bit set.
   ///
-  /// - Complexity: O(1)
-  public var count: Int { _count }
+  /// - Complexity: O(*max*) where *max* is the value of the largest element.
+  ///    (The complexity is O(1) if the set is empty.)
+  ///
+  /// - Note: `BitSet.Counted` is a variant of this type that keeps a running
+  ///    total of its element count, for use cases that require an O(1) count.
+  public var count: Int {
+    return _read { $0.count }
+  }
 
   /// The position of the first element in a nonempty set, or `endIndex`
   /// if the collection is empty.

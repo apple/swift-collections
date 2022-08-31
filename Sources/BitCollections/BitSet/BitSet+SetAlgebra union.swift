@@ -51,9 +51,19 @@ extension BitSet {
     if S.self == BitSet.self {
       return union(other as! BitSet)
     }
+    if S.self == BitSet.Counted.self {
+      return union(other as! BitSet.Counted)
+    }
+    if S.self == Range<Int>.self {
+      return union(other as! Range<Int>)
+    }
     var result = self
     result.formUnion(other)
     return result
+  }
+
+  public __consuming func union(_ other: __owned BitSet.Counted) -> Self {
+    union(other._bits)
   }
 
   /// Returns a new set with the elements of both this set and the given

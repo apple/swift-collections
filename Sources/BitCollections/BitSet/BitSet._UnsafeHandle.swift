@@ -19,10 +19,6 @@ extension BitSet {
     @usableFromInline
     internal let _words: UnsafeBufferPointer<_Word>
 
-    /// The number of integers in this bit set.
-    @usableFromInline
-    internal var _count: Int
-
 #if DEBUG
     /// True when this handle does not support table mutations.
     /// (This is only checked in debug builds.)
@@ -46,12 +42,10 @@ extension BitSet {
     @inline(__always)
     internal init(
       words: UnsafeBufferPointer<_Word>,
-      count: Int,
       mutable: Bool
     ) {
       assert(words.baseAddress != nil)
       self._words = words
-      self._count = count
 #if DEBUG
       self._mutable = mutable
 #endif
@@ -61,39 +55,9 @@ extension BitSet {
     @inline(__always)
     internal init(
       words: UnsafeMutableBufferPointer<_Word>,
-      count: Int,
       mutable: Bool
     ) {
-      self.init(
-        words: UnsafeBufferPointer(words), count: count, mutable: mutable)
-    }
-
-    @inlinable
-    @inline(__always)
-    internal init(
-      words: UnsafePointer<_Word>,
-      wordCount: Int,
-      count: Int,
-      mutable: Bool
-    ) {
-      self.init(
-        words: UnsafeBufferPointer(start: words, count: wordCount),
-        count: count,
-        mutable: mutable)
-    }
-
-    @inlinable
-    @inline(__always)
-    internal init(
-      words: UnsafeMutablePointer<_Word>,
-      wordCount: Int,
-      count: Int,
-      mutable: Bool
-    ) {
-      self.init(
-        words: UnsafeBufferPointer(start: words, count: wordCount),
-        count: count,
-        mutable: mutable)
+      self.init(words: UnsafeBufferPointer(words), mutable: mutable)
     }
   }
 }
@@ -105,24 +69,13 @@ extension BitSet._UnsafeHandle {
     _words.count
   }
 
-  @_spi(Testing)
-  @usableFromInline
+  @inlinable
   internal var _actualCount: Int {
     return _words.reduce(0) { $0 + $1.count }
   }
 }
 
 extension BitSet._UnsafeHandle {
-  @inlinable
-  @inline(__always)
-  static func withTemporaryBitset<R>(
-    capacity: UInt,
-    run body: (inout Self) throws -> R
-  ) rethrows -> R {
-    let wordCount = Self.wordCount(forCapacity: capacity)
-    return try withTemporaryBitset(wordCount: wordCount, run: body)
-  }
-
   @inlinable
   @inline(__always)
   static func withTemporaryBitset<R>(
@@ -157,7 +110,7 @@ extension BitSet._UnsafeHandle {
     return try withUnsafeTemporaryAllocation(
       of: _Word.self, capacity: wordCount
     ) { words in
-      var bitset = Self(words: words, count: 0, mutable: true)
+      var bitset = Self(words: words, mutable: true)
       return try body(&bitset)
     }
 #else
@@ -166,14 +119,13 @@ extension BitSet._UnsafeHandle {
       return try withUnsafeMutablePointer(to: &buffer) { p in
         // Homogeneous tuples are layout-compatible with their component type.
         let words = UnsafeMutableRawPointer(p).assumingMemoryBound(to: _Word.self)
-        var bitset = Self(
-          words: words, wordCount: wordCount, count: 0, mutable: true)
+        var bitset = Self(words: words, wordCount: wordCount, mutable: true)
         return try body(&bitset)
       }
     }
     let words = UnsafeMutableBufferPointer<_Word>.allocate(capacity: wordCount)
     defer { words.deallocate() }
-    var bitset = Self(words: words, count: 0, mutable: true)
+    var bitset = Self(words: words, mutable: true)
     return try body(&bitset)
 #endif
   }
@@ -211,11 +163,6 @@ extension BitSet._UnsafeHandle {
     return _words[word].contains(bit)
   }
 
-  internal mutating func updateCount() {
-    ensureMutable()
-    _count = _words.reduce(into: 0) { $0 += $1.count }
-  }
-
   internal func emptySuffix() -> Int {
     var i = wordCount - 1
     while i >= 0, _words[i].isEmpty {
@@ -231,9 +178,7 @@ extension BitSet._UnsafeHandle {
     ensureMutable()
     assert(isWithinBounds(element))
     let index = Index(element)
-    let inserted = _mutableWords[index.word].insert(index.bit)
-    if inserted { _count += 1 }
-    return inserted
+    return _mutableWords[index.word].insert(index.bit)
   }
 
   @discardableResult
@@ -241,50 +186,15 @@ extension BitSet._UnsafeHandle {
     ensureMutable()
     let index = Index(element)
     if index.word >= _words.count { return false }
-    let removed = _mutableWords[index.word].remove(index.bit)
-    if removed { _count -= 1 }
-    return removed
+    return _mutableWords[index.word].remove(index.bit)
   }
 
-  @usableFromInline
-  @_effects(releasenone)
-  internal mutating func clear() {
-    ensureMutable()
-    guard wordCount > 0 else { return }
-    _mutableWords.baseAddress?.assign(
-      repeating: .empty, count: wordCount)
-    _count = 0
-  }
-
-  @usableFromInline
-  @_effects(releasenone)
-  internal mutating func insertAll(upTo max: UInt) {
-    ensureMutable()
-    assert(max <= capacity)
-    guard max > 0 else { return }
-    let (w, b) = Index(max).split
-    for i in 0 ..< w {
-      _count += _Word.capacity - _words[i].count
-      _mutableWords[i] = .allBits
-    }
-    if b > 0 {
-      _count += _mutableWords[w].insertAll(upTo: b)
-    }
-  }
-
-  @usableFromInline
-  @_effects(releasenone)
-  internal mutating func removeAll(upTo max: UInt) {
-    ensureMutable()
-    assert(max <= capacity)
-    guard max > 0 else { return }
-    let (w, b) = Index(max).split
-    for i in 0 ..< w {
-      _count -= _words[i].count
-      _mutableWords[i] = .empty
-    }
-    if b > 0 {
-      _count -= _mutableWords[w].removeAll(upTo: b)
+  subscript(member member: UInt) -> Bool {
+    get { contains(member) }
+    set {
+      ensureMutable()
+      let (w, b) = _BitPosition(member).split
+      _mutableWords[w].update(b, to: newValue)
     }
   }
 }
@@ -296,7 +206,7 @@ extension BitSet._UnsafeHandle: Sequence {
   @inlinable
   @inline(__always)
   internal var underestimatedCount: Int {
-    return count
+    return _actualCount // FIXME: really?
   }
 
   @inlinable
@@ -352,13 +262,13 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
   @inlinable
   @inline(__always)
   internal var count: Int {
-    _count
+    _actualCount
   }
 
   @inlinable
   @inline(__always)
   internal var isEmpty: Bool {
-    _count == 0
+    _words.firstIndex(where: { !$0.isEmpty }) == nil
   }
 
   @inlinable
@@ -424,14 +334,14 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
     
     if w1 == w2 {
       guard w1 < wordCount else { return 0 }
-      let mask = _Word(upTo: b1).symmetricDifference(_Word(upTo: b2))
+      let mask = _Word(from: b1, to: b2)
       let c = _words[w1].intersection(mask).count
       return isNegative ? -c : c
     }
     
     var c = 0
     var w = w1
-    guard w < wordCount else { return isNegative ? -c : c }
+    guard w < wordCount else { return 0 }
     
     c &+= _words[w].subtracting(_Word(upTo: b1)).count
     w &+= 1
@@ -548,41 +458,16 @@ extension BitSet._UnsafeHandle {
     for w in 0 ..< c {
       function(&self._mutableWords[w], other._words[w])
     }
-    updateCount()
   }
 }
 
 extension BitSet._UnsafeHandle {
-  internal func count(in range: Range<UInt>) -> Int {
-    let l = Index(Swift.min(range.lowerBound, capacity))
-    let u = Index(Swift.min(range.upperBound, capacity))
-    if l.word == u.word {
-      guard l.word < wordCount else { return 0 }
-      let w = _Word(from: l.bit, to: u.bit)
-      return _words[l.word].intersection(w).count
-    }
-    var c = 0
-    c += _words[l.word]
-      .intersection(_Word(upTo: l.bit).complement())
-      .count
-    for i in l.word + 1 ..< u.word {
-      c += _words[i].count
-    }
-    if u.word < _words.count {
-      c += _words[u.word]
-        .intersection(_Word(upTo: u.bit))
-        .count
-    }
-    return c
-  }
-
   internal mutating func formUnion(_ range: Range<UInt>) {
     ensureMutable()
     let l = Index(range.lowerBound)
     let u = Index(range.upperBound)
     assert(u.value <= capacity)
 
-    _count += Int(u.value - l.value) - count(in: range)
     if l.word == u.word {
       guard l.word < wordCount else { return }
       let w = _Word(from: l.bit, to: u.bit)
@@ -602,8 +487,6 @@ extension BitSet._UnsafeHandle {
     ensureMutable()
     let l = Index(Swift.min(range.lowerBound, capacity))
     let u = Index(Swift.min(range.upperBound, capacity))
-
-    _count = count(in: range)
 
     for w in 0 ..< l.word {
       _mutableWords[w] = .empty
@@ -632,7 +515,6 @@ extension BitSet._UnsafeHandle {
     let u = Index(range.upperBound)
     assert(u.value <= capacity)
 
-    _count += Int(u.value - l.value) - 2 * count(in: range)
     if l.word == u.word {
       guard l.word < wordCount else { return }
       let w = _Word(from: l.bit, to: u.bit)
@@ -654,7 +536,6 @@ extension BitSet._UnsafeHandle {
     let l = Index(Swift.min(range.lowerBound, capacity))
     let u = Index(Swift.min(range.upperBound, capacity))
 
-    _count -= count(in: range)
     if l.word == u.word {
       guard l.word < wordCount else { return }
       let w = _Word(from: l.bit, to: u.bit)
@@ -698,15 +579,17 @@ extension BitSet._UnsafeHandle {
 
   internal func isSubset(of range: Range<UInt>) -> Bool {
     guard !range.isEmpty else { return isEmpty }
+    guard !_words.isEmpty else { return true }
     let r = range.clamped(to: 0 ..< UInt(capacity))
-    guard _count <= r.count else { return false }
 
-    let lower = Index(range.lowerBound)
-    let upper = Index(range.upperBound)
+    let lower = Index(r.lowerBound)
+    let upper = Index(r.upperBound)
 
     for w in 0 ..< lower.word {
       guard _words[w].isEmpty else { return false }
     }
+
+    guard lower.word < wordCount else { return true }
 
     let lw = _Word(upTo: lower.bit)
     guard _words[lower.word].intersection(lw).isEmpty else { return false }
@@ -723,7 +606,6 @@ extension BitSet._UnsafeHandle {
     guard !range.isEmpty else { return true }
     let r = range.clamped(to: 0 ..< UInt(capacity))
     guard r == range else { return false }
-    guard _count >= r.count else { return false }
 
     let lower = Index(range.lowerBound)
     let upper = Index(range.upperBound)

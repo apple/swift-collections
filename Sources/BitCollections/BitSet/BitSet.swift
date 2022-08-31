@@ -23,12 +23,8 @@ public struct BitSet {
   internal var _storage: [_Word]
 
   @usableFromInline
-  internal var _count: Int
-
-  @usableFromInline
-  init(_rawStorage storage: [_Word], count: Int) {
+  init(_rawStorage storage: [_Word]) {
     self._storage = storage
-    self._count = count
     _checkInvariants()
   }
 }
@@ -39,7 +35,7 @@ extension BitSet {
     _ body: (_UnsafeHandle) throws -> R
   ) rethrows -> R {
     try _storage.withUnsafeBufferPointer { words in
-      let handle = _UnsafeHandle(words: words, count: _count, mutable: false)
+      let handle = _UnsafeHandle(words: words, mutable: false)
       return try body(handle)
     }
   }
@@ -73,17 +69,11 @@ extension BitSet {
   internal mutating func _update<R>(
     _ body: (inout _UnsafeHandle) throws -> R
   ) rethrows -> R {
-    var c = _count
     defer {
-      _count = c
       _checkInvariants()
     }
     return try _storage.withUnsafeMutableBufferPointer { words in
-      var handle = _UnsafeHandle(words: words, count: c, mutable: true)
-      defer {
-        assert(c <= words.count * _Word.capacity)
-        c = handle.count
-      }
+      var handle = _UnsafeHandle(words: words, mutable: true)
       return try body(&handle)
     }
   }
@@ -98,10 +88,7 @@ extension BitSet {
       _checkInvariants()
     }
     return try _storage.withUnsafeMutableBufferPointer { words in
-      var handle = _UnsafeHandle(words: words, count: _count, mutable: true)
-      defer {
-        _count = handle.count
-      }
+      var handle = _UnsafeHandle(words: words, mutable: true)
       return try body(&handle, &shrink)
     }
   }

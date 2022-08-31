@@ -57,6 +57,9 @@ extension BitSet {
     if S.self == BitSet.self {
       return self.isSuperset(of: other as! BitSet)
     }
+    if S.self == BitSet.Counted.self {
+      return self.isSuperset(of: other as! BitSet.Counted)
+    }
     if S.self == Range<Int>.self  {
       return self.isSuperset(of: other as! Range<Int>)
     }
@@ -65,6 +68,10 @@ extension BitSet {
       if !_contains(i) { return false }
     }
     return true
+  }
+
+  public func isSuperset(of other: BitSet.Counted) -> Bool {
+    isSuperset(of: other._bits)
   }
 
   /// Returns a Boolean value that indicates whether this set is a superset of
@@ -84,7 +91,6 @@ extension BitSet {
   /// - Complexity: O(`range.count`)
   public func isSuperset(of other: Range<Int>) -> Bool {
     if other.isEmpty { return true }
-    if isEmpty { return false }
     guard let r = other._toUInt() else { return false }
     return _read { $0.isSuperset(of: r) }
   }

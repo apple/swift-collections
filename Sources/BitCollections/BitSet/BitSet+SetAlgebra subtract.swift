@@ -59,6 +59,10 @@ extension BitSet {
       self.subtract(other as! BitSet)
       return
     }
+    if S.self == BitSet.Counted.self {
+      self.subtract(other as! BitSet.Counted)
+      return
+    }
     if S.self == Range<Int>.self {
       self.subtract(other as! Range<Int>)
       return
@@ -72,6 +76,10 @@ extension BitSet {
       }
       return nil
     }
+  }
+
+  public mutating func subtract(_ other: BitSet.Counted) {
+    subtract(other._bits)
   }
 
   @usableFromInline

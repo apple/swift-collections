@@ -59,18 +59,26 @@ extension BitSet {
     if S.self == BitSet.self {
       return isStrictSuperset(of: other as! BitSet)
     }
+    if S.self == BitSet.Counted.self {
+      return isStrictSuperset(of: other as! BitSet.Counted)
+    }
     if S.self == Range<Int>.self {
       return isStrictSuperset(of: other as! Range<Int>)
     }
     return _UnsafeHandle.withTemporaryBitset(
       wordCount: _storage.count
     ) { seen in
+      var c = 0
       for i in other {
         guard contains(i) else { return false }
-        seen.insert(UInt(i))
+        if seen.insert(UInt(i)) { c += 1 }
       }
-      return seen._count < self.count
+      return !_storage.elementsEqual(seen._words)
     }
+  }
+
+  public func isStrictSuperset(of other: BitSet.Counted) -> Bool {
+    other._bits.isStrictSubset(of: self)
   }
 
   /// Returns a Boolean value that indicates whether this set is a superset of
@@ -91,7 +99,11 @@ extension BitSet {
   public func isStrictSuperset(of other: Range<Int>) -> Bool {
     if other.isEmpty { return !isEmpty }
     if isEmpty { return false }
+    if self[members: ..<other.lowerBound].isEmpty,
+       self[members: other.upperBound...].isEmpty {
+      return false
+    }
     guard let r = other._toUInt() else { return false }
-    return _read { r.count < $0.count && $0.isSuperset(of: r) }
+    return _read { $0.isSuperset(of: r) }
   }
 }

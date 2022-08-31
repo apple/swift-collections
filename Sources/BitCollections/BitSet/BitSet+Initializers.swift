@@ -23,13 +23,12 @@ extension BitSet {
   ///
   /// - Complexity: O(1)
   public init() {
-    self.init(_rawStorage: [], count: 0)
+    self.init(_rawStorage: [])
   }
 
   @usableFromInline
-  init(_words: [_Word], count: Int? = nil) {
+  init(_words: [_Word]) {
     self._storage = _words
-    self._count = count ?? _words.reduce(into: 0, { $0 += $1.count })
     _shrink()
     _checkInvariants()
   }
@@ -136,7 +135,6 @@ extension BitSet {
 
   @usableFromInline
   internal init(_range range: Range<UInt>) {
-    _count = range.count
     _storage = []
     let lower = _UnsafeHandle.Index(range.lowerBound)
     let upper = _UnsafeHandle.Index(range.upperBound)
@@ -171,7 +169,6 @@ extension BitSet {
       includingTail
       ? Swift.max(w1.count, w2.count)
       : Swift.min(w1.count, w2.count))
-    var c = 0
     _storage = Array(unsafeUninitializedCapacity: capacity) { buffer, count in
       let sharedCount = Swift.min(w1.count, w2.count)
       for w in 0 ..< sharedCount {
@@ -193,10 +190,7 @@ extension BitSet {
       while count > 0, buffer[count - 1].isEmpty {
         count -= 1
       }
-      // Set the number of set bits.
-      c = buffer.reduce(into: 0) { $0 += $1.count }
     }
-    _count = c
     _checkInvariants()
   }
 }
