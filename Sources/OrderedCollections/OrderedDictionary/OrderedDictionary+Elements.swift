@@ -35,6 +35,7 @@ extension OrderedDictionary {
     get {
       Elements(_base: self)
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var elements = Elements(_base: self)
       self = Self()
@@ -63,6 +64,7 @@ extension OrderedDictionary.Elements {
     get {
       _base.values
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var values = OrderedDictionary.Values(_base: _base)
       self = Self(_base: .init())

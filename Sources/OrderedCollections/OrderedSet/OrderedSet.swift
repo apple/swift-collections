@@ -286,6 +286,7 @@ extension OrderedSet {
     set {
       self = .init(newValue)
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var members = Array(_elements)
       _elements = []
