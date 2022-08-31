@@ -41,7 +41,7 @@ extension BitSet {
   ///     bits[member: 4] = true // equivalent to `bits.insert(4)`
   ///     bits[member: 2] = false // equivalent to `bits.remove(2)`
   ///     bits[member: 5].toggle()
-
+  ///
   ///     print(bits) // [1, 3, 4, 5]
   ///     print(bits[member: 4]) // true, equivalent to `bits.contains(4)`
   ///     print(bits[member: -4]) // false
@@ -76,9 +76,9 @@ extension BitSet {
   /// contained within a specific integer range.
   ///
   ///     let bits: BitSet = [2, 5, 6, 8, 9]
-  ///     let a = bits[3..<7] // [5, 6]
-  ///     let b = bits[4...] // [5, 6, 8, 9]
-  ///     let c = bits[..<8] // [2, 5, 6]
+  ///     let a = bits[members: 3..<7] // [5, 6]
+  ///     let b = bits[members: 4...] // [5, 6, 8, 9]
+  ///     let c = bits[members: ..<8] // [2, 5, 6]
   ///
   /// This enables you to easily find the closest set member to any integer
   /// value.
