@@ -128,7 +128,9 @@ extension BitSet: Collection, BidirectionalCollection {
   ///
   /// - Complexity: O(1)
   public subscript(position: Index) -> Int {
-    Int(bitPattern: position._position.value)
+    let v = Int(bitPattern: position._value)
+    assert(contains(v))
+    return v
   }
   
   /// Returns the position immediately after the given index.
