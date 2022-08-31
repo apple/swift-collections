@@ -77,6 +77,7 @@ extension BitSet.Counted {
 
   public var uncounted: BitSet {
     get { _bits }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       defer {
         _count = _bits.count
@@ -95,6 +96,7 @@ extension BitSet {
     get {
       BitSet.Counted(_bits: self, count: self.count)
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var value = BitSet.Counted(self)
       self = []
