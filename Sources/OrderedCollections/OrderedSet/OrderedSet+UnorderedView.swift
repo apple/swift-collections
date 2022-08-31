@@ -52,7 +52,7 @@ extension OrderedSet {
     get {
       UnorderedView(_base: self)
     }
-    @inline(__always)
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var view = UnorderedView(_base: self)
       self = OrderedSet()

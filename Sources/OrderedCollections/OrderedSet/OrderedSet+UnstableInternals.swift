@@ -37,7 +37,7 @@ extension OrderedSet {
       _UnstableInternals(self)
     }
 
-    @inline(__always)
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var view = _UnstableInternals(self)
       self = OrderedSet()
