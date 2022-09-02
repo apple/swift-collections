@@ -34,13 +34,9 @@ extension PersistentDictionary: Collection {
     ///
     /// Accesses the key-value pair at the specified position.
     ///
-    // TODO: implement specialized method in `BitmapIndexedDictionaryNode` (may require cached size on node for efficient skipping)
+    // TODO: add benchmark for this method across all dictionary types
     public subscript(position: Self.Index) -> Self.Element {
-        var iterator = makeIterator()
-        for _ in 0 ..< position.value {
-            let _ = iterator.next()
-        }
-        return iterator.next()!
+        return rootNode.get(position: position, 0, position.value)
     }
 }
 

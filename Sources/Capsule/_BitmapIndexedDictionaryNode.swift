@@ -261,6 +261,47 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         return nil
     }
 
+    func get(position: PersistentDictionaryIndex, _ shift: Int, _ stillToSkip: Int) -> ReturnPayload {
+        var cumulativeCounts = self.counts
+
+        for i in 1 ..< cumulativeCounts.count {
+            cumulativeCounts[i] += cumulativeCounts[i - 1]
+        }
+
+        var mask = 0
+
+        for i in 0 ..< cumulativeCounts.count {
+            if cumulativeCounts[i] <= stillToSkip {
+                mask = i
+            } else {
+                mask = i
+                break
+            }
+        }
+
+        let skipped = (mask == 0) ? 0 : cumulativeCounts[mask - 1]
+
+        let bitpos = bitposFrom(mask)
+
+        guard (dataMap & bitpos) == 0 else {
+            let index = indexFrom(dataMap, mask, bitpos)
+            return self.getPayload(index)
+        }
+
+        guard (trieMap & bitpos) == 0 else {
+            let index = indexFrom(trieMap, mask, bitpos)
+
+            switch self.getNodeEnum(index) {
+            case .bitmapIndexed(let node):
+                return node.get(position: position, shift + bitPartitionSize, stillToSkip - skipped)
+            case .hashCollision(let node):
+                return node.get(position: position, shift + bitPartitionSize, stillToSkip - skipped)
+            }
+        }
+
+        fatalError("Should not reach here.")
+    }
+
     func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)

@@ -43,6 +43,10 @@ final class HashCollisionDictionaryNode<Key, Value>: DictionaryNode where Key: H
         content.firstIndex(where: { _key, _ in _key == key }).map { PersistentDictionaryIndex(value: $0) }
     }
 
+    func get(position: PersistentDictionaryIndex, _ shift: Int, _ stillToSkip: Int) -> ReturnPayload {
+        content[stillToSkip]
+    }
+
     func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> HashCollisionDictionaryNode<Key, Value> {
 
         // TODO check if key/value-pair check should be added (requires value to be Equitable)
