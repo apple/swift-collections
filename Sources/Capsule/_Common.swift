@@ -72,79 +72,15 @@ func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
     (bitmap == Bitmap.max) ? mask : indexFrom(bitmap, bitpos)
 }
 
-enum TrieNode<BitmapIndexedNode: Node, HashCollisionNode: Node> {
-    case bitmapIndexed(BitmapIndexedNode)
-    case hashCollision(HashCollisionNode)
-
-    /// The convenience computed properties below are used in the base iterator implementations.
-
-    var object: AnyObject {
-        switch self {
-        case .bitmapIndexed(let node):
-            return node
-        case .hashCollision(let node):
-            return node
-        }
-    }
-
-    var count: Int {
-        switch self {
-        case .bitmapIndexed(let node):
-            return node.count
-        case .hashCollision(let node):
-            return node.count
-        }
-    }
-
-    var hasPayload: Bool {
-        switch self {
-        case .bitmapIndexed(let node):
-            return node.hasPayload
-        case .hashCollision(let node):
-            return node.hasPayload
-        }
-    }
-
-    var payloadArity: Int {
-        switch self {
-        case .bitmapIndexed(let node):
-            return node.payloadArity
-        case .hashCollision(let node):
-            return node.payloadArity
-        }
-    }
-
-    var hasNodes: Bool {
-        switch self {
-        case .bitmapIndexed(let node):
-            return node.hasNodes
-        case .hashCollision(let node):
-            return node.hasNodes
-        }
-    }
-
-    var nodeArity: Int {
-        switch self {
-        case .bitmapIndexed(let node):
-            return node.nodeArity
-        case .hashCollision(let node):
-            return node.nodeArity
-        }
-    }
-}
-
 protocol Node: AnyObject {
     associatedtype ReturnPayload
     associatedtype ReturnBitmapIndexedNode: Node
-    associatedtype ReturnHashCollisionNode: Node
 
     var hasNodes: Bool { get }
 
     var nodeArity: Int { get }
 
-    func getNode(_ index: Int) -> AnyObject
-
-    func getNodeEnum(_ index: Int) -> TrieNode<ReturnBitmapIndexedNode, ReturnHashCollisionNode>
+    func getNode(_ index: Int) -> Self
 
     var hasPayload: Bool { get }
 
@@ -160,8 +96,8 @@ protocol Node: AnyObject {
 /// depth-first pre-order traversal, which yields first all payload elements of the current
 /// node before traversing sub-nodes (left to right).
 ///
-struct ChampBaseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
-    typealias T = TrieNode<BitmapIndexedNode, HashCollisionNode>
+struct ChampBaseIterator<BitmapIndexedNode: Node> {
+    typealias T = BitmapIndexedNode
 
     var currentValueCursor: Int = 0
     var currentValueLength: Int = 0
@@ -212,19 +148,11 @@ struct ChampBaseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
             if nodeCursor < nodeLength {
                 nodeCursorsAndLengths[cursorIndex] += 1
 
-                // TODO remove duplication in specialization
-                switch nodes[currentStackLevel]! {
-                case .bitmapIndexed(let currentNode):
-                    let nextNode = currentNode.getNode(nodeCursor) as! T
+                let currentNode = nodes[currentStackLevel]!
+                let nextNode = currentNode.getNode(nodeCursor)
 
-                    if nextNode.hasNodes   { pushNode(nextNode) }
-                    if nextNode.hasPayload { setupPayloadNode(nextNode) ; return true }
-                case .hashCollision(let currentNode):
-                    let nextNode = currentNode.getNode(nodeCursor) as! T
-
-                    if nextNode.hasNodes   { pushNode(nextNode) }
-                    if nextNode.hasPayload { setupPayloadNode(nextNode) ; return true }
-                }
+                if nextNode.hasNodes   { pushNode(nextNode) }
+                if nextNode.hasPayload { setupPayloadNode(nextNode) ; return true }
             } else {
                 popNode()
             }
@@ -243,8 +171,8 @@ struct ChampBaseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
 /// Base class for fixed-stack iterators that traverse a hash-trie in reverse order. The base
 /// iterator performs a depth-first post-order traversal, traversing sub-nodes (right to left).
 ///
-struct ChampBaseReverseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node> {
-    typealias T = TrieNode<BitmapIndexedNode, HashCollisionNode>
+struct ChampBaseReverseIterator<BitmapIndexedNode: Node> {
+    typealias T = BitmapIndexedNode
 
     var currentValueCursor: Int = -1
     var currentValueNode: T? = nil
@@ -284,15 +212,9 @@ struct ChampBaseReverseIterator<BitmapIndexedNode: Node, HashCollisionNode: Node
             let nodeCursor = nodeIndex[currentStackLevel] ; nodeIndex[currentStackLevel] = nodeCursor - 1
 
             if nodeCursor >= 0 {
-                // TODO remove duplication in specialization
-                switch nodeStack[currentStackLevel]! {
-                case .bitmapIndexed(let currentNode):
-                    let nextNode = currentNode.getNode(nodeCursor) as! T
-                    pushNode(nextNode)
-                case .hashCollision(let currentNode):
-                    let nextNode = currentNode.getNode(nodeCursor) as! T
-                    pushNode(nextNode)
-                }
+                let currentNode = nodeStack[currentStackLevel]!
+                let nextNode = currentNode.getNode(nodeCursor)
+                pushNode(nextNode)
             } else {
                 let currNode = nodeStack[currentStackLevel]!
                 popNode()

@@ -195,8 +195,8 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
 
     private var payloadIterator: UnsafeBufferPointer<(key: Key, value: Value)>.Iterator?
 
-    private var trieIteratorStackTop: UnsafeBufferPointer<AnyObject>.Iterator?
-    private var trieIteratorStackRemainder: [UnsafeBufferPointer<AnyObject>.Iterator]
+    private var trieIteratorStackTop: UnsafeBufferPointer<BitmapIndexedDictionaryNode<Key, Value>>.Iterator?
+    private var trieIteratorStackRemainder: [UnsafeBufferPointer<BitmapIndexedDictionaryNode<Key, Value>>.Iterator]
 
     init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
         trieIteratorStackRemainder = []
@@ -212,7 +212,7 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
     }
 
     // TODO consider moving to `BitmapIndexedDictionaryNode<Key, Value>`
-    private func makeTrieIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<AnyObject>.Iterator {
+    private func makeTrieIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<BitmapIndexedDictionaryNode<Key, Value>>.Iterator {
         UnsafeBufferPointer(start: node.trieBaseAddress, count: node.nodeArity).makeIterator()
     }
 
@@ -222,22 +222,14 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
         }
 
         while trieIteratorStackTop != nil {
-            if let nextAnyObject = trieIteratorStackTop!.next() {
-                switch nextAnyObject {
-                case let nextNode as BitmapIndexedDictionaryNode<Key, Value>:
-                    if nextNode.hasNodes {
-                        trieIteratorStackRemainder.append(trieIteratorStackTop!)
-                        trieIteratorStackTop = makeTrieIterator(nextNode)
-                    }
-                    if nextNode.hasPayload {
-                        payloadIterator = makePayloadIterator(nextNode)
-                        return payloadIterator?.next()
-                    }
-                case let nextNode as HashCollisionDictionaryNode<Key, Value>:
-                    payloadIterator = nextNode.content.withUnsafeBufferPointer { $0.makeIterator() }
+            if let nextNode = trieIteratorStackTop!.next() {
+                if nextNode.hasNodes {
+                    trieIteratorStackRemainder.append(trieIteratorStackTop!)
+                    trieIteratorStackTop = makeTrieIterator(nextNode)
+                }
+                if nextNode.hasPayload {
+                    payloadIterator = makePayloadIterator(nextNode)
                     return payloadIterator?.next()
-                default:
-                    fatalError("Should not reach here.") // TODO: rework to remove 'dummy' default clause
                 }
             } else {
                 trieIteratorStackTop = trieIteratorStackRemainder.popLast()
@@ -258,10 +250,10 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
 // TODO consider reworking similar to `DictionaryKeyValueTupleIterator`
 // (would require a reversed variant of `UnsafeBufferPointer<(key: Key, value: Value)>.Iterator`)
 public struct DictionaryKeyValueTupleReverseIterator<Key: Hashable, Value> {
-    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedDictionaryNode<Key, Value>, HashCollisionDictionaryNode<Key, Value>>
+    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedDictionaryNode<Key, Value>>
 
     init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
-        self.baseIterator = ChampBaseReverseIterator(rootNode: .bitmapIndexed(rootNode))
+        self.baseIterator = ChampBaseReverseIterator(rootNode: rootNode)
     }
 }
 
@@ -269,15 +261,7 @@ extension DictionaryKeyValueTupleReverseIterator: IteratorProtocol {
     public mutating func next() -> (key: Key, value: Value)? {
         guard baseIterator.hasNext() else { return nil }
 
-        let payload: (Key, Value)
-
-        // TODO remove duplication in specialization
-        switch baseIterator.currentValueNode! {
-        case .bitmapIndexed(let node):
-            payload = node.getPayload(baseIterator.currentValueCursor)
-        case .hashCollision(let node):
-            payload = node.getPayload(baseIterator.currentValueCursor)
-        }
+        let payload = baseIterator.currentValueNode!.getPayload(baseIterator.currentValueCursor)
         baseIterator.currentValueCursor -= 1
 
         return payload
