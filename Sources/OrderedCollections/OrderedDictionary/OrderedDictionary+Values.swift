@@ -283,6 +283,7 @@ extension OrderedDictionary.Values: MutableCollection {
     get {
       _base._values[position]
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       yield &_base._values[position]
     }

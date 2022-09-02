@@ -238,6 +238,7 @@ extension OrderedDictionary {
   @inline(__always)
   public var values: Values {
     get { Values(_base: self) }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var values = Values(_base: self)
       self = [:]
@@ -367,39 +368,57 @@ extension OrderedDictionary {
       }
       _checkInvariants()
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
-      let (index, bucket) = _keys._find(key)
-
-      // To support in-place mutations better, we swap the value to the end of
-      // the array, pop it off, then put things back in place when we're done.
-      var value: Value? = nil
-      if let index = index {
-        _values.swapAt(index, _values.count - 1)
-        value = _values.removeLast()
-      }
-
+      var value: Value?
+      let (index, bucket) = _prepareForKeyingModify(key, &value)
       defer {
-        switch (index, value) {
-        case let (index?, value?): // Assign
-          _values.append(value)
-          _values.swapAt(index, _values.count - 1)
-        case let (index?, nil): // Remove
-          if index < _values.count {
-            let standin = _values.remove(at: index)
-            _values.append(standin)
-          }
-          _keys._removeExistingMember(at: index, in: bucket)
-        case let (nil, value?): // Insert
-          _keys._appendNew(key, in: bucket)
-          _values.append(value)
-        case (nil, nil): // Noop
-          break
-        }
-        _checkInvariants()
+        _finalizeKeyingModify(key, index, bucket, &value)
       }
-
       yield &value
     }
+  }
+
+  @inlinable
+  internal mutating func _prepareForKeyingModify(
+    _ key: Key,
+    _ value: inout Value?
+  ) -> (index: Int?, bucket: _HashTable.Bucket) {
+    let (index, bucket) = _keys._find(key)
+
+    // To support in-place mutations better, we swap the value to the end of
+    // the array, pop it off, then put things back in place when we're done.
+    if let index = index {
+      _values.swapAt(index, _values.count - 1)
+      value = _values.removeLast()
+    }
+    return (index, bucket)
+  }
+
+  @inlinable
+  internal mutating func _finalizeKeyingModify(
+    _ key: Key,
+    _ index: Int?,
+    _ bucket: _HashTable.Bucket,
+    _ value: inout Value?
+  ) {
+    switch (index, value) {
+    case let (index?, value?): // Assign
+      _values.append(value)
+      _values.swapAt(index, _values.count - 1)
+    case let (index?, nil): // Remove
+      if index < _values.count {
+        let standin = _values.remove(at: index)
+        _values.append(standin)
+      }
+      _keys._removeExistingMember(at: index, in: bucket)
+    case let (nil, value?): // Insert
+      _keys._appendNew(key, in: bucket)
+      _values.append(value)
+    case (nil, nil): // Noop
+      break
+    }
+    _checkInvariants()
   }
 
   /// Accesses the value with the given key. If the dictionary doesn't contain
@@ -472,26 +491,42 @@ extension OrderedDictionary {
       guard let offset = _keys.firstIndex(of: key) else { return defaultValue() }
       return _values[offset]
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
-      let (inserted, index) = _keys.append(key)
-      if inserted {
-        assert(index == _values.count)
-        _values.append(defaultValue())
-      }
-      var value: Value = _values.withUnsafeMutableBufferPointer { buffer in
-        assert(index < buffer.count)
-        return (buffer.baseAddress! + index).move()
-      }
+      var (index, value) = _prepareForDefaultedModify(key, defaultValue)
       defer {
-        _values.withUnsafeMutableBufferPointer { buffer in
-          assert(index < buffer.count)
-          (buffer.baseAddress! + index).initialize(to: value)
-        }
+        _finalizeDefaultedModify(index, &value)
       }
       yield &value
     }
   }
 
+  @inlinable
+  internal mutating func _prepareForDefaultedModify(
+    _ key: Key,
+    _ defaultValue: () -> Value
+  ) -> (index: Int, value: Value) {
+    let (inserted, index) = _keys.append(key)
+    if inserted {
+      assert(index == _values.count)
+      _values.append(defaultValue())
+    }
+    let value: Value = _values.withUnsafeMutableBufferPointer { buffer in
+      assert(index < buffer.count)
+      return (buffer.baseAddress! + index).move()
+    }
+    return (index, value)
+  }
+
+  @inlinable
+  internal mutating func _finalizeDefaultedModify(
+    _ index: Int, _ value: inout Value
+  ) {
+    _values.withUnsafeMutableBufferPointer { buffer in
+      assert(index < buffer.count)
+      (buffer.baseAddress! + index).initialize(to: value)
+    }
+  }
 }
 
 extension OrderedDictionary {
