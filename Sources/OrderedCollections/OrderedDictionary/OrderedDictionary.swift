@@ -785,6 +785,7 @@ extension OrderedDictionary {
   ///
   /// - Complexity: Expected to be O(*n*) on average, where *n* is the number of
   ///    elements in `keysAndValues`, if `Key` implements high-quality hashing.
+  @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
   public mutating func merge<S: Sequence>(
     _ keysAndValues: __owned S,
@@ -880,6 +881,7 @@ extension OrderedDictionary {
   /// - Complexity: Expected to be O(`count` + *n*) on average, where *n* is the
   ///    number of elements in `keysAndValues`, if `Key` implements high-quality
   ///    hashing.
+  @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
   public __consuming func merging<S: Sequence>(
     _ other: __owned S,

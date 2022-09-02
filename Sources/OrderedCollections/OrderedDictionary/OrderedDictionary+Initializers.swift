@@ -75,6 +75,7 @@ extension OrderedDictionary {
   ///
   /// - Complexity: Expected O(*n*) on average, where *n* is the count if
   ///    key-value pairs, if `Key` implements high-quality hashing.
+  @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
   public init<S: Sequence>(
     uniqueKeysWithValues keysAndValues: S
@@ -195,6 +196,7 @@ extension OrderedDictionary {
   ///
   /// - Complexity: Expected O(*n*) on average, where *n* is the count of
   ///    key-value pairs, if `Key` implements high-quality hashing.
+  @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
   @inline(__always)
   public init<S: Sequence>(
@@ -368,6 +370,7 @@ extension OrderedDictionary {
   ///
   /// - Complexity: Expected O(*n*) on average, where *n* is the count if
   ///    key-value pairs, if `Key` implements high-quality hashing.
+  @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
   public init<S: Sequence>(
     uncheckedUniqueKeysWithValues keysAndValues: S

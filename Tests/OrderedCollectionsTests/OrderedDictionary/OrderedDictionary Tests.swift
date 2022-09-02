@@ -1290,5 +1290,75 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_uniqueKeysWithValues_initializer_ambiguity() {
+    // https://github.com/apple/swift-collections/issues/125
+
+    let names = ["dylan", "bob", "aaron", "carol"]
+    let expected = names.map { (key: $0, value: 0) }
+
+    let d1 = OrderedDictionary(uniqueKeysWithValues: names.map { ($0, 0) })
+    expectEqualElements(d1, expected)
+
+    let d2 = OrderedDictionary(
+      uniqueKeysWithValues: ["dylan", "bob", "aaron", "carol"].map { ($0, 0) })
+    expectEqualElements(d2, expected)
+
+    let d3 = OrderedDictionary(
+      uniqueKeysWithValues: names.map { (key: $0, value: 0) })
+    expectEqualElements(d3, expected)
+
+    let d4 = OrderedDictionary(
+      uniqueKeysWithValues: ["dylan", "bob", "aaron", "carol"].map { (key: $0, value: 0) })
+    expectEqualElements(d4, expected)
+  }
+
+  func test_uniquingKeysWith_initializer_ambiguity() {
+    // https://github.com/apple/swift-collections/issues/125
+    let d1 = OrderedDictionary(
+      ["a", "b", "a"].map { ($0, 1) },
+      uniquingKeysWith: +)
+    expectEqualElements(d1, ["a": 2, "b": 1] as KeyValuePairs)
+
+    let d2 = OrderedDictionary(
+      ["a", "b", "a"].map { (key: $0, value: 1) },
+      uniquingKeysWith: +)
+    expectEqualElements(d2, ["a": 2, "b": 1] as KeyValuePairs)
+  }
+
+  func test_merge_ambiguity() {
+    // https://github.com/apple/swift-collections/issues/125
+
+    var d1: OrderedDictionary = ["a": 1, "b": 2]
+    d1.merge(
+      ["c", "a"].map { ($0, 1) },
+      uniquingKeysWith: +
+    )
+    expectEqualElements(d1, ["a": 2, "b": 2, "c": 1] as KeyValuePairs)
+
+    var d2: OrderedDictionary = ["a": 1, "b": 2]
+    d2.merge(
+      ["c", "a"].map { (key: $0, value: 1) },
+      uniquingKeysWith: +
+    )
+    expectEqualElements(d2, ["a": 2, "b": 2, "c": 1] as KeyValuePairs)
+  }
+
+  func test_merging_ambiguity() {
+    // https://github.com/apple/swift-collections/issues/125
+
+    let d1: OrderedDictionary = ["a": 1, "b": 2]
+    let d1m = d1.merging(
+      ["c", "a"].map { ($0, 1) },
+      uniquingKeysWith: +
+    )
+    expectEqualElements(d1m, ["a": 2, "b": 2, "c": 1] as KeyValuePairs)
+
+    let d2: OrderedDictionary = ["a": 1, "b": 2]
+    let d2m = d2.merging(
+      ["c", "a"].map { (key: $0, value: 1) },
+      uniquingKeysWith: +
+    )
+    expectEqualElements(d2m, ["a": 2, "b": 2, "c": 1] as KeyValuePairs)
+  }
 }
 
