@@ -85,19 +85,19 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             return false
         }
 
-        let recursiveCount = self.reduce(0, { count, _ in count + 1 })
+//        let recursiveCount = self.reduce(0, { count, _ in count + 1 })
+//
+//        guard recursiveCount == count else {
+//            return false
+//        }
 
-        guard recursiveCount == count else {
+        guard count - payloadArity >= 2 * nodeArity else {
             return false
         }
 
-        guard recursiveCount - payloadArity >= 2 * nodeArity else {
-            return false
-        }
-
-        guard _trieSlice.allSatisfy({ _ in true /* TODO */ }) else {
-            return false
-        }
+//        guard _trieSlice.allSatisfy({ _ in true /* TODO */ }) else {
+//            return false
+//        }
 
         return true
     }
