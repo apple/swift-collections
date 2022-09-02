@@ -359,22 +359,33 @@ extension Deque: RandomAccessCollection {
         handle.ptr(at: slot).pointee = newValue
       }
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       precondition(index >= 0 && index < count, "Index out of bounds")
-      _storage.ensureUnique()
-      // We technically aren't supposed to escape storage pointers out of a
-      // managed buffer, so we escape a `(slot, value)` pair instead, leaving
-      // the corresponding slot temporarily uninitialized.
-      var (slot, value) = _storage.update { handle -> (_Slot, Element) in
-        let slot = handle.slot(forOffset: index)
-        return (slot, handle.ptr(at: slot).move())
-      }
+      var (slot, value) = _prepareForModify(at: index)
       defer {
-        _storage.update { handle in
-          handle.ptr(at: slot).initialize(to: value)
-        }
+        _finalizeModify(slot, value)
       }
       yield &value
+    }
+  }
+
+  @inlinable
+  internal mutating func _prepareForModify(at index: Int) -> (_Slot, Element) {
+    _storage.ensureUnique()
+    // We technically aren't supposed to escape storage pointers out of a
+    // managed buffer, so we escape a `(slot, value)` pair instead, leaving
+    // the corresponding slot temporarily uninitialized.
+    return _storage.update { handle in
+      let slot = handle.slot(forOffset: index)
+      return (slot, handle.ptr(at: slot).move())
+    }
+  }
+
+  @inlinable
+  internal mutating func _finalizeModify(_ slot: _Slot, _ value: Element) {
+    _storage.update { handle in
+      handle.ptr(at: slot).initialize(to: value)
     }
   }
 

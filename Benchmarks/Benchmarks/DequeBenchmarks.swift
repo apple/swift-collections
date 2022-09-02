@@ -172,6 +172,36 @@ extension Benchmark {
     }
 
     self.add(
+      title: "Deque<Int> modify through subscript (contiguous)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var deque = Deque(input)
+        timer.measure {
+          for i in lookups {
+            deque[i] += 1
+          }
+        }
+        blackHole(deque)
+      }
+    }
+
+    self.add(
+      title: "Deque<Int> modify through subscript (discontiguous)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var deque = Deque(discontiguous: input)
+        timer.measure {
+          for i in lookups {
+            deque[i] += 1
+          }
+        }
+        blackHole(deque)
+      }
+    }
+
+    self.add(
       title: "Deque<Int> random swaps (contiguous)",
       input: [Int].self
     ) { input in

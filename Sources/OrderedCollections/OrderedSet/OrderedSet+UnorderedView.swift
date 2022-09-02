@@ -14,8 +14,6 @@ extension OrderedSet {
   /// conformance.
   @frozen
   public struct UnorderedView {
-    public typealias Element = OrderedSet.Element
-
     @usableFromInline
     internal var _base: OrderedSet
 
@@ -54,7 +52,7 @@ extension OrderedSet {
     get {
       UnorderedView(_base: self)
     }
-    @inline(__always)
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var view = UnorderedView(_base: self)
       self = OrderedSet()
@@ -138,7 +136,9 @@ extension OrderedSet.UnorderedView: ExpressibleByArrayLiteral {
   }
 }
 
-extension OrderedSet.UnorderedView: SetAlgebra {}
+extension OrderedSet.UnorderedView: SetAlgebra {
+  public typealias Element = OrderedSet.Element
+}
 
 extension OrderedSet.UnorderedView {
   /// Creates an empty set.
@@ -302,7 +302,7 @@ extension OrderedSet.UnorderedView {
   @inlinable
   @inline(__always)
   @discardableResult
-  public mutating func remove(_ member: Self.Element) -> Self.Element? {
+  public mutating func remove(_ member: Element) -> Element? {
     _base.remove(member)
   }
 }
