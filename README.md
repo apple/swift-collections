@@ -70,7 +70,7 @@ We'd like this package to quickly embrace Swift language and toolchain improveme
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:5.4
+// swift-tools-version:5.6
 import PackageDescription
 
 let package = Package(
@@ -78,7 +78,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-collections.git", 
-      .upToNextMajor(from: "1.0.0") // or `.upToNextMinor
+      .upToNextMajor(from: "1.0.3") // or `.upToNextMinor
     )
   ],
   targets: [
