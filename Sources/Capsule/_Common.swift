@@ -96,7 +96,7 @@ protocol Node: AnyObject {
 /// depth-first pre-order traversal, which yields first all payload elements of the current
 /// node before traversing sub-nodes (left to right).
 ///
-struct ChampBaseIterator<BitmapIndexedNode: Node> {
+struct BaseIterator<BitmapIndexedNode: Node> {
     typealias T = BitmapIndexedNode
 
     var currentValueCursor: Int = 0
@@ -171,7 +171,7 @@ struct ChampBaseIterator<BitmapIndexedNode: Node> {
 /// Base class for fixed-stack iterators that traverse a hash-trie in reverse order. The base
 /// iterator performs a depth-first post-order traversal, traversing sub-nodes (right to left).
 ///
-struct ChampBaseReverseIterator<BitmapIndexedNode: Node> {
+struct BaseReverseIterator<BitmapIndexedNode: Node> {
     typealias T = BitmapIndexedNode
 
     var currentValueCursor: Int = -1

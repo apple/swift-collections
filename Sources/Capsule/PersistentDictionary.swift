@@ -240,10 +240,10 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
 // TODO consider reworking similar to `DictionaryKeyValueTupleIterator`
 // (would require a reversed variant of `UnsafeBufferPointer<(key: Key, value: Value)>.Iterator`)
 public struct DictionaryKeyValueTupleReverseIterator<Key: Hashable, Value> {
-    private var baseIterator: ChampBaseReverseIterator<BitmapIndexedDictionaryNode<Key, Value>>
+    private var baseIterator: BaseReverseIterator<BitmapIndexedDictionaryNode<Key, Value>>
 
     init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
-        self.baseIterator = ChampBaseReverseIterator(rootNode: rootNode)
+        self.baseIterator = BaseReverseIterator(rootNode: rootNode)
     }
 }
 
