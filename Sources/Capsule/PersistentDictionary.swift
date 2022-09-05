@@ -202,18 +202,8 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
         trieIteratorStackRemainder = []
         trieIteratorStackRemainder.reserveCapacity(maxDepth)
 
-        if rootNode.hasNodes   { trieIteratorStackTop = makeTrieIterator(rootNode) }
-        if rootNode.hasPayload { payloadIterator = makePayloadIterator(rootNode) }
-    }
-
-    // TODO consider moving to `BitmapIndexedDictionaryNode<Key, Value>`
-    private func makePayloadIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<(key: Key, value: Value)>.Iterator {
-        UnsafeBufferPointer(start: node.dataBaseAddress, count: node.payloadArity).makeIterator()
-    }
-
-    // TODO consider moving to `BitmapIndexedDictionaryNode<Key, Value>`
-    private func makeTrieIterator(_ node: BitmapIndexedDictionaryNode<Key, Value>) -> UnsafeBufferPointer<BitmapIndexedDictionaryNode<Key, Value>>.Iterator {
-        UnsafeBufferPointer(start: node.trieBaseAddress, count: node.nodeArity).makeIterator()
+        if rootNode.hasNodes   { trieIteratorStackTop = rootNode._trieSlice.makeIterator() }
+        if rootNode.hasPayload { payloadIterator = rootNode._dataSlice.makeIterator() }
     }
 
     public mutating func next() -> (key: Key, value: Value)? {
@@ -225,10 +215,10 @@ public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorPro
             if let nextNode = trieIteratorStackTop!.next() {
                 if nextNode.hasNodes {
                     trieIteratorStackRemainder.append(trieIteratorStackTop!)
-                    trieIteratorStackTop = makeTrieIterator(nextNode)
+                    trieIteratorStackTop = nextNode._trieSlice.makeIterator()
                 }
                 if nextNode.hasPayload {
-                    payloadIterator = makePayloadIterator(nextNode)
+                    payloadIterator = nextNode._dataSlice.makeIterator()
                     return payloadIterator?.next()
                 }
             } else {

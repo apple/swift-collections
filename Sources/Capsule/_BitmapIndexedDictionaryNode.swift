@@ -120,14 +120,12 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         (header.dataMap & header.trieMap) == 0 || (header.dataMap == header.trieMap)
     }
 
-    // TODO: should not materialize as `Array` for performance reasons
-    var _dataSlice: [DataBufferElement] {
-        UnsafeMutableBufferPointer(start: dataBaseAddress, count: header.dataCount).map { $0 }
+    var _dataSlice: UnsafeBufferPointer<DataBufferElement> {
+        UnsafeBufferPointer(start: dataBaseAddress, count: header.dataCount)
     }
 
-    // TODO: should not materialize as `Array` for performance reasons
-    var _trieSlice: [TrieBufferElement] {
-        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount).map { $0 }
+    var _trieSlice: UnsafeMutableBufferPointer<TrieBufferElement> {
+        UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount)
     }
 
     init(dataCapacity: Capacity, trieCapacity: Capacity) {
