@@ -295,3 +295,58 @@ extension _Word {
     return _Word(self.value &<< shift)
   }
 }
+
+extension Array where Element == _Word {
+  internal func _encodeAsUInt64(
+    to container: inout UnkeyedEncodingContainer
+  ) throws {
+    if _Word.capacity == 64 {
+      for word in self {
+        try container.encode(UInt64(truncatingIfNeeded: word.value))
+      }
+      return
+    }
+    assert(_Word.capacity == 32, "Unsupported platform")
+    var first = true
+    var w: UInt64 = 0
+    for word in self {
+      if first {
+        w = UInt64(truncatingIfNeeded: word.value)
+        first = false
+      } else {
+        w |= UInt64(truncatingIfNeeded: word.value) &<< 32
+        try container.encode(w)
+        first = true
+      }
+    }
+    if !first {
+      try container.encode(w)
+    }
+  }
+
+  internal init(
+    _fromUInt64 container: inout UnkeyedDecodingContainer,
+    reservingCount count: Int? = nil
+  ) throws {
+    self = []
+    if _Word.capacity == 64 {
+      if let c = count {
+        self.reserveCapacity(c)
+      }
+      while !container.isAtEnd {
+        let v = try container.decode(UInt64.self)
+        self.append(_Word(UInt(truncatingIfNeeded: v)))
+      }
+      return
+    }
+    assert(_Word.capacity == 32, "Unsupported platform")
+    if let c = count {
+      self.reserveCapacity(2 * c)
+    }
+    while !container.isAtEnd {
+      let v = try container.decode(UInt.self)
+      self.append(_Word(UInt(truncatingIfNeeded: v)))
+      self.append(_Word(UInt(truncatingIfNeeded: v &>> 32)))
+    }
+  }
+}

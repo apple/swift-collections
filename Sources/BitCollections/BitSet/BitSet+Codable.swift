@@ -12,32 +12,25 @@
 extension BitSet: Codable {
   /// Encodes this bit set into the given encoder.
   ///
-  /// Bit sets are encoded as an unkeyed container of `UInt` values,
+  /// Bit sets are encoded as an unkeyed container of `UInt64` values,
   /// representing pieces of the underlying bitmap.
   ///
   /// - Parameter encoder: The encoder to write data to.
   public func encode(to encoder: Encoder) throws {
     var container = encoder.unkeyedContainer()
-    for word in _storage {
-      try container.encode(word.value)
-    }
+    try _storage._encodeAsUInt64(to: &container)
   }
 
   /// Creates a new bit set by decoding from the given decoder.
   ///
-  /// Bit sets are encoded as an unkeyed container of `UInt` values,
+  /// Bit sets are encoded as an unkeyed container of `UInt64` values,
   /// representing pieces of the underlying bitmap.
   ///
   /// - Parameter decoder: The decoder to read data from.
   public init(from decoder: Decoder) throws {
     var container = try decoder.unkeyedContainer()
-    var words: [_Word] = []
-    if let count = container.count {
-      words.reserveCapacity(count)
-    }
-    while !container.isAtEnd {
-      words.append(_Word(try container.decode(UInt.self)))
-    }
+    let words = try [_Word](
+      _fromUInt64: &container, reservingCount: container.count)
     self.init(_words: words)
   }
 }
