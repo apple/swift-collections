@@ -459,7 +459,6 @@ final class CapsuleSmokeTests: CollectionTestCase {
         }
         expectEqual(map3.count, 0)
         doIterate(map3)
-
     }
 
     func testIteratorEnumeratesAllIfNoCollision() {

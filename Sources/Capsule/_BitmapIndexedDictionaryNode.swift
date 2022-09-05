@@ -23,6 +23,15 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     var header: Header
     var count: Int
 
+
+    var collisionFree: Bool {
+        !hashCollision
+    }
+
+    var hashCollision: Bool {
+        header.hashCollision
+    }
+
     let dataCapacity: Capacity
     let trieCapacity: Capacity
 
@@ -96,15 +105,19 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             return false
         }
 
-//        guard _trieSlice.allSatisfy({ _ in true /* TODO */ }) else {
-//            return false
-//        }
+        if hashCollision {
+            let hash = computeHash(_dataSlice.first!.key)
+
+            guard _dataSlice.allSatisfy({ computeHash($0.key) == hash }) else {
+                return false
+            }
+        }
 
         return true
     }
 
     var headerInvariant: Bool {
-        (header.dataMap & header.trieMap) == 0
+        (header.dataMap & header.trieMap) == 0 || (header.dataMap == header.trieMap)
     }
 
     // TODO: should not materialize as `Array` for performance reasons
@@ -188,9 +201,31 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         assert(self.invariant)
     }
 
+    convenience init(collisions: [ReturnPayload]) {
+        self.init(dataCapacity: Capacity(collisions.count), trieCapacity: 0)
+
+        self.header = Header(dataMap: Bitmap(collisions.count), trieMap: Bitmap(collisions.count))
+        self.count = collisions.count
+
+        self.dataBaseAddress.initialize(from: collisions, count: collisions.count)
+
+        assert(self.invariant)
+    }
+
     func get(_ key: Key, _ keyHash: Int, _ shift: Int) -> Value? {
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
+
+        guard collisionFree else {
+            let content: [ReturnPayload] = Array(self)
+            let hash = computeHash(content.first!.key)
+
+            guard keyHash == hash else {
+                return nil
+            }
+
+            return content.first(where: { key == $0.key }).map { $0.value }
+        }
 
         guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
@@ -210,6 +245,17 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
+        guard collisionFree else {
+            let content: [ReturnPayload] = Array(self)
+            let hash = computeHash(content.first!.key)
+
+            guard keyHash == hash else {
+                return false
+            }
+
+            return content.contains(where: { key == $0.key })
+        }
+
         guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
             let payload = self.getPayload(index)
@@ -225,6 +271,14 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     }
 
     func index(_ key: Key, _ keyHash: Int, _ shift: Int, _ skippedBefore: Int) -> PersistentDictionaryIndex? {
+        guard collisionFree else {
+            let content: [ReturnPayload] = Array(self)
+            let hash = computeHash(content.first!.key)
+
+            assert(keyHash == hash)
+            return content.firstIndex(where: { _key, _ in _key == key }).map { PersistentDictionaryIndex(value: $0) }
+        }
+
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -281,7 +335,12 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         fatalError("Should not reach here.")
     }
 
-    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+    final func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+
+        guard collisionFree else {
+            return updateOrUpdatingCollision(isStorageKnownUniquelyReferenced, key, value, keyHash, shift, &effect)
+        }
+
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -296,12 +355,17 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 let keyHash0 = computeHash(key0)
 
                 if keyHash0 == keyHash {
-//                    let subNodeNew = HashCollisionDictionaryNode(keyHash0, [(key0, value0), (key, value)])
-//                    effect.setModified()
-//                    return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
-                    return self // TODO dummy
+                    let subNodeNew = Self(/* hash, */ collisions: [(key0, value0), (key, value)])
+
+                    effect.setModified()
+                    if self.count == 1 {
+                        return subNodeNew
+                    } else {
+                        return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
+                    }
                 } else {
                     let subNodeNew = mergeTwoKeyValPairs(key0, value0, keyHash0, key, value, keyHash, shift + bitPartitionSize)
+
                     effect.setModified()
                     return copyAndMigrateFromInlineToNode(isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
                 }
@@ -318,27 +382,41 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
 
             return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
-
-//            case .hashCollision(let subNode):
-//                let collisionHash = subNode.hash
-//
-//                if keyHash == collisionHash {
-//                    let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-//                    guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
-//
-//                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 += 1 })
-//                } else {
-//                    let subNodeNew = mergeKeyValPairAndCollisionNode(key, value, keyHash, subNode, collisionHash, shift + bitPartitionSize)
-//                    effect.setModified()
-//                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 += 1 })
-//                }
         }
 
         effect.setModified()
         return copyAndInsertValue(isStorageKnownUniquelyReferenced, bitpos, key, value)
     }
 
-    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+    @inline(never)
+    final func updateOrUpdatingCollision(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+        assert(hashCollision)
+
+        let content: [ReturnPayload] = Array(self)
+        let hash = computeHash(content.first!.key)
+
+        guard keyHash == hash else {
+            effect.setModified()
+            return mergeKeyValPairAndCollisionNode(key, value, keyHash, self, hash, shift)
+        }
+
+        if let index = content.firstIndex(where: { key == $0.key }) {
+            let updatedContent: [ReturnPayload] = content[0..<index] + [(key, value)] + content[index+1..<content.count]
+
+            effect.setReplacedValue()
+            return Self(/* hash, */ collisions: updatedContent)
+        } else {
+            effect.setModified()
+            return Self(/* hash, */ collisions: content + [(key, value)])
+        }
+    }
+
+    final func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+
+        guard collisionFree else {
+            return removeOrRemovingCollision(isStorageKnownUniquelyReferenced, key, keyHash, shift, &effect)
+        }
+
         let mask = maskFrom(keyHash, shift)
         let bitpos = bitposFrom(mask)
 
@@ -348,8 +426,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             guard key0 == key else { assert(self.invariant) ; return self }
 
             effect.setModified()
-            // TODO check globally usage of `bitmapIndexedNodeArity` and `hashCollisionNodeArity`
-            if self.payloadArity == 2 && self.nodeArity == 0 /* rename */ {
+            if self.payloadArity == 2 && self.nodeArity == 0 {
                 if shift == 0 {
                     // keep remaining pair on root level
                     let newDataMap = (dataMap ^ bitpos)
@@ -361,10 +438,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                     let (remainingKey, remainingValue) = getPayload(1 - index)
                     return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
                 }
-//            } else if self.payloadArity == 1 && self.nodeArity /* rename */ == 1, case .hashCollision(let __node) = self.getNodeEnum(0) { /* TODO: is similar to `isWrappingSingleHashCollisionNode`? */
-//                // create potential new root: will a) become new root, or b) unwrapped on another level
-//                let newCollMap: Bitmap = bitposFrom(maskFrom(__node.hash, 0))
-//                return Self(trieMap: newCollMap, firstNode: getNodeEnum(0))
+            } else if self.payloadArity == 1 && self.nodeArity == 1, self.getNode(0).hashCollision {
+                // escalate hash-collision node
+                return getNode(0)
             } else { return copyAndRemoveValue(isStorageKnownUniquelyReferenced, bitpos) }
         }
 
@@ -377,13 +453,9 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
             guard effect.modified && subNode !== subNodeNew else { if effect.modified { count -= 1 } ; assert(self.invariant) ; return self }
 
+            assert(subNodeNew.count > 0, "Sub-node must have at least one element.")
             switch subNodeNew.count {
-            case 0:
-                preconditionFailure("Sub-node must have at least one element.")
-
             case 1:
-                assert(self.nodeArity /*bitmapIndexedNodeArity???*/ >= 1)
-
                 if self.isCandiateForCompaction {
                     // escalate singleton
                     return subNodeNew
@@ -393,55 +465,45 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
                 }
 
             case _:
-                assert(self.nodeArity /*bitmapIndexedNodeArity???*/ >= 1)
-
-//                if (subNodeNew.isWrappingSingleHashCollisionNode) {
-//                    if self.isCandiateForCompaction {
-//                        // escalate node that has only a single hash-collision sub-node
-//                        return subNodeNew
-//                    } else {
-//                        // unwrap hash-collision sub-node
-//                        return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew.getNode(0), updateCount: { $0 -= 1 })
-//                    }
-//                }
-
-                // modify current node (set replacement node)
-                return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
+                if subNodeNew.hashCollision && self.isCandiateForCompaction {
+                    // escalate singleton
+                    return subNodeNew
+                } else {
+                    // modify current node (set replacement node)
+                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
+                }
             }
         }
-
-//            case .hashCollision(let subNode):
-//                let subNodeNew = subNode.removeOrRemoving(subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
-//                guard effect.modified && subNode !== subNodeNew else { if effect.modified { count -= 1 } ; assert(self.invariant) ; return self }
-//
-//                switch subNodeNew.count {
-//                case 0:
-//                    preconditionFailure("Sub-node must have at least one element.")
-//
-//                case 1:
-//                    // TODO simplify hash-collision compaction (if feasible)
-//                    if self.isCandiateForCompaction {
-//                        // escalate singleton
-//                        // convert `HashCollisionDictionaryNode` to `BitmapIndexedDictionaryNode` (logic moved/inlined from `HashCollisionDictionaryNode`)
-//                        let newDataMap: Bitmap = bitposFrom(maskFrom(subNodeNew.hash, 0))
-//                        let (remainingKey, remainingValue) = subNodeNew.getPayload(0)
-//                        return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
-//                    } else {
-//                        // inline value
-//                        return copyAndMigrateFromNodeToInline(isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getPayload(0))
-//                    }
-//
-//                case _:
-//                    // modify current node (set replacement node)
-//                    return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= 1 })
-//                }
 
         return self
     }
 
-    var isCandiateForCompaction: Bool { payloadArity == 0 && nodeArity == 1 }
+    @inline(never)
+    final func removeOrRemovingCollision(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+        assert(hashCollision)
 
-//    var isWrappingSingleHashCollisionNode: Bool { if payloadArity == 0 && self.nodeArity /* rename */ == 1, case .hashCollision(_) = self.getNodeEnum(0) { return true } else { return false } }
+        let content: [ReturnPayload] = Array(self)
+        let _ = computeHash(content.first!.key)
+
+        if let index = content.firstIndex(where: { key == $0.key }) {
+            effect.setModified()
+            var updatedContent = content; updatedContent.remove(at: index)
+            assert(updatedContent.count == content.count - 1)
+
+            if updatedContent.count == 1 {
+                // create potential new root: will a) become new root, or b) inlined on another level
+                let newDataMap = bitposFrom(maskFrom(keyHash, 0))
+                let (remainingKey, remainingValue) = updatedContent.first!
+                return Self(dataMap: newDataMap, firstKey: remainingKey, firstValue: remainingValue)
+            } else {
+                return Self(/* hash, */ collisions: updatedContent)
+            }
+        } else {
+            return self
+        }
+    }
+
+    var isCandiateForCompaction: Bool { payloadArity == 0 && nodeArity == 1 }
 
     func mergeTwoKeyValPairs(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ key1: Key, _ value1: Value, _ keyHash1: Int, _ shift: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
         assert(keyHash0 != keyHash1)
@@ -464,22 +526,22 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         }
     }
 
-//    func mergeKeyValPairAndCollisionNode(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ node1: HashCollisionDictionaryNode<Key, Value>, _ nodeHash1: Int, _ shift: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
-//        assert(keyHash0 != nodeHash1)
-//
-//        let mask0 = maskFrom(keyHash0, shift)
-//        let mask1 = maskFrom(nodeHash1, shift)
-//
-//        if mask0 != mask1 {
-//            // unique prefixes, payload and collision node fit on same level
-//            return Self(dataMap: bitposFrom(mask0), trieMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: .hashCollision(node1))
-//        } else {
-//            // recurse: identical prefixes, payload must be disambiguated deeper in the trie
-//            let node = mergeKeyValPairAndCollisionNode(key0, value0, keyHash0, node1, nodeHash1, shift + bitPartitionSize)
-//
-//            return Self(trieMap: bitposFrom(mask0), firstNode: node)
-//        }
-//    }
+    func mergeKeyValPairAndCollisionNode(_ key0: Key, _ value0: Value, _ keyHash0: Int, _ node1: BitmapIndexedDictionaryNode<Key, Value>, _ nodeHash1: Int, _ shift: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
+        assert(keyHash0 != nodeHash1)
+
+        let mask0 = maskFrom(keyHash0, shift)
+        let mask1 = maskFrom(nodeHash1, shift)
+
+        if mask0 != mask1 {
+            // unique prefixes, payload and collision node fit on same level
+            return Self(dataMap: bitposFrom(mask0), trieMap: bitposFrom(mask1), firstKey: key0, firstValue: value0, firstNode: node1)
+        } else {
+            // recurse: identical prefixes, payload must be disambiguated deeper in the trie
+            let node = mergeKeyValPairAndCollisionNode(key0, value0, keyHash0, node1, nodeHash1, shift + bitPartitionSize)
+
+            return Self(trieMap: bitposFrom(mask0), firstNode: node)
+        }
+    }
 
     private func isTrieNodeKnownUniquelyReferenced(_ slotIndex: Int, _ isParentNodeKnownUniquelyReferenced: Bool) -> Bool {
         let isKnownUniquelyReferenced = Swift.isKnownUniquelyReferenced(&trieBaseAddress[slotIndex])
@@ -487,13 +549,10 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         return isParentNodeKnownUniquelyReferenced && isKnownUniquelyReferenced
     }
 
-    // TODO rename, not accurate any more
     var hasNodes: Bool { header.trieMap != 0 }
 
-    // TODO rename, not accurate any more
     var nodeArity: Int { header.trieCount }
 
-    // TODO rename, not accurate any more
     func getNode(_ index: Int) -> BitmapIndexedDictionaryNode<Key, Value> {
         return trieBaseAddress[index]
     }
@@ -565,7 +624,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             dst = src.copy()
         }
 
-        dst.trieBaseAddress[idx] = newNode // as TrieBufferElement
+        dst.trieBaseAddress[idx] = newNode
 
         // update metadata: `dataMap, nodeMap, collMap`
         updateCount(&dst.count)
@@ -689,7 +748,11 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
 extension BitmapIndexedDictionaryNode: Equatable where Value: Equatable {
     static func == (lhs: BitmapIndexedDictionaryNode<Key, Value>, rhs: BitmapIndexedDictionaryNode<Key, Value>) -> Bool {
-        lhs === rhs ||
+        if lhs.hashCollision && rhs.hashCollision {
+            return Dictionary.init(uniqueKeysWithValues: Array(lhs)) == Dictionary.init(uniqueKeysWithValues: Array(rhs))
+        }
+
+        return lhs === rhs ||
             lhs.header == rhs.header &&
             lhs.count == rhs.count &&
             deepContentEquality(lhs, rhs)
@@ -705,7 +768,6 @@ extension BitmapIndexedDictionaryNode: Equatable where Value: Equatable {
         }
 
         for index in 0..<lhs.nodeArity {
-            // TODO: support monomorphic node hash collisions
             if lhs.getNode(index) != rhs.getNode(index) {
                 return false
             }
@@ -725,8 +787,12 @@ struct Header: Equatable {
     var dataMap: Bitmap
     var trieMap: Bitmap
 
-    var dataCount: Int { dataMap.nonzeroBitCount }
-    var trieCount: Int { trieMap.nonzeroBitCount }
+    var dataCount: Int { hashCollision ? Int(dataMap) : dataMap.nonzeroBitCount }
+    var trieCount: Int { hashCollision ? 0            : trieMap.nonzeroBitCount }
+
+    var hashCollision: Bool {
+        (dataMap & trieMap) != 0
+    }
 
     static func == (lhs: Header, rhs: Header) -> Bool {
         lhs.dataMap == rhs.dataMap && lhs.trieMap == rhs.trieMap

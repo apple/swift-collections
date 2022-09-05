@@ -50,7 +50,7 @@ let bitPartitionSize: Int = 5
 
 let bitPartitionMask: Int = (1 << bitPartitionSize) - 1
 
-typealias Capacity = UInt8
+typealias Capacity = UInt32 // TODO: restore type to `UInt8` after reworking hash-collisions to grow in depth instead of width
 
 let hashCodeLength: Int = Int.bitWidth
 
