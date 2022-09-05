@@ -96,9 +96,7 @@ protocol Node: AnyObject {
 /// depth-first pre-order traversal, which yields first all payload elements of the current
 /// node before traversing sub-nodes (left to right).
 ///
-struct BaseIterator<BitmapIndexedNode: Node> {
-    typealias T = BitmapIndexedNode
-
+struct BaseIterator<T: Node> {
     var currentValueCursor: Int = 0
     var currentValueLength: Int = 0
     var currentValueNode: T? = nil
@@ -164,16 +162,13 @@ struct BaseIterator<BitmapIndexedNode: Node> {
     mutating func hasNext() -> Bool {
         return (currentValueCursor < currentValueLength) || searchNextValueNode()
     }
-
 }
 
 ///
 /// Base class for fixed-stack iterators that traverse a hash-trie in reverse order. The base
 /// iterator performs a depth-first post-order traversal, traversing sub-nodes (right to left).
 ///
-struct BaseReverseIterator<BitmapIndexedNode: Node> {
-    typealias T = BitmapIndexedNode
-
+struct BaseReverseIterator<T: Node> {
     var currentValueCursor: Int = -1
     var currentValueNode: T? = nil
 
