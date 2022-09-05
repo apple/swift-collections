@@ -228,79 +228,84 @@ final class BitArrayTests: CollectionTestCase {
   
   func test_Encodable() throws {
     let b1: BitArray = []
-    let v1: MinimalEncoder.Value = .array([.uint(0)])
+    let v1: MinimalEncoder.Value = .array([.uint64(0)])
     expectEqual(try MinimalEncoder.encode(b1), v1)
 
     let b2: BitArray = [true, true, false, true]
-    let v2: MinimalEncoder.Value = .array([.uint(4), .uint(11)])
+    let v2: MinimalEncoder.Value = .array([.uint64(4), .uint64(11)])
     expectEqual(try MinimalEncoder.encode(b2), v2)
 
-    let b3 = BitArray(repeating: true, count: 2 * UInt.bitWidth + 17)
+    let b3 = BitArray(repeating: true, count: 145)
     let v3: MinimalEncoder.Value = .array([
-      .uint(UInt(2 * UInt.bitWidth + 17)),
-      .uint(UInt.max),
-      .uint(UInt.max),
-      .uint((1 << 17) - 1)])
+      .uint64(145),
+      .uint64(UInt64.max),
+      .uint64(UInt64.max),
+      .uint64((1 << 17) - 1)])
     expectEqual(try MinimalEncoder.encode(b3), v3)
 
-    let b4 = BitArray(Array(repeating: false, count: 5 * UInt.bitWidth + 23) + [true])
+    let b4 = BitArray(Array(repeating: false, count: 343) + [true])
     let v4: MinimalEncoder.Value = .array([
-      .uint(UInt(5 * UInt.bitWidth + 24)),
-      .uint(0),
-      .uint(0),
-      .uint(0),
-      .uint(0),
-      .uint(0),
-      .uint(1 << 23),
+      .uint64(344),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0),
+      .uint64(1 << 23),
     ])
     expectEqual(try MinimalEncoder.encode(b4), v4)
   }
 
   func test_Decodable() throws {
     let b1: BitArray = []
-    let v1: MinimalEncoder.Value = .array([.uint(0)])
+    let v1: MinimalEncoder.Value = .array([.uint64(0)])
     expectEqual(try MinimalDecoder.decode(v1, as: BitArray.self), b1)
 
     let b2: BitArray = [true, true, false, true]
-    let v2: MinimalEncoder.Value = .array([.uint(4), .uint(11)])
+    let v2: MinimalEncoder.Value = .array([.uint64(4), .uint64(11)])
     expectEqual(try MinimalDecoder.decode(v2, as: BitArray.self), b2)
 
-    let b3 = BitArray(repeating: true, count: 2 * UInt.bitWidth + 17)
+    let b3 = BitArray(repeating: true, count: 145)
     let v3: MinimalEncoder.Value = .array([
-      .uint(UInt(2 * UInt.bitWidth + 17)),
-      .uint(UInt.max),
-      .uint(UInt.max),
-      .uint((1 << 17) - 1)])
+      .uint64(145),
+      .uint64(UInt64.max),
+      .uint64(UInt64.max),
+      .uint64((1 << 17) - 1)])
     expectEqual(try MinimalDecoder.decode(v3, as: BitArray.self), b3)
 
-    let b4 = BitArray(Array(repeating: false, count: 5 * UInt.bitWidth + 23) + [true])
+    let b4 = BitArray(Array(repeating: false, count: 343) + [true])
     let v4: MinimalEncoder.Value = .array([
-      .uint(UInt(5 * UInt.bitWidth + 24)),
-      .uint(0),
-      .uint(0),
-      .uint(0),
-      .uint(0),
-      .uint(0),
-      .uint(1 << 23),
+      .uint64(344),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0),
+      .uint64(1 << 23),
     ])
     expectEqual(try MinimalDecoder.decode(v4, as: BitArray.self), b4)
 
-    let v5: MinimalEncoder.Value = .uint(42)
+    let v5: MinimalEncoder.Value = .uint64(42)
     expectThrows(try MinimalDecoder.decode(v5, as: BitArray.self))
 
     let v6: MinimalEncoder.Value = .array([])
     expectThrows(try MinimalDecoder.decode(v6, as: BitArray.self))
 
-    let v7: MinimalEncoder.Value = .array([.uint(1)])
+    let v7: MinimalEncoder.Value = .array([.uint64(1)])
     expectThrows(try MinimalDecoder.decode(v7, as: BitArray.self))
 
-    let v8: MinimalEncoder.Value = .array([.uint(1), .uint(0), .uint(0)])
+    let v8: MinimalEncoder.Value = .array([
+      .uint64(1),
+      .uint64(0),
+      .uint64(0),
+      .uint64(0)
+    ])
     expectThrows(try MinimalDecoder.decode(v8, as: BitArray.self))
 
-    let v9: MinimalEncoder.Value = .array([.uint(100), .uint(0)])
+    let v9: MinimalEncoder.Value = .array([.uint64(100), .uint64(0)])
     expectThrows(try MinimalDecoder.decode(v9, as: BitArray.self))
 
-    let v10: MinimalEncoder.Value = .array([.uint(16), .uint(UInt.max)])
+    let v10: MinimalEncoder.Value = .array([.uint64(16), .uint64(UInt64.max)])
     expectThrows(try MinimalDecoder.decode(v10, as: BitArray.self))
   }
 
