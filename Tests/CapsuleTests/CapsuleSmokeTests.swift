@@ -429,6 +429,39 @@ final class CapsuleSmokeTests: CollectionTestCase {
         return size
     }
 
+    func testIteratorEnumeratesAllIfCollision() {
+        let upperBound = 1_000
+
+        // '+' prefixed values
+        var map1: PersistentDictionary<CollidableInt, String> = [:]
+        for index in 0..<upperBound {
+            map1[CollidableInt(index, 1)] = "+\(index)"
+            expectTrue(map1.contains(CollidableInt(index, 1)))
+            expectTrue(map1[CollidableInt(index, 1)] == "+\(index)")
+        }
+        expectEqual(map1.count, upperBound)
+        doIterate(map1)
+
+        // '-' prefixed values
+        var map2: PersistentDictionary<CollidableInt, String> = map1
+        for index in 0..<upperBound {
+            map2[CollidableInt(index, 1)] = "-\(index)"
+            expectTrue(map2.contains(CollidableInt(index, 1)))
+            expectTrue(map2[CollidableInt(index, 1)] == "-\(index)")
+        }
+        expectEqual(map2.count, upperBound)
+        doIterate(map2)
+
+        // empty map
+        var map3: PersistentDictionary<CollidableInt, String> = map1
+        for index in 0..<upperBound {
+            map3[CollidableInt(index, 1)] = nil
+        }
+        expectEqual(map3.count, 0)
+        doIterate(map3)
+
+    }
+
     func testIteratorEnumeratesAllIfNoCollision() {
         let upperBound = 1_000_000
 
@@ -448,7 +481,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     }
 
     @inline(never)
-    func doIterate(_ map1: PersistentDictionary<Int, String>) {
+    func doIterate<Key: Hashable, Value>(_ map1: PersistentDictionary<Key, Value>) {
         var count = 0
         for _ in map1 {
             count = count + 1
