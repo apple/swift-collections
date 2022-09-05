@@ -83,8 +83,8 @@ extension BitSet {
   /// This enables you to easily find the closest set member to any integer
   /// value.
   ///
-  ///     let firstMemberNotLessThanFive = bits[5...].first // Optional(6)
-  ///     let lastMemberBelowFive = bits[..<5].last // Optional(2)
+  ///     let firstMemberNotLessThanFive = bits[members: 5...].first // Optional(6)
+  ///     let lastMemberBelowFive = bits[members: ..<5].last // Optional(2)
   ///
   /// - Complexity: Equivalent to two invocations of `index(after:)`.
   public subscript(members bounds: Range<Int>) -> Slice<BitSet> {
