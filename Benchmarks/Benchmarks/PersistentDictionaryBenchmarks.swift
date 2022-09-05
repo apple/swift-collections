@@ -36,29 +36,29 @@ extension Benchmark {
       }
     }
 
-//    self.add(
-//      title: "PersistentDictionary<Int, Int>.Keys sequential iteration",
-//      input: [Int].self
-//    ) { input in
-//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
-//      return { timer in
-//        for item in d.keys {
-//          blackHole(item)
-//        }
-//      }
-//    }
-//
-//    self.add(
-//      title: "PersistentDictionary<Int, Int>.Values sequential iteration",
-//      input: [Int].self
-//    ) { input in
-//      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
-//      return { timer in
-//        for item in d.values {
-//          blackHole(item)
-//        }
-//      }
-//    }
+    self.add(
+      title: "PersistentDictionary<Int, Int>.Keys sequential iteration",
+      input: [Int].self
+    ) { input in
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      return { timer in
+        for item in d.keys {
+          blackHole(item)
+        }
+      }
+    }
+
+    self.add(
+      title: "PersistentDictionary<Int, Int>.Values sequential iteration",
+      input: [Int].self
+    ) { input in
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      return { timer in
+        for item in d.values {
+          blackHole(item)
+        }
+      }
+    }
 
     self.add(
       title: "PersistentDictionary<Int, Int> subscript, successful lookups",

@@ -66,6 +66,24 @@
         },
         {
           "kind": "chart",
+          "title": "sequential iteration [Keys]",
+          "tasks": [
+            "PersistentDictionary<Int, Int>.Keys sequential iteration",
+            "Dictionary<Int, Int>.Keys sequential iteration",
+            "OrderedDictionary<Int, Int>.Keys sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration [Values]",
+          "tasks": [
+            "PersistentDictionary<Int, Int>.Values sequential iteration",
+            "Dictionary<Int, Int>.Values sequential iteration",
+            "OrderedDictionary<Int, Int>.Values sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
           "title": "subscript, insert",
           "tasks": [
             "PersistentDictionary<Int, Int> subscript, insert",
