@@ -9,8 +9,31 @@
 //
 //===----------------------------------------------------------------------===//
 
-//extension BitmapIndexedDictionaryNode: CustomStringConvertible {
-//    public var description: String {
-//        <#code#>
-//    }
-//}
+extension BitmapIndexedDictionaryNode: CustomStringConvertible {
+    public var description: String {
+        guard count > 0 else {
+            return "[:]"
+        }
+
+        var result = "["
+        var first = true
+        for (key, value) in _dataSlice {
+            if first {
+                first = false
+            } else {
+                result += ", "
+            }
+            result += "\(key): \(value)"
+        }
+        for node in _trieSlice {
+            if first {
+                first = false
+            } else {
+                result += ", "
+            }
+            result += "\(node.description)"
+        }
+        result += "]"
+        return result
+    }
+}
