@@ -19,20 +19,6 @@ class PersistentDictionaryTests: CollectionTestCase {
     expectEqual(d.count, 0)
   }
 
-//  func test_init_minimumCapacity() {
-//    let d = PersistentDictionary<String, Int>(minimumCapacity: 1000)
-//    expectGreaterThanOrEqual(d.keys.__unstable.capacity, 1000)
-//    expectGreaterThanOrEqual(d.values.elements.capacity, 1000)
-//    expectEqual(d.keys.__unstable.reservedScale, 0)
-//  }
-
-//  func test_init_minimumCapacity_persistent() {
-//    let d = PersistentDictionary<String, Int>(minimumCapacity: 1000, persistent: true)
-//    expectGreaterThanOrEqual(d.keys.__unstable.capacity, 1000)
-//    expectGreaterThanOrEqual(d.values.elements.capacity, 1000)
-//    expectNotEqual(d.keys.__unstable.reservedScale, 0)
-//  }
-
 //  func test_uniqueKeysWithValues_Dictionary() {
 //    let items: Dictionary<String, Int> = [
 //      "zero": 0,
@@ -148,18 +134,6 @@ class PersistentDictionaryTests: CollectionTestCase {
 //    ]
 //    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //    expectEqualElements(d, items)
-//  }
-
-//  func test_uncheckedUniqueKeys_values() {
-//    let d = PersistentDictionary(
-//    uncheckedUniqueKeys: ["zero", "one", "two", "three"],
-//      values: [0, 1, 2, 3])
-//    expectEqualElements(d, [
-//      (key: "zero", value: 0),
-//      (key: "one", value: 1),
-//      (key: "two", value: 2),
-//      (key: "three", value: 3),
-//    ])
 //  }
 
   func test_ExpressibleByDictionaryLiteral() {
@@ -1180,22 +1154,6 @@ class PersistentDictionaryTests: CollectionTestCase {
 //          withHiddenCopies(if: isShared, of: &d) { d in
 //            d.removeAll()
 //            expectEqual(d.keys.__unstable.scale, 0)
-//            expectEqualElements(d, [])
-//          }
-//        }
-//      }
-//    }
-//  }
-
-//  func test_removeAll_keepCapacity() {
-//    withEvery("count", in: 0 ..< 30) { count in
-//      withEvery("isShared", in: [false, true]) { isShared in
-//        withLifetimeTracking { tracker in
-//          var (d, _, _) = tracker.persistentDictionary(keys: 0 ..< count)
-//          let origScale = d.keys.__unstable.scale
-//          withHiddenCopies(if: isShared, of: &d) { d in
-//            d.removeAll(keepingCapacity: true)
-//            expectEqual(d.keys.__unstable.scale, origScale)
 //            expectEqualElements(d, [])
 //          }
 //        }
