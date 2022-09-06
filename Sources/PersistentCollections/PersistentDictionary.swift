@@ -88,8 +88,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
             if let value = optionalValue {
                 insert(key: key, value: value)
             } else {
-                let mutate = isKnownUniquelyReferenced(&self.rootNode)
-                delete(mutate, key: key)
+                delete(key: key)
             }
         }
     }
@@ -134,7 +133,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         } else { return self }
     }
 
-    // TODO signature adopted from `Dictionary`, unify with API
+    // TODO: signature adopted from `Dictionary`, unify with API
     @discardableResult
     public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         let oldValue = get(key)
@@ -142,13 +141,9 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         return oldValue
     }
 
-    public mutating func delete(_ key: Key) {
-        let mutate = isKnownUniquelyReferenced(&self.rootNode)
-        delete(mutate, key: key)
-    }
+    public mutating func delete(key: Key) {
+        let isStorageKnownUniquelyReferenced = isKnownUniquelyReferenced(&self.rootNode)
 
-    // querying `isKnownUniquelyReferenced(&self.rootNode)` from within the body of the function always yields `false`
-    mutating func delete(_ isStorageKnownUniquelyReferenced: Bool, key: Key) {
         var effect = DictionaryEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removeOrRemoving(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
@@ -169,11 +164,11 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         } else { return self }
     }
 
-    // TODO signature adopted from `Dictionary`, unify with API
+    // TODO: signature adopted from `Dictionary`, unify with API
     @discardableResult
     public mutating func removeValue(forKey key: Key) -> Value? {
         if let value = get(key) {
-            delete(key)
+            delete(key: key)
             return value
         }
         return nil
