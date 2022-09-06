@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2019 - 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2019 - 2022 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -30,7 +30,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
     public init<S>(uncheckedUniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
         var builder = Self()
         keysAndValues.forEach { key, value in
-            builder.insert(key: key, value: value)
+            builder.updateValue(value, forKey: key)
         }
         self.init(builder)
     }
@@ -41,7 +41,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         var builder = Self()
         var expectedCount = 0
         keysAndValues.forEach { key, value in
-            builder.insert(key: key, value: value)
+            builder.updateValue(value, forKey: key)
             expectedCount += 1
 
             guard expectedCount == builder.count else {
@@ -86,9 +86,9 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         }
         mutating set(optionalValue) {
             if let value = optionalValue {
-                insert(key: key, value: value)
+                updateValue(value, forKey: key)
             } else {
-                delete(key: key)
+                removeValue(forKey: key)
             }
         }
     }
@@ -98,7 +98,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
             return get(key) ?? defaultValue()
         }
         mutating set(value) {
-            insert(key: key, value: value)
+            updateValue(value, forKey: key)
         }
     }
 
@@ -110,21 +110,25 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         rootNode.get(key, computeHash(key), 0)
     }
 
-    public mutating func insert(key: Key, value: Value) {
+    @discardableResult
+    public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         let isStorageKnownUniquelyReferenced = isKnownUniquelyReferenced(&self.rootNode)
 
-        var effect = DictionaryEffect()
+        var effect = DictionaryEffect<Value>()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updateOrUpdating(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
 
         if effect.modified {
             self.rootNode = newRootNode
         }
+
+        // Note, always tracking discardable result negatively impacts batch use cases
+        return effect.previousValue
     }
 
     // fluid/immutable API
-    public func inserting(key: Key, value: Value) -> Self {
-        var effect = DictionaryEffect()
+    public func updatingValue(_ value: Value, forKey key: Key) -> Self {
+        var effect = DictionaryEffect<Value>()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updateOrUpdating(false, key, value, keyHash, 0, &effect)
 
@@ -133,45 +137,31 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         } else { return self }
     }
 
-    // TODO: signature adopted from `Dictionary`, unify with API
     @discardableResult
-    public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
-        let oldValue = get(key)
-        insert(key: key, value: value)
-        return oldValue
-    }
-
-    public mutating func delete(key: Key) {
+    public mutating func removeValue(forKey key: Key) -> Value? {
         let isStorageKnownUniquelyReferenced = isKnownUniquelyReferenced(&self.rootNode)
 
-        var effect = DictionaryEffect()
+        var effect = DictionaryEffect<Value>()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removeOrRemoving(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
 
         if effect.modified {
             self.rootNode = newRootNode
         }
+
+        // Note, always tracking discardable result negatively impacts batch use cases
+        return effect.previousValue
     }
 
     // fluid/immutable API
-    public func deleting(key: Key) -> Self {
-        var effect = DictionaryEffect()
+    public func removingValue(forKey key: Key) -> Self {
+        var effect = DictionaryEffect<Value>()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
         if effect.modified {
             return Self(newRootNode)
         } else { return self }
-    }
-
-    // TODO: signature adopted from `Dictionary`, unify with API
-    @discardableResult
-    public mutating func removeValue(forKey key: Key) -> Value? {
-        if let value = get(key) {
-            delete(key: key)
-            return value
-        }
-        return nil
     }
 }
 

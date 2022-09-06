@@ -138,6 +138,22 @@
             "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
           ]
         },
+        {
+          "kind": "chart",
+          "title": "updateValue(_:forKey:), existing",
+          "tasks": [
+            "PersistentDictionary<Int, Int> updateValue(_:forKey:), existing",
+            "Dictionary<Int, Int> updateValue(_:forKey:), existing",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "updateValue(_:forKey:), insert",
+          "tasks": [
+            "PersistentDictionary<Int, Int> updateValue(_:forKey:), insert",
+            "Dictionary<Int, Int> updateValue(_:forKey:), insert",
+          ]
+        },
       ]
     },
   ]

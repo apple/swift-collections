@@ -52,12 +52,12 @@ final class CapsuleSmokeTests: CollectionTestCase {
         let map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
         _ = map
-            .inserting(key: 1, value: "x") // triggers COW
-            .inserting(key: 2, value: "y") // triggers COW
+            .updatingValue("x", forKey: 1) // triggers COW
+            .updatingValue("y", forKey: 2) // triggers COW
 
         var res1: PersistentDictionary<Int, String> = [:]
-        res1.insert(key: 1, value: "a") // in-place
-        res1.insert(key: 2, value: "b") // in-place
+        res1.updateValue("a", forKey: 1) // in-place
+        res1.updateValue("b", forKey: 2) // in-place
 
         var res2: PersistentDictionary<Int, String> = [:]
         res2[1] = "a" // in-place
@@ -78,22 +78,18 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
     func testTriggerOverwrite2() {
         var res1: PersistentDictionary<CollidableInt, String> = [:]
-        res1.insert(key: CollidableInt(10, 01), value: "a") // in-place
-        res1.insert(key: CollidableInt(11, 33), value: "a") // in-place
-        res1.insert(key: CollidableInt(20, 02), value: "b") // in-place
+        res1.updateValue("a", forKey: CollidableInt(10, 01)) // in-place
+        res1.updateValue("a", forKey: CollidableInt(11, 33)) // in-place
+        res1.updateValue("b", forKey: CollidableInt(20, 02)) // in-place
 
-        res1.insert(key: CollidableInt(10, 01), value: "x") // in-place
-        res1.insert(key: CollidableInt(11, 33), value: "x") // in-place
-        res1.insert(key: CollidableInt(20, 02), value: "y") // in-place
-
-        print("Yeah!")
+        res1.updateValue("x", forKey: CollidableInt(10, 01)) // in-place
+        res1.updateValue("x", forKey: CollidableInt(11, 33)) // in-place
+        res1.updateValue("y", forKey: CollidableInt(20, 02)) // in-place
 
         var res2: PersistentDictionary<CollidableInt, String> = res1
-        res2.insert(key: CollidableInt(10, 01), value: "a") // triggers COW
-        res2.insert(key: CollidableInt(11, 33), value: "a") // in-place
-        res2.insert(key: CollidableInt(20, 02), value: "b") // in-place
-
-        print("Yeah!")
+        res2.updateValue("a", forKey: CollidableInt(10, 01)) // triggers COW
+        res2.updateValue("a", forKey: CollidableInt(11, 33)) // in-place
+        res2.updateValue("b", forKey: CollidableInt(20, 02)) // in-place
 
         expectEqual(res1[CollidableInt(10, 01)], "x")
         expectEqual(res1[CollidableInt(11, 33)], "x")
@@ -108,20 +104,19 @@ final class CapsuleSmokeTests: CollectionTestCase {
     func testTriggerOverwrite3() {
         let upperBound = 1_000
 
+        // Populating `map1`
         var map1: PersistentDictionary<CollidableInt, String> = [:]
         for index in 0..<upperBound {
             map1[CollidableInt(index)] = "+\(index)"
         }
 
-        print("Populated `map1`")
-
+        // Populating `map2`
         var map2: PersistentDictionary<CollidableInt, String> = map1
         for index in 0..<upperBound {
             map2[CollidableInt(index)] = "-\(index)"
         }
 
-        print("Populated `map2`")
-
+        // Testing `map1` and `map2`
         expectEqual(map1.count, upperBound)
         expectEqual(map2.count, upperBound)
 
@@ -130,8 +125,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
             expectEqual(map2[CollidableInt(index)], "-\(index)")
         }
 
-        print("Tested `map1` and `map2`")
-
+        // Populating and testing `map3`
         var map3: PersistentDictionary<CollidableInt, String> = map2
         for index in 0..<upperBound {
             map3[CollidableInt(index)] = nil
@@ -142,8 +136,6 @@ final class CapsuleSmokeTests: CollectionTestCase {
             }
 
         }
-
-        print("Populated `map3`")
 
         expectEqual(map3.count, 0)
     }

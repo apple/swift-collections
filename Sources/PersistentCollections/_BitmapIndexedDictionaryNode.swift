@@ -333,7 +333,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         fatalError("Should not reach here.")
     }
 
-    final func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+    final func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect<Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
 
         guard collisionFree else {
             return updateOrUpdatingCollision(isStorageKnownUniquelyReferenced, key, value, keyHash, shift, &effect)
@@ -347,7 +347,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             let (key0, value0) = self.getPayload(index)
 
             if key0 == key {
-                effect.setReplacedValue()
+                effect.setReplacedValue(previousValue: value0)
                 return copyAndSetValue(isStorageKnownUniquelyReferenced, bitpos, value)
             } else {
                 let keyHash0 = computeHash(key0)
@@ -377,7 +377,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
             let subNode = self.getNode(index)
 
             let subNodeNew = subNode.updateOrUpdating(subNodeModifyInPlace, key, value, keyHash, shift + bitPartitionSize, &effect)
-            guard effect.modified && subNode !== subNodeNew else { if !effect.replacedValue { count += 1 } ; assert(self.invariant) ; return self }
+            guard effect.modified && subNode !== subNodeNew else { if effect.previousValue == nil { count += 1 } ; assert(self.invariant) ; return self }
 
             return copyAndSetTrieNode(isStorageKnownUniquelyReferenced, bitpos, index, subNodeNew, updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
         }
@@ -387,7 +387,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     }
 
     @inline(never)
-    final func updateOrUpdatingCollision(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+    final func updateOrUpdatingCollision(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect<Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         assert(hashCollision)
 
         let content: [ReturnPayload] = Array(self)
@@ -401,7 +401,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         if let index = content.firstIndex(where: { key == $0.key }) {
             let updatedContent: [ReturnPayload] = content[0..<index] + [(key, value)] + content[index+1..<content.count]
 
-            effect.setReplacedValue()
+            effect.setReplacedValue(previousValue: content[index].value)
             return Self(/* hash, */ collisions: updatedContent)
         } else {
             effect.setModified()
@@ -409,7 +409,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         }
     }
 
-    final func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+    final func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect<Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
 
         guard collisionFree else {
             return removeOrRemovingCollision(isStorageKnownUniquelyReferenced, key, keyHash, shift, &effect)
@@ -420,10 +420,10 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
 
         guard (dataMap & bitpos) == 0 else {
             let index = indexFrom(dataMap, mask, bitpos)
-            let (key0, _) = self.getPayload(index)
+            let (key0, value0) = self.getPayload(index)
             guard key0 == key else { assert(self.invariant) ; return self }
 
-            effect.setModified()
+            effect.setModified(previousValue: value0)
             if self.payloadArity == 2 && self.nodeArity == 0 {
                 if shift == 0 {
                     // keep remaining pair on root level
@@ -477,14 +477,14 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     }
 
     @inline(never)
-    final func removeOrRemovingCollision(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect) -> BitmapIndexedDictionaryNode<Key, Value> {
+    final func removeOrRemovingCollision(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ keyHash: Int, _ shift: Int, _ effect: inout DictionaryEffect<Value>) -> BitmapIndexedDictionaryNode<Key, Value> {
         assert(hashCollision)
 
         let content: [ReturnPayload] = Array(self)
         let _ = computeHash(content.first!.key)
 
         if let index = content.firstIndex(where: { key == $0.key }) {
-            effect.setModified()
+            effect.setModified(previousValue: content[index].value)
             var updatedContent = content; updatedContent.remove(at: index)
             assert(updatedContent.count == content.count - 1)
 
