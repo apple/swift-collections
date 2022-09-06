@@ -12,7 +12,10 @@
           "title": "all",
           "tasks": [
             "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "PersistentDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
             "PersistentDictionary<Int, Int> sequential iteration",
+            "PersistentDictionary<Int, Int>.Keys sequential iteration",
+            "PersistentDictionary<Int, Int>.Values sequential iteration",
             "PersistentDictionary<Int, Int> subscript, successful lookups",
             "PersistentDictionary<Int, Int> subscript, unsuccessful lookups",
             "PersistentDictionary<Int, Int> subscript, noop setter",
@@ -53,6 +56,14 @@
             "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
             "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
             "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "init(uncheckedUniqueKeysWithValues:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
+            "OrderedDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
           ]
         },
         {
