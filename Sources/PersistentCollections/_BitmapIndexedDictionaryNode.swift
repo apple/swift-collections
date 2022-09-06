@@ -174,7 +174,6 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         assert(self.invariant)
     }
 
-    @available(*, deprecated)
     convenience init(trieMap: Bitmap, firstNode: BitmapIndexedDictionaryNode<Key, Value>) {
         self.init()
 
@@ -186,7 +185,6 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
         assert(self.invariant)
     }
 
-    @available(*, deprecated)
     convenience init(dataMap: Bitmap, trieMap: Bitmap, firstKey: Key, firstValue: Value, firstNode: BitmapIndexedDictionaryNode<Key, Value>) {
         self.init()
 
