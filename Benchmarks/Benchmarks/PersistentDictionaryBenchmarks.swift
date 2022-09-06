@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-import Capsule
+import PersistentCollections
 
 extension Benchmark {
   public mutating func addPersistentDictionaryBenchmarks() {

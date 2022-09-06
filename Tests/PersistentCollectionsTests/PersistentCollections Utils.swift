@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import _CollectionsTestSupport
-import Capsule
+import PersistentCollections
 
 extension LifetimeTracker {
   func persistentDictionary<Keys: Sequence>(

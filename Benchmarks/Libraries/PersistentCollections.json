@@ -1,6 +1,6 @@
 {
   "kind": "group",
-  "title": "Capsule Benchmarks",
+  "title": "PersistentCollections Benchmarks",
   "directory": "Results",
   "contents": [
     {

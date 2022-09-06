@@ -54,8 +54,8 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
-    .library(name: "Capsule", targets: ["Capsule"]),
   ],
   targets: [
     .target(
@@ -63,8 +63,8 @@ let package = Package(
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "PersistentCollections",
         "PriorityQueueModule",
-        "Capsule",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -106,6 +106,15 @@ let package = Package(
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
+    // PersistentDictionary<Key, Value>
+    .target(
+        name: "PersistentCollections",
+        swiftSettings: settings),
+    .testTarget(
+        name: "PersistentCollectionsTests",
+        dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+        swiftSettings: settings),
+
     // PriorityQueue<Element>
     .target(
         name: "PriorityQueueModule",
@@ -115,14 +124,5 @@ let package = Package(
         name: "PriorityQueueTests",
         dependencies: ["PriorityQueueModule"],
         swiftSettings: settings),
-
-    // PersistentDictionary<Key, Value>
-    .target(
-      name: "Capsule",
-      swiftSettings: settings),
-    .testTarget(
-      name: "CapsuleTests",
-      dependencies: ["Capsule", "_CollectionsTestSupport"],
-      swiftSettings: settings),
   ]
 )
