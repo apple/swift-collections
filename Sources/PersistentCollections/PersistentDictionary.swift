@@ -86,8 +86,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         }
         mutating set(optionalValue) {
             if let value = optionalValue {
-                let mutate = isKnownUniquelyReferenced(&self.rootNode)
-                insert(mutate, key: key, value: value)
+                insert(key: key, value: value)
             } else {
                 let mutate = isKnownUniquelyReferenced(&self.rootNode)
                 delete(mutate, key: key)
@@ -100,8 +99,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
             return get(key) ?? defaultValue()
         }
         mutating set(value) {
-            let mutate = isKnownUniquelyReferenced(&self.rootNode)
-            insert(mutate, key: key, value: value)
+            insert(key: key, value: value)
         }
     }
 
@@ -114,12 +112,8 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
     }
 
     public mutating func insert(key: Key, value: Value) {
-        let mutate = isKnownUniquelyReferenced(&self.rootNode)
-        insert(mutate, key: key, value: value)
-    }
+        let isStorageKnownUniquelyReferenced = isKnownUniquelyReferenced(&self.rootNode)
 
-    // querying `isKnownUniquelyReferenced(&self.rootNode)` from within the body of the function always yields `false`
-    mutating func insert(_ isStorageKnownUniquelyReferenced: Bool, key: Key, value: Value) {
         var effect = DictionaryEffect()
         let keyHash = computeHash(key)
         let newRootNode = rootNode.updateOrUpdating(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
