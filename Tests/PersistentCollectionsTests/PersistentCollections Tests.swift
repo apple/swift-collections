@@ -73,7 +73,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       (key: "two", value: 2),
       (key: "three", value: 3)
     ]
-    let d = PersistentDictionary(uncheckedUniqueKeys: ["zero", "one", "two", "three"], values: [0, 1, 2, 3])
+    let d = PersistentDictionary(uniqueKeys: ["zero", "one", "two", "three"], values: [0, 1, 2, 3])
     expectEqualElements(d.sorted(by: <), items.sorted(by: <))
   }
 
