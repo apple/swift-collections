@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO check Dictionary semantics of Equatable (i.e., if it only compares keys or also values)
 extension PersistentDictionary: Equatable where Value: Equatable {
     public static func == (lhs: PersistentDictionary<Key, Value>, rhs: PersistentDictionary<Key, Value>) -> Bool {
         lhs.rootNode === rhs.rootNode || lhs.rootNode == rhs.rootNode
