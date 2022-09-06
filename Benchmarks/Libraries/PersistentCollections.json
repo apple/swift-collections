@@ -12,7 +12,6 @@
           "title": "all",
           "tasks": [
             "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
-            "PersistentDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
             "PersistentDictionary<Int, Int> sequential iteration",
             "PersistentDictionary<Int, Int>.Keys sequential iteration",
             "PersistentDictionary<Int, Int>.Values sequential iteration",
@@ -56,14 +55,6 @@
             "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
             "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
             "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
-          ]
-        },
-        {
-          "kind": "chart",
-          "title": "init(uncheckedUniqueKeysWithValues:)",
-          "tasks": [
-            "PersistentDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
-            "OrderedDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
           ]
         },
         {
@@ -144,7 +135,7 @@
           "tasks": [
             "PersistentDictionary<Int, Int> updateValue(_:forKey:), existing",
             "Dictionary<Int, Int> updateValue(_:forKey:), existing",
-          ]
+           ]
         },
         {
           "kind": "chart",

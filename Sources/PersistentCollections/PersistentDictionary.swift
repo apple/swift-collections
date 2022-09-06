@@ -24,17 +24,6 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
         self.init(map.rootNode)
     }
 
-    // TODO: consider removing `unchecked` version, since it's only referenced from within the test suite
-    @inlinable
-    @inline(__always)
-    public init<S>(uncheckedUniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
-        var builder = Self()
-        keysAndValues.forEach { key, value in
-            builder.updateValue(value, forKey: key)
-        }
-        self.init(builder)
-    }
-
     @inlinable
     @inline(__always)
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
@@ -49,13 +38,6 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
             }
         }
         self.init(builder)
-    }
-
-    // TODO: consider removing `unchecked` version, since it's only referenced from within the test suite
-    @inlinable
-    @inline(__always)
-    public init<Keys: Sequence, Values: Sequence>(uncheckedUniqueKeys keys: Keys, values: Values) where Keys.Element == Key, Values.Element == Value {
-        self.init(uncheckedUniqueKeysWithValues: zip(keys, values))
     }
 
     @inlinable

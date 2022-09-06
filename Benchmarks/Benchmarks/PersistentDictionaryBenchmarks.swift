@@ -25,16 +25,6 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PersistentDictionary<Int, Int> init(uncheckedUniqueKeysWithValues:)",
-      input: [Int].self
-    ) { input in
-      let keysAndValues = input.map { ($0, 2 * $0) }
-      return { timer in
-        blackHole(PersistentDictionary(uncheckedUniqueKeysWithValues: keysAndValues))
-      }
-    }
-
-    self.add(
       title: "PersistentDictionary<Int, Int> sequential iteration",
       input: [Int].self
     ) { input in

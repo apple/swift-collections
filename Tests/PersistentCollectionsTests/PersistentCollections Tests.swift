@@ -40,7 +40,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 //      "two": 2,
 //      "three": 3,
 //    ]
-//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
 //  }
 
@@ -51,7 +51,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 //      "two": 2,
 //      "three": 3,
 //    ]
-//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
 //  }
 
@@ -62,7 +62,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       ("two", 2),
       ("three", 3),
     ]
-    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
+    let d = PersistentDictionary(uniqueKeysWithValues: items)
     expectEqualElements(d.sorted(by: <), items.sorted(by: <))
   }
 
@@ -128,25 +128,25 @@ class PersistentDictionaryTests: CollectionTestCase {
 //    ])
 //  }
 
-//  func test_uncheckedUniqueKeysWithValues_labeled_tuples() {
+//  func test_uniqueKeysWithValues_labeled_tuples() {
 //    let items: KeyValuePairs<String, Int> = [
 //      "zero": 0,
 //      "one": 1,
 //      "two": 2,
 //      "three": 3,
 //    ]
-//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //    expectEqualElements(d, items)
 //  }
 
-//  func test_uncheckedUniqueKeysWithValues_unlabeled_tuples() {
+//  func test_uniqueKeysWithValues_unlabeled_tuples() {
 //    let items: [(String, Int)] = [
 //      ("zero", 0),
 //      ("one", 1),
 //      ("two", 2),
 //      ("three", 3),
 //    ]
-//    let d = PersistentDictionary(uncheckedUniqueKeysWithValues: items)
+//    let d = PersistentDictionary(uniqueKeysWithValues: items)
 //    expectEqualElements(d, items)
 //  }
 
