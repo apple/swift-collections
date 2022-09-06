@@ -86,6 +86,19 @@ extension Benchmark {
     }
 
     self.add(
+      title: "OrderedDictionary<Int, Int> subscript(position:)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let indices = lookups.map { d.index(forKey: $0)! }
+      return { timer in
+        for i in indices {
+          blackHole(d.elements[indices[i]]) // uses `elements` random-access collection view
+        }
+      }
+    }
+
+    self.add(
       title: "OrderedDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in

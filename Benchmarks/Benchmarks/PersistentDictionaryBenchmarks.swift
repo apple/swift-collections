@@ -61,6 +61,19 @@ extension Benchmark {
     }
 
     self.add(
+      title: "PersistentDictionary<Int, Int> subscript(position:)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let indices = lookups.map { d.index(forKey: $0)! }
+      return { timer in
+        for i in indices {
+          blackHole(d[i])
+        }
+      }
+    }
+
+    self.add(
       title: "PersistentDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in

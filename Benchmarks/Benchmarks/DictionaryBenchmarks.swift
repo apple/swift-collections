@@ -231,6 +231,19 @@ extension Benchmark {
     }
 
     self.add(
+      title: "Dictionary<Int, Int> subscript(position:)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = Dictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let indices = lookups.map { d.index(forKey: $0)! }
+      return { timer in
+        for i in indices {
+          blackHole(d[i])
+        }
+      }
+    }
+
+    self.add(
       title: "Dictionary<Int, Int> defaulted subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in

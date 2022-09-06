@@ -34,7 +34,6 @@ extension PersistentDictionary: Collection {
     ///
     /// Accesses the key-value pair at the specified position.
     ///
-    // TODO: add benchmark for this method across all dictionary types
     public subscript(position: Self.Index) -> Self.Element {
         return rootNode.get(position: position, 0, position.value)
     }

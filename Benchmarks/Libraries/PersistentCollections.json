@@ -113,6 +113,15 @@
         },
         {
           "kind": "chart",
+          "title": "subscript(position:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> subscript(position:)",
+            "Dictionary<Int, Int> subscript(position:)",
+            "OrderedDictionary<Int, Int> subscript(position:)",
+          ]
+        },
+        {
+          "kind": "chart",
           "title": "index(forKey:), successful index(forKey:)",
           "tasks": [
             "PersistentDictionary<Int, Int> successful index(forKey:)",
