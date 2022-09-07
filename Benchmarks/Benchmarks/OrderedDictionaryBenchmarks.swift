@@ -86,6 +86,19 @@ extension Benchmark {
     }
 
     self.add(
+      title: "OrderedDictionary<Int, Int> subscript(position:)",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let indices = lookups.map { d.index(forKey: $0)! }
+      return { timer in
+        for i in indices {
+          blackHole(d.elements[indices[i]]) // uses `elements` random-access collection view
+        }
+      }
+    }
+
+    self.add(
       title: "OrderedDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
@@ -176,6 +189,26 @@ extension Benchmark {
       blackHole(d)
     }
 
+    self.add(
+      title: "OrderedDictionary<Int, Int> [COW] subscript, append",
+      input: ([Int], [Int]).self
+    ) { input, insert in
+      return { timer in
+        let d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        let c = input.count
+        timer.measure {
+          for i in insert {
+            var e = d
+            e[c + i] = 2 * (c + i)
+            precondition(e.count == input.count + 1)
+            blackHole(e)
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+
     self.addSimple(
       title: "OrderedDictionary<Int, Int> subscript, append, reserving capacity",
       input: [Int].self
@@ -202,6 +235,25 @@ extension Benchmark {
           }
         }
         precondition(d.isEmpty)
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> [COW] subscript, remove existing",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        let d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        timer.measure {
+          for i in lookups {
+            var e = d
+            e[i] = nil
+            precondition(e.count == input.count - 1)
+            blackHole(e)
+          }
+        }
+        precondition(d.count == input.count)
         blackHole(d)
       }
     }

@@ -54,6 +54,7 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
   ],
   targets: [
@@ -62,6 +63,7 @@ let package = Package(
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "PersistentCollections",
         "PriorityQueueModule",
       ],
       path: "Sources/Collections",
@@ -103,6 +105,15 @@ let package = Package(
       name: "OrderedCollectionsTests",
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
+
+    // PersistentDictionary<Key, Value>
+    .target(
+        name: "PersistentCollections",
+        swiftSettings: settings),
+    .testTarget(
+        name: "PersistentCollectionsTests",
+        dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+        swiftSettings: settings),
 
     // PriorityQueue<Element>
     .target(

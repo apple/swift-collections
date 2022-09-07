@@ -1,0 +1,160 @@
+{
+  "kind": "group",
+  "title": "PersistentCollections Benchmarks",
+  "directory": "Results",
+  "contents": [
+    {
+      "kind": "group",
+      "title": "PersistentDictionary Operations",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "all",
+          "tasks": [
+            "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "PersistentDictionary<Int, Int> sequential iteration",
+            "PersistentDictionary<Int, Int>.Keys sequential iteration",
+            "PersistentDictionary<Int, Int>.Values sequential iteration",
+            "PersistentDictionary<Int, Int> subscript, successful lookups",
+            "PersistentDictionary<Int, Int> subscript, unsuccessful lookups",
+            "PersistentDictionary<Int, Int> subscript, noop setter",
+            "PersistentDictionary<Int, Int> subscript, set existing",
+            "PersistentDictionary<Int, Int> subscript, _modify",
+            "PersistentDictionary<Int, Int> subscript, insert",
+            "PersistentDictionary<Int, Int> subscript, insert, reserving capacity",
+            "PersistentDictionary<Int, Int> subscript, remove existing",
+            "PersistentDictionary<Int, Int> subscript, remove missing",
+            "PersistentDictionary<Int, Int> defaulted subscript, successful lookups",
+            "PersistentDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+            "PersistentDictionary<Int, Int> defaulted subscript, _modify existing",
+            "PersistentDictionary<Int, Int> defaulted subscript, _modify missing",
+            "PersistentDictionary<Int, Int> updateValue(_:forKey:), existing",
+            "PersistentDictionary<Int, Int> updateValue(_:forKey:), insert",
+            "PersistentDictionary<Int, Int> random removals (existing keys)",
+            "PersistentDictionary<Int, Int> random removals (missing keys)",
+            "PersistentDictionary<Int, Int> successful index(forKey:)",
+            "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "HashSet Operations",
+      "contents": []
+    },
+    {
+      "kind": "group",
+      "title": "Comparisons against reference implementations",
+      "directory": "versus",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "init(uniqueKeysWithValues:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration",
+          "tasks": [
+            "PersistentDictionary<Int, Int> sequential iteration",
+            "Dictionary<Int, Int> sequential iteration",
+            "OrderedDictionary<Int, Int> sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration [Keys]",
+          "tasks": [
+            "PersistentDictionary<Int, Int>.Keys sequential iteration",
+            "Dictionary<Int, Int>.Keys sequential iteration",
+            "OrderedDictionary<Int, Int>.Keys sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration [Values]",
+          "tasks": [
+            "PersistentDictionary<Int, Int>.Values sequential iteration",
+            "Dictionary<Int, Int>.Values sequential iteration",
+            "OrderedDictionary<Int, Int>.Values sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, insert",
+          "tasks": [
+            "PersistentDictionary<Int, Int> subscript, insert",
+            "Dictionary<Int, Int> subscript, insert",
+            "OrderedDictionary<Int, Int> subscript, append",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "[COW] subscript, insert",
+          "tasks": [
+            "PersistentDictionary<Int, Int> [COW] subscript, insert",
+            "Dictionary<Int, Int> [COW] subscript, insert",
+            "OrderedDictionary<Int, Int> [COW] subscript, append",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, remove existing",
+          "tasks": [
+            "PersistentDictionary<Int, Int> subscript, remove existing",
+            "Dictionary<Int, Int> subscript, remove existing",
+            "OrderedDictionary<Int, Int> subscript, remove existing",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript(position:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> subscript(position:)",
+            "Dictionary<Int, Int> subscript(position:)",
+            "OrderedDictionary<Int, Int> subscript(position:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "index(forKey:), successful index(forKey:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> successful index(forKey:)",
+            "Dictionary<Int, Int> successful index(forKey:)",
+            "OrderedDictionary<Int, Int> successful index(forKey:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "index(forKey:), unsuccessful index(forKey:)",
+          "tasks": [
+            "PersistentDictionary<Int, Int> unsuccessful index(forKey:)",
+            "Dictionary<Int, Int> unsuccessful index(forKey:)",
+            "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "updateValue(_:forKey:), existing",
+          "tasks": [
+            "PersistentDictionary<Int, Int> updateValue(_:forKey:), existing",
+            "Dictionary<Int, Int> updateValue(_:forKey:), existing",
+           ]
+        },
+        {
+          "kind": "chart",
+          "title": "updateValue(_:forKey:), insert",
+          "tasks": [
+            "PersistentDictionary<Int, Int> updateValue(_:forKey:), insert",
+            "Dictionary<Int, Int> updateValue(_:forKey:), insert",
+          ]
+        },
+      ]
+    },
+  ]
+}
