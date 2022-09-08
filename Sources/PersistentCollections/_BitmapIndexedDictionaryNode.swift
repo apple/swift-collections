@@ -746,11 +746,11 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
   private final var counts: [Int] {
     var counts = Array(repeating: 0, count: Bitmap.bitWidth)
 
-    zip(header.dataMap.nonzeroBits(), _dataSlice).forEach { (index, _) in
+    zip(header.dataMap._nonzeroBits(), _dataSlice).forEach { (index, _) in
       counts[index] = 1
     }
 
-    zip(header.trieMap.nonzeroBits(), _trieSlice).forEach { (index, trieNode) in
+    zip(header.trieMap._nonzeroBits(), _trieSlice).forEach { (index, trieNode) in
       counts[index] = trieNode.count
     }
 
