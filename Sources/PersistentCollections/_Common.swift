@@ -13,13 +13,19 @@ internal func _computeHash<T: Hashable>(_ value: T) -> Int {
   value.hashValue
 }
 
-internal let _bitPartitionSize: Int = 5
+@inline(__always)
+internal var _bitPartitionSize: Int { 5 }
 
-internal let _bitPartitionMask: Int = (1 << _bitPartitionSize) - 1
+@inline(__always)
+internal var _bitPartitionMask: Int { (1 << _bitPartitionSize) - 1 }
 
-internal let _hashCodeLength: Int = Int.bitWidth
+@inline(__always)
+internal var _hashCodeLength: Int { Int.bitWidth }
 
-internal let _maxDepth = (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
+@inline(__always)
+internal var _maxDepth: Int {
+  (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
+}
 
 internal func _maskFrom(_ hash: Int, _ shift: Int) -> Int {
   (hash >> shift) & _bitPartitionMask
