@@ -49,7 +49,6 @@ extension PersistentDictionary {
     typealias Capacity = _NodeHeader.Capacity
 
     typealias DataBufferElement = ReturnPayload
-    typealias TrieBufferElement = _Node
 
     var header: _NodeHeader
     var count: Int
@@ -58,7 +57,7 @@ extension PersistentDictionary {
     let trieCapacity: Capacity
 
     let dataBaseAddress: UnsafeMutablePointer<DataBufferElement>
-    let trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
+    let trieBaseAddress: UnsafeMutablePointer<_Node>
 
     deinit {
       dataBaseAddress.deinitialize(count: header.dataCount)
@@ -99,14 +98,14 @@ extension PersistentDictionary._Node {
     dataCapacity: Capacity, trieCapacity: Capacity
   ) -> (
     dataBaseAddress: UnsafeMutablePointer<DataBufferElement>,
-    trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
+    trieBaseAddress: UnsafeMutablePointer<_Node>
   ) {
     let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<DataBufferElement>.stride
-    let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<TrieBufferElement>.stride
+    let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<_Node>.stride
 
     let alignment = Swift.max(
       MemoryLayout<DataBufferElement>.alignment,
-      MemoryLayout<TrieBufferElement>.alignment)
+      MemoryLayout<_Node>.alignment)
     let memory = UnsafeMutableRawPointer.allocate(
       byteCount: dataCapacityInBytes + trieCapacityInBytes,
       alignment: alignment)
@@ -115,7 +114,7 @@ extension PersistentDictionary._Node {
       .advanced(by: trieCapacityInBytes)
       .bindMemory(to: DataBufferElement.self, capacity: Int(dataCapacity))
     let trieBaseAddress = memory
-      .bindMemory(to: TrieBufferElement.self, capacity: Int(trieCapacity))
+      .bindMemory(to: _Node.self, capacity: Int(trieCapacity))
 
     return (dataBaseAddress, trieBaseAddress)
   }
@@ -288,7 +287,7 @@ extension PersistentDictionary._Node {
     UnsafeBufferPointer(start: dataBaseAddress, count: header.dataCount)
   }
 
-  var _trieSlice: UnsafeMutableBufferPointer<TrieBufferElement> {
+  var _trieSlice: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount)
   }
 
@@ -841,7 +840,7 @@ extension PersistentDictionary._Node {
     _ isStorageKnownUniquelyReferenced: Bool,
     _ bitpos: _NodeHeader.Bitmap,
     _ idx: Int,
-    _ newNode: TrieBufferElement,
+    _ newNode: _Node,
     updateCount: (inout Int) -> Void
   ) -> _Node {
     let src: _Node = self
@@ -925,7 +924,7 @@ extension PersistentDictionary._Node {
   func _copyAndMigrateFromInlineToNode(
     _ isStorageKnownUniquelyReferenced: Bool,
     _ bitpos: _NodeHeader.Bitmap,
-    _ node: TrieBufferElement
+    _ node: _Node
   ) -> _Node {
     let src: _Node = self
     let dst: _Node
