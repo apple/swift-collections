@@ -61,7 +61,19 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PersistentDictionary<Int, Int> subscript(position:)",
+      title: "PersistentDictionary<Int, Int> sequential iteration, indices",
+      input: [Int].self
+    ) { input in
+      let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      return { timer in
+        for i in d.indices {
+          blackHole(d[i])
+        }
+      }
+    }
+
+    self.add(
+      title: "PersistentDictionary<Int, Int> indexing subscript",
       input: ([Int], [Int]).self
     ) { input, lookups in
       let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
@@ -148,7 +160,7 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "PersistentDictionary<Int, Int> subscript, insert",
+      title: "PersistentDictionary<Int, Int> subscript, insert, unique",
       input: [Int].self
     ) { input in
       var d: PersistentDictionary<Int, Int> = [:]
@@ -159,28 +171,22 @@ extension Benchmark {
       blackHole(d)
     }
 
-    self.add(
-      title: "PersistentDictionary<Int, Int> [COW] subscript, insert",
-      input: ([Int], [Int]).self
-    ) { input, insert in
-      return { timer in
-        let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
-        let c = input.count
-        timer.measure {
-          for i in insert {
-            var e = d
-            e[c + i] = 2 * (c + i)
-            precondition(e.count == input.count + 1)
-            blackHole(e)
-          }
-        }
-        precondition(d.count == input.count)
-        blackHole(d)
+    self.addSimple(
+      title: "PersistentDictionary<Int, Int> subscript, insert, shared",
+      input: [Int].self
+    ) { input in
+      var d: PersistentDictionary<Int, Int> = [:]
+      for i in input {
+        let copy = d
+        d[i] = 2 * i
+        blackHole((copy, d))
       }
+      precondition(d.count == input.count)
+      blackHole(d)
     }
 
     self.add(
-      title: "PersistentDictionary<Int, Int> subscript, remove existing",
+      title: "PersistentDictionary<Int, Int> subscript, remove existing, unique",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
@@ -196,20 +202,19 @@ extension Benchmark {
     }
 
     self.add(
-      title: "PersistentDictionary<Int, Int> [COW] subscript, remove existing",
+      title: "PersistentDictionary<Int, Int> subscript, remove existing, shared",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        let d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = PersistentDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
-            var e = d
-            e[i] = nil
-            precondition(e.count == input.count - 1)
-            blackHole(e)
+            let copy = d
+            d[i] = nil
+            blackHole((copy, d))
           }
         }
-        precondition(d.count == input.count)
+        precondition(d.isEmpty)
         blackHole(d)
       }
     }
@@ -377,6 +382,5 @@ extension Benchmark {
         blackHole(d)
       }
     }
-
   }
 }

@@ -11,15 +11,11 @@
 
 // TODO: implement a custom `Keys` view rather than relying on an array representation
 extension PersistentDictionary {
-    ///
-    /// A view of a dictionary’s keys.
-    ///
-    public typealias Keys = [Key]
-
-    ///
-    /// A collection containing just the keys of the dictionary.
-    ///
-    public var keys: Self.Keys /* { get } */ {
-        self.map { $0.key }
-    }
+  /// A view of a dictionary’s keys.
+  public typealias Keys = [Key]
+  
+  /// A collection containing just the keys of the dictionary.
+  public var keys: Self.Keys /* { get } */ {
+    self.map { $0.key }
+  }
 }

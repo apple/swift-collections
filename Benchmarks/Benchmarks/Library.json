@@ -285,7 +285,8 @@
               "tasks": [
                 "Dictionary<Int, Int> sequential iteration",
                 "Dictionary<Int, Int>.Keys sequential iteration",
-                "Dictionary<Int, Int>.Values sequential iteration"
+                "Dictionary<Int, Int>.Values sequential iteration",
+                "Dictionary<Int, Int> sequential iteration, indices"
               ]
             },
             {
