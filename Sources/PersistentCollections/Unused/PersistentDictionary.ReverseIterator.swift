@@ -14,10 +14,9 @@ extension PersistentDictionary {
   // TODO consider reworking similar to `PersistentDictionary.Iterator`
   // (would require a reversed variant of `KeyValueBuffer.Iterator`)
   public struct ReverseIterator {
-    typealias DictionaryNode = BitmapIndexedDictionaryNode<Key, Value>
-    private var baseIterator: _BaseReverseIterator<DictionaryNode>
+    private var baseIterator: _BaseReverseIterator<_Node>
 
-    init(rootNode: DictionaryNode) {
+    init(rootNode: _Node) {
       self.baseIterator = _BaseReverseIterator(rootNode: rootNode)
     }
   }

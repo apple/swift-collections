@@ -17,16 +17,15 @@ extension PersistentDictionary: Sequence {
     // depth-first pre-order traversal, which yields first all payload elements
     // of the current node before traversing sub-nodes (left to right).
 
-    typealias KeyValueBuffer = UnsafeBufferPointer<(key: Key, value: Value)>
-    typealias DictionaryNode = BitmapIndexedDictionaryNode<Key, Value>
-    typealias DictionaryNodeBuffer = UnsafeBufferPointer<DictionaryNode>
+    typealias _KeyValueBuffer = UnsafeBufferPointer<(key: Key, value: Value)>
+    typealias _NodeBuffer = UnsafeBufferPointer<_Node>
 
-    private var payloadIterator: KeyValueBuffer.Iterator?
+    private var payloadIterator: _KeyValueBuffer.Iterator?
 
-    private var trieIteratorStackTop: DictionaryNodeBuffer.Iterator?
-    private var trieIteratorStackRemainder: [DictionaryNodeBuffer.Iterator]
+    private var trieIteratorStackTop: _NodeBuffer.Iterator?
+    private var trieIteratorStackRemainder: [_NodeBuffer.Iterator]
 
-    internal init(_root root: DictionaryNode) {
+    internal init(_root root: _Node) {
       trieIteratorStackRemainder = []
       trieIteratorStackRemainder.reserveCapacity(_maxDepth)
 

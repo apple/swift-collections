@@ -9,8 +9,21 @@
 //
 //===----------------------------------------------------------------------===//
 
-//extension BitmapIndexedDictionaryNode: CustomDebugStringConvertible {
-//    public var debugDescription: String {
-//        <#code#>
-//    }
-//}
+protocol _NodeProtocol: AnyObject {
+  associatedtype ReturnPayload
+  associatedtype ReturnBitmapIndexedNode: _NodeProtocol
+
+  var hasNodes: Bool { get }
+
+  var nodeArity: Int { get }
+
+  func getNode(_ index: Int) -> Self
+
+  var hasPayload: Bool { get }
+
+  var payloadArity: Int { get }
+
+  func getPayload(_ index: Int) -> ReturnPayload
+
+  var count: Int { get }
+}

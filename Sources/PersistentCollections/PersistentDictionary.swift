@@ -10,14 +10,14 @@
 //===----------------------------------------------------------------------===//
 
 public struct PersistentDictionary<Key, Value> where Key: Hashable {
-  var rootNode: BitmapIndexedDictionaryNode<Key, Value>
+  var rootNode: _Node
 
-  fileprivate init(_ rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
+  fileprivate init(_ rootNode: _Node) {
     self.rootNode = rootNode
   }
 
   public init() {
-    self.init(BitmapIndexedDictionaryNode())
+    self.init(_Node())
   }
 
   public init(_ map: PersistentDictionary<Key, Value>) {

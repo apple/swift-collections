@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension BitmapIndexedDictionaryNode: CustomStringConvertible {
+extension PersistentDictionary._Node: CustomStringConvertible {
     public var description: String {
         guard count > 0 else {
             return "[:]"

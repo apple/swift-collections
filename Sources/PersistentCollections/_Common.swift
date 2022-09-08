@@ -13,12 +13,6 @@ internal func _computeHash<T: Hashable>(_ value: T) -> Int {
   value.hashValue
 }
 
-internal typealias _Bitmap = UInt32
-
-// TODO: restore type to `UInt8` after reworking hash-collisions to grow in
-// depth instead of width
-internal typealias _Capacity = UInt32
-
 internal let _bitPartitionSize: Int = 5
 
 internal let _bitPartitionMask: Int = (1 << _bitPartitionSize) - 1
@@ -31,16 +25,23 @@ internal func _maskFrom(_ hash: Int, _ shift: Int) -> Int {
   (hash >> shift) & _bitPartitionMask
 }
 
-internal func _bitposFrom(_ mask: Int) -> _Bitmap {
+internal func _bitposFrom(_ mask: Int) -> _NodeHeader.Bitmap {
   1 << mask
 }
 
-internal func _indexFrom(_ bitmap: _Bitmap, _ bitpos: _Bitmap) -> Int {
+internal func _indexFrom(
+  _ bitmap: _NodeHeader.Bitmap,
+  _ bitpos: _NodeHeader.Bitmap
+) -> Int {
   (bitmap & (bitpos &- 1)).nonzeroBitCount
 }
 
-internal func _indexFrom(_ bitmap: _Bitmap, _ mask: Int, _ bitpos: _Bitmap) -> Int {
-  (bitmap == _Bitmap.max) ? mask : _indexFrom(bitmap, bitpos)
+internal func _indexFrom(
+  _ bitmap: _NodeHeader.Bitmap,
+  _ mask: Int,
+  _ bitpos: _NodeHeader.Bitmap
+) -> Int {
+  (bitmap == _NodeHeader.Bitmap.max) ? mask : _indexFrom(bitmap, bitpos)
 }
 
 // NEW

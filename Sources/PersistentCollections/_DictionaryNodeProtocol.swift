@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 // FIXME: Remove
-internal protocol _DictionaryNode: _Node {
+internal protocol _DictionaryNodeProtocol: _NodeProtocol {
   associatedtype Key: Hashable
   associatedtype Value
 
