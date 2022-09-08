@@ -47,8 +47,7 @@ extension PersistentDictionary {
   internal final class _Node {
     typealias Index = PersistentDictionary.Index
     typealias Capacity = _NodeHeader.Capacity
-
-    typealias DataBufferElement = ReturnPayload
+    typealias Element = (key: Key, value: Value)
 
     var header: _NodeHeader
     var count: Int
@@ -56,7 +55,7 @@ extension PersistentDictionary {
     let dataCapacity: Capacity
     let trieCapacity: Capacity
 
-    let dataBaseAddress: UnsafeMutablePointer<DataBufferElement>
+    let dataBaseAddress: UnsafeMutablePointer<Element>
     let trieBaseAddress: UnsafeMutablePointer<_Node>
 
     deinit {
@@ -97,14 +96,14 @@ extension PersistentDictionary._Node {
   static func _allocate(
     dataCapacity: Capacity, trieCapacity: Capacity
   ) -> (
-    dataBaseAddress: UnsafeMutablePointer<DataBufferElement>,
+    dataBaseAddress: UnsafeMutablePointer<Element>,
     trieBaseAddress: UnsafeMutablePointer<_Node>
   ) {
-    let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<DataBufferElement>.stride
+    let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<Element>.stride
     let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<_Node>.stride
 
     let alignment = Swift.max(
-      MemoryLayout<DataBufferElement>.alignment,
+      MemoryLayout<Element>.alignment,
       MemoryLayout<_Node>.alignment)
     let memory = UnsafeMutableRawPointer.allocate(
       byteCount: dataCapacityInBytes + trieCapacityInBytes,
@@ -112,7 +111,7 @@ extension PersistentDictionary._Node {
 
     let dataBaseAddress = memory
       .advanced(by: trieCapacityInBytes)
-      .bindMemory(to: DataBufferElement.self, capacity: Int(dataCapacity))
+      .bindMemory(to: Element.self, capacity: Int(dataCapacity))
     let trieBaseAddress = memory
       .bindMemory(to: _Node.self, capacity: Int(trieCapacity))
 
@@ -216,7 +215,7 @@ extension PersistentDictionary._Node {
     assert(self.invariant)
   }
 
-  convenience init(collisions: [ReturnPayload]) {
+  convenience init(collisions: [Element]) {
     self.init(dataCapacity: Capacity(collisions.count), trieCapacity: 0)
 
     self.header = _NodeHeader(
@@ -283,7 +282,7 @@ extension PersistentDictionary._Node {
     (header.dataMap & header.trieMap) == 0 || (header.dataMap == header.trieMap)
   }
 
-  var _dataSlice: UnsafeBufferPointer<DataBufferElement> {
+  var _dataSlice: UnsafeBufferPointer<Element> {
     UnsafeBufferPointer(start: dataBaseAddress, count: header.dataCount)
   }
 
@@ -312,8 +311,6 @@ extension PersistentDictionary._Node {
 }
 
 extension PersistentDictionary._Node: _NodeProtocol {
-  typealias ReturnPayload = (key: Key, value: Value)
-
   var hasNodes: Bool { header.trieMap != 0 }
 
   var nodeArity: Int { header.trieCount }
@@ -338,7 +335,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     let bitpos = _bitposFrom(mask)
 
     guard collisionFree else {
-      let content: [ReturnPayload] = Array(self)
+      let content: [Element] = Array(self)
       let hash = _computeHash(content.first!.key)
 
       guard keyHash == hash else {
@@ -367,7 +364,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     let bitpos = _bitposFrom(mask)
 
     guard collisionFree else {
-      let content: [ReturnPayload] = Array(self)
+      let content: [Element] = Array(self)
       let hash = _computeHash(content.first!.key)
 
       guard keyHash == hash else {
@@ -400,7 +397,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     _ skippedBefore: Int
   ) -> Index? {
     guard collisionFree else {
-      let content: [ReturnPayload] = Array(self)
+      let content: [Element] = Array(self)
       let hash = _computeHash(content.first!.key)
 
       assert(keyHash == hash)
@@ -525,7 +522,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   ) -> _Node {
     assert(hashCollision)
 
-    let content: [ReturnPayload] = Array(self)
+    let content: [Element] = Array(self)
     let hash = _computeHash(content.first!.key)
 
     guard keyHash == hash else {
@@ -535,7 +532,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     }
 
     if let index = content.firstIndex(where: { key == $0.key }) {
-      let updatedContent: [ReturnPayload] = (
+      let updatedContent: [Element] = (
         content[0..<index] + [(key, value)] + content[index+1..<content.count])
 
       effect.setReplacedValue(previousValue: content[index].value)
@@ -661,7 +658,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   ) -> _Node {
     assert(hashCollision)
 
-    let content: [ReturnPayload] = Array(self)
+    let content: [Element] = Array(self)
     let _ = _computeHash(content.first!.key)
 
     if let index = content.firstIndex(where: { key == $0.key }) {
@@ -688,7 +685,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 }
 
 extension PersistentDictionary._Node {
-  func get(position: Index, _ shift: Int, _ stillToSkip: Int) -> ReturnPayload {
+  func get(position: Index, _ shift: Int, _ stillToSkip: Int) -> Element {
     var cumulativeCounts = self._counts
 
     for i in 1 ..< cumulativeCounts.count {
