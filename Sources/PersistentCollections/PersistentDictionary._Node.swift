@@ -49,7 +49,7 @@ extension PersistentDictionary {
     typealias Capacity = _NodeHeader.Capacity
 
     typealias DataBufferElement = ReturnPayload
-    typealias TrieBufferElement = ReturnBitmapIndexedNode
+    typealias TrieBufferElement = _Node
 
     var header: _NodeHeader
     var count: Int
@@ -314,7 +314,6 @@ extension PersistentDictionary._Node {
 
 extension PersistentDictionary._Node: _NodeProtocol {
   typealias ReturnPayload = (key: Key, value: Value)
-  typealias ReturnBitmapIndexedNode = _Node
 
   var hasNodes: Bool { header.trieMap != 0 }
 
@@ -820,8 +819,8 @@ extension PersistentDictionary._Node {
     _ bitpos: _NodeHeader.Bitmap,
     _ newValue: Value
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     if isStorageKnownUniquelyReferenced {
       dst = src
@@ -845,8 +844,8 @@ extension PersistentDictionary._Node {
     _ newNode: TrieBufferElement,
     updateCount: (inout Int) -> Void
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     if isStorageKnownUniquelyReferenced {
       dst = src
@@ -870,8 +869,8 @@ extension PersistentDictionary._Node {
     _ key: Key,
     _ value: Value
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     let hasRoomForData = header.dataCount < dataCapacity
 
@@ -901,8 +900,8 @@ extension PersistentDictionary._Node {
     _ isStorageKnownUniquelyReferenced: Bool,
     _ bitpos: _NodeHeader.Bitmap
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     if isStorageKnownUniquelyReferenced {
       dst = src
@@ -928,8 +927,8 @@ extension PersistentDictionary._Node {
     _ bitpos: _NodeHeader.Bitmap,
     _ node: TrieBufferElement
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     let hasRoomForTrie = header.trieCount < trieCapacity
 
@@ -973,8 +972,8 @@ extension PersistentDictionary._Node {
     _ bitpos: _NodeHeader.Bitmap,
     _ tuple: (key: Key, value: Value)
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     let hasRoomForData = header.dataCount < dataCapacity
 

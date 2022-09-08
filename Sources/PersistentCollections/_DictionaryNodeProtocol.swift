@@ -27,12 +27,12 @@ internal protocol _DictionaryNodeProtocol: _NodeProtocol {
     _ key: Key, _ value: Value, _ hash: Int,
     _ shift: Int,
     _ effect: inout _DictionaryEffect<Value>
-  ) -> ReturnBitmapIndexedNode
+  ) -> Self
 
   func removeOrRemoving(
     _ isStorageKnownUniquelyReferenced: Bool,
     _ key: Key, _ hash: Int,
     _ shift: Int,
     _ effect: inout _DictionaryEffect<Value>
-  ) -> ReturnBitmapIndexedNode
+  ) -> Self
 }

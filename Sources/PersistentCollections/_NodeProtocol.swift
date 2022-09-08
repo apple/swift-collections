@@ -11,7 +11,6 @@
 
 protocol _NodeProtocol: AnyObject {
   associatedtype ReturnPayload
-  associatedtype ReturnBitmapIndexedNode: _NodeProtocol
 
   var hasNodes: Bool { get }
 
