@@ -28,7 +28,7 @@ extension PersistentDictionary: Sequence {
 
     internal init(_root root: DictionaryNode) {
       trieIteratorStackRemainder = []
-      trieIteratorStackRemainder.reserveCapacity(maxDepth)
+      trieIteratorStackRemainder.reserveCapacity(_maxDepth)
 
       if root.hasNodes {
         trieIteratorStackTop = root._trieSlice.makeIterator()

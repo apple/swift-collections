@@ -15,34 +15,34 @@ import XCTest
 
 final class BitmapSmokeTests: CollectionTestCase {
   func test_BitPartitionSize_isValid() {
-    expectTrue(bitPartitionSize > 0)
-    expectTrue((2 << (bitPartitionSize - 1)) != 0)
-    expectTrue((2 << (bitPartitionSize - 1)) <= Bitmap.bitWidth)
+    expectTrue(_bitPartitionSize > 0)
+    expectTrue((2 << (_bitPartitionSize - 1)) != 0)
+    expectTrue((2 << (_bitPartitionSize - 1)) <= _Bitmap.bitWidth)
   }
 
   func test_Capacity_isValid() {
-    expectTrue(Int(2 << bitPartitionSize) <= Int(Capacity.max))
+    expectTrue(Int(2 << _bitPartitionSize) <= Int(_Capacity.max))
   }
 
   func test_Bitmap_nonzeroBits() {
-    let bitmap: Bitmap = 0b0100_0000_0000_1011
+    let bitmap: _Bitmap = 0b0100_0000_0000_1011
 
     expectEqual(Array(bitmap._nonzeroBits()), [0, 1, 3, 14])
     expectEqual(
       Array(bitmap._zeroBits()),
-      (0 ..< Bitmap.bitWidth).filter { ![0, 1, 3, 14].contains($0) })
+      (0 ..< _Bitmap.bitWidth).filter { ![0, 1, 3, 14].contains($0) })
   }
 
   func test_Bitmap_nonzeroBitsToArray() {
-    let bitmap: Bitmap = 0b0100_0000_0000_1011
+    let bitmap: _Bitmap = 0b0100_0000_0000_1011
 
     let counts = bitmap._nonzeroBits().reduce(
-      into: Array(repeating: 0, count: Bitmap.bitWidth)
+      into: Array(repeating: 0, count: _Bitmap.bitWidth)
     ) { counts, index in
       counts[index] = 1
     }
 
-    expectEqual(counts.count, Bitmap.bitWidth)
+    expectEqual(counts.count, _Bitmap.bitWidth)
     expectEqual(counts.reduce(0, +), bitmap.nonzeroBitCount)
     expectEqual(counts.reduce(0, +), 4)
     expectEqual(counts[0], 1)
@@ -52,7 +52,7 @@ final class BitmapSmokeTests: CollectionTestCase {
   }
 
   func test_Bitmap_enumerateCompactedArray() {
-    let bitmap: Bitmap = 0b0100_0000_0000_1011
+    let bitmap: _Bitmap = 0b0100_0000_0000_1011
     let elements: [String] = ["zero", "one", "three", "fourteen"]
 
     var zipIterator = zip(bitmap._nonzeroBits(), elements).makeIterator()

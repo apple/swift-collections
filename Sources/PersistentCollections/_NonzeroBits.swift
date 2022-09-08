@@ -19,12 +19,12 @@ extension FixedWidthInteger {
   }
 }
 
-internal struct _NonzeroBits<Bitmap: FixedWidthInteger>
+internal struct _NonzeroBits<_Bitmap: FixedWidthInteger>
 : Sequence, IteratorProtocol, CustomStringConvertible
 {
-  var bitmap: Bitmap
+  var bitmap: _Bitmap
 
-  init(from bitmap: Bitmap) {
+  init(from bitmap: _Bitmap) {
     self.bitmap = bitmap
   }
 

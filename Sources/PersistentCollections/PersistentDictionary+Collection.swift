@@ -28,7 +28,7 @@ extension PersistentDictionary: Collection {
   /// Returns the index for the given key.
   ///
   public func index(forKey key: Key) -> Self.Index? {
-    return rootNode.index(key, computeHash(key), 0, 0) 
+    return rootNode.index(key, _computeHash(key), 0, 0) 
   }
   
   ///

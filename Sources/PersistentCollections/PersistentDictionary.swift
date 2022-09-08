@@ -93,11 +93,11 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   }
 
   public func contains(_ key: Key) -> Bool {
-    rootNode.containsKey(key, computeHash(key), 0)
+    rootNode.containsKey(key, _computeHash(key), 0)
   }
 
   func get(_ key: Key) -> Value? {
-    rootNode.get(key, computeHash(key), 0)
+    rootNode.get(key, _computeHash(key), 0)
   }
 
   @discardableResult
@@ -105,7 +105,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
     let isUnique = isKnownUniquelyReferenced(&self.rootNode)
 
     var effect = _DictionaryEffect<Value>()
-    let keyHash = computeHash(key)
+    let keyHash = _computeHash(key)
     let newRootNode = rootNode.updateOrUpdating(
       isUnique, key, value, keyHash, 0, &effect)
 
@@ -120,7 +120,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   // fluid/immutable API
   public func updatingValue(_ value: Value, forKey key: Key) -> Self {
     var effect = _DictionaryEffect<Value>()
-    let keyHash = computeHash(key)
+    let keyHash = _computeHash(key)
     let newRootNode = rootNode.updateOrUpdating(
       false, key, value, keyHash, 0, &effect)
 
@@ -134,7 +134,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
     let isUnique = isKnownUniquelyReferenced(&self.rootNode)
 
     var effect = _DictionaryEffect<Value>()
-    let keyHash = computeHash(key)
+    let keyHash = _computeHash(key)
     let newRootNode = rootNode.removeOrRemoving(
       isUnique, key, keyHash, 0, &effect)
 
@@ -149,7 +149,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   // fluid/immutable API
   public func removingValue(forKey key: Key) -> Self {
     var effect = _DictionaryEffect<Value>()
-    let keyHash = computeHash(key)
+    let keyHash = _computeHash(key)
     let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
     if effect.modified {

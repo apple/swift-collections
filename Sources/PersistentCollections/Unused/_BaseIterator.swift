@@ -20,8 +20,8 @@ internal struct _BaseIterator<T: _Node> {
 
   private var currentStackLevel: Int = -1
   private var nodeCursorsAndLengths: [Int] = (
-    Array(repeating: 0, count: maxDepth * 2))
-  private var nodes: [T?] = Array(repeating: nil, count: maxDepth)
+    Array(repeating: 0, count: _maxDepth * 2))
+  private var nodes: [T?] = Array(repeating: nil, count: _maxDepth)
 
   init(rootNode: T) {
     if rootNode.hasNodes { pushNode(rootNode) }

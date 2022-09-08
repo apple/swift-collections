@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-fileprivate let initialDataCapacity: Capacity = 4
-fileprivate let initialTrieCapacity: Capacity = 1
+fileprivate let initialDataCapacity: _Capacity = 4
+fileprivate let initialTrieCapacity: _Capacity = 1
 
 final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
@@ -32,8 +32,8 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     header.hashCollision
   }
 
-  let dataCapacity: Capacity
-  let trieCapacity: Capacity
+  let dataCapacity: _Capacity
+  let trieCapacity: _Capacity
 
   let dataBaseAddress: UnsafeMutablePointer<DataBufferElement>
   let trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
@@ -50,18 +50,18 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   @inline(__always)
-  var dataMap: Bitmap {
+  var dataMap: _Bitmap {
     header.dataMap
   }
 
   @inline(__always)
-  var trieMap: Bitmap {
+  var trieMap: _Bitmap {
     header.trieMap
   }
 
   @inlinable
   static func _allocate(
-    dataCapacity: Capacity, trieCapacity: Capacity
+    dataCapacity: _Capacity, trieCapacity: _Capacity
   ) -> (
     dataBaseAddress: UnsafeMutablePointer<DataBufferElement>,
     trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
@@ -86,10 +86,10 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   func copy(
-    withDataCapacityFactor dataCapacityFactor: Capacity = 1,
-    withDataCapacityShrinkFactor dataCapacityShrinkFactor: Capacity = 1,
-    withTrieCapacityFactor trieCapacityFactor: Capacity = 1,
-    withTrieCapacityShrinkFactor trieCapacityShrinkFactor: Capacity = 1
+    withDataCapacityFactor dataCapacityFactor: _Capacity = 1,
+    withDataCapacityShrinkFactor dataCapacityShrinkFactor: _Capacity = 1,
+    withTrieCapacityFactor trieCapacityFactor: _Capacity = 1,
+    withTrieCapacityShrinkFactor trieCapacityShrinkFactor: _Capacity = 1
   ) -> Self {
     let src = self
     let dc = src.dataCapacity &* dataCapacityFactor / dataCapacityShrinkFactor
@@ -127,9 +127,9 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     }
 
     if hashCollision {
-      let hash = computeHash(_dataSlice.first!.key)
+      let hash = _computeHash(_dataSlice.first!.key)
 
-      guard _dataSlice.allSatisfy({ computeHash($0.key) == hash }) else {
+      guard _dataSlice.allSatisfy({ _computeHash($0.key) == hash }) else {
         return false
       }
     }
@@ -149,7 +149,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount)
   }
 
-  init(dataCapacity: Capacity, trieCapacity: Capacity) {
+  init(dataCapacity: _Capacity, trieCapacity: _Capacity) {
     let (dataBaseAddress, trieBaseAddress) = Self._allocate(
       dataCapacity: dataCapacity,
       trieCapacity: trieCapacity)
@@ -176,7 +176,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     assert(self.invariant)
   }
 
-  convenience init(dataMap: Bitmap, firstKey: Key, firstValue: Value) {
+  convenience init(dataMap: _Bitmap, firstKey: Key, firstValue: Value) {
     self.init()
 
     self.header = Header(dataMap: dataMap, trieMap: 0)
@@ -188,7 +188,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   convenience init(
-    dataMap: Bitmap,
+    dataMap: _Bitmap,
     firstKey: Key,
     firstValue: Value,
     secondKey: Key,
@@ -206,7 +206,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   convenience init(
-    trieMap: Bitmap,
+    trieMap: _Bitmap,
     firstNode: BitmapIndexedDictionaryNode<Key, Value>
   ) {
     self.init()
@@ -220,8 +220,8 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   convenience init(
-    dataMap: Bitmap,
-    trieMap: Bitmap,
+    dataMap: _Bitmap,
+    trieMap: _Bitmap,
     firstKey: Key,
     firstValue: Value,
     firstNode: BitmapIndexedDictionaryNode<Key, Value>
@@ -238,11 +238,11 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   convenience init(collisions: [ReturnPayload]) {
-    self.init(dataCapacity: Capacity(collisions.count), trieCapacity: 0)
+    self.init(dataCapacity: _Capacity(collisions.count), trieCapacity: 0)
 
     self.header = Header(
-      dataMap: Bitmap(collisions.count),
-      trieMap: Bitmap(collisions.count))
+      dataMap: _Bitmap(collisions.count),
+      trieMap: _Bitmap(collisions.count))
     self.count = collisions.count
 
     self.dataBaseAddress.initialize(from: collisions, count: collisions.count)
@@ -251,12 +251,12 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   func get(_ key: Key, _ keyHash: Int, _ shift: Int) -> Value? {
-    let mask = maskFrom(keyHash, shift)
-    let bitpos = bitposFrom(mask)
+    let mask = _maskFrom(keyHash, shift)
+    let bitpos = _bitposFrom(mask)
 
     guard collisionFree else {
       let content: [ReturnPayload] = Array(self)
-      let hash = computeHash(content.first!.key)
+      let hash = _computeHash(content.first!.key)
 
       guard keyHash == hash else {
         return nil
@@ -266,26 +266,26 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     }
 
     guard (dataMap & bitpos) == 0 else {
-      let index = indexFrom(dataMap, mask, bitpos)
+      let index = _indexFrom(dataMap, mask, bitpos)
       let payload = self.getPayload(index)
       return key == payload.key ? payload.value : nil
     }
 
     guard (trieMap & bitpos) == 0 else {
-      let index = indexFrom(trieMap, mask, bitpos)
-      return self.getNode(index).get(key, keyHash, shift + bitPartitionSize)
+      let index = _indexFrom(trieMap, mask, bitpos)
+      return self.getNode(index).get(key, keyHash, shift + _bitPartitionSize)
     }
 
     return nil
   }
 
   func containsKey(_ key: Key, _ keyHash: Int, _ shift: Int) -> Bool {
-    let mask = maskFrom(keyHash, shift)
-    let bitpos = bitposFrom(mask)
+    let mask = _maskFrom(keyHash, shift)
+    let bitpos = _bitposFrom(mask)
 
     guard collisionFree else {
       let content: [ReturnPayload] = Array(self)
-      let hash = computeHash(content.first!.key)
+      let hash = _computeHash(content.first!.key)
 
       guard keyHash == hash else {
         return false
@@ -295,16 +295,16 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     }
 
     guard (dataMap & bitpos) == 0 else {
-      let index = indexFrom(dataMap, mask, bitpos)
+      let index = _indexFrom(dataMap, mask, bitpos)
       let payload = self.getPayload(index)
       return key == payload.key
     }
 
     guard (trieMap & bitpos) == 0 else {
-      let index = indexFrom(trieMap, mask, bitpos)
+      let index = _indexFrom(trieMap, mask, bitpos)
       return self
         .getNode(index)
-        .containsKey(key, keyHash, shift + bitPartitionSize)
+        .containsKey(key, keyHash, shift + _bitPartitionSize)
     }
 
     return false
@@ -318,7 +318,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   ) -> PersistentDictionaryIndex? {
     guard collisionFree else {
       let content: [ReturnPayload] = Array(self)
-      let hash = computeHash(content.first!.key)
+      let hash = _computeHash(content.first!.key)
 
       assert(keyHash == hash)
       return content
@@ -326,13 +326,13 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
         .map { PersistentDictionaryIndex(value: $0) }
     }
 
-    let mask = maskFrom(keyHash, shift)
-    let bitpos = bitposFrom(mask)
+    let mask = _maskFrom(keyHash, shift)
+    let bitpos = _bitposFrom(mask)
 
     let skipped = self.counts.prefix(upTo: mask).reduce(0, +)
 
     guard (dataMap & bitpos) == 0 else {
-      let index = indexFrom(dataMap, mask, bitpos)
+      let index = _indexFrom(dataMap, mask, bitpos)
       let payload = self.getPayload(index)
       guard key == payload.key else { return nil }
 
@@ -340,10 +340,10 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     }
 
     guard (trieMap & bitpos) == 0 else {
-      let index = indexFrom(trieMap, mask, bitpos)
+      let index = _indexFrom(trieMap, mask, bitpos)
       return self
         .getNode(index)
-        .index(key, keyHash, shift + bitPartitionSize, skippedBefore + skipped)
+        .index(key, keyHash, shift + _bitPartitionSize, skippedBefore + skipped)
     }
 
     return nil
@@ -373,18 +373,18 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
     let skipped = (mask == 0) ? 0 : cumulativeCounts[mask - 1]
 
-    let bitpos = bitposFrom(mask)
+    let bitpos = _bitposFrom(mask)
 
     guard (dataMap & bitpos) == 0 else {
-      let index = indexFrom(dataMap, mask, bitpos)
+      let index = _indexFrom(dataMap, mask, bitpos)
       return self.getPayload(index)
     }
 
     guard (trieMap & bitpos) == 0 else {
-      let index = indexFrom(trieMap, mask, bitpos)
+      let index = _indexFrom(trieMap, mask, bitpos)
       return self
         .getNode(index)
-        .get(position: position, shift + bitPartitionSize, stillToSkip - skipped)
+        .get(position: position, shift + _bitPartitionSize, stillToSkip - skipped)
     }
 
     fatalError("Should not reach here.")
@@ -404,18 +404,18 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
         isStorageKnownUniquelyReferenced, key, value, keyHash, shift, &effect)
     }
 
-    let mask = maskFrom(keyHash, shift)
-    let bitpos = bitposFrom(mask)
+    let mask = _maskFrom(keyHash, shift)
+    let bitpos = _bitposFrom(mask)
 
     guard (dataMap & bitpos) == 0 else {
-      let index = indexFrom(dataMap, mask, bitpos)
+      let index = _indexFrom(dataMap, mask, bitpos)
       let (key0, value0) = self.getPayload(index)
 
       if key0 == key {
         effect.setReplacedValue(previousValue: value0)
         return copyAndSetValue(isStorageKnownUniquelyReferenced, bitpos, value)
       } else {
-        let keyHash0 = computeHash(key0)
+        let keyHash0 = _computeHash(key0)
 
         if keyHash0 == keyHash {
           let subNodeNew = Self(
@@ -432,7 +432,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
           let subNodeNew = mergeTwoKeyValPairs(
             key0, value0, keyHash0,
             key, value, keyHash,
-            shift + bitPartitionSize)
+            shift + _bitPartitionSize)
 
           effect.setModified()
           return copyAndMigrateFromInlineToNode(
@@ -442,7 +442,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     }
 
     guard (trieMap & bitpos) == 0 else {
-      let index = indexFrom(trieMap, mask, bitpos)
+      let index = _indexFrom(trieMap, mask, bitpos)
       let subNodeModifyInPlace = self.isTrieNodeKnownUniquelyReferenced(
         index, isStorageKnownUniquelyReferenced)
 
@@ -451,7 +451,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
       let subNodeNew = subNode.updateOrUpdating(
         subNodeModifyInPlace,
         key, value, keyHash,
-        shift + bitPartitionSize,
+        shift + _bitPartitionSize,
         &effect)
       guard effect.modified, subNode !== subNodeNew else {
         if effect.previousValue == nil { count += 1 }
@@ -484,7 +484,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     assert(hashCollision)
 
     let content: [ReturnPayload] = Array(self)
-    let hash = computeHash(content.first!.key)
+    let hash = _computeHash(content.first!.key)
 
     guard keyHash == hash else {
       effect.setModified()
@@ -520,11 +520,11 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
         &effect)
     }
 
-    let mask = maskFrom(keyHash, shift)
-    let bitpos = bitposFrom(mask)
+    let mask = _maskFrom(keyHash, shift)
+    let bitpos = _bitposFrom(mask)
 
     guard (dataMap & bitpos) == 0 else {
-      let index = indexFrom(dataMap, mask, bitpos)
+      let index = _indexFrom(dataMap, mask, bitpos)
       let (key0, value0) = self.getPayload(index)
       guard key0 == key else {
         assert(self.invariant)
@@ -544,7 +544,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
         } else {
           // create potential new root: will a) become new root, or b) inlined
           // on another level
-          let newDataMap = bitposFrom(maskFrom(keyHash, 0))
+          let newDataMap = _bitposFrom(_maskFrom(keyHash, 0))
           let (remainingKey, remainingValue) = getPayload(1 - index)
           return Self(
             dataMap: newDataMap,
@@ -564,14 +564,14 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     }
 
     guard (trieMap & bitpos) == 0 else {
-      let index = indexFrom(trieMap, mask, bitpos)
+      let index = _indexFrom(trieMap, mask, bitpos)
       let subNodeModifyInPlace = self.isTrieNodeKnownUniquelyReferenced(
         index, isStorageKnownUniquelyReferenced)
 
       let subNode = self.getNode(index)
 
       let subNodeNew = subNode.removeOrRemoving(
-        subNodeModifyInPlace, key, keyHash, shift + bitPartitionSize, &effect)
+        subNodeModifyInPlace, key, keyHash, shift + _bitPartitionSize, &effect)
       guard effect.modified, subNode !== subNodeNew else {
         if effect.modified { count -= 1 }
         assert(self.invariant)
@@ -620,7 +620,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     assert(hashCollision)
 
     let content: [ReturnPayload] = Array(self)
-    let _ = computeHash(content.first!.key)
+    let _ = _computeHash(content.first!.key)
 
     if let index = content.firstIndex(where: { key == $0.key }) {
       effect.setModified(previousValue: content[index].value)
@@ -630,7 +630,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
       if updatedContent.count == 1 {
         // create potential new root: will a) become new root, or b) inlined
         // on another level
-        let newDataMap = bitposFrom(maskFrom(keyHash, 0))
+        let newDataMap = _bitposFrom(_maskFrom(keyHash, 0))
         let (remainingKey, remainingValue) = updatedContent.first!
         return Self(
           dataMap: newDataMap,
@@ -653,21 +653,21 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     assert(keyHash0 != keyHash1)
 
-    let mask0 = maskFrom(keyHash0, shift)
-    let mask1 = maskFrom(keyHash1, shift)
+    let mask0 = _maskFrom(keyHash0, shift)
+    let mask1 = _maskFrom(keyHash1, shift)
 
     if mask0 != mask1 {
       // unique prefixes, payload fits on same level
       if mask0 < mask1 {
         return Self(
-          dataMap: bitposFrom(mask0) | bitposFrom(mask1),
+          dataMap: _bitposFrom(mask0) | _bitposFrom(mask1),
           firstKey: key0,
           firstValue: value0,
           secondKey: key1,
           secondValue: value1)
       } else {
         return Self(
-          dataMap: bitposFrom(mask1) | bitposFrom(mask0),
+          dataMap: _bitposFrom(mask1) | _bitposFrom(mask0),
           firstKey: key1,
           firstValue: value1,
           secondKey: key0,
@@ -679,9 +679,9 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
       let node = mergeTwoKeyValPairs(
         key0, value0, keyHash0,
         key1, value1, keyHash1,
-        shift + bitPartitionSize)
+        shift + _bitPartitionSize)
 
-      return Self(trieMap: bitposFrom(mask0), firstNode: node)
+      return Self(trieMap: _bitposFrom(mask0), firstNode: node)
     }
   }
 
@@ -693,14 +693,14 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     assert(keyHash0 != nodeHash1)
 
-    let mask0 = maskFrom(keyHash0, shift)
-    let mask1 = maskFrom(nodeHash1, shift)
+    let mask0 = _maskFrom(keyHash0, shift)
+    let mask1 = _maskFrom(nodeHash1, shift)
 
     if mask0 != mask1 {
       // unique prefixes, payload and collision node fit on same level
       return Self(
-        dataMap: bitposFrom(mask0),
-        trieMap: bitposFrom(mask1),
+        dataMap: _bitposFrom(mask0),
+        trieMap: _bitposFrom(mask1),
         firstKey: key0,
         firstValue: value0,
         firstNode: node1)
@@ -712,9 +712,9 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
         keyHash0,
         node1,
         nodeHash1,
-        shift + bitPartitionSize)
+        shift + _bitPartitionSize)
 
-      return Self(trieMap: bitposFrom(mask0), firstNode: node)
+      return Self(trieMap: _bitposFrom(mask0), firstNode: node)
     }
   }
 
@@ -744,7 +744,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   private final var counts: [Int] {
-    var counts = Array(repeating: 0, count: Bitmap.bitWidth)
+    var counts = Array(repeating: 0, count: _Bitmap.bitWidth)
 
     zip(header.dataMap._nonzeroBits(), _dataSlice).forEach { (index, _) in
       counts[index] = 1
@@ -758,10 +758,10 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
   }
 
   private final func count(upTo mask: Int) -> Int {
-    let bitpos = bitposFrom(mask)
+    let bitpos = _bitposFrom(mask)
 
-    let dataIndex = indexFrom(dataMap, mask, bitpos)
-    let trieIndex = indexFrom(trieMap, mask, bitpos)
+    let dataIndex = _indexFrom(dataMap, mask, bitpos)
+    let trieIndex = _indexFrom(trieMap, mask, bitpos)
 
     let buffer = UnsafeMutableBufferPointer(
       start: trieBaseAddress, count: header.trieCount)
@@ -772,17 +772,17 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
     return count
   }
 
-  func dataIndex(_ bitpos: Bitmap) -> Int {
+  func dataIndex(_ bitpos: _Bitmap) -> Int {
     (dataMap & (bitpos &- 1)).nonzeroBitCount
   }
 
-  func trieIndex(_ bitpos: Bitmap) -> Int {
+  func trieIndex(_ bitpos: _Bitmap) -> Int {
     (trieMap & (bitpos &- 1)).nonzeroBitCount
   }
 
   func copyAndSetValue(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: Bitmap,
+    _ bitpos: _Bitmap,
     _ newValue: Value
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     let src: ReturnBitmapIndexedNode = self
@@ -805,7 +805,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
   private func copyAndSetTrieNode(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: Bitmap,
+    _ bitpos: _Bitmap,
     _ idx: Int,
     _ newNode: TrieBufferElement,
     updateCount: (inout Int) -> Void
@@ -831,7 +831,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
   func copyAndInsertValue(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: Bitmap,
+    _ bitpos: _Bitmap,
     _ key: Key,
     _ value: Value
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
@@ -846,8 +846,8 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
       dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
     }
 
-    let dataIdx = indexFrom(dataMap, bitpos)
-    rangeInsert(
+    let dataIdx = _indexFrom(dataMap, bitpos)
+    _rangeInsert(
       (key, value),
       at: dataIdx,
       into: dst.dataBaseAddress,
@@ -864,7 +864,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
   func copyAndRemoveValue(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: Bitmap
+    _ bitpos: _Bitmap
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     let src: ReturnBitmapIndexedNode = self
     let dst: ReturnBitmapIndexedNode
@@ -875,8 +875,8 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
       dst = src.copy()
     }
 
-    let dataIdx = indexFrom(dataMap, bitpos)
-    rangeRemove(
+    let dataIdx = _indexFrom(dataMap, bitpos)
+    _rangeRemove(
       at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
     // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
@@ -890,7 +890,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
   func copyAndMigrateFromInlineToNode(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: Bitmap,
+    _ bitpos: _Bitmap,
     _ node: TrieBufferElement
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     let src: ReturnBitmapIndexedNode = self
@@ -915,12 +915,12 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
         withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
     }
 
-    let dataIdx = indexFrom(dataMap, bitpos)
-    rangeRemove(
+    let dataIdx = _indexFrom(dataMap, bitpos)
+    _rangeRemove(
       at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
-    let trieIdx = indexFrom(trieMap, bitpos)
-    rangeInsert(
+    let trieIdx = _indexFrom(trieMap, bitpos)
+    _rangeInsert(
       node, at: trieIdx, into: dst.trieBaseAddress, count: dst.header.trieCount)
 
     // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
@@ -935,7 +935,7 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
   func copyAndMigrateFromNodeToInline(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: Bitmap,
+    _ bitpos: _Bitmap,
     _ tuple: (key: Key, value: Value)
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     let src: ReturnBitmapIndexedNode = self
@@ -949,12 +949,12 @@ final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
       dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
     }
 
-    let nodeIdx = indexFrom(trieMap, bitpos)
-    rangeRemove(
+    let nodeIdx = _indexFrom(trieMap, bitpos)
+    _rangeRemove(
       at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieCount)
 
-    let dataIdx = indexFrom(dataMap, bitpos)
-    rangeInsert(
+    let dataIdx = _indexFrom(dataMap, bitpos)
+    _rangeInsert(
       tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataCount)
 
     // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
@@ -1018,8 +1018,8 @@ extension BitmapIndexedDictionaryNode: Sequence {
 }
 
 struct Header: Equatable {
-  var dataMap: Bitmap
-  var trieMap: Bitmap
+  var dataMap: _Bitmap
+  var trieMap: _Bitmap
 
   var dataCount: Int { hashCollision ? Int(dataMap) : dataMap.nonzeroBitCount }
   var trieCount: Int { hashCollision ? 0            : trieMap.nonzeroBitCount }

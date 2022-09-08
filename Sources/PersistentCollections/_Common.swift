@@ -9,44 +9,44 @@
 //
 //===----------------------------------------------------------------------===//
 
-func computeHash<T: Hashable>(_ value: T) -> Int {
+internal func _computeHash<T: Hashable>(_ value: T) -> Int {
   value.hashValue
 }
 
-typealias Bitmap = UInt32
-
-let bitPartitionSize: Int = 5
-
-let bitPartitionMask: Int = (1 << bitPartitionSize) - 1
+internal typealias _Bitmap = UInt32
 
 // TODO: restore type to `UInt8` after reworking hash-collisions to grow in
 // depth instead of width
-typealias Capacity = UInt32
+internal typealias _Capacity = UInt32
 
-let hashCodeLength: Int = Int.bitWidth
+internal let _bitPartitionSize: Int = 5
 
-let maxDepth = Int((Double(hashCodeLength) / Double(bitPartitionSize)).rounded(.up))
+internal let _bitPartitionMask: Int = (1 << _bitPartitionSize) - 1
 
-func maskFrom(_ hash: Int, _ shift: Int) -> Int {
-  (hash >> shift) & bitPartitionMask
+internal let _hashCodeLength: Int = Int.bitWidth
+
+internal let _maxDepth = (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
+
+internal func _maskFrom(_ hash: Int, _ shift: Int) -> Int {
+  (hash >> shift) & _bitPartitionMask
 }
 
-func bitposFrom(_ mask: Int) -> Bitmap {
+internal func _bitposFrom(_ mask: Int) -> _Bitmap {
   1 << mask
 }
 
-func indexFrom(_ bitmap: Bitmap, _ bitpos: Bitmap) -> Int {
+internal func _indexFrom(_ bitmap: _Bitmap, _ bitpos: _Bitmap) -> Int {
   (bitmap & (bitpos &- 1)).nonzeroBitCount
 }
 
-func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
-  (bitmap == Bitmap.max) ? mask : indexFrom(bitmap, bitpos)
+internal func _indexFrom(_ bitmap: _Bitmap, _ mask: Int, _ bitpos: _Bitmap) -> Int {
+  (bitmap == _Bitmap.max) ? mask : _indexFrom(bitmap, bitpos)
 }
 
 // NEW
 @inlinable
 @inline(__always)
-func rangeInsert<T>(
+internal func _rangeInsert<T>(
   _ element: T,
   at index: Int,
   into baseAddress: UnsafeMutablePointer<T>,
@@ -63,7 +63,7 @@ func rangeInsert<T>(
 // NEW
 @inlinable
 @inline(__always)
-func rangeRemove<T>(
+internal func _rangeRemove<T>(
   at index: Int,
   from baseAddress: UnsafeMutablePointer<T>,
   count: Int

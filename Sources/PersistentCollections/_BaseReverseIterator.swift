@@ -17,8 +17,8 @@ internal struct _BaseReverseIterator<T: _Node> {
   var currentValueNode: T? = nil
 
   private var currentStackLevel: Int = -1
-  private var nodeIndex: [Int] = Array(repeating: 0, count: maxDepth + 1)
-  private var nodeStack: [T?] = Array(repeating: nil, count: maxDepth + 1)
+  private var nodeIndex: [Int] = Array(repeating: 0, count: _maxDepth + 1)
+  private var nodeStack: [T?] = Array(repeating: nil, count: _maxDepth + 1)
 
   init(rootNode: T) {
     pushNode(rootNode)
