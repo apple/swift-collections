@@ -11,15 +11,11 @@
 
 // TODO: implement a custom `Values` view rather than relying on an array representation
 extension PersistentDictionary {
-    ///
-    /// A view of a dictionary’s values.
-    ///
-    public typealias Values = [Value]
+  /// A view of a dictionary’s values.
+  public typealias Values = [Value]
 
-    ///
-    /// A collection containing just the values of the dictionary.
-    ///
-    public var values: Self.Values /* { get set } */ {
-        self.map { $0.value }
-    }
+  /// A collection containing just the values of the dictionary.
+  public var values: Self.Values /* { get set } */ {
+    self.map { $0.value }
+  }
 }

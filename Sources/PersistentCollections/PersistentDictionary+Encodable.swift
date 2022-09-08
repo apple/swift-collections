@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 //extension PersistentDictionary: Encodable where Key: Encodable, Value: Encodable {
-//    public func encode(to encoder: Encoder) throws {
-//        <#code#>
-//    }
+//  public func encode(to encoder: Encoder) throws {
+//    <#code#>
+//  }
 //}

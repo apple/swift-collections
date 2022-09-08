@@ -10,20 +10,20 @@
 //===----------------------------------------------------------------------===//
 
 struct DictionaryEffect<Value> {
-    var modified: Bool = false
-    var previousValue: Value?
-
-    mutating func setModified() {
-        self.modified = true
-    }
-
-    mutating func setModified(previousValue: Value) {
-        self.modified = true
-        self.previousValue = previousValue
-    }
-
-    mutating func setReplacedValue(previousValue: Value) {
-        self.modified = true
-        self.previousValue = previousValue
-    }
+  var modified: Bool = false
+  var previousValue: Value?
+  
+  mutating func setModified() {
+    self.modified = true
+  }
+  
+  mutating func setModified(previousValue: Value) {
+    self.modified = true
+    self.previousValue = previousValue
+  }
+  
+  mutating func setReplacedValue(previousValue: Value) {
+    self.modified = true
+    self.previousValue = previousValue
+  }
 }

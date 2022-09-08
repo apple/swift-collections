@@ -10,16 +10,28 @@
 //===----------------------------------------------------------------------===//
 
 protocol DictionaryNode: Node {
-    associatedtype Key: Hashable
-    associatedtype Value
+  associatedtype Key: Hashable
+  associatedtype Value
 
-    func get(_ key: Key, _ hash: Int, _ shift: Int) -> Value?
+  func get(_ key: Key, _ hash: Int, _ shift: Int) -> Value?
 
-    func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool
+  func containsKey(_ key: Key, _ hash: Int, _ shift: Int) -> Bool
 
-    func index(_ key: Key, _ hash: Int, _ shift: Int, _ skippedBefore: Int) -> PersistentDictionaryIndex?
+  func index(
+    _ key: Key, _ hash: Int, _ shift: Int, _ skippedBefore: Int
+  ) -> PersistentDictionaryIndex?
 
-    func updateOrUpdating(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ value: Value, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect<Value>) -> ReturnBitmapIndexedNode
+  func updateOrUpdating(
+    _ isStorageKnownUniquelyReferenced: Bool,
+    _ key: Key, _ value: Value, _ hash: Int,
+    _ shift: Int,
+    _ effect: inout DictionaryEffect<Value>
+  ) -> ReturnBitmapIndexedNode
 
-    func removeOrRemoving(_ isStorageKnownUniquelyReferenced: Bool, _ key: Key, _ hash: Int, _ shift: Int, _ effect: inout DictionaryEffect<Value>) -> ReturnBitmapIndexedNode
+  func removeOrRemoving(
+    _ isStorageKnownUniquelyReferenced: Bool,
+    _ key: Key, _ hash: Int,
+    _ shift: Int,
+    _ effect: inout DictionaryEffect<Value>
+  ) -> ReturnBitmapIndexedNode
 }

@@ -10,211 +10,233 @@
 //===----------------------------------------------------------------------===//
 
 public struct PersistentDictionary<Key, Value> where Key: Hashable {
-    var rootNode: BitmapIndexedDictionaryNode<Key, Value>
+  var rootNode: BitmapIndexedDictionaryNode<Key, Value>
 
-    fileprivate init(_ rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
-        self.rootNode = rootNode
+  fileprivate init(_ rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
+    self.rootNode = rootNode
+  }
+
+  public init() {
+    self.init(BitmapIndexedDictionaryNode())
+  }
+
+  public init(_ map: PersistentDictionary<Key, Value>) {
+    self.init(map.rootNode)
+  }
+
+  @inlinable
+  @inline(__always)
+  public init<S: Sequence>(
+    uniqueKeysWithValues keysAndValues: S
+  ) where S.Element == (Key, Value) {
+    var builder = Self()
+    var expectedCount = 0
+    keysAndValues.forEach { key, value in
+      builder.updateValue(value, forKey: key)
+      expectedCount += 1
+
+      guard expectedCount == builder.count else {
+        preconditionFailure("Duplicate key: '\(key)'")
+      }
+    }
+    self.init(builder)
+  }
+
+  @inlinable
+  @inline(__always)
+  public init<Keys: Sequence, Values: Sequence>(
+    uniqueKeys keys: Keys,
+    values: Values
+  ) where Keys.Element == Key, Values.Element == Value {
+    self.init(uniqueKeysWithValues: zip(keys, values))
+  }
+
+  ///
+  /// Inspecting a Dictionary
+  ///
+
+  public var isEmpty: Bool { rootNode.count == 0 }
+
+  public var count: Int { rootNode.count }
+
+  public var underestimatedCount: Int { rootNode.count }
+
+  public var capacity: Int { rootNode.count }
+
+  ///
+  /// Accessing Keys and Values
+  ///
+
+  public subscript(key: Key) -> Value? {
+    get {
+      return get(key)
+    }
+    mutating set(optionalValue) {
+      if let value = optionalValue {
+        updateValue(value, forKey: key)
+      } else {
+        removeValue(forKey: key)
+      }
+    }
+  }
+
+  public subscript(
+    key: Key,
+    default defaultValue: @autoclosure () -> Value
+  ) -> Value {
+    get {
+      return get(key) ?? defaultValue()
+    }
+    mutating set(value) {
+      updateValue(value, forKey: key)
+    }
+  }
+
+  public func contains(_ key: Key) -> Bool {
+    rootNode.containsKey(key, computeHash(key), 0)
+  }
+
+  func get(_ key: Key) -> Value? {
+    rootNode.get(key, computeHash(key), 0)
+  }
+
+  @discardableResult
+  public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
+    let isUnique = isKnownUniquelyReferenced(&self.rootNode)
+
+    var effect = DictionaryEffect<Value>()
+    let keyHash = computeHash(key)
+    let newRootNode = rootNode.updateOrUpdating(
+      isUnique, key, value, keyHash, 0, &effect)
+
+    if effect.modified {
+      self.rootNode = newRootNode
     }
 
-    public init() {
-        self.init(BitmapIndexedDictionaryNode())
+    // Note, always tracking discardable result negatively impacts batch use cases
+    return effect.previousValue
+  }
+
+  // fluid/immutable API
+  public func updatingValue(_ value: Value, forKey key: Key) -> Self {
+    var effect = DictionaryEffect<Value>()
+    let keyHash = computeHash(key)
+    let newRootNode = rootNode.updateOrUpdating(
+      false, key, value, keyHash, 0, &effect)
+
+    if effect.modified {
+      return Self(newRootNode)
+    } else { return self }
+  }
+
+  @discardableResult
+  public mutating func removeValue(forKey key: Key) -> Value? {
+    let isUnique = isKnownUniquelyReferenced(&self.rootNode)
+
+    var effect = DictionaryEffect<Value>()
+    let keyHash = computeHash(key)
+    let newRootNode = rootNode.removeOrRemoving(
+      isUnique, key, keyHash, 0, &effect)
+
+    if effect.modified {
+      self.rootNode = newRootNode
     }
 
-    public init(_ map: PersistentDictionary<Key, Value>) {
-        self.init(map.rootNode)
-    }
+    // Note, always tracking discardable result negatively impacts batch use cases
+    return effect.previousValue
+  }
 
-    @inlinable
-    @inline(__always)
-    public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
-        var builder = Self()
-        var expectedCount = 0
-        keysAndValues.forEach { key, value in
-            builder.updateValue(value, forKey: key)
-            expectedCount += 1
+  // fluid/immutable API
+  public func removingValue(forKey key: Key) -> Self {
+    var effect = DictionaryEffect<Value>()
+    let keyHash = computeHash(key)
+    let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
-            guard expectedCount == builder.count else {
-                preconditionFailure("Duplicate key: '\(key)'")
-            }
-        }
-        self.init(builder)
-    }
-
-    @inlinable
-    @inline(__always)
-    public init<Keys: Sequence, Values: Sequence>(uniqueKeys keys: Keys, values: Values) where Keys.Element == Key, Values.Element == Value {
-        self.init(uniqueKeysWithValues: zip(keys, values))
-    }
-
-    ///
-    /// Inspecting a Dictionary
-    ///
-
-    public var isEmpty: Bool { rootNode.count == 0 }
-
-    public var count: Int { rootNode.count }
-
-    public var underestimatedCount: Int { rootNode.count }
-
-    public var capacity: Int { rootNode.count }
-
-    ///
-    /// Accessing Keys and Values
-    ///
-
-    public subscript(key: Key) -> Value? {
-        get {
-            return get(key)
-        }
-        mutating set(optionalValue) {
-            if let value = optionalValue {
-                updateValue(value, forKey: key)
-            } else {
-                removeValue(forKey: key)
-            }
-        }
-    }
-
-    public subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
-        get {
-            return get(key) ?? defaultValue()
-        }
-        mutating set(value) {
-            updateValue(value, forKey: key)
-        }
-    }
-
-    public func contains(_ key: Key) -> Bool {
-        rootNode.containsKey(key, computeHash(key), 0)
-    }
-
-    func get(_ key: Key) -> Value? {
-        rootNode.get(key, computeHash(key), 0)
-    }
-
-    @discardableResult
-    public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
-        let isStorageKnownUniquelyReferenced = isKnownUniquelyReferenced(&self.rootNode)
-
-        var effect = DictionaryEffect<Value>()
-        let keyHash = computeHash(key)
-        let newRootNode = rootNode.updateOrUpdating(isStorageKnownUniquelyReferenced, key, value, keyHash, 0, &effect)
-
-        if effect.modified {
-            self.rootNode = newRootNode
-        }
-
-        // Note, always tracking discardable result negatively impacts batch use cases
-        return effect.previousValue
-    }
-
-    // fluid/immutable API
-    public func updatingValue(_ value: Value, forKey key: Key) -> Self {
-        var effect = DictionaryEffect<Value>()
-        let keyHash = computeHash(key)
-        let newRootNode = rootNode.updateOrUpdating(false, key, value, keyHash, 0, &effect)
-
-        if effect.modified {
-            return Self(newRootNode)
-        } else { return self }
-    }
-
-    @discardableResult
-    public mutating func removeValue(forKey key: Key) -> Value? {
-        let isStorageKnownUniquelyReferenced = isKnownUniquelyReferenced(&self.rootNode)
-
-        var effect = DictionaryEffect<Value>()
-        let keyHash = computeHash(key)
-        let newRootNode = rootNode.removeOrRemoving(isStorageKnownUniquelyReferenced, key, keyHash, 0, &effect)
-
-        if effect.modified {
-            self.rootNode = newRootNode
-        }
-
-        // Note, always tracking discardable result negatively impacts batch use cases
-        return effect.previousValue
-    }
-
-    // fluid/immutable API
-    public func removingValue(forKey key: Key) -> Self {
-        var effect = DictionaryEffect<Value>()
-        let keyHash = computeHash(key)
-        let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
-
-        if effect.modified {
-            return Self(newRootNode)
-        } else { return self }
-    }
+    if effect.modified {
+      return Self(newRootNode)
+    } else { return self }
+  }
 }
 
-///
 /// Fixed-stack iterator for traversing a hash-trie. The iterator performs a
-/// depth-first pre-order traversal, which yields first all payload elements of the current
-/// node before traversing sub-nodes (left to right).
-///
-public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value>: IteratorProtocol {
+/// depth-first pre-order traversal, which yields first all payload elements
+/// of the current node before traversing sub-nodes (left to right).
+public struct DictionaryKeyValueTupleIterator<Key: Hashable, Value> {
+  typealias KeyValueBuffer = UnsafeBufferPointer<(key: Key, value: Value)>
+  typealias DictionaryNode = BitmapIndexedDictionaryNode<Key, Value>
+  typealias DictionaryNodeBuffer = UnsafeBufferPointer<DictionaryNode>
 
-    private var payloadIterator: UnsafeBufferPointer<(key: Key, value: Value)>.Iterator?
+  private var payloadIterator: KeyValueBuffer.Iterator?
 
-    private var trieIteratorStackTop: UnsafeBufferPointer<BitmapIndexedDictionaryNode<Key, Value>>.Iterator?
-    private var trieIteratorStackRemainder: [UnsafeBufferPointer<BitmapIndexedDictionaryNode<Key, Value>>.Iterator]
+  private var trieIteratorStackTop: DictionaryNodeBuffer.Iterator?
+  private var trieIteratorStackRemainder: [DictionaryNodeBuffer.Iterator]
 
-    init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
-        trieIteratorStackRemainder = []
-        trieIteratorStackRemainder.reserveCapacity(maxDepth)
+  init(rootNode: DictionaryNode) {
+    trieIteratorStackRemainder = []
+    trieIteratorStackRemainder.reserveCapacity(maxDepth)
 
-        if rootNode.hasNodes   { trieIteratorStackTop = rootNode._trieSlice.makeIterator() }
-        if rootNode.hasPayload { payloadIterator = rootNode._dataSlice.makeIterator() }
+    if rootNode.hasNodes {
+      trieIteratorStackTop = rootNode._trieSlice.makeIterator()
+    }
+    if rootNode.hasPayload {
+      payloadIterator = rootNode._dataSlice.makeIterator()
+    }
+  }
+}
+
+extension DictionaryKeyValueTupleIterator: IteratorProtocol {
+  public typealias Element = (key: Key, value: Value)
+  public mutating func next() -> Element? {
+    if let payload = payloadIterator?.next() {
+      return payload
     }
 
-    public mutating func next() -> (key: Key, value: Value)? {
-        if let payload = payloadIterator?.next() {
-            return payload
+    while trieIteratorStackTop != nil {
+      if let nextNode = trieIteratorStackTop!.next() {
+        if nextNode.hasNodes {
+          trieIteratorStackRemainder.append(trieIteratorStackTop!)
+          trieIteratorStackTop = nextNode._trieSlice.makeIterator()
         }
-
-        while trieIteratorStackTop != nil {
-            if let nextNode = trieIteratorStackTop!.next() {
-                if nextNode.hasNodes {
-                    trieIteratorStackRemainder.append(trieIteratorStackTop!)
-                    trieIteratorStackTop = nextNode._trieSlice.makeIterator()
-                }
-                if nextNode.hasPayload {
-                    payloadIterator = nextNode._dataSlice.makeIterator()
-                    return payloadIterator?.next()
-                }
-            } else {
-                trieIteratorStackTop = trieIteratorStackRemainder.popLast()
-            }
+        if nextNode.hasPayload {
+          payloadIterator = nextNode._dataSlice.makeIterator()
+          return payloadIterator?.next()
         }
-
-        // Clean-up state
-        payloadIterator = nil
-
-        assert(payloadIterator == nil)
-        assert(trieIteratorStackTop == nil)
-        assert(trieIteratorStackRemainder.isEmpty)
-
-        return nil
+      } else {
+        trieIteratorStackTop = trieIteratorStackRemainder.popLast()
+      }
     }
+
+    // Clean-up state
+    payloadIterator = nil
+
+    assert(payloadIterator == nil)
+    assert(trieIteratorStackTop == nil)
+    assert(trieIteratorStackRemainder.isEmpty)
+
+    return nil
+  }
 }
 
 // TODO consider reworking similar to `DictionaryKeyValueTupleIterator`
-// (would require a reversed variant of `UnsafeBufferPointer<(key: Key, value: Value)>.Iterator`)
+// (would require a reversed variant of `KeyValueBuffer.Iterator`)
 public struct DictionaryKeyValueTupleReverseIterator<Key: Hashable, Value> {
-    private var baseIterator: BaseReverseIterator<BitmapIndexedDictionaryNode<Key, Value>>
+  typealias DictionaryNode = BitmapIndexedDictionaryNode<Key, Value>
+  private var baseIterator: BaseReverseIterator<DictionaryNode>
 
-    init(rootNode: BitmapIndexedDictionaryNode<Key, Value>) {
-        self.baseIterator = BaseReverseIterator(rootNode: rootNode)
-    }
+  init(rootNode: DictionaryNode) {
+    self.baseIterator = BaseReverseIterator(rootNode: rootNode)
+  }
 }
 
 extension DictionaryKeyValueTupleReverseIterator: IteratorProtocol {
-    public mutating func next() -> (key: Key, value: Value)? {
-        guard baseIterator.hasNext() else { return nil }
+  public mutating func next() -> (key: Key, value: Value)? {
+    guard baseIterator.hasNext() else { return nil }
 
-        let payload = baseIterator.currentValueNode!.getPayload(baseIterator.currentValueCursor)
-        baseIterator.currentValueCursor -= 1
+    let payload = baseIterator
+      .currentValueNode!
+      .getPayload(baseIterator.currentValueCursor)
+    baseIterator.currentValueCursor -= 1
 
-        return payload
-    }
+    return payload
+  }
 }
