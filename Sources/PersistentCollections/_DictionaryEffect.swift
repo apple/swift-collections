@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct DictionaryEffect<Value> {
+struct _DictionaryEffect<Value> {
   var modified: Bool = false
   var previousValue: Value?
   

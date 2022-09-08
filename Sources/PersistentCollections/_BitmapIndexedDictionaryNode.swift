@@ -12,7 +12,7 @@
 fileprivate let initialDataCapacity: Capacity = 4
 fileprivate let initialTrieCapacity: Capacity = 1
 
-final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: Hashable {
+final class BitmapIndexedDictionaryNode<Key: Hashable, Value>: _DictionaryNode {
 
   typealias ReturnPayload = (key: Key, value: Value)
   typealias ReturnBitmapIndexedNode = BitmapIndexedDictionaryNode<Key, Value>
@@ -396,7 +396,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     _ value: Value,
     _ keyHash: Int,
     _ shift: Int,
-    _ effect: inout DictionaryEffect<Value>
+    _ effect: inout _DictionaryEffect<Value>
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
 
     guard collisionFree else {
@@ -479,7 +479,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     _ value: Value,
     _ keyHash: Int,
     _ shift: Int,
-    _ effect: inout DictionaryEffect<Value>
+    _ effect: inout _DictionaryEffect<Value>
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     assert(hashCollision)
 
@@ -509,7 +509,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     _ key: Key,
     _ keyHash: Int,
     _ shift: Int,
-    _ effect: inout DictionaryEffect<Value>
+    _ effect: inout _DictionaryEffect<Value>
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
 
     guard collisionFree else {
@@ -615,7 +615,7 @@ final class BitmapIndexedDictionaryNode<Key, Value>: DictionaryNode where Key: H
     _ key: Key,
     _ keyHash: Int,
     _ shift: Int,
-    _ effect: inout DictionaryEffect<Value>
+    _ effect: inout _DictionaryEffect<Value>
   ) -> BitmapIndexedDictionaryNode<Key, Value> {
     assert(hashCollision)
 

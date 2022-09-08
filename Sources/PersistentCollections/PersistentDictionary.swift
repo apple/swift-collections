@@ -104,7 +104,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
     let isUnique = isKnownUniquelyReferenced(&self.rootNode)
 
-    var effect = DictionaryEffect<Value>()
+    var effect = _DictionaryEffect<Value>()
     let keyHash = computeHash(key)
     let newRootNode = rootNode.updateOrUpdating(
       isUnique, key, value, keyHash, 0, &effect)
@@ -119,7 +119,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
   // fluid/immutable API
   public func updatingValue(_ value: Value, forKey key: Key) -> Self {
-    var effect = DictionaryEffect<Value>()
+    var effect = _DictionaryEffect<Value>()
     let keyHash = computeHash(key)
     let newRootNode = rootNode.updateOrUpdating(
       false, key, value, keyHash, 0, &effect)
@@ -133,7 +133,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   public mutating func removeValue(forKey key: Key) -> Value? {
     let isUnique = isKnownUniquelyReferenced(&self.rootNode)
 
-    var effect = DictionaryEffect<Value>()
+    var effect = _DictionaryEffect<Value>()
     let keyHash = computeHash(key)
     let newRootNode = rootNode.removeOrRemoving(
       isUnique, key, keyHash, 0, &effect)
@@ -148,7 +148,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
   // fluid/immutable API
   public func removingValue(forKey key: Key) -> Self {
-    var effect = DictionaryEffect<Value>()
+    var effect = _DictionaryEffect<Value>()
     let keyHash = computeHash(key)
     let newRootNode = rootNode.removeOrRemoving(false, key, keyHash, 0, &effect)
 
@@ -221,10 +221,10 @@ extension DictionaryKeyValueTupleIterator: IteratorProtocol {
 // (would require a reversed variant of `KeyValueBuffer.Iterator`)
 public struct DictionaryKeyValueTupleReverseIterator<Key: Hashable, Value> {
   typealias DictionaryNode = BitmapIndexedDictionaryNode<Key, Value>
-  private var baseIterator: BaseReverseIterator<DictionaryNode>
+  private var baseIterator: _BaseReverseIterator<DictionaryNode>
 
   init(rootNode: DictionaryNode) {
-    self.baseIterator = BaseReverseIterator(rootNode: rootNode)
+    self.baseIterator = _BaseReverseIterator(rootNode: rootNode)
   }
 }
 

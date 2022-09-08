@@ -9,7 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-protocol DictionaryNode: Node {
+// FIXME: Remove
+internal protocol _DictionaryNode: _Node {
   associatedtype Key: Hashable
   associatedtype Value
 
@@ -25,13 +26,13 @@ protocol DictionaryNode: Node {
     _ isStorageKnownUniquelyReferenced: Bool,
     _ key: Key, _ value: Value, _ hash: Int,
     _ shift: Int,
-    _ effect: inout DictionaryEffect<Value>
+    _ effect: inout _DictionaryEffect<Value>
   ) -> ReturnBitmapIndexedNode
 
   func removeOrRemoving(
     _ isStorageKnownUniquelyReferenced: Bool,
     _ key: Key, _ hash: Int,
     _ shift: Int,
-    _ effect: inout DictionaryEffect<Value>
+    _ effect: inout _DictionaryEffect<Value>
   ) -> ReturnBitmapIndexedNode
 }
