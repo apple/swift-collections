@@ -1010,10 +1010,10 @@ extension BitmapIndexedDictionaryNode: Equatable where Value: Equatable {
 }
 
 extension BitmapIndexedDictionaryNode: Sequence {
-  typealias Iterator = DictionaryKeyValueTupleIterator<Key, Value>
+  typealias Iterator = PersistentDictionary<Key, Value>.Iterator
 
   public __consuming func makeIterator() -> Iterator {
-    DictionaryKeyValueTupleIterator(rootNode: self)
+    Iterator(_root: self)
   }
 }
 
