@@ -188,8 +188,8 @@ class PersistentDictionaryTests: CollectionTestCase {
         withEvery("offset", in: 0 ..< count) { offset in
           expectEqual(
             // NOTE: uses the actual order `d.keys`
-            d.index(forKey: d.keys[offset]),
-            PersistentDictionaryIndex(value: offset))
+            d.index(forKey: d.keys[offset])?._value,
+            offset)
         }
         expectNil(d.index(forKey: tracker.instance(for: -1)))
         expectNil(d.index(forKey: tracker.instance(for: count)))
@@ -197,6 +197,7 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
+  #if false
   // TODO: determine how to best calculate the expected order of the hash-trie
   // for testing purposes, without relying on the actual implementation
   func test_subscript_offset() {
@@ -213,6 +214,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       }
     }
   }
+  #endif
 
   func test_subscript_getter() {
     withEvery("count", in: 0 ..< 30) { count in

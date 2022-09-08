@@ -578,15 +578,16 @@ final class CapsuleSmokeTests: CollectionTestCase {
       CollidableInt(32769): "b"
     ]
 
+    typealias Index = PersistentDictionary<CollidableInt, String>.Index
     expectEqual(
       map.index(forKey: CollidableInt(11, 1)),
-      PersistentDictionaryIndex(value: 0))
+      Index(_value: 0))
     expectEqual(
       map.index(forKey: CollidableInt(12, 1)),
-      PersistentDictionaryIndex(value: 1))
+      Index(_value: 1))
     expectEqual(
       map.index(forKey: CollidableInt(32769)),
-      PersistentDictionaryIndex(value: 2))
+      Index(_value: 2))
     expectNil(map.index(forKey: CollidableInt(13, 1)))
   }
 
@@ -607,7 +608,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
       expectEqual(expectedValue, actualValue)
 
-      expectedPositions.remove(position.value)
+      expectedPositions.remove(position._value)
     }
 
     expectTrue(expectedPositions.isEmpty)

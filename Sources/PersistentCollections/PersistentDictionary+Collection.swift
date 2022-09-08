@@ -10,43 +10,38 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentDictionary: Collection {
-  public typealias Index = PersistentDictionaryIndex
-  
+  public struct Index: Comparable {
+    internal let _value: Int
+
+    internal init(_value: Int) {
+      self._value = _value
+    }
+
+    public static func < (lhs: Self, rhs: Self) -> Bool {
+      lhs._value < rhs._value
+    }
+  }
+
   ///
   /// Manipulating Indices
   ///
   
-  public var startIndex: Self.Index { PersistentDictionaryIndex(value: 0) }
+  public var startIndex: Index { Index(_value: 0) }
   
-  public var endIndex: Self.Index { PersistentDictionaryIndex(value: count) }
+  public var endIndex: Index { Index(_value: count) }
   
-  public func index(after i: Self.Index) -> Self.Index {
-    return i + 1
+  public func index(after i: Index) -> Index {
+    Index(_value: i._value + 1)
   }
   
-  ///
   /// Returns the index for the given key.
-  ///
-  public func index(forKey key: Key) -> Self.Index? {
-    return rootNode.index(key, _computeHash(key), 0, 0) 
+  public func index(forKey key: Key) -> Index? {
+    rootNode.index(key, _computeHash(key), 0, 0) 
   }
   
-  ///
   /// Accesses the key-value pair at the specified position.
-  ///
-  public subscript(position: Self.Index) -> Self.Element {
-    return rootNode.get(position: position, 0, position.value)
+  public subscript(position: Index) -> Element {
+    rootNode.get(position: position, 0, position._value)
   }
 }
 
-public struct PersistentDictionaryIndex: Comparable {
-  let value: Int
-  
-  public static func < (lhs: Self, rhs: Self) -> Bool {
-    return lhs.value < rhs.value
-  }
-  
-  public static func +(lhs: Self, rhs: Int) -> Self {
-    return PersistentDictionaryIndex(value: lhs.value + rhs)
-  }
-}

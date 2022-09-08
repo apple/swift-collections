@@ -45,6 +45,7 @@ extension _NodeHeader {
 
 extension PersistentDictionary {
   internal final class _Node {
+    typealias Index = PersistentDictionary.Index
     typealias Capacity = _NodeHeader.Capacity
 
     typealias DataBufferElement = ReturnPayload
@@ -399,7 +400,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     _ keyHash: Int,
     _ shift: Int,
     _ skippedBefore: Int
-  ) -> PersistentDictionaryIndex? {
+  ) -> Index? {
     guard collisionFree else {
       let content: [ReturnPayload] = Array(self)
       let hash = _computeHash(content.first!.key)
@@ -407,7 +408,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       assert(keyHash == hash)
       return content
         .firstIndex(where: { _key, _ in _key == key })
-        .map { PersistentDictionaryIndex(value: $0) }
+        .map { Index(_value: $0) }
     }
 
     let mask = _maskFrom(keyHash, shift)
@@ -420,7 +421,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       let payload = self.getPayload(index)
       guard key == payload.key else { return nil }
 
-      return PersistentDictionaryIndex(value: skippedBefore + skipped)
+      return Index(_value: skippedBefore + skipped)
     }
 
     guard (trieMap & bitpos) == 0 else {
@@ -689,11 +690,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 }
 
 extension PersistentDictionary._Node {
-  func get(
-    position: PersistentDictionaryIndex,
-    _ shift: Int,
-    _ stillToSkip: Int
-  ) -> ReturnPayload {
+  func get(position: Index, _ shift: Int, _ stillToSkip: Int) -> ReturnPayload {
     var cumulativeCounts = self._counts
 
     for i in 1 ..< cumulativeCounts.count {

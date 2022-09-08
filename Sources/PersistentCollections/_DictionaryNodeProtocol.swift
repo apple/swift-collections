@@ -20,7 +20,7 @@ internal protocol _DictionaryNodeProtocol: _NodeProtocol {
 
   func index(
     _ key: Key, _ hash: Int, _ shift: Int, _ skippedBefore: Int
-  ) -> PersistentDictionaryIndex?
+  ) -> PersistentDictionary<Key, Value>.Index?
 
   func updateOrUpdating(
     _ isStorageKnownUniquelyReferenced: Bool,
