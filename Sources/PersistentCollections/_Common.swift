@@ -43,21 +43,6 @@ func indexFrom(_ bitmap: Bitmap, _ mask: Int, _ bitpos: Bitmap) -> Int {
   (bitmap == Bitmap.max) ? mask : indexFrom(bitmap, bitpos)
 }
 
-func rangeInsert<T>(
-  _ element: T,
-  at index: Int,
-  intoRange range: Range<UnsafeMutablePointer<T>>
-) {
-  let seq = range.dropFirst(index)
-
-  let src = seq.startIndex
-  let dst = src.successor()
-
-  dst.moveInitialize(from: src, count: seq.count)
-
-  src.initialize(to: element)
-}
-
 // NEW
 @inlinable
 @inline(__always)
@@ -75,36 +60,6 @@ func rangeInsert<T>(
   src.initialize(to: element)
 }
 
-// `index` is the logical index starting at the rear, indexing to the left
-func rangeInsertReversed<T>(
-  _ element: T,
-  at index: Int,
-  intoRange range: Range<UnsafeMutablePointer<T>>
-) {
-  let seq = range.dropLast(index)
-
-  let src = seq.startIndex
-  let dst = src.predecessor()
-
-  dst.moveInitialize(from: src, count: seq.count)
-
-  // requires call to predecessor on "past the end" position
-  seq.endIndex.predecessor().initialize(to: element)
-}
-
-func rangeRemove<T>(
-  at index: Int,
-  fromRange range: Range<UnsafeMutablePointer<T>>
-) {
-  let seq = range.dropFirst(index + 1)
-
-  let src = seq.startIndex
-  let dst = src.predecessor()
-
-  dst.deinitialize(count: 1)
-  dst.moveInitialize(from: src, count: seq.count)
-}
-
 // NEW
 @inlinable
 @inline(__always)
@@ -118,17 +73,4 @@ func rangeRemove<T>(
 
   dst.deinitialize(count: 1)
   dst.moveInitialize(from: src, count: count - index - 1)
-}
-
-// `index` is the logical index starting at the rear, indexing to the left
-func rangeRemoveReversed<T>(
-  at index: Int, fromRange range: Range<UnsafeMutablePointer<T>>
-) {
-  let seq = range.dropLast(index + 1)
-
-  let src = seq.startIndex
-  let dst = src.successor()
-
-  seq.endIndex.deinitialize(count: 1)
-  dst.moveInitialize(from: src, count: seq.count)
 }
