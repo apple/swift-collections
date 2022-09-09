@@ -221,15 +221,16 @@ extension PersistentDictionary._Node {
     assert(self.invariant)
   }
 
-  convenience init(collisions: [Element]) {
+  convenience init<C: Collection>(collisions: C) where C.Element == Element {
     self.init(itemCapacity: Capacity(collisions.count), childCapacity: 0)
 
-    self.header = _NodeHeader(
-      itemMap: _Bitmap(bitPattern: collisions.count),
-      childMap: _Bitmap(bitPattern: collisions.count))
     self.count = collisions.count
+    self.header = _NodeHeader(
+      itemMap: _Bitmap(bitPattern: count),
+      childMap: _Bitmap(bitPattern: count))
 
-    self.itemBaseAddress.initialize(from: collisions, count: collisions.count)
+    var (it, c) = self._mutableItems.initialize(from: collisions)
+    precondition(it.next() == nil && c == self.count)
 
     assert(self.invariant)
   }
@@ -274,6 +275,7 @@ extension PersistentDictionary._Node {
     }
 
     if isCollisionNode {
+      guard childCount == 0 else { return false }
       let hash = _HashValue(_items.first!.key)
 
       guard _items.allSatisfy({ _HashValue($0.key) == hash }) else {
@@ -295,6 +297,10 @@ extension PersistentDictionary._Node {
 
   var _children: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: childBaseAddress, count: header.childCount)
+  }
+
+  var _mutableItems: UnsafeMutableBufferPointer<Element> {
+    UnsafeMutableBufferPointer(start: itemBaseAddress, count: header.itemCount)
   }
 
   var isCandidateForCompaction: Bool { itemCount == 0 && childCount == 1 }
@@ -328,10 +334,9 @@ extension PersistentDictionary._Node: _NodeProtocol {
 extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   func get(_ key: Key, _ path: _HashPath) -> Value? {
     guard isRegularNode else {
-      let content: [Element] = Array(self)
-      let hash = _HashValue(content.first!.key)
+      let hash = _HashValue(_items.first!.key)
       guard path._hash == hash else { return nil }
-      return content.first(where: { key == $0.key }).map { $0.value }
+      return _items.first(where: { key == $0.key })?.value
     }
 
     let bucket = path.currentBucket
@@ -352,10 +357,9 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
   func containsKey(_ key: Key, _ path: _HashPath) -> Bool {
     guard isRegularNode else {
-      let content: [Element] = Array(self)
-      let hash = _HashValue(content.first!.key)
+      let hash = _HashValue(_items.first!.key)
       guard path._hash == hash else { return false }
-      return content.contains(where: { key == $0.key })
+      return _items.contains(where: { key == $0.key })
     }
 
     let bucket = path.currentBucket
@@ -381,12 +385,11 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     _ skippedBefore: Int
   ) -> Index? {
     guard isRegularNode else {
-      let content: [Element] = Array(self)
-      let hash = _HashValue(content.first!.key)
+      let hash = _HashValue(_items.first!.key)
       assert(path._hash == hash)
-      return content
+      return _items
         .firstIndex(where: { $0.key == key })
-        .map { Index(_value: $0) }
+        .map { Index(_value: skippedBefore + $0) }
     }
 
     let bucket = path.currentBucket
@@ -478,26 +481,35 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   ) -> _Node {
     assert(isCollisionNode)
 
-    let content: [Element] = Array(self)
-    let hash = _HashValue(content.first!.key)
-
+    let hash = _HashValue(_items.first!.key)
     guard path._hash == hash else {
       effect.setModified()
       return _mergeKeyValPairAndCollisionNode(item, path, self, hash)
     }
 
-    if let offset = content.firstIndex(where: { item.key == $0.key }) {
-      var updatedContent: [Element] = []
-      updatedContent.reserveCapacity(content.count + 1)
-      updatedContent.append(contentsOf: content[0 ..< offset])
-      updatedContent.append(item)
-      updatedContent.append(contentsOf: content[(offset + 1)...])
-      effect.setReplacedValue(previousValue: content[offset].value)
-      return _Node(/* hash, */ collisions: updatedContent)
-    } else {
-      effect.setModified()
-      return _Node(/* hash, */ collisions: content + [item])
+    if let offset = _items.firstIndex(where: { $0.key == item.key }) {
+      effect.setReplacedValue(previousValue: _items[offset].value)
+      let node = isUnique ? self : self.copy()
+      node._mutableItems[offset] = item
+      return node
     }
+
+    let hasRoomForItem = itemCount < itemCapacity
+    let dst: _Node
+    if isUnique && hasRoomForItem {
+      dst = self
+    } else {
+      dst = self.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
+    }
+    assert(dst.itemCount < dst.itemCapacity)
+    let count = dst.itemCount
+    _rangeInsert(item, at: count, into: dst.itemBaseAddress, count: count)
+    dst.header.itemMap = _Bitmap(bitPattern: count + 1)
+    dst.header.childMap = dst.header.itemMap
+    dst.count = count + 1
+
+    effect.setModified()
+    return dst
   }
 
   final func removeOrRemoving(
@@ -593,22 +605,25 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   ) -> _Node {
     assert(isCollisionNode)
 
-    let content: [Element] = Array(self)
-
-    guard let offset = content.firstIndex(where: { key == $0.key }) else {
+    guard let offset = _items.firstIndex(where: { key == $0.key }) else {
       return self
     }
-    effect.setModified(previousValue: content[offset].value)
-    var updatedContent = content
-    updatedContent.remove(at: offset)
 
-    if updatedContent.count == 1 {
+    effect.setModified(previousValue: _items[offset].value)
+
+    let count = itemCount
+    if count == 2 {
       // create potential new root: will a) become new root, or b) inlined
       // on another level
-      let remaining = updatedContent.first!
-      return _Node(remaining, at: path.top().currentBucket)
+      return _Node(_items[1 - offset], at: path.top().currentBucket)
     }
-    return _Node(/* hash, */ collisions: updatedContent)
+
+    let dst = isUnique ? self : self.copy()
+    _rangeRemove(at: offset, from: dst.itemBaseAddress, count: count)
+    dst.header.itemMap = _Bitmap(bitPattern: count - 1)
+    dst.header.childMap = dst.header.itemMap
+    dst.count = count - 1
+    return dst
   }
 }
 
@@ -794,13 +809,11 @@ extension PersistentDictionary._Node {
     } else {
       dst = src.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
     }
+    assert(dst.itemCount < dst.itemCapacity)
 
     let offset = dst.itemMap.offset(of: bucket)
     _rangeInsert(
-      item,
-      at: offset,
-      into: dst.itemBaseAddress,
-      count: dst.header.itemCount)
+      item, at: offset, into: dst.itemBaseAddress, count: dst.itemCount)
 
     dst.header.itemMap.insert(bucket)
     dst.count += 1
@@ -918,20 +931,20 @@ extension PersistentDictionary._Node {
 extension PersistentDictionary._Node: Equatable where Value: Equatable {
   static func == (lhs: _Node, rhs: _Node) -> Bool {
     if lhs.isCollisionNode && rhs.isCollisionNode {
-      let l = Dictionary(uniqueKeysWithValues: Array(lhs))
-      let r = Dictionary(uniqueKeysWithValues: Array(rhs))
+      let l = Dictionary(
+        uniqueKeysWithValues: lhs._items.lazy.map { ($0.key, $0.value) })
+      let r = Dictionary(
+        uniqueKeysWithValues: rhs._items.lazy.map { ($0.key, $0.value) })
       return l == r
     }
 
-    return (
-      lhs === rhs ||
-      lhs.header == rhs.header &&
-      lhs.count == rhs.count &&
-      deepContentEquality(lhs, rhs))
+    if lhs === rhs { return true }
+    return deepContentEquality(lhs, rhs)
   }
 
   private static func deepContentEquality(_ lhs: _Node, _ rhs: _Node) -> Bool {
     guard lhs.header == rhs.header else { return false }
+    guard lhs.count == rhs.count else { return false }
 
     for index in 0..<lhs.itemCount {
       if lhs.item(at: index) != rhs.item(at: index) {
@@ -949,10 +962,3 @@ extension PersistentDictionary._Node: Equatable where Value: Equatable {
   }
 }
 
-extension PersistentDictionary._Node: Sequence {
-  typealias Iterator = PersistentDictionary<Key, Value>.Iterator
-
-  public __consuming func makeIterator() -> Iterator {
-    Iterator(_root: self)
-  }
-}
