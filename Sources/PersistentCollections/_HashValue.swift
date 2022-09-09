@@ -9,8 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-//extension PersistentDictionary: CVarArg {
-//  public var _cVarArgEncoding: [Int] {
-//    <#code#>
-//  }
-//}
+/// An abstract representation of a hash value.
+internal struct _HashValue {
+  internal var value: UInt
+
+  internal init<Key: Hashable>(_ key: Key) {
+    let hashValue = key._rawHashValue(seed: 0)
+    self.value = UInt(bitPattern: hashValue)
+  }
+}
+
+extension _HashValue: Equatable {
+  @inline(__always)
+  internal static func ==(left: Self, right: Self) -> Bool {
+    left.value == right.value
+  }
+}

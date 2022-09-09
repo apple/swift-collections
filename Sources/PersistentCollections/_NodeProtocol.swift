@@ -10,8 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 protocol _NodeProtocol: AnyObject {
-  associatedtype ReturnPayload
-  associatedtype ReturnBitmapIndexedNode: _NodeProtocol
+  associatedtype Element
 
   var hasNodes: Bool { get }
 
@@ -23,7 +22,7 @@ protocol _NodeProtocol: AnyObject {
 
   var payloadArity: Int { get }
 
-  func getPayload(_ index: Int) -> ReturnPayload
+  func getPayload(_ index: Int) -> Element
 
   var count: Int { get }
 }

@@ -13,17 +13,12 @@ import _CollectionsTestSupport
 import XCTest
 @testable import PersistentCollections
 
+#if false
 final class BitmapSmokeTests: CollectionTestCase {
-  typealias Bitmap = _NodeHeader.Bitmap
-  typealias Capacity = _NodeHeader.Capacity
   func test_BitPartitionSize_isValid() {
     expectTrue(_bitPartitionSize > 0)
     expectTrue((2 << (_bitPartitionSize - 1)) != 0)
     expectTrue((2 << (_bitPartitionSize - 1)) <= Bitmap.bitWidth)
-  }
-
-  func test_Capacity_isValid() {
-    expectTrue(Int(2 << _bitPartitionSize) <= Int(Capacity.max))
   }
 
   func test_Bitmap_nonzeroBits() {
@@ -66,3 +61,4 @@ final class BitmapSmokeTests: CollectionTestCase {
     expectNil(zipIterator.next())
   }
 }
+#endif

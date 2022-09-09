@@ -13,35 +13,18 @@ internal func _computeHash<T: Hashable>(_ value: T) -> Int {
   value.hashValue
 }
 
-internal let _bitPartitionSize: Int = 5
+@inline(__always)
+internal var _bitPartitionSize: Int { 5 }
 
-internal let _bitPartitionMask: Int = (1 << _bitPartitionSize) - 1
+@inline(__always)
+internal var _bitPartitionMask: Int { (1 << _bitPartitionSize) - 1 }
 
-internal let _hashCodeLength: Int = Int.bitWidth
+@inline(__always)
+internal var _hashCodeLength: Int { Int.bitWidth }
 
-internal let _maxDepth = (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
-
-internal func _maskFrom(_ hash: Int, _ shift: Int) -> Int {
-  (hash >> shift) & _bitPartitionMask
-}
-
-internal func _bitposFrom(_ mask: Int) -> _NodeHeader.Bitmap {
-  1 << mask
-}
-
-internal func _indexFrom(
-  _ bitmap: _NodeHeader.Bitmap,
-  _ bitpos: _NodeHeader.Bitmap
-) -> Int {
-  (bitmap & (bitpos &- 1)).nonzeroBitCount
-}
-
-internal func _indexFrom(
-  _ bitmap: _NodeHeader.Bitmap,
-  _ mask: Int,
-  _ bitpos: _NodeHeader.Bitmap
-) -> Int {
-  (bitmap == _NodeHeader.Bitmap.max) ? mask : _indexFrom(bitmap, bitpos)
+@inline(__always)
+internal var _maxDepth: Int {
+  (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
 }
 
 // NEW

@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false
 /// Base class for fixed-stack iterators that traverse a hash-trie in reverse
 /// order. The base iterator performs a depth-first post-order traversal,
 /// traversing sub-nodes (right to left).
@@ -73,4 +74,4 @@ internal struct _BaseReverseIterator<T: _NodeProtocol> {
     return (currentValueCursor >= 0) || searchNextValueNode()
   }
 }
-
+#endif

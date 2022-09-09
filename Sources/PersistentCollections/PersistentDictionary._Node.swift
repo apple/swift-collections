@@ -9,35 +9,31 @@
 //
 //===----------------------------------------------------------------------===//
 
-internal struct _NodeHeader: Equatable {
-  internal typealias Bitmap = UInt32
+internal struct _NodeHeader {
+  internal var dataMap: _Bitmap
+  internal var trieMap: _Bitmap
 
-  // TODO: restore type to `UInt8` after reworking hash-collisions to grow in
-  // depth instead of width
-  internal typealias Capacity = UInt32
-
-  internal var dataMap: Bitmap
-  internal var trieMap: Bitmap
-
-  init(dataMap: Bitmap, trieMap: Bitmap) {
+  init(dataMap: _Bitmap, trieMap: _Bitmap) {
     self.dataMap = dataMap
     self.trieMap = trieMap
   }
 }
 
 extension _NodeHeader {
-  internal var hashCollision: Bool {
-    (dataMap & trieMap) != 0
+  internal var isCollisionNode: Bool {
+    !dataMap.intersection(trieMap).isEmpty
   }
 
   internal var dataCount: Int {
-    hashCollision ? Int(dataMap) : dataMap.nonzeroBitCount
+    isCollisionNode ? Int(dataMap._value) : dataMap.count
   }
 
   internal var trieCount: Int {
-    hashCollision ? 0 : trieMap.nonzeroBitCount
+    isCollisionNode ? 0 : trieMap.count
   }
+}
 
+extension _NodeHeader: Equatable {
   internal static func == (lhs: _NodeHeader, rhs: _NodeHeader) -> Bool {
     lhs.dataMap == rhs.dataMap && lhs.trieMap == rhs.trieMap
   }
@@ -45,11 +41,12 @@ extension _NodeHeader {
 
 extension PersistentDictionary {
   internal final class _Node {
+    typealias Element = (key: Key, value: Value)
     typealias Index = PersistentDictionary.Index
-    typealias Capacity = _NodeHeader.Capacity
 
-    typealias DataBufferElement = ReturnPayload
-    typealias TrieBufferElement = ReturnBitmapIndexedNode
+    // TODO: restore type to `UInt8` after reworking hash-collisions to grow in
+    // depth instead of width
+    internal typealias Capacity = UInt32
 
     var header: _NodeHeader
     var count: Int
@@ -57,8 +54,8 @@ extension PersistentDictionary {
     let dataCapacity: Capacity
     let trieCapacity: Capacity
 
-    let dataBaseAddress: UnsafeMutablePointer<DataBufferElement>
-    let trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
+    let dataBaseAddress: UnsafeMutablePointer<Element>
+    let trieBaseAddress: UnsafeMutablePointer<_Node>
 
     deinit {
       dataBaseAddress.deinitialize(count: header.dataCount)
@@ -72,7 +69,7 @@ extension PersistentDictionary {
         dataCapacity: dataCapacity,
         trieCapacity: trieCapacity)
 
-      self.header = _NodeHeader(dataMap: 0, trieMap: 0)
+      self.header = _NodeHeader(dataMap: .empty, trieMap: .empty)
       self.count = 0
 
       self.dataBaseAddress = dataBaseAddress
@@ -98,24 +95,24 @@ extension PersistentDictionary._Node {
   static func _allocate(
     dataCapacity: Capacity, trieCapacity: Capacity
   ) -> (
-    dataBaseAddress: UnsafeMutablePointer<DataBufferElement>,
-    trieBaseAddress: UnsafeMutablePointer<TrieBufferElement>
+    dataBaseAddress: UnsafeMutablePointer<Element>,
+    trieBaseAddress: UnsafeMutablePointer<_Node>
   ) {
-    let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<DataBufferElement>.stride
-    let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<TrieBufferElement>.stride
+    let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<Element>.stride
+    let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<_Node>.stride
 
     let alignment = Swift.max(
-      MemoryLayout<DataBufferElement>.alignment,
-      MemoryLayout<TrieBufferElement>.alignment)
+      MemoryLayout<Element>.alignment,
+      MemoryLayout<_Node>.alignment)
     let memory = UnsafeMutableRawPointer.allocate(
       byteCount: dataCapacityInBytes + trieCapacityInBytes,
       alignment: alignment)
 
     let dataBaseAddress = memory
       .advanced(by: trieCapacityInBytes)
-      .bindMemory(to: DataBufferElement.self, capacity: Int(dataCapacity))
+      .bindMemory(to: Element.self, capacity: Int(dataCapacity))
     let trieBaseAddress = memory
-      .bindMemory(to: TrieBufferElement.self, capacity: Int(trieCapacity))
+      .bindMemory(to: _Node.self, capacity: Int(trieCapacity))
 
     return (dataBaseAddress, trieBaseAddress)
   }
@@ -153,76 +150,83 @@ extension PersistentDictionary._Node {
       dataCapacity: _Node.initialDataCapacity,
       trieCapacity: _Node.initialTrieCapacity)
 
-    self.header = _NodeHeader(dataMap: 0, trieMap: 0)
+    self.header = _NodeHeader(dataMap: .empty, trieMap: .empty)
 
     assert(self.invariant)
   }
 
-  convenience init(
-    dataMap: _NodeHeader.Bitmap, firstKey: Key, firstValue: Value) {
+  convenience init(dataMap: _Bitmap, _ item: Element) {
+    assert(dataMap.count == 1)
     self.init()
-
-    self.header = _NodeHeader(dataMap: dataMap, trieMap: 0)
+    self.header = _NodeHeader(dataMap: dataMap, trieMap: .empty)
     self.count = 1
-
-    self.dataBaseAddress.initialize(to: (firstKey, firstValue))
-
+    self.dataBaseAddress.initialize(to: item)
     assert(self.invariant)
   }
 
+  convenience init(_ item: Element, at bucket: _Bucket) {
+    self.init(dataMap: _Bitmap(bucket), item)
+  }
+
   convenience init(
-    dataMap: _NodeHeader.Bitmap,
-    firstKey: Key,
-    firstValue: Value,
-    secondKey: Key,
-    secondValue: Value
+    _ item0: Element, at bucket0: _Bucket,
+    _ item1: Element, at bucket1: _Bucket
   ) {
+    assert(bucket0 != bucket1)
     self.init()
 
-    self.header = _NodeHeader(dataMap: dataMap, trieMap: 0)
+    self.header = _NodeHeader(
+      dataMap: _Bitmap(bucket0, bucket1),
+      trieMap: .empty)
     self.count = 2
 
-    self.dataBaseAddress.initialize(to: (firstKey, firstValue))
-    self.dataBaseAddress.successor().initialize(to: (secondKey, secondValue))
-
+    if bucket0 < bucket1 {
+      self.dataBaseAddress.initialize(to: item0)
+      self.dataBaseAddress.successor().initialize(to: item1)
+    } else {
+      self.dataBaseAddress.initialize(to: item1)
+      self.dataBaseAddress.successor().initialize(to: item0)
+    }
     assert(self.invariant)
   }
 
-  convenience init(trieMap: _NodeHeader.Bitmap, firstNode: _Node) {
+  convenience init(_ child: _Node, at bucket: _Bucket) {
     self.init()
 
-    self.header = _NodeHeader(dataMap: 0, trieMap: trieMap)
-    self.count = firstNode.count
+    self.header = _NodeHeader(
+      dataMap: .empty,
+      trieMap: _Bitmap(bucket))
+    self.count = child.count
 
-    self.trieBaseAddress.initialize(to: firstNode)
+    self.trieBaseAddress.initialize(to: child)
 
     assert(self.invariant)
   }
 
   convenience init(
-    dataMap: _NodeHeader.Bitmap,
-    trieMap: _NodeHeader.Bitmap,
-    firstKey: Key,
-    firstValue: Value,
-    firstNode: _Node
+    _ item: Element, at bucket0: _Bucket,
+    _ child: _Node, at bucket1: _Bucket
   ) {
+    assert(bucket0 != bucket1)
     self.init()
 
-    self.header = _NodeHeader(dataMap: dataMap, trieMap: trieMap)
-    self.count = 1 + firstNode.count
+    self.header = _NodeHeader(
+      dataMap: _Bitmap(bucket0),
+      trieMap: _Bitmap(bucket1))
+    self.count = 1 + child.count
 
-    self.dataBaseAddress.initialize(to: (firstKey, firstValue))
-    self.trieBaseAddress.initialize(to: firstNode)
+    self.dataBaseAddress.initialize(to: item)
+    self.trieBaseAddress.initialize(to: child)
 
     assert(self.invariant)
   }
 
-  convenience init(collisions: [ReturnPayload]) {
+  convenience init(collisions: [Element]) {
     self.init(dataCapacity: Capacity(collisions.count), trieCapacity: 0)
 
     self.header = _NodeHeader(
-      dataMap: _NodeHeader.Bitmap(collisions.count),
-      trieMap: _NodeHeader.Bitmap(collisions.count))
+      dataMap: _Bitmap(bitPattern: collisions.count),
+      trieMap: _Bitmap(bitPattern: collisions.count))
     self.count = collisions.count
 
     self.dataBaseAddress.initialize(from: collisions, count: collisions.count)
@@ -232,12 +236,12 @@ extension PersistentDictionary._Node {
 }
 
 extension PersistentDictionary._Node {
-  var collisionFree: Bool {
-    !hashCollision
+  var isRegularNode: Bool {
+    !isCollisionNode
   }
 
-  var hashCollision: Bool {
-    header.hashCollision
+  var isCollisionNode: Bool {
+    header.isCollisionNode
   }
 
   private var rootBaseAddress: UnsafeMutableRawPointer {
@@ -245,12 +249,12 @@ extension PersistentDictionary._Node {
   }
 
   @inline(__always)
-  var dataMap: _NodeHeader.Bitmap {
+  var dataMap: _Bitmap {
     header.dataMap
   }
 
   @inline(__always)
-  var trieMap: _NodeHeader.Bitmap {
+  var trieMap: _Bitmap {
     header.trieMap
   }
 
@@ -269,10 +273,10 @@ extension PersistentDictionary._Node {
       return false
     }
 
-    if hashCollision {
-      let hash = _computeHash(_dataSlice.first!.key)
+    if isCollisionNode {
+      let hash = _HashValue(_dataSlice.first!.key)
 
-      guard _dataSlice.allSatisfy({ _computeHash($0.key) == hash }) else {
+      guard _dataSlice.allSatisfy({ _HashValue($0.key) == hash }) else {
         return false
       }
     }
@@ -281,26 +285,19 @@ extension PersistentDictionary._Node {
   }
 
   var headerInvariant: Bool {
-    (header.dataMap & header.trieMap) == 0 || (header.dataMap == header.trieMap)
+    header.dataMap.intersection(header.trieMap).isEmpty
+    || (header.dataMap == header.trieMap)
   }
 
-  var _dataSlice: UnsafeBufferPointer<DataBufferElement> {
+  var _dataSlice: UnsafeBufferPointer<Element> {
     UnsafeBufferPointer(start: dataBaseAddress, count: header.dataCount)
   }
 
-  var _trieSlice: UnsafeMutableBufferPointer<TrieBufferElement> {
+  var _trieSlice: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount)
   }
 
   var isCandiateForCompaction: Bool { payloadArity == 0 && nodeArity == 1 }
-
-  func dataIndex(_ bitpos: _NodeHeader.Bitmap) -> Int {
-    (dataMap & (bitpos &- 1)).nonzeroBitCount
-  }
-
-  func trieIndex(_ bitpos: _NodeHeader.Bitmap) -> Int {
-    (trieMap & (bitpos &- 1)).nonzeroBitCount
-  }
 
   func isTrieNodeKnownUniquelyReferenced(
     _ slotIndex: Int,
@@ -313,10 +310,7 @@ extension PersistentDictionary._Node {
 }
 
 extension PersistentDictionary._Node: _NodeProtocol {
-  typealias ReturnPayload = (key: Key, value: Value)
-  typealias ReturnBitmapIndexedNode = _Node
-
-  var hasNodes: Bool { header.trieMap != 0 }
+  var hasNodes: Bool { !header.trieMap.isEmpty }
 
   var nodeArity: Int { header.trieCount }
 
@@ -324,179 +318,143 @@ extension PersistentDictionary._Node: _NodeProtocol {
     trieBaseAddress[index]
   }
 
-  var hasPayload: Bool { header.dataMap != 0 }
+  var hasPayload: Bool { !header.dataMap.isEmpty }
 
   var payloadArity: Int { header.dataCount }
 
   func getPayload(_ index: Int) -> (key: Key, value: Value) {
     dataBaseAddress[index]
   }
-
 }
 
 extension PersistentDictionary._Node: _DictionaryNodeProtocol {
-  func get(_ key: Key, _ keyHash: Int, _ shift: Int) -> Value? {
-    let mask = _maskFrom(keyHash, shift)
-    let bitpos = _bitposFrom(mask)
-
-    guard collisionFree else {
-      let content: [ReturnPayload] = Array(self)
-      let hash = _computeHash(content.first!.key)
-
-      guard keyHash == hash else {
-        return nil
-      }
-
+  func get(_ key: Key, _ path: _HashPath) -> Value? {
+    guard isRegularNode else {
+      let content: [Element] = Array(self)
+      let hash = _HashValue(content.first!.key)
+      guard path._hash == hash else { return nil }
       return content.first(where: { key == $0.key }).map { $0.value }
     }
 
-    guard (dataMap & bitpos) == 0 else {
-      let index = _indexFrom(dataMap, mask, bitpos)
-      let payload = self.getPayload(index)
+    let bucket = path.currentBucket
+
+    if dataMap.contains(bucket) {
+      let offset = dataMap.offset(of: bucket)
+      let payload = self.getPayload(offset)
       return key == payload.key ? payload.value : nil
     }
 
-    guard (trieMap & bitpos) == 0 else {
-      let index = _indexFrom(trieMap, mask, bitpos)
-      return self.getNode(index).get(key, keyHash, shift + _bitPartitionSize)
+    if trieMap.contains(bucket) {
+      let offset = trieMap.offset(of: bucket)
+      return self.getNode(offset).get(key, path.descend())
     }
 
     return nil
   }
 
-  func containsKey(_ key: Key, _ keyHash: Int, _ shift: Int) -> Bool {
-    let mask = _maskFrom(keyHash, shift)
-    let bitpos = _bitposFrom(mask)
-
-    guard collisionFree else {
-      let content: [ReturnPayload] = Array(self)
-      let hash = _computeHash(content.first!.key)
-
-      guard keyHash == hash else {
-        return false
-      }
-
+  func containsKey(_ key: Key, _ path: _HashPath) -> Bool {
+    guard isRegularNode else {
+      let content: [Element] = Array(self)
+      let hash = _HashValue(content.first!.key)
+      guard path._hash == hash else { return false }
       return content.contains(where: { key == $0.key })
     }
 
-    guard (dataMap & bitpos) == 0 else {
-      let index = _indexFrom(dataMap, mask, bitpos)
-      let payload = self.getPayload(index)
+    let bucket = path.currentBucket
+
+    if dataMap.contains(bucket) {
+      let offset = dataMap.offset(of: bucket)
+      let payload = self.getPayload(offset)
       return key == payload.key
     }
 
-    guard (trieMap & bitpos) == 0 else {
-      let index = _indexFrom(trieMap, mask, bitpos)
+    if trieMap.contains(bucket) {
+      let offset = trieMap.offset(of: bucket)
       return self
-        .getNode(index)
-        .containsKey(key, keyHash, shift + _bitPartitionSize)
+        .getNode(offset)
+        .containsKey(key, path.descend())
     }
 
     return false
   }
 
   func index(
-    _ key: Key,
-    _ keyHash: Int,
-    _ shift: Int,
+    forKey key: Key,
+    _ path: _HashPath,
     _ skippedBefore: Int
   ) -> Index? {
-    guard collisionFree else {
-      let content: [ReturnPayload] = Array(self)
-      let hash = _computeHash(content.first!.key)
-
-      assert(keyHash == hash)
+    guard isRegularNode else {
+      let content: [Element] = Array(self)
+      let hash = _HashValue(content.first!.key)
+      assert(path._hash == hash)
       return content
         .firstIndex(where: { _key, _ in _key == key })
         .map { Index(_value: $0) }
     }
 
-    let mask = _maskFrom(keyHash, shift)
-    let bitpos = _bitposFrom(mask)
+    let bucket = path.currentBucket
 
-    let skipped = self._counts.prefix(upTo: mask).reduce(0, +)
-
-    guard (dataMap & bitpos) == 0 else {
-      let index = _indexFrom(dataMap, mask, bitpos)
-      let payload = self.getPayload(index)
+    if dataMap.contains(bucket) {
+      let offset = dataMap.offset(of: bucket)
+      let payload = self.getPayload(offset)
       guard key == payload.key else { return nil }
-
-      return Index(_value: skippedBefore + skipped)
+      return Index(_value: skippedBefore + _count(upTo: bucket))
     }
 
-    guard (trieMap & bitpos) == 0 else {
-      let index = _indexFrom(trieMap, mask, bitpos)
+    if trieMap.contains(bucket) {
+      let offset = trieMap.offset(of: bucket)
+      let skipped = skippedBefore + _count(upTo: bucket)
       return self
-        .getNode(index)
-        .index(key, keyHash, shift + _bitPartitionSize, skippedBefore + skipped)
+        .getNode(offset)
+        .index(forKey: key, path.descend(), skipped)
     }
 
     return nil
   }
 
   final func updateOrUpdating(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ key: Key,
-    _ value: Value,
-    _ keyHash: Int,
-    _ shift: Int,
+    _ isUnique: Bool,
+    _ item: Element,
+    _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
   ) -> _Node {
 
-    guard collisionFree else {
-      return _updateOrUpdatingCollision(
-        isStorageKnownUniquelyReferenced, key, value, keyHash, shift, &effect)
+    guard isRegularNode else {
+      return _updateOrUpdatingCollision(isUnique, item, path, &effect)
     }
 
-    let mask = _maskFrom(keyHash, shift)
-    let bitpos = _bitposFrom(mask)
+    let bucket = path.currentBucket
+    if dataMap.contains(bucket) {
+      let offset = dataMap.offset(of: bucket)
+      let item0 = self.getPayload(offset)
 
-    guard (dataMap & bitpos) == 0 else {
-      let index = _indexFrom(dataMap, mask, bitpos)
-      let (key0, value0) = self.getPayload(index)
-
-      if key0 == key {
-        effect.setReplacedValue(previousValue: value0)
-        return _copyAndSetValue(isStorageKnownUniquelyReferenced, bitpos, value)
-      } else {
-        let keyHash0 = _computeHash(key0)
-
-        if keyHash0 == keyHash {
-          let subNodeNew = _Node(
-            /* hash, */ collisions: [(key0, value0), (key, value)])
-
-          effect.setModified()
-          if self.count == 1 {
-            return subNodeNew
-          } else {
-            return _copyAndMigrateFromInlineToNode(
-              isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
-          }
-        } else {
-          let subNodeNew = _mergeTwoKeyValPairs(
-            key0, value0, keyHash0,
-            key, value, keyHash,
-            shift + _bitPartitionSize)
-
-          effect.setModified()
-          return _copyAndMigrateFromInlineToNode(
-            isStorageKnownUniquelyReferenced, bitpos, subNodeNew)
-        }
+      if item0.key == item.key {
+        effect.setReplacedValue(previousValue: item0.value)
+        return _copyAndSetValue(isUnique, bucket, item.value)
       }
+      let hash0 = _HashValue(item0.key)
+      if hash0 == path._hash {
+        let subNodeNew = _Node(collisions: [item0, item])
+        effect.setModified()
+        if self.count == 1 { return subNodeNew }
+        return _copyAndMigrateFromInlineToNode(isUnique, bucket, subNodeNew)
+      }
+      let subNodeNew = _mergeTwoKeyValPairs(
+        item, path.descend(),
+        item0, hash0)
+      effect.setModified()
+      return _copyAndMigrateFromInlineToNode(isUnique, bucket, subNodeNew)
     }
 
-    guard (trieMap & bitpos) == 0 else {
-      let index = _indexFrom(trieMap, mask, bitpos)
-      let subNodeModifyInPlace = self.isTrieNodeKnownUniquelyReferenced(
-        index, isStorageKnownUniquelyReferenced)
+    if trieMap.contains(bucket) {
+      let offset = trieMap.offset(of: bucket)
+      let isUniqueChild = self.isTrieNodeKnownUniquelyReferenced(
+        offset, isUnique)
 
-      let subNode = self.getNode(index)
+      let subNode = self.getNode(offset)
 
       let subNodeNew = subNode.updateOrUpdating(
-        subNodeModifyInPlace,
-        key, value, keyHash,
-        shift + _bitPartitionSize,
-        &effect)
+        isUniqueChild, item, path.descend(), &effect)
       guard effect.modified, subNode !== subNodeNew else {
         if effect.previousValue == nil { count += 1 }
         assert(self.invariant)
@@ -504,118 +462,103 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       }
 
       return _copyAndSetTrieNode(
-        isStorageKnownUniquelyReferenced,
-        bitpos,
-        index,
+        isUnique,
+        bucket,
+        offset,
         subNodeNew,
         updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
     }
 
     effect.setModified()
-    return _copyAndInsertValue(
-      isStorageKnownUniquelyReferenced, bitpos, key, value)
+    return _copyAndInsertValue(isUnique, bucket, item)
   }
 
   @inline(never)
   final func _updateOrUpdatingCollision(
     _ isStorageKnownUniquelyReferenced: Bool,
-    _ key: Key,
-    _ value: Value,
-    _ keyHash: Int,
-    _ shift: Int,
+    _ item: Element,
+    _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
   ) -> _Node {
-    assert(hashCollision)
+    assert(isCollisionNode)
 
-    let content: [ReturnPayload] = Array(self)
-    let hash = _computeHash(content.first!.key)
+    let content: [Element] = Array(self)
+    let hash = _HashValue(content.first!.key)
 
-    guard keyHash == hash else {
+    guard path._hash == hash else {
       effect.setModified()
-      return _mergeKeyValPairAndCollisionNode(
-        key, value, keyHash, self, hash, shift)
+      return _mergeKeyValPairAndCollisionNode(item, path, self, hash)
     }
 
-    if let index = content.firstIndex(where: { key == $0.key }) {
-      let updatedContent: [ReturnPayload] = (
-        content[0..<index] + [(key, value)] + content[index+1..<content.count])
-
-      effect.setReplacedValue(previousValue: content[index].value)
+    if let offset = content.firstIndex(where: { item.key == $0.key }) {
+      var updatedContent: [Element] = []
+      updatedContent.reserveCapacity(content.count + 1)
+      updatedContent.append(contentsOf: content[0..<offset])
+      updatedContent.append(item)
+      updatedContent.append(contentsOf: content[(offset+1)...])
+      effect.setReplacedValue(previousValue: content[offset].value)
       return _Node(/* hash, */ collisions: updatedContent)
     } else {
       effect.setModified()
-      return _Node(/* hash, */ collisions: content + [(key, value)])
+      return _Node(/* hash, */ collisions: content + [item])
     }
   }
 
   final func removeOrRemoving(
-    _ isStorageKnownUniquelyReferenced: Bool,
+    _ isUnique: Bool,
     _ key: Key,
-    _ keyHash: Int,
-    _ shift: Int,
+    _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
   ) -> _Node {
 
-    guard collisionFree else {
-      return _removeOrRemovingCollision(
-        isStorageKnownUniquelyReferenced,
-        key, keyHash,
-        shift,
-        &effect)
+    guard isRegularNode else {
+      return _removeOrRemovingCollision(isUnique, key, path, &effect)
     }
 
-    let mask = _maskFrom(keyHash, shift)
-    let bitpos = _bitposFrom(mask)
+    let bucket = path.currentBucket
 
-    guard (dataMap & bitpos) == 0 else {
-      let index = _indexFrom(dataMap, mask, bitpos)
-      let (key0, value0) = self.getPayload(index)
-      guard key0 == key else {
+    if dataMap.contains(bucket) {
+      let offset = dataMap.offset(of: bucket)
+      let item0 = self.getPayload(offset)
+      guard item0.key == key else {
         assert(self.invariant)
         return self
       }
 
-      effect.setModified(previousValue: value0)
+      effect.setModified(previousValue: item0.value)
       if self.payloadArity == 2, self.nodeArity == 0 {
-        if shift == 0 {
-          // keep remaining pair on root level
-          let newDataMap = (dataMap ^ bitpos)
-          let (remainingKey, remainingValue) = getPayload(1 - index)
-          return _Node(
-            dataMap: newDataMap,
-            firstKey: remainingKey,
-            firstValue: remainingValue)
-        } else {
-          // create potential new root: will a) become new root, or b) inlined
-          // on another level
-          let newDataMap = _bitposFrom(_maskFrom(keyHash, 0))
-          let (remainingKey, remainingValue) = getPayload(1 - index)
-          return _Node(
-            dataMap: newDataMap,
-            firstKey: remainingKey,
-            firstValue: remainingValue)
+        if path.isAtRoot {
+          // keep remaining item on root level
+          var newDataMap = dataMap
+          newDataMap.remove(bucket)
+          let remaining = getPayload(1 - offset)
+          return _Node(dataMap: newDataMap, remaining)
         }
-      } else if
+        // create potential new root: will a) become new root, or b) inlined
+        // on another level
+        let remaining = getPayload(1 - offset)
+        return _Node(remaining, at: path.top().currentBucket)
+      }
+
+      if
         self.payloadArity == 1,
         self.nodeArity == 1,
-        self.getNode(0).hashCollision
+        self.getNode(0).isCollisionNode
       {
         // escalate hash-collision node
         return getNode(0)
-      } else {
-        return _copyAndRemoveValue(isStorageKnownUniquelyReferenced, bitpos)
       }
+      return _copyAndRemoveValue(isUnique, bucket)
     }
 
-    guard (trieMap & bitpos) == 0 else {
-      let index = _indexFrom(trieMap, mask, bitpos)
-      let subNodeModifyInPlace = self.isTrieNodeKnownUniquelyReferenced(
-        index, isStorageKnownUniquelyReferenced)
+    if trieMap.contains(bucket) {
+      let offset = trieMap.offset(of: bucket)
+      let isChildUnique = self.isTrieNodeKnownUniquelyReferenced(offset, isUnique)
 
-      let subNode = self.getNode(index)
+      let subNode = self.getNode(offset)
 
       let subNodeNew = subNode.removeOrRemoving(
-        subNodeModifyInPlace, key, keyHash, shift + _bitPartitionSize, &effect)
+        isChildUnique, key, path.descend(), &effect)
       guard effect.modified, subNode !== subNodeNew else {
         if effect.modified { count -= 1 }
         assert(self.invariant)
@@ -623,31 +566,27 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       }
 
       assert(subNodeNew.count > 0, "Sub-node must have at least one element.")
-      switch subNodeNew.count {
-      case 1:
+      if subNodeNew.count == 1 {
         if self.isCandiateForCompaction {
           // escalate singleton
           return subNodeNew
-        } else {
-          // inline singleton
-          return _copyAndMigrateFromNodeToInline(
-            isStorageKnownUniquelyReferenced, bitpos, subNodeNew.getPayload(0))
         }
-
-      case _:
-        if subNodeNew.hashCollision, self.isCandiateForCompaction {
-          // escalate singleton
-          return subNodeNew
-        } else {
-          // modify current node (set replacement node)
-          return _copyAndSetTrieNode(
-            isStorageKnownUniquelyReferenced,
-            bitpos,
-            index,
-            subNodeNew,
-            updateCount: { $0 -= 1 })
-        }
+        // inline singleton
+        return _copyAndMigrateFromNodeToInline(
+          isUnique, bucket, subNodeNew.getPayload(0))
       }
+
+      if subNodeNew.isCollisionNode, self.isCandiateForCompaction {
+        // escalate singleton
+        return subNodeNew
+      }
+      // modify current node (set replacement node)
+      return _copyAndSetTrieNode(
+        isUnique,
+        bucket,
+        offset,
+        subNodeNew,
+        updateCount: { $0 -= 1 })
     }
 
     return self
@@ -655,183 +594,166 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
   @inline(never)
   final func _removeOrRemovingCollision(
-    _ isStorageKnownUniquelyReferenced: Bool,
+    _ isUnique: Bool,
     _ key: Key,
-    _ keyHash: Int,
-    _ shift: Int,
+    _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
   ) -> _Node {
-    assert(hashCollision)
+    assert(isCollisionNode)
 
-    let content: [ReturnPayload] = Array(self)
-    let _ = _computeHash(content.first!.key)
+    let content: [Element] = Array(self)
 
-    if let index = content.firstIndex(where: { key == $0.key }) {
-      effect.setModified(previousValue: content[index].value)
-      var updatedContent = content; updatedContent.remove(at: index)
-      assert(updatedContent.count == content.count - 1)
-
-      if updatedContent.count == 1 {
-        // create potential new root: will a) become new root, or b) inlined
-        // on another level
-        let newDataMap = _bitposFrom(_maskFrom(keyHash, 0))
-        let (remainingKey, remainingValue) = updatedContent.first!
-        return _Node(
-          dataMap: newDataMap,
-          firstKey: remainingKey,
-          firstValue: remainingValue)
-      } else {
-        return _Node(/* hash, */ collisions: updatedContent)
-      }
-    } else {
+    guard let index = content.firstIndex(where: { key == $0.key }) else {
       return self
     }
+    effect.setModified(previousValue: content[index].value)
+    var updatedContent = content
+    updatedContent.remove(at: index)
+
+    if updatedContent.count == 1 {
+      // create potential new root: will a) become new root, or b) inlined
+      // on another level
+      let remaining = updatedContent.first!
+      return _Node(remaining, at: path.top().currentBucket)
+    }
+    return _Node(/* hash, */ collisions: updatedContent)
   }
 }
 
 extension PersistentDictionary._Node {
-  func get(position: Index, _ shift: Int, _ stillToSkip: Int) -> ReturnPayload {
-    var cumulativeCounts = self._counts
+  func item(position: Int) -> Element {
+    assert(position >= 0 && position < count)
+    let counts = self._counts
 
-    for i in 1 ..< cumulativeCounts.count {
-      cumulativeCounts[i] += cumulativeCounts[i - 1]
+    var b = 0
+    var skipped = 0
+    while b < counts.count {
+      let c = skipped + counts[b]
+      if c > position { break }
+      skipped = c
+      b += 1
+    }
+    let bucket = _Bucket(UInt(bitPattern: b))
+
+    if dataMap.contains(bucket) {
+      assert(skipped == position)
+      let offset = dataMap.offset(of: bucket)
+      return self.getPayload(offset)
     }
 
-    var mask = 0
-
-    for i in 0 ..< cumulativeCounts.count {
-      if cumulativeCounts[i] <= stillToSkip {
-        mask = i
-      } else {
-        mask = i
-        break
-      }
-    }
-
-    let skipped = (mask == 0) ? 0 : cumulativeCounts[mask - 1]
-
-    let bitpos = _bitposFrom(mask)
-
-    guard (dataMap & bitpos) == 0 else {
-      let index = _indexFrom(dataMap, mask, bitpos)
-      return self.getPayload(index)
-    }
-
-    guard (trieMap & bitpos) == 0 else {
-      let index = _indexFrom(trieMap, mask, bitpos)
-      return self
-        .getNode(index)
-        .get(position: position, shift + _bitPartitionSize, stillToSkip - skipped)
-    }
-
-    fatalError("Should not reach here.")
+    precondition(trieMap.contains(bucket))
+    assert(skipped <= position && skipped + counts[b] > position)
+    return self
+      .getNode(trieMap.offset(of: bucket))
+      .item(position: position - skipped)
   }
 }
 
 extension PersistentDictionary._Node {
   func _mergeTwoKeyValPairs(
-    _ key0: Key, _ value0: Value, _ keyHash0: Int,
-    _ key1: Key, _ value1: Value, _ keyHash1: Int,
-    _ shift: Int
+    _ item0: Element, _ path0: _HashPath,
+    _ item1: Element, _ hash1: _HashValue
   ) -> _Node {
-    assert(keyHash0 != keyHash1)
+    let path1 = _HashPath(_hash: hash1, shift: path0._shift)
+    return _mergeTwoKeyValPairs(item0, path0, item1, path1)
+  }
 
-    let mask0 = _maskFrom(keyHash0, shift)
-    let mask1 = _maskFrom(keyHash1, shift)
+  func _mergeTwoKeyValPairs(
+    _ item0: Element, _ path0: _HashPath,
+    _ item1: Element, _ path1: _HashPath
+  ) -> _Node {
+    assert(path0._hash != path1._hash)
+    assert(path0._shift == path1._shift)
 
-    if mask0 != mask1 {
+    let bucket0 = path0.currentBucket
+    let bucket1 = path1.currentBucket
+
+    if bucket0 != bucket1 {
       // unique prefixes, payload fits on same level
-      if mask0 < mask1 {
-        return _Node(
-          dataMap: _bitposFrom(mask0) | _bitposFrom(mask1),
-          firstKey: key0,
-          firstValue: value0,
-          secondKey: key1,
-          secondValue: value1)
-      } else {
-        return Self(
-          dataMap: _bitposFrom(mask1) | _bitposFrom(mask0),
-          firstKey: key1,
-          firstValue: value1,
-          secondKey: key0,
-          secondValue: value0)
-      }
-    } else {
-      // recurse: identical prefixes, payload must be disambiguated deeper
-      // in the trie
-      let node = _mergeTwoKeyValPairs(
-        key0, value0, keyHash0,
-        key1, value1, keyHash1,
-        shift + _bitPartitionSize)
-
-      return _Node(trieMap: _bitposFrom(mask0), firstNode: node)
+      return _Node(
+        item0, at: bucket0,
+        item1, at: bucket1)
     }
+    // recurse: identical prefixes, payload must be disambiguated deeper
+    // in the trie
+    let node = _mergeTwoKeyValPairs(
+      item0, path0.descend(),
+      item1, path1.descend())
+
+    return _Node(node, at: bucket0)
   }
 
   final func _mergeKeyValPairAndCollisionNode(
-    _ key0: Key, _ value0: Value, _ keyHash0: Int,
-    _ node1: _Node,
-    _ nodeHash1: Int,
-    _ shift: Int
+    _ item0: Element, _ path0: _HashPath,
+    _ node1: _Node, _ hash1: _HashValue
   ) -> _Node {
-    assert(keyHash0 != nodeHash1)
+    let path1 = _HashPath(_hash: hash1, shift: path0._shift)
+    return _mergeKeyValPairAndCollisionNode(item0, path0, node1, path1)
+  }
 
-    let mask0 = _maskFrom(keyHash0, shift)
-    let mask1 = _maskFrom(nodeHash1, shift)
+  final func _mergeKeyValPairAndCollisionNode(
+    _ item0: Element, _ path0: _HashPath,
+    _ node1: _Node, _ path1: _HashPath
+  ) -> _Node {
+    assert(path0._hash != path1._hash)
+    assert(path0._shift == path1._shift)
 
-    if mask0 != mask1 {
+    let bucket0 = path0.currentBucket
+    let bucket1 = path1.currentBucket
+
+    if bucket0 != bucket1 {
       // unique prefixes, payload and collision node fit on same level
-      return _Node(
-        dataMap: _bitposFrom(mask0),
-        trieMap: _bitposFrom(mask1),
-        firstKey: key0,
-        firstValue: value0,
-        firstNode: node1)
-    } else {
-      // recurse: identical prefixes, payload must be disambiguated deeper in the trie
-      let node = _mergeKeyValPairAndCollisionNode(
-        key0,
-        value0,
-        keyHash0,
-        node1,
-        nodeHash1,
-        shift + _bitPartitionSize)
-
-      return _Node(trieMap: _bitposFrom(mask0), firstNode: node)
+      return _Node(item0, at: bucket0, node1, at: bucket1)
     }
+
+    // recurse: identical prefixes, payload must be disambiguated deeper in the trie
+    let node = _mergeKeyValPairAndCollisionNode(
+      item0, path0.descend(),
+      node1, path1.descend())
+
+    return _Node(node, at: bucket0)
+  }
+
+  final func _count(upTo bucket: _Bucket) -> Int {
+    let dataCount = dataMap.intersection(_Bitmap(upTo: bucket)).count
+    let trieCount = trieMap.intersection(_Bitmap(upTo: bucket)).count
+
+    let buffer = UnsafeMutableBufferPointer(
+      start: trieBaseAddress, count: header.trieCount)
+    let children = buffer.prefix(upTo: trieCount).map { $0.count }.reduce(0, +)
+
+    return dataCount + children
   }
 
   final var _counts: [Int] {
-    var counts = Array(repeating: 0, count: _NodeHeader.Bitmap.bitWidth)
+    var counts = Array(repeating: 0, count: _Bitmap.capacity)
 
-    zip(header.dataMap._nonzeroBits(), _dataSlice).forEach { (index, _) in
-      counts[index] = 1
+    for bucket in dataMap {
+      counts[Int(bitPattern: bucket.value)] = 1
     }
 
-    zip(header.trieMap._nonzeroBits(), _trieSlice).forEach { (index, trieNode) in
-      counts[index] = trieNode.count
+    for (bucket, trieNode) in zip(trieMap, _trieSlice) {
+      counts[Int(bitPattern: bucket.value)] = trieNode.count
     }
 
     return counts
   }
 
   func _copyAndSetValue(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: _NodeHeader.Bitmap,
-    _ newValue: Value
+    _ isUnique: Bool, _ bucket: _Bucket, _ newValue: Value
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
-    if isStorageKnownUniquelyReferenced {
+    if isUnique {
       dst = src
     } else {
       dst = src.copy()
     }
 
-    let idx = dataIndex(bitpos)
+    let offset = dataMap.offset(of: bucket)
 
-    dst.dataBaseAddress[idx].value = newValue
+    dst.dataBaseAddress[offset].value = newValue
 
     assert(src.invariant)
     assert(dst.invariant)
@@ -839,22 +761,22 @@ extension PersistentDictionary._Node {
   }
 
   private func _copyAndSetTrieNode(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: _NodeHeader.Bitmap,
-    _ idx: Int,
-    _ newNode: TrieBufferElement,
+    _ isUnique: Bool,
+    _ bucket: _Bucket,
+    _ offset: Int,
+    _ newNode: _Node,
     updateCount: (inout Int) -> Void
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
-    if isStorageKnownUniquelyReferenced {
+    if isUnique {
       dst = src
     } else {
       dst = src.copy()
     }
 
-    dst.trieBaseAddress[idx] = newNode
+    dst.trieBaseAddress[offset] = newNode
 
     // update metadata: `dataMap, nodeMap, collMap`
     updateCount(&dst.count)
@@ -865,31 +787,29 @@ extension PersistentDictionary._Node {
   }
 
   func _copyAndInsertValue(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: _NodeHeader.Bitmap,
-    _ key: Key,
-    _ value: Value
+    _ isUnique: Bool,
+    _ bucket: _Bucket,
+    _ item: Element
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    let src: _Node = self
+    let dst: _Node
 
     let hasRoomForData = header.dataCount < dataCapacity
 
-    if isStorageKnownUniquelyReferenced && hasRoomForData {
+    if isUnique && hasRoomForData {
       dst = src
     } else {
       dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
     }
 
-    let dataIdx = _indexFrom(dataMap, bitpos)
+    let offset = dst.dataMap.offset(of: bucket)
     _rangeInsert(
-      (key, value),
-      at: dataIdx,
+      item,
+      at: offset,
       into: dst.dataBaseAddress,
       count: dst.header.dataCount)
 
-    // update metadata: `dataMap | bitpos, nodeMap, collMap`
-    dst.header.dataMap |= bitpos
+    dst.header.dataMap.insert(bucket)
     dst.count += 1
 
     assert(src.invariant)
@@ -897,25 +817,23 @@ extension PersistentDictionary._Node {
     return dst
   }
 
-  func _copyAndRemoveValue(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: _NodeHeader.Bitmap
-  ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+  func _copyAndRemoveValue(_ isUnique: Bool, _ bucket: _Bucket) -> _Node {
+    assert(dataMap.contains(bucket))
+    let src: _Node = self
+    let dst: _Node
 
-    if isStorageKnownUniquelyReferenced {
+    if isUnique {
       dst = src
     } else {
       dst = src.copy()
     }
 
-    let dataIdx = _indexFrom(dataMap, bitpos)
+    let dataOffset = dst.dataMap.offset(of: bucket)
     _rangeRemove(
-      at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
+      at: dataOffset, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
     // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
-    dst.header.dataMap ^= bitpos
+    dst.header.dataMap.remove(bucket)
     dst.count -= 1
 
     assert(src.invariant)
@@ -924,16 +842,15 @@ extension PersistentDictionary._Node {
   }
 
   func _copyAndMigrateFromInlineToNode(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: _NodeHeader.Bitmap,
-    _ node: TrieBufferElement
+    _ isUnique: Bool, _ bucket: _Bucket, _ node: _Node
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    assert(dataMap.contains(bucket))
+    let src: _Node = self
+    let dst: _Node
 
     let hasRoomForTrie = header.trieCount < trieCapacity
 
-    if isStorageKnownUniquelyReferenced && hasRoomForTrie {
+    if isUnique && hasRoomForTrie {
       dst = src
     } else {
       // TODO reconsider the details of the heuristic
@@ -950,17 +867,18 @@ extension PersistentDictionary._Node {
         withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
     }
 
-    let dataIdx = _indexFrom(dataMap, bitpos)
+    let dataOffset = dst.dataMap.offset(of: bucket)
     _rangeRemove(
-      at: dataIdx, from: dst.dataBaseAddress, count: dst.header.dataCount)
+      at: dataOffset, from: dst.dataBaseAddress, count: dst.header.dataCount)
 
-    let trieIdx = _indexFrom(trieMap, bitpos)
+    let trieOffset = dst.trieMap.offset(of: bucket)
     _rangeInsert(
-      node, at: trieIdx, into: dst.trieBaseAddress, count: dst.header.trieCount)
+      node, at: trieOffset,
+      into: dst.trieBaseAddress, count: dst.header.trieCount)
 
     // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
-    dst.header.dataMap ^= bitpos
-    dst.header.trieMap |= bitpos
+    dst.header.dataMap.remove(bucket)
+    dst.header.trieMap.insert(bucket)
     dst.count += 1 // assuming that `node.count == 2`
 
     assert(src.invariant)
@@ -969,32 +887,32 @@ extension PersistentDictionary._Node {
   }
 
   func _copyAndMigrateFromNodeToInline(
-    _ isStorageKnownUniquelyReferenced: Bool,
-    _ bitpos: _NodeHeader.Bitmap,
-    _ tuple: (key: Key, value: Value)
+    _ isUnique: Bool, _ bucket: _Bucket, _ item: Element
   ) -> _Node {
-    let src: ReturnBitmapIndexedNode = self
-    let dst: ReturnBitmapIndexedNode
+    assert(trieMap.contains(bucket))
+    let src: _Node = self
+    let dst: _Node
 
     let hasRoomForData = header.dataCount < dataCapacity
 
-    if isStorageKnownUniquelyReferenced && hasRoomForData {
+    if isUnique && hasRoomForData {
       dst = src
     } else {
       dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
     }
 
-    let nodeIdx = _indexFrom(trieMap, bitpos)
+    let nodeOffset = dst.trieMap.offset(of: bucket)
     _rangeRemove(
-      at: nodeIdx, from: dst.trieBaseAddress, count: dst.header.trieCount)
+      at: nodeOffset, from: dst.trieBaseAddress, count: dst.header.trieCount)
 
-    let dataIdx = _indexFrom(dataMap, bitpos)
+    let dataOffset = dst.dataMap.offset(of: bucket)
     _rangeInsert(
-      tuple, at: dataIdx, into: dst.dataBaseAddress, count: dst.header.dataCount)
+      item, at: dataOffset,
+      into: dst.dataBaseAddress, count: dst.header.dataCount)
 
     // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
-    dst.header.dataMap |= bitpos
-    dst.header.trieMap ^= bitpos
+    dst.header.dataMap.insert(bucket)
+    dst.header.trieMap.remove(bucket)
     dst.count -= 1 // assuming that updated `node.count == 1`
 
     assert(src.invariant)
@@ -1006,7 +924,7 @@ extension PersistentDictionary._Node {
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
 extension PersistentDictionary._Node: Equatable where Value: Equatable {
   static func == (lhs: _Node, rhs: _Node) -> Bool {
-    if lhs.hashCollision && rhs.hashCollision {
+    if lhs.isCollisionNode && rhs.isCollisionNode {
       let l = Dictionary(uniqueKeysWithValues: Array(lhs))
       let r = Dictionary(uniqueKeysWithValues: Array(rhs))
       return l == r
