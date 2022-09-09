@@ -17,7 +17,7 @@ extension PersistentDictionary._Node: CustomStringConvertible {
 
         var result = "["
         var first = true
-        for (key, value) in _dataSlice {
+        for (key, value) in _items {
             if first {
                 first = false
             } else {
@@ -25,7 +25,7 @@ extension PersistentDictionary._Node: CustomStringConvertible {
             }
             result += "\(key): \(value)"
         }
-        for node in _trieSlice {
+        for node in _children {
             if first {
                 first = false
             } else {

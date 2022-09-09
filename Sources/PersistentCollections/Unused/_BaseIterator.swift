@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if false
-/// Base class for fixed-stack iterators that traverse a hash-trie. The iterator
+/// Base class for fixed-stack iterators that traverse a hash tree. The iterator
 /// performs a depth-first pre-order traversal, which yields first all payload
 /// elements of the current node before traversing sub-nodes (left to right).
 internal struct _BaseIterator<T: _Node> {
@@ -24,14 +24,14 @@ internal struct _BaseIterator<T: _Node> {
   private var nodes: [T?] = Array(repeating: nil, count: _maxDepth)
 
   init(rootNode: T) {
-    if rootNode.hasNodes { pushNode(rootNode) }
-    if rootNode.hasPayload { setupPayloadNode(rootNode) }
+    if rootNode.hasChildren { pushNode(rootNode) }
+    if rootNode.hasItems { setupPayloadNode(rootNode) }
   }
 
   private mutating func setupPayloadNode(_ node: T) {
     currentValueNode = node
     currentValueCursor = 0
-    currentValueLength = node.payloadArity
+    currentValueLength = node.itemCount
   }
 
   private mutating func pushNode(_ node: T) {
@@ -42,7 +42,7 @@ internal struct _BaseIterator<T: _Node> {
 
     nodes[currentStackLevel] = node
     nodeCursorsAndLengths[cursorIndex] = 0
-    nodeCursorsAndLengths[lengthIndex] = node.nodeArity
+    nodeCursorsAndLengths[lengthIndex] = node.childCount
   }
 
   private mutating func popNode() {
@@ -65,10 +65,10 @@ internal struct _BaseIterator<T: _Node> {
         nodeCursorsAndLengths[cursorIndex] += 1
 
         let currentNode = nodes[currentStackLevel]!
-        let nextNode = currentNode.getNode(nodeCursor)
+        let nextNode = currentNode.child(at: nodeCursor)
 
-        if nextNode.hasNodes   { pushNode(nextNode) }
-        if nextNode.hasPayload { setupPayloadNode(nextNode) ; return true }
+        if nextNode.hasChildren   { pushNode(nextNode) }
+        if nextNode.hasItems { setupPayloadNode(nextNode) ; return true }
       } else {
         popNode()
       }

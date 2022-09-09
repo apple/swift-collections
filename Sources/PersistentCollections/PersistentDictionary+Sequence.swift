@@ -13,7 +13,7 @@ extension PersistentDictionary: Sequence {
   public typealias Element = (key: Key, value: Value)
 
   public struct Iterator {
-    // Fixed-stack iterator for traversing a hash-trie. The iterator performs a
+    // Fixed-stack iterator for traversing a hash tree. The iterator performs a
     // depth-first pre-order traversal, which yields first all payload elements
     // of the current node before traversing sub-nodes (left to right).
 
@@ -29,11 +29,11 @@ extension PersistentDictionary: Sequence {
       trieIteratorStackRemainder = []
       trieIteratorStackRemainder.reserveCapacity(_maxDepth)
 
-      if root.hasNodes {
-        trieIteratorStackTop = root._trieSlice.makeIterator()
+      if root.hasChildren {
+        trieIteratorStackTop = root._children.makeIterator()
       }
-      if root.hasPayload {
-        payloadIterator = root._dataSlice.makeIterator()
+      if root.hasItems {
+        payloadIterator = root._items.makeIterator()
       }
     }
   }
@@ -52,12 +52,12 @@ extension PersistentDictionary.Iterator: IteratorProtocol {
 
     while trieIteratorStackTop != nil {
       if let nextNode = trieIteratorStackTop!.next() {
-        if nextNode.hasNodes {
+        if nextNode.hasChildren {
           trieIteratorStackRemainder.append(trieIteratorStackTop!)
-          trieIteratorStackTop = nextNode._trieSlice.makeIterator()
+          trieIteratorStackTop = nextNode._children.makeIterator()
         }
-        if nextNode.hasPayload {
-          payloadIterator = nextNode._dataSlice.makeIterator()
+        if nextNode.hasItems {
+          payloadIterator = nextNode._items.makeIterator()
           return payloadIterator?.next()
         }
       } else {

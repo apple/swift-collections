@@ -10,32 +10,32 @@
 //===----------------------------------------------------------------------===//
 
 internal struct _NodeHeader {
-  internal var dataMap: _Bitmap
-  internal var trieMap: _Bitmap
+  internal var itemMap: _Bitmap
+  internal var childMap: _Bitmap
 
-  init(dataMap: _Bitmap, trieMap: _Bitmap) {
-    self.dataMap = dataMap
-    self.trieMap = trieMap
+  init(itemMap: _Bitmap, childMap: _Bitmap) {
+    self.itemMap = itemMap
+    self.childMap = childMap
   }
 }
 
 extension _NodeHeader {
   internal var isCollisionNode: Bool {
-    !dataMap.intersection(trieMap).isEmpty
+    !itemMap.intersection(childMap).isEmpty
   }
 
-  internal var dataCount: Int {
-    isCollisionNode ? Int(dataMap._value) : dataMap.count
+  internal var itemCount: Int {
+    isCollisionNode ? Int(itemMap._value) : itemMap.count
   }
 
-  internal var trieCount: Int {
-    isCollisionNode ? 0 : trieMap.count
+  internal var childCount: Int {
+    isCollisionNode ? 0 : childMap.count
   }
 }
 
 extension _NodeHeader: Equatable {
   internal static func == (lhs: _NodeHeader, rhs: _NodeHeader) -> Bool {
-    lhs.dataMap == rhs.dataMap && lhs.trieMap == rhs.trieMap
+    lhs.itemMap == rhs.itemMap && lhs.childMap == rhs.childMap
   }
 }
 
@@ -51,32 +51,32 @@ extension PersistentDictionary {
     var header: _NodeHeader
     var count: Int
 
-    let dataCapacity: Capacity
-    let trieCapacity: Capacity
+    let itemCapacity: Capacity
+    let childCapacity: Capacity
 
-    let dataBaseAddress: UnsafeMutablePointer<Element>
-    let trieBaseAddress: UnsafeMutablePointer<_Node>
+    let itemBaseAddress: UnsafeMutablePointer<Element>
+    let childBaseAddress: UnsafeMutablePointer<_Node>
 
     deinit {
-      dataBaseAddress.deinitialize(count: header.dataCount)
-      trieBaseAddress.deinitialize(count: header.trieCount)
+      itemBaseAddress.deinitialize(count: header.itemCount)
+      childBaseAddress.deinitialize(count: header.childCount)
 
       rootBaseAddress.deallocate()
     }
 
-    init(dataCapacity: Capacity, trieCapacity: Capacity) {
-      let (dataBaseAddress, trieBaseAddress) = _Node._allocate(
-        dataCapacity: dataCapacity,
-        trieCapacity: trieCapacity)
+    init(itemCapacity: Capacity, childCapacity: Capacity) {
+      let (itemBaseAddress, childBaseAddress) = _Node._allocate(
+        itemCapacity: itemCapacity,
+        childCapacity: childCapacity)
 
-      self.header = _NodeHeader(dataMap: .empty, trieMap: .empty)
+      self.header = _NodeHeader(itemMap: .empty, childMap: .empty)
       self.count = 0
 
-      self.dataBaseAddress = dataBaseAddress
-      self.trieBaseAddress = trieBaseAddress
+      self.itemBaseAddress = itemBaseAddress
+      self.childBaseAddress = childBaseAddress
 
-      self.dataCapacity = dataCapacity
-      self.trieCapacity = trieCapacity
+      self.itemCapacity = itemCapacity
+      self.childCapacity = childCapacity
 
       assert(self.invariant)
     }
@@ -93,50 +93,50 @@ extension PersistentDictionary._Node {
 extension PersistentDictionary._Node {
   @inlinable
   static func _allocate(
-    dataCapacity: Capacity, trieCapacity: Capacity
+    itemCapacity: Capacity, childCapacity: Capacity
   ) -> (
-    dataBaseAddress: UnsafeMutablePointer<Element>,
-    trieBaseAddress: UnsafeMutablePointer<_Node>
+    itemBaseAddress: UnsafeMutablePointer<Element>,
+    childBaseAddress: UnsafeMutablePointer<_Node>
   ) {
-    let dataCapacityInBytes = Int(dataCapacity) * MemoryLayout<Element>.stride
-    let trieCapacityInBytes = Int(trieCapacity) * MemoryLayout<_Node>.stride
+    let itemBytes = Int(itemCapacity) * MemoryLayout<Element>.stride
+    let childBytes = Int(childCapacity) * MemoryLayout<_Node>.stride
 
     let alignment = Swift.max(
       MemoryLayout<Element>.alignment,
       MemoryLayout<_Node>.alignment)
     let memory = UnsafeMutableRawPointer.allocate(
-      byteCount: dataCapacityInBytes + trieCapacityInBytes,
+      byteCount: itemBytes + childBytes,
       alignment: alignment)
 
-    let dataBaseAddress = memory
-      .advanced(by: trieCapacityInBytes)
-      .bindMemory(to: Element.self, capacity: Int(dataCapacity))
-    let trieBaseAddress = memory
-      .bindMemory(to: _Node.self, capacity: Int(trieCapacity))
+    let itemBaseAddress = memory
+      .advanced(by: childBytes)
+      .bindMemory(to: Element.self, capacity: Int(itemCapacity))
+    let childBaseAddress = memory
+      .bindMemory(to: _Node.self, capacity: Int(childCapacity))
 
-    return (dataBaseAddress, trieBaseAddress)
+    return (itemBaseAddress, childBaseAddress)
   }
 
   func copy(
-    withDataCapacityFactor dataCapacityFactor: Capacity = 1,
-    withDataCapacityShrinkFactor dataCapacityShrinkFactor: Capacity = 1,
-    withTrieCapacityFactor trieCapacityFactor: Capacity = 1,
-    withTrieCapacityShrinkFactor trieCapacityShrinkFactor: Capacity = 1
+    itemCapacityGrowthFactor itemGrowthFactor: Capacity = 1,
+    itemCapacityShrinkFactor itemShrinkFactor: Capacity = 1,
+    childCapacityGrowthFactor childGrowthFactor: Capacity = 1,
+    childCapacityShrinkFactor childShrinkFactor: Capacity = 1
   ) -> _Node {
     let src = self
-    let dc = src.dataCapacity &* dataCapacityFactor / dataCapacityShrinkFactor
-    let tc = src.trieCapacity &* trieCapacityFactor / trieCapacityShrinkFactor
-    let dst = _Node(dataCapacity: dc, trieCapacity: tc)
+    let dc = src.itemCapacity &* itemGrowthFactor / itemShrinkFactor
+    let tc = src.childCapacity &* childGrowthFactor / childShrinkFactor
+    let dst = _Node(itemCapacity: dc, childCapacity: tc)
 
     dst.header = src.header
     dst.count = src.count
 
-    dst.dataBaseAddress.initialize(
-      from: src.dataBaseAddress,
-      count: src.header.dataCount)
-    dst.trieBaseAddress.initialize(
-      from: src.trieBaseAddress,
-      count: src.header.trieCount)
+    dst.itemBaseAddress.initialize(
+      from: src.itemBaseAddress,
+      count: src.header.itemCount)
+    dst.childBaseAddress.initialize(
+      from: src.childBaseAddress,
+      count: src.header.childCount)
 
     assert(src.invariant)
     assert(dst.invariant)
@@ -147,25 +147,25 @@ extension PersistentDictionary._Node {
 extension PersistentDictionary._Node {
   convenience init() {
     self.init(
-      dataCapacity: _Node.initialDataCapacity,
-      trieCapacity: _Node.initialTrieCapacity)
+      itemCapacity: _Node.initialDataCapacity,
+      childCapacity: _Node.initialTrieCapacity)
 
-    self.header = _NodeHeader(dataMap: .empty, trieMap: .empty)
+    self.header = _NodeHeader(itemMap: .empty, childMap: .empty)
 
     assert(self.invariant)
   }
 
-  convenience init(dataMap: _Bitmap, _ item: Element) {
-    assert(dataMap.count == 1)
+  convenience init(itemMap: _Bitmap, _ item: Element) {
+    assert(itemMap.count == 1)
     self.init()
-    self.header = _NodeHeader(dataMap: dataMap, trieMap: .empty)
+    self.header = _NodeHeader(itemMap: itemMap, childMap: .empty)
     self.count = 1
-    self.dataBaseAddress.initialize(to: item)
+    self.itemBaseAddress.initialize(to: item)
     assert(self.invariant)
   }
 
   convenience init(_ item: Element, at bucket: _Bucket) {
-    self.init(dataMap: _Bitmap(bucket), item)
+    self.init(itemMap: _Bitmap(bucket), item)
   }
 
   convenience init(
@@ -176,16 +176,16 @@ extension PersistentDictionary._Node {
     self.init()
 
     self.header = _NodeHeader(
-      dataMap: _Bitmap(bucket0, bucket1),
-      trieMap: .empty)
+      itemMap: _Bitmap(bucket0, bucket1),
+      childMap: .empty)
     self.count = 2
 
     if bucket0 < bucket1 {
-      self.dataBaseAddress.initialize(to: item0)
-      self.dataBaseAddress.successor().initialize(to: item1)
+      self.itemBaseAddress.initialize(to: item0)
+      self.itemBaseAddress.successor().initialize(to: item1)
     } else {
-      self.dataBaseAddress.initialize(to: item1)
-      self.dataBaseAddress.successor().initialize(to: item0)
+      self.itemBaseAddress.initialize(to: item1)
+      self.itemBaseAddress.successor().initialize(to: item0)
     }
     assert(self.invariant)
   }
@@ -194,11 +194,11 @@ extension PersistentDictionary._Node {
     self.init()
 
     self.header = _NodeHeader(
-      dataMap: .empty,
-      trieMap: _Bitmap(bucket))
+      itemMap: .empty,
+      childMap: _Bitmap(bucket))
     self.count = child.count
 
-    self.trieBaseAddress.initialize(to: child)
+    self.childBaseAddress.initialize(to: child)
 
     assert(self.invariant)
   }
@@ -211,25 +211,25 @@ extension PersistentDictionary._Node {
     self.init()
 
     self.header = _NodeHeader(
-      dataMap: _Bitmap(bucket0),
-      trieMap: _Bitmap(bucket1))
+      itemMap: _Bitmap(bucket0),
+      childMap: _Bitmap(bucket1))
     self.count = 1 + child.count
 
-    self.dataBaseAddress.initialize(to: item)
-    self.trieBaseAddress.initialize(to: child)
+    self.itemBaseAddress.initialize(to: item)
+    self.childBaseAddress.initialize(to: child)
 
     assert(self.invariant)
   }
 
   convenience init(collisions: [Element]) {
-    self.init(dataCapacity: Capacity(collisions.count), trieCapacity: 0)
+    self.init(itemCapacity: Capacity(collisions.count), childCapacity: 0)
 
     self.header = _NodeHeader(
-      dataMap: _Bitmap(bitPattern: collisions.count),
-      trieMap: _Bitmap(bitPattern: collisions.count))
+      itemMap: _Bitmap(bitPattern: collisions.count),
+      childMap: _Bitmap(bitPattern: collisions.count))
     self.count = collisions.count
 
-    self.dataBaseAddress.initialize(from: collisions, count: collisions.count)
+    self.itemBaseAddress.initialize(from: collisions, count: collisions.count)
 
     assert(self.invariant)
   }
@@ -245,17 +245,17 @@ extension PersistentDictionary._Node {
   }
 
   private var rootBaseAddress: UnsafeMutableRawPointer {
-    UnsafeMutableRawPointer(trieBaseAddress)
+    UnsafeMutableRawPointer(childBaseAddress)
   }
 
   @inline(__always)
-  var dataMap: _Bitmap {
-    header.dataMap
+  var itemMap: _Bitmap {
+    header.itemMap
   }
 
   @inline(__always)
-  var trieMap: _Bitmap {
-    header.trieMap
+  var childMap: _Bitmap {
+    header.childMap
   }
 
   var invariant: Bool {
@@ -269,14 +269,14 @@ extension PersistentDictionary._Node {
     //      return false
     //    }
 
-    guard count - payloadArity >= 2 * nodeArity else {
+    guard count - itemCount >= 2 * childCount else {
       return false
     }
 
     if isCollisionNode {
-      let hash = _HashValue(_dataSlice.first!.key)
+      let hash = _HashValue(_items.first!.key)
 
-      guard _dataSlice.allSatisfy({ _HashValue($0.key) == hash }) else {
+      guard _items.allSatisfy({ _HashValue($0.key) == hash }) else {
         return false
       }
     }
@@ -285,45 +285,43 @@ extension PersistentDictionary._Node {
   }
 
   var headerInvariant: Bool {
-    header.dataMap.intersection(header.trieMap).isEmpty
-    || (header.dataMap == header.trieMap)
+    header.itemMap.intersection(header.childMap).isEmpty
+    || (header.itemMap == header.childMap)
   }
 
-  var _dataSlice: UnsafeBufferPointer<Element> {
-    UnsafeBufferPointer(start: dataBaseAddress, count: header.dataCount)
+  var _items: UnsafeBufferPointer<Element> {
+    UnsafeBufferPointer(start: itemBaseAddress, count: header.itemCount)
   }
 
-  var _trieSlice: UnsafeMutableBufferPointer<_Node> {
-    UnsafeMutableBufferPointer(start: trieBaseAddress, count: header.trieCount)
+  var _children: UnsafeMutableBufferPointer<_Node> {
+    UnsafeMutableBufferPointer(start: childBaseAddress, count: header.childCount)
   }
 
-  var isCandiateForCompaction: Bool { payloadArity == 0 && nodeArity == 1 }
+  var isCandidateForCompaction: Bool { itemCount == 0 && childCount == 1 }
 
-  func isTrieNodeKnownUniquelyReferenced(
-    _ slotIndex: Int,
-    _ isParentNodeKnownUniquelyReferenced: Bool
+  func isChildUnique(
+    at offset: Int, uniqueParent isParentUnique: Bool
   ) -> Bool {
-    let isUnique = Swift.isKnownUniquelyReferenced(&trieBaseAddress[slotIndex])
-
-    return isParentNodeKnownUniquelyReferenced && isUnique
+    guard isParentUnique else { return false }
+    return isKnownUniquelyReferenced(&_children[offset])
   }
 }
 
 extension PersistentDictionary._Node: _NodeProtocol {
-  var hasNodes: Bool { !header.trieMap.isEmpty }
+  var hasChildren: Bool { !header.childMap.isEmpty }
 
-  var nodeArity: Int { header.trieCount }
+  var childCount: Int { header.childCount }
 
-  func getNode(_ index: Int) -> _Node {
-    trieBaseAddress[index]
+  func child(at index: Int) -> _Node {
+    childBaseAddress[index]
   }
 
-  var hasPayload: Bool { !header.dataMap.isEmpty }
+  var hasItems: Bool { !header.itemMap.isEmpty }
 
-  var payloadArity: Int { header.dataCount }
+  var itemCount: Int { header.itemCount }
 
-  func getPayload(_ index: Int) -> (key: Key, value: Value) {
-    dataBaseAddress[index]
+  func item(at offset: Int) -> Element {
+    _items[offset]
   }
 }
 
@@ -338,15 +336,15 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
     let bucket = path.currentBucket
 
-    if dataMap.contains(bucket) {
-      let offset = dataMap.offset(of: bucket)
-      let payload = self.getPayload(offset)
+    if itemMap.contains(bucket) {
+      let offset = itemMap.offset(of: bucket)
+      let payload = self.item(at: offset)
       return key == payload.key ? payload.value : nil
     }
 
-    if trieMap.contains(bucket) {
-      let offset = trieMap.offset(of: bucket)
-      return self.getNode(offset).get(key, path.descend())
+    if childMap.contains(bucket) {
+      let offset = childMap.offset(of: bucket)
+      return self.child(at: offset).get(key, path.descend())
     }
 
     return nil
@@ -362,16 +360,15 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
     let bucket = path.currentBucket
 
-    if dataMap.contains(bucket) {
-      let offset = dataMap.offset(of: bucket)
-      let payload = self.getPayload(offset)
-      return key == payload.key
+    if itemMap.contains(bucket) {
+      let offset = itemMap.offset(of: bucket)
+      return key == self._items[offset].key
     }
 
-    if trieMap.contains(bucket) {
-      let offset = trieMap.offset(of: bucket)
+    if childMap.contains(bucket) {
+      let offset = childMap.offset(of: bucket)
       return self
-        .getNode(offset)
+        .child(at: offset)
         .containsKey(key, path.descend())
     }
 
@@ -388,24 +385,24 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       let hash = _HashValue(content.first!.key)
       assert(path._hash == hash)
       return content
-        .firstIndex(where: { _key, _ in _key == key })
+        .firstIndex(where: { $0.key == key })
         .map { Index(_value: $0) }
     }
 
     let bucket = path.currentBucket
 
-    if dataMap.contains(bucket) {
-      let offset = dataMap.offset(of: bucket)
-      let payload = self.getPayload(offset)
-      guard key == payload.key else { return nil }
+    if itemMap.contains(bucket) {
+      let offset = itemMap.offset(of: bucket)
+      let item = self.item(at: offset)
+      guard key == item.key else { return nil }
       return Index(_value: skippedBefore + _count(upTo: bucket))
     }
 
-    if trieMap.contains(bucket) {
-      let offset = trieMap.offset(of: bucket)
+    if childMap.contains(bucket) {
+      let offset = childMap.offset(of: bucket)
       let skipped = skippedBefore + _count(upTo: bucket)
       return self
-        .getNode(offset)
+        .child(at: offset)
         .index(forKey: key, path.descend(), skipped)
     }
 
@@ -424,9 +421,9 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     }
 
     let bucket = path.currentBucket
-    if dataMap.contains(bucket) {
-      let offset = dataMap.offset(of: bucket)
-      let item0 = self.getPayload(offset)
+    if itemMap.contains(bucket) {
+      let offset = itemMap.offset(of: bucket)
+      let item0 = self.item(at: offset)
 
       if item0.key == item.key {
         effect.setReplacedValue(previousValue: item0.value)
@@ -434,28 +431,27 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       }
       let hash0 = _HashValue(item0.key)
       if hash0 == path._hash {
-        let subNodeNew = _Node(collisions: [item0, item])
+        let newChild = _Node(collisions: [item0, item])
         effect.setModified()
-        if self.count == 1 { return subNodeNew }
-        return _copyAndMigrateFromInlineToNode(isUnique, bucket, subNodeNew)
+        if self.count == 1 { return newChild }
+        return _copyAndMigrateFromInlineToNode(isUnique, bucket, newChild)
       }
-      let subNodeNew = _mergeTwoKeyValPairs(
+      let newChild = _mergeTwoKeyValPairs(
         item, path.descend(),
         item0, hash0)
       effect.setModified()
-      return _copyAndMigrateFromInlineToNode(isUnique, bucket, subNodeNew)
+      return _copyAndMigrateFromInlineToNode(isUnique, bucket, newChild)
     }
 
-    if trieMap.contains(bucket) {
-      let offset = trieMap.offset(of: bucket)
-      let isUniqueChild = self.isTrieNodeKnownUniquelyReferenced(
-        offset, isUnique)
+    if childMap.contains(bucket) {
+      let offset = childMap.offset(of: bucket)
+      let isUniqueChild = self.isChildUnique(at: offset, uniqueParent: isUnique)
 
-      let subNode = self.getNode(offset)
+      let oldChild = self.child(at: offset)
 
-      let subNodeNew = subNode.updateOrUpdating(
+      let newChild = oldChild.updateOrUpdating(
         isUniqueChild, item, path.descend(), &effect)
-      guard effect.modified, subNode !== subNodeNew else {
+      guard effect.modified, oldChild !== newChild else {
         if effect.previousValue == nil { count += 1 }
         assert(self.invariant)
         return self
@@ -465,8 +461,8 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
         isUnique,
         bucket,
         offset,
-        subNodeNew,
-        updateCount: { $0 -= subNode.count ; $0 += subNodeNew.count })
+        newChild,
+        updateCount: { $0 -= oldChild.count ; $0 += newChild.count })
     }
 
     effect.setModified()
@@ -475,7 +471,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
   @inline(never)
   final func _updateOrUpdatingCollision(
-    _ isStorageKnownUniquelyReferenced: Bool,
+    _ isUnique: Bool,
     _ item: Element,
     _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
@@ -493,9 +489,9 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     if let offset = content.firstIndex(where: { item.key == $0.key }) {
       var updatedContent: [Element] = []
       updatedContent.reserveCapacity(content.count + 1)
-      updatedContent.append(contentsOf: content[0..<offset])
+      updatedContent.append(contentsOf: content[0 ..< offset])
       updatedContent.append(item)
-      updatedContent.append(contentsOf: content[(offset+1)...])
+      updatedContent.append(contentsOf: content[(offset + 1)...])
       effect.setReplacedValue(previousValue: content[offset].value)
       return _Node(/* hash, */ collisions: updatedContent)
     } else {
@@ -517,76 +513,72 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
     let bucket = path.currentBucket
 
-    if dataMap.contains(bucket) {
-      let offset = dataMap.offset(of: bucket)
-      let item0 = self.getPayload(offset)
+    if itemMap.contains(bucket) {
+      let offset = itemMap.offset(of: bucket)
+      let item0 = self.item(at: offset)
       guard item0.key == key else {
         assert(self.invariant)
         return self
       }
 
       effect.setModified(previousValue: item0.value)
-      if self.payloadArity == 2, self.nodeArity == 0 {
+      if self.itemCount == 2, self.childCount == 0 {
         if path.isAtRoot {
           // keep remaining item on root level
-          var newDataMap = dataMap
-          newDataMap.remove(bucket)
-          let remaining = getPayload(1 - offset)
-          return _Node(dataMap: newDataMap, remaining)
+          var newItemMap = itemMap
+          newItemMap.remove(bucket)
+          let remaining = item(at: 1 - offset)
+          return _Node(itemMap: newItemMap, remaining)
         }
         // create potential new root: will a) become new root, or b) inlined
         // on another level
-        let remaining = getPayload(1 - offset)
+        let remaining = item(at: 1 - offset)
         return _Node(remaining, at: path.top().currentBucket)
       }
 
       if
-        self.payloadArity == 1,
-        self.nodeArity == 1,
-        self.getNode(0).isCollisionNode
+        self.itemCount == 1,
+        self.childCount == 1,
+        self.child(at: 0).isCollisionNode
       {
         // escalate hash-collision node
-        return getNode(0)
+        return child(at: 0)
       }
       return _copyAndRemoveValue(isUnique, bucket)
     }
 
-    if trieMap.contains(bucket) {
-      let offset = trieMap.offset(of: bucket)
-      let isChildUnique = self.isTrieNodeKnownUniquelyReferenced(offset, isUnique)
+    if childMap.contains(bucket) {
+      let offset = childMap.offset(of: bucket)
+      let isChildUnique = self.isChildUnique(at: offset, uniqueParent: isUnique)
 
-      let subNode = self.getNode(offset)
+      let oldChild = self.child(at: offset)
 
-      let subNodeNew = subNode.removeOrRemoving(
+      let newChild = oldChild.removeOrRemoving(
         isChildUnique, key, path.descend(), &effect)
-      guard effect.modified, subNode !== subNodeNew else {
+      guard effect.modified, oldChild !== newChild else {
         if effect.modified { count -= 1 }
         assert(self.invariant)
         return self
       }
 
-      assert(subNodeNew.count > 0, "Sub-node must have at least one element.")
-      if subNodeNew.count == 1 {
-        if self.isCandiateForCompaction {
+      assert(newChild.count > 0, "Sub-node must have at least one element.")
+      if newChild.count == 1 {
+        if self.isCandidateForCompaction {
           // escalate singleton
-          return subNodeNew
+          return newChild
         }
         // inline singleton
         return _copyAndMigrateFromNodeToInline(
-          isUnique, bucket, subNodeNew.getPayload(0))
+          isUnique, bucket, newChild.item(at: 0))
       }
 
-      if subNodeNew.isCollisionNode, self.isCandiateForCompaction {
+      if newChild.isCollisionNode, self.isCandidateForCompaction {
         // escalate singleton
-        return subNodeNew
+        return newChild
       }
       // modify current node (set replacement node)
       return _copyAndSetTrieNode(
-        isUnique,
-        bucket,
-        offset,
-        subNodeNew,
-        updateCount: { $0 -= 1 })
+        isUnique, bucket, offset, newChild, updateCount: { $0 -= 1 })
     }
 
     return self
@@ -603,12 +595,12 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 
     let content: [Element] = Array(self)
 
-    guard let index = content.firstIndex(where: { key == $0.key }) else {
+    guard let offset = content.firstIndex(where: { key == $0.key }) else {
       return self
     }
-    effect.setModified(previousValue: content[index].value)
+    effect.setModified(previousValue: content[offset].value)
     var updatedContent = content
-    updatedContent.remove(at: index)
+    updatedContent.remove(at: offset)
 
     if updatedContent.count == 1 {
       // create potential new root: will a) become new root, or b) inlined
@@ -635,16 +627,16 @@ extension PersistentDictionary._Node {
     }
     let bucket = _Bucket(UInt(bitPattern: b))
 
-    if dataMap.contains(bucket) {
+    if itemMap.contains(bucket) {
       assert(skipped == position)
-      let offset = dataMap.offset(of: bucket)
-      return self.getPayload(offset)
+      let offset = itemMap.offset(of: bucket)
+      return self.item(at: offset)
     }
 
-    precondition(trieMap.contains(bucket))
+    precondition(childMap.contains(bucket))
     assert(skipped <= position && skipped + counts[b] > position)
     return self
-      .getNode(trieMap.offset(of: bucket))
+      .child(at: childMap.offset(of: bucket))
       .item(position: position - skipped)
   }
 }
@@ -675,7 +667,7 @@ extension PersistentDictionary._Node {
         item1, at: bucket1)
     }
     // recurse: identical prefixes, payload must be disambiguated deeper
-    // in the trie
+    // in the prefix tree
     let node = _mergeTwoKeyValPairs(
       item0, path0.descend(),
       item1, path1.descend())
@@ -706,7 +698,8 @@ extension PersistentDictionary._Node {
       return _Node(item0, at: bucket0, node1, at: bucket1)
     }
 
-    // recurse: identical prefixes, payload must be disambiguated deeper in the trie
+    // recurse: identical prefixes, payload must be disambiguated deeper in the
+    // prefix trie
     let node = _mergeKeyValPairAndCollisionNode(
       item0, path0.descend(),
       node1, path1.descend())
@@ -715,24 +708,24 @@ extension PersistentDictionary._Node {
   }
 
   final func _count(upTo bucket: _Bucket) -> Int {
-    let dataCount = dataMap.intersection(_Bitmap(upTo: bucket)).count
-    let trieCount = trieMap.intersection(_Bitmap(upTo: bucket)).count
+    let itemCount = itemMap.intersection(_Bitmap(upTo: bucket)).count
+    let childCount = childMap.intersection(_Bitmap(upTo: bucket)).count
 
     let buffer = UnsafeMutableBufferPointer(
-      start: trieBaseAddress, count: header.trieCount)
-    let children = buffer.prefix(upTo: trieCount).map { $0.count }.reduce(0, +)
+      start: childBaseAddress, count: header.childCount)
+    let children = buffer.prefix(upTo: childCount).map { $0.count }.reduce(0, +)
 
-    return dataCount + children
+    return itemCount + children
   }
 
   final var _counts: [Int] {
     var counts = Array(repeating: 0, count: _Bitmap.capacity)
 
-    for bucket in dataMap {
+    for bucket in itemMap {
       counts[Int(bitPattern: bucket.value)] = 1
     }
 
-    for (bucket, trieNode) in zip(trieMap, _trieSlice) {
+    for (bucket, trieNode) in zip(childMap, _children) {
       counts[Int(bitPattern: bucket.value)] = trieNode.count
     }
 
@@ -751,9 +744,9 @@ extension PersistentDictionary._Node {
       dst = src.copy()
     }
 
-    let offset = dataMap.offset(of: bucket)
+    let offset = itemMap.offset(of: bucket)
 
-    dst.dataBaseAddress[offset].value = newValue
+    dst.itemBaseAddress[offset].value = newValue
 
     assert(src.invariant)
     assert(dst.invariant)
@@ -776,9 +769,9 @@ extension PersistentDictionary._Node {
       dst = src.copy()
     }
 
-    dst.trieBaseAddress[offset] = newNode
+    dst.childBaseAddress[offset] = newNode
 
-    // update metadata: `dataMap, nodeMap, collMap`
+    // update metadata: `itemMap, nodeMap, collMap`
     updateCount(&dst.count)
 
     assert(src.invariant)
@@ -794,22 +787,22 @@ extension PersistentDictionary._Node {
     let src: _Node = self
     let dst: _Node
 
-    let hasRoomForData = header.dataCount < dataCapacity
+    let hasRoomForItem = header.itemCount < itemCapacity
 
-    if isUnique && hasRoomForData {
+    if isUnique && hasRoomForItem {
       dst = src
     } else {
-      dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
+      dst = src.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
     }
 
-    let offset = dst.dataMap.offset(of: bucket)
+    let offset = dst.itemMap.offset(of: bucket)
     _rangeInsert(
       item,
       at: offset,
-      into: dst.dataBaseAddress,
-      count: dst.header.dataCount)
+      into: dst.itemBaseAddress,
+      count: dst.header.itemCount)
 
-    dst.header.dataMap.insert(bucket)
+    dst.header.itemMap.insert(bucket)
     dst.count += 1
 
     assert(src.invariant)
@@ -818,7 +811,7 @@ extension PersistentDictionary._Node {
   }
 
   func _copyAndRemoveValue(_ isUnique: Bool, _ bucket: _Bucket) -> _Node {
-    assert(dataMap.contains(bucket))
+    assert(itemMap.contains(bucket))
     let src: _Node = self
     let dst: _Node
 
@@ -828,12 +821,12 @@ extension PersistentDictionary._Node {
       dst = src.copy()
     }
 
-    let dataOffset = dst.dataMap.offset(of: bucket)
+    let dataOffset = dst.itemMap.offset(of: bucket)
     _rangeRemove(
-      at: dataOffset, from: dst.dataBaseAddress, count: dst.header.dataCount)
+      at: dataOffset, from: dst.itemBaseAddress, count: dst.header.itemCount)
 
-    // update metadata: `dataMap ^ bitpos, nodeMap, collMap`
-    dst.header.dataMap.remove(bucket)
+    // update metadata: `itemMap ^ bitpos, nodeMap, collMap`
+    dst.header.itemMap.remove(bucket)
     dst.count -= 1
 
     assert(src.invariant)
@@ -844,13 +837,13 @@ extension PersistentDictionary._Node {
   func _copyAndMigrateFromInlineToNode(
     _ isUnique: Bool, _ bucket: _Bucket, _ node: _Node
   ) -> _Node {
-    assert(dataMap.contains(bucket))
+    assert(itemMap.contains(bucket))
     let src: _Node = self
     let dst: _Node
 
-    let hasRoomForTrie = header.trieCount < trieCapacity
+    let hasRoomForChild = header.childCount < childCapacity
 
-    if isUnique && hasRoomForTrie {
+    if isUnique && hasRoomForChild {
       dst = src
     } else {
       // TODO reconsider the details of the heuristic
@@ -860,25 +853,25 @@ extension PersistentDictionary._Node {
       //
       // Notes currently can grow to a maximum size of 48 (tuple and sub-node)
       // slots.
-      let tooMuchForData = Swift.max(header.dataCount * 2 - 1, 4) < dataCapacity
+      let itemsNeedShrinking = Swift.max(header.itemCount * 2 - 1, 4) < itemCapacity
 
       dst = src.copy(
-        withDataCapacityShrinkFactor: tooMuchForData ? 2 : 1,
-        withTrieCapacityFactor: hasRoomForTrie ? 1 : 2)
+        itemCapacityShrinkFactor: itemsNeedShrinking ? 2 : 1,
+        childCapacityGrowthFactor: hasRoomForChild ? 1 : 2)
     }
 
-    let dataOffset = dst.dataMap.offset(of: bucket)
+    let itemOffset = dst.itemMap.offset(of: bucket)
     _rangeRemove(
-      at: dataOffset, from: dst.dataBaseAddress, count: dst.header.dataCount)
+      at: itemOffset, from: dst.itemBaseAddress, count: dst.header.itemCount)
 
-    let trieOffset = dst.trieMap.offset(of: bucket)
+    let childOffset = dst.childMap.offset(of: bucket)
     _rangeInsert(
-      node, at: trieOffset,
-      into: dst.trieBaseAddress, count: dst.header.trieCount)
+      node, at: childOffset,
+      into: dst.childBaseAddress, count: dst.header.childCount)
 
-    // update metadata: `dataMap ^ bitpos, nodeMap | bitpos, collMap`
-    dst.header.dataMap.remove(bucket)
-    dst.header.trieMap.insert(bucket)
+    // update metadata: `itemMap ^ bitpos, nodeMap | bitpos, collMap`
+    dst.header.itemMap.remove(bucket)
+    dst.header.childMap.insert(bucket)
     dst.count += 1 // assuming that `node.count == 2`
 
     assert(src.invariant)
@@ -889,30 +882,30 @@ extension PersistentDictionary._Node {
   func _copyAndMigrateFromNodeToInline(
     _ isUnique: Bool, _ bucket: _Bucket, _ item: Element
   ) -> _Node {
-    assert(trieMap.contains(bucket))
+    assert(childMap.contains(bucket))
     let src: _Node = self
     let dst: _Node
 
-    let hasRoomForData = header.dataCount < dataCapacity
+    let hasRoomForItem = header.itemCount < itemCapacity
 
-    if isUnique && hasRoomForData {
+    if isUnique && hasRoomForItem {
       dst = src
     } else {
-      dst = src.copy(withDataCapacityFactor: hasRoomForData ? 1 : 2)
+      dst = src.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
     }
 
-    let nodeOffset = dst.trieMap.offset(of: bucket)
+    let childOffset = dst.childMap.offset(of: bucket)
     _rangeRemove(
-      at: nodeOffset, from: dst.trieBaseAddress, count: dst.header.trieCount)
+      at: childOffset, from: dst.childBaseAddress, count: dst.header.childCount)
 
-    let dataOffset = dst.dataMap.offset(of: bucket)
+    let itemOffset = dst.itemMap.offset(of: bucket)
     _rangeInsert(
-      item, at: dataOffset,
-      into: dst.dataBaseAddress, count: dst.header.dataCount)
+      item, at: itemOffset,
+      into: dst.itemBaseAddress, count: dst.header.itemCount)
 
-    // update metadata: `dataMap | bitpos, nodeMap ^ bitpos, collMap`
-    dst.header.dataMap.insert(bucket)
-    dst.header.trieMap.remove(bucket)
+    // update metadata: `itemMap | bitpos, nodeMap ^ bitpos, collMap`
+    dst.header.itemMap.insert(bucket)
+    dst.header.childMap.remove(bucket)
     dst.count -= 1 // assuming that updated `node.count == 1`
 
     assert(src.invariant)
@@ -940,14 +933,14 @@ extension PersistentDictionary._Node: Equatable where Value: Equatable {
   private static func deepContentEquality(_ lhs: _Node, _ rhs: _Node) -> Bool {
     guard lhs.header == rhs.header else { return false }
 
-    for index in 0..<lhs.payloadArity {
-      if lhs.getPayload(index) != rhs.getPayload(index) {
+    for index in 0..<lhs.itemCount {
+      if lhs.item(at: index) != rhs.item(at: index) {
         return false
       }
     }
 
-    for index in 0..<lhs.nodeArity {
-      if lhs.getNode(index) != rhs.getNode(index) {
+    for index in 0..<lhs.childCount {
+      if lhs.child(at: index) != rhs.child(at: index) {
         return false
       }
     }

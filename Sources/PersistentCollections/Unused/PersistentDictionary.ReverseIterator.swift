@@ -28,7 +28,7 @@ extension PersistentDictionary.ReverseIterator: IteratorProtocol {
 
     let payload = baseIterator
       .currentValueNode!
-      .getPayload(baseIterator.currentValueCursor)
+      .item(at: baseIterator.currentValueCursor)
     baseIterator.currentValueCursor -= 1
 
     return payload

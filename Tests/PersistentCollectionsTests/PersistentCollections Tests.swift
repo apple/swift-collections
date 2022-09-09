@@ -179,7 +179,7 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
-  // TODO: determine how to best calculate the expected order of the hash-trie
+  // TODO: determine how to best calculate the expected order of the hash tree
   // for testing purposes, without relying on the actual implementation
   func test_index_forKey() {
     withEvery("count", in: 0 ..< 30) { count in
@@ -198,7 +198,7 @@ class PersistentDictionaryTests: CollectionTestCase {
   }
 
   #if false
-  // TODO: determine how to best calculate the expected order of the hash-trie
+  // TODO: determine how to best calculate the expected order of the hash tree
   // for testing purposes, without relying on the actual implementation
   func test_subscript_offset() {
     withEvery("count", in: 0 ..< 30) { count in
