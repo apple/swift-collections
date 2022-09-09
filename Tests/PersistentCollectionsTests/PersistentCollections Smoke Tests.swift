@@ -197,7 +197,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     ])
     expectEqual(map.rootNode.count, 3)
     expectEqual(map.reduce(0, { count, _ in count + 1 }), 3)
-    expectTrue(map.rootNode.invariant)
+    map.rootNode._invariantCheck()
   }
 
   func testCountForCopyOnWriteDeletion() {
@@ -211,7 +211,7 @@ final class CapsuleSmokeTests: CollectionTestCase {
     map[CollidableInt(12, 1)] = nil
     expectEqual(map.rootNode.count, 2)
     expectEqual(map.reduce(0, { count, _ in count + 1 }), 2)
-    expectTrue(map.rootNode.invariant)
+    map.rootNode._invariantCheck()
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode1() {

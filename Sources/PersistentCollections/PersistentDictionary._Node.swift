@@ -39,6 +39,23 @@ extension _NodeHeader: Equatable {
   }
 }
 
+extension _NodeHeader {
+#if COLLECTIONS_INTERNAL_CHECKS
+  @inline(never)
+  func _invariantCheck() {
+    if isCollisionNode {
+      precondition(itemMap == childMap)
+      precondition(!itemMap.isEmpty)
+      return
+    }
+    precondition(itemMap.intersection(childMap).isEmpty)
+  }
+#else
+  @inline(__always)
+  func _invariantCheck() {}
+#endif
+}
+
 extension PersistentDictionary {
   internal final class _Node {
     typealias Element = (key: Key, value: Value)
@@ -78,7 +95,7 @@ extension PersistentDictionary {
       self.itemCapacity = itemCapacity
       self.childCapacity = childCapacity
 
-      assert(self.invariant)
+      _invariantCheck()
     }
   }
 }
@@ -138,8 +155,8 @@ extension PersistentDictionary._Node {
       from: src.childBaseAddress,
       count: src.header.childCount)
 
-    assert(src.invariant)
-    assert(dst.invariant)
+    src._invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 }
@@ -152,7 +169,7 @@ extension PersistentDictionary._Node {
 
     self.header = _NodeHeader(itemMap: .empty, childMap: .empty)
 
-    assert(self.invariant)
+    _invariantCheck()
   }
 
   convenience init(itemMap: _Bitmap, _ item: Element) {
@@ -161,7 +178,7 @@ extension PersistentDictionary._Node {
     self.header = _NodeHeader(itemMap: itemMap, childMap: .empty)
     self.count = 1
     self.itemBaseAddress.initialize(to: item)
-    assert(self.invariant)
+    _invariantCheck()
   }
 
   convenience init(_ item: Element, at bucket: _Bucket) {
@@ -187,7 +204,7 @@ extension PersistentDictionary._Node {
       self.itemBaseAddress.initialize(to: item1)
       self.itemBaseAddress.successor().initialize(to: item0)
     }
-    assert(self.invariant)
+    _invariantCheck()
   }
 
   convenience init(_ child: _Node, at bucket: _Bucket) {
@@ -200,7 +217,7 @@ extension PersistentDictionary._Node {
 
     self.childBaseAddress.initialize(to: child)
 
-    assert(self.invariant)
+    _invariantCheck()
   }
 
   convenience init(
@@ -218,7 +235,7 @@ extension PersistentDictionary._Node {
     self.itemBaseAddress.initialize(to: item)
     self.childBaseAddress.initialize(to: child)
 
-    assert(self.invariant)
+    _invariantCheck()
   }
 
   convenience init<C: Collection>(collisions: C) where C.Element == Element {
@@ -232,7 +249,7 @@ extension PersistentDictionary._Node {
     var (it, c) = self._mutableItems.initialize(from: collisions)
     precondition(it.next() == nil && c == self.count)
 
-    assert(self.invariant)
+    _invariantCheck()
   }
 }
 
@@ -259,38 +276,6 @@ extension PersistentDictionary._Node {
     header.childMap
   }
 
-  var invariant: Bool {
-    guard headerInvariant else {
-      return false
-    }
-
-    //    let recursiveCount = self.reduce(0, { count, _ in count + 1 })
-    //
-    //    guard recursiveCount == count else {
-    //      return false
-    //    }
-
-    guard count - itemCount >= 2 * childCount else {
-      return false
-    }
-
-    if isCollisionNode {
-      guard childCount == 0 else { return false }
-      let hash = _HashValue(_items.first!.key)
-
-      guard _items.allSatisfy({ _HashValue($0.key) == hash }) else {
-        return false
-      }
-    }
-
-    return true
-  }
-
-  var headerInvariant: Bool {
-    header.itemMap.intersection(header.childMap).isEmpty
-    || (header.itemMap == header.childMap)
-  }
-
   var _items: UnsafeBufferPointer<Element> {
     UnsafeBufferPointer(start: itemBaseAddress, count: header.itemCount)
   }
@@ -311,6 +296,32 @@ extension PersistentDictionary._Node {
     guard isParentUnique else { return false }
     return isKnownUniquelyReferenced(&_children[offset])
   }
+}
+
+extension PersistentDictionary._Node {
+#if COLLECTIONS_INTERNAL_CHECKS
+  @inline(never)
+  func _invariantCheck() {
+    header._invariantCheck()
+
+    precondition(itemCount <= itemCapacity)
+    precondition(childCount <= childCapacity)
+
+    precondition(count >= itemCount + 2 * childCount)
+
+    let c = self.itemCount + _children.reduce(0) { $0 + $1.count }
+    precondition(c == self.count)
+
+    if isCollisionNode {
+      precondition(childCount == 0)
+      let hash = _HashValue(_items.first!.key)
+      precondition(_items.allSatisfy { _HashValue($0.key) == hash })
+    }
+  }
+#else
+  @inline(__always)
+  func _invariantCheck() {}
+#endif
 }
 
 extension PersistentDictionary._Node: _NodeProtocol {
@@ -418,6 +429,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
   ) -> _Node {
+    defer { _invariantCheck() }
 
     guard isRegularNode else {
       return _updateOrUpdatingCollision(isUnique, item, path, &effect)
@@ -456,7 +468,6 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
         isUniqueChild, item, path.descend(), &effect)
       guard effect.modified, oldChild !== newChild else {
         if effect.previousValue == nil { count += 1 }
-        assert(self.invariant)
         return self
       }
 
@@ -518,6 +529,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     _ path: _HashPath,
     _ effect: inout _DictionaryEffect<Value>
   ) -> _Node {
+    defer { _invariantCheck() }
 
     guard isRegularNode else {
       return _removeOrRemovingCollision(isUnique, key, path, &effect)
@@ -528,10 +540,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     if itemMap.contains(bucket) {
       let offset = itemMap.offset(of: bucket)
       let item0 = self.item(at: offset)
-      guard item0.key == key else {
-        assert(self.invariant)
-        return self
-      }
+      guard item0.key == key else { return self }
 
       effect.setModified(previousValue: item0.value)
       if self.itemCount == 2, self.childCount == 0 {
@@ -569,7 +578,6 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
         isChildUnique, key, path.descend(), &effect)
       guard effect.modified, oldChild !== newChild else {
         if effect.modified { count -= 1 }
-        assert(self.invariant)
         return self
       }
 
@@ -592,7 +600,6 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
       return _copyAndSetTrieNode(
         isUnique, bucket, offset, newChild, updateCount: { $0 -= 1 })
     }
-
     return self
   }
 
@@ -750,21 +757,11 @@ extension PersistentDictionary._Node {
   func _copyAndSetValue(
     _ isUnique: Bool, _ bucket: _Bucket, _ newValue: Value
   ) -> _Node {
-    let src: _Node = self
-    let dst: _Node
-
-    if isUnique {
-      dst = src
-    } else {
-      dst = src.copy()
-    }
-
+    let dst = isUnique ? self : self.copy()
     let offset = itemMap.offset(of: bucket)
-
     dst.itemBaseAddress[offset].value = newValue
-
-    assert(src.invariant)
-    assert(dst.invariant)
+    _invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 
@@ -775,22 +772,14 @@ extension PersistentDictionary._Node {
     _ newNode: _Node,
     updateCount: (inout Int) -> Void
   ) -> _Node {
-    let src: _Node = self
-    let dst: _Node
-
-    if isUnique {
-      dst = src
-    } else {
-      dst = src.copy()
-    }
-
+    let dst = isUnique ? self : self.copy()
     dst.childBaseAddress[offset] = newNode
 
     // update metadata: `itemMap, nodeMap, collMap`
     updateCount(&dst.count)
 
-    assert(src.invariant)
-    assert(dst.invariant)
+    self._invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 
@@ -799,16 +788,13 @@ extension PersistentDictionary._Node {
     _ bucket: _Bucket,
     _ item: Element
   ) -> _Node {
-    let src: _Node = self
-    let dst: _Node
 
     let hasRoomForItem = header.itemCount < itemCapacity
 
-    if isUnique && hasRoomForItem {
-      dst = src
-    } else {
-      dst = src.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
-    }
+    let dst = (
+      isUnique && hasRoomForItem
+      ? self
+      : self.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2))
     assert(dst.itemCount < dst.itemCapacity)
 
     let offset = dst.itemMap.offset(of: bucket)
@@ -818,21 +804,14 @@ extension PersistentDictionary._Node {
     dst.header.itemMap.insert(bucket)
     dst.count += 1
 
-    assert(src.invariant)
-    assert(dst.invariant)
+    self._invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 
   func _copyAndRemoveValue(_ isUnique: Bool, _ bucket: _Bucket) -> _Node {
     assert(itemMap.contains(bucket))
-    let src: _Node = self
-    let dst: _Node
-
-    if isUnique {
-      dst = src
-    } else {
-      dst = src.copy()
-    }
+    let dst = isUnique ? self : self.copy()
 
     let dataOffset = dst.itemMap.offset(of: bucket)
     _rangeRemove(
@@ -842,8 +821,8 @@ extension PersistentDictionary._Node {
     dst.header.itemMap.remove(bucket)
     dst.count -= 1
 
-    assert(src.invariant)
-    assert(dst.invariant)
+    self._invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 
@@ -851,13 +830,12 @@ extension PersistentDictionary._Node {
     _ isUnique: Bool, _ bucket: _Bucket, _ node: _Node
   ) -> _Node {
     assert(itemMap.contains(bucket))
-    let src: _Node = self
     let dst: _Node
 
     let hasRoomForChild = header.childCount < childCapacity
 
     if isUnique && hasRoomForChild {
-      dst = src
+      dst = self
     } else {
       // TODO reconsider the details of the heuristic
       //
@@ -868,7 +846,7 @@ extension PersistentDictionary._Node {
       // slots.
       let itemsNeedShrinking = Swift.max(header.itemCount * 2 - 1, 4) < itemCapacity
 
-      dst = src.copy(
+      dst = self.copy(
         itemCapacityShrinkFactor: itemsNeedShrinking ? 2 : 1,
         childCapacityGrowthFactor: hasRoomForChild ? 1 : 2)
     }
@@ -887,8 +865,8 @@ extension PersistentDictionary._Node {
     dst.header.childMap.insert(bucket)
     dst.count += 1 // assuming that `node.count == 2`
 
-    assert(src.invariant)
-    assert(dst.invariant)
+    self._invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 
@@ -896,15 +874,13 @@ extension PersistentDictionary._Node {
     _ isUnique: Bool, _ bucket: _Bucket, _ item: Element
   ) -> _Node {
     assert(childMap.contains(bucket))
-    let src: _Node = self
-    let dst: _Node
 
     let hasRoomForItem = header.itemCount < itemCapacity
-
+    let dst: _Node
     if isUnique && hasRoomForItem {
-      dst = src
+      dst = self
     } else {
-      dst = src.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
+      dst = self.copy(itemCapacityGrowthFactor: hasRoomForItem ? 1 : 2)
     }
 
     let childOffset = dst.childMap.offset(of: bucket)
@@ -921,8 +897,8 @@ extension PersistentDictionary._Node {
     dst.header.childMap.remove(bucket)
     dst.count -= 1 // assuming that updated `node.count == 1`
 
-    assert(src.invariant)
-    assert(dst.invariant)
+    self._invariantCheck()
+    dst._invariantCheck()
     return dst
   }
 }
