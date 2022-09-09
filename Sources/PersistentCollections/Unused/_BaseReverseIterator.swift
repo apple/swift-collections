@@ -21,8 +21,8 @@ internal struct _BaseReverseIterator<T: _NodeProtocol> {
   private var nodeIndex: [Int] = Array(repeating: 0, count: _maxDepth + 1)
   private var nodeStack: [T?] = Array(repeating: nil, count: _maxDepth + 1)
 
-  init(rootNode: T) {
-    pushNode(rootNode)
+  init(root: T) {
+    pushNode(root)
     searchNextValueNode()
   }
 

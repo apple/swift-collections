@@ -195,9 +195,9 @@ final class CapsuleSmokeTests: CollectionTestCase {
       CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
       CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)
     ])
-    expectEqual(map.rootNode.count, 3)
+    expectEqual(map._root.count, 3)
     expectEqual(map.reduce(0, { count, _ in count + 1 }), 3)
-    map.rootNode._invariantCheck()
+    map._root._invariantCheck()
   }
 
   func testCountForCopyOnWriteDeletion() {
@@ -209,9 +209,9 @@ final class CapsuleSmokeTests: CollectionTestCase {
     map[CollidableInt(33, 33)] = CollidableInt(33, 33)
     map[CollidableInt(11, 1)] = nil
     map[CollidableInt(12, 1)] = nil
-    expectEqual(map.rootNode.count, 2)
+    expectEqual(map._root.count, 2)
     expectEqual(map.reduce(0, { count, _ in count + 1 }), 2)
-    map.rootNode._invariantCheck()
+    map._root._invariantCheck()
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode1() {

@@ -23,9 +23,9 @@ internal struct _BaseIterator<T: _Node> {
     Array(repeating: 0, count: _maxDepth * 2))
   private var nodes: [T?] = Array(repeating: nil, count: _maxDepth)
 
-  init(rootNode: T) {
-    if rootNode.hasChildren { pushNode(rootNode) }
-    if rootNode.hasItems { setupPayloadNode(rootNode) }
+  init(root: T) {
+    if root.hasChildren { pushNode(root) }
+    if root.hasItems { setupPayloadNode(root) }
   }
 
   private mutating func setupPayloadNode(_ node: T) {

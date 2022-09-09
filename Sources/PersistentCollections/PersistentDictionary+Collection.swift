@@ -36,12 +36,12 @@ extension PersistentDictionary: Collection {
   
   /// Returns the index for the given key.
   public func index(forKey key: Key) -> Index? {
-    rootNode.index(forKey: key, _HashPath(key), 0)
+    _root.index(forKey: key, _HashPath(key), 0)
   }
   
   /// Accesses the key-value pair at the specified position.
   public subscript(position: Index) -> Element {
-    rootNode.item(position: position._value)
+    _root.item(position: position._value)
   }
 }
 

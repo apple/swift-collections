@@ -11,6 +11,6 @@
 
 extension PersistentDictionary: Equatable where Value: Equatable {
   public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs.rootNode === rhs.rootNode || lhs.rootNode == rhs.rootNode
+    lhs._root === rhs._root || lhs._root == rhs._root
   }
 }

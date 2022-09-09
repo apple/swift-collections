@@ -16,8 +16,8 @@ extension PersistentDictionary {
   public struct ReverseIterator {
     private var baseIterator: _BaseReverseIterator<_Node>
 
-    init(rootNode: _Node) {
-      self.baseIterator = _BaseReverseIterator(rootNode: rootNode)
+    init(root: _Node) {
+      self.baseIterator = _BaseReverseIterator(root: root)
     }
   }
 }

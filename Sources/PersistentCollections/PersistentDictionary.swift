@@ -10,18 +10,20 @@
 //===----------------------------------------------------------------------===//
 
 public struct PersistentDictionary<Key, Value> where Key: Hashable {
-  var rootNode: _Node
+  var _root: _Node
 
-  fileprivate init(_ rootNode: _Node) {
-    self.rootNode = rootNode
+  internal init(_root: _Node) {
+    self._root = _root
   }
+}
 
+extension PersistentDictionary {
   public init() {
-    self.init(_Node())
+    self.init(_root: _Node())
   }
 
   public init(_ map: PersistentDictionary<Key, Value>) {
-    self.init(map.rootNode)
+    self.init(_root: map._root)
   }
 
   @inlinable
@@ -55,13 +57,13 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   /// Inspecting a Dictionary
   ///
 
-  public var isEmpty: Bool { rootNode.count == 0 }
+  public var isEmpty: Bool { _root.count == 0 }
 
-  public var count: Int { rootNode.count }
+  public var count: Int { _root.count }
 
-  public var underestimatedCount: Int { rootNode.count }
+  public var underestimatedCount: Int { _root.count }
 
-  public var capacity: Int { rootNode.count }
+  public var capacity: Int { _root.count }
 
   ///
   /// Accessing Keys and Values
@@ -93,23 +95,23 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   }
 
   public func contains(_ key: Key) -> Bool {
-    rootNode.containsKey(key, _HashPath(key))
+    _root.containsKey(key, _HashPath(key))
   }
 
   func _get(_ key: Key) -> Value? {
-    rootNode.get(key, _HashPath(key))
+    _root.get(key, _HashPath(key))
   }
 
   @discardableResult
   public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
-    let isUnique = isKnownUniquelyReferenced(&self.rootNode)
+    let isUnique = isKnownUniquelyReferenced(&self._root)
 
     var effect = _DictionaryEffect<Value>()
-    let newRootNode = rootNode.updateOrUpdating(
+    let newRoot = _root.updateOrUpdating(
       isUnique, (key, value), _HashPath(key), &effect)
 
     if effect.modified {
-      self.rootNode = newRootNode
+      self._root = newRoot
     }
 
     // Note, always tracking discardable result negatively impacts batch use cases
@@ -119,23 +121,23 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   // fluid/immutable API
   public func updatingValue(_ value: Value, forKey key: Key) -> Self {
     var effect = _DictionaryEffect<Value>()
-    let newRootNode = rootNode.updateOrUpdating(
+    let newRoot = _root.updateOrUpdating(
       false, (key, value), _HashPath(key), &effect)
 
     guard effect.modified else { return self }
-    return Self(newRootNode)
+    return Self(_root: newRoot)
   }
 
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
-    let isUnique = isKnownUniquelyReferenced(&self.rootNode)
+    let isUnique = isKnownUniquelyReferenced(&self._root)
 
     var effect = _DictionaryEffect<Value>()
-    let newRootNode = rootNode.removeOrRemoving(
+    let newRoot = _root.removeOrRemoving(
       isUnique, key, _HashPath(key), &effect)
 
     if effect.modified {
-      self.rootNode = newRootNode
+      self._root = newRoot
     }
 
     // Note, always tracking discardable result negatively impacts batch use cases
@@ -145,12 +147,13 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   // fluid/immutable API
   public func removingValue(forKey key: Key) -> Self {
     var effect = _DictionaryEffect<Value>()
-    let newRootNode = rootNode.removeOrRemoving(
+    let newRoot = _root.removeOrRemoving(
       false, key, _HashPath(key), &effect)
 
     if effect.modified {
-      return Self(newRootNode)
-    } else { return self }
+      return Self(_root: newRoot)
+    }
+    return self
   }
 }
 

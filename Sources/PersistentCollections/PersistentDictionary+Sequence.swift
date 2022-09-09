@@ -39,7 +39,7 @@ extension PersistentDictionary: Sequence {
   }
 
   public __consuming func makeIterator() -> Iterator {
-    return Iterator(_root: rootNode)
+    return Iterator(_root: _root)
   }
 }
 
