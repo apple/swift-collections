@@ -22,8 +22,9 @@ extension PersistentDictionary {
     self.init(_root: _Node())
   }
 
-  public init(_ map: PersistentDictionary<Key, Value>) {
-    self.init(_root: map._root)
+  @inlinable
+  public init(_ other: PersistentDictionary<Key, Value>) {
+    self = other
   }
 
   @inlinable
@@ -31,17 +32,11 @@ extension PersistentDictionary {
   public init<S: Sequence>(
     uniqueKeysWithValues keysAndValues: S
   ) where S.Element == (Key, Value) {
-    var builder = Self()
-    var expectedCount = 0
-    keysAndValues.forEach { key, value in
-      builder.updateValue(value, forKey: key)
-      expectedCount += 1
-
-      guard expectedCount == builder.count else {
-        preconditionFailure("Duplicate key: '\(key)'")
-      }
+    self.init()
+    for (key, value) in keysAndValues {
+      let unique = updateValue(value, forKey: key) == nil
+      precondition(unique, "Duplicate key: '\(key)'")
     }
-    self.init(builder)
   }
 
   @inlinable
@@ -53,21 +48,7 @@ extension PersistentDictionary {
     self.init(uniqueKeysWithValues: zip(keys, values))
   }
 
-  ///
-  /// Inspecting a Dictionary
-  ///
-
-  public var isEmpty: Bool { _root.count == 0 }
-
-  public var count: Int { _root.count }
-
-  public var underestimatedCount: Int { _root.count }
-
   public var capacity: Int { _root.count }
-
-  ///
-  /// Accessing Keys and Values
-  ///
 
   public subscript(key: Key) -> Value? {
     get {
@@ -100,6 +81,11 @@ extension PersistentDictionary {
 
   func _get(_ key: Key) -> Value? {
     _root.get(key, _HashPath(key))
+  }
+
+  /// Returns the index for the given key.
+  public func index(forKey key: Key) -> Index? {
+    _root.index(forKey: key, _HashPath(key), 0)
   }
 
   @discardableResult

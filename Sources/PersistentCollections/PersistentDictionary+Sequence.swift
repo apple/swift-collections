@@ -40,6 +40,10 @@ extension PersistentDictionary: Sequence {
     }
   }
 
+  public var underestimatedCount: Int {
+    _root.count
+  }
+
   public __consuming func makeIterator() -> Iterator {
     return Iterator(_root: _root)
   }

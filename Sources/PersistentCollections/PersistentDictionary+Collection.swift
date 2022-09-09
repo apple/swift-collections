@@ -22,21 +22,15 @@ extension PersistentDictionary: Collection {
     }
   }
 
-  ///
-  /// Manipulating Indices
-  ///
-  
+  public var isEmpty: Bool { _root.count == 0 }
+  public var count: Int { _root.count }
+
   public var startIndex: Index { Index(_value: 0) }
-  
+
   public var endIndex: Index { Index(_value: count) }
   
   public func index(after i: Index) -> Index {
     Index(_value: i._value + 1)
-  }
-  
-  /// Returns the index for the given key.
-  public func index(forKey key: Key) -> Index? {
-    _root.index(forKey: key, _HashPath(key), 0)
   }
   
   /// Accesses the key-value pair at the specified position.
