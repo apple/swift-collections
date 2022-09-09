@@ -48,8 +48,6 @@ extension PersistentDictionary {
     self.init(uniqueKeysWithValues: zip(keys, values))
   }
 
-  public var capacity: Int { _root.count }
-
   public subscript(key: Key) -> Value? {
     get {
       return _get(key)
