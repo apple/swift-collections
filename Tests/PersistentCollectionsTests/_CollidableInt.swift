@@ -13,16 +13,16 @@ final class CollidableInt:
   CustomStringConvertible, CustomDebugStringConvertible, Equatable, Hashable
 {
   let value: Int
-  let hashValue: Int
+  let _hashValue: Int
   
   init(_ value: Int) {
     self.value = value
-    self.hashValue = value
+    self._hashValue = value
   }
   
   init(_ value: Int, _ hashValue: Int) {
     self.value = value
-    self.hashValue = hashValue
+    self._hashValue = hashValue
   }
   
   var description: String {
@@ -30,16 +30,24 @@ final class CollidableInt:
   }
   
   var debugDescription: String {
-    return "\(value) [hash = \(hashValue)]"
+    return "\(value) [hash = \(_hashValue)]"
+  }
+
+  func _rawHashValue(seed: Int) -> Int {
+    _hashValue
   }
   
   func hash(into hasher: inout Hasher) {
-    hasher.combine(hashValue)
+    fatalError()
+  }
+
+  var hashValue: Int {
+    fatalError()
   }
   
   static func == (lhs: CollidableInt, rhs: CollidableInt) -> Bool {
     if lhs.value == rhs.value {
-      precondition(lhs.hashValue == rhs.hashValue)
+      precondition(lhs._hashValue == rhs._hashValue)
       return true
     }
     return false

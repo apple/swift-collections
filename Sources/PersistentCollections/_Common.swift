@@ -27,29 +27,6 @@ internal var _maxDepth: Int {
   (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
 }
 
-internal func _maskFrom(_ hash: Int, _ shift: Int) -> Int {
-  (hash >> shift) & _bitPartitionMask
-}
-
-internal func _bitposFrom(_ mask: Int) -> _NodeHeader.Bitmap {
-  1 << mask
-}
-
-internal func _indexFrom(
-  _ bitmap: _NodeHeader.Bitmap,
-  _ bitpos: _NodeHeader.Bitmap
-) -> Int {
-  (bitmap & (bitpos &- 1)).nonzeroBitCount
-}
-
-internal func _indexFrom(
-  _ bitmap: _NodeHeader.Bitmap,
-  _ mask: Int,
-  _ bitpos: _NodeHeader.Bitmap
-) -> Int {
-  (bitmap == _NodeHeader.Bitmap.max) ? mask : _indexFrom(bitmap, bitpos)
-}
-
 // NEW
 @inlinable
 @inline(__always)
