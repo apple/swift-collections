@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-//extension PersistentDictionary: CustomReflectable {
-//  public var customMirror: Mirror {
-//    <#code#>
-//  }
-//}
+extension PersistentDictionary: CustomReflectable {
+  public var customMirror: Mirror {
+    Mirror(self, unlabeledChildren: self, displayStyle: .dictionary)
+  }
+}

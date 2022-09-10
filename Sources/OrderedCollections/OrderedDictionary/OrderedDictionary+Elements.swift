@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedDictionary {
   /// A view of the contents of an ordered dictionary as a random-access
   /// collection.
@@ -333,7 +335,8 @@ extension OrderedDictionary.Elements: CustomStringConvertible {
 
 extension OrderedDictionary.Elements: CustomDebugStringConvertible {
   public var debugDescription: String {
-    _base._debugDescription(
+    _dictionaryDescription(
+      for: self,
       typeName: "OrderedDictionary<\(Key.self), \(Value.self)>.Elements")
   }
 }

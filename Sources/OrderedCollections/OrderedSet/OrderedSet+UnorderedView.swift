@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedSet {
   /// An unordered view into an ordered set, providing `SetAlgebra`
   /// conformance.
@@ -72,7 +74,9 @@ extension OrderedSet.UnorderedView: CustomStringConvertible {
 extension OrderedSet.UnorderedView: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _base._debugDescription(typeName: "\(_base._debugTypeName()).UnorderedView")
+    _arrayDescription(
+      for: _base,
+      typeName: "\(_base._debugTypeName()).UnorderedView")
   }
 }
 

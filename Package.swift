@@ -86,9 +86,15 @@ let package = Package(
       dependencies: ["_CollectionsTestSupport"],
       swiftSettings: settings),
 
+    .target(
+      name: "_CollectionsUtilities",
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
+
     // Deque<Element>
     .target(
       name: "DequeModule",
+      dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
@@ -99,6 +105,7 @@ let package = Package(
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
+      dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
@@ -109,6 +116,7 @@ let package = Package(
     // PersistentDictionary<Key, Value>
     .target(
         name: "PersistentCollections",
+        dependencies: ["_CollectionsUtilities"],
         swiftSettings: settings),
     .testTarget(
         name: "PersistentCollectionsTests",

@@ -9,20 +9,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension OrderedSet: CustomStringConvertible {
+import _CollectionsUtilities
+
+extension Deque: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
-    var result = "["
-    var first = true
-    for item in self {
-      if first {
-        first = false
-      } else {
-        result += ", "
-      }
-      print(item, terminator: "", to: &result)
-    }
-    result += "]"
-    return result
+    _arrayDescription(for: self)
+  }
+}
+
+extension Deque: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _arrayDescription(for: self, typeName: "Deque<\(Element.self)>")
   }
 }
