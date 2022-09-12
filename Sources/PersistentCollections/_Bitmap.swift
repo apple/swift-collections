@@ -29,11 +29,6 @@ internal struct _Bitmap {
     self._value = Value(bitPattern)
   }
 
-  @inline(__always)
-  internal init() {
-    _value = 0
-  }
-
   @inlinable @inline(__always)
   internal init(_ bucket: _Bucket) {
     assert(bucket.value < Self.capacity)
@@ -62,8 +57,8 @@ extension _Bitmap: Equatable {
 }
 
 extension _Bitmap {
-  internal static var empty: Self { .init() }
   @inlinable @inline(__always)
+  internal static var empty: Self { .init(_value: 0) }
 
   @inlinable @inline(__always)
   internal static var capacity: Int { Value.bitWidth }

@@ -401,7 +401,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   func get(_ key: Key, _ path: _HashPath) -> Value? {
     guard isRegularNode else {
       let hash = _HashValue(_items.first!.key)
-      guard path._hash == hash else { return nil }
+      guard path.hash == hash else { return nil }
       return _items.first(where: { key == $0.key })?.value
     }
 
@@ -425,7 +425,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   func containsKey(_ key: Key, _ path: _HashPath) -> Bool {
     guard isRegularNode else {
       let hash = _HashValue(_items.first!.key)
-      guard path._hash == hash else { return false }
+      guard path.hash == hash else { return false }
       return _items.contains(where: { key == $0.key })
     }
 
@@ -454,7 +454,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
   ) -> Index? {
     guard isRegularNode else {
       let hash = _HashValue(_items.first!.key)
-      assert(path._hash == hash)
+      assert(path.hash == hash)
       return _items
         .firstIndex(where: { $0.key == key })
         .map { Index(_value: skippedBefore + $0) }
@@ -503,7 +503,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
         return _copyAndSetValue(isUnique, bucket, item.value)
       }
       let hash0 = _HashValue(item0.key)
-      if hash0 == path._hash {
+      if hash0 == path.hash {
         let newChild = _Node(collisions: [item0, item])
         effect.setModified()
         if self.count == 1 { return newChild }
@@ -552,7 +552,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     assert(isCollisionNode)
 
     let hash = _HashValue(_items.first!.key)
-    guard path._hash == hash else {
+    guard path.hash == hash else {
       effect.setModified()
       return _mergeKeyValPairAndCollisionNode(item, path, self, hash)
     }
@@ -731,7 +731,7 @@ extension PersistentDictionary._Node {
     _ item0: Element, _ path0: _HashPath,
     _ item1: Element, _ hash1: _HashValue
   ) -> _Node {
-    let path1 = _HashPath(_hash: hash1, shift: path0._shift)
+    let path1 = _HashPath(hash: hash1, level: path0.level)
     return _mergeTwoKeyValPairs(item0, path0, item1, path1)
   }
 
@@ -740,8 +740,8 @@ extension PersistentDictionary._Node {
     _ item0: Element, _ path0: _HashPath,
     _ item1: Element, _ path1: _HashPath
   ) -> _Node {
-    assert(path0._hash != path1._hash)
-    assert(path0._shift == path1._shift)
+    assert(path0.hash != path1.hash)
+    assert(path0.level == path1.level)
 
     let bucket0 = path0.currentBucket
     let bucket1 = path1.currentBucket
@@ -766,7 +766,7 @@ extension PersistentDictionary._Node {
     _ item0: Element, _ path0: _HashPath,
     _ node1: _Node, _ hash1: _HashValue
   ) -> _Node {
-    let path1 = _HashPath(_hash: hash1, shift: path0._shift)
+    let path1 = _HashPath(hash: hash1, level: path0.level)
     return _mergeKeyValPairAndCollisionNode(item0, path0, node1, path1)
   }
 
@@ -775,8 +775,8 @@ extension PersistentDictionary._Node {
     _ item0: Element, _ path0: _HashPath,
     _ node1: _Node, _ path1: _HashPath
   ) -> _Node {
-    assert(path0._hash != path1._hash)
-    assert(path0._shift == path1._shift)
+    assert(path0.hash != path1.hash)
+    assert(path0.level == path1.level)
 
     let bucket0 = path0.currentBucket
     let bucket1 = path1.currentBucket

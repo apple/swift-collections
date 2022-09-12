@@ -25,6 +25,9 @@ internal struct _Bucket {
 
   @inlinable @inline(__always)
   static var bitMask: UInt { UInt(bitPattern: _Bitmap.capacity) &- 1 }
+
+  @inlinable @inline(__always)
+  static var invalid: _Bucket { _Bucket(.max) }
 }
 
 extension _Bucket: Equatable {
