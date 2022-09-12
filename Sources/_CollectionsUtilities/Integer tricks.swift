@@ -9,15 +9,26 @@
 //
 //===----------------------------------------------------------------------===//
 
+extension FixedWidthInteger {
+  /// Round up `self` to the nearest power of two, assuming it's representable.
+  /// Returns 0 if `self` isn't positive.
+  @_effects(readnone)
+  public func _roundUpToPowerOfTwo() -> Self {
+    guard self > 0 else { return 0 }
+    let l = Self.bitWidth - (self &- 1).leadingZeroBitCount
+    return 1 << l
+  }
+}
+
 extension UInt32 {
   @inlinable @inline(__always)
-  var _nonzeroBitCount: Self {
+  internal var _nonzeroBitCount: Self {
     Self(truncatingIfNeeded: nonzeroBitCount)
   }
 
   @inlinable @inline(__always)
   @_effects(readnone)
-  func _rank(ofBit bit: UInt) -> Int {
+  public func _rank(ofBit bit: UInt) -> Int {
     assert(bit < Self.bitWidth)
     let mask: Self = (1 &<< bit) &- 1
     return (self & mask).nonzeroBitCount
@@ -26,8 +37,7 @@ extension UInt32 {
   // Returns the position of the `n`th set bit in `self`, i.e., the bit with
   // rank `n`.
   @_effects(readnone)
-  @usableFromInline
-  func _bit(ranked n: Int) -> UInt? {
+  public func _bit(ranked n: Int) -> UInt? {
     assert(n >= 0 && n < Self.bitWidth)
     var shift: Self = 0
     var n: Self = UInt32(truncatingIfNeeded: n)
