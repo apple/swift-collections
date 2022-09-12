@@ -9,10 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+@usableFromInline
 internal struct _NodeHeader {
+  @usableFromInline
   internal var itemMap: _Bitmap
+
+  @usableFromInline
   internal var childMap: _Bitmap
 
+  @inlinable
   init(itemMap: _Bitmap, childMap: _Bitmap) {
     self.itemMap = itemMap
     self.childMap = childMap
@@ -20,20 +25,24 @@ internal struct _NodeHeader {
 }
 
 extension _NodeHeader {
+  @inlinable
   internal var isCollisionNode: Bool {
     !itemMap.intersection(childMap).isEmpty
   }
 
+  @inlinable
   internal var itemCount: Int {
     isCollisionNode ? Int(itemMap._value) : itemMap.count
   }
 
+  @inlinable
   internal var childCount: Int {
     isCollisionNode ? 0 : childMap.count
   }
 }
 
 extension _NodeHeader: Equatable {
+  @inlinable
   internal static func == (lhs: _NodeHeader, rhs: _NodeHeader) -> Bool {
     lhs.itemMap == rhs.itemMap && lhs.childMap == rhs.childMap
   }
@@ -57,21 +66,35 @@ extension _NodeHeader {
 }
 
 extension PersistentDictionary {
+  @usableFromInline
   internal final class _Node {
+    @usableFromInline
     typealias Element = (key: Key, value: Value)
+
+    @usableFromInline
     typealias Index = PersistentDictionary.Index
 
     // TODO: restore type to `UInt8` after reworking hash-collisions to grow in
     // depth instead of width
+    @usableFromInline
     internal typealias Capacity = UInt32
 
+    @usableFromInline
     var header: _NodeHeader
+
+    @usableFromInline
     var count: Int
 
+    @usableFromInline
     let itemCapacity: Capacity
+
+    @usableFromInline
     let childCapacity: Capacity
 
+    @usableFromInline
     let itemBaseAddress: UnsafeMutablePointer<Element>
+
+    @usableFromInline
     let childBaseAddress: UnsafeMutablePointer<_Node>
 
     deinit {
@@ -81,6 +104,7 @@ extension PersistentDictionary {
       rootBaseAddress.deallocate()
     }
 
+    @inlinable
     init(itemCapacity: Capacity, childCapacity: Capacity) {
       let (itemBaseAddress, childBaseAddress) = _Node._allocate(
         itemCapacity: itemCapacity,
@@ -101,9 +125,13 @@ extension PersistentDictionary {
 }
 
 extension PersistentDictionary._Node {
+  @usableFromInline
   typealias _Node = PersistentDictionary._Node
 
+  @inlinable
   static var initialDataCapacity: Capacity { 4 }
+
+  @inlinable
   static var initialTrieCapacity: Capacity { 1 }
 }
 
@@ -134,6 +162,7 @@ extension PersistentDictionary._Node {
     return (itemBaseAddress, childBaseAddress)
   }
 
+  @inlinable
   func copy(
     itemCapacityGrowthFactor itemGrowthFactor: Capacity = 1,
     itemCapacityShrinkFactor itemShrinkFactor: Capacity = 1,
@@ -162,6 +191,7 @@ extension PersistentDictionary._Node {
 }
 
 extension PersistentDictionary._Node {
+  @inlinable
   convenience init() {
     self.init(
       itemCapacity: _Node.initialDataCapacity,
@@ -172,6 +202,7 @@ extension PersistentDictionary._Node {
     _invariantCheck()
   }
 
+  @inlinable
   convenience init(itemMap: _Bitmap, _ item: Element) {
     assert(itemMap.count == 1)
     self.init()
@@ -181,10 +212,12 @@ extension PersistentDictionary._Node {
     _invariantCheck()
   }
 
+  @inlinable
   convenience init(_ item: Element, at bucket: _Bucket) {
     self.init(itemMap: _Bitmap(bucket), item)
   }
 
+  @inlinable
   convenience init(
     _ item0: Element, at bucket0: _Bucket,
     _ item1: Element, at bucket1: _Bucket
@@ -207,6 +240,7 @@ extension PersistentDictionary._Node {
     _invariantCheck()
   }
 
+  @inlinable
   convenience init(_ child: _Node, at bucket: _Bucket) {
     self.init()
 
@@ -220,6 +254,7 @@ extension PersistentDictionary._Node {
     _invariantCheck()
   }
 
+  @inlinable
   convenience init(
     _ item: Element, at bucket0: _Bucket,
     _ child: _Node, at bucket1: _Bucket
@@ -238,6 +273,7 @@ extension PersistentDictionary._Node {
     _invariantCheck()
   }
 
+  @inlinable
   convenience init<C: Collection>(collisions: C) where C.Element == Element {
     self.init(itemCapacity: Capacity(collisions.count), childCapacity: 0)
 
@@ -254,42 +290,52 @@ extension PersistentDictionary._Node {
 }
 
 extension PersistentDictionary._Node {
+  @inlinable
   var isRegularNode: Bool {
     !isCollisionNode
   }
 
+  @inlinable
   var isCollisionNode: Bool {
     header.isCollisionNode
   }
 
-  private var rootBaseAddress: UnsafeMutableRawPointer {
+  @inlinable
+  internal var rootBaseAddress: UnsafeMutableRawPointer {
     UnsafeMutableRawPointer(childBaseAddress)
   }
 
+  @inlinable
   @inline(__always)
   var itemMap: _Bitmap {
     header.itemMap
   }
 
+  @inlinable
   @inline(__always)
   var childMap: _Bitmap {
     header.childMap
   }
 
+  @inlinable
   var _items: UnsafeBufferPointer<Element> {
     UnsafeBufferPointer(start: itemBaseAddress, count: header.itemCount)
   }
 
+  @inlinable
   var _children: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: childBaseAddress, count: header.childCount)
   }
 
+  @inlinable
   var _mutableItems: UnsafeMutableBufferPointer<Element> {
     UnsafeMutableBufferPointer(start: itemBaseAddress, count: header.itemCount)
   }
 
+  @inlinable
   var isCandidateForCompaction: Bool { itemCount == 0 && childCount == 1 }
 
+  @inlinable
   func isChildUnique(
     at offset: Int, uniqueParent isParentUnique: Bool
   ) -> Bool {
@@ -300,6 +346,7 @@ extension PersistentDictionary._Node {
 
 extension PersistentDictionary._Node {
 #if COLLECTIONS_INTERNAL_CHECKS
+  @usableFromInline
   @inline(never)
   func _invariantCheck() {
     header._invariantCheck()
@@ -319,30 +366,38 @@ extension PersistentDictionary._Node {
     }
   }
 #else
+  @inlinable
   @inline(__always)
   func _invariantCheck() {}
 #endif
 }
 
 extension PersistentDictionary._Node: _NodeProtocol {
+  @inlinable
   var hasChildren: Bool { !header.childMap.isEmpty }
 
+  @inlinable
   var childCount: Int { header.childCount }
 
+  @inlinable
   func child(at index: Int) -> _Node {
     childBaseAddress[index]
   }
 
+  @inlinable
   var hasItems: Bool { !header.itemMap.isEmpty }
 
+  @inlinable
   var itemCount: Int { header.itemCount }
 
+  @inlinable
   func item(at offset: Int) -> Element {
     _items[offset]
   }
 }
 
 extension PersistentDictionary._Node: _DictionaryNodeProtocol {
+  @inlinable
   func get(_ key: Key, _ path: _HashPath) -> Value? {
     guard isRegularNode else {
       let hash = _HashValue(_items.first!.key)
@@ -366,6 +421,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     return nil
   }
 
+  @inlinable
   func containsKey(_ key: Key, _ path: _HashPath) -> Bool {
     guard isRegularNode else {
       let hash = _HashValue(_items.first!.key)
@@ -390,6 +446,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     return false
   }
 
+  @inlinable
   func index(
     forKey key: Key,
     _ path: _HashPath,
@@ -423,6 +480,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     return nil
   }
 
+  @inlinable
   final func updateOrUpdating(
     _ isUnique: Bool,
     _ item: Element,
@@ -483,6 +541,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     return _copyAndInsertValue(isUnique, bucket, item)
   }
 
+  @inlinable
   @inline(never)
   final func _updateOrUpdatingCollision(
     _ isUnique: Bool,
@@ -523,6 +582,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     return dst
   }
 
+  @inlinable
   final func removeOrRemoving(
     _ isUnique: Bool,
     _ key: Key,
@@ -603,6 +663,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
     return self
   }
 
+  @inlinable
   @inline(never)
   final func _removeOrRemovingCollision(
     _ isUnique: Bool,
@@ -635,6 +696,7 @@ extension PersistentDictionary._Node: _DictionaryNodeProtocol {
 }
 
 extension PersistentDictionary._Node {
+  @inlinable
   func item(position: Int) -> Element {
     assert(position >= 0 && position < count)
     let counts = self._counts
@@ -664,6 +726,7 @@ extension PersistentDictionary._Node {
 }
 
 extension PersistentDictionary._Node {
+  @inlinable
   func _mergeTwoKeyValPairs(
     _ item0: Element, _ path0: _HashPath,
     _ item1: Element, _ hash1: _HashValue
@@ -672,6 +735,7 @@ extension PersistentDictionary._Node {
     return _mergeTwoKeyValPairs(item0, path0, item1, path1)
   }
 
+  @inlinable
   func _mergeTwoKeyValPairs(
     _ item0: Element, _ path0: _HashPath,
     _ item1: Element, _ path1: _HashPath
@@ -697,6 +761,7 @@ extension PersistentDictionary._Node {
     return _Node(node, at: bucket0)
   }
 
+  @inlinable
   final func _mergeKeyValPairAndCollisionNode(
     _ item0: Element, _ path0: _HashPath,
     _ node1: _Node, _ hash1: _HashValue
@@ -705,6 +770,7 @@ extension PersistentDictionary._Node {
     return _mergeKeyValPairAndCollisionNode(item0, path0, node1, path1)
   }
 
+  @inlinable
   final func _mergeKeyValPairAndCollisionNode(
     _ item0: Element, _ path0: _HashPath,
     _ node1: _Node, _ path1: _HashPath
@@ -729,6 +795,7 @@ extension PersistentDictionary._Node {
     return _Node(node, at: bucket0)
   }
 
+  @inlinable
   final func _count(upTo bucket: _Bucket) -> Int {
     let itemCount = itemMap.intersection(_Bitmap(upTo: bucket)).count
     let childCount = childMap.intersection(_Bitmap(upTo: bucket)).count
@@ -740,6 +807,7 @@ extension PersistentDictionary._Node {
     return itemCount + children
   }
 
+  @inlinable
   final var _counts: [Int] {
     var counts = Array(repeating: 0, count: _Bitmap.capacity)
 
@@ -754,6 +822,7 @@ extension PersistentDictionary._Node {
     return counts
   }
 
+  @inlinable
   func _copyAndSetValue(
     _ isUnique: Bool, _ bucket: _Bucket, _ newValue: Value
   ) -> _Node {
@@ -765,7 +834,8 @@ extension PersistentDictionary._Node {
     return dst
   }
 
-  private func _copyAndSetTrieNode(
+  @inlinable
+  internal func _copyAndSetTrieNode(
     _ isUnique: Bool,
     _ bucket: _Bucket,
     _ offset: Int,
@@ -783,6 +853,7 @@ extension PersistentDictionary._Node {
     return dst
   }
 
+  @inlinable
   func _copyAndInsertValue(
     _ isUnique: Bool,
     _ bucket: _Bucket,
@@ -809,6 +880,7 @@ extension PersistentDictionary._Node {
     return dst
   }
 
+  @inlinable
   func _copyAndRemoveValue(_ isUnique: Bool, _ bucket: _Bucket) -> _Node {
     assert(itemMap.contains(bucket))
     let dst = isUnique ? self : self.copy()
@@ -826,6 +898,7 @@ extension PersistentDictionary._Node {
     return dst
   }
 
+  @inlinable
   func _copyAndMigrateFromInlineToNode(
     _ isUnique: Bool, _ bucket: _Bucket, _ node: _Node
   ) -> _Node {
@@ -870,6 +943,7 @@ extension PersistentDictionary._Node {
     return dst
   }
 
+  @inlinable
   func _copyAndMigrateFromNodeToInline(
     _ isUnique: Bool, _ bucket: _Bucket, _ item: Element
   ) -> _Node {
@@ -905,6 +979,7 @@ extension PersistentDictionary._Node {
 
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
 extension PersistentDictionary._Node: Equatable where Value: Equatable {
+  @inlinable
   static func == (lhs: _Node, rhs: _Node) -> Bool {
     if lhs.isCollisionNode && rhs.isCollisionNode {
       let l = Dictionary(
@@ -918,7 +993,8 @@ extension PersistentDictionary._Node: Equatable where Value: Equatable {
     return deepContentEquality(lhs, rhs)
   }
 
-  private static func deepContentEquality(_ lhs: _Node, _ rhs: _Node) -> Bool {
+  @inlinable
+  internal static func deepContentEquality(_ lhs: _Node, _ rhs: _Node) -> Bool {
     guard lhs.header == rhs.header else { return false }
     guard lhs.count == rhs.count else { return false }
 

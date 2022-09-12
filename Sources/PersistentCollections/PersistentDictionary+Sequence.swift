@@ -17,15 +17,25 @@ extension PersistentDictionary: Sequence {
     // The iterator performs a pre-order traversal, with items at a node visited
     // before any items within children.
 
+    @usableFromInline
     typealias _ItemBuffer = UnsafeBufferPointer<Element>
+
+    @usableFromInline
     typealias _ChildBuffer = UnsafeBufferPointer<_Node>
 
+    @usableFromInline
     internal var _root: _Node
+
+    @usableFromInline
     internal var _itemIterator: _ItemBuffer.Iterator?
 
+    @usableFromInline
     internal var _pathTop: _ChildBuffer.Iterator?
+
+    @usableFromInline
     internal var _pathRest: [_ChildBuffer.Iterator]
 
+    @inlinable
     internal init(_root: _Node) {
       self._root = _root
       self._pathRest = []
@@ -40,10 +50,12 @@ extension PersistentDictionary: Sequence {
     }
   }
 
+  @inlinable
   public var underestimatedCount: Int {
     _root.count
   }
 
+  @inlinable
   public __consuming func makeIterator() -> Iterator {
     return Iterator(_root: _root)
   }
@@ -52,6 +64,7 @@ extension PersistentDictionary: Sequence {
 extension PersistentDictionary.Iterator: IteratorProtocol {
   public typealias Element = (key: Key, value: Value)
 
+  @inlinable
   public mutating func next() -> Element? {
     if let item = _itemIterator?.next() {
       return item

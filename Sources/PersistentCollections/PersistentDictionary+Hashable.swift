@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentDictionary: Hashable where Value: Hashable {
+  @inlinable
   public func hash(into hasher: inout Hasher) {
     var commutativeHash = 0
     for (key, value) in self {

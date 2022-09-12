@@ -10,9 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 /// An abstract representation of a hash value.
+@usableFromInline
+@frozen
 internal struct _HashValue {
+  @usableFromInline
   internal var value: UInt
 
+  @inlinable
   internal init<Key: Hashable>(_ key: Key) {
     let hashValue = key._rawHashValue(seed: 0)
     self.value = UInt(bitPattern: hashValue)
@@ -20,7 +24,7 @@ internal struct _HashValue {
 }
 
 extension _HashValue: Equatable {
-  @inline(__always)
+  @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
     left.value == right.value
   }

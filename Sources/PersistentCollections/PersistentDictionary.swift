@@ -10,14 +10,17 @@
 //===----------------------------------------------------------------------===//
 
 public struct PersistentDictionary<Key, Value> where Key: Hashable {
+  @usableFromInline
   var _root: _Node
 
+  @inlinable
   internal init(_root: _Node) {
     self._root = _root
   }
 }
 
 extension PersistentDictionary {
+  @inlinable
   public init() {
     self.init(_root: _Node())
   }
@@ -48,6 +51,7 @@ extension PersistentDictionary {
     self.init(uniqueKeysWithValues: zip(keys, values))
   }
 
+  @inlinable
   public subscript(key: Key) -> Value? {
     get {
       return _get(key)
@@ -61,6 +65,7 @@ extension PersistentDictionary {
     }
   }
 
+  @inlinable
   public subscript(
     key: Key,
     default defaultValue: @autoclosure () -> Value
@@ -73,19 +78,23 @@ extension PersistentDictionary {
     }
   }
 
+  @inlinable
   public func contains(_ key: Key) -> Bool {
     _root.containsKey(key, _HashPath(key))
   }
 
+  @inlinable
   func _get(_ key: Key) -> Value? {
     _root.get(key, _HashPath(key))
   }
 
   /// Returns the index for the given key.
+  @inlinable
   public func index(forKey key: Key) -> Index? {
     _root.index(forKey: key, _HashPath(key), 0)
   }
 
+  @inlinable
   @discardableResult
   public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
     let isUnique = isKnownUniquelyReferenced(&self._root)
@@ -103,6 +112,7 @@ extension PersistentDictionary {
   }
 
   // fluid/immutable API
+  @inlinable
   public func updatingValue(_ value: Value, forKey key: Key) -> Self {
     var effect = _DictionaryEffect<Value>()
     let newRoot = _root.updateOrUpdating(
@@ -112,6 +122,7 @@ extension PersistentDictionary {
     return Self(_root: newRoot)
   }
 
+  @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
     let isUnique = isKnownUniquelyReferenced(&self._root)
@@ -129,6 +140,7 @@ extension PersistentDictionary {
   }
 
   // fluid/immutable API
+  @inlinable
   public func removingValue(forKey key: Key) -> Self {
     var effect = _DictionaryEffect<Value>()
     let newRoot = _root.removeOrRemoving(
