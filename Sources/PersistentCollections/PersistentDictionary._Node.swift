@@ -372,7 +372,7 @@ extension PersistentDictionary._Node {
 #endif
 }
 
-extension PersistentDictionary._Node: _NodeProtocol {
+extension PersistentDictionary._Node {
   @inlinable
   var hasChildren: Bool { !header.childMap.isEmpty }
 
@@ -396,7 +396,7 @@ extension PersistentDictionary._Node: _NodeProtocol {
   }
 }
 
-extension PersistentDictionary._Node: _DictionaryNodeProtocol {
+extension PersistentDictionary._Node {
   @inlinable
   func get(_ key: Key, _ path: _HashPath) -> Value? {
     guard isRegularNode else {
