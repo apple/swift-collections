@@ -18,8 +18,13 @@ internal struct _Bucket {
   internal var value: UInt
 
   @inlinable @inline(__always)
-  internal init(_ value: UInt) { self.value = value }
+  internal init(_ value: UInt) {
+    assert(value < _Bitmap.capacity || value == .max)
+    self.value = value
+  }
+}
 
+extension _Bucket {
   @inlinable @inline(__always)
   static var bitWidth: Int { _Bitmap.capacity.trailingZeroBitCount }
 
@@ -28,6 +33,9 @@ internal struct _Bucket {
 
   @inlinable @inline(__always)
   static var invalid: _Bucket { _Bucket(.max) }
+
+  @inlinable @inline(__always)
+  var isInvalid: Bool { value == .max }
 }
 
 extension _Bucket: Equatable {
@@ -41,5 +49,12 @@ extension _Bucket: Comparable {
   @inlinable @inline(__always)
   internal static func <(left: Self, right: Self) -> Bool {
     left.value < right.value
+  }
+}
+
+extension _Bucket: CustomStringConvertible {
+  @usableFromInline
+  internal var description: String {
+    String(value, radix: _Bitmap.capacity)
   }
 }

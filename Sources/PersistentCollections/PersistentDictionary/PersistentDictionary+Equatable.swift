@@ -11,7 +11,7 @@
 
 extension PersistentDictionary: Equatable where Value: Equatable {
   @inlinable
-  public static func == (lhs: Self, rhs: Self) -> Bool {
-    lhs._root === rhs._root || lhs._root == rhs._root
+  public static func == (left: Self, right: Self) -> Bool {
+    left._root == right._root
   }
 }

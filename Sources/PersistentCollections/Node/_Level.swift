@@ -9,74 +9,55 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// An abstract representation of a hash value.
-@usableFromInline
-@frozen
-internal struct _HashValue {
-  @usableFromInline
-  internal var value: UInt
-
-  @inlinable
-  internal init<Key: Hashable>(_ key: Key) {
-    let hashValue = key._rawHashValue(seed: 0)
-    self.value = UInt(bitPattern: hashValue)
-  }
-}
-
-extension _HashValue: Equatable {
-  @inlinable @inline(__always)
-  internal static func ==(left: Self, right: Self) -> Bool {
-    left.value == right.value
-  }
-}
-
-extension _HashValue {
-  @inlinable
-  internal subscript(_ level: _Level) -> _Bucket {
-    assert(!level.isAtBottom)
-    return _Bucket((value &>> level.shift) & _Bucket.bitMask)
-  }
-}
-
 @usableFromInline
 @frozen
 internal struct _Level {
   @usableFromInline
   internal var shift: UInt
 
-  @inlinable
+  @inlinable @inline(__always)
   init(shift: UInt) {
     self.shift = shift
   }
 }
 
 extension _Level {
-  @inlinable
+  @inlinable @inline(__always)
+  internal static var limit: Int {
+    (_Hash.bitWidth + _Bitmap.bitWidth - 1) / _Bitmap.bitWidth
+  }
+
+  @inlinable @inline(__always)
+  internal static var _step: UInt {
+    UInt(bitPattern: _Bitmap.bitWidth)
+  }
+
+  @inlinable @inline(__always)
   internal static var top: _Level {
     _Level(shift: 0)
   }
 
-  @inlinable
+  @inlinable @inline(__always)
   internal var isAtRoot: Bool { shift == 0 }
 
-  @inlinable
+  @inlinable @inline(__always)
   internal var isAtBottom: Bool { shift >= UInt.bitWidth }
 
-  @inlinable
+  @inlinable @inline(__always)
   internal func descend() -> _Level {
     // FIXME: Consider returning nil when we run out of bits
-    _Level(shift: shift &+ UInt(bitPattern: _Bucket.bitWidth))
+    _Level(shift: shift &+ Self._step)
   }
 
-  @inlinable
+  @inlinable @inline(__always)
   internal func ascend() -> _Level {
     assert(!isAtRoot)
-    return _Level(shift: shift &+ UInt(bitPattern: _Bucket.bitWidth))
+    return _Level(shift: shift &+ Self._step)
   }
 }
 
 extension _Level: Equatable {
-  @inlinable
+  @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
     left.shift == right.shift
   }

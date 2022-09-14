@@ -9,43 +9,57 @@
 //
 //===----------------------------------------------------------------------===//
 
-final class CollidableInt:
+extension Int {
+  public init(hashString: String) {
+    let s = String(hashString.reversed())
+    let hash = UInt(s, radix: 32)!
+    self = Int(bitPattern: hash)
+  }
+}
+
+public final class CollidableInt:
   CustomStringConvertible, CustomDebugStringConvertible, Equatable, Hashable
 {
-  let value: Int
+  public let value: Int
   let _hashValue: Int
   
-  init(_ value: Int) {
+  public init(_ value: Int) {
     self.value = value
     self._hashValue = value
   }
   
-  init(_ value: Int, _ hashValue: Int) {
+  public init(_ value: Int, _ hashValue: Int) {
     self.value = value
     self._hashValue = hashValue
   }
-  
-  var description: String {
+
+  public init(_ value: Int, _ hashString: String) {
+
+    self.value = value
+    self._hashValue = Int(hashString: hashString)
+  }
+
+  public var description: String {
     return "\(value)"
   }
   
-  var debugDescription: String {
+  public var debugDescription: String {
     return "\(value) [hash = \(_hashValue)]"
   }
 
-  func _rawHashValue(seed: Int) -> Int {
+  public func _rawHashValue(seed: Int) -> Int {
     _hashValue
   }
   
-  func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     fatalError()
   }
 
-  var hashValue: Int {
+  public var hashValue: Int {
     fatalError()
   }
   
-  static func == (lhs: CollidableInt, rhs: CollidableInt) -> Bool {
+  public static func == (lhs: CollidableInt, rhs: CollidableInt) -> Bool {
     if lhs.value == rhs.value {
       precondition(lhs._hashValue == rhs._hashValue)
       return true

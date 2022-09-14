@@ -39,13 +39,15 @@ extension PersistentDictionary: Sequence {
     internal init(_root: _Node) {
       self._root = _root
       self._pathRest = []
-      self._pathRest.reserveCapacity(_maxDepth)
+      self._pathRest.reserveCapacity(_Level.limit)
 
-      if _root.hasItems {
-        self._itemIterator = _root._items.makeIterator()
+      // FIXME: This is illegal, as it escapes pointers to _root contents
+      // outside the closure passed to `read`. :-(
+      self._itemIterator = _root.read {
+        $0.hasItems ? $0._items.makeIterator() : nil
       }
-      if _root.hasChildren {
-        self._pathTop = _root._children.makeIterator()
+      self._pathTop = _root.read {
+        $0.hasChildren ? $0._children.makeIterator() : nil
       }
     }
   }
@@ -77,12 +79,12 @@ extension PersistentDictionary.Iterator: IteratorProtocol {
         _pathTop = _pathRest.popLast()
         continue
       }
-      if nextNode.hasChildren {
+      if nextNode.read({ $0.hasChildren }) {
         _pathRest.append(_pathTop!)
-        _pathTop = nextNode._children.makeIterator()
+        _pathTop = nextNode.read { $0._children.makeIterator() } // 💥ILLEGAL
       }
-      if nextNode.hasItems {
-        _itemIterator = nextNode._items.makeIterator()
+      if nextNode.read({ $0.hasItems }) {
+        _itemIterator = nextNode.read { $0._items.makeIterator() } // 💥ILLEGAL
         return _itemIterator!.next()
       }
     }
