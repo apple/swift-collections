@@ -11,42 +11,59 @@
 
 /// A structure for slicing up a hash value into a series of bucket values,
 /// representing a path inside the prefix tree.
+@usableFromInline
+@frozen
 internal struct _HashPath {
-  internal var _hash: _HashValue
-  internal var _shift: UInt
+  @usableFromInline
+  internal var hash: _HashValue
 
-  internal init(_hash: _HashValue, shift: UInt) {
-    self._hash = _hash
-    self._shift = shift
+  @usableFromInline
+  internal var level: _Level
+
+  @inlinable
+  internal init(hash: _HashValue, level: _Level) {
+    self.hash = hash
+    self.level = level
   }
 
-  internal init<Key: Hashable>(_ key: Key) {
-    _hash = _HashValue(key)
-    _shift = 0
+  @inlinable
+  internal init(hash: _HashValue, shift: UInt) {
+    self.init(hash: hash, level: _Level(shift: shift))
   }
 
+  @inlinable
+  internal init<Key: Hashable>(_ key: Key, level: _Level = .top) {
+  self.init(hash: _HashValue(key), level: level)
+  }
+
+  @inlinable
+  internal init<Key: Hashable>(_ key: Key, shift: UInt) {
+    self.init(hash: _HashValue(key), level: _Level(shift: shift))
+  }
+
+  @inlinable
+  internal var isAtRoot: Bool { level.isAtRoot }
+
+  @inlinable
   internal var currentBucket: _Bucket {
-    precondition(_shift < UInt.bitWidth, "Ran out of hash bits")
-    return _Bucket((_hash.value &>> _shift) & _Bucket.bitMask)
+    hash[level]
   }
 
-  internal var isAtRoot: Bool { _shift == 0 }
-
+  @inlinable
   internal func descend() -> _HashPath {
     // FIXME: Consider returning nil when we run out of bits
-    let s = _shift &+ UInt(bitPattern: _Bucket.bitWidth)
-    return _HashPath(_hash: _hash, shift: s)
+    _HashPath(hash: hash, level: level.descend())
   }
 
+  @inlinable
   internal func ascend() -> _HashPath {
-    precondition(_shift >= _Bucket.bitWidth)
-    let s = _shift &- UInt(bitPattern: _Bucket.bitWidth)
-    return _HashPath(_hash: _hash, shift: s)
+    _HashPath(hash: hash, level: level.ascend())
   }
 
+  @inlinable
   internal func top() -> _HashPath {
     var result = self
-    result._shift = 0
+    result.level = .top
     return result
   }
 }

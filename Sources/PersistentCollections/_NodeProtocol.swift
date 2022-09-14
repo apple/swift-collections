@@ -12,17 +12,17 @@
 protocol _NodeProtocol: AnyObject {
   associatedtype Element
 
-  var hasNodes: Bool { get }
+  var hasChildren: Bool { get }
 
-  var nodeArity: Int { get }
+  var childCount: Int { get }
 
-  func getNode(_ index: Int) -> Self
+  func child(at offset: Int) -> Self
 
-  var hasPayload: Bool { get }
+  var hasItems: Bool { get }
 
-  var payloadArity: Int { get }
+  var itemCount: Int { get }
 
-  func getPayload(_ index: Int) -> Element
+  func item(at offset: Int) -> Element
 
   var count: Int { get }
 }

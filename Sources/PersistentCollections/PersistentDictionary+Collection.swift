@@ -11,37 +11,41 @@
 
 extension PersistentDictionary: Collection {
   public struct Index: Comparable {
+    @usableFromInline
     internal let _value: Int
 
+    @usableFromInline
     internal init(_value: Int) {
       self._value = _value
     }
 
+    @inlinable
     public static func < (lhs: Self, rhs: Self) -> Bool {
       lhs._value < rhs._value
     }
   }
 
-  ///
-  /// Manipulating Indices
-  ///
-  
+  @inlinable
+  public var isEmpty: Bool { _root.count == 0 }
+
+  @inlinable
+  public var count: Int { _root.count }
+
+  @inlinable
   public var startIndex: Index { Index(_value: 0) }
-  
+
+  @inlinable
   public var endIndex: Index { Index(_value: count) }
   
+  @inlinable
   public func index(after i: Index) -> Index {
     Index(_value: i._value + 1)
   }
   
-  /// Returns the index for the given key.
-  public func index(forKey key: Key) -> Index? {
-    rootNode.index(forKey: key, _HashPath(key), 0)
-  }
-  
   /// Accesses the key-value pair at the specified position.
+  @inlinable
   public subscript(position: Index) -> Element {
-    rootNode.item(position: position._value)
+    _root.item(position: position._value)
   }
 }
 

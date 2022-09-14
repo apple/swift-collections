@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if false
-/// Base class for fixed-stack iterators that traverse a hash-trie in reverse
+/// Base class for fixed-stack iterators that traverse a hash tree in reverse
 /// order. The base iterator performs a depth-first post-order traversal,
 /// traversing sub-nodes (right to left).
 internal struct _BaseReverseIterator<T: _NodeProtocol> {
@@ -21,21 +21,21 @@ internal struct _BaseReverseIterator<T: _NodeProtocol> {
   private var nodeIndex: [Int] = Array(repeating: 0, count: _maxDepth + 1)
   private var nodeStack: [T?] = Array(repeating: nil, count: _maxDepth + 1)
 
-  init(rootNode: T) {
-    pushNode(rootNode)
+  init(root: T) {
+    pushNode(root)
     searchNextValueNode()
   }
 
   private mutating func setupPayloadNode(_ node: T) {
     currentValueNode = node
-    currentValueCursor = node.payloadArity - 1
+    currentValueCursor = node.itemCount - 1
   }
 
   private mutating func pushNode(_ node: T) {
     currentStackLevel = currentStackLevel + 1
 
     nodeStack[currentStackLevel] = node
-    nodeIndex[currentStackLevel] = node.nodeArity - 1
+    nodeIndex[currentStackLevel] = node.childCount - 1
   }
 
   private mutating func popNode() {
@@ -54,13 +54,13 @@ internal struct _BaseReverseIterator<T: _NodeProtocol> {
 
       if nodeCursor >= 0 {
         let currentNode = nodeStack[currentStackLevel]!
-        let nextNode = currentNode.getNode(nodeCursor)
+        let nextNode = currentNode.child(at: nodeCursor)
         pushNode(nextNode)
       } else {
         let currNode = nodeStack[currentStackLevel]!
         popNode()
 
-        if currNode.hasPayload {
+        if currNode.hasItems {
           setupPayloadNode(currNode)
           return true
         }

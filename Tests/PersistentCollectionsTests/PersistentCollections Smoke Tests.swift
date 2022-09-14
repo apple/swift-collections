@@ -195,9 +195,9 @@ final class CapsuleSmokeTests: CollectionTestCase {
       CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
       CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)
     ])
-    expectEqual(map.rootNode.count, 3)
-    expectEqual(map.rootNode.reduce(0, { count, _ in count + 1 }), 3)
-    expectTrue(map.rootNode.invariant)
+    expectEqual(map._root.count, 3)
+    expectEqual(map.reduce(0, { count, _ in count + 1 }), 3)
+    map._root._invariantCheck()
   }
 
   func testCountForCopyOnWriteDeletion() {
@@ -209,9 +209,9 @@ final class CapsuleSmokeTests: CollectionTestCase {
     map[CollidableInt(33, 33)] = CollidableInt(33, 33)
     map[CollidableInt(11, 1)] = nil
     map[CollidableInt(12, 1)] = nil
-    expectEqual(map.rootNode.count, 2)
-    expectEqual(map.rootNode.reduce(0, { count, _ in count + 1 }), 2)
-    expectTrue(map.rootNode.invariant)
+    expectEqual(map._root.count, 2)
+    expectEqual(map.reduce(0, { count, _ in count + 1 }), 2)
+    map._root._invariantCheck()
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode1() {
@@ -511,9 +511,10 @@ final class CapsuleSmokeTests: CollectionTestCase {
     // '-' prefixed values
     var map2: PersistentDictionary<CollidableInt, String> = map1
     for index in 0..<upperBound {
-      map2[CollidableInt(index, 1)] = "-\(index)"
-      expectTrue(map2.contains(CollidableInt(index, 1)))
-      expectTrue(map2[CollidableInt(index, 1)] == "-\(index)")
+      let key = CollidableInt(index, 1)
+      map2[key] = "-\(index)"
+      expectTrue(map2.contains(key))
+      expectEqual(map2[key], "-\(index)")
     }
     expectEqual(map2.count, upperBound)
     doIterate(map2)

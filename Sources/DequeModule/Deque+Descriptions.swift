@@ -9,20 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
+extension Deque: CustomStringConvertible {
+  /// A textual representation of this instance.
+  public var description: String {
+    _arrayDescription(for: self)
+  }
+}
+
 extension Deque: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    var result = "Deque<\(Element.self)>(["
-    var first = true
-    for item in self {
-      if first {
-        first = false
-      } else {
-        result += ", "
-      }
-      debugPrint(item, terminator: "", to: &result)
-    }
-    result += "])"
-    return result
+    _arrayDescription(
+      for: self, debug: true, typeName: "Deque<\(Element.self)>")
   }
 }

@@ -10,30 +10,31 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentDictionary._Node: CustomStringConvertible {
-    public var description: String {
-        guard count > 0 else {
-            return "[:]"
-        }
-
-        var result = "["
-        var first = true
-        for (key, value) in _dataSlice {
-            if first {
-                first = false
-            } else {
-                result += ", "
-            }
-            result += "\(key): \(value)"
-        }
-        for node in _trieSlice {
-            if first {
-                first = false
-            } else {
-                result += ", "
-            }
-            result += "\(node.description)"
-        }
-        result += "]"
-        return result
+  @usableFromInline
+  internal var description: String {
+    guard count > 0 else {
+      return "[:]"
     }
+    
+    var result = "["
+    var first = true
+    for (key, value) in _items {
+      if first {
+        first = false
+      } else {
+        result += ", "
+      }
+      result += "\(key): \(value)"
+    }
+    for node in _children {
+      if first {
+        first = false
+      } else {
+        result += ", "
+      }
+      result += "\(node.description)"
+    }
+    result += "]"
+    return result
+  }
 }

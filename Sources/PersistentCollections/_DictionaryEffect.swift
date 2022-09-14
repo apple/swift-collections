@@ -9,19 +9,30 @@
 //
 //===----------------------------------------------------------------------===//
 
+@usableFromInline
+@frozen
 struct _DictionaryEffect<Value> {
+  @usableFromInline
   var modified: Bool = false
+
+  @usableFromInline
   var previousValue: Value?
-  
+
+  @inlinable
+  init() {}
+
+  @inlinable
   mutating func setModified() {
     self.modified = true
   }
   
+  @inlinable
   mutating func setModified(previousValue: Value) {
     self.modified = true
     self.previousValue = previousValue
   }
   
+  @inlinable
   mutating func setReplacedValue(previousValue: Value) {
     self.modified = true
     self.previousValue = previousValue

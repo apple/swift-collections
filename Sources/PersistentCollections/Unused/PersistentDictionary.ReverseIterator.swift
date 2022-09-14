@@ -16,8 +16,8 @@ extension PersistentDictionary {
   public struct ReverseIterator {
     private var baseIterator: _BaseReverseIterator<_Node>
 
-    init(rootNode: _Node) {
-      self.baseIterator = _BaseReverseIterator(rootNode: rootNode)
+    init(root: _Node) {
+      self.baseIterator = _BaseReverseIterator(root: root)
     }
   }
 }
@@ -28,7 +28,7 @@ extension PersistentDictionary.ReverseIterator: IteratorProtocol {
 
     let payload = baseIterator
       .currentValueNode!
-      .getPayload(baseIterator.currentValueCursor)
+      .item(at: baseIterator.currentValueCursor)
     baseIterator.currentValueCursor -= 1
 
     return payload

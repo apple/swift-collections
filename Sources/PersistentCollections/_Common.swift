@@ -9,27 +9,27 @@
 //
 //===----------------------------------------------------------------------===//
 
+@inlinable @inline(__always)
 internal func _computeHash<T: Hashable>(_ value: T) -> Int {
   value.hashValue
 }
 
-@inline(__always)
+@inlinable @inline(__always)
 internal var _bitPartitionSize: Int { 5 }
 
-@inline(__always)
+@inlinable @inline(__always)
 internal var _bitPartitionMask: Int { (1 << _bitPartitionSize) - 1 }
 
-@inline(__always)
+@inlinable @inline(__always)
 internal var _hashCodeLength: Int { Int.bitWidth }
 
-@inline(__always)
+@inlinable @inline(__always)
 internal var _maxDepth: Int {
   (_hashCodeLength + _bitPartitionSize - 1) / _bitPartitionSize
 }
 
 // NEW
-@inlinable
-@inline(__always)
+@inlinable @inline(__always)
 internal func _rangeInsert<T>(
   _ element: T,
   at index: Int,
@@ -45,8 +45,7 @@ internal func _rangeInsert<T>(
 }
 
 // NEW
-@inlinable
-@inline(__always)
+@inlinable @inline(__always)
 internal func _rangeRemove<T>(
   at index: Int,
   from baseAddress: UnsafeMutablePointer<T>,

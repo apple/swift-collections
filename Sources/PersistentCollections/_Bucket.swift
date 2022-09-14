@@ -11,24 +11,34 @@
 
 /// Identifies an entry in the hash table inside a node.
 /// (Internally, a number between 0 and 31.)
+@usableFromInline
+@frozen
 internal struct _Bucket {
-  var value: UInt
+  @usableFromInline
+  internal var value: UInt
 
-  init(_ value: UInt) { self.value = value }
+  @inlinable @inline(__always)
+  internal init(_ value: UInt) { self.value = value }
 
+  @inlinable @inline(__always)
   static var bitWidth: Int { _Bitmap.capacity.trailingZeroBitCount }
+
+  @inlinable @inline(__always)
   static var bitMask: UInt { UInt(bitPattern: _Bitmap.capacity) &- 1 }
+
+  @inlinable @inline(__always)
+  static var invalid: _Bucket { _Bucket(.max) }
 }
 
 extension _Bucket: Equatable {
-  @inline(__always)
+  @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
     left.value == right.value
   }
 }
 
 extension _Bucket: Comparable {
-  @inline(__always)
+  @inlinable @inline(__always)
   internal static func <(left: Self, right: Self) -> Bool {
     left.value < right.value
   }

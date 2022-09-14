@@ -15,6 +15,7 @@ extension PersistentDictionary {
   public typealias Keys = [Key]
   
   /// A collection containing just the keys of the dictionary.
+  @inlinable
   public var keys: Self.Keys /* { get } */ {
     self.map { $0.key }
   }

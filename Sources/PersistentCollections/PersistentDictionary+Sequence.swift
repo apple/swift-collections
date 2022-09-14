@@ -13,65 +13,83 @@ extension PersistentDictionary: Sequence {
   public typealias Element = (key: Key, value: Value)
 
   public struct Iterator {
-    // Fixed-stack iterator for traversing a hash-trie. The iterator performs a
-    // depth-first pre-order traversal, which yields first all payload elements
-    // of the current node before traversing sub-nodes (left to right).
+    // Fixed-stack iterator for traversing a hash tree.
+    // The iterator performs a pre-order traversal, with items at a node visited
+    // before any items within children.
 
-    typealias _KeyValueBuffer = UnsafeBufferPointer<(key: Key, value: Value)>
-    typealias _NodeBuffer = UnsafeBufferPointer<_Node>
+    @usableFromInline
+    typealias _ItemBuffer = UnsafeBufferPointer<Element>
 
-    private var payloadIterator: _KeyValueBuffer.Iterator?
+    @usableFromInline
+    typealias _ChildBuffer = UnsafeBufferPointer<_Node>
 
-    private var trieIteratorStackTop: _NodeBuffer.Iterator?
-    private var trieIteratorStackRemainder: [_NodeBuffer.Iterator]
+    @usableFromInline
+    internal var _root: _Node
 
-    internal init(_root root: _Node) {
-      trieIteratorStackRemainder = []
-      trieIteratorStackRemainder.reserveCapacity(_maxDepth)
+    @usableFromInline
+    internal var _itemIterator: _ItemBuffer.Iterator?
 
-      if root.hasNodes {
-        trieIteratorStackTop = root._trieSlice.makeIterator()
+    @usableFromInline
+    internal var _pathTop: _ChildBuffer.Iterator?
+
+    @usableFromInline
+    internal var _pathRest: [_ChildBuffer.Iterator]
+
+    @inlinable
+    internal init(_root: _Node) {
+      self._root = _root
+      self._pathRest = []
+      self._pathRest.reserveCapacity(_maxDepth)
+
+      if _root.hasItems {
+        self._itemIterator = _root._items.makeIterator()
       }
-      if root.hasPayload {
-        payloadIterator = root._dataSlice.makeIterator()
+      if _root.hasChildren {
+        self._pathTop = _root._children.makeIterator()
       }
     }
   }
 
+  @inlinable
+  public var underestimatedCount: Int {
+    _root.count
+  }
+
+  @inlinable
   public __consuming func makeIterator() -> Iterator {
-    return Iterator(_root: rootNode)
+    return Iterator(_root: _root)
   }
 }
 
 extension PersistentDictionary.Iterator: IteratorProtocol {
   public typealias Element = (key: Key, value: Value)
+
+  @inlinable
   public mutating func next() -> Element? {
-    if let payload = payloadIterator?.next() {
-      return payload
+    if let item = _itemIterator?.next() {
+      return item
     }
 
-    while trieIteratorStackTop != nil {
-      if let nextNode = trieIteratorStackTop!.next() {
-        if nextNode.hasNodes {
-          trieIteratorStackRemainder.append(trieIteratorStackTop!)
-          trieIteratorStackTop = nextNode._trieSlice.makeIterator()
-        }
-        if nextNode.hasPayload {
-          payloadIterator = nextNode._dataSlice.makeIterator()
-          return payloadIterator?.next()
-        }
-      } else {
-        trieIteratorStackTop = trieIteratorStackRemainder.popLast()
+    _itemIterator = nil
+
+    while _pathTop != nil {
+      guard let nextNode = _pathTop!.next() else {
+        _pathTop = _pathRest.popLast()
+        continue
+      }
+      if nextNode.hasChildren {
+        _pathRest.append(_pathTop!)
+        _pathTop = nextNode._children.makeIterator()
+      }
+      if nextNode.hasItems {
+        _itemIterator = nextNode._items.makeIterator()
+        return _itemIterator!.next()
       }
     }
 
-    // Clean-up state
-    payloadIterator = nil
-
-    assert(payloadIterator == nil)
-    assert(trieIteratorStackTop == nil)
-    assert(trieIteratorStackRemainder.isEmpty)
-
+    assert(_itemIterator == nil)
+    assert(_pathTop == nil)
+    assert(_pathRest.isEmpty)
     return nil
   }
 }
