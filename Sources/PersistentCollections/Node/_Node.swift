@@ -50,31 +50,46 @@ internal struct _RawNode {
 @usableFromInline
 @frozen
 internal struct _Node<Key: Hashable, Value> {
+  // Warning: This struct must be kept layout-compatible with _RawNode.
+  // Do not add any new stored properties to this type.
+  //
+  // Swift guarantees that frozen structs with a single stored property will
+  // be layout-compatible with the type they are wrapping.
+  //
+  // (_RawNode is used as the Element type of the ManagedBuffer underlying
+  // node storage, and the memory is then rebound to `_Node` later.
+  // This will not work correctly unless `_Node` has the exact same alignment
+  // and stride as `RawNode`.)
+
   @usableFromInline
   internal typealias Element = (key: Key, value: Value)
 
   @usableFromInline
-  internal var storage: _RawStorage
-
-  @usableFromInline
-  internal var count: Int
+  internal var raw: _RawNode
 
   @inlinable
-  internal init(_storage: _RawStorage, count: Int) {
-    self.storage = _storage
-    self.count = count
+  internal init(storage: _RawStorage, count: Int) {
+    self.raw = _RawNode(storage: storage, count: count)
+  }
+}
+
+extension _Node {
+  @inlinable @inline(__always)
+  internal var count: Int {
+    get { raw.count }
+    set { raw.count = newValue }
   }
 }
 
 extension _Node {
   @inlinable @inline(__always)
   internal func read<R>(_ body: (UnsafeHandle) -> R) -> R {
-    UnsafeHandle.read(storage, body)
+    UnsafeHandle.read(raw.storage, body)
   }
 
   @inlinable @inline(__always)
   internal mutating func update<R>(_ body: (UnsafeHandle) -> R) -> R {
-    UnsafeHandle.update(storage, body)
+    UnsafeHandle.update(raw.storage, body)
   }
 }
 

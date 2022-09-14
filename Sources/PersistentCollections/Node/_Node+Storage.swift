@@ -84,8 +84,9 @@ extension _Node {
       header.pointee._bytesFree = header.pointee._byteCapacity
       assert(byteCapacity <= header.pointee.byteCapacity)
     }
-    self.storage = unsafeDowncast(object, to: Storage.self)
-    self.count = 0
+    self.raw = _RawNode(
+      storage: unsafeDowncast(object, to: Storage.self),
+      count: 0)
   }
 
   @inlinable
@@ -125,7 +126,7 @@ extension _Node {
 
   @inlinable
   internal mutating func isUnique() -> Bool {
-    isKnownUniquelyReferenced(&self.storage)
+    isKnownUniquelyReferenced(&self.raw.storage)
   }
 
   @inlinable
@@ -142,7 +143,7 @@ extension _Node {
   ) {
     if !isUnique {
       self = copy(withFreeSpace: minimumFreeBytes)
-    } else if self.storage.header.bytesFree < minimumFreeBytes {
+    } else if self.raw.storage.header.bytesFree < minimumFreeBytes {
       move(withFreeSpace: minimumFreeBytes)
     }
   }

@@ -25,7 +25,7 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 extension PersistentDictionary {
   @inlinable
   public init() {
-    self.init(_root: _Node(_storage: _emptySingleton, count: 0))
+    self.init(_root: _Node(storage: _emptySingleton, count: 0))
   }
 
   @inlinable

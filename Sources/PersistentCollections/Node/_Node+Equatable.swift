@@ -13,7 +13,7 @@
 extension _Node: Equatable where Value: Equatable {
   @inlinable
   static func == (lhs: _Node, rhs: _Node) -> Bool {
-    if lhs.storage === rhs.storage { return true }
+    if lhs.raw.storage === rhs.raw.storage { return true }
     if lhs.isCollisionNode && rhs.isCollisionNode {
       return lhs.read { lhs in
         rhs.read { rhs in
