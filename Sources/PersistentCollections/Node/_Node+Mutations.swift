@@ -305,6 +305,9 @@ extension _Node {
       if isAtrophied {
         self = removeSingletonChild()
       }
+      if level.isAtRoot, isCollisionNode, hasSingletonItem {
+        self._convertToRegularNode()
+      }
       return old
     case .notFound, .newCollision, .expansion:
       return nil
@@ -332,6 +335,17 @@ extension _Node {
   }
 
   @inlinable
+  internal mutating func _convertToRegularNode() {
+    assert(isCollisionNode && hasSingletonItem)
+    assert(isUnique())
+    update {
+      let hash = _Hash($0[item: 0].key)
+      $0.itemMap = _Bitmap(hash[.top])
+      $0.childMap = .empty
+    }
+  }
+
+  @inlinable
   internal func removing(
     _ key: Key, _ level: _Level, _ hash: _Hash
   ) -> (replacement: _Node, old: Element)? {
@@ -347,6 +361,9 @@ extension _Node {
       }
       var node = self.copy()
       let old = node.removeItem(at: offset, bucket)
+      if level.isAtRoot, node.isCollisionNode, node.hasSingletonItem {
+        node._convertToRegularNode()
+      }
       node._invariantCheck()
       return (node, old)
     case .notFound, .newCollision, .expansion:

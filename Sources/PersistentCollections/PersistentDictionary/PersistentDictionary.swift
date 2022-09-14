@@ -123,17 +123,7 @@ extension PersistentDictionary {
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
-    let old = _root.remove(key, .top, _Hash(key))
-    if old != nil, _root.isCollisionNode, _root.hasSingletonItem {
-      // Convert to regular node.
-      assert(_root.isUnique())
-      _root.update {
-        let hash = _Hash($0[item: 0].key)
-        $0.itemMap = _Bitmap(hash[.top])
-        $0.childMap = .empty
-      }
-    }
-    return old?.value
+    _root.remove(key, .top, _Hash(key))?.value
   }
 
   // fluid/immutable API
