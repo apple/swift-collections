@@ -76,6 +76,7 @@ extension OrderedSet.UnorderedView: CustomDebugStringConvertible {
   public var debugDescription: String {
     _arrayDescription(
       for: _base,
+      debug: true,
       typeName: "\(_base._debugTypeName()).UnorderedView")
   }
 }

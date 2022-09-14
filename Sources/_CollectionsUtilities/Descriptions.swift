@@ -12,6 +12,7 @@
 @inlinable
 public func _arrayDescription<C: Collection>(
   for elements: C,
+  debug: Bool = false,
   typeName: String? = nil
 ) -> String {
   var result = ""
@@ -26,7 +27,11 @@ public func _arrayDescription<C: Collection>(
     } else {
       result += ", "
     }
-    print(item, terminator: "", to: &result)
+    if debug {
+      debugPrint(item, terminator: "", to: &result)
+    } else {
+      print(item, terminator: "", to: &result)
+    }
   }
   result += "]"
   if typeName != nil { result += ")" }
@@ -36,6 +41,7 @@ public func _arrayDescription<C: Collection>(
 @inlinable
 public func _dictionaryDescription<Key, Value, C: Collection>(
   for elements: C,
+  debug: Bool = false,
   typeName: String? = nil
 ) -> String where C.Element == (key: Key, value: Value) {
   var result = ""
@@ -54,7 +60,13 @@ public func _dictionaryDescription<Key, Value, C: Collection>(
       } else {
         result += ", "
       }
-      result += "\(key): \(value)"
+      if debug {
+        debugPrint(key, terminator: "", to: &result)
+        result += ": "
+        debugPrint(value, terminator: "", to: &result)
+      } else {
+        result += "\(key): \(value)"
+      }
     }
     result += "]"
   }

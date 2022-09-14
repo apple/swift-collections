@@ -19,7 +19,8 @@ extension PersistentDictionary: CustomStringConvertible {
 
 extension PersistentDictionary: CustomDebugStringConvertible {
   public var debugDescription: String {
-    _dictionaryDescription(for: self, typeName: _debugTypeName())
+    _dictionaryDescription(
+      for: self, debug: true, typeName: _debugTypeName())
   }
 
   internal func _debugTypeName() -> String {

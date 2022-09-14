@@ -337,6 +337,7 @@ extension OrderedDictionary.Elements: CustomDebugStringConvertible {
   public var debugDescription: String {
     _dictionaryDescription(
       for: self,
+      debug: true,
       typeName: "OrderedDictionary<\(Key.self), \(Value.self)>.Elements")
   }
 }
