@@ -88,7 +88,6 @@ let package = Package(
 
     .target(
       name: "_CollectionsUtilities",
-      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // Deque<Element>
