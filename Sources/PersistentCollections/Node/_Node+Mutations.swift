@@ -265,7 +265,7 @@ extension _Node {
         insertChild(node, bucket)
       }
       return nil
-    case .newSplit(let collisionHash):
+    case .expansion(let collisionHash):
       self = Self(
         level: level,
         item1: (key, value), hash,
@@ -306,7 +306,7 @@ extension _Node {
         self = removeSingletonChild()
       }
       return old
-    case .notFound, .newCollision, .newSplit:
+    case .notFound, .newCollision, .expansion:
       return nil
     case .descend(let bucket, let offset):
       let (old, needsInlining) = update {
@@ -349,7 +349,7 @@ extension _Node {
       let old = node.removeItem(at: offset, bucket)
       node._invariantCheck()
       return (node, old)
-    case .notFound, .newCollision, .newSplit:
+    case .notFound, .newCollision, .expansion:
       return nil
     case .descend(let bucket, let offset):
       let r = read { $0[child: offset].removing(key, level.descend(), hash) }

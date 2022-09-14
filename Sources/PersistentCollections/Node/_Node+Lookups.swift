@@ -11,13 +11,65 @@
 
 // MARK: Node-level lookup operations
 
+/// Represents the results of a lookup operation within a single node of a hash
+/// tree. This enumeration captures all of the different cases that need to be
+/// covered if we wanted to insert a new item into the tree.
+///
+/// For simple read-only lookup operations (and removals) some of the cases are
+/// equivalent: `.notFound`, .newCollision` and `expansion` all represent the
+/// same logical outcome: the key we're looking for is not present in this
+/// subtree.
 @usableFromInline
 @frozen
 internal enum _FindResult {
-  case notFound(_Bucket, Int)
+  /// The item we're looking for is stored directly in this node, at the
+  /// bucket / item offset identified in the payload.
+  ///
+  /// If the current node is a collision node, then the bucket value is
+  /// set to `_Bucket.invalid`.
   case found(_Bucket, Int)
+  /// The item we're looking for is not currently inside the subtree rooted at
+  /// this node.
+  ///
+  /// If we wanted to insert it, then its correct slot is within this node
+  /// at the specified bucket / item offset. (Which is currently empty.)
+  ///
+  /// If the current node is a collision node, then the bucket value is
+  /// set to `_Bucket.invalid`.
+  case notFound(_Bucket, Int)
+  /// The item we're looking for is not currently inside the subtree rooted at
+  /// this node.
+  ///
+  /// If we wanted to insert it, then it would need to be stored in this node
+  /// at the specified bucket / item offset. However, that bucket is already
+  /// occupied by another item, so the insertion would need to involve replacing
+  /// it with a new child node.
+  ///
+  /// (This case is never returned if the current node is a collision node.)
   case newCollision(_Bucket, Int)
-  case newSplit(_Hash)
+  /// The item we're looking for is not in this subtree.
+  ///
+  /// However, the item doesn't belong in this subtree at all. This is an
+  /// irregular case that can only happen with (compressed) hash collision nodes
+  /// whose (otherwise empty) ancestors got eliminated, so they appear further
+  /// up in the tree than what their (logical) level would indicate.
+  ///
+  /// If we wanted to insert a new item with this key, then we'd need to create
+  /// (one or more) new parent nodes above this node, pushing this collision
+  /// node further down the tree. (This undoes the compression by expanding
+  /// the collision node's path, hence the name of the enum case.)
+  ///
+  /// The payload of the expansion case is the shared hash value of all items
+  /// inside the current (collision) node -- this is needed to sort this node
+  /// into the proper bucket in any newly created parents.
+  ///
+  /// (This case is never returned if the current node is a regular node.)
+  case expansion(_Hash)
+  /// The item we're looking for is not directly stored in this node, but it
+  /// might be somewhere in the subtree rooted at the child at the given
+  /// bucket & offset.
+  ///
+  /// (This case is never returned if the current node is a collision node.)
   case descend(_Bucket, Int)
 }
 
@@ -39,7 +91,7 @@ extension _Node.UnsafeHandle {
       if !level.isAtBottom {
         let h = _Hash(self[item: 0].key)
         if h != hash {
-          return .newSplit(h)
+          return .expansion(h)
         }
       }
       guard let offset = _items.firstIndex(where: { $0.key == key }) else {
@@ -75,7 +127,7 @@ extension _Node {
       switch r {
       case .found(_, let offset):
         return $0[item: offset].value
-      case .notFound, .newCollision, .newSplit:
+      case .notFound, .newCollision, .expansion:
         return nil
       case .descend(_, let offset):
         return $0[child: offset].get(level.descend(), key, hash)
@@ -92,7 +144,7 @@ extension _Node {
       switch r {
       case .found:
         return true
-      case .notFound, .newCollision, .newSplit:
+      case .notFound, .newCollision, .expansion:
         return false
       case .descend(_, let offset):
         return $0[child: offset].containsKey(level.descend(), key, hash)
@@ -110,7 +162,7 @@ extension _Node {
     switch r {
     case .found(_, let offset):
       return offset
-    case .notFound, .newCollision, .newSplit:
+    case .notFound, .newCollision, .expansion:
       return nil
     case .descend(_, let offset):
       return read { h in
