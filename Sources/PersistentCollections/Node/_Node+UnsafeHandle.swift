@@ -55,6 +55,18 @@ extension _Node.UnsafeHandle {
 extension _Node.UnsafeHandle {
   @inlinable @inline(__always)
   static func read<R>(
+    _ node: _UnmanagedNode,
+    _ body: (Self) throws -> R
+  ) rethrows -> R {
+    try node.ref._withUnsafeGuaranteedRef { storage in
+      try storage.withUnsafeMutablePointers { header, elements in
+        try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
+      }
+    }
+  }
+
+  @inlinable @inline(__always)
+  static func read<R>(
     _ storage: _RawStorage,
     _ body: (Self) throws -> R
   ) rethrows -> R {

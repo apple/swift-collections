@@ -9,22 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-@usableFromInline
-@frozen
-internal struct _RawNode {
-  @usableFromInline
-  internal var storage: _RawStorage
-
-  @usableFromInline
-  internal var count: Int
-
-  @inlinable
-  internal init(storage: _RawStorage, count: Int) {
-    self.storage = storage
-    self.count = count
-  }
-}
-
 /// A node in the hash tree, logically representing a hash table with
 /// 32 buckets, corresponding to a 5-bit slice of a full hash value.
 ///
@@ -80,6 +64,18 @@ extension _Node {
   internal var count: Int {
     get { raw.count }
     set { raw.count = newValue }
+  }
+}
+
+extension _Node {
+  @inlinable @inline(__always)
+  internal var unmanaged: _UnmanagedNode {
+    _UnmanagedNode(raw.storage)
+  }
+
+  @inlinable @inline(__always)
+  internal func isIdentical(to other: _UnmanagedNode) -> Bool {
+    raw.isIdentical(to: other)
   }
 }
 
