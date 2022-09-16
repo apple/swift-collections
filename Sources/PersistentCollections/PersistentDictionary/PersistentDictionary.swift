@@ -16,16 +16,32 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
   @usableFromInline
   var _root: _Node
 
+  /// The version number of this instance, used for quick index validation.
+  /// This is initialized to a (very weakly) random value and it gets
+  /// incremented on every mutation that needs to invalidate indices.
+  @usableFromInline
+  var _version: UInt
+
   @inlinable
-  internal init(_root: _Node) {
+  internal init(_root: _Node, version: UInt) {
     self._root = _root
+    self._version = version
+  }
+
+  @inlinable
+  internal init(_new: _Node) {
+    self._root = _new
+    // Ideally we would simply just generate a true random number, but the
+    // memory address of the root node is a reasonable substitute.
+    let address = Unmanaged.passUnretained(_root.raw.storage).toOpaque()
+    self._version = UInt(bitPattern: address)
   }
 }
 
 extension PersistentDictionary {
   @inlinable
   public init() {
-    self.init(_root: _Node(storage: _emptySingleton, count: 0))
+    self.init(_new: _Node(storage: _emptySingleton, count: 0))
   }
 
   @inlinable
@@ -101,7 +117,9 @@ extension PersistentDictionary {
   /// Returns the index for the given key.
   @inlinable
   public func index(forKey key: Key) -> Index? {
-    _root.position(forKey: key, .top, _Hash(key)).map { Index(_value: $0) }
+    let (found, path) = _root.path(to: key, hash: _Hash(key))
+    guard found else { return nil }
+    return Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
   @inlinable
