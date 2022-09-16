@@ -17,6 +17,250 @@ class PersistentDictionaryTests: CollectionTestCase {
     let d = PersistentDictionary<String, Int>()
     expectEqualElements(d, [])
     expectEqual(d.count, 0)
+
+    var it = d.makeIterator()
+    expectNil(it.next())
+    expectNil(it.next())
+    expectNil(it.next())
+
+    expectEqual(d.startIndex, d.endIndex)
+
+    expectEqual(d.distance(from: d.startIndex, to: d.endIndex), 0)
+  }
+
+  func test_remove_update_basics() throws {
+    var d = PersistentDictionary<String, Int>()
+
+    d.updateValue(1, forKey: "One")
+    d.updateValue(2, forKey: "Two")
+    d.updateValue(3, forKey: "Three")
+
+    expectEqual(d.count, 3)
+    expectEqual(d["One"], 1)
+    expectEqual(d["Two"], 2)
+    expectEqual(d["Three"], 3)
+    expectEqual(d["Four"], nil)
+
+    expectEqual(d.removeValue(forKey: "Two"), 2)
+
+    expectEqual(d.count, 2)
+    expectEqual(d["One"], 1)
+    expectEqual(d["Two"], nil)
+    expectEqual(d["Three"], 3)
+    expectEqual(d["Four"], nil)
+
+    expectEqual(d.removeValue(forKey: "Two"), nil)
+    expectEqual(d.removeValue(forKey: "One"), 1)
+
+    expectEqual(d.count, 1)
+    expectEqual(d["One"], nil)
+    expectEqual(d["Two"], nil)
+    expectEqual(d["Three"], 3)
+    expectEqual(d["Four"], nil)
+
+    expectEqual(d.removeValue(forKey: "One"), nil)
+    expectEqual(d.removeValue(forKey: "Two"), nil)
+    expectEqual(d.removeValue(forKey: "Three"), 3)
+
+    expectEqual(d.count, 0)
+    expectEqual(d["One"], nil)
+    expectEqual(d["Two"], nil)
+    expectEqual(d["Three"], nil)
+    expectEqual(d["Four"], nil)
+  }
+
+  func test_subscript_setter_basics() throws {
+    var d = PersistentDictionary<String, Int>()
+
+    d["One"] = 1
+    d["Two"] = 2
+    d["Three"] = 3
+
+    expectEqual(d.count, 3)
+    expectEqual(d["One"], 1)
+    expectEqual(d["Two"], 2)
+    expectEqual(d["Three"], 3)
+    expectEqual(d["Four"], nil)
+
+    d["Two"] = nil
+
+    expectEqual(d.count, 2)
+    expectEqual(d["One"], 1)
+    expectEqual(d["Two"], nil)
+    expectEqual(d["Three"], 3)
+    expectEqual(d["Four"], nil)
+
+    d["Two"] = nil
+    d["One"] = nil
+
+    expectEqual(d.count, 1)
+    expectEqual(d["One"], nil)
+    expectEqual(d["Two"], nil)
+    expectEqual(d["Three"], 3)
+    expectEqual(d["Four"], nil)
+
+    d["One"] = nil
+    d["Two"] = nil
+    d["Three"] = nil
+
+    expectEqual(d.count, 0)
+    expectEqual(d["One"], nil)
+    expectEqual(d["Two"], nil)
+    expectEqual(d["Three"], nil)
+    expectEqual(d["Four"], nil)
+  }
+
+  func test_add_remove() throws {
+    var d = PersistentDictionary<String, Int>()
+
+    let c = 400
+    for i in 0 ..< c {
+      expectNil(d.updateValue(i, forKey: "\(i)"))
+      expectEqual(d.count, i + 1)
+    }
+
+    for i in 0 ..< c {
+      expectEqual(d["\(i)"], i)
+    }
+
+    for i in 0 ..< c {
+      expectEqual(d.updateValue(2 * i, forKey: "\(i)"), i)
+      expectEqual(d.count, c)
+    }
+
+    for i in 0 ..< c {
+      expectEqual(d["\(i)"], 2 * i)
+    }
+
+    var remaining = c
+    for i in 0 ..< c {
+      expectEqual(d.removeValue(forKey: "\(i)"), 2 * i)
+      remaining -= 1
+      expectEqual(d.count, remaining)
+    }
+
+  }
+
+  func test_collisions() throws {
+    var d = PersistentDictionary<Collider, Int>()
+
+    let count = 100
+    let groups = 20
+
+    for i in 0 ..< count {
+      let h = i % groups
+      let key = Collider(i, Hash(h))
+      expectEqual(d[key], nil)
+      expectNil(d.updateValue(i, forKey: key))
+      expectEqual(d[key], i)
+    }
+
+    for i in 0 ..< count {
+      let h = i % groups
+      let key = Collider(i, Hash(h))
+      expectEqual(d[key], i)
+      expectEqual(d.updateValue(2 * i, forKey: key), i)
+      expectEqual(d[key], 2 * i)
+    }
+
+    for i in 0 ..< count {
+      let h = i % groups
+      let key = Collider(i, Hash(h))
+      expectEqual(d[key], 2 * i)
+      expectEqual(d.removeValue(forKey: key), 2 * i)
+      expectEqual(d[key], nil)
+    }
+  }
+
+  func test_shared_copies() throws {
+    var d = PersistentDictionary<Int, Int>()
+
+    let c = 200
+    for i in 0 ..< c {
+      expectNil(d.updateValue(i, forKey: i))
+    }
+
+    let copy = d
+    for i in 0 ..< c {
+      expectEqual(d.updateValue(2 * i, forKey: i), i)
+    }
+
+    for i in 0 ..< c {
+      expectEqual(copy[i], i)
+    }
+
+    let copy2 = d
+    for i in 0 ..< c {
+      expectEqual(d.removeValue(forKey: i), 2 * i)
+    }
+
+    for i in 0 ..< c {
+      expectEqual(copy2[i], 2 * i)
+    }
+  }
+
+  func test_Sequence_basic() {
+    var d: PersistentDictionary<Int, Int> = [1: 2]
+    var it = d.makeIterator()
+    expectEquivalent(it.next(), (1, 2), by: { $0 == $1 })
+    expectNil(it.next())
+    expectNil(it.next())
+
+    d[1] = nil
+    it = d.makeIterator()
+    expectNil(it.next())
+    expectNil(it.next())
+  }
+
+  func test_Sequence_400() {
+    var d = PersistentDictionary<Int, Int>()
+    let c = 400
+    for i in 0 ..< c {
+      expectNil(d.updateValue(i, forKey: i))
+    }
+
+    var seen: Set<Int> = []
+    for (key, value) in d {
+      expectEqual(key, value)
+      expectTrue(seen.insert(key).inserted, "Duplicate key seen: \(key)")
+    }
+    expectEqual(seen.count, c)
+    expectTrue(seen.isSuperset(of: 0 ..< c))
+  }
+
+  func test_Sequence_collisions() {
+    var d = PersistentDictionary<Collider, Int>()
+
+    let count = 100
+    let groups = 20
+
+    for i in 0 ..< count {
+      let h = i % groups
+      let key = Collider(i, Hash(h))
+      expectNil(d.updateValue(i, forKey: key))
+    }
+
+    var seen: Set<Int> = []
+    for (key, value) in d {
+      expectEqual(key.identity, value)
+      expectTrue(seen.insert(key.identity).inserted, "Duplicate key: \(key)")
+    }
+    expectEqual(seen.count, count)
+    expectTrue(seen.isSuperset(of: 0 ..< count))
+  }
+
+  func test_BidirectionalCollection_fixtures() {
+    withEachFixture { fixture in
+      withLifetimeTracking { tracker in
+        let (d, ref) = tracker.persistentDictionary(for: fixture.items)
+        checkBidirectionalCollection(d, expectedContents: ref, by: ==)
+      }
+    }
+  }
+
+  func test_BidirectionalCollection_random() {
+    let d = PersistentDictionary<Int, Int>(uniqueKeys: 0 ..< 100, values: 0 ..< 100)
+    checkBidirectionalCollection(d, expectedContents: Array(d), by: ==)
   }
 
   //  func test_uniqueKeysWithValues_Dictionary() {
@@ -179,6 +423,7 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
+  #if false
   // TODO: determine how to best calculate the expected order of the hash tree
   // for testing purposes, without relying on the actual implementation
   func test_index_forKey() {
@@ -196,6 +441,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       }
     }
   }
+  #endif
 
   #if false
   // TODO: determine how to best calculate the expected order of the hash tree
@@ -904,18 +1150,18 @@ class PersistentDictionaryTests: CollectionTestCase {
   //  }
 
   func test_CustomStringConvertible() {
-    let a: PersistentDictionary<CollidableInt, Int> = [:]
+    let a: PersistentDictionary<RawCollider, Int> = [:]
     expectEqual(a.description, "[:]")
 
-    let b: PersistentDictionary<CollidableInt, Int> = [
-      CollidableInt(0): 1
+    let b: PersistentDictionary<RawCollider, Int> = [
+      RawCollider(0): 1
     ]
     expectEqual(b.description, "[0: 1]")
 
-    let c: PersistentDictionary<CollidableInt, Int> = [
-      CollidableInt(0): 1,
-      CollidableInt(2): 3,
-      CollidableInt(4): 5,
+    let c: PersistentDictionary<RawCollider, Int> = [
+      RawCollider(0): 1,
+      RawCollider(2): 3,
+      RawCollider(4): 5,
     ]
     expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
   }
