@@ -94,6 +94,11 @@ extension PersistentDictionary: BidirectionalCollection {
     _root.isIdentical(to: i._root) && i._version == self._version
   }
 
+  @inlinable @inline(__always)
+  internal mutating func _invalidateIndices() {
+    _version &+= 1
+  }
+
   /// Accesses the key-value pair at the specified position.
   @inlinable
   public subscript(i: Index) -> Element {

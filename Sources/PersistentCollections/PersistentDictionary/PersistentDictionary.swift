@@ -80,10 +80,10 @@ extension PersistentDictionary {
   @inlinable
   public subscript(key: Key) -> Value? {
     get {
-      return _get(key)
+      _root.get(.top, key, _Hash(key))
     }
-    mutating set(optionalValue) {
-      if let value = optionalValue {
+    mutating set {
+      if let value = newValue {
         updateValue(value, forKey: key)
       } else {
         removeValue(forKey: key)
@@ -97,21 +97,17 @@ extension PersistentDictionary {
     default defaultValue: @autoclosure () -> Value
   ) -> Value {
     get {
-      return _get(key) ?? defaultValue()
+      _root.get(.top, key, _Hash(key)) ?? defaultValue()
     }
-    mutating set(value) {
-      updateValue(value, forKey: key)
+    set {
+      updateValue(newValue, forKey: key)
+    }
     }
   }
 
   @inlinable
   public func contains(_ key: Key) -> Bool {
     _root.containsKey(.top, key, _Hash(key))
-  }
-
-  @inlinable
-  func _get(_ key: Key) -> Value? {
-    _root.get(.top, key, _Hash(key))
   }
 
   /// Returns the index for the given key.
@@ -127,7 +123,9 @@ extension PersistentDictionary {
   public mutating func updateValue(
     _ value: __owned Value, forKey key: Key
   ) -> Value? {
-    return _root.updateValue(value, forKey: key, .top, _Hash(key))
+    let old = _root.updateValue(value, forKey: key, .top, _Hash(key))
+    if old == nil { _invalidateIndices() }
+    return old
   }
 
   // fluid/immutable API
@@ -141,7 +139,9 @@ extension PersistentDictionary {
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
-    _root.remove(key, .top, _Hash(key))?.value
+    let old = _root.remove(key, .top, _Hash(key))?.value
+    if old != nil { _invalidateIndices() }
+    return old
   }
 
   // fluid/immutable API
