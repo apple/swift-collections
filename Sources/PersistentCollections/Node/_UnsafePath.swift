@@ -9,6 +9,30 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A non-owning, mutable construct representing a path to an item or child node
+/// within a hash tree (or the virtual slot addressing the end of the
+/// items or children region within a node).
+///
+/// Path values provide mutating methods to freely navigate around in the tree,
+/// including basics such as descending into a child node, ascending to a
+/// parent or selecting a particular item within the current node; as well as
+/// more complicated methods such as finding the next/previous item in a
+/// preorder walk of the tree.
+///
+/// Paths are, for the most part, represented by a series of slot values
+/// identifying a particular branch within each level in the tree up to and
+/// including the final node on the path.
+///
+/// However, to speed up common operations, path values also include a single
+/// `_UnmanagedNode` reference to their final node. This reference does not
+/// keep the targeted node alive -- it is the use site's responsibility to
+/// ensure that the path is still valid before calling most of its operations.
+///
+/// Note: paths only have a direct reference to their final node. This means
+/// that ascending to the parent node requires following the path from the root
+/// node down. (Paths could also store references to every node alongside them
+/// in a fixed-size array; this would speed up walking over the tree, but it
+/// would considerably embiggen the size of the path construct.)
 @usableFromInline
 internal struct _UnsafePath {
   @usableFromInline
@@ -139,10 +163,8 @@ extension _UnsafePath {
   /// Returns true if this path addresses an item in the tree; otherwise returns
   /// false.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @inlinable @inline(__always)
   internal var isOnItem: Bool {
     // Note: this may be true even if nodeSlot == itemCount (insertion paths).
@@ -153,6 +175,9 @@ extension _UnsafePath {
   /// valid item. Such paths can represent the place of an item that might be
   /// inserted later; they do not occur while simply iterating over existing
   /// items.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal var isPlaceholder: Bool {
     _isItem && nodeSlot.value == node.itemCount
   }
@@ -160,10 +185,8 @@ extension _UnsafePath {
   /// Returns true if this path addresses a node in the tree; otherwise returns
   /// false.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal var isOnChild: Bool {
     !_isItem && nodeSlot.value < node.childCount
   }
@@ -171,14 +194,14 @@ extension _UnsafePath {
   /// Returns true if this path addresses an empty slot within a node in a tree;
   /// otherwise returns false.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal var isOnNodeEnd: Bool {
     !_isItem && nodeSlot.value == node.childCount
   }
 
+  /// Returns true if this path addresses an item on the leftmost branch of the
+  /// tree, or the empty slot at the end of an empty tree.
   @inlinable
   internal var isOnLeftmostItem: Bool {
     // We are on the leftmost item in the tree if we are currently
@@ -191,25 +214,25 @@ extension _UnsafePath {
   /// Returns an unmanaged reference to the child node this path is currently
   /// addressing.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal var currentChild: _UnmanagedNode {
     assert(isOnChild)
     return node.unmanagedChild(at: nodeSlot)
   }
 
+  /// Returns the chid slot in this path corresponding to the specified level.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal func childSlot(at level: _Level) -> _Slot {
     assert(level < self.level)
     return ancestors[level]
   }
   /// Returns the slot of the currently addressed item.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @inlinable @inline(__always)
   internal var currentItemSlot: _Slot {
     assert(isOnItem)
@@ -221,10 +244,8 @@ extension _UnsafePath {
   /// Positions this path on the item with the specified slot within its
   /// current node.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @inlinable
   internal mutating func selectItem(at slot: _Slot) {
     // As a special exception, this allows slot to equal the item count.
@@ -238,10 +259,8 @@ extension _UnsafePath {
   /// Positions this path on the child with the specified slot within its
   /// current node, without descending into it.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @inlinable
   internal mutating func selectChild(at slot: _Slot) {
     // As a special exception, this allows slot to equal the child count.
@@ -253,10 +272,8 @@ extension _UnsafePath {
 
   /// Positions this path on the empty slot at the end of its current node.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @usableFromInline
   @_effects(releasenone)
   internal mutating func selectEnd() {
@@ -266,13 +283,11 @@ extension _UnsafePath {
 
   /// Descend onto the first path within the currently selected child.
   /// (Either the first item if it exists, or the first child. If the child
-  /// is an empty node (which should not happen in a hash tree), then this
+  /// is an empty node (which should not happen in a valid hash tree), then this
   /// selects the empty slot at the end of it.
   ///
-  /// - Note: This method needs to resolve the unmanaged node reference
-  ///   that is stored in the path. It is up to the caller to ensure this will
-  ///   never get called when the node is no longer valid; otherwise this will
-  ///   trigger undefined behavior.
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @usableFromInline
   @_effects(releasenone)
   internal mutating func descend() {
@@ -283,6 +298,14 @@ extension _UnsafePath {
     self.level = level.descend()
   }
 
+  /// Ascend to the nearest ancestor for which the `test`  predicate returns
+  /// true. Because paths do not contain references to every node on them,
+  /// you need to manually supply a valid reference to the root node. This
+  /// method visits every node between the root and the current final node on
+  /// the path.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal mutating func ascendToNearestAncestor(
     under root: _RawNode,
     where test: (_UnmanagedNode, _Slot) -> Bool
@@ -303,7 +326,13 @@ extension _UnsafePath {
     self = best
     return true
   }
-
+  /// Ascend to the parent node of this path. Because paths do not contain
+  /// references to every node on them, you need to manually supply a valid
+  /// reference to the root node. This method visits every node
+  /// between the root and the current final node on the path.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal mutating func ascend(under root: _RawNode) {
     assert(!self.level.isAtRoot)
     var n = root.unmanaged
@@ -324,6 +353,13 @@ extension _UnsafePath {
 }
 
 extension _UnsafePath {
+  /// Given a path that is on an item, advance it to the next item within its
+  /// current node, and return true. If there is no next item, position the path
+  /// on the first child, and return false. If there is no children, position
+  /// the path on the node's end position, and return false.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   mutating func selectNextItem() -> Bool {
     assert(isOnItem)
     nodeSlot = nodeSlot.next()
@@ -333,6 +369,12 @@ extension _UnsafePath {
     return false
   }
 
+  /// Given a path that is on a child node, advance it to the next child within
+  /// its current node, and return true. If there is no next child, position
+  /// the path on the node's end position, and return false.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   mutating func selectNextChild() -> Bool {
     assert(!isOnItem)
     let childEnd = node.childEnd
@@ -343,6 +385,13 @@ extension _UnsafePath {
 }
 
 extension _UnsafePath {
+  /// If this path addresses a child node, descend into the leftmost item
+  /// within the subtree under it (i.e., the first item that would be visited
+  /// by a preorder walk within that subtree). Do nothing if the path addresses
+  /// an item or the end position.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   @usableFromInline
   @_effects(releasenone)
   internal mutating func descendToLeftMostItem() {
@@ -351,6 +400,13 @@ extension _UnsafePath {
     }
   }
 
+  /// Given a path addressing a child node, descend into the rightmost item
+  /// within the subtree under it (i.e., the last item that would be visited
+  /// by a preorder walk within that subtree). Do nothing if the path addresses
+  /// an item or the end position.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
   internal mutating func descendToRightMostItem() {
     assert(isOnChild)
     while true {
@@ -364,6 +420,9 @@ extension _UnsafePath {
     selectItem(at: itemEnd.previous())
   }
 
+  /// Find the next item in a preorder walk in the tree following the currently
+  /// addressed item, and return true. Return false and do nothing if the
+  /// path does not currently address an item.
   @usableFromInline
   @_effects(releasenone)
   internal mutating func findSuccessorItem(under root: _RawNode) -> Bool {
@@ -388,6 +447,9 @@ extension _UnsafePath {
     return true
   }
 
+  /// Find the previous item in a preorder walk in the tree preceding the
+  /// currently addressed position, and return true.
+  /// Return false if there is no previous item.
   @usableFromInline
   @_effects(releasenone)
   internal mutating func findPredecessorItem(under root: _RawNode) -> Bool {
@@ -427,6 +489,11 @@ extension _UnsafePath {
 }
 
 extension _RawNode {
+  /// Return the integer position of the item addressed by the given path
+  /// within a preorder walk of the tree. If the path addresses the end
+  /// position, then return the number of items in the tree.
+  ///
+  /// This method must only be called on the root node.
   internal func preorderPosition(
     _ level: _Level, of path: _UnsafePath
   ) -> Int {
@@ -446,6 +513,10 @@ extension _RawNode {
     return path.nodeSlot.value
   }
 
+  /// Return the number of steps between two paths within a preorder walk of the
+  /// tree. The two paths must not address a child node.
+  ///
+  /// This method must only be called on the root node.
   @usableFromInline
   @_effects(releasenone)
   internal func distance(
@@ -534,6 +605,8 @@ extension _UnmanagedNode {
 }
 
 extension _Node {
+  /// Return the path to the given key in this tree if it exists; otherwise
+  /// return nil.
   @inlinable
   internal func path(
     to key: Key, hash: _Hash

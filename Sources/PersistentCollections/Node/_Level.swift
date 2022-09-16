@@ -9,9 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// Identifies a particular level within the hash tree.
+///
+/// Hash trees have a maximum depth of ⎡`UInt.bitWidth / _Bucket.bitWidth`⎤, so
+/// the level always fits in an `UInt8` value.
 @usableFromInline
 @frozen
 internal struct _Level {
+  /// The bit position within a hash value that begins the hash slice that is
+  /// associated with this level. For collision nodes, this can be larger than
+  /// `UInt.bitWidth`.
   @usableFromInline
   internal var _shift: UInt8
 
@@ -43,6 +50,9 @@ extension _Level {
     _Level(shift: 0)
   }
 
+  /// The bit position within a hash value that begins the hash slice that is
+  /// associated with this level. For collision nodes, this can be larger than
+  /// `UInt.bitWidth`.
   @inlinable @inline(__always)
   internal var shift: UInt { UInt(truncatingIfNeeded: _shift) }
 

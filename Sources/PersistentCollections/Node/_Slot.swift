@@ -9,7 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-
+/// Identifies a position within a contiguous storage region within a hash tree
+/// node. Hash tree nodes have two storage regions, one for items and one for
+/// children; the same `_Slot` type is used to refer to positions within both.
+///
+/// We use the term "slot" to refer to internal storage entries, to avoid
+/// confusion with terms that sometimes appear in public API, such as
+/// "index", "position" or "offset".
 @usableFromInline
 @frozen
 internal struct _Slot {

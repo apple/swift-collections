@@ -10,6 +10,18 @@
 //===----------------------------------------------------------------------===//
 
 extension _RawNode {
+  /// An unsafe, non-generic view of the data stored inside a node in the
+  /// hash tree, hiding the mechanics of accessing storage from the code that
+  /// uses it.
+  ///
+  /// This is the non-generic equivalent of `_Node.UnsafeHandle`, sharing some
+  /// of its functionality, but it only provides read-only access to the tree
+  /// structure (incl. subtree counts) -- it doesn't provide any ways to mutate
+  /// the underlying data or to access user payload.
+  ///
+  /// Handles do not own the storage they access -- it is the client's
+  /// responsibility to ensure that handles (and any pointer values generated
+  /// by them) do not escape the closure call that received them.
   @usableFromInline
   @frozen
   internal struct UnsafeHandle {

@@ -9,6 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A collection of slot values logically addressing a particular node in a
+/// hash tree. The collection is (logically) extended with zero slots up to
+/// the maximum depth of the tree -- to unambiguously address a single node,
+/// this therefore needs to be augmented with a `_Level` value.
+///
+/// This construct can only be used to identify a particular node in the tree;
+/// it does not necessarily have room to include an item offset in the addressed
+/// node. (See `_Path` if you need to address a particular item.)
 @usableFromInline
 @frozen
 struct _AncestorSlots {
@@ -34,6 +42,9 @@ extension _AncestorSlots {
 }
 
 extension _AncestorSlots {
+  /// Return or set the slot value at the specified level.
+  /// If this is used to mutate the collection, then the original value
+  /// on the given level must be zero.
   @inlinable @inline(__always)
   internal subscript(_ level: _Level) -> _Slot {
     get {
@@ -47,6 +58,15 @@ extension _AncestorSlots {
     }
   }
 
+  /// Clear the slot at the specified level, by setting it to zero.
+  @inlinable
+  internal mutating func clear(_ level: _Level) {
+    guard level.shift < UInt.bitWidth else { return }
+    path &= ~(_Bucket.bitMask &<< level.shift)
+  }
+
+  /// Truncate this path to the specified level.
+  /// Slots at or beyond the specified level are cleared.
   @inlinable
   internal func truncating(to level: _Level) -> _AncestorSlots {
     assert(level.shift <= UInt.bitWidth)
@@ -54,18 +74,16 @@ extension _AncestorSlots {
     return _AncestorSlots(path & ((1 &<< level.shift) &- 1))
   }
 
-  @inlinable
-  internal mutating func clear(_ level: _Level) {
-    guard level.shift < UInt.bitWidth else { return }
-    path &= ~(_Bucket.bitMask &<< level.shift)
-  }
-
+  /// Returns true if this path contains non-zero slots at or beyond the
+  /// specified level, otherwise returns false.
   @inlinable
   internal func hasDataBelow(_ level: _Level) -> Bool {
     guard level.shift < UInt.bitWidth else { return false }
     return (path &>> level.shift) != 0
   }
 
+  /// Compares this path to `other` up to but not including the specified level.
+  /// Returns true if the path prefixes compare equal, otherwise returns false.
   @inlinable
   internal func isEqual(to other: Self, upTo level: _Level) -> Bool {
     if level.isAtRoot { return true }

@@ -10,6 +10,16 @@
 //===----------------------------------------------------------------------===//
 
 extension _Node {
+  /// An unsafe view of the data stored inside a node in the hash tree, hiding
+  /// the mechanics of accessing storage from the code that uses it.
+  ///
+  /// Handles do not own the storage they access -- it is the client's
+  /// responsibility to ensure that handles (and any pointer values generated
+  /// by them) do not escape the closure call that received them.
+  ///
+  /// A handle can be either read-only or mutable, depending on the method used
+  /// to access it. In debug builds, methods that modify data trap at runtime if
+  /// they're called on a read-only view.
   @usableFromInline
   @frozen
   internal struct UnsafeHandle {

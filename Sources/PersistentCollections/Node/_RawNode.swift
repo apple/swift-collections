@@ -9,6 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A type-erased node in a hash tree. This doesn't know about the user data
+/// stored in the tree, but it has access to subtree counts and it can be used
+/// to freely navigate within the tree structure.
+///
+/// This construct is powerful enough to implement APIs such as `index(after:)`,
+/// `distance(from:to:)`, `index(_:offsetBy:)` in non-generic code.
 @usableFromInline
 @frozen
 internal struct _RawNode {

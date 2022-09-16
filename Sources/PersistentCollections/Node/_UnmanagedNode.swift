@@ -11,6 +11,12 @@
 
 import _CollectionsUtilities
 
+/// An unsafe, unowned, type-erased reference to a hash tree node; essentially
+/// just a lightweight wrapper around `Unmanaged<_RawStorage>`.
+///
+/// Because such a reference may outlive the underlying object, use sites must
+/// be extraordinarily careful to never dereference an invalid `_UnmanagedNode`.
+/// Doing so results in undefined behavior.
 @usableFromInline
 @frozen
 internal struct _UnmanagedNode {
@@ -24,6 +30,12 @@ internal struct _UnmanagedNode {
 }
 
 extension _UnmanagedNode: Equatable {
+  /// Indicates whether two unmanaged node references are equal.
+  ///
+  /// This function is safe to call even if one or both of its arguments are
+  /// invalid -- however, it may incorrectly return true in this case.
+  /// (This can happen when a destroyed node's memory region is later reused for
+  /// a newly created node.)
   @inlinable
   internal static func ==(left: Self, right: Self) -> Bool {
     left.ref.toOpaque() == right.ref.toOpaque()
