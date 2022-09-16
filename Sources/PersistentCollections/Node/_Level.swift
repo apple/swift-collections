@@ -13,11 +13,17 @@
 @frozen
 internal struct _Level {
   @usableFromInline
-  internal var shift: UInt
+  internal var _shift: UInt8
+
+  @inlinable @inline(__always)
+  init(_shift: UInt8) {
+    self._shift = _shift
+  }
 
   @inlinable @inline(__always)
   init(shift: UInt) {
-    self.shift = shift
+    assert(shift <= UInt8.max)
+    self._shift = UInt8(truncatingIfNeeded: shift)
   }
 }
 
@@ -28,8 +34,8 @@ extension _Level {
   }
 
   @inlinable @inline(__always)
-  internal static var _step: UInt {
-    UInt(bitPattern: _Bitmap.bitWidth)
+  internal static var _step: UInt8 {
+    UInt8(truncatingIfNeeded: _Bitmap.bitWidth)
   }
 
   @inlinable @inline(__always)
@@ -38,27 +44,37 @@ extension _Level {
   }
 
   @inlinable @inline(__always)
-  internal var isAtRoot: Bool { shift == 0 }
+  internal var shift: UInt { UInt(truncatingIfNeeded: _shift) }
 
   @inlinable @inline(__always)
-  internal var isAtBottom: Bool { shift >= UInt.bitWidth }
+  internal var isAtRoot: Bool { _shift == 0 }
+
+  @inlinable @inline(__always)
+  internal var isAtBottom: Bool { _shift >= UInt.bitWidth }
 
   @inlinable @inline(__always)
   internal func descend() -> _Level {
     // FIXME: Consider returning nil when we run out of bits
-    _Level(shift: shift &+ Self._step)
+    _Level(_shift: _shift &+ Self._step)
   }
 
   @inlinable @inline(__always)
   internal func ascend() -> _Level {
     assert(!isAtRoot)
-    return _Level(shift: shift &+ Self._step)
+    return _Level(_shift: _shift &- Self._step)
   }
 }
 
 extension _Level: Equatable {
   @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
-    left.shift == right.shift
+    left._shift == right._shift
+  }
+}
+
+extension _Level: Comparable {
+  @inlinable @inline(__always)
+  internal static func <(left: Self, right: Self) -> Bool {
+    left._shift < right._shift
   }
 }
