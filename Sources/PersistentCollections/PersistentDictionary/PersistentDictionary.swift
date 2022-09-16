@@ -102,6 +102,15 @@ extension PersistentDictionary {
     set {
       updateValue(newValue, forKey: key)
     }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
+    _modify {
+      var state = _root.prepareDefaultedValueUpdate(
+        key, defaultValue, .top, _Hash(key))
+      if state.inserted { _invalidateIndices() }
+      defer {
+        _root.finalizeDefaultedValueUpdate(state)
+      }
+      yield &state.item.value
     }
   }
 

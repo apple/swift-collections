@@ -12,13 +12,19 @@
 // MARK: Node-level mutation operations
 
 extension _Node.UnsafeHandle {
-  /// Insert `item` at `slot` corresponding to `bucket`.
+  /// Make room for a new item at `slot` corresponding to `bucket`.
   /// There must be enough free space in the node to fit the new item.
   ///
   /// `itemMap` must not already reflect the insertion at the time this
   /// function is called. This method does not update `itemMap`.
+  ///
+  /// - Returns: an unsafe mutable pointer to uninitialized memory that is
+  ///    ready to store the new item. It is the caller's responsibility to
+  ///    initialize this memory.
   @inlinable
-  internal func _insertItem(_ item: __owned Element, at slot: _Slot) {
+  internal func _makeRoomForNewItem(
+    at slot: _Slot, _ bucket: _Bucket
+  ) -> UnsafeMutablePointer<Element> {
     assertMutable()
     let c = itemCount
     assert(slot.value <= c)
@@ -33,7 +39,18 @@ extension _Node.UnsafeHandle {
 
     let prefix = c &- slot.value
     start.moveInitialize(from: start + 1, count: prefix)
-    (start + prefix).initialize(to: item)
+
+    if bucket.isInvalid {
+      assert(isCollisionNode)
+      collisionCount &+= 1
+    } else {
+      assert(!itemMap.contains(bucket))
+      assert(!childMap.contains(bucket))
+      itemMap.insert(bucket)
+      assert(itemMap.slot(of: bucket) == slot)
+    }
+
+    return start + prefix
   }
 
   /// Insert `child` at `slot`. There must be enough free space in the node
@@ -105,7 +122,7 @@ extension _Node.UnsafeHandle {
 }
 
 extension _Node {
-  @inlinable
+  @inlinable @inline(__always)
   internal mutating func insertItem(
     _ item: __owned Element, _ bucket: _Bucket
   ) {
@@ -113,24 +130,14 @@ extension _Node {
     self.insertItem(item, at: slot, bucket)
   }
 
-  /// Insert `item` at `slot` corresponding to `bucket`.
-  /// There must be enough free space in the node to fit the new item.
-  @inlinable
+  @inlinable @inline(__always)
   internal mutating func insertItem(
     _ item: __owned Element, at slot: _Slot, _ bucket: _Bucket
   ) {
     self.count &+= 1
     update {
-      $0._insertItem(item, at: slot)
-      if $0.isCollisionNode {
-        assert(bucket.isInvalid)
-        $0.collisionCount &+= 1
-      } else {
-        assert(!$0.itemMap.contains(bucket))
-        assert(!$0.childMap.contains(bucket))
-        $0.itemMap.insert(bucket)
-        assert($0.itemMap.slot(of: bucket) == slot)
-      }
+      let p = $0._makeRoomForNewItem(at: slot, bucket)
+      p.initialize(to: item)
     }
   }
 
@@ -392,6 +399,124 @@ extension _Node {
       node.count &-= 1
       node._invariantCheck()
       return (node, r.old)
+    }
+  }
+}
+
+extension _Node {
+  @usableFromInline
+  @frozen
+  internal struct DefaultedValueUpdateState {
+    @usableFromInline
+    internal var item: Element
+
+    @usableFromInline
+    internal var node: _UnmanagedNode
+
+    @usableFromInline
+    internal var slot: _Slot
+
+    @usableFromInline
+    internal var inserted: Bool
+
+    @inlinable
+    internal init(
+      _ item: Element,
+      in node: _UnmanagedNode,
+      at slot: _Slot,
+      inserted: Bool
+    ) {
+      self.item = item
+      self.node = node
+      self.slot = slot
+      self.inserted = inserted
+    }
+  }
+
+  @inlinable
+  internal mutating func prepareDefaultedValueUpdate(
+    _ key: Key,
+    _ defaultValue: () -> Value,
+    _ level: _Level,
+    _ hash: _Hash
+  ) -> DefaultedValueUpdateState {
+    let isUnique = self.isUnique()
+    let r = find(level, key, hash, forInsert: true)
+    switch r {
+    case .found(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      return DefaultedValueUpdateState(
+        update { $0.itemPtr(at: slot).move() },
+        in: unmanaged,
+        at: slot,
+        inserted: false)
+
+    case .notFound(let bucket, let slot):
+      ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
+      update { _ = $0._makeRoomForNewItem(at: slot, bucket) }
+      return DefaultedValueUpdateState(
+        (key, defaultValue()),
+        in: unmanaged,
+        at: slot,
+        inserted: true)
+
+    case .newCollision(let bucket, let slot):
+      let existingHash = read { _Hash($0[item: slot].key) }
+      if hash == existingHash, hasSingletonItem {
+        // Convert current node to a collision node.
+        ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
+        update {
+          $0.collisionCount = 1
+          _ = $0._makeRoomForNewItem(at: _Slot(1), .invalid)
+        }
+        self.count &+= 1
+        return DefaultedValueUpdateState(
+          (key, defaultValue()),
+          in: unmanaged,
+          at: _Slot(1),
+          inserted: true)
+      }
+      ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewCollision)
+      let existing = removeItem(at: slot, bucket)
+      var node = _Node(
+        level: level.descend(),
+        item1: existing, existingHash,
+        item2: (key, defaultValue()), hash)
+      insertChild(node, bucket)
+      return DefaultedValueUpdateState(
+        node.update { $0.itemPtr(at: _Slot(1)).move() },
+        in: node.unmanaged,
+        at: _Slot(1),
+        inserted: true)
+
+    case .expansion(let collisionHash):
+      self = Self(
+        level: level,
+        item1: (key, defaultValue()), hash,
+        child2: self, collisionHash)
+      return DefaultedValueUpdateState(
+        update { $0.itemPtr(at: .zero).move() },
+        in: unmanaged,
+        at: .zero,
+        inserted: true)
+
+    case .descend(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      let res = update {
+        $0[child: slot].prepareDefaultedValueUpdate(
+          key, defaultValue, level.descend(), hash)
+      }
+      if res.inserted { count &+= 1 }
+      return res
+    }
+  }
+
+  @inlinable
+  internal mutating func finalizeDefaultedValueUpdate(
+    _ state: __owned DefaultedValueUpdateState
+  ) {
+    UnsafeHandle.update(state.node) {
+      $0.itemPtr(at: state.slot).initialize(to: state.item)
     }
   }
 }
