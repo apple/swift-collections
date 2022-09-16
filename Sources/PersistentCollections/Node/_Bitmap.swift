@@ -56,12 +56,24 @@ extension _Bitmap: Equatable {
   }
 }
 
+extension _Bitmap: CustomStringConvertible {
+  @usableFromInline
+  internal var description: String {
+    let b = String(_value, radix: 2)
+    let bits = String(repeating: "0", count: _Bitmap.capacity - b.count) + b
+    return "\(String(bits.reversed())) (\(_value))"
+  }
+}
+
 extension _Bitmap {
   @inlinable @inline(__always)
   internal static var empty: Self { .init(_value: 0) }
 
   @inlinable @inline(__always)
   internal static var capacity: Int { Value.bitWidth }
+
+  @inlinable @inline(__always)
+  internal static var bitWidth: Int { capacity.trailingZeroBitCount }
 
   @inlinable @inline(__always)
   internal var count: Int { _value.nonzeroBitCount }

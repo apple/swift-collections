@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentDictionary._Node: CustomStringConvertible {
+extension _Node: CustomStringConvertible {
   @usableFromInline
   internal var description: String {
     guard count > 0 else {
@@ -18,21 +18,23 @@ extension PersistentDictionary._Node: CustomStringConvertible {
     
     var result = "["
     var first = true
-    for (key, value) in _items {
-      if first {
-        first = false
-      } else {
-        result += ", "
+    read {
+      for (key, value) in $0._items {
+        if first {
+          first = false
+        } else {
+          result += ", "
+        }
+        result += "\(key): \(value)"
       }
-      result += "\(key): \(value)"
-    }
-    for node in _children {
-      if first {
-        first = false
-      } else {
-        result += ", "
+      for child in $0._children {
+        if first {
+          first = false
+        } else {
+          result += ", "
+        }
+        result += "\(child.description)"
       }
-      result += "\(node.description)"
     }
     result += "]"
     return result

@@ -11,6 +11,9 @@
 
 public struct PersistentDictionary<Key, Value> where Key: Hashable {
   @usableFromInline
+  internal typealias _Node = PersistentCollections._Node<Key, Value>
+
+  @usableFromInline
   var _root: _Node
 
   @inlinable
@@ -22,13 +25,19 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 extension PersistentDictionary {
   @inlinable
   public init() {
-    self.init(_root: _Node())
+    self.init(_root: _Node(storage: _emptySingleton, count: 0))
   }
 
   @inlinable
   public init(_ other: PersistentDictionary<Key, Value>) {
     self = other
   }
+
+  @inlinable
+  public func _invariantCheck() {
+    _root._fullInvariantCheck(.top, _Hash(_value: 0))
+  }
+
 
   @inlinable
   @inline(__always)
@@ -40,6 +49,7 @@ extension PersistentDictionary {
       let unique = updateValue(value, forKey: key) == nil
       precondition(unique, "Duplicate key: '\(key)'")
     }
+    _invariantCheck()
   }
 
   @inlinable
@@ -80,76 +90,48 @@ extension PersistentDictionary {
 
   @inlinable
   public func contains(_ key: Key) -> Bool {
-    _root.containsKey(key, _HashPath(key))
+    _root.containsKey(.top, key, _Hash(key))
   }
 
   @inlinable
   func _get(_ key: Key) -> Value? {
-    _root.get(key, _HashPath(key))
+    _root.get(.top, key, _Hash(key))
   }
 
   /// Returns the index for the given key.
   @inlinable
   public func index(forKey key: Key) -> Index? {
-    _root.index(forKey: key, _HashPath(key), 0)
+    _root.position(forKey: key, .top, _Hash(key)).map { Index(_value: $0) }
   }
 
   @inlinable
   @discardableResult
-  public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
-    let isUnique = isKnownUniquelyReferenced(&self._root)
-
-    var effect = _DictionaryEffect<Value>()
-    let newRoot = _root.updateOrUpdating(
-      isUnique, (key, value), _HashPath(key), &effect)
-
-    if effect.modified {
-      self._root = newRoot
-    }
-
-    // Note, always tracking discardable result negatively impacts batch use cases
-    return effect.previousValue
+  public mutating func updateValue(
+    _ value: __owned Value, forKey key: Key
+  ) -> Value? {
+    return _root.updateValue(value, forKey: key, .top, _Hash(key))
   }
 
   // fluid/immutable API
   @inlinable
   public func updatingValue(_ value: Value, forKey key: Key) -> Self {
-    var effect = _DictionaryEffect<Value>()
-    let newRoot = _root.updateOrUpdating(
-      false, (key, value), _HashPath(key), &effect)
-
-    guard effect.modified else { return self }
-    return Self(_root: newRoot)
+    var copy = self
+    copy.updateValue(value, forKey: key)
+    return copy
   }
 
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
-    let isUnique = isKnownUniquelyReferenced(&self._root)
-
-    var effect = _DictionaryEffect<Value>()
-    let newRoot = _root.removeOrRemoving(
-      isUnique, key, _HashPath(key), &effect)
-
-    if effect.modified {
-      self._root = newRoot
-    }
-
-    // Note, always tracking discardable result negatively impacts batch use cases
-    return effect.previousValue
+    _root.remove(key, .top, _Hash(key))?.value
   }
 
   // fluid/immutable API
   @inlinable
   public func removingValue(forKey key: Key) -> Self {
-    var effect = _DictionaryEffect<Value>()
-    let newRoot = _root.removeOrRemoving(
-      false, key, _HashPath(key), &effect)
-
-    if effect.modified {
-      return Self(_root: newRoot)
-    }
-    return self
+    var copy = self
+    copy.removeValue(forKey: key)
+    return copy
   }
 }
 

@@ -573,23 +573,35 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func test_indexForKey_hashCollision() {
+    let a = CollidableInt(1, "1000")
+    let b = CollidableInt(2, "1000")
+    let c = CollidableInt(3, "1001")
     let map: PersistentDictionary<CollidableInt, String> = [
-      CollidableInt(11, 1): "a",
-      CollidableInt(12, 1): "a",
-      CollidableInt(32769): "b"
+      a: "a",
+      b: "b",
+      c: "c",
     ]
 
+
     typealias Index = PersistentDictionary<CollidableInt, String>.Index
-    expectEqual(
-      map.index(forKey: CollidableInt(11, 1)),
-      Index(_value: 0))
-    expectEqual(
-      map.index(forKey: CollidableInt(12, 1)),
-      Index(_value: 1))
-    expectEqual(
-      map.index(forKey: CollidableInt(32769)),
-      Index(_value: 2))
-    expectNil(map.index(forKey: CollidableInt(13, 1)))
+    expectEqual(map.index(forKey: a), Index(_value: 2))
+    expectEqual(map.index(forKey: b), Index(_value: 1))
+    expectEqual(map.index(forKey: c), Index(_value: 0))
+    expectNil(map.index(forKey: CollidableInt(4, "1000")))
+  }
+
+  func test_indexForKey() {
+    let input = 0 ..< 1
+    let d = PersistentDictionary(
+      uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+    for key in input {
+      expectNotNil(d.index(forKey: key)) { index in
+        expectNotNil(d[index]) { item in
+          expectEqual(item.key, key)
+          expectEqual(item.value, 2 * key)
+        }
+      }
+    }
   }
 
   func test_indexForKey_exhaustIndices() {
