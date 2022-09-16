@@ -94,10 +94,11 @@ extension _Node.UnsafeHandle {
           return .expansion(h)
         }
       }
-      guard let offset = _items.firstIndex(where: { $0.key == key }) else {
-        return .notFound(.invalid, 0)
+      // Note: this searches the items in reverse insertion order.
+      guard let offset = reverseItems.firstIndex(where: { $0.key == key }) else {
+        return .notFound(.invalid, itemCount)
       }
-      return .found(.invalid, offset)
+      return .found(.invalid, itemCount &- 1 &- offset)
     }
     let bucket = hash[level]
     if itemMap.contains(bucket) {

@@ -18,9 +18,9 @@ extension _Node: Equatable where Value: Equatable {
       return lhs.read { lhs in
         rhs.read { rhs in
           let l = Dictionary(
-            uniqueKeysWithValues: lhs._items.lazy.map { ($0.key, $0.value) })
+            uniqueKeysWithValues: lhs.reverseItems.lazy.map { ($0.key, $0.value) })
           let r = Dictionary(
-            uniqueKeysWithValues: rhs._items.lazy.map { ($0.key, $0.value) })
+            uniqueKeysWithValues: rhs.reverseItems.lazy.map { ($0.key, $0.value) })
           return l == r
         }
       }
@@ -39,7 +39,7 @@ extension _Node: Equatable where Value: Equatable {
         guard l.itemMap == r.itemMap else { return false }
         guard l.childMap == r.childMap else { return false }
 
-        guard l._items.elementsEqual(r._items, by: { $0 == $1 })
+        guard l.reverseItems.elementsEqual(r.reverseItems, by: { $0 == $1 })
         else { return false }
 
         guard l._children.elementsEqual(r._children) else { return false }

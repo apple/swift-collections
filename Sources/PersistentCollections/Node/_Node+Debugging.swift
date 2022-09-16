@@ -34,6 +34,12 @@ extension _Node.Storage {
 }
 
 extension _Node.UnsafeHandle {
+  internal func _itemString(at offset: Int) -> String {
+    let item = self[item: offset]
+    let hash = _Hash(item.key).description
+    return "hash: \(hash), key: \(item.key), value: \(item.value)"
+  }
+
   @usableFromInline
   internal func dump(
     firstPrefix: String = "",
@@ -50,12 +56,8 @@ extension _Node.UnsafeHandle {
       """)
     guard limit > 0 else { return }
     if isCollisionNode {
-      let items = self._items
-      for offset in items.indices {
-        let item = items[offset]
-        let hash = _Hash(item.key).description
-        let itemStr = "hash: \(hash), key: \(item.key), value: \(item.value)"
-        print("\(restPrefix)  \(offset): \(itemStr)")
+      for offset in 0 ..< itemCount {
+        print("\(restPrefix)[\(offset)] \(_itemString(at: offset))")
       }
     } else {
       var itemOffset = 0
@@ -64,10 +66,7 @@ extension _Node.UnsafeHandle {
         let bucket = _Bucket(b)
         let bucketStr = "#\(String(b, radix: _Bitmap.capacity, uppercase: true))"
         if itemMap.contains(bucket) {
-          let item = self[item: itemOffset]
-          let hash = _Hash(item.key).description
-          let itemStr = "hash: \(hash), key: \(item.key), value: \(item.value)"
-          print("\(restPrefix)  \(bucketStr) \(itemStr)")
+          print("\(restPrefix)  \(bucketStr) \(_itemString(at: itemOffset))")
           itemOffset += 1
         } else if childMap.contains(bucket) {
           self[child: childOffset].dump(

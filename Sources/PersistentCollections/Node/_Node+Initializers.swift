@@ -20,9 +20,9 @@ extension _Node {
       let byteCount = 2 * MemoryLayout<Element>.stride
       assert($0.bytesFree >= byteCount)
       $0.bytesFree &-= byteCount
-      let items = $0._items
-      items.initializeElement(at: 0, to: item1)
-      items.initializeElement(at: 1, to: item2)
+      let items = $0.reverseItems
+      items.initializeElement(at: 1, to: item1)
+      items.initializeElement(at: 0, to: item2)
     }
   }
 
@@ -39,10 +39,10 @@ extension _Node {
       $0.itemMap.insert(bucket1)
       $0.itemMap.insert(bucket2)
       $0.bytesFree &-= 2 * MemoryLayout<Element>.stride
-      let i = bucket1 < bucket2 ? 0 : 1
-      let items = $0._items
+      let i = bucket1 < bucket2 ? 1 : 0
+      let items = $0.reverseItems
       items.initializeElement(at: i, to: item1)
-      items.initializeElement(at: 1 - i, to: item2)
+      items.initializeElement(at: 1 &- i, to: item2)
     }
   }
 

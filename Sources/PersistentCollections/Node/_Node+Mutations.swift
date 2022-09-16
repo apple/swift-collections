@@ -20,19 +20,20 @@ extension _Node.UnsafeHandle {
   @inlinable
   internal func _insertItem(_ item: __owned Element, at offset: Int) {
     assertMutable()
-    let count = itemCount
-    assert(offset >= 0 && offset <= count)
+    let c = itemCount
+    assert(offset >= 0 && offset <= c)
 
     let stride = MemoryLayout<Element>.stride
     assert(bytesFree >= stride)
     bytesFree &-= stride
 
     let start = _memory
-      .advanced(by: byteCapacity &- (count &+ 1) &* stride)
-      .bindMemory(to: Element.self, capacity: count &+ 1)
+      .advanced(by: byteCapacity &- (c &+ 1) &* stride)
+      .bindMemory(to: Element.self, capacity: 1)
 
-    start.moveInitialize(from: start + 1, count: offset)
-    (start + offset).initialize(to: item)
+    let prefix = c &- offset
+    start.moveInitialize(from: start + 1, count: prefix)
+    (start + prefix).initialize(to: item)
   }
 
   /// Insert `child` at `offset`. There must be enough free space in the node
@@ -66,18 +67,19 @@ extension _Node.UnsafeHandle {
   @inlinable
   internal func _removeItem(at offset: Int) -> Element {
     assertMutable()
-    let count = itemCount
-    assert(offset >= 0 && offset < count)
+    let c = itemCount
+    assert(offset >= 0 && offset < c)
     let stride = MemoryLayout<Element>.stride
     bytesFree &+= stride
 
     let start = _memory
-      .advanced(by: byteCapacity &- stride &* count)
+      .advanced(by: byteCapacity &- stride &* c)
       .assumingMemoryBound(to: Element.self)
 
-    let q = start + offset
+    let prefix = c &- 1 &- offset
+    let q = start + prefix
     let item = q.move()
-    (start + 1).moveInitialize(from: start, count: offset)
+    (start + 1).moveInitialize(from: start, count: prefix)
     return item
   }
 
@@ -249,19 +251,19 @@ extension _Node {
       insertItem((key, value), at: offset, bucket)
       return nil
     case .newCollision(let bucket, let offset):
-      let hash2 = read { _Hash($0[item: offset].key) }
-      if hash == hash2, hasSingletonItem {
+      let existingHash = read { _Hash($0[item: offset].key) }
+      if hash == existingHash, hasSingletonItem {
         // Convert current node to a collision node.
         ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
         update { $0.collisionCount = 1 }
-        insertItem((key, value), at: 0, .invalid)
+        insertItem((key, value), at: 1, .invalid)
       } else {
         ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewCollision)
-        let item2 = removeItem(at: offset, bucket)
+        let existing = removeItem(at: offset, bucket)
         let node = _Node(
           level: level.descend(),
-          item1: (key, value), hash,
-          item2: item2, hash2)
+          item1: existing, existingHash,
+          item2: (key, value), hash)
         insertChild(node, bucket)
       }
       return nil

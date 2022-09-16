@@ -171,7 +171,7 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable
-  internal var _items: UnsafeMutableBufferPointer<Element> {
+  internal var reverseItems: UnsafeMutableBufferPointer<Element> {
     let c = itemCount
     return UnsafeMutableBufferPointer(start: _itemsEnd - c, count: c)
   }
@@ -179,7 +179,7 @@ extension _Node.UnsafeHandle {
   @inlinable
   internal func itemPtr(at offset: Int) -> UnsafeMutablePointer<Element> {
     assert(offset >= 0 && offset < itemCount)
-    return _itemsEnd.advanced(by: -(itemCount &- offset))
+    return _itemsEnd.advanced(by: -1 &- offset)
   }
 
   @inlinable

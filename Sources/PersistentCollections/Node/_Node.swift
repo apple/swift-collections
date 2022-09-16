@@ -38,9 +38,11 @@ internal struct _RawNode {
 /// The storage is arranged as shown below.
 ///
 ///     ┌───┬───┬───┬───┬───┬──────────────────┬───┬───┬───┬───┐
-///     │ 0 │ 1 │ 2 │ 3 │ 4 │→   free space   ←│ 0 │ 1 │ 2 │ 3 │
+///     │ 0 │ 1 │ 2 │ 3 │ 4 │→   free space   ←│ 3 │ 2 │ 1 │ 0 │
 ///     └───┴───┴───┴───┴───┴──────────────────┴───┴───┴───┴───┘
 ///      children                                         items
+///
+/// Note that the region for items grows downwards from the end.
 ///
 /// Two 32-bit bitmaps are used to associate each child and item with their
 /// position in the hash table. The bucket occupied by the *n*th child in the
