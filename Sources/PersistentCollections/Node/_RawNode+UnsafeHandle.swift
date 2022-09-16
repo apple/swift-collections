@@ -47,6 +47,11 @@ extension _RawNode.UnsafeHandle {
   }
 
   @inline(__always)
+  internal var childEnd: _Slot {
+    _header.pointee.childEnd
+  }
+
+  @inline(__always)
   internal var hasItems: Bool {
     _header.pointee.hasItems
   }
@@ -56,16 +61,20 @@ extension _RawNode.UnsafeHandle {
     _header.pointee.itemCount
   }
 
+  @inline(__always)
+  internal var itemEnd: _Slot {
+    _header.pointee.itemEnd
+  }
 
   @inline(__always)
   internal var _childrenStart: UnsafePointer<_RawNode> {
     _memory.assumingMemoryBound(to: _RawNode.self)
   }
 
-  internal subscript(child offset: Int) -> _RawNode {
+  internal subscript(child slot: _Slot) -> _RawNode {
     unsafeAddress {
-      assert(offset >= 0 && offset < childCount)
-      return _childrenStart + offset
+      assert(slot < childEnd)
+      return _childrenStart + slot.value
     }
   }
 

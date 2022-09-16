@@ -52,16 +52,16 @@ extension _RawNode {
     var l = _Level.top
     var n = self.unmanaged
     while l < path.level {
-      let offset = path.ancestors[l]
-      precondition(offset < n.childCount)
-      n = n.unmanagedChild(at: offset)
+      let slot = path.ancestors[l]
+      precondition(slot < n.childEnd)
+      n = n.unmanagedChild(at: slot)
       l = l.descend()
     }
     precondition(n == path.node)
     if path._isItem {
-      precondition(path._nodeOffset < n.itemCount)
+      precondition(path.nodeSlot < n.itemEnd)
     } else {
-      precondition(path._nodeOffset <= n.childCount)
+      precondition(path.nodeSlot <= n.childEnd)
     }
   }
 }

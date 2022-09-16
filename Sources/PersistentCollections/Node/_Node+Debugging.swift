@@ -40,8 +40,8 @@ extension _Node.Storage {
 }
 
 extension _Node.UnsafeHandle {
-  internal func _itemString(at offset: Int) -> String {
-    let item = self[item: offset]
+  internal func _itemString(at slot: _Slot) -> String {
+    let item = self[item: slot]
     let hash = _Hash(item.key).description
     return "hash: \(hash), key: \(item.key), value: \(item.value)"
   }
@@ -73,39 +73,39 @@ extension _Node.UnsafeHandle {
       """)
     guard limit > 0 else { return }
     if iterationOrder {
-      for offset in 0 ..< itemCount {
-        print("  \(restPrefix)[\(offset)]  \(_itemString(at: offset))")
+      for slot in stride(from: .zero, to: itemEnd, by: 1) {
+        print("  \(restPrefix)[\(slot)]  \(_itemString(at: slot))")
       }
-      for offset in 0 ..< childCount {
-        self[child: offset].dump(
+      for slot in stride(from: .zero, to: childEnd, by: 1) {
+        self[child: slot].dump(
           iterationOrder: true,
           limit: limit - 1,
-          firstPrefix: "  \(restPrefix).\(offset)",
-          restPrefix: "  \(restPrefix).\(offset)",
+          firstPrefix: "  \(restPrefix).\(slot)",
+          restPrefix: "  \(restPrefix).\(slot)",
           depth: depth + 1)
       }
     }
     else if isCollisionNode {
-      for offset in 0 ..< itemCount {
-        print("\(restPrefix)[\(offset)] \(_itemString(at: offset))")
+      for slot in stride(from: .zero, to: itemEnd, by: 1) {
+        print("\(restPrefix)[\(slot)] \(_itemString(at: slot))")
       }
     } else {
-      var itemOffset = 0
-      var childOffset = 0
+      var itemSlot: _Slot = .zero
+      var childSlot: _Slot = .zero
       for b in 0 ..< UInt(_Bitmap.capacity) {
         let bucket = _Bucket(b)
         let bucketStr = "#\(String(b, radix: _Bitmap.capacity, uppercase: true))"
         if itemMap.contains(bucket) {
-          print("\(restPrefix)  \(bucketStr) \(_itemString(at: itemOffset))")
-          itemOffset += 1
+          print("\(restPrefix)  \(bucketStr) \(_itemString(at: itemSlot))")
+          itemSlot = itemSlot.next()
         } else if childMap.contains(bucket) {
-          self[child: childOffset].dump(
+          self[child: childSlot].dump(
             iterationOrder: false,
             limit: limit - 1,
             firstPrefix: "\(restPrefix)  \(bucketStr) ",
             restPrefix: "\(restPrefix)     ",
             depth: depth + 1)
-          childOffset += 1
+          childSlot = childSlot.next()
         }
       }
     }

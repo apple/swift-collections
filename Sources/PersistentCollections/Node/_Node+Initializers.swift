@@ -54,7 +54,7 @@ extension _Node {
     update {
       $0.childMap.insert(bucket)
       $0.bytesFree &-= MemoryLayout<_Node>.stride
-      $0.childPtr(at: 0).initialize(to: _child)
+      $0.childPtr(at: .zero).initialize(to: _child)
     }
   }
 
@@ -71,8 +71,8 @@ extension _Node {
       $0.itemMap.insert(itemBucket)
       $0.childMap.insert(childBucket)
       $0.bytesFree &-= MemoryLayout<Element>.stride + MemoryLayout<_Node>.stride
-      $0.itemPtr(at: 0).initialize(to: _item)
-      $0.childPtr(at: 0).initialize(to: child)
+      $0.itemPtr(at: .zero).initialize(to: _item)
+      $0.childPtr(at: .zero).initialize(to: child)
     }
   }
 }

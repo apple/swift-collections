@@ -73,11 +73,21 @@ extension _UnmanagedNode {
   }
 
   @inlinable
-  internal func unmanagedChild(at offset: Int) -> Self {
+  internal var itemEnd: _Slot {
+    withRaw { _Slot($0.header.itemCount) }
+  }
+
+  @inlinable
+  internal var childEnd: _Slot {
+    withRaw { _Slot($0.header.childCount) }
+  }
+
+  @inlinable
+  internal func unmanagedChild(at slot: _Slot) -> Self {
     withRaw { raw in
-      assert(offset >= 0 && offset < raw.header.childCount)
+      assert(slot.value < raw.header.childCount)
       return raw.withUnsafeMutablePointerToElements { p in
-        Self(p[offset].storage)
+        Self(p[slot.value].storage)
       }
     }
   }

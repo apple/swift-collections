@@ -100,7 +100,7 @@ extension PersistentDictionary: BidirectionalCollection {
     precondition(_isValid(i), "Invalid index")
     precondition(i._path.isOnItem, "Can't get element at endIndex")
     return _Node.UnsafeHandle.read(i._path.node) {
-      $0[item: i._path.currentItemOffset]
+      $0[item: i._path.currentItemSlot]
     }
   }
 

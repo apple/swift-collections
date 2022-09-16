@@ -105,13 +105,13 @@ extension _Bitmap {
   }
 
   @inlinable @inline(__always)
-  internal func offset(of bucket: _Bucket) -> Int {
-    _value._rank(ofBit: bucket.value)
+  internal func slot(of bucket: _Bucket) -> _Slot {
+    _Slot(_value._rank(ofBit: bucket.value))
   }
 
   @inlinable @inline(__always)
-  internal func bucket(at offset: Int) -> _Bucket {
-    _Bucket(_value._bit(ranked: offset)!)
+  internal func bucket(at slot: _Slot) -> _Bucket {
+    _Bucket(_value._bit(ranked: slot.value)!)
   }
 }
 

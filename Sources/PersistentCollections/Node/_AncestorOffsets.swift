@@ -11,7 +11,7 @@
 
 @usableFromInline
 @frozen
-struct _AncestorOffsets {
+struct _AncestorSlots {
   @usableFromInline
   internal var path: UInt
 
@@ -21,37 +21,37 @@ struct _AncestorOffsets {
   }
 }
 
-extension _AncestorOffsets: Equatable {
+extension _AncestorSlots: Equatable {
   @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
     left.path == right.path
   }
 }
 
-extension _AncestorOffsets {
+extension _AncestorSlots {
   @inlinable @inline(__always)
   internal static var empty: Self { Self(0) }
 }
 
-extension _AncestorOffsets {
+extension _AncestorSlots {
   @inlinable @inline(__always)
-  internal subscript(_ level: _Level) -> Int {
+  internal subscript(_ level: _Level) -> _Slot {
     get {
       assert(level.shift < UInt.bitWidth)
-      return Int(bitPattern: (path &>> level.shift) & _Bucket.bitMask)
+      return _Slot((path &>> level.shift) & _Bucket.bitMask)
     }
     set {
-      assert(newValue < UInt.bitWidth)
-      assert(self[level] == 0)
-      path |= (UInt(bitPattern: newValue) &<< level.shift)
+      assert(newValue._value < UInt.bitWidth)
+      assert(self[level] == .zero)
+      path |= (UInt(truncatingIfNeeded: newValue._value) &<< level.shift)
     }
   }
 
   @inlinable
-  internal func truncating(to level: _Level) -> _AncestorOffsets {
+  internal func truncating(to level: _Level) -> _AncestorSlots {
     assert(level.shift <= UInt.bitWidth)
     guard level.shift < UInt.bitWidth else { return self }
-    return _AncestorOffsets(path & ((1 &<< level.shift) &- 1))
+    return _AncestorSlots(path & ((1 &<< level.shift) &- 1))
   }
 
   @inlinable

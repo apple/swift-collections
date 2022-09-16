@@ -84,6 +84,16 @@ extension _StorageHeader {
      : itemMap.count)
   }
 
+  @inlinable @inline(__always)
+  internal var childEnd: _Slot {
+    _Slot(childCount)
+  }
+
+  @inlinable @inline(__always)
+  internal var itemEnd: _Slot {
+    _Slot(itemCount)
+  }
+
   @inlinable
   internal var collisionCount: Int {
     get {

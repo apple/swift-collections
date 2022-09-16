@@ -23,30 +23,30 @@
 @frozen
 internal enum _FindResult {
   /// The item we're looking for is stored directly in this node, at the
-  /// bucket / item offset identified in the payload.
+  /// bucket / item slot identified in the payload.
   ///
   /// If the current node is a collision node, then the bucket value is
   /// set to `_Bucket.invalid`.
-  case found(_Bucket, Int)
+  case found(_Bucket, _Slot)
   /// The item we're looking for is not currently inside the subtree rooted at
   /// this node.
   ///
   /// If we wanted to insert it, then its correct slot is within this node
-  /// at the specified bucket / item offset. (Which is currently empty.)
+  /// at the specified bucket / item slot. (Which is currently empty.)
   ///
   /// If the current node is a collision node, then the bucket value is
   /// set to `_Bucket.invalid`.
-  case notFound(_Bucket, Int)
+  case notFound(_Bucket, _Slot)
   /// The item we're looking for is not currently inside the subtree rooted at
   /// this node.
   ///
   /// If we wanted to insert it, then it would need to be stored in this node
-  /// at the specified bucket / item offset. However, that bucket is already
+  /// at the specified bucket / item slot. However, that bucket is already
   /// occupied by another item, so the insertion would need to involve replacing
   /// it with a new child node.
   ///
   /// (This case is never returned if the current node is a collision node.)
-  case newCollision(_Bucket, Int)
+  case newCollision(_Bucket, _Slot)
   /// The item we're looking for is not in this subtree.
   ///
   /// However, the item doesn't belong in this subtree at all. This is an
@@ -67,10 +67,10 @@ internal enum _FindResult {
   case expansion(_Hash)
   /// The item we're looking for is not directly stored in this node, but it
   /// might be somewhere in the subtree rooted at the child at the given
-  /// bucket & offset.
+  /// bucket & slot.
   ///
   /// (This case is never returned if the current node is a collision node.)
-  case descend(_Bucket, Int)
+  case descend(_Bucket, _Slot)
 }
 
 extension _Node {
@@ -89,32 +89,32 @@ extension _Node.UnsafeHandle {
   ) -> _FindResult {
     guard !isCollisionNode else {
       if !level.isAtBottom {
-        let h = _Hash(self[item: 0].key)
+        let h = _Hash(self[item: .zero].key)
         if h != hash {
           return .expansion(h)
         }
       }
       // Note: this searches the items in reverse insertion order.
-      guard let offset = reverseItems.firstIndex(where: { $0.key == key }) else {
-        return .notFound(.invalid, itemCount)
+      guard let slot = reverseItems.firstIndex(where: { $0.key == key }) else {
+        return .notFound(.invalid, itemEnd)
       }
-      return .found(.invalid, itemCount &- 1 &- offset)
+      return .found(.invalid, _Slot(itemCount &- 1 &- slot))
     }
     let bucket = hash[level]
     if itemMap.contains(bucket) {
-      let offset = itemMap.offset(of: bucket)
-      if self[item: offset].key == key {
-        return .found(bucket, offset)
+      let slot = itemMap.slot(of: bucket)
+      if self[item: slot].key == key {
+        return .found(bucket, slot)
       }
-      return .newCollision(bucket, offset)
+      return .newCollision(bucket, slot)
     }
     if childMap.contains(bucket) {
-      let offset = childMap.offset(of: bucket)
-      return .descend(bucket, offset)
+      let slot = childMap.slot(of: bucket)
+      return .descend(bucket, slot)
     }
-    // Don't calculate the offset unless the caller will need it.
-    let offset = forInsert ? itemMap.offset(of: bucket) : 0
-    return .notFound(bucket, offset)
+    // Don't calculate the slot unless the caller will need it.
+    let slot = forInsert ? itemMap.slot(of: bucket) : .zero
+    return .notFound(bucket, slot)
   }
 }
 
@@ -126,12 +126,12 @@ extension _Node {
     read {
       let r = $0.find(level, key, hash, forInsert: false)
       switch r {
-      case .found(_, let offset):
-        return $0[item: offset].value
+      case .found(_, let slot):
+        return $0[item: slot].value
       case .notFound, .newCollision, .expansion:
         return nil
-      case .descend(_, let offset):
-        return $0[child: offset].get(level.descend(), key, hash)
+      case .descend(_, let slot):
+        return $0[child: slot].get(level.descend(), key, hash)
       }
     }
   }
@@ -147,8 +147,8 @@ extension _Node {
         return true
       case .notFound, .newCollision, .expansion:
         return false
-      case .descend(_, let offset):
-        return $0[child: offset].containsKey(level.descend(), key, hash)
+      case .descend(_, let slot):
+        return $0[child: slot].containsKey(level.descend(), key, hash)
       }
     }
   }
@@ -161,17 +161,18 @@ extension _Node {
   ) -> Int? {
     let r = find(level, key, hash, forInsert: false)
     switch r {
-    case .found(_, let offset):
-      return offset
+    case .found(_, let slot):
+      return slot.value
     case .notFound, .newCollision, .expansion:
       return nil
-    case .descend(_, let offset):
+    case .descend(_, let slot):
       return read { h in
         let children = h._children
-        let p = children[offset].position(forKey: key, level.descend(), hash)
+        let p = children[slot.value]
+          .position(forKey: key, level.descend(), hash)
         guard let p = p else { return nil }
         let c = h.itemCount &+ p
-        return children[..<offset].reduce(into: c) { $0 &+= $1.count }
+        return children[..<slot.value].reduce(into: c) { $0 &+= $1.count }
       }
     }
   }
@@ -183,7 +184,7 @@ extension _Node {
       var itemsToSkip = position
       let itemCount = $0.itemCount
       if itemsToSkip < itemCount {
-        return $0[item: itemsToSkip]
+        return $0[item: _Slot(itemsToSkip)]
       }
       itemsToSkip -= itemCount
       let children = $0._children

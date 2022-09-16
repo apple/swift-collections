@@ -26,7 +26,8 @@
 ///     └───┴───┴───┴───┴───┴──────────────────┴───┴───┴───┴───┘
 ///      children                                         items
 ///
-/// Note that the region for items grows downwards from the end.
+/// Note that the region for items grows downwards from the end, so the item
+/// at slot 0 is at the very end of the buffer.
 ///
 /// Two 32-bit bitmaps are used to associate each child and item with their
 /// position in the hash table. The bucket occupied by the *n*th child in the

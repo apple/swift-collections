@@ -12,13 +12,13 @@
 @usableFromInline
 internal struct _UnsafePath {
   @usableFromInline
-  internal var ancestors: _AncestorOffsets
+  internal var ancestors: _AncestorSlots
 
   @usableFromInline
   internal var node: _UnmanagedNode
 
   @usableFromInline
-  internal var _nodeOffset: UInt32
+  internal var nodeSlot: _Slot
 
   @usableFromInline
   internal var level: _Level
@@ -32,7 +32,7 @@ internal struct _UnsafePath {
     self.level = .top
     self.ancestors = .empty
     self.node = root.unmanaged
-    self._nodeOffset = 0
+    self.nodeSlot = .zero
     self._isItem = root.storage.header.hasItems
   }
 }
@@ -40,15 +40,15 @@ internal struct _UnsafePath {
 extension _UnsafePath {
   internal init(
     _ level: _Level,
-    _ ancestors: _AncestorOffsets,
+    _ ancestors: _AncestorSlots,
     _ node: _UnmanagedNode,
-    _ childOffset: Int
+    _ childSlot: _Slot
   ) {
-    assert(childOffset >= 0 && childOffset < node.childCount)
+    assert(childSlot < node.childEnd)
     self.level = level
     self.ancestors = ancestors
     self.node = node
-    self._nodeOffset = UInt32(truncatingIfNeeded: childOffset)
+    self.nodeSlot = childSlot
     self._isItem = false
   }
 }
@@ -60,7 +60,7 @@ extension _UnsafePath: Equatable {
     // Note: we don't compare nodes (node equality should follow from the rest)
     left.level == right.level
     && left.ancestors == right.ancestors
-    && left._nodeOffset == right._nodeOffset
+    && left.nodeSlot == right.nodeSlot
     && left._isItem == right._isItem
   }
 }
@@ -71,7 +71,7 @@ extension _UnsafePath: Hashable {
   internal func hash(into hasher: inout Hasher) {
     // Note: we don't hash nodes, as they aren't compared by ==, either.
     hasher.combine(ancestors.path)
-    hasher.combine(_nodeOffset)
+    hasher.combine(nodeSlot)
     hasher.combine(level._shift)
     hasher.combine(_isItem)
   }
@@ -81,7 +81,7 @@ extension _UnsafePath: Comparable {
   @usableFromInline
   @_effects(releasenone)
   internal static func <(left: Self, right: Self) -> Bool {
-    // This implements a total ordering across paths based on the offset
+    // This implements a total ordering across paths based on the slot
     // sequences they contain, corresponding to a preorder walk of the tree.
     //
     // Paths addressing items within a node are ordered before paths addressing
@@ -98,18 +98,18 @@ extension _UnsafePath: Comparable {
     assert(level < right.level || !right.ancestors.hasDataBelow(level))
     if level < right.level {
       guard !left._isItem else { return true }
-      let l = left._nodeOffset
+      let l = left.nodeSlot
       let r = right.ancestors[level]
       return l < r
     }
     if level < left.level {
       guard !right._isItem else { return false }
       let l = left.ancestors[level]
-      let r = right._nodeOffset
+      let r = right.nodeSlot
       return l < r
     }
     guard left._isItem == right._isItem else { return left._isItem }
-    return left._nodeOffset < right._nodeOffset
+    return left.nodeSlot < right.nodeSlot
   }
 }
 
@@ -123,13 +123,13 @@ extension _UnsafePath: CustomStringConvertible {
       l = l.descend()
     }
     if isPlaceholder {
-      d += "[\(self._nodeOffset)]?"
+      d += "[\(self.nodeSlot)]?"
     } else if isOnItem {
-      d += "[\(self._nodeOffset)]"
+      d += "[\(self.nodeSlot)]"
     } else if isOnChild {
-      d += ".\(self._nodeOffset)"
+      d += ".\(self.nodeSlot)"
     } else if isOnNodeEnd {
-      d += ".$(\(self._nodeOffset))"
+      d += ".$(\(self.nodeSlot))"
     }
     return d
   }
@@ -145,7 +145,7 @@ extension _UnsafePath {
   ///   trigger undefined behavior.
   @inlinable @inline(__always)
   internal var isOnItem: Bool {
-    // Note: this may be true even if nodeOffset == itemCount (insertion paths).
+    // Note: this may be true even if nodeSlot == itemCount (insertion paths).
     _isItem
   }
 
@@ -154,7 +154,7 @@ extension _UnsafePath {
   /// inserted later; they do not occur while simply iterating over existing
   /// items.
   internal var isPlaceholder: Bool {
-    _isItem && _nodeOffset == node.itemCount
+    _isItem && nodeSlot.value == node.itemCount
   }
 
   /// Returns true if this path addresses a node in the tree; otherwise returns
@@ -165,7 +165,7 @@ extension _UnsafePath {
   ///   never get called when the node is no longer valid; otherwise this will
   ///   trigger undefined behavior.
   internal var isOnChild: Bool {
-    !_isItem && _nodeOffset < node.childCount
+    !_isItem && nodeSlot.value < node.childCount
   }
 
   /// Returns true if this path addresses an empty slot within a node in a tree;
@@ -176,29 +176,18 @@ extension _UnsafePath {
   ///   never get called when the node is no longer valid; otherwise this will
   ///   trigger undefined behavior.
   internal var isOnNodeEnd: Bool {
-    !_isItem && _nodeOffset == node.childCount
+    !_isItem && nodeSlot.value == node.childCount
   }
 
   @inlinable
   internal var isOnLeftmostItem: Bool {
     // We are on the leftmost item in the tree if we are currently
     // addressing an item and the ancestors path is all zero bits.
-    _isItem && ancestors == .empty && _nodeOffset == 0
+    _isItem && ancestors == .empty && nodeSlot == .zero
   }
 }
 
 extension _UnsafePath {
-  @inlinable @inline(__always)
-  internal var nodeOffset: Int {
-    get {
-      Int(truncatingIfNeeded: _nodeOffset)
-    }
-    set {
-      assert(newValue >= 0 && newValue <= UInt32.max)
-      _nodeOffset = UInt32(truncatingIfNeeded: newValue)
-    }
-  }
-
   /// Returns an unmanaged reference to the child node this path is currently
   /// addressing.
   ///
@@ -208,28 +197,28 @@ extension _UnsafePath {
   ///   trigger undefined behavior.
   internal var currentChild: _UnmanagedNode {
     assert(isOnChild)
-    return node.unmanagedChild(at: nodeOffset)
+    return node.unmanagedChild(at: nodeSlot)
   }
 
-  internal func childOffset(at level: _Level) -> Int {
+  internal func childSlot(at level: _Level) -> _Slot {
     assert(level < self.level)
     return ancestors[level]
   }
-  /// Returns the offset to the currently addressed item.
+  /// Returns the slot of the currently addressed item.
   ///
   /// - Note: This method needs to resolve the unmanaged node reference
   ///   that is stored in the path. It is up to the caller to ensure this will
   ///   never get called when the node is no longer valid; otherwise this will
   ///   trigger undefined behavior.
   @inlinable @inline(__always)
-  internal var currentItemOffset: Int {
+  internal var currentItemSlot: _Slot {
     assert(isOnItem)
-    return nodeOffset
+    return nodeSlot
   }
 }
 
 extension _UnsafePath {
-  /// Positions this path on the item with the specified offset within its
+  /// Positions this path on the item with the specified slot within its
   /// current node.
   ///
   /// - Note: This method needs to resolve the unmanaged node reference
@@ -237,16 +226,16 @@ extension _UnsafePath {
   ///   never get called when the node is no longer valid; otherwise this will
   ///   trigger undefined behavior.
   @inlinable
-  internal mutating func selectItem(at offset: Int) {
-    // As a special exception, this allows offset to equal the item count.
+  internal mutating func selectItem(at slot: _Slot) {
+    // As a special exception, this allows slot to equal the item count.
     // This can happen for paths that address the position a new item might be
     // inserted later.
-    assert(offset >= 0 && offset <= node.itemCount)
-    nodeOffset = offset
+    assert(slot <= node.itemEnd)
+    nodeSlot = slot
     _isItem = true
   }
 
-  /// Positions this path on the child with the specified offset within its
+  /// Positions this path on the child with the specified slot within its
   /// current node, without descending into it.
   ///
   /// - Note: This method needs to resolve the unmanaged node reference
@@ -254,11 +243,11 @@ extension _UnsafePath {
   ///   never get called when the node is no longer valid; otherwise this will
   ///   trigger undefined behavior.
   @inlinable
-  internal mutating func selectChild(at offset: Int) {
-    // As a special exception, this allows offset to equal the child count.
+  internal mutating func selectChild(at slot: _Slot) {
+    // As a special exception, this allows slot to equal the child count.
     // This is equivalent to a call to `selectEnd()`.
-    assert(offset >= 0 && offset <= node.childCount)
-    nodeOffset = offset
+    assert(slot <= node.childEnd)
+    nodeSlot = slot
     _isItem = false
   }
 
@@ -271,7 +260,7 @@ extension _UnsafePath {
   @usableFromInline
   @_effects(releasenone)
   internal mutating func selectEnd() {
-    nodeOffset = node.childCount
+    nodeSlot = node.childEnd
     _isItem = false
   }
 
@@ -288,26 +277,26 @@ extension _UnsafePath {
   @_effects(releasenone)
   internal mutating func descend() {
     self.node = currentChild
-    self.ancestors[level] = nodeOffset
-    self.nodeOffset = 0
+    self.ancestors[level] = nodeSlot
+    self.nodeSlot = .zero
     self._isItem = node.hasItems
     self.level = level.descend()
   }
 
   internal mutating func ascendToNearestAncestor(
     under root: _RawNode,
-    where test: (_UnmanagedNode, Int) -> Bool
+    where test: (_UnmanagedNode, _Slot) -> Bool
   ) -> Bool {
     if self.level.isAtRoot { return false }
     var best: _UnsafePath? = nil
     var n = root.unmanaged
     var l: _Level = .top
     while l < self.level {
-      let offset = self.ancestors[l]
-      if test(n, offset) {
-        best = _UnsafePath(l, self.ancestors.truncating(to: l), n, offset)
+      let slot = self.ancestors[l]
+      if test(n, slot) {
+        best = _UnsafePath(l, self.ancestors.truncating(to: l), n, slot)
       }
-      n = n.unmanagedChild(at: offset)
+      n = n.unmanagedChild(at: slot)
       l = l.descend()
     }
     guard let best = best else { return false }
@@ -325,7 +314,7 @@ extension _UnsafePath {
     }
     assert(l.descend() == self.level)
     self._isItem = false
-    self.nodeOffset = self.ancestors[l]
+    self.nodeSlot = self.ancestors[l]
     let oldNode = self.node
     self.node = n
     self.ancestors.clear(l)
@@ -337,19 +326,19 @@ extension _UnsafePath {
 extension _UnsafePath {
   mutating func selectNextItem() -> Bool {
     assert(isOnItem)
-    _nodeOffset &+= 1
-    if _nodeOffset < node.itemCount { return true }
-    _nodeOffset = 0
+    nodeSlot = nodeSlot.next()
+    if nodeSlot < node.itemEnd { return true }
+    nodeSlot = .zero
     _isItem = false
     return false
   }
 
   mutating func selectNextChild() -> Bool {
     assert(!isOnItem)
-    let childCount = node.childCount
-    guard _nodeOffset < childCount else { return false }
-    _nodeOffset &+= 1
-    return _nodeOffset < childCount
+    let childEnd = node.childEnd
+    guard nodeSlot < childEnd else { return false }
+    nodeSlot = nodeSlot.next()
+    return nodeSlot < childEnd
   }
 }
 
@@ -366,13 +355,13 @@ extension _UnsafePath {
     assert(isOnChild)
     while true {
       descend()
-      let childCount = node.childCount
-      guard childCount > 0 else { break }
-      selectChild(at: childCount - 1)
+      let childEnd = node.childEnd
+      guard childEnd > .zero else { break }
+      selectChild(at: childEnd.previous())
     }
-    let itemCount = node.itemCount
-    assert(itemCount > 0)
-    selectItem(at: itemCount - 1)
+    let itemEnd = node.itemEnd
+    assert(itemEnd > .zero)
+    selectItem(at: itemEnd.previous())
   }
 
   @usableFromInline
@@ -386,7 +375,7 @@ extension _UnsafePath {
       return true
     }
     if ascendToNearestAncestor(
-      under: root, where: { $1 &+ 1 < $0.childCount }
+      under: root, where: { $1.next() < $0.childEnd }
     ) {
       let r = selectNextChild()
       assert(r)
@@ -402,33 +391,35 @@ extension _UnsafePath {
   @usableFromInline
   @_effects(releasenone)
   internal mutating func findPredecessorItem(under root: _RawNode) -> Bool {
-    switch (isOnItem, nodeOffset > 0) {
+    switch (isOnItem, nodeSlot > .zero) {
     case (true, true):
-      selectItem(at: nodeOffset &- 1)
+      selectItem(at: nodeSlot.previous())
       return true
     case (false, true):
-      selectChild(at: nodeOffset &- 1)
+      selectChild(at: nodeSlot.previous())
       descendToRightMostItem()
       return true
     case (false, false):
       if node.hasItems {
-        selectItem(at: node.itemCount &- 1)
+        selectItem(at: node.itemEnd.previous())
         return true
       }
     case (true, false):
       break
     }
     guard
-      ascendToNearestAncestor(under: root, where: { $0.hasItems || $1 > 0 })
+      ascendToNearestAncestor(
+        under: root,
+        where: { $0.hasItems || $1 > .zero })
     else { return false }
 
-    if nodeOffset > 0 {
-      selectChild(at: nodeOffset &- 1)
+    if nodeSlot > .zero {
+      selectChild(at: nodeSlot.previous())
       descendToRightMostItem()
       return true
     }
     if node.hasItems {
-      selectItem(at: node.itemCount &- 1)
+      selectItem(at: node.itemEnd.previous())
       return true
     }
     return false
@@ -436,21 +427,23 @@ extension _UnsafePath {
 }
 
 extension _RawNode {
-  internal func preorderPosition(_ level: _Level, of path: _UnsafePath) -> Int {
+  internal func preorderPosition(
+    _ level: _Level, of path: _UnsafePath
+  ) -> Int {
     if path.isOnNodeEnd { return count }
     assert(path.isOnItem)
     if level < path.level {
-      let childOffset = path.childOffset(at: level)
+      let childSlot = path.childSlot(at: level)
       return read {
-        let prefix = $0._children[..<childOffset]
+        let prefix = $0._children[..<childSlot.value]
           .reduce($0.itemCount) { $0 + $1.count }
-        let positionWithinChild = $0[child: childOffset]
+        let positionWithinChild = $0[child: childSlot]
           .preorderPosition(level.descend(), of: path)
         return prefix + positionWithinChild
       }
     }
     assert(path.level == level)
-    return path.nodeOffset
+    return path.nodeSlot.value
   }
 
   @usableFromInline
@@ -472,7 +465,7 @@ extension _RawNode {
     if start.level == end.level, start.ancestors == end.ancestors {
       // Shortcut: the paths are under the same node.
       precondition(start.node == end.node, "Internal index validation error")
-      return end.currentItemOffset - start.currentItemOffset
+      return start.currentItemSlot.distance(to: end.currentItemSlot)
     }
     if
       start.level < end.level,
@@ -480,12 +473,12 @@ extension _RawNode {
     {
       // Shortcut: start's node is an ancestor of end's position.
       return start.node._distance(
-        start.level, fromItemAtOffset: start.currentItemOffset, to: end)
+        start.level, fromItemAt: start.currentItemSlot, to: end)
     }
     if start.ancestors.isEqual(to: end.ancestors, upTo: end.level) {
       // Shortcut: end's node is an ancestor of start's position.
       return -end.node._distance(
-        end.level, fromItemAtOffset: end.currentItemOffset, to: start)
+        end.level, fromItemAt: end.currentItemSlot, to: start)
     }
     // No shortcuts -- the two paths are in different subtrees.
     // Start descending from the root to look for the closest common
@@ -502,35 +495,38 @@ extension _RawNode {
     assert(start < end)
     assert(level < start.level)
     assert(level < end.level)
-    let offset1 = start.childOffset(at: level)
-    let offset2 = end.childOffset(at: level)
-    if offset1 == offset2 {
+    let slot1 = start.childSlot(at: level)
+    let slot2 = end.childSlot(at: level)
+    if slot1 == slot2 {
       return read {
-        $0[child: offset1]._distance(level.descend(), from: start, to: end)
+        $0[child: slot1]._distance(level.descend(), from: start, to: end)
       }
     }
     return read {
       let children = $0._children
-      let d1 = children[offset1].preorderPosition(level.descend(), of: start)
-      let d2 = children[offset1 &+ 1 ..< offset2].reduce(0) { $0 + $1.count }
-      let d3 = children[offset2].preorderPosition(level.descend(), of: end)
-      return (children[offset1].count - d1) + d2 + d3
+      let d1 = children[slot1.value]
+        .preorderPosition(level.descend(), of: start)
+      let d2 = children[slot1.value &+ 1 ..< slot2.value]
+        .reduce(0) { $0 + $1.count }
+      let d3 = children[slot2.value]
+        .preorderPosition(level.descend(), of: end)
+      return (children[slot1.value].count - d1) + d2 + d3
     }
   }
 }
 
 extension _UnmanagedNode {
   internal func _distance(
-    _ level: _Level, fromItemAtOffset start: Int, to end: _UnsafePath
+    _ level: _Level, fromItemAt start: _Slot, to end: _UnsafePath
   ) -> Int {
     read {
-      assert(start >= 0 && start < $0.itemCount)
+      assert(start < $0.itemEnd)
       assert(level < end.level)
-      let childOffset = end.childOffset(at: level)
+      let childSlot = end.childSlot(at: level)
       let children = $0._children
-      let prefix = children[..<childOffset]
-        .reduce($0.itemCount - start) { $0 + $1.count }
-      let positionWithinChild = children[childOffset]
+      let prefix = children[..<childSlot.value]
+        .reduce($0.itemCount - start.value) { $0 + $1.count }
+      let positionWithinChild = children[childSlot.value]
         .preorderPosition(level.descend(), of: end)
       return prefix + positionWithinChild
     }
@@ -548,16 +544,16 @@ extension _Node {
         $0.find(path.level, key, hash, forInsert: false)
       }
       switch r {
-      case .found(_, let offset):
-        path.selectItem(at: offset)
+      case .found(_, let slot):
+        path.selectItem(at: slot)
         return (true, path)
-      case .notFound(_, let offset), .newCollision(_, let offset):
-        path.selectItem(at: offset)
+      case .notFound(_, let slot), .newCollision(_, let slot):
+        path.selectItem(at: slot)
         return (false, path)
       case .expansion:
         return (false, path)
-      case .descend(_, let offset):
-        path.selectChild(at: offset)
+      case .descend(_, let slot):
+        path.selectChild(at: slot)
         path.descend()
       }
     }

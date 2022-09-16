@@ -195,7 +195,9 @@ extension _Node {
         assert(target.bytesFree >= space)
       }
     }
+    self.count = 0
     self._invariantCheck()
+    new._invariantCheck()
     self = new
   }
 }

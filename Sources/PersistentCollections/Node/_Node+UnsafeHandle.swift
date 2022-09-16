@@ -149,21 +149,26 @@ extension _Node.UnsafeHandle {
     _header.pointee.childCount
   }
 
+  @inlinable @inline(__always)
+  internal var childEnd: _Slot {
+    _header.pointee.childEnd
+  }
+
   @inlinable
   internal var _children: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: _childrenStart, count: childCount)
   }
 
   @inlinable
-  internal func childPtr(at offset: Int) -> UnsafeMutablePointer<_Node> {
-    assert(offset >= 0 && offset < childCount)
-    return _childrenStart + offset
+  internal func childPtr(at slot: _Slot) -> UnsafeMutablePointer<_Node> {
+    assert(slot.value < childCount)
+    return _childrenStart + slot.value
   }
 
   @inlinable
-  internal subscript(child offset: Int) -> _Node {
-    unsafeAddress { UnsafePointer(childPtr(at: offset)) }
-    nonmutating unsafeMutableAddress { childPtr(at: offset) }
+  internal subscript(child slot: _Slot) -> _Node {
+    unsafeAddress { UnsafePointer(childPtr(at: slot)) }
+    nonmutating unsafeMutableAddress { childPtr(at: slot) }
   }
 
   @inlinable
@@ -182,6 +187,11 @@ extension _Node.UnsafeHandle {
     _header.pointee.itemCount
   }
 
+  @inlinable @inline(__always)
+  internal var itemEnd: _Slot {
+    _header.pointee.itemEnd
+  }
+
   @inlinable
   internal var reverseItems: UnsafeMutableBufferPointer<Element> {
     let c = itemCount
@@ -189,15 +199,15 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable
-  internal func itemPtr(at offset: Int) -> UnsafeMutablePointer<Element> {
-    assert(offset >= 0 && offset < itemCount)
-    return _itemsEnd.advanced(by: -1 &- offset)
+  internal func itemPtr(at slot: _Slot) -> UnsafeMutablePointer<Element> {
+    assert(slot.value < itemCount)
+    return _itemsEnd.advanced(by: -1 &- slot.value)
   }
 
   @inlinable
-  internal subscript(item offset: Int) -> Element {
-    unsafeAddress { UnsafePointer(itemPtr(at: offset)) }
-    unsafeMutableAddress { itemPtr(at: offset) }
+  internal subscript(item slot: _Slot) -> Element {
+    unsafeAddress { UnsafePointer(itemPtr(at: slot)) }
+    unsafeMutableAddress { itemPtr(at: slot) }
   }
 }
 
@@ -214,6 +224,6 @@ extension _Node.UnsafeHandle {
 
   @inlinable
   internal var isAtrophiedNode: Bool {
-    hasSingletonChild && self[child: 0].isCollisionNode
+    hasSingletonChild && self[child: .zero].isCollisionNode
   }
 }
