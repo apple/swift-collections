@@ -14,22 +14,28 @@ import _CollectionsUtilities
 extension _Node {
   @usableFromInline
   internal func dump(
-    firstPrefix: String = "", restPrefix: String = "", limit: Int = Int.max
+    iterationOrder: Bool = false,
+    limit: Int = Int.max,
+    firstPrefix: String = "",
+    restPrefix: String = "",
+    depth: Int = 0
   ) {
     read {
       $0.dump(
+        iterationOrder: iterationOrder,
+        limit: limit,
+        extra: "count: \(count), ",
         firstPrefix: firstPrefix,
         restPrefix: restPrefix,
-        extra: "count: \(count), ",
-        limit: limit)
+        depth: depth)
     }
   }
 }
 
 extension _Node.Storage {
   @usableFromInline
-  final internal func dump() {
-    UnsafeHandle.read(self) { $0.dump() }
+  final internal func dump(iterationOrder: Bool = false) {
+    UnsafeHandle.read(self) { $0.dump(iterationOrder: iterationOrder) }
   }
 }
 
@@ -42,11 +48,22 @@ extension _Node.UnsafeHandle {
 
   @usableFromInline
   internal func dump(
+    iterationOrder: Bool = false,
+    limit: Int = .max,
+    extra: String = "",
     firstPrefix: String = "",
     restPrefix: String = "",
-    extra: String = "",
-    limit: Int = Int.max
+    depth: Int = 0
   ) {
+    var firstPrefix = firstPrefix
+    var restPrefix = restPrefix
+    if iterationOrder && depth == 0 {
+      firstPrefix += "@"
+      restPrefix += "@"
+    }
+    if iterationOrder {
+      firstPrefix += "  "
+    }
     print("""
       \(firstPrefix)\(isCollisionNode ? "CollisionNode" : "Node")(\
       at: \(_addressString(for: _header)), \
@@ -55,7 +72,20 @@ extension _Node.UnsafeHandle {
       freeBytes: \(bytesFree))
       """)
     guard limit > 0 else { return }
-    if isCollisionNode {
+    if iterationOrder {
+      for offset in 0 ..< itemCount {
+        print("  \(restPrefix)[\(offset)]  \(_itemString(at: offset))")
+      }
+      for offset in 0 ..< childCount {
+        self[child: offset].dump(
+          iterationOrder: true,
+          limit: limit - 1,
+          firstPrefix: "  \(restPrefix).\(offset)",
+          restPrefix: "  \(restPrefix).\(offset)",
+          depth: depth + 1)
+      }
+    }
+    else if isCollisionNode {
       for offset in 0 ..< itemCount {
         print("\(restPrefix)[\(offset)] \(_itemString(at: offset))")
       }
@@ -70,9 +100,11 @@ extension _Node.UnsafeHandle {
           itemOffset += 1
         } else if childMap.contains(bucket) {
           self[child: childOffset].dump(
+            iterationOrder: false,
+            limit: limit - 1,
             firstPrefix: "\(restPrefix)  \(bucketStr) ",
             restPrefix: "\(restPrefix)     ",
-            limit: limit - 1)
+            depth: depth + 1)
           childOffset += 1
         }
       }
