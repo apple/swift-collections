@@ -99,13 +99,45 @@ let _fixtures: KeyValuePairs<String, [String]> = [
     "36664",
     "36667",
   ],
-  "chain": [
+  "chain-left": [
     "0",
     "10",
     "110",
     "1110",
     "11110",
     "11111",
+  ],
+  "chain-right": [
+    "1",
+    "01",
+    "001",
+    "0001",
+    "00001",
+    "000001",
+  ],
+  "expansion0": [
+    "00000001*3",
+    "00001",
+  ],
+  "expansion1": [
+    "00000001*3",
+    "01",
+    "00001",
+  ],
+  "expansion2": [
+    "11111111*3",
+    "10",
+    "11110",
+  ],
+  "expansion3": [
+    "01",
+    "00001",
+    "00000001*3",
+  ],
+  "expansion4": [
+    "10",
+    "11110",
+    "11111111*3",
   ],
   "nested": [
     "50",
@@ -176,7 +208,14 @@ func withEachFixture(
     let entry = TestContext.current.push("fixture: \(name)")
     defer { TestContext.current.pop(entry) }
 
-    let maxDepth = 15 // Larger than the actual maximum tree depth
+    let maxDepth = PersistentDictionary<Int, Int>._maxDepth
+
+    func normalized(_ path: String) -> String {
+      precondition(path.unicodeScalars.count < maxDepth)
+      let c = Swift.max(0, maxDepth - path.unicodeScalars.count)
+      return path.uppercased() + String(repeating: "0", count: c)
+    }
+
     var paths: [String] = []
     var seen: Set<String> = []
     for item in fixture {
@@ -187,44 +226,53 @@ func withEachFixture(
         let p = String(item.unicodeScalars.prefix(upTo: i))
         guard let count = Int(item.suffix(from: i).dropFirst(), radix: 10)
         else { fatalError("Invalid item: '\(item)'") }
-        path = p.appending(String(repeating: "0", count: maxDepth - p.unicodeScalars.count))
+        path = normalized(p)
         paths.append(contentsOf: repeatElement(path, count: count))
       } else {
-        path = item
+        path = normalized(item)
         paths.append(path)
       }
 
-      let normalized = path
-        .uppercased()
-        .appending(String(repeating: "0", count: maxDepth - path.unicodeScalars.count))
-      if !seen.insert(normalized).inserted {
+      if !seen.insert(path).inserted {
         fatalError("Unexpected duplicate path: '\(path)'")
+      }
+    }
+
+    var seenPrefixes: Set<Substring> = []
+    var collidingPrefixes: Set<Substring> = []
+    for p in paths {
+      assert(p.count == maxDepth)
+      for i in p.indices {
+        let prefix = p[..<i]
+        if !seenPrefixes.insert(prefix).inserted {
+          collidingPrefixes.insert(prefix)
+        }
+      }
+      if !seenPrefixes.insert(p[...]).inserted {
+        collidingPrefixes.insert(p[...])
       }
     }
 
     // Sort paths into the order that we expect items will appear in the
     // dictionary.
     paths.sort { a, b in
-      var a = a.unicodeScalars[...]
-      var b = b.unicodeScalars[...]
-      // Ignore common prefix
-      while !a.isEmpty && !b.isEmpty && a.first == b.first {
-        a = a.dropFirst()
-        b = b.dropFirst()
+      var i = a.startIndex
+      var j = b.startIndex
+      while i < a.endIndex && j < b.endIndex {
+        let ac = collidingPrefixes.contains(a[...i])
+        let bc = collidingPrefixes.contains(b[...j])
+        switch (ac, bc) {
+        case (true, false): return false
+        case (false, true): return true
+        default: break
+        }
+        if a[i] < b[j] { return true }
+        if a[j] > b[j] { return false }
+        a.formIndex(after: &i)
+        b.formIndex(after: &j)
       }
-      switch (a.isEmpty, b.isEmpty) {
-      case (true, true): return false // a == b
-      case (true, false): return true // a < b, like 44 < 443
-      case (false, true): return false // a > b like 443 > 44
-      case (false, false): break
-      }
-      if a.count == 1 && b.count > 1 {
-        return true // a < b, like 45 < 423
-      }
-      if b.count == 1 && a.count > 1 {
-        return false // a > b, like 423 > 45
-      }
-      return a.first! < b.first!
+      precondition(i == a.endIndex && j == b.endIndex)
+      return false
     }
 
     var items: [(key: RawCollider, value: Int)] = []
@@ -246,14 +294,17 @@ func withEachFixture(
 
 extension LifetimeTracker {
   func persistentDictionary(
-    for fixture: [(key: RawCollider, value: Int)]
+    for fixture: Fixture<RawCollider, Int>
   ) -> (
     map: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>>,
     ref: [(key: LifetimeTracked<RawCollider>, value: LifetimeTracked<Int>)]
   ) {
-    let ref = fixture.map { (key, value) in
+    let ref = fixture.items.map { (key, value) in
       (key: self.instance(for: key), value: self.instance(for: value))
     }
-    return (PersistentDictionary(uniqueKeysWithValues: ref), ref)
+    let ref2 = fixture.items.map { (key, value) in
+      (key: self.instance(for: key), value: self.instance(for: value))
+    }
+    return (PersistentDictionary(uniqueKeysWithValues: ref2), ref)
   }
 }

@@ -82,7 +82,10 @@ extension _Node.UnsafeHandle {
   /// `itemMap` must not yet reflect the removal at the time this
   /// function is called. This method does not update `itemMap`.
   @inlinable
-  internal func _removeItem(at slot: _Slot) -> Element {
+  internal func _removeItem<R>(
+    at slot: _Slot,
+    by remover: (UnsafeMutablePointer<Element>) -> R
+  ) -> R {
     assertMutable()
     let c = itemCount
     assert(slot.value < c)
@@ -95,9 +98,10 @@ extension _Node.UnsafeHandle {
 
     let prefix = c &- 1 &- slot.value
     let q = start + prefix
-    let item = q.move()
-    (start + 1).moveInitialize(from: start, count: prefix)
-    return item
+    defer {
+      (start + 1).moveInitialize(from: start, count: prefix)
+    }
+    return remover(q)
   }
 
   /// Remove and return the child at `slot`, increasing the amount of free
@@ -159,19 +163,22 @@ extension _Node {
     }
   }
 
-  /// Remove and return the item at `slot`, increasing the amount of free
+  /// Remove the item at `slot`, increasing the amount of free
   /// space available in the node.
+  ///
+  /// The closure `remove` is called to perform the deinitialization of the
+  /// storage slot corresponding to the item to be removed.
   @inlinable
-  internal mutating func removeItem(
-    at slot: _Slot, _ bucket: _Bucket
-  ) -> Element {
+  internal mutating func removeItem<R>(
+    at slot: _Slot, _ bucket: _Bucket,
+    by remover: (UnsafeMutablePointer<Element>) -> R
+  ) -> R {
     defer { _invariantCheck() }
     assert(count > 0)
     count &-= 1
     return update {
-      let old = $0._removeItem(at: slot)
+      let old = $0._removeItem(at: slot, by: remover)
       if $0.isCollisionNode {
-        assert(bucket.isInvalid)
         assert(slot.value < $0.collisionCount)
         $0.collisionCount &-= 1
       } else {
@@ -208,7 +215,7 @@ extension _Node {
     count = 0
     return update {
       assert($0.itemCount == 1 && $0.childCount == 0)
-      let old = $0._removeItem(at: .zero)
+      let old = $0._removeItem(at: .zero) { $0.move() }
       $0.itemMap = .empty
       $0.childMap = .empty
       return old
@@ -258,27 +265,19 @@ extension _Node {
       insertItem((key, value), at: slot, bucket)
       return nil
     case .newCollision(let bucket, let slot):
-      let existingHash = read { _Hash($0[item: slot].key) }
-      if hash == existingHash, hasSingletonItem {
-        // Convert current node to a collision node.
-        ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
-        update { $0.collisionCount = 1 }
-        insertItem((key, value), at: _Slot(1), .invalid)
-      } else {
-        ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewCollision)
-        let existing = removeItem(at: slot, bucket)
-        let node = _Node(
-          level: level.descend(),
-          item1: existing, existingHash,
-          item2: (key, value), hash)
-        insertChild(node, bucket)
-      }
+      _ = _insertNewCollision(
+        isUnique: isUnique,
+        level: level,
+        for: hash,
+        replacing: slot, bucket,
+        inserter: { $0.initialize(to: (key, value)) })
       return nil
     case .expansion(let collisionHash):
-      self = Self(
+      self = _Node.build(
         level: level,
-        item1: (key, value), hash,
-        child2: self, collisionHash)
+        item1: { $0.initialize(to: (key, value)) }, hash,
+        child2: self, collisionHash
+      ).top
       return nil
     case .descend(_, let slot):
       ensureUnique(isUnique: isUnique)
@@ -288,6 +287,36 @@ extension _Node {
       if old == nil { count &+= 1 }
       return old
     }
+  }
+
+  @inlinable
+  internal mutating func _insertNewCollision(
+    isUnique: Bool,
+    level: _Level,
+    for hash: _Hash,
+    replacing slot: _Slot, _ bucket: _Bucket,
+    inserter: (UnsafeMutablePointer<Element>) -> Void
+  ) -> (node: _UnmanagedNode, slot: _Slot) {
+    let existingHash = read { _Hash($0[item: slot].key) }
+    if hash == existingHash, hasSingletonItem {
+      // Convert current node to a collision node.
+      ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
+      count &+= 1
+      update {
+        $0.collisionCount = 1
+        let p = $0._makeRoomForNewItem(at: _Slot(1), .invalid)
+        inserter(p)
+      }
+      return (unmanaged, _Slot(1))
+    }
+    ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewCollision)
+    let existing = removeItem(at: slot, bucket) { $0.move() }
+    let r = _Node.build(
+      level: level.descend(),
+      item1: existing, existingHash,
+      item2: inserter, hash)
+    insertChild(r.top, bucket)
+    return (r.leaf, r.slot2)
   }
 }
 
@@ -310,14 +339,7 @@ extension _Node {
     let r = find(level, key, hash, forInsert: false)
     switch r {
     case .found(let bucket, let slot):
-      let old = removeItem(at: slot, bucket)
-      if isAtrophied {
-        self = removeSingletonChild()
-      }
-      if level.isAtRoot, isCollisionNode, hasSingletonItem {
-        self._convertToRegularNode()
-      }
-      return old
+      return _removeItemFromUniqueLeafNode(level, bucket, slot) { $0.move() }
     case .notFound, .newCollision, .expansion:
       return nil
     case .descend(let bucket, let slot):
@@ -329,17 +351,47 @@ extension _Node {
         return (old, needsInlining)
       }
       guard old != nil else { return nil }
-      count &-= 1
-      if needsInlining {
-        ensureUnique(isUnique: true, withFreeSpace: Self.spaceForInlinedChild)
-        var child = self.removeChild(at: slot, bucket)
-        let item = child.removeSingletonItem()
-        insertItem(item, bucket)
-      }
-      if isAtrophied {
-        self = removeSingletonChild()
-      }
+      _fixupUniqueAncestorAfterItemRemoval(
+        slot, { _ in bucket }, needsInlining: needsInlining)
       return old
+    }
+  }
+
+  @inlinable
+  internal mutating func _removeItemFromUniqueLeafNode<R>(
+    _ level: _Level,
+    _ bucket: _Bucket,
+    _ slot: _Slot,
+    by remover: (UnsafeMutablePointer<Element>) -> R
+  ) -> R {
+    assert(isUnique())
+    let result = removeItem(at: slot, bucket, by: remover)
+    if isAtrophied {
+      self = removeSingletonChild()
+    }
+    if level.isAtRoot, isCollisionNode, hasSingletonItem {
+      self._convertToRegularNode()
+    }
+    return result
+  }
+
+  @inlinable
+  internal mutating func _fixupUniqueAncestorAfterItemRemoval(
+    _ slot: _Slot,
+    _ bucket: (inout Self) -> _Bucket,
+    needsInlining: Bool
+  ) {
+    assert(isUnique())
+    count &-= 1
+    if needsInlining {
+      ensureUnique(isUnique: true, withFreeSpace: Self.spaceForInlinedChild)
+      let bucket = bucket(&self)
+      var child = self.removeChild(at: slot, bucket)
+      let item = child.removeSingletonItem()
+      insertItem(item, bucket)
+    }
+    if isAtrophied {
+      self = removeSingletonChild()
     }
   }
 
@@ -361,44 +413,240 @@ extension _Node {
     let r = find(level, key, hash, forInsert: false)
     switch r {
     case .found(let bucket, let slot):
-      // Don't copy the node if we'd immediately discard it.
-      let willAtrophy = read {
-        $0.itemCount == 1
-        && $0.childCount == 1
-        && $0[child: .zero].isCollisionNode
-      }
-      if willAtrophy {
-        return read { ($0[child: .zero], $0[item: .zero]) }
-      }
-      var node = self.copy()
-      let old = node.removeItem(at: slot, bucket)
-      if level.isAtRoot, node.isCollisionNode, node.hasSingletonItem {
-        node._convertToRegularNode()
-      }
-      node._invariantCheck()
-      return (node, old)
+      return _removingItemFromLeaf(level, slot, bucket)
     case .notFound, .newCollision, .expansion:
       return nil
     case .descend(let bucket, let slot):
       let r = read { $0[child: slot].removing(key, level.descend(), hash) }
-      guard var r = r else { return nil }
-      if r.replacement.hasSingletonItem {
-        var node = copy(withFreeSpace: Self.spaceForInlinedChild)
-        _ = node.removeChild(at: slot, bucket)
-        let item = r.replacement.removeSingletonItem()
-        node.insertItem(item, bucket)
-        node._invariantCheck()
-        return (node, r.old)
-      }
-      if r.replacement.isCollisionNode && self.hasSingletonChild {
-        // Don't return an atrophied node.
-        return (r.replacement, r.old)
-      }
-      var node = copy()
-      node.update { $0[child: slot] = r.replacement }
-      node.count &-= 1
+      guard let r = r else { return nil }
+      return (
+        _fixedUpAncestorAfterItemRemoval(level, slot, bucket, r.replacement),
+        r.old)
+    }
+  }
+
+  @inlinable
+  internal func _removingItemFromLeaf(
+    _ level: _Level, _ slot: _Slot, _ bucket: _Bucket
+  )  -> (replacement: _Node, old: Element) {
+    // Don't copy the node if we'd immediately discard it.
+    let willAtrophy = read {
+      $0.itemCount == 1
+      && $0.childCount == 1
+      && $0[child: .zero].isCollisionNode
+    }
+    if willAtrophy {
+      return read { (replacement: $0[child: .zero], old: $0[item: .zero]) }
+    }
+    var node = self.copy()
+    let old = node.removeItem(at: slot, bucket) { $0.move() }
+    if level.isAtRoot, node.isCollisionNode, node.hasSingletonItem {
+      node._convertToRegularNode()
+    }
+    node._invariantCheck()
+    return (node, old)
+  }
+
+  @inlinable
+  internal func _fixedUpAncestorAfterItemRemoval(
+    _ level: _Level,
+    _ slot: _Slot,
+    _ bucket: _Bucket,
+    _ newChild: __owned _Node
+  )  -> _Node {
+    var newChild = newChild
+    if newChild.hasSingletonItem {
+      var node = copy(withFreeSpace: Self.spaceForInlinedChild)
+      _ = node.removeChild(at: slot, bucket)
+      let item = newChild.removeSingletonItem()
+      node.insertItem(item, bucket)
       node._invariantCheck()
-      return (node, r.old)
+      return node
+    }
+    if newChild.isCollisionNode && self.hasSingletonChild {
+      // Don't return an atrophied node.
+      return newChild
+    }
+    var node = copy()
+    node.update { $0[child: slot] = newChild }
+    node.count &-= 1
+    node._invariantCheck()
+    return node
+  }
+}
+
+extension _Node {
+  @inlinable
+  internal mutating func remove(
+    _ level: _Level, at path: _UnsafePath
+  ) -> Element {
+    defer { _invariantCheck() }
+    guard self.isUnique() else {
+      let r = removing(level, at: path)
+      self = r.replacement
+      return r.old
+    }
+    if level == path.level {
+      let slot = path.currentItemSlot
+      let bucket = read { $0.itemBucket(at: slot) }
+      return _removeItemFromUniqueLeafNode(
+        level, bucket, slot, by: { $0.move() })
+    }
+    let slot = path.childSlot(at: level)
+    let (item, needsInlining) = update {
+      let child = $0.childPtr(at: slot)
+      let item = child.pointee.remove(level.descend(), at: path)
+      return (item, child.pointee.hasSingletonItem)
+    }
+    _fixupUniqueAncestorAfterItemRemoval(
+      slot,
+      { $0.read { $0.childMap.bucket(at: slot) } },
+      needsInlining: needsInlining)
+    return item
+  }
+
+  @inlinable
+  internal func removing(
+    _ level: _Level, at path: _UnsafePath
+  ) -> (replacement: _Node, old: Element) {
+    if level == path.level {
+      let slot = path.currentItemSlot
+      let bucket = read { $0.itemBucket(at: slot) }
+      return _removingItemFromLeaf(level, slot, bucket)
+    }
+    let slot = path.childSlot(at: level)
+    let (bucket, r) = read {
+      ($0.childMap.bucket(at: slot),
+       $0[child: slot].removing(level.descend(), at: path))
+    }
+    return (
+      _fixedUpAncestorAfterItemRemoval(level, slot, bucket, r.replacement),
+      r.old
+    )
+  }
+}
+
+extension _Node {
+  @usableFromInline
+  @frozen
+  internal struct ValueUpdateState {
+    @usableFromInline
+    internal var key: Key
+
+    @usableFromInline
+    internal var value: Value?
+
+    @usableFromInline
+    internal let hash: _Hash
+
+    @usableFromInline
+    internal var path: _UnsafePath
+
+    @usableFromInline
+    internal var found: Bool
+
+    @inlinable
+    internal init(
+      _ key: Key,
+      _ hash: _Hash,
+      _ path: _UnsafePath
+    ) {
+      self.key = key
+      self.value = nil
+      self.hash = hash
+      self.path = path
+      self.found = false
+    }
+  }
+
+  @inlinable
+  internal mutating func prepareValueUpdate(
+    _ key: Key,
+    _ hash: _Hash
+  ) -> ValueUpdateState {
+    var state = ValueUpdateState(key, hash, _UnsafePath(root: raw))
+    _prepareValueUpdate(&state)
+    return state
+  }
+
+  @inlinable
+  internal mutating func _prepareValueUpdate(
+    _ state: inout ValueUpdateState
+  ) {
+    // This doesn't make room for a new item if the key doesn't already exist
+    // but it does ensure that all parent nodes along its eventual path are
+    // uniquely held.
+    //
+    // If the key already exists, we ensure uniqueness for its node and extract
+    // its item but otherwise leave the tree as it was.
+    let isUnique = self.isUnique()
+    let r = find(state.path.level, state.key, state.hash, forInsert: true)
+    switch r {
+    case .found(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      state.path.node = unmanaged
+      state.path.selectItem(at: slot)
+      state.found = true
+      (state.key, state.value) = update { $0.itemPtr(at: slot).move() }
+
+    case .notFound(_, let slot):
+      state.path.selectItem(at: slot)
+
+    case .newCollision(_, let slot):
+      state.path.selectItem(at: slot)
+
+    case .expansion(_):
+      state.path.selectEnd()
+
+    case .descend(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      state.path.selectChild(at: slot)
+      state.path.descend()
+      update { $0[child: slot]._prepareValueUpdate(&state) }
+    }
+  }
+
+  @inlinable
+  internal mutating func finalizeValueUpdate(
+    _ state: __owned ValueUpdateState
+  ) {
+    switch (state.found, state.value != nil) {
+    case (true, true):
+      // Fast path: updating an existing value.
+      UnsafeHandle.update(state.path.node) {
+        $0.itemPtr(at: state.path.currentItemSlot)
+          .initialize(to: (state.key, state.value.unsafelyUnwrapped))
+      }
+    case (true, false):
+      // Removal
+      _finalizeRemoval(.top, state.hash, at: state.path)
+    case (false, true):
+      // Insertion
+      _ = updateValue(
+        state.value.unsafelyUnwrapped, forKey: state.key, .top, state.hash)
+    case (false, false):
+      // Noop
+      break
+    }
+  }
+
+  @inlinable
+  internal mutating func _finalizeRemoval(
+    _ level: _Level, _ hash: _Hash, at path: _UnsafePath
+  ) {
+    assert(isUnique())
+    if level == path.level {
+      _removeItemFromUniqueLeafNode(
+        level, hash[level], path.currentItemSlot, by: { _ in })
+    } else {
+      let slot = path.childSlot(at: level)
+      let needsInlining = update {
+        let child = $0.childPtr(at: slot)
+        child.pointee._finalizeRemoval(level.descend(), hash, at: path)
+        return child.pointee.hasSingletonItem
+      }
+      _fixupUniqueAncestorAfterItemRemoval(
+        slot, { _ in hash[level] }, needsInlining: needsInlining)
     }
   }
 }
@@ -435,9 +683,9 @@ extension _Node {
 
   @inlinable
   internal mutating func prepareDefaultedValueUpdate(
+    _ level: _Level,
     _ key: Key,
     _ defaultValue: () -> Value,
-    _ level: _Level,
     _ hash: _Hash
   ) -> DefaultedValueUpdateState {
     let isUnique = self.isUnique()
@@ -454,6 +702,7 @@ extension _Node {
     case .notFound(let bucket, let slot):
       ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
       update { _ = $0._makeRoomForNewItem(at: slot, bucket) }
+      self.count &+= 1
       return DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,
@@ -461,50 +710,36 @@ extension _Node {
         inserted: true)
 
     case .newCollision(let bucket, let slot):
-      let existingHash = read { _Hash($0[item: slot].key) }
-      if hash == existingHash, hasSingletonItem {
-        // Convert current node to a collision node.
-        ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
-        update {
-          $0.collisionCount = 1
-          _ = $0._makeRoomForNewItem(at: _Slot(1), .invalid)
-        }
-        self.count &+= 1
-        return DefaultedValueUpdateState(
-          (key, defaultValue()),
-          in: unmanaged,
-          at: _Slot(1),
-          inserted: true)
-      }
-      ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewCollision)
-      let existing = removeItem(at: slot, bucket)
-      var node = _Node(
-        level: level.descend(),
-        item1: existing, existingHash,
-        item2: (key, defaultValue()), hash)
-      insertChild(node, bucket)
+      let r = _insertNewCollision(
+        isUnique: isUnique,
+        level: level,
+        for: hash,
+        replacing: slot, bucket,
+        inserter: { _ in })
       return DefaultedValueUpdateState(
-        node.update { $0.itemPtr(at: _Slot(1)).move() },
-        in: node.unmanaged,
-        at: _Slot(1),
+        (key, defaultValue()),
+        in: r.node,
+        at: r.slot,
         inserted: true)
 
     case .expansion(let collisionHash):
-      self = Self(
+      let r = _Node.build(
         level: level,
-        item1: (key, defaultValue()), hash,
-        child2: self, collisionHash)
+        item1: { _ in }, hash,
+        child2: self, collisionHash
+      )
+      self = r.top
       return DefaultedValueUpdateState(
-        update { $0.itemPtr(at: .zero).move() },
-        in: unmanaged,
-        at: .zero,
+        (key, defaultValue()),
+        in: r.leaf,
+        at: r.slot1,
         inserted: true)
 
     case .descend(_, let slot):
       ensureUnique(isUnique: isUnique)
       let res = update {
         $0[child: slot].prepareDefaultedValueUpdate(
-          key, defaultValue, level.descend(), hash)
+          level.descend(), key, defaultValue, hash)
       }
       if res.inserted { count &+= 1 }
       return res

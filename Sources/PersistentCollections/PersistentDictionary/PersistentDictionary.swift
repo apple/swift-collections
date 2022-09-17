@@ -30,11 +30,10 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
   @inlinable
   internal init(_new: _Node) {
-    self._root = _new
     // Ideally we would simply just generate a true random number, but the
     // memory address of the root node is a reasonable substitute.
-    let address = Unmanaged.passUnretained(_root.raw.storage).toOpaque()
-    self._version = UInt(bitPattern: address)
+    let address = Unmanaged.passUnretained(_new.raw.storage).toOpaque()
+    self.init(_root: _new, version: UInt(bitPattern: address))
   }
 }
 
@@ -142,12 +141,21 @@ extension PersistentDictionary {
     get {
       _root.get(.top, key, _Hash(key))
     }
-    mutating set {
+    set {
       if let value = newValue {
         updateValue(value, forKey: key)
       } else {
         removeValue(forKey: key)
       }
+    }
+    @inline(__always) // https://github.com/apple/swift-collections/issues/164
+    _modify {
+      _invalidateIndices()
+      var state = _root.prepareValueUpdate(key, _Hash(key))
+      defer {
+        _root.finalizeValueUpdate(state)
+      }
+      yield &state.value
     }
   }
 
@@ -232,7 +240,7 @@ extension PersistentDictionary {
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
       var state = _root.prepareDefaultedValueUpdate(
-        key, defaultValue, .top, _Hash(key))
+        .top, key, defaultValue, _Hash(key))
       if state.inserted { _invalidateIndices() }
       defer {
         _root.finalizeDefaultedValueUpdate(state)
@@ -371,6 +379,14 @@ extension PersistentDictionary {
     var copy = self
     copy.removeValue(forKey: key)
     return copy
+  }
+
+  @inlinable
+  public mutating func remove(at index: Index) -> Element {
+    precondition(_isValid(index), "Invalid index")
+    precondition(index._path._isItem, "Can't remove item at end index")
+    _invalidateIndices()
+    return _root.remove(.top, at: index._path)
   }
 }
 

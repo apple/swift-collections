@@ -171,6 +171,12 @@ extension _Node.UnsafeHandle {
     _header.pointee.childCount
   }
 
+  @inlinable
+  internal func childBucket(at slot: _Slot) -> _Bucket {
+    guard !isCollisionNode else { return .invalid }
+    return childMap.bucket(at: slot)
+  }
+
   @inlinable @inline(__always)
   internal var childEnd: _Slot {
     _header.pointee.childEnd
@@ -207,6 +213,12 @@ extension _Node.UnsafeHandle {
   @inlinable @inline(__always)
   internal var itemCount: Int {
     _header.pointee.itemCount
+  }
+
+  @inlinable
+  internal func itemBucket(at slot: _Slot) -> _Bucket {
+    guard !isCollisionNode else { return .invalid }
+    return itemMap.bucket(at: slot)
   }
 
   @inlinable @inline(__always)

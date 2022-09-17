@@ -16,3 +16,9 @@ extension PersistentDictionary {
     _root.dump(iterationOrder: iterationOrder)
   }
 }
+
+extension PersistentDictionary {
+  public static var _maxDepth: Int {
+    _Level.limit
+  }
+}

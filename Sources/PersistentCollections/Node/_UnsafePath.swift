@@ -66,7 +66,7 @@ extension _UnsafePath {
     _ level: _Level,
     _ ancestors: _AncestorSlots,
     _ node: _UnmanagedNode,
-    _ childSlot: _Slot
+    childSlot: _Slot
   ) {
     assert(childSlot < node.childEnd)
     self.level = level
@@ -74,6 +74,21 @@ extension _UnsafePath {
     self.node = node
     self.nodeSlot = childSlot
     self._isItem = false
+  }
+
+  @inlinable
+  internal init(
+    _ level: _Level,
+    _ ancestors: _AncestorSlots,
+    _ node: _UnmanagedNode,
+    itemSlot: _Slot
+  ) {
+    assert(itemSlot < node.itemEnd)
+    self.level = level
+    self.ancestors = ancestors
+    self.node = node
+    self.nodeSlot = itemSlot
+    self._isItem = true
   }
 }
 
@@ -225,6 +240,7 @@ extension _UnsafePath {
   ///
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
+  @inlinable
   internal func childSlot(at level: _Level) -> _Slot {
     assert(level < self.level)
     return ancestors[level]
@@ -317,7 +333,8 @@ extension _UnsafePath {
     while l < self.level {
       let slot = self.ancestors[l]
       if test(n, slot) {
-        best = _UnsafePath(l, self.ancestors.truncating(to: l), n, slot)
+        best = _UnsafePath(
+          l, self.ancestors.truncating(to: l), n, childSlot: slot)
       }
       n = n.unmanagedChild(at: slot)
       l = l.descend()
