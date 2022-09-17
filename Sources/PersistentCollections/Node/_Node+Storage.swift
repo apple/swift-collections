@@ -152,7 +152,7 @@ extension _Node {
   internal func copy(withFreeSpace space: Int = 0) -> _Node {
     assert(space >= 0)
     let capacity = read {
-      $0.byteCapacity &+ Swift.max(0, space &- $0.bytesFree)
+      $0.byteCapacity &- $0.bytesFree &+ space
     }
     var new = Self(byteCapacity: capacity)
     new.count = self.count
