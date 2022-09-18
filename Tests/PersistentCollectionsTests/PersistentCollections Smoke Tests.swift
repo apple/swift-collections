@@ -592,7 +592,7 @@ final class PersistentDictionarySmokeTests: CollectionTestCase {
   }
 
   func test_indexForKey() {
-    let input = 0 ..< 1
+    let input = 0 ..< 10_000
     let d = PersistentDictionary(
       uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
     for key in input {
