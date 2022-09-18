@@ -23,7 +23,7 @@ internal struct _UnmanagedNode {
   @usableFromInline
   internal var ref: Unmanaged<_RawStorage>
 
-  @inlinable
+  @inlinable @inline(__always)
   internal init(_ storage: _RawStorage) {
     self.ref = .passUnretained(storage)
   }

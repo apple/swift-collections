@@ -58,6 +58,13 @@ extension _AncestorSlots {
     }
   }
 
+  @inlinable @inline(__always)
+  internal func appending(_ slot: _Slot, at level: _Level) -> Self {
+    var result = self
+    result[level] = slot
+    return result
+  }
+
   /// Clear the slot at the specified level, by setting it to zero.
   @inlinable
   internal mutating func clear(_ level: _Level) {

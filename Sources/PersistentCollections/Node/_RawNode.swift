@@ -41,7 +41,7 @@ extension _RawNode {
 }
 
 extension _RawNode {
-  @inline(__always)
+  @inlinable @inline(__always)
   internal var unmanaged: _UnmanagedNode {
     _UnmanagedNode(storage)
   }

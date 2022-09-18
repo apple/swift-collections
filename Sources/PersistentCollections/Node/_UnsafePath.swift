@@ -50,8 +50,7 @@ internal struct _UnsafePath {
   @usableFromInline
   internal var _isItem: Bool
 
-  @usableFromInline
-  @_effects(releasenone)
+  @inlinable
   internal init(root: __shared _RawNode) {
     self.level = .top
     self.ancestors = .empty
@@ -193,6 +192,7 @@ extension _UnsafePath {
   ///
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
+  @inlinable
   internal var isPlaceholder: Bool {
     _isItem && nodeSlot.value == node.itemCount
   }
@@ -202,6 +202,7 @@ extension _UnsafePath {
   ///
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
+  @inlinable
   internal var isOnChild: Bool {
     !_isItem && nodeSlot.value < node.childCount
   }
@@ -211,6 +212,7 @@ extension _UnsafePath {
   ///
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
+  @inlinable
   internal var isOnNodeEnd: Bool {
     !_isItem && nodeSlot.value == node.childCount
   }
@@ -231,6 +233,7 @@ extension _UnsafePath {
   ///
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
+  @inlinable
   internal var currentChild: _UnmanagedNode {
     assert(isOnChild)
     return node.unmanagedChild(at: nodeSlot)
@@ -304,8 +307,7 @@ extension _UnsafePath {
   ///
   /// - Note: It is undefined behavior to call this on a path that is no longer
   ///    valid.
-  @usableFromInline
-  @_effects(releasenone)
+  @inlinable
   internal mutating func descend() {
     self.node = currentChild
     self.ancestors[level] = nodeSlot
@@ -626,26 +628,21 @@ extension _Node {
   /// return nil.
   @inlinable
   internal func path(
-    to key: Key, hash: _Hash
-  ) -> (found: Bool, path: _UnsafePath) {
-    var path = _UnsafePath(root: raw)
+    to key: Key, _ hash: _Hash
+  ) -> _UnsafePath? {
+    var node = unmanaged
+    var level: _Level = .top
+    var ancestors: _AncestorSlots = .empty
     while true {
-      let r = UnsafeHandle.read(path.node) {
-        $0.find(path.level, key, hash, forInsert: false)
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else { break }
+      guard r.descend else {
+        return _UnsafePath(level, ancestors, node, itemSlot: r.slot)
       }
-      switch r {
-      case .found(_, let slot):
-        path.selectItem(at: slot)
-        return (true, path)
-      case .notFound(_, let slot), .newCollision(_, let slot):
-        path.selectItem(at: slot)
-        return (false, path)
-      case .expansion:
-        return (false, path)
-      case .descend(_, let slot):
-        path.selectChild(at: slot)
-        path.descend()
-      }
+      node = node.unmanagedChild(at: r.slot)
+      ancestors[level] = r.slot
+      level = level.descend()
     }
+    return nil
   }
 }

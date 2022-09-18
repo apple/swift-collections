@@ -11,6 +11,55 @@
 
 // MARK: Node-level lookup operations
 
+extension _Node {
+  @inlinable
+  internal func find(
+    _ level: _Level, _ key: Key, _ hash: _Hash
+  ) -> (descend: Bool, slot: _Slot)? {
+    read { $0.find(level, key, hash) }
+  }
+}
+
+extension _Node.UnsafeHandle {
+  @inlinable
+  internal func find(
+    _ level: _Level, _ key: Key, _ hash: _Hash
+  ) -> (descend: Bool, slot: _Slot)? {
+    guard !isCollisionNode else {
+      let r = _findInCollision(level, key, hash)
+      guard r.code == 0 else { return nil }
+      return (false, r.slot)
+    }
+    let bucket = hash[level]
+    if itemMap.contains(bucket) {
+      let slot = itemMap.slot(of: bucket)
+      guard self[item: slot].key == key else { return nil }
+      return (false, slot)
+    }
+    if childMap.contains(bucket) {
+      let slot = childMap.slot(of: bucket)
+      return (true, slot)
+    }
+    return nil
+  }
+
+  @inlinable @inline(never)
+  internal func _findInCollision(
+    _ level: _Level, _ key: Key, _ hash: _Hash
+  ) -> (code: Int, slot: _Slot, expansionHash: _Hash) {
+    assert(isCollisionNode)
+    if !level.isAtBottom {
+      let h = _Hash(self[item: .zero].key)
+      if h != hash { return (2, .zero, h) }
+    }
+    // Note: this searches the items in reverse insertion order.
+    guard let slot = reverseItems.firstIndex(where: { $0.key == key })
+    else { return (1, self.itemEnd, _Hash(_value: 0)) }
+    return (0, _Slot(itemCount &- 1 &- slot), _Hash(_value: 0))
+  }
+}
+
+
 /// Represents the results of a lookup operation within a single node of a hash
 /// tree. This enumeration captures all of the different cases that need to be
 /// covered if we wanted to insert a new item into the tree.
@@ -88,17 +137,15 @@ extension _Node.UnsafeHandle {
     _ level: _Level, _ key: Key, _ hash: _Hash, forInsert: Bool
   ) -> _FindResult {
     guard !isCollisionNode else {
-      if !level.isAtBottom {
-        let h = _Hash(self[item: .zero].key)
-        if h != hash {
-          return .expansion(h)
-        }
+      let r = _findInCollision(level, key, hash)
+      if r.code == 0 {
+        return .found(.invalid, r.slot)
       }
-      // Note: this searches the items in reverse insertion order.
-      guard let slot = reverseItems.firstIndex(where: { $0.key == key }) else {
-        return .notFound(.invalid, itemEnd)
+      if r.code == 1 {
+        return .notFound(.invalid, self.itemEnd)
       }
-      return .found(.invalid, _Slot(itemCount &- 1 &- slot))
+      assert(r.code == 2)
+      return .expansion(r.expansionHash)
     }
     let bucket = hash[level]
     if itemMap.contains(bucket) {

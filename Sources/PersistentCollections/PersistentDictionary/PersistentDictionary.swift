@@ -257,8 +257,8 @@ extension PersistentDictionary {
   /// Returns the index for the given key.
   @inlinable
   public func index(forKey key: Key) -> Index? {
-    let (found, path) = _root.path(to: key, hash: _Hash(key))
-    guard found else { return nil }
+    guard let path = _root.path(to: key, _Hash(key))
+    else { return nil }
     return Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
