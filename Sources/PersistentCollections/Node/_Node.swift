@@ -82,13 +82,17 @@ extension _Node {
 
 extension _Node {
   @inlinable @inline(__always)
-  internal func read<R>(_ body: (UnsafeHandle) -> R) -> R {
-    UnsafeHandle.read(raw.storage, body)
+  internal func read<R>(
+    _ body: (UnsafeHandle) throws -> R
+  ) rethrows -> R {
+    try UnsafeHandle.read(raw.storage, body)
   }
 
   @inlinable @inline(__always)
-  internal mutating func update<R>(_ body: (UnsafeHandle) -> R) -> R {
-    UnsafeHandle.update(raw.storage, body)
+  internal mutating func update<R>(
+    _ body: (UnsafeHandle) throws -> R
+  ) rethrows -> R {
+    try UnsafeHandle.update(raw.storage, body)
   }
 }
 
