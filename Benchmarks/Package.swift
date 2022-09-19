@@ -19,7 +19,7 @@ let package = Package(
   ],
   dependencies: [
     .package(name: "swift-collections", path: ".."),
-    .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.1"),
+    .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.3"),
   ],
   targets: [
     .target(
