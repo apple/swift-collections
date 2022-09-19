@@ -39,42 +39,8 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
 extension PersistentDictionary {
   @inlinable
-  public init() {
-    self.init(_new: _Node(storage: _emptySingleton, count: 0))
-  }
-
-  @inlinable
-  public init(_ other: PersistentDictionary<Key, Value>) {
-    self = other
-  }
-
-  @inlinable
   public func _invariantCheck() {
     _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
-
-
-  @inlinable
-  @inline(__always)
-  public init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (Key, Value) {
-    self.init()
-    for (key, value) in keysAndValues {
-      let hash = _Hash(key)
-      let unique = nil == _root.updateValue(value, forKey: key, .top, hash)
-      precondition(unique, "Duplicate key: '\(key)'")
-    }
-    _invariantCheck()
-  }
-
-  @inlinable
-  @inline(__always)
-  public init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value {
-    self.init(uniqueKeysWithValues: zip(keys, values))
   }
 
   /// Accesses the value associated with the given key for reading and writing.
