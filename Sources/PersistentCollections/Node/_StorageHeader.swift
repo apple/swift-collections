@@ -105,8 +105,8 @@ extension _StorageHeader {
     }
     set {
       assert(isCollisionNode || childMap.isEmpty)
-      assert(newValue > 0 && newValue < UInt32.max)
-      itemMap._value = UInt32(truncatingIfNeeded: newValue)
+      assert(newValue > 0 && newValue < _Bitmap.Value.max)
+      itemMap._value = _Bitmap.Value(truncatingIfNeeded: newValue)
       childMap = itemMap
     }
   }
