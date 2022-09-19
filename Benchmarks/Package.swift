@@ -14,6 +14,9 @@ import PackageDescription
 
 let package = Package(
   name: "swift-collections.Benchmarks",
+  products: [
+    .executable(name: "benchmark", targets: ["benchmark"]),
+  ],
   dependencies: [
     .package(name: "swift-collections", path: ".."),
     .package(url: "https://github.com/apple/swift-collections-benchmark", from: "0.0.1"),
@@ -26,21 +29,19 @@ let package = Package(
         .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
         "CppBenchmarks",
       ],
-      path: "Benchmarks",
       resources: [
         .copy("Library.json"),
       ]
     ),
     .target(
-      name: "CppBenchmarks",
-      path: "CppBenchmarks"
+      name: "CppBenchmarks"
     ),
     .target(
       name: "benchmark",
       dependencies: [
         "Benchmarks",
       ],
-      path: "benchmark-tool"
+      path: "Sources/benchmark-tool"
     ),
   ],
   cxxLanguageStandard: .cxx1z
