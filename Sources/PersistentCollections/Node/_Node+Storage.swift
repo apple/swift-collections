@@ -48,9 +48,9 @@ extension _Node {
   }
 }
 
-extension _Node {
+extension _Node.Storage {
   @inlinable
-  internal init(byteCapacity: Int) {
+  internal static func allocate(byteCapacity: Int) -> _Node.Storage {
     assert(byteCapacity >= 0)
 
     let itemStride = MemoryLayout<Element>.stride
@@ -69,7 +69,7 @@ extension _Node {
       bytes += itemAlignment - childAlignment
     }
 
-    let object = Storage.create(
+    let object = _Node.Storage.create(
       minimumCapacity: (bytes &+ childStride &- 1) / childStride
     ) { buffer in
       _StorageHeader(byteCapacity: buffer.capacity * childStride)
@@ -84,22 +84,17 @@ extension _Node {
       header.pointee._bytesFree = header.pointee._byteCapacity
       assert(byteCapacity <= header.pointee.byteCapacity)
     }
-    self.raw = _RawNode(
-      storage: unsafeDowncast(object, to: Storage.self),
-      count: 0)
+    return unsafeDowncast(object, to: _Node.Storage.self)
   }
 
-  @inlinable
-  internal init(itemCapacity: Int = 0, childCapacity: Int = 0) {
+  @inlinable @inline(__always)
+  internal static func allocate(
+    itemCapacity: Int = 0, childCapacity: Int = 0
+  ) -> _Node.Storage {
     assert(itemCapacity >= 0 && childCapacity >= 0)
     let itemBytes = itemCapacity * MemoryLayout<Element>.stride
     let childBytes = childCapacity * MemoryLayout<_Node>.stride
-    self.init(byteCapacity: itemBytes &+ childBytes)
-  }
-
-  @inlinable
-  internal init(collisionCapacity: Int) {
-    self.init(itemCapacity: collisionCapacity, childCapacity: 0)
+    return allocate(byteCapacity: itemBytes &+ childBytes)
   }
 }
 
@@ -130,6 +125,11 @@ extension _Node {
   }
 
   @inlinable
+  internal mutating func hasFreeSpace(_ bytes: Int) -> Bool {
+    bytes <= self.raw.storage.header.bytesFree
+  }
+
+  @inlinable
   internal mutating func ensureUnique(isUnique: Bool) {
     if !isUnique {
       self = copy()
@@ -143,28 +143,51 @@ extension _Node {
   ) {
     if !isUnique {
       self = copy(withFreeSpace: minimumFreeBytes)
-    } else if self.raw.storage.header.bytesFree < minimumFreeBytes {
+    } else if !hasFreeSpace(minimumFreeBytes) {
       move(withFreeSpace: minimumFreeBytes)
     }
+  }
+
+
+  @inlinable
+  internal static func allocate<R>(
+    itemMap: _Bitmap, childMap: _Bitmap,
+    count: Int,
+    initializingWith initializer: (
+      UnsafeMutableBufferPointer<_Node>, UnsafeMutableBufferPointer<Element>
+    ) -> R
+  ) -> (node: _Node, result: R) {
+    let (itemCount, childCount) = _StorageHeader.counts(
+      itemMap: itemMap, childMap: childMap)
+    let storage = Storage.allocate(
+      itemCapacity: itemCount, childCapacity: childCount)
+    var node = _Node(storage: storage, count: count)
+    let result = node.update {
+      let (children, items) = $0._prepare(
+        itemMap: itemMap,
+        itemCount: itemCount,
+        childMap: childMap,
+        childCount: childCount
+      )
+      return initializer(children, items)
+    }
+    return (node, result)
   }
 
   @inlinable @inline(never)
   internal func copy(withFreeSpace space: Int = 0) -> _Node {
     assert(space >= 0)
-    let capacity = read {
-      $0.byteCapacity &- $0.bytesFree &+ space
-    }
-    var new = Self(byteCapacity: capacity)
-    new.count = self.count
-    read { source in
-      new.update { target in
-        target._prepare(itemMap: source.itemMap, childMap: source.childMap)
-        let i = target._children.initialize(fromContentsOf: source._children)
-        assert(i == target.childCount)
+    let capacity = read { $0.byteCapacity &- $0.bytesFree &+ space }
+    var new = Self(
+      storage: Storage.allocate(byteCapacity: capacity),
+      count: count)
+    read { src in
+      new.update { dst in
+        let (dstChildren, dstItems) = dst._prepare(
+          itemMap: src.itemMap, childMap: src.childMap)
 
-        let j = target.reverseItems
-          .initialize(fromContentsOf: source.reverseItems)
-        assert(j == target.itemCount)
+        dstChildren.initializeAll(fromContentsOf: src._children)
+        dstItems.initializeAll(fromContentsOf: src.reverseItems)
       }
     }
     new._invariantCheck()
@@ -174,25 +197,20 @@ extension _Node {
   @inlinable @inline(never)
   internal mutating func move(withFreeSpace space: Int = 0) {
     assert(space >= 0)
-    let capacity = read {
-      $0.byteCapacity &+ Swift.max(0, space &- $0.bytesFree)
-    }
-    var new = Self(byteCapacity: capacity)
-    new.count = self.count
-    self.update { source in
-      new.update { target in
-        target._prepare(itemMap: source.itemMap, childMap: source.childMap)
+    let capacity = read { $0.byteCapacity &- $0.bytesFree &+ space }
+    var new = Self(
+      storage: Storage.allocate(byteCapacity: capacity),
+      count: self.count)
+    self.update { src in
+      new.update { dst in
+        let (dstChildren, dstItems) = dst._prepare(
+          itemMap: src.itemMap, childMap: src.childMap)
 
-        let i = target._children.moveInitialize(fromContentsOf: source._children)
-        assert(i == target.childCount)
+        dstChildren.moveInitializeAll(fromContentsOf: src._children)
+        dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
 
-        let j = target.reverseItems
-          .moveInitialize(fromContentsOf: source.reverseItems)
-        assert(j == target.itemCount)
-        source.itemMap = .empty
-        source.childMap = .empty
-        source.bytesFree = source.byteCapacity
-        assert(target.bytesFree >= space)
+        src.clear()
+        assert(dst.bytesFree >= space)
       }
     }
     self.count = 0
@@ -204,14 +222,44 @@ extension _Node {
 
 extension _Node.UnsafeHandle {
   @inlinable
-  internal func _prepare(itemMap: _Bitmap, childMap: _Bitmap) {
+  internal func _prepare(
+    itemMap: _Bitmap, childMap: _Bitmap
+  ) -> (
+    children: UnsafeMutableBufferPointer<_Node>,
+    items: UnsafeMutableBufferPointer<Element>
+  ) {
+    let (itemCount, childCount) = _StorageHeader.counts(
+      itemMap: itemMap, childMap: childMap)
+    return self._prepare(
+      itemMap: itemMap,
+      itemCount: itemCount,
+      childMap: childMap,
+      childCount: childCount)
+  }
+
+  @inlinable
+  internal func _prepare(
+    itemMap: _Bitmap,
+    itemCount: Int,
+    childMap: _Bitmap,
+    childCount: Int
+  ) -> (
+    children: UnsafeMutableBufferPointer<_Node>,
+    items: UnsafeMutableBufferPointer<Element>
+  ) {
     assert(self.itemMap.isEmpty && self.childMap.isEmpty)
     assert(self.byteCapacity == self.bytesFree)
+
+    assert(
+      itemMap == childMap
+      || (itemMap.count == itemCount && childMap.count == childCount))
+
+    assert(
+      itemMap != childMap
+      || (itemCount == itemMap._value && childCount == 0))
+
     self.itemMap = itemMap
     self.childMap = childMap
-
-    let itemCount = self.itemCount
-    let childCount = self.childCount
 
     let itemStride = MemoryLayout<Element>.stride
     let childStride = MemoryLayout<_Node>.stride
@@ -222,9 +270,13 @@ extension _Node.UnsafeHandle {
     assert(occupiedBytes <= byteCapacity)
     bytesFree = byteCapacity &- occupiedBytes
 
-    self._memory.bindMemory(to: _Node.self, capacity: childCount)
-    (self._memory + (byteCapacity - itemBytes))
+    let childStart = self._memory
+      .bindMemory(to: _Node.self, capacity: childCount)
+    let itemStart = (self._memory + (byteCapacity - itemBytes))
       .bindMemory(to: Element.self, capacity: itemCount)
+    return (
+      .init(start: childStart, count: childCount),
+      .init(start: itemStart, count: itemCount))
   }
 }
 

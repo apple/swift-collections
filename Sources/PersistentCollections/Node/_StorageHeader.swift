@@ -111,3 +111,12 @@ extension _StorageHeader {
     }
   }
 }
+
+extension _StorageHeader {
+  @inlinable
+  internal mutating func clear() {
+    itemMap = .empty
+    childMap = .empty
+    bytesFree = byteCapacity
+  }
+}

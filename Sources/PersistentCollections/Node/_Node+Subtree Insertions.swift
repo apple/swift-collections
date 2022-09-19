@@ -68,7 +68,7 @@ extension _Node {
     for hash: _Hash,
     replacing slot: _Slot, _ bucket: _Bucket,
     inserter: (UnsafeMutablePointer<Element>) -> Void
-  ) -> (node: _UnmanagedNode, slot: _Slot) {
+  ) -> (leaf: _UnmanagedNode, slot: _Slot) {
     let existingHash = read { _Hash($0[item: slot].key) }
     if hash == existingHash, hasSingletonItem {
       // Convert current node to a collision node.

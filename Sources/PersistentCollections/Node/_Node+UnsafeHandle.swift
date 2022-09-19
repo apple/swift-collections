@@ -243,6 +243,12 @@ extension _Node.UnsafeHandle {
     unsafeAddress { UnsafePointer(itemPtr(at: slot)) }
     unsafeMutableAddress { itemPtr(at: slot) }
   }
+
+  @inlinable
+  internal func clear() {
+    assertMutable()
+    _header.pointee.clear()
+  }
 }
 
 extension _Node.UnsafeHandle {

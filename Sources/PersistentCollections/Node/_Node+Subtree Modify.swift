@@ -203,7 +203,7 @@ extension _Node {
         inserter: { _ in })
       return DefaultedValueUpdateState(
         (key, defaultValue()),
-        in: r.node,
+        in: r.leaf,
         at: r.slot,
         inserted: true)
 
