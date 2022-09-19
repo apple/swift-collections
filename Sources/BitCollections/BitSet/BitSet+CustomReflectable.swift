@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
-@_exported import BitCollections
+extension BitSet: CustomReflectable {
+  /// The custom mirror for this instance.
+  public var customMirror: Mirror {
+    Mirror(self, unlabeledChildren: self, displayStyle: .collection)
+  }
+}

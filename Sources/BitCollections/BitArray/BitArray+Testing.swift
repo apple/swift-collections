@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
-@_exported import BitCollections
+extension BitArray {
+  @_spi(Testing)
+  public var _capacity: Int {
+    _storage.capacity * _Word.capacity
+  }
+}

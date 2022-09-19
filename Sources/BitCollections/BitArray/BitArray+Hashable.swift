@@ -9,7 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
-@_exported import BitCollections
+extension BitArray: Hashable {
+  /// Hashes the essential components of this value by feeding them into the
+  /// given hasher.
+  ///
+  /// - Parameter hasher: The hasher to use when combining the components
+  ///   of this instance.
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(_count)
+    for word in _storage {
+      hasher.combine(word)
+    }
+  }
+}

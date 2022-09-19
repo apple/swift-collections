@@ -12,7 +12,7 @@
 import XCTest
 import _CollectionsTestSupport
 
-final class DequeTests: CollectionTestCase {
+final class MinimalTypeTests: CollectionTestCase {
   func testMinimalSequence() {
     withEvery(
       "behavior",

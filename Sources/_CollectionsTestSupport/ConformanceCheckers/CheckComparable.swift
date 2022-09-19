@@ -48,6 +48,7 @@ extension ExpectedComparisonResult: CustomStringConvertible {
 
 public func checkComparable<Instance: Comparable>(
   sortedEquivalenceClasses: [[Instance]],
+  maxSamples: Int? = nil,
   file: StaticString = #file, line: UInt = #line
 ) {
   let instances = sortedEquivalenceClasses.flatMap { $0 }
@@ -60,6 +61,7 @@ public func checkComparable<Instance: Comparable>(
       if oracle[$0] > oracle[$1] { return .gt }
       return .eq
     },
+    maxSamples: maxSamples,
     file: file, line: line)
 }
 
@@ -69,16 +71,24 @@ public func checkComparable<Instance: Comparable>(
 public func checkComparable<Instances: Collection>(
   _ instances: Instances,
   oracle: (Instances.Index, Instances.Index) -> ExpectedComparisonResult,
+  maxSamples: Int? = nil,
   file: StaticString = #file, line: UInt = #line
-) where Instances.Element: Comparable {
-  checkEquatable(instances,
-                 oracle: { oracle($0, $1) == .eq },
-                 file: file, line: line)
-  _checkComparable(instances, oracle: oracle, file: file, line: line)
+) where Instances.Element: Comparable, Instances.Index == Int {
+  checkEquatable(
+    instances,
+    oracle: { oracle($0, $1) == .eq },
+    maxSamples: maxSamples,
+    file: file, line: line)
+  _checkComparable(
+    instances,
+    oracle: oracle,
+    maxSamples: maxSamples,
+    file: file, line: line)
 }
 
 public func checkComparable<T : Comparable>(
-  expected: ExpectedComparisonResult, _ lhs: T, _ rhs: T,
+  expected: ExpectedComparisonResult,
+  _ lhs: T, _ rhs: T,
   file: StaticString = #file, line: UInt = #line
 ) {
   checkComparable(
@@ -92,78 +102,86 @@ public func checkComparable<T : Comparable>(
 public func _checkComparable<Instances: Collection>(
   _ instances: Instances,
   oracle: (Instances.Index, Instances.Index) -> ExpectedComparisonResult,
+  maxSamples: Int? = nil,
   file: StaticString = #file, line: UInt = #line
-) where Instances.Element: Comparable {
+) where Instances.Element: Comparable, Instances.Index == Int {
   let entry = TestContext.current.push("checkComparable", file: file, line: line)
   defer { TestContext.current.pop(entry) }
-  for i in instances.indices {
-    let x = instances[i]
 
-    expectFalse(
-      x < x,
-      "found 'x < x' at index \(i): \(String(reflecting: x))")
+  withSomeRanges(
+    "range", in: 0 ..< instances.count - 1, maxSamples: maxSamples
+  ) { range in
+    let i = range.lowerBound
+    let j = range.upperBound
 
-    expectFalse(
-      x > x,
-      "found 'x > x' at index \(i): \(String(reflecting: x))")
+    if i == j {
+      let x = instances[i]
 
-    expectTrue(x <= x,
-               "found 'x <= x' to be false at index \(i): \(String(reflecting: x))")
+      expectFalse(
+        x < x,
+        "found 'x < x' at index \(i): \(String(reflecting: x))")
 
-    expectTrue(x >= x,
-               "found 'x >= x' to be false at index \(i): \(String(reflecting: x))")
+      expectFalse(
+        x > x,
+        "found 'x > x' at index \(i): \(String(reflecting: x))")
 
-    for j in instances.indices where i != j {
+      expectTrue(x <= x,
+                 "found 'x <= x' to be false at index \(i): \(String(reflecting: x))")
+
+      expectTrue(x >= x,
+                 "found 'x >= x' to be false at index \(i): \(String(reflecting: x))")
+    } else {
+      let x = instances[i]
       let y = instances[j]
-
+      
       let expected = oracle(i, j)
-
+      
       expectEqual(
         expected.flip(), oracle(j, i),
-        """
+          """
           bad oracle: missing antisymmetry:
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-
+      
       expectEqual(
         expected == .lt, x < y,
-        """
+          """
           x < y doesn't match oracle
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-
+      
       expectEqual(
         expected != .gt, x <= y,
-        """
+          """
           x <= y doesn't match oracle
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-
+      
       expectEqual(
         expected != .lt, x >= y,
-        """
+          """
           x >= y doesn't match oracle
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-
+      
       expectEqual(
         expected == .gt, x > y,
-        """
+          """
           x > y doesn't match oracle
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-
-      for k in instances.indices {
+      
+      withSome("k", in: instances.indices, maxSamples: 10) { k in
         let expected2 = oracle(j, k)
         if expected == expected2 {
           expectEqual(
             expected, oracle(i, k),
-            """
+              """
               bad oracle: transitivity violation
               x (at index \(i)): \(String(reflecting: x))
               y (at index \(j)): \(String(reflecting: y))

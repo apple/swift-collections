@@ -9,7 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import DequeModule
-@_exported import OrderedCollections
-@_exported import PriorityQueueModule
-@_exported import BitCollections
+/// A terrible random number generator that always returns values with all
+/// bits set to true.
+public struct AllOnesRandomNumberGenerator: RandomNumberGenerator {
+
+  public init() {}
+
+  public mutating func next() -> UInt64 {
+    UInt64.max
+  }
+}
