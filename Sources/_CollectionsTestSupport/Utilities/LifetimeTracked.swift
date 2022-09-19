@@ -59,8 +59,16 @@ extension LifetimeTracked: Equatable where Payload: Equatable {
 }
 
 extension LifetimeTracked: Hashable where Payload: Hashable {
+  public func _rawHashValue(seed: Int) -> Int {
+    payload._rawHashValue(seed: seed)
+  }
+
   public func hash(into hasher: inout Hasher) {
     hasher.combine(payload)
+  }
+
+  public var hashValue: Int {
+    payload.hashValue
   }
 }
 

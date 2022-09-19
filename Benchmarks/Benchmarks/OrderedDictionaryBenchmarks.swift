@@ -86,6 +86,31 @@ extension Benchmark {
     }
 
     self.add(
+      title: "OrderedDictionary<Int, Int> sequential iteration, indices",
+      input: [Int].self
+    ) { input in
+      let d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      return { timer in
+        for i in d.elements.indices {
+          blackHole(d.elements[i])
+        }
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> indexing subscript",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      let d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let indices = lookups.map { d.index(forKey: $0)! }
+      return { timer in
+        for i in indices {
+          blackHole(d.elements[indices[i]]) // uses `elements` random-access collection view
+        }
+      }
+    }
+
+    self.add(
       title: "OrderedDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
@@ -165,12 +190,26 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "OrderedDictionary<Int, Int> subscript, append",
+      title: "OrderedDictionary<Int, Int> subscript, append, unique",
       input: [Int].self
     ) { input in
       var d: OrderedDictionary<Int, Int> = [:]
       for i in input {
         d[i] = 2 * i
+      }
+      precondition(d.count == input.count)
+      blackHole(d)
+    }
+
+    self.addSimple(
+      title: "OrderedDictionary<Int, Int> subscript, append, shared",
+      input: [Int].self
+    ) { input in
+      var d: OrderedDictionary<Int, Int> = [:]
+      for i in input {
+        let copy = d
+        d[i] = 2 * i
+        blackHole((copy, d))
       }
       precondition(d.count == input.count)
       blackHole(d)
@@ -190,7 +229,7 @@ extension Benchmark {
     }
 
     self.add(
-      title: "OrderedDictionary<Int, Int> subscript, remove existing",
+      title: "OrderedDictionary<Int, Int> subscript, remove existing, unique",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
@@ -199,6 +238,24 @@ extension Benchmark {
         timer.measure {
           for i in lookups {
             d[i] = nil
+          }
+        }
+        precondition(d.isEmpty)
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> subscript, remove existing, shared",
+      input: ([Int], [Int]).self
+    ) { input, lookups in
+      return { timer in
+        var d = OrderedDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        timer.measure {
+          for i in lookups {
+            let copy = d
+            d[i] = nil
+            blackHole((copy, d))
           }
         }
         precondition(d.isEmpty)
