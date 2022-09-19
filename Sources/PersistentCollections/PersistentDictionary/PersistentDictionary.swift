@@ -61,7 +61,8 @@ extension PersistentDictionary {
   ) where S.Element == (Key, Value) {
     self.init()
     for (key, value) in keysAndValues {
-      let unique = updateValue(value, forKey: key) == nil
+      let hash = _Hash(key)
+      let unique = nil == _root.updateValue(value, forKey: key, .top, hash)
       precondition(unique, "Duplicate key: '\(key)'")
     }
     _invariantCheck()
