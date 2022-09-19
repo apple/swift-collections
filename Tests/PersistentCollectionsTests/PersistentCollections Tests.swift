@@ -12,6 +12,8 @@
 import _CollectionsTestSupport
 @testable import PersistentCollections
 
+extension PersistentDictionary: DictionaryAPIChecker {}
+
 class PersistentDictionaryTests: CollectionTestCase {
   func test_empty() {
     let d = PersistentDictionary<String, Int>()
