@@ -262,6 +262,49 @@ class PersistentDictionaryTests: CollectionTestCase {
     checkBidirectionalCollection(d, expectedContents: Array(d), by: ==)
   }
 
+  func test_updateValueForKey_fixtures() {
+    withEachFixture { fixture in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
+          var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
+          withEvery("i", in: 0 ..< fixture.items.count) { i in
+            withHiddenCopies(if: isShared, of: &d) { d in
+              let item = fixture.items[i]
+              let key = tracker.instance(for: item.key)
+              let value = tracker.instance(for: item.value)
+              d[key] = value
+              ref[key] = value
+              expectEqualDictionaries(d, ref)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_updateValueForKey_fixtures_tiny() {
+    struct Empty: Hashable {}
+
+    withEachFixture { fixture in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          var d: PersistentDictionary<LifetimeTracked<RawCollider>, Empty> = [:]
+          var ref: Dictionary<LifetimeTracked<RawCollider>, Empty> = [:]
+          withEvery("i", in: 0 ..< fixture.items.count) { i in
+            withHiddenCopies(if: isShared, of: &d) { d in
+              let item = fixture.items[i]
+              let key = tracker.instance(for: item.key)
+              d[key] = Empty()
+              ref[key] = Empty()
+              expectEqualDictionaries(d, ref)
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_removeValueForKey_fixtures() {
     withEachFixture { fixture in
       withEvery("offset", in: 0 ..< fixture.items.count) { offset in
@@ -442,20 +485,18 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_subscript_setter_insert_fixtures() {
     withEachFixture { fixture in
-      withEvery("seed", in: 0..<3) { seed in
-        withEvery("isShared", in: [false, true]) { isShared in
-          withLifetimeTracking { tracker in
-            var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
-            var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
-            withEvery("i", in: 0 ..< fixture.items.count) { i in
-              withHiddenCopies(if: isShared, of: &d) { d in
-                let item = fixture.items[i]
-                let key = tracker.instance(for: item.key)
-                let value = tracker.instance(for: item.value)
-                d[key] = value
-                ref[key] = value
-                expectEqualDictionaries(d, ref)
-              }
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
+          var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
+          withEvery("i", in: 0 ..< fixture.items.count) { i in
+            withHiddenCopies(if: isShared, of: &d) { d in
+              let item = fixture.items[i]
+              let key = tracker.instance(for: item.key)
+              let value = tracker.instance(for: item.value)
+              d[key] = value
+              ref[key] = value
+              expectEqualDictionaries(d, ref)
             }
           }
         }

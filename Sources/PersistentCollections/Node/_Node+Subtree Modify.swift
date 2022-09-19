@@ -185,9 +185,7 @@ extension _Node {
         inserted: false)
 
     case .notFound(let bucket, let slot):
-      ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
-      update { _ = $0._makeRoomForNewItem(at: slot, bucket) }
-      self.count &+= 1
+      ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,
@@ -195,12 +193,11 @@ extension _Node {
         inserted: true)
 
     case .newCollision(let bucket, let slot):
-      let r = _insertNewCollision(
+      let r = ensureUniqueAndMakeNewCollision(
         isUnique: isUnique,
         level: level,
-        for: hash,
         replacing: slot, bucket,
-        inserter: { _ in })
+        newHash: hash) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),
         in: r.leaf,
