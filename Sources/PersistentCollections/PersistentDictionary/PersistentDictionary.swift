@@ -250,6 +250,7 @@ extension PersistentDictionary {
     }
   }
 
+  // FIXME: New addition; needs discussion
   @inlinable
   public func contains(_ key: Key) -> Bool {
     _root.containsKey(.top, key, _Hash(key))
@@ -328,6 +329,31 @@ extension PersistentDictionary {
     var copy = self
     copy.updateValue(value, forKey: key)
     return copy
+  }
+
+  // FIXME: New addition; needs discussion
+  @inlinable @inline(__always)
+  public mutating func updateValue<R>(
+    forKey key: Key,
+    with body: (inout Value?) throws -> R
+  ) rethrows -> R {
+    try body(&self[key])
+  }
+
+  @inlinable
+  public mutating func updateValue<R>(
+    forKey key: Key,
+    default defaultValue: @autoclosure () -> Value,
+    with body: (inout Value) throws -> R
+  ) rethrows -> R {
+    let hash = _Hash(key)
+    let r = _root.insertValue(forKey: key, .top, hash, with: defaultValue)
+    if r.inserted {
+      _invalidateIndices()
+    }
+    return try _Node.UnsafeHandle.update(r.leaf) {
+      try body(&$0[item: r.slot].value)
+    }
   }
 
   /// Removes the given key and its associated value from the dictionary.

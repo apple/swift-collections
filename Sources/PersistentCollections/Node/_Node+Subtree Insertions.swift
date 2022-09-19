@@ -63,6 +63,55 @@ extension _Node {
       return old
     }
   }
+
+  @inlinable
+  internal mutating func insertValue(
+    forKey key: Key,
+    _ level: _Level,
+    _ hash: _Hash,
+    with value: () -> Value
+  ) -> (inserted: Bool, leaf: _UnmanagedNode, slot: _Slot) {
+    defer { _invariantCheck() }
+    let isUnique = self.isUnique()
+    let r = find(level, key, hash, forInsert: true)
+    switch r {
+    case .found(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      _invariantCheck() // FIXME
+      return (false, unmanaged, slot)
+    case .notFound(let bucket, let slot):
+      ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) {
+        $0.initialize(to: (key, value()))
+      }
+      return (true, unmanaged, slot)
+    case .newCollision(let bucket, let slot):
+      let r = ensureUniqueAndMakeNewCollision(
+        isUnique: isUnique,
+        level: level,
+        replacing: slot, bucket,
+        newHash: hash
+      ) {
+        $0.initialize(to: (key, value()))
+      }
+      return (true, r.leaf, r.slot)
+    case .expansion(let collisionHash):
+      let r = _Node.build(
+        level: level,
+        item1: { $0.initialize(to: (key, value())) }, hash,
+        child2: self, collisionHash
+      )
+      self = r.top
+      return (true, r.leaf, r.slot1)
+    case .descend(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      let r = update {
+        $0[child: slot]
+          .insertValue(forKey: key, level.descend(), hash, with: value)
+      }
+      if r.inserted { count &+= 1 }
+      return r
+    }
+  }
 }
 
 extension _Node {
