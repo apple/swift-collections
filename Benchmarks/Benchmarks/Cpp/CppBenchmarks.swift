@@ -40,5 +40,6 @@ extension Benchmark {
     _addCppUnorderedMapBenchmarks()
     _addCppPriorityQueueBenchmarks()
     _addCppVectorBoolBenchmarks()
+    _addCppMapBenchmarks()
   }
 }

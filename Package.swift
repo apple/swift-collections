@@ -52,11 +52,12 @@ let package = Package(
   name: "swift-collections",
   products: [
     .library(name: "Collections", targets: ["Collections"]),
+    .library(name: "BitCollections", targets: ["BitCollections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
+    .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
-    .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
-    .library(name: "BitCollections", targets: ["BitCollections"]),
+    .library(name: "SortedCollections", targets: ["SortedCollections"]),
   ],
   targets: [
     .target(
@@ -65,6 +66,7 @@ let package = Package(
         "DequeModule",
         "OrderedCollections",
         "PersistentCollections",
+        "SortedCollections",
         "PriorityQueueModule",
         "BitCollections",
       ],
@@ -134,7 +136,7 @@ let package = Package(
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // PersistentDictionary<Key, Value>
+    // PersistentSet<Element>, PersistentDictionary<Key, Value>
     .target(
         name: "PersistentCollections",
         dependencies: ["_CollectionsUtilities"],
@@ -143,5 +145,14 @@ let package = Package(
         name: "PersistentCollectionsTests",
         dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
         swiftSettings: settings),
+
+    // SortedSet<Element>, SortedDictionary<Key, Value>
+    .target(
+      name: "SortedCollections",
+      swiftSettings: settings),
+    .testTarget(
+      name: "SortedCollectionsTests",
+      dependencies: ["SortedCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
   ]
 )
