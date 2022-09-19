@@ -42,7 +42,7 @@ extension _Node: Equatable where Value: Equatable {
         guard l.reverseItems.elementsEqual(r.reverseItems, by: { $0 == $1 })
         else { return false }
 
-        guard l._children.elementsEqual(r._children) else { return false }
+        guard l.children.elementsEqual(r.children) else { return false }
         return true
       }
     }

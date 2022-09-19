@@ -152,7 +152,7 @@ extension _Node {
       Self.allocate(
         itemMap: itemMap, childMap: childMap, count: c &+ 1
       ) { dstChildren, dstItems in
-        dstChildren.initializeAll(fromContentsOf: src._children)
+        dstChildren.initializeAll(fromContentsOf: src.children)
 
         let srcItems = src.reverseItems
         assert(dstItems.count == srcItems.count + 1)
@@ -181,7 +181,7 @@ extension _Node {
       Self.allocate(
         itemMap: itemMap, childMap: childMap, count: c &+ 1
       ) { dstChildren, dstItems in
-        dstChildren.moveInitializeAll(fromContentsOf: src._children)
+        dstChildren.moveInitializeAll(fromContentsOf: src.children)
 
         let srcItems = src.reverseItems
         assert(dstItems.count == srcItems.count + 1)
@@ -267,7 +267,7 @@ extension _Node {
       Self.allocate(
         itemMap: itemMap, childMap: childMap, count: c &+ 1
       ) { dstChildren, dstItems in
-        let srcChildren = src._children
+        let srcChildren = src.children
         let srcItems = src.reverseItems
 
         // Initialize children.
@@ -313,7 +313,7 @@ extension _Node {
       Self.allocate(
         itemMap: itemMap, childMap: childMap, count: c &+ 1
       ) { dstChildren, dstItems in
-        let srcChildren = src._children
+        let srcChildren = src.children
         let srcItems = src.reverseItems
 
         // Initialize children.

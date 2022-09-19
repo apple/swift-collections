@@ -59,8 +59,8 @@ extension _RawNode.UnsafeHandle {
   }
 
   @inline(__always)
-  internal var childEnd: _Slot {
-    _header.pointee.childEnd
+  internal var childrenEndSlot: _Slot {
+    _header.pointee.childrenEndSlot
   }
 
   @inline(__always)
@@ -74,8 +74,8 @@ extension _RawNode.UnsafeHandle {
   }
 
   @inline(__always)
-  internal var itemEnd: _Slot {
-    _header.pointee.itemEnd
+  internal var itemsEndSlot: _Slot {
+    _header.pointee.itemsEndSlot
   }
 
   @inline(__always)
@@ -85,12 +85,12 @@ extension _RawNode.UnsafeHandle {
 
   internal subscript(child slot: _Slot) -> _RawNode {
     unsafeAddress {
-      assert(slot < childEnd)
+      assert(slot < childrenEndSlot)
       return _childrenStart + slot.value
     }
   }
 
-  internal var _children: UnsafeBufferPointer<_RawNode> {
+  internal var children: UnsafeBufferPointer<_RawNode> {
     UnsafeBufferPointer(start: _childrenStart, count: childCount)
   }
 }

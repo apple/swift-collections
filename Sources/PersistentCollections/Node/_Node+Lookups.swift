@@ -54,7 +54,7 @@ extension _Node.UnsafeHandle {
     }
     // Note: this searches the items in reverse insertion order.
     guard let slot = reverseItems.firstIndex(where: { $0.key == key })
-    else { return (1, self.itemEnd, _Hash(_value: 0)) }
+    else { return (1, self.itemsEndSlot, _Hash(_value: 0)) }
     return (0, _Slot(itemCount &- 1 &- slot), _Hash(_value: 0))
   }
 }
@@ -142,7 +142,7 @@ extension _Node.UnsafeHandle {
         return .found(.invalid, r.slot)
       }
       if r.code == 1 {
-        return .notFound(.invalid, self.itemEnd)
+        return .notFound(.invalid, self.itemsEndSlot)
       }
       assert(r.code == 2)
       return .expansion(r.expansionHash)
@@ -214,7 +214,7 @@ extension _Node {
       return nil
     case .descend(_, let slot):
       return read { h in
-        let children = h._children
+        let children = h.children
         let p = children[slot.value]
           .position(forKey: key, level.descend(), hash)
         guard let p = p else { return nil }
@@ -234,7 +234,7 @@ extension _Node {
         return $0[item: _Slot(itemsToSkip)]
       }
       itemsToSkip -= itemCount
-      let children = $0._children
+      let children = $0.children
       for i in children.indices {
         if itemsToSkip < children[i].count {
           return children[i].item(position: itemsToSkip)

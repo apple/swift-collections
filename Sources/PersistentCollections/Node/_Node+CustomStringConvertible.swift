@@ -27,7 +27,7 @@ extension _Node: CustomStringConvertible {
         }
         result += "\(key): \(value)"
       }
-      for child in $0._children {
+      for child in $0.children {
         if first {
           first = false
         } else {

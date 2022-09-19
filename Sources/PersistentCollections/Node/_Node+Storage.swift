@@ -41,7 +41,7 @@ extension _Node {
 
     deinit {
       UnsafeHandle.update(self) { handle in
-        handle._children.deinitialize()
+        handle.children.deinitialize()
         handle.reverseItems.deinitialize()
       }
     }
@@ -186,7 +186,7 @@ extension _Node {
         let (dstChildren, dstItems) = dst._prepare(
           itemMap: src.itemMap, childMap: src.childMap)
 
-        dstChildren.initializeAll(fromContentsOf: src._children)
+        dstChildren.initializeAll(fromContentsOf: src.children)
         dstItems.initializeAll(fromContentsOf: src.reverseItems)
       }
     }
@@ -206,7 +206,7 @@ extension _Node {
         let (dstChildren, dstItems) = dst._prepare(
           itemMap: src.itemMap, childMap: src.childMap)
 
-        dstChildren.moveInitializeAll(fromContentsOf: src._children)
+        dstChildren.moveInitializeAll(fromContentsOf: src.children)
         dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
 
         src.clear()

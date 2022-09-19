@@ -178,12 +178,12 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable @inline(__always)
-  internal var childEnd: _Slot {
-    _header.pointee.childEnd
+  internal var childrenEndSlot: _Slot {
+    _header.pointee.childrenEndSlot
   }
 
   @inlinable
-  internal var _children: UnsafeMutableBufferPointer<_Node> {
+  internal var children: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: _childrenStart, count: childCount)
   }
 
@@ -227,8 +227,8 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable @inline(__always)
-  internal var itemEnd: _Slot {
-    _header.pointee.itemEnd
+  internal var itemsEndSlot: _Slot {
+    _header.pointee.itemsEndSlot
   }
 
   @inlinable

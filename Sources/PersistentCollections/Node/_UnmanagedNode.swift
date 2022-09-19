@@ -85,12 +85,12 @@ extension _UnmanagedNode {
   }
 
   @inlinable
-  internal var itemEnd: _Slot {
+  internal var itemsEndSlot: _Slot {
     withRaw { _Slot($0.header.itemCount) }
   }
 
   @inlinable
-  internal var childEnd: _Slot {
+  internal var childrenEndSlot: _Slot {
     withRaw { _Slot($0.header.childCount) }
   }
 

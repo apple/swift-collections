@@ -29,8 +29,8 @@ extension _Node {
         let targetItems = target.reverseItems
         assert(sourceItems.count == targetItems.count)
 
-        let sourceChildren = source._children
-        let targetChildren = target._children
+        let sourceChildren = source.children
+        let targetChildren = target.children
         assert(sourceChildren.count == targetChildren.count)
 
         var i = 0

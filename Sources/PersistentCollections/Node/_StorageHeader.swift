@@ -88,12 +88,12 @@ extension _StorageHeader {
   }
 
   @inlinable @inline(__always)
-  internal var childEnd: _Slot {
+  internal var childrenEndSlot: _Slot {
     _Slot(childCount)
   }
 
   @inlinable @inline(__always)
-  internal var itemEnd: _Slot {
+  internal var itemsEndSlot: _Slot {
     _Slot(itemCount)
   }
 
