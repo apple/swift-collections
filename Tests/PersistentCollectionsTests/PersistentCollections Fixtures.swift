@@ -189,24 +189,16 @@ let _fixtures: KeyValuePairs<String, [String]> = [
   ],
 ]
 
-struct Fixture<Key: Hashable, Value> {
-  typealias Element = (key: Key, value: Value)
-
-  let title: String
-  let items: [Element]
-
-  init(title: String, items: [Element]) {
-    self.title = title
-    self.items = items
-  }
+let fixtures: [RawFixture] = _fixtures.map {
+  RawFixture(title: $0, contents: $1)
 }
 
-func withEachFixture(
-  body: (Fixture<RawCollider, Int>) -> Void
-) {
-  for (name, fixture) in _fixtures {
-    let entry = TestContext.current.push("fixture: \(name)")
-    defer { TestContext.current.pop(entry) }
+struct RawFixture {
+  let title: String
+  let hashes: [Hash]
+
+  init(title: String, contents: [String]) {
+    self.title = title
 
     let maxDepth = PersistentDictionary<Int, Int>._maxDepth
 
@@ -218,7 +210,7 @@ func withEachFixture(
 
     var paths: [String] = []
     var seen: Set<String> = []
-    for item in fixture {
+    for item in contents {
       let path: String
       if let i = item.unicodeScalars.firstIndex(of: "*") {
         // We need to extend the path of collisions with zeroes to
@@ -275,29 +267,51 @@ func withEachFixture(
       return false
     }
 
-    var items: [(key: RawCollider, value: Int)] = []
-    items.reserveCapacity(paths.count)
-    var id = 0
-    for path in paths {
-      let hash = Hash(path)!
-      let key = RawCollider(id, hash)
-      let value = 100 + id
-      items.append((key, value))
-      id += 1
-    }
+    self.hashes = paths.map { Hash($0)! }
+  }
+}
 
-    print(name)
-    body(Fixture(title: name, items: items))
+struct Fixture<Key: Hashable, Value> {
+  typealias Element = (key: Key, value: Value)
+
+  let title: String
+  let items: [Element]
+
+  init(
+    _ raw: RawFixture,
+    key keyGenerator: (Int, Hash) -> Key,
+    value valueGenerator: (Int) -> Value
+  ) {
+    self.title = raw.title
+    self.items = raw.hashes.enumerated().map { i, hash in
+      (key: keyGenerator(i, hash), value: valueGenerator(i))
+    }
+  }
+}
+
+func withEachFixture(
+  body: (Fixture<RawCollider, Int>) -> Void
+) {
+  for raw in fixtures {
+    let entry = TestContext.current.push("fixture: \(raw.title)")
+    defer { TestContext.current.pop(entry) }
+
+    let fixture = Fixture<RawCollider, Int>(
+      raw,
+      key: { RawCollider($0, $1) },
+      value: { 100 + $0 })
+
+    body(fixture)
   }
 }
 
 
 extension LifetimeTracker {
-  func persistentDictionary(
-    for fixture: Fixture<RawCollider, Int>
+  func persistentDictionary<Key, Value>(
+    for fixture: Fixture<Key, Value>
   ) -> (
-    map: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>>,
-    ref: [(key: LifetimeTracked<RawCollider>, value: LifetimeTracked<Int>)]
+    map: PersistentDictionary<LifetimeTracked<Key>, LifetimeTracked<Value>>,
+    ref: [(key: LifetimeTracked<Key>, value: LifetimeTracked<Value>)]
   ) {
     let ref = fixture.items.map { (key, value) in
       (key: self.instance(for: key), value: self.instance(for: value))
