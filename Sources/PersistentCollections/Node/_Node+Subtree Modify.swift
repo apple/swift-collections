@@ -12,6 +12,20 @@
 // MARK: Subtree-level in-place mutation operations
 
 extension _Node {
+  @inlinable
+  internal mutating func ensureUnique(
+    level: _Level, at path: _UnsafePath
+  ) -> (leaf: _UnmanagedNode, slot: _Slot) {
+    ensureUnique(isUnique: isUnique())
+    guard level < path.level else { return (unmanaged, path.currentItemSlot) }
+    return update {
+      $0[child: path.childSlot(at: level)]
+        .ensureUnique(level: level.descend(), at: path)
+    }
+  }
+}
+
+extension _Node {
   @usableFromInline
   @frozen
   internal struct ValueUpdateState {
