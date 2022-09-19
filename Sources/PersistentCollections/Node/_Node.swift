@@ -9,22 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-@usableFromInline
-@frozen
-internal struct _RawNode {
-  @usableFromInline
-  internal var storage: _RawStorage
-
-  @usableFromInline
-  internal var count: Int
-
-  @inlinable
-  internal init(storage: _RawStorage, count: Int) {
-    self.storage = storage
-    self.count = count
-  }
-}
-
 /// A node in the hash tree, logically representing a hash table with
 /// 32 buckets, corresponding to a 5-bit slice of a full hash value.
 ///
@@ -38,9 +22,12 @@ internal struct _RawNode {
 /// The storage is arranged as shown below.
 ///
 ///     ┌───┬───┬───┬───┬───┬──────────────────┬───┬───┬───┬───┐
-///     │ 0 │ 1 │ 2 │ 3 │ 4 │→   free space   ←│ 0 │ 1 │ 2 │ 3 │
+///     │ 0 │ 1 │ 2 │ 3 │ 4 │→   free space   ←│ 3 │ 2 │ 1 │ 0 │
 ///     └───┴───┴───┴───┴───┴──────────────────┴───┴───┴───┴───┘
 ///      children                                         items
+///
+/// Note that the region for items grows downwards from the end, so the item
+/// at slot 0 is at the very end of the buffer.
 ///
 /// Two 32-bit bitmaps are used to associate each child and item with their
 /// position in the hash table. The bucket occupied by the *n*th child in the
@@ -78,6 +65,18 @@ extension _Node {
   internal var count: Int {
     get { raw.count }
     set { raw.count = newValue }
+  }
+}
+
+extension _Node {
+  @inlinable @inline(__always)
+  internal var unmanaged: _UnmanagedNode {
+    _UnmanagedNode(raw.storage)
+  }
+
+  @inlinable @inline(__always)
+  internal func isIdentical(to other: _UnmanagedNode) -> Bool {
+    raw.isIdentical(to: other)
   }
 }
 

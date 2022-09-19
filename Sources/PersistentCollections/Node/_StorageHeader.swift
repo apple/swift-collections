@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// The storage header in a hash tree node. This includes data about the
+/// current size and capacity of the node's storage region, as well as
+/// information about the currently occupied hash table buckets.
 @usableFromInline
 @frozen
 internal struct _StorageHeader {
@@ -53,13 +56,18 @@ extension _StorageHeader {
 
 extension _StorageHeader {
   @inlinable @inline(__always)
+  internal var isEmpty: Bool {
+    return itemMap.isEmpty && childMap.isEmpty
+  }
+
+  @inlinable @inline(__always)
   internal var isCollisionNode: Bool {
     !itemMap.intersection(childMap).isEmpty
   }
 
   @inlinable @inline(__always)
   internal var hasChildren: Bool {
-    !isCollisionNode && !childMap.isEmpty
+    itemMap != childMap && !childMap.isEmpty
   }
 
   @inlinable @inline(__always)
@@ -69,12 +77,24 @@ extension _StorageHeader {
 
   @inlinable
   internal var childCount: Int {
-    isCollisionNode ? 0 : childMap.count
+    itemMap == childMap ? 0 : childMap.count
   }
 
   @inlinable
   internal var itemCount: Int {
-    isCollisionNode ? collisionCount : itemMap.count
+    (itemMap == childMap
+     ? Int(truncatingIfNeeded: itemMap._value)
+     : itemMap.count)
+  }
+
+  @inlinable @inline(__always)
+  internal var childEnd: _Slot {
+    _Slot(childCount)
+  }
+
+  @inlinable @inline(__always)
+  internal var itemEnd: _Slot {
+    _Slot(itemCount)
   }
 
   @inlinable

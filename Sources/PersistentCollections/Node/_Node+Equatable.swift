@@ -12,34 +12,34 @@
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
 extension _Node: Equatable where Value: Equatable {
   @inlinable
-  static func == (lhs: _Node, rhs: _Node) -> Bool {
-    if lhs.raw.storage === rhs.raw.storage { return true }
-    if lhs.isCollisionNode && rhs.isCollisionNode {
-      return lhs.read { lhs in
-        rhs.read { rhs in
-          let l = Dictionary(
-            uniqueKeysWithValues: lhs._items.lazy.map { ($0.key, $0.value) })
-          let r = Dictionary(
-            uniqueKeysWithValues: rhs._items.lazy.map { ($0.key, $0.value) })
-          return l == r
+  static func == (left: _Node, right: _Node) -> Bool {
+    if left.raw.storage === right.raw.storage { return true }
+
+    guard left.count == right.count else { return false }
+
+    if left.isCollisionNode {
+      guard right.isCollisionNode else { return false }
+      return left.read { lhs in
+        right.read { rhs in
+          let l = lhs.reverseItems
+          let r = rhs.reverseItems
+          guard l.count == r.count else { return false }
+          for i in l.indices {
+            guard r.contains(where: { $0 == l[i] }) else { return false }
+          }
+          return true
         }
       }
     }
-    return deepContentEquality(lhs, rhs)
-  }
+    guard !right.isCollisionNode else { return false }
 
-  @inlinable
-  internal static func deepContentEquality(
-    _ left: _Node,
-    _ right: _Node
-  ) -> Bool {
     guard left.count == right.count else { return false }
     return left.read { l in
       right.read { r in
         guard l.itemMap == r.itemMap else { return false }
         guard l.childMap == r.childMap else { return false }
 
-        guard l._items.elementsEqual(r._items, by: { $0 == $1 })
+        guard l.reverseItems.elementsEqual(r.reverseItems, by: { $0 == $1 })
         else { return false }
 
         guard l._children.elementsEqual(r._children) else { return false }

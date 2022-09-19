@@ -42,7 +42,7 @@ extension _Node {
     deinit {
       UnsafeHandle.update(self) { handle in
         handle._children.deinitialize()
-        handle._items.deinitialize()
+        handle.reverseItems.deinitialize()
       }
     }
   }
@@ -152,7 +152,7 @@ extension _Node {
   internal func copy(withFreeSpace space: Int = 0) -> _Node {
     assert(space >= 0)
     let capacity = read {
-      $0.byteCapacity &+ Swift.max(0, space &- $0.bytesFree)
+      $0.byteCapacity &- $0.bytesFree &+ space
     }
     var new = Self(byteCapacity: capacity)
     new.count = self.count
@@ -162,7 +162,8 @@ extension _Node {
         let i = target._children.initialize(fromContentsOf: source._children)
         assert(i == target.childCount)
 
-        let j = target._items.initialize(fromContentsOf: source._items)
+        let j = target.reverseItems
+          .initialize(fromContentsOf: source.reverseItems)
         assert(j == target.itemCount)
       }
     }
@@ -185,7 +186,8 @@ extension _Node {
         let i = target._children.moveInitialize(fromContentsOf: source._children)
         assert(i == target.childCount)
 
-        let j = target._items.moveInitialize(fromContentsOf: source._items)
+        let j = target.reverseItems
+          .moveInitialize(fromContentsOf: source.reverseItems)
         assert(j == target.itemCount)
         source.itemMap = .empty
         source.childMap = .empty
@@ -193,7 +195,9 @@ extension _Node {
         assert(target.bytesFree >= space)
       }
     }
+    self.count = 0
     self._invariantCheck()
+    new._invariantCheck()
     self = new
   }
 }

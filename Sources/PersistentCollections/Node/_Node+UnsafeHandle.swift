@@ -10,6 +10,16 @@
 //===----------------------------------------------------------------------===//
 
 extension _Node {
+  /// An unsafe view of the data stored inside a node in the hash tree, hiding
+  /// the mechanics of accessing storage from the code that uses it.
+  ///
+  /// Handles do not own the storage they access -- it is the client's
+  /// responsibility to ensure that handles (and any pointer values generated
+  /// by them) do not escape the closure call that received them.
+  ///
+  /// A handle can be either read-only or mutable, depending on the method used
+  /// to access it. In debug builds, methods that modify data trap at runtime if
+  /// they're called on a read-only view.
   @usableFromInline
   @frozen
   internal struct UnsafeHandle {
@@ -55,11 +65,35 @@ extension _Node.UnsafeHandle {
 extension _Node.UnsafeHandle {
   @inlinable @inline(__always)
   static func read<R>(
+    _ node: _UnmanagedNode,
+    _ body: (Self) throws -> R
+  ) rethrows -> R {
+    try node.ref._withUnsafeGuaranteedRef { storage in
+      try storage.withUnsafeMutablePointers { header, elements in
+        try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
+      }
+    }
+  }
+
+  @inlinable @inline(__always)
+  static func read<R>(
     _ storage: _RawStorage,
     _ body: (Self) throws -> R
   ) rethrows -> R {
     try storage.withUnsafeMutablePointers { header, elements in
       try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: false))
+    }
+  }
+
+  @inlinable @inline(__always)
+  static func update<R>(
+    _ node: _UnmanagedNode,
+    _ body: (Self) throws -> R
+  ) rethrows -> R {
+    try node.ref._withUnsafeGuaranteedRef { storage in
+      try storage.withUnsafeMutablePointers { header, elements in
+        try body(Self(header, UnsafeMutableRawPointer(elements), isMutable: true))
+      }
     }
   }
 
@@ -138,20 +172,31 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable
+  internal func childBucket(at slot: _Slot) -> _Bucket {
+    guard !isCollisionNode else { return .invalid }
+    return childMap.bucket(at: slot)
+  }
+
+  @inlinable @inline(__always)
+  internal var childEnd: _Slot {
+    _header.pointee.childEnd
+  }
+
+  @inlinable
   internal var _children: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: _childrenStart, count: childCount)
   }
 
   @inlinable
-  internal func childPtr(at offset: Int) -> UnsafeMutablePointer<_Node> {
-    assert(offset >= 0 && offset < childCount)
-    return _childrenStart + offset
+  internal func childPtr(at slot: _Slot) -> UnsafeMutablePointer<_Node> {
+    assert(slot.value < childCount)
+    return _childrenStart + slot.value
   }
 
   @inlinable
-  internal subscript(child offset: Int) -> _Node {
-    unsafeAddress { UnsafePointer(childPtr(at: offset)) }
-    nonmutating unsafeMutableAddress { childPtr(at: offset) }
+  internal subscript(child slot: _Slot) -> _Node {
+    unsafeAddress { UnsafePointer(childPtr(at: slot)) }
+    nonmutating unsafeMutableAddress { childPtr(at: slot) }
   }
 
   @inlinable
@@ -171,21 +216,32 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable
-  internal var _items: UnsafeMutableBufferPointer<Element> {
+  internal func itemBucket(at slot: _Slot) -> _Bucket {
+    guard !isCollisionNode else { return .invalid }
+    return itemMap.bucket(at: slot)
+  }
+
+  @inlinable @inline(__always)
+  internal var itemEnd: _Slot {
+    _header.pointee.itemEnd
+  }
+
+  @inlinable
+  internal var reverseItems: UnsafeMutableBufferPointer<Element> {
     let c = itemCount
     return UnsafeMutableBufferPointer(start: _itemsEnd - c, count: c)
   }
 
   @inlinable
-  internal func itemPtr(at offset: Int) -> UnsafeMutablePointer<Element> {
-    assert(offset >= 0 && offset < itemCount)
-    return _itemsEnd.advanced(by: -(itemCount &- offset))
+  internal func itemPtr(at slot: _Slot) -> UnsafeMutablePointer<Element> {
+    assert(slot.value < itemCount)
+    return _itemsEnd.advanced(by: -1 &- slot.value)
   }
 
   @inlinable
-  internal subscript(item offset: Int) -> Element {
-    unsafeAddress { UnsafePointer(itemPtr(at: offset)) }
-    unsafeMutableAddress { itemPtr(at: offset) }
+  internal subscript(item slot: _Slot) -> Element {
+    unsafeAddress { UnsafePointer(itemPtr(at: slot)) }
+    unsafeMutableAddress { itemPtr(at: slot) }
   }
 }
 
@@ -202,6 +258,6 @@ extension _Node.UnsafeHandle {
 
   @inlinable
   internal var isAtrophiedNode: Bool {
-    hasSingletonChild && self[child: 0].isCollisionNode
+    hasSingletonChild && self[child: .zero].isCollisionNode
   }
 }

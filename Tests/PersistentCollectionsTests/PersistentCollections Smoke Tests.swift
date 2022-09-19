@@ -12,7 +12,7 @@
 import _CollectionsTestSupport
 @testable import PersistentCollections
 
-final class CapsuleSmokeTests: CollectionTestCase {
+final class PersistentDictionarySmokeTests: CollectionTestCase {
   func testSubscriptAdd() {
     var map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
@@ -77,27 +77,27 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func testTriggerOverwrite2() {
-    var res1: PersistentDictionary<CollidableInt, String> = [:]
-    res1.updateValue("a", forKey: CollidableInt(10, 01)) // in-place
-    res1.updateValue("a", forKey: CollidableInt(11, 33)) // in-place
-    res1.updateValue("b", forKey: CollidableInt(20, 02)) // in-place
+    var res1: PersistentDictionary<Collider, String> = [:]
+    res1.updateValue("a", forKey: Collider(10, 01)) // in-place
+    res1.updateValue("a", forKey: Collider(11, 33)) // in-place
+    res1.updateValue("b", forKey: Collider(20, 02)) // in-place
 
-    res1.updateValue("x", forKey: CollidableInt(10, 01)) // in-place
-    res1.updateValue("x", forKey: CollidableInt(11, 33)) // in-place
-    res1.updateValue("y", forKey: CollidableInt(20, 02)) // in-place
+    res1.updateValue("x", forKey: Collider(10, 01)) // in-place
+    res1.updateValue("x", forKey: Collider(11, 33)) // in-place
+    res1.updateValue("y", forKey: Collider(20, 02)) // in-place
 
-    var res2: PersistentDictionary<CollidableInt, String> = res1
-    res2.updateValue("a", forKey: CollidableInt(10, 01)) // triggers COW
-    res2.updateValue("a", forKey: CollidableInt(11, 33)) // in-place
-    res2.updateValue("b", forKey: CollidableInt(20, 02)) // in-place
+    var res2: PersistentDictionary<Collider, String> = res1
+    res2.updateValue("a", forKey: Collider(10, 01)) // triggers COW
+    res2.updateValue("a", forKey: Collider(11, 33)) // in-place
+    res2.updateValue("b", forKey: Collider(20, 02)) // in-place
 
-    expectEqual(res1[CollidableInt(10, 01)], "x")
-    expectEqual(res1[CollidableInt(11, 33)], "x")
-    expectEqual(res1[CollidableInt(20, 02)], "y")
+    expectEqual(res1[Collider(10, 01)], "x")
+    expectEqual(res1[Collider(11, 33)], "x")
+    expectEqual(res1[Collider(20, 02)], "y")
 
-    expectEqual(res2[CollidableInt(10, 01)], "a")
-    expectEqual(res2[CollidableInt(11, 33)], "a")
-    expectEqual(res2[CollidableInt(20, 02)], "b")
+    expectEqual(res2[Collider(10, 01)], "a")
+    expectEqual(res2[Collider(11, 33)], "a")
+    expectEqual(res2[Collider(20, 02)], "b")
 
   }
 
@@ -105,15 +105,15 @@ final class CapsuleSmokeTests: CollectionTestCase {
     let upperBound = 1_000
 
     // Populating `map1`
-    var map1: PersistentDictionary<CollidableInt, String> = [:]
+    var map1: PersistentDictionary<Collider, String> = [:]
     for index in 0..<upperBound {
-      map1[CollidableInt(index)] = "+\(index)"
+      map1[Collider(index)] = "+\(index)"
     }
 
     // Populating `map2`
-    var map2: PersistentDictionary<CollidableInt, String> = map1
+    var map2: PersistentDictionary<Collider, String> = map1
     for index in 0..<upperBound {
-      map2[CollidableInt(index)] = "-\(index)"
+      map2[Collider(index)] = "-\(index)"
     }
 
     // Testing `map1` and `map2`
@@ -121,14 +121,14 @@ final class CapsuleSmokeTests: CollectionTestCase {
     expectEqual(map2.count, upperBound)
 
     for index in 0..<upperBound {
-      expectEqual(map1[CollidableInt(index)], "+\(index)")
-      expectEqual(map2[CollidableInt(index)], "-\(index)")
+      expectEqual(map1[Collider(index)], "+\(index)")
+      expectEqual(map2[Collider(index)], "-\(index)")
     }
 
     // Populating and testing `map3`
-    var map3: PersistentDictionary<CollidableInt, String> = map2
+    var map3: PersistentDictionary<Collider, String> = map2
     for index in 0..<upperBound {
-      map3[CollidableInt(index)] = nil
+      map3[Collider(index)] = nil
 
       expectEqual(map3.count, inferSize(map3))
       if map3.count != inferSize(map3) {
@@ -170,19 +170,19 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func testCollisionNodeNotEqual() {
-    let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    let map: PersistentDictionary<Collider, Collider> = [:]
 
     var res12 = map
-    res12[CollidableInt(1, 1)] = CollidableInt(1, 1)
-    res12[CollidableInt(2, 1)] = CollidableInt(2, 1)
+    res12[Collider(1, 1)] = Collider(1, 1)
+    res12[Collider(2, 1)] = Collider(2, 1)
 
     var res13 = map
-    res13[CollidableInt(1, 1)] = CollidableInt(1, 1)
-    res13[CollidableInt(3, 1)] = CollidableInt(3, 1)
+    res13[Collider(1, 1)] = Collider(1, 1)
+    res13[Collider(3, 1)] = Collider(3, 1)
 
     var res31 = map
-    res31[CollidableInt(3, 1)] = CollidableInt(3, 1)
-    res31[CollidableInt(1, 1)] = CollidableInt(1, 1)
+    res31[Collider(3, 1)] = Collider(3, 1)
+    res31[Collider(1, 1)] = Collider(1, 1)
 
     expectEqual(res13, res31)
     expectNotEqual(res13, res12)
@@ -191,9 +191,9 @@ final class CapsuleSmokeTests: CollectionTestCase {
 
   func testCountForCopyOnWriteInsertion() {
     let map = PersistentDictionary([
-      CollidableInt(1): CollidableInt(1),
-      CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-      CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)
+      Collider(1): Collider(1),
+      Collider(32769_1, 32769): Collider(32769_1, 32769),
+      Collider(32769_2, 32769): Collider(32769_2, 32769)
     ])
     expectEqual(map._root.count, 3)
     expectEqual(map.reduce(0, { count, _ in count + 1 }), 3)
@@ -201,190 +201,190 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func testCountForCopyOnWriteDeletion() {
-    var map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    var map: PersistentDictionary<Collider, Collider> = [:]
 
-    map[CollidableInt(32769)] = CollidableInt(32769)
-    map[CollidableInt(11, 1)] = CollidableInt(11, 1)
-    map[CollidableInt(12, 1)] = CollidableInt(12, 1)
-    map[CollidableInt(33, 33)] = CollidableInt(33, 33)
-    map[CollidableInt(11, 1)] = nil
-    map[CollidableInt(12, 1)] = nil
+    map[Collider(32769)] = Collider(32769)
+    map[Collider(11, 1)] = Collider(11, 1)
+    map[Collider(12, 1)] = Collider(12, 1)
+    map[Collider(33, 33)] = Collider(33, 33)
+    map[Collider(11, 1)] = nil
+    map[Collider(12, 1)] = nil
     expectEqual(map._root.count, 2)
     expectEqual(map.reduce(0, { count, _ in count + 1 }), 2)
     map._root._invariantCheck()
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode1() {
-    let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    let map: PersistentDictionary<Collider, Collider> = [:]
 
 
     var res1 = map
-    res1[CollidableInt(11, 1)] = CollidableInt(11, 1)
-    res1[CollidableInt(12, 1)] = CollidableInt(12, 1)
+    res1[Collider(11, 1)] = Collider(11, 1)
+    res1[Collider(12, 1)] = Collider(12, 1)
 
-    expectTrue(res1.contains(CollidableInt(11, 1)))
-    expectTrue(res1.contains(CollidableInt(12, 1)))
+    expectTrue(res1.contains(Collider(11, 1)))
+    expectTrue(res1.contains(Collider(12, 1)))
 
     expectEqual(res1.count, 2)
     expectEqual(PersistentDictionary([
-      CollidableInt(11, 1): CollidableInt(11, 1),
-      CollidableInt(12, 1): CollidableInt(12, 1)
+      Collider(11, 1): Collider(11, 1),
+      Collider(12, 1): Collider(12, 1)
     ]), res1)
 
 
     var res2 = res1
-    res2[CollidableInt(12, 1)] = nil
+    res2[Collider(12, 1)] = nil
 
-    expectTrue(res2.contains(CollidableInt(11, 1)))
-    expectFalse(res2.contains(CollidableInt(12, 1)))
+    expectTrue(res2.contains(Collider(11, 1)))
+    expectFalse(res2.contains(Collider(12, 1)))
 
     expectEqual(res2.count, 1)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(11, 1): CollidableInt(11, 1)
+        Collider(11, 1): Collider(11, 1)
       ]),
       res2)
 
 
     var res3 = res1
-    res3[CollidableInt(11, 1)] = nil
+    res3[Collider(11, 1)] = nil
 
-    expectFalse(res3.contains(CollidableInt(11, 1)))
-    expectTrue(res3.contains(CollidableInt(12, 1)))
+    expectFalse(res3.contains(Collider(11, 1)))
+    expectTrue(res3.contains(Collider(12, 1)))
 
     expectEqual(res3.count, 1)
     expectEqual(
-      PersistentDictionary([CollidableInt(12, 1): CollidableInt(12, 1)]),
+      PersistentDictionary([Collider(12, 1): Collider(12, 1)]),
       res3)
 
 
     var resX = res1
-    resX[CollidableInt(32769)] = CollidableInt(32769)
-    resX[CollidableInt(12, 1)] = nil
+    resX[Collider(32769)] = Collider(32769)
+    resX[Collider(12, 1)] = nil
 
-    expectTrue(resX.contains(CollidableInt(11, 1)))
-    expectFalse(resX.contains(CollidableInt(12, 1)))
-    expectTrue(resX.contains(CollidableInt(32769)))
+    expectTrue(resX.contains(Collider(11, 1)))
+    expectFalse(resX.contains(Collider(12, 1)))
+    expectTrue(resX.contains(Collider(32769)))
 
     expectEqual(resX.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(11, 1): CollidableInt(11, 1),
-        CollidableInt(32769): CollidableInt(32769)]),
+        Collider(11, 1): Collider(11, 1),
+        Collider(32769): Collider(32769)]),
       resX)
 
 
     var resY = res1
-    resY[CollidableInt(32769)] = CollidableInt(32769)
-    resY[CollidableInt(32769)] = nil
+    resY[Collider(32769)] = Collider(32769)
+    resY[Collider(32769)] = nil
 
-    expectTrue(resY.contains(CollidableInt(11, 1)))
-    expectTrue(resY.contains(CollidableInt(12, 1)))
-    expectFalse(resY.contains(CollidableInt(32769)))
+    expectTrue(resY.contains(Collider(11, 1)))
+    expectTrue(resY.contains(Collider(12, 1)))
+    expectFalse(resY.contains(Collider(32769)))
 
     expectEqual(resY.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(11, 1): CollidableInt(11, 1),
-        CollidableInt(12, 1): CollidableInt(12, 1)]),
+        Collider(11, 1): Collider(11, 1),
+        Collider(12, 1): Collider(12, 1)]),
       resY)
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode2() {
-    let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    let map: PersistentDictionary<Collider, Collider> = [:]
 
 
     var res1 = map
-    res1[CollidableInt(32769_1, 32769)] = CollidableInt(32769_1, 32769)
-    res1[CollidableInt(32769_2, 32769)] = CollidableInt(32769_2, 32769)
+    res1[Collider(32769_1, 32769)] = Collider(32769_1, 32769)
+    res1[Collider(32769_2, 32769)] = Collider(32769_2, 32769)
 
-    expectTrue(res1.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res1.contains(Collider(32769_1, 32769)))
+    expectTrue(res1.contains(Collider(32769_2, 32769)))
 
     expectEqual(res1.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res1)
 
 
     var res2 = res1
-    res2[CollidableInt(1)] = CollidableInt(1)
+    res2[Collider(1)] = Collider(1)
 
-    expectTrue(res2.contains(CollidableInt(1)))
-    expectTrue(res2.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res2.contains(Collider(1)))
+    expectTrue(res2.contains(Collider(32769_1, 32769)))
+    expectTrue(res2.contains(Collider(32769_2, 32769)))
 
     expectEqual(res2.count, 3)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(1): CollidableInt(1),
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(1): Collider(1),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res2)
 
 
     var res3 = res2
-    res3[CollidableInt(32769_2, 32769)] = nil
+    res3[Collider(32769_2, 32769)] = nil
 
-    expectTrue(res3.contains(CollidableInt(1)))
-    expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
+    expectTrue(res3.contains(Collider(1)))
+    expectTrue(res3.contains(Collider(32769_1, 32769)))
 
     expectEqual(res3.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(1): CollidableInt(1),
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769)]),
+        Collider(1): Collider(1),
+        Collider(32769_1, 32769): Collider(32769_1, 32769)]),
       res3)
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode3() {
-    let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    let map: PersistentDictionary<Collider, Collider> = [:]
 
 
     var res1 = map
-    res1[CollidableInt(32769_1, 32769)] = CollidableInt(32769_1, 32769)
-    res1[CollidableInt(32769_2, 32769)] = CollidableInt(32769_2, 32769)
+    res1[Collider(32769_1, 32769)] = Collider(32769_1, 32769)
+    res1[Collider(32769_2, 32769)] = Collider(32769_2, 32769)
 
-    expectTrue(res1.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res1.contains(Collider(32769_1, 32769)))
+    expectTrue(res1.contains(Collider(32769_2, 32769)))
 
     expectEqual(res1.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res1)
 
 
     var res2 = res1
-    res2[CollidableInt(1)] = CollidableInt(1)
+    res2[Collider(1)] = Collider(1)
 
-    expectTrue(res2.contains(CollidableInt(1)))
-    expectTrue(res2.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res2.contains(Collider(1)))
+    expectTrue(res2.contains(Collider(32769_1, 32769)))
+    expectTrue(res2.contains(Collider(32769_2, 32769)))
 
     expectEqual(res2.count, 3)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(1): CollidableInt(1),
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(1): Collider(1),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res2)
 
 
     var res3 = res2
-    res3[CollidableInt(1)] = nil
+    res3[Collider(1)] = nil
 
-    expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res3.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res3.contains(Collider(32769_1, 32769)))
+    expectTrue(res3.contains(Collider(32769_2, 32769)))
 
     expectEqual(res3.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res3)
 
 
@@ -392,51 +392,51 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode4() {
-    let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    let map: PersistentDictionary<Collider, Collider> = [:]
 
 
     var res1 = map
-    res1[CollidableInt(32769_1, 32769)] = CollidableInt(32769_1, 32769)
-    res1[CollidableInt(32769_2, 32769)] = CollidableInt(32769_2, 32769)
+    res1[Collider(32769_1, 32769)] = Collider(32769_1, 32769)
+    res1[Collider(32769_2, 32769)] = Collider(32769_2, 32769)
 
-    expectTrue(res1.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res1.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res1.contains(Collider(32769_1, 32769)))
+    expectTrue(res1.contains(Collider(32769_2, 32769)))
 
     expectEqual(res1.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res1)
 
 
     var res2 = res1
-    res2[CollidableInt(5)] = CollidableInt(5)
+    res2[Collider(5)] = Collider(5)
 
-    expectTrue(res2.contains(CollidableInt(5)))
-    expectTrue(res2.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res2.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res2.contains(Collider(5)))
+    expectTrue(res2.contains(Collider(32769_1, 32769)))
+    expectTrue(res2.contains(Collider(32769_2, 32769)))
 
     expectEqual(res2.count, 3)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(5): CollidableInt(5),
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(5): Collider(5),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res2)
 
 
     var res3 = res2
-    res3[CollidableInt(5)] = nil
+    res3[Collider(5)] = nil
 
-    expectTrue(res3.contains(CollidableInt(32769_1, 32769)))
-    expectTrue(res3.contains(CollidableInt(32769_2, 32769)))
+    expectTrue(res3.contains(Collider(32769_1, 32769)))
+    expectTrue(res3.contains(Collider(32769_2, 32769)))
 
     expectEqual(res3.count, 2)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(32769_1, 32769): CollidableInt(32769_1, 32769),
-        CollidableInt(32769_2, 32769): CollidableInt(32769_2, 32769)]),
+        Collider(32769_1, 32769): Collider(32769_1, 32769),
+        Collider(32769_2, 32769): Collider(32769_2, 32769)]),
       res3)
 
 
@@ -444,44 +444,44 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode5() {
-    let map: PersistentDictionary<CollidableInt, CollidableInt> = [:]
+    let map: PersistentDictionary<Collider, Collider> = [:]
 
 
     var res1 = map
-    res1[CollidableInt(1)] = CollidableInt(1)
-    res1[CollidableInt(1026)] = CollidableInt(1026)
-    res1[CollidableInt(32770_1, 32770)] = CollidableInt(32770_1, 32770)
-    res1[CollidableInt(32770_2, 32770)] = CollidableInt(32770_2, 32770)
+    res1[Collider(1)] = Collider(1)
+    res1[Collider(1026)] = Collider(1026)
+    res1[Collider(32770_1, 32770)] = Collider(32770_1, 32770)
+    res1[Collider(32770_2, 32770)] = Collider(32770_2, 32770)
 
-    expectTrue(res1.contains(CollidableInt(1)))
-    expectTrue(res1.contains(CollidableInt(1026)))
-    expectTrue(res1.contains(CollidableInt(32770_1, 32770)))
-    expectTrue(res1.contains(CollidableInt(32770_2, 32770)))
+    expectTrue(res1.contains(Collider(1)))
+    expectTrue(res1.contains(Collider(1026)))
+    expectTrue(res1.contains(Collider(32770_1, 32770)))
+    expectTrue(res1.contains(Collider(32770_2, 32770)))
 
     expectEqual(res1.count, 4)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(1): CollidableInt(1),
-        CollidableInt(1026): CollidableInt(1026),
-        CollidableInt(32770_1, 32770): CollidableInt(32770_1, 32770),
-        CollidableInt(32770_2, 32770): CollidableInt(32770_2, 32770)]),
+        Collider(1): Collider(1),
+        Collider(1026): Collider(1026),
+        Collider(32770_1, 32770): Collider(32770_1, 32770),
+        Collider(32770_2, 32770): Collider(32770_2, 32770)]),
       res1)
 
 
     var res2 = res1
-    res2[CollidableInt(1026)] = nil
+    res2[Collider(1026)] = nil
 
-    expectTrue(res2.contains(CollidableInt(1)))
-    expectFalse(res2.contains(CollidableInt(1026)))
-    expectTrue(res2.contains(CollidableInt(32770_1, 32770)))
-    expectTrue(res2.contains(CollidableInt(32770_2, 32770)))
+    expectTrue(res2.contains(Collider(1)))
+    expectFalse(res2.contains(Collider(1026)))
+    expectTrue(res2.contains(Collider(32770_1, 32770)))
+    expectTrue(res2.contains(Collider(32770_2, 32770)))
 
     expectEqual(res2.count, 3)
     expectEqual(
       PersistentDictionary([
-        CollidableInt(1): CollidableInt(1),
-        CollidableInt(32770_1, 32770): CollidableInt(32770_1, 32770),
-        CollidableInt(32770_2, 32770): CollidableInt(32770_2, 32770)]),
+        Collider(1): Collider(1),
+        Collider(32770_1, 32770): Collider(32770_1, 32770),
+        Collider(32770_2, 32770): Collider(32770_2, 32770)]),
       res2)
   }
 
@@ -499,19 +499,19 @@ final class CapsuleSmokeTests: CollectionTestCase {
     let upperBound = 1_000
 
     // '+' prefixed values
-    var map1: PersistentDictionary<CollidableInt, String> = [:]
+    var map1: PersistentDictionary<Collider, String> = [:]
     for index in 0..<upperBound {
-      map1[CollidableInt(index, 1)] = "+\(index)"
-      expectTrue(map1.contains(CollidableInt(index, 1)))
-      expectTrue(map1[CollidableInt(index, 1)] == "+\(index)")
+      map1[Collider(index, 1)] = "+\(index)"
+      expectTrue(map1.contains(Collider(index, 1)))
+      expectTrue(map1[Collider(index, 1)] == "+\(index)")
     }
     expectEqual(map1.count, upperBound)
     doIterate(map1)
 
     // '-' prefixed values
-    var map2: PersistentDictionary<CollidableInt, String> = map1
+    var map2: PersistentDictionary<Collider, String> = map1
     for index in 0..<upperBound {
-      let key = CollidableInt(index, 1)
+      let key = Collider(index, 1)
       map2[key] = "-\(index)"
       expectTrue(map2.contains(key))
       expectEqual(map2[key], "-\(index)")
@@ -520,9 +520,9 @@ final class CapsuleSmokeTests: CollectionTestCase {
     doIterate(map2)
 
     // empty map
-    var map3: PersistentDictionary<CollidableInt, String> = map1
+    var map3: PersistentDictionary<Collider, String> = map1
     for index in 0..<upperBound {
-      map3[CollidableInt(index, 1)] = nil
+      map3[Collider(index, 1)] = nil
     }
     expectEqual(map3.count, 0)
     doIterate(map3)
@@ -558,13 +558,13 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func testIteratorEnumeratesAll() {
-    let map1: PersistentDictionary<CollidableInt, String> = [
-      CollidableInt(11, 1): "a",
-      CollidableInt(12, 1): "a",
-      CollidableInt(32769): "b"
+    let map1: PersistentDictionary<Collider, String> = [
+      Collider(11, 1): "a",
+      Collider(12, 1): "a",
+      Collider(32769): "b"
     ]
 
-    var map2: PersistentDictionary<CollidableInt, String> = [:]
+    var map2: PersistentDictionary<Collider, String> = [:]
     for (key, value) in map1 {
       map2[key] = value
     }
@@ -573,21 +573,22 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func test_indexForKey_hashCollision() {
-    let a = CollidableInt(1, "1000")
-    let b = CollidableInt(2, "1000")
-    let c = CollidableInt(3, "1001")
-    let map: PersistentDictionary<CollidableInt, String> = [
+    let a = Collider(1, "1000")
+    let b = Collider(2, "1000")
+    let c = Collider(3, "1001")
+    let map: PersistentDictionary<Collider, String> = [
       a: "a",
       b: "b",
       c: "c",
     ]
 
+    let indices = Array(map.indices)
 
-    typealias Index = PersistentDictionary<CollidableInt, String>.Index
-    expectEqual(map.index(forKey: a), Index(_value: 2))
-    expectEqual(map.index(forKey: b), Index(_value: 1))
-    expectEqual(map.index(forKey: c), Index(_value: 0))
-    expectNil(map.index(forKey: CollidableInt(4, "1000")))
+    typealias Index = PersistentDictionary<Collider, String>.Index
+    expectEqual(map.index(forKey: a), indices[1])
+    expectEqual(map.index(forKey: b), indices[2])
+    expectEqual(map.index(forKey: c), indices[0])
+    expectNil(map.index(forKey: Collider(4, "1000")))
   }
 
   func test_indexForKey() {
@@ -605,23 +606,22 @@ final class CapsuleSmokeTests: CollectionTestCase {
   }
 
   func test_indexForKey_exhaustIndices() {
-    var map: PersistentDictionary<CollidableInt, Int> = [:]
+    var map: PersistentDictionary<Collider, Int> = [:]
 
     let range = 0 ..< 10_000
 
     for value in range {
-      map[CollidableInt(value)] = value
+      map[Collider(value)] = value
     }
 
-    var expectedPositions = Set(range)
+    var expectedPositions = Set(map.indices)
 
     for expectedValue in range {
-      let position = map.index(forKey: CollidableInt(expectedValue))!
-      let actualValue = map[position].value
-
-      expectEqual(expectedValue, actualValue)
-
-      expectedPositions.remove(position._value)
+      expectNotNil(map.index(forKey: Collider(expectedValue))) { index in
+        let actualValue = map[index].value
+        expectEqual(expectedValue, actualValue)
+        expectedPositions.remove(index)
+      }
     }
 
     expectTrue(expectedPositions.isEmpty)

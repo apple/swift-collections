@@ -15,12 +15,23 @@
 @frozen
 internal struct _Bucket {
   @usableFromInline
-  internal var value: UInt
+  internal var _value: UInt8
+
+  @inlinable @inline(__always)
+  internal init(_value: UInt8) {
+    assert(_value < _Bitmap.capacity || _value == .max)
+    self._value = _value
+  }
+}
+
+extension _Bucket {
+  @inlinable @inline(__always)
+  internal var value: UInt { UInt(truncatingIfNeeded: _value) }
 
   @inlinable @inline(__always)
   internal init(_ value: UInt) {
     assert(value < _Bitmap.capacity || value == .max)
-    self.value = value
+    self._value = UInt8(truncatingIfNeeded: value)
   }
 }
 
@@ -32,29 +43,29 @@ extension _Bucket {
   static var bitMask: UInt { UInt(bitPattern: _Bitmap.capacity) &- 1 }
 
   @inlinable @inline(__always)
-  static var invalid: _Bucket { _Bucket(.max) }
+  static var invalid: _Bucket { _Bucket(_value: .max) }
 
   @inlinable @inline(__always)
-  var isInvalid: Bool { value == .max }
+  var isInvalid: Bool { _value == .max }
 }
 
 extension _Bucket: Equatable {
   @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
-    left.value == right.value
+    left._value == right._value
   }
 }
 
 extension _Bucket: Comparable {
   @inlinable @inline(__always)
   internal static func <(left: Self, right: Self) -> Bool {
-    left.value < right.value
+    left._value < right._value
   }
 }
 
 extension _Bucket: CustomStringConvertible {
   @usableFromInline
   internal var description: String {
-    String(value, radix: _Bitmap.capacity)
+    String(_value, radix: _Bitmap.capacity)
   }
 }

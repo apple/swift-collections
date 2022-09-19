@@ -11,118 +11,147 @@
 
 extension _Node {
   @inlinable
-  internal init(_collisions item1: Element, _ item2: Element) {
-    defer { _invariantCheck() }
-    self.init(collisionCapacity: 2)
-    self.count = 2
-    update {
+  internal static func _collisionNode(
+    _ item1: Element,
+    _ inserter2: (UnsafeMutablePointer<Element>) -> Void
+  ) -> _Node {
+    var node = _Node(collisionCapacity: 2)
+    node.count = 2
+    node.update {
       $0.collisionCount = 2
       let byteCount = 2 * MemoryLayout<Element>.stride
       assert($0.bytesFree >= byteCount)
       $0.bytesFree &-= byteCount
-      let items = $0._items
-      items.initializeElement(at: 0, to: item1)
-      items.initializeElement(at: 1, to: item2)
+      let items = $0.reverseItems
+      items.initializeElement(at: 1, to: item1)
+      inserter2(items.baseAddress.unsafelyUnwrapped)
     }
+    node._invariantCheck()
+    return node
   }
 
   @inlinable
-  internal init(
-    _items item1: Element, _ bucket1: _Bucket,
-    _ item2: Element, _ bucket2: _Bucket
-  ) {
-    defer { _invariantCheck() }
+  internal static func _regularNode(
+    _ item1: Element,
+    _ bucket1: _Bucket,
+    _ inserter2: (UnsafeMutablePointer<Element>) -> Void,
+    _ bucket2: _Bucket
+  ) -> (node: _Node, slot1: _Slot, slot2: _Slot) {
     assert(bucket1 != bucket2)
-    self.init(itemCapacity: 2)
-    self.count = 2
-    update {
+    var node = _Node(itemCapacity: 2)
+    node.count = 2
+    let (slot1, slot2) = node.update {
       $0.itemMap.insert(bucket1)
       $0.itemMap.insert(bucket2)
       $0.bytesFree &-= 2 * MemoryLayout<Element>.stride
-      let i = bucket1 < bucket2 ? 0 : 1
-      let items = $0._items
-      items.initializeElement(at: i, to: item1)
-      items.initializeElement(at: 1 - i, to: item2)
+      let i1 = bucket1 < bucket2 ? 1 : 0
+      let i2 = 1 &- i1
+      let items = $0.reverseItems
+      items.initializeElement(at: i1, to: item1)
+      inserter2(items.baseAddress.unsafelyUnwrapped + i2)
+      return (_Slot(i2), _Slot(i1)) // Note: swapped
     }
+    node._invariantCheck()
+    return (node, slot1, slot2)
   }
 
   @inlinable
-  internal init(_child: _Node, _ bucket: _Bucket) {
-    defer { _invariantCheck() }
-    self.init(childCapacity: 1)
-    self.count = _child.count
-    update {
+  internal static func _regularNode(
+    _ child: _Node, _ bucket: _Bucket
+  ) -> _Node {
+    var node = _Node(childCapacity: 1)
+    node.count = child.count
+    node.update {
       $0.childMap.insert(bucket)
       $0.bytesFree &-= MemoryLayout<_Node>.stride
-      $0.childPtr(at: 0).initialize(to: _child)
+      $0.childPtr(at: .zero).initialize(to: child)
     }
+    node._invariantCheck()
+    return node
   }
 
   @inlinable
-  internal init(
-    _item: Element, _ itemBucket: _Bucket,
-    child: _Node, _ childBucket: _Bucket
-  ) {
-    defer { _invariantCheck() }
+  internal static func _regularNode(
+    _ inserter: (UnsafeMutablePointer<Element>) -> Void,
+    _ itemBucket: _Bucket,
+    _ child: _Node,
+    _ childBucket: _Bucket
+  ) -> _Node {
     assert(itemBucket != childBucket)
-    self.init(itemCapacity: 1, childCapacity: 1)
-    self.count = child.count + 1
-    update {
+    var node = _Node(itemCapacity: 1, childCapacity: 1)
+    node.count = child.count + 1
+    node.update {
       $0.itemMap.insert(itemBucket)
       $0.childMap.insert(childBucket)
       $0.bytesFree &-= MemoryLayout<Element>.stride + MemoryLayout<_Node>.stride
-      $0.itemPtr(at: 0).initialize(to: _item)
-      $0.childPtr(at: 0).initialize(to: child)
+      inserter($0.itemPtr(at: .zero))
+      $0.childPtr(at: .zero).initialize(to: child)
     }
+    node._invariantCheck()
+    return node
   }
 }
 
 extension _Node {
   @inlinable
-  internal init(
+  internal static func build(
     level: _Level,
     item1: Element,
     _ hash1: _Hash,
-    item2: Element,
+    item2 inserter2: (UnsafeMutablePointer<Element>) -> Void,
     _ hash2: _Hash
-  ) {
+  ) -> (top: _Node, leaf: _UnmanagedNode, slot1: _Slot, slot2: _Slot) {
     if hash1 == hash2 {
-      self.init(_collisions: item1, item2)
-    } else {
-      let b1 = hash1[level]
-      let b2 = hash2[level]
-      if b1 == b2 {
-        let node = Self(
-          level: level.descend(),
-          item1: item1, hash1,
-          item2: item2, hash2)
-        self.init(_child: node, b1)
-      } else {
-        self.init(_items: item1, b1, item2, b2)
-      }
+      let top = _collisionNode(item1, inserter2)
+      return (top, top.unmanaged, _Slot(0), _Slot(1))
     }
+    let r = _build(
+      level: level, item1: item1, hash1, item2: inserter2, hash2)
+    return (r.top, r.leaf, r.slot1, r.slot2)
   }
 
   @inlinable
-  internal init(
+  internal static func _build(
     level: _Level,
     item1: Element,
     _ hash1: _Hash,
+    item2 inserter2: (UnsafeMutablePointer<Element>) -> Void,
+    _ hash2: _Hash
+  ) -> (top: _Node, leaf: _UnmanagedNode, slot1: _Slot, slot2: _Slot) {
+    assert(hash1 != hash2)
+    let b1 = hash1[level]
+    let b2 = hash2[level]
+    guard b1 == b2 else {
+      let r = _regularNode(item1, b1, inserter2, b2)
+      return (r.node, r.node.unmanaged, r.slot1, r.slot2)
+    }
+    let r = _build(
+      level: level.descend(),
+      item1: item1, hash1,
+      item2: inserter2, hash2)
+    return (_regularNode(r.top, b1), r.leaf, r.slot1, r.slot2)
+  }
+
+  @inlinable
+  internal static func build(
+    level: _Level,
+    item1 inserter1: (UnsafeMutablePointer<Element>) -> Void,
+    _ hash1: _Hash,
     child2: _Node,
     _ hash2: _Hash
-  ) {
+  ) -> (top: _Node, leaf: _UnmanagedNode, slot1: _Slot, slot2: _Slot) {
     assert(child2.isCollisionNode)
     assert(hash1 != hash2)
     let b1 = hash1[level]
     let b2 = hash2[level]
     if b1 == b2 {
-      let node = Self(
+      let node = build(
         level: level.descend(),
-        item1: item1, hash1,
+        item1: inserter1, hash1,
         child2: child2, hash2)
-      self.init(_child: node, b1)
-    } else {
-      self.init(_item: item1, hash1[level], child: child2, hash2[level])
+      return (_regularNode(node.top, b1), node.leaf, node.slot1, node.slot2)
     }
+    let node = _regularNode(inserter1, hash1[level], child2, hash2[level])
+    return (node, node.unmanaged, .zero, .zero)
   }
 }

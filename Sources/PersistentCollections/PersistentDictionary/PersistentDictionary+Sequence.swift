@@ -18,7 +18,7 @@ extension PersistentDictionary: Sequence {
     // before any items within children.
 
     @usableFromInline
-    typealias _ItemBuffer = UnsafeBufferPointer<Element>
+    typealias _ItemBuffer = ReversedCollection<UnsafeMutableBufferPointer<Element>>
 
     @usableFromInline
     typealias _ChildBuffer = UnsafeBufferPointer<_Node>
@@ -44,7 +44,7 @@ extension PersistentDictionary: Sequence {
       // FIXME: This is illegal, as it escapes pointers to _root contents
       // outside the closure passed to `read`. :-(
       self._itemIterator = _root.read {
-        $0.hasItems ? $0._items.makeIterator() : nil
+        $0.hasItems ? $0.reverseItems.reversed().makeIterator() : nil
       }
       self._pathTop = _root.read {
         $0.hasChildren ? $0._children.makeIterator() : nil
@@ -84,7 +84,7 @@ extension PersistentDictionary.Iterator: IteratorProtocol {
         _pathTop = nextNode.read { $0._children.makeIterator() } // 💥ILLEGAL
       }
       if nextNode.read({ $0.hasItems }) {
-        _itemIterator = nextNode.read { $0._items.makeIterator() } // 💥ILLEGAL
+        _itemIterator = nextNode.read { $0.reverseItems.reversed().makeIterator() } // 💥ILLEGAL
         return _itemIterator!.next()
       }
     }

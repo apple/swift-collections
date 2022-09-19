@@ -19,7 +19,7 @@ extension _Node: CustomStringConvertible {
     var result = "["
     var first = true
     read {
-      for (key, value) in $0._items {
+      for (key, value) in $0.reverseItems.reversed() {
         if first {
           first = false
         } else {

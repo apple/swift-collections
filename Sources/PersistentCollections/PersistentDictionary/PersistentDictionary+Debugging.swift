@@ -12,7 +12,13 @@
 import _CollectionsUtilities
 
 extension PersistentDictionary {
-  public func _dump() {
-    _root.dump()
+  public func _dump(iterationOrder: Bool = false) {
+    _root.dump(iterationOrder: iterationOrder)
+  }
+}
+
+extension PersistentDictionary {
+  public static var _maxDepth: Int {
+    _Level.limit
   }
 }

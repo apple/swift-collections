@@ -14,33 +14,56 @@ import _CollectionsUtilities
 extension _Node {
   @usableFromInline
   internal func dump(
-    firstPrefix: String = "", restPrefix: String = "", limit: Int = Int.max
+    iterationOrder: Bool = false,
+    limit: Int = Int.max,
+    firstPrefix: String = "",
+    restPrefix: String = "",
+    depth: Int = 0
   ) {
     read {
       $0.dump(
+        iterationOrder: iterationOrder,
+        limit: limit,
+        extra: "count: \(count), ",
         firstPrefix: firstPrefix,
         restPrefix: restPrefix,
-        extra: "count: \(count), ",
-        limit: limit)
+        depth: depth)
     }
   }
 }
 
 extension _Node.Storage {
   @usableFromInline
-  final internal func dump() {
-    UnsafeHandle.read(self) { $0.dump() }
+  final internal func dump(iterationOrder: Bool = false) {
+    UnsafeHandle.read(self) { $0.dump(iterationOrder: iterationOrder) }
   }
 }
 
 extension _Node.UnsafeHandle {
+  internal func _itemString(at slot: _Slot) -> String {
+    let item = self[item: slot]
+    let hash = _Hash(item.key).description
+    return "hash: \(hash), key: \(item.key), value: \(item.value)"
+  }
+
   @usableFromInline
   internal func dump(
+    iterationOrder: Bool = false,
+    limit: Int = .max,
+    extra: String = "",
     firstPrefix: String = "",
     restPrefix: String = "",
-    extra: String = "",
-    limit: Int = Int.max
+    depth: Int = 0
   ) {
+    var firstPrefix = firstPrefix
+    var restPrefix = restPrefix
+    if iterationOrder && depth == 0 {
+      firstPrefix += "@"
+      restPrefix += "@"
+    }
+    if iterationOrder {
+      firstPrefix += "  "
+    }
     print("""
       \(firstPrefix)\(isCollisionNode ? "CollisionNode" : "Node")(\
       at: \(_addressString(for: _header)), \
@@ -49,32 +72,40 @@ extension _Node.UnsafeHandle {
       freeBytes: \(bytesFree))
       """)
     guard limit > 0 else { return }
-    if isCollisionNode {
-      let items = self._items
-      for offset in items.indices {
-        let item = items[offset]
-        let hash = _Hash(item.key).description
-        let itemStr = "hash: \(hash), key: \(item.key), value: \(item.value)"
-        print("\(restPrefix)  \(offset): \(itemStr)")
+    if iterationOrder {
+      for slot in stride(from: .zero, to: itemEnd, by: 1) {
+        print("  \(restPrefix)[\(slot)]  \(_itemString(at: slot))")
+      }
+      for slot in stride(from: .zero, to: childEnd, by: 1) {
+        self[child: slot].dump(
+          iterationOrder: true,
+          limit: limit - 1,
+          firstPrefix: "  \(restPrefix).\(slot)",
+          restPrefix: "  \(restPrefix).\(slot)",
+          depth: depth + 1)
+      }
+    }
+    else if isCollisionNode {
+      for slot in stride(from: .zero, to: itemEnd, by: 1) {
+        print("\(restPrefix)[\(slot)] \(_itemString(at: slot))")
       }
     } else {
-      var itemOffset = 0
-      var childOffset = 0
+      var itemSlot: _Slot = .zero
+      var childSlot: _Slot = .zero
       for b in 0 ..< UInt(_Bitmap.capacity) {
         let bucket = _Bucket(b)
         let bucketStr = "#\(String(b, radix: _Bitmap.capacity, uppercase: true))"
         if itemMap.contains(bucket) {
-          let item = self[item: itemOffset]
-          let hash = _Hash(item.key).description
-          let itemStr = "hash: \(hash), key: \(item.key), value: \(item.value)"
-          print("\(restPrefix)  \(bucketStr) \(itemStr)")
-          itemOffset += 1
+          print("\(restPrefix)  \(bucketStr) \(_itemString(at: itemSlot))")
+          itemSlot = itemSlot.next()
         } else if childMap.contains(bucket) {
-          self[child: childOffset].dump(
+          self[child: childSlot].dump(
+            iterationOrder: false,
+            limit: limit - 1,
             firstPrefix: "\(restPrefix)  \(bucketStr) ",
             restPrefix: "\(restPrefix)     ",
-            limit: limit - 1)
-          childOffset += 1
+            depth: depth + 1)
+          childSlot = childSlot.next()
         }
       }
     }
