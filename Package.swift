@@ -52,9 +52,12 @@ let package = Package(
   name: "swift-collections",
   products: [
     .library(name: "Collections", targets: ["Collections"]),
+    .library(name: "BitCollections", targets: ["BitCollections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
-    .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
+    .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
+    .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
+    .library(name: "SortedCollections", targets: ["SortedCollections"]),
   ],
   targets: [
     .target(
@@ -62,7 +65,10 @@ let package = Package(
       dependencies: [
         "DequeModule",
         "OrderedCollections",
+        "PersistentCollections",
+        "SortedCollections",
         "PriorityQueueModule",
+        "BitCollections",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -84,9 +90,24 @@ let package = Package(
       dependencies: ["_CollectionsTestSupport"],
       swiftSettings: settings),
 
+    .target(
+      name: "_CollectionsUtilities",
+      swiftSettings: settings),
+
+    // BitSet, BitArray
+    .target(
+        name: "BitCollections",
+        path: "Sources/BitCollections",
+        swiftSettings: settings),
+    .testTarget(
+      name: "BitCollectionsTests",
+      dependencies: ["BitCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
+
     // Deque<Element>
     .target(
       name: "DequeModule",
+      dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
@@ -94,17 +115,7 @@ let package = Package(
       dependencies: ["DequeModule", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // OrderedSet<Element>, OrderedDictionary<Key, Value>
-    .target(
-      name: "OrderedCollections",
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "OrderedCollectionsTests",
-      dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
-      swiftSettings: settings),
-
-    // PriorityQueue<Element>
+    // Heap<Value>
     .target(
         name: "PriorityQueueModule",
         exclude: ["CMakeLists.txt"],
@@ -113,5 +124,35 @@ let package = Package(
         name: "PriorityQueueTests",
         dependencies: ["PriorityQueueModule"],
         swiftSettings: settings),
+
+    // OrderedSet<Element>, OrderedDictionary<Key, Value>
+    .target(
+      name: "OrderedCollections",
+      dependencies: ["_CollectionsUtilities"],
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
+    .testTarget(
+      name: "OrderedCollectionsTests",
+      dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
+
+    // PersistentSet<Element>, PersistentDictionary<Key, Value>
+    .target(
+        name: "PersistentCollections",
+        dependencies: ["_CollectionsUtilities"],
+        swiftSettings: settings),
+    .testTarget(
+        name: "PersistentCollectionsTests",
+        dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+        swiftSettings: settings),
+
+    // SortedSet<Element>, SortedDictionary<Key, Value>
+    .target(
+      name: "SortedCollections",
+      swiftSettings: settings),
+    .testTarget(
+      name: "SortedCollectionsTests",
+      dependencies: ["SortedCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
   ]
 )
