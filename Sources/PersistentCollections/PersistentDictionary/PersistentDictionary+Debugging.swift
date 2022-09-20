@@ -16,6 +16,11 @@ extension PersistentDictionary {
     _isCollectionsInternalCheckingEnabled
   }
 
+  @inlinable
+  public func _invariantCheck() {
+    _root._fullInvariantCheck(.top, _Hash(_value: 0))
+  }
+
   public func _dump(iterationOrder: Bool = false) {
     _root.dump(iterationOrder: iterationOrder)
   }

@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-public struct PersistentDictionary<Key, Value> where Key: Hashable {
+public struct PersistentDictionary<Key: Hashable, Value> {
   @usableFromInline
   internal typealias _Node = PersistentCollections._Node<Key, Value>
 
@@ -30,19 +30,11 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
   @inlinable
   internal init(_new: _Node) {
-    // Ideally we would simply just generate a true random number, but the
-    // memory address of the root node is a reasonable substitute.
-    let address = Unmanaged.passUnretained(_new.raw.storage).toOpaque()
-    self.init(_root: _new, version: UInt(bitPattern: address))
+    self.init(_root: _new, version: _new.initialVersionNumber)
   }
 }
 
 extension PersistentDictionary {
-  @inlinable
-  public func _invariantCheck() {
-    _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
-
   /// Accesses the value associated with the given key for reading and writing.
   ///
   /// This *key-based* subscript returns the value for the given key if the key

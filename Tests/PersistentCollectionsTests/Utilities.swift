@@ -155,10 +155,10 @@ func expectEqualDictionaries<Key: Hashable, Value: Equatable>(
   var dict = dict
   var seen: Set<Key> = []
   var mismatches: [(key: Key, map: Value?, dict: Value?)] = []
-
+  var dupes: [(key: Key, map: Value)] = []
   for (key, value) in map {
     if !seen.insert(key).inserted {
-      mismatches.append((key, value, nil))
+      dupes.append((key, value))
     } else {
       let expected = dict.removeValue(forKey: key)
       if value != expected {
@@ -169,12 +169,15 @@ func expectEqualDictionaries<Key: Hashable, Value: Equatable>(
   for (key, value) in dict {
     mismatches.append((key, nil, value))
   }
-  if !mismatches.isEmpty {
-    let msg = mismatches.lazy.map { k, m, d in
+  if !mismatches.isEmpty || !dupes.isEmpty {
+    let msg1 = mismatches.lazy.map { k, m, d in
       "\n  \(k): \(m == nil ? "nil" : "\(m!)") vs \(d == nil ? "nil" : "\(d!)")"
     }.joined(separator: "")
+    let msg2 = dupes.lazy.map { k, v in
+      "\n  \(k): \(v) (duped)"
+    }.joined(separator: "")
     _expectFailure(
-      "\n\(mismatches.count) mismatches (actual vs expected):\(msg)",
+      "\n\(mismatches.count) mismatches (actual vs expected):\(msg1)\(msg2)",
       message, trapping: trapping, file: file, line: line)
   }
 }

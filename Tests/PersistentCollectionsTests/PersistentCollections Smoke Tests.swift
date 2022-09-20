@@ -129,12 +129,7 @@ final class PersistentDictionarySmokeTests: CollectionTestCase {
     var map3: PersistentDictionary<Collider, String> = map2
     for index in 0..<upperBound {
       map3[Collider(index)] = nil
-
       expectEqual(map3.count, inferSize(map3))
-      if map3.count != inferSize(map3) {
-        assertionFailure()
-      }
-
     }
 
     expectEqual(map3.count, 0)

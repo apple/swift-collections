@@ -52,7 +52,7 @@ extension _AncestorSlots {
       return _Slot((path &>> level.shift) & _Bucket.bitMask)
     }
     set {
-      assert(newValue._value < UInt.bitWidth)
+      assert(newValue._value < _Bitmap.capacity)
       assert(self[level] == .zero)
       path |= (UInt(truncatingIfNeeded: newValue._value) &<< level.shift)
     }
