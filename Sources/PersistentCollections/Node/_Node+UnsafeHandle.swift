@@ -178,12 +178,12 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable @inline(__always)
-  internal var childEnd: _Slot {
-    _header.pointee.childEnd
+  internal var childrenEndSlot: _Slot {
+    _header.pointee.childrenEndSlot
   }
 
   @inlinable
-  internal var _children: UnsafeMutableBufferPointer<_Node> {
+  internal var children: UnsafeMutableBufferPointer<_Node> {
     UnsafeMutableBufferPointer(start: _childrenStart, count: childCount)
   }
 
@@ -195,8 +195,13 @@ extension _Node.UnsafeHandle {
 
   @inlinable
   internal subscript(child slot: _Slot) -> _Node {
-    unsafeAddress { UnsafePointer(childPtr(at: slot)) }
-    nonmutating unsafeMutableAddress { childPtr(at: slot) }
+    unsafeAddress {
+      UnsafePointer(childPtr(at: slot))
+    }
+    nonmutating unsafeMutableAddress {
+      assertMutable()
+      return childPtr(at: slot)
+    }
   }
 
   @inlinable
@@ -222,8 +227,8 @@ extension _Node.UnsafeHandle {
   }
 
   @inlinable @inline(__always)
-  internal var itemEnd: _Slot {
-    _header.pointee.itemEnd
+  internal var itemsEndSlot: _Slot {
+    _header.pointee.itemsEndSlot
   }
 
   @inlinable
@@ -240,8 +245,19 @@ extension _Node.UnsafeHandle {
 
   @inlinable
   internal subscript(item slot: _Slot) -> Element {
-    unsafeAddress { UnsafePointer(itemPtr(at: slot)) }
-    unsafeMutableAddress { itemPtr(at: slot) }
+    unsafeAddress {
+      UnsafePointer(itemPtr(at: slot))
+    }
+    nonmutating unsafeMutableAddress {
+      assertMutable()
+      return itemPtr(at: slot)
+    }
+  }
+
+  @inlinable
+  internal func clear() {
+    assertMutable()
+    _header.pointee.clear()
   }
 }
 

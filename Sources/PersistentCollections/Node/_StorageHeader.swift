@@ -88,12 +88,12 @@ extension _StorageHeader {
   }
 
   @inlinable @inline(__always)
-  internal var childEnd: _Slot {
+  internal var childrenEndSlot: _Slot {
     _Slot(childCount)
   }
 
   @inlinable @inline(__always)
-  internal var itemEnd: _Slot {
+  internal var itemsEndSlot: _Slot {
     _Slot(itemCount)
   }
 
@@ -105,9 +105,64 @@ extension _StorageHeader {
     }
     set {
       assert(isCollisionNode || childMap.isEmpty)
-      assert(newValue > 0 && newValue < UInt32.max)
-      itemMap._value = UInt32(truncatingIfNeeded: newValue)
+      assert(newValue > 0 && newValue < _Bitmap.Value.max)
+      itemMap._value = _Bitmap.Value(truncatingIfNeeded: newValue)
       childMap = itemMap
     }
+  }
+}
+
+extension _StorageHeader {
+  @inlinable
+  internal mutating func clear() {
+    itemMap = .empty
+    childMap = .empty
+    bytesFree = byteCapacity
+  }
+}
+
+extension _StorageHeader {
+  @inlinable
+  internal static func counts(
+    itemMap: _Bitmap, childMap: _Bitmap
+  ) -> (itemCount: Int, childCount: Int) {
+    if itemMap == childMap {
+      return (Int(truncatingIfNeeded: itemMap._value), 0)
+    }
+    return (itemMap.count, childMap.count)
+  }
+
+  @inlinable
+  internal func bitmapsForInsertingItem(
+    at slot: _Slot,
+    _ bucket: _Bucket
+  ) -> (itemMap: _Bitmap, childMap: _Bitmap) {
+    var itemMap = self.itemMap
+    var childMap = self.childMap
+    if bucket.isInvalid {
+      assert(isCollisionNode)
+      itemMap._value += 1
+      childMap = itemMap
+    } else {
+      assert(!isCollisionNode)
+      assert(!itemMap.contains(bucket) && !childMap.contains(bucket))
+      itemMap.insert(bucket)
+      assert(itemMap.slot(of: bucket) == slot)
+    }
+    return (itemMap, childMap)
+  }
+
+  @inlinable
+  internal func bitmapsForNewCollision(
+    at slot: _Slot,
+    _ bucket: _Bucket
+  ) -> (itemMap: _Bitmap, childMap: _Bitmap) {
+    assert(!isCollisionNode)
+    assert(itemMap.contains(bucket))
+    var itemMap = self.itemMap
+    var childMap = self.childMap
+    itemMap.remove(bucket)
+    childMap.insert(bucket)
+    return (itemMap, childMap)
   }
 }

@@ -67,7 +67,7 @@ extension _UnsafePath {
     _ node: _UnmanagedNode,
     childSlot: _Slot
   ) {
-    assert(childSlot < node.childEnd)
+    assert(childSlot < node.childrenEndSlot)
     self.level = level
     self.ancestors = ancestors
     self.node = node
@@ -82,7 +82,7 @@ extension _UnsafePath {
     _ node: _UnmanagedNode,
     itemSlot: _Slot
   ) {
-    assert(itemSlot < node.itemEnd)
+    assert(itemSlot < node.itemsEndSlot)
     self.level = level
     self.ancestors = ancestors
     self.node = node
@@ -270,7 +270,7 @@ extension _UnsafePath {
     // As a special exception, this allows slot to equal the item count.
     // This can happen for paths that address the position a new item might be
     // inserted later.
-    assert(slot <= node.itemEnd)
+    assert(slot <= node.itemsEndSlot)
     nodeSlot = slot
     _isItem = true
   }
@@ -284,7 +284,7 @@ extension _UnsafePath {
   internal mutating func selectChild(at slot: _Slot) {
     // As a special exception, this allows slot to equal the child count.
     // This is equivalent to a call to `selectEnd()`.
-    assert(slot <= node.childEnd)
+    assert(slot <= node.childrenEndSlot)
     nodeSlot = slot
     _isItem = false
   }
@@ -296,7 +296,7 @@ extension _UnsafePath {
   @usableFromInline
   @_effects(releasenone)
   internal mutating func selectEnd() {
-    nodeSlot = node.childEnd
+    nodeSlot = node.childrenEndSlot
     _isItem = false
   }
 
@@ -382,7 +382,7 @@ extension _UnsafePath {
   mutating func selectNextItem() -> Bool {
     assert(isOnItem)
     nodeSlot = nodeSlot.next()
-    if nodeSlot < node.itemEnd { return true }
+    if nodeSlot < node.itemsEndSlot { return true }
     nodeSlot = .zero
     _isItem = false
     return false
@@ -396,10 +396,10 @@ extension _UnsafePath {
   ///    valid.
   mutating func selectNextChild() -> Bool {
     assert(!isOnItem)
-    let childEnd = node.childEnd
-    guard nodeSlot < childEnd else { return false }
+    let childrenEndSlot = node.childrenEndSlot
+    guard nodeSlot < childrenEndSlot else { return false }
     nodeSlot = nodeSlot.next()
-    return nodeSlot < childEnd
+    return nodeSlot < childrenEndSlot
   }
 }
 
@@ -430,13 +430,13 @@ extension _UnsafePath {
     assert(isOnChild)
     while true {
       descend()
-      let childEnd = node.childEnd
-      guard childEnd > .zero else { break }
-      selectChild(at: childEnd.previous())
+      let childrenEndSlot = node.childrenEndSlot
+      guard childrenEndSlot > .zero else { break }
+      selectChild(at: childrenEndSlot.previous())
     }
-    let itemEnd = node.itemEnd
-    assert(itemEnd > .zero)
-    selectItem(at: itemEnd.previous())
+    let itemsEndSlot = node.itemsEndSlot
+    assert(itemsEndSlot > .zero)
+    selectItem(at: itemsEndSlot.previous())
   }
 
   /// Find the next item in a preorder walk in the tree following the currently
@@ -453,7 +453,7 @@ extension _UnsafePath {
       return true
     }
     if ascendToNearestAncestor(
-      under: root, where: { $1.next() < $0.childEnd }
+      under: root, where: { $1.next() < $0.childrenEndSlot }
     ) {
       let r = selectNextChild()
       assert(r)
@@ -482,7 +482,7 @@ extension _UnsafePath {
       return true
     case (false, false):
       if node.hasItems {
-        selectItem(at: node.itemEnd.previous())
+        selectItem(at: node.itemsEndSlot.previous())
         return true
       }
     case (true, false):
@@ -500,7 +500,7 @@ extension _UnsafePath {
       return true
     }
     if node.hasItems {
-      selectItem(at: node.itemEnd.previous())
+      selectItem(at: node.itemsEndSlot.previous())
       return true
     }
     return false
@@ -521,7 +521,7 @@ extension _RawNode {
     if level < path.level {
       let childSlot = path.childSlot(at: level)
       return read {
-        let prefix = $0._children[..<childSlot.value]
+        let prefix = $0.children[..<childSlot.value]
           .reduce($0.itemCount) { $0 + $1.count }
         let positionWithinChild = $0[child: childSlot]
           .preorderPosition(level.descend(), of: path)
@@ -593,7 +593,7 @@ extension _RawNode {
       }
     }
     return read {
-      let children = $0._children
+      let children = $0.children
       let d1 = children[slot1.value]
         .preorderPosition(level.descend(), of: start)
       let d2 = children[slot1.value &+ 1 ..< slot2.value]
@@ -610,10 +610,10 @@ extension _UnmanagedNode {
     _ level: _Level, fromItemAt start: _Slot, to end: _UnsafePath
   ) -> Int {
     read {
-      assert(start < $0.itemEnd)
+      assert(start < $0.itemsEndSlot)
       assert(level < end.level)
       let childSlot = end.childSlot(at: level)
-      let children = $0._children
+      let children = $0.children
       let prefix = children[..<childSlot.value]
         .reduce($0.itemCount - start.value) { $0 + $1.count }
       let positionWithinChild = children[childSlot.value]

@@ -73,10 +73,10 @@ extension _Node.UnsafeHandle {
       """)
     guard limit > 0 else { return }
     if iterationOrder {
-      for slot in stride(from: .zero, to: itemEnd, by: 1) {
+      for slot in stride(from: .zero, to: itemsEndSlot, by: 1) {
         print("  \(restPrefix)[\(slot)]  \(_itemString(at: slot))")
       }
-      for slot in stride(from: .zero, to: childEnd, by: 1) {
+      for slot in stride(from: .zero, to: childrenEndSlot, by: 1) {
         self[child: slot].dump(
           iterationOrder: true,
           limit: limit - 1,
@@ -86,7 +86,7 @@ extension _Node.UnsafeHandle {
       }
     }
     else if isCollisionNode {
-      for slot in stride(from: .zero, to: itemEnd, by: 1) {
+      for slot in stride(from: .zero, to: itemsEndSlot, by: 1) {
         print("\(restPrefix)[\(slot)] \(_itemString(at: slot))")
       }
     } else {

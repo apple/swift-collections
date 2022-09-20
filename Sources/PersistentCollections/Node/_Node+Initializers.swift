@@ -15,8 +15,7 @@ extension _Node {
     _ item1: Element,
     _ inserter2: (UnsafeMutablePointer<Element>) -> Void
   ) -> _Node {
-    var node = _Node(collisionCapacity: 2)
-    node.count = 2
+    var node = _Node(storage: Storage.allocate(itemCapacity: 2), count: 2)
     node.update {
       $0.collisionCount = 2
       let byteCount = 2 * MemoryLayout<Element>.stride
@@ -38,8 +37,7 @@ extension _Node {
     _ bucket2: _Bucket
   ) -> (node: _Node, slot1: _Slot, slot2: _Slot) {
     assert(bucket1 != bucket2)
-    var node = _Node(itemCapacity: 2)
-    node.count = 2
+    var node = _Node(storage: Storage.allocate(itemCapacity: 2), count: 2)
     let (slot1, slot2) = node.update {
       $0.itemMap.insert(bucket1)
       $0.itemMap.insert(bucket2)
@@ -59,8 +57,9 @@ extension _Node {
   internal static func _regularNode(
     _ child: _Node, _ bucket: _Bucket
   ) -> _Node {
-    var node = _Node(childCapacity: 1)
-    node.count = child.count
+    var node = _Node(
+      storage: Storage.allocate(childCapacity: 1),
+      count: child.count)
     node.update {
       $0.childMap.insert(bucket)
       $0.bytesFree &-= MemoryLayout<_Node>.stride
@@ -78,8 +77,9 @@ extension _Node {
     _ childBucket: _Bucket
   ) -> _Node {
     assert(itemBucket != childBucket)
-    var node = _Node(itemCapacity: 1, childCapacity: 1)
-    node.count = child.count + 1
+    var node = _Node(
+      storage: Storage.allocate(itemCapacity: 1, childCapacity: 1),
+      count: child.count &+ 1)
     node.update {
       $0.itemMap.insert(itemBucket)
       $0.childMap.insert(childBucket)

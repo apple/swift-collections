@@ -36,7 +36,7 @@ extension _Node {
       let itemBytes = $0.itemCount * MemoryLayout<Element>.stride
       let childBytes = $0.childCount * MemoryLayout<_Node>.stride
       assert(itemBytes + $0.bytesFree + childBytes == $0.byteCapacity)
-      let actualCount = $0._children.reduce($0.itemCount, { $0 + $1.count })
+      let actualCount = $0.children.reduce($0.itemCount, { $0 + $1.count })
       assert(actualCount == self.count)
     }
   }

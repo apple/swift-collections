@@ -382,5 +382,75 @@ extension Benchmark {
         blackHole(d)
       }
     }
+
+    self.add(
+      title: "PersistentDictionary<Large, Large> subscript, insert, unique",
+      input: [Large].self
+    ) { input in
+      return { timer in
+        var d: PersistentDictionary<Large, Large> = [:]
+        timer.measure {
+          for value in input {
+            d[value] = value
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "PersistentDictionary<Large, Large> subscript, insert, shared",
+      input: [Large].self
+    ) { input in
+      return { timer in
+        var d: PersistentDictionary<Large, Large> = [:]
+        timer.measure {
+          for value in input {
+            let copy = d
+            d[value] = value
+            blackHole((copy, d))
+          }
+        }
+        precondition(d.count == input.count)
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "PersistentDictionary<Large, Large> subscript, remove existing, unique",
+      input: ([Large], [Large]).self
+    ) { input, lookups in
+      return { timer in
+        var d = PersistentDictionary(
+          uniqueKeysWithValues: input.lazy.map { ($0, $0) })
+        timer.measure {
+          for key in lookups {
+            d[key] = nil
+          }
+        }
+        precondition(d.isEmpty)
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "PersistentDictionary<Large, Large> subscript, remove existing, shared",
+      input: ([Large], [Large]).self
+    ) { input, lookups in
+      return { timer in
+        var d = PersistentDictionary(
+          uniqueKeysWithValues: input.lazy.map { ($0, $0) })
+        timer.measure {
+          for key in lookups {
+            let copy = d
+            d[key] = nil
+            blackHole((copy, d))
+          }
+        }
+        precondition(d.isEmpty)
+        blackHole(d)
+      }
+    }
   }
 }

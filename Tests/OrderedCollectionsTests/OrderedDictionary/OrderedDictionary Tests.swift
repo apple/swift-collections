@@ -14,6 +14,8 @@ import XCTest
 
 import _CollectionsTestSupport
 
+extension OrderedDictionary: DictionaryAPIChecker {}
+
 class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {
     let d = OrderedDictionary<String, Int>()

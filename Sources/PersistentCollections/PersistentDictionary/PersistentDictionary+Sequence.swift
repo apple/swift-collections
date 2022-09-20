@@ -47,7 +47,7 @@ extension PersistentDictionary: Sequence {
         $0.hasItems ? $0.reverseItems.reversed().makeIterator() : nil
       }
       self._pathTop = _root.read {
-        $0.hasChildren ? $0._children.makeIterator() : nil
+        $0.hasChildren ? $0.children.makeIterator() : nil
       }
     }
   }
@@ -81,7 +81,7 @@ extension PersistentDictionary.Iterator: IteratorProtocol {
       }
       if nextNode.read({ $0.hasChildren }) {
         _pathRest.append(_pathTop!)
-        _pathTop = nextNode.read { $0._children.makeIterator() } // 💥ILLEGAL
+        _pathTop = nextNode.read { $0.children.makeIterator() } // 💥ILLEGAL
       }
       if nextNode.read({ $0.hasItems }) {
         _itemIterator = nextNode.read { $0.reverseItems.reversed().makeIterator() } // 💥ILLEGAL

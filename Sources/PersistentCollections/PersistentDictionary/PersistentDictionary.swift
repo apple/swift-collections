@@ -39,41 +39,8 @@ public struct PersistentDictionary<Key, Value> where Key: Hashable {
 
 extension PersistentDictionary {
   @inlinable
-  public init() {
-    self.init(_new: _Node(storage: _emptySingleton, count: 0))
-  }
-
-  @inlinable
-  public init(_ other: PersistentDictionary<Key, Value>) {
-    self = other
-  }
-
-  @inlinable
   public func _invariantCheck() {
     _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
-
-
-  @inlinable
-  @inline(__always)
-  public init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (Key, Value) {
-    self.init()
-    for (key, value) in keysAndValues {
-      let unique = updateValue(value, forKey: key) == nil
-      precondition(unique, "Duplicate key: '\(key)'")
-    }
-    _invariantCheck()
-  }
-
-  @inlinable
-  @inline(__always)
-  public init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value {
-    self.init(uniqueKeysWithValues: zip(keys, values))
   }
 
   /// Accesses the value associated with the given key for reading and writing.
@@ -249,6 +216,7 @@ extension PersistentDictionary {
     }
   }
 
+  // FIXME: New addition; needs discussion
   @inlinable
   public func contains(_ key: Key) -> Bool {
     _root.containsKey(.top, key, _Hash(key))
@@ -327,6 +295,31 @@ extension PersistentDictionary {
     var copy = self
     copy.updateValue(value, forKey: key)
     return copy
+  }
+
+  // FIXME: New addition; needs discussion
+  @inlinable @inline(__always)
+  public mutating func updateValue<R>(
+    forKey key: Key,
+    with body: (inout Value?) throws -> R
+  ) rethrows -> R {
+    try body(&self[key])
+  }
+
+  @inlinable
+  public mutating func updateValue<R>(
+    forKey key: Key,
+    default defaultValue: @autoclosure () -> Value,
+    with body: (inout Value) throws -> R
+  ) rethrows -> R {
+    let hash = _Hash(key)
+    let r = _root.insertValue(forKey: key, .top, hash, with: defaultValue)
+    if r.inserted {
+      _invalidateIndices()
+    }
+    return try _Node.UnsafeHandle.update(r.leaf) {
+      try body(&$0[item: r.slot].value)
+    }
   }
 
   /// Removes the given key and its associated value from the dictionary.

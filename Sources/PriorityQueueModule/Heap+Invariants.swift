@@ -9,10 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Swift
+import _CollectionsUtilities
 
 extension Heap {
-  #if COLLECTIONS_INTERNAL_CHECKS
+  public static var _isConsistencyCheckingEnabled: Bool {
+    _isCollectionsInternalCheckingEnabled
+  }
+
+  #if COLLECTIONS_INTERNAL_CHECKSx
   /// Visits each item in the heap in depth-first order, verifying that the
   /// contents satisfy the min-max heap property.
   @inlinable
