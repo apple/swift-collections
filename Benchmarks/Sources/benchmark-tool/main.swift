@@ -13,6 +13,7 @@ import CollectionsBenchmark
 import Benchmarks
 
 var benchmark = Benchmark(title: "Collection Benchmarks")
+benchmark.registerCustomGenerators()
 benchmark.addArrayBenchmarks()
 benchmark.addSetBenchmarks()
 benchmark.addDictionaryBenchmarks()
