@@ -9,12 +9,18 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedSet._UnstableInternals {
   @_spi(Testing) public var capacity: Int { base._capacity }
   @_spi(Testing) public var minimumCapacity: Int { base._minimumCapacity }
   @_spi(Testing) public var scale: Int { base._scale }
   @_spi(Testing) public var reservedScale: Int { base._reservedScale }
   @_spi(Testing) public var bias: Int { base._bias }
+
+  public static var isConsistencyCheckingEnabled: Bool {
+    _isCollectionsInternalCheckingEnabled
+  }
 }
 
 extension OrderedSet {

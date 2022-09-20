@@ -9,18 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _CollectionsUtilities
-
-extension PersistentDictionary {
-  public static var _isConsistencyCheckingEnabled: Bool {
-    _isCollectionsInternalCheckingEnabled
-  }
-
-  public func _dump(iterationOrder: Bool = false) {
-    _root.dump(iterationOrder: iterationOrder)
-  }
-
-  public static var _maxDepth: Int {
-    _Level.limit
-  }
+@inlinable @inline(__always)
+public var _isCollectionsInternalCheckingEnabled: Bool {
+#if COLLECTIONS_INTERNAL_CHECKS
+  return true
+#else
+  return false
+#endif
 }

@@ -11,6 +11,18 @@
 
 import CollectionsBenchmark
 import Benchmarks
+import DequeModule
+
+if Deque<Int>._isConsistencyCheckingEnabled {
+  complain("""
+    *** INTERNAL CONSISTENCY CHECKING IS ENABLED ***
+
+    Performance guarantees aren't valid in this configuration,
+    and benchmarking data will be largely useless. Proceed at
+    your own risk.
+
+    """)
+}
 
 var benchmark = Benchmark(title: "Collection Benchmarks")
 benchmark.registerCustomGenerators()

@@ -9,10 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // This file contains exported but non-public entry points to support clear box
 // testing.
 
 extension Deque {
+  public static var _isConsistencyCheckingEnabled: Bool {
+    _isCollectionsInternalCheckingEnabled
+  }
+
   /// The maximum number of elements this deque is currently able to store
   /// without reallocating its storage buffer.
   ///
