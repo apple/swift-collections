@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO: implement a custom `Values` view rather than relying on an array representation
 extension PersistentDictionary {
   /// A view of a dictionary’s values.
   @frozen
