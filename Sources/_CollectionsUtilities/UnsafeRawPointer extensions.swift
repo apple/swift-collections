@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(<5.7) // SE-0334
+#if compiler(<5.7) || (os(macOS) && compiler(<5.8)) // SE-0334
 extension UnsafeRawPointer {
   /// Obtain the next pointer properly aligned to store a value of type `T`.
   ///
