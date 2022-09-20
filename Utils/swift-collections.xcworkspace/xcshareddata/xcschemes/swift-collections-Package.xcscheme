@@ -28,9 +28,37 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitCollections"
+               BuildableName = "BitCollections"
+               BlueprintName = "BitCollections"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "DequeModule"
                BuildableName = "DequeModule"
                BlueprintName = "DequeModule"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriorityQueueModule"
+               BuildableName = "PriorityQueueModule"
+               BlueprintName = "PriorityQueueModule"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -56,9 +84,37 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PriorityQueueModule"
-               BuildableName = "PriorityQueueModule"
-               BlueprintName = "PriorityQueueModule"
+               BlueprintIdentifier = "PersistentCollections"
+               BuildableName = "PersistentCollections"
+               BlueprintName = "PersistentCollections"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SortedCollections"
+               BuildableName = "SortedCollections"
+               BlueprintName = "SortedCollections"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "_CollectionsTestSupport"
+               BuildableName = "_CollectionsTestSupport"
+               BlueprintName = "_CollectionsTestSupport"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -84,9 +140,37 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BitCollectionsTests"
+               BuildableName = "BitCollectionsTests"
+               BlueprintName = "BitCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "DequeTests"
                BuildableName = "DequeTests"
                BlueprintName = "DequeTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PriorityQueueTests"
+               BuildableName = "PriorityQueueTests"
+               BlueprintName = "PriorityQueueTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -112,38 +196,24 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PriorityQueueTests"
-               BuildableName = "PriorityQueueTests"
-               BlueprintName = "PriorityQueueTests"
+               BlueprintIdentifier = "PersistentCollectionsTests"
+               BuildableName = "PersistentCollectionsTests"
+               BlueprintName = "PersistentCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
             buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "_CollectionsTestSupport"
-               BuildableName = "_CollectionsTestSupport"
-               BlueprintName = "_CollectionsTestSupport"
+               BlueprintIdentifier = "SortedCollectionsTests"
+               BuildableName = "SortedCollectionsTests"
+               BlueprintName = "SortedCollectionsTests"
                ReferencedContainer = "container:..">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BitCollections"
-               BuildableName = "BitCollections"
-               BlueprintName = "BitCollections"
-               ReferencedContainer = "container:">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -169,9 +239,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DequeTests"
-               BuildableName = "DequeTests"
-               BlueprintName = "DequeTests"
+               BlueprintIdentifier = "BitCollectionsTests"
+               BuildableName = "BitCollectionsTests"
+               BlueprintName = "BitCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
@@ -179,9 +249,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "OrderedCollectionsTests"
-               BuildableName = "OrderedCollectionsTests"
-               BlueprintName = "OrderedCollectionsTests"
+               BlueprintIdentifier = "DequeTests"
+               BuildableName = "DequeTests"
+               BlueprintName = "DequeTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
@@ -199,10 +269,30 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "BitCollectionsTests"
-               BuildableName = "BitCollectionsTests"
-               BlueprintName = "BitCollectionsTests"
-               ReferencedContainer = "container:">
+               BlueprintIdentifier = "OrderedCollectionsTests"
+               BuildableName = "OrderedCollectionsTests"
+               BlueprintName = "OrderedCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "PersistentCollectionsTests"
+               BuildableName = "PersistentCollectionsTests"
+               BlueprintName = "PersistentCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "SortedCollectionsTests"
+               BuildableName = "SortedCollectionsTests"
+               BlueprintName = "SortedCollectionsTests"
+               ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
       </Testables>
