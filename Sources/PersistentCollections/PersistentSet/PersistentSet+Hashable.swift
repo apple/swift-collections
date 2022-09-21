@@ -9,19 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentDictionary {
+extension PersistentSet: Hashable {
   @inlinable
-  public func filter(
-    _ isIncluded: (Element) throws -> Bool
-  ) rethrows -> Self {
-    var result: PersistentDictionary = [:]
-    for item in self {
-      guard try isIncluded(item) else { continue }
-      // FIXME: We could do this as a structural transformation.
-      let hash = _Hash(item.key)
-      let inserted = result._root.insert(item, .top, hash)
-      assert(inserted)
+  public func hash(into hasher: inout Hasher) {
+    let copy = hasher
+    let seed = copy.finalize()
+
+    var hash = 0
+    for member in self {
+      hash ^= member._rawHashValue(seed: seed)
     }
-    return result
+    hasher.combine(hash)
   }
 }

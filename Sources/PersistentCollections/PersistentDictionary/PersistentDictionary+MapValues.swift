@@ -22,17 +22,13 @@ extension PersistentDictionary {
   public func compactMapValues<T>(
     _ transform: (Value) throws -> T?
   ) rethrows -> PersistentDictionary<Key, T> {
+    // FIXME: We could do this as a structural transformation.
     var result: PersistentDictionary<Key, T> = [:]
-    for (key, value) in self {
-      guard let value = try transform(value) else { continue }
-      // FIXME: We could recover the key's hash from self.
-      // (As many bits of it as we need to insert it into the new tree.)
-      // However, this requires a series of `UInt32._bit(ranked:)` invocations
-      // that may or may not be meaningfully better than simply rehashing the
-      // key.
+    for (key, v) in self {
+      guard let value = try transform(v) else { continue }
       let hash = _Hash(key)
-      let r = result._root.updateValue(value, forKey: key, .top, hash)
-      assert(r == nil)
+      let inserted = result._root.insert((key, value), .top, hash)
+      assert(inserted)
     }
     return result
   }

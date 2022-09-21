@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentDictionary {
+extension PersistentSet {
   @frozen
   public struct Index {
     @usableFromInline
@@ -32,39 +32,40 @@ extension PersistentDictionary {
   }
 }
 
-extension PersistentDictionary.Index: Equatable {
+extension PersistentSet.Index: Equatable {
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
     precondition(
       left._root == right._root && left._version == right._version,
-      "Indices from different dictionary values aren't comparable")
+      "Indices from different set values aren't comparable")
     return left._path == right._path
   }
 }
 
-extension PersistentDictionary.Index: Hashable {
+extension PersistentSet.Index: Comparable {
+  @inlinable
+  public static func <(left: Self, right: Self) -> Bool {
+    precondition(
+      left._root == right._root && left._version == right._version,
+      "Indices from different set values aren't comparable")
+    return left._path < right._path
+  }
+}
+
+extension PersistentSet.Index: Hashable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_path)
   }
 }
 
-extension PersistentDictionary.Index: Comparable {
-  public static func <(left: Self, right: Self) -> Bool {
-    precondition(
-      left._root == right._root && left._version == right._version,
-      "Indices from different dictionary values aren't comparable")
-    return left._path < right._path
-  }
-}
-
-extension PersistentDictionary.Index: CustomStringConvertible {
+extension PersistentSet.Index: CustomStringConvertible {
   public var description: String {
     _path.description
   }
 }
 
-extension PersistentDictionary: BidirectionalCollection {
+extension PersistentSet: BidirectionalCollection {
   @inlinable
   public var isEmpty: Bool {
     _root.count == 0
@@ -75,7 +76,6 @@ extension PersistentDictionary: BidirectionalCollection {
     _root.count
   }
 
-  @inlinable
   public var startIndex: Index {
     var path = _UnsafePath(root: _root.raw)
     path.descendToLeftMostItem()
@@ -105,7 +105,7 @@ extension PersistentDictionary: BidirectionalCollection {
     precondition(_isValid(i), "Invalid index")
     precondition(i._path.isOnItem, "Can't get element at endIndex")
     return _Node.UnsafeHandle.read(i._path.node) {
-      $0[item: i._path.currentItemSlot]
+      $0[item: i._path.currentItemSlot].key
     }
   }
 

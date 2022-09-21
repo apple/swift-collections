@@ -49,7 +49,7 @@ extension _Node.UnsafeHandle {
   ) -> (code: Int, slot: _Slot, expansionHash: _Hash) {
     assert(isCollisionNode)
     if !level.isAtBottom {
-      let h = _Hash(self[item: .zero].key)
+      let h = self.collisionHash
       if h != hash { return (2, .zero, h) }
     }
     // Note: this searches the items in reverse insertion order.
@@ -182,21 +182,30 @@ extension _Node {
       }
     }
   }
+}
 
+extension _Node {
   @inlinable
   internal func containsKey(
     _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> Bool {
-    read {
-      let r = $0.find(level, key, hash, forInsert: false)
-      switch r {
-      case .found:
-        return true
-      case .notFound, .newCollision, .expansion:
-        return false
-      case .descend(_, let slot):
-        return $0[child: slot].containsKey(level.descend(), key, hash)
-      }
+    read { $0.containsKey(level, key, hash) }
+  }
+}
+
+extension _Node.UnsafeHandle {
+  @inlinable
+  internal func containsKey(
+    _ level: _Level, _ key: Key, _ hash: _Hash
+  ) -> Bool {
+    let r = find(level, key, hash, forInsert: false)
+    switch r {
+    case .found:
+      return true
+    case .notFound, .newCollision, .expansion:
+      return false
+    case .descend(_, let slot):
+      return self[child: slot].containsKey(level.descend(), key, hash)
     }
   }
 }

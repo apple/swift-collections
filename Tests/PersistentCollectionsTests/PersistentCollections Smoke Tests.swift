@@ -13,6 +13,26 @@ import _CollectionsTestSupport
 @testable import PersistentCollections
 
 final class PersistentDictionarySmokeTests: CollectionTestCase {
+  func testDummy() {
+    let map = PersistentDictionary(
+      uniqueKeysWithValues: (0 ..< 100).map { ($0, 2 * $0) })
+    var it = map.makeIterator()
+    var seen: Set<Int> = []
+    while let item = it.next() {
+      if !seen.insert(item.key).inserted {
+        print(item)
+      }
+    }
+    expectEqual(seen.count, 100)
+    print("---")
+    for item in map {
+      if seen.remove(item.key) == nil {
+        print(item)
+      }
+    }
+    expectEqual(seen.count, 0)
+  }
+
   func testSubscriptAdd() {
     var map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 

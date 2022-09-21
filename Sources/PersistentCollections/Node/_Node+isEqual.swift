@@ -10,40 +10,46 @@
 //===----------------------------------------------------------------------===//
 
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
-extension _Node: Equatable where Value: Equatable {
+extension _Node {
   @inlinable
-  static func == (left: _Node, right: _Node) -> Bool {
-    if left.raw.storage === right.raw.storage { return true }
+  internal func isEqual(
+    to other: _Node,
+    by areEquivalent: (Element, Element) -> Bool
+  ) -> Bool {
+    if self.raw.storage === other.raw.storage { return true }
 
-    guard left.count == right.count else { return false }
+    guard self.count == other.count else { return false }
 
-    if left.isCollisionNode {
-      guard right.isCollisionNode else { return false }
-      return left.read { lhs in
-        right.read { rhs in
+    if self.isCollisionNode {
+      guard other.isCollisionNode else { return false }
+      return self.read { lhs in
+        other.read { rhs in
           let l = lhs.reverseItems
           let r = rhs.reverseItems
           guard l.count == r.count else { return false }
           for i in l.indices {
-            guard r.contains(where: { $0 == l[i] }) else { return false }
+            guard r.contains(where: { areEquivalent($0, l[i]) })
+            else { return false }
           }
           return true
         }
       }
     }
-    guard !right.isCollisionNode else { return false }
+    guard !other.isCollisionNode else { return false }
 
-    guard left.count == right.count else { return false }
-    return left.read { l in
-      right.read { r in
+    return self.read { l in
+      other.read { r in
         guard l.itemMap == r.itemMap else { return false }
         guard l.childMap == r.childMap else { return false }
 
-        guard l.reverseItems.elementsEqual(r.reverseItems, by: { $0 == $1 })
+        guard l.reverseItems.elementsEqual(r.reverseItems, by: areEquivalent)
         else { return false }
 
-        guard l.children.elementsEqual(r.children) else { return false }
-        return true
+        let lc = l.children
+        let rc = r.children
+        return lc.elementsEqual(
+          rc,
+          by: { $0.isEqual(to: $1, by: areEquivalent) })
       }
     }
   }

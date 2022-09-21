@@ -9,19 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentDictionary {
+extension PersistentSet: Equatable {
   @inlinable
-  public func filter(
-    _ isIncluded: (Element) throws -> Bool
-  ) rethrows -> Self {
-    var result: PersistentDictionary = [:]
-    for item in self {
-      guard try isIncluded(item) else { continue }
-      // FIXME: We could do this as a structural transformation.
-      let hash = _Hash(item.key)
-      let inserted = result._root.insert(item, .top, hash)
-      assert(inserted)
-    }
-    return result
+  public static func == (left: Self, right: Self) -> Bool {
+    left._root.isEqual(to: right._root, by: { $0.key == $1.key })
   }
 }

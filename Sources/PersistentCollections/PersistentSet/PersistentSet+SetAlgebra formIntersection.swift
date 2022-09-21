@@ -9,19 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentDictionary {
+extension PersistentSet {
   @inlinable
-  public func filter(
-    _ isIncluded: (Element) throws -> Bool
-  ) rethrows -> Self {
-    var result: PersistentDictionary = [:]
-    for item in self {
-      guard try isIncluded(item) else { continue }
-      // FIXME: We could do this as a structural transformation.
-      let hash = _Hash(item.key)
-      let inserted = result._root.insert(item, .top, hash)
-      assert(inserted)
-    }
-    return result
+  public mutating func formIntersection(_ other: Self) {
+    fatalError("FIXME")
   }
 }

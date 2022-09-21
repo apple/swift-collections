@@ -9,19 +9,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentDictionary {
+extension PersistentSet {
   @inlinable
-  public func filter(
-    _ isIncluded: (Element) throws -> Bool
-  ) rethrows -> Self {
-    var result: PersistentDictionary = [:]
-    for item in self {
-      guard try isIncluded(item) else { continue }
-      // FIXME: We could do this as a structural transformation.
-      let hash = _Hash(item.key)
-      let inserted = result._root.insert(item, .top, hash)
-      assert(inserted)
-    }
-    return result
+  public func isStrictSubset(of other: Self) -> Bool {
+    guard self.count < other.count else { return false }
+    return isSubset(of: other)
+  }
+
+  @inlinable
+  public func isStrictSubset<Value>(
+    of other: PersistentDictionary<Element, Value>
+  ) -> Bool {
+    guard self.count < other.count else { return false }
+    return isSubset(of: other)
   }
 }

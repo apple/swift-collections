@@ -121,8 +121,9 @@ extension _Node {
       _finalizeRemoval(.top, state.hash, at: state.path)
     case (false, true):
       // Insertion
-      _ = updateValue(
-        state.value.unsafelyUnwrapped, forKey: state.key, .top, state.hash)
+      let inserted = insert(
+        (state.key, state.value.unsafelyUnwrapped), .top, state.hash)
+      assert(inserted)
     case (false, false):
       // Noop
       break

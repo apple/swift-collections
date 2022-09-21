@@ -117,8 +117,13 @@ extension _Bitmap {
 
 extension _Bitmap {
   @inlinable @inline(__always)
+  internal func isSubset(of other: Self) -> Bool {
+    _value & ~other._value == 0
+  }
+
+  @inlinable @inline(__always)
   internal func isDisjoint(with other: Self) -> Bool {
-    _value & other._value != 0
+    _value & other._value == 0
   }
 
   @inlinable @inline(__always)

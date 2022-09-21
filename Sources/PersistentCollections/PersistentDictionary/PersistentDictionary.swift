@@ -102,7 +102,8 @@ extension PersistentDictionary {
     }
     set {
       if let value = newValue {
-        updateValue(value, forKey: key)
+        _updateValue(value, forKey: key)
+        _invalidateIndices()
       } else {
         removeValue(forKey: key)
       }
@@ -194,13 +195,14 @@ extension PersistentDictionary {
       _root.get(.top, key, _Hash(key)) ?? defaultValue()
     }
     set {
-      updateValue(newValue, forKey: key)
+      _updateValue(newValue, forKey: key)
+      _invalidateIndices()
     }
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
+      _invalidateIndices()
       var state = _root.prepareDefaultedValueUpdate(
         .top, key, defaultValue, _Hash(key))
-      if state.inserted { _invalidateIndices() }
       defer {
         _root.finalizeDefaultedValueUpdate(state)
       }
@@ -276,9 +278,35 @@ extension PersistentDictionary {
   public mutating func updateValue(
     _ value: __owned Value, forKey key: Key
   ) -> Value? {
-    let old = _root.updateValue(value, forKey: key, .top, _Hash(key))
-    if old == nil { _invalidateIndices() }
-    return old
+    let hash = _Hash(key)
+    let r = _root.update(key, .top, hash)
+    _invalidateIndices()
+    return _Node.UnsafeHandle.update(r.leaf) {
+      let p = $0.itemPtr(at: r.slot)
+      if r.inserted {
+        p.initialize(to: (key, value))
+        return nil
+      }
+      let old = p.pointee.value
+      p.pointee.value = value
+      return old
+    }
+  }
+
+  @inlinable
+  internal mutating func _updateValue(
+    _ value: __owned Value, forKey key: Key
+  ) {
+    let hash = _Hash(key)
+    let r = _root.update(key, .top, hash)
+    return _Node.UnsafeHandle.update(r.leaf) {
+      let p = $0.itemPtr(at: r.slot)
+      if r.inserted {
+        p.initialize(to: (key, value))
+      } else {
+        p.pointee.value = value
+      }
+    }
   }
 
   // fluid/immutable API
@@ -305,12 +333,13 @@ extension PersistentDictionary {
     with body: (inout Value) throws -> R
   ) rethrows -> R {
     let hash = _Hash(key)
-    let r = _root.insertValue(forKey: key, .top, hash, with: defaultValue)
-    if r.inserted {
-      _invalidateIndices()
-    }
+    let r = _root.update(key, .top, hash)
     return try _Node.UnsafeHandle.update(r.leaf) {
-      try body(&$0[item: r.slot].value)
+      let p = $0.itemPtr(at: r.slot)
+      if r.inserted {
+        p.initialize(to: (key, defaultValue()))
+      }
+      return try body(&p.pointee.value)
     }
   }
 
@@ -353,9 +382,8 @@ extension PersistentDictionary {
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
-    let old = _root.remove(key, .top, _Hash(key))?.value
-    if old != nil { _invalidateIndices() }
-    return old
+    _invalidateIndices()
+    return _root.remove(key, .top, _Hash(key))?.value
   }
 
   // fluid/immutable API

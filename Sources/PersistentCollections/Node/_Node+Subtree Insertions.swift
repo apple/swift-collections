@@ -13,6 +13,65 @@ import _CollectionsUtilities
 
 extension _Node {
   @inlinable
+  internal mutating func insert(
+    _ item: __owned Element,
+    _ level: _Level,
+    _ hash: _Hash
+  ) -> Bool {
+    let r = update(item.key, level, hash)
+    guard r.inserted else { return false }
+    UnsafeHandle.update(r.leaf) {
+      let p = $0.itemPtr(at: r.slot)
+      p.initialize(to: item)
+    }
+    return true
+  }
+
+  @inlinable
+  internal mutating func update(
+    _ key: Key,
+    _ level: _Level,
+    _ hash: _Hash
+  ) -> (inserted: Bool, leaf: _UnmanagedNode, slot: _Slot) {
+    defer { _invariantCheck() }
+    let isUnique = self.isUnique()
+    let r = find(level, key, hash, forInsert: true)
+    switch r {
+    case .found(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      return (false, unmanaged, slot)
+    case .notFound(let bucket, let slot):
+      ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) { _ in }
+      return (true, unmanaged, slot)
+    case .newCollision(let bucket, let slot):
+      let r = ensureUniqueAndMakeNewCollision(
+        isUnique: isUnique,
+        level: level,
+        replacing: slot, bucket,
+        newHash: hash,
+        inserter: { _ in }
+      )
+      return (true, r.leaf, r.slot)
+    case .expansion(let collisionHash):
+      let r = _Node.build(
+        level: level,
+        item1: { _ in }, hash,
+        child2: self, collisionHash
+      )
+      self = r.top
+      return (true, r.leaf, r.slot1)
+    case .descend(_, let slot):
+      ensureUnique(isUnique: isUnique)
+      let r = update {
+        $0[child: slot].update(key, level.descend(), hash)
+      }
+      if r.inserted { count &+= 1 }
+      return r
+    }
+  }
+
+  #if false
+  @inlinable
   internal mutating func updateValue(
     _ value: __owned Value,
     forKey key: Key,
@@ -25,7 +84,6 @@ extension _Node {
     switch r {
     case .found(_, let slot):
       ensureUnique(isUnique: isUnique)
-      _invariantCheck() // FIXME
       return update {
         let p = $0.itemPtr(at: slot)
         let old = p.pointee.value
@@ -112,6 +170,7 @@ extension _Node {
       return r
     }
   }
+  #endif
 }
 
 extension _Node {
