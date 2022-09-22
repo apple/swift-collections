@@ -19,6 +19,7 @@ internal struct _Stack<Element> {
   @inline(__always)
   internal static var capacity: Int { 13 }
 
+  // xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxxx xxxx
   @usableFromInline
   internal var _contents: (
     Element, Element, Element, Element,
