@@ -73,6 +73,25 @@ extension Benchmark {
     }
 
     self.add(
+      title: "PersistentDictionary<Int, Int> striding, 10 steps",
+      input: [Int].self
+    ) { input in
+      let d = PersistentDictionary(
+        uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let steps = stride(from: 0, through: 10 * d.count, by: d.count)
+        .map { $0 / 10 }
+      return { timer in
+        var i = d.startIndex
+        for j in 1 ..< steps.count {
+          let distance = steps[j] - steps[j - 1]
+          i = identity(d.index(i, offsetBy: distance))
+        }
+        precondition(i == d.endIndex)
+        blackHole(i)
+      }
+    }
+
+    self.add(
       title: "PersistentDictionary<Int, Int> indexing subscript",
       input: ([Int], [Int]).self
     ) { input, lookups in
