@@ -35,7 +35,7 @@ extension _Node {
         for bucket in l.itemMap.intersection(r.itemMap) {
           let lslot = l.itemMap.slot(of: bucket)
           let rslot = r.itemMap.slot(of: bucket)
-          guard l[item: lslot].key == r[item: rslot].key else { return false }
+          guard l[item: lslot].key != r[item: rslot].key else { return false }
         }
         for bucket in l.itemMap.intersection(r.childMap) {
           let lslot = l.itemMap.slot(of: bucket)
