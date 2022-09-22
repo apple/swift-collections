@@ -561,7 +561,52 @@ extension _RawNode {
     assert(path.level == level)
     return path.nodeSlot.value
   }
+}
 
+extension _UnsafePath {
+  /// Set the path to the item at the specified position in a preorder walk
+  /// of the subtree rooted at the current node.
+  ///
+  /// - Returns: `(found, remaining)`, where found is true if the item was
+  ///    successfully found, and false otherwise. If `found` is false then
+  ///    `remaining` is the number of items that still need to be skipped to
+  ///    find the correct item (outside this subtree).
+  ///    If `found` is true, then `remaining` is zero.
+  internal mutating func findItemAtPreorderPosition(
+    _ position: Int
+  ) -> (found: Bool, remaining: Int) {
+    assert(position >= 0)
+    let top = node
+    let topLevel = level
+    var stop = false
+    var remaining = position
+    while !stop {
+      let itemCount = node.itemCount
+      if remaining < itemCount {
+        selectItem(at: _Slot(remaining))
+        return (true, 0)
+      }
+      remaining -= itemCount
+      node.read {
+        let children = $0.children
+        for i in children.indices {
+          let c = children[i].count
+          if remaining < c {
+            descendToChild(children[i].unmanaged, at: _Slot(i))
+            return
+          }
+          remaining &-= c
+        }
+        stop = true
+      }
+    }
+    ascend(to: top, at: topLevel)
+    selectEnd()
+    return (false, remaining)
+  }
+}
+
+extension _RawNode {
   /// Return the number of steps between two paths within a preorder walk of the
   /// tree. The two paths must not address a child node.
   ///
@@ -676,3 +721,200 @@ extension _Node {
     return nil
   }
 }
+
+extension _RawNode {
+  @usableFromInline
+  @_effects(releasenone)
+  internal func seek(
+    _ level: _Level,
+    _ path: inout _UnsafePath,
+    offsetBy distance: Int,
+    limitedBy limit: _UnsafePath
+  ) -> (found: Bool, limited: Bool) {
+    assert(level.isAtRoot)
+    if (distance > 0 && limit < path) || (distance < 0 && limit > path) {
+      return (seek(level, &path, offsetBy: distance), false)
+    }
+    var d = distance
+    guard self._seek(level, &path, offsetBy: &d) else {
+      path = limit
+      return (distance >= 0 && d == 0 && limit.isOnNodeEnd, true)
+    }
+    let found = (
+      distance == 0
+      || (distance > 0 && path <= limit)
+      || (distance < 0 && path >= limit))
+    return (found, true)
+  }
+
+  @usableFromInline
+  @_effects(releasenone)
+  internal func seek(
+    _ level: _Level,
+    _ path: inout _UnsafePath,
+    offsetBy distance: Int
+  ) -> Bool {
+    var d = distance
+    if self._seek(level, &path, offsetBy: &d) {
+      return true
+    }
+    if distance > 0, d == 0 { // endIndex
+      return true
+    }
+    return false
+  }
+
+  internal func _seek(
+    _ level: _Level,
+    _ path: inout _UnsafePath,
+    offsetBy distance: inout Int
+  ) -> Bool {
+    // This is a bit complicated, because we only have a direct reference to the
+    // final node on the path, and we want to avoid having to descend
+    // from the root down if the target item stays within the original node's
+    // subtree. So we first figure out the subtree situation, and only start the
+    // recursion if the target is outside of it.
+    assert(level.isAtRoot)
+    assert(path.isOnItem || path.isOnNodeEnd)
+    guard distance != 0 else { return true }
+    if distance > 0 {
+      if !path.isOnItem { return false }
+      // Try a local search within the subtree starting at the current node.
+      let slot = path.currentItemSlot
+      let r = path.findItemAtPreorderPosition(distance &+ slot.value)
+      if r.found {
+        assert(r.remaining == 0)
+        return true
+      }
+      assert(r.remaining >= 0 && r.remaining <= distance)
+      distance = r.remaining
+
+      // Fall back to recursively descending from the root.
+      return _seekForward(level, by: &distance, fromSubtree: &path)
+    }
+    // distance < 0
+    if !path.isOnNodeEnd {
+      // Shortcut: see if the destination item is within the same node.
+      // (Doing this here allows us to avoid having to descend from the root
+      // down only to figure this out.)
+      let slot = path.nodeSlot
+      distance &+= slot.value
+      if distance >= 0 {
+        path.selectItem(at: _Slot(distance))
+        distance = 0
+        return true
+      }
+    }
+    // Otherwise we need to visit ancestor nodes to find the item at the right
+    // position. We also do this when we start from the end index -- there
+    // will be no recursion in that case anyway.
+    return _seekBackward(level, by: &distance, fromSubtree: &path)
+  }
+
+  /// Find the item at the given positive distance from the last item within the
+  /// subtree rooted at the current node in `path`.
+  internal func _seekForward(
+    _ level: _Level,
+    by distance: inout Int,
+    fromSubtree path: inout _UnsafePath
+  ) -> Bool {
+    assert(distance >= 0)
+    assert(level <= path.level)
+    guard level < path.level else {
+      path.selectEnd()
+      return false
+    }
+    return read {
+      let children = $0.children
+      var i = path.childSlot(at: level).value
+      if children[i]._seekForward(
+        level.descend(), by: &distance, fromSubtree: &path
+      ) {
+        assert(distance == 0)
+        return true
+      }
+      path.ascend(to: unmanaged, at: level)
+      i &+= 1
+      while i < children.endIndex {
+        let c = children[i].count
+        if distance < c {
+          path.descendToChild(children[i].unmanaged, at: _Slot(i))
+          let r = path.findItemAtPreorderPosition(distance)
+          precondition(r.found, "Internal inconsistency: invalid node counts")
+          assert(r.remaining == 0)
+          distance = 0
+          return true
+        }
+        distance &-= c
+        i &+= 1
+      }
+      path.selectEnd()
+      return false
+    }
+  }
+
+  /// Find the item at the given negative distance from the first item within the
+  /// subtree rooted at the current node in `path`.
+  internal func _seekBackward(
+    _ level: _Level,
+    by distance: inout Int,
+    fromSubtree path: inout _UnsafePath
+  ) -> Bool {
+    assert(distance < 0)
+    assert(level <= path.level)
+
+    return read {
+      let children = $0.children
+      var slot: _Slot
+      if level < path.level {
+        // We need to descend to the end of the path before we can start the
+        // search for real.
+        slot = path.childSlot(at: level)
+        if children[slot.value]._seekBackward(
+          level.descend(), by: &distance, fromSubtree: &path
+        ) {
+          // A deeper level has found the target item.
+          assert(distance == 0)
+          return true
+        }
+        // No luck yet -- ascend to this node and look through preceding data.
+        path.ascend(to: unmanaged, at: level)
+      } else if path.isOnNodeEnd {
+        // When we start from the root's end (the end index), we don't need
+        // to descend before starting to look at previous children.
+        assert(level.isAtRoot && path.node == self.unmanaged)
+        slot = path.node.childrenEndSlot
+      } else { // level == path.level
+        // The outermost caller has already gone as far back as possible
+        // within the original subtree. Return a level higher to actually
+        // start the rest of the search.
+        return false
+      }
+
+      // Look through all preceding children for the target item.
+      while slot > .zero {
+        slot = slot.previous()
+        let c = children[slot.value].count
+        if c + distance >= 0 {
+          path.descendToChild(children[slot.value].unmanaged, at: slot)
+          let r = path.findItemAtPreorderPosition(c + distance)
+          precondition(r.found, "Internal inconsistency: invalid node counts")
+          distance = 0
+          return true
+        }
+        distance += c
+      }
+      // See if the target is hiding somwhere in our immediate items.
+      distance &+= $0.itemCount
+      if distance >= 0 {
+        path.selectItem(at: _Slot(distance))
+        distance = 0
+        return true
+      }
+      // No joy -- we need to continue searching a level higher.
+      assert(distance < 0)
+      return false
+    }
+  }
+}
+
