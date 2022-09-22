@@ -76,6 +76,20 @@ extension _Node {
   ) -> Bool {
     // Beware, self might be on a compressed path
     assert(isCollisionNode)
+    if other.isCollisionNode {
+      return read { l in
+        other.read { r in
+          let lh = l.collisionHash
+          let rh = r.collisionHash
+          guard lh == rh else { return true }
+          let litems = l.reverseItems
+          let ritems = r.reverseItems
+          return litems.allSatisfy { li in
+            !ritems.contains { ri in li.key == ri.key }
+          }
+        }
+      }
+    }
     return read {
       let items = $0.reverseItems
       let hash = $0.collisionHash
