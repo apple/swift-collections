@@ -83,6 +83,7 @@ extension _Slot: CustomStringConvertible {
 extension _Slot: Strideable {
   @inlinable @inline(__always)
   internal func advanced(by n: Int) -> _Slot {
+    assert(n >= 0 || value + n >= 0)
     return _Slot(_value &+ UInt32(truncatingIfNeeded: n))
   }
 

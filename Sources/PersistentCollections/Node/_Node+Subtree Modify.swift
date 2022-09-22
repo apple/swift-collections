@@ -99,9 +99,11 @@ extension _Node {
 
     case .descend(_, let slot):
       ensureUnique(isUnique: isUnique)
-      state.path.selectChild(at: slot)
-      state.path.descend()
-      update { $0[child: slot]._prepareValueUpdate(&state) }
+      update {
+        let p = $0.childPtr(at: slot)
+        state.path.descendToChild(p.pointee.unmanaged, at: slot)
+        p.pointee._prepareValueUpdate(&state)
+      }
     }
   }
 

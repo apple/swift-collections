@@ -316,6 +316,36 @@ extension _UnsafePath {
     self.level = level.descend()
   }
 
+  /// Descend onto the first path within the currently selected child.
+  /// (Either the first item if it exists, or the first child. If the child
+  /// is an empty node (which should not happen in a valid hash tree), then this
+  /// selects the empty slot at the end of it.
+  ///
+  /// - Note: It is undefined behavior to call this on a path that is no longer
+  ///    valid.
+  @inlinable
+  internal mutating func descendToChild(
+    _ child: _UnmanagedNode, at slot: _Slot
+  ) {
+    assert(slot < node.childrenEndSlot)
+    assert(child == node.unmanagedChild(at: slot))
+    self.node = child
+    self.ancestors[level] = slot
+    self.nodeSlot = .zero
+    self._isItem = node.hasItems
+    self.level = level.descend()
+  }
+
+  internal mutating func ascend(to ancestor: _UnmanagedNode, at level: _Level) {
+    guard level != self.level else { return }
+    assert(level < self.level)
+    self.level = level
+    self.node = ancestor
+    self.nodeSlot = ancestors[level]
+    self.ancestors.clear(atOrBelow: level)
+    self._isItem = false
+  }
+
   /// Ascend to the nearest ancestor for which the `test`  predicate returns
   /// true. Because paths do not contain references to every node on them,
   /// you need to manually supply a valid reference to the root node. This
