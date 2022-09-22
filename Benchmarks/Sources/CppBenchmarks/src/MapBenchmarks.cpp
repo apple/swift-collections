@@ -12,7 +12,7 @@
 #include "MapBenchmarks.h"
 #include <map>
 #include <cstdlib>
-#include "utils.h"
+#include "Utils.h"
 
 typedef std::map<intptr_t, intptr_t> custom_map;
 
