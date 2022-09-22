@@ -12,9 +12,9 @@
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
 extension _Node {
   @inlinable
-  internal func isEqual(
-    to other: _Node,
-    by areEquivalent: (Element, Element) -> Bool
+  internal func isEqual<Value2>(
+    to other: _Node<Key, Value2>,
+    by areEquivalent: (Value, Value2) -> Bool
   ) -> Bool {
     if self.raw.storage === other.raw.storage { return true }
 
@@ -24,12 +24,15 @@ extension _Node {
       guard other.isCollisionNode else { return false }
       return self.read { lhs in
         other.read { rhs in
+          guard lhs.collisionHash == rhs.collisionHash else { return false }
           let l = lhs.reverseItems
           let r = rhs.reverseItems
           guard l.count == r.count else { return false }
           for i in l.indices {
-            guard r.contains(where: { areEquivalent($0, l[i]) })
-            else { return false }
+            let found = r.contains {
+              l[i].key == $0.key && areEquivalent(l[i].value, $0.value)
+            }
+            guard found else { return false }
           }
           return true
         }
@@ -42,7 +45,9 @@ extension _Node {
         guard l.itemMap == r.itemMap else { return false }
         guard l.childMap == r.childMap else { return false }
 
-        guard l.reverseItems.elementsEqual(r.reverseItems, by: areEquivalent)
+        guard l.reverseItems.elementsEqual(
+          r.reverseItems,
+          by: { $0.key == $1.key && areEquivalent($0.value, $1.value) })
         else { return false }
 
         let lc = l.children

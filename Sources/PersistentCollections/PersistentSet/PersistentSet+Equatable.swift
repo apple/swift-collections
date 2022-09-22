@@ -12,6 +12,6 @@
 extension PersistentSet: Equatable {
   @inlinable
   public static func == (left: Self, right: Self) -> Bool {
-    left._root.isEqual(to: right._root, by: { $0.key == $1.key })
+    left._root.isEqual(to: right._root, by: { _, _ in true })
   }
 }
