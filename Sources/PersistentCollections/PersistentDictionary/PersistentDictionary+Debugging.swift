@@ -28,4 +28,10 @@ extension PersistentDictionary {
   public static var _maxDepth: Int {
     _Level.limit
   }
+
+  public var _statistics: _HashTreeStatistics {
+    var stats = _HashTreeStatistics()
+    _root.gatherStatistics(.top, &stats)
+    return stats
+  }
 }

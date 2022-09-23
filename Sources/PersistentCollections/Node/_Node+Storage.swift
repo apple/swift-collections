@@ -60,7 +60,13 @@ extension _Node.Storage {
     // Round up request to nearest power-of-two number of units.
     // We'll allow allocations of space that fits 0, 1, 2, 4, 8, 16 or 32
     // units.
-    var bytes = unit * ((byteCapacity &+ unit &- 1) / unit)._roundUpToPowerOfTwo()
+    var capacityInUnits = (byteCapacity &+ unit &- 1) / unit
+#if false // Enable to set a larger minimum node size
+    if capacityInUnits != 0 {
+      capacityInUnits = Swift.max(capacityInUnits, 4)
+    }
+#endif
+    var bytes = unit * capacityInUnits._roundUpToPowerOfTwo()
 
     let itemAlignment = MemoryLayout<Element>.alignment
     let childAlignment = MemoryLayout<_Node>.alignment

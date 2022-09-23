@@ -69,6 +69,11 @@ extension _Level {
   internal var isAtBottom: Bool { _shift >= UInt.bitWidth }
 
   @inlinable @inline(__always)
+  internal var depth: Int {
+    (Int(bitPattern: shift) + _Bitmap.bitWidth - 1) / _Bitmap.bitWidth
+  }
+
+  @inlinable @inline(__always)
   internal func descend() -> _Level {
     // FIXME: Consider returning nil when we run out of bits
     _Level(_shift: _shift &+ Self._step)
