@@ -226,6 +226,7 @@ extension _Node {
       ) { dstChildren, dstItems in
         let srcChildren = src.children
         let srcItems = src.reverseItems
+        let i = srcItems.count &- 1 &- slot.value
 
         // Initialize children.
         dstChildren.prefix(childSlot.value)
@@ -236,14 +237,13 @@ extension _Node {
 
         let r = _Node.build(
           level: level.descend(),
-          item1: srcItems[slot.value], existingHash,
+          item1: srcItems[i], existingHash,
           item2: inserter, newHash)
         dstChildren.initializeElement(at: childSlot.value, to: r.top)
 
         // Initialize items.
-        dstItems.prefix(slot.value)
-          .initializeAll(fromContentsOf: srcItems.prefix(slot.value))
-        let rest2 = dstItems.count &- slot.value
+        dstItems.prefix(i).initializeAll(fromContentsOf: srcItems.prefix(i))
+        let rest2 = dstItems.count &- i
         dstItems.suffix(rest2)
           .initializeAll(fromContentsOf: srcItems.suffix(rest2))
 
@@ -254,7 +254,7 @@ extension _Node {
   }
 
   @inlinable @inline(never)
-  internal mutating func moveNodeAndMakeNewCollision(
+  internal mutating func moveNodeAndSpawnChild(
     level: _Level,
     replacing slot: _Slot,
     _ bucket: _Bucket,
@@ -272,6 +272,7 @@ extension _Node {
       ) { dstChildren, dstItems in
         let srcChildren = src.children
         let srcItems = src.reverseItems
+        let i = srcItems.count &- 1 &- slot.value
 
         // Initialize children.
         dstChildren.prefix(childSlot.value)
@@ -282,14 +283,13 @@ extension _Node {
 
         let r = _Node.build(
           level: level.descend(),
-          item1: srcItems.moveElement(from: slot.value), existingHash,
+          item1: srcItems.moveElement(from: i), existingHash,
           item2: inserter, newHash)
         dstChildren.initializeElement(at: childSlot.value, to: r.top)
 
         // Initialize items.
-        dstItems.prefix(slot.value)
-          .moveInitializeAll(fromContentsOf: srcItems.prefix(slot.value))
-        let rest2 = dstItems.count &- slot.value
+        dstItems.prefix(i).moveInitializeAll(fromContentsOf: srcItems.prefix(i))
+        let rest2 = dstItems.count &- i
         dstItems.suffix(rest2)
           .moveInitializeAll(fromContentsOf: srcItems.suffix(rest2))
 
