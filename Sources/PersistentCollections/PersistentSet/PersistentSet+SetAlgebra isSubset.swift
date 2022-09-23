@@ -9,23 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _CollectionsUtilities
-
-extension PersistentDictionary {
-  public static var _isConsistencyCheckingEnabled: Bool {
-    _isCollectionsInternalCheckingEnabled
+extension PersistentSet {
+  @inlinable
+  public func isSubset(of other: Self) -> Bool {
+    self._root.isSubset(.top, of: other._root)
   }
 
   @inlinable
-  public func _invariantCheck() {
-    _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
-
-  public func _dump(iterationOrder: Bool = false) {
-    _root.dump(iterationOrder: iterationOrder)
-  }
-
-  public static var _maxDepth: Int {
-    _Level.limit
+  public func isSubset<Value>(
+    of other: PersistentDictionary<Element, Value>
+  ) -> Bool {
+    self._root.isSubset(.top, of: other._root)
   }
 }

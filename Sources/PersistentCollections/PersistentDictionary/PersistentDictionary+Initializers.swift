@@ -27,8 +27,8 @@ extension PersistentDictionary {
     self.init()
     for (key, value) in keysAndValues {
       let hash = _Hash(key)
-      let unique = nil == _root.updateValue(value, forKey: key, .top, hash)
-      precondition(unique, "Duplicate key: '\(key)'")
+      let inserted = _root.insert((key, value), .top, hash)
+      precondition(inserted, "Duplicate key: '\(key)'")
     }
     _invariantCheck()
   }

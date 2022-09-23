@@ -96,9 +96,10 @@ let package = Package(
 
     // BitSet, BitArray
     .target(
-        name: "BitCollections",
-        path: "Sources/BitCollections",
-        swiftSettings: settings),
+      name: "BitCollections",
+      dependencies: ["_CollectionsUtilities"],
+      path: "Sources/BitCollections",
+      swiftSettings: settings),
     .testTarget(
       name: "BitCollectionsTests",
       dependencies: ["BitCollections", "_CollectionsTestSupport"],
@@ -118,6 +119,7 @@ let package = Package(
     // Heap<Value>
     .target(
         name: "PriorityQueueModule",
+        dependencies: ["_CollectionsUtilities"],
         exclude: ["CMakeLists.txt"],
         swiftSettings: settings),
     .testTarget(
@@ -149,6 +151,7 @@ let package = Package(
     // SortedSet<Element>, SortedDictionary<Key, Value>
     .target(
       name: "SortedCollections",
+      dependencies: ["_CollectionsUtilities"],
       swiftSettings: settings),
     .testTarget(
       name: "SortedCollectionsTests",

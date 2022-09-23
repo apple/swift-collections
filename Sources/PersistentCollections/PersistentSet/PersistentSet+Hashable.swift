@@ -9,23 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _CollectionsUtilities
-
-extension PersistentDictionary {
-  public static var _isConsistencyCheckingEnabled: Bool {
-    _isCollectionsInternalCheckingEnabled
-  }
-
+extension PersistentSet: Hashable {
   @inlinable
-  public func _invariantCheck() {
-    _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
+  public func hash(into hasher: inout Hasher) {
+    let copy = hasher
+    let seed = copy.finalize()
 
-  public func _dump(iterationOrder: Bool = false) {
-    _root.dump(iterationOrder: iterationOrder)
-  }
-
-  public static var _maxDepth: Int {
-    _Level.limit
+    var hash = 0
+    for member in self {
+      hash ^= member._rawHashValue(seed: seed)
+    }
+    hasher.combine(hash)
   }
 }

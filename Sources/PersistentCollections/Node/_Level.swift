@@ -32,6 +32,12 @@ internal struct _Level {
     assert(shift <= UInt8.max)
     self._shift = UInt8(truncatingIfNeeded: shift)
   }
+
+  @inlinable @inline(__always)
+  init(depth: Int) {
+    assert(depth > 0 && depth < _Level.limit)
+    self.init(shift: UInt(bitPattern: depth * _Bitmap.bitWidth))
+  }
 }
 
 extension _Level {

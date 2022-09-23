@@ -15,6 +15,7 @@ extension PersistentDictionary {
     _ keysAndValues: __owned S,
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows where S.Element == (Key, Value) {
+    // FIXME: Do a structural merge
     for (key, value) in keysAndValues {
       try self.updateValue(forKey: key) { target in
         if let old = target {

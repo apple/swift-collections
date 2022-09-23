@@ -119,3 +119,15 @@ extension _Node {
     read { $0.isAtrophiedNode }
   }
 }
+
+extension _Node {
+  @inlinable
+  internal var initialVersionNumber: UInt {
+    // Ideally we would simply just generate a true random number, but the
+    // memory address of the root node is a reasonable substitute.
+    // Alternatively, we could use a per-thread counter along with a thread
+    // id, or some sort of global banks of atomic integer counters.
+    let address = Unmanaged.passUnretained(raw.storage).toOpaque()
+    return UInt(bitPattern: address)
+  }
+}

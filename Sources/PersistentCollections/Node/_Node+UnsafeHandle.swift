@@ -156,6 +156,12 @@ extension _Node.UnsafeHandle {
     nonmutating set { _header.pointee.collisionCount = newValue }
   }
 
+  @inlinable
+  internal var collisionHash: _Hash {
+    assert(isCollisionNode)
+    return _Hash(self[item: .zero].key)
+  }
+
   @inlinable @inline(__always)
   internal var _childrenStart: UnsafeMutablePointer<_Node> {
     _memory.assumingMemoryBound(to: _Node.self)

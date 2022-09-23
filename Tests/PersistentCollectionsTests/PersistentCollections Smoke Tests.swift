@@ -13,6 +13,26 @@ import _CollectionsTestSupport
 @testable import PersistentCollections
 
 final class PersistentDictionarySmokeTests: CollectionTestCase {
+  func testDummy() {
+    let map = PersistentDictionary(
+      uniqueKeysWithValues: (0 ..< 100).map { ($0, 2 * $0) })
+    var it = map.makeIterator()
+    var seen: Set<Int> = []
+    while let item = it.next() {
+      if !seen.insert(item.key).inserted {
+        print(item)
+      }
+    }
+    expectEqual(seen.count, 100)
+    print("---")
+    for item in map {
+      if seen.remove(item.key) == nil {
+        print(item)
+      }
+    }
+    expectEqual(seen.count, 0)
+  }
+
   func testSubscriptAdd() {
     var map: PersistentDictionary<Int, String> = [1: "a", 2: "b"]
 
@@ -129,12 +149,7 @@ final class PersistentDictionarySmokeTests: CollectionTestCase {
     var map3: PersistentDictionary<Collider, String> = map2
     for index in 0..<upperBound {
       map3[Collider(index)] = nil
-
       expectEqual(map3.count, inferSize(map3))
-      if map3.count != inferSize(map3) {
-        assertionFailure()
-      }
-
     }
 
     expectEqual(map3.count, 0)

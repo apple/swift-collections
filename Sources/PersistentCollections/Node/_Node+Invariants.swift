@@ -55,7 +55,7 @@ extension _Node {
       if $0.isCollisionNode {
         precondition(count == $0.itemCount)
         precondition(count > 0)
-        let key = $0[item: .zero].key
+        let key = $0.collisionHash
         let hash = _Hash(key)
         precondition(
           hash.isEqual(to: path, upTo: level),

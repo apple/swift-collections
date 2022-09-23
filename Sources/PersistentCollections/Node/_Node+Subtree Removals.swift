@@ -218,7 +218,7 @@ extension _Node {
     assert(isCollisionNode && hasSingletonItem)
     assert(isUnique())
     update {
-      let hash = _Hash($0[item: .zero].key)
+      let hash = $0.collisionHash
       $0.itemMap = _Bitmap(hash[.top])
       $0.childMap = .empty
     }

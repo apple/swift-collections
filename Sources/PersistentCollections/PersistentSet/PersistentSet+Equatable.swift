@@ -9,23 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _CollectionsUtilities
-
-extension PersistentDictionary {
-  public static var _isConsistencyCheckingEnabled: Bool {
-    _isCollectionsInternalCheckingEnabled
-  }
-
+extension PersistentSet: Equatable {
   @inlinable
-  public func _invariantCheck() {
-    _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
-
-  public func _dump(iterationOrder: Bool = false) {
-    _root.dump(iterationOrder: iterationOrder)
-  }
-
-  public static var _maxDepth: Int {
-    _Level.limit
+  public static func == (left: Self, right: Self) -> Bool {
+    left._root.isEqual(to: right._root, by: { _, _ in true })
   }
 }
