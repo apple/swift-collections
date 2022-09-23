@@ -29,9 +29,8 @@ extension BitSet.Counted {
   @inline(never)
   @_effects(releasenone)
   public func _checkInvariants() {
-    precondition(_count == _bits.count, "Invalid count")
-    precondition(_storage.isEmpty || !_storage.last!.isEmpty,
-                 "Extraneous tail slot")
+    _bits._checkInvariants()
+    precondition(_count == _bits.count)
   }
 #else
   @inline(__always) @inlinable
