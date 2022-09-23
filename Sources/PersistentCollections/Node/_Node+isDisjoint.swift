@@ -74,7 +74,6 @@ extension _Node {
     _ level: _Level,
     with other: _Node<Key, Value2>
   ) -> Bool {
-    // Beware, self might be on a compressed path
     assert(isCollisionNode)
     if other.isCollisionNode {
       return read { l in
@@ -88,12 +87,24 @@ extension _Node {
         }
       }
     }
-    return read {
-      let items = $0.reverseItems
-      let hash = $0.collisionHash
-      return items.indices.allSatisfy {
-        !other.containsKey(level, items[$0].key, hash)
+    // `self` is on a compressed path. Try descending down by one level.
+    assert(!level.isAtBottom)
+    let bucket = self.collisionHash[level]
+    return other.read { r in
+      if r.childMap.contains(bucket) {
+        let slot = r.childMap.slot(of: bucket)
+        return isDisjoint(level.descend(), with: r[child: slot])
       }
+      if r.itemMap.contains(bucket) {
+        let slot = r.itemMap.slot(of: bucket)
+        let p = r.itemPtr(at: slot)
+        let hash = _Hash(p.pointee.key)
+        return read { l in
+          guard hash == l.collisionHash else { return true }
+          return !l.reverseItems.contains { $0.key == p.pointee.key }
+        }
+      }
+      return true
     }
   }
 }

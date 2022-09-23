@@ -21,13 +21,25 @@ extension _Node {
     guard self.count <= other.count else { return false }
 
     if self.isCollisionNode {
-      // Beware, self might be on a compressed path
-      return read {
-        let items = $0.reverseItems
-        let hash = $0.collisionHash
-        return items.indices.allSatisfy {
-          other.containsKey(level, items[$0].key, hash)
+      if other.isCollisionNode {
+        guard self.collisionHash == other.collisionHash else { return false }
+        return read { l in
+          other.read { r in
+            let li = l.reverseItems
+            let ri = r.reverseItems
+            return l.reverseItems.indices.allSatisfy { i in
+              ri.contains { $0.key == li[i].key }
+            }
+          }
         }
+      }
+      // `self` is on a compressed path. Try to descend down by one level.
+      assert(!level.isAtBottom)
+      let bucket = self.collisionHash[level]
+      return other.read {
+        guard $0.childMap.contains(bucket) else { return false }
+        let slot = $0.childMap.slot(of: bucket)
+        return self.isSubset(level.descend(), of: $0[child: slot])
       }
     }
 
