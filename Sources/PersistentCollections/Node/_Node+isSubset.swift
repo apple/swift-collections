@@ -26,7 +26,6 @@ extension _Node {
         let items = $0.reverseItems
         let hash = $0.collisionHash
         return items.indices.allSatisfy {
-          // FIXME: This will repeatedly & unnecessarily call `collisionHash`
           other.containsKey(level, items[$0].key, hash)
         }
       }

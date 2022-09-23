@@ -19,54 +19,49 @@ extension _Node {
   /// by inlining the remaining item into the parent node.
   @inlinable
   internal mutating func remove(
-    _ key: Key, _ level: _Level, _ hash: _Hash
+    _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> Element? {
     defer { _invariantCheck() }
     guard self.isUnique() else {
-      guard let r = removing(key, level, hash) else { return nil }
+      guard let r = removing(level, key, hash) else { return nil }
       self = r.replacement
       return r.old
     }
-    let r = find(level, key, hash, forInsert: false)
-    switch r {
-    case .found(let bucket, let slot):
-      return _removeItemFromUniqueLeafNode(level, bucket, slot) { $0.move() }
-    case .notFound, .newCollision, .expansion:
-      return nil
-    case .descend(let bucket, let slot):
-      let (old, needsInlining) = update {
-        let child = $0.childPtr(at: slot)
-        let old = child.pointee.remove(key, level.descend(), hash)
-        guard old != nil else { return (old, false) }
-        let needsInlining = child.pointee.hasSingletonItem
-        return (old, needsInlining)
-      }
-      guard old != nil else { return nil }
-      _fixupUniqueAncestorAfterItemRemoval(
-        slot, { _ in bucket }, needsInlining: needsInlining)
-      return old
+    guard let r = find(level, key, hash) else { return nil }
+    guard r.descend else {
+      let bucket = hash[level]
+      return _removeItemFromUniqueLeafNode(level, bucket, r.slot) { $0.move() }
     }
+
+    let (old, needsInlining) = update {
+      let child = $0.childPtr(at: r.slot)
+      let old = child.pointee.remove(level.descend(), key, hash)
+      guard old != nil else { return (old, false) }
+      let needsInlining = child.pointee.hasSingletonItem
+      return (old, needsInlining)
+    }
+    guard old != nil else { return nil }
+    _fixupUniqueAncestorAfterItemRemoval(
+      r.slot, { _ in hash[level] }, needsInlining: needsInlining)
+    return old
   }
 }
 
 extension _Node {
   @inlinable
   internal func removing(
-    _ key: Key, _ level: _Level, _ hash: _Hash
+    _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> (replacement: _Node, old: Element)? {
-    let r = find(level, key, hash, forInsert: false)
-    switch r {
-    case .found(let bucket, let slot):
-      return _removingItemFromLeaf(level, slot, bucket)
-    case .notFound, .newCollision, .expansion:
-      return nil
-    case .descend(let bucket, let slot):
-      let r = read { $0[child: slot].removing(key, level.descend(), hash) }
-      guard let r = r else { return nil }
-      return (
-        _fixedUpAncestorAfterItemRemoval(level, slot, bucket, r.replacement),
-        r.old)
+    guard let r = find(level, key, hash) else { return nil }
+    guard r.descend else {
+      return _removingItemFromLeaf(level, hash[level], r.slot)
     }
+    let r2 = read { $0[child: r.slot].removing(level.descend(), key, hash) }
+    guard let r2 = r2 else { return nil }
+    return (
+      _fixedUpAncestorAfterItemRemoval(
+        level, r.slot, hash[level], r2.replacement),
+      r2.old)
   }
 }
 
@@ -107,7 +102,7 @@ extension _Node {
     if level == path.level {
       let slot = path.currentItemSlot
       let bucket = read { $0.itemBucket(at: slot) }
-      return _removingItemFromLeaf(level, slot, bucket)
+      return _removingItemFromLeaf(level, bucket, slot)
     }
     let slot = path.childSlot(at: level)
     let (bucket, r) = read {
@@ -142,7 +137,7 @@ extension _Node {
 
   @inlinable
   internal func _removingItemFromLeaf(
-    _ level: _Level, _ slot: _Slot, _ bucket: _Bucket
+    _ level: _Level, _ bucket: _Bucket, _ slot: _Slot
   )  -> (replacement: _Node, old: Element) {
     // Don't copy the node if we'd immediately discard it.
     let willAtrophy = read {
@@ -218,9 +213,9 @@ extension _Node {
     assert(isCollisionNode && hasSingletonItem)
     assert(isUnique())
     update {
-      let hash = $0.collisionHash
-      $0.itemMap = _Bitmap(hash[.top])
+      $0.itemMap = _Bitmap($0.collisionHash[.top])
       $0.childMap = .empty
+      $0.bytesFree &+= MemoryLayout<_Hash>.stride
     }
   }
 }

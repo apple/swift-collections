@@ -79,9 +79,7 @@ extension _Node {
     if other.isCollisionNode {
       return read { l in
         other.read { r in
-          let lh = l.collisionHash
-          let rh = r.collisionHash
-          guard lh == rh else { return true }
+          guard l.collisionHash == r.collisionHash else { return true }
           let litems = l.reverseItems
           let ritems = r.reverseItems
           return litems.allSatisfy { li in

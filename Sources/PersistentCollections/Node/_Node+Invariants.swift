@@ -34,8 +34,19 @@ extension _Node {
     raw.storage.header._invariantCheck()
     read {
       let itemBytes = $0.itemCount * MemoryLayout<Element>.stride
-      let childBytes = $0.childCount * MemoryLayout<_Node>.stride
-      assert(itemBytes + $0.bytesFree + childBytes == $0.byteCapacity)
+
+      if $0.isCollisionNode {
+        let hashBytes = MemoryLayout<_Hash>.stride
+        assert($0.itemCount >= 1)
+        assert($0.childCount == 0)
+        assert(itemBytes + $0.bytesFree + hashBytes == $0.byteCapacity)
+
+        assert($0.collisionHash == _Hash($0[item: .zero].key))
+      } else {
+        let childBytes = $0.childCount * MemoryLayout<_Node>.stride
+        assert(itemBytes + $0.bytesFree + childBytes == $0.byteCapacity)
+      }
+
       let actualCount = $0.children.reduce($0.itemCount, { $0 + $1.count })
       assert(actualCount == self.count)
     }
@@ -55,12 +66,11 @@ extension _Node {
       if $0.isCollisionNode {
         precondition(count == $0.itemCount)
         precondition(count > 0)
-        let key = $0.collisionHash
-        let hash = _Hash(key)
+        let hash = $0.collisionHash
         precondition(
           hash.isEqual(to: path, upTo: level),
-          "Misplaced colliding key '\(key)': \(path) isn't a prefix of \(hash)")
-        for item in $0.reverseItems.dropFirst() {
+          "Misplaced collision node: \(path) isn't a prefix of \(hash)")
+        for item in $0.reverseItems {
           precondition(_Hash(item.key) == hash)
         }
       }

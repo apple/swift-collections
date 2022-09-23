@@ -18,12 +18,20 @@ extension _Node {
   ) rethrows -> _Node<Key, T> {
     let c = self.count
     return try read { source in
-      var result = _Node<Key, T>.allocate(
-        itemMap: source.itemMap,
-        childMap: source.childMap,
-        count: c,
-        initializingWith: { _, _ in }
-      ).node
+      var result: _Node<Key, T>
+      if isCollisionNode {
+        result = _Node<Key, T>.allocateCollision(
+          count: c, source.collisionHash,
+          initializingWith: { _ in }
+        ).node
+      } else {
+        result = _Node<Key, T>.allocate(
+          itemMap: source.itemMap,
+          childMap: source.childMap,
+          count: c,
+          initializingWith: { _, _ in }
+        ).node
+      }
       try result.update { target in
         let sourceItems = source.reverseItems
         let targetItems = target.reverseItems
@@ -59,6 +67,7 @@ extension _Node {
         }
         success = true
       }
+      result._invariantCheck()
       return result
     }
   }

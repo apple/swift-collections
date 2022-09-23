@@ -12,19 +12,14 @@
 extension _Node {
   @inlinable
   internal static func _collisionNode(
+    _ hash: _Hash,
     _ item1: Element,
     _ inserter2: (UnsafeMutablePointer<Element>) -> Void
   ) -> _Node {
-    var node = _Node(storage: Storage.allocate(itemCapacity: 2), count: 2)
-    node.update {
-      $0.collisionCount = 2
-      let byteCount = 2 * MemoryLayout<Element>.stride
-      assert($0.bytesFree >= byteCount)
-      $0.bytesFree &-= byteCount
-      let items = $0.reverseItems
+    let node = _Node.allocateCollision(count: 2, hash) { items in
       items.initializeElement(at: 1, to: item1)
       inserter2(items.baseAddress.unsafelyUnwrapped)
-    }
+    }.node
     node._invariantCheck()
     return node
   }
@@ -37,36 +32,36 @@ extension _Node {
     _ bucket2: _Bucket
   ) -> (node: _Node, slot1: _Slot, slot2: _Slot) {
     assert(bucket1 != bucket2)
-    var node = _Node(storage: Storage.allocate(itemCapacity: 2), count: 2)
-    let (slot1, slot2) = node.update {
-      $0.itemMap.insert(bucket1)
-      $0.itemMap.insert(bucket2)
-      $0.bytesFree &-= 2 * MemoryLayout<Element>.stride
+    let r = _Node.allocate(
+      itemMap: _Bitmap(bucket1, bucket2),
+      childMap: .empty,
+      count: 2
+    ) { children, items in
+      assert(items.count == 2 && children.count == 0)
       let i1 = bucket1 < bucket2 ? 1 : 0
       let i2 = 1 &- i1
-      let items = $0.reverseItems
       items.initializeElement(at: i1, to: item1)
       inserter2(items.baseAddress.unsafelyUnwrapped + i2)
       return (_Slot(i2), _Slot(i1)) // Note: swapped
     }
-    node._invariantCheck()
-    return (node, slot1, slot2)
+    r.node._invariantCheck()
+    return (r.node, r.result.0, r.result.1)
   }
 
   @inlinable
   internal static func _regularNode(
     _ child: _Node, _ bucket: _Bucket
   ) -> _Node {
-    var node = _Node(
-      storage: Storage.allocate(childCapacity: 1),
-      count: child.count)
-    node.update {
-      $0.childMap.insert(bucket)
-      $0.bytesFree &-= MemoryLayout<_Node>.stride
-      $0.childPtr(at: .zero).initialize(to: child)
+    let r = _Node.allocate(
+      itemMap: .empty,
+      childMap: _Bitmap(bucket),
+      count: child.count
+    ) { children, items in
+      assert(items.count == 0 && children.count == 1)
+      children.initializeElement(at: 0, to: child)
     }
-    node._invariantCheck()
-    return node
+    r.node._invariantCheck()
+    return r.node
   }
 
   @inlinable
@@ -77,18 +72,17 @@ extension _Node {
     _ childBucket: _Bucket
   ) -> _Node {
     assert(itemBucket != childBucket)
-    var node = _Node(
-      storage: Storage.allocate(itemCapacity: 1, childCapacity: 1),
-      count: child.count &+ 1)
-    node.update {
-      $0.itemMap.insert(itemBucket)
-      $0.childMap.insert(childBucket)
-      $0.bytesFree &-= MemoryLayout<Element>.stride + MemoryLayout<_Node>.stride
-      inserter($0.itemPtr(at: .zero))
-      $0.childPtr(at: .zero).initialize(to: child)
+    let r = _Node.allocate(
+      itemMap: _Bitmap(itemBucket),
+      childMap: _Bitmap(childBucket),
+      count: child.count &+ 1
+    ) { children, items in
+      assert(items.count == 1 && children.count == 1)
+      inserter(items.baseAddress.unsafelyUnwrapped)
+      children.initializeElement(at: 0, to: child)
     }
-    node._invariantCheck()
-    return node
+    r.node._invariantCheck()
+    return r.node
   }
 }
 
@@ -102,7 +96,7 @@ extension _Node {
     _ hash2: _Hash
   ) -> (top: _Node, leaf: _UnmanagedNode, slot1: _Slot, slot2: _Slot) {
     if hash1 == hash2 {
-      let top = _collisionNode(item1, inserter2)
+      let top = _collisionNode(hash1, item1, inserter2)
       return (top, top.unmanaged, _Slot(0), _Slot(1))
     }
     let r = _build(

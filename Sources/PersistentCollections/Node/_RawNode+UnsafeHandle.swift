@@ -63,6 +63,12 @@ extension _RawNode.UnsafeHandle {
   }
 
   @inline(__always)
+  internal var collisionHash: _Hash {
+    assert(isCollisionNode)
+    return _memory.load(as: _Hash.self)
+  }
+
+  @inline(__always)
   internal var hasChildren: Bool {
     _header.pointee.hasChildren
   }

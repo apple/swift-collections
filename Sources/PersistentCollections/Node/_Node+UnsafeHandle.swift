@@ -153,13 +153,23 @@ extension _Node.UnsafeHandle {
   @inlinable @inline(__always)
   internal var collisionCount: Int {
     get { _header.pointee.collisionCount }
-    nonmutating set { _header.pointee.collisionCount = newValue }
+    nonmutating set {
+      assertMutable()
+      _header.pointee.collisionCount = newValue
+    }
   }
 
-  @inlinable
+  @inlinable @inline(__always)
   internal var collisionHash: _Hash {
-    assert(isCollisionNode)
-    return _Hash(self[item: .zero].key)
+    get {
+      assert(isCollisionNode)
+      return _memory.load(as: _Hash.self)
+    }
+    nonmutating set {
+      assertMutable()
+      assert(isCollisionNode)
+      _memory.storeBytes(of: newValue, as: _Hash.self)
+    }
   }
 
   @inlinable @inline(__always)

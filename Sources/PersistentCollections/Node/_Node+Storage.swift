@@ -86,16 +86,6 @@ extension _Node.Storage {
     }
     return unsafeDowncast(object, to: _Node.Storage.self)
   }
-
-  @inlinable @inline(__always)
-  internal static func allocate(
-    itemCapacity: Int = 0, childCapacity: Int = 0
-  ) -> _Node.Storage {
-    assert(itemCapacity >= 0 && childCapacity >= 0)
-    let itemBytes = itemCapacity * MemoryLayout<Element>.stride
-    let childBytes = childCapacity * MemoryLayout<_Node>.stride
-    return allocate(byteCapacity: itemBytes &+ childBytes)
-  }
 }
 
 extension _Node {
@@ -105,12 +95,7 @@ extension _Node {
   }
 
   @inlinable @inline(__always)
-  internal static var spaceForNewChild: Int {
-    MemoryLayout<_Node>.stride
-  }
-
-  @inlinable @inline(__always)
-  internal static var spaceForNewCollision: Int {
+  internal static var spaceForSpawningChild: Int {
     Swift.max(0, MemoryLayout<_Node>.stride - MemoryLayout<Element>.stride)
   }
 
@@ -153,130 +138,129 @@ extension _Node {
   internal static func allocate<R>(
     itemMap: _Bitmap, childMap: _Bitmap,
     count: Int,
+    extraBytes: Int = 0,
     initializingWith initializer: (
       UnsafeMutableBufferPointer<_Node>, UnsafeMutableBufferPointer<Element>
     ) -> R
   ) -> (node: _Node, result: R) {
-    let (itemCount, childCount) = _StorageHeader.counts(
-      itemMap: itemMap, childMap: childMap)
+    assert(extraBytes >= 0)
+    assert(itemMap.isDisjoint(with: childMap)) // No collisions
+    let itemCount = itemMap.count
+    let childCount = childMap.count
+
+    let itemStride = MemoryLayout<Element>.stride
+    let childStride = MemoryLayout<_Node>.stride
+
+    let itemBytes = itemCount * itemStride
+    let childBytes = childCount * childStride
+    let occupiedBytes = itemBytes &+ childBytes
     let storage = Storage.allocate(
-      itemCapacity: itemCount, childCapacity: childCount)
+      byteCapacity: occupiedBytes &+ extraBytes)
     var node = _Node(storage: storage, count: count)
     let result = node.update {
-      let (children, items) = $0._prepare(
-        itemMap: itemMap,
-        itemCount: itemCount,
-        childMap: childMap,
-        childCount: childCount
-      )
-      return initializer(children, items)
+      $0.itemMap = itemMap
+      $0.childMap = childMap
+
+      assert(occupiedBytes <= $0.bytesFree)
+      $0.bytesFree &-= occupiedBytes
+
+      let childStart = $0._memory
+        .bindMemory(to: _Node.self, capacity: childCount)
+      let itemStart = ($0._memory + ($0.byteCapacity - itemBytes))
+        .bindMemory(to: Element.self, capacity: itemCount)
+
+      return initializer(
+        UnsafeMutableBufferPointer(start: childStart, count: childCount),
+        UnsafeMutableBufferPointer(start: itemStart, count: itemCount))
     }
     return (node, result)
   }
 
+  @inlinable
+  internal static func allocateCollision<R>(
+    count: Int,
+    _ hash: _Hash,
+    extraBytes: Int = 0,
+    initializingWith initializer: (UnsafeMutableBufferPointer<Element>) -> R
+  ) -> (node: _Node, result: R) {
+    assert(count >= 2)
+    assert(extraBytes >= 0)
+    let itemBytes = count * MemoryLayout<Element>.stride
+    let hashBytes = MemoryLayout<_Hash>.stride
+    let bytes = itemBytes &+ hashBytes
+    assert(MemoryLayout<_Hash>.alignment <= MemoryLayout<_RawNode>.alignment)
+    let storage = Storage.allocate(byteCapacity: bytes &+ extraBytes)
+    var node = _Node(storage: storage, count: count)
+    let result = node.update {
+      $0.itemMap = _Bitmap(bitPattern: count)
+      $0.childMap = $0.itemMap
+      assert(bytes <= $0.bytesFree)
+      $0.bytesFree &-= bytes
+
+      $0._memory.storeBytes(of: hash, as: _Hash.self)
+
+      let itemStart = ($0._memory + ($0.byteCapacity &- itemBytes))
+        .bindMemory(to: Element.self, capacity: count)
+
+      let items = UnsafeMutableBufferPointer(start: itemStart, count: count)
+      return initializer(items)
+    }
+    return (node, result)
+  }
+
+
   @inlinable @inline(never)
   internal func copy(withFreeSpace space: Int = 0) -> _Node {
     assert(space >= 0)
-    let capacity = read { $0.byteCapacity &- $0.bytesFree &+ space }
-    var new = Self(
-      storage: Storage.allocate(byteCapacity: capacity),
-      count: count)
-    read { src in
-      new.update { dst in
-        let (dstChildren, dstItems) = dst._prepare(
-          itemMap: src.itemMap, childMap: src.childMap)
 
-        dstChildren.initializeAll(fromContentsOf: src.children)
-        dstItems.initializeAll(fromContentsOf: src.reverseItems)
+    if isCollisionNode {
+      return read { src in
+        Self.allocateCollision(
+          count: self.count, self.collisionHash
+        ) { dstItems in
+          dstItems.initializeAll(fromContentsOf: src.reverseItems)
+        }.node
       }
     }
-    new._invariantCheck()
-    return new
+    return read { src in
+      Self.allocate(
+        itemMap: src.itemMap,
+        childMap: src.childMap,
+        count: self.count,
+        extraBytes: space
+      ) { dstChildren, dstItems in
+        dstChildren.initializeAll(fromContentsOf: src.children)
+        dstItems.initializeAll(fromContentsOf: src.reverseItems)
+      }.node
+    }
   }
 
   @inlinable @inline(never)
   internal mutating func move(withFreeSpace space: Int = 0) {
     assert(space >= 0)
-    let capacity = read { $0.byteCapacity &- $0.bytesFree &+ space }
-    var new = Self(
-      storage: Storage.allocate(byteCapacity: capacity),
-      count: self.count)
-    self.update { src in
-      new.update { dst in
-        let (dstChildren, dstItems) = dst._prepare(
-          itemMap: src.itemMap, childMap: src.childMap)
-
+    let c = self.count
+    if isCollisionNode {
+      self = update { src in
+        Self.allocateCollision(
+          count: c, src.collisionHash
+        ) { dstItems in
+          dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
+          src.clear()
+        }.node
+      }
+      return
+    }
+    self = update { src in
+      Self.allocate(
+        itemMap: src.itemMap,
+        childMap: src.childMap,
+        count: c,
+        extraBytes: space
+      ) { dstChildren, dstItems in
         dstChildren.moveInitializeAll(fromContentsOf: src.children)
         dstItems.moveInitializeAll(fromContentsOf: src.reverseItems)
-
         src.clear()
-        assert(dst.bytesFree >= space)
-      }
+      }.node
     }
-    self.count = 0
-    self._invariantCheck()
-    new._invariantCheck()
-    self = new
   }
 }
-
-extension _Node.UnsafeHandle {
-  @inlinable
-  internal func _prepare(
-    itemMap: _Bitmap, childMap: _Bitmap
-  ) -> (
-    children: UnsafeMutableBufferPointer<_Node>,
-    items: UnsafeMutableBufferPointer<Element>
-  ) {
-    let (itemCount, childCount) = _StorageHeader.counts(
-      itemMap: itemMap, childMap: childMap)
-    return self._prepare(
-      itemMap: itemMap,
-      itemCount: itemCount,
-      childMap: childMap,
-      childCount: childCount)
-  }
-
-  @inlinable
-  internal func _prepare(
-    itemMap: _Bitmap,
-    itemCount: Int,
-    childMap: _Bitmap,
-    childCount: Int
-  ) -> (
-    children: UnsafeMutableBufferPointer<_Node>,
-    items: UnsafeMutableBufferPointer<Element>
-  ) {
-    assert(self.itemMap.isEmpty && self.childMap.isEmpty)
-    assert(self.byteCapacity == self.bytesFree)
-
-    assert(
-      itemMap == childMap
-      || (itemMap.count == itemCount && childMap.count == childCount))
-
-    assert(
-      itemMap != childMap
-      || (itemCount == itemMap._value && childCount == 0))
-
-    self.itemMap = itemMap
-    self.childMap = childMap
-
-    let itemStride = MemoryLayout<Element>.stride
-    let childStride = MemoryLayout<_Node>.stride
-
-    let itemBytes = itemCount &* itemStride
-    let childBytes = childCount &* childStride
-    let occupiedBytes = itemBytes &+ childBytes
-    assert(occupiedBytes <= byteCapacity)
-    bytesFree = byteCapacity &- occupiedBytes
-
-    let childStart = self._memory
-      .bindMemory(to: _Node.self, capacity: childCount)
-    let itemStart = (self._memory + (byteCapacity - itemBytes))
-      .bindMemory(to: Element.self, capacity: itemCount)
-    return (
-      .init(start: childStart, count: childCount),
-      .init(start: itemStart, count: itemCount))
-  }
-}
-

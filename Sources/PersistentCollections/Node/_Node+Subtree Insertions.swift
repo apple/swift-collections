@@ -35,16 +35,19 @@ extension _Node {
   ) -> (inserted: Bool, leaf: _UnmanagedNode, slot: _Slot) {
     defer { _invariantCheck() }
     let isUnique = self.isUnique()
-    let r = find(level, key, hash, forInsert: true)
+    let r = findForInsertion(level, key, hash)
     switch r {
     case .found(_, let slot):
       ensureUnique(isUnique: isUnique)
       return (false, unmanaged, slot)
-    case .notFound(let bucket, let slot):
+    case .insert(let bucket, let slot):
       ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) { _ in }
       return (true, unmanaged, slot)
-    case .newCollision(let bucket, let slot):
-      let r = ensureUniqueAndMakeNewCollision(
+    case .appendCollision:
+      ensureUniqueAndAppendCollision(isUnique: isUnique, hash) { _ in }
+      return (true, unmanaged, _Slot(self.count &- 1))
+    case .spawnChild(let bucket, let slot):
+      let r = ensureUniqueAndSpawnChild(
         isUnique: isUnique,
         level: level,
         replacing: slot, bucket,
@@ -52,12 +55,11 @@ extension _Node {
         inserter: { _ in }
       )
       return (true, r.leaf, r.slot)
-    case .expansion(let collisionHash):
+    case .expansion:
       let r = _Node.build(
         level: level,
         item1: { _ in }, hash,
-        child2: self, collisionHash
-      )
+        child2: self, self.collisionHash)
       self = r.top
       return (true, r.leaf, r.slot1)
     case .descend(_, let slot):
@@ -79,6 +81,8 @@ extension _Node {
     _ bucket: _Bucket,
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) {
+    assert(!isCollisionNode)
+
     if !isUnique {
       self = copyNodeAndInsertItem(at: slot, bucket, inserter: inserter)
       return
@@ -101,7 +105,7 @@ extension _Node {
     _ bucket: _Bucket,
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) -> _Node {
-    // Copy items into new storage.
+    assert(!isCollisionNode)
     let (itemMap, childMap) = (
       self.raw.storage.header.bitmapsForInsertingItem(at: slot, bucket))
     let c = self.count
@@ -130,7 +134,7 @@ extension _Node {
     _ bucket: _Bucket,
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) {
-    // Copy items into new storage.
+    assert(!isCollisionNode)
     let (itemMap, childMap) = (
       self.raw.storage.header.bitmapsForInsertingItem(at: slot, bucket))
     let c = self.count
@@ -158,7 +162,72 @@ extension _Node {
 
 extension _Node {
   @inlinable
-  internal mutating func ensureUniqueAndMakeNewCollision(
+  internal mutating func ensureUniqueAndAppendCollision(
+    isUnique: Bool,
+    _ hash: _Hash,
+    inserter: (UnsafeMutablePointer<Element>) -> Void
+  ) {
+    assert(isCollisionNode)
+    if !isUnique {
+      self = copyNodeAndAppendCollision(hash, inserter: inserter)
+      return
+    }
+    if !hasFreeSpace(Self.spaceForNewItem) {
+      moveNodeAndAppendCollision(hash, inserter: inserter)
+      return
+    }
+    // In-place insert.
+    update {
+      let p = $0._makeRoomForNewItem(at: $0.itemsEndSlot, .invalid)
+      inserter(p)
+    }
+    self.count &+= 1
+  }
+
+  @inlinable @inline(never)
+  internal func copyNodeAndAppendCollision(
+    _ hash: _Hash,
+    inserter: (UnsafeMutablePointer<Element>) -> Void
+  ) -> _Node {
+    assert(isCollisionNode)
+    assert(hash == collisionHash)
+    assert(self.count == read { $0.collisionCount })
+    let c = self.count
+    return read { src in
+      Self.allocateCollision(count: c &+ 1, hash) { dstItems in
+        let srcItems = src.reverseItems
+        assert(dstItems.count == srcItems.count + 1)
+        dstItems.dropFirst().initializeAll(fromContentsOf: srcItems)
+        inserter(dstItems.baseAddress!)
+      }.node
+    }
+  }
+
+  @inlinable @inline(never)
+  internal mutating func moveNodeAndAppendCollision(
+    _ hash: _Hash,
+    inserter: (UnsafeMutablePointer<Element>) -> Void
+  ) {
+    assert(isCollisionNode)
+    assert(hash == collisionHash)
+    assert(self.count == read { $0.collisionCount })
+    let c = self.count
+    self = update { src in
+      Self.allocateCollision(count: c &+ 1, hash) { dstItems in
+        let srcItems = src.reverseItems
+        assert(dstItems.count == srcItems.count + 1)
+        dstItems.dropFirst().moveInitializeAll(fromContentsOf: srcItems)
+        inserter(dstItems.baseAddress!)
+
+        src.clear()
+      }.node
+    }
+  }
+}
+
+extension _Node {
+  @inlinable
+  internal mutating func ensureUniqueAndSpawnChild(
     isUnique: Bool,
     level: _Level,
     replacing slot: _Slot,
@@ -169,18 +238,12 @@ extension _Node {
     let existingHash = read { _Hash($0[item: slot].key) }
     if newHash == existingHash, hasSingletonItem {
       // Convert current node to a collision node.
-      ensureUnique(isUnique: isUnique, withFreeSpace: Self.spaceForNewItem)
-      count &+= 1
-      update {
-        $0.collisionCount = 1
-        let p = $0._makeRoomForNewItem(at: _Slot(1), .invalid)
-        inserter(p)
-      }
+      self = _Node._collisionNode(newHash, read { $0[item: .zero] }, inserter)
       return (unmanaged, _Slot(1))
     }
 
     if !isUnique {
-      let r = copyNodeAndMakeNewCollision(
+      let r = copyNodeAndSpawnChild(
         level: level,
         replacing: slot, bucket,
         existingHash: existingHash,
@@ -189,8 +252,8 @@ extension _Node {
       self = r.node
       return (r.leaf, r.slot)
     }
-    if !hasFreeSpace(Self.spaceForNewCollision) {
-      return moveNodeAndMakeNewCollision(
+    if !hasFreeSpace(Self.spaceForSpawningChild) {
+      return moveNodeAndSpawnChild(
         level: level,
         replacing: slot, bucket,
         existingHash: existingHash,
@@ -208,7 +271,7 @@ extension _Node {
   }
 
   @inlinable @inline(never)
-  internal func copyNodeAndMakeNewCollision(
+  internal func copyNodeAndSpawnChild(
     level: _Level,
     replacing slot: _Slot,
     _ bucket: _Bucket,
@@ -217,7 +280,7 @@ extension _Node {
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) -> (node: _Node, leaf: _UnmanagedNode, slot: _Slot) {
     let (itemMap, childMap) = (
-      self.raw.storage.header.bitmapsForNewCollision(at: slot, bucket))
+      self.raw.storage.header.bitmapsForSpawningChild(at: slot, bucket))
     let c = self.count
     let childSlot = childMap.slot(of: bucket)
     let r = read { src in
@@ -263,7 +326,7 @@ extension _Node {
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) -> (leaf: _UnmanagedNode, slot: _Slot) {
     let (itemMap, childMap) = (
-      self.raw.storage.header.bitmapsForNewCollision(at: slot, bucket))
+      self.raw.storage.header.bitmapsForSpawningChild(at: slot, bucket))
     let c = self.count
     let childSlot = childMap.slot(of: bucket)
     let r = update { src in

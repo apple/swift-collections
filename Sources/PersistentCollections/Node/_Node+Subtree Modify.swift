@@ -79,7 +79,7 @@ extension _Node {
     // If the key already exists, we ensure uniqueness for its node and extract
     // its item but otherwise leave the tree as it was.
     let isUnique = self.isUnique()
-    let r = find(state.path.level, state.key, state.hash, forInsert: true)
+    let r = findForInsertion(state.path.level, state.key, state.hash)
     switch r {
     case .found(_, let slot):
       ensureUnique(isUnique: isUnique)
@@ -88,13 +88,17 @@ extension _Node {
       state.found = true
       (state.key, state.value) = update { $0.itemPtr(at: slot).move() }
 
-    case .notFound(_, let slot):
+
+    case .insert(_, let slot):
       state.path.selectItem(at: slot)
 
-    case .newCollision(_, let slot):
+    case .appendCollision:
+      state.path.selectItem(at: _Slot(self.count))
+
+    case .spawnChild(_, let slot):
       state.path.selectItem(at: slot)
 
-    case .expansion(_):
+    case .expansion:
       state.path.selectEnd()
 
     case .descend(_, let slot):
@@ -191,7 +195,7 @@ extension _Node {
     _ hash: _Hash
   ) -> DefaultedValueUpdateState {
     let isUnique = self.isUnique()
-    let r = find(level, key, hash, forInsert: true)
+    let r = findForInsertion(level, key, hash)
     switch r {
     case .found(_, let slot):
       ensureUnique(isUnique: isUnique)
@@ -201,7 +205,7 @@ extension _Node {
         at: slot,
         inserted: false)
 
-    case .notFound(let bucket, let slot):
+    case .insert(let bucket, let slot):
       ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),
@@ -209,8 +213,16 @@ extension _Node {
         at: slot,
         inserted: true)
 
-    case .newCollision(let bucket, let slot):
-      let r = ensureUniqueAndMakeNewCollision(
+    case .appendCollision:
+      ensureUniqueAndAppendCollision(isUnique: isUnique, hash) { _ in }
+      return DefaultedValueUpdateState(
+        (key, defaultValue()),
+        in: unmanaged,
+        at: _Slot(self.count &- 1),
+        inserted: true)
+
+    case .spawnChild(let bucket, let slot):
+      let r = ensureUniqueAndSpawnChild(
         isUnique: isUnique,
         level: level,
         replacing: slot, bucket,
@@ -221,11 +233,11 @@ extension _Node {
         at: r.slot,
         inserted: true)
 
-    case .expansion(let collisionHash):
+    case .expansion:
       let r = _Node.build(
         level: level,
         item1: { _ in }, hash,
-        child2: self, collisionHash
+        child2: self, self.collisionHash
       )
       self = r.top
       return DefaultedValueUpdateState(
