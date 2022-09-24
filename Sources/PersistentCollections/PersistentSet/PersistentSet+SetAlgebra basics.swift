@@ -9,6 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
+extension PersistentSet: _FastMembershipCheckable {
+  @inlinable
+  public func contains(_ item: Element) -> Bool {
+    _root.containsKey(.top, item, _Hash(item))
+  }
+}
+
 extension PersistentSet: SetAlgebra {
   @discardableResult
   @inlinable

@@ -17,8 +17,15 @@ extension PersistentSet {
 
   @inlinable
   public func isDisjoint<Value>(
-    with other: PersistentDictionary<Element, Value>
+    with other: PersistentDictionary<Element, Value>.Keys
   ) -> Bool {
-    self._root.isDisjoint(.top, with: other._root)
+    self._root.isDisjoint(.top, with: other._base._root)
+  }
+
+  @inlinable
+  public func isDisjoint<S: Sequence>(with other: S) -> Bool
+  where S.Element == Element
+  {
+    other.allSatisfy { !self.contains($0) }
   }
 }
