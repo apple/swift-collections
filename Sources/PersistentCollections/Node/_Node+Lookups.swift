@@ -175,12 +175,18 @@ extension _Node.UnsafeHandle {
 extension _Node {
   @inlinable
   internal func get(_ level: _Level, _ key: Key, _ hash: _Hash) -> Value? {
-    read {
-      guard let r = $0.find(level, key, hash) else { return nil }
-      if r.descend {
-        return $0[child: r.slot].get(level.descend(), key, hash)
+    var node = unmanaged
+    var level = level
+    while true {
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else {
+        return nil
       }
-      return $0[item: r.slot].value
+      guard r.descend else {
+        return UnsafeHandle.read(node) { $0[item: r.slot].value }
+      }
+      node = node.unmanagedChild(at: r.slot)
+      level = level.descend()
     }
   }
 }
@@ -190,18 +196,15 @@ extension _Node {
   internal func containsKey(
     _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> Bool {
-    read { $0.containsKey(level, key, hash) }
-  }
-}
-
-extension _Node.UnsafeHandle {
-  @inlinable
-  internal func containsKey(
-    _ level: _Level, _ key: Key, _ hash: _Hash
-  ) -> Bool {
-    guard let r = find(level, key, hash) else { return false }
-    guard r.descend else { return true }
-    return self[child: r.slot].containsKey(level.descend(), key, hash)
+    var node = unmanaged
+    var level = level
+    while true {
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else { return false }
+      guard r.descend else { return true }
+      node = node.unmanagedChild(at: r.slot)
+      level = level.descend()
+    }
   }
 }
 
