@@ -344,7 +344,7 @@ extension Array where Element == _Word {
       self.reserveCapacity(2 * c)
     }
     while !container.isAtEnd {
-      let v = try container.decode(UInt.self)
+      let v = try container.decode(UInt64.self)
       self.append(_Word(UInt(truncatingIfNeeded: v)))
       self.append(_Word(UInt(truncatingIfNeeded: v &>> 32)))
     }
