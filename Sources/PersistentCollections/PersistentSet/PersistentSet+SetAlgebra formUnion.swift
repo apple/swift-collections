@@ -12,6 +12,6 @@
 extension PersistentSet {
   @inlinable
   public mutating func formUnion(_ other: __owned Self) {
-    fatalError("FIXME")
+    self = union(other)
   }
 }

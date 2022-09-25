@@ -12,6 +12,6 @@
 extension PersistentSet {
   @inlinable
   public mutating func formSymmetricDifference(_ other: __owned Self) {
-    fatalError("FIXME")
+    self = symmetricDifference(other)
   }
 }
