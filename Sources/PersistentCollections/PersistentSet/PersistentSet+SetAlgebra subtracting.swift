@@ -12,6 +12,7 @@
 extension PersistentSet {
   @inlinable
   public __consuming func subtracting(_ other: Self) -> Self {
-    fatalError("FIXME")
+    let result = _root.subtracting(.top, .emptyPrefix, other._root)
+    return Self(_new: result.finalize(.top))
   }
 }

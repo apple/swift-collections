@@ -11,7 +11,12 @@
 
 extension PersistentSet {
   @inlinable
-  public mutating func formIntersection(_ other: Self) {
-    self = intersection(other)
+  public func filter(
+    _ isIncluded: (Element) throws -> Bool
+  ) rethrows -> Self {
+    let result = try _root.filter(.top, .emptyPrefix) {
+      try isIncluded($0.key)
+    }
+    return PersistentSet(_new: result.finalize(.top))
   }
 }
