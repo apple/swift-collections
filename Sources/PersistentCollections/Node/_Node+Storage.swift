@@ -101,13 +101,18 @@ extension _Node {
   }
 
   @inlinable @inline(__always)
+  internal static var spaceForNewChild: Int {
+    MemoryLayout<_Node>.stride
+  }
+
+  @inlinable @inline(__always)
   internal static var spaceForSpawningChild: Int {
-    Swift.max(0, MemoryLayout<_Node>.stride - MemoryLayout<Element>.stride)
+    Swift.max(0, spaceForNewChild - spaceForNewItem)
   }
 
   @inlinable @inline(__always)
   internal static var spaceForInlinedChild: Int {
-    Swift.max(0, MemoryLayout<Element>.stride - MemoryLayout<_Node>.stride)
+    Swift.max(0, spaceForNewItem - spaceForNewChild)
   }
 
   @inlinable

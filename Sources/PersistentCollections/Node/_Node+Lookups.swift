@@ -210,6 +210,27 @@ extension _Node {
 
 extension _Node {
   @inlinable
+  internal func lookup(
+    _ level: _Level, _ key: Key, _ hash: _Hash
+  ) -> (node: _UnmanagedNode, slot: _Slot)? {
+    var node = unmanaged
+    var level = level
+    while true {
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else {
+        return nil
+      }
+      guard r.descend else {
+        return (node, r.slot)
+      }
+      node = node.unmanagedChild(at: r.slot)
+      level = level.descend()
+    }
+  }
+}
+
+extension _Node {
+  @inlinable
   internal func position(
     forKey key: Key, _ level: _Level, _ hash: _Hash
   ) -> Int? {

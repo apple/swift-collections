@@ -48,6 +48,7 @@ extension _Node {
 }
 
 extension _Node {
+  // FIXME: Make this return a Builder
   @inlinable
   internal func removing(
     _ level: _Level, _ key: Key, _ hash: _Hash

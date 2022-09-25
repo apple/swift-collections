@@ -62,7 +62,7 @@ extension _StorageHeader {
 
   @inlinable @inline(__always)
   internal var isCollisionNode: Bool {
-    !itemMap.intersection(childMap).isEmpty
+    !itemMap.isDisjoint(with: childMap)
   }
 
   @inlinable @inline(__always)

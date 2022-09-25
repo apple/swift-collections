@@ -32,12 +32,12 @@ extension _Node {
         let rmap = r.itemMap.union(r.childMap)
         if lmap.isDisjoint(with: rmap) { return true }
 
-        for bucket in l.itemMap.intersection(r.itemMap) {
+        for (bucket, _) in l.itemMap.intersection(r.itemMap) {
           let lslot = l.itemMap.slot(of: bucket)
           let rslot = r.itemMap.slot(of: bucket)
           guard l[item: lslot].key != r[item: rslot].key else { return false }
         }
-        for bucket in l.itemMap.intersection(r.childMap) {
+        for (bucket, _) in l.itemMap.intersection(r.childMap) {
           let lslot = l.itemMap.slot(of: bucket)
           let hash = _Hash(l[item: lslot].key)
           let rslot = r.childMap.slot(of: bucket)
@@ -47,7 +47,7 @@ extension _Node {
             hash)
           if found { return false }
         }
-        for bucket in l.childMap.intersection(r.itemMap) {
+        for (bucket, _) in l.childMap.intersection(r.itemMap) {
           let lslot = l.childMap.slot(of: bucket)
           let rslot = r.itemMap.slot(of: bucket)
           let hash = _Hash(r[item: rslot].key)
@@ -57,7 +57,7 @@ extension _Node {
             hash)
           if found { return false }
         }
-        for bucket in l.childMap.intersection(r.childMap) {
+        for (bucket, _) in l.childMap.intersection(r.childMap) {
           let lslot = l.childMap.slot(of: bucket)
           let rslot = r.childMap.slot(of: bucket)
           guard

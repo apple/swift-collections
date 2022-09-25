@@ -83,6 +83,20 @@ extension _Bitmap {
 
   @inlinable @inline(__always)
   internal var isEmpty: Bool { _value == 0 }
+
+  @inlinable @inline(__always)
+  internal var first: _Bucket? {
+    guard !isEmpty else { return nil }
+    return _Bucket(
+      _value: UInt8(truncatingIfNeeded: _value.trailingZeroBitCount))
+  }
+
+  @inlinable @inline(__always)
+  internal mutating func popFirst() -> _Bucket? {
+    guard let bucket = first else { return nil }
+    _value &= _value &- 1 // Clear lowest nonzero bit.
+    return bucket
+  }
 }
 
 extension _Bitmap {
@@ -147,23 +161,40 @@ extension _Bitmap {
   }
 }
 
-extension _Bitmap: Sequence, IteratorProtocol {
+extension _Bitmap: Sequence {
   @usableFromInline
-  internal typealias Element = _Bucket
+  internal typealias Element = (bucket: _Bucket, slot: _Slot)
+
+  @usableFromInline
+  @frozen
+  internal struct Iterator: IteratorProtocol {
+    @usableFromInline
+    internal var bitmap: _Bitmap
+
+    @usableFromInline
+    internal var slot: _Slot
+
+    @inlinable
+    internal init(_ bitmap: _Bitmap) {
+      self.bitmap = bitmap
+      self.slot = .zero
+    }
+
+    /// Return the index of the lowest set bit in this word,
+    /// and also destructively clear it.
+    @inlinable
+    internal mutating func next() -> Element? {
+      guard let bucket = bitmap.popFirst() else { return nil }
+      defer { slot = slot.next() }
+      return (bucket, slot)
+    }
+  }
 
   @inlinable
   internal var underestimatedCount: Int { count }
 
   @inlinable
-  internal func makeIterator() -> _Bitmap { self }
-
-  /// Return the index of the lowest set bit in this word,
-  /// and also destructively clear it.
-  @inlinable
-  internal mutating func next() -> _Bucket? {
-    guard _value != 0 else { return nil }
-    let bucket = _Bucket(UInt(bitPattern: _value.trailingZeroBitCount))
-    _value &= _value &- 1 // Clear lowest nonzero bit.
-    return bucket
+  internal func makeIterator() -> Iterator {
+    Iterator(self)
   }
 }

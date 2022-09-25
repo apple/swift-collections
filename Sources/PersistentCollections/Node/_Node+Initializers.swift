@@ -13,7 +13,21 @@ extension _Node {
   @inlinable
   internal static func _collisionNode(
     _ hash: _Hash,
-    _ item1: Element,
+    _ item1: __owned Element,
+    _ item2: __owned Element
+  ) -> _Node {
+    let node = _Node.allocateCollision(count: 2, hash) { items in
+      items.initializeElement(at: 1, to: item1)
+      items.initializeElement(at: 0, to: item2)
+    }.node
+    node._invariantCheck()
+    return node
+  }
+
+  @inlinable
+  internal static func _collisionNode(
+    _ hash: _Hash,
+    _ item1: __owned Element,
     _ inserter2: (UnsafeMutablePointer<Element>) -> Void
   ) -> _Node {
     let node = _Node.allocateCollision(count: 2, hash) { items in
@@ -26,7 +40,36 @@ extension _Node {
 
   @inlinable
   internal static func _regularNode(
-    _ item1: Element,
+    _ item: __owned Element,
+    _ bucket: _Bucket
+  ) -> _Node {
+    let r = _Node.allocate(
+      itemMap: _Bitmap(bucket),
+      childMap: .empty,
+      count: 1
+    ) { children, items in
+      assert(items.count == 1 && children.count == 0)
+      items.initializeElement(at: 0, to: item)
+    }
+    r.node._invariantCheck()
+    return r.node
+  }
+
+  @inlinable
+  internal static func _regularNode(
+    _ item1: __owned Element,
+    _ bucket1: _Bucket,
+    _ item2: __owned Element,
+    _ bucket2: _Bucket
+  ) -> _Node {
+    _regularNode(
+      item1, bucket1,
+      { $0.initialize(to: item2) }, bucket2).node
+  }
+
+  @inlinable
+  internal static func _regularNode(
+    _ item1: __owned Element,
     _ bucket1: _Bucket,
     _ inserter2: (UnsafeMutablePointer<Element>) -> Void,
     _ bucket2: _Bucket
@@ -50,7 +93,7 @@ extension _Node {
 
   @inlinable
   internal static func _regularNode(
-    _ child: _Node, _ bucket: _Bucket
+    _ child: __owned _Node, _ bucket: _Bucket
   ) -> _Node {
     let r = _Node.allocate(
       itemMap: .empty,
@@ -66,9 +109,21 @@ extension _Node {
 
   @inlinable
   internal static func _regularNode(
+    _ item: __owned Element,
+    _ itemBucket: _Bucket,
+    _ child: __owned _Node,
+    _ childBucket: _Bucket
+  ) -> _Node {
+    _regularNode(
+      { $0.initialize(to: item) }, itemBucket,
+      child, childBucket)
+  }
+
+  @inlinable
+  internal static func _regularNode(
     _ inserter: (UnsafeMutablePointer<Element>) -> Void,
     _ itemBucket: _Bucket,
-    _ child: _Node,
+    _ child: __owned _Node,
     _ childBucket: _Bucket
   ) -> _Node {
     assert(itemBucket != childBucket)
@@ -90,7 +145,7 @@ extension _Node {
   @inlinable
   internal static func build(
     level: _Level,
-    item1: Element,
+    item1: __owned Element,
     _ hash1: _Hash,
     item2 inserter2: (UnsafeMutablePointer<Element>) -> Void,
     _ hash2: _Hash
@@ -107,7 +162,7 @@ extension _Node {
   @inlinable
   internal static func _build(
     level: _Level,
-    item1: Element,
+    item1: __owned Element,
     _ hash1: _Hash,
     item2 inserter2: (UnsafeMutablePointer<Element>) -> Void,
     _ hash2: _Hash
@@ -131,7 +186,7 @@ extension _Node {
     level: _Level,
     item1 inserter1: (UnsafeMutablePointer<Element>) -> Void,
     _ hash1: _Hash,
-    child2: _Node,
+    child2: __owned _Node,
     _ hash2: _Hash
   ) -> (top: _Node, leaf: _UnmanagedNode, slot1: _Slot, slot2: _Slot) {
     assert(child2.isCollisionNode)

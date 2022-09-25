@@ -70,6 +70,11 @@ extension _Hash {
 
 extension _Hash {
   @inlinable
+  internal static var emptyPrefix: _Hash {
+    _Hash(_value: 0)
+  }
+
+  @inlinable
   internal func appending(_ bucket: _Bucket, at level: _Level) -> Self {
     assert(value >> level.shift == 0)
     var copy = self

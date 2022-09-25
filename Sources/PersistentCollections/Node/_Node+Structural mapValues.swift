@@ -14,7 +14,7 @@ import _CollectionsUtilities
 extension _Node {
   @inlinable
   internal func mapValues<T>(
-    _ transform: (Value) throws -> T
+    _ transform: (Element) throws -> T
   ) rethrows -> _Node<Key, T> {
     let c = self.count
     return try read { source in
@@ -56,7 +56,7 @@ extension _Node {
 
         while i < targetItems.count {
           let key = sourceItems[i].key
-          let value = try transform(sourceItems[i].value)
+          let value = try transform(sourceItems[i])
           targetItems.initializeElement(at: i, to: (key, value))
           i += 1
         }

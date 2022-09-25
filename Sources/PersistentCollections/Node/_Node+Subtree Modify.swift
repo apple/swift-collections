@@ -214,7 +214,7 @@ extension _Node {
         inserted: true)
 
     case .appendCollision:
-      ensureUniqueAndAppendCollision(isUnique: isUnique, hash) { _ in }
+      ensureUniqueAndAppendCollision(isUnique: isUnique) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,

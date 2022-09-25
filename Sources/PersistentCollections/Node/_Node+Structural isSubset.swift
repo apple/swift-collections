@@ -51,13 +51,11 @@ extension _Node {
         guard l.itemMap.isSubset(of: r.itemMap.union(r.childMap)) else {
           return false
         }
-        for bucket in l.itemMap {
+        for (bucket, lslot) in l.itemMap {
           if r.itemMap.contains(bucket) {
-            let lslot = l.itemMap.slot(of: bucket)
             let rslot = r.itemMap.slot(of: bucket)
             guard l[item: lslot].key == r[item: rslot].key else { return false }
           } else {
-            let lslot = l.itemMap.slot(of: bucket)
             let hash = _Hash(l[item: lslot].key)
             let rslot = r.childMap.slot(of: bucket)
             guard
@@ -69,8 +67,7 @@ extension _Node {
           }
         }
 
-        for bucket in l.childMap {
-          let lslot = l.childMap.slot(of: bucket)
+        for (bucket, lslot) in l.childMap {
           let rslot = r.childMap.slot(of: bucket)
           guard l[child: lslot].isSubset(level.descend(), of: r[child: rslot])
           else { return false }

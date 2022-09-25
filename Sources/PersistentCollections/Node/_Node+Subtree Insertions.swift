@@ -44,7 +44,7 @@ extension _Node {
       ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) { _ in }
       return (true, unmanaged, slot)
     case .appendCollision:
-      ensureUniqueAndAppendCollision(isUnique: isUnique, hash) { _ in }
+      ensureUniqueAndAppendCollision(isUnique: isUnique) { _ in }
       return (true, unmanaged, _Slot(self.count &- 1))
     case .spawnChild(let bucket, let slot):
       let r = ensureUniqueAndSpawnChild(
@@ -74,6 +74,18 @@ extension _Node {
 }
 
 extension _Node {
+  @inlinable
+  internal mutating func ensureUniqueAndInsertItem(
+    isUnique: Bool,
+    _ item: Element,
+    _ bucket: _Bucket
+  ) {
+    let slot = self.read { $0.itemMap.slot(of: bucket) }
+    ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) {
+      $0.initialize(to: item)
+    }
+  }
+
   @inlinable
   internal mutating func ensureUniqueAndInsertItem(
     isUnique: Bool,
@@ -164,16 +176,25 @@ extension _Node {
   @inlinable
   internal mutating func ensureUniqueAndAppendCollision(
     isUnique: Bool,
-    _ hash: _Hash,
+    _ item: Element
+  ) {
+    ensureUniqueAndAppendCollision(isUnique: isUnique) {
+      $0.initialize(to: item)
+    }
+  }
+
+  @inlinable
+  internal mutating func ensureUniqueAndAppendCollision(
+    isUnique: Bool,
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) {
     assert(isCollisionNode)
     if !isUnique {
-      self = copyNodeAndAppendCollision(hash, inserter: inserter)
+      self = copyNodeAndAppendCollision(inserter: inserter)
       return
     }
     if !hasFreeSpace(Self.spaceForNewItem) {
-      moveNodeAndAppendCollision(hash, inserter: inserter)
+      moveNodeAndAppendCollision(inserter: inserter)
       return
     }
     // In-place insert.
@@ -186,15 +207,13 @@ extension _Node {
 
   @inlinable @inline(never)
   internal func copyNodeAndAppendCollision(
-    _ hash: _Hash,
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) -> _Node {
     assert(isCollisionNode)
-    assert(hash == collisionHash)
     assert(self.count == read { $0.collisionCount })
     let c = self.count
     return read { src in
-      Self.allocateCollision(count: c &+ 1, hash) { dstItems in
+      Self.allocateCollision(count: c &+ 1, src.collisionHash) { dstItems in
         let srcItems = src.reverseItems
         assert(dstItems.count == srcItems.count + 1)
         dstItems.dropFirst().initializeAll(fromContentsOf: srcItems)
@@ -205,15 +224,13 @@ extension _Node {
 
   @inlinable @inline(never)
   internal mutating func moveNodeAndAppendCollision(
-    _ hash: _Hash,
     inserter: (UnsafeMutablePointer<Element>) -> Void
   ) {
     assert(isCollisionNode)
-    assert(hash == collisionHash)
     assert(self.count == read { $0.collisionCount })
     let c = self.count
     self = update { src in
-      Self.allocateCollision(count: c &+ 1, hash) { dstItems in
+      Self.allocateCollision(count: c &+ 1, src.collisionHash) { dstItems in
         let srcItems = src.reverseItems
         assert(dstItems.count == srcItems.count + 1)
         dstItems.dropFirst().moveInitializeAll(fromContentsOf: srcItems)
