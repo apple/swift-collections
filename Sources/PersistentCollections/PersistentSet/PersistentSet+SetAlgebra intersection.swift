@@ -12,7 +12,9 @@
 extension PersistentSet {
   @inlinable
   public func intersection(_ other: Self) -> Self {
-    let result = _root.intersection(.top, .emptyPrefix, other._root)
-    return Self(_new: result.finalize(.top))
+    let builder = _root.intersection(.top, .emptyPrefix, other._root)
+    let root = builder.finalize(.top)
+    root._fullInvariantCheck(.top, .emptyPrefix)
+    return Self(_new: root)
   }
 }

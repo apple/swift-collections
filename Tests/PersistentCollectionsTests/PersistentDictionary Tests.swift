@@ -473,14 +473,14 @@ class PersistentDictionaryTests: CollectionTestCase {
     let b: PersistentDictionary<RawCollider, Int> = [
       RawCollider(0): 1
     ]
-    expectEqual(b.description, "[0: 1]")
+    expectEqual(b.description, "[0#0: 1]")
 
     let c: PersistentDictionary<RawCollider, Int> = [
       RawCollider(0): 1,
       RawCollider(2): 3,
       RawCollider(4): 5,
     ]
-    expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
+    expectEqual(c.description, "[0#0: 1, 2#2: 3, 4#4: 5]")
   }
 
   func test_CustomDebugStringConvertible() {
@@ -511,10 +511,11 @@ class PersistentDictionaryTests: CollectionTestCase {
           withEvery("i", in: 0 ..< fixture.count) { i in
             withHiddenCopies(if: isShared, of: &d) { d in
               let item = fixture.itemsInInsertionOrder[i]
-              let key = tracker.instance(for: item)
+              let key1 = tracker.instance(for: item)
+              let key2 = tracker.instance(for: item)
               let value = tracker.instance(for: 1000 + item.identity)
-              d[key] = value
-              ref[key] = value
+              d[key1] = value
+              ref[key2] = value
               expectEqualDictionaries(d, ref)
             }
           }

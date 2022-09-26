@@ -54,7 +54,7 @@ extension Hash: CustomStringConvertible {
     let path = String(repeating: "0", count: Swift.max(0, c - p.count)) + p
     return String(path.reversed())
     #else
-    return p
+    return String(p.reversed())
     #endif
   }
 }

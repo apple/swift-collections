@@ -280,10 +280,11 @@ struct Fixture {
 }
 
 func withEachFixture(
+  _ label: String = "fixture",
   body: (Fixture) -> Void
 ) {
   for fixture in fixtures {
-    let entry = TestContext.current.push("fixture: \(fixture.title)")
+    let entry = TestContext.current.push("\(label): \(fixture.title)")
     defer { TestContext.current.pop(entry) }
 
     body(fixture)

@@ -97,6 +97,6 @@ struct RawCollider:
   }
 
   var debugDescription: String {
-    "\(identity)-#\(hash)"
+    "\(identity)#\(hash)"
   }
 }

@@ -12,7 +12,9 @@
 extension PersistentSet {
   @inlinable
   public __consuming func subtracting(_ other: Self) -> Self {
-    let result = _root.subtracting(.top, .emptyPrefix, other._root)
-    return Self(_new: result.finalize(.top))
+    let builder = _root.subtracting(.top, .emptyPrefix, other._root)
+    let root = builder.finalize(.top)
+    root._fullInvariantCheck(.top, .emptyPrefix)
+    return Self(_new: root)
   }
 }
