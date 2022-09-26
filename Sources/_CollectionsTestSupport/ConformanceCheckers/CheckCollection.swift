@@ -161,16 +161,9 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
   // Check the endIndex.
   expectEqual(collection.endIndex, collection.indices.endIndex)
 
-  // Check the Indices associated type
-  if C.self != C.Indices.self {
-    checkCollection(
-      collection.indices,
-      expectedContents: indicesByIndexAfter,
-      maxSamples: maxSamples)
-  } else {
-    expectEqual(collection.indices.count, collection.count)
-    expectEqualElements(collection.indices, indicesByIndexAfter)
-  }
+  // Quickly check the Indices associated type
+  expectEqual(collection.indices.count, collection.count)
+  expectEqualElements(collection.indices, indicesByIndexAfter)
   expectEqual(collection.indices.endIndex, collection.endIndex)
 
   // The sequence of indices must be monotonically increasing.
@@ -277,5 +270,15 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
     expectEquivalentElements(
       slice[range], expectedContents[i ..< j],
       by: areEquivalent)
+  }
+
+  if C.Indices.self != C.self && C.Indices.self != DefaultIndices<C>.self {
+    // Do a more exhaustive check on Indices.
+    TestContext.current.withTrace("Indices") {
+      checkCollection(
+        collection.indices,
+        expectedContents: indicesByIndexAfter,
+        maxSamples: maxSamples)
+    }
   }
 }

@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
+extension BitSet: _FastMembershipCheckable {}
+
 extension BitSet {
   /// Creates a new empty bit set with enough storage capacity to store values
   /// up to the given maximum value without reallocating storage.

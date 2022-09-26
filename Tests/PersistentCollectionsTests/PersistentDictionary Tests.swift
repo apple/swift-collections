@@ -1081,6 +1081,132 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_mapValues_basics() {
+    let items = (0 ..< 100).map { ($0, 100 * $0) }
+    let d = PersistentDictionary(uniqueKeysWithValues: items)
+
+    var c = 0
+    let d2 = d.mapValues { value -> String in
+      c += 1
+      expectTrue(value.isMultiple(of: 100))
+      return "\(value)"
+    }
+    expectEqual(c, 100)
+    expectEqualDictionaries(d, items)
+
+    expectEqualDictionaries(d2, (0 ..< 100).compactMap { key in
+      (key: key, value: "\(100 * key)")
+    })
+  }
+
+  func test_mapValues_fixtures() {
+    withEachFixture { fixture in
+      withLifetimeTracking { tracker in
+        withEvery("isShared", in: [false, true]) { isShared in
+          var (d, ref) = tracker.persistentDictionary(for: fixture)
+          withHiddenCopies(if: isShared, of: &d) { d in
+            let d2 = d.mapValues { tracker.instance(for: "\($0.payload)") }
+            let ref2 = Dictionary(uniqueKeysWithValues: ref.lazy.map {
+              ($0.key, tracker.instance(for: "\($0.value.payload)"))
+            })
+            expectEqualDictionaries(d2, ref2)
+          }
+        }
+      }
+    }
+  }
+
+  func test_compactMapValues_basics() {
+    let items = (0 ..< 100).map { ($0, 100 * $0) }
+    let d = PersistentDictionary(uniqueKeysWithValues: items)
+
+    var c = 0
+    let d2 = d.compactMapValues { value -> String? in
+      c += 1
+      guard value.isMultiple(of: 200) else { return nil }
+      expectTrue(value.isMultiple(of: 100))
+      return "\(value)"
+    }
+    expectEqual(c, 100)
+    expectEqualDictionaries(d, items)
+
+    expectEqualDictionaries(d2, (0 ..< 50).map { key in
+      (key: 2 * key, value: "\(200 * key)")
+    })
+  }
+
+  func test_compactMapValues_fixtures() {
+    typealias Key = LifetimeTracked<RawCollider>
+    typealias Value = LifetimeTracked<Int>
+    typealias Value2 = LifetimeTracked<String>
+
+    withEachFixture { fixture in
+      print(fixture.title, fixture.items)
+      withLifetimeTracking { tracker in
+        func transform(_ value: Value) -> Value2? {
+          guard value.payload.isMultiple(of: 2) else { return nil }
+          return tracker.instance(for: "\(value.payload)")
+        }
+
+        withEvery("isShared", in: [false, true]) { isShared in
+          var (d, ref) = tracker.persistentDictionary(for: fixture)
+          withHiddenCopies(if: isShared, of: &d) { d in
+            let d2 = d.compactMapValues(transform)
+            let r: [(Key, Value2)] = ref.compactMap {
+              guard let v = transform($0.value) else { return nil }
+              return ($0.key, v)
+            }
+            let ref2 = Dictionary(uniqueKeysWithValues: r)
+            expectEqualDictionaries(d2, ref2)
+          }
+        }
+      }
+    }
+  }
+
+  func test_filter_basics() {
+    let items = (0 ..< 100).map { ($0, 100 * $0) }
+    let d = PersistentDictionary(uniqueKeysWithValues: items)
+
+    var c = 0
+    let d2 = d.filter { item in
+      c += 1
+      expectEqual(item.value, 100 * item.key)
+      return item.key.isMultiple(of: 2)
+    }
+    expectEqual(c, 100)
+    expectEqualDictionaries(d, items)
+
+    expectEqualDictionaries(d2, (0 ..< 50).compactMap { key in
+      return (key: 2 * key, value: 200 * key)
+    })
+  }
+
+  func test_filter_fixtures() {
+    typealias Key = LifetimeTracked<RawCollider>
+    typealias Value = LifetimeTracked<Int>
+
+    withEachFixture { fixture in
+      print(fixture.title, fixture.items)
+      withLifetimeTracking { tracker in
+        withEvery("isShared", in: [false, true]) { isShared in
+          var (d, ref) = tracker.persistentDictionary(for: fixture)
+          withHiddenCopies(if: isShared, of: &d) { d in
+            func predicate(_ item: (key: Key, value: Value)) -> Bool {
+              expectEqual(item.value.payload, 100 + item.key.payload.identity)
+              return item.value.payload.isMultiple(of: 2)
+            }
+            let d2 = d.filter(predicate)
+            let ref2 = Dictionary(
+              uniqueKeysWithValues: ref.filter(predicate))
+            expectEqualDictionaries(d2, ref2)
+          }
+        }
+      }
+    }
+  }
+
+
   // MARK: -
 
   //  func test_uniqueKeysWithValues_Dictionary() {

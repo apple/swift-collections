@@ -12,6 +12,6 @@
 extension PersistentSet {
   @inlinable
   public mutating func formIntersection(_ other: Self) {
-    fatalError("FIXME")
+    self = intersection(other)
   }
 }

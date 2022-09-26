@@ -30,11 +30,3 @@ public struct PersistentSet<Element: Hashable> {
     self.init(_root: _new, version: _new.initialVersionNumber)
   }
 }
-
-
-extension PersistentSet {
-  @inlinable
-  public func _invariantCheck() {
-    _root._fullInvariantCheck(.top, _Hash(_value: 0))
-  }
-}

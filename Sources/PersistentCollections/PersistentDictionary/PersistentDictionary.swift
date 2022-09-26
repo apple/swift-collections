@@ -383,7 +383,7 @@ extension PersistentDictionary {
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
     _invalidateIndices()
-    return _root.remove(key, .top, _Hash(key))?.value
+    return _root.remove(.top, key, _Hash(key))?.value
   }
 
   // fluid/immutable API

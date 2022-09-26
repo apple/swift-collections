@@ -105,6 +105,11 @@ extension _Node {
   }
 
   @inlinable
+  internal var collisionHash: _Hash {
+    read { $0.collisionHash }
+  }
+
+  @inlinable
   internal var hasSingletonItem: Bool {
     read { $0.hasSingletonItem }
   }

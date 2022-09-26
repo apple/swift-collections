@@ -46,16 +46,15 @@ extension _Node.UnsafeHandle {
   @inlinable @inline(never)
   internal func _findInCollision(
     _ level: _Level, _ key: Key, _ hash: _Hash
-  ) -> (code: Int, slot: _Slot, expansionHash: _Hash) {
+  ) -> (code: Int, slot: _Slot) {
     assert(isCollisionNode)
     if !level.isAtBottom {
-      let h = self.collisionHash
-      if h != hash { return (2, .zero, h) }
+      if hash != self.collisionHash { return (2, .zero) }
     }
     // Note: this searches the items in reverse insertion order.
     guard let slot = reverseItems.firstIndex(where: { $0.key == key })
-    else { return (1, self.itemsEndSlot, _Hash(_value: 0)) }
-    return (0, _Slot(itemCount &- 1 &- slot), _Hash(_value: 0))
+    else { return (1, self.itemsEndSlot) }
+    return (0, _Slot(itemCount &- 1 &- slot))
   }
 }
 
@@ -77,15 +76,24 @@ internal enum _FindResult {
   /// If the current node is a collision node, then the bucket value is
   /// set to `_Bucket.invalid`.
   case found(_Bucket, _Slot)
+
   /// The item we're looking for is not currently inside the subtree rooted at
   /// this node.
   ///
   /// If we wanted to insert it, then its correct slot is within this node
   /// at the specified bucket / item slot. (Which is currently empty.)
   ///
-  /// If the current node is a collision node, then the bucket value is
-  /// set to `_Bucket.invalid`.
-  case notFound(_Bucket, _Slot)
+  /// When the node is a collision node, the `insertCollision` case is returned
+  /// instead of this one.
+  case insert(_Bucket, _Slot)
+
+  /// The item we're looking for is not currently inside the subtree rooted at
+  /// this collision node.
+  ///
+  /// If we wanted to insert it, then it needs to be appended to the items
+  /// buffer.
+  case appendCollision
+
   /// The item we're looking for is not currently inside the subtree rooted at
   /// this node.
   ///
@@ -95,7 +103,8 @@ internal enum _FindResult {
   /// it with a new child node.
   ///
   /// (This case is never returned if the current node is a collision node.)
-  case newCollision(_Bucket, _Slot)
+  case spawnChild(_Bucket, _Slot)
+
   /// The item we're looking for is not in this subtree.
   ///
   /// However, the item doesn't belong in this subtree at all. This is an
@@ -108,12 +117,9 @@ internal enum _FindResult {
   /// node further down the tree. (This undoes the compression by expanding
   /// the collision node's path, hence the name of the enum case.)
   ///
-  /// The payload of the expansion case is the shared hash value of all items
-  /// inside the current (collision) node -- this is needed to sort this node
-  /// into the proper bucket in any newly created parents.
-  ///
   /// (This case is never returned if the current node is a regular node.)
-  case expansion(_Hash)
+  case expansion
+
   /// The item we're looking for is not directly stored in this node, but it
   /// might be somewhere in the subtree rooted at the child at the given
   /// bucket & slot.
@@ -124,17 +130,17 @@ internal enum _FindResult {
 
 extension _Node {
   @inlinable
-  internal func find(
-    _ level: _Level, _ key: Key, _ hash: _Hash, forInsert: Bool
+  internal func findForInsertion(
+    _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> _FindResult {
-    read { $0.find(level, key, hash, forInsert: forInsert) }
+    read { $0.findForInsertion(level, key, hash) }
   }
 }
 
 extension _Node.UnsafeHandle {
   @inlinable
-  internal func find(
-    _ level: _Level, _ key: Key, _ hash: _Hash, forInsert: Bool
+  internal func findForInsertion(
+    _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> _FindResult {
     guard !isCollisionNode else {
       let r = _findInCollision(level, key, hash)
@@ -142,10 +148,10 @@ extension _Node.UnsafeHandle {
         return .found(.invalid, r.slot)
       }
       if r.code == 1 {
-        return .notFound(.invalid, self.itemsEndSlot)
+        return .appendCollision
       }
       assert(r.code == 2)
-      return .expansion(r.expansionHash)
+      return .expansion
     }
     let bucket = hash[level]
     if itemMap.contains(bucket) {
@@ -153,15 +159,14 @@ extension _Node.UnsafeHandle {
       if self[item: slot].key == key {
         return .found(bucket, slot)
       }
-      return .newCollision(bucket, slot)
+      return .spawnChild(bucket, slot)
     }
     if childMap.contains(bucket) {
       let slot = childMap.slot(of: bucket)
       return .descend(bucket, slot)
     }
-    // Don't calculate the slot unless the caller will need it.
-    let slot = forInsert ? itemMap.slot(of: bucket) : .zero
-    return .notFound(bucket, slot)
+    let slot = itemMap.slot(of: bucket)
+    return .insert(bucket, slot)
   }
 }
 
@@ -170,16 +175,18 @@ extension _Node.UnsafeHandle {
 extension _Node {
   @inlinable
   internal func get(_ level: _Level, _ key: Key, _ hash: _Hash) -> Value? {
-    read {
-      let r = $0.find(level, key, hash, forInsert: false)
-      switch r {
-      case .found(_, let slot):
-        return $0[item: slot].value
-      case .notFound, .newCollision, .expansion:
+    var node = unmanaged
+    var level = level
+    while true {
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else {
         return nil
-      case .descend(_, let slot):
-        return $0[child: slot].get(level.descend(), key, hash)
       }
+      guard r.descend else {
+        return UnsafeHandle.read(node) { $0[item: r.slot].value }
+      }
+      node = node.unmanagedChild(at: r.slot)
+      level = level.descend()
     }
   }
 }
@@ -189,23 +196,35 @@ extension _Node {
   internal func containsKey(
     _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> Bool {
-    read { $0.containsKey(level, key, hash) }
+    var node = unmanaged
+    var level = level
+    while true {
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else { return false }
+      guard r.descend else { return true }
+      node = node.unmanagedChild(at: r.slot)
+      level = level.descend()
+    }
   }
 }
 
-extension _Node.UnsafeHandle {
+extension _Node {
   @inlinable
-  internal func containsKey(
+  internal func lookup(
     _ level: _Level, _ key: Key, _ hash: _Hash
-  ) -> Bool {
-    let r = find(level, key, hash, forInsert: false)
-    switch r {
-    case .found:
-      return true
-    case .notFound, .newCollision, .expansion:
-      return false
-    case .descend(_, let slot):
-      return self[child: slot].containsKey(level.descend(), key, hash)
+  ) -> (node: _UnmanagedNode, slot: _Slot)? {
+    var node = unmanaged
+    var level = level
+    while true {
+      let r = UnsafeHandle.read(node) { $0.find(level, key, hash) }
+      guard let r = r else {
+        return nil
+      }
+      guard r.descend else {
+        return (node, r.slot)
+      }
+      node = node.unmanagedChild(at: r.slot)
+      level = level.descend()
     }
   }
 }
@@ -215,21 +234,15 @@ extension _Node {
   internal func position(
     forKey key: Key, _ level: _Level, _ hash: _Hash
   ) -> Int? {
-    let r = find(level, key, hash, forInsert: false)
-    switch r {
-    case .found(_, let slot):
-      return slot.value
-    case .notFound, .newCollision, .expansion:
-      return nil
-    case .descend(_, let slot):
-      return read { h in
-        let children = h.children
-        let p = children[slot.value]
-          .position(forKey: key, level.descend(), hash)
-        guard let p = p else { return nil }
-        let c = h.itemCount &+ p
-        return children[..<slot.value].reduce(into: c) { $0 &+= $1.count }
-      }
+    guard let r = find(level, key, hash) else { return nil }
+    guard r.descend else { return r.slot.value }
+    return read { h in
+      let children = h.children
+      let p = children[r.slot.value]
+        .position(forKey: key, level.descend(), hash)
+      guard let p = p else { return nil }
+      let c = h.itemCount &+ p
+      return children[..<r.slot.value].reduce(into: c) { $0 &+= $1.count }
     }
   }
 

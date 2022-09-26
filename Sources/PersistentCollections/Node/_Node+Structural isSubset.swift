@@ -21,14 +21,25 @@ extension _Node {
     guard self.count <= other.count else { return false }
 
     if self.isCollisionNode {
-      // Beware, self might be on a compressed path
-      return read {
-        let items = $0.reverseItems
-        let hash = $0.collisionHash
-        return items.indices.allSatisfy {
-          // FIXME: This will repeatedly & unnecessarily call `collisionHash`
-          other.containsKey(level, items[$0].key, hash)
+      if other.isCollisionNode {
+        guard self.collisionHash == other.collisionHash else { return false }
+        return read { l in
+          other.read { r in
+            let li = l.reverseItems
+            let ri = r.reverseItems
+            return l.reverseItems.indices.allSatisfy { i in
+              ri.contains { $0.key == li[i].key }
+            }
+          }
         }
+      }
+      // `self` is on a compressed path. Try to descend down by one level.
+      assert(!level.isAtBottom)
+      let bucket = self.collisionHash[level]
+      return other.read {
+        guard $0.childMap.contains(bucket) else { return false }
+        let slot = $0.childMap.slot(of: bucket)
+        return self.isSubset(level.descend(), of: $0[child: slot])
       }
     }
 
@@ -40,13 +51,11 @@ extension _Node {
         guard l.itemMap.isSubset(of: r.itemMap.union(r.childMap)) else {
           return false
         }
-        for bucket in l.itemMap {
+        for (bucket, lslot) in l.itemMap {
           if r.itemMap.contains(bucket) {
-            let lslot = l.itemMap.slot(of: bucket)
             let rslot = r.itemMap.slot(of: bucket)
             guard l[item: lslot].key == r[item: rslot].key else { return false }
           } else {
-            let lslot = l.itemMap.slot(of: bucket)
             let hash = _Hash(l[item: lslot].key)
             let rslot = r.childMap.slot(of: bucket)
             guard
@@ -58,8 +67,7 @@ extension _Node {
           }
         }
 
-        for bucket in l.childMap {
-          let lslot = l.childMap.slot(of: bucket)
+        for (bucket, lslot) in l.childMap {
           let rslot = r.childMap.slot(of: bucket)
           guard l[child: lslot].isSubset(level.descend(), of: r[child: rslot])
           else { return false }

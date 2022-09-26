@@ -14,16 +14,24 @@ import _CollectionsUtilities
 extension _Node {
   @inlinable
   internal func mapValues<T>(
-    _ transform: (Value) throws -> T
+    _ transform: (Element) throws -> T
   ) rethrows -> _Node<Key, T> {
     let c = self.count
     return try read { source in
-      var result = _Node<Key, T>.allocate(
-        itemMap: source.itemMap,
-        childMap: source.childMap,
-        count: c,
-        initializingWith: { _, _ in }
-      ).node
+      var result: _Node<Key, T>
+      if isCollisionNode {
+        result = _Node<Key, T>.allocateCollision(
+          count: c, source.collisionHash,
+          initializingWith: { _ in }
+        ).node
+      } else {
+        result = _Node<Key, T>.allocate(
+          itemMap: source.itemMap,
+          childMap: source.childMap,
+          count: c,
+          initializingWith: { _, _ in }
+        ).node
+      }
       try result.update { target in
         let sourceItems = source.reverseItems
         let targetItems = target.reverseItems
@@ -48,7 +56,7 @@ extension _Node {
 
         while i < targetItems.count {
           let key = sourceItems[i].key
-          let value = try transform(sourceItems[i].value)
+          let value = try transform(sourceItems[i])
           targetItems.initializeElement(at: i, to: (key, value))
           i += 1
         }
@@ -59,6 +67,7 @@ extension _Node {
         }
         success = true
       }
+      result._invariantCheck()
       return result
     }
   }

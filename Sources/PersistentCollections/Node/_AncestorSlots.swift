@@ -72,6 +72,13 @@ extension _AncestorSlots {
     path &= ~(_Bucket.bitMask &<< level.shift)
   }
 
+  /// Clear all slots at or below the specified level, by setting them to zero.
+  @inlinable
+  internal mutating func clear(atOrBelow level: _Level) {
+    guard level.shift < UInt.bitWidth else { return }
+    path &= ~(UInt.max &<< level.shift)
+  }
+
   /// Truncate this path to the specified level.
   /// Slots at or beyond the specified level are cleared.
   @inlinable

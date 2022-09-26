@@ -14,7 +14,7 @@ extension PersistentDictionary {
   public func mapValues<T>(
     _ transform: (Value) throws -> T
   ) rethrows -> PersistentDictionary<Key, T> {
-    let transformed = try _root.mapValues(transform)
+    let transformed = try _root.mapValues { try transform($0.value) }
     return PersistentDictionary<Key, T>(_new: transformed)
   }
 
@@ -22,14 +22,7 @@ extension PersistentDictionary {
   public func compactMapValues<T>(
     _ transform: (Value) throws -> T?
   ) rethrows -> PersistentDictionary<Key, T> {
-    // FIXME: We could do this as a structural transformation.
-    var result: PersistentDictionary<Key, T> = [:]
-    for (key, v) in self {
-      guard let value = try transform(v) else { continue }
-      let hash = _Hash(key)
-      let inserted = result._root.insert((key, value), .top, hash)
-      assert(inserted)
-    }
-    return result
+    let result = try _root.compactMapValues(.top, .emptyPrefix, transform)
+    return PersistentDictionary<Key, T>(_new: result.finalize(.top))
   }
 }

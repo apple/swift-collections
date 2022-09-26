@@ -12,6 +12,11 @@
 extension PersistentSet {
   @inlinable
   public func union(_ other: __owned Self) -> Self {
-    fatalError("FIXME")
+    // FIXME: Do this with a structural merge.
+    var copy = self
+    for item in other {
+      copy.insert(item)
+    }
+    return copy
   }
 }

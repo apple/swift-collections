@@ -112,14 +112,6 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
     by: areEquivalent,
     "\(expectedContents)")
 
-  // Check the Indices associated type
-  if C.self != C.Indices.self {
-    checkBidirectionalCollection(
-      collection.indices,
-      expectedContents: indicesByIndexAfter,
-      maxSamples: maxSamples)
-  }
-
   var allIndices = indicesByIndexAfter
   allIndices.append(collection.endIndex)
 
@@ -166,6 +158,16 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
         let expected = i < limit || j >= limit ? allIndices[j] : nil
         expectEqual(actual, expected)
       }
+    }
+  }
+
+  // Check the Indices associated type
+  if C.self != C.Indices.self && C.self != DefaultIndices<C>.self {
+    TestContext.current.withTrace("Indices") {
+      checkBidirectionalCollection(
+        collection.indices,
+        expectedContents: indicesByIndexAfter,
+        maxSamples: maxSamples)
     }
   }
 }

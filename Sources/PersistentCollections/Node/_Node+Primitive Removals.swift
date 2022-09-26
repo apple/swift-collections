@@ -115,8 +115,7 @@ extension _Node {
     return update {
       assert($0.itemCount == 1 && $0.childCount == 0)
       let old = $0._removeItem(at: .zero) { $0.move() }
-      $0.itemMap = .empty
-      $0.childMap = .empty
+      $0.clear()
       return old
     }
   }

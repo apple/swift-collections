@@ -32,12 +32,12 @@ extension _Node {
         let rmap = r.itemMap.union(r.childMap)
         if lmap.isDisjoint(with: rmap) { return true }
 
-        for bucket in l.itemMap.intersection(r.itemMap) {
+        for (bucket, _) in l.itemMap.intersection(r.itemMap) {
           let lslot = l.itemMap.slot(of: bucket)
           let rslot = r.itemMap.slot(of: bucket)
           guard l[item: lslot].key != r[item: rslot].key else { return false }
         }
-        for bucket in l.itemMap.intersection(r.childMap) {
+        for (bucket, _) in l.itemMap.intersection(r.childMap) {
           let lslot = l.itemMap.slot(of: bucket)
           let hash = _Hash(l[item: lslot].key)
           let rslot = r.childMap.slot(of: bucket)
@@ -47,7 +47,7 @@ extension _Node {
             hash)
           if found { return false }
         }
-        for bucket in l.childMap.intersection(r.itemMap) {
+        for (bucket, _) in l.childMap.intersection(r.itemMap) {
           let lslot = l.childMap.slot(of: bucket)
           let rslot = r.itemMap.slot(of: bucket)
           let hash = _Hash(r[item: rslot].key)
@@ -57,7 +57,7 @@ extension _Node {
             hash)
           if found { return false }
         }
-        for bucket in l.childMap.intersection(r.childMap) {
+        for (bucket, _) in l.childMap.intersection(r.childMap) {
           let lslot = l.childMap.slot(of: bucket)
           let rslot = r.childMap.slot(of: bucket)
           guard
@@ -74,14 +74,11 @@ extension _Node {
     _ level: _Level,
     with other: _Node<Key, Value2>
   ) -> Bool {
-    // Beware, self might be on a compressed path
     assert(isCollisionNode)
     if other.isCollisionNode {
       return read { l in
         other.read { r in
-          let lh = l.collisionHash
-          let rh = r.collisionHash
-          guard lh == rh else { return true }
+          guard l.collisionHash == r.collisionHash else { return true }
           let litems = l.reverseItems
           let ritems = r.reverseItems
           return litems.allSatisfy { li in
@@ -90,12 +87,24 @@ extension _Node {
         }
       }
     }
-    return read {
-      let items = $0.reverseItems
-      let hash = $0.collisionHash
-      return items.indices.allSatisfy {
-        !other.containsKey(level, items[$0].key, hash)
+    // `self` is on a compressed path. Try descending down by one level.
+    assert(!level.isAtBottom)
+    let bucket = self.collisionHash[level]
+    return other.read { r in
+      if r.childMap.contains(bucket) {
+        let slot = r.childMap.slot(of: bucket)
+        return isDisjoint(level.descend(), with: r[child: slot])
       }
+      if r.itemMap.contains(bucket) {
+        let slot = r.itemMap.slot(of: bucket)
+        let p = r.itemPtr(at: slot)
+        let hash = _Hash(p.pointee.key)
+        return read { l in
+          guard hash == l.collisionHash else { return true }
+          return !l.reverseItems.contains { $0.key == p.pointee.key }
+        }
+      }
+      return true
     }
   }
 }

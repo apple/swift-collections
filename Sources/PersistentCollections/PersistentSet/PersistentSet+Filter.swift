@@ -11,8 +11,12 @@
 
 extension PersistentSet {
   @inlinable
-  public func symmetricDifference(_ other: __owned Self) -> Self {
-    // FIXME: Do this with a structural merge.
-    self.subtracting(self.intersection(other))
+  public func filter(
+    _ isIncluded: (Element) throws -> Bool
+  ) rethrows -> Self {
+    let result = try _root.filter(.top, .emptyPrefix) {
+      try isIncluded($0.key)
+    }
+    return PersistentSet(_new: result.finalize(.top))
   }
 }

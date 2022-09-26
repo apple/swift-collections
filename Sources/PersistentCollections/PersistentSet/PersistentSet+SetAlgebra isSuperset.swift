@@ -19,6 +19,16 @@ extension PersistentSet {
   public func isSuperset<Value>(
     of other: PersistentDictionary<Element, Value>
   ) -> Bool {
-    return other._root.isSubset(.top, of: self._root)
+    other._root.isSubset(.top, of: self._root)
+  }
+
+  @inlinable
+  public func isSuperset<S: Sequence>(of other: S) -> Bool
+  where S.Element == Element
+  {
+    guard self.count >= other.underestimatedCount else {
+      return false
+    }
+    return other.allSatisfy { self.contains($0) }
   }
 }

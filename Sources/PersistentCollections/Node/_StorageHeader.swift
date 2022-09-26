@@ -62,7 +62,7 @@ extension _StorageHeader {
 
   @inlinable @inline(__always)
   internal var isCollisionNode: Bool {
-    !itemMap.intersection(childMap).isEmpty
+    !itemMap.isDisjoint(with: childMap)
   }
 
   @inlinable @inline(__always)
@@ -123,37 +123,21 @@ extension _StorageHeader {
 
 extension _StorageHeader {
   @inlinable
-  internal static func counts(
-    itemMap: _Bitmap, childMap: _Bitmap
-  ) -> (itemCount: Int, childCount: Int) {
-    if itemMap == childMap {
-      return (Int(truncatingIfNeeded: itemMap._value), 0)
-    }
-    return (itemMap.count, childMap.count)
-  }
-
-  @inlinable
   internal func bitmapsForInsertingItem(
     at slot: _Slot,
     _ bucket: _Bucket
   ) -> (itemMap: _Bitmap, childMap: _Bitmap) {
+    assert(!isCollisionNode)
+    assert(!bucket.isInvalid)
+    assert(!itemMap.contains(bucket) && !childMap.contains(bucket))
     var itemMap = self.itemMap
-    var childMap = self.childMap
-    if bucket.isInvalid {
-      assert(isCollisionNode)
-      itemMap._value += 1
-      childMap = itemMap
-    } else {
-      assert(!isCollisionNode)
-      assert(!itemMap.contains(bucket) && !childMap.contains(bucket))
-      itemMap.insert(bucket)
-      assert(itemMap.slot(of: bucket) == slot)
-    }
+    itemMap.insert(bucket)
+    assert(itemMap.slot(of: bucket) == slot)
     return (itemMap, childMap)
   }
 
   @inlinable
-  internal func bitmapsForNewCollision(
+  internal func bitmapsForSpawningChild(
     at slot: _Slot,
     _ bucket: _Bucket
   ) -> (itemMap: _Bitmap, childMap: _Bitmap) {

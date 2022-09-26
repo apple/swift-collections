@@ -67,6 +67,7 @@ extension _Node.UnsafeHandle {
     print("""
       \(firstPrefix)\(isCollisionNode ? "CollisionNode" : "Node")(\
       at: \(_addressString(for: _header)), \
+      \(isCollisionNode ? "hash: \(collisionHash), " : "")\
       \(extra)\
       byteCapacity: \(byteCapacity), \
       freeBytes: \(bytesFree))

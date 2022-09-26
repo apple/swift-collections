@@ -145,5 +145,27 @@ extension PersistentSet: BidirectionalCollection {
     return _root.raw.distance(.top, from: start._path, to: end._path)
   }
 
-  // FIXME: Implement index(_:offsetBy:), index(_:offsetBy:limitedBy:)
+  @inlinable
+  public func index(_ i: Index, offsetBy distance: Int) -> Index {
+    precondition(_isValid(i), "Invalid index")
+    var i = i
+    let r = _root.raw.seek(.top, &i._path, offsetBy: distance)
+    precondition(r, "Index offset out of bounds")
+    return i
+  }
+
+  @inlinable
+  public func index(
+    _ i: Index, offsetBy distance: Int, limitedBy limit: Index
+  ) -> Index? {
+    precondition(_isValid(i), "Invalid index")
+    precondition(_isValid(limit), "Invalid limit index")
+    var i = i
+    let (found, limited) = _root.raw.seek(
+      .top, &i._path, offsetBy: distance, limitedBy: limit._path
+    )
+    if found { return i }
+    precondition(limited, "Index offset out of bounds")
+    return nil
+  }
 }

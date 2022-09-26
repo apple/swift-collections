@@ -9,6 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
+extension PersistentSet: _FastMembershipCheckable {
+  @inlinable
+  public func contains(_ item: Element) -> Bool {
+    _root.containsKey(.top, item, _Hash(item))
+  }
+}
+
 extension PersistentSet: SetAlgebra {
   @discardableResult
   @inlinable
@@ -47,7 +56,7 @@ extension PersistentSet: SetAlgebra {
   public mutating func remove(_ member: Element) -> Element? {
     let hash = _Hash(member)
     _invalidateIndices()
-    return _root.remove(member, .top, hash)?.key
+    return _root.remove(.top, member, hash)?.key
   }
 
   @discardableResult

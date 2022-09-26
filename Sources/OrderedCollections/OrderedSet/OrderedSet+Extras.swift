@@ -9,10 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentSet {
-  @inlinable
-  public func symmetricDifference(_ other: __owned Self) -> Self {
-    // FIXME: Do this with a structural merge.
-    self.subtracting(self.intersection(other))
-  }
-}
+import _CollectionsUtilities
+
+extension OrderedSet: _FastMembershipCheckable {}

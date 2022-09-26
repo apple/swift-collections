@@ -11,7 +11,7 @@
 
 import _CollectionsUtilities
 
-extension PersistentDictionary {
+extension PersistentSet {
   public static var _isConsistencyCheckingEnabled: Bool {
     _isCollectionsInternalCheckingEnabled
   }

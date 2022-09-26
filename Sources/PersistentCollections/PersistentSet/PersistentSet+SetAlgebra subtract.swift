@@ -12,6 +12,6 @@
 extension PersistentSet {
   @inlinable
   public mutating func subtract(_ other: Self) {
-    fatalError("FIXME")
+    self = subtracting(other)
   }
 }

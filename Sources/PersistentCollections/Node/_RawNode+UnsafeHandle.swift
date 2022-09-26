@@ -43,9 +43,29 @@ extension _RawNode {
 }
 
 extension _RawNode.UnsafeHandle {
+  @inlinable @inline(__always)
+  static func read<R>(
+    _ node: _UnmanagedNode,
+    _ body: (Self) throws -> R
+  ) rethrows -> R {
+    try node.ref._withUnsafeGuaranteedRef { storage in
+      try storage.withUnsafeMutablePointers { header, elements in
+        try body(Self(header, UnsafeRawPointer(elements)))
+      }
+    }
+  }
+}
+
+extension _RawNode.UnsafeHandle {
   @inline(__always)
   internal var isCollisionNode: Bool {
     _header.pointee.isCollisionNode
+  }
+
+  @inline(__always)
+  internal var collisionHash: _Hash {
+    assert(isCollisionNode)
+    return _memory.load(as: _Hash.self)
   }
 
   @inline(__always)

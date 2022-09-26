@@ -12,6 +12,7 @@
 extension PersistentSet {
   @inlinable
   public func intersection(_ other: Self) -> Self {
-    fatalError("FIXME")
+    let result = _root.intersection(.top, .emptyPrefix, other._root)
+    return Self(_new: result.finalize(.top))
   }
 }

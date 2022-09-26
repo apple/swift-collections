@@ -9,10 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension PersistentSet {
-  @inlinable
-  public func symmetricDifference(_ other: __owned Self) -> Self {
-    // FIXME: Do this with a structural merge.
-    self.subtracting(self.intersection(other))
+extension PersistentSet: CustomReflectable {
+  /// The custom mirror for this instance.
+  public var customMirror: Mirror {
+    Mirror(self, unlabeledChildren: self, displayStyle: .collection)
   }
 }
