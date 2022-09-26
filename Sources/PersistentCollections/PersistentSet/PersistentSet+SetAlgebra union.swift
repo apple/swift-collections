@@ -12,11 +12,8 @@
 extension PersistentSet {
   @inlinable
   public func union(_ other: __owned Self) -> Self {
-    // FIXME: Do this with a structural merge.
-    var copy = self
-    for item in other {
-      copy.insert(item)
-    }
-    return copy
+    let r = _root.union(.top, .emptyPrefix, other._root)
+    guard r.copied else { return self }
+    return PersistentSet(_new: r.node)
   }
 }

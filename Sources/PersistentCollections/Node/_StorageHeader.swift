@@ -120,33 +120,3 @@ extension _StorageHeader {
     bytesFree = byteCapacity
   }
 }
-
-extension _StorageHeader {
-  @inlinable
-  internal func bitmapsForInsertingItem(
-    at slot: _Slot,
-    _ bucket: _Bucket
-  ) -> (itemMap: _Bitmap, childMap: _Bitmap) {
-    assert(!isCollisionNode)
-    assert(!bucket.isInvalid)
-    assert(!itemMap.contains(bucket) && !childMap.contains(bucket))
-    var itemMap = self.itemMap
-    itemMap.insert(bucket)
-    assert(itemMap.slot(of: bucket) == slot)
-    return (itemMap, childMap)
-  }
-
-  @inlinable
-  internal func bitmapsForSpawningChild(
-    at slot: _Slot,
-    _ bucket: _Bucket
-  ) -> (itemMap: _Bitmap, childMap: _Bitmap) {
-    assert(!isCollisionNode)
-    assert(itemMap.contains(bucket))
-    var itemMap = self.itemMap
-    var childMap = self.childMap
-    itemMap.remove(bucket)
-    childMap.insert(bucket)
-    return (itemMap, childMap)
-  }
-}

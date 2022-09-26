@@ -56,7 +56,7 @@ extension _Node {
         assert(node.isCollisionNode)
         assert(hash == h)
         assert(hash == node.collisionHash)
-        node.ensureUniqueAndAppendCollision(isUnique: true, newItem)
+        _ = node.ensureUniqueAndAppendCollision(isUnique: true, newItem)
         self = .node(node, h)
       }
     }
@@ -80,7 +80,7 @@ extension _Node {
         assert(!node.isCollisionNode)
         assert(nodeHash.isEqual(to: hashPrefix, upTo: level))
         let bucket = hashPrefix[level]
-        node.ensureUniqueAndInsertItem(isUnique: true, newItem, bucket)
+        node.ensureUniqueAndInsertItem(isUnique: true, newItem, at: bucket)
         self = .node(node, nodeHash)
       }
     }
@@ -120,7 +120,8 @@ extension _Node {
         }
         assert(!node.isCollisionNode)
         assert(nodeHash.isEqual(to: itemHash, upTo: level))
-        node.ensureUniqueAndInsertItem(isUnique: true, item, itemHash[level])
+        node.ensureUniqueAndInsertItem(
+          isUnique: true, item, at: itemHash[level])
         self = .node(node, nodeHash)
       case (.node(var node, let nodeHash), .node(let child, let childHash)):
         if node.isCollisionNode {

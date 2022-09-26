@@ -113,9 +113,21 @@ extension _Bitmap {
   }
 
   @inlinable @inline(__always)
+  internal func inserting(_ bucket: _Bucket) -> _Bitmap {
+    assert(bucket.value < capacity)
+    return _Bitmap(_value: _value | (1 &<< bucket.value))
+  }
+
+  @inlinable @inline(__always)
   internal mutating func remove(_ bucket: _Bucket) {
     assert(bucket.value < capacity)
     _value &= ~(1 &<< bucket.value)
+  }
+
+  @inlinable @inline(__always)
+  internal func removing(_ bucket: _Bucket) -> _Bitmap {
+    assert(bucket.value < capacity)
+    return _Bitmap(_value: _value & ~(1 &<< bucket.value))
   }
 
   @inlinable @inline(__always)

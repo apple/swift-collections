@@ -26,14 +26,14 @@ extension PersistentSet: SetAlgebra {
   ) -> (inserted: Bool, memberAfterInsert: Element) {
     let hash = _Hash(newMember)
     _invalidateIndices()
-    let r = _root.update(newMember, .top, hash)
-    return _Node.UnsafeHandle.update(r.leaf) {
-      let p = $0.itemPtr(at: r.slot)
-      if r.inserted {
-        p.initialize(to: (newMember, ()))
-        return (true, newMember)
-      }
-      return (false, p.pointee.key)
+    let r = _root.update(.top, newMember, hash) {
+      $0.initialize(to: (newMember, ()))
+    }
+    if r.inserted {
+      return (true, newMember)
+    }
+    return _Node.UnsafeHandle.read(r.leaf) {
+      (false, $0[item: r.slot].key)
     }
   }
 
@@ -41,13 +41,10 @@ extension PersistentSet: SetAlgebra {
   @inlinable
   internal mutating func _insert(_ newMember: __owned Element) -> Bool {
     let hash = _Hash(newMember)
-    let r = _root.update(newMember, .top, hash)
-    guard r.inserted else { return false }
-    _Node.UnsafeHandle.update(r.leaf) {
-      let p = $0.itemPtr(at: r.slot)
-      p.initialize(to: (newMember, ()))
+    let r = _root.update(.top, newMember, hash) {
+      $0.initialize(to: (newMember, ()))
     }
-    return true
+    return r.inserted
   }
 
 
@@ -63,15 +60,14 @@ extension PersistentSet: SetAlgebra {
   @inlinable
   public mutating func update(with newMember: __owned Element) -> Element? {
     let hash = _Hash(newMember)
-    let r = _root.update(newMember, .top, hash)
+    let r = _root.update(.top, newMember, hash) {
+      $0.initialize(to: (newMember, ()))
+    }
+    if r.inserted { return nil }
     return _Node.UnsafeHandle.update(r.leaf) {
       let p = $0.itemPtr(at: r.slot)
-      if r.inserted {
-        p.initialize(to: (newMember, ()))
-        return nil
-      }
-      let old = p.pointee.key
-      p.pointee = (newMember, ())
+      let old = p.move().key
+      p.initialize(to: (newMember, ()))
       return old
     }
   }

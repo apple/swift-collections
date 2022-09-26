@@ -255,7 +255,7 @@ extension _Node.UnsafeHandle {
 
   @inlinable
   internal func itemPtr(at slot: _Slot) -> UnsafeMutablePointer<Element> {
-    assert(slot.value < itemCount)
+    assert(slot.value <= itemCount)
     return _itemsEnd.advanced(by: -1 &- slot.value)
   }
 

@@ -279,14 +279,11 @@ extension PersistentDictionary {
     _ value: __owned Value, forKey key: Key
   ) -> Value? {
     let hash = _Hash(key)
-    let r = _root.update(key, .top, hash)
+    let r = _root.update(.top, key, hash) { $0.initialize(to: (key, value)) }
     _invalidateIndices()
+    if r.inserted { return nil }
     return _Node.UnsafeHandle.update(r.leaf) {
       let p = $0.itemPtr(at: r.slot)
-      if r.inserted {
-        p.initialize(to: (key, value))
-        return nil
-      }
       let old = p.pointee.value
       p.pointee.value = value
       return old
@@ -294,19 +291,17 @@ extension PersistentDictionary {
   }
 
   @inlinable
+  @discardableResult
   internal mutating func _updateValue(
     _ value: __owned Value, forKey key: Key
-  ) {
+  ) -> Bool {
     let hash = _Hash(key)
-    let r = _root.update(key, .top, hash)
-    return _Node.UnsafeHandle.update(r.leaf) {
-      let p = $0.itemPtr(at: r.slot)
-      if r.inserted {
-        p.initialize(to: (key, value))
-      } else {
-        p.pointee.value = value
-      }
+    let r = _root.update(.top, key, hash) { $0.initialize(to: (key, value)) }
+    if r.inserted { return true }
+    _Node.UnsafeHandle.update(r.leaf) {
+      $0[item: r.slot].value = value
     }
+    return false
   }
 
   // fluid/immutable API
@@ -333,13 +328,11 @@ extension PersistentDictionary {
     with body: (inout Value) throws -> R
   ) rethrows -> R {
     let hash = _Hash(key)
-    let r = _root.update(key, .top, hash)
+    let r = _root.update(.top, key, hash) {
+      $0.initialize(to: (key, defaultValue()))
+    }
     return try _Node.UnsafeHandle.update(r.leaf) {
-      let p = $0.itemPtr(at: r.slot)
-      if r.inserted {
-        p.initialize(to: (key, defaultValue()))
-      }
-      return try body(&p.pointee.value)
+      try body(&$0[item: r.slot].value)
     }
   }
 

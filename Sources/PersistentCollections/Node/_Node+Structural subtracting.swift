@@ -42,8 +42,7 @@ extension _Node {
           let lp = l.itemPtr(at: lslot)
           let h = _Hash(lp.pointee.key)
           if !r[child: rslot].containsKey(level.descend(), lp.pointee.key, h) {
-            let hashPrefix = hashPrefix.appending(bucket, at: level)
-            result.addNewItem(level, lp.pointee, hashPrefix)
+            result.addNewItem(level, lp.pointee, h)
           }
         }
 
@@ -123,12 +122,10 @@ extension _Node {
             }
             return Builder(level, node, l.collisionHash)
           }
-          if r.childMap.contains(bucket) {
+          else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            return subtracting(
-              level.descend(),
-              hashPrefix.appending(bucket, at: level),
-              r[child: rslot])
+            let h = hashPrefix.appending(bucket, at: level)
+            return subtracting(level.descend(), h, r[child: rslot])
           }
           return .empty
         }
