@@ -35,6 +35,12 @@ extension Hash: Equatable {
   }
 }
 
+extension Hash: Hashable {
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(value)
+  }
+}
+
 extension Hash: CustomStringConvertible {
   var description: String {
     // Print hash values in radix 32 & reversed, so that the path in the hash

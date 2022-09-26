@@ -875,7 +875,7 @@ class OrderedDictionaryTests: CollectionTestCase {
                 "OrderedDictionary<Int, Int>([0: 1, 2: 3, 4: 5])")
   }
 
-  func test_customReflectable() {
+  func test_CustomReflectable() {
     do {
       let d: OrderedDictionary<Int, Int> = [1: 2, 3: 4, 5: 6]
       let mirror = Mirror(reflecting: d)

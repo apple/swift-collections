@@ -544,7 +544,7 @@ final class PersistentDictionarySmokeTests: CollectionTestCase {
   }
 
   func testIteratorEnumeratesAllIfNoCollision() {
-    let upperBound = 1_000_000
+    let upperBound = 1_000
 
     var map1: PersistentDictionary<Int, String> = [:]
     for index in 0..<upperBound {

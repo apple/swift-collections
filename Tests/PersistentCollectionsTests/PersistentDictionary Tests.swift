@@ -264,17 +264,255 @@ class PersistentDictionaryTests: CollectionTestCase {
     checkBidirectionalCollection(d, expectedContents: Array(d), by: ==)
   }
 
+  func test_Keys_BidirectionalCollection_fixtures() {
+    withEachFixture { fixture in
+      withLifetimeTracking { tracker in
+        let (d, ref) = tracker.persistentDictionary(for: fixture)
+        checkBidirectionalCollection(
+          d.keys,
+          expectedContents: ref.map { $0.key },
+          by: ==)
+      }
+    }
+  }
+
+  func test_Values_BidirectionalCollection_fixtures() {
+    withEachFixture { fixture in
+      withLifetimeTracking { tracker in
+        let (d, ref) = tracker.persistentDictionary(for: fixture)
+        checkBidirectionalCollection(
+          d.values,
+          expectedContents: ref.map { $0.value },
+          by: ==)
+      }
+    }
+  }
+
+  @available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *)
+  struct FancyDictionaryKey: CodingKeyRepresentable, Hashable, Codable {
+    var value: Int
+
+    var codingKey: CodingKey { value.codingKey }
+
+    init(_ value: Int) {
+      self.value = value
+    }
+
+    init?<T: CodingKey>(codingKey: T) {
+      guard let value = codingKey.intValue else { return nil}
+      self.init(value)
+    }
+  }
+
+  struct BoringDictionaryKey: Hashable, Codable {
+    var value: Int
+
+    init(_ value: Int) {
+      self.value = value
+    }
+  }
+
+  func test_Encodable() throws {
+    let d1: PersistentDictionary<String, Int> = [
+      "one": 1, "two": 2, "three": 3]
+    let v1: MinimalEncoder.Value = .dictionary([
+      "one": .int(1), "two": .int(2), "three": .int(3)])
+    expectEqual(try MinimalEncoder.encode(d1), v1)
+
+    let d2: PersistentDictionary<Int, String> = [
+      1: "one", 2: "two", 3: "three"]
+    let v2: MinimalEncoder.Value = .dictionary([
+      "1": .string("one"),
+      "2": .string("two"),
+      "3": .string("three"),
+    ])
+    expectEqual(try MinimalEncoder.encode(d2), v2)
+
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
+      let d3: PersistentDictionary<FancyDictionaryKey, Int16> = [
+        FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
+      ]
+      let v3: MinimalEncoder.Value = .dictionary([
+        "1": .int16(10), "2": .int16(20)
+      ])
+      expectEqual(try MinimalEncoder.encode(d3), v3)
+    }
+
+    let d4: PersistentDictionary<BoringDictionaryKey, UInt8> = [
+      // Note: we only have a single element to prevent ordering
+      // problems.
+      BoringDictionaryKey(42): 23
+    ]
+    let v4: MinimalEncoder.Value = .array([
+      .dictionary(["value": .int(42)]),
+      .uint8(23),
+    ])
+    expectEqual(try MinimalEncoder.encode(d4), v4)
+  }
+
+  func test_Decodable() throws {
+    typealias PD<Key: Hashable, Value> = PersistentDictionary<Key, Value>
+
+    let d1: PersistentDictionary<String, Int> = [
+      "one": 1, "two": 2, "three": 3]
+    let v1: MinimalEncoder.Value = .dictionary([
+      "one": .int(1), "two": .int(2), "three": .int(3)])
+    expectEqual(
+      try MinimalDecoder.decode(v1, as: PD<String, Int>.self),
+      d1)
+
+    let d2: PersistentDictionary<Int, String> = [
+      1: "one", 2: "two", 3: "three"]
+    let v2: MinimalEncoder.Value = .dictionary([
+      "1": .string("one"),
+      "2": .string("two"),
+      "3": .string("three"),
+    ])
+    expectEqual(
+      try MinimalDecoder.decode(v2, as: PD<Int, String>.self),
+      d2)
+
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
+      let d3: PersistentDictionary<FancyDictionaryKey, Int16> = [
+        FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
+      ]
+      let v3: MinimalEncoder.Value = .dictionary([
+        "1": .int16(10), "2": .int16(20)
+      ])
+      expectEqual(
+        try MinimalDecoder.decode(v3, as: PD<FancyDictionaryKey, Int16>.self),
+        d3)
+    }
+
+    let d4: PersistentDictionary<BoringDictionaryKey, UInt8> = [
+      // Note: we only have a single element to prevent ordering
+      // problems.
+      BoringDictionaryKey(42): 23
+    ]
+    let v4: MinimalEncoder.Value = .array([
+      .dictionary(["value": .int(42)]),
+      .uint8(23),
+    ])
+    expectEqual(
+      try MinimalDecoder.decode(v4, as: PD<BoringDictionaryKey, UInt8>.self),
+      d4)
+
+    let v5: MinimalEncoder.Value = .dictionary([
+      "This is not a number": .string("bus"),
+      "42": .string("train")])
+    expectThrows(try MinimalDecoder.decode(v5, as: PD<Int, String>.self)) {
+      expectTrue($0 is DecodingError)
+    }
+
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
+      let v6: MinimalEncoder.Value = .dictionary([
+        "This is not a number": .string("bus"),
+        "42": .string("train")])
+      expectThrows(
+        try MinimalDecoder.decode(
+          v6, as: PD<FancyDictionaryKey, String>.self)
+      ) {
+        expectTrue($0 is DecodingError)
+      }
+
+      let v7: MinimalEncoder.Value = .dictionary([
+        "23": .string("bus"),
+        "42": .string("train")])
+      let d7: PD<FancyDictionaryKey, String> = [
+        FancyDictionaryKey(23): "bus",
+        FancyDictionaryKey(42): "train",
+      ]
+      expectEqual(
+        try MinimalDecoder.decode(v7, as: PD<FancyDictionaryKey, String>.self),
+        d7)
+    }
+
+    let v8: MinimalEncoder.Value = .array([
+      .int32(1), .string("bike"), .int32(2),
+    ])
+    expectThrows(try MinimalDecoder.decode(v8, as: PD<Int32, String>.self))
+  }
+
+  func test_CustomReflectable() {
+    do {
+      let d: PersistentDictionary<Int, Int> = [1: 2, 3: 4, 5: 6]
+      let mirror = Mirror(reflecting: d)
+      expectEqual(mirror.displayStyle, .dictionary)
+      expectNil(mirror.superclassMirror)
+      expectTrue(mirror.children.compactMap { $0.label }.isEmpty) // No label
+      expectEqualElements(
+        mirror.children.compactMap { $0.value as? (key: Int, value: Int) },
+        d.map { $0 })
+    }
+  }
+
+  func test_Equatable_Hashable() {
+    let samples: [[PersistentDictionary<Int, Int>]] = [
+      [[:], [:]],
+      [[1: 100], [1: 100]],
+      [[2: 200], [2: 200]],
+      [[3: 300], [3: 300]],
+      [[100: 1], [100: 1]],
+      [[1: 1], [1: 1]],
+      [[100: 100], [100: 100]],
+      [[1: 100, 2: 200], [2: 200, 1: 100]],
+      [[1: 100, 2: 200, 3: 300],
+       [1: 100, 3: 300, 2: 200],
+       [2: 200, 1: 100, 3: 300],
+       [2: 200, 3: 300, 1: 100],
+       [3: 300, 1: 100, 2: 200],
+       [3: 300, 2: 200, 1: 100]]
+    ]
+    checkHashable(equivalenceClasses: samples)
+  }
+
+  func test_CustomStringConvertible() {
+    let a: PersistentDictionary<RawCollider, Int> = [:]
+    expectEqual(a.description, "[:]")
+
+    let b: PersistentDictionary<RawCollider, Int> = [
+      RawCollider(0): 1
+    ]
+    expectEqual(b.description, "[0: 1]")
+
+    let c: PersistentDictionary<RawCollider, Int> = [
+      RawCollider(0): 1,
+      RawCollider(2): 3,
+      RawCollider(4): 5,
+    ]
+    expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
+  }
+
+  func test_CustomDebugStringConvertible() {
+    let a: PersistentDictionary<Int, Int> = [:]
+    expectEqual(
+      a.debugDescription,
+      "PersistentDictionary<Int, Int>([:])")
+
+    let b: PersistentDictionary<Int, Int> = [0: 1]
+    expectEqual(
+      b.debugDescription,
+      "PersistentDictionary<Int, Int>([0: 1])")
+
+    let c: PersistentDictionary<Int, Int> = [0: 1, 2: 3, 4: 5]
+    let cd = c.map { "\($0.key): \($0.value)"}.joined(separator: ", ")
+    expectEqual(
+      c.debugDescription,
+      "PersistentDictionary<Int, Int>([\(cd)])")
+  }
+
+
   func test_updateValueForKey_fixtures() {
     withEachFixture { fixture in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
           var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
           var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
-          withEvery("i", in: 0 ..< fixture.items.count) { i in
+          withEvery("i", in: 0 ..< fixture.count) { i in
             withHiddenCopies(if: isShared, of: &d) { d in
-              let item = fixture.items[i]
-              let key = tracker.instance(for: item.key)
-              let value = tracker.instance(for: item.value)
+              let item = fixture.itemsInInsertionOrder[i]
+              let key = tracker.instance(for: item)
+              let value = tracker.instance(for: 1000 + item.identity)
               d[key] = value
               ref[key] = value
               expectEqualDictionaries(d, ref)
@@ -293,10 +531,10 @@ class PersistentDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           var d: PersistentDictionary<LifetimeTracked<RawCollider>, Empty> = [:]
           var ref: Dictionary<LifetimeTracked<RawCollider>, Empty> = [:]
-          withEvery("i", in: 0 ..< fixture.items.count) { i in
+          withEvery("i", in: 0 ..< fixture.count) { i in
             withHiddenCopies(if: isShared, of: &d) { d in
-              let item = fixture.items[i]
-              let key = tracker.instance(for: item.key)
+              let item = fixture.itemsInInsertionOrder[i]
+              let key = tracker.instance(for: item)
               d[key] = Empty()
               ref[key] = Empty()
               expectEqualDictionaries(d, ref)
@@ -307,13 +545,34 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_removeValueForKey_fixtures() {
+  func test_removeValueForKey_fixtures_justOne() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
             withHiddenCopies(if: isShared, of: &d) { d in
+              let old = d.removeValue(forKey: ref[offset].key)
+              d._invariantCheck()
+              expectEqual(old, ref[offset].value)
+              ref.remove(at: offset)
+              expectEqualDictionaries(d, ref)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_removeValueForKey_fixtures_all() {
+    withEachFixture { fixture in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          var (d, ref) = tracker.persistentDictionary(for: fixture)
+          var rng = RepeatableRandomNumberGenerator(seed: 0)
+          withEvery("i", in: 0 ..< fixture.count) { _ in
+            withHiddenCopies(if: isShared, of: &d) { d in
+              let offset = ref.indices.randomElement(using: &rng)!
               let old = d.removeValue(forKey: ref[offset].key)
               d._invariantCheck()
               expectEqual(old, ref[offset].value)
@@ -384,7 +643,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_subscript_setter_update_fixtures() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
@@ -426,7 +685,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_subscript_setter_remove_fixtures() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
@@ -491,11 +750,11 @@ class PersistentDictionaryTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
           var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
-          withEvery("i", in: 0 ..< fixture.items.count) { i in
+          withEvery("i", in: 0 ..< fixture.count) { i in
             withHiddenCopies(if: isShared, of: &d) { d in
-              let item = fixture.items[i]
-              let key = tracker.instance(for: item.key)
-              let value = tracker.instance(for: item.value)
+              let item = fixture.itemsInInsertionOrder[i]
+              let key = tracker.instance(for: item)
+              let value = tracker.instance(for: 1000 + item.identity)
               d[key] = value
               ref[key] = value
               expectEqualDictionaries(d, ref)
@@ -607,7 +866,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_subscript_modify_update_fixtures() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
@@ -629,7 +888,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_subscript_modify_in_place() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withLifetimeTracking { tracker in
           var (d, ref) = tracker.persistentDictionary(for: fixture)
           let key = ref[offset].key
@@ -646,7 +905,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_subscript_modify_remove_fixtures() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
@@ -721,11 +980,11 @@ class PersistentDictionaryTests: CollectionTestCase {
           withLifetimeTracking { tracker in
             var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
             var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
-            withEvery("i", in: 0 ..< fixture.items.count) { i in
+            withEvery("i", in: 0 ..< fixture.count) { i in
               withHiddenCopies(if: isShared, of: &d) { d in
-                let item = fixture.items[i]
-                let key = tracker.instance(for: item.key)
-                let value = tracker.instance(for: item.value)
+                let item = fixture.itemsInInsertionOrder[i]
+                let key = tracker.instance(for: item)
+                let value = tracker.instance(for: 1000 + item.identity)
                 mutate(&d[key]) { v in
                   expectNil(v)
                   v = value
@@ -825,7 +1084,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_defaulted_subscript_setter_update_fixtures() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
@@ -879,11 +1138,11 @@ class PersistentDictionaryTests: CollectionTestCase {
             var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
             var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
             let def = tracker.instance(for: -1000)
-            withEvery("i", in: 0 ..< fixture.items.count) { i in
+            withEvery("i", in: 0 ..< fixture.count) { i in
               withHiddenCopies(if: isShared, of: &d) { d in
-                let item = fixture.items[i]
-                let key = tracker.instance(for: item.key)
-                let value = tracker.instance(for: item.value)
+                let item = fixture.itemsInInsertionOrder[i]
+                let key = tracker.instance(for: item)
+                let value = tracker.instance(for: 1000 + item.identity)
                 d[key, default: def] = value
                 ref[key] = value
                 expectEqualDictionaries(d, ref)
@@ -926,7 +1185,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_defaulted_subscript_modify_update_fixtures() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, ref) = tracker.persistentDictionary(for: fixture)
@@ -949,7 +1208,7 @@ class PersistentDictionaryTests: CollectionTestCase {
 
   func test_defaulted_subscript_modify_in_place() {
     withEachFixture { fixture in
-      withEvery("offset", in: 0 ..< fixture.items.count) { offset in
+      withEvery("offset", in: 0 ..< fixture.count) { offset in
         withLifetimeTracking { tracker in
           var (d, ref) = tracker.persistentDictionary(for: fixture)
           let key = ref[offset].key
@@ -972,7 +1231,6 @@ class PersistentDictionaryTests: CollectionTestCase {
             let values = tracker.instances(
               for: (0 ..< count).map { generator.value(for: $0) })
             let def = tracker.instance(for: generator.value(for: -1000))
-            print(def)
             var d: PersistentDictionary<LifetimeTracked<G.Key>, LifetimeTracked<G.Value>> = [:]
             var ref: Dictionary<LifetimeTracked<G.Key>, LifetimeTracked<G.Value>> = [:]
             withEvery("offset", in: 0 ..< count) { offset in
@@ -981,6 +1239,7 @@ class PersistentDictionaryTests: CollectionTestCase {
                   expectEqual(value, def)
                   value = values[offset]
                 }
+                d._invariantCheck()
                 ref[keys[offset]] = values[offset]
                 expectEqualDictionaries(d, ref)
               }
@@ -1002,11 +1261,11 @@ class PersistentDictionaryTests: CollectionTestCase {
             var d: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
             var ref: Dictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>> = [:]
             let def = tracker.instance(for: -1)
-            withEvery("i", in: 0 ..< fixture.items.count) { i in
+            withEvery("i", in: 0 ..< fixture.count) { i in
               withHiddenCopies(if: isShared, of: &d) { d in
-                let item = fixture.items[i]
-                let key = tracker.instance(for: item.key)
-                let value = tracker.instance(for: item.value)
+                let item = fixture.itemsInInsertionOrder[i]
+                let key = tracker.instance(for: item)
+                let value = tracker.instance(for: 1000 + item.identity)
                 mutate(&d[key, default: def]) { v in
                   expectEqual(v, def)
                   v = value
@@ -1141,7 +1400,6 @@ class PersistentDictionaryTests: CollectionTestCase {
     typealias Value2 = LifetimeTracked<String>
 
     withEachFixture { fixture in
-      print(fixture.title, fixture.items)
       withLifetimeTracking { tracker in
         func transform(_ value: Value) -> Value2? {
           guard value.payload.isMultiple(of: 2) else { return nil }
@@ -1182,24 +1440,48 @@ class PersistentDictionaryTests: CollectionTestCase {
     })
   }
 
-  func test_filter_fixtures() {
+  func test_filter_fixtures_evens() {
     typealias Key = LifetimeTracked<RawCollider>
     typealias Value = LifetimeTracked<Int>
 
     withEachFixture { fixture in
-      print(fixture.title, fixture.items)
       withLifetimeTracking { tracker in
         withEvery("isShared", in: [false, true]) { isShared in
           var (d, ref) = tracker.persistentDictionary(for: fixture)
           withHiddenCopies(if: isShared, of: &d) { d in
             func predicate(_ item: (key: Key, value: Value)) -> Bool {
-              expectEqual(item.value.payload, 100 + item.key.payload.identity)
+              expectEqual(item.value.payload, 1000 + item.key.payload.identity)
               return item.value.payload.isMultiple(of: 2)
             }
             let d2 = d.filter(predicate)
             let ref2 = Dictionary(
               uniqueKeysWithValues: ref.filter(predicate))
             expectEqualDictionaries(d2, ref2)
+          }
+        }
+      }
+    }
+  }
+
+  func test_filter_fixtures_filter_one() {
+    typealias Key = LifetimeTracked<RawCollider>
+    typealias Value = LifetimeTracked<Int>
+
+    withEachFixture { fixture in
+      withLifetimeTracking { tracker in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withEvery("i", in: 0 ..< fixture.count) { i in
+            var (d, ref) = tracker.persistentDictionary(for: fixture)
+            withHiddenCopies(if: isShared, of: &d) { d in
+              func predicate(_ item: (key: Key, value: Value)) -> Bool {
+                expectEqual(item.value.payload, 1000 + item.key.payload.identity)
+                return item.key.payload.identity == i
+              }
+              let d2 = d.filter(predicate)
+              let ref2 = Dictionary(
+                uniqueKeysWithValues: ref.filter(predicate))
+              expectEqualDictionaries(d2, ref2)
+            }
           }
         }
       }
@@ -2086,279 +2368,6 @@ class PersistentDictionaryTests: CollectionTestCase {
   //    expectEqualElements(d2, (0 ..< 50).map { key in
   //      (key: 2 * key, value: "\(200 * key)")
   //    })
-  //  }
-
-  func test_CustomStringConvertible() {
-    let a: PersistentDictionary<RawCollider, Int> = [:]
-    expectEqual(a.description, "[:]")
-
-    let b: PersistentDictionary<RawCollider, Int> = [
-      RawCollider(0): 1
-    ]
-    expectEqual(b.description, "[0: 1]")
-
-    let c: PersistentDictionary<RawCollider, Int> = [
-      RawCollider(0): 1,
-      RawCollider(2): 3,
-      RawCollider(4): 5,
-    ]
-    expectEqual(c.description, "[0: 1, 2: 3, 4: 5]")
-  }
-
-  //  func test_CustomDebugStringConvertible() {
-  //    let a: PersistentDictionary<Int, Int> = [:]
-  //    expectEqual(a.debugDescription,
-  //                "PersistentDictionary<Int, Int>([:])")
-  //
-  //    let b: PersistentDictionary<Int, Int> = [0: 1]
-  //    expectEqual(b.debugDescription,
-  //                "PersistentDictionary<Int, Int>([0: 1])")
-  //
-  //    let c: PersistentDictionary<Int, Int> = [0: 1, 2: 3, 4: 5]
-  //    expectEqual(c.debugDescription,
-  //                "PersistentDictionary<Int, Int>([0: 1, 2: 3, 4: 5])")
-  //  }
-
-  //  func test_customReflectable() {
-  //    do {
-  //      let d: PersistentDictionary<Int, Int> = [1: 2, 3: 4, 5: 6]
-  //      let mirror = Mirror(reflecting: d)
-  //      expectEqual(mirror.displayStyle, .dictionary)
-  //      expectNil(mirror.superclassMirror)
-  //      expectTrue(mirror.children.compactMap { $0.label }.isEmpty) // No label
-  //      expectEqualElements(
-  //        mirror.children.compactMap { $0.value as? (key: Int, value: Int) },
-  //        d.map { $0 })
-  //    }
-  //  }
-
-  func test_Equatable_Hashable() {
-    let samples: [[PersistentDictionary<Int, Int>]] = [
-      [[:], [:]],
-      [[1: 100], [1: 100]],
-      [[2: 200], [2: 200]],
-      [[3: 300], [3: 300]],
-      [[100: 1], [100: 1]],
-      [[1: 1], [1: 1]],
-      [[100: 100], [100: 100]],
-      [[1: 100, 2: 200], [2: 200, 1: 100]],
-      [[1: 100, 2: 200, 3: 300],
-       [1: 100, 3: 300, 2: 200],
-       [2: 200, 1: 100, 3: 300],
-       [2: 200, 3: 300, 1: 100],
-       [3: 300, 1: 100, 2: 200],
-       [3: 300, 2: 200, 1: 100]]
-    ]
-    checkHashable(equivalenceClasses: samples)
-  }
-
-  //  func test_Encodable() throws {
-  //    let d1: PersistentDictionary<Int, Int> = [:]
-  //    let v1: MinimalEncoder.Value = .array([])
-  //    expectEqual(try MinimalEncoder.encode(d1), v1)
-  //
-  //    let d2: PersistentDictionary<Int, Int> = [0: 1]
-  //    let v2: MinimalEncoder.Value = .array([.int(0), .int(1)])
-  //    expectEqual(try MinimalEncoder.encode(d2), v2)
-  //
-  //    let d3: PersistentDictionary<Int, Int> = [0: 1, 2: 3]
-  //    let v3: MinimalEncoder.Value =
-  //      .array([.int(0), .int(1), .int(2), .int(3)])
-  //    expectEqual(try MinimalEncoder.encode(d3), v3)
-  //
-  //    let d4 = PersistentDictionary(
-  //      uniqueKeys: 0 ..< 100,
-  //      values: (0 ..< 100).map { 100 * $0 })
-  //    let v4: MinimalEncoder.Value =
-  //      .array((0 ..< 100).flatMap { [.int($0), .int(100 * $0)] })
-  //    expectEqual(try MinimalEncoder.encode(d4), v4)
-  //  }
-
-  //  func test_Decodable() throws {
-  //    typealias OD = PersistentDictionary<Int, Int>
-  //    let d1: OD = [:]
-  //    let v1: MinimalEncoder.Value = .array([])
-  //    expectEqual(try MinimalDecoder.decode(v1, as: OD.self), d1)
-  //
-  //    let d2: OD = [0: 1]
-  //    let v2: MinimalEncoder.Value = .array([.int(0), .int(1)])
-  //    expectEqual(try MinimalDecoder.decode(v2, as: OD.self), d2)
-  //
-  //    let d3: OD = [0: 1, 2: 3]
-  //    let v3: MinimalEncoder.Value =
-  //      .array([.int(0), .int(1), .int(2), .int(3)])
-  //    expectEqual(try MinimalDecoder.decode(v3, as: OD.self), d3)
-  //
-  //    let d4 = PersistentDictionary(
-  //      uniqueKeys: 0 ..< 100,
-  //      values: (0 ..< 100).map { 100 * $0 })
-  //    let v4: MinimalEncoder.Value =
-  //      .array((0 ..< 100).flatMap { [.int($0), .int(100 * $0)] })
-  //    expectEqual(try MinimalDecoder.decode(v4, as: OD.self), d4)
-  //
-  //    let v5: MinimalEncoder.Value = .array([.int(0), .int(1), .int(2)])
-  //    expectThrows(try MinimalDecoder.decode(v5, as: OD.self)) { error in
-  //      guard case DecodingError.dataCorrupted(let context) = error else {
-  //        expectFailure("Unexpected error \(error)")
-  //        return
-  //      }
-  //      expectEqual(context.debugDescription,
-  //                  "Unkeyed container reached end before value in key-value pair")
-  //
-  //    }
-  //
-  //    let v6: MinimalEncoder.Value = .array([.int(0), .int(1), .int(0), .int(2)])
-  //    expectThrows(try MinimalDecoder.decode(v6, as: OD.self)) { error in
-  //      guard case DecodingError.dataCorrupted(let context) = error else {
-  //        expectFailure("Unexpected error \(error)")
-  //        return
-  //      }
-  //      expectEqual(context.debugDescription, "Duplicate key at offset 2")
-  //    }
-  //  }
-
-  //  func test_swapAt() {
-  //    withEvery("count", in: 0 ..< 20) { count in
-  //      withEvery("i", in: 0 ..< count) { i in
-  //        withEvery("j", in: 0 ..< count) { j in
-  //          withEvery("isShared", in: [false, true]) { isShared in
-  //            withLifetimeTracking { tracker in
-  //              var (d, keys, values) = tracker.persistentDictionary(keys: 0 ..< count)
-  //              keys.swapAt(i, j)
-  //              values.swapAt(i, j)
-  //              withHiddenCopies(if: isShared, of: &d) { d in
-  //                d.swapAt(i, j)
-  //                expectEqualElements(d.values, values)
-  //                expectEqual(d[keys[i]], values[i])
-  //                expectEqual(d[keys[j]], values[j])
-  //              }
-  //            }
-  //          }
-  //        }
-  //      }
-  //    }
-  //  }
-
-  //  func test_partition() {
-  //    withEvery("seed", in: 0 ..< 10) { seed in
-  //      withEvery("count", in: 0 ..< 30) { count in
-  //        withEvery("isShared", in: [false, true]) { isShared in
-  //          withLifetimeTracking { tracker in
-  //            var rng = RepeatableRandomNumberGenerator(seed: seed)
-  //            var (d, keys, values) = tracker.persistentDictionary(
-  //              keys: (0 ..< count).shuffled(using: &rng))
-  //            var items = Array(zip(keys, values))
-  //            let expectedPivot = items.partition { $0.0.payload < count / 2 }
-  //            withHiddenCopies(if: isShared, of: &d) { d in
-  //              let actualPivot = d.partition { $0.key.payload < count / 2 }
-  //              expectEqual(actualPivot, expectedPivot)
-  //              expectEqualElements(d, items)
-  //            }
-  //          }
-  //        }
-  //      }
-  //    }
-  //  }
-
-  //  func test_sort() {
-  //    withEvery("seed", in: 0 ..< 10) { seed in
-  //      withEvery("count", in: 0 ..< 30) { count in
-  //        withEvery("isShared", in: [false, true]) { isShared in
-  //          withLifetimeTracking { tracker in
-  //            var rng = RepeatableRandomNumberGenerator(seed: seed)
-  //            var (d, keys, values) = tracker.persistentDictionary(
-  //              keys: (0 ..< count).shuffled(using: &rng))
-  //            var items = Array(zip(keys, values))
-  //            items.sort(by: { $0.0 < $1.0 })
-  //            withHiddenCopies(if: isShared, of: &d) { d in
-  //              d.sort()
-  //              expectEqualElements(d, items)
-  //            }
-  //          }
-  //        }
-  //      }
-  //    }
-  //  }
-
-  //  func test_sort_by() {
-  //    withEvery("seed", in: 0 ..< 10) { seed in
-  //      withEvery("count", in: 0 ..< 30) { count in
-  //        withEvery("isShared", in: [false, true]) { isShared in
-  //          withLifetimeTracking { tracker in
-  //            var rng = RepeatableRandomNumberGenerator(seed: seed)
-  //            var (d, keys, values) = tracker.persistentDictionary(
-  //              keys: (0 ..< count).shuffled(using: &rng))
-  //            var items = Array(zip(keys, values))
-  //            items.sort(by: { $0.0 > $1.0 })
-  //            withHiddenCopies(if: isShared, of: &d) { d in
-  //              d.sort(by: { $0.key > $1.key })
-  //              expectEqualElements(d, items)
-  //            }
-  //          }
-  //        }
-  //      }
-  //    }
-  //  }
-
-  //  func test_shuffle() {
-  //    withEvery("count", in: 0 ..< 30) { count in
-  //      withEvery("isShared", in: [false, true]) { isShared in
-  //        withEvery("seed", in: 0 ..< 10) { seed in
-  //          var d = PersistentDictionary(
-  //            uniqueKeys: 0 ..< count,
-  //            values: 100 ..< 100 + count)
-  //          var items = (0 ..< count).map { (key: $0, value: 100 + $0) }
-  //          withHiddenCopies(if: isShared, of: &d) { d in
-  //            expectEqualElements(d, items)
-  //
-  //            var rng1 = RepeatableRandomNumberGenerator(seed: seed)
-  //            items.shuffle(using: &rng1)
-  //
-  //            var rng2 = RepeatableRandomNumberGenerator(seed: seed)
-  //            d.shuffle(using: &rng2)
-  //
-  //            items.sort(by: { $0.key < $1.key })
-  //            d.sort()
-  //            expectEqualElements(d, items)
-  //          }
-  //        }
-  //      }
-  //      if count >= 2 {
-  //        // Check that shuffling with the system RNG does permute the elements.
-  //        var d = PersistentDictionary(
-  //          uniqueKeys: 0 ..< count,
-  //          values: 100 ..< 100 + count)
-  //        let original = d
-  //        var success = false
-  //        for _ in 0 ..< 1000 {
-  //          d.shuffle()
-  //          if !d.elementsEqual(
-  //            original,
-  //            by: { $0.key == $1.key && $0.value == $1.value}
-  //          ) {
-  //            success = true
-  //            break
-  //          }
-  //        }
-  //        expectTrue(success)
-  //      }
-  //    }
-  //  }
-
-  //  func test_reverse() {
-  //    withEvery("count", in: 0 ..< 30) { count in
-  //      withEvery("isShared", in: [false, true]) { isShared in
-  //        withLifetimeTracking { tracker in
-  //          var (d, keys, values) = tracker.persistentDictionary(keys: 0 ..< count)
-  //          var items = Array(zip(keys, values))
-  //          withHiddenCopies(if: isShared, of: &d) { d in
-  //            items.reverse()
-  //            d.reverse()
-  //            expectEqualElements(d, items)
-  //          }
-  //        }
-  //      }
-  //    }
   //  }
 
   //  func test_removeAll() {
