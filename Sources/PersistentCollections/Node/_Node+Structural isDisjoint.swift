@@ -17,13 +17,14 @@ extension _Node {
     _ level: _Level,
     with other: _Node<Key, Value2>
   ) -> Bool {
-    if self.raw.storage === other.raw.storage { return count == 0 }
+    if self.count == 0 || other.count == 0 { return true }
+    if self.raw.storage === other.raw.storage { return false }
 
     if self.isCollisionNode {
       return _isDisjointCollision(level, with: other)
     }
     if other.isCollisionNode {
-      return other._isDisjointCollision(level, with: other)
+      return other._isDisjointCollision(level, with: self)
     }
 
     return self.read { l in
@@ -96,8 +97,8 @@ extension _Node {
         return isDisjoint(level.descend(), with: r[child: slot])
       }
       if r.itemMap.contains(bucket) {
-        let slot = r.itemMap.slot(of: bucket)
-        let p = r.itemPtr(at: slot)
+        let rslot = r.itemMap.slot(of: bucket)
+        let p = r.itemPtr(at: rslot)
         let hash = _Hash(p.pointee.key)
         return read { l in
           guard hash == l.collisionHash else { return true }

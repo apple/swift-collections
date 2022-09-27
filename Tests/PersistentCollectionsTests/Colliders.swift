@@ -54,7 +54,7 @@ struct Collider:
 /// A type with precisely controlled hash values. This can be used to set up
 /// hash tables with fully deterministic contents.
 struct RawCollider:
-  Hashable, CustomStringConvertible, CustomDebugStringConvertible
+  Hashable, CustomStringConvertible
 {
   var identity: Int
   var hash: Hash
@@ -93,10 +93,6 @@ struct RawCollider:
   }
 
   var description: String {
-    return "\(identity)"
-  }
-
-  var debugDescription: String {
     "\(identity)#\(hash)"
   }
 }

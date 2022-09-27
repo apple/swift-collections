@@ -211,6 +211,84 @@ class PersistentSetTests: CollectionTestCase {
     RawCollider(8, "ACADB"),
   ]
 
+  func test_isEqual_Self_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectTrue(x.isEqual(to: x))
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqual(x.isEqual(to: y), u == v)
+      }
+    }
+  }
+
+  func test_isSubset_Self_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectTrue(x.isSubset(of: x))
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqual(x.isSubset(of: y), u.isSubset(of: v))
+      }
+    }
+  }
+
+  func test_isSuperset_Self_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectTrue(x.isSuperset(of: x))
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqual(x.isSuperset(of: y), u.isSuperset(of: v))
+      }
+    }
+  }
+
+  func test_isStrictsubset_Self_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectFalse(x.isStrictSubset(of: x))
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqual(x.isStrictSubset(of: y), u.isStrictSubset(of: v))
+      }
+    }
+  }
+
+  func test_isStrictSuperset_Self_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectFalse(x.isStrictSuperset(of: x))
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqual(x.isStrictSuperset(of: y), u.isStrictSuperset(of: v))
+      }
+    }
+  }
+
+  func test_isDisjoint_Self_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectEqual(x.isDisjoint(with: x), x.isEmpty)
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqual(x.isDisjoint(with: y), u.isDisjoint(with: v))
+      }
+    }
+  }
+
   func test_intersection_Self_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
@@ -231,6 +309,16 @@ class PersistentSetTests: CollectionTestCase {
         let y = PersistentSet(b)
         let v = Set(b)
         expectEqualSets(x.subtracting(y), u.subtracting(v))
+      }
+    }
+  }
+
+  func test_filter_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      withEverySubset("b", of: a) { b in
+        let v = Set(b)
+        expectEqualSets(x.filter { v.contains($0) }, v)
       }
     }
   }
