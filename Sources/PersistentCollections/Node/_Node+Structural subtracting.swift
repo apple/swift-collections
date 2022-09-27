@@ -16,7 +16,6 @@ extension _Node {
     _ hashPrefix: _Hash,
     _ other: _Node
   ) -> Builder {
-    // FIXME: Consider preserving `self` when nothing needs to be removed.
     if self.raw.storage === other.raw.storage { return .empty }
 
     if self.isCollisionNode || other.isCollisionNode {
@@ -74,6 +73,11 @@ extension _Node {
             result.addNewChildBranch(level, .node(l[child: lslot], hp))
           }
         }
+        if result.count == self.count {
+          // FIXME: Delay allocating a result node until we know for sure
+          // we're going to need it.
+          return .node(self, hashPrefix)
+        }
         return result
       }
     }
@@ -100,6 +104,11 @@ extension _Node {
             if !ritems.contains(where: { $0.key == litems[i].key }) {
               result.addNewCollision(litems[i], l.collisionHash)
             }
+          }
+          if result.count == self.count {
+            // FIXME: Delay allocating a result node until we know for sure
+            // we're going to need it.
+            return .node(self, l.collisionHash)
           }
           return result
         }

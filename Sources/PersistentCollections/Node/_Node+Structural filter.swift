@@ -16,8 +16,7 @@ extension _Node {
     _ hashPrefix: _Hash,
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Builder {
-    // FIXME: Consider preserving `self` when nothing needs to be removed.
-    return try self.read {
+    try self.read {
       var result: Builder = .empty
 
       if isCollisionNode {
@@ -26,6 +25,11 @@ extension _Node {
           if try isIncluded(items[i]) {
             result.addNewCollision(items[i], $0.collisionHash)
           }
+        }
+        if result.count == self.count {
+          // FIXME: Delay allocating a result node until we know for sure
+          // we're going to need it.
+          return .node(self, $0.collisionHash)
         }
         return result
       }
@@ -42,6 +46,12 @@ extension _Node {
         let h = hashPrefix.appending(bucket, at: level)
         let branch = try $0[child: slot].filter(level.descend(), h, isIncluded)
         result.addNewChildBranch(level, branch)
+      }
+
+      if result.count == self.count {
+        // FIXME: Delay allocating a result node until we know for sure
+        // we're going to need it.
+        return .node(self, hashPrefix)
       }
       return result
     }

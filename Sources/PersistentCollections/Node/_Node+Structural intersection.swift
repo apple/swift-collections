@@ -16,7 +16,6 @@ extension _Node {
     _ hashPrefix: _Hash,
     _ other: _Node
   ) -> Builder {
-    // FIXME: Consider preserving `self` when nothing needs to be removed.
     if self.raw.storage === other.raw.storage { return .node(self, hashPrefix) }
 
     if self.isCollisionNode || other.isCollisionNode {
@@ -67,6 +66,11 @@ extension _Node {
               r[child: rslot])
             result.addNewChildBranch(level, branch)
           }
+        }
+        if result.count == self.count {
+          // FIXME: Delay allocating a result node until we know for sure
+          // we're going to need it.
+          return .node(self, hashPrefix)
         }
         return result
       }

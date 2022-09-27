@@ -23,6 +23,20 @@ extension _Node {
 
 extension _Node.Builder {
   @inlinable
+  internal var count: Int {
+    switch self {
+    case .empty:
+      return 0
+    case .item:
+      return 1
+    case .node(let node, _):
+      return node.count
+    }
+  }
+}
+
+extension _Node.Builder {
+  @inlinable
   internal init(_ level: _Level, _ node: _Node, _ hashPrefix: _Hash) {
     if node.count == 0 {
       self = .empty
