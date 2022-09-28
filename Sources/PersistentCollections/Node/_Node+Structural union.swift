@@ -16,6 +16,9 @@ extension _Node {
     _ hashPrefix: _Hash,
     _ other: _Node
   ) -> (copied: Bool, node: _Node) {
+    guard self.count > 0 else { return (true, other) }
+    guard other.count > 0 else { return (false, self) }
+
     if self.raw.storage === other.raw.storage {
       return (false, self)
     }
@@ -35,11 +38,15 @@ extension _Node {
             let lp = l.itemPtr(at: lslot)
             let rp = r.itemPtr(at: rslot)
             if lp.pointee.key != rp.pointee.key {
+              let slot = (
+                copied
+                ? node.read { $0.itemMap.slot(of: bucket) }
+                : lslot)
               _ = node.ensureUniqueAndSpawnChild(
                 isUnique: copied,
                 level: level,
                 replacing: bucket,
-                itemSlot: lslot,
+                itemSlot: slot,
                 newHash: _Hash(rp.pointee.key),
                 { $0.initialize(to: rp.pointee) })
               copied = true
@@ -47,18 +54,14 @@ extension _Node {
           }
           else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            let lp = l.itemPtr(at: lslot)
             let rp = r.childPtr(at: rslot)
-            let h = _Hash(lp.pointee.key)
-            if !rp.pointee.containsKey(level.descend(), lp.pointee.key, h) {
-              node.ensureUniqueAndPushItemIntoNewChild(
-                isUnique: copied,
-                level: level,
-                rp.pointee,
-                at: bucket,
-                itemSlot: lslot)
-              copied = true
-            }
+
+            node.ensureUnique(
+              isUnique: copied, withFreeSpace: _Node.spaceForSpawningChild)
+            let item = node.removeItem(at: bucket)
+            let r = rp.pointee.inserting(level.descend(), item, _Hash(item.key))
+            node.insertChild(r.node, bucket)
+            copied = true
           }
         }
 
@@ -67,18 +70,14 @@ extension _Node {
             let rslot = r.itemMap.slot(of: bucket)
             let rp = r.itemPtr(at: rslot)
             let h = _Hash(rp.pointee.key)
-            let r = l[child: lslot].inserting(
-              level.descend(), rp.pointee.key, h
-            ) {
-              $0.initialize(to: rp.pointee)
-            }
+            let r = l[child: lslot].inserting(level.descend(), rp.pointee, h)
             guard r.inserted else {
               // Nothing to do
               continue
             }
             node.ensureUnique(isUnique: copied)
-            node.update { $0[child: lslot] = r.node }
-            node.count &+= 1
+            let delta = node.replaceChild(at: bucket, with: r.node)
+            assert(delta == 1)
             copied = true
           }
           else if r.childMap.contains(bucket) {
@@ -92,16 +91,26 @@ extension _Node {
               continue
             }
             node.ensureUnique(isUnique: copied)
-            let delta = node.update {
-              let p = $0.childPtr(at: lslot)
-              let delta = child.node.count &- p.pointee.count
-              $0[child: lslot] = child.node
-              return delta
-            }
-            assert(delta > 0)
-            node.count &+= delta
+            let delta = node.replaceChild(at: bucket, with: child.node)
+            assert(delta > 0) // If we didn't add an item, why did we copy?
             copied = true
           }
+        }
+
+        /// Add buckets in `other` that we haven't processed above.
+        let seen = l.itemMap.union(l.childMap)
+        for (bucket, _) in r.itemMap.subtracting(seen) {
+          let rslot = r.itemMap.slot(of: bucket)
+          node.ensureUniqueAndInsertItem(
+            isUnique: copied, r[item: rslot], at: bucket)
+          copied = true
+        }
+        for (bucket, _) in r.childMap.subtracting(seen) {
+          let rslot = r.childMap.slot(of: bucket)
+          node.ensureUnique(
+            isUnique: copied, withFreeSpace: _Node.spaceForNewChild)
+          copied = true
+          node.insertChild(r[child: rslot], bucket)
         }
 
         return (copied, node)
@@ -138,6 +147,7 @@ extension _Node {
                 isUnique: copied, p.pointee)
               copied = true
             }
+            p -= 1
           }
           return (copied, node)
         }
@@ -155,6 +165,13 @@ extension _Node {
           let bucket = l.collisionHash[level]
           if r.itemMap.contains(bucket) {
             let rslot = r.itemMap.slot(of: bucket)
+            let rp = r.itemPtr(at: rslot)
+            if
+              r.hasSingletonItem
+              && l.reverseItems.contains(where: { $0.key == rp.pointee.key })
+            {
+              return (false, self)
+            }
             let node = other.copyNodeAndPushItemIntoNewChild(
               level: level,
               self,
@@ -162,19 +179,20 @@ extension _Node {
               itemSlot: rslot)
             return (true, node)
           }
-          else if r.childMap.contains(bucket) {
+
+          if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
             let h = hashPrefix.appending(bucket, at: level)
             let res = self.union(level.descend(), h, r[child: rslot])
             var node = other.copy()
-            node.update { $0[child: rslot] = res.node }
+            let delta = node.replaceChild(at: bucket, rslot, with: res.node)
+            assert(delta >= 0)
             return (true, node)
           }
-          else {
-            var node = other.copy(withFreeSpace: _Node.spaceForNewChild)
-            node.insertChild(self, bucket)
-            return (true, node)
-          }
+
+          var node = other.copy(withFreeSpace: _Node.spaceForNewChild)
+          node.insertChild(self, bucket)
+          return (true, node)
         }
       }
     }
@@ -186,6 +204,12 @@ extension _Node {
         let bucket = r.collisionHash[level]
         if l.itemMap.contains(bucket) {
           let lslot = l.itemMap.slot(of: bucket)
+          let lp = l.itemPtr(at: lslot)
+          if l.hasSingletonItem {
+            let hash = _Hash(lp.pointee.key)
+            let replacement = other.inserting(level, lp.pointee, hash)
+            return (true, replacement.node)
+          }
           let node = self.copyNodeAndPushItemIntoNewChild(
             level: level,
             other,
@@ -193,19 +217,20 @@ extension _Node {
             itemSlot: lslot)
           return (true, node)
         }
-        else if l.childMap.contains(bucket) {
+        if l.childMap.contains(bucket) {
           let lslot = l.childMap.slot(of: bucket)
           let h = hashPrefix.appending(bucket, at: level)
-          let res = l[child: lslot].union(level.descend(), h, other)
+          let child = l[child: lslot].union(level.descend(), h, other)
+          guard child.copied else { return (false, self) }
           var node = self.copy()
-          node.update { $0[child: lslot] = res.node }
+          let delta = node.replaceChild(at: bucket, lslot, with: child.node)
+          assert(delta > 0) // If we didn't add an item, why did we copy?
           return (true, node)
         }
-        else {
-          var node = self.copy(withFreeSpace: _Node.spaceForNewChild)
-          node.insertChild(other, bucket)
-          return (true, node)
-        }
+
+        var node = self.copy(withFreeSpace: _Node.spaceForNewChild)
+        node.insertChild(other, bucket)
+        return (true, node)
       }
     }
   }

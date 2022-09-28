@@ -168,7 +168,7 @@ extension _Node {
       return read { (replacement: $0[child: .zero], old: $0[item: .zero]) }
     }
     var node = self.copy()
-    let old = node.removeItem(at: slot, bucket) { $0.move() }
+    let old = node.removeItem(at: slot, bucket)
     if level.isAtRoot, node.isCollisionNode, node.hasSingletonItem {
       node._convertToRegularNode()
     }
@@ -198,7 +198,7 @@ extension _Node {
         return (.item(remainder, hashPrefix), old)
       }
       var node = self.copy()
-      let old = node.removeItem(at: slot, bucket) { $0.move() }
+      let old = node.removeItem(at: slot, bucket)
       node._invariantCheck()
       return (.node(node, hashPrefix), old)
     }
@@ -251,7 +251,7 @@ extension _Node {
       let bucket = bucket(&self)
       var child = self.removeChild(at: slot, bucket)
       let item = child.removeSingletonItem()
-      insertItem(item, bucket)
+      insertItem(item, at: bucket)
     }
     if isAtrophied {
       self = removeSingletonChild()
@@ -270,7 +270,7 @@ extension _Node {
       var node = copy(withFreeSpace: Self.spaceForInlinedChild)
       _ = node.removeChild(at: slot, bucket)
       let item = newChild.removeSingletonItem()
-      node.insertItem(item, bucket)
+      node.insertItem(item, at: bucket)
       node._invariantCheck()
       return node
     }

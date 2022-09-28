@@ -14,6 +14,7 @@ extension PersistentSet {
   public func union(_ other: __owned Self) -> Self {
     let r = _root.union(.top, .emptyPrefix, other._root)
     guard r.copied else { return self }
+    r.node._fullInvariantCheck(.top, .emptyPrefix)
     return PersistentSet(_new: r.node)
   }
 }

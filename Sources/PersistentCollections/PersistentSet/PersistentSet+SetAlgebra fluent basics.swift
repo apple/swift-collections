@@ -13,9 +13,7 @@ extension PersistentSet {
   @inlinable
   public func inserting(_ newMember: __owned Element) -> Self {
     let hash = _Hash(newMember)
-    let r = _root.inserting(.top, newMember, hash) {
-      $0.initialize(to: (newMember, ()))
-    }
+    let r = _root.inserting(.top, (newMember, ()), hash)
     return PersistentSet(_new: r.node)
   }
 

@@ -206,9 +206,9 @@ class PersistentSetTests: CollectionTestCase {
     RawCollider(3, "ACB"),
     RawCollider(4, "ACAD"),
     RawCollider(5, "ACAD"),
-    RawCollider(6, "ACADB"),
-    RawCollider(7, "ACADB"),
-    RawCollider(8, "ACADB"),
+    RawCollider(6, "ACAEB"),
+    RawCollider(7, "ACAEB"),
+    RawCollider(8, "ACAEB"),
   ]
 
   func test_isEqual_Self_exhaustive() {
@@ -319,6 +319,19 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: a) { b in
         let v = Set(b)
         expectEqualSets(x.filter { v.contains($0) }, v)
+      }
+    }
+  }
+
+  func test_union_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectEqualSets(x.union(x), u)
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqualSets(x.union(y), u.union(v))
       }
     }
   }

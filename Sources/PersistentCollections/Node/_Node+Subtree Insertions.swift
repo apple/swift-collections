@@ -65,6 +65,15 @@ extension _Node {
   @inlinable
   internal func inserting(
     _ level: _Level,
+    _ item: __owned Element,
+    _ hash: _Hash
+  ) -> (inserted: Bool, node: _Node, leaf: _UnmanagedNode, slot: _Slot) {
+    inserting(level, item.key, hash, { $0.initialize(to: item) })
+  }
+
+  @inlinable
+  internal func inserting(
+    _ level: _Level,
     _ key: Key,
     _ hash: _Hash,
     _ inserter: (UnsafeMutablePointer<Element>) -> Void
@@ -93,7 +102,7 @@ extension _Node {
     case .expansion:
       let r = _Node.build(
         level: level,
-        item1: { _ in }, hash,
+        item1: inserter, hash,
         child2: self, self.collisionHash)
       return (true, r.top, r.leaf, r.slot1)
     case .descend(_, let slot):
@@ -354,6 +363,11 @@ extension _Node {
       assert(!src.childMap.contains(bucket))
       assert(src.itemMap.slot(of: bucket) == itemSlot)
 
+      if src.hasSingletonItem && newChild.isCollisionNode {
+        // Compression
+        return newChild
+      }
+
       let childSlot = src.childMap.slot(of: bucket)
       return Self.allocate(
         itemMap: src.itemMap.removing(bucket),
@@ -457,13 +471,10 @@ extension _Node {
     }
 
     assert(!isCollisionNode)
-    let item = removeItem(at: itemSlot, bucket, by: { $0.move() })
+    let item = removeItem(at: itemSlot, bucket)
     let hash = _Hash(item.key)
-    let r = newChild.inserting(level.descend(), item.key, hash) {
-      $0.initialize(to: item)
-    }
-    assert(r.inserted)
-    insertChild(newChild, bucket)
+    let r = newChild.inserting(level.descend(), item, hash)
+    insertChild(r.node, bucket)
   }
 
   @inlinable @inline(never)
@@ -476,11 +487,10 @@ extension _Node {
     assert(!isCollisionNode)
     let item = read { $0[item: itemSlot] }
     let hash = _Hash(item.key)
-    var newChild = newChild
-    _ = newChild.update(level, item.key, hash) { $0.initialize(to: item) }
+    let r = newChild.inserting(level, item, hash)
     return _copyNodeAndReplaceItemWithNewChild(
       level: level,
-      newChild,
+      r.node,
       at: bucket,
       itemSlot: itemSlot)
   }
@@ -495,12 +505,10 @@ extension _Node {
     assert(!isCollisionNode)
     let item = update { $0.itemPtr(at: itemSlot).move() }
     let hash = _Hash(item.key)
-    var newChild = newChild
-    let r = newChild.update(level, item.key, hash) { $0.initialize(to: item) }
-    assert(r.inserted)
+    let r = newChild.inserting(level, item, hash)
     _resizeNodeAndReplaceItemWithNewChild(
       level: level,
-      newChild,
+      r.node,
       at: bucket,
       itemSlot: itemSlot)
   }
@@ -545,7 +553,7 @@ extension _Node {
         inserter)
     }
 
-    let existing = removeItem(at: itemSlot, bucket) { $0.move() }
+    let existing = removeItem(at: itemSlot, bucket)
     let r = _Node.build(
       level: level.descend(),
       item1: existing, existingHash,
