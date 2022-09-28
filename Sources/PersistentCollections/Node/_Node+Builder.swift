@@ -33,6 +33,12 @@ extension _Node.Builder {
       return node.count
     }
   }
+
+  @inlinable
+  internal var isEmpty: Bool {
+    guard case .empty = self else { return false }
+    return true
+  }
 }
 
 extension _Node.Builder {
@@ -167,4 +173,55 @@ extension _Node.Builder {
     result.addNewChildBranch(level, branch)
     return result
   }
+}
+
+extension _Node.Builder {
+  @inlinable
+  internal mutating func copyCollisions(
+    from source: _Node.UnsafeHandle,
+    upTo end: _Slot
+  ) {
+    assert(isEmpty)
+    assert(source.isCollisionNode)
+    assert(end < source.itemsEndSlot)
+    let h = source.collisionHash
+    for slot: _Slot in stride(from: .zero, to: end, by: 1) {
+      self.addNewCollision(source[item: slot], h)
+    }
+  }
+
+  @inlinable
+  internal mutating func copyItems(
+    _ level: _Level,
+    _ hashPrefix: _Hash,
+    from source: _Node.UnsafeHandle,
+    upTo end: _Bucket
+  ) {
+    assert(isEmpty)
+    assert(!source.isCollisionNode)
+    for (b, s) in source.itemMap.intersection(_Bitmap(upTo: end)) {
+      let h = hashPrefix.appending(b, at: level)
+      self.addNewItem(level, source[item: s], h)
+    }
+  }
+
+  @inlinable
+  internal mutating func copyItemsAndChildren(
+    _ level: _Level,
+    _ hashPrefix: _Hash,
+    from source: _Node.UnsafeHandle,
+    upTo end: _Bucket
+  ) {
+    assert(isEmpty)
+    assert(!source.isCollisionNode)
+    for (b, s) in source.itemMap {
+      let h = hashPrefix.appending(b, at: level)
+      self.addNewItem(level, source[item: s], h)
+    }
+    for (b, s) in source.childMap.intersection(_Bitmap(upTo: end)) {
+      let h = hashPrefix.appending(b, at: level)
+      self.addNewChildBranch(level, .node(source[child: s], h))
+    }
+  }
+
 }

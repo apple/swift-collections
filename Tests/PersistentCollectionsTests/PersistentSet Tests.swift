@@ -198,7 +198,7 @@ class PersistentSetTests: CollectionTestCase {
   /// A set of items whose subsets will produce a bunch of interesting test
   /// cases.
   ///
-  /// Note: Try to keep this short. Every new item added here will double
+  /// Note: Try to keep this short. Every new item added here will quadruple
   /// testing costs.
   let testItems = [
     RawCollider(1, "A"),
@@ -293,6 +293,7 @@ class PersistentSetTests: CollectionTestCase {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
+      expectEqualSets(x.intersection(x), u)
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
@@ -305,6 +306,7 @@ class PersistentSetTests: CollectionTestCase {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
+      expectEqualSets(x.subtracting(x), [])
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)

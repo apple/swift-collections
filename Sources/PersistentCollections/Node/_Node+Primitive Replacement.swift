@@ -34,4 +34,45 @@ extension _Node {
     self.count &+= delta
     return delta
   }
+
+  @inlinable
+  internal func replacingChild(
+    _ level: _Level,
+    _ hashPrefix: _Hash,
+    _ slot: _Slot,
+    with child: __owned Builder
+  ) -> Builder {
+    let bucket = hashPrefix[level]
+    read {
+      assert(!$0.isCollisionNode)
+      assert($0.childMap.contains(bucket))
+      assert(slot == $0.childMap.slot(of: bucket))
+    }
+    switch child {
+    case .empty:
+      return _removingChild(level, hashPrefix, bucket, slot)
+    case let .item(item, hash):
+      assert(hash.isEqual(to: hashPrefix, upTo: level))
+      assert(hash[level] == bucket)
+      if hasSingletonChild {
+        return child
+      }
+      var node = self.copy(withFreeSpace: _Node.spaceForInlinedChild)
+      _ = node.removeChild(at: slot, bucket)
+      node.insertItem(item, at: bucket)
+      node._invariantCheck()
+      return .node(node, hashPrefix)
+    case let .node(node, hash):
+      assert(hash.isEqual(to: hashPrefix, upTo: level))
+      assert(hash[level] == bucket)
+      if node.isCollisionNode, self.hasSingletonChild {
+        // Compression
+        assert(!level.isAtBottom)
+        return child
+      }
+      var copy = self.copy()
+      _ = copy.replaceChild(at: bucket, slot, with: node)
+      return .node(copy, hashPrefix)
+    }
+  }
 }

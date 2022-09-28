@@ -66,21 +66,17 @@ extension _Node {
   }
 
   @inlinable
-  internal func removing(
-    _ level: _Level,
-    _ hashPrefix: _Hash,
-    _ key: Key,
-    _ hash: _Hash
+  internal func removing2(
+    _ level: _Level, _ key: Key, _ hash: _Hash
   ) -> (replacement: Builder, old: Element)? {
-    assert(hashPrefix.isEqual(to: hash, upTo: level))
     guard let r = find(level, key, hash) else { return nil }
     guard r.descend else {
-      return _removingItemFromLeaf(level, hashPrefix, hash[level], r.slot)
+      return _removingItemFromLeaf(level, hash, r.slot)
     }
-    let hp = hashPrefix.appending(hash[level], at: level)
-    let r2 = read { $0[child: r.slot].removing(level.descend(), hp, key, hash) }
+    let r2 = read { $0[child: r.slot].removing2(level.descend(), key, hash) }
     guard let r2 = r2 else { return nil }
-    return (.childBranch(level, r2.replacement), r2.old)
+    let result = self.replacingChild(level, hash, r.slot, with: r2.replacement)
+    return (result, r2.old)
   }
 }
 
@@ -178,10 +174,12 @@ extension _Node {
 
   @inlinable
   internal func _removingItemFromLeaf(
-    _ level: _Level, _ hashPrefix: _Hash, _ bucket: _Bucket, _ slot: _Slot
+    _ level: _Level, _ hash: _Hash, _ slot: _Slot
   )  -> (replacement: Builder, old: Element) {
     read {
-      assert($0.isCollisionNode || $0.itemMap.contains(bucket))
+      assert($0.isCollisionNode || $0.itemMap.contains(hash[level]))
+      assert(!$0.isCollisionNode || slot.value < $0.collisionCount )
+      assert($0.isCollisionNode || slot == $0.itemMap.slot(of: hash[level]))
       let willAtrophy = (
         $0.itemCount == 1
         && $0.childCount == 1
@@ -195,12 +193,12 @@ extension _Node {
       if willEvaporate {
         let remainder = $0[item: _Slot(1 &- slot.value)]
         let old = $0[item: slot]
-        return (.item(remainder, hashPrefix), old)
+        return (.item(remainder, hash), old)
       }
       var node = self.copy()
-      let old = node.removeItem(at: slot, bucket)
+      let old = node.removeItem(at: slot, hash[level])
       node._invariantCheck()
-      return (.node(node, hashPrefix), old)
+      return (.node(node, hash), old)
     }
   }
 }

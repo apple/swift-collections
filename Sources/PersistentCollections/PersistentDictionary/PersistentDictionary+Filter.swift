@@ -15,6 +15,7 @@ extension PersistentDictionary {
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
     let result = try _root.filter(.top, .emptyPrefix, isIncluded)
+    guard let result = result else { return self }
     return PersistentDictionary(_new: result.finalize(.top))
   }
 }
