@@ -210,6 +210,17 @@ extension _Node {
     self.count &+= 1
   }
 
+  @inlinable @inline(__always)
+  internal func copyNodeAndInsertItem(
+    at bucket: _Bucket,
+    _ item: __owned Element
+  ) -> _Node {
+    let slot = read { $0.itemMap.slot(of: bucket) }
+    return copyNodeAndInsertItem(at: bucket, itemSlot: slot) {
+      $0.initialize(to: item)
+    }
+  }
+
   @inlinable @inline(never)
   internal func copyNodeAndInsertItem(
     at bucket: _Bucket,

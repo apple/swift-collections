@@ -26,9 +26,9 @@ extension PersistentSet {
   ///     parts of the input trees directly into the result.
   @inlinable
   public func symmetricDifference(_ other: __owned Self) -> Self {
-    // FIXME: Do this with a structural merge.
-    let a = self.subtracting(other)
-    let b = other.subtracting(self)
-    return a.union(b)
+    let branch = _root.symmetricDifference(.top, .emptyPrefix, other._root)
+    guard let branch = branch else { return self }
+    let root = branch.finalize(.top)
+    return PersistentSet(_new: root)
   }
 }

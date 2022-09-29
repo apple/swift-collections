@@ -139,15 +139,13 @@ extension _Node {
           var copied = false
           var node = self
           let litems = l.reverseItems
-          var p = r.itemPtr(at: .zero)
-          let end = r.itemPtr(at: r.itemsEndSlot)
-          while p != end {
+          for rs: _Slot in stride(from: .zero, to: r.itemsEndSlot, by: 1) {
+            let p = r.itemPtr(at: rs)
             if !litems.contains(where: { $0.key == p.pointee.key }) {
               _ = node.ensureUniqueAndAppendCollision(
                 isUnique: copied, p.pointee)
               copied = true
             }
-            p -= 1
           }
           return (copied, node)
         }

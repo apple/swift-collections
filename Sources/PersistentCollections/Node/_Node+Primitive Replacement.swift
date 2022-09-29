@@ -11,6 +11,18 @@
 
 extension _Node {
   @inlinable
+  internal mutating func replaceItem(
+    at bucket: _Bucket, _ slot: _Slot, with item: Element
+  ) {
+    update {
+      assert($0.isCollisionNode || $0.itemMap.contains(bucket))
+      assert($0.isCollisionNode || slot == $0.itemMap.slot(of: bucket))
+      assert(!$0.isCollisionNode || slot.value < $0.collisionCount)
+      $0[item: slot] = item
+    }
+  }
+
+  @inlinable
   internal mutating func replaceChild(
     at bucket: _Bucket, with child: _Node
   ) -> Int {
