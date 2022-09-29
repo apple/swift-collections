@@ -11,7 +11,7 @@
 
 /// A utility protocol for marking container types (not necessarily
 /// conforming to `Sequence` or `Collection`) that provide a
-/// fast `contains` operation.
+/// fast and non-destructive `contains` operation.
 public protocol _FastMembershipCheckable {
   // FIXME: Add as primary associated type on >=5.7
   associatedtype Element: Equatable
