@@ -121,9 +121,6 @@ extension PersistentSet {
   public func isStrictSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Element
   {
-    if other.underestimatedCount > self.count {
-      return isSubset(of: other)
-    }
     // FIXME: Would making this a BitSet of seen positions be better?
     var seen: PersistentSet? = []
     var isStrict = false
