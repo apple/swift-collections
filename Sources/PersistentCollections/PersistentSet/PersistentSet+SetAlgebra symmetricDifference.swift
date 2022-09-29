@@ -27,6 +27,8 @@ extension PersistentSet {
   @inlinable
   public func symmetricDifference(_ other: __owned Self) -> Self {
     // FIXME: Do this with a structural merge.
-    self.subtracting(self.intersection(other))
+    let a = self.subtracting(other)
+    let b = other.subtracting(self)
+    return a.union(b)
   }
 }

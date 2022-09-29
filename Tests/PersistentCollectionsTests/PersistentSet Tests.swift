@@ -337,4 +337,17 @@ class PersistentSetTests: CollectionTestCase {
       }
     }
   }
+
+  func test_symmetricDifference_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentSet(a)
+      let u = Set(a)
+      expectEqualSets(x.symmetricDifference(x), [])
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentSet(b)
+        let v = Set(b)
+        expectEqualSets(x.symmetricDifference(y), u.symmetricDifference(v))
+      }
+    }
+  }
 }
