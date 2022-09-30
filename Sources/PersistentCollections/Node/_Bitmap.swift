@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 /// A set of `_Bucket` values, represented by a 32-bit wide bitset.
 @usableFromInline
 @frozen
