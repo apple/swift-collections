@@ -23,11 +23,11 @@ extension PersistentSet: SetAlgebra {
     _ newMember: __owned Element
   ) -> (inserted: Bool, memberAfterInsert: Element) {
     let hash = _Hash(newMember)
-    _invalidateIndices()
     let r = _root.insert(.top, newMember, hash) {
       $0.initialize(to: (newMember, ()))
     }
     if r.inserted {
+      _invalidateIndices()
       return (true, newMember)
     }
     return _Node.UnsafeHandle.read(r.leaf) {
