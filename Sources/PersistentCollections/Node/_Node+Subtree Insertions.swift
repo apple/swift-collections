@@ -120,9 +120,9 @@ extension _Node {
   }
 
   @inlinable
-  internal mutating func update(
+  internal mutating func updateValue(
     _ level: _Level,
-    _ key: Key,
+    forKey key: Key,
     _ hash: _Hash,
     _ inserter: (UnsafeMutablePointer<Element>) -> Void
   ) -> (inserted: Bool, leaf: _UnmanagedNode, slot: _Slot) {
@@ -159,7 +159,8 @@ extension _Node {
     case .descend(_, let slot):
       ensureUnique(isUnique: isUnique)
       let r = update {
-        $0[child: slot].update(level.descend(), key, hash, inserter)
+        $0[child: slot].updateValue(
+          level.descend(), forKey: key, hash, inserter)
       }
       if r.inserted { count &+= 1 }
       return r

@@ -127,7 +127,7 @@ extension _Node {
       _finalizeRemoval(.top, state.hash, at: state.path)
     case (false, true):
       // Insertion
-      let r = update(.top, state.key, state.hash) {
+      let r = updateValue(.top, forKey: state.key, state.hash) {
         $0.initialize(to: (state.key, state.value.unsafelyUnwrapped))
       }
       assert(r.inserted)
