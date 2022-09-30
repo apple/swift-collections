@@ -61,53 +61,6 @@ extension PersistentSet {
   }
 
   /// Returns a Boolean value that indicates whether this set is a subset of
-  /// the given set.
-  ///
-  /// Set *A* is a subset of another set *B* if every member of *A* is also a
-  /// member of *B*, ignoring the order they appear in the two sets.
-  ///
-  ///     let a: PersistentSet = [1, 2, 3, 4]
-  ///     let b: PersistentSet = [4, 2, 1]
-  ///     b.isSubset(of: a) // true
-  ///
-  /// - Parameter other: A container with a fast `contains` implementation.
-  ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
-  ///
-  /// - Complexity: O(`self.count`) calls to `other.contains`.
-  @inlinable
-  public func isSubset<S: _FastMembershipCheckable>(
-    of other: S
-  ) -> Bool
-  where S.Element == Element {
-    self.allSatisfy { other.contains($0) }
-  }
-
-  /// Returns a Boolean value that indicates whether this set is a subset of
-  /// the given sequence.
-  ///
-  /// Set *A* is a subset of another set *B* if every member of *A* is also a
-  /// member of *B*, ignoring the order they appear in the two sets.
-  ///
-  ///     let a: PersistentSet = [1, 2, 3, 4]
-  ///     let b: PersistentSet = [4, 2, 1]
-  ///     b.isSubset(of: a) // true
-  ///
-  /// - Parameter other: A sequence with a fast `contains` implementation,
-  ///    some of whose elements may appear more than once.
-  ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
-  ///
-  /// - Complexity: O(`self.count`) calls to `other.contains`.
-  @inlinable
-  public func isSubset<S: Sequence & _FastMembershipCheckable>(
-    of other: S
-  ) -> Bool
-  where S.Element == Element {
-    self.allSatisfy { other.contains($0) }
-  }
-
-  /// Returns a Boolean value that indicates whether this set is a subset of
   /// the given sequence.
   ///
   /// Set *A* is a subset of another set *B* if every member of *A* is also a
@@ -130,6 +83,17 @@ extension PersistentSet {
   public func isSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Element
   {
+    var it = self.makeIterator()
+    guard let first = it.next() else { return true }
+    if let match = other._customContainsEquatableElement(first) {
+      // Fast path: the sequence has fast containment checks.
+      guard match else { return false }
+      while let item = it.next() {
+        guard other.contains(item) else { return false }
+      }
+      return true
+    }
+
     // FIXME: Would making this a BitSet of seen positions be better?
     var seen: PersistentSet = []
     for item in other {
