@@ -15,9 +15,8 @@ extension _Node {
     _ level: _Level,
     _ hashPrefix: _Hash,
     _ other: _Node
-  ) -> Builder {
-    // FIXME: Consider preserving `self` when nothing needs to be removed.
-    if self.raw.storage === other.raw.storage { return .node(self, hashPrefix) }
+  ) -> Builder? {
+    if self.raw.storage === other.raw.storage { return nil }
 
     if self.isCollisionNode || other.isCollisionNode {
       return _intersection_slow(level, hashPrefix, other)
@@ -26,50 +25,77 @@ extension _Node {
     return self.read { l in
       other.read { r in
         var result: Builder = .empty
-        for (bucket, _) in l.itemMap.intersection(r.itemMap) {
-          let lslot = l.itemMap.slot(of: bucket)
-          let rslot = r.itemMap.slot(of: bucket)
+        var removing = false
+
+        for (bucket, lslot) in l.itemMap {
           let lp = l.itemPtr(at: lslot)
-          if lp.pointee.key == r[item: rslot].key {
+          let include: Bool
+          if r.itemMap.contains(bucket) {
+            let rslot = r.itemMap.slot(of: bucket)
+            include = (lp.pointee.key == r[item: rslot].key)
+          }
+          else if r.childMap.contains(bucket) {
+            let rslot = r.childMap.slot(of: bucket)
+            let h = _Hash(lp.pointee.key)
+            include = r[child: rslot]
+              .containsKey(level.descend(), lp.pointee.key, h)
+          }
+          else { include = false}
+
+          if include, removing {
             let hashPrefix = hashPrefix.appending(bucket, at: level)
             result.addNewItem(level, lp.pointee, hashPrefix)
           }
-        }
-
-        for (bucket, _) in l.itemMap.intersection(r.childMap) {
-          let lslot = l.itemMap.slot(of: bucket)
-          let rslot = r.childMap.slot(of: bucket)
-          let lp = l.itemPtr(at: lslot)
-          let h = _Hash(lp.pointee.key)
-          if r[child: rslot].containsKey(level.descend(), lp.pointee.key, h) {
-            let hashPrefix = hashPrefix.appending(bucket, at: level)
-            result.addNewItem(level, lp.pointee, hashPrefix)
+          else if !include, !removing {
+            removing = true
+            result.copyItems(level, hashPrefix, from: l, upTo: bucket)
           }
         }
 
-        for (bucket, _) in l.childMap.intersection(r.itemMap) {
-          let lslot = l.childMap.slot(of: bucket)
-          let rslot = r.itemMap.slot(of: bucket)
-          let rp = r.itemPtr(at: rslot)
-          let h = _Hash(rp.pointee.key)
-          let res = l[child: lslot].lookup(level.descend(), rp.pointee.key, h)
-          if let res = res {
-            UnsafeHandle.read(res.node) {
-              let p = $0.itemPtr(at: res.slot)
-              result.addNewItem(level, p.pointee, h)
+        for (bucket, lslot) in l.childMap {
+          if r.itemMap.contains(bucket) {
+            if !removing {
+              removing = true
+              result.copyItemsAndChildren(
+                level, hashPrefix, from: l, upTo: bucket)
+            }
+            let rslot = r.itemMap.slot(of: bucket)
+            let rp = r.itemPtr(at: rslot)
+            let h = _Hash(rp.pointee.key)
+            let res = l[child: lslot].lookup(level.descend(), rp.pointee.key, h)
+            if let res = res {
+              UnsafeHandle.read(res.node) {
+                let p = $0.itemPtr(at: res.slot)
+                result.addNewItem(level, p.pointee, h)
+              }
             }
           }
+          else if r.childMap.contains(bucket) {
+            let rslot = r.childMap.slot(of: bucket)
+            let branch = l[child: lslot].intersection(
+              level.descend(),
+              hashPrefix.appending(bucket, at: level),
+              r[child: rslot])
+            if let branch = branch {
+              assert(branch.count < self.count)
+              if !removing {
+                removing = true
+                result.copyItemsAndChildren(
+                  level, hashPrefix, from: l, upTo: bucket)
+              }
+              result.addNewChildBranch(level, branch)
+            } else if removing {
+              let h = hashPrefix.appending(bucket, at: level)
+              result.addNewChildBranch(level, .node(l[child: lslot], h))
+            }
+          }
+          else if !removing {
+            removing = true
+            result.copyItemsAndChildren(
+              level, hashPrefix, from: l, upTo: bucket)
+          }
         }
-
-        for (bucket, _) in l.childMap.intersection(r.childMap) {
-          let lslot = l.childMap.slot(of: bucket)
-          let rslot = r.childMap.slot(of: bucket)
-          let branch = l[child: lslot].intersection(
-            level.descend(),
-            hashPrefix.appending(bucket, at: level),
-            r[child: rslot])
-          result.addNewChildBranch(level, branch)
-        }
+        guard removing else { return nil }
         return result
       }
     }
@@ -80,7 +106,7 @@ extension _Node {
     _ level: _Level,
     _ hashPrefix: _Hash,
     _ other: _Node
-  ) -> Builder {
+  ) -> Builder? {
     let lc = self.isCollisionNode
     let rc = other.isCollisionNode
     if lc && rc {
@@ -88,13 +114,22 @@ extension _Node {
         other.read { r in
           guard l.collisionHash == r.collisionHash else { return .empty }
           var result: Builder = .empty
-          let litems = l.reverseItems
+          var removing = false
+
           let ritems = r.reverseItems
-          for i in litems.indices {
-            if ritems.contains(where: { $0.key == litems[i].key }) {
-              result.addNewCollision(litems[i], l.collisionHash)
+          for lslot: _Slot in stride(from: .zero, to: l.itemsEndSlot, by: 1) {
+            let lp = l.itemPtr(at: lslot)
+            let include = ritems.contains { $0.key == lp.pointee.key }
+            if include, removing {
+              result.addNewCollision(lp.pointee, l.collisionHash)
+            }
+            else if !include, !removing {
+              removing = true
+              result.copyCollisions(from: l, upTo: lslot)
             }
           }
+          guard removing else { return nil }
+          assert(result.count < self.count)
           return result
         }
       }
@@ -143,11 +178,18 @@ extension _Node {
           return .item(litem.pointee, r.collisionHash)
         }
         if l.childMap.contains(bucket) {
-          let lslot = l.itemMap.slot(of: bucket)
-          return intersection(
+          let lslot = l.childMap.slot(of: bucket)
+          let branch = l[child: lslot].intersection(
             level.descend(),
             hashPrefix.appending(bucket, at: level),
-            l[child: lslot])
+            other)
+          guard let branch = branch else {
+            assert(l[child: lslot].isCollisionNode)
+            assert(l[child: lslot].collisionHash == r.collisionHash)
+            // Compression
+            return .node(l[child: lslot], r.collisionHash)
+          }
+          return .childBranch(level, branch)
         }
         return .empty
       }

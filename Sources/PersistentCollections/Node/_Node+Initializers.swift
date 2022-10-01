@@ -139,6 +139,27 @@ extension _Node {
     r.node._invariantCheck()
     return r.node
   }
+
+  @inlinable
+  internal static func _regularNode(
+    _ child1: __owned _Node,
+    _ child1Bucket: _Bucket,
+    _ child2: __owned _Node,
+    _ child2Bucket: _Bucket
+  ) -> _Node {
+    assert(child1Bucket != child2Bucket)
+    let r = _Node.allocate(
+      itemMap: .empty,
+      childMap: _Bitmap(child1Bucket, child2Bucket),
+      count: child1.count &+ child2.count
+    ) { children, items in
+      assert(items.count == 0 && children.count == 2)
+      children.initializeElement(at: 0, to: child1)
+      children.initializeElement(at: 1, to: child2)
+    }
+    r.node._invariantCheck()
+    return r.node
+  }
 }
 
 extension _Node {
@@ -150,6 +171,7 @@ extension _Node {
     item2 inserter2: (UnsafeMutablePointer<Element>) -> Void,
     _ hash2: _Hash
   ) -> (top: _Node, leaf: _UnmanagedNode, slot1: _Slot, slot2: _Slot) {
+    assert(hash1.isEqual(to: hash2, upTo: level.ascend()))
     if hash1 == hash2 {
       let top = _collisionNode(hash1, item1, inserter2)
       return (top, top.unmanaged, _Slot(0), _Slot(1))
@@ -202,5 +224,28 @@ extension _Node {
     }
     let node = _regularNode(inserter1, hash1[level], child2, hash2[level])
     return (node, node.unmanaged, .zero, .zero)
+  }
+
+  @inlinable
+  internal static func build(
+    level: _Level,
+    child1: __owned _Node,
+    _ hash1: _Hash,
+    child2: __owned _Node,
+    _ hash2: _Hash
+  ) -> _Node {
+    assert(child1.isCollisionNode)
+    assert(child2.isCollisionNode)
+    assert(hash1 != hash2)
+    let b1 = hash1[level]
+    let b2 = hash2[level]
+    guard b1 == b2 else {
+      return _regularNode(child1, b1, child2, b2)
+    }
+    let node = build(
+      level: level.descend(),
+      child1: child1, hash1,
+      child2: child2, hash2)
+    return _regularNode(node, b1)
   }
 }

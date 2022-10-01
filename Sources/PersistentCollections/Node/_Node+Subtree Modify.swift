@@ -127,9 +127,10 @@ extension _Node {
       _finalizeRemoval(.top, state.hash, at: state.path)
     case (false, true):
       // Insertion
-      let inserted = insert(
-        (state.key, state.value.unsafelyUnwrapped), .top, state.hash)
-      assert(inserted)
+      let r = updateValue(.top, forKey: state.key, state.hash) {
+        $0.initialize(to: (state.key, state.value.unsafelyUnwrapped))
+      }
+      assert(r.inserted)
     case (false, false):
       // Noop
       break
@@ -206,7 +207,9 @@ extension _Node {
         inserted: false)
 
     case .insert(let bucket, let slot):
-      ensureUniqueAndInsertItem(isUnique: isUnique, slot, bucket) { _ in }
+      ensureUniqueAndInsertItem(
+        isUnique: isUnique, at: bucket, itemSlot: slot
+      ) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,
@@ -214,18 +217,19 @@ extension _Node {
         inserted: true)
 
     case .appendCollision:
-      ensureUniqueAndAppendCollision(isUnique: isUnique) { _ in }
+      let slot = ensureUniqueAndAppendCollision(isUnique: isUnique) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),
         in: unmanaged,
-        at: _Slot(self.count &- 1),
+        at: slot,
         inserted: true)
 
     case .spawnChild(let bucket, let slot):
       let r = ensureUniqueAndSpawnChild(
         isUnique: isUnique,
         level: level,
-        replacing: slot, bucket,
+        replacing: bucket,
+        itemSlot: slot,
         newHash: hash) { _ in }
       return DefaultedValueUpdateState(
         (key, defaultValue()),

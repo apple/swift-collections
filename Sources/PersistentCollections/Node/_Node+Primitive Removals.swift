@@ -62,6 +62,21 @@ extension _Node.UnsafeHandle {
 }
 
 extension _Node {
+  @inlinable
+  internal mutating func removeItem(
+    at bucket: _Bucket
+  ) -> Element {
+    let slot = read { $0.itemMap.slot(of: bucket) }
+    return removeItem(at: slot, bucket, by: { $0.move() })
+  }
+
+  @inlinable
+  internal mutating func removeItem(
+    at slot: _Slot, _ bucket: _Bucket
+  ) -> Element {
+    removeItem(at: slot, bucket, by: { $0.move() })
+  }
+
   /// Remove the item at `slot`, increasing the amount of free
   /// space available in the node.
   ///

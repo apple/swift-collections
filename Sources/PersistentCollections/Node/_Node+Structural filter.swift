@@ -15,34 +15,71 @@ extension _Node {
     _ level: _Level,
     _ hashPrefix: _Hash,
     _ isIncluded: (Element) throws -> Bool
-  ) rethrows -> Builder {
-    // FIXME: Consider preserving `self` when nothing needs to be removed.
+  ) rethrows -> Builder? {
+    guard !isCollisionNode else {
+      return try _filter_slow(isIncluded)
+    }
     return try self.read {
       var result: Builder = .empty
-
-      if isCollisionNode {
-        let items = $0.reverseItems
-        for i in items.indices {
-          if try isIncluded(items[i]) {
-            result.addNewCollision(items[i], $0.collisionHash)
-          }
-        }
-        return result
-      }
+      var removing = false // true if we need to remove something
 
       for (bucket, slot) in $0.itemMap {
         let p = $0.itemPtr(at: slot)
-        if try isIncluded(p.pointee) {
+        let include = try isIncluded(p.pointee)
+        switch (include, removing) {
+        case (true, true):
           let h = hashPrefix.appending(bucket, at: level)
           result.addNewItem(level, p.pointee, h)
+        case (false, false):
+          removing = true
+          result.copyItems(level, hashPrefix, from: $0, upTo: bucket)
+        default:
+          break
         }
       }
 
       for (bucket, slot) in $0.childMap {
         let h = hashPrefix.appending(bucket, at: level)
         let branch = try $0[child: slot].filter(level.descend(), h, isIncluded)
-        result.addNewChildBranch(level, branch)
+        if let branch = branch {
+          assert(branch.count < self.count)
+          if !removing {
+            removing = true
+            result.copyItemsAndChildren(
+              level, hashPrefix, from: $0, upTo: bucket)
+          }
+          result.addNewChildBranch(level, branch)
+        } else if removing {
+          result.addNewChildBranch(level, .node($0[child: slot], h))
+        }
       }
+
+      guard removing else { return nil }
+      return result
+    }
+  }
+
+  @inlinable @inline(never)
+  internal func _filter_slow(
+    _ isIncluded: (Element) throws -> Bool
+  ) rethrows -> Builder? {
+    try self.read {
+      var result: Builder = .empty
+      var removing = false
+
+      for slot: _Slot in stride(from: .zero, to: $0.itemsEndSlot, by: 1) {
+        let p = $0.itemPtr(at: slot)
+        let include = try isIncluded(p.pointee)
+        if include, removing {
+          result.addNewCollision(p.pointee, $0.collisionHash)
+        }
+        else if !include, !removing {
+          removing = true
+          result.copyCollisions(from: $0, upTo: slot)
+        }
+      }
+      guard removing else { return nil }
+      assert(result.count < self.count)
       return result
     }
   }

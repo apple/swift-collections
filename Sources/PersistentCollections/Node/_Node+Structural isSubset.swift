@@ -17,6 +17,7 @@ extension _Node {
     _ level: _Level,
     of other: _Node<Key, Value2>
   ) -> Bool {
+    guard self.count > 0 else { return true }
     if self.raw.storage === other.raw.storage { return true }
     guard self.count <= other.count else { return false }
 
@@ -42,8 +43,17 @@ extension _Node {
         return self.isSubset(level.descend(), of: $0[child: slot])
       }
     }
-
-    guard !other.isCollisionNode else { return false }
+    if other.isCollisionNode {
+      return read { l in
+        guard level.isAtRoot, l.hasSingletonItem else { return false }
+        // Annoying special case: the root node may contain a single item
+        // that matches one in the collision node.
+        return other.read { r in
+          let hash = _Hash(l[item: .zero].key)
+          return r.find(level, l[item: .zero].key, hash) != nil
+        }
+      }
+    }
 
     return self.read { l in
       other.read { r in

@@ -17,6 +17,7 @@ extension PersistentSet {
     let result = try _root.filter(.top, .emptyPrefix) {
       try isIncluded($0.key)
     }
+    guard let result = result else { return self }
     return PersistentSet(_new: result.finalize(.top))
   }
 }

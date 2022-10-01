@@ -35,10 +35,12 @@ extension PersistentDictionary {
     uniqueKeysWithValues keysAndValues: S
   ) where S.Element == (Key, Value) {
     self.init()
-    for (key, value) in keysAndValues {
-      let hash = _Hash(key)
-      let inserted = _root.insert((key, value), .top, hash)
-      precondition(inserted, "Duplicate key: '\(key)'")
+    for item in keysAndValues {
+      let hash = _Hash(item.0)
+      let r = _root.insert(.top, item.0, hash) {
+        $0.initialize(to: item)
+      }
+      precondition(r.inserted, "Duplicate key: '\(item.0)'")
     }
     _invariantCheck()
   }

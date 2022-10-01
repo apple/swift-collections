@@ -27,7 +27,7 @@ extension _Node {
           guard lhs.collisionHash == rhs.collisionHash else { return false }
           let l = lhs.reverseItems
           let r = rhs.reverseItems
-          guard l.count == r.count else { return false }
+          assert(l.count == r.count) // Already checked above
           for i in l.indices {
             let found = r.contains {
               l[i].key == $0.key && areEquivalent(l[i].value, $0.value)

@@ -129,6 +129,59 @@ func _expectFailure(
       file: file, line: line)
 }
 
+func expectEqualSets<Element: Hashable>(
+  _ set: PersistentSet<Element>,
+  _ ref: [Element],
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  expectEqualSets(
+    set, Set(ref),
+    message(),
+    trapping: trapping,
+    file: file, line: line)
+}
+
+func expectEqualSets<Element: Hashable>(
+  _ set: PersistentSet<Element>,
+  _ ref: Set<Element>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  var ref = ref
+  var seen: Set<Element> = []
+  var extras: [Element] = []
+  var dupes: [Element: Int] = [:]
+  for item in set {
+    if !seen.insert(item).inserted {
+      dupes[item, default: 1] += 1
+    } else if ref.remove(item) == nil {
+      extras.append(item)
+    }
+  }
+  let missing = Array(ref)
+  var msg = ""
+  if !extras.isEmpty {
+    msg += "\nUnexpected items: \(extras)"
+  }
+  if !missing.isEmpty {
+    msg += "\nMissing items: \(missing)"
+  }
+  if !dupes.isEmpty {
+    msg += "\nDuplicate items: \(dupes)"
+  }
+  if !msg.isEmpty {
+    _expectFailure(
+      "\n\(msg)",
+      message, trapping: trapping, file: file, line: line)
+  }
+}
+
+
 func expectEqualDictionaries<Key: Hashable, Value: Equatable>(
   _ map: PersistentDictionary<Key, Value>,
   _ ref: [(key: Key, value: Value)],
@@ -187,4 +240,31 @@ func mutate<T, R>(
   _ body: (inout T) throws -> R
 ) rethrows -> R {
   try body(&value)
+}
+
+func withEverySubset<C: Collection>(
+  _ label: String,
+  of items: C,
+  body: ([C.Element]) -> Void
+) {
+  var set: [C.Element] = []
+  _withEverySubset(label, of: items, extending: &set, body: body)
+}
+
+func _withEverySubset<C: Collection>(
+  _ label: String,
+  of items: C,
+  extending set: inout [C.Element],
+  body: ([C.Element]) -> Void
+) {
+  guard let item = items.first else {
+    let entry = TestContext.current.push("\(label): \(set)")
+    defer { TestContext.current.pop(entry) }
+    body(set)
+    return
+  }
+  _withEverySubset(label, of: items.dropFirst(), extending: &set, body: body)
+  set.append(item)
+  _withEverySubset(label, of: items.dropFirst(), extending: &set, body: body)
+  set.removeLast()
 }

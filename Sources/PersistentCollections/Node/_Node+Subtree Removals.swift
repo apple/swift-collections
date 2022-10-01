@@ -64,6 +64,20 @@ extension _Node {
         level, r.slot, hash[level], r2.replacement),
       r2.old)
   }
+
+  @inlinable
+  internal func removing2(
+    _ level: _Level, _ key: Key, _ hash: _Hash
+  ) -> (replacement: Builder, old: Element)? {
+    guard let r = find(level, key, hash) else { return nil }
+    guard r.descend else {
+      return _removingItemFromLeaf(level, hash, r.slot)
+    }
+    let r2 = read { $0[child: r.slot].removing2(level.descend(), key, hash) }
+    guard let r2 = r2 else { return nil }
+    let result = self.replacingChild(level, hash, r.slot, with: r2.replacement)
+    return (result, r2.old)
+  }
 }
 
 extension _Node {
@@ -150,12 +164,74 @@ extension _Node {
       return read { (replacement: $0[child: .zero], old: $0[item: .zero]) }
     }
     var node = self.copy()
-    let old = node.removeItem(at: slot, bucket) { $0.move() }
+    let old = node.removeItem(at: slot, bucket)
     if level.isAtRoot, node.isCollisionNode, node.hasSingletonItem {
       node._convertToRegularNode()
     }
     node._invariantCheck()
     return (node, old)
+  }
+
+  @inlinable
+  internal func _removingItemFromLeaf(
+    _ level: _Level, _ hash: _Hash, _ slot: _Slot
+  )  -> (replacement: Builder, old: Element) {
+    read {
+      assert($0.isCollisionNode || $0.itemMap.contains(hash[level]))
+      assert(!$0.isCollisionNode || slot.value < $0.collisionCount )
+      assert($0.isCollisionNode || slot == $0.itemMap.slot(of: hash[level]))
+      let willAtrophy = (
+        $0.itemCount == 1
+        && $0.childCount == 1
+        && $0[child: .zero].isCollisionNode)
+      if willAtrophy {
+        let child = $0[child: .zero]
+        let old = $0[item: .zero]
+        return (.node(child, child.collisionHash), old)
+      }
+      let willEvaporate = ($0.itemCount == 2 && $0.childCount == 0)
+      if willEvaporate {
+        let remainder = $0[item: _Slot(1 &- slot.value)]
+        let old = $0[item: slot]
+        return (.item(remainder, hash), old)
+      }
+      var node = self.copy()
+      let old = node.removeItem(at: slot, hash[level])
+      node._invariantCheck()
+      return (.node(node, hash), old)
+    }
+  }
+}
+
+extension _Node {
+  @inlinable
+  internal func _removingChild(
+    _ level: _Level, _ hashPrefix: _Hash, _ bucket: _Bucket, _ slot: _Slot
+  ) -> Builder {
+    read {
+      assert(!$0.isCollisionNode && $0.childMap.contains(bucket))
+      let willAtrophy = (
+        $0.itemCount == 0
+        && $0.childCount == 2
+        && $0[child: _Slot(1 &- slot.value)].isCollisionNode
+      )
+      if willAtrophy {
+        let child = $0[child: _Slot(1 &- slot.value)]
+        return .node(child, child.collisionHash)
+      }
+      let willTurnIntoItem = ($0.itemCount == 1 && $0.childCount == 1)
+      if willTurnIntoItem {
+        return .item($0[item: .zero], hashPrefix)
+      }
+      let willEvaporate = ($0.itemCount == 0 && $0.childCount == 1)
+      if willEvaporate {
+        return .empty
+      }
+      var node = self.copy()
+      _ = node.removeChild(at: slot, bucket)
+      node._invariantCheck()
+      return .node(node, hashPrefix)
+    }
   }
 }
 
@@ -173,7 +249,7 @@ extension _Node {
       let bucket = bucket(&self)
       var child = self.removeChild(at: slot, bucket)
       let item = child.removeSingletonItem()
-      insertItem(item, bucket)
+      insertItem(item, at: bucket)
     }
     if isAtrophied {
       self = removeSingletonChild()
@@ -192,7 +268,7 @@ extension _Node {
       var node = copy(withFreeSpace: Self.spaceForInlinedChild)
       _ = node.removeChild(at: slot, bucket)
       let item = newChild.removeSingletonItem()
-      node.insertItem(item, bucket)
+      node.insertItem(item, at: bucket)
       node._invariantCheck()
       return node
     }

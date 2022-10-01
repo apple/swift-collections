@@ -12,6 +12,71 @@
 import _CollectionsTestSupport
 import PersistentCollections
 
+/// A set of items whose subsets will produce a bunch of interesting test
+/// cases.
+///
+/// Note: Try to keep this short. Every new item added here will quadruple
+/// testing costs.
+let testItems = [
+  RawCollider(1, "A"),
+  RawCollider(2, "B"),
+  RawCollider(3, "ACA"),
+  RawCollider(4, "ACB"),
+  RawCollider(5, "ACAD"),
+  RawCollider(6, "ACAD"),
+  RawCollider(7, "ACAEB"),
+  RawCollider(8, "ACAEB"),
+  RawCollider(9, "ACAEB"),
+  //    RawCollider(10, "ACAEB"),
+  //    RawCollider(11, "ADAD"),
+  //    RawCollider(12, "ACC"),
+]
+
+extension LifetimeTracker {
+  func persistentDictionary<Key, Value, C: Collection>(
+    for items: C,
+    keyTransform: (C.Element) -> Key,
+    valueTransform: (C.Element) -> Value
+  ) -> PersistentDictionary<LifetimeTracked<Key>, LifetimeTracked<Value>> {
+    PersistentDictionary(
+      uniqueKeys: instances(for: items, by: keyTransform),
+      values: instances(for: items, by: valueTransform))
+  }
+
+  func persistentDictionary<Value, C: Collection>(
+    for keys: C,
+    by valueTransform: (C.Element) -> Value
+  ) -> PersistentDictionary<LifetimeTracked<C.Element>, LifetimeTracked<Value>>
+  where C.Element: Hashable {
+    PersistentDictionary(
+      uniqueKeys: instances(for: keys),
+      values: instances(for: keys, by: valueTransform))
+  }
+
+  func dictionary<Key, Value, C: Collection>(
+    for items: C,
+    keyTransform: (C.Element) -> Key,
+    valueTransform: (C.Element) -> Value
+  ) -> Dictionary<LifetimeTracked<Key>, LifetimeTracked<Value>> {
+    Dictionary(
+      uniqueKeysWithValues: zip(
+        instances(for: items, by: keyTransform),
+        instances(for: items, by: valueTransform)))
+  }
+
+  func dictionary<Value, C: Collection>(
+    for keys: C,
+    by valueTransform: (C.Element) -> Value
+  ) -> Dictionary<LifetimeTracked<C.Element>, LifetimeTracked<Value>>
+  where C.Element: Hashable {
+    Dictionary(
+      uniqueKeysWithValues: zip(
+        instances(for: keys),
+        instances(for: keys, by: valueTransform)))
+  }
+
+}
+
 /// A list of example trees to use while testing persistent hash maps.
 ///
 /// Each example has a name and a list of path specifications or collisions.
@@ -189,13 +254,14 @@ let _fixtures: KeyValuePairs<String, [String]> = [
   ],
 ]
 
-let fixtures: [RawFixture] = _fixtures.map {
-  RawFixture(title: $0, contents: $1)
+let fixtures: [Fixture] = _fixtures.map {
+  Fixture(title: $0, contents: $1)
 }
 
-struct RawFixture {
+struct Fixture {
   let title: String
-  let hashes: [Hash]
+  let itemsInIterationOrder: [RawCollider]
+  let itemsInInsertionOrder: [RawCollider]
 
   init(title: String, contents: [String]) {
     self.title = title
@@ -208,21 +274,24 @@ struct RawFixture {
       return path.uppercased() + String(repeating: "0", count: c)
     }
 
-    var paths: [String] = []
+    var items: [(path: String, item: RawCollider)] = []
     var seen: Set<String> = []
-    for item in contents {
-      let path: String
-      if let i = item.unicodeScalars.firstIndex(of: "*") {
+    for var path in contents {
+      if let i = path.unicodeScalars.firstIndex(of: "*") {
         // We need to extend the path of collisions with zeroes to
         // make sure they sort correctly.
-        let p = String(item.unicodeScalars.prefix(upTo: i))
-        guard let count = Int(item.suffix(from: i).dropFirst(), radix: 10)
-        else { fatalError("Invalid item: '\(item)'") }
+        let p = String(path.unicodeScalars.prefix(upTo: i))
+        guard let count = Int(path.suffix(from: i).dropFirst(), radix: 10)
+        else { fatalError("Invalid item: '\(path)'") }
         path = normalized(p)
-        paths.append(contentsOf: repeatElement(path, count: count))
+        let hash = Hash(path)!
+        for _ in 0 ..< count {
+          items.append((path, RawCollider(items.count, hash)))
+        }
       } else {
-        path = normalized(item)
-        paths.append(path)
+        path = normalized(path)
+        let hash = Hash(path)!
+        items.append((path, RawCollider(items.count, hash)))
       }
 
       if !seen.insert(path).inserted {
@@ -232,93 +301,127 @@ struct RawFixture {
 
     var seenPrefixes: Set<Substring> = []
     var collidingPrefixes: Set<Substring> = []
-    for p in paths {
-      assert(p.count == maxDepth)
-      for i in p.indices {
-        let prefix = p[..<i]
+    for p in items {
+      assert(p.path.count == maxDepth)
+      for i in p.path.indices {
+        let prefix = p.path[..<i]
         if !seenPrefixes.insert(prefix).inserted {
           collidingPrefixes.insert(prefix)
         }
       }
-      if !seenPrefixes.insert(p[...]).inserted {
-        collidingPrefixes.insert(p[...])
+      if !seenPrefixes.insert(p.path[...]).inserted {
+        collidingPrefixes.insert(p.path[...])
       }
     }
 
+    self.itemsInInsertionOrder = items.map { $0.item }
+
     // Sort paths into the order that we expect items will appear in the
     // dictionary.
-    paths.sort { a, b in
-      var i = a.startIndex
-      var j = b.startIndex
-      while i < a.endIndex && j < b.endIndex {
-        let ac = collidingPrefixes.contains(a[...i])
-        let bc = collidingPrefixes.contains(b[...j])
+    items.sort { a, b in
+      var i = a.path.startIndex
+      var j = b.path.startIndex
+      while i < a.path.endIndex && j < b.path.endIndex {
+        let ac = collidingPrefixes.contains(a.path[...i])
+        let bc = collidingPrefixes.contains(b.path[...j])
         switch (ac, bc) {
         case (true, false): return false
         case (false, true): return true
         default: break
         }
-        if a[i] < b[j] { return true }
-        if a[j] > b[j] { return false }
-        a.formIndex(after: &i)
-        b.formIndex(after: &j)
+        if a.path[i] < b.path[j] { return true }
+        if a.path[j] > b.path[j] { return false }
+        a.path.formIndex(after: &i)
+        b.path.formIndex(after: &j)
       }
-      precondition(i == a.endIndex && j == b.endIndex)
+      precondition(i == a.path.endIndex && j == b.path.endIndex)
       return false
     }
 
-    self.hashes = paths.map { Hash($0)! }
+    self.itemsInIterationOrder = items.map { $0.item }
   }
-}
 
-struct Fixture<Key: Hashable, Value> {
-  typealias Element = (key: Key, value: Value)
-
-  let title: String
-  let items: [Element]
-
-  init(
-    _ raw: RawFixture,
-    key keyGenerator: (Int, Hash) -> Key,
-    value valueGenerator: (Int) -> Value
-  ) {
-    self.title = raw.title
-    self.items = raw.hashes.enumerated().map { i, hash in
-      (key: keyGenerator(i, hash), value: valueGenerator(i))
-    }
-  }
+  var count: Int { itemsInInsertionOrder.count }
 }
 
 func withEachFixture(
-  body: (Fixture<RawCollider, Int>) -> Void
+  _ label: String = "fixture",
+  body: (Fixture) -> Void
 ) {
-  for raw in fixtures {
-    let entry = TestContext.current.push("fixture: \(raw.title)")
+  for fixture in fixtures {
+    let entry = TestContext.current.push("\(label): \(fixture.title)")
     defer { TestContext.current.pop(entry) }
-
-    let fixture = Fixture<RawCollider, Int>(
-      raw,
-      key: { RawCollider($0, $1) },
-      value: { 100 + $0 })
 
     body(fixture)
   }
 }
 
-
 extension LifetimeTracker {
+  func persistentSet<Element: Hashable>(
+    for fixture: Fixture,
+    with transform: (RawCollider) -> Element
+  ) -> (
+    map: PersistentSet<LifetimeTracked<Element>>,
+    ref: [LifetimeTracked<Element>]
+  ) {
+    let ref = fixture.itemsInIterationOrder.map { key in
+      self.instance(for: transform(key))
+    }
+    let ref2 = fixture.itemsInInsertionOrder.map { key in
+      self.instance(for: transform(key))
+    }
+    return (PersistentSet(ref2), ref)
+  }
+
+  func persistentSet(
+    for fixture: Fixture
+  ) -> (
+    map: PersistentSet<LifetimeTracked<RawCollider>>,
+    ref: [LifetimeTracked<RawCollider>]
+  ) {
+    persistentSet(for: fixture) { key in key }
+  }
+
   func persistentDictionary<Key, Value>(
-    for fixture: Fixture<Key, Value>
+    for fixture: Fixture,
+    keyTransform: (RawCollider) -> Key,
+    valueTransform: (RawCollider) -> Value
   ) -> (
     map: PersistentDictionary<LifetimeTracked<Key>, LifetimeTracked<Value>>,
     ref: [(key: LifetimeTracked<Key>, value: LifetimeTracked<Value>)]
   ) {
-    let ref = fixture.items.map { (key, value) in
-      (key: self.instance(for: key), value: self.instance(for: value))
+    let ref = fixture.itemsInIterationOrder.map { item in
+      let key = keyTransform(item)
+      let value = valueTransform(item)
+      return (key: self.instance(for: key), value: self.instance(for: value))
     }
-    let ref2 = fixture.items.map { (key, value) in
-      (key: self.instance(for: key), value: self.instance(for: value))
+    let ref2 = fixture.itemsInInsertionOrder.map { item in
+      let key = keyTransform(item)
+      let value = valueTransform(item)
+      return (key: self.instance(for: key), value: self.instance(for: value))
     }
     return (PersistentDictionary(uniqueKeysWithValues: ref2), ref)
+  }
+
+  func persistentDictionary<Value>(
+    for fixture: Fixture,
+    valueTransform: (Int) -> Value
+  ) -> (
+    map: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Value>>,
+    ref: [(key: LifetimeTracked<RawCollider>, value: LifetimeTracked<Value>)]
+  ) {
+    persistentDictionary(
+      for: fixture,
+      keyTransform: { $0 },
+      valueTransform: { valueTransform($0.identity) })
+  }
+
+  func persistentDictionary(
+    for fixture: Fixture
+  ) -> (
+    map: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>>,
+    ref: [(key: LifetimeTracked<RawCollider>, value: LifetimeTracked<Int>)]
+  ) {
+    persistentDictionary(for: fixture) { $0 + 1000 }
   }
 }

@@ -67,9 +67,7 @@ extension PersistentDictionary.Keys: Sequence {
   ) -> Bool? {
     _base._root.containsKey(.top, element, _Hash(element))
   }
-}
 
-extension PersistentDictionary.Keys: _FastMembershipCheckable {
   @inlinable
   public func contains(_ element: Element) -> Bool {
     _base._root.containsKey(.top, element, _Hash(element))

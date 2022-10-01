@@ -80,7 +80,7 @@ extension _Node.UnsafeHandle {
 extension _Node {
   @inlinable @inline(__always)
   internal mutating func insertItem(
-    _ item: __owned Element, _ bucket: _Bucket
+    _ item: __owned Element, at bucket: _Bucket
   ) {
     let slot = read { $0.itemMap.slot(of: bucket) }
     self.insertItem(item, at: slot, bucket)
