@@ -56,9 +56,14 @@ extension _Node {
   internal func _invariantCheck() {}
 #endif
 
+  @inlinable @inline(__always)
+  public func _fullInvariantCheck() {
+    self._fullInvariantCheck(.top, .emptyPath)
+  }
+
 #if COLLECTIONS_INTERNAL_CHECKS
   @inlinable @inline(never)
-  public func _fullInvariantCheck(_ level: _Level, _ path: _Hash) {
+  internal func _fullInvariantCheck(_ level: _Level, _ path: _Hash) {
     _invariantCheck()
     read {
       precondition(level.isAtRoot || !hasSingletonItem)
@@ -96,7 +101,7 @@ extension _Node {
   }
 #else
   @inlinable @inline(__always)
-  public func _fullInvariantCheck(_ level: _Level, _ path: _Hash) {}
+  internal func _fullInvariantCheck(_ level: _Level, _ path: _Hash) {}
 #endif
 }
 

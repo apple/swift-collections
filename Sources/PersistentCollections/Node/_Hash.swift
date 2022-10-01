@@ -70,7 +70,7 @@ extension _Hash {
 
 extension _Hash {
   @inlinable
-  internal static var emptyPrefix: _Hash {
+  internal static var emptyPath: _Hash {
     _Hash(_value: 0)
   }
 

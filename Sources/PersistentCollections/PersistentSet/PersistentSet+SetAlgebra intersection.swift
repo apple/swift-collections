@@ -44,10 +44,10 @@ extension PersistentSet {
   internal func _intersection<V>(
     _ other: PersistentCollections._Node<Element, V>
   ) -> Self {
-    let builder = _root.intersection(.top, .emptyPrefix, other)
+    let builder = _root.intersection(.top, other)
     guard let builder = builder else { return self }
     let root = builder.finalize(.top)
-    root._fullInvariantCheck(.top, .emptyPrefix)
+    root._fullInvariantCheck()
     return Self(_new: root)
   }
 
@@ -80,7 +80,7 @@ extension PersistentSet {
       return self.filter { other.contains($0) }
     }
 
-    var result: _Node = ._empty()
+    var result: _Node = ._emptyNode()
     for item in other {
       let hash = _Hash(item)
       if let r = self._root.lookup(.top, item, hash) {

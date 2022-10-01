@@ -22,7 +22,8 @@ extension PersistentSet {
     let hash = _Hash(member)
     let r = _root.removing(.top, member, hash)
     guard let r = r else { return self }
-    return PersistentSet(_new: r.replacement)
+    let root = r.replacement.finalize(.top)
+    return PersistentSet(_new: root)
   }
 
   @inlinable

@@ -22,7 +22,7 @@ extension PersistentDictionary {
   public func compactMapValues<T>(
     _ transform: (Value) throws -> T?
   ) rethrows -> PersistentDictionary<Key, T> {
-    let result = try _root.compactMapValues(.top, .emptyPrefix, transform)
+    let result = try _root.compactMapValues(.top, transform)
     return PersistentDictionary<Key, T>(_new: result.finalize(.top))
   }
 }

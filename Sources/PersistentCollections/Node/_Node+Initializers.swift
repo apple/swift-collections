@@ -11,7 +11,7 @@
 
 extension _Node {
   @inlinable @inline(__always)
-  internal static func _empty() -> _Node {
+  internal static func _emptyNode() -> _Node {
     _Node(storage: _emptySingleton, count: 0)
   }
 
@@ -98,7 +98,8 @@ extension _Node {
 
   @inlinable
   internal static func _regularNode(
-    _ child: __owned _Node, _ bucket: _Bucket
+    _ child: __owned _Node,
+    _ bucket: _Bucket
   ) -> _Node {
     let r = _Node.allocate(
       itemMap: .empty,

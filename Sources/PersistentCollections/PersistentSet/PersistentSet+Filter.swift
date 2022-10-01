@@ -14,9 +14,7 @@ extension PersistentSet {
   public func filter(
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
-    let result = try _root.filter(.top, .emptyPrefix) {
-      try isIncluded($0.key)
-    }
+    let result = try _root.filter(.top) { try isIncluded($0.key) }
     guard let result = result else { return self }
     return PersistentSet(_new: result.finalize(.top))
   }

@@ -18,7 +18,7 @@ extension PersistentDictionary {
 
   @inlinable
   public func _invariantCheck() {
-    _root._fullInvariantCheck(.top, .emptyPrefix)
+    _root._fullInvariantCheck()
   }
 
   public func _dump(iterationOrder: Bool = false) {

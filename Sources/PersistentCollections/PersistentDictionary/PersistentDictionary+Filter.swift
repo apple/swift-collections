@@ -14,7 +14,7 @@ extension PersistentDictionary {
   public func filter(
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
-    let result = try _root.filter(.top, .emptyPrefix, isIncluded)
+    let result = try _root.filter(.top, isIncluded)
     guard let result = result else { return self }
     return PersistentDictionary(_new: result.finalize(.top))
   }
