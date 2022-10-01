@@ -204,8 +204,7 @@ extension _Node {
     assert(!isCollisionNode)
 
     if !isUnique {
-      self = copyNodeAndInsertItem(
-        at: bucket, itemSlot: slot, inserter)
+      self = copyNodeAndInsertItem(at: bucket, itemSlot: slot, inserter)
       return
     }
     if !hasFreeSpace(Self.spaceForNewItem) {
@@ -218,17 +217,6 @@ extension _Node {
       inserter(p)
     }
     self.count &+= 1
-  }
-
-  @inlinable @inline(__always)
-  internal func copyNodeAndInsertItem(
-    at bucket: _Bucket,
-    _ item: __owned Element
-  ) -> _Node {
-    let slot = read { $0.itemMap.slot(of: bucket) }
-    return copyNodeAndInsertItem(at: bucket, itemSlot: slot) {
-      $0.initialize(to: item)
-    }
   }
 
   @inlinable @inline(never)
@@ -466,43 +454,6 @@ extension _Node {
 }
 
 extension _Node {
-  @inlinable
-  internal mutating func ensureUniqueAndPushItemIntoNewChild(
-    isUnique: Bool,
-    level: _Level,
-    _ newChild: _Node,
-    at bucket: _Bucket,
-    itemSlot: _Slot
-  ) {
-    if !isUnique {
-      self = copyNodeAndPushItemIntoNewChild(
-        level: level,
-        newChild,
-        at: bucket,
-        itemSlot: itemSlot)
-      return
-    }
-    if !hasFreeSpace(Self.spaceForSpawningChild) {
-      resizeNodeAndPushItemIntoNewChild(
-        level: level,
-        newChild,
-        at: bucket,
-        itemSlot: itemSlot)
-      return
-    }
-
-    assert(!isCollisionNode)
-    let item = removeItem(at: itemSlot, bucket)
-    let hash = _Hash(item.key)
-    let r = newChild.inserting(level.descend(), item, hash)
-    if self.count == 0, r.node.isCollisionNode {
-      // Compression
-      self = newChild
-    } else {
-      insertChild(r.node, bucket)
-    }
-  }
-
   @inlinable @inline(never)
   internal func copyNodeAndPushItemIntoNewChild(
     level: _Level,
@@ -515,24 +466,6 @@ extension _Node {
     let hash = _Hash(item.key)
     let r = newChild.inserting(level, item, hash)
     return _copyNodeAndReplaceItemWithNewChild(
-      level: level,
-      r.node,
-      at: bucket,
-      itemSlot: itemSlot)
-  }
-
-  @inlinable @inline(never)
-  internal mutating func resizeNodeAndPushItemIntoNewChild(
-    level: _Level,
-    _ newChild: __owned _Node,
-    at bucket: _Bucket,
-    itemSlot: _Slot
-  ) {
-    assert(!isCollisionNode)
-    let item = update { $0.itemPtr(at: itemSlot).move() }
-    let hash = _Hash(item.key)
-    let r = newChild.inserting(level, item, hash)
-    _resizeNodeAndReplaceItemWithNewChild(
       level: level,
       r.node,
       at: bucket,
@@ -579,7 +512,7 @@ extension _Node {
         inserter)
     }
 
-    let existing = removeItem(at: itemSlot, bucket)
+    let existing = removeItem(at: bucket, itemSlot)
     let r = _Node.build(
       level: level.descend(),
       item1: existing, existingHash,

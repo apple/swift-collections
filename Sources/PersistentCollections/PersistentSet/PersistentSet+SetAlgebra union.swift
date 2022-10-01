@@ -29,9 +29,9 @@
 extension PersistentSet {
   @inlinable
   public func union(_ other: __owned Self) -> Self {
-    let r = _root.union(.top, .emptyPrefix, other._root)
+    let r = _root.union(.top, other._root)
     guard r.copied else { return self }
-    r.node._fullInvariantCheck(.top, .emptyPrefix)
+    r.node._fullInvariantCheck()
     return PersistentSet(_new: r.node)
   }
 

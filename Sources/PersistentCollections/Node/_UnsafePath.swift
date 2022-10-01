@@ -216,15 +216,6 @@ extension _UnsafePath {
   internal var isOnNodeEnd: Bool {
     !_isItem && nodeSlot.value == node.childCount
   }
-
-  /// Returns true if this path addresses an item on the leftmost branch of the
-  /// tree, or the empty slot at the end of an empty tree.
-  @inlinable
-  internal var isOnLeftmostItem: Bool {
-    // We are on the leftmost item in the tree if we are currently
-    // addressing an item and the ancestors path is all zero bits.
-    _isItem && ancestors == .empty && nodeSlot == .zero
-  }
 }
 
 extension _UnsafePath {
@@ -374,30 +365,6 @@ extension _UnsafePath {
     guard let best = best else { return false }
     self = best
     return true
-  }
-  /// Ascend to the parent node of this path. Because paths do not contain
-  /// references to every node on them, you need to manually supply a valid
-  /// reference to the root node. This method visits every node
-  /// between the root and the current final node on the path.
-  ///
-  /// - Note: It is undefined behavior to call this on a path that is no longer
-  ///    valid.
-  internal mutating func ascend(under root: _RawNode) {
-    assert(!self.level.isAtRoot)
-    var n = root.unmanaged
-    var l: _Level = .top
-    while l.descend() < self.level {
-      n = n.unmanagedChild(at: self.ancestors[l])
-      l = l.descend()
-    }
-    assert(l.descend() == self.level)
-    self._isItem = false
-    self.nodeSlot = self.ancestors[l]
-    let oldNode = self.node
-    self.node = n
-    self.ancestors.clear(l)
-    self.level = l
-    assert(self.currentChild == oldNode)
   }
 }
 

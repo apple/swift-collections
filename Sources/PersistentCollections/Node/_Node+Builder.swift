@@ -12,166 +12,276 @@
 extension _Node {
   @usableFromInline
   @frozen
-  internal enum Builder {
+  internal struct Builder {
     @usableFromInline typealias Element = _Node.Element
 
-    case empty
-    case item(Element, _Hash)
-    case node(_Node, _Hash)
+    @usableFromInline
+    @frozen
+    internal enum Kind {
+      case empty
+      case item(Element, at: _Bucket)
+      case node(_Node)
+      case collisionNode(_Node)
+    }
+
+    @usableFromInline
+    internal var level: _Level
+
+    @usableFromInline
+    internal var kind: Kind
+
+    @inlinable
+    internal init(_ level: _Level, _ kind: Kind) {
+      self.level = level
+      self.kind = kind
+    }
+  }
+}
+
+extension _Node.Builder {
+  @usableFromInline
+  internal func dump() {
+    let head = "Builder(level: \(level.depth), kind: "
+    switch self.kind {
+    case .empty:
+      print(head + "empty)")
+    case .item(let item, at: let bucket):
+      print(head + "item(\(_Node._itemString(for: item)), at: \(bucket))")
+    case .node(let node):
+      print(head + "node)")
+      node.dump()
+    case .collisionNode(let node):
+      print(head + "collisionNode)")
+      node.dump()
+    }
+  }
+}
+
+extension _Node.Builder {
+  @inlinable @inline(__always)
+  internal static func empty(_ level: _Level) -> Self {
+    Self(level, .empty)
+  }
+
+  @inlinable @inline(__always)
+  internal static func item(
+    _ level: _Level, _ item: __owned Element, at bucket: _Bucket
+  ) -> Self {
+    Self(level, .item(item, at: bucket))
+  }
+
+  @inlinable @inline(__always)
+  internal static func node(
+    _ level: _Level, _ node: __owned _Node
+  ) -> Self {
+    assert(!node.isCollisionNode)
+    return Self(level, .node(node))
+  }
+
+  @inlinable @inline(__always)
+  internal static func collisionNode(
+    _ level: _Level, _ node: __owned _Node
+  ) -> Self {
+    assert(node.isCollisionNode)
+    return Self(level, .collisionNode(node))
   }
 }
 
 extension _Node.Builder {
   @inlinable
   internal var count: Int {
-    switch self {
+    switch kind {
     case .empty:
       return 0
     case .item:
       return 1
-    case .node(let node, _):
+    case .node(let node):
+      return node.count
+    case .collisionNode(let node):
       return node.count
     }
   }
 
   @inlinable
   internal var isEmpty: Bool {
-    guard case .empty = self else { return false }
+    guard case .empty = kind else { return false }
     return true
   }
 }
 
 extension _Node.Builder {
   @inlinable
-  internal init(_ level: _Level, _ node: _Node, _ hashPrefix: _Hash) {
+  internal init(_ level: _Level, _ node: _Node) {
+    self.level = level
     if node.count == 0 {
-      self = .empty
+      kind = .empty
+    } else if node.isCollisionNode {
+      assert(!node.hasSingletonItem)
+      kind = .collisionNode(node)
     } else if node.hasSingletonItem {
-      let item = node.read { $0[item: .zero] }
-      self = .item(item, hashPrefix)
+      kind = node.read { .item($0[item: .zero], at: $0.itemMap.first!) }
     } else {
-      self = .node(node, hashPrefix)
+      kind = .node(node)
     }
   }
 
   @inlinable
-  internal func finalize(_ level: _Level) -> _Node {
-    assert(level.isAtRoot)
-    switch self {
+  internal __consuming func finalize(_ level: _Level) -> _Node {
+    assert(level.isAtRoot && self.level.isAtRoot)
+    switch kind {
     case .empty:
-      return ._empty()
-    case .item(let item, let h):
-      return ._regularNode(item, h[level])
-    case .node(let node, _):
+      return ._emptyNode()
+    case .item(let item, let bucket):
+      return ._regularNode(item, bucket)
+    case .node(let node):
+      return node
+    case .collisionNode(let node):
       return node
     }
   }
+}
 
+extension _Node {
   @inlinable
-  internal mutating func addNewCollision(_ newItem: Element, _ hash: _Hash) {
-    switch self {
+  internal mutating func applyReplacement(
+    _ level: _Level,
+    _ replacement: Builder
+  ) -> Element? {
+    assert(level == replacement.level)
+    switch replacement.kind {
     case .empty:
-      self = .item(newItem, hash)
-    case .item(let oldItem, let h):
-      assert(hash == h)
+      self = ._emptyNode()
+    case .node(let n), .collisionNode(let n):
+      self = n
+    case .item(let item, let bucket):
+      guard level.isAtRoot else {
+        self = ._emptyNode()
+        return item
+      }
+      self = ._regularNode(item, bucket)
+    }
+    return nil
+  }
+}
+
+extension _Node.Builder {
+  @inlinable
+  internal mutating func addNewCollision(
+    _ level: _Level, _ newItem: __owned Element, _ hash: _Hash
+  ) {
+    assert(level == self.level)
+    switch kind {
+    case .empty:
+      kind = .item(newItem, at: hash[level])
+    case .item(let oldItem, at: let bucket):
+      assert(hash[level] == bucket)
       let node = _Node._collisionNode(hash, oldItem, newItem)
-      self = .node(node, hash)
-    case .node(var node, let h):
-      self = .empty
+      kind = .collisionNode(node)
+    case .collisionNode(var node):
+      kind = .empty
       assert(node.isCollisionNode)
-      assert(hash == h)
       assert(hash == node.collisionHash)
       _ = node.ensureUniqueAndAppendCollision(isUnique: true, newItem)
-      self = .node(node, h)
+      kind = .collisionNode(node)
+    case .node:
+      fatalError()
     }
   }
 
   @inlinable
   internal mutating func addNewItem(
-    _ level: _Level, _ newItem: Element, _ hashPrefix: _Hash
+    _ level: _Level, _ newItem: __owned Element, at newBucket: _Bucket
   ) {
-    switch self {
+    assert(level == self.level)
+    switch kind {
     case .empty:
-      self = .item(newItem, hashPrefix)
-    case .item(let oldItem, let oldHash):
-      let bucket1 = oldHash[level]
-      let bucket2 = hashPrefix[level]
-      assert(bucket1 != bucket2)
-      assert(oldHash.isEqual(to: hashPrefix, upTo: level))
-      let node = _Node._regularNode(oldItem, bucket1, newItem, bucket2)
-      self = .node(node, hashPrefix)
-    case .node(var node, let nodeHash):
-      self = .empty
-      if node.isCollisionNode {
-        // Expansion
+      kind = .item(newItem, at: newBucket)
+    case .item(let oldItem, let oldBucket):
+      assert(oldBucket != newBucket)
+      let node = _Node._regularNode(oldItem, oldBucket, newItem, newBucket)
+      kind = .node(node)
+    case .node(var node):
+      kind = .empty
+      let isUnique = node.isUnique()
+      node.ensureUniqueAndInsertItem(isUnique: isUnique, newItem, at: newBucket)
+      kind = .node(node)
+    case .collisionNode(var node):
+      // Expansion
+      assert(!level.isAtBottom)
+      self.kind = .empty
+      node = _Node._regularNode(
+        newItem, newBucket, node, node.collisionHash[level])
+      kind = .node(node)
+    }
+  }
+
+  @inlinable
+  internal mutating func addNewChildNode(
+    _ level: _Level, _ newChild: __owned _Node, at newBucket: _Bucket
+  ) {
+    assert(level == self.level)
+    switch self.kind {
+    case .empty:
+      if newChild.isCollisionNode {
+        // Compression
         assert(!level.isAtBottom)
-        node = _Node._regularNode(node, nodeHash[level])
+        self.kind = .collisionNode(newChild)
+      } else {
+        self.kind = .node(._regularNode(newChild, newBucket))
       }
-      assert(nodeHash.isEqual(to: hashPrefix, upTo: level))
-      let bucket = hashPrefix[level]
-      node.ensureUniqueAndInsertItem(isUnique: true, newItem, at: bucket)
-      self = .node(node, nodeHash)
+    case let .item(oldItem, oldBucket):
+      let node = _Node._regularNode(oldItem, oldBucket, newChild, newBucket)
+      self.kind = .node(node)
+    case .node(var node):
+      self.kind = .empty
+      let isUnique = node.isUnique()
+      node.ensureUnique(
+        isUnique: isUnique, withFreeSpace: _Node.spaceForNewChild)
+      node.insertChild(newChild, newBucket)
+      self.kind = .node(node)
+    case .collisionNode(var node):
+      // Expansion
+      self.kind = .empty
+      assert(!level.isAtBottom)
+      node = _Node._regularNode(
+        node, node.collisionHash[level], newChild, newBucket)
+      self.kind = .node(node)
     }
   }
 
   @inlinable
   internal mutating func addNewChildBranch(
-    _ level: _Level, _ branch: Self
+    _ level: _Level, _ newChild: __owned Self, at newBucket: _Bucket
   ) {
-    switch (self, branch) {
-    case (_, .empty):
+    assert(level == self.level)
+    assert(newChild.level == self.level.descend())
+    switch newChild.kind {
+    case .empty:
       break
-    case (.empty, .item):
-      self = branch
-    case (.empty, .node(let child, let childHash)):
-      if child.isCollisionNode {
-        // Compression
-        assert(!level.isAtBottom)
-        self = branch
-      } else {
-        let node = _Node._regularNode(child, childHash[level])
-        self = .node(node, childHash)
-      }
-    case let (.item(li, lh), .item(ri, rh)):
-      let node = _Node._regularNode(li, lh[level], ri, rh[level])
-      self = .node(node, lh)
-    case let (.item(item, itemHash), .node(child, childHash)):
-      assert(itemHash.isEqual(to: childHash, upTo: level))
-      let node = _Node._regularNode(
-        item, itemHash[level],
-        child, childHash[level])
-      self = .node(node, childHash)
-    case (.node(var node, let nodeHash), .item(let item, let itemHash)):
-      if node.isCollisionNode {
-        // Expansion
-        assert(!level.isAtBottom)
-        node = _Node._regularNode(node, nodeHash[level])
-      }
-      assert(!node.isCollisionNode)
-      assert(nodeHash.isEqual(to: itemHash, upTo: level))
-      node.ensureUniqueAndInsertItem(
-        isUnique: true, item, at: itemHash[level])
-      self = .node(node, nodeHash)
-    case (.node(var node, let nodeHash), .node(let child, let childHash)):
-      if node.isCollisionNode {
-        // Expansion
-        assert(!level.isAtBottom)
-        node = _Node._regularNode(node, nodeHash[level])
-      }
-      assert(nodeHash.isEqual(to: childHash, upTo: level))
-      node.ensureUnique(isUnique: true, withFreeSpace: _Node.spaceForNewChild)
-      node.insertChild(child, childHash[level])
-      self = .node(node, nodeHash)
+    case .item(let newItem, _):
+      self.addNewItem(level, newItem, at: newBucket)
+    case .node(let newNode), .collisionNode(let newNode):
+      self.addNewChildNode(level, newNode, at: newBucket)
     }
   }
 
   @inlinable
   internal static func childBranch(
-    _ level: _Level, _ branch: Self
+    _ level: _Level, _ child: Self, at bucket: _Bucket
   ) -> Self {
-    var result: Self = .empty
-    result.addNewChildBranch(level, branch)
-    return result
+    assert(child.level == level.descend())
+    switch child.kind {
+    case .empty:
+      return self.empty(level)
+    case .item(let item, _):
+      return self.item(level, item, at: bucket)
+    case .node(let n):
+      return self.node(level, ._regularNode(n, bucket))
+    case .collisionNode(let node):
+      // Compression
+      assert(!level.isAtBottom)
+      return self.collisionNode(level, node)
+    }
   }
 }
 
@@ -186,42 +296,38 @@ extension _Node.Builder {
     assert(end < source.itemsEndSlot)
     let h = source.collisionHash
     for slot: _Slot in stride(from: .zero, to: end, by: 1) {
-      self.addNewCollision(source[item: slot], h)
+      self.addNewCollision(self.level, source[item: slot], h)
     }
   }
 
   @inlinable
   internal mutating func copyItems(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     from source: _Node.UnsafeHandle,
     upTo end: _Bucket
   ) {
+    assert(level == self.level)
     assert(isEmpty)
     assert(!source.isCollisionNode)
     for (b, s) in source.itemMap.intersection(_Bitmap(upTo: end)) {
-      let h = hashPrefix.appending(b, at: level)
-      self.addNewItem(level, source[item: s], h)
+      self.addNewItem(level, source[item: s], at: b)
     }
   }
 
   @inlinable
   internal mutating func copyItemsAndChildren(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     from source: _Node.UnsafeHandle,
     upTo end: _Bucket
   ) {
+    assert(level == self.level)
     assert(isEmpty)
     assert(!source.isCollisionNode)
     for (b, s) in source.itemMap {
-      let h = hashPrefix.appending(b, at: level)
-      self.addNewItem(level, source[item: s], h)
+      self.addNewItem(level, source[item: s], at: b)
     }
     for (b, s) in source.childMap.intersection(_Bitmap(upTo: end)) {
-      let h = hashPrefix.appending(b, at: level)
-      self.addNewChildBranch(level, .node(source[child: s], h))
+      self.addNewChildNode(level, source[child: s], at: b)
     }
   }
-
 }

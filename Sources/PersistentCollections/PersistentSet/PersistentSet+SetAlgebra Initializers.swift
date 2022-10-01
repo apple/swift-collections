@@ -18,7 +18,7 @@ extension PersistentSet {
   /// - Complexity: O(1)
   @inlinable
   public init() {
-    self.init(_new: ._empty())
+    self.init(_new: ._emptyNode())
   }
 
   /// Creates a new set from a finite sequence of items.

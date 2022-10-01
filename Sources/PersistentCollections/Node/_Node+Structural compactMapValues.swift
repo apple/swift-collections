@@ -13,17 +13,16 @@ extension _Node {
   @inlinable
   internal func compactMapValues<T>(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     _ transform: (Value) throws -> T?
   ) rethrows -> _Node<Key, T>.Builder {
     return try self.read {
-      var result: _Node<Key, T>.Builder = .empty
+      var result: _Node<Key, T>.Builder = .empty(level)
 
       if isCollisionNode {
         let items = $0.reverseItems
         for i in items.indices {
           if let v = try transform(items[i].value) {
-            result.addNewCollision((items[i].key, v), $0.collisionHash)
+            result.addNewCollision(level, (items[i].key, v), $0.collisionHash)
           }
         }
         return result
@@ -32,16 +31,14 @@ extension _Node {
       for (bucket, slot) in $0.itemMap {
         let p = $0.itemPtr(at: slot)
         if let v = try transform(p.pointee.value) {
-          let h = hashPrefix.appending(bucket, at: level)
-          result.addNewItem(level, (p.pointee.key, v), h)
+          result.addNewItem(level, (p.pointee.key, v), at: bucket)
         }
       }
 
       for (bucket, slot) in $0.childMap {
-        let h = hashPrefix.appending(bucket, at: level)
-        let branch = try $0[child: slot].compactMapValues(
-          level.descend(), h, transform)
-        result.addNewChildBranch(level, branch)
+        let branch = try $0[child: slot]
+          .compactMapValues(level.descend(), transform)
+        result.addNewChildBranch(level, branch, at: bucket)
       }
       return result
     }
