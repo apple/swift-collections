@@ -195,25 +195,6 @@ class PersistentSetTests: CollectionTestCase {
     expectEqualSets(s6.intersection(s9), [])
   }
 
-  /// A set of items whose subsets will produce a bunch of interesting test
-  /// cases.
-  ///
-  /// Note: Try to keep this short. Every new item added here will quadruple
-  /// testing costs.
-  let testItems = [
-    RawCollider(1, "A"),
-    RawCollider(2, "ACA"),
-    RawCollider(3, "ACB"),
-    RawCollider(4, "ACAD"),
-    RawCollider(5, "ACAD"),
-    RawCollider(6, "ACAEB"),
-    RawCollider(7, "ACAEB"),
-    RawCollider(8, "ACAEB"),
-//    RawCollider(9, "ACAEB"),
-//    RawCollider(10, "ADAD"),
-//    RawCollider(11, "ACC"),
-  ]
-
   func test_isEqual_Self_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
@@ -318,7 +299,7 @@ class PersistentSetTests: CollectionTestCase {
     }
   }
 
-  func test_filter_Self_exhaustive() {
+  func test_filter_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       withEverySubset("b", of: a) { b in

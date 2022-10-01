@@ -18,7 +18,35 @@ extension _Node {
   ) -> (copied: Bool, node: _Node) {
     guard self.count > 0 else { return (true, other) }
     guard other.count > 0 else { return (false, self) }
+    if level.isAtRoot, self.hasSingletonItem {
+      // In this special case, the root node may turn into a collision node
+      // during the merge process. Prevent this from causing issues below by
+      // handling it up front.
+      return self.read { l in
+        let lp = l.itemPtr(at: .zero)
+        var copy = other
+        let r = copy.updateValue(
+          level, forKey: lp.pointee.key, _Hash(lp.pointee.key)
+        ) {
+          $0.initialize(to: lp.pointee)
+        }
+        if !r.inserted {
+          UnsafeHandle.update(r.leaf) {
+            $0[item: r.slot] = lp.pointee
+          }
+        }
+        return (true, copy)
+      }
+    }
+    return _union(level, hashPrefix, other)
+  }
 
+  @inlinable
+  internal func _union(
+    _ level: _Level,
+    _ hashPrefix: _Hash,
+    _ other: _Node
+  ) -> (copied: Bool, node: _Node) {
     if self.raw.storage === other.raw.storage {
       return (false, self)
     }
@@ -33,6 +61,7 @@ extension _Node {
         var copied = false
 
         for (bucket, lslot) in l.itemMap {
+          assert(!node.isCollisionNode)
           if r.itemMap.contains(bucket) {
             let rslot = r.itemMap.slot(of: bucket)
             let lp = l.itemPtr(at: lslot)
@@ -49,6 +78,10 @@ extension _Node {
                 itemSlot: slot,
                 newHash: _Hash(rp.pointee.key),
                 { $0.initialize(to: rp.pointee) })
+              // If we hadn't handled the singleton root node case above,
+              // then this call would sometimes turn `node` into a collision
+              // node on a compressed path, causing mischief.
+              assert(!node.isCollisionNode)
               copied = true
             }
           }
@@ -66,6 +99,7 @@ extension _Node {
         }
 
         for (bucket, lslot) in l.childMap {
+          assert(!node.isCollisionNode)
           if r.itemMap.contains(bucket) {
             let rslot = r.itemMap.slot(of: bucket)
             let rp = r.itemPtr(at: rslot)
@@ -82,7 +116,7 @@ extension _Node {
           }
           else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            let child = l[child: lslot].union(
+            let child = l[child: lslot]._union(
               level.descend(),
               hashPrefix.appending(bucket, at: level),
               r[child: rslot])
@@ -97,8 +131,11 @@ extension _Node {
           }
         }
 
+        assert(!node.isCollisionNode)
+
         /// Add buckets in `other` that we haven't processed above.
         let seen = l.itemMap.union(l.childMap)
+
         for (bucket, _) in r.itemMap.subtracting(seen) {
           let rslot = r.itemMap.slot(of: bucket)
           node.ensureUniqueAndInsertItem(
@@ -181,7 +218,7 @@ extension _Node {
           if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
             let h = hashPrefix.appending(bucket, at: level)
-            let res = self.union(level.descend(), h, r[child: rslot])
+            let res = self._union(level.descend(), h, r[child: rslot])
             var node = other.copy()
             let delta = node.replaceChild(at: bucket, rslot, with: res.node)
             assert(delta >= 0)
@@ -202,12 +239,7 @@ extension _Node {
         let bucket = r.collisionHash[level]
         if l.itemMap.contains(bucket) {
           let lslot = l.itemMap.slot(of: bucket)
-          let lp = l.itemPtr(at: lslot)
-          if l.hasSingletonItem {
-            let hash = _Hash(lp.pointee.key)
-            let replacement = other.inserting(level, lp.pointee, hash)
-            return (true, replacement.node)
-          }
+          assert(!l.hasSingletonItem) // Handled up front above
           let node = self.copyNodeAndPushItemIntoNewChild(
             level: level,
             other,
@@ -218,7 +250,7 @@ extension _Node {
         if l.childMap.contains(bucket) {
           let lslot = l.childMap.slot(of: bucket)
           let h = hashPrefix.appending(bucket, at: level)
-          let child = l[child: lslot].union(level.descend(), h, other)
+          let child = l[child: lslot]._union(level.descend(), h, other)
           guard child.copied else { return (false, self) }
           var node = self.copy()
           let delta = node.replaceChild(at: bucket, lslot, with: child.node)

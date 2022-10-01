@@ -40,6 +40,12 @@ public class LifetimeTracker {
   public func instances<S: Sequence>(for items: S) -> [LifetimeTracked<S.Element>] {
     return items.map { LifetimeTracked($0, for: self) }
   }
+
+  public func instances<S: Sequence, T>(
+    for items: S, by transform: (S.Element) -> T
+  ) -> [LifetimeTracked<T>] {
+    items.map { instance(for: transform($0)) }
+  }
 }
 
 @inlinable

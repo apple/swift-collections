@@ -1489,6 +1489,55 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_filter_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentDictionary(
+        uniqueKeysWithValues: a.lazy.map {
+          ($0, $0.identity + 100)
+        })
+      withEverySubset("b", of: a) { b in
+        let y = Dictionary(
+          uniqueKeysWithValues: b.lazy.map {
+            ($0, $0.identity + 100)
+          })
+        expectEqualDictionaries(x.filter { y[$0.key] == $0.value }, y)
+      }
+    }
+  }
+
+  func test_merge_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      withEverySubset("b", of: testItems) { b in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            func combine(
+              _ a: LifetimeTracked<Int>, _ b: LifetimeTracked<Int>
+            ) -> LifetimeTracked<Int> {
+              expectEqual(b.payload, a.payload + 100)
+              return tracker.instance(for: 100 - a.payload)
+            }
+            var expected1 = tracker.dictionary(
+              for: a, by: { $0.identity + 100 })
+            let expected2 = tracker.dictionary(
+              for: b, by: { $0.identity + 200 })
+
+            var actual1 = tracker.persistentDictionary(
+              for: a, by: { $0.identity + 100 })
+            let actual2 = tracker.persistentDictionary(
+              for: b, by: { $0.identity + 200 })
+
+            expected1.merge(expected2, uniquingKeysWith: combine)
+
+            withHiddenCopies(if: isShared, of: &expected1) { expected1 in
+              actual1.merge(actual2, uniquingKeysWith: combine)
+              expectEqualDictionaries(actual1, expected1)
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   // MARK: -
 

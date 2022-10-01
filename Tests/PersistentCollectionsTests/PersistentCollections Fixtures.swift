@@ -12,6 +12,71 @@
 import _CollectionsTestSupport
 import PersistentCollections
 
+/// A set of items whose subsets will produce a bunch of interesting test
+/// cases.
+///
+/// Note: Try to keep this short. Every new item added here will quadruple
+/// testing costs.
+let testItems = [
+  RawCollider(1, "A"),
+  RawCollider(2, "B"),
+  RawCollider(3, "ACA"),
+  RawCollider(4, "ACB"),
+  RawCollider(5, "ACAD"),
+  RawCollider(6, "ACAD"),
+  RawCollider(7, "ACAEB"),
+  RawCollider(8, "ACAEB"),
+  RawCollider(9, "ACAEB"),
+  //    RawCollider(10, "ACAEB"),
+  //    RawCollider(11, "ADAD"),
+  //    RawCollider(12, "ACC"),
+]
+
+extension LifetimeTracker {
+  func persistentDictionary<Key, Value, C: Collection>(
+    for items: C,
+    keyTransform: (C.Element) -> Key,
+    valueTransform: (C.Element) -> Value
+  ) -> PersistentDictionary<LifetimeTracked<Key>, LifetimeTracked<Value>> {
+    PersistentDictionary(
+      uniqueKeys: instances(for: items, by: keyTransform),
+      values: instances(for: items, by: valueTransform))
+  }
+
+  func persistentDictionary<Value, C: Collection>(
+    for keys: C,
+    by valueTransform: (C.Element) -> Value
+  ) -> PersistentDictionary<LifetimeTracked<C.Element>, LifetimeTracked<Value>>
+  where C.Element: Hashable {
+    PersistentDictionary(
+      uniqueKeys: instances(for: keys),
+      values: instances(for: keys, by: valueTransform))
+  }
+
+  func dictionary<Key, Value, C: Collection>(
+    for items: C,
+    keyTransform: (C.Element) -> Key,
+    valueTransform: (C.Element) -> Value
+  ) -> Dictionary<LifetimeTracked<Key>, LifetimeTracked<Value>> {
+    Dictionary(
+      uniqueKeysWithValues: zip(
+        instances(for: items, by: keyTransform),
+        instances(for: items, by: valueTransform)))
+  }
+
+  func dictionary<Value, C: Collection>(
+    for keys: C,
+    by valueTransform: (C.Element) -> Value
+  ) -> Dictionary<LifetimeTracked<C.Element>, LifetimeTracked<Value>>
+  where C.Element: Hashable {
+    Dictionary(
+      uniqueKeysWithValues: zip(
+        instances(for: keys),
+        instances(for: keys, by: valueTransform)))
+  }
+
+}
+
 /// A list of example trees to use while testing persistent hash maps.
 ///
 /// Each example has a name and a list of path specifications or collisions.
@@ -338,15 +403,25 @@ extension LifetimeTracker {
     return (PersistentDictionary(uniqueKeysWithValues: ref2), ref)
   }
 
+  func persistentDictionary<Value>(
+    for fixture: Fixture,
+    valueTransform: (Int) -> Value
+  ) -> (
+    map: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Value>>,
+    ref: [(key: LifetimeTracked<RawCollider>, value: LifetimeTracked<Value>)]
+  ) {
+    persistentDictionary(
+      for: fixture,
+      keyTransform: { $0 },
+      valueTransform: { valueTransform($0.identity) })
+  }
+
   func persistentDictionary(
     for fixture: Fixture
   ) -> (
     map: PersistentDictionary<LifetimeTracked<RawCollider>, LifetimeTracked<Int>>,
     ref: [(key: LifetimeTracked<RawCollider>, value: LifetimeTracked<Int>)]
   ) {
-    persistentDictionary(
-      for: fixture,
-      keyTransform: { $0 },
-      valueTransform: { $0.identity + 1000 })
+    persistentDictionary(for: fixture) { $0 + 1000 }
   }
 }

@@ -486,7 +486,12 @@ extension _Node {
     let item = removeItem(at: itemSlot, bucket)
     let hash = _Hash(item.key)
     let r = newChild.inserting(level.descend(), item, hash)
-    insertChild(r.node, bucket)
+    if self.count == 0, r.node.isCollisionNode {
+      // Compression
+      self = newChild
+    } else {
+      insertChild(r.node, bucket)
+    }
   }
 
   @inlinable @inline(never)

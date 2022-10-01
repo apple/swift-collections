@@ -11,11 +11,19 @@
 
 extension PersistentDictionary {
   @inlinable
+  public mutating func merge(
+    _ keysAndValues: Self,
+    uniquingKeysWith combine: (Value, Value) throws -> Value
+  ) rethrows {
+    _invalidateIndices()
+    try _root.merge(.top, .emptyPrefix, keysAndValues._root, combine)
+  }
+
+  @inlinable
   public mutating func merge<S: Sequence>(
     _ keysAndValues: __owned S,
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows where S.Element == (Key, Value) {
-    // FIXME: Do a structural merge
     for (key, value) in keysAndValues {
       try self.updateValue(forKey: key) { target in
         if let old = target {
@@ -36,6 +44,16 @@ extension PersistentDictionary {
     try merge(
       keysAndValues.lazy.map { ($0.key, $0.value) },
       uniquingKeysWith: combine)
+  }
+
+  @inlinable
+  public func merging(
+    _ other: Self,
+    uniquingKeysWith combine: (Value, Value) throws -> Value
+  ) rethrows -> Self {
+    var copy = self
+    try copy.merge(other, uniquingKeysWith: combine)
+    return copy
   }
 
   @inlinable
