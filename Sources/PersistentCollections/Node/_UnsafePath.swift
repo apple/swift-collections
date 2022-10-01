@@ -161,13 +161,13 @@ extension _UnsafePath: CustomStringConvertible {
       l = l.descend()
     }
     if isPlaceholder {
-      d += "[\(self.nodeSlot)]?"
+      d += ".end[\(self.nodeSlot)]"
     } else if isOnItem {
       d += "[\(self.nodeSlot)]"
     } else if isOnChild {
       d += ".\(self.nodeSlot)"
     } else if isOnNodeEnd {
-      d += ".$(\(self.nodeSlot))"
+      d += ".end(\(self.nodeSlot))"
     }
     return d
   }
