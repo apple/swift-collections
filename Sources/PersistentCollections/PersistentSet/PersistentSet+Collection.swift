@@ -32,6 +32,11 @@ extension PersistentSet {
   }
 }
 
+#if swift(>=5.5)
+extension PersistentSet.Index: @unchecked Sendable
+where Element: Sendable {}
+#endif
+
 extension PersistentSet.Index: Equatable {
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
