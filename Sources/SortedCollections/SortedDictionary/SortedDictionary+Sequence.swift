@@ -45,3 +45,8 @@ extension SortedDictionary: Sequence {
     return Iterator(_base: self)
   }
 }
+
+#if swift(>=5.5)
+extension SortedDictionary.Iterator: @unchecked Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
