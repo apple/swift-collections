@@ -35,6 +35,10 @@ public struct Heap<Element: Comparable> {
   }
 }
 
+#if swift(>=5.5)
+extension Heap: Sendable where Element: Sendable {}
+#endif
+
 extension Heap {
   /// A Boolean value indicating whether or not the heap is empty.
   ///
