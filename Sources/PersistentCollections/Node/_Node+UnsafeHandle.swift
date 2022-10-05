@@ -280,12 +280,12 @@ extension _Node.UnsafeHandle {
 extension _Node.UnsafeHandle {
   @inlinable
   internal var hasSingletonItem: Bool {
-    itemCount == 1 && childCount == 0
+    _header.pointee.hasSingletonItem
   }
 
   @inlinable
   internal var hasSingletonChild: Bool {
-    itemMap.isEmpty && childCount == 1
+    _header.pointee.hasSingletonChild
   }
 
   @inlinable

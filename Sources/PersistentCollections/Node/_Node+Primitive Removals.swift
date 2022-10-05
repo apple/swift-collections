@@ -127,7 +127,7 @@ extension _Node {
     assert(count == 1)
     count = 0
     return update {
-      assert($0.itemCount == 1 && $0.childCount == 0)
+      assert($0.hasSingletonItem)
       let old = $0._removeItem(at: .zero) { $0.move() }
       $0.clear()
       return old
@@ -138,7 +138,7 @@ extension _Node {
   internal mutating func removeSingletonChild() -> _Node {
     defer { _invariantCheck() }
     let child: _Node = update {
-      assert($0.itemCount == 0 && $0.childCount == 1)
+      assert($0.hasSingletonChild)
       let child = $0._removeChild(at: .zero)
       $0.childMap = .empty
       return child
