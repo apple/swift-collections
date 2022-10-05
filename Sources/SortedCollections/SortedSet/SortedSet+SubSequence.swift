@@ -30,6 +30,11 @@ extension SortedSet {
   }
 }
 
+#if swift(>=5.5)
+extension SortedSet.SubSequence: @unchecked Sendable
+where Element: Sendable {}
+#endif
+
 extension SortedSet.SubSequence: Sequence {
   public typealias Element = SortedSet.Element
   
@@ -65,6 +70,11 @@ extension SortedSet.SubSequence: Sequence {
     Iterator(_subSequence.makeIterator())
   }
 }
+
+#if swift(>=5.5)
+extension SortedSet.SubSequence.Iterator: @unchecked Sendable
+where Element: Sendable {}
+#endif
 
 extension SortedSet.SubSequence: BidirectionalCollection {
   public typealias Index = SortedSet.Index
