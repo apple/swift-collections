@@ -32,6 +32,11 @@ extension PersistentDictionary {
   }
 }
 
+#if swift(>=5.5)
+extension PersistentDictionary.Index: @unchecked Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
+
 extension PersistentDictionary.Index: Equatable {
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {

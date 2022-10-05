@@ -34,6 +34,10 @@ extension PersistentDictionary {
   }
 }
 
+#if swift(>=5.5)
+extension PersistentDictionary.Keys: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
 
 extension PersistentDictionary.Keys: Sequence {
   public typealias Element = Key
@@ -73,6 +77,11 @@ extension PersistentDictionary.Keys: Sequence {
     _base._root.containsKey(.top, element, _Hash(element))
   }
 }
+
+#if swift(>=5.5)
+extension PersistentDictionary.Keys.Iterator: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
 
 extension PersistentDictionary.Keys: BidirectionalCollection {
   public typealias Index = PersistentDictionary.Index
