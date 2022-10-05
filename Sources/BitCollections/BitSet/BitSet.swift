@@ -29,6 +29,10 @@ public struct BitSet {
   }
 }
 
+#if swift(>=5.5)
+extension BitSet: Sendable {}
+#endif
+
 extension BitSet {
   @inline(__always)
   internal func _read<R>(

@@ -24,6 +24,10 @@ extension BitSet {
   }
 }
 
+#if swift(>=5.5)
+extension BitSet.Counted: Sendable {}
+#endif
+
 extension BitSet.Counted {
 #if COLLECTIONS_INTERNAL_CHECKS
   @inline(never)
