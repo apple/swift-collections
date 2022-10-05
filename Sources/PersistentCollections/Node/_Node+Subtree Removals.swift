@@ -165,8 +165,9 @@ extension _Node {
       assert(slot == $0.itemMap.slot(of: bucket))
 
       let willAtrophy = (
-        $0.itemCount == 1
-        && $0.childCount == 1
+        !$0.isCollisionNode
+        && $0.itemMap.hasExactlyOneMember
+        && $0.childMap.hasExactlyOneMember
         && $0[child: .zero].isCollisionNode)
       if willAtrophy {
         // Compression
@@ -175,8 +176,8 @@ extension _Node {
         return (old, .collisionNode(level, child))
       }
 
-      let willEvaporate = ($0.itemCount == 2 && $0.childCount == 0)
-      if willEvaporate {
+      if $0.itemMap.count == 2 && $0.childMap.isEmpty {
+        // Evaporating node
         let remainder = _Slot(1 &- slot.value)
 
         var map = $0.itemMap
@@ -203,7 +204,7 @@ extension _Node {
     read {
       assert(!$0.isCollisionNode && $0.childMap.contains(bucket))
       let willAtrophy = (
-        $0.itemCount == 0
+        $0.itemMap.isEmpty
         && $0.childCount == 2
         && $0[child: _Slot(1 &- slot.value)].isCollisionNode
       )
@@ -212,12 +213,11 @@ extension _Node {
         let child = $0[child: _Slot(1 &- slot.value)]
         return .collisionNode(level, child)
       }
-      let willTurnIntoItem = ($0.itemCount == 1 && $0.childCount == 1)
-      if willTurnIntoItem {
+      if $0.itemMap.hasExactlyOneMember && $0.childMap.hasExactlyOneMember {
         return .item(level, $0[item: .zero], at: $0.itemMap.first!)
       }
-      let willEvaporate = ($0.itemCount == 0 && $0.childCount == 1)
-      if willEvaporate {
+      if $0.hasSingletonChild {
+        // Evaporate node
         return .empty(level)
       }
       
