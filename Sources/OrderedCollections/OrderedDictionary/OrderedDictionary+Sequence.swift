@@ -61,3 +61,8 @@ extension OrderedDictionary: Sequence {
     Iterator(_base: self)
   }
 }
+
+#if swift(>=5.5)
+extension OrderedDictionary.Iterator: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif

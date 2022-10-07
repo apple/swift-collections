@@ -30,6 +30,11 @@ extension SortedDictionary {
   }
 }
 
+#if swift(>=5.5)
+extension SortedDictionary.SubSequence: @unchecked Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
+
 extension SortedDictionary.SubSequence: Sequence {
   public typealias Element = SortedDictionary.Element
   
@@ -65,6 +70,11 @@ extension SortedDictionary.SubSequence: Sequence {
     Iterator(_subSequence.makeIterator())
   }
 }
+
+#if swift(>=5.5)
+extension SortedDictionary.SubSequence.Iterator: @unchecked Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
 
 extension SortedDictionary.SubSequence: BidirectionalCollection {
   public typealias Index = SortedDictionary.Index

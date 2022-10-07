@@ -39,6 +39,10 @@ extension BitSet {
   }
 }
 
+#if swift(>=5.5)
+extension BitSet.Index: Sendable {}
+#endif
+
 extension BitSet.Index: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {

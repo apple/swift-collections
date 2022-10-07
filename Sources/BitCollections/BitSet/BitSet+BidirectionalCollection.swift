@@ -88,6 +88,10 @@ extension BitSet: Sequence {
   }
 }
 
+#if swift(>=5.5)
+extension BitSet.Iterator: Sendable {}
+#endif
+
 extension BitSet: Collection, BidirectionalCollection {
   /// A Boolean value indicating whether the collection is empty.
   ///

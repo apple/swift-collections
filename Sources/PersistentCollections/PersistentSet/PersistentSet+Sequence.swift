@@ -39,3 +39,8 @@ extension PersistentSet: Sequence {
     _root.containsKey(.top, element, _Hash(element))
   }
 }
+
+#if swift(>=5.5)
+extension PersistentSet.Iterator: @unchecked Sendable
+where Element: Sendable {}
+#endif

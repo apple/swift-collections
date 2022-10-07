@@ -23,6 +23,11 @@ extension SortedDictionary {
   }
 }
 
+#if swift(>=5.5)
+extension SortedDictionary.Keys: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
+
 extension SortedDictionary.Keys: Sequence {
   /// The element type of the collection.
   public typealias Element = Key
@@ -51,6 +56,11 @@ extension SortedDictionary.Keys: Sequence {
     Iterator(_base.makeIterator())
   }
 }
+
+#if swift(>=5.5)
+extension SortedDictionary.Keys.Iterator: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
 
 extension SortedDictionary.Keys: BidirectionalCollection {
   /// The index type for a dictionary's keys view.

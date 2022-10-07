@@ -41,6 +41,10 @@ public struct BitArray {
   }
 }
 
+#if swift(>=5.5)
+extension BitArray: Sendable {}
+#endif
+
 extension BitArray {
   @inline(__always)
   internal func _read<R>(

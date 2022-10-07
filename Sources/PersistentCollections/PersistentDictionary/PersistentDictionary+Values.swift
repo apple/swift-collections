@@ -45,6 +45,11 @@ extension PersistentDictionary {
   }
 }
 
+#if swift(>=5.5)
+extension PersistentDictionary.Values: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
+
 extension PersistentDictionary.Values: Sequence {
   public typealias Element = Value
 
@@ -71,6 +76,11 @@ extension PersistentDictionary.Values: Sequence {
     Iterator(_base: _base.makeIterator())
   }
 }
+
+#if swift(>=5.5)
+extension PersistentDictionary.Values.Iterator: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
 
 // Note: This cannot be a MutableCollection because its subscript setter
 // needs to invalidate indices.
