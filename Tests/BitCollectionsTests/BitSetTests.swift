@@ -288,6 +288,32 @@ final class BitSetTest: CollectionTestCase {
     }
   }
 
+  func test_remove_at() {
+    let count = 100
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual = BitSet(0 ..< count)
+      var expected = Set<Int>(0 ..< count)
+      var c = count
+
+      func nextOffset() -> Int? {
+        guard let next = (0 ..< c).randomElement(using: &rng)
+        else { return nil }
+        c -= 1
+        return next
+      }
+
+      withEvery("offset", by: nextOffset) { offset in
+        let i = actual.index(actual.startIndex, offsetBy: offset)
+        let old = actual.remove(at: i)
+
+        let old2 = expected.remove(old)
+        expectEqual(old, old2)
+      }
+      expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
   func test_member_subscript_getter() {
     withInterestingSets("input", maximum: 1000) { input in
       let bitset = BitSet(input)

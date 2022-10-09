@@ -11,6 +11,30 @@
 
 /// Run the supplied closure with all values in `items` in a loop,
 /// recording the current value in the current test trace stack.
+public func withEvery<Element>(
+  _ label: String,
+  by generator: () -> Element?,
+  file: StaticString = #file,
+  line: UInt = #line,
+  run body: (Element) throws -> Void
+) rethrows {
+  let context = TestContext.current
+  while let item = generator() {
+    let entry = context.push("\(label): \(item)", file: file, line: line)
+    var done = false
+    defer {
+      context.pop(entry)
+      if !done {
+        print(context.currentTrace(title: "Throwing trace"))
+      }
+    }
+    try body(item)
+    done = true
+  }
+}
+
+/// Run the supplied closure with all values in `items` in a loop,
+/// recording the current value in the current test trace stack.
 public func withEvery<S: Sequence>(
   _ label: String,
   in items: S,
