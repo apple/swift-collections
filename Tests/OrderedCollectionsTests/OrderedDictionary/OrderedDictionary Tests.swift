@@ -14,7 +14,7 @@ import XCTest
 
 import _CollectionsTestSupport
 
-extension OrderedDictionary: DictionaryAPIChecker {}
+extension OrderedDictionary: DictionaryAPIExtras {}
 
 class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {

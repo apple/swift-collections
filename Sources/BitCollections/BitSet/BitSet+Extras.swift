@@ -143,6 +143,24 @@ extension BitSet {
 }
 
 extension BitSet {
+  /// Removes and returns the element at the specified position.
+  ///
+  /// - Parameter i: The position of the element to remove. `index` must be
+  ///   a valid index of the collection that is not equal to the collection's
+  ///   end index.
+  ///
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: O(`1`) if the set is a unique value (with no live copies),
+  ///    and the removed value is less than the largest value currently in the
+  ///    set (named *max*). Otherwise the complexity is at worst O(*max*).
+  @discardableResult
+  public mutating func remove(at index: Index) -> Element {
+    let removed = _remove(index._value)
+    precondition(removed, "Invalid index")
+    return Int(bitPattern: index._value)
+  }
+
   /// Returns the current set (already sorted).
   ///
   /// - Complexity: O(1)

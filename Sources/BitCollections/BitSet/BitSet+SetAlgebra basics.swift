@@ -97,7 +97,7 @@ extension BitSet {
   ///
   /// - Complexity: O(`1`) if the set is a unique value (with no live copies),
   ///    and the removed value is less than the largest value currently in the
-  ///    set (named *max*). Otherwise the complexity is O(*max*).
+  ///    set (named *max*). Otherwise the complexity is at worst O(*max*).
   @discardableResult
   public mutating func remove(_ member: Int) -> Int? {
     guard let m = UInt(exactly: member) else { return nil }

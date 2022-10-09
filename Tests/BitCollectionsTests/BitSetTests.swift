@@ -13,6 +13,8 @@ import XCTest
 import _CollectionsTestSupport
 import BitCollections
 
+extension BitSet: SetAPIChecker {}
+
 final class BitSetTest: CollectionTestCase {
   func test_empty_initializer() {
     let set = BitSet()
@@ -283,6 +285,32 @@ final class BitSetTest: CollectionTestCase {
           expectEqual(Array(actual), expected.sorted())
         }
         expectNil(actual.remove(v))
+      }
+      expectEqual(Array(actual), expected.sorted())
+    }
+  }
+
+  func test_remove_at() {
+    let count = 100
+    withEvery("seed", in: 0 ..< 10) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      var actual = BitSet(0 ..< count)
+      var expected = Set<Int>(0 ..< count)
+      var c = count
+
+      func nextOffset() -> Int? {
+        guard let next = (0 ..< c).randomElement(using: &rng)
+        else { return nil }
+        c -= 1
+        return next
+      }
+
+      withEvery("offset", by: nextOffset) { offset in
+        let i = actual.index(actual.startIndex, offsetBy: offset)
+        let old = actual.remove(at: i)
+
+        let old2 = expected.remove(old)
+        expectEqual(old, old2)
       }
       expectEqual(Array(actual), expected.sorted())
     }
