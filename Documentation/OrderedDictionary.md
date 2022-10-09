@@ -135,7 +135,7 @@ existing members:
 ```swift
 // Permutation operations from MutableCollection:
 func swapAt(_ i: Index, _ j: Index)
-func partition(by predicate: (Element) throws -> Bool) -> rethrows Index
+func partition(by predicate: (Element) throws -> Bool) rethrows -> Index
 func sort() where Element: Comparable
 func sort(by predicate: (Element, Element) throws -> Bool) rethrows
 func shuffle()
