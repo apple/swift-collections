@@ -12,6 +12,8 @@
 import _CollectionsTestSupport
 import PersistentCollections
 
+extension PersistentSet: SetAPIChecker {}
+
 class PersistentSetTests: CollectionTestCase {
   func test_init_empty() {
     let set = PersistentSet<Int>()
@@ -195,7 +197,7 @@ class PersistentSetTests: CollectionTestCase {
     expectEqualSets(s6.intersection(s9), [])
   }
 
-  func test_isEqual_Self_exhaustive() {
+  func test_isEqual_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -203,12 +205,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqual(x.isEqual(to: y), u == v)
+
+        let reference = (u == v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> Bool
+        where S.Element == RawCollider {
+          a.isEqual(to: b)
+        }
+
+        expectEqual(x.isEqual(to: y), reference)
+        expectEqual(checkSequence(x, y), reference)
+        expectEqual(x.isEqual(to: v), reference)
+        expectEqual(x.isEqual(to: b), reference)
       }
     }
   }
 
-  func test_isSubset_Self_exhaustive() {
+  func test_isSubset_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -216,12 +232,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqual(x.isSubset(of: y), u.isSubset(of: v))
+
+        let reference = u.isSubset(of: v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> Bool
+        where S.Element == RawCollider {
+          a.isSubset(of: b)
+        }
+
+        expectEqual(x.isSubset(of: y), reference)
+        expectEqual(checkSequence(x, y), reference)
+        expectEqual(x.isSubset(of: v), reference)
+        expectEqual(x.isSubset(of: b), reference)
       }
     }
   }
 
-  func test_isSuperset_Self_exhaustive() {
+  func test_isSuperset_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -229,12 +259,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqual(x.isSuperset(of: y), u.isSuperset(of: v))
+
+        let reference = u.isSuperset(of: v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> Bool
+        where S.Element == RawCollider {
+          a.isSuperset(of: b)
+        }
+
+        expectEqual(x.isSuperset(of: y), reference)
+        expectEqual(checkSequence(x, y), reference)
+        expectEqual(x.isSuperset(of: v), reference)
+        expectEqual(x.isSuperset(of: b), reference)
       }
     }
   }
 
-  func test_isStrictsubset_Self_exhaustive() {
+  func test_isStrictsubset_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -242,12 +286,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqual(x.isStrictSubset(of: y), u.isStrictSubset(of: v))
+
+        let reference = u.isStrictSubset(of: v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> Bool
+        where S.Element == RawCollider {
+          a.isStrictSubset(of: b)
+        }
+
+        expectEqual(x.isStrictSubset(of: y), reference)
+        expectEqual(checkSequence(x, y), reference)
+        expectEqual(x.isStrictSubset(of: v), reference)
+        expectEqual(x.isStrictSubset(of: b), reference)
       }
     }
   }
 
-  func test_isStrictSuperset_Self_exhaustive() {
+  func test_isStrictSuperset_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -255,12 +313,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqual(x.isStrictSuperset(of: y), u.isStrictSuperset(of: v))
+
+        let reference = u.isStrictSuperset(of: v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> Bool
+        where S.Element == RawCollider {
+          a.isStrictSuperset(of: b)
+        }
+
+        expectEqual(x.isStrictSuperset(of: y), reference)
+        expectEqual(checkSequence(x, y), reference)
+        expectEqual(x.isStrictSuperset(of: v), reference)
+        expectEqual(x.isStrictSuperset(of: b), reference)
       }
     }
   }
 
-  func test_isDisjoint_Self_exhaustive() {
+  func test_isDisjoint_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -268,12 +340,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqual(x.isDisjoint(with: y), u.isDisjoint(with: v))
+
+        let reference = u.isDisjoint(with: v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> Bool
+        where S.Element == RawCollider {
+          a.isDisjoint(with: b)
+        }
+
+        expectEqual(x.isDisjoint(with: y), reference)
+        expectEqual(checkSequence(x, y), reference)
+        expectEqual(x.isDisjoint(with: v), reference)
+        expectEqual(x.isDisjoint(with: b), reference)
       }
     }
   }
 
-  func test_intersection_Self_exhaustive() {
+  func test_intersection_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -281,12 +367,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqualSets(x.intersection(y), u.intersection(v))
+
+        let reference = u.intersection(v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> PersistentSet<RawCollider>
+        where S.Element == RawCollider {
+          a.intersection(b)
+        }
+
+        expectEqualSets(x.intersection(y), reference)
+        expectEqualSets(checkSequence(x, y), reference)
+        expectEqualSets(x.intersection(v), reference)
+        expectEqualSets(x.intersection(b), reference)
       }
     }
   }
 
-  func test_subtracting_Self_exhaustive() {
+  func test_subtracting_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -294,7 +394,21 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqualSets(x.subtracting(y), u.subtracting(v))
+
+        let reference = u.subtracting(v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> PersistentSet<RawCollider>
+        where S.Element == RawCollider {
+          a.subtracting(b)
+        }
+
+        expectEqualSets(x.subtracting(y), reference)
+        expectEqualSets(checkSequence(x, y), reference)
+        expectEqualSets(x.subtracting(v), reference)
+        expectEqualSets(x.subtracting(b), reference)
       }
     }
   }
@@ -309,7 +423,7 @@ class PersistentSetTests: CollectionTestCase {
     }
   }
 
-  func test_union_Self_exhaustive() {
+  func test_union_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -317,12 +431,26 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqualSets(x.union(y), u.union(v))
+
+        let reference = u.union(v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> PersistentSet<RawCollider>
+        where S.Element == RawCollider {
+          a.union(b)
+        }
+
+        expectEqualSets(x.union(y), reference)
+        expectEqualSets(checkSequence(x, y), reference)
+        expectEqualSets(x.union(v), reference)
+        expectEqualSets(x.union(b), reference)
       }
     }
   }
 
-  func test_symmetricDifference_Self_exhaustive() {
+  func test_symmetricDifference_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -330,7 +458,21 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-        expectEqualSets(x.symmetricDifference(y), u.symmetricDifference(v))
+
+        let reference = u.symmetricDifference(v)
+
+        func checkSequence<S: Sequence>(
+          _ a: PersistentSet<RawCollider>,
+          _ b: S
+        ) -> PersistentSet<RawCollider>
+        where S.Element == RawCollider {
+          a.symmetricDifference(b)
+        }
+
+        expectEqualSets(x.symmetricDifference(y), reference)
+        expectEqualSets(checkSequence(x, y), reference)
+        expectEqualSets(x.symmetricDifference(v), reference)
+        expectEqualSets(x.symmetricDifference(b), reference)
       }
     }
   }

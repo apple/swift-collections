@@ -34,4 +34,19 @@ extension PersistentSet {
     r.node._fullInvariantCheck(.top, .emptyPrefix)
     return PersistentSet(_new: r.node)
   }
+
+  @inlinable
+  public func union<S: Sequence>(_ other: __owned S) -> Self
+  where S.Element == Element {
+    if S.self == Self.self {
+      return union(other as! Self)
+    }
+
+    var root = self._root
+    for item in other {
+      let hash = _Hash(item)
+      _ = root.insert(.top, (item, ()), hash)
+    }
+    return Self(_new: root)
+  }
 }

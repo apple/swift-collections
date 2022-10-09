@@ -32,4 +32,10 @@ extension PersistentSet {
   public mutating func formUnion(_ other: __owned Self) {
     self = union(other)
   }
+
+  @inlinable
+  public mutating func formUnion<S: Sequence>(_ other: __owned S)
+  where S.Element == Element {
+    self = union(other)
+  }
 }

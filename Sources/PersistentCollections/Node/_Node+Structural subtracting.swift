@@ -11,10 +11,10 @@
 
 extension _Node {
   @inlinable
-  internal func subtracting(
+  internal func subtracting<Value2>(
     _ level: _Level,
     _ hashPrefix: _Hash,
-    _ other: _Node
+    _ other: _Node<Key, Value2>
   ) -> Builder? {
     if self.raw.storage === other.raw.storage { return .empty }
 
@@ -107,10 +107,10 @@ extension _Node {
   }
 
   @inlinable @inline(never)
-  internal func _subtracting_slow(
+  internal func _subtracting_slow<Value2>(
     _ level: _Level,
     _ hashPrefix: _Hash,
-    _ other: _Node
+    _ other: _Node<Key, Value2>
   ) -> Builder? {
     let lc = self.isCollisionNode
     let rc = other.isCollisionNode

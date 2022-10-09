@@ -79,6 +79,10 @@ extension PersistentSet {
   public func isSuperset<S: Sequence>(of other: S) -> Bool
   where S.Element == Element
   {
-    other.allSatisfy { self.contains($0) }
+    if S.self == Self.self {
+      return isSuperset(of: other as! Self)
+    }
+
+    return other.allSatisfy { self.contains($0) }
   }
 }

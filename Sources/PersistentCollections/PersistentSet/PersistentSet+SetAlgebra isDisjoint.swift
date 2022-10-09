@@ -65,10 +65,13 @@ extension PersistentSet {
   ///
   /// - Complexity: In the worst case, this makes O(*n*) calls to
   ///    `self.contains`, where *n* is the length of the sequence.
- @inlinable
+  @inlinable
   public func isDisjoint<S: Sequence>(with other: S) -> Bool
   where S.Element == Element
   {
-    other.allSatisfy { !self.contains($0) }
+    if S.self == Self.self {
+      return isDisjoint(with: other as! Self)
+    }
+    return other.allSatisfy { !self.contains($0) }
   }
 }

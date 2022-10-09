@@ -83,6 +83,10 @@ extension PersistentSet {
   public func isSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Element
   {
+    if S.self == Self.self {
+      return isSubset(of: other as! Self)
+    }
+
     var it = self.makeIterator()
     guard let first = it.next() else { return true }
     if let match = other._customContainsEquatableElement(first) {
@@ -95,9 +99,12 @@ extension PersistentSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: PersistentSet = []
+    var seen: _Node = ._empty()
     for item in other {
-      if contains(item), seen._insert(item), seen.count == self.count {
+      let hash = _Hash(item)
+      guard contains(item) else { continue }
+      guard seen.insert(.top, (item, ()), hash).inserted else { continue }
+      if seen.count == self.count {
         return true
       }
     }

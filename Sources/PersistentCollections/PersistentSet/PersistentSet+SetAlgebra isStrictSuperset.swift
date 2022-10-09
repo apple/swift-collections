@@ -91,10 +91,12 @@ extension PersistentSet {
   public func isStrictSuperset<S: Sequence>(of other: S) -> Bool
   where S.Element == Element
   {
-    var it = self.makeIterator()
-    guard let first = it.next() else {
-      return other.contains(where: { _ in true })
+    if S.self == Self.self {
+      return isStrictSuperset(of: other as! Self)
     }
+
+    var it = self.makeIterator()
+    guard let first = it.next() else { return false }
     if let match = other._customContainsEquatableElement(first) {
       // Fast path: the sequence has fast containment checks.
       guard other.allSatisfy({ self.contains($0) }) else { return false }
@@ -106,10 +108,14 @@ extension PersistentSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: PersistentSet = []
+    var seen: _Node = ._empty()
     for item in other {
-      guard self.contains(item) else { return false }
-      if seen._insert(item), seen.count == self.count {
+      let hash = _Hash(item)
+      guard self._root.containsKey(.top, item, hash) else { return false }
+      if
+        seen.insert(.top, (item, ()), hash).inserted,
+        seen.count == self.count
+      {
         return false
       }
     }

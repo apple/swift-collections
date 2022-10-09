@@ -28,4 +28,10 @@ extension PersistentSet {
   public mutating func formSymmetricDifference(_ other: __owned Self) {
     self = symmetricDifference(other)
   }
+
+  @inlinable
+  public mutating func formSymmetricDifference<S: Sequence>(_ other: __owned S)
+  where S.Element == Element {
+    self = symmetricDifference(other)
+  }
 }
