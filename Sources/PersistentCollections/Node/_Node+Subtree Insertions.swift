@@ -15,6 +15,15 @@ extension _Node {
   @inlinable
   internal mutating func insert(
     _ level: _Level,
+    _ item: Element,
+    _ hash: _Hash
+  ) -> (inserted: Bool, leaf: _UnmanagedNode, slot: _Slot) {
+    insert(level, item.key, hash) { $0.initialize(to: item) }
+  }
+
+  @inlinable
+  internal mutating func insert(
+    _ level: _Level,
     _ key: Key,
     _ hash: _Hash,
     _ inserter: (UnsafeMutablePointer<Element>) -> Void

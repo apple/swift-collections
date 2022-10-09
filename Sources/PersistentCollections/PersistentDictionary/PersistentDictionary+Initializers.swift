@@ -12,7 +12,7 @@
 extension PersistentDictionary {
   @inlinable
   public init() {
-    self.init(_new: _Node(storage: _emptySingleton, count: 0))
+    self.init(_new: ._empty())
   }
 
   @inlinable
@@ -37,9 +37,7 @@ extension PersistentDictionary {
     self.init()
     for item in keysAndValues {
       let hash = _Hash(item.0)
-      let r = _root.insert(.top, item.0, hash) {
-        $0.initialize(to: item)
-      }
+      let r = _root.insert(.top, item, hash)
       precondition(r.inserted, "Duplicate key: '\(item.0)'")
     }
     _invariantCheck()

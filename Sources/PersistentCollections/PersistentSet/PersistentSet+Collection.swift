@@ -109,7 +109,7 @@ extension PersistentSet: BidirectionalCollection {
   public subscript(i: Index) -> Element {
     precondition(_isValid(i), "Invalid index")
     precondition(i._path.isOnItem, "Can't get element at endIndex")
-    return _Node.UnsafeHandle.read(i._path.node) {
+    return _UnsafeHandle.read(i._path.node) {
       $0[item: i._path.currentItemSlot].key
     }
   }
