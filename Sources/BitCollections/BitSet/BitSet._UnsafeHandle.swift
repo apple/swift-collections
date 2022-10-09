@@ -189,13 +189,11 @@ extension BitSet._UnsafeHandle {
     return _mutableWords[index.word].remove(index.bit)
   }
 
-  subscript(member member: UInt) -> Bool {
-    get { contains(member) }
-    set {
-      ensureMutable()
-      let (w, b) = _BitPosition(member).split
-      _mutableWords[w].update(b, to: newValue)
-    }
+  internal mutating func update(_ member: UInt, to newValue: Bool) -> Bool {
+    ensureMutable()
+    let (w, b) = _BitPosition(member).split
+    _mutableWords[w].update(b, to: newValue)
+    return w == _words.count &- 1
   }
 }
 

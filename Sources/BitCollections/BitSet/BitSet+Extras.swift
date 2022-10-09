@@ -70,7 +70,9 @@ extension BitSet {
       } else if member > _capacity {
         return
       }
-      _update { handle in handle[member: member] = newValue }
+      _updateThenShrink { handle, shrink in
+        shrink = handle.update(member, to: newValue)
+      }
     }
   }
 
