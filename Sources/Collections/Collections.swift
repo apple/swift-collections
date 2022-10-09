@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_exported import BitCollections
 @_exported import DequeModule
+@_exported import HeapModule
 @_exported import OrderedCollections
 @_exported import PersistentCollections
-@_exported import PriorityQueueModule
-@_exported import BitCollections

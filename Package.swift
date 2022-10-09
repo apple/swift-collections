@@ -54,7 +54,7 @@ let package = Package(
     .library(name: "Collections", targets: ["Collections"]),
     .library(name: "BitCollections", targets: ["BitCollections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
-    .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
+    .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
     .library(name: "SortedCollections", targets: ["SortedCollections"]),
@@ -63,12 +63,12 @@ let package = Package(
     .target(
       name: "Collections",
       dependencies: [
+        "BitCollections",
         "DequeModule",
+        "HeapModule",
         "OrderedCollections",
         "PersistentCollections",
         "SortedCollections",
-        "PriorityQueueModule",
-        "BitCollections",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -118,13 +118,13 @@ let package = Package(
 
     // Heap<Value>
     .target(
-        name: "PriorityQueueModule",
+        name: "HeapModule",
         dependencies: ["_CollectionsUtilities"],
         exclude: ["CMakeLists.txt"],
         swiftSettings: settings),
     .testTarget(
-        name: "PriorityQueueTests",
-        dependencies: ["PriorityQueueModule"],
+        name: "HeapTests",
+        dependencies: ["HeapModule"],
         swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>

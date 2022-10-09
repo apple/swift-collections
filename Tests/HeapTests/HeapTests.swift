@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import PriorityQueueModule
+import HeapModule
 
 final class HeapTests: XCTestCase {
   func test_isEmpty() {
