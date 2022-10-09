@@ -173,4 +173,43 @@ extension PersistentSet: BidirectionalCollection {
     precondition(limited, "Index offset out of bounds")
     return nil
   }
+
+  @inlinable @inline(__always)
+  public func _customIndexOfEquatableElement(
+    _ element: Element
+  ) -> Index?? {
+    _index(of: element)
+  }
+
+  @inlinable @inline(__always)
+  public func _customLastIndexOfEquatableElement(
+    _ element: Element
+  ) -> Index?? {
+    _index(of: element)
+  }
+
+  @inlinable
+  internal func _index(of element: Element) -> Index? {
+    let hash = _Hash(element)
+    guard let path = _root.path(to: element, hash) else { return nil }
+    return Index(_root: _root.unmanaged, version: _version, path: path)
+  }
+
+  public func _failEarlyRangeCheck(
+    _ index: Index, bounds: Range<Index>
+  ) {
+    precondition(_isValid(index))
+  }
+
+  public func _failEarlyRangeCheck(
+    _ index: Index, bounds: ClosedRange<Index>
+  ) {
+    precondition(_isValid(index))
+  }
+
+  public func _failEarlyRangeCheck(
+    _ range: Range<Index>, bounds: Range<Index>
+  ) {
+    precondition(_isValid(range.lowerBound) && _isValid(range.upperBound))
+  }
 }
