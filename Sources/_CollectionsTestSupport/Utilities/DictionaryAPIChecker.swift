@@ -9,6 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A test protocol for validating that dictionary-like types implement users'
+/// baseline expectations.
+///
+/// To ensure maximum utility, this protocol doesn't refine `Collection`,
+/// although it does share some of the same requirements.
 public protocol DictionaryAPIChecker<Key, Value> {
   associatedtype Key
   associatedtype Value
@@ -41,15 +46,6 @@ public protocol DictionaryAPIChecker<Key, Value> {
   mutating func remove(at index: Index) -> Element
 
   init()
-
-  init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (Key, Value)
-
-  init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value
 
   init<S: Sequence>(
     _ keysAndValues: S,
@@ -90,18 +86,27 @@ public protocol DictionaryAPIChecker<Key, Value> {
     by keyForValue: (S.Element) throws -> Key
   ) rethrows where Value == [S.Element]
 #endif
+}
 
+extension Dictionary: DictionaryAPIChecker {}
+
+/// Additional entry points provided by this package that aren't provided
+/// by `Dictionary` (yet?).
+public protocol DictionaryAPIExtras: DictionaryAPIChecker {
   // Extras (not in the Standard Library)
 
-  mutating func updateValue<R>(
-    forKey key: Key,
-    default defaultValue: @autoclosure () -> Value,
-    with body: (inout Value) throws -> R
-  ) rethrows -> R
+  init<S: Sequence>(
+    uniqueKeysWithValues keysAndValues: S
+  ) where S.Element == (Key, Value)
 
   init<S: Sequence>(
     uniqueKeysWithValues keysAndValues: S
   ) where S.Element == Element
+
+  init<Keys: Sequence, Values: Sequence>(
+    uniqueKeys keys: Keys,
+    values: Values
+  ) where Keys.Element == Key, Values.Element == Value
 
   init<S: Sequence>(
     _ keysAndValues: S,
@@ -118,7 +123,13 @@ public protocol DictionaryAPIChecker<Key, Value> {
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows -> Self where S.Element == Element
 
-  #if false
+  mutating func updateValue<R>(
+    forKey key: Key,
+    default defaultValue: @autoclosure () -> Value,
+    with body: (inout Value) throws -> R
+  ) rethrows -> R
+
+#if false
   // Potential additions implemented by PersistentDictionary:
 
   func contains(_ key: Key) -> Bool
@@ -128,5 +139,5 @@ public protocol DictionaryAPIChecker<Key, Value> {
     with body: (inout Value?) throws -> R
   ) rethrows -> R
 
-  #endif
+#endif
 }

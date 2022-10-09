@@ -12,7 +12,7 @@
 import _CollectionsTestSupport
 @testable import PersistentCollections
 
-extension PersistentDictionary: DictionaryAPIChecker {}
+extension PersistentDictionary: DictionaryAPIExtras {}
 
 class PersistentDictionaryTests: CollectionTestCase {
   func test_empty() {

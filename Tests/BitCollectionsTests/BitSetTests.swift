@@ -13,6 +13,8 @@ import XCTest
 import _CollectionsTestSupport
 import BitCollections
 
+extension BitSet: SetAPIChecker {}
+
 final class BitSetTest: CollectionTestCase {
   func test_empty_initializer() {
     let set = BitSet()
