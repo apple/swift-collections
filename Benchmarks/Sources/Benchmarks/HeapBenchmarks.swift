@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-import PriorityQueueModule
+import HeapModule
 import CppBenchmarks
 
 extension Benchmark {

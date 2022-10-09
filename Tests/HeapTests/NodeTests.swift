@@ -9,9 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG // These unit tests need access to PriorityQueueModule internals
+#if DEBUG // These unit tests need access to HeapModule internals
 import XCTest
-@testable import PriorityQueueModule
+@testable import HeapModule
 
 class NodeTests: XCTestCase {
   func test_levelCalculation() {

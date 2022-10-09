@@ -42,9 +42,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DequeModule"
-               BuildableName = "DequeModule"
-               BlueprintName = "DequeModule"
+               BlueprintIdentifier = "HeapModule"
+               BuildableName = "HeapModule"
+               BlueprintName = "HeapModule"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -56,9 +56,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PriorityQueueModule"
-               BuildableName = "PriorityQueueModule"
-               BlueprintName = "PriorityQueueModule"
+               BlueprintIdentifier = "DequeModule"
+               BuildableName = "DequeModule"
+               BlueprintName = "DequeModule"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -168,9 +168,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PriorityQueueTests"
-               BuildableName = "PriorityQueueTests"
-               BlueprintName = "PriorityQueueTests"
+               BlueprintIdentifier = "HeapTests"
+               BuildableName = "HeapTests"
+               BlueprintName = "HeapTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -252,16 +252,6 @@
                BlueprintIdentifier = "DequeTests"
                BuildableName = "DequeTests"
                BlueprintName = "DequeTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PriorityQueueTests"
-               BuildableName = "PriorityQueueTests"
-               BlueprintName = "PriorityQueueTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
