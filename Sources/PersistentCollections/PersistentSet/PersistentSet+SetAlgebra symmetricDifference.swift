@@ -31,4 +31,25 @@ extension PersistentSet {
     let root = branch.finalize(.top)
     return PersistentSet(_new: root)
   }
+
+  @inlinable
+  public func symmetricDifference<S: Sequence>(_ other: __owned S) -> Self
+  where S.Element == Element {
+    if S.self == Self.self {
+      return symmetricDifference(other as! Self)
+    }
+
+    var root = self._root
+    for item in other {
+      let hash = _Hash(item)
+      var state = root.prepareValueUpdate(item, hash)
+      if state.found {
+        state.value = nil
+      } else {
+        state.value = ()
+      }
+      root.finalizeValueUpdate(state)
+    }
+    return Self(_new: root)
+  }
 }

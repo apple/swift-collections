@@ -31,4 +31,18 @@ extension PersistentSet {
   public mutating func formIntersection(_ other: Self) {
     self = intersection(other)
   }
+
+  @inlinable
+  public mutating func formIntersection<Value>(
+    _ other: PersistentDictionary<Element, Value>.Keys
+  ) {
+    self = intersection(other)
+  }
+
+  @inlinable
+  public mutating func formIntersection<S: Sequence>(
+    _ other: S
+  ) where S.Element == Element {
+    self = intersection(other)
+  }
 }

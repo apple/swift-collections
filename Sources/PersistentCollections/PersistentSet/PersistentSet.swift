@@ -14,6 +14,9 @@ public struct PersistentSet<Element: Hashable> {
   internal typealias _Node = PersistentCollections._Node<Element, Void>
 
   @usableFromInline
+  internal typealias _UnsafeHandle = _Node.UnsafeHandle
+
+  @usableFromInline
   internal var _root: _Node
 
   @usableFromInline

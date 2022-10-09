@@ -14,6 +14,9 @@ public struct PersistentDictionary<Key: Hashable, Value> {
   internal typealias _Node = PersistentCollections._Node<Key, Value>
 
   @usableFromInline
+  internal typealias _UnsafeHandle = _Node.UnsafeHandle
+
+  @usableFromInline
   var _root: _Node
 
   /// The version number of this instance, used for quick index validation.
@@ -284,7 +287,7 @@ extension PersistentDictionary {
     }
     _invalidateIndices()
     if r.inserted { return nil }
-    return _Node.UnsafeHandle.update(r.leaf) {
+    return _UnsafeHandle.update(r.leaf) {
       let p = $0.itemPtr(at: r.slot)
       let old = p.pointee.value
       p.pointee.value = value
@@ -302,7 +305,7 @@ extension PersistentDictionary {
       $0.initialize(to: (key, value))
     }
     if r.inserted { return true }
-    _Node.UnsafeHandle.update(r.leaf) {
+    _UnsafeHandle.update(r.leaf) {
       $0[item: r.slot].value = value
     }
     return false
@@ -335,7 +338,7 @@ extension PersistentDictionary {
     let r = _root.updateValue(.top, forKey: key, hash) {
       $0.initialize(to: (key, defaultValue()))
     }
-    return try _Node.UnsafeHandle.update(r.leaf) {
+    return try _UnsafeHandle.update(r.leaf) {
       try body(&$0[item: r.slot].value)
     }
   }

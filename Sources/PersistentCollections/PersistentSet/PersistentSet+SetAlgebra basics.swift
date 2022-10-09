@@ -23,14 +23,12 @@ extension PersistentSet: SetAlgebra {
     _ newMember: __owned Element
   ) -> (inserted: Bool, memberAfterInsert: Element) {
     let hash = _Hash(newMember)
-    let r = _root.insert(.top, newMember, hash) {
-      $0.initialize(to: (newMember, ()))
-    }
+    let r = _root.insert(.top, (newMember, ()), hash)
     if r.inserted {
       _invalidateIndices()
       return (true, newMember)
     }
-    return _Node.UnsafeHandle.read(r.leaf) {
+    return _UnsafeHandle.read(r.leaf) {
       (false, $0[item: r.slot].key)
     }
   }
@@ -39,9 +37,7 @@ extension PersistentSet: SetAlgebra {
   @inlinable
   internal mutating func _insert(_ newMember: __owned Element) -> Bool {
     let hash = _Hash(newMember)
-    let r = _root.insert(.top, newMember, hash) {
-      $0.initialize(to: (newMember, ()))
-    }
+    let r = _root.insert(.top, (newMember, ()), hash)
     return r.inserted
   }
 
@@ -61,7 +57,7 @@ extension PersistentSet: SetAlgebra {
       $0.initialize(to: (newMember, ()))
     }
     if r.inserted { return nil }
-    return _Node.UnsafeHandle.update(r.leaf) {
+    return _UnsafeHandle.update(r.leaf) {
       let p = $0.itemPtr(at: r.slot)
       let old = p.move().key
       p.initialize(to: (newMember, ()))

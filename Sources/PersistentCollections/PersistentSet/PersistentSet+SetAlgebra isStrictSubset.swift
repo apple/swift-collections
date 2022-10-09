@@ -91,6 +91,10 @@ extension PersistentSet {
   public func isStrictSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Element
   {
+    if S.self == Self.self {
+      return isStrictSubset(of: other as! Self)
+    }
+
     var it = self.makeIterator()
     guard let first = it.next() else {
       return other.contains(where: { _ in true })
@@ -104,10 +108,13 @@ extension PersistentSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: PersistentSet? = []
+    var seen: _Node? = ._empty()
     var isStrict = false
     for item in other {
-      if self.contains(item), seen?._insert(item) == true {
+      let hash = _Hash(item)
+      if self._root.containsKey(.top, item, hash),
+         seen?.insert(.top, (item, ()), hash).inserted == true
+      {
         if seen?.count == self.count {
           if isStrict { return true }
           // Stop collecting seen items -- we just need to decide

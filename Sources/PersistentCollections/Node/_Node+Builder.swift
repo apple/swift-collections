@@ -59,9 +59,9 @@ extension _Node.Builder {
     assert(level.isAtRoot)
     switch self {
     case .empty:
-      return _Node(storage: _emptySingleton, count: 0)
+      return ._empty()
     case .item(let item, let h):
-      return _Node._regularNode(item, h[level])
+      return ._regularNode(item, h[level])
     case .node(let node, _):
       return node
     }

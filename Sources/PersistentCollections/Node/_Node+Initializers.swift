@@ -10,6 +10,11 @@
 //===----------------------------------------------------------------------===//
 
 extension _Node {
+  @inlinable @inline(__always)
+  internal static func _empty() -> _Node {
+    _Node(storage: _emptySingleton, count: 0)
+  }
+
   @inlinable
   internal static func _collisionNode(
     _ hash: _Hash,

@@ -27,4 +27,17 @@ extension PersistentSet {
   public mutating func subtract(_ other: Self) {
     self = subtracting(other)
   }
+
+  @inlinable
+  public mutating func subtract<Value>(
+    _ other: PersistentDictionary<Element, Value>.Keys
+  ) {
+    self = subtracting(other)
+  }
+
+  @inlinable
+  public mutating func subtract<S: Sequence>(_ other: S)
+  where S.Element == Element {
+    self = subtracting(other)
+  }
 }

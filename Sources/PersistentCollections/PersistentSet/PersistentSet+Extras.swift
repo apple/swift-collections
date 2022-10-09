@@ -9,11 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _CollectionsUtilities
-
-extension PersistentSet: Equatable {
-  @inlinable @inline(__always)
-  public static func == (left: Self, right: Self) -> Bool {
-    left.isEqual(to: right)
+extension PersistentSet {
+  @discardableResult
+  public mutating func remove(at position: Index) -> Element {
+    precondition(_isValid(position))
+    _invalidateIndices()
+    return _root.remove(.top, at: position._path).key
   }
 }

@@ -17,6 +17,9 @@ extension PersistentDictionary {
     internal typealias _Node = PersistentCollections._Node<Key, Value>
 
     @usableFromInline
+    internal typealias _UnsafeHandle = _Node.UnsafeHandle
+
+    @usableFromInline
     internal var _base: PersistentDictionary
 
     @inlinable
@@ -108,14 +111,14 @@ extension PersistentDictionary.Values: BidirectionalCollection {
       precondition(_base._isValid(index), "Invalid index")
       precondition(index._path.isOnItem, "Cannot set value at end index")
       let (leaf, slot) = _base._root.ensureUnique(level: .top, at: index._path)
-      _Node.UnsafeHandle.update(leaf) { $0[item: slot].value = newValue }
+      _UnsafeHandle.update(leaf) { $0[item: slot].value = newValue }
       _base._invalidateIndices()
     }
     _modify { // FIXME: Consider removing
       precondition(_base._isValid(index), "Invalid index")
       precondition(index._path.isOnItem, "Cannot set value at end index")
       let (leaf, slot) = _base._root.ensureUnique(level: .top, at: index._path)
-      var item = _Node.UnsafeHandle.update(leaf) { $0.itemPtr(at: slot).move() }
+      var item = _UnsafeHandle.update(leaf) { $0.itemPtr(at: slot).move() }
       defer {
         _Node.UnsafeHandle.update(leaf) {
           $0.itemPtr(at: slot).initialize(to: item)
