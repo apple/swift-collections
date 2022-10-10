@@ -172,16 +172,16 @@ extension BitSet {
     _storage = Array(unsafeUninitializedCapacity: capacity) { buffer, count in
       let sharedCount = Swift.min(w1.count, w2.count)
       for w in 0 ..< sharedCount {
-        buffer._initialize(at: w, to: function(w1[w], w2[w]))
+        buffer.initializeElement(at: w, to: function(w1[w], w2[w]))
       }
       if includingTail {
         if w1.count < w2.count {
           for w in w1.count ..< w2.count {
-            buffer._initialize(at: w, to: function(_Word.empty, w2[w]))
+            buffer.initializeElement(at: w, to: function(_Word.empty, w2[w]))
           }
         } else {
           for w in w2.count ..< w1.count {
-            buffer._initialize(at: w, to: function(w1[w], _Word.empty))
+            buffer.initializeElement(at: w, to: function(w1[w], _Word.empty))
           }
         }
       }
