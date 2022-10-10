@@ -16,6 +16,8 @@ extension Array {
   /// See https://bugs.swift.org/browse/SR-14663.
   @inlinable
   internal static func _isWCSIABroken() -> Bool {
+    print("Hi there")
+    
     #if _runtime(_ObjC)
     guard _isBridgedVerbatimToObjectiveC(Element.self) else {
       // SR-14663 only triggers on array values that are verbatim bridged
