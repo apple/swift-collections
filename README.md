@@ -10,22 +10,30 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
+- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit vectors.
+
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
+
+- [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue.
 
 - [`OrderedSet<Element>`][OrderedSet], a variant of the standard `Set` where the order of items is well-defined and items can be arbitrarily reordered. Uses a `ContiguousArray` as its backing store, augmented by a separate hash table of bit packed offsets into it.
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
+- [`PersistentSet`][PersistentSet] and [`PersistentDictionary`][PersistentDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
+
+[BitSet]: Documentation/BitSet.md
+[BitArray]: Documentation/BitArray.md
 [Deque]: Documentation/Deque.md
+[Heap]: Documentation/Heap.md
 [OrderedSet]: Documentation/OrderedSet.md
 [OrderedDictionary]: Documentation/OrderedDictionary.md
+[PersistentSet]: Documentation/PersistentSet.md
+[PersistentDictionary]: Documentation/PersistentDictionary.md
 
 The following data structures are currently being worked on but they aren't ready for inclusion in a tagged release:
 
-- [`Heap`][Heap] and [`PriorityQueue`](https://github.com/apple/swift-collections/pull/51), min-max heaps backed by an array.
 - [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
-- [`HashSet` and `HashMap`](https://github.com/apple/swift-collections/pull/31), persistent hashed collections implemented as Compressed Hash-Array Mapped Prefix-Trees (CHAMP).
-- [`BitArray` and `BitSet`](https://github.com/apple/swift-collections/pull/83), dynamic bit vectors.
 - [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
 
 [Heap]: Documentation/Heap.md
@@ -47,7 +55,7 @@ The Swift Collections package is source stable. The version numbers follow [Sema
 
 [semver]: https://semver.org
 
-The public API of version 1.0 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `DequeModule` and `OrderedCollections` modules.
+The public API of version 1.1 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `PersistentCollections` modules.
 
 Interfaces that aren't part of the public API may continue to change in any release, including patch releases. 
 If you have a use case that requires using underscored APIs, please [submit a Feature Request][enhancement] describing it! We'd like the public interface to be as useful as possible -- although preferably without compromising safety or limiting future evolution.
@@ -65,12 +73,22 @@ Future minor versions of the package may update these rules as needed.
 
 We'd like this package to quickly embrace Swift language and toolchain improvements that are relevant to its mandate. Accordingly, from time to time, we expect that new versions of this package will require clients to upgrade to a more recent Swift toolchain release. (This allows the package to make use of new language/stdlib features, build on compiler bug fixes, and adopt new package manager functionality as soon as they are available.) Requiring a new Swift release will only need a minor version bump.
 
+The following table maps existing package releases to their minimum required Swift toolchain release:
+
+| Package version |  Swift version |
+|---|---|---|
+| swift-collections 1.0.x | >= Swift 5.3 |
+| swift-collections 1.1.x | >= Swift 5.5 |
+
+(Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
+
+
 ## Using **Swift Collections** in your project
 
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:5.6
+// swift-tools-version:5.7
 import PackageDescription
 
 let package = Package(
@@ -78,7 +96,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-collections.git", 
-      .upToNextMajor(from: "1.0.3") // or `.upToNextMinor
+      .upToNextMinor(from: "1.1.0") // or `.upToNextMajor
     )
   ],
   targets: [
