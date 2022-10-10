@@ -24,19 +24,26 @@ extension Array {
       return false
     }
 
-    // SR-14663 was introduced in Swift 5.1. Check if we have a broken stdlib.
+    // SR-14663 was introduced in Swift 5.1, and it was resolved in Swift 5.5.
+    // Check if we have a broken stdlib.
 
     // The bug is caused by a bogus precondition inside a non-inlinable stdlib
     // method, so to determine if we're affected, we need to check the currently
     // running OS version.
     #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-    guard #available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, *) else {
-      // The OS is too old to be affected by this bug.
+    if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
+      // The OS is too new to be affected by this bug. (>= 5.5 stdlib)
       return false
     }
-    #endif
-    // FIXME: When a stdlib is released that contains a fix, add a check for it.
+//    guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13, *) else {
+//      // The OS is too old to be affected by this bug. (< 5.1 stdlib)
+//      return false
+//    }
     return true
+    #else
+    // Assume that other platforms aren't affected.
+    return false
+    #endif
 
     #else
     // Platforms that don't have an Objective-C runtime don't have verbatim
@@ -49,8 +56,8 @@ extension Array {
 extension Sequence {
   // An adjusted version of the standard `withContiguousStorageIfAvailable`
   // method that works around https://bugs.swift.org/browse/SR-14663.
-  @inlinable
-  internal func _withContiguousStorageIfAvailable_SR14663<R>(
+  @inlinable @inline(__always)
+  public func _withContiguousStorageIfAvailable_SR14663<R>(
     _ body: (UnsafeBufferPointer<Element>) throws -> R
   ) rethrows -> R? {
     if Self.self == Array<Element>.self && Array<Element>._isWCSIABroken() {
