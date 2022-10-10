@@ -17,7 +17,7 @@ extension Array {
   @inlinable
   internal static func _isWCSIABroken() -> Bool {
     print("Hi there")
-    
+
     #if _runtime(_ObjC)
     guard _isBridgedVerbatimToObjectiveC(Element.self) else {
       // SR-14663 only triggers on array values that are verbatim bridged
@@ -65,7 +65,7 @@ extension Sequence {
   // An adjusted version of the standard `withContiguousStorageIfAvailable`
   // method that works around https://bugs.swift.org/browse/SR-14663.
   @inlinable @inline(__always)
-  public func _withContiguousStorageIfAvailable_SR14663<R>(
+  internal func _withContiguousStorageIfAvailable_SR14663<R>(
     _ body: (UnsafeBufferPointer<Element>) throws -> R
   ) rethrows -> R? {
     if Self.self == Array<Element>.self && Array<Element>._isWCSIABroken() {
