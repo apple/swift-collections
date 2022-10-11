@@ -147,7 +147,7 @@ extension _Node {
         level, hash[level], path.currentItemSlot, by: { _ in })
     } else {
       let slot = path.childSlot(at: level)
-      let needsInlining = update {
+      let needsInlining: Bool = update {
         let child = $0.childPtr(at: slot)
         child.pointee._finalizeRemoval(level.descend(), hash, at: path)
         return child.pointee.hasSingletonItem

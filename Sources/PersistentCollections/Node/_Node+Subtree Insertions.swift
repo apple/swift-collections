@@ -427,7 +427,7 @@ extension _Node {
     itemSlot: _Slot
   ) {
     let c = self.count
-    let node = update { src in
+    let node: _Node = update { src in
       assert(!src.isCollisionNode)
       assert(src.itemMap.contains(bucket))
       assert(!src.childMap.contains(bucket))

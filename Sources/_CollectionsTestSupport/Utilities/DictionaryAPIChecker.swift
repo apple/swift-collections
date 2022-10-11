@@ -14,7 +14,7 @@
 ///
 /// To ensure maximum utility, this protocol doesn't refine `Collection`,
 /// although it does share some of the same requirements.
-public protocol DictionaryAPIChecker<Key, Value> {
+public protocol DictionaryAPIChecker {
   associatedtype Key
   associatedtype Value
   associatedtype Index

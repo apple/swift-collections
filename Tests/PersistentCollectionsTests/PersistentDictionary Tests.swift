@@ -288,6 +288,7 @@ class PersistentDictionaryTests: CollectionTestCase {
     }
   }
 
+#if swift(>=5.6)
   @available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *)
   struct FancyDictionaryKey: CodingKeyRepresentable, Hashable, Codable {
     var value: Int
@@ -303,6 +304,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       self.init(value)
     }
   }
+#endif
 
   struct BoringDictionaryKey: Hashable, Codable {
     var value: Int
@@ -328,6 +330,7 @@ class PersistentDictionaryTests: CollectionTestCase {
     ])
     expectEqual(try MinimalEncoder.encode(d2), v2)
 
+#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
       let d3: PersistentDictionary<FancyDictionaryKey, Int16> = [
         FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
@@ -337,6 +340,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       ])
       expectEqual(try MinimalEncoder.encode(d3), v3)
     }
+#endif
 
     let d4: PersistentDictionary<BoringDictionaryKey, UInt8> = [
       // Note: we only have a single element to prevent ordering
@@ -372,6 +376,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       try MinimalDecoder.decode(v2, as: PD<Int, String>.self),
       d2)
 
+#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
       let d3: PersistentDictionary<FancyDictionaryKey, Int16> = [
         FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
@@ -383,6 +388,7 @@ class PersistentDictionaryTests: CollectionTestCase {
         try MinimalDecoder.decode(v3, as: PD<FancyDictionaryKey, Int16>.self),
         d3)
     }
+#endif
 
     let d4: PersistentDictionary<BoringDictionaryKey, UInt8> = [
       // Note: we only have a single element to prevent ordering
@@ -404,6 +410,7 @@ class PersistentDictionaryTests: CollectionTestCase {
       expectTrue($0 is DecodingError)
     }
 
+#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
       let v6: MinimalEncoder.Value = .dictionary([
         "This is not a number": .string("bus"),
@@ -426,6 +433,7 @@ class PersistentDictionaryTests: CollectionTestCase {
         try MinimalDecoder.decode(v7, as: PD<FancyDictionaryKey, String>.self),
         d7)
     }
+#endif
 
     let v8: MinimalEncoder.Value = .array([
       .int32(1), .string("bike"), .int32(2),

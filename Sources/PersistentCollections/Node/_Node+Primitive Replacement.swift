@@ -34,7 +34,7 @@ extension _Node {
   internal mutating func replaceChild(
     at bucket: _Bucket, _ slot: _Slot, with child: _Node
   ) -> Int {
-    let delta = update {
+    let delta: Int = update {
       assert(!$0.isCollisionNode)
       assert($0.childMap.contains(bucket))
       assert($0.childMap.slot(of: bucket) == slot)

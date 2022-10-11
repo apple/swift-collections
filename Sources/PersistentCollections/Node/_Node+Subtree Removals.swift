@@ -33,7 +33,7 @@ extension _Node {
       return _removeItemFromUniqueLeafNode(level, bucket, r.slot) { $0.move() }
     }
 
-    let (old, needsInlining) = update {
+    let (old, needsInlining): (Element?, Bool) = update {
       let child = $0.childPtr(at: r.slot)
       let old = child.pointee.remove(level.descend(), key, hash)
       guard old != nil else { return (old, false) }
@@ -98,7 +98,7 @@ extension _Node {
         level, bucket, slot, by: { $0.move() })
     }
     let slot = path.childSlot(at: level)
-    let (item, needsInlining) = update {
+    let (item, needsInlining): (Element, Bool) = update {
       let child = $0.childPtr(at: slot)
       let item = child.pointee.remove(level.descend(), at: path)
       return (item, child.pointee.hasSingletonItem)

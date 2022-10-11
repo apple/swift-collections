@@ -84,7 +84,7 @@ extension _Node {
       itemMap: _Bitmap(bucket1, bucket2),
       childMap: .empty,
       count: 2
-    ) { children, items in
+    ) { children, items -> (_Slot, _Slot) in
       assert(items.count == 2 && children.count == 0)
       let i1 = bucket1 < bucket2 ? 1 : 0
       let i2 = 1 &- i1

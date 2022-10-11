@@ -110,7 +110,7 @@ extension _Node {
   ) -> _Node {
     defer { _invariantCheck() }
     assert(!isCollisionNode)
-    let child = update {
+    let child: _Node = update {
       assert($0.childMap.contains(bucket))
       assert($0.childMap.slot(of: bucket) == slot)
       let child = $0._removeChild(at: slot)
@@ -138,7 +138,7 @@ extension _Node {
   @inlinable
   internal mutating func removeSingletonChild() -> _Node {
     defer { _invariantCheck() }
-    let child = update {
+    let child: _Node = update {
       assert($0.itemCount == 0 && $0.childCount == 1)
       let child = $0._removeChild(at: .zero)
       $0.childMap = .empty
