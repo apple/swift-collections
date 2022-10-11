@@ -82,9 +82,8 @@ extension OrderedDictionary {
   ///   and `c` are incomparable, then `a` and `c` are also incomparable.
   ///   (Transitive incomparability)
   ///
-  /// The sorting algorithm is not guaranteed to be stable. A stable sort
-  /// preserves the relative order of elements for which
-  /// `areInIncreasingOrder` does not establish an order.
+  /// The sorting algorithm is guaranteed to be stable. A stable sort
+  /// preserves the relative order of elements that compare as equal.
   ///
   /// - Parameter areInIncreasingOrder: A predicate that returns `true` if its
   ///   first argument should be ordered before its second argument;
@@ -116,8 +115,8 @@ extension OrderedDictionary where Key: Comparable {
   /// sorted in ascending order. (`Value` doesn't need to conform to
   /// `Comparable` because the keys are guaranteed to be unique.)
   ///
-  /// The sorting algorithm is not guaranteed to be stable. A stable sort
-  /// preserves the relative order of elements that compare equal.
+  /// The sorting algorithm is guaranteed to be stable. A stable sort
+  /// preserves the relative order of elements that compare as equal.
   ///
   /// - Complexity: O(*n* log *n*), where *n* is the length of the collection.
   @inlinable
