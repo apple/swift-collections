@@ -64,7 +64,7 @@ extension UnsafeMutableBufferPointer {
     fromContentsOf source: C
   ) -> Index
   where C.Element == Element {
-    let count = source.withContiguousStorageIfAvailable {
+    let count = source._withContiguousStorageIfAvailable_SR14663 {
       guard let sourceAddress = $0.baseAddress, !$0.isEmpty else {
         return 0
       }
