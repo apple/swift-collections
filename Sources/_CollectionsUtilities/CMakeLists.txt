@@ -9,7 +9,6 @@ See https://swift.org/LICENSE.txt for license information
 
 add_library(_CollectionsUtilities
   "Array+WithContiguousStorage Compatibility.swift"
-  "CMakeLists.txt"
   "Debugging.swift"
   "Descriptions.swift"
   "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift"
