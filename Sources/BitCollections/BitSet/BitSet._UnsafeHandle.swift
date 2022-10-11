@@ -120,8 +120,10 @@ extension BitSet._UnsafeHandle {
       var buffer: (_Word, _Word) = (.empty, .empty)
       return try withUnsafeMutablePointer(to: &buffer) { p in
         // Homogeneous tuples are layout-compatible with their component type.
-        let words = UnsafeMutableRawPointer(p).assumingMemoryBound(to: _Word.self)
-        var bitset = Self(words: words, wordCount: wordCount, mutable: true)
+        let start = UnsafeMutableRawPointer(p)
+          .assumingMemoryBound(to: _Word.self)
+        let words = UnsafeMutableBufferPointer(start: start, count: wordCount)
+        var bitset = Self(words: words, mutable: true)
         return try body(&bitset)
       }
     }

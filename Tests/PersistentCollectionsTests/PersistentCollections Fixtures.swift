@@ -390,12 +390,15 @@ extension LifetimeTracker {
     map: PersistentDictionary<LifetimeTracked<Key>, LifetimeTracked<Value>>,
     ref: [(key: LifetimeTracked<Key>, value: LifetimeTracked<Value>)]
   ) {
-    let ref = fixture.itemsInIterationOrder.map { item in
+    typealias K = LifetimeTracked<Key>
+    typealias V = LifetimeTracked<Value>
+
+    let ref: [(key: K, value: V)] = fixture.itemsInIterationOrder.map { item in
       let key = keyTransform(item)
       let value = valueTransform(item)
       return (key: self.instance(for: key), value: self.instance(for: value))
     }
-    let ref2 = fixture.itemsInInsertionOrder.map { item in
+    let ref2: [(key: K, value: V)] = fixture.itemsInInsertionOrder.map { item in
       let key = keyTransform(item)
       let value = valueTransform(item)
       return (key: self.instance(for: key), value: self.instance(for: value))

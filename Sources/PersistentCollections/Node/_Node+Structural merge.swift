@@ -206,7 +206,7 @@ extension _Node {
         let originalItemCount = self.count
         for rs: _Slot in stride(from: .zero, to: r.itemsEndSlot, by: 1) {
           let rp = r.itemPtr(at: rs)
-          let lslot = self.read { l in
+          let lslot: _Slot? = self.read { l in
             let litems = l.reverseItems
             return litems
               .suffix(originalItemCount)
@@ -301,7 +301,7 @@ extension _Node {
       }
       if self.read({ $0.childMap.contains(bucket) }) {
         self.ensureUnique(isUnique: isUnique)
-        let delta = try self.update { l in
+        let delta: Int = try self.update { l in
           let lslot = l.childMap.slot(of: bucket)
           let h = hashPrefix.appending(bucket, at: level)
           let lchild = l.childPtr(at: lslot)

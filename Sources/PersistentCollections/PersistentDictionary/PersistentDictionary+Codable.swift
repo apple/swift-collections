@@ -46,15 +46,20 @@ where Key: Encodable, Value: Encodable
         let codingKey = _DictionaryCodingKey(stringValue: key as! String)
         try container.encode(value, forKey: codingKey)
       }
-    } else if Key.self == Int.self {
+      return
+    }
+    if Key.self == Int.self {
       // Since the keys are already Ints, we can use them as keys directly.
       var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
       for (key, value) in self {
         let codingKey = _DictionaryCodingKey(intValue: key as! Int)
         try container.encode(value, forKey: codingKey)
       }
-    } else if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
-              Key.self is CodingKeyRepresentable.Type {
+      return
+    }
+#if swift(>=5.6)
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
+            Key.self is CodingKeyRepresentable.Type {
       // Since the keys are CodingKeyRepresentable, we can use the `codingKey`
       // to create `_DictionaryCodingKey` instances.
       var container = encoder.container(keyedBy: _DictionaryCodingKey.self)
@@ -63,15 +68,16 @@ where Key: Encodable, Value: Encodable
         let dictionaryCodingKey = _DictionaryCodingKey(codingKey: codingKey)
         try container.encode(value, forKey: dictionaryCodingKey)
       }
-    } else {
-      // Keys are Encodable but not Strings or Ints, so we cannot arbitrarily
-      // convert to keys. We can encode as an array of alternating key-value
-      // pairs, though.
-      var container = encoder.unkeyedContainer()
-      for (key, value) in self {
-        try container.encode(key)
-        try container.encode(value)
-      }
+      return
+    }
+#endif
+    // Keys are Encodable but not Strings or Ints, so we cannot arbitrarily
+    // convert to keys. We can encode as an array of alternating key-value
+    // pairs, though.
+    var container = encoder.unkeyedContainer()
+    for (key, value) in self {
+      try container.encode(key)
+      try container.encode(value)
     }
   }
 }
@@ -95,7 +101,9 @@ where Key: Decodable, Value: Decodable
         let value = try container.decode(Value.self, forKey: key)
         self[key.stringValue as! Key] = value
       }
-    } else if Key.self == Int.self {
+      return
+    }
+    if Key.self == Int.self {
       // The keys are Ints, so we should be able to expect a keyed container.
       let container = try decoder.container(keyedBy: _DictionaryCodingKey.self)
       for key in container.allKeys {
@@ -119,8 +127,12 @@ where Key: Decodable, Value: Decodable
         let value = try container.decode(Value.self, forKey: key)
         self[key.intValue! as! Key] = value
       }
-    } else if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
-              let keyType = Key.self as? CodingKeyRepresentable.Type {
+      return
+    }
+
+#if swift(>=5.6)
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
+       let keyType = Key.self as? CodingKeyRepresentable.Type {
       // The keys are CodingKeyRepresentable, so we should be able to expect
       // a keyed container.
       let container = try decoder.container(keyedBy: _DictionaryCodingKey.self)
@@ -135,38 +147,40 @@ where Key: Decodable, Value: Decodable
         let value: Value = try container.decode(Value.self, forKey: codingKey)
         self[key] = value
       }
-    } else {
-      // We should have encoded as an array of alternating key-value pairs.
-      var container = try decoder.unkeyedContainer()
+      return
+    }
+#endif
 
-      // We're expecting to get pairs. If the container has a known count, it
-      // had better be even; no point in doing work if not.
-      if let count = container.count {
-        guard count % 2 == 0 else {
-          throw DecodingError.dataCorrupted(
-            DecodingError.Context(
-              codingPath: decoder.codingPath,
-              debugDescription: "Expected collection of key-value pairs; encountered odd-length array instead."
-            )
+    // We should have encoded as an array of alternating key-value pairs.
+    var container = try decoder.unkeyedContainer()
+
+    // We're expecting to get pairs. If the container has a known count, it
+    // had better be even; no point in doing work if not.
+    if let count = container.count {
+      guard count % 2 == 0 else {
+        throw DecodingError.dataCorrupted(
+          DecodingError.Context(
+            codingPath: decoder.codingPath,
+            debugDescription: "Expected collection of key-value pairs; encountered odd-length array instead."
           )
-        }
+        )
+      }
+    }
+
+    while !container.isAtEnd {
+      let key = try container.decode(Key.self)
+
+      guard !container.isAtEnd else {
+        throw DecodingError.dataCorrupted(
+          DecodingError.Context(
+            codingPath: decoder.codingPath,
+            debugDescription: "Unkeyed container reached end before value in key-value pair."
+          )
+        )
       }
 
-      while !container.isAtEnd {
-        let key = try container.decode(Key.self)
-
-        guard !container.isAtEnd else {
-          throw DecodingError.dataCorrupted(
-            DecodingError.Context(
-              codingPath: decoder.codingPath,
-              debugDescription: "Unkeyed container reached end before value in key-value pair."
-            )
-          )
-        }
-
-        let value = try container.decode(Value.self)
-        self[key] = value
-      }
+      let value = try container.decode(Value.self)
+      self[key] = value
     }
   }
 }

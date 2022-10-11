@@ -64,7 +64,7 @@ extension UnsafeMutableBufferPointer {
     fromContentsOf source: C
   ) -> Index
   where C.Element == Element {
-    let count = source._withContiguousStorageIfAvailable_SR14663 {
+    let count: Int? = source._withContiguousStorageIfAvailable_SR14663 {
       guard let sourceAddress = $0.baseAddress, !$0.isEmpty else {
         return 0
       }
@@ -75,7 +75,7 @@ extension UnsafeMutableBufferPointer {
       baseAddress?.initialize(from: sourceAddress, count: $0.count)
       return $0.count
     }
-    if let count {
+    if let count = count {
       return startIndex.advanced(by: count)
     }
 

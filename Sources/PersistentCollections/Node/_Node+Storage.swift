@@ -168,7 +168,7 @@ extension _Node {
     let storage = Storage.allocate(
       byteCapacity: occupiedBytes &+ extraBytes)
     var node = _Node(storage: storage, count: count)
-    let result = node.update {
+    let result: R = node.update {
       $0.itemMap = itemMap
       $0.childMap = childMap
 
@@ -202,7 +202,7 @@ extension _Node {
     assert(MemoryLayout<_Hash>.alignment <= MemoryLayout<_RawNode>.alignment)
     let storage = Storage.allocate(byteCapacity: bytes &+ extraBytes)
     var node = _Node(storage: storage, count: count)
-    let result = node.update {
+    let result: R = node.update {
       $0.itemMap = _Bitmap(bitPattern: count)
       $0.childMap = $0.itemMap
       assert(bytes <= $0.bytesFree)
