@@ -8,22 +8,19 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(OrderedCollections
-  "HashTable/_HashTable.swift"
   "HashTable/_HashTable+Bucket.swift"
   "HashTable/_HashTable+BucketIterator.swift"
   "HashTable/_HashTable+Constants.swift"
   "HashTable/_HashTable+CustomStringConvertible.swift"
-  "HashTable/_Hashtable+Header.swift"
   "HashTable/_HashTable+Testing.swift"
   "HashTable/_HashTable+UnsafeHandle.swift"
-
-  "OrderedDictionary/OrderedDictionary.swift"
+  "HashTable/_HashTable.swift"
+  "HashTable/_Hashtable+Header.swift"
   "OrderedDictionary/OrderedDictionary+Codable.swift"
-  "OrderedDictionary/OrderedDictionary+CustomDebugStringConvertible.swift"
   "OrderedDictionary/OrderedDictionary+CustomReflectable.swift"
-  "OrderedDictionary/OrderedDictionary+CustomStringConvertible.swift"
+  "OrderedDictionary/OrderedDictionary+Deprecations.swift"
+  "OrderedDictionary/OrderedDictionary+Descriptions.swift"
   "OrderedDictionary/OrderedDictionary+Elements+SubSequence.swift"
-  "OrderedDictionary/OrderedDictionary+Elements.swift"
   "OrderedDictionary/OrderedDictionary+Equatable.swift"
   "OrderedDictionary/OrderedDictionary+ExpressibleByDictionaryLiteral.swift"
   "OrderedDictionary/OrderedDictionary+Hashable.swift"
@@ -31,15 +28,14 @@ add_library(OrderedCollections
   "OrderedDictionary/OrderedDictionary+Invariants.swift"
   "OrderedDictionary/OrderedDictionary+Partial MutableCollection.swift"
   "OrderedDictionary/OrderedDictionary+Partial RangeReplaceableCollection.swift"
+  "OrderedDictionary/OrderedDictionary+Sendable.swift"
   "OrderedDictionary/OrderedDictionary+Sequence.swift"
   "OrderedDictionary/OrderedDictionary+Values.swift"
-  "OrderedDictionary/OrderedDictionary+Deprecations.swift"
-
-  "OrderedSet/OrderedSet.swift"
+  "OrderedDictionary/OrderedDictionary.Elements.swift"
+  "OrderedDictionary/OrderedDictionary.swift"
   "OrderedSet/OrderedSet+Codable.swift"
-  "OrderedSet/OrderedSet+CustomDebugStringConvertible.swift"
   "OrderedSet/OrderedSet+CustomReflectable.swift"
-  "OrderedSet/OrderedSet+CustomStringConvertible.swift"
+  "OrderedSet/OrderedSet+Descriptions.swift"
   "OrderedSet/OrderedSet+Diffing.swift"
   "OrderedSet/OrderedSet+Equatable.swift"
   "OrderedSet/OrderedSet+ExpressibleByArrayLiteral.swift"
@@ -54,13 +50,16 @@ add_library(OrderedCollections
   "OrderedSet/OrderedSet+Partial SetAlgebra+Predicates.swift"
   "OrderedSet/OrderedSet+RandomAccessCollection.swift"
   "OrderedSet/OrderedSet+ReserveCapacity.swift"
+  "OrderedSet/OrderedSet+Sendable.swift"
   "OrderedSet/OrderedSet+SubSequence.swift"
   "OrderedSet/OrderedSet+Testing.swift"
   "OrderedSet/OrderedSet+UnorderedView.swift"
   "OrderedSet/OrderedSet+UnstableInternals.swift"
-
+  "OrderedSet/OrderedSet.swift"
   "Utilities/_UnsafeBitset.swift"
-  "Utilities/RandomAccessCollection+Offsets.swift")
+  )
+target_link_libraries(OrderedCollections PRIVATE
+  _CollectionsUtilities)
 set_target_properties(OrderedCollections PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
