@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 @frozen
 @usableFromInline
 internal struct _UnsafeWrappedBuffer<Element> {
@@ -75,6 +77,24 @@ internal struct _UnsafeMutableWrappedBuffer<Element> {
   @inlinable
   @inline(__always)
   internal init(
+    _ first: UnsafeMutableBufferPointer<Element>.SubSequence,
+    _ second: UnsafeMutableBufferPointer<Element>? = nil
+  ) {
+    self.init(UnsafeMutableBufferPointer(rebasing: first), second)
+  }
+
+  @inlinable
+  @inline(__always)
+  internal init(
+    _ first: UnsafeMutableBufferPointer<Element>,
+    _ second: UnsafeMutableBufferPointer<Element>.SubSequence
+  ) {
+    self.init(first, UnsafeMutableBufferPointer(rebasing: second))
+  }
+
+  @inlinable
+  @inline(__always)
+  internal init(
     start: UnsafeMutablePointer<Element>,
     count: Int
   ) {
@@ -113,9 +133,9 @@ extension _UnsafeMutableWrappedBuffer {
       return self
     }
     if n <= first.count {
-      return Self(first.prefix(n)._rebased())
+      return Self(first.prefix(n))
     }
-    return Self(first, second!.prefix(n - first.count)._rebased())
+    return Self(first, second!.prefix(n - first.count))
   }
 
   @inlinable
@@ -125,20 +145,20 @@ extension _UnsafeMutableWrappedBuffer {
       return self
     }
     guard let second = second else {
-      return Self(first.suffix(n)._rebased())
+      return Self(first.suffix(n))
     }
     if n <= second.count {
-      return Self(second.suffix(n)._rebased())
+      return Self(second.suffix(n))
     }
-    return Self(first.suffix(n - second.count)._rebased(), second)
+    return Self(first.suffix(n - second.count), second)
   }
 }
 
 extension _UnsafeMutableWrappedBuffer {
   @inlinable
   internal func deinitialize() {
-    first._deinitializeAll()
-    second?._deinitializeAll()
+    first.deinitialize()
+    second?.deinitialize()
   }
 
   @inlinable
@@ -199,10 +219,10 @@ extension _UnsafeMutableWrappedBuffer {
     assert(self.count == elements.count)
     if let second = second {
       let wrap = elements.index(elements.startIndex, offsetBy: first.count)
-      first._initialize(from: elements[..<wrap])
-      second._initialize(from: elements[wrap...])
+      first.initializeAll(fromContentsOf: elements[..<wrap])
+      second.initializeAll(fromContentsOf: elements[wrap...])
     } else {
-      first._initialize(from: elements)
+      first.initializeAll(fromContentsOf: elements)
     }
   }
 

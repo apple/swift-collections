@@ -67,6 +67,7 @@ extension Collection {
 public func checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line
 ) where C.Element: Equatable, Expected.Element == C.Element {
@@ -76,6 +77,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
     collection,
     expectedContents: expectedContents,
     by: ==,
+    maxSamples: maxSamples,
     file: file, line: line)
 
   let indicesByIndexAfter = collection._indicesByIndexAfter()
@@ -101,6 +103,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,
   by areEquivalent: (C.Element, C.Element) -> Bool,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line
 ) where Expected.Element == C.Element {
@@ -113,6 +116,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
     collection,
     expectedContents: expectedContents,
     by: areEquivalent,
+    maxSamples: maxSamples,
     file: file, line: line)
 }
 
@@ -120,6 +124,7 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,
   by areEquivalent: (C.Element, C.Element) -> Bool,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line
 ) where Expected.Element == C.Element {
@@ -156,30 +161,20 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
   // Check the endIndex.
   expectEqual(collection.endIndex, collection.indices.endIndex)
 
-  // Check the Indices associated type
-  if C.self != C.Indices.self {
-    checkCollection(collection.indices, expectedContents: indicesByIndexAfter)
-  } else {
-    expectEqual(collection.indices.count, collection.count)
-    expectEqualElements(collection.indices, indicesByIndexAfter)
-  }
+  // Quickly check the Indices associated type
+  expectEqual(collection.indices.count, collection.count)
+  expectEqualElements(collection.indices, indicesByIndexAfter)
   expectEqual(collection.indices.endIndex, collection.endIndex)
 
   // The sequence of indices must be monotonically increasing.
   var allIndices = indicesByIndexAfter
   allIndices.append(collection.endIndex)
-  checkComparable(allIndices, oracle: { .comparing($0, $1) })
 
-  // Check `index(_,offsetBy:)`
-  for (offset, start) in allIndices.enumerated() {
-    for distance in 0 ... indicesByIndexAfter.count - offset {
-      let end = collection.index(start, offsetBy: distance)
-      expectEqual(end, allIndices[offset + distance])
-      if offset + distance < expectedContents.count {
-        expectEquivalent(collection[end], expectedContents[offset + distance],
-                         by: areEquivalent)
-      }
-    }
+  if C.Index.self != Int.self {
+    checkComparable(
+      allIndices,
+      oracle: { .comparing($0, $1) },
+      maxSamples: maxSamples)
   }
 
   // Check `index(_,offsetBy:limitedBy:)`
@@ -200,71 +195,90 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
       }
     }
   }
+  
+  withSomeRanges(
+    "range", in: 0 ..< allIndices.count - 1, maxSamples: maxSamples
+  ) { range in
+    let i = range.lowerBound
+    let j = range.upperBound
 
-  // Check `distance(from:to:)`
-  withEvery("i", in: allIndices.indices) { i in
-    withEvery("j", in: allIndices.indices[i...]) { j in
-      let d = collection.distance(from: allIndices[i], to: allIndices[j])
-      expectEqual(d, j - i)
+    // Check `index(_,offsetBy:)`
+    let e = collection.index(allIndices[i], offsetBy: j - i)
+    expectEqual(e, allIndices[j])
+    if j < expectedContents.count {
+      expectEquivalent(collection[e], expectedContents[j], by: areEquivalent)
     }
+
+    // Check `distance(from:to:)`
+    let d = collection.distance(from: allIndices[i], to: allIndices[j])
+    expectEqual(d, j - i)
+    
+    // Check slicing.
+    let range = allIndices[i] ..< allIndices[j]
+    let slice = collection[range]
+    expectEqual(slice.count, j - i)
+    expectEqual(slice.isEmpty, i == j)
+    expectEqual(slice.startIndex, allIndices[i])
+    expectEqual(slice.endIndex, allIndices[j])
+    expectEqual(slice.distance(from: allIndices[i], to: allIndices[j]), j - i)
+    expectEqual(slice.index(allIndices[i], offsetBy: j - i), allIndices[j])
+    
+    expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[j]),
+                allIndices[j])
+    expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[i]),
+                j - i > 0 ? nil : allIndices[i])
+    expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[0]),
+                i > 0 || j == 0 ? allIndices[j] : nil)
+    
+    expectEquivalentElements(slice, expectedContents[i ..< j],
+                             by: areEquivalent)
+    
+    expectEquivalentElements(
+      slice._contentsByIterator(), expectedContents[i ..< j],
+      by: areEquivalent)
+    expectEquivalentElements(
+      slice._contentsByCopyContents(), expectedContents[i ..< j],
+      by: areEquivalent)
+    
+    // Check _copyContents.
+    let copyContents = collection._contentsByCopyContents()
+    expectEquivalentElements(
+      copyContents, expectedContents,
+      by: areEquivalent)
+    
+    expectEqualElements(slice._indicesByIndexAfter(), allIndices[i ..< j])
+    expectEqualElements(slice._indicesByFormIndexAfter(), allIndices[i ..< j])
+    expectEqualElements(slice.indices, allIndices[i ..< j])
+    expectEqualElements(slice.indices._indicesByIndexAfter(), allIndices[i ..< j])
+    expectEqualElements(slice.indices._indicesByFormIndexAfter(), allIndices[i ..< j])
+    // Check the subsequence iterator.
+    expectEquivalentElements(
+      slice, expectedContents[i ..< j],
+      by: areEquivalent)
+    // Check the subsequence subscript.
+    withSome("k", in: i ..< j, maxSamples: 25) { k in
+      expectEquivalent(
+        slice[allIndices[k]],
+        expectedContents[k],
+        by: areEquivalent)
+    }
+    // Check _copyToContiguousArray.
+    expectEquivalentElements(
+      Array(slice), expectedContents[i ..< j],
+      by: areEquivalent)
+    // Check slicing of slices.
+    expectEquivalentElements(
+      slice[range], expectedContents[i ..< j],
+      by: areEquivalent)
   }
 
-  // Check slicing.
-  withEvery("i", in: 0 ..< allIndices.count) { i in
-    withEvery("j", in: i ..< allIndices.count) { j in
-      let range = allIndices[i] ..< allIndices[j]
-      let slice = collection[range]
-      expectEqual(slice.count, j - i)
-      expectEqual(slice.isEmpty, i == j)
-      expectEqual(slice.startIndex, allIndices[i])
-      expectEqual(slice.endIndex, allIndices[j])
-      expectEqual(slice.distance(from: allIndices[i], to: allIndices[j]), j - i)
-      expectEqual(slice.index(allIndices[i], offsetBy: j - i), allIndices[j])
-
-      expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[j]),
-                  allIndices[j])
-      expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[i]),
-                  j - i > 0 ? nil : allIndices[i])
-      expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[0]),
-                  i > 0 || j == 0 ? allIndices[j] : nil)
-
-      expectEquivalentElements(slice, expectedContents[i ..< j],
-                               by: areEquivalent)
-
-      expectEquivalentElements(
-        slice._contentsByIterator(), expectedContents[i ..< j],
-        by: areEquivalent)
-      expectEquivalentElements(
-        slice._contentsByCopyContents(), expectedContents[i ..< j],
-        by: areEquivalent)
-
-      // Check _copyContents.
-      let copyContents = collection._contentsByCopyContents()
-      expectEquivalentElements(
-        copyContents, expectedContents,
-        by: areEquivalent)
-
-      expectEqualElements(slice._indicesByIndexAfter(), allIndices[i ..< j])
-      expectEqualElements(slice._indicesByFormIndexAfter(), allIndices[i ..< j])
-      expectEqualElements(slice.indices, allIndices[i ..< j])
-      expectEqualElements(slice.indices._indicesByIndexAfter(), allIndices[i ..< j])
-      expectEqualElements(slice.indices._indicesByFormIndexAfter(), allIndices[i ..< j])
-      // Check the subsequence iterator.
-      expectEquivalentElements(
-        slice, expectedContents[i ..< j],
-        by: areEquivalent)
-      // Check the subsequence subscript.
-      expectEquivalentElements(
-        allIndices[i ..< j].map { slice[$0] }, expectedContents[i ..< j],
-        by: areEquivalent)
-      // Check _copyToContiguousArray.
-      expectEquivalentElements(
-        Array(slice), expectedContents[i ..< j],
-        by: areEquivalent)
-      // Check slicing of slices.
-      expectEquivalentElements(
-        slice[range], expectedContents[i ..< j],
-        by: areEquivalent)
+  if C.Indices.self != C.self && C.Indices.self != DefaultIndices<C>.self {
+    // Do a more exhaustive check on Indices.
+    TestContext.current.withTrace("Indices") {
+      checkCollection(
+        collection.indices,
+        expectedContents: indicesByIndexAfter,
+        maxSamples: maxSamples)
     }
   }
 }

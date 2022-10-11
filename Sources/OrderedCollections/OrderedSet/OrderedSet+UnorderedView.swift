@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedSet {
   /// An unordered view into an ordered set, providing `SetAlgebra`
   /// conformance.
@@ -62,6 +64,10 @@ extension OrderedSet {
   }
 }
 
+#if swift(>=5.5)
+extension OrderedSet.UnorderedView: Sendable where Element: Sendable {}
+#endif
+
 extension OrderedSet.UnorderedView: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
@@ -72,7 +78,10 @@ extension OrderedSet.UnorderedView: CustomStringConvertible {
 extension OrderedSet.UnorderedView: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _base._debugDescription(typeName: "\(_base._debugTypeName()).UnorderedView")
+    _arrayDescription(
+      for: _base,
+      debug: true,
+      typeName: "\(_base._debugTypeName()).UnorderedView")
   }
 }
 
