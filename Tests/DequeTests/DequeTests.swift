@@ -350,25 +350,7 @@ final class DequeTests: CollectionTestCase {
 
   func test_prependManyFromBridgedArray() {
     // https://github.com/apple/swift-collections/issues/27
-    withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      withEvery("appendCount", in: 0 ..< 10) { appendCount in
-        withEvery("isShared", in: [false, true]) { isShared in
-          var contents: [NSObject] = (0 ..< layout.count).map { _ in NSObject() }
-          var deque = Deque(layout: layout, contents: contents)
-          let extra: [NSObject] = (0 ..< appendCount)
-            .map { _ in NSObject() }
-            .withUnsafeBufferPointer { buffer in
-              NSArray(objects: buffer.baseAddress, count: buffer.count) as! [NSObject]
-            }
-          withHiddenCopies(if: isShared, of: &deque) { deque in
-            contents.insert(contentsOf: extra, at: 0)
-            deque.prepend(contentsOf: extra)
-            expectEquivalentElements(deque, contents, by: ===)
-          }
-        }
-      }
-    }
+    fatalError("Hi, what's going on?")
   }
-
 }
 
