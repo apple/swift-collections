@@ -64,7 +64,7 @@ extension UnsafeMutableBufferPointer {
     fromContentsOf source: C
   ) -> Index
   where C.Element == Element {
-    let count = source.withContiguousStorageIfAvailable {
+    let count = source._withContiguousStorageIfAvailable_SR14663 {
       guard let sourceAddress = $0.baseAddress, !$0.isEmpty else {
         return 0
       }
@@ -366,3 +366,41 @@ extension Slice {
     base.baseAddress.unsafelyUnwrapped.advanced(by: index).initialize(to: value)
   }
 }
+
+#if swift(<5.8)
+extension UnsafeMutableBufferPointer {
+  /// Updates every element of this buffer's initialized memory.
+  ///
+  /// The buffer’s memory must be initialized or its `Element` type
+  /// must be a trivial type.
+  ///
+  /// - Note: All buffer elements must already be initialized.
+  ///
+  /// - Parameters:
+  ///   - repeatedValue: The value used when updating this pointer's memory.
+  @_alwaysEmitIntoClient
+  public func update(repeating repeatedValue: Element) {
+    guard let dstBase = baseAddress else { return }
+    dstBase.update(repeating: repeatedValue, count: count)
+  }
+}
+#endif
+
+#if swift(<5.8)
+extension Slice {
+  /// Updates every element of this buffer slice's initialized memory.
+  ///
+  /// The buffer slice’s memory must be initialized or its `Element`
+  /// must be a trivial type.
+  ///
+  /// - Note: All buffer elements must already be initialized.
+  ///
+  /// - Parameters:
+  ///   - repeatedValue: The value used when updating this pointer's memory.
+  @_alwaysEmitIntoClient
+  public func update<Element>(repeating repeatedValue: Element)
+  where Base == UnsafeMutableBufferPointer<Element> {
+    Base(rebasing: self).update(repeating: repeatedValue)
+  }
+}
+#endif

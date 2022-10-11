@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 @usableFromInline
 @frozen
 internal struct _Word {
@@ -52,12 +54,12 @@ extension _Word {
   ///    then this function returns the member found. Otherwise it returns nil.
   @inline(never)
   internal func nthElement(_ n: inout UInt) -> UInt? {
-    value._nthSetBit(&n)
+    value._rank(ofBit: &n)
   }
   
   @inline(never)
   internal func nthElementFromEnd(_ n: inout UInt) -> UInt? {
-    guard let i = value._reversed._nthSetBit(&n) else { return nil }
+    guard let i = value._reversed._rank(ofBit: &n) else { return nil }
     return UInt(UInt.bitWidth) &- 1 &- i
   }
 }
@@ -102,13 +104,13 @@ extension _Word {
 
   @inlinable
   @inline(__always)
-  internal var firstMember: UInt {
+  internal var firstMember: UInt? {
     value._lastSetBit
   }
 
   @inlinable
   @inline(__always)
-  internal var lastMember: UInt {
+  internal var lastMember: UInt? {
     value._firstSetBit
   }
 

@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitArray {
   internal mutating func _copy(
     from range: Range<Int>,

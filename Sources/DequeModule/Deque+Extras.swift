@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension Deque {
   /// Creates a deque with the specified capacity, then calls the given
   /// closure with a buffer covering the array's uninitialized memory.

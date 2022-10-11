@@ -23,7 +23,7 @@ extension BitArray: CustomStringConvertible {
         let b1: UInt8 = 49 // ASCII 1
         var i = 0
         for v in self {
-          target._initialize(at: i, to: v ? b1 : b0)
+          target.initializeElement(at: i, to: v ? b1 : b0)
           i &+= 1
         }
         return i

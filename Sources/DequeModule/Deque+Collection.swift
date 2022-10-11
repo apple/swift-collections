@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension Deque: Sequence {
   // Implementation note: we could also use the default `IndexingIterator` here.
   // This custom implementation performs direct storage access to eliminate any
@@ -104,10 +106,10 @@ extension Deque: Sequence {
       _storage.read { source in
         let segments = source.segments()
         let c = segments.first.count
-        target[..<c]._rebased()._initialize(from: segments.first)
+        target[..<c].initializeAll(fromContentsOf: segments.first)
         count += segments.first.count
         if let second = segments.second {
-          target[c ..< c + second.count]._rebased()._initialize(from: second)
+          target[c ..< c + second.count].initializeAll(fromContentsOf: second)
           count += second.count
         }
         assert(count == source.count)
@@ -122,12 +124,12 @@ extension Deque: Sequence {
     _storage.read { source in
       let segments = source.segments()
       let c1 = Swift.min(segments.first.count, target.count)
-      target[..<c1]._rebased()._initialize(from: segments.first.prefix(c1)._rebased())
+      target[..<c1].initializeAll(fromContentsOf: segments.first.prefix(c1))
       guard target.count > c1, let second = segments.second else {
         return (Iterator(_base: self, from: c1), c1)
       }
       let c2 = Swift.min(second.count, target.count - c1)
-      target[c1 ..< c1 + c2]._rebased()._initialize(from: second.prefix(c2)._rebased())
+      target[c1 ..< c1 + c2].initializeAll(fromContentsOf: second.prefix(c2))
       return (Iterator(_base: self, from: c1 + c2), c1 + c2)
     }
   }
@@ -622,10 +624,10 @@ extension Deque: RangeReplaceableCollection {
       assert(handle.startSlot == .zero)
       let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
       let done: Void? = elements._withContiguousStorageIfAvailable_SR14663 { source in
-        target._initialize(from: source)
+        target.initializeAll(fromContentsOf: source)
       }
       if done == nil {
-        target._initialize(from: elements)
+        target.initializeAll(fromContentsOf: elements)
       }
       handle.count = c
     }

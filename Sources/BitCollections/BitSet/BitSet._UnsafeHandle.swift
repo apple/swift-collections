@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitSet {
   /// An unsafe-unowned bitset view over `UInt` storage, providing bit set
   /// primitives.
@@ -273,7 +275,7 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
   internal var startIndex: Index {
     let word = _words.firstIndex { !$0.isEmpty }
     guard let word = word else { return endIndex }
-    return Index(word: word, bit: _words[word].firstMember)
+    return Index(word: word, bit: _words[word].firstMember!)
   }
 
   @inlinable
@@ -299,7 +301,7 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
       }
       w = _words[word]
     }
-    return Index(word: word, bit: w.firstMember)
+    return Index(word: word, bit: w.firstMember!)
   }
 
   @usableFromInline
@@ -318,7 +320,7 @@ extension BitSet._UnsafeHandle: BidirectionalCollection {
       precondition(word >= 0, "Can't advance below startIndex")
       w = _words[word]
     }
-    return Index(word: word, bit: w.lastMember)
+    return Index(word: word, bit: w.lastMember!)
   }
   
   @usableFromInline
@@ -501,9 +503,7 @@ extension BitSet._UnsafeHandle {
     _mutableWords[l.word].formIntersection(_Word(upTo: l.bit).complement())
     if u.word < wordCount {
       _mutableWords[u.word].formIntersection(_Word(upTo: u.bit))
-      _mutableWords[(u.word + 1)...]
-        ._rebased()
-        .assign(repeating: .empty)
+      _mutableWords[(u.word + 1)...].update(repeating: .empty)
     }
   }
 
@@ -542,9 +542,7 @@ extension BitSet._UnsafeHandle {
     }
 
     _mutableWords[l.word].subtract(_Word(upTo: l.bit).complement())
-    _mutableWords[(l.word + 1) ..< u.word]
-      ._rebased()
-      .assign(repeating: .empty)
+    _mutableWords[(l.word + 1) ..< u.word].update(repeating: .empty)
     if u.word < wordCount {
       _mutableWords[u.word].subtract(_Word(upTo: u.bit))
     }

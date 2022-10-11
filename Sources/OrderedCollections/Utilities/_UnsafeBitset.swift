@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 /// A simple bitmap of a fixed number of bits, implementing a sorted set of
 /// small nonnegative `Int` values.
 ///
@@ -184,7 +186,7 @@ extension _UnsafeBitset {
   @_effects(releasenone)
   internal mutating func clear() {
     guard _words.count > 0 else { return }
-    _words.baseAddress!.assign(repeating: .empty, count: _words.count)
+    _words.baseAddress!.update(repeating: .empty, count: _words.count)
     _count = 0
   }
 
