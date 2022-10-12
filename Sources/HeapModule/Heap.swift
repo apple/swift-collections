@@ -28,23 +28,6 @@ public struct Heap<Element: Comparable> {
   @usableFromInline
   internal var _storage: ContiguousArray<Element>
 
-  /// Creates a heap from the given sequence, assuming said sequence is already
-  /// an implicit data structure for a binary min-max heap.
-  ///
-  /// - Precondition: `storage` is finite, and it already matches the implicit
-  ///   data structure for a binary min-max heap.
-  ///
-  /// - Parameter storage: The elements of the heap.
-  /// - Postcondition: `unordered.elementsEqual(s)`, where *s* is a sequence
-  ///   with the same elements as pre-call `storage`.
-  ///
-  /// - Complexity: O(*n*), where *n* is the length of `storage`.
-  @_alwaysEmitIntoClient
-  internal init<S: Sequence>(_raw storage: S) where S.Element == Element {
-    _storage = .init(storage)
-    _checkInvariants()
-  }
-
   /// Creates an empty heap.
   @inlinable
   public init() {
