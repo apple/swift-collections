@@ -53,7 +53,6 @@ let package = Package(
     .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
-    .library(name: "SortedCollections", targets: ["SortedCollections"]),
   ],
   targets: [
     .target(
@@ -64,7 +63,6 @@ let package = Package(
         "HeapModule",
         "OrderedCollections",
         "PersistentCollections",
-        "SortedCollections",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -143,15 +141,5 @@ let package = Package(
         name: "PersistentCollectionsTests",
         dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
         swiftSettings: settings),
-
-    // SortedSet<Element>, SortedDictionary<Key, Value>
-    .target(
-      name: "SortedCollections",
-      dependencies: ["_CollectionsUtilities"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "SortedCollectionsTests",
-      dependencies: ["SortedCollections", "_CollectionsTestSupport"],
-      swiftSettings: settings),
   ]
 )
