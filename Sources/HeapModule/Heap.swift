@@ -173,6 +173,65 @@ extension Heap {
   public mutating func removeMax() -> Element {
     return popMax()!
   }
+
+  /// Replaces the minimum value in the heap with the given replacement,
+  /// then updates heap contents to reflect the change.
+  ///
+  /// The heap must not be empty.
+  ///
+  /// - Parameter replacement: The value that is to replace the current
+  ///   minimum value.
+  /// - Returns: The original minimum value before the replacement.
+  ///
+  /// - Complexity: O(log `count`)
+  @inlinable
+  @discardableResult
+  public mutating func replaceMin(with replacement: Element) -> Element {
+    precondition(!isEmpty, "No element to replace")
+
+    var removed = replacement
+    _update { handle in
+      let minNode = _Node.root
+      handle.swapAt(minNode, with: &removed)
+      handle.trickleDownMin(minNode)
+    }
+    _checkInvariants()
+    return removed
+  }
+
+  /// Replaces the maximum value in the heap with the given replacement,
+  /// then updates heap contents to reflect the change.
+  ///
+  /// The heap must not be empty.
+  ///
+  /// - Parameter replacement: The value that is to replace the current maximum
+  ///   value.
+  /// - Returns: The original maximum value before the replacement.
+  ///
+  /// - Complexity: O(log `count`)
+  @inlinable
+  @discardableResult
+  public mutating func replaceMax(with replacement: Element) -> Element {
+    precondition(!isEmpty, "No element to replace")
+
+    var removed = replacement
+    _update { handle in
+      switch handle.count {
+      case 1:
+        handle.swapAt(.root, with: &removed)
+      case 2:
+        handle.swapAt(.leftMax, with: &removed)
+        handle.bubbleUp(.leftMax)
+      default:
+        let maxNode = handle.maxValue(.leftMax, .rightMax)
+        handle.swapAt(maxNode, with: &removed)
+        handle.bubbleUp(maxNode)  // This must happen first
+        handle.trickleDownMax(maxNode)  // Either new element or dethroned min
+      }
+    }
+    _checkInvariants()
+    return removed
+  }
 }
 
 // MARK: -
