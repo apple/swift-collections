@@ -98,20 +98,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SortedCollections"
-               BuildableName = "SortedCollections"
-               BlueprintName = "SortedCollections"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "_CollectionsTestSupport"
                BuildableName = "_CollectionsTestSupport"
                BlueprintName = "_CollectionsTestSupport"
@@ -202,20 +188,6 @@
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SortedCollectionsTests"
-               BuildableName = "SortedCollectionsTests"
-               BlueprintName = "SortedCollectionsTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -272,16 +244,6 @@
                BlueprintIdentifier = "PersistentCollectionsTests"
                BuildableName = "PersistentCollectionsTests"
                BlueprintName = "PersistentCollectionsTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SortedCollectionsTests"
-               BuildableName = "SortedCollectionsTests"
-               BlueprintName = "SortedCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
