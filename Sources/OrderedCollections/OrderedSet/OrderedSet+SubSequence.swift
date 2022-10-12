@@ -33,6 +33,10 @@ extension OrderedSet {
   }
 }
 
+#if swift(>=5.5)
+extension OrderedSet.SubSequence: Sendable where Element: Sendable {}
+#endif
+
 extension OrderedSet.SubSequence {
   @inlinable
   internal var _slice: Array<Element>.SubSequence {

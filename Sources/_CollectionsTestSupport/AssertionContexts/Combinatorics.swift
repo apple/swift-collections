@@ -11,6 +11,30 @@
 
 /// Run the supplied closure with all values in `items` in a loop,
 /// recording the current value in the current test trace stack.
+public func withEvery<Element>(
+  _ label: String,
+  by generator: () -> Element?,
+  file: StaticString = #file,
+  line: UInt = #line,
+  run body: (Element) throws -> Void
+) rethrows {
+  let context = TestContext.current
+  while let item = generator() {
+    let entry = context.push("\(label): \(item)", file: file, line: line)
+    var done = false
+    defer {
+      context.pop(entry)
+      if !done {
+        print(context.currentTrace(title: "Throwing trace"))
+      }
+    }
+    try body(item)
+    done = true
+  }
+}
+
+/// Run the supplied closure with all values in `items` in a loop,
+/// recording the current value in the current test trace stack.
 public func withEvery<S: Sequence>(
   _ label: String,
   in items: S,
@@ -79,48 +103,55 @@ internal func _samples<C: Collection>(from items: C) -> [C.Element] {
 public func withSome<C: Collection>(
   _ label: String,
   in items: C,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line,
   run body: (C.Element) throws -> Void
 ) rethrows {
   let context = TestContext.current
-  for item in _samples(from: items) {
+
+  func check(item: C.Element) throws {
     let entry = context.push("\(label): \(item)", file: file, line: line)
     var done = false
     defer {
-      context.pop(entry)
       if !done {
         print(context.currentTrace(title: "Throwing trace"))
       }
+      context.pop(entry)
     }
     try body(item)
     done = true
+  }
+
+  let c = items.count
+  
+  if let maxSamples = maxSamples, c > maxSamples {
+    // FIXME: Use randomSample() from swift-algorithms to eliminate dupes
+    for _ in 0 ..< maxSamples {
+      let r = Int.random(in: 0 ..< c)
+      let i = items.index(items.startIndex, offsetBy: r)
+      try check(item: items[i])
+    }
+  } else {
+    for item in items {
+      try check(item: item)
+    }
   }
 }
 
 public func withSomeRanges<T: Strideable>(
   _ label: String,
   in bounds: Range<T>,
+  maxSamples: Int? = nil,
   file: StaticString = #file,
   line: UInt = #line,
   run body: (Range<T>) throws -> Void
 ) rethrows where T.Stride == Int {
-  let context = TestContext.current
-  for lowerBound in _samples(from: bounds) {
-    for upperBound in _samples(from: lowerBound ... bounds.upperBound) {
-      let range = lowerBound ..< upperBound
-      let entry = context.push("\(label): \(range)", file: file, line: line)
-      var done = false
-      defer {
-        context.pop(entry)
-        if !done {
-          print(context.currentTrace(title: "Throwing trace"))
-        }
-      }
-      try body(range)
-      done = true
-    }
-  }
+  try withSome(
+    label,
+    in: IndexRangeCollection(bounds: bounds),
+    maxSamples: maxSamples,
+    run: body)
 }
 
 /// Utility function for testing mutations with value semantics.

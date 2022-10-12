@@ -9,10 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // This file contains exported but non-public entry points to support clear box
 // testing.
 
 extension Deque {
+  public static var _isConsistencyCheckingEnabled: Bool {
+    _isCollectionsInternalCheckingEnabled
+  }
+
   /// The maximum number of elements this deque is currently able to store
   /// without reallocating its storage buffer.
   ///
@@ -61,9 +67,9 @@ extension Deque {
         storage.update { target in
           let segments = target.mutableSegments()
           let c = segments.first.count
-          segments.first._initialize(from: source.prefix(c)._rebased())
+          segments.first.initializeAll(fromContentsOf: source.prefix(c))
           if let second = segments.second {
-            second._initialize(from: source.dropFirst(c)._rebased())
+            second.initializeAll(fromContentsOf: source.dropFirst(c))
           }
         }
       }

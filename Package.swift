@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
@@ -17,7 +17,7 @@ import PackageDescription
 // from the package manager command line:
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
-var settings: [SwiftSetting]? = [
+var settings: [SwiftSetting] = [
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -44,25 +44,27 @@ var settings: [SwiftSetting]? = [
 
 ]
 
-// Prevent SPM 5.3 from throwing an error on empty settings arrays.
-// (This has been fixed in 5.4.)
-if settings?.isEmpty == true { settings = nil }
-
 let package = Package(
   name: "swift-collections",
   products: [
     .library(name: "Collections", targets: ["Collections"]),
+    .library(name: "BitCollections", targets: ["BitCollections"]),
     .library(name: "DequeModule", targets: ["DequeModule"]),
+    .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-    .library(name: "PriorityQueueModule", targets: ["PriorityQueueModule"]),
+    .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
+    .library(name: "SortedCollections", targets: ["SortedCollections"]),
   ],
   targets: [
     .target(
       name: "Collections",
       dependencies: [
+        "BitCollections",
         "DequeModule",
+        "HeapModule",
         "OrderedCollections",
-        "PriorityQueueModule",
+        "PersistentCollections",
+        "SortedCollections",
       ],
       path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
@@ -84,9 +86,25 @@ let package = Package(
       dependencies: ["_CollectionsTestSupport"],
       swiftSettings: settings),
 
+    .target(
+      name: "_CollectionsUtilities",
+      swiftSettings: settings),
+
+    // BitSet, BitArray
+    .target(
+      name: "BitCollections",
+      dependencies: ["_CollectionsUtilities"],
+      path: "Sources/BitCollections",
+      swiftSettings: settings),
+    .testTarget(
+      name: "BitCollectionsTests",
+      dependencies: ["BitCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
+
     // Deque<Element>
     .target(
       name: "DequeModule",
+      dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
@@ -94,9 +112,21 @@ let package = Package(
       dependencies: ["DequeModule", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
+    // Heap<Value>
+    .target(
+        name: "HeapModule",
+        dependencies: ["_CollectionsUtilities"],
+        exclude: ["CMakeLists.txt"],
+        swiftSettings: settings),
+    .testTarget(
+        name: "HeapTests",
+        dependencies: ["HeapModule"],
+        swiftSettings: settings),
+
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
+      dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
@@ -104,14 +134,24 @@ let package = Package(
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // PriorityQueue<Element>
+    // PersistentSet<Element>, PersistentDictionary<Key, Value>
     .target(
-        name: "PriorityQueueModule",
-        exclude: ["CMakeLists.txt"],
+        name: "PersistentCollections",
+        dependencies: ["_CollectionsUtilities"],
         swiftSettings: settings),
     .testTarget(
-        name: "PriorityQueueTests",
-        dependencies: ["PriorityQueueModule"],
+        name: "PersistentCollectionsTests",
+        dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
         swiftSettings: settings),
+
+    // SortedSet<Element>, SortedDictionary<Key, Value>
+    .target(
+      name: "SortedCollections",
+      dependencies: ["_CollectionsUtilities"],
+      swiftSettings: settings),
+    .testTarget(
+      name: "SortedCollectionsTests",
+      dependencies: ["SortedCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
   ]
 )

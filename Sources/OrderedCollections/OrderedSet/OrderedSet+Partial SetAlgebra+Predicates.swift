@@ -143,7 +143,7 @@ extension OrderedSet {
   ///
   /// - Parameter other: Another set.
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
   ///    implements high-quality hashing.
@@ -166,7 +166,7 @@ extension OrderedSet {
   ///
   /// - Parameter other: Another set.
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
   ///    implements high-quality hashing.
@@ -193,7 +193,7 @@ extension OrderedSet {
   ///
   /// - Parameter other: A finite sequence of elements.
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: Expected to be O(*n*) on average, where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.

@@ -11,6 +11,8 @@
 
 // The parts of MutableCollection that OrderedSet is able to implement.
 
+import _CollectionsUtilities
+
 extension OrderedSet {
   /// Exchanges the values at the specified indices of the set.
   ///

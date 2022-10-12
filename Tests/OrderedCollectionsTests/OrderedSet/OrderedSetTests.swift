@@ -13,6 +13,8 @@ import XCTest
 @_spi(Testing) import OrderedCollections
 import _CollectionsTestSupport
 
+extension OrderedSet: SetAPIChecker {}
+
 class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {
     withEvery("count", in: 0 ..< 20) { count in

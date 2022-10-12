@@ -30,6 +30,11 @@ extension OrderedDictionary.Elements {
   }
 }
 
+#if swift(>=5.5)
+extension OrderedDictionary.Elements.SubSequence: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
+
 extension OrderedDictionary.Elements.SubSequence {
   /// A read-only collection view containing the keys in this slice.
   ///
@@ -121,6 +126,11 @@ extension OrderedDictionary.Elements.SubSequence: Sequence {
     Iterator(_base: self)
   }
 }
+
+#if swift(>=5.5)
+extension OrderedDictionary.Elements.SubSequence.Iterator: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
 
 extension OrderedDictionary.Elements.SubSequence: RandomAccessCollection {
   /// The index type for an ordered dictionary: `Int`.
