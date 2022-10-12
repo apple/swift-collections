@@ -28,6 +28,23 @@ public struct Heap<Element: Comparable> {
   @usableFromInline
   internal var _storage: ContiguousArray<Element>
 
+  /// Creates a heap from the given sequence, assuming said sequence is already
+  /// an implicit data structure for a binary min-max heap.
+  ///
+  /// - Precondition: `storage` is finite, and it already matches the implicit
+  ///   data structure for a binary min-max heap.
+  ///
+  /// - Parameter storage: The elements of the heap.
+  /// - Postcondition: `unordered.elementsEqual(s)`, where *s* is a sequence
+  ///   with the same elements as pre-call `storage`.
+  ///
+  /// - Complexity: O(*n*), where *n* is the length of `storage`.
+  @_alwaysEmitIntoClient
+  internal init<S: Sequence>(_raw storage: S) where S.Element == Element {
+    _storage = .init(storage)
+    _checkInvariants()
+  }
+
   /// Creates an empty heap.
   @inlinable
   public init() {
@@ -172,6 +189,73 @@ extension Heap {
   @inlinable
   public mutating func removeMax() -> Element {
     return popMax()!
+  }
+
+  /// Changes the element with the lowest priority to the given value, then
+  /// redetermines which element in the heap has the lowest priority.
+  ///
+  /// - Precondition: `!isEmpty`.
+  ///
+  /// - Parameter replacement: The value overwriting the current lowest-priority
+  ///   element.
+  /// - Returns: The outgoing value of the overwritten element.
+  /// - Postcondition: When not equal, the multiplicity of the outgoing value
+  ///   will decrease by one, while the multiplicity of the incoming value will
+  ///   increase by one.  If the altered element now has a priority that is
+  ///   greater than any of the untargeted elements (if such exist), then
+  ///   `min()` will point to a different element.
+  ///
+  /// - Complexity: O(log `count`)
+  @inlinable @discardableResult
+  public mutating func replaceMin(with replacement: Element) -> Element {
+    precondition(!isEmpty, "No element to replace")
+
+    var removed = replacement
+    _update { handle in
+      let minNode = _Node.root
+      handle.swapAt(minNode, with: &removed)
+      handle.trickleDownMin(minNode)
+    }
+    _checkInvariants()
+    return removed
+  }
+
+  /// Changes the element with the highest priority to the given value, then
+  /// redetermines which element in the heap has the highest priority.
+  ///
+  /// - Precondition: `!isEmpty`.
+  ///
+  /// - Parameter replacement: The value overwriting the current
+  ///   highest-priority element.
+  /// - Returns: The outgoing value of the overwritten element.
+  /// - Postcondition: When not equal, the multiplicity of the outgoing value
+  ///   will decrease by one, while the multiplicity of the incoming value will
+  ///   increase by one.  If the altered element now has a priority that is less
+  ///   than any of the untargeted elements (if such exist), then `max()` will
+  ///   point to a different element.
+  ///
+  /// - Complexity: O(log `count`)
+  @inlinable @discardableResult
+  public mutating func replaceMax(with replacement: Element) -> Element {
+    precondition(!isEmpty, "No element to replace")
+
+    var removed = replacement
+    _update { handle in
+      switch handle.count {
+      case 1:
+        handle.swapAt(.root, with: &removed)
+      case 2:
+        handle.swapAt(.leftMax, with: &removed)
+        handle.bubbleUp(.leftMax)
+      default:
+        let maxNode = handle.maxValue(.leftMax, .rightMax)
+        handle.swapAt(maxNode, with: &removed)
+        handle.bubbleUp(maxNode)  // This must happen first
+        handle.trickleDownMax(maxNode)  // Either new element or dethroned min
+      }
+    }
+    _checkInvariants()
+    return removed
   }
 }
 
