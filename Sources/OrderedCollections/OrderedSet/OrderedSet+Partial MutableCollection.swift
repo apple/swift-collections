@@ -217,7 +217,8 @@ extension OrderedSet {
   ///   (Transitive incomparability)
   ///
   /// The sorting algorithm is guaranteed to be stable. A stable sort
-  /// preserves the relative order of elements that compare as equal.
+  /// preserves the relative order of elements for which
+  /// `areInIncreasingOrder` does not establish an order.
   ///
   /// - Parameter areInIncreasingOrder: A predicate that returns `true` if its
   ///   first argument should be ordered before its second argument;
