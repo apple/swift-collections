@@ -12,6 +12,29 @@
 import XCTest
 import HeapModule
 
+extension Heap {
+  func itemsInAscendingOrder() -> [Element] {
+    Array(sequence(state: self) { $0.popMin() })
+  }
+}
+
+extension Heap {
+  /// Creates a heap from the given array of elements, which must have already
+  /// been heapified to form a binary min-max heap.
+  ///
+  /// - Precondition: `storage` has already been heapified.
+  ///
+  /// - Parameter storage: The elements of the heap.
+  /// - Postcondition: `unordered.elementsEqual(s)`, where *s* is a sequence
+  ///   with the same elements as pre-call `storage`.
+  ///
+  /// - Complexity: O(1)
+  public init(raw storage: [Element]) {
+    self.init(storage)
+    precondition(self.unordered == storage)
+  }
+}
+
 final class HeapTests: XCTestCase {
   func test_isEmpty() {
     var heap = Heap<Int>()
@@ -273,6 +296,103 @@ final class HeapTests: XCTestCase {
     XCTAssertEqual(heap.removeMax(), 3)
     XCTAssertEqual(heap.removeMax(), 2)
     XCTAssertEqual(heap.removeMax(), 1)
+  }
+
+  func test_minimumReplacement() {
+    var heap = Heap(stride(from: 0, through: 27, by: 3).shuffled())
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.min(), 0)
+
+    // No change
+    heap.replaceMin(with: 0)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.min(), 0)
+
+    // Even smaller
+    heap.replaceMin(with: -1)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [-1, 3, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.min(), -1)
+
+    // Larger, but not enough to usurp
+    heap.replaceMin(with: 2)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [2, 3, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.min(), 2)
+
+    // Larger, moving another element to be the smallest
+    heap.replaceMin(with: 5)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [3, 5, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.min(), 3)
+  }
+
+  func test_maximumReplacement() {
+    var heap = Heap(stride(from: 0, through: 27, by: 3).shuffled())
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.max(), 27)
+
+    // No change
+    heap.replaceMax(with: 27)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
+    XCTAssertEqual(heap.max(), 27)
+
+    // Even larger
+    heap.replaceMax(with: 28)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 28])
+    XCTAssertEqual(heap.max(), 28)
+
+    // Smaller, but not enough to usurp
+    heap.replaceMax(with: 26)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 26])
+    XCTAssertEqual(heap.max(), 26)
+
+    // Smaller, moving another element to be the largest
+    heap.replaceMax(with: 23)
+    XCTAssertEqual(
+      heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 23, 24])
+    XCTAssertEqual(heap.max(), 24)
+
+    // Check the finer details.  As these peek into the stored structure, they
+    // may need to be updated whenever the internal format changes.
+    var heap2 = Heap(raw: [1])
+    XCTAssertEqual(heap2.max(), 1)
+    XCTAssertEqual(Array(heap2.unordered), [1])
+    XCTAssertEqual(heap2.replaceMax(with: 2), 1)
+    XCTAssertEqual(heap2.max(), 2)
+    XCTAssertEqual(Array(heap2.unordered), [2])
+
+    heap2 = Heap(raw: [1, 2])
+    XCTAssertEqual(heap2.max(), 2)
+    XCTAssertEqual(Array(heap2.unordered), [1, 2])
+    XCTAssertEqual(heap2.replaceMax(with: 3), 2)
+    XCTAssertEqual(heap2.max(), 3)
+    XCTAssertEqual(Array(heap2.unordered), [1, 3])
+    XCTAssertEqual(heap2.replaceMax(with: 0), 3)
+    XCTAssertEqual(heap2.max(), 1)
+    XCTAssertEqual(Array(heap2.unordered), [0, 1])
+
+    heap2 = Heap(raw: [5, 20, 31, 16, 8, 7, 18])
+    XCTAssertEqual(heap2.max(), 31)
+    XCTAssertEqual(Array(heap2.unordered), [5, 20, 31, 16, 8, 7, 18])
+    XCTAssertEqual(heap2.replaceMax(with: 29), 31)
+    XCTAssertEqual(Array(heap2.unordered), [5, 20, 29, 16, 8, 7, 18])
+    XCTAssertEqual(heap2.max(), 29)
+    XCTAssertEqual(heap2.replaceMax(with: 19), 29)
+    XCTAssertEqual(Array(heap2.unordered), [5, 20, 19, 16, 8, 7, 18])
+    XCTAssertEqual(heap2.max(), 20)
+    XCTAssertEqual(heap2.replaceMax(with: 15), 20)
+    XCTAssertEqual(Array(heap2.unordered), [5, 16, 19, 15, 8, 7, 18])
+    XCTAssertEqual(heap2.max(), 19)
+    XCTAssertEqual(heap2.replaceMax(with: 4), 19)
+    XCTAssertEqual(Array(heap2.unordered), [4, 16, 18, 15, 8, 7, 5])
+    XCTAssertEqual(heap2.max(), 18)
   }
 
   // MARK: -
