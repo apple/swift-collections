@@ -111,7 +111,7 @@ extension PersistentSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _Node = ._empty()
+    var seen: _Node = ._emptyNode()
     var doneCollecting = false
     var isStrict = false
     var it = other.makeIterator()

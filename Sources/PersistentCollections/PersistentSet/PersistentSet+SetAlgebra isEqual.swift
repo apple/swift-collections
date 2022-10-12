@@ -102,7 +102,7 @@ extension PersistentSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _Node? = ._empty()
+    var seen: _Node? = ._emptyNode()
     var it = other.makeIterator()
     while let item = it.next() {
       let hash = _Hash(item)

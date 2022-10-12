@@ -18,7 +18,9 @@ extension PersistentSet {
   public mutating func remove(at position: Index) -> Element {
     precondition(_isValid(position))
     _invalidateIndices()
-    return _root.remove(.top, at: position._path).key
+    let r = _root.remove(.top, at: position._path)
+    precondition(r.remainder == nil)
+    return r.removed.key
   }
 
   /// Replace the member at the given index with a new value that compares equal
