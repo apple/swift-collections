@@ -174,22 +174,18 @@ extension Heap {
     return popMax()!
   }
 
-  /// Changes the element with the lowest priority to the given value, then
-  /// redetermines which element in the heap has the lowest priority.
+  /// Replaces the minimum value in the heap with the given replacement,
+  /// then updates heap contents to reflect the change.
   ///
-  /// - Precondition: `!isEmpty`.
+  /// The heap must not be empty.
   ///
-  /// - Parameter replacement: The value overwriting the current lowest-priority
-  ///   element.
-  /// - Returns: The outgoing value of the overwritten element.
-  /// - Postcondition: When not equal, the multiplicity of the outgoing value
-  ///   will decrease by one, while the multiplicity of the incoming value will
-  ///   increase by one.  If the altered element now has a priority that is
-  ///   greater than any of the untargeted elements (if such exist), then
-  ///   `min()` will point to a different element.
+  /// - Parameter replacement: The value that is to replace the current
+  ///   minimum value.
+  /// - Returns: The original minimum value before the replacement.
   ///
   /// - Complexity: O(log `count`)
-  @inlinable @discardableResult
+  @inlinable
+  @discardableResult
   public mutating func replaceMin(with replacement: Element) -> Element {
     precondition(!isEmpty, "No element to replace")
 
@@ -203,22 +199,18 @@ extension Heap {
     return removed
   }
 
-  /// Changes the element with the highest priority to the given value, then
-  /// redetermines which element in the heap has the highest priority.
+  /// Replaces the maximum value in the heap with the given replacement,
+  /// then updates heap contents to reflect the change.
   ///
-  /// - Precondition: `!isEmpty`.
+  /// The heap must not be empty.
   ///
-  /// - Parameter replacement: The value overwriting the current
-  ///   highest-priority element.
-  /// - Returns: The outgoing value of the overwritten element.
-  /// - Postcondition: When not equal, the multiplicity of the outgoing value
-  ///   will decrease by one, while the multiplicity of the incoming value will
-  ///   increase by one.  If the altered element now has a priority that is less
-  ///   than any of the untargeted elements (if such exist), then `max()` will
-  ///   point to a different element.
+  /// - Parameter replacement: The value that is to replace the current maximum
+  ///   value.
+  /// - Returns: The original maximum value before the replacement.
   ///
   /// - Complexity: O(log `count`)
-  @inlinable @discardableResult
+  @inlinable
+  @discardableResult
   public mutating func replaceMax(with replacement: Element) -> Element {
     precondition(!isEmpty, "No element to replace")
 
