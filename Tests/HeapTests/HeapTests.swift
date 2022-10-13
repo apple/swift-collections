@@ -84,6 +84,23 @@ final class HeapTests: CollectionTestCase {
     expectEqual(heap.count, 1)
   }
 
+  func test_insert_random() {
+    let c = 128
+    withEvery("seed", in: 0 ..< 5_000) { seed in
+      var rng = RepeatableRandomNumberGenerator(seed: seed)
+      let input = (0 ..< c).shuffled(using: &rng)
+      var heap: Heap<Int> = []
+      var i = 0
+      withEvery("value", in: input) { value in
+        expectEqual(heap.count, i)
+        heap.insert(value)
+        i += 1
+        expectEqual(heap.count, i)
+      }
+      expectEqualElements(heap.itemsInAscendingOrder(), 0 ..< c)
+    }
+  }
+
   func test_insert_contentsOf() {
     var heap = Heap<Int>()
     heap.insert(contentsOf: (1...10).shuffled())
@@ -119,6 +136,17 @@ final class HeapTests: CollectionTestCase {
       }
     }
     expectNil(heap.popMin())
+  }
+
+  func test_insert_contentsOf_exhaustive() {
+    withEvery("c", in: 0 ..< 15) { c in
+      withEverySubset("a", of: 0 ..< c) { a in
+        let startInput = (0 ..< c).filter { !a.contains($0) }
+        var heap = Heap(startInput)
+        heap.insert(contentsOf: a.shuffled())
+        expectEqualElements(heap.itemsInAscendingOrder(), 0 ..< c)
+      }
+    }
   }
 
   func test_min() {
@@ -512,5 +540,26 @@ final class HeapTests: CollectionTestCase {
     expectEqual(heap.popMax(), 5)
     expectEqual(heap.popMax(), 3)
     expectEqual(heap.popMax(), 1)
+  }
+
+  func test_initializer_fromSequence_random() {
+    withEvery("c", in: 0 ... 128) { c in
+      withEvery(
+        "seed", in: 0 ..< Swift.min((c + 2) * (c + 1), 100)
+      ) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< c).shuffled(using: &rng)
+        let heap = Heap(input)
+        if c > 0 {
+          expectEqual(heap.min(), 0)
+          expectEqual(heap.max(), c - 1)
+          expectEqualElements(heap.itemsInAscendingOrder(), 0 ..< c)
+        } else {
+          expectNil(heap.min())
+          expectNil(heap.max())
+          expectEqualElements(heap.itemsInAscendingOrder(), [])
+        }
+      }
+    }
   }
 }
