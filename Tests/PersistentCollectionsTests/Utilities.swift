@@ -241,30 +241,3 @@ func mutate<T, R>(
 ) rethrows -> R {
   try body(&value)
 }
-
-func withEverySubset<C: Collection>(
-  _ label: String,
-  of items: C,
-  body: ([C.Element]) -> Void
-) {
-  var set: [C.Element] = []
-  _withEverySubset(label, of: items, extending: &set, body: body)
-}
-
-func _withEverySubset<C: Collection>(
-  _ label: String,
-  of items: C,
-  extending set: inout [C.Element],
-  body: ([C.Element]) -> Void
-) {
-  guard let item = items.first else {
-    let entry = TestContext.current.push("\(label): \(set)")
-    defer { TestContext.current.pop(entry) }
-    body(set)
-    return
-  }
-  _withEverySubset(label, of: items.dropFirst(), extending: &set, body: body)
-  set.append(item)
-  _withEverySubset(label, of: items.dropFirst(), extending: &set, body: body)
-  set.removeLast()
-}

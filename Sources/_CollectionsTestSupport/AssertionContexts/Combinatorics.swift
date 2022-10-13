@@ -212,3 +212,68 @@ public func withHiddenCopies<
   checker(copy)
   return result
 }
+
+/// Run the supplied closure with all subsets `items` in a loop,
+/// recording the current subset in the test trace stack.
+///
+/// The subsets are generated so that they contain elements in the same order
+/// as the original collection.
+public func withEverySubset<C: Collection>(
+  _ label: String,
+  of items: C,
+  body: ([C.Element]) -> Void
+) {
+  var set: [C.Element] = []
+  _withEverySubset(label, of: items, extending: &set, body: body)
+}
+
+func _withEverySubset<C: Collection>(
+  _ label: String,
+  of items: C,
+  extending set: inout [C.Element],
+  body: ([C.Element]) -> Void
+) {
+  guard let item = items.first else {
+    let entry = TestContext.current.push("\(label): \(set)")
+    defer { TestContext.current.pop(entry) }
+    body(set)
+    return
+  }
+  _withEverySubset(label, of: items.dropFirst(), extending: &set, body: body)
+  set.append(item)
+  _withEverySubset(label, of: items.dropFirst(), extending: &set, body: body)
+  set.removeLast()
+}
+
+public func withEveryPermutation<C: Collection>(
+  _ label: String,
+  of items: C,
+  body: ([C.Element]) -> Void
+) {
+  func send(_ items: [C.Element]) {
+    let entry = TestContext.current.push("\(label): \(items)")
+    body(items)
+    TestContext.current.pop(entry)
+  }
+
+  // Heap's algorithm.
+  var items = Array(items)
+  send(items)
+  var i = 1
+  var c = [Int](repeating: 0, count: items.count)
+  while i < items.count {
+    if c[i] < i {
+      if i.isMultiple(of: 2) {
+        items.swapAt(0, i)
+      } else {
+        items.swapAt(c[i], i)
+      }
+      send(items)
+      c[i] += 1
+      i = 1
+    } else {
+      c[i] = 0
+      i += 1
+    }
+  }
+}
