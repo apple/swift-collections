@@ -352,6 +352,11 @@ extension Heap._UnsafeHandle {
 extension Heap._UnsafeHandle {
   @inlinable
   internal func heapify() {
+    // This is Floyd's linear-time heap construction algorithm.
+    // (https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
+    //
+    // FIXME: See if a more cache friendly algorithm would be faster.
+
     let limit = count / 2 // The first offset without a left child
     var level = _Node.level(forOffset: limit &- 1)
     while level >= 0 {
