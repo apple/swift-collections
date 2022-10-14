@@ -16,7 +16,7 @@ extension Heap {
     _isCollectionsInternalCheckingEnabled
   }
 
-  #if COLLECTIONS_INTERNAL_CHECKSx
+  #if COLLECTIONS_INTERNAL_CHECKS
   /// Visits each item in the heap in depth-first order, verifying that the
   /// contents satisfy the min-max heap property.
   @inlinable

@@ -154,7 +154,7 @@ extension _Node {
     guard first.offset < limit else { return nil }
     var last = self.lastNode(onLevel: level)
     if last.offset >= limit {
-      last = _Node(offset: limit &- 1, level: level)
+      last.offset = limit &- 1
     }
     return ClosedRange(uncheckedBounds: (first, last))
   }

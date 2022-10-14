@@ -118,7 +118,7 @@ let package = Package(
         swiftSettings: settings),
     .testTarget(
         name: "HeapTests",
-        dependencies: ["HeapModule"],
+        dependencies: ["HeapModule", "_CollectionsTestSupport"],
         swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
