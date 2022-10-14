@@ -361,16 +361,22 @@ extension Heap._UnsafeHandle {
     var level = _Node.level(forOffset: limit &- 1)
     while level >= 0 {
       let nodes = _Node.allNodes(onLevel: level, limit: limit)
-      if _Node.isMinLevel(level) {
-        nodes?._forEach { node in
-          trickleDownMin(node)
-        }
-      } else {
-        nodes?._forEach { node in
-          trickleDownMax(node)
-        }
-      }
+      _heapify(level, nodes)
       level &-= 1
+    }
+  }
+
+  @inlinable
+  internal func _heapify(_ level: Int, _ nodes: ClosedRange<_Node>?) {
+    guard let nodes = nodes else { return }
+    if _Node.isMinLevel(level) {
+      nodes._forEach { node in
+        trickleDownMin(node)
+      }
+    } else {
+      nodes._forEach { node in
+        trickleDownMax(node)
+      }
     }
   }
 }
