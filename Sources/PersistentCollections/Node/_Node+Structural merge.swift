@@ -13,7 +13,6 @@ extension _Node {
   @inlinable
   internal mutating func merge(
   _ level: _Level,
-  _ hashPrefix: _Hash,
   _ other: _Node,
   _ combine: (Value, Value) throws -> Value
   ) rethrows {
@@ -45,13 +44,12 @@ extension _Node {
       return
     }
 
-    try _merge(level, hashPrefix, other, combine)
+    try _merge(level, other, combine)
   }
 
   @inlinable
   internal mutating func _merge(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     _ other: _Node,
     _ combine: (Value, Value) throws -> Value
   ) rethrows {
@@ -59,7 +57,7 @@ extension _Node {
     // of identical nodes.
 
     if self.isCollisionNode || other.isCollisionNode {
-      try _merge_slow(level, hashPrefix, other, combine)
+      try _merge_slow(level, other, combine)
       return
     }
 
@@ -154,7 +152,6 @@ extension _Node {
           try self.update { l in
             try l[child: lslot].merge(
               level.descend(),
-              hashPrefix.appending(bucket, at: level),
               r[child: rslot],
               combine)
           }
@@ -187,7 +184,6 @@ extension _Node {
   @inlinable @inline(never)
   internal mutating func _merge_slow(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     _ other: _Node,
     _ combine: (Value, Value) throws -> Value
   ) rethrows {
@@ -260,8 +256,7 @@ extension _Node {
 
         if r.childMap.contains(bucket) {
           let rslot = r.childMap.slot(of: bucket)
-          let h = hashPrefix.appending(bucket, at: level)
-          try self._merge(level.descend(), h, r[child: rslot], combine)
+          try self._merge(level.descend(), r[child: rslot], combine)
           var node = other.copy()
           _ = node.replaceChild(at: bucket, rslot, with: self)
           self = node
@@ -303,10 +298,9 @@ extension _Node {
         self.ensureUnique(isUnique: isUnique)
         let delta: Int = try self.update { l in
           let lslot = l.childMap.slot(of: bucket)
-          let h = hashPrefix.appending(bucket, at: level)
           let lchild = l.childPtr(at: lslot)
           let origCount = lchild.pointee.count
-          try lchild.pointee._merge(level.descend(), h, other, combine)
+          try lchild.pointee._merge(level.descend(), other, combine)
           return lchild.pointee.count &- origCount
         }
         assert(delta >= 0)

@@ -87,6 +87,19 @@ extension _StorageHeader {
      : itemMap.count)
   }
 
+  @inlinable
+  internal var hasSingletonChild: Bool {
+    itemMap.isEmpty && childMap.hasExactlyOneMember
+  }
+
+  @inlinable
+  internal var hasSingletonItem: Bool {
+    if itemMap == childMap {
+      return itemMap._value == 1
+    }
+    return childMap.isEmpty && itemMap.hasExactlyOneMember
+  }
+
   @inlinable @inline(__always)
   internal var childrenEndSlot: _Slot {
     _Slot(childCount)

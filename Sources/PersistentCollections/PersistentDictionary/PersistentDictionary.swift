@@ -382,16 +382,18 @@ extension PersistentDictionary {
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
+    guard let r = _root.remove(.top, key, _Hash(key)) else { return nil }
     _invalidateIndices()
-    return _root.remove(.top, key, _Hash(key))?.value
+    assert(r.remainder == nil)
+    _invariantCheck()
+    return r.removed.value
   }
 
   // fluid/immutable API
   @inlinable
   public func removingValue(forKey key: Key) -> Self {
-    var copy = self
-    copy.removeValue(forKey: key)
-    return copy
+    guard let r = _root.removing(.top, key, _Hash(key)) else { return self }
+    return Self(_new: r.replacement.finalize(.top))
   }
 
   @inlinable
@@ -399,7 +401,9 @@ extension PersistentDictionary {
     precondition(_isValid(index), "Invalid index")
     precondition(index._path._isItem, "Can't remove item at end index")
     _invalidateIndices()
-    return _root.remove(.top, at: index._path)
+    let r = _root.remove(.top, at: index._path)
+    assert(r.remainder == nil)
+    return r.removed
   }
 }
 

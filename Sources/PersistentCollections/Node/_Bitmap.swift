@@ -87,6 +87,11 @@ extension _Bitmap {
   internal var isEmpty: Bool { _value == 0 }
 
   @inlinable @inline(__always)
+  internal var hasExactlyOneMember: Bool {
+    _value != 0 && _value & (_value &- 1) == 0
+  }
+
+  @inlinable @inline(__always)
   internal var first: _Bucket? {
     guard !isEmpty else { return nil }
     return _Bucket(

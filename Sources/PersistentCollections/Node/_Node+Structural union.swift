@@ -13,7 +13,6 @@ extension _Node {
   @inlinable
   internal func union(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     _ other: _Node
   ) -> (copied: Bool, node: _Node) {
     guard self.count > 0 else { return (true, other) }
@@ -38,13 +37,12 @@ extension _Node {
         return (true, copy)
       }
     }
-    return _union(level, hashPrefix, other)
+    return _union(level, other)
   }
 
   @inlinable
   internal func _union(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     _ other: _Node
   ) -> (copied: Bool, node: _Node) {
     if self.raw.storage === other.raw.storage {
@@ -52,7 +50,7 @@ extension _Node {
     }
 
     if self.isCollisionNode || other.isCollisionNode {
-      return _union_slow(level, hashPrefix, other)
+      return _union_slow(level, other)
     }
 
     return self.read { l in
@@ -116,10 +114,7 @@ extension _Node {
           }
           else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            let child = l[child: lslot]._union(
-              level.descend(),
-              hashPrefix.appending(bucket, at: level),
-              r[child: rslot])
+            let child = l[child: lslot]._union(level.descend(), r[child: rslot])
             guard child.copied else {
               // Nothing to do
               continue
@@ -158,7 +153,6 @@ extension _Node {
   @inlinable @inline(never)
   internal func _union_slow(
     _ level: _Level,
-    _ hashPrefix: _Hash,
     _ other: _Node
   ) -> (copied: Bool, node: _Node) {
     let lc = self.isCollisionNode
@@ -208,17 +202,13 @@ extension _Node {
               return (false, self)
             }
             let node = other.copyNodeAndPushItemIntoNewChild(
-              level: level,
-              self,
-              at: bucket,
-              itemSlot: rslot)
+              level: level, self, at: bucket, itemSlot: rslot)
             return (true, node)
           }
 
           if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            let h = hashPrefix.appending(bucket, at: level)
-            let res = self._union(level.descend(), h, r[child: rslot])
+            let res = self._union(level.descend(), r[child: rslot])
             var node = other.copy()
             let delta = node.replaceChild(at: bucket, rslot, with: res.node)
             assert(delta >= 0)
@@ -241,16 +231,12 @@ extension _Node {
           let lslot = l.itemMap.slot(of: bucket)
           assert(!l.hasSingletonItem) // Handled up front above
           let node = self.copyNodeAndPushItemIntoNewChild(
-            level: level,
-            other,
-            at: bucket,
-            itemSlot: lslot)
+            level: level, other, at: bucket, itemSlot: lslot)
           return (true, node)
         }
         if l.childMap.contains(bucket) {
           let lslot = l.childMap.slot(of: bucket)
-          let h = hashPrefix.appending(bucket, at: level)
-          let child = l[child: lslot]._union(level.descend(), h, other)
+          let child = l[child: lslot]._union(level.descend(), other)
           guard child.copied else { return (false, self) }
           var node = self.copy()
           let delta = node.replaceChild(at: bucket, lslot, with: child.node)

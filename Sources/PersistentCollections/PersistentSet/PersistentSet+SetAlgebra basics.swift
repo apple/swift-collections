@@ -45,8 +45,10 @@ extension PersistentSet: SetAlgebra {
   @inlinable
   public mutating func remove(_ member: Element) -> Element? {
     let hash = _Hash(member)
+    guard let r = _root.remove(.top, member, hash) else { return nil }
     _invalidateIndices()
-    return _root.remove(.top, member, hash)?.key
+    assert(r.remainder == nil)
+    return r.removed.key
   }
 
   @discardableResult

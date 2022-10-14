@@ -26,9 +26,10 @@ extension PersistentSet {
   ///     parts of the input trees directly into the result.
   @inlinable
   public func symmetricDifference(_ other: __owned Self) -> Self {
-    let branch = _root.symmetricDifference(.top, .emptyPrefix, other._root)
+    let branch = _root.symmetricDifference(.top, other._root)
     guard let branch = branch else { return self }
     let root = branch.finalize(.top)
+    root._fullInvariantCheck()
     return PersistentSet(_new: root)
   }
 
