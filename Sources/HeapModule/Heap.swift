@@ -264,9 +264,11 @@ extension Heap {
       self = Self(newElements)
       return
     }
-    _storage.reserveCapacity(count + newElements.underestimatedCount)
-    for element in newElements {
-      insert(element)
+    let start = _storage.count
+    _storage.append(contentsOf: newElements)
+    _update { handle in
+      handle.heapify(from: start)
     }
+    _checkInvariants()
   }
 }

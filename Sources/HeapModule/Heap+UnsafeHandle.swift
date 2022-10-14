@@ -367,6 +367,39 @@ extension Heap._UnsafeHandle {
   }
 
   @inlinable
+  internal func heapify(from start: Int) {
+    // This is Floyd's linear-time heap construction algorithm,
+    // assuming that items up to `start` already form a heap.
+
+    guard start < count else { return }
+    let limit = count / 2 // The first offset without a left child
+    guard start > limit else {
+      heapify()
+      return
+    }
+    var startNode = _Node(offset: start)
+    var endNode = _Node(offset: count - 1)
+    if startNode.level != endNode.level {
+      endNode = endNode.parent()
+      assert(startNode.level == endNode.level)
+      assert(startNode.offset > endNode.offset)
+    }
+    while true {
+      if let nodes = _Node.allNodes(onLevel: startNode.level, limit: limit) {
+        if startNode <= endNode {
+          _heapify(startNode.level, nodes._from(startNode)?._upThrough(endNode))
+        } else {
+          _heapify(startNode.level, nodes._upTo(startNode))
+          _heapify(startNode.level, nodes._from(endNode))
+        }
+      }
+      guard startNode.level > 0 else { break }
+      startNode = startNode.parent()
+      endNode = endNode.parent()
+    }
+  }
+
+  @inlinable
   internal func _heapify(_ level: Int, _ nodes: ClosedRange<_Node>?) {
     guard let nodes = nodes else { return }
     if _Node.isMinLevel(level) {

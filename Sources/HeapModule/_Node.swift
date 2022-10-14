@@ -171,4 +171,26 @@ extension ClosedRange where Bound == _Node {
       node.offset &+= 1
     }
   }
+
+  @inlinable
+  internal func _from(_ start: _Node) -> ClosedRange? {
+    guard self.upperBound >= start else { return nil }
+    guard self.lowerBound < start else { return self }
+    return ClosedRange(uncheckedBounds: (start, upperBound))
+  }
+
+  @inlinable
+  internal func _upThrough(_ end: _Node) -> ClosedRange? {
+    guard self.lowerBound <= end else { return nil }
+    guard self.upperBound > end else { return self }
+    return ClosedRange(uncheckedBounds: (lowerBound, end))
+  }
+
+  @inlinable
+  internal func _upTo(_ end: _Node) -> ClosedRange? {
+    guard self.lowerBound < end else { return nil }
+    guard self.upperBound >= end else { return self }
+    let last = _Node(offset: end.offset &- 1, level: end.level)
+    return ClosedRange(uncheckedBounds: (lowerBound, last))
+  }
 }
