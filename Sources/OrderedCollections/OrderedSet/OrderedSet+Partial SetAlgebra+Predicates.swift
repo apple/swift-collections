@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // `OrderedSet` does not directly conform to `SetAlgebra` because its definition
 // of equality conflicts with `SetAlgebra` requirements. However, it still
 // implements most `SetAlgebra` requirements (except `insert`, which is replaced
@@ -115,6 +117,22 @@ extension OrderedSet {
     of other: S
   ) -> Bool where S.Element == Element {
     guard !isEmpty else { return true }
+
+    if S.self == Self.self {
+      return isSubset(of: other as! Self)
+    }
+
+    var it = self.makeIterator()
+    let first = it.next()!
+    if let match = other._customContainsEquatableElement(first) {
+      // Fast path: the sequence has fast containment checks.
+      guard match else { return false }
+      while let item = it.next() {
+        guard other.contains(item) else { return false }
+      }
+      return true
+    }
+
     return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
       for item in other {
@@ -175,6 +193,22 @@ extension OrderedSet {
     isSuperset(of: other._base)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// the given set.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*, ignoring the order they appear in the two sets.
+  ///
+  ///     let a: OrderedSet = [1, 2, 3, 4]
+  ///     let b: Set = [4, 2, 1]
+  ///     a.isSuperset(of: b) // true
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
+  ///    implements high-quality hashing.
   @inlinable
   public func isSuperset(of other: Set<Element>) -> Bool {
     guard self.count >= other.count else { return false }
@@ -191,7 +225,8 @@ extension OrderedSet {
   ///     let b: Array = [4, 2, 1]
   ///     a.isSuperset(of: b) // true
   ///
-  /// - Parameter other: A finite sequence of elements.
+  /// - Parameter other: A finite sequence of elements, some of whose members
+  ///    may appear more than once. (Duplicate items are ignored.)
   ///
   /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
@@ -208,6 +243,9 @@ extension OrderedSet {
   internal func _isSuperset<S: Sequence>(
     of other: S
   ) -> Bool where S.Element == Element {
+    if S.self == Self.self {
+      return self.isSuperset(of: other as! Self)
+    }
     for item in other {
       guard self.contains(item) else { return false }
     }
@@ -311,7 +349,27 @@ extension OrderedSet {
   public func isStrictSubset<S: Sequence>(
     of other: S
   ) -> Bool where S.Element == Element {
-    _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+    if S.self == Self.self {
+      return self.isStrictSubset(of: other as! Self)
+    }
+    if S.self == Set<Element>.self {
+      return self.isStrictSubset(of: other as! Set<Element>)
+    }
+
+    var it = self.makeIterator()
+    guard let first = it.next() else {
+      return other.contains(where: { _ in true })
+    }
+    if let match = other._customContainsEquatableElement(first) {
+      // Fast path: the sequence has fast containment checks.
+      guard match else { return false }
+      while let item = it.next() {
+        guard other.contains(item) else { return false }
+      }
+      return !other.allSatisfy { self.contains($0) }
+    }
+
+    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
       var isKnownStrict = false
       for item in other {
@@ -414,7 +472,8 @@ extension OrderedSet {
   ///     let b: Array = [4, 2, 1]
   ///     a.isStrictSuperset(of: b) // true
   ///
-  /// - Parameter other: A finite sequence of elements.
+  /// - Parameter other: A finite sequence of elements, some of whose members
+  ///    may appear more than once. (Duplicate items are ignored.)
   ///
   /// - Returns: `true` if `self` is a strict superset of `other`; otherwise,
   ///    `false`.
@@ -426,7 +485,26 @@ extension OrderedSet {
   public func isStrictSuperset<S: Sequence>(
     of other: S
   ) -> Bool where S.Element == Element {
-    _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+    if S.self == Self.self {
+      return self.isStrictSuperset(of: other as! Self)
+    }
+    if S.self == Set<Element>.self {
+      return self.isStrictSuperset(of: other as! Set<Element>)
+    }
+
+    var it = self.makeIterator()
+    guard let first = it.next() else { return false }
+    if let match = other._customContainsEquatableElement(first) {
+      // Fast path: the sequence has fast containment checks.
+      guard other.allSatisfy({ self.contains($0) }) else { return false }
+      guard match else { return true }
+      while let item = it.next() {
+        guard other.contains(item) else { return true }
+      }
+      return false
+    }
+
+    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
       for item in other {
         guard let index = _find(item).index else {
