@@ -12,7 +12,7 @@
 import _CollectionsTestSupport
 import PersistentCollections
 
-extension PersistentSet: SetAPIChecker {}
+extension PersistentSet: SetAPIExtras {}
 
 class PersistentSetTests: CollectionTestCase {
   func test_init_empty() {
@@ -473,6 +473,25 @@ class PersistentSetTests: CollectionTestCase {
         expectEqualSets(checkSequence(x, y), reference)
         expectEqualSets(x.symmetricDifference(v), reference)
         expectEqualSets(x.symmetricDifference(b), reference)
+      }
+    }
+  }
+
+  func test_update_at() {
+    withEverySubset("a", of: testItems) { a in
+      withEvery("offset", in: 0 ..< a.count) { offset in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var x = PersistentSet(tracker.instances(for: a))
+            let i = x.firstIndex { $0.payload == a[offset] }!
+            let replacement = tracker.instance(for: a[offset])
+            withHiddenCopies(if: isShared, of: &x) { x in
+              let old = x.update(replacement, at: i)
+              expectEqual(old, replacement)
+              expectNotIdentical(old, replacement)
+            }
+          }
+        }
       }
     }
   }
