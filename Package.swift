@@ -96,7 +96,9 @@ let package = Package(
       swiftSettings: settings),
     .testTarget(
       name: "BitCollectionsTests",
-      dependencies: ["BitCollections", "_CollectionsTestSupport"],
+      dependencies: [
+        "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
+      ],
       swiftSettings: settings),
 
     // Deque<Element>

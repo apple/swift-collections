@@ -99,7 +99,7 @@ extension BitSet {
     self = bits._bits
   }
 
-  var counted: BitSet.Counted {
+  public var counted: BitSet.Counted {
     get {
       BitSet.Counted(_bits: self, count: self.count)
     }
