@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // FIXME: These are non-standard extensions generalizing ==.
 extension PersistentSet {
   /// Returns a Boolean value indicating whether persistent sets are equal. Two
@@ -80,15 +82,42 @@ extension PersistentSet {
       return isEqual(to: other as! Self)
     }
 
-    guard other.underestimatedCount <= self.count else { return false }
+    if self.isEmpty {
+      return other.allSatisfy { _ in false }
+    }
+
+    if other is _UniqueCollection {
+      // We don't need to create a temporary set.
+      guard other.underestimatedCount <= self.count else { return false }
+      var seen = 0
+      for item in other {
+        guard self.contains(item) else { return false }
+        seen &+= 1
+      }
+      precondition(
+        seen <= self.count,
+        // Otherwise other.underestimatedCount != other.count
+        "Invalid Collection '\(S.self)' (bad underestimatedCount)")
+      return seen == self.count
+    }
+
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _Node = ._empty()
-    for item in other {
+    var seen: _Node? = ._empty()
+    var it = other.makeIterator()
+    while let item = it.next() {
       let hash = _Hash(item)
       guard self._root.containsKey(.top, item, hash) else { return false }
-      guard seen.insert(.top, (item, ()), hash).inserted
-      else { return false }
+      _ = seen!.insert(.top, (item, ()), hash) // Ignore dupes
+      if seen!.count == self.count {
+        // We've seen them all. Stop further accounting.
+        seen = nil
+        break
+      }
     }
-    return seen.count == self.count
+    guard seen == nil else { return false }
+    while let item = it.next() {
+      guard self.contains(item) else { return false }
+    }
+    return true
   }
 }

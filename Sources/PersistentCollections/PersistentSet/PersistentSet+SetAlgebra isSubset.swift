@@ -102,7 +102,7 @@ extension PersistentSet {
     var seen: _Node = ._empty()
     for item in other {
       let hash = _Hash(item)
-      guard contains(item) else { continue }
+      guard _root.containsKey(.top, item, hash) else { continue }
       guard seen.insert(.top, (item, ()), hash).inserted else { continue }
       if seen.count == self.count {
         return true
