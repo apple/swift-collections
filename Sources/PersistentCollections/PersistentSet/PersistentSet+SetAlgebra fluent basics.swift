@@ -10,6 +10,23 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentSet {
+  /// Return a new set that contains `newMember` in addition to all existing
+  /// elements in this set.
+  ///
+  /// If `self` already contains `newMember`, then this simply returns self.
+  ///
+  /// - Parameter newMember: The element to insert into the set.
+  ///
+  /// - Returns: A new set containing `newMember` and all existing members of
+  ///    `self`.
+  ///
+  /// - Complexity: The operation is expected to copy at most O(log(`count`))
+  ///    existing members if `newMember` is not already a member of `self`,
+  ///    as long as `Element` properly implements hashing.
+  ///
+  ///    In addition to this, this operation is expected to perform O(1)
+  ///    hashing/comparison operations on the `Element` type (with the same
+  ///    caveat.)
   @inlinable
   public func inserting(_ newMember: __owned Element) -> Self {
     let hash = _Hash(newMember)

@@ -12,7 +12,7 @@
 import _CollectionsTestSupport
 import PersistentCollections
 
-extension PersistentSet: SetAPIChecker {}
+extension PersistentSet: SetAPIExtras {}
 
 class PersistentSetTests: CollectionTestCase {
   func test_init_empty() {
@@ -205,6 +205,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = (u == v)
 
@@ -217,9 +218,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqual(x.isEqual(to: y), reference)
+        expectEqual(x.isEqual(to: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
         expectEqual(x.isEqual(to: v), reference)
         expectEqual(x.isEqual(to: b), reference)
+        expectEqual(x.isEqual(to: b + b), reference)
       }
     }
   }
@@ -232,6 +235,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.isSubset(of: v)
 
@@ -244,9 +248,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqual(x.isSubset(of: y), reference)
+        expectEqual(x.isSubset(of: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
         expectEqual(x.isSubset(of: v), reference)
         expectEqual(x.isSubset(of: b), reference)
+        expectEqual(x.isSubset(of: b + b), reference)
       }
     }
   }
@@ -259,6 +265,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.isSuperset(of: v)
 
@@ -271,14 +278,16 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqual(x.isSuperset(of: y), reference)
+        expectEqual(x.isSuperset(of: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
         expectEqual(x.isSuperset(of: v), reference)
         expectEqual(x.isSuperset(of: b), reference)
+        expectEqual(x.isSuperset(of: b + b), reference)
       }
     }
   }
 
-  func test_isStrictsubset_exhaustive() {
+  func test_isStrictSubset_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
@@ -286,6 +295,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.isStrictSubset(of: v)
 
@@ -298,9 +308,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqual(x.isStrictSubset(of: y), reference)
+        expectEqual(x.isStrictSubset(of: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
         expectEqual(x.isStrictSubset(of: v), reference)
         expectEqual(x.isStrictSubset(of: b), reference)
+        expectEqual(x.isStrictSubset(of: b + b), reference)
       }
     }
   }
@@ -313,6 +325,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.isStrictSuperset(of: v)
 
@@ -325,9 +338,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqual(x.isStrictSuperset(of: y), reference)
+        expectEqual(x.isStrictSuperset(of: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
         expectEqual(x.isStrictSuperset(of: v), reference)
         expectEqual(x.isStrictSuperset(of: b), reference)
+        expectEqual(x.isStrictSuperset(of: b + b), reference)
       }
     }
   }
@@ -340,7 +355,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
-
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
         let reference = u.isDisjoint(with: v)
 
         func checkSequence<S: Sequence>(
@@ -352,9 +367,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqual(x.isDisjoint(with: y), reference)
+        expectEqual(x.isDisjoint(with: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
         expectEqual(x.isDisjoint(with: v), reference)
         expectEqual(x.isDisjoint(with: b), reference)
+        expectEqual(x.isDisjoint(with: b + b), reference)
       }
     }
   }
@@ -473,6 +490,25 @@ class PersistentSetTests: CollectionTestCase {
         expectEqualSets(checkSequence(x, y), reference)
         expectEqualSets(x.symmetricDifference(v), reference)
         expectEqualSets(x.symmetricDifference(b), reference)
+      }
+    }
+  }
+
+  func test_update_at() {
+    withEverySubset("a", of: testItems) { a in
+      withEvery("offset", in: 0 ..< a.count) { offset in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var x = PersistentSet(tracker.instances(for: a))
+            let i = x.firstIndex { $0.payload == a[offset] }!
+            let replacement = tracker.instance(for: a[offset])
+            withHiddenCopies(if: isShared, of: &x) { x in
+              let old = x.update(replacement, at: i)
+              expectEqual(old, replacement)
+              expectNotIdentical(old, replacement)
+            }
+          }
+        }
       }
     }
   }

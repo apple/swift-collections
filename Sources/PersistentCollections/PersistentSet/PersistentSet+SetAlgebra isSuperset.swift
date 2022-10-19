@@ -53,9 +53,9 @@ extension PersistentSet {
   ///    e.g. by skipping over parts of the input trees.
   @inlinable
   public func isSuperset<Value>(
-    of other: PersistentDictionary<Element, Value>
+    of other: PersistentDictionary<Element, Value>.Keys
   ) -> Bool {
-    other._root.isSubset(.top, of: self._root)
+    other._base._root.isSubset(.top, of: self._root)
   }
 
   /// Returns a Boolean value that indicates whether this set is a superset of
@@ -69,7 +69,7 @@ extension PersistentSet {
   ///     a.isSuperset(of: b) // true
   ///
   /// - Parameter other: A sequence of elements, some of whose elements may
-  ///    appear more than once.
+  ///    appear more than once. (Duplicate items are ignored.)
   ///
   /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
   ///

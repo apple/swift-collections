@@ -9,7 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedDictionary {
+  /// True if consistency checking is enabled in the implementation of this
+  /// type, false otherwise.
+  ///
+  /// Documented performance promises are null and void when this property
+  /// returns true -- for example, operations that are documented to take
+  /// O(1) time might take O(*n*) time, or worse.
+  public static var _isConsistencyCheckingEnabled: Bool {
+    _isCollectionsInternalCheckingEnabled
+  }
+
   #if COLLECTIONS_INTERNAL_CHECKS
   @inline(never) @_effects(releasenone)
   public func _checkInvariants() {

@@ -70,7 +70,7 @@ let package = Package(
     // Testing support module
     .target(
       name: "_CollectionsTestSupport",
-      dependencies: [],
+      dependencies: ["_CollectionsUtilities"],
       swiftSettings: settings,
       linkerSettings: [
         .linkedFramework(
@@ -96,7 +96,9 @@ let package = Package(
       swiftSettings: settings),
     .testTarget(
       name: "BitCollectionsTests",
-      dependencies: ["BitCollections", "_CollectionsTestSupport"],
+      dependencies: [
+        "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
+      ],
       swiftSettings: settings),
 
     // Deque<Element>

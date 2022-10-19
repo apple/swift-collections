@@ -1,0 +1,80 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
+import _CollectionsUtilities
+
+extension OrderedSet {
+  /// Returns a Boolean value indicating whether two set values contain the
+  /// same elements, but not necessarily in the same order.
+  ///
+  /// - Note: This member implements different behavior than the `==(_:_:)`
+  ///    operator -- the latter implements an ordered comparison, matching
+  ///    the stricter concept of equality expected of an ordered collection
+  ///    type.
+  ///
+  /// - Complexity: O(`min(left.count, right.count)`), as long as`Element`
+  ///    properly implements hashing.
+  public func isEqual(to other: Self) -> Bool {
+    self.unordered == other.unordered
+  }
+
+  /// Returns a Boolean value indicating whether two set values contain the
+  /// same elements, but not necessarily in the same order.
+  ///
+  /// - Complexity: O(`min(left.count, right.count)`), as long as`Element`
+  ///    properly implements hashing.
+  public func isEqual(to other: UnorderedView) -> Bool {
+    self.unordered == other
+  }
+
+  /// Returns a Boolean value indicating whether an ordered set contains the
+  /// same values as a given sequence, but not necessarily in the same
+  /// order.
+  ///
+  /// Duplicate items in `other` do not prevent it from comparing equal to
+  /// `self`.
+  ///
+  /// - Complexity: O(*n*), where *n* is the number of items in
+  ///    `other`, as long as`Element` properly implements hashing.
+  public func isEqual<S: Sequence>(to other: S) -> Bool
+  where S.Element == Element {
+    if S.self == Self.self {
+      return isEqual(to: other as! Self)
+    }
+
+    if self.isEmpty {
+      return other.allSatisfy { _ in false }
+    }
+
+    if other is _UniqueCollection {
+      // We don't need to create a temporary set.
+      guard other.underestimatedCount <= self.count else { return false }
+      var seen = 0
+      for item in other {
+        guard self.contains(item) else { return false }
+        seen &+= 1
+      }
+      precondition(
+        seen <= self.count,
+        // Otherwise other.underestimatedCount != other.count
+        "Invalid Collection '\(S.self)' (bad underestimatedCount)")
+      return seen == self.count
+    }
+
+    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+      for item in other {
+        guard let index = _find(item).index else { return false }
+        _ = seen.insert(index) // Ignore dupes
+      }
+      return seen.count == count
+    }
+  }
+}

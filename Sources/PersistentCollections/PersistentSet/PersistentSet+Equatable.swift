@@ -12,6 +12,16 @@
 import _CollectionsUtilities
 
 extension PersistentSet: Equatable {
+  /// Returns a Boolean value indicating whether two values are equal.
+  ///
+  /// Two persistent sets are considered equal if they contain the same
+  /// elements, but not necessarily in the same order.
+  ///
+  /// - Note: This simply forwards to the ``isEqual(to:)-3m3in`` method.
+  /// That method has additional overloads that can be used to compare
+  /// persistent sets with additional types.
+  ///
+  /// - Complexity: O(`min(left.count, right.count)`)
   @inlinable @inline(__always)
   public static func == (left: Self, right: Self) -> Bool {
     left.isEqual(to: right)

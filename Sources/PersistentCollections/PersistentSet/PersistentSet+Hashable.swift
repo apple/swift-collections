@@ -10,6 +10,10 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentSet: Hashable {
+  /// Hashes the essential components of this value by feeding them into the
+  /// given hasher.
+  ///
+  /// Complexity: O(`count`)
   @inlinable
   public func hash(into hasher: inout Hasher) {
     let copy = hasher

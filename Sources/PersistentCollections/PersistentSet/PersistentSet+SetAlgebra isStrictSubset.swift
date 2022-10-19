@@ -95,37 +95,46 @@ extension PersistentSet {
       return isStrictSubset(of: other as! Self)
     }
 
-    var it = self.makeIterator()
-    guard let first = it.next() else {
-      return other.contains(where: { _ in true })
-    }
-    if let match = other._customContainsEquatableElement(first) {
-      guard match else { return false }
-      while let item = it.next() {
-        guard other.contains(item) else { return false }
+    do {
+      var it = self.makeIterator()
+      guard let first = it.next() else {
+        return other.contains(where: { _ in true })
       }
-      return !other.allSatisfy { self.contains($0) }
+      if let match = other._customContainsEquatableElement(first) {
+        // Fast path: the sequence has fast containment checks.
+        guard match else { return false }
+        while let item = it.next() {
+          guard other.contains(item) else { return false }
+        }
+        return !other.allSatisfy { self.contains($0) }
+      }
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _Node? = ._empty()
+    var seen: _Node = ._empty()
+    var doneCollecting = false
     var isStrict = false
-    for item in other {
+    var it = other.makeIterator()
+    while let item = it.next() {
       let hash = _Hash(item)
-      if self._root.containsKey(.top, item, hash),
-         seen?.insert(.top, (item, ()), hash).inserted == true
-      {
-        if seen?.count == self.count {
+      if self._root.containsKey(.top, item, hash) {
+        if
+          !doneCollecting,
+          seen.insert(.top, (item, ()), hash).inserted,
+          seen.count == self.count
+        {
           if isStrict { return true }
           // Stop collecting seen items -- we just need to decide
           // strictness now.
-          seen = nil
+          seen = ._empty()
+          doneCollecting = true
         }
       } else {
         isStrict = true
-        if seen == nil { return true }
+        if doneCollecting { return true }
       }
     }
+
     return false
   }
 }
