@@ -64,7 +64,6 @@ let package = Package(
         "OrderedCollections",
         "PersistentCollections",
       ],
-      path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
@@ -86,13 +85,14 @@ let package = Package(
 
     .target(
       name: "_CollectionsUtilities",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // BitSet, BitArray
     .target(
       name: "BitCollections",
       dependencies: ["_CollectionsUtilities"],
-      path: "Sources/BitCollections",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "BitCollectionsTests",
@@ -112,14 +112,14 @@ let package = Package(
 
     // Heap<Value>
     .target(
-        name: "HeapModule",
-        dependencies: ["_CollectionsUtilities"],
-        exclude: ["CMakeLists.txt"],
-        swiftSettings: settings),
+      name: "HeapModule",
+      dependencies: ["_CollectionsUtilities"],
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
     .testTarget(
-        name: "HeapTests",
-        dependencies: ["HeapModule", "_CollectionsTestSupport"],
-        swiftSettings: settings),
+      name: "HeapTests",
+      dependencies: ["HeapModule", "_CollectionsTestSupport"],
+      swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
@@ -134,12 +134,13 @@ let package = Package(
 
     // PersistentSet<Element>, PersistentDictionary<Key, Value>
     .target(
-        name: "PersistentCollections",
-        dependencies: ["_CollectionsUtilities"],
-        swiftSettings: settings),
+      name: "PersistentCollections",
+      dependencies: ["_CollectionsUtilities"],
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
     .testTarget(
-        name: "PersistentCollectionsTests",
-        dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
-        swiftSettings: settings),
+      name: "PersistentCollectionsTests",
+      dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
   ]
 )
