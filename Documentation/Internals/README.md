@@ -16,7 +16,7 @@ These components would likely be of interest to the wider Swift community, but t
 
 The test support library currently provides the following functionality:
 
-- [`AssertionContexts`](../../Sources/CollectionsTestSupport/AssertionContexts): Custom test assertions with support for keeping track of nested context information, including stopping execution when the current context matches a particular value. (Useful for debugging combinatorial tests.)
+- [`AssertionContexts`](../../Sources/_CollectionsTestSupport/AssertionContexts): Custom test assertions with support for keeping track of nested context information, including stopping execution when the current context matches a particular value. (Useful for debugging combinatorial tests.)
 
   <details>
    <summary><strong>Click here for a short demonstration</strong></summary>
@@ -62,7 +62,7 @@ The test support library currently provides the following functionality:
 
     </details>
 
-- [`Combinatorics`](../../Sources/CollectionsTestSupport/AssertionContexts/Combinatorics.swift): Basic support for exhaustive combinatorial testing. This allows us to easily verify that a collection operation works correctly on all possible instances up to a certain size, including behavioral variations such as unique/shared storage. This file also contains a basic set of functions for executing the same test code for all subsets or all permutations of a given collection, with each iteration registered in the current test context, for easy reproduction of failed cases.
+- [`Combinatorics`](../../Sources/_CollectionsTestSupport/AssertionContexts/Combinatorics.swift): Basic support for exhaustive combinatorial testing. This allows us to easily verify that a collection operation works correctly on all possible instances up to a certain size, including behavioral variations such as unique/shared storage. This file also contains a basic set of functions for executing the same test code for all subsets or all permutations of a given collection, with each iteration registered in the current test context, for easy reproduction of failed cases.
 
   <details>
    <summary><strong>Click here for an example</strong></summary>
@@ -87,32 +87,32 @@ The test support library currently provides the following functionality:
     
   </details>
   
-- [`ConformanceCheckers`](../../Sources/CollectionsTestSupport/ConformanceCheckers): A set of generic, semi-automated protocol conformance tests for some Standard Library protocols. These can be used to easily validate the custom protocol conformances provided by this package. These checks aren't (can't be) complete -- but when used correctly, they are able to detect most accidental mistakes. 
+- [`ConformanceCheckers`](../../Sources/_CollectionsTestSupport/ConformanceCheckers): A set of generic, semi-automated protocol conformance tests for some Standard Library protocols. These can be used to easily validate the custom protocol conformances provided by this package. These checks aren't (can't be) complete -- but when used correctly, they are able to detect most accidental mistakes. 
 
     We currently have conformance checkers for the following protocols:
     
-    - [`Sequence`](../../Sources/CollectionsTestSupport/ConformanceCheckers/CheckSequence.swift)
-    - [`Collection`](../../Sources/CollectionsTestSupport/ConformanceCheckers/CheckCollection.swift)
-    - [`BidirectionalCollection`](../../Sources/CollectionsTestSupport/ConformanceCheckers/CheckBidirectionalCollection.swift)
-    - [`Equatable`](../../Sources/CollectionsTestSupport/ConformanceCheckers/CheckEquatable.swift)
-    - [`Hashable`](../../Sources/CollectionsTestSupport/ConformanceCheckers/CheckHashable.swift)
-    - [`Comparable`](../../Sources/CollectionsTestSupport/ConformanceCheckers/CheckComparable.swift)
+    - [`Sequence`](../../Sources/_CollectionsTestSupport/ConformanceCheckers/CheckSequence.swift)
+    - [`Collection`](../../Sources/_CollectionsTestSupport/ConformanceCheckers/CheckCollection.swift)
+    - [`BidirectionalCollection`](../../Sources/_CollectionsTestSupport/ConformanceCheckers/CheckBidirectionalCollection.swift)
+    - [`Equatable`](../../Sources/_CollectionsTestSupport/ConformanceCheckers/CheckEquatable.swift)
+    - [`Hashable`](../../Sources/_CollectionsTestSupport/ConformanceCheckers/CheckHashable.swift)
+    - [`Comparable`](../../Sources/_CollectionsTestSupport/ConformanceCheckers/CheckComparable.swift)
 
-- [`MinimalTypes`](../../Sources/CollectionsTestSupport/MinimalTypes): Minimally conforming implementations for standard protocols. These types conform to various standard protocols by implementing the requirements in as narrow-minded way as possible -- sometimes going to extreme lengths to, say, implement collection index invalidation logic in the most unhelpful way possible.
+- [`MinimalTypes`](../../Sources/_CollectionsTestSupport/MinimalTypes): Minimally conforming implementations for standard protocols. These types conform to various standard protocols by implementing the requirements in as narrow-minded way as possible -- sometimes going to extreme lengths to, say, implement collection index invalidation logic in the most unhelpful way possible.
 
-    - [`MinimalSequence`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalSequence.swift)
-    - [`MinimalCollection`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalCollection.swift)
-    - [`MinimalBidirectionalCollection`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalBidirectionalCollection.swift)
-    - [`MinimalRandomAccessCollection`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalRandomAccessCollection.swift)
-    - [`MinimalMutableRandomAccessCollection`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalMutableRandomAccessCollection.swift)
-    - [`MinimalRangeReplaceableRandomAccessCollection`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalRangeReplaceableRandomAccessCollection.swift)
-    - [`MinimalMutableRangeReplaceableRandomAccessCollection`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalMutableRangeReplaceableRandomAccessCollection.swift)
-    - [`MinimalIterator`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalIterator.swift)
-    - [`MinimalIndex`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalIndex.swift)
-    - [`MinimalEncoder`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalEncoder.swift)
-    - [`MinimalDecoder`](../../Sources/CollectionsTestSupport/MinimalTypes/MinimalDecoder.swift)
+    - [`MinimalSequence`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalSequence.swift)
+    - [`MinimalCollection`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalCollection.swift)
+    - [`MinimalBidirectionalCollection`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalBidirectionalCollection.swift)
+    - [`MinimalRandomAccessCollection`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalRandomAccessCollection.swift)
+    - [`MinimalMutableRandomAccessCollection`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalMutableRandomAccessCollection.swift)
+    - [`MinimalRangeReplaceableRandomAccessCollection`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalRangeReplaceableRandomAccessCollection.swift)
+    - [`MinimalMutableRangeReplaceableRandomAccessCollection`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalMutableRangeReplaceableRandomAccessCollection.swift)
+    - [`MinimalIterator`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalIterator.swift)
+    - [`MinimalIndex`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalIndex.swift)
+    - [`MinimalEncoder`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalEncoder.swift)
+    - [`MinimalDecoder`](../../Sources/_CollectionsTestSupport/MinimalTypes/MinimalDecoder.swift)
 
-- [`Utilities`](../../Sources/CollectionsTestSupport/Utilities): Utility types. Wrapper types for boxed values, a simple deterministic random number generator, and a lifetime tracker for catching simple memory management issues such as memory leaks. (The [Address Sanitizer][asan] can be used to catch more serious problems.)
+- [`Utilities`](../../Sources/_CollectionsTestSupport/Utilities): Utility types. Wrapper types for boxed values, a simple deterministic random number generator, and a lifetime tracker for catching simple memory management issues such as memory leaks. (The [Address Sanitizer][asan] can be used to catch more serious problems.)
 
 [asan]: https://developer.apple.com/documentation/xcode/diagnosing_memory_thread_and_crash_issues_early?language=objc
 
