@@ -1112,9 +1112,18 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isSubset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isSubset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isSubset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isSubset(of: a), expected)
+          expectEqual(set.isSubset(of: a + a), expected)
+          expectEqual(set.isSubset(of: Set(test.range)), expected)
 
           expectEqual(set.isSubset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1161,9 +1170,17 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isStrictSubset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isStrictSubset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isStrictSubset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isStrictSubset(of: a), expected)
+          expectEqual(set.isStrictSubset(of: a + a), expected)
 
           expectEqual(set.isStrictSubset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1210,9 +1227,17 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isSuperset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isSuperset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isSuperset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isSuperset(of: a), expected)
+          expectEqual(set.isSuperset(of: a + a), expected)
 
           expectEqual(set.isSuperset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1259,9 +1284,17 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isStrictSuperset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isStrictSuperset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isStrictSuperset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isStrictSuperset(of: a), expected)
+          expectEqual(set.isStrictSuperset(of: a + a), expected)
 
           expectEqual(set.isStrictSuperset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1310,9 +1343,16 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isDisjoint(with: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isDisjoint(with: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isDisjoint(with: Array(test.range)), expected)
+          let a = Array(test.range)
+          expectEqual(set.isDisjoint(with: a), expected)
+          expectEqual(set.isDisjoint(with: a + a), expected)
 
           expectEqual(set.isDisjoint(with: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
