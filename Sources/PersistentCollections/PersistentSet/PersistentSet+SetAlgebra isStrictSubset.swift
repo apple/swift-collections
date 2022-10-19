@@ -100,6 +100,7 @@ extension PersistentSet {
       return other.contains(where: { _ in true })
     }
     if let match = other._customContainsEquatableElement(first) {
+      // Fast path: the sequence has fast containment checks.
       guard match else { return false }
       while let item = it.next() {
         guard other.contains(item) else { return false }
