@@ -13,7 +13,13 @@ import XCTest
 import _CollectionsTestSupport
 import BitCollections
 
-extension BitSet: SetAPIChecker {}
+extension BitSet: SetAPIExtras {
+  public mutating func update(_ member: Int, at index: Index) -> Int {
+    fatalError("Not this one though")
+  }
+}
+
+extension BitSet: SortedCollectionAPIChecker {}
 
 final class BitSetTest: CollectionTestCase {
   func test_empty_initializer() {

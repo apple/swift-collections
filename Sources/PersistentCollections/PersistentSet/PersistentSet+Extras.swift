@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
+extension PersistentSet: _UniqueCollection {}
+
 extension PersistentSet {
   @discardableResult
   public mutating func remove(at position: Index) -> Element {

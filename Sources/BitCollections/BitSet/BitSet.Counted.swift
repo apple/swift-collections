@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitSet {
   public struct Counted {
     @usableFromInline
@@ -41,6 +43,8 @@ extension BitSet.Counted {
   public func _checkInvariants() {}
 #endif // COLLECTIONS_INTERNAL_CHECKS
 }
+
+extension BitSet.Counted: _UniqueCollection {}
 
 extension BitSet.Counted {
   public init() {

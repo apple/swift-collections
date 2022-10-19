@@ -66,13 +66,17 @@ public protocol SetAPIChecker {
 
   mutating func formSymmetricDifference<S: Sequence>(_ other: __owned S)
   where S.Element == Element
-
-  #if false
-  // Non-standard extensions
-  func isEqual(to other: Self) -> Bool
-  public func isEqual<S: Sequence>(to other: S) -> Bool
-  where S.Element == Element
-  #endif
 }
 
 extension Set: SetAPIChecker {}
+
+
+public protocol SetAPIExtras: SetAPIChecker {
+  // Non-standard extensions
+
+  mutating func update(_ member: Element, at index: Index) -> Element
+
+  func isEqual(to other: Self) -> Bool
+  func isEqual<S: Sequence>(to other: S) -> Bool
+  where S.Element == Element
+}

@@ -70,7 +70,7 @@ let package = Package(
     // Testing support module
     .target(
       name: "_CollectionsTestSupport",
-      dependencies: [],
+      dependencies: ["_CollectionsUtilities"],
       swiftSettings: settings,
       linkerSettings: [
         .linkedFramework(
