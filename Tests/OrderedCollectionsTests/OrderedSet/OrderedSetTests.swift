@@ -13,7 +13,7 @@ import XCTest
 @_spi(Testing) import OrderedCollections
 import _CollectionsTestSupport
 
-extension OrderedSet: SetAPIChecker {}
+extension OrderedSet: SetAPIExtras {}
 
 class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {
@@ -1198,167 +1198,176 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
-  func test_isSubset_Self() {
+  func test_isEqual() {
+    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
+      SampleRanges(unit: unit).withEveryPair { r1, r2 in
+        let expected = Set(r1) == Set(r2)
+        let a = OrderedSet(r1)
+        let b = OrderedSet(r2)
+        let c = Set(r2)
+        let d = Array(r2)
+
+        func checkSequence<S: Sequence>(
+          _ set: OrderedSet<Int>,
+          _ other: S
+        ) -> Bool where S.Element == Int {
+          set.isEqual(to: other)
+        }
+
+        expectEqual(a.isEqual(to: b), expected)
+        expectEqual(a.isEqual(to: b.unordered), expected)
+        expectEqual(a.isEqual(to: c), expected)
+
+        expectEqual(checkSequence(a, b), expected)
+        expectEqual(checkSequence(a, c), expected)
+        expectEqual(a.isEqual(to: d), expected)
+        expectEqual(a.isEqual(to: d + d), expected)
+        expectEqual(a.isEqual(to: r2), expected)
+      }
+    }
+  }
+
+  func test_isSubset() {
     withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
       SampleRanges(unit: unit).withEveryPair { r1, r2 in
         let expected = Set(r1).isSubset(of: r2)
         let a = OrderedSet(r1)
         let b = OrderedSet(r2)
+        let c = Set(r2)
+        let d = Array(r2)
+
+        func checkSequence<S: Sequence>(
+          _ set: OrderedSet<Int>,
+          _ other: S
+        ) -> Bool where S.Element == Int {
+          set.isSubset(of: other)
+        }
+
         expectEqual(a.isSubset(of: b), expected)
+        expectEqual(a.isSubset(of: b.unordered), expected)
+        expectEqual(a.isSubset(of: c), expected)
+
+        expectEqual(checkSequence(a, b), expected)
+        expectEqual(checkSequence(a, c), expected)
+        expectEqual(a.isSubset(of: d), expected)
+        expectEqual(a.isSubset(of: d + d), expected)
+        expectEqual(a.isSubset(of: r2), expected)
       }
     }
   }
 
-  func test_isSubset_Set() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isSubset(of: r2)
-        let a = OrderedSet(r1)
-        let b = Set(r2)
-        expectEqual(a.isSubset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isSubset_generic() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isSubset(of: r2)
-        let a = OrderedSet(r1)
-        let b = r2
-        expectEqual(a.isSubset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isSuperset_Self() {
+  func test_isSuperset() {
     withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
       SampleRanges(unit: unit).withEveryPair { r1, r2 in
         let expected = Set(r1).isSuperset(of: r2)
         let a = OrderedSet(r1)
         let b = OrderedSet(r2)
+        let c = Set(r2)
+        let d = Array(r2)
+
+        func checkSequence<S: Sequence>(
+          _ set: OrderedSet<Int>,
+          _ other: S
+        ) -> Bool where S.Element == Int {
+          set.isSuperset(of: other)
+        }
+
         expectEqual(a.isSuperset(of: b), expected)
+        expectEqual(a.isSuperset(of: b.unordered), expected)
+        expectEqual(a.isSuperset(of: c), expected)
+
+        expectEqual(checkSequence(a, b), expected)
+        expectEqual(checkSequence(a, c), expected)
+        expectEqual(a.isSuperset(of: d), expected)
+        expectEqual(a.isSuperset(of: d + d), expected)
+        expectEqual(a.isSuperset(of: r2), expected)
       }
     }
   }
 
-  func test_isSuperset_Set() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isSuperset(of: r2)
-        let a = OrderedSet(r1)
-        let b = Set(r2)
-        expectEqual(a.isSuperset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isSuperset_generic() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isSuperset(of: r2)
-        let a = OrderedSet(r1)
-        let b = r2
-        expectEqual(a.isSuperset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isStrictSubset_Self() {
+  func test_isStrictSubset() {
     withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
       SampleRanges(unit: unit).withEveryPair { r1, r2 in
         let expected = Set(r1).isStrictSubset(of: r2)
         let a = OrderedSet(r1)
         let b = OrderedSet(r2)
+        let c = Set(r2)
+        let d = Array(r2)
+
+        func checkSequence<S: Sequence>(
+          _ set: OrderedSet<Int>,
+          _ other: S
+        ) -> Bool where S.Element == Int {
+          set.isStrictSubset(of: other)
+        }
+
         expectEqual(a.isStrictSubset(of: b), expected)
+        expectEqual(a.isStrictSubset(of: b.unordered), expected)
+        expectEqual(a.isStrictSubset(of: c), expected)
+
+        expectEqual(checkSequence(a, b), expected)
+        expectEqual(checkSequence(a, c), expected)
+        expectEqual(a.isStrictSubset(of: d), expected)
+        expectEqual(a.isStrictSubset(of: d + d), expected)
+        expectEqual(a.isStrictSubset(of: r2), expected)
       }
     }
   }
 
-  func test_isStrictSubset_Set() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isStrictSubset(of: r2)
-        let a = OrderedSet(r1)
-        let b = Set(r2)
-        expectEqual(a.isStrictSubset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isStrictSubset_generic() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isStrictSubset(of: r2)
-        let a = OrderedSet(r1)
-        let b = r2
-        expectEqual(a.isStrictSubset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isStrictSuperset_Self() {
+  func test_isStrictSuperset() {
     withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
       SampleRanges(unit: unit).withEveryPair { r1, r2 in
         let expected = Set(r1).isStrictSuperset(of: r2)
         let a = OrderedSet(r1)
         let b = OrderedSet(r2)
+        let c = Set(r2)
+        let d = Array(r2)
+
+        func checkSequence<S: Sequence>(
+          _ set: OrderedSet<Int>,
+          _ other: S
+        ) -> Bool where S.Element == Int {
+          set.isStrictSuperset(of: other)
+        }
+
         expectEqual(a.isStrictSuperset(of: b), expected)
+        expectEqual(a.isStrictSuperset(of: b.unordered), expected)
+        expectEqual(a.isStrictSuperset(of: c), expected)
+
+        expectEqual(checkSequence(a, b), expected)
+        expectEqual(checkSequence(a, c), expected)
+        expectEqual(a.isStrictSuperset(of: d), expected)
+        expectEqual(a.isStrictSuperset(of: d + d), expected)
+        expectEqual(a.isStrictSuperset(of: r2), expected)
       }
     }
   }
 
-  func test_isStrictSuperset_Set() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isStrictSuperset(of: r2)
-        let a = OrderedSet(r1)
-        let b = Set(r2)
-        expectEqual(a.isStrictSuperset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isStrictSuperset_generic() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isStrictSuperset(of: r2)
-        let a = OrderedSet(r1)
-        let b = r2
-        expectEqual(a.isStrictSuperset(of: b), expected)
-      }
-    }
-  }
-
-  func test_isDisjoint_Self() {
+  func test_isDisjoint() {
     withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
       SampleRanges(unit: unit).withEveryPair { r1, r2 in
         let expected = Set(r1).isDisjoint(with: r2)
         let a = OrderedSet(r1)
         let b = OrderedSet(r2)
-        expectEqual(a.isDisjoint(with: b), expected)
-      }
-    }
-  }
+        let c = Set(r2)
+        let d = Array(r2)
 
-  func test_isDisjoint_Set() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isDisjoint(with: r2)
-        let a = OrderedSet(r1)
-        let b = Set(r2)
-        expectEqual(a.isDisjoint(with: b), expected)
-      }
-    }
-  }
+        func checkSequence<S: Sequence>(
+          _ set: OrderedSet<Int>,
+          _ other: S
+        ) -> Bool where S.Element == Int {
+          set.isDisjoint(with: other)
+        }
 
-  func test_isDisjoint_generic() {
-    withEvery("unit", in: [1, 3, 7, 10, 20, 50]) { unit in
-      SampleRanges(unit: unit).withEveryPair { r1, r2 in
-        let expected = Set(r1).isDisjoint(with: r2)
-        let a = OrderedSet(r1)
-        let b = r2
         expectEqual(a.isDisjoint(with: b), expected)
+        expectEqual(a.isDisjoint(with: b.unordered), expected)
+        expectEqual(a.isDisjoint(with: c), expected)
+
+        expectEqual(checkSequence(a, b), expected)
+        expectEqual(checkSequence(a, c), expected)
+        expectEqual(a.isDisjoint(with: d), expected)
+        expectEqual(a.isDisjoint(with: d + d), expected)
+        expectEqual(a.isDisjoint(with: r2), expected)
       }
     }
   }

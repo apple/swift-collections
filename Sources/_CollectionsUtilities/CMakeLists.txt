@@ -8,6 +8,8 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(_CollectionsUtilities
+  "_SortedCollection.swift"
+  "_UniqueCollection.swift"
   "Array+WithContiguousStorage Compatibility.swift"
   "Debugging.swift"
   "Descriptions.swift"

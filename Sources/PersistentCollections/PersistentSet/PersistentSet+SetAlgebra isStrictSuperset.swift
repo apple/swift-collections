@@ -78,7 +78,7 @@ extension PersistentSet {
   ///     a.isStrictSuperset(of: b.unordered) // true
   ///
   /// - Parameter other: A sequence of elements, some of whose elements may
-  ///    appear more than once.
+  ///    appear more than once. (Duplicate items are ignored.)
   ///
   /// - Returns: `true` if `self` is a strict subset of `other`; otherwise,
   ///    `false`.

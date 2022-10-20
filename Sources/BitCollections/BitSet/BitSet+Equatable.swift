@@ -13,8 +13,13 @@ extension BitSet: Equatable {
   /// Returns a Boolean value indicating whether two values are equal. Two
   /// bit sets are considered equal if they contain the same elements.
   ///
-  /// - Complexity: O(*max*), where *max* is value of the largest member of either set.
+  /// - Note: This simply forwards to the ``isEqual(to:)-5zfpo`` method.
+  /// That method has additional overloads that can be used to compare
+  /// bit sets with additional types.
+  ///
+  /// - Complexity: O(*max*), where *max* is value of the largest member of
+  ///     either set.
   public static func ==(left: Self, right: Self) -> Bool {
-    left._storage == right._storage
+    left.isEqual(to: right)
   }
 }

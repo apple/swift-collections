@@ -11,6 +11,8 @@
 
 import _CollectionsUtilities
 
+extension BitSet: _UniqueCollection {}
+
 extension BitSet {
   /// Creates a new empty bit set with enough storage capacity to store values
   /// up to the given maximum value without reallocating storage.
@@ -162,12 +164,6 @@ extension BitSet {
     precondition(removed, "Invalid index")
     return Int(bitPattern: index._value)
   }
-
-  /// Returns the current set (already sorted).
-  ///
-  /// - Complexity: O(1)
-  public func sorted() -> BitSet { self }
-
 
   /// Returns a new bit set containing the elements of the set that satisfy the
   /// given predicate.

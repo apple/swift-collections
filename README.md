@@ -10,7 +10,7 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
-- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit vectors.
+- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
 
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
 
@@ -71,14 +71,14 @@ Note that contents of the `Tests`, `Utils` and `Benchmarks` subdirectories aren'
 
 Future minor versions of the package may update these rules as needed.
 
-We'd like this package to quickly embrace Swift language and toolchain improvements that are relevant to its mandate. Accordingly, from time to time, we expect that new versions of this package will require clients to upgrade to a more recent Swift toolchain release. (This allows the package to make use of new language/stdlib features, build on compiler bug fixes, and adopt new package manager functionality as soon as they are available.) Requiring a new Swift release will only need a minor version bump.
+We'd like this package to quickly embrace Swift language and toolchain improvements that are relevant to its mandate. Accordingly, from time to time, new versions of this package require clients to upgrade to a more recent Swift toolchain release. (This allows the package to make use of new language/stdlib features, build on compiler bug fixes, and adopt new package manager functionality as soon as they are available.) Patch (i.e., bugfix) releases will not increase the required toolchain version, but any minor (i.e., new feature) release may do so.
 
 The following table maps existing package releases to their minimum required Swift toolchain release:
 
-| Package version |  Swift version |
-|---|---|---|
-| swift-collections 1.0.x | >= Swift 5.3 |
-| swift-collections 1.1.x | >= Swift 5.5 |
+| Package version         | Swift version | Xcode release |
+| ----------------------- | ------------- | ------------- |
+| swift-collections 1.0.x | >= Swift 5.3  | >= Xcode 12   |
+| swift-collections 1.1.x | >= Swift 5.5  | >= Xcode 13   |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
@@ -145,11 +145,20 @@ By submitting a pull request, you represent that you have the right to license y
 
 #### Proposing the addition of a new data structure
 
-1. Start a topic on the [forum], explaining why you believe it would be important to implement the data structure. This way we can figure out if it would be right for the package, discuss implementation strategies, and plan to allocate capacity to help.
-2. When maintainers agreed to your implementation plan, start work on it, and submit a PR with your implementation as soon as you have something that's ready to show! We'd love to get involved as early as you like.
-3. Participate in the review discussion, and adapt the code accordingly. Sometimes we may need to go through several revisions! This is fine -- it makes the end result that much better.
-3. When there is a consensus that the feature is ready, and the implementation is fully tested and documented, the PR will be merged by a maintainer.
-4. Celebrate! You've achieved something great!
+We intend this package to collect generally useful data structures -- the ones that ought to be within easy reach of every Swift engineer's basic toolbox. The implementations we ship need to be of the highest technical quality, polished to the same shine as anything that gets included in the Swift Standard Library. (The only real differences are that this package isn't under the formal Swift Evolution process, and its code isn't ABI stable.) 
+
+Accordingly, adding a new data structure to this package is not an easy or quick process, and not all useful data structures are going to be a good fit. 
+
+If you have an idea for a data structure that might make a good addition to this package, please start a topic on the [forum], explaining why you believe it would be important to implement it. This way we can figure out if it would be right for the package, discuss implementation strategies, and plan to allocate capacity to help.
+
+Not all data structures will reach a high enough level of usefulness to ship in this package -- those that have a more limited audience might work better as a standalone package. Of course, reasonable people might disagree on the importance of including any particular data structure; but at the end of the day, the decision whether to take an implementation is up to the maintainers of this package.
+
+If maintainers have agreed that your implementation would likely make a good addition, then it's time to start work on it. Submit a PR with your implementation as soon as you have something that's ready to show! We'd love to get involved as early as you like. Historically, the best additions resulted from close work between the contributor and a package maintainer.
+
+Participate in the review discussion, and adapt code accordingly. Sometimes we may need to go through several revisions over multiple months! This is fine -- it makes the end result that much better. When there is a consensus that the feature is ready, and the implementation is fully tested and documented, the PR will be merged by a maintainer. This is good time for a small celebration -- merging is a good indicator that the addition will ship at some point.
+
+Historically, PRs adding a new data structure have typically been merged to a new feature branch rather than directly to a release branch or `main`, and there was an extended amount of time between the initial merge and the tag that shipped the new feature. Nobody likes to wait, but getting a new data structure implementation from a state that was ready to merge to a state that's ready to ship is actually quite difficult work, and it takes maintainer time and effort that needs to be scheduled in advance. The closer an implementation is to the coding conventions and performance baseline of the Standard Library, the shorter this wait is likely to become, and the fewer changes there will be between merging and shipping.
+
 
 ### Code of Conduct
 

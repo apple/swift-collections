@@ -15,6 +15,11 @@ extension OrderedSet: Equatable {
   /// Two ordered sets are considered equal if they contain the same
   /// elements in the same order.
   ///
+  /// - Note: This operator implements different behavior than the
+  ///    `isEqual(to:)` method -- the latter implements an unordered
+  ///    comparison, to match the behavior of members like `isSubset(of:)`,
+  ///    `isStrictSuperset(of:)` etc.
+  ///
   /// - Complexity: O(`min(left.count, right.count)`)
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {

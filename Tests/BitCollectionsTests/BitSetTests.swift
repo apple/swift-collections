@@ -12,8 +12,15 @@
 import XCTest
 import _CollectionsTestSupport
 import BitCollections
+import OrderedCollections
 
-extension BitSet: SetAPIChecker {}
+extension BitSet: SetAPIExtras {
+  public mutating func update(_ member: Int, at index: Index) -> Int {
+    fatalError("Not this one though")
+  }
+}
+
+extension BitSet: SortedCollectionAPIChecker {}
 
 final class BitSetTest: CollectionTestCase {
   func test_empty_initializer() {
@@ -976,6 +983,97 @@ final class BitSetTest: CollectionTestCase {
     }
   }
 
+  func test_isEqual_to_integer_range() {
+    let a = BitSet(200 ..< 400)
+    expectTrue(a.isEqual(to: 200 ..< 400))
+    expectFalse(a.isEqual(to: 201 ..< 401))
+    expectFalse(a.isEqual(to: -1 ..< 200))
+    expectFalse(a.isEqual(to: 0 ..< 0))
+    expectFalse(a.isEqual(to: 0 ..< 1000))
+    expectFalse(a.isEqual(to: 0 ..< 250))
+    expectFalse(a.isEqual(to: 270 ..< 400))
+
+    var b = a
+    b.remove(300)
+    expectFalse(b.isEqual(to: 200 ..< 400))
+
+    let c = BitSet(130 ..< 160)
+    expectTrue(c.isEqual(to: 130 ..< 160))
+  }
+
+  func test_isEqual_to_counted_BitSet() {
+    let a = BitSet(200 ..< 400)
+    expectTrue(a.isEqual(to: a.counted))
+  }
+
+  func test_isEqual_to_Sequence() {
+    func check<S: Sequence>(
+      _ bits: BitSet,
+      _ items: S
+    ) -> Bool where S.Element == Int {
+      bits.isEqual(to: items)
+    }
+
+    let bits: BitSet = [3, 6, 8, 11]
+    expectTrue(check(bits, bits))
+    expectTrue(check(bits, bits.counted))
+    expectFalse(check(bits, 0 ..< 10))
+
+    expectFalse(check(bits, [3, 6, 8] as OrderedSet))
+    expectTrue(check(bits, [3, 6, 8, 11] as OrderedSet))
+    expectFalse(check(bits, [3, 6, 8, 11, 2] as OrderedSet))
+    expectFalse(check(bits, [3, 6, 8, 20] as OrderedSet))
+    expectFalse(check(bits, [3, 6, 8, -1] as OrderedSet))
+
+    expectTrue(check([], [] as BitSet))
+    expectTrue(check([], [] as BitSet.Counted))
+    expectTrue(check([], [] as Set))
+    expectTrue(check([], MinimalSequence(elements: [])))
+
+    expectFalse(check([], [1] as BitSet))
+    expectFalse(check([], [1] as BitSet.Counted))
+    expectFalse(check([], [1] as Set))
+    expectFalse(
+      check([],
+            MinimalSequence(elements: [1], underestimatedCount: .value(0))))
+
+    let x1 = MinimalSequence(
+      elements: [3, 6, 8, 11],
+      underestimatedCount: .value(0))
+    expectTrue(check(bits, x1))
+
+    let x2 = MinimalSequence(
+      elements: [3, 6, -1],
+      underestimatedCount: .value(0))
+    expectFalse(check(bits, x2))
+
+    let x3 = MinimalSequence(
+      elements: [3, 6, 0],
+      underestimatedCount: .value(0))
+    expectFalse(check(bits, x3))
+
+    let x4 = MinimalSequence(
+      elements: [3, 6, 8],
+      underestimatedCount: .value(0))
+    expectFalse(check(bits, x4))
+
+    let x5 = MinimalSequence(
+      elements: [3, 6, 8, 11, 3, 6, 8, 11],
+      underestimatedCount: .value(0))
+    expectTrue(check(bits, x5)) // Dupes are okay!
+
+    let x6 = MinimalSequence(
+      elements: [3, 6, 8, 11, -1],
+      underestimatedCount: .value(0))
+    expectFalse(check(bits, x6))
+
+    let x7 = MinimalSequence(
+      elements: [3, 6, 8, 11, 100],
+      underestimatedCount: .value(0))
+    expectFalse(check(bits, x7))
+  }
+
+
   func test_isSubset() {
     withEvery("step", in: [1, 5, 16, 23, 24, UInt.bitWidth]) { step in
 
@@ -1014,9 +1112,18 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isSubset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isSubset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isSubset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isSubset(of: a), expected)
+          expectEqual(set.isSubset(of: a + a), expected)
+          expectEqual(set.isSubset(of: Set(test.range)), expected)
 
           expectEqual(set.isSubset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1063,9 +1170,17 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isStrictSubset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isStrictSubset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isStrictSubset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isStrictSubset(of: a), expected)
+          expectEqual(set.isStrictSubset(of: a + a), expected)
 
           expectEqual(set.isStrictSubset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1112,9 +1227,17 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isSuperset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isSuperset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isSuperset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isSuperset(of: a), expected)
+          expectEqual(set.isSuperset(of: a + a), expected)
 
           expectEqual(set.isSuperset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1161,9 +1284,17 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isStrictSuperset(of: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isStrictSuperset(of: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isStrictSuperset(of: Array(test.range)), expected)
+          let a = Array(test.range)
+
+          expectEqual(set.isStrictSuperset(of: a), expected)
+          expectEqual(set.isStrictSuperset(of: a + a), expected)
 
           expectEqual(set.isStrictSuperset(of: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
@@ -1212,9 +1343,16 @@ final class BitSetTest: CollectionTestCase {
           if test.range.lowerBound >= 0 {
             expectEqual(set.isDisjoint(with: BitSet(test.range)), expected)
             expectEqual(forceSequence(BitSet(test.range)), expected)
+
+            expectEqual(
+              set.isDisjoint(with: BitSet.Counted(test.range)), expected)
+            expectEqual(
+              forceSequence(BitSet.Counted(test.range)), expected)
           }
 
-          expectEqual(set.isDisjoint(with: Array(test.range)), expected)
+          let a = Array(test.range)
+          expectEqual(set.isDisjoint(with: a), expected)
+          expectEqual(set.isDisjoint(with: a + a), expected)
 
           expectEqual(set.isDisjoint(with: test.range), expected)
           expectEqual(forceSequence(test.range), expected)
