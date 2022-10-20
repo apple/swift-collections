@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import _CollectionsTestSupport
-@testable import PersistentCollections
+import PersistentCollections
 
 extension PersistentDictionary: DictionaryAPIExtras {}
 
