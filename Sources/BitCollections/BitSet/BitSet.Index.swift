@@ -50,6 +50,13 @@ extension BitSet.Index: CustomStringConvertible {
   }
 }
 
+extension BitSet.Index: CustomDebugStringConvertible {
+  // A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    "BitSet.Index(\(_value))"
+  }
+}
+
 extension BitSet.Index: Equatable {
   /// Returns a Boolean value indicating whether two values are equal.
   ///

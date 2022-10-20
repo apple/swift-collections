@@ -1404,6 +1404,14 @@ final class BitSetTest: CollectionTestCase {
     expectEqual("\(String(reflecting: c))", "BitSet([23, 652, 892, 19230])")
   }
 
+  func test_index_descriptions() {
+    let a: BitSet = [3, 6, 8]
+    let i = a.startIndex
+
+    expectEqual(i.description, "3")
+    expectEqual(i.debugDescription, "BitSet.Index(3)")
+  }
+
   func test_mirror() {
     func check<T>(_ v: T) -> String {
       var str = ""

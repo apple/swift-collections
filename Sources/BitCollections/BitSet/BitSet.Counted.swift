@@ -188,12 +188,14 @@ extension BitSet.Counted: Codable {
 }
 
 extension BitSet.Counted: CustomStringConvertible {
+  // A textual representation of this instance.
   public var description: String {
     _bits.description
   }
 }
 
 extension BitSet.Counted: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
     _bits._debugDescription(typeName: "BitSet.Counted")
   }
