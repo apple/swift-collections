@@ -126,7 +126,7 @@ extension PersistentSet {
           if isStrict { return true }
           // Stop collecting seen items -- we just need to decide
           // strictness now.
-          seen = ._empty()
+          seen = ._emptyNode()
           doneCollecting = true
         }
       } else {
