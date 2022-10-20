@@ -39,11 +39,16 @@ extension _Node.Storage {
   }
 }
 
+extension _Node {
+  internal static func _itemString(for item: Element) -> String {
+    let hash = _Hash(item.key).description
+    return "hash: \(hash), key: \(item.key), value: \(item.value)"
+  }
+}
 extension _Node.UnsafeHandle {
   internal func _itemString(at slot: _Slot) -> String {
     let item = self[item: slot]
-    let hash = _Hash(item.key).description
-    return "hash: \(hash), key: \(item.key), value: \(item.value)"
+    return _Node._itemString(for: item)
   }
 
   @usableFromInline

@@ -67,14 +67,14 @@ extension _Node {
     at bucket: _Bucket
   ) -> Element {
     let slot = read { $0.itemMap.slot(of: bucket) }
-    return removeItem(at: slot, bucket, by: { $0.move() })
+    return removeItem(at: bucket, slot, by: { $0.move() })
   }
 
   @inlinable
   internal mutating func removeItem(
-    at slot: _Slot, _ bucket: _Bucket
+    at bucket: _Bucket, _ slot: _Slot
   ) -> Element {
-    removeItem(at: slot, bucket, by: { $0.move() })
+    removeItem(at: bucket, slot, by: { $0.move() })
   }
 
   /// Remove the item at `slot`, increasing the amount of free
@@ -84,7 +84,7 @@ extension _Node {
   /// storage slot corresponding to the item to be removed.
   @inlinable
   internal mutating func removeItem<R>(
-    at slot: _Slot, _ bucket: _Bucket,
+    at bucket: _Bucket, _ slot: _Slot,
     by remover: (UnsafeMutablePointer<Element>) -> R
   ) -> R {
     defer { _invariantCheck() }
@@ -106,9 +106,8 @@ extension _Node {
 
   @inlinable
   internal mutating func removeChild(
-    at slot: _Slot, _ bucket: _Bucket
+    at bucket: _Bucket, _ slot: _Slot
   ) -> _Node {
-    defer { _invariantCheck() }
     assert(!isCollisionNode)
     let child: _Node = update {
       assert($0.childMap.contains(bucket))
@@ -128,7 +127,7 @@ extension _Node {
     assert(count == 1)
     count = 0
     return update {
-      assert($0.itemCount == 1 && $0.childCount == 0)
+      assert($0.hasSingletonItem)
       let old = $0._removeItem(at: .zero) { $0.move() }
       $0.clear()
       return old
@@ -139,7 +138,7 @@ extension _Node {
   internal mutating func removeSingletonChild() -> _Node {
     defer { _invariantCheck() }
     let child: _Node = update {
-      assert($0.itemCount == 0 && $0.childCount == 1)
+      assert($0.hasSingletonChild)
       let child = $0._removeChild(at: .zero)
       $0.childMap = .empty
       return child

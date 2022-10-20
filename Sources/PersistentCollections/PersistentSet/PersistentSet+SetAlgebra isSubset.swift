@@ -99,7 +99,7 @@ extension PersistentSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _Node = ._empty()
+    var seen: _Node = ._emptyNode()
     for item in other {
       let hash = _Hash(item)
       guard _root.containsKey(.top, item, hash) else { continue }

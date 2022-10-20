@@ -16,7 +16,6 @@ add_library(PersistentCollections
   "Node/_HashTreeStatistics.swift"
   "Node/_Level.swift"
   "Node/_Node+Builder.swift"
-  "Node/_Node+CustomStringConvertible.swift"
   "Node/_Node+Debugging.swift"
   "Node/_Node+Initializers.swift"
   "Node/_Node+Invariants.swift"

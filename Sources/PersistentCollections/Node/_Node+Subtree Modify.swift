@@ -124,7 +124,8 @@ extension _Node {
       }
     case (true, false):
       // Removal
-      _finalizeRemoval(.top, state.hash, at: state.path)
+      let remainder = _finalizeRemoval(.top, state.hash, at: state.path)
+      assert(remainder == nil)
     case (false, true):
       // Insertion
       let r = updateValue(.top, forKey: state.key, state.hash) {
@@ -140,21 +141,19 @@ extension _Node {
   @inlinable
   internal mutating func _finalizeRemoval(
     _ level: _Level, _ hash: _Hash, at path: _UnsafePath
-  ) {
+  ) -> Element? {
     assert(isUnique())
     if level == path.level {
-      _removeItemFromUniqueLeafNode(
-        level, hash[level], path.currentItemSlot, by: { _ in })
-    } else {
-      let slot = path.childSlot(at: level)
-      let needsInlining: Bool = update {
-        let child = $0.childPtr(at: slot)
-        child.pointee._finalizeRemoval(level.descend(), hash, at: path)
-        return child.pointee.hasSingletonItem
-      }
-      _fixupUniqueAncestorAfterItemRemoval(
-        slot, { _ in hash[level] }, needsInlining: needsInlining)
+      return _removeItemFromUniqueLeafNode(
+        level, at: hash[level], path.currentItemSlot, by: { _ in }
+      ).remainder
     }
+    let slot = path.childSlot(at: level)
+    let remainder = update {
+      $0[child: slot]._finalizeRemoval(level.descend(), hash, at: path)
+    }
+    return _fixupUniqueAncestorAfterItemRemoval(
+      level, at: { _ in hash[level] }, slot, remainder: remainder)
   }
 }
 

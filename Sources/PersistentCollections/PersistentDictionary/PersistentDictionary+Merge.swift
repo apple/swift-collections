@@ -16,7 +16,7 @@ extension PersistentDictionary {
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows {
     _invalidateIndices()
-    try _root.merge(.top, .emptyPrefix, keysAndValues._root, combine)
+    try _root.merge(.top, keysAndValues._root, combine)
   }
 
   @inlinable

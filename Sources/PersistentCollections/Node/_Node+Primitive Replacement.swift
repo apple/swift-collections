@@ -12,7 +12,7 @@
 extension _Node {
   @inlinable
   internal mutating func replaceItem(
-    at bucket: _Bucket, _ slot: _Slot, with item: Element
+    at bucket: _Bucket, _ slot: _Slot, with item: __owned Element
   ) {
     update {
       assert($0.isCollisionNode || $0.itemMap.contains(bucket))
@@ -24,7 +24,7 @@ extension _Node {
 
   @inlinable
   internal mutating func replaceChild(
-    at bucket: _Bucket, with child: _Node
+    at bucket: _Bucket, with child: __owned _Node
   ) -> Int {
     let slot = read { $0.childMap.slot(of: bucket) }
     return replaceChild(at: bucket, slot, with: child)
@@ -32,7 +32,7 @@ extension _Node {
 
   @inlinable
   internal mutating func replaceChild(
-    at bucket: _Bucket, _ slot: _Slot, with child: _Node
+    at bucket: _Bucket, _ slot: _Slot, with child: __owned _Node
   ) -> Int {
     let delta: Int = update {
       assert(!$0.isCollisionNode)
@@ -50,41 +50,41 @@ extension _Node {
   @inlinable
   internal func replacingChild(
     _ level: _Level,
-    _ hashPrefix: _Hash,
+    at bucket: _Bucket,
     _ slot: _Slot,
     with child: __owned Builder
   ) -> Builder {
-    let bucket = hashPrefix[level]
+    assert(child.level == level.descend())
     read {
       assert(!$0.isCollisionNode)
       assert($0.childMap.contains(bucket))
       assert(slot == $0.childMap.slot(of: bucket))
     }
-    switch child {
+    switch child.kind {
     case .empty:
-      return _removingChild(level, hashPrefix, bucket, slot)
-    case let .item(item, hash):
-      assert(hash.isEqual(to: hashPrefix, upTo: level))
-      assert(hash[level] == bucket)
+      return _removingChild(level, at: bucket, slot)
+    case let .item(item, _):
       if hasSingletonChild {
-        return child
+        return .item(level, item, at: bucket)
       }
       var node = self.copy(withFreeSpace: _Node.spaceForInlinedChild)
-      _ = node.removeChild(at: slot, bucket)
+      _ = node.removeChild(at: bucket, slot)
       node.insertItem(item, at: bucket)
       node._invariantCheck()
-      return .node(node, hashPrefix)
-    case let .node(node, hash):
-      assert(hash.isEqual(to: hashPrefix, upTo: level))
-      assert(hash[level] == bucket)
-      if node.isCollisionNode, self.hasSingletonChild {
+      return .node(level, node)
+    case let .node(node):
+      var copy = self.copy()
+      _ = copy.replaceChild(at: bucket, slot, with: node)
+      return .node(level, copy)
+    case let .collisionNode(node):
+      if hasSingletonChild {
         // Compression
         assert(!level.isAtBottom)
-        return child
+        return .collisionNode(level, node)
       }
       var copy = self.copy()
       _ = copy.replaceChild(at: bucket, slot, with: node)
-      return .node(copy, hashPrefix)
+      return .node(level, copy)
     }
   }
 }
