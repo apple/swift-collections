@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedDictionary.Elements {
   /// A collection that represents a contiguous slice of an ordered dictionary.
   ///
@@ -34,6 +36,24 @@ extension OrderedDictionary.Elements {
 extension OrderedDictionary.Elements.SubSequence: Sendable
 where Key: Sendable, Value: Sendable {}
 #endif
+
+extension OrderedDictionary.Elements.SubSequence: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    _dictionaryDescription(for: self)
+  }
+}
+
+extension OrderedDictionary.Elements.SubSequence: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _dictionaryDescription(
+      for: self,
+      debug: true,
+      typeName: "\(OrderedDictionary._debugTypeName()).Elements.SubSequence"
+    )
+  }
+}
 
 extension OrderedDictionary.Elements.SubSequence {
   /// A read-only collection view containing the keys in this slice.
