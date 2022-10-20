@@ -39,6 +39,25 @@ extension PersistentDictionary.Keys: Sendable
 where Key: Sendable, Value: Sendable {}
 #endif
 
+extension PersistentDictionary.Keys: _UniqueCollection {}
+
+extension PersistentDictionary.Keys: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    _arrayDescription(for: self)
+  }
+}
+
+extension PersistentDictionary.Keys: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _arrayDescription(
+      for: self,
+      debug: true,
+      typeName: "\(PersistentDictionary._debugTypeName()).Keys")
+  }
+}
+
 extension PersistentDictionary.Keys: Sequence {
   public typealias Element = Key
 

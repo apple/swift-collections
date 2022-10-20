@@ -264,30 +264,6 @@ class PersistentDictionaryTests: CollectionTestCase {
     checkBidirectionalCollection(d, expectedContents: Array(d), by: ==)
   }
 
-  func test_Keys_BidirectionalCollection_fixtures() {
-    withEachFixture { fixture in
-      withLifetimeTracking { tracker in
-        let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(
-          d.keys,
-          expectedContents: ref.map { $0.key },
-          by: ==)
-      }
-    }
-  }
-
-  func test_Values_BidirectionalCollection_fixtures() {
-    withEachFixture { fixture in
-      withLifetimeTracking { tracker in
-        let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(
-          d.values,
-          expectedContents: ref.map { $0.value },
-          by: ==)
-      }
-    }
-  }
-
 #if swift(>=5.6)
   @available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *)
   struct FancyDictionaryKey: CodingKeyRepresentable, Hashable, Codable {
@@ -507,6 +483,31 @@ class PersistentDictionaryTests: CollectionTestCase {
     expectEqual(
       c.debugDescription,
       "PersistentDictionary<Int, Int>([\(cd)])")
+  }
+
+
+  func test_index_descriptions() {
+    let a: PersistentDictionary = [
+      RawCollider(1, "1"): 1,
+      RawCollider(2, "21"): 2,
+      RawCollider(3, "22"): 3,
+    ]
+
+    let i = a.startIndex
+    expectEqual(i.description, "@[0]")
+    expectEqual(i.debugDescription, "@[0]")
+
+    let j = a.index(i, offsetBy: 1)
+    expectEqual(j.description, "@.0[0]")
+    expectEqual(j.debugDescription, "@.0[0]")
+
+    let k = a.index(j, offsetBy: 1)
+    expectEqual(k.description, "@.0[1]")
+    expectEqual(k.debugDescription, "@.0[1]")
+
+    let end = a.endIndex
+    expectEqual(end.description, "@.end(1)")
+    expectEqual(end.debugDescription, "@.end(1)")
   }
 
 

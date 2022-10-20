@@ -12,18 +12,20 @@
 import _CollectionsUtilities
 
 extension PersistentDictionary: CustomStringConvertible {
+  // A textual representation of this instance.
   public var description: String {
     _dictionaryDescription(for: self)
   }
 }
 
 extension PersistentDictionary: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
     _dictionaryDescription(
-      for: self, debug: true, typeName: _debugTypeName())
+      for: self, debug: true, typeName: Self._debugTypeName())
   }
 
-  internal func _debugTypeName() -> String {
+  internal static func _debugTypeName() -> String {
     "PersistentDictionary<\(Key.self), \(Value.self)>"
   }
 }
