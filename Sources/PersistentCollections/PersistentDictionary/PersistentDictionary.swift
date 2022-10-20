@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@frozen // Not really -- this package is not at all ABI stable
 public struct PersistentDictionary<Key: Hashable, Value> {
   @usableFromInline
   internal typealias _Node = PersistentCollections._Node<Key, Value>

@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@frozen // Not really -- this package is not at all ABI stable
 public struct PersistentSet<Element: Hashable> {
   @usableFromInline
   internal typealias _Node = PersistentCollections._Node<Element, Void>

@@ -34,6 +34,7 @@
 /// in a fixed-size array; this would speed up walking over the tree, but it
 /// would considerably embiggen the size of the path construct.)
 @usableFromInline
+@frozen
 internal struct _UnsafePath {
   @usableFromInline
   internal var ancestors: _AncestorSlots
