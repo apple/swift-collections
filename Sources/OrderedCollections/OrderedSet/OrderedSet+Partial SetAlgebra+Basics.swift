@@ -55,7 +55,7 @@ extension OrderedSet {
   ///
   /// - Returns: The element equal to `member` if `member` is contained in the
   ///    set; otherwise, `nil`. In some cases, the returned element may be
-  ///    distinguishable from `newMember` by identity comparison or some other
+  ///    distinguishable from `member` by identity comparison or some other
   ///    means.
   ///
   /// - Complexity: O(`count`). Removing an element from the middle of the

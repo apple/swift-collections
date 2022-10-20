@@ -66,14 +66,13 @@ let package = Package(
         "PersistentCollections",
         "SortedCollections",
       ],
-      path: "Sources/Collections",
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // Testing support module
     .target(
       name: "_CollectionsTestSupport",
-      dependencies: [],
+      dependencies: ["_CollectionsUtilities"],
       swiftSettings: settings,
       linkerSettings: [
         .linkedFramework(
@@ -88,17 +87,20 @@ let package = Package(
 
     .target(
       name: "_CollectionsUtilities",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // BitSet, BitArray
     .target(
       name: "BitCollections",
       dependencies: ["_CollectionsUtilities"],
-      path: "Sources/BitCollections",
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "BitCollectionsTests",
-      dependencies: ["BitCollections", "_CollectionsTestSupport"],
+      dependencies: [
+        "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
+      ],
       swiftSettings: settings),
 
     // Deque<Element>
@@ -114,14 +116,14 @@ let package = Package(
 
     // Heap<Value>
     .target(
-        name: "HeapModule",
-        dependencies: ["_CollectionsUtilities"],
-        exclude: ["CMakeLists.txt"],
-        swiftSettings: settings),
+      name: "HeapModule",
+      dependencies: ["_CollectionsUtilities"],
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
     .testTarget(
-        name: "HeapTests",
-        dependencies: ["HeapModule"],
-        swiftSettings: settings),
+      name: "HeapTests",
+      dependencies: ["HeapModule", "_CollectionsTestSupport"],
+      swiftSettings: settings),
 
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
@@ -136,13 +138,14 @@ let package = Package(
 
     // PersistentSet<Element>, PersistentDictionary<Key, Value>
     .target(
-        name: "PersistentCollections",
-        dependencies: ["_CollectionsUtilities"],
-        swiftSettings: settings),
+      name: "PersistentCollections",
+      dependencies: ["_CollectionsUtilities"],
+      exclude: ["CMakeLists.txt"],
+      swiftSettings: settings),
     .testTarget(
-        name: "PersistentCollectionsTests",
-        dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
-        swiftSettings: settings),
+      name: "PersistentCollectionsTests",
+      dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
 
     // SortedSet<Element>, SortedDictionary<Key, Value>
     .target(

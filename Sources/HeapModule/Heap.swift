@@ -70,7 +70,7 @@ extension Heap {
 
   /// Inserts the given element into the heap.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   public mutating func insert(_ element: Element) {
     _storage.append(element)
@@ -110,7 +110,7 @@ extension Heap {
 
   /// Removes and returns the element with the lowest priority, if available.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   public mutating func popMin() -> Element? {
     guard _storage.count > 0 else { return nil }
@@ -131,7 +131,7 @@ extension Heap {
 
   /// Removes and returns the element with the highest priority, if available.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   public mutating func popMax() -> Element? {
     guard _storage.count > 2 else { return _storage.popLast() }
@@ -158,7 +158,7 @@ extension Heap {
   ///
   /// The heap *must not* be empty.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   public mutating func removeMin() -> Element {
     return popMin()!
@@ -168,7 +168,7 @@ extension Heap {
   ///
   /// The heap *must not* be empty.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   public mutating func removeMax() -> Element {
     return popMax()!
@@ -183,7 +183,7 @@ extension Heap {
   ///   minimum value.
   /// - Returns: The original minimum value before the replacement.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   @discardableResult
   public mutating func replaceMin(with replacement: Element) -> Element {
@@ -208,7 +208,7 @@ extension Heap {
   ///   value.
   /// - Returns: The original maximum value before the replacement.
   ///
-  /// - Complexity: O(log `count`)
+  /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
   @discardableResult
   public mutating func replaceMax(with replacement: Element) -> Element {
@@ -239,14 +239,9 @@ extension Heap {
 extension Heap {
   /// Initializes a heap from a sequence.
   ///
-  /// - Complexity: O(*n*), where *n* is the length of `elements`.
+  /// - Complexity: O(*n*), where *n* is the number of items in `elements`.
   @inlinable
   public init<S: Sequence>(_ elements: S) where S.Element == Element {
-    // This is Floyd's linear-time heap construction algorithm.
-    // (https://en.wikipedia.org/wiki/Heapsort#Floyd's_heap_construction).
-    //
-    // FIXME: See if a more cache friendly algorithm would be faster.
-
     _storage = ContiguousArray(elements)
     guard _storage.count > 1 else { return }
 

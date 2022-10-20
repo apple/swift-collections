@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedSet {
   /// A collection that represents a contiguous slice of an ordered set.
   ///
@@ -102,6 +104,8 @@ extension OrderedSet.SubSequence: Sequence {
     try _slice.withContiguousStorageIfAvailable(body)
   }
 }
+
+extension OrderedSet.SubSequence: _UniqueCollection {}
 
 extension OrderedSet.SubSequence: RandomAccessCollection {
   /// The index type for ordered sets, `Int`.

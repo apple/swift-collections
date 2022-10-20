@@ -623,4 +623,33 @@ extension BitSet._UnsafeHandle {
     let uw = _Word(upTo: upper.bit)
     return _words[upper.word].intersection(uw) == uw
   }
+
+  internal func isEqual(to range: Range<UInt>) -> Bool {
+    if range.isEmpty { return self.isEmpty }
+    let r = range.clamped(to: 0 ..< UInt(capacity))
+    guard r == range else { return false }
+
+    let lower = Index(range.lowerBound)
+    let upper = Index(range.upperBound)
+
+    guard upper.word == wordCount &- 1 else { return false }
+
+    for w in 0 ..< lower.word {
+      guard _words[w].isEmpty else { return false }
+    }
+
+    if lower.word == upper.word {
+      let w = _Word(from: lower.bit, to: upper.bit)
+      return _words[lower.word] == w
+    }
+    let lw = _Word(upTo: lower.bit).complement()
+    guard _words[lower.word] == lw else { return false }
+
+    for w in lower.word + 1 ..< upper.word {
+      guard _words[w].isFull else { return false }
+    }
+
+    let uw = _Word(upTo: upper.bit)
+    return _words[upper.word] == uw
+  }
 }

@@ -9,13 +9,41 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // FIXME: These are non-standard extensions generalizing ==.
 extension PersistentSet {
+  /// Returns a Boolean value indicating whether persistent sets are equal. Two
+  /// persistent sets are considered equal if they contain the same elements,
+  /// but not necessarily in the same order.
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Returns: `true` if the set is equal to `other`; otherwise, `false`.
+  ///
+  /// - Complexity: Generally O(`count`), as long as`Element` properly
+  ///    implements hashing. That said, the implementation is careful to take
+  ///    every available shortcut to reduce complexity, e.g. by skipping
+  ///    comparing elements in shared subtrees.
   @inlinable
   public func isEqual(to other: Self) -> Bool {
     _root.isEqual(to: other._root, by: { _, _ in true })
   }
 
+  /// Returns a Boolean value indicating whether a persistent set compares equal
+  /// to the given keys view of a persistent dictionary. The two input
+  /// collections are considered equal if they contain the same elements,
+  /// but not necessarily in the same order.
+  ///
+  /// - Parameter other: The keys view of a persistent dictionary.
+  ///
+  /// - Returns: `true` if the set contains exactly the same members as `other`;
+  ///    otherwise, `false`.
+  ///
+  /// - Complexity: Generally O(`count`), as long as`Element` properly
+  ///    implements hashing. That said, the implementation is careful to take
+  ///    every available shortcut to reduce complexity, e.g. by skipping
+  ///    comparing elements in shared subtrees.
   @inlinable
   public func isEqual<Value>(
     to other: PersistentDictionary<Element, Value>.Keys
@@ -23,6 +51,29 @@ extension PersistentSet {
     _root.isEqual(to: other._base._root, by: { _, _ in true })
   }
 
+  /// Returns a Boolean value indicating whether this persistent set contains
+  /// the same elements as the given `other` sequence, but not necessarily
+  /// in the same order.
+  ///
+  /// Duplicate items in `other` do not prevent it from comparing equal to
+  /// `self`.
+  ///
+  ///     let this: PersistentSet = [0, 1, 5, 6]
+  ///     let that = [5, 5, 0, 1, 1, 6, 5, 0, 1, 6, 6, 5]
+  ///
+  ///     this.isEqual(to: that) // true
+  ///
+  /// - Parameter other: The keys view of a persistent dictionary.
+  ///
+  /// - Returns: `true` if the set contains exactly the same members as `other`;
+  ///    otherwise, `false`. This function does not consider the order of
+  ///    elements and it ignores duplicate items in `other`.
+  ///
+  /// - Complexity: Generally O(*n*), where *n* is the number of items in
+  ///    `other`, as long as`Element` properly implements hashing.
+  ///    That said, the implementation is careful to take
+  ///    every available shortcut to reduce complexity, e.g. by skipping
+  ///    comparing elements in shared subtrees.
   @inlinable
   public func isEqual<S: Sequence>(to other: S) -> Bool
   where S.Element == Element
@@ -31,15 +82,42 @@ extension PersistentSet {
       return isEqual(to: other as! Self)
     }
 
-    guard other.underestimatedCount <= self.count else { return false }
+    if self.isEmpty {
+      return other.allSatisfy { _ in false }
+    }
+
+    if other is _UniqueCollection {
+      // We don't need to create a temporary set.
+      guard other.underestimatedCount <= self.count else { return false }
+      var seen = 0
+      for item in other {
+        guard self.contains(item) else { return false }
+        seen &+= 1
+      }
+      precondition(
+        seen <= self.count,
+        // Otherwise other.underestimatedCount != other.count
+        "Invalid Collection '\(S.self)' (bad underestimatedCount)")
+      return seen == self.count
+    }
+
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _Node = ._emptyNode()
-    for item in other {
+    var seen: _Node? = ._emptyNode()
+    var it = other.makeIterator()
+    while let item = it.next() {
       let hash = _Hash(item)
       guard self._root.containsKey(.top, item, hash) else { return false }
-      guard seen.insert(.top, (item, ()), hash).inserted
-      else { return false }
+      _ = seen!.insert(.top, (item, ()), hash) // Ignore dupes
+      if seen!.count == self.count {
+        // We've seen them all. Stop further accounting.
+        seen = nil
+        break
+      }
     }
-    return seen.count == self.count
+    guard seen == nil else { return false }
+    while let item = it.next() {
+      guard self.contains(item) else { return false }
+    }
+    return true
   }
 }

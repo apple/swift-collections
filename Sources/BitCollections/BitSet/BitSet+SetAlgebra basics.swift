@@ -10,6 +10,14 @@
 //===----------------------------------------------------------------------===//
 
 extension BitSet {
+  /// Returns a Boolean value that indicates whether the given element exists
+  /// in the set.
+  ///
+  /// - Parameter element: An element to look for in the set.
+  ///
+  /// - Returns: `true` if `member` exists in the set; otherwise, `false`.
+  ///
+  /// - Complexity: O(1)
   @usableFromInline
   internal func _contains(_ member: UInt) -> Bool {
     _read { $0.contains(member) }
@@ -30,10 +38,27 @@ extension BitSet {
 }
 
 extension BitSet {
+  /// Insert the given element in the set if it is not already present.
+  ///
+  /// If an element equal to `newMember` is already contained in the set, this
+  /// method has no effect.
+  ///
+  /// If `newMember` was not already a member, it gets inserted into the set.
+  ///
+  /// - Parameter newMember: An element to insert into the set.
+  ///
+  /// - Returns: True if `newMember` was not contained in the
+  ///    set, false otherwise.
+  ///
+  /// - Complexity: O(1) if the set is a unique value (with no other copies),
+  ///     and the inserted value is not greater than the largest value currently
+  ///     contained in the set (named *max*). Otherwise the complexity is
+  ///     O(max(`newMember`, *max*)).
   @discardableResult
-  public mutating func _insert(_ i: UInt) -> Bool {
-    _ensureCapacity(forValue: i)
-    return _update { $0.insert(i) }
+  @usableFromInline
+  internal mutating func _insert(_ newMember: UInt) -> Bool {
+    _ensureCapacity(forValue: newMember)
+    return _update { $0.insert(newMember) }
   }
 
   /// Inserts the given element in the set if it is not already present.

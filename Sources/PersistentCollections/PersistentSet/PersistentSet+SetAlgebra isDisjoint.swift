@@ -57,7 +57,7 @@ extension PersistentSet {
   ///     let b: PersistentSet = [5, 6]
   ///     a.isDisjoint(with: b) // true
   ///
-  /// - Parameter other: A sequence of elements, some of whose elements may
+  /// - Parameter other: A finite sequence of elements, some of which may
   ///    appear more than once.
   ///
   /// - Returns: `true` if `self` has no elements in common with `other`;
@@ -69,6 +69,7 @@ extension PersistentSet {
   public func isDisjoint<S: Sequence>(with other: S) -> Bool
   where S.Element == Element
   {
+    guard !self.isEmpty else { return true }
     if S.self == Self.self {
       return isDisjoint(with: other as! Self)
     }
