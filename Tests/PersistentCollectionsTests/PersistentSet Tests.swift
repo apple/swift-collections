@@ -418,6 +418,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.intersection(v)
 
@@ -430,9 +431,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqualSets(x.intersection(y), reference)
+        expectEqualSets(x.intersection(z.keys), reference)
         expectEqualSets(checkSequence(x, y), reference)
         expectEqualSets(x.intersection(v), reference)
         expectEqualSets(x.intersection(b), reference)
+        expectEqualSets(x.intersection(b + b), reference)
       }
     }
   }
@@ -445,6 +448,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.subtracting(v)
 
@@ -457,9 +461,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqualSets(x.subtracting(y), reference)
+        expectEqualSets(x.subtracting(z.keys), reference)
         expectEqualSets(checkSequence(x, y), reference)
         expectEqualSets(x.subtracting(v), reference)
         expectEqualSets(x.subtracting(b), reference)
+        expectEqualSets(x.subtracting(b + b), reference)
       }
     }
   }
@@ -482,6 +488,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.union(v)
 
@@ -494,9 +501,11 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqualSets(x.union(y), reference)
+        expectEqualSets(x.union(z.keys), reference)
         expectEqualSets(checkSequence(x, y), reference)
         expectEqualSets(x.union(v), reference)
         expectEqualSets(x.union(b), reference)
+        expectEqualSets(x.union(b + b), reference)
       }
     }
   }
@@ -509,6 +518,7 @@ class PersistentSetTests: CollectionTestCase {
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
+        let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
 
         let reference = u.symmetricDifference(v)
 
@@ -521,10 +531,66 @@ class PersistentSetTests: CollectionTestCase {
         }
 
         expectEqualSets(x.symmetricDifference(y), reference)
+        expectEqualSets(x.symmetricDifference(z.keys), reference)
         expectEqualSets(checkSequence(x, y), reference)
         expectEqualSets(x.symmetricDifference(v), reference)
         expectEqualSets(x.symmetricDifference(b), reference)
+        expectEqualSets(x.symmetricDifference(b + b), reference)
       }
+    }
+  }
+
+  func test_mutating_binary_set_operations() {
+    let a = [1, 2, 3, 4]
+    let b = [0, 2, 4, 6]
+
+    let x = PersistentSet(a)
+    let y = PersistentSet(b)
+    let u = Set(a)
+    let v = Set(b)
+    let z = PersistentDictionary(uniqueKeysWithValues: b.map { ($0, $0) })
+
+    func check(
+      _ reference: Set<Int>,
+      _ body: (inout PersistentSet<Int>) -> Void,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var set = x
+      body(&set)
+      expectEqualSets(set, reference, file: file, line: line)
+    }
+
+    do {
+      let reference = u.intersection(v)
+      check(reference) { $0.formIntersection(y) }
+      check(reference) { $0.formIntersection(z.keys) }
+      check(reference) { $0.formIntersection(b) }
+      check(reference) { $0.formIntersection(b + b) }
+    }
+
+    do {
+      let reference = u.union(v)
+      check(reference) { $0.formUnion(y) }
+      check(reference) { $0.formUnion(z.keys) }
+      check(reference) { $0.formUnion(b) }
+      check(reference) { $0.formUnion(b + b) }
+    }
+
+    do {
+      let reference = u.symmetricDifference(v)
+      check(reference) { $0.formSymmetricDifference(y) }
+      check(reference) { $0.formSymmetricDifference(z.keys) }
+      check(reference) { $0.formSymmetricDifference(b) }
+      check(reference) { $0.formSymmetricDifference(b + b) }
+    }
+
+    do {
+      let reference = u.subtracting(v)
+      check(reference) { $0.subtract(y) }
+      check(reference) { $0.subtract(z.keys) }
+      check(reference) { $0.subtract(b) }
+      check(reference) { $0.subtract(b + b) }
     }
   }
 

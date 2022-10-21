@@ -331,3 +331,30 @@ extension _Node.Builder {
     }
   }
 }
+
+extension _Node.Builder {
+  @inlinable
+  internal func mapValues<Value2>(
+    _ transform: (Element) -> Value2
+  ) -> _Node<Key, Value2>.Builder {
+    switch kind {
+    case .empty:
+      return .empty(level)
+    case let .item(item, at: bucket):
+      let value = transform(item)
+      return .item(level, (item.key, value), at: bucket)
+    case let .node(node):
+      return .node(level, node.mapValues(transform))
+    case let .collisionNode(node):
+      return .collisionNode(level, node.mapValues(transform))
+    }
+  }
+
+  @inlinable
+  internal func mapValuesToVoid() -> _Node<Key, Void>.Builder {
+    if Value.self == Void.self {
+      return unsafeBitCast(self, to: _Node<Key, Void>.Builder.self)
+    }
+    return mapValues { _ in () }
+  }
+}

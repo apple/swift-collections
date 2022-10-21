@@ -71,4 +71,18 @@ extension _Node {
       return result
     }
   }
+
+  @inlinable
+  internal func mapValuesToVoid(
+    copy: Bool = false, extraBytes: Int = 0
+  ) -> _Node<Key, Void> {
+    if Value.self == Void.self {
+      let node = unsafeBitCast(self, to: _Node<Key, Void>.self)
+      guard copy || !node.hasFreeSpace(extraBytes) else { return node }
+      return node.copy(withFreeSpace: extraBytes)
+    }
+    let node = mapValues { _ in () }
+    guard !node.hasFreeSpace(extraBytes) else { return node }
+    return node.copy(withFreeSpace: extraBytes)
+  }
 }
