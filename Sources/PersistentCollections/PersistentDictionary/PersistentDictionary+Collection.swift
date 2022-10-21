@@ -64,7 +64,15 @@ extension PersistentDictionary.Index: Comparable {
 }
 
 extension PersistentDictionary.Index: CustomStringConvertible {
+  // A textual representation of this instance.
   public var description: String {
+    _path.description
+  }
+}
+
+extension PersistentDictionary.Index: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
     _path.description
   }
 }

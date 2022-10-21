@@ -53,6 +53,24 @@ extension OrderedSet.SubSequence {
   }
 }
 
+extension OrderedSet.SubSequence: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    _arrayDescription(for: self)
+  }
+}
+
+extension OrderedSet.SubSequence: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _arrayDescription(
+      for: self,
+      debug: true,
+      typeName: "\(OrderedSet._debugTypeName()).SubSequence"
+    )
+  }
+}
+
 extension OrderedSet.SubSequence: Sequence {
   // A type representing the collection’s elements.
   public typealias Element = OrderedSet.Element

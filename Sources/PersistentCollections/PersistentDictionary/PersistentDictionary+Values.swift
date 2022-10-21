@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension PersistentDictionary {
   /// A view of a dictionary’s values.
   @frozen
@@ -52,6 +54,23 @@ extension PersistentDictionary {
 extension PersistentDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
 #endif
+
+extension PersistentDictionary.Values: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    _arrayDescription(for: self)
+  }
+}
+
+extension PersistentDictionary.Values: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _arrayDescription(
+      for: self,
+      debug: true,
+      typeName: "\(PersistentDictionary._debugTypeName()).Values")
+  }
+}
 
 extension PersistentDictionary.Values: Sequence {
   public typealias Element = Value

@@ -75,6 +75,40 @@ class PersistentSetTests: CollectionTestCase {
     expectTrue(set.contains(a2))
   }
 
+  func test_descriptions() {
+    let empty: PersistentSet<Int> = []
+    expectEqual(empty.description, "[]")
+    expectEqual(empty.debugDescription, "PersistentSet<Int>([])")
+
+    let a: PersistentSet = ["a"]
+    expectEqual(a.description, "[a]")
+    expectEqual(a.debugDescription, "PersistentSet<String>([\"a\"])")
+  }
+
+  func test_index_descriptions() {
+    let a: PersistentSet = [
+      RawCollider(1, "1"),
+      RawCollider(2, "21"),
+      RawCollider(3, "22"),
+    ]
+    let i = a.startIndex
+    expectEqual(i.description, "@[0]")
+    expectEqual(i.debugDescription, "@[0]")
+
+    let j = a.index(i, offsetBy: 1)
+    expectEqual(j.description, "@.0[0]")
+    expectEqual(j.debugDescription, "@.0[0]")
+
+    let k = a.index(j, offsetBy: 1)
+    expectEqual(k.description, "@.0[1]")
+    expectEqual(k.debugDescription, "@.0[1]")
+
+    let end = a.endIndex
+    expectEqual(end.description, "@.end(1)")
+    expectEqual(end.debugDescription, "@.end(1)")
+
+  }
+
   func test_insert_fixtures() {
     withEachFixture { fixture in
       withEvery("isShared", in: [false, true]) { isShared in

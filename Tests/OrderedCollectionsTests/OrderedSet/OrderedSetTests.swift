@@ -152,6 +152,18 @@ class OrderedSetTests: CollectionTestCase {
     expectEqual(c.debugDescription, "OrderedSet<Int>([0, 1, 2, 3, 4])")
   }
 
+  func test_SubSequence_descriptions() {
+    let s: OrderedSet = [0, 1, 2, 3]
+
+    let slice = s[1 ..< 3]
+
+    expectEqual(slice.description, "[1, 2]")
+    expectEqual(
+      slice.debugDescription,
+      "OrderedSet<Int>.SubSequence([1, 2])")
+
+  }
+
   func test_customReflectable() {
     do {
       let set: OrderedSet<Int> = [1, 2, 3]

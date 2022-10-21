@@ -62,6 +62,16 @@ final class HeapTests: CollectionTestCase {
     expectEqual(heap.count, 1)
   }
 
+  func test_descriptions() {
+    let a: Heap<Int> = []
+    expectEqual(a.description, "Heap<Int>(count: 0)")
+    expectEqual(a.debugDescription, "Heap<Int>(count: 0)")
+
+    let b: Heap = [1, 2]
+    expectEqual(b.description, "Heap<Int>(count: 2)")
+    expectEqual(b.debugDescription, "Heap<Int>(count: 2)")
+  }
+
   func test_unordered() {
     let heap = Heap<Int>((1...10))
     expectEqual(Set(heap.unordered), Set(1...10))

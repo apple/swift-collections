@@ -108,6 +108,20 @@ class OrderedDictionaryElementsTests: CollectionTestCase {
                 "OrderedDictionary<Int, Int>.Elements([0: 1, 2: 3, 4: 5])")
   }
 
+  func test_SubSequence_descriptions() {
+    let d: OrderedDictionary = [
+      "a": 1,
+      "b": 2
+    ]
+
+    let s = d.elements[0 ..< 1]
+
+    expectEqual(s.description, "[a: 1]")
+    expectEqual(
+      s.debugDescription,
+      "OrderedDictionary<String, Int>.Elements.SubSequence([\"a\": 1])")
+  }
+
   func test_customReflectable() {
     do {
       let d: OrderedDictionary<Int, Int> = [1: 2, 3: 4, 5: 6]

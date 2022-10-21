@@ -81,7 +81,7 @@ extension OrderedSet.UnorderedView: CustomDebugStringConvertible {
     _arrayDescription(
       for: _base,
       debug: true,
-      typeName: "\(_base._debugTypeName()).UnorderedView")
+      typeName: "\(OrderedSet._debugTypeName()).UnorderedView")
   }
 }
 

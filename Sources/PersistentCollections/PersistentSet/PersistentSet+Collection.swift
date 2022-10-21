@@ -65,8 +65,16 @@ extension PersistentSet.Index: Hashable {
 }
 
 extension PersistentSet.Index: CustomStringConvertible {
+  // A textual representation of this instance.
   public var description: String {
     _path.description
+  }
+}
+
+extension PersistentSet.Index: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    description
   }
 }
 
