@@ -29,6 +29,11 @@ extension OrderedSet {
   ///     a.formUnion(b)
   ///     // `a` is now `[1, 2, 3, 4, 0, 6]`
   ///
+  /// For values that are members of both sets, this operation preserves the
+  /// instances that were originally in `self`. (This matters if equal members
+  /// can be distinguished by comparing their identities, or by some other
+  /// means.)
+  ///
   /// - Parameter other: The set of elements to insert.
   ///
   /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
@@ -50,6 +55,11 @@ extension OrderedSet {
   ///     a.formUnion(b.unordered)
   ///     // a is now [1, 2, 3, 4, 0, 6]
   ///
+  /// For values that are members of both inputs, this operation preserves the
+  /// instances that were originally in `self`. (This matters if equal members
+  /// can be distinguished by comparing their identities, or by some other
+  /// means.)
+  ///
   /// - Parameter other: The set of elements to add.
   ///
   /// - Complexity: Expected to be O(`self.count` + `other.count`) on average,
@@ -69,6 +79,15 @@ extension OrderedSet {
   ///     let b: Array = [0, 2, 4, 6]
   ///     a.formUnion(b)
   ///     // a is now [1, 2, 3, 4, 0, 6]
+  ///
+  /// For values that are members of both inputs, this operation preserves the
+  /// instances that were originally in `self`. (This matters if equal members
+  /// can be distinguished by comparing their identities, or by some other
+  /// means.)
+  ///
+  /// If some of the values that are missing from `self` have multiple copies
+  /// in `other`, then the result of this function always contains the first
+  /// instances in the sequence -- the second and subsequent copies are ignored.
   ///
   /// - Parameter other: A finite sequence of elements.
   ///

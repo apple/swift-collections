@@ -26,6 +26,10 @@ extension OrderedSet {
   ///     let other: OrderedSet = [6, 4, 2, 0]
   ///     set.intersection(other) // [2, 4]
   ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
+  ///
   /// - Parameter other: Another set.
   ///
   /// - Returns: A new set.
@@ -53,6 +57,10 @@ extension OrderedSet {
   ///     let other: OrderedSet = [6, 4, 2, 0]
   ///     set.intersection(other) // [2, 4]
   ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
+  ///
   /// - Parameter other: Another set.
   ///
   /// - Returns: A new set.
@@ -70,6 +78,10 @@ extension OrderedSet {
   ///
   ///     let set: OrderedSet = [1, 2, 3, 4]
   ///     set.intersection([6, 4, 2, 0] as Array) // [2, 4]
+  ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
   ///
   /// - Parameter other: A finite sequence of elements.
   ///

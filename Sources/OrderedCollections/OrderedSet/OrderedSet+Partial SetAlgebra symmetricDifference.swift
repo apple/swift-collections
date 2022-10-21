@@ -98,6 +98,9 @@ extension OrderedSet {
   ///     let other: Array = [6, 4, 2, 0]
   ///     set.symmetricDifference(other) // [1, 3, 6, 0]
   ///
+  /// In case the sequence contains duplicate elements, only the first instance
+  /// matters -- the second and subsequent instances are ignored by this method.
+  ///
   /// - Parameter other: A finite sequence of elements.
   ///
   /// - Returns: A new set.

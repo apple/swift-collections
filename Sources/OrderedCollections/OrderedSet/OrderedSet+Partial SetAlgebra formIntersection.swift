@@ -26,6 +26,10 @@ extension OrderedSet {
   ///     set.formIntersection(other)
   ///     // set is now [2, 4]
   ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
+  ///
   /// - Parameter other: A set of elements.
   ///
   /// - Complexity: Expected to be O(`self.count`) on average, if `Element`
@@ -44,6 +48,10 @@ extension OrderedSet {
   ///     set.formIntersection(other)
   ///     // set is now [2, 4]
   ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
+  ///
   /// - Parameter other: A set of elements.
   ///
   /// - Complexity: Expected to be O(`self.count`) on average, if `Element`
@@ -59,6 +67,10 @@ extension OrderedSet {
   ///     var set: OrderedSet = [1, 2, 3, 4]
   ///     set.formIntersection([6, 4, 2, 0] as Array)
   ///     // set is now [2, 4]
+  ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
   ///
   /// - Parameter other: A finite sequence of elements.
   ///
