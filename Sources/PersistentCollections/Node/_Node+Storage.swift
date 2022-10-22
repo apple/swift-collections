@@ -121,7 +121,7 @@ extension _Node {
   }
 
   @inlinable
-  internal mutating func hasFreeSpace(_ bytes: Int) -> Bool {
+  internal func hasFreeSpace(_ bytes: Int) -> Bool {
     bytes <= self.raw.storage.header.bytesFree
   }
 

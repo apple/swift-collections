@@ -91,18 +91,35 @@ extension BitSet {
       self = (elements as! BitSet)
       return
     }
+    if S.self == BitSet.Counted.self {
+      self = (elements as! BitSet.Counted)._bits
+      return
+    }
     self.init()
     for value in elements {
       self.insert(value)
     }
   }
 
+  /// Create a new bit set containing all the nonnegative elements of a
+  /// sequence of integers.
+  ///
+  /// Items in `elements` that are negative are silently ignored.
+  ///
+  /// - Parameters:
+  ///   - elements: The sequence of elements to turn into a bit set.
+  ///
+  /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
   internal init<S: Sequence>(
     _validMembersOf elements: __owned S
   ) where S.Element == Int {
     if S.self == BitSet.self {
       self = (elements as! BitSet)
+      return
+    }
+    if S.self == BitSet.Counted.self {
+      self = (elements as! BitSet.Counted)._bits
       return
     }
     if S.self == Range<Int>.self {

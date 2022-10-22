@@ -11,20 +11,24 @@
 
 extension _Node {
   @inlinable
-  internal func symmetricDifference(
+  internal func symmetricDifference<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> Builder? {
-    guard self.count > 0 else { return Builder(level, other) }
+    _ other: _Node<Key, Value2>
+  ) -> _Node<Key, Void>.Builder? {
+    guard self.count > 0 else {
+      return .init(level, other.mapValuesToVoid())
+    }
     guard other.count > 0 else { return nil }
     return _symmetricDifference(level, other)
   }
 
   @inlinable
-  internal func _symmetricDifference(
+  internal func _symmetricDifference<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> Builder {
+    _ other: _Node<Key, Value2>
+  ) -> _Node<Key, Void>.Builder {
+    typealias VoidNode = _Node<Key, Void>
+
     assert(self.count > 0 && other.count > 0)
 
     if self.raw.storage === other.raw.storage {
@@ -36,7 +40,7 @@ extension _Node {
 
     return self.read { l in
       other.read { r in
-        var result: Builder = .empty(level)
+        var result: VoidNode.Builder = .empty(level)
 
         for (bucket, lslot) in l.itemMap {
           let lp = l.itemPtr(at: lslot)
@@ -46,10 +50,10 @@ extension _Node {
             if lp.pointee.key != rp.pointee.key {
               let h1 = _Hash(lp.pointee.key)
               let h2 = _Hash(rp.pointee.key)
-              let child = _Node.build(
+              let child = VoidNode.build(
                 level: level.descend(),
-                item1: lp.pointee, h1,
-                item2: { $0.initialize(to: rp.pointee) }, h2)
+                item1: (lp.pointee.key, ()), h1,
+                item2: { $0.initialize(to: (rp.pointee.key, ())) }, h2)
               result.addNewChildNode(level, child.top, at: bucket)
             }
           }
@@ -60,16 +64,20 @@ extension _Node {
             let child = rp.pointee
               .removing(level.descend(), lp.pointee.key, h)?.replacement
             if let child = child {
+              let child = child.mapValuesToVoid()
               result.addNewChildBranch(level, child, at: bucket)
             }
             else {
-              let child2 = rp.pointee.inserting(level.descend(), lp.pointee, h)
-              assert(child2.inserted)
-              result.addNewChildNode(level, child2.node, at: bucket)
+              var child2 = rp.pointee
+                .mapValuesToVoid(
+                  copy: true, extraBytes: VoidNode.spaceForNewItem)
+              let r = child2.insert(level.descend(), (lp.pointee.key, ()), h)
+              assert(r.inserted)
+              result.addNewChildNode(level, child2, at: bucket)
             }
           }
           else {
-            result.addNewItem(level, lp.pointee, at: bucket)
+            result.addNewItem(level, (lp.pointee.key, ()), at: bucket)
           }
         }
 
@@ -80,14 +88,17 @@ extension _Node {
             let rp = r.itemPtr(at: rslot)
             let h = _Hash(rp.pointee.key)
             let child = lp.pointee
+              .mapValuesToVoid()
               .removing(level.descend(), rp.pointee.key, h)?.replacement
             if let child = child {
               result.addNewChildBranch(level, child, at: bucket)
             }
             else {
-              let child2 = lp.pointee.inserting(level.descend(), rp.pointee, h)
-              assert(child2.inserted)
-              result.addNewChildNode(level, child2.node, at: bucket)
+              var child2 = lp.pointee.mapValuesToVoid(
+                copy: true, extraBytes: VoidNode.spaceForNewItem)
+              let r2 = child2.insert(level.descend(), (rp.pointee.key, ()), h)
+              assert(r2.inserted)
+              result.addNewChildNode(level, child2, at: bucket)
             }
           }
           else if r.childMap.contains(bucket) {
@@ -97,18 +108,20 @@ extension _Node {
             result.addNewChildBranch(level, b, at: bucket)
           }
           else {
-            result.addNewChildNode(level, lp.pointee, at: bucket)
+            result.addNewChildNode(
+              level, lp.pointee.mapValuesToVoid(), at: bucket)
           }
         }
 
         let seen = l.itemMap.union(l.childMap)
         for (bucket, rslot) in r.itemMap {
           guard !seen.contains(bucket) else { continue }
-          result.addNewItem(level, r[item: rslot], at: bucket)
+          result.addNewItem(level, (r[item: rslot].key, ()), at: bucket)
         }
         for (bucket, rslot) in r.childMap {
           guard !seen.contains(bucket) else { continue }
-          result.addNewChildNode(level, r[child: rslot], at: bucket)
+          result.addNewChildNode(
+            level, r[child: rslot].mapValuesToVoid(), at: bucket)
         }
         return result
       }
@@ -116,10 +129,10 @@ extension _Node {
   }
 
   @inlinable @inline(never)
-  internal func _symmetricDifference_slow(
+  internal func _symmetricDifference_slow<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> Builder {
+    _ other: _Node<Key, Value2>
+  ) -> _Node<Key, Void>.Builder {
     switch (self.isCollisionNode, other.isCollisionNode) {
     case (true, true):
       return self._symmetricDifference_slow_both(level, other)
@@ -131,26 +144,27 @@ extension _Node {
   }
 
   @inlinable
-  internal func _symmetricDifference_slow_both(
+  internal func _symmetricDifference_slow_both<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> Builder {
-    read { l in
+    _ other: _Node<Key, Value2>
+  ) -> _Node<Key, Void>.Builder {
+    typealias VoidNode = _Node<Key, Void>
+    return read { l in
       other.read { r in
         guard l.collisionHash == r.collisionHash else {
-          let node = _Node.build(
+          let node = VoidNode.build(
             level: level,
-            child1: self, l.collisionHash,
-            child2: other, r.collisionHash)
+            child1: self.mapValuesToVoid(), l.collisionHash,
+            child2: other.mapValuesToVoid(), r.collisionHash)
           return .node(level, node)
         }
-        var result: Builder = .empty(level)
+        var result: VoidNode.Builder = .empty(level)
         let ritems = r.reverseItems
         for ls: _Slot in stride(from: .zero, to: l.itemsEndSlot, by: 1) {
           let lp = l.itemPtr(at: ls)
           let include = !ritems.contains(where: { $0.key == lp.pointee.key })
           if include {
-            result.addNewCollision(level, lp.pointee, l.collisionHash)
+            result.addNewCollision(level, (lp.pointee.key, ()), l.collisionHash)
           }
         }
         // FIXME: Consider remembering slots of shared items in r by
@@ -160,7 +174,7 @@ extension _Node {
           let rp = r.itemPtr(at: rs)
           let include = !litems.contains(where: { $0.key == rp.pointee.key })
           if include {
-            result.addNewCollision(level, rp.pointee, r.collisionHash)
+            result.addNewCollision(level, (rp.pointee.key, ()), r.collisionHash)
           }
         }
         return result
@@ -169,13 +183,14 @@ extension _Node {
   }
 
   @inlinable
-  internal func _symmetricDifference_slow_left(
+  internal func _symmetricDifference_slow_left<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> Builder {
+    _ other: _Node<Key, Value2>
+  ) -> _Node<Key, Void>.Builder {
+    typealias VoidNode = _Node<Key, Void>
     // `self` is a collision node on a compressed path. The other tree might
     // have the same set of collisions, just expanded a bit deeper.
-    read { l in
+    return read { l in
       other.read { r in
         assert(l.isCollisionNode && !r.isCollisionNode)
         let bucket = l.collisionHash[level]
@@ -184,57 +199,68 @@ extension _Node {
           let rp = r.itemPtr(at: rslot)
           let rh = _Hash(rp.pointee.key)
           guard rh == l.collisionHash else {
-            var copy = other.copy(withFreeSpace: _Node.spaceForSpawningChild)
+            var copy = other.mapValuesToVoid(
+              copy: true, extraBytes: VoidNode.spaceForSpawningChild)
             let item = copy.removeItem(at: bucket, rslot)
-            let child = _Node.build(
+            let child = VoidNode.build(
               level: level.descend(),
-              item1: { $0.initialize(to: item) }, rh,
-              child2: self, l.collisionHash)
+              item1: { $0.initialize(to: (item.key, ())) }, rh,
+              child2: self.mapValuesToVoid(), l.collisionHash)
             copy.insertChild(child.top, bucket)
             return .node(level, copy)
           }
           let litems = l.reverseItems
           if let li = litems.firstIndex(where: { $0.key == rp.pointee.key }) {
             if l.itemCount == 2 {
-              var node = other.copy()
-              node.replaceItem(at: bucket, rslot, with: litems[1 &- li])
+              var node = other.mapValuesToVoid(copy: true)
+              node.replaceItem(
+                at: bucket, rslot,
+                with: (litems[1 &- li].key, ()))
               return .node(level, node)
             }
             let lslot = _Slot(litems.count &- 1 &- li)
-            var child = self.copy()
+            var child = self.mapValuesToVoid(copy: true)
             _ = child.removeItem(at: .invalid, lslot)
             if other.hasSingletonItem {
               // Compression
               return .collisionNode(level, child)
             }
-            var node = other.copy(withFreeSpace: _Node.spaceForSpawningChild)
+            var node = other.mapValuesToVoid(
+              copy: true, extraBytes: VoidNode.spaceForSpawningChild)
             _ = node.removeItem(at: bucket, rslot)
             node.insertChild(child, bucket)
             return .node(level, node)
           }
           if other.hasSingletonItem {
             // Compression
-            let copy = self.copyNodeAndAppendCollision {
-              $0.initialize(to: r[item: .zero])
-            }
-            return .collisionNode(level, copy.node)
+            var copy = self.mapValuesToVoid(
+              copy: true, extraBytes: VoidNode.spaceForNewItem)
+            _ = copy.ensureUniqueAndAppendCollision(
+              isUnique: true,
+              (r[item: .zero].key, ()))
+            return .collisionNode(level, copy)
           }
-          var node = other.copy(withFreeSpace: _Node.spaceForSpawningChild)
+          var node = other.mapValuesToVoid(
+            copy: true, extraBytes: VoidNode.spaceForSpawningChild)
           let item = node.removeItem(at: bucket, rslot)
-          let child = self.copyNodeAndAppendCollision {
-            $0.initialize(to: item)
-          }
-          node.insertChild(child.node, bucket)
+          var child = self.mapValuesToVoid(
+            copy: true, extraBytes: VoidNode.spaceForNewItem)
+          _ = child.ensureUniqueAndAppendCollision(
+            isUnique: true, (item.key, ()))
+          node.insertChild(child, bucket)
           return .node(level, node)
         }
         if r.childMap.contains(bucket) {
           let rslot = r.childMap.slot(of: bucket)
           let rp = r.childPtr(at: rslot)
           let child = rp.pointee._symmetricDifference(level.descend(), self)
-          return other.replacingChild(level, at: bucket, rslot, with: child)
+          return other
+            .mapValuesToVoid()
+            .replacingChild(level, at: bucket, rslot, with: child)
         }
-        var node = other.copy(withFreeSpace: _Node.spaceForNewChild)
-        node.insertChild(self, bucket)
+        var node = other
+          .mapValuesToVoid(copy: true, extraBytes: VoidNode.spaceForNewChild)
+        node.insertChild(self.mapValuesToVoid(), bucket)
         return .node(level, node)
       }
     }
