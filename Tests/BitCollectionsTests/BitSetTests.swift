@@ -495,31 +495,27 @@ final class BitSetTest: CollectionTestCase {
     expectEqual(try MinimalDecoder.decode(v4, as: BitSet.self), b4)
   }
 
-  func test_union_Self() {
+  func test_union() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.union(b).sorted()
-        let c = BitSet(a)
-        let d = BitSet(b)
-        let actual = c.union(d)
-        expectEqualElements(actual, expected)
-      }
-    }
-  }
+        let x = BitSet(a)
+        let y = BitSet(b)
+        let z = Array(b)
 
-  func test_union_Sequence() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.union(b).sorted()
-        let c = BitSet(a)
-        let actual = c.union(b)
-        expectEqualElements(actual, expected)
+        expectEqualElements(x.union(b), expected)
+        expectEqualElements(x.union(y), expected)
+        expectEqualElements(x.union(y.counted), expected)
 
         func union<S: Sequence>(_ first: BitSet,_ second: S) -> BitSet
         where S.Element == Int {
           first.union(second)
         }
-        expectEqualElements(union(c, BitSet(b)), expected)
+
+        expectEqualElements(union(x, y), expected)
+        expectEqualElements(union(x, y.counted), expected)
+        expectEqualElements(x.union(z), expected)
+        expectEqualElements(x.union(z + z), expected)
       }
     }
   }
@@ -545,38 +541,72 @@ final class BitSetTest: CollectionTestCase {
 
       let g = f.union(30*step ..< 30*step)
       expectEqualElements(g, 0 ..< 30*step)
-    }
-  }
 
-  func test_formUnion_Self() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.union(b).sorted()
-        var c = BitSet(a)
-        let d = BitSet(b)
-        c.formUnion(d)
-        expectEqualElements(c, expected)
+      func union<S: Sequence>(_ first: BitSet,_ second: S) -> BitSet
+      where S.Element == Int {
+        first.union(second)
       }
+
+      let h = union(f, 20*step ..< 40*step)
+      expectEqualElements(h, 0 ..< 40*step)
     }
   }
 
-  func test_formUnion_Sequence() {
+  func test_formUnion() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.union(b).sorted()
-        var c = BitSet(a)
-        c.formUnion(b)
-        expectEqualElements(c, expected)
+        let c = BitSet(b)
+        let d = Array(b)
+        withEvery("shared", in: [false, true]) { shared in
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formUnion(c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formUnion(c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
+          func formUnion<S: Sequence>(_ first: inout BitSet, _ second: S)
+          where S.Element == Int {
+            first.formUnion(second)
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              formUnion(&x, c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              formUnion(&x, c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
 
-        func union<S: Sequence>(_ first: inout BitSet, _ second: S)
-        where S.Element == Int {
-          first.formUnion(second)
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formUnion(d)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formUnion(d + d)
+              expectEqualElements(x, expected)
+            }
+          }
         }
-        var d = BitSet(a)
-        union(&d, BitSet(b))
-        expectEqualElements(d, expected)
-        union(&d, 0 ..< 200)
-        expectEqualElements(d, 0 ..< 200)
       }
     }
   }
@@ -602,40 +632,38 @@ final class BitSetTest: CollectionTestCase {
 
       a.formUnion(30*step ..< 30*step)
       expectEqualElements(a, 0 ..< 30*step)
-    }
-  }
 
-  func test_intersection_Self() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.intersection(b).sorted()
-        let c = BitSet(a)
-        let d = BitSet(b)
-        let actual = c.intersection(d)
-        expectEqualElements(actual, expected)
+      func formUnion<S: Sequence>(_ first: inout BitSet,_ second: S)
+      where S.Element == Int {
+        first.formUnion(second)
       }
+
+      formUnion(&a, 20*step ..< 40*step)
+      expectEqualElements(a, 0 ..< 40*step)
     }
   }
 
-  func test_intersection_Sequence() {
+  func test_intersection() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.intersection(b).sorted()
-        let c = BitSet(a)
-        let actual = c.intersection(b)
-        expectEqualElements(actual, expected)
+        let x = BitSet(a)
+        let y = BitSet(b)
+        let z = Array(b)
 
-        expectEqualElements(c.intersection([-100]), [])
-        expectEqualElements(c.intersection(-100 ..< -10), [])
+        expectEqualElements(x.intersection(b), expected)
+        expectEqualElements(x.intersection(y), expected)
+        expectEqualElements(x.intersection(y.counted), expected)
 
-        func intersection<S: Sequence>(_ first: BitSet, _ second: S) -> BitSet
+        func intersection<S: Sequence>(_ first: BitSet,_ second: S) -> BitSet
         where S.Element == Int {
           first.intersection(second)
         }
-        let d = intersection(c, BitSet(b))
-        expectEqualElements(d, expected)
-        let e = intersection(d, 40 ..< 60)
-        expectEqualElements(e, expected.filter { (40 ..< 60).contains($0) })
+
+        expectEqualElements(intersection(x, y), expected)
+        expectEqualElements(intersection(x, y.counted), expected)
+        expectEqualElements(x.intersection(z), expected)
+        expectEqualElements(x.intersection(z + z), expected)
       }
     }
   }
@@ -660,53 +688,74 @@ final class BitSetTest: CollectionTestCase {
 
       let g = a.intersection(-100*step ..< 10*step)
       expectEqualElements(g, 0 ..< 10*step)
+
+      func intersection<S: Sequence>(_ first: BitSet,_ second: S) -> BitSet
+      where S.Element == Int {
+        first.intersection(second)
+      }
+
+      let h = intersection(g, 5*step ..< 15*step)
+      expectEqualElements(h, 5*step ..< 10*step)
     }
   }
 
-  func test_formIntersection_Self() {
+  func test_formIntersection() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.intersection(b).sorted()
-        var c = BitSet(a)
-        let d = BitSet(b)
-        c.formIntersection(d)
-        expectEqualElements(c, expected)
+        let c = BitSet(b)
+        let d = Array(b)
+        withEvery("shared", in: [false, true]) { shared in
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formIntersection(c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formIntersection(c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
+          func formIntersection<S: Sequence>(_ first: inout BitSet, _ second: S)
+          where S.Element == Int {
+            first.formIntersection(second)
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              formIntersection(&x, c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              formIntersection(&x, c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
+
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formIntersection(d)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formIntersection(d + d)
+              expectEqualElements(x, expected)
+            }
+          }
+        }
       }
     }
-  }
-
-  func test_formIntersection_Sequence() {
-    func intersection<S: Sequence>(_ first: inout BitSet, _ second: S)
-    where S.Element == Int {
-      first.formIntersection(second)
-    }
-
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.intersection(b).sorted()
-        var c = BitSet(a)
-        c.formIntersection(b)
-        expectEqualElements(c, expected)
-
-        var d = BitSet(a)
-        intersection(&d, BitSet(b))
-        expectEqualElements(d, expected)
-
-        intersection(&d, 40 ..< 60)
-        expectEqualElements(d, expected.filter { (40 ..< 60).contains($0) })
-      }
-    }
-
-    var s = BitSet(0 ..< 100)
-    intersection(&s, [-100, -10, 0, 1, 2])
-    expectEqualElements(s, [0, 1, 2])
-
-    intersection(&s, -100 ..< -10)
-    expectEqualElements(s, [])
-
-    s = BitSet(0 ..< 100)
-    intersection(&s, -100 ..< 10)
-    expectEqualElements(s, 0 ..< 10)
   }
 
   func test_formIntersection_Range() {
@@ -738,43 +787,41 @@ final class BitSetTest: CollectionTestCase {
       var g = BitSet(0 ..< 100*step)
       g.formIntersection(-100*step ..< 10*step)
       expectEqualElements(g, 0 ..< 10 * step)
-    }
-  }
 
-  func test_symmetricDifference_Self() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.symmetricDifference(b).sorted()
-        let c = BitSet(a)
-        let d = BitSet(b)
-        let actual = c.symmetricDifference(d)
-        expectEqualElements(actual, expected)
+      func formIntersection<S: Sequence>(_ first: inout BitSet,_ second: S)
+      where S.Element == Int {
+        first.formIntersection(second)
       }
+
+      var h = BitSet(0 ..< 100*step)
+      formIntersection(&h, 20*step ..< 120*step)
+      expectEqualElements(h, 20*step ..< 100*step)
     }
   }
 
-  func test_symmetricDifference_Sequence() {
+  func test_symmetricDifference() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.symmetricDifference(b).sorted()
-        let c = BitSet(a)
-        let actual = c.symmetricDifference(b)
-        expectEqualElements(actual, expected)
+        let x = BitSet(a)
+        let y = BitSet(b)
+        let z = Array(b)
+
+        expectEqualElements(x.symmetricDifference(b), expected)
+        expectEqualElements(x.symmetricDifference(y), expected)
+        expectEqualElements(x.symmetricDifference(y.counted), expected)
 
         func symmetricDifference<S: Sequence>(
-          _ first: BitSet, _ second: S
+          _ first: BitSet,_ second: S
         ) -> BitSet
         where S.Element == Int {
           first.symmetricDifference(second)
         }
-        let d = symmetricDifference(c, BitSet(b))
-        expectEqualElements(d, expected)
-        let e = symmetricDifference(d, 40 ..< 60)
-        let expected2 = a
-          .symmetricDifference(b)
-          .symmetricDifference(40 ..< 60)
-          .sorted()
-        expectEqualElements(e, expected2)
+
+        expectEqualElements(symmetricDifference(x, y), expected)
+        expectEqualElements(symmetricDifference(x, y.counted), expected)
+        expectEqualElements(x.symmetricDifference(z), expected)
+        expectEqualElements(x.symmetricDifference(z + z), expected)
       }
     }
   }
@@ -797,43 +844,74 @@ final class BitSetTest: CollectionTestCase {
 
       let f = e.symmetricDifference(20*step ..< 20*step)
       expectEqualElements(f, e)
-    }
-  }
 
-  func test_formSymmetricDifference_Self() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.symmetricDifference(b).sorted()
-        var c = BitSet(a)
-        let d = BitSet(b)
-        c.formSymmetricDifference(d)
-        expectEqualElements(c, expected)
+      func symmetricDifference<S: Sequence>(
+        _ first: BitSet,_ second: S
+      ) -> BitSet
+      where S.Element == Int {
+        first.symmetricDifference(second)
       }
+      let g = symmetricDifference(e, 3*step ..< 7*step)
+      expectEqualElements(g, 0 ..< 10*step)
     }
   }
 
-  func test_formSymmetricDifference_Sequence() {
+  func test_formSymmetricDifference() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.symmetricDifference(b).sorted()
-        var c = BitSet(a)
-        c.formSymmetricDifference(b)
-        expectEqualElements(c, expected)
+        let c = BitSet(b)
+        let d = Array(b)
 
-        func symmetricDifference<S: Sequence>(
-          _ first: inout BitSet, _ second: S
-        ) where S.Element == Int {
-          first.formSymmetricDifference(second)
+        withEvery("shared", in: [false, true]) { shared in
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formSymmetricDifference(c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formSymmetricDifference(c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
+          func formSymmetricDifference<S: Sequence>(_ first: inout BitSet, _ second: S)
+          where S.Element == Int {
+            first.formSymmetricDifference(second)
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              formSymmetricDifference(&x, c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              formSymmetricDifference(&x, c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
+
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formSymmetricDifference(d)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.formSymmetricDifference(d + d)
+              expectEqualElements(x, expected)
+            }
+          }
         }
-        var d = BitSet(a)
-        symmetricDifference(&d, BitSet(b))
-        expectEqualElements(d, expected)
-        symmetricDifference(&d, 40 ..< 60)
-        let expected2 = a
-          .symmetricDifference(b)
-          .symmetricDifference(40 ..< 60)
-          .sorted()
-        expectEqualElements(d, expected2)
       }
     }
   }
@@ -857,42 +935,38 @@ final class BitSetTest: CollectionTestCase {
 
       a.formSymmetricDifference(20*step ..< 20*step)
       expectEqualElements(a, Array(0 ..< 3*step) + Array(7*step ..< 10*step))
-    }
-  }
 
-  func test_subtracting_Self() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.subtracting(b).sorted()
-        let c = BitSet(a)
-        let d = BitSet(b)
-        let actual = c.subtracting(d)
-        expectEqualElements(actual, expected)
+      func formSymmetricDifference<S: Sequence>(_ first: inout BitSet, _ second: S)
+      where S.Element == Int {
+        first.formSymmetricDifference(second)
       }
+
+      formSymmetricDifference(&a, 3*step ..< 7*step)
+      expectEqualElements(a, 0 ..< 10*step)
     }
   }
 
-  func test_subtracting_Sequence() {
-    func subtracting<S: Sequence>(_ first: BitSet, _ second: S) -> BitSet
-    where S.Element == Int {
-      first.subtracting(second)
-    }
-
+  func test_subtracting() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.subtracting(b).sorted()
-        let c = BitSet(a)
-        let actual = c.subtracting(b)
-        expectEqualElements(actual, expected)
+        let x = BitSet(a)
+        let y = BitSet(b)
+        let z = Array(b)
 
-        expectEqual(c.subtracting([-100]), c)
-        expectEqual(subtracting(c, -100 ..< -10), c)
+        expectEqualElements(x.subtracting(b), expected)
+        expectEqualElements(x.subtracting(y), expected)
+        expectEqualElements(x.subtracting(y.counted), expected)
 
-        let d = subtracting(c, BitSet(b))
-        expectEqualElements(d, expected)
-        let e = subtracting(d, 40 ..< 60)
-        expectEqualElements(
-          e, expected.filter { !(40 ..< 60).contains($0)})
+        func subtracting<S: Sequence>(_ first: BitSet,_ second: S) -> BitSet
+        where S.Element == Int {
+          first.subtracting(second)
+        }
+
+        expectEqualElements(subtracting(x, y), expected)
+        expectEqualElements(subtracting(x, y.counted), expected)
+        expectEqualElements(x.subtracting(z), expected)
+        expectEqualElements(x.subtracting(z + z), expected)
       }
     }
   }
@@ -916,47 +990,72 @@ final class BitSetTest: CollectionTestCase {
 
       let f = e.subtracting(-10*step ..< -1*step)
       expectEqualElements(f, expected)
-    }
-  }
 
-  func test_subtract_Self() {
-    withInterestingSets("a", maximum: 200) { a in
-      withInterestingSets("b", maximum: 200) { b in
-        let expected = a.subtracting(b).sorted()
-        var c = BitSet(a)
-        let d = BitSet(b)
-        c.subtract(d)
-        expectEqualElements(c, expected)
+      func subtracting<S: Sequence>(_ first: BitSet,_ second: S) -> BitSet
+      where S.Element == Int {
+        first.subtracting(second)
       }
+
+      let g = subtracting(e, 4*step ..< 10*step)
+      expectEqualElements(g, 1*step ..< 4*step)
     }
   }
 
-  func test_subtract_Sequence() {
-    func subtract<S: Sequence>(_ first: inout BitSet, _ second: S)
-    where S.Element == Int {
-      first.subtract(second)
-    }
-
+  func test_subtract() {
     withInterestingSets("a", maximum: 200) { a in
       withInterestingSets("b", maximum: 200) { b in
         let expected = a.subtracting(b).sorted()
-        var c = BitSet(a)
-        c.subtract(b)
-        expectEqualElements(c, expected)
+        let c = BitSet(b)
+        let d = Array(b)
+        withEvery("shared", in: [false, true]) { shared in
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.subtract(c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.subtract(c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
+          func subtract<S: Sequence>(_ first: inout BitSet, _ second: S)
+          where S.Element == Int {
+            first.subtract(second)
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              subtract(&x, c)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              subtract(&x, c.counted)
+              expectEqualElements(x, expected)
+            }
+          }
 
-        subtract(&c, [-100])
-        expectEqualElements(c, expected)
-
-        subtract(&c, -100 ..< -10)
-        expectEqualElements(c, expected)
-
-        var d = BitSet(a)
-        subtract(&d, BitSet(b))
-        expectEqualElements(d, expected)
-
-        subtract(&d, 40 ..< 60)
-        expectEqualElements(
-          d, expected.filter { !(40 ..< 60).contains($0)})
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.subtract(d)
+              expectEqualElements(x, expected)
+            }
+          }
+          do {
+            var x = BitSet(a)
+            withHiddenCopies(if: shared, of: &x) { x in
+              x.subtract(d + d)
+              expectEqualElements(x, expected)
+            }
+          }
+        }
       }
     }
   }
@@ -980,6 +1079,13 @@ final class BitSetTest: CollectionTestCase {
 
       a.subtract(-10*step ..< -1*step)
       expectEqualElements(a, expected)
+
+      func subtract<S: Sequence>(_ first: inout BitSet, _ second: S)
+      where S.Element == Int {
+        first.subtract(second)
+      }
+      subtract(&a, 3*step ..< 10*step)
+      expectEqualElements(a, 1*step ..< 3*step)
     }
   }
 
