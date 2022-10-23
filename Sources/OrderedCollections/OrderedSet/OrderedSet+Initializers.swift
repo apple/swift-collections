@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedSet {
   /// Creates a set with the contents of the given sequence, which
   /// must not include duplicate elements.
@@ -63,12 +65,12 @@ extension OrderedSet {
       return
     }
     // Fast paths for when we know elements are all unique
-    if S.self == Set<Element>.self || S.self == SubSequence.self {
+    if elements is _UniqueCollection {
       self.init(uncheckedUniqueElements: elements)
       return
     }
 
-    self.init()
+    self.init(minimumCapacity: elements.underestimatedCount)
     append(contentsOf: elements)
   }
 
