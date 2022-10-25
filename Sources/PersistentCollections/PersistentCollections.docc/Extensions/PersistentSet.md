@@ -1,14 +1,41 @@
 # ``Collections/PersistentSet``
 
-<!--@START_MENU_TOKEN@-->Summary<!--@END_MENU_TOKEN@-->
-
 ## Overview
-
-<!--@START_MENU_TOKEN@-->Text<!--@END_MENU_TOKEN@-->
 
 ## Topics
 
-### Binary Set Operations
+### Creating a Set
+
+- ``init()``
+- ``init(_:)-6nn9e``
+- ``init(_:)-6qbps``
+- ``init(_:)-30nei``
+
+### Finding Elements
+
+- ``contains(_:)``
+- ``firstIndex(of:)``
+- ``lastIndex(of:)``
+
+### Adding and Updating Elements
+
+- ``insert(_:)``
+- ``update(with:)``
+- ``update(_:at:)``
+
+### Removing Elements
+
+- ``filter(_:)``
+- ``remove(_:)``
+- ``remove(at:)``
+
+### Non-mutating Set Operations
+
+- ``inserting(_:)``
+- ``updating(with:)``
+- ``removing(_:)``
+
+### Combining Sets
 
 - ``intersection(_:)-9dx2a``
 - ``intersection(_:)-5z4my``
@@ -42,7 +69,7 @@
 - ``formSymmetricDifference(_:)-8wue8``
 - ``formSymmetricDifference(_:)-4t8jr``
 
-### Binary Set Predicates
+### Comparing Sets
 
 - ``==(_:_:)`` 
 - ``isEqual(to:)-3m3in`` 
@@ -67,4 +94,4 @@
 
 - ``isDisjoint(with:)-12irx``
 - ``isDisjoint(with:)-1hhyf``
-- ``isDisjoint(with:)-61lde`` 
+- ``isDisjoint(with:)-61lde``

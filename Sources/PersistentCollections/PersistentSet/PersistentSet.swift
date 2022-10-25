@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// An unordered collection of unique elements.
 @frozen // Not really -- this package is not at all ABI stable
 public struct PersistentSet<Element: Hashable> {
   @usableFromInline
