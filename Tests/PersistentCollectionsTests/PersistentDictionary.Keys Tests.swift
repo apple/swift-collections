@@ -18,10 +18,10 @@ class PersistentDictionaryKeysTests: CollectionTestCase {
     withEachFixture { fixture in
       withLifetimeTracking { tracker in
         let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(
-          d.keys,
-          expectedContents: ref.map { $0.key },
-          by: ==)
+        let k = ref.map { $0.key }
+        checkCollection(d.keys, expectedContents: k, by: ==)
+        _checkBidirectionalCollection_indexOffsetBy(
+          d.keys, expectedContents: k, by: ==)
       }
     }
   }

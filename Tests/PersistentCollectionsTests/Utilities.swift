@@ -25,7 +25,8 @@ extension LifetimeTracker {
     let k = Array(keys)
     let keys = self.instances(for: k)
     let values = self.instances(for: k.map { $0 + 100 })
-    let dictionary = PersistentDictionary(uniqueKeys: keys, values: values)
+    let dictionary = PersistentDictionary(
+      uniqueKeysWithValues: zip(keys, values))
     return (dictionary, keys, values)
   }
 }

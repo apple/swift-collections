@@ -254,14 +254,20 @@ class PersistentDictionaryTests: CollectionTestCase {
     withEachFixture { fixture in
       withLifetimeTracking { tracker in
         let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(d, expectedContents: ref, by: ==)
+        checkCollection(d, expectedContents: ref, by: ==)
+        _checkBidirectionalCollection_indexOffsetBy(
+          d, expectedContents: ref, by: ==)
       }
     }
   }
 
   func test_BidirectionalCollection_random100() {
-    let d = PersistentDictionary<Int, Int>(uniqueKeys: 0 ..< 100, values: 0 ..< 100)
-    checkBidirectionalCollection(d, expectedContents: Array(d), by: ==)
+    let d = PersistentDictionary<Int, Int>(
+      uniqueKeysWithValues: (0 ..< 100).map { ($0, $0) })
+    let ref = Array(d)
+    checkCollection(d, expectedContents: ref, by: ==)
+    _checkBidirectionalCollection_indexOffsetBy(
+      d, expectedContents: ref, by: ==)
   }
 
 #if swift(>=5.6)

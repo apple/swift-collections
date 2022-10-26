@@ -102,7 +102,7 @@ extension PersistentDictionary.Keys.Iterator: Sendable
 where Key: Sendable, Value: Sendable {}
 #endif
 
-extension PersistentDictionary.Keys: BidirectionalCollection {
+extension PersistentDictionary.Keys: Collection {
   public typealias Index = PersistentDictionary.Index
 
   @inlinable
@@ -128,18 +128,8 @@ extension PersistentDictionary.Keys: BidirectionalCollection {
   }
 
   @inlinable
-  public func formIndex(before i: inout Index) {
-    _base.formIndex(before: &i)
-  }
-
-  @inlinable
   public func index(after i: Index) -> Index {
     _base.index(after: i)
-  }
-
-  @inlinable
-  public func index(before i: Index) -> Index {
-    _base.index(before: i)
   }
 
   @inlinable
@@ -159,3 +149,17 @@ extension PersistentDictionary.Keys: BidirectionalCollection {
     _base.distance(from: start, to: end)
   }
 }
+
+#if false
+extension PersistentDictionary.Keys: BidirectionalCollection {
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    _base.formIndex(before: &i)
+  }
+
+  @inlinable
+  public func index(before i: Index) -> Index {
+    _base.index(before: i)
+  }
+}
+#endif

@@ -78,7 +78,7 @@ extension PersistentSet.Index: CustomDebugStringConvertible {
   }
 }
 
-extension PersistentSet: BidirectionalCollection {
+extension PersistentSet: Collection {
   @inlinable
   public var isEmpty: Bool {
     _root.count == 0
@@ -130,25 +130,10 @@ extension PersistentSet: BidirectionalCollection {
     }
   }
 
-  @inlinable
-  public func formIndex(before i: inout Index) {
-    precondition(_isValid(i), "Invalid index")
-    guard i._path.findPredecessorItem(under: _root.raw) else {
-      preconditionFailure("The start index has no predecessor")
-    }
-  }
-
   @inlinable @inline(__always)
   public func index(after i: Index) -> Index {
     var i = i
     formIndex(after: &i)
-    return i
-  }
-
-  @inlinable @inline(__always)
-  public func index(before i: Index) -> Index {
-    var i = i
-    formIndex(before: &i)
     return i
   }
 
@@ -221,3 +206,37 @@ extension PersistentSet: BidirectionalCollection {
     precondition(_isValid(range.lowerBound) && _isValid(range.upperBound))
   }
 }
+
+#if false
+// Note: Let's not do this. `BidirectionalCollection` would imply that
+// the ordering of elements would be meaningful, which isn't true for
+// `PersistentSet`.
+extension PersistentSet: BidirectionalCollection {
+  /// Replaces the given index with its predecessor.
+  ///
+  /// - Parameter i: A valid index of the collection.
+  ///     `i` must be greater than `startIndex`.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    precondition(_isValid(i), "Invalid index")
+    guard i._path.findPredecessorItem(under: _root.raw) else {
+      preconditionFailure("The start index has no predecessor")
+    }
+  }
+
+  /// Returns the position immediately before the given index.
+  ///
+  /// - Parameter i: A valid index of the collection.
+  ///    `i` must be greater than `startIndex`.
+  ///
+  /// - Complexity: O(1)
+  @inlinable @inline(__always)
+  public func index(before i: Index) -> Index {
+    var i = i
+    formIndex(before: &i)
+    return i
+  }
+}
+#endif

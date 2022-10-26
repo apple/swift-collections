@@ -26,14 +26,19 @@ class PersistentSetTests: CollectionTestCase {
     withEachFixture { fixture in
       withLifetimeTracking { tracker in
         let (set, ref) = tracker.persistentSet(for: fixture)
-        checkBidirectionalCollection(set, expectedContents: ref, by: ==)
+        checkCollection(set, expectedContents: ref, by: ==)
+        _checkBidirectionalCollection_indexOffsetBy(
+          set, expectedContents: ref, by: ==)
       }
     }
   }
 
   func test_BidirectionalCollection_random100() {
     let s = PersistentSet<Int>(0 ..< 100)
-    checkBidirectionalCollection(s, expectedContents: Array(s))
+    let ref = Array(s)
+    checkCollection(s, expectedContents: ref)
+    _checkBidirectionalCollection_indexOffsetBy(
+      s, expectedContents: ref, by: ==)
   }
 
   func test_basics() {

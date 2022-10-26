@@ -38,9 +38,9 @@ extension LifetimeTracker {
     keyTransform: (C.Element) -> Key,
     valueTransform: (C.Element) -> Value
   ) -> PersistentDictionary<LifetimeTracked<Key>, LifetimeTracked<Value>> {
-    PersistentDictionary(
-      uniqueKeys: instances(for: items, by: keyTransform),
-      values: instances(for: items, by: valueTransform))
+    let keys = instances(for: items, by: keyTransform)
+    let values = instances(for: items, by: valueTransform)
+    return PersistentDictionary(uniqueKeysWithValues: zip(keys, values))
   }
 
   func persistentDictionary<Value, C: Collection>(
@@ -48,9 +48,9 @@ extension LifetimeTracker {
     by valueTransform: (C.Element) -> Value
   ) -> PersistentDictionary<LifetimeTracked<C.Element>, LifetimeTracked<Value>>
   where C.Element: Hashable {
-    PersistentDictionary(
-      uniqueKeys: instances(for: keys),
-      values: instances(for: keys, by: valueTransform))
+    let k = instances(for: keys)
+    let v = instances(for: keys, by: valueTransform)
+    return PersistentDictionary(uniqueKeysWithValues: zip(k, v))
   }
 
   func dictionary<Key, Value, C: Collection>(

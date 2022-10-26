@@ -107,10 +107,10 @@ public protocol DictionaryAPIExtras: DictionaryAPIChecker {
     uniqueKeysWithValues keysAndValues: S
   ) where S.Element == Element
 
-  init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value
+//  init<Keys: Sequence, Values: Sequence>(
+//    uniqueKeys keys: Keys,
+//    values: Values
+//  ) where Keys.Element == Key, Values.Element == Value
 
   init<S: Sequence>(
     _ keysAndValues: S,

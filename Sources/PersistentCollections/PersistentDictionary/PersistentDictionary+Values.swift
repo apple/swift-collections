@@ -106,7 +106,7 @@ where Key: Sendable, Value: Sendable {}
 
 // Note: This cannot be a MutableCollection because its subscript setter
 // needs to invalidate indices.
-extension PersistentDictionary.Values: BidirectionalCollection {
+extension PersistentDictionary.Values: Collection {
   public typealias Index = PersistentDictionary.Index
 
   @inlinable
@@ -154,18 +154,8 @@ extension PersistentDictionary.Values: BidirectionalCollection {
   }
 
   @inlinable
-  public func formIndex(before i: inout Index) {
-    _base.formIndex(before: &i)
-  }
-
-  @inlinable
   public func index(after i: Index) -> Index {
     _base.index(after: i)
-  }
-
-  @inlinable
-  public func index(before i: Index) -> Index {
-    _base.index(before: i)
   }
 
   @inlinable
@@ -185,3 +175,17 @@ extension PersistentDictionary.Values: BidirectionalCollection {
     _base.distance(from: start, to: end)
   }
 }
+
+#if false
+extension PersistentDictionary.Values: BidirectionalCollection {
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    _base.formIndex(before: &i)
+  }
+
+  @inlinable
+  public func index(before i: Index) -> Index {
+    _base.index(before: i)
+  }
+}
+#endif
