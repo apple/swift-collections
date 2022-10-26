@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentSet: Encodable where Element: Encodable {
-  /// Encodes the elements of this ordered set into the given encoder.
+  /// Encodes the elements of this set into the given encoder.
   ///
   /// - Parameter encoder: The encoder to write data to.
   @inlinable
@@ -21,7 +21,7 @@ extension PersistentSet: Encodable where Element: Encodable {
 }
 
 extension PersistentSet: Decodable where Element: Decodable {
-  /// Creates a new ordered set by decoding from the given decoder.
+  /// Creates a new set by decoding from the given decoder.
   ///
   /// This initializer throws an error if reading from the decoder fails, or
   /// if the decoded contents contain duplicate values.

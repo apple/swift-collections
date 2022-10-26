@@ -56,11 +56,8 @@ extension PersistentSet {
   internal __consuming func _subtracting<V>(
     _ other: PersistentCollections._Node<Element, V>
   ) -> Self {
-    let builder = _root.subtracting(.top, other)
-    guard let builder = builder else { return self }
-    let root = builder.finalize(.top)
-    root._fullInvariantCheck()
-    return Self(_new: root)
+    guard let r = _root.subtracting(.top, other) else { return self }
+    return Self(_new: r)
   }
 
   /// Returns a new set containing the elements of this set that do not occur

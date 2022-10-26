@@ -64,11 +64,8 @@ extension PersistentSet {
   internal func _intersection<V>(
     _ other: PersistentCollections._Node<Element, V>
   ) -> Self {
-    let builder = _root.intersection(.top, other)
-    guard let builder = builder else { return self }
-    let root = builder.finalize(.top)
-    root._fullInvariantCheck()
-    return Self(_new: root)
+    guard let r = _root.intersection(.top, other) else { return self }
+    return Self(_new: r)
   }
 
   /// Returns a new set with the elements that are common to both this set and

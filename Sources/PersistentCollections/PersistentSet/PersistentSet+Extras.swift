@@ -14,6 +14,16 @@ import _CollectionsUtilities
 extension PersistentSet: _UniqueCollection {}
 
 extension PersistentSet {
+  /// Removes the element at the given valid index.
+  ///
+  /// Calling this method invalidates all existing indices of the collection.
+  ///
+  /// - Parameter position: The index of the member to remove. `position` must
+  ///    be a valid index of the set, and it must not be equal to the set’s
+  ///    end index.
+  /// - Returns: The element that was removed from the set.
+  /// - Complexity: O(log(`count`)) if set storage might be shared; O(1)
+  ///    otherwise.
   @discardableResult
   public mutating func remove(at position: Index) -> Element {
     precondition(_isValid(position))
@@ -30,7 +40,7 @@ extension PersistentSet {
   /// comparison or some other means. Updating a member through this method
   /// does not require any hashing operations.
   ///
-  /// Calling this method invalidates all existing indices.
+  /// Calling this method invalidates all existing indices of the collection.
   ///
   /// - Parameter item: The new value that should replace the original element.
   ///     `item` must compare equal to the original value.
@@ -39,7 +49,8 @@ extension PersistentSet {
   ///
   /// - Returns: The original element that was replaced.
   ///
-  /// - Complexity: Amortized O(1).
+  /// - Complexity: O(log(`count`)) if set storage might be shared; O(1)
+  ///    otherwise.
   public mutating func update(_ member: Element, at index: Index) -> Element {
     precondition(_isValid(index), "Invalid index")
     precondition(index._path.isOnItem, "Can't get element at endIndex")
