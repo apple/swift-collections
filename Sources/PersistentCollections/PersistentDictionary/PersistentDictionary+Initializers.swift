@@ -29,7 +29,7 @@ extension PersistentDictionary {
   @inlinable
   public init(
     keys: PersistentSet<Key>,
-    _ valueTransform: (Key) throws -> Value
+    valueGenerator valueTransform: (Key) throws -> Value
   ) rethrows {
     let root = try keys._root.mapValues { try valueTransform($0.key) }
     self.init(_new: root)
