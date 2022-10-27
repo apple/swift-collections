@@ -20,6 +20,11 @@ extension PersistentDictionary {
     self = other
   }
 
+  @inlinable
+  public init(_ other: Dictionary<Key, Value>) {
+    self.init(uniqueKeysWithValues: other)
+  }
+
   // FIXME: This is a non-standard addition
   @inlinable
   public init(
