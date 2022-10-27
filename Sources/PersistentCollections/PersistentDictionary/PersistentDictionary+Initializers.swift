@@ -61,14 +61,6 @@ extension PersistentDictionary {
       uniqueKeysWithValues: keysAndValues.lazy.map { ($0.key, $0.value ) })
   }
 
-  @inlinable
-  public init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value {
-    self.init(uniqueKeysWithValues: zip(keys, values))
-  }
-
   public init<S: Sequence>(
     _ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows where S.Element == (Key, Value) {

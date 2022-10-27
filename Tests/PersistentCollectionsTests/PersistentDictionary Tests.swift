@@ -1589,19 +1589,6 @@ class PersistentDictionaryTests: CollectionTestCase {
     expectEqualElements(d.sorted(by: <), items.sorted(by: <))
   }
 
-  func test_uniqueKeys_values() {
-    let items: [(key: String, value: Int)] = [
-      (key: "zero", value: 0),
-      (key: "one", value: 1),
-      (key: "two", value: 2),
-      (key: "three", value: 3)
-    ]
-    let d = PersistentDictionary(
-      uniqueKeys: ["zero", "one", "two", "three"],
-      values: [0, 1, 2, 3])
-    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
-  }
-
   //  func test_uniquing_initializer_labeled_tuples() {
   //    let items: KeyValuePairs<String, Int> = [
   //      "a": 1,
