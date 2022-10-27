@@ -12,6 +12,6 @@
 extension PersistentSet: CustomReflectable {
   /// The custom mirror for this instance.
   public var customMirror: Mirror {
-    Mirror(self, unlabeledChildren: self, displayStyle: .collection)
+    Mirror(self, unlabeledChildren: self, displayStyle: .set)
   }
 }
