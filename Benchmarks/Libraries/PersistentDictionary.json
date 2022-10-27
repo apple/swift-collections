@@ -1,6 +1,6 @@
 {
   "kind": "group",
-  "title": "PersistentCollections Benchmarks",
+  "title": "PersistentDictionary Benchmarks",
   "directory": "Results",
   "contents": [
     {
@@ -40,11 +40,6 @@
           ]
         }
       ]
-    },
-    {
-      "kind": "group",
-      "title": "HashSet Operations",
-      "contents": []
     },
     {
       "kind": "group",
