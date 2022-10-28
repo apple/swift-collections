@@ -1,6 +1,8 @@
-# ``Collections/PersistentSet``
+# ``PersistentCollections/PersistentSet``
 
-## Overview
+<!-- Summary -->
+
+<!-- ## Overview -->
 
 ## Topics
 

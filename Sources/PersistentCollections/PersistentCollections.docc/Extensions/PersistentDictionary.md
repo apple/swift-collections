@@ -1,6 +1,8 @@
-# ``Collections/PersistentDictionary``
+# ``PersistentCollections/PersistentDictionary``
 
-## Overview
+<!-- Summary -->
+
+<!-- ## Overview -->
 
 ## Topics
 
