@@ -29,14 +29,13 @@
 
 ### Inspecting a Dictionary
 
-- ``isEmpty``
-- ``count``
+- ``isEmpty-65s43``
+- ``count-9cdqd``
 
 ### Accessing Keys and Values
 
 - ``subscript(_:)-g0oi``
 - ``subscript(_:default:)``
-- ``contains(_:)``
 - ``index(forKey:)``
 
 ### Adding or Updating Keys and Values

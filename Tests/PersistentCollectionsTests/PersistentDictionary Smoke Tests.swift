@@ -12,6 +12,12 @@
 import _CollectionsTestSupport
 import PersistentCollections
 
+extension PersistentDictionary {
+  fileprivate func contains(_ key: Key) -> Bool {
+    self[key] != nil
+  }
+}
+
 final class PersistentDictionarySmokeTests: CollectionTestCase {
   func testDummy() {
     let map = PersistentDictionary(

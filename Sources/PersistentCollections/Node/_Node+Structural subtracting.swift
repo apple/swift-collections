@@ -14,6 +14,19 @@ extension _Node {
   internal func subtracting<Value2>(
     _ level: _Level,
     _ other: _Node<Key, Value2>
+  ) -> _Node? {
+    assert(level.isAtRoot)
+    let builder = _subtracting(level, other)
+    guard let builder = builder else { return nil }
+    let root = builder.finalize(.top)
+    root._fullInvariantCheck()
+    return root
+  }
+
+  @inlinable
+  internal func _subtracting<Value2>(
+    _ level: _Level,
+    _ other: _Node<Key, Value2>
   ) -> Builder? {
     if self.raw.storage === other.raw.storage { return .empty(level) }
 
@@ -73,7 +86,7 @@ extension _Node {
           else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
             let child = l[child: lslot]
-              .subtracting(level.descend(), r[child: rslot])
+              ._subtracting(level.descend(), r[child: rslot])
             if let child = child {
               assert(child.count < self.count)
               if !removing {
@@ -149,7 +162,7 @@ extension _Node {
           }
           else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            return subtracting(level.descend(), r[child: rslot])
+            return _subtracting(level.descend(), r[child: rslot])
               .map { .childBranch(level, $0, at: bucket) }
           }
           return nil
@@ -173,7 +186,7 @@ extension _Node {
         }
         if l.childMap.contains(bucket) {
           let lslot = l.childMap.slot(of: bucket)
-          let branch = l[child: lslot].subtracting(level.descend(), other)
+          let branch = l[child: lslot]._subtracting(level.descend(), other)
           guard let branch = branch else { return nil }
           var result = self._removingChild(level, at: bucket, lslot)
           result.addNewChildBranch(level, branch, at: bucket)

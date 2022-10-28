@@ -10,6 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentDictionary: Equatable where Value: Equatable {
+  /// Returns a Boolean value indicating whether two values are equal.
+  ///
+  /// Two persistent dictionaries are considered equal if they contain the same
+  /// key-value pairs, but not necessarily in the same order.
+  ///
+  /// - Complexity: O(`min(left.count, right.count)`)
   @inlinable
   public static func == (left: Self, right: Self) -> Bool {
     left._root.isEqual(to: right._root, by: { $0 == $1 })

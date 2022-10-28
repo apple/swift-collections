@@ -12,7 +12,7 @@
 import _CollectionsUtilities
 
 extension PersistentDictionary {
-  /// A view of a dictionary’s keys.
+  /// A view of a persistent dictionary’s keys, as a standalone collection.
   @frozen
   public struct Keys {
     @usableFromInline
@@ -28,6 +28,8 @@ extension PersistentDictionary {
   }
   
   /// A collection containing just the keys of the dictionary.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public var keys: Keys {
     Keys(_base: self)
@@ -59,8 +61,11 @@ extension PersistentDictionary.Keys: CustomDebugStringConvertible {
 }
 
 extension PersistentDictionary.Keys: Sequence {
+  /// The element type of the collection.
   public typealias Element = Key
 
+  /// The type that allows iteration over the elements of the keys view
+  /// of a persistent dictionary.
   @frozen
   public struct Iterator: IteratorProtocol {
     public typealias Element = Key
@@ -91,6 +96,16 @@ extension PersistentDictionary.Keys: Sequence {
     _base._root.containsKey(.top, element, _Hash(element))
   }
 
+  /// Returns a Boolean value that indicates whether the given key exists
+  /// in the dictionary.
+  ///
+  /// - Parameter element: A key to look for in the dictionary/
+  ///
+  /// - Returns: `true` if `element` exists in the set; otherwise, `false`.
+  ///
+  /// - Complexity: This operation is expected to perform O(1) hashing and
+  ///    comparison operations on average, provided that `Element` implements
+  ///    high-quality hashing.
   @inlinable
   public func contains(_ element: Element) -> Bool {
     _base._root.containsKey(.top, element, _Hash(element))
@@ -163,3 +178,19 @@ extension PersistentDictionary.Keys: BidirectionalCollection {
   }
 }
 #endif
+
+extension PersistentDictionary.Keys {
+  public func intersection(_ other: Self) -> Self {
+    guard let r = _base._root.intersection(.top, other._base._root) else {
+      return self
+    }
+    return PersistentDictionary(_new: r).keys
+  }
+
+  public func subtracting(_ other: Self) -> Self {
+    guard let r = _base._root.subtracting(.top, other._base._root) else {
+      return self
+    }
+    return PersistentDictionary(_new: r).keys
+  }
+}
