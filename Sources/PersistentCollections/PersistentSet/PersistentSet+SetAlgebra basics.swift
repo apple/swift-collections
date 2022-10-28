@@ -17,7 +17,7 @@ extension PersistentSet: SetAlgebra {
   ///
   /// - Parameter element: An element to look for in the set.
   ///
-  /// - Returns: `true` if `member` exists in the set; otherwise, `false`.
+  /// - Returns: `true` if `element` exists in the set; otherwise, `false`.
   ///
   /// - Complexity: This operation is expected to perform O(1) hashing and
   ///    comparison operations on average, provided that `Element` implements
@@ -29,6 +29,8 @@ extension PersistentSet: SetAlgebra {
 
   /// Insert a new member to this set, if the set doesn't already contain it.
   ///
+  /// Inserting a new member invalidates all existing indices of the collection.
+  ///
   /// - Parameter newMember: The element to insert into the set.
   ///
   /// - Returns: `(true, newMember)` if `newMember` was not contained in the
@@ -38,13 +40,10 @@ extension PersistentSet: SetAlgebra {
   ///    be distinguishable from `newMember` by identity comparison or some
   ///    other means.
   ///
-  /// - Complexity: If `newMember` is not already a member of `self`, and if
-  ///    `self` isn't uniquely held, then this operation is expected to copy
-  ///    at most O(log(`count`)) existing members, as long as `Element` properly implements hashing.
-  ///
-  ///    In addition to this, this operation is expected to perform O(1)
-  ///    hashing/comparison operations on the `Element` type (with the same
-  ///    caveat.)
+  /// - Complexity: This operation is expected to copy at most O(log(`count`))
+  ///    existing members and to perform at most O(1) hashing/comparison
+  ///    operations on the `Element` type, as long as `Element` properly
+  ///    implements hashing.
   @discardableResult
   @inlinable
   public mutating func insert(
@@ -71,6 +70,9 @@ extension PersistentSet: SetAlgebra {
 
   /// Removes the given element from the set.
   ///
+  /// Removing an existing member invalidates all existing indices of the
+  /// collection.
+  ///
   /// - Parameter member: The element of the set to remove.
   ///
   /// - Returns: The element equal to `member` if `member` is contained in the
@@ -78,9 +80,10 @@ extension PersistentSet: SetAlgebra {
   ///    distinguishable from `newMember` by identity comparison or some other
   ///    means.
   ///
-  /// - Complexity: The operation is expected to perform amortized
-  ///    O(1) hashing/comparison operations on the `Element` type, if it
-  ///    properly implements hashing.
+  /// - Complexity: This operation is expected to copy at most O(log(`count`))
+  ///    existing members and to perform at most O(1) hashing/comparison
+  ///    operations on the `Element` type, as long as `Element` properly
+  ///    implements hashing.
   @discardableResult
   @inlinable
   public mutating func remove(_ member: Element) -> Element? {
@@ -105,9 +108,10 @@ extension PersistentSet: SetAlgebra {
   ///    element may be distinguishable from `newMember` by identity comparison
   ///    or some other means.
   ///
-  /// - Complexity: This operation is expected to perform O(1)
-  ///    hashing/comparison operations on the element type, provided that
-  ///    `Element` properly implements hashing.
+  /// - Complexity: This operation is expected to copy at most O(log(`count`))
+  ///    existing members and to perform at most O(1) hashing/comparison
+  ///    operations on the `Element` type, as long as `Element` properly
+  ///    implements hashing.
   @discardableResult
   @inlinable
   public mutating func update(with newMember: __owned Element) -> Element? {

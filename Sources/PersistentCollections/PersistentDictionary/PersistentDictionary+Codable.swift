@@ -38,6 +38,9 @@ internal struct _DictionaryCodingKey: CodingKey {
 extension PersistentDictionary: Encodable
 where Key: Encodable, Value: Encodable
 {
+  /// Encodes the elements of this dictionary into the given encoder.
+  ///
+  /// - Parameter encoder: The encoder to write data to.
   public func encode(to encoder: Encoder) throws {
     if Key.self == String.self {
       // Since the keys are already Strings, we can use them as keys directly.

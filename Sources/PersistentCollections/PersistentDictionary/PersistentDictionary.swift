@@ -9,6 +9,58 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// An unordered collection of unique keys and associated values, optimized for
+/// mutating shared copies and comparing different snapshots of the same
+/// collection.
+///
+/// `PersistentDictionary` has the same functionality as a standard
+/// `Dictionary`, and it largely implements the same APIs: both are hashed
+/// collection types with convenient and efficient ways to look up the value
+/// associated with a particular key, and both types are unordered, meaning that
+/// neither type provides any guarantees about the ordering of their items.
+///
+/// However, `PersistentDictionary` is optimizing specifically for use cases
+/// that need to mutate shared copies or to compare a set value to one of its
+/// older snapshots.
+///
+/// The standard `Dictionary` stores its members in a single, flat hash table,
+/// and it implements value semantics with all-or-nothing copy-on-write
+/// behavior: every time a shared copy of a set is mutated, the mutation needs
+/// to make a full copy of the set's storage. `PersistentDictionary` takes a
+/// different approach: it organizes its members into a tree structure, the
+/// nodes of which can be freely shared across collection values. When mutating
+/// a shared copy of a set value, `PersistentSet` is able to simply link the
+/// unchanged parts of the tree directly into the result, saving both time and
+/// memory.
+///
+/// This structural sharing also makes it more efficient to compare mutated
+/// dictionaries values to earlier versions of themselves. When comparing or
+/// combining dictionaries, parts that are shared across both inputs can
+/// typically be handled in constant time, leading to a dramatic performance
+/// boost when the two inputs are still largely unchanged:
+///
+///     var d = PersistentDictionary(
+///         uniqueKeysWithValues: (0 ..< 10_000).map { ($0, 2 * $0) })
+///     let copy = d
+///     d[20_000] = 42 // Expected to be an O(log(n)) operation
+///     let diff = d.keys.subtracting(copy.keys) // Also O(log(n))!
+///     // `diff` now holds the single item 20_000.
+///
+/// The tree structure also eliminates the need to reserve capacity in advance:
+/// `PersistentDictionary` creates, destroys and resizes individual nodes as
+/// needed, always consuming just enough memory to store its contents. As of
+/// Swift 5.7, the standard collection types never shrink their storage, so
+/// temporary storage spikes can linger as unused but still allocated memory
+/// long after the collection has shrunk back to its usual size.
+///
+/// Of course, switching to a tree structure comes with some trade offs. In
+/// particular, inserting new items, removing existing ones, and iterating over
+/// a `PersistentDictionary` is expected to be a constant factor slower than a
+/// standard `Dictionary` -- allocating/deallocating nodes isn't free, and
+/// navigating the tree structure requires more pointer dereferences than
+/// accessing a flat hash table. However the algorithmic improvements above
+/// usually more than make up for this, as long as the use case can make use of
+/// them.
 @frozen // Not really -- this package is not at all ABI stable
 public struct PersistentDictionary<Key: Hashable, Value> {
   @usableFromInline
@@ -58,10 +110,6 @@ extension PersistentDictionary {
   /// dictionary overwrites the existing value. If the dictionary doesn't
   /// contain the key, the key and value are added as a new key-value pair.
   ///
-  /// Inserting a new key-value pair into a dictionary invalidates all
-  /// previously returned indices to it. Updating the value of an existing key
-  /// does not invalidate any indices.
-  ///
   /// Here, the value for the key `"Coral"` is updated from `16` to `18` and a
   /// new key-value pair is added for the key `"Cerise"`.
   ///
@@ -74,9 +122,7 @@ extension PersistentDictionary {
   ///     // Prints "Optional(330)"
   ///
   /// If you assign `nil` as the value for the given key, the dictionary
-  /// removes that key and its associated value. Removing an existing key-value
-  /// pair in the dictionary invalidates all previously returned indices to it.
-  /// Removing a key that doesn't exist does not invalidate any indices.
+  /// removes that key and its associated value.
   ///
   /// In the following example, the key-value pair for the key `"Aquamarine"`
   /// is removed from the dictionary by assigning `nil` to the key-based
@@ -86,19 +132,27 @@ extension PersistentDictionary {
   ///     print(hues)
   ///     // Prints "["Coral": 18, "Heliotrope": 296, "Cerise": 330]"
   ///
+  /// Updating the value of an existing key only modifies the value: it does not
+  /// change the key that is stored in the dictionary. (In some cases, equal
+  /// keys may be distinguishable from each other by identity comparison or
+  /// some other means.)
+  ///
+  /// Removing or updating an existing key-value pair or inserting a new
+  /// key-value pair invalidates all indices in the dictionary. Removing a
+  /// key that doesn't exist does not invalidate any indices.
+  ///
   /// - Parameter key: The key to find in the dictionary.
   ///
   /// - Returns: The value associated with `key` if `key` is in the dictionary;
   ///   otherwise, `nil`.
   ///
-  /// - Complexity: Traversing the hash tree to find a key requires visiting
-  ///     O(log(`count`)) nodes. Looking up and updating values in the
-  ///     dictionary through this subscript has an expected complexity of O(1)
-  ///     hashing/comparison operations on average, if `Key` implements
-  ///     high-quality hashing.
+  /// - Complexity: Looking up the value for a key is expected to traverse
+  ///    O(log(`count`)) tree nodes and to do at most O(1) hashing/comparison
+  ///    operations on the `Element` type, as long as `Element` properly
+  ///    implements hashing.
   ///
-  ///     When used to mutate dictionary values with shared storage, this
-  ///     operation is expected to copy at most O(log(`count`)) items.
+  ///    Updating the dictionary through this subscript is expected to copy at
+  ///    most O(log(`count`)) existing members.
   @inlinable
   public subscript(key: Key) -> Value? {
     get {
@@ -164,9 +218,12 @@ extension PersistentDictionary {
   /// specified default value (`0`) is returned from the subscript,
   /// incremented, and then added to the dictionary under that key.
   ///
-  /// Inserting a new key-value pair invalidates all existing indices in the
-  /// dictionary. Updating the value of an existing key does not invalidate
-  /// any indices.
+  /// Updating the value of an existing key only modifies the value: it does not
+  /// change the key that is stored in the dictionary. (In some cases, equal
+  /// keys may be distinguishable from each other by identity comparison or
+  /// some other means.)
+  ///
+  /// Calling this method invalidates all existing indices in the dictionary.
   ///
   /// - Note: Do not use this subscript to modify dictionary values if the
   ///   dictionary's `Value` type is a class. In that case, the default value
@@ -182,14 +239,12 @@ extension PersistentDictionary {
   /// - Returns: The value associated with `key` in the dictionary; otherwise,
   ///   `defaultValue`.
   ///
-  /// - Complexity: Traversing the hash tree to find a key requires visiting
-  ///     O(log(`count`)) nodes. Looking up and updating values in the
-  ///     dictionary through this subscript has an expected complexity of O(1)
-  ///     hashing/comparison operations on average, if `Key` implements
-  ///     high-quality hashing.
+  /// - Complexity: Looking up the value for a key is expected to do at most
+  ///    O(1) hashing/comparison operations on the `Element` type, as long as
+  ///    `Element` properly implements hashing.
   ///
-  ///     When used to mutate dictionary values with shared storage, this
-  ///     operation is expected to copy at most O(log(`count`)) items.
+  ///    Updating the dictionary through this subscript is expected to copy at
+  ///    most O(log(`count`)) existing members.
   @inlinable
   public subscript(
     key: Key,
@@ -214,13 +269,20 @@ extension PersistentDictionary {
     }
   }
 
-  // FIXME: New addition; needs discussion
-  @inlinable
-  public func contains(_ key: Key) -> Bool {
-    _root.containsKey(.top, key, _Hash(key))
-  }
-
   /// Returns the index for the given key.
+  ///
+  /// If the given key is found in the dictionary, this method returns an index
+  /// into the dictionary that corresponds with the key-value pair. If the
+  /// key is not found, then this method returns `nil`.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
+  ///
+  /// - Returns: The index for `key` and its associated value if `key` is in
+  ///    the dictionary; otherwise, `nil`.
+  ///
+  /// - Complexity: This operation is expected to perform O(1) hashing and
+  ///    comparison operations on average, provided that `Element` implements
+  ///    high-quality hashing.
   @inlinable
   public func index(forKey key: Key) -> Index? {
     guard let path = _root.path(to: key, _Hash(key))
@@ -256,9 +318,12 @@ extension PersistentDictionary {
   ///     }
   ///     // Prints "No value was found in the dictionary for that key."
   ///
-  /// Inserting a new key-value pair invalidates all existing indices in the
-  /// dictionary. Updating the value of an existing key does not invalidate
-  /// any indices.
+  /// Updating the value of an existing key only modifies the value: it does not
+  /// change the key that is stored in the dictionary. (In some cases, equal
+  /// keys may be distinguishable from each other by identity comparison or
+  /// some other means.)
+  ///
+  /// Calling this method invalidates all existing indices in the dictionary.
   ///
   /// - Parameters:
   ///   - value: The new value to add to the dictionary.
@@ -270,13 +335,10 @@ extension PersistentDictionary {
   /// - Returns: The value that was replaced, or `nil` if a new key-value pair
   ///   was added.
   ///
-  /// - Complexity: Traversing the hash tree to find a key requires visiting
-  ///     O(log(`count`)) nodes. Updating values in the has an expected
-  ///     complexity of O(1) hashing/comparison operations on average, if
-  ///     `Key` implements high-quality hashing.
-  ///
-  ///     When used to mutate dictionary values with shared storage, this
-  ///     operation is expected to copy at most O(log(`count`)) items.
+  /// - Complexity: This operation is expected to copy at most O(log(`count`))
+  ///    existing members and to perform at most O(1) hashing/comparison
+  ///    operations on the `Element` type, as long as `Element` properly
+  ///    implements hashing.
   @inlinable
   @discardableResult
   public mutating func updateValue(
@@ -312,15 +374,48 @@ extension PersistentDictionary {
     return false
   }
 
-  // fluid/immutable API
-  @inlinable
-  public func updatingValue(_ value: Value, forKey key: Key) -> Self {
-    var copy = self
-    copy.updateValue(value, forKey: key)
-    return copy
-  }
-
-  // FIXME: New addition; needs discussion
+  /// Calls `body` to directly update the current value of `key` in the
+  /// dictionary.
+  ///
+  /// You can use this method to perform in-place operations on values in the
+  /// dictionary, whether or not `Value` has value semantics. The following
+  /// example uses this method while counting the occurrences of each letter
+  /// in a string:
+  ///
+  ///     let message = "Hello, Elle!"
+  ///     var letterCounts: PersistentDictionary<Character, Int> = [:]
+  ///     for letter in message {
+  ///         letterCounts.updateValue(forKey: letter) { count in
+  ///             if count == nil {
+  ///               count = 1
+  ///             } else
+  ///               count! += 1
+  ///             }
+  ///         }
+  ///     }
+  ///     // letterCounts == ["H": 1, "e": 2, "l": 4, "o": 1, ...]
+  ///
+  /// Updating the value of an existing key only modifies the value: it does not
+  /// change the key that is stored in the dictionary. (In some cases, equal
+  /// keys may be distinguishable from each other by identity comparison or
+  /// some other means.)
+  ///
+  /// Removing or updating an existing key-value pair or inserting a new
+  /// key-value pair invalidates all indices in the dictionary. Removing a
+  /// key that doesn't exist does not invalidate any indices.
+  ///
+  /// - Parameters:
+  ///   - key: The key whose value to look up.
+  ///   - body: A function that performs an in-place mutation on the dictionary
+  ///      value. If `key` exists in the dictionary, then `body` is called with
+  ///      its current value; otherwise `body` is passed `nil`.
+  ///
+  /// - Returns: The return value of `body`.
+  ///
+  /// - Complexity: In addition to calling `body`, this operation is expected
+  ///    to copy at most O(log(`count`)) existing members and to perform at
+  ///    most O(1) hashing/comparison operations on the `Element` type, as long
+  ///    as `Element` properly implements hashing.
   @inlinable @inline(__always)
   public mutating func updateValue<R>(
     forKey key: Key,
@@ -329,6 +424,45 @@ extension PersistentDictionary {
     try body(&self[key])
   }
 
+  /// Ensures that the specified key exists in the dictionary (by inserting one
+  /// with the supplied default value if necessary), then calls `body` to update
+  /// it in place.
+  ///
+  /// You can use this method to perform in-place operations on values in the
+  /// dictionary, whether or not `Value` has value semantics. The following
+  /// example uses this method while counting the occurrences of each letter
+  /// in a string:
+  ///
+  ///     let message = "Hello, Elle!"
+  ///     var letterCounts: PersistentDictionary<Character, Int> = [:]
+  ///     for letter in message {
+  ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
+  ///             count += 1
+  ///         }
+  ///     }
+  ///     // letterCounts == ["H": 1, "e": 2, "l": 4, "o": 1, ...]
+  ///
+  /// Updating the value of an existing key only modifies the value: it does not
+  /// change the key that is stored in the dictionary. (In some cases, equal
+  /// keys may be distinguishable from each other by identity comparison or
+  /// some other means.)
+  ///
+  /// Calling this method invalidates all existing indices in the dictionary.
+  ///
+  /// - Parameters:
+  ///   - key: The key to look up (or insert). If `key` does not already exist
+  ///      in the dictionary, it is inserted with the supplied default value.
+  ///   - defaultValue: The default value to insert if `key` doesn't exist in
+  ///      the dictionary.
+  ///   - body: A function that performs an in-place mutation on the dictionary
+  ///      value.
+  ///
+  /// - Returns: The return value of `body`.
+  ///
+  /// - Complexity: In addition to calling `body`, this operation is expected
+  ///    to copy at most O(log(`count`)) existing members and to perform at
+  ///    most O(1) hashing/comparison operations on the `Element` type, as long
+  ///    as `Element` properly implements hashing.
   @inlinable
   public mutating func updateValue<R>(
     forKey key: Key,
@@ -349,7 +483,7 @@ extension PersistentDictionary {
   /// If the key is found in the dictionary, this method returns the key's
   /// associated value, and invalidates all previously returned indices.
   ///
-  ///     var hues: OrderedDictionary = [
+  ///     var hues: PersistentDictionary = [
   ///        "Heliotrope": 296,
   ///        "Coral": 16,
   ///        "Aquamarine": 156]
@@ -370,16 +504,14 @@ extension PersistentDictionary {
   ///     // Prints "No value found for that key.""
   ///
   /// - Parameter key: The key to remove along with its associated value.
+  ///
   /// - Returns: The value that was removed, or `nil` if the key was not
   ///   present in the dictionary.
   ///
-  /// - Complexity: Traversing the hash tree to find a key requires visiting
-  ///     O(log(`count`)) nodes. Updating values in the has an expected
-  ///     complexity of O(1) hashing/comparison operations on average, if
-  ///     `Key` implements high-quality hashing.
-  ///
-  ///     When used to mutate dictionary values with shared storage, this
-  ///     operation is expected to copy at most O(log(`count`)) items.
+  /// - Complexity: In addition to calling `body`, this operation is expected
+  ///    to copy at most O(log(`count`)) existing members and to perform at
+  ///    most O(1) hashing/comparison operations on the `Element` type, as long
+  ///    as `Element` properly implements hashing.
   @inlinable
   @discardableResult
   public mutating func removeValue(forKey key: Key) -> Value? {
@@ -390,13 +522,19 @@ extension PersistentDictionary {
     return r.removed.value
   }
 
-  // fluid/immutable API
-  @inlinable
-  public func removingValue(forKey key: Key) -> Self {
-    guard let r = _root.removing(.top, key, _Hash(key)) else { return self }
-    return Self(_new: r.replacement.finalize(.top))
-  }
-
+  /// Removes and returns the key-value pair at the specified index.
+  ///
+  /// Calling this method invalidates all existing indices in the dictionary.
+  ///
+  /// - Parameter index: The position of the element to remove. `index` must be
+  ///    a valid index of the dictionary that is not equal to `endIndex`.
+  ///
+  /// - Returns: The removed key-value pair.
+  ///
+  /// - Complexity: This operation is expected to copy at most O(log(`count`))
+  ///    existing members and to perform at most O(1) hashing/comparison
+  ///    operations on the `Element` type, as long as `Element` properly
+  ///    implements hashing.
   @inlinable
   public mutating func remove(at index: Index) -> Element {
     precondition(_isValid(index), "Invalid index")

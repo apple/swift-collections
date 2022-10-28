@@ -24,7 +24,7 @@ extension PersistentSet {
   ///
   /// - Parameter other: An arbitrary set of elements.
   ///
-  /// - Complexity: Expected complexity is O(`self.count` + `other.count`) in
+  /// - Complexity: Expected complexity is O(`self.count`) in
   ///     the worst case, if `Element` properly implements hashing.
   ///     However, the implementation is careful to make the best use of
   ///     hash tree structure to minimize work when possible, e.g. by linking
@@ -48,7 +48,7 @@ extension PersistentSet {
   ///
   /// - Parameter other: The keys view of a persistent dictionary.
   ///
-  /// - Complexity: Expected complexity is O(`self.count` + `other.count`) in
+  /// - Complexity: Expected complexity is O(`self.count`) in
   ///     the worst case, if `Element` properly implements hashing.
   ///     However, the implementation is careful to make the best use of
   ///     hash tree structure to minimize work when possible, e.g. by linking
@@ -64,11 +64,8 @@ extension PersistentSet {
   internal func _intersection<V>(
     _ other: PersistentCollections._Node<Element, V>
   ) -> Self {
-    let builder = _root.intersection(.top, other)
-    guard let builder = builder else { return self }
-    let root = builder.finalize(.top)
-    root._fullInvariantCheck()
-    return Self(_new: root)
+    guard let r = _root.intersection(.top, other) else { return self }
+    return Self(_new: r)
   }
 
   /// Returns a new set with the elements that are common to both this set and

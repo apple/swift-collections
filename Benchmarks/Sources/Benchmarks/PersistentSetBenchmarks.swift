@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -10,50 +10,31 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
+import PersistentCollections
 
 extension Benchmark {
-  public mutating func addSetBenchmarks() {
+  public mutating func addPersistentSetBenchmarks() {
     self.addSimple(
-      title: "Int.hashValue on each value",
+      title: "PersistentSet<Int> init from range",
       input: Int.self
     ) { size in
-      for i in 0 ..< size {
-        blackHole(i.hashValue)
-      }
+      blackHole(PersistentSet(0 ..< size))
     }
 
     self.addSimple(
-      title: "Hasher.combine on a single buffer of integers",
+      title: "PersistentSet<Int> init from unsafe buffer",
       input: [Int].self
     ) { input in
       input.withUnsafeBufferPointer { buffer in
-        var hasher = Hasher()
-        hasher.combine(bytes: UnsafeRawBufferPointer(buffer))
-        blackHole(hasher.finalize())
-      }
-    }
-
-    self.addSimple(
-      title: "Set<Int> init from range",
-      input: Int.self
-    ) { size in
-      blackHole(Set(0 ..< size))
-    }
-
-    self.addSimple(
-      title: "Set<Int> init from unsafe buffer",
-      input: [Int].self
-    ) { input in
-      input.withUnsafeBufferPointer { buffer in
-        blackHole(Set(buffer))
+        blackHole(PersistentSet(buffer))
       }
     }
 
     self.add(
-      title: "Set<Int> sequential iteration",
+      title: "PersistentSet<Int> sequential iteration",
       input: Int.self
     ) { size in
-      let set = Set(0 ..< size)
+      let set = PersistentSet(0 ..< size)
       return { timer in
         for i in set {
           blackHole(i)
@@ -62,10 +43,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Set<Int> sequential iteration, indices",
+      title: "PersistentSet<Int> sequential iteration, indices",
       input: Int.self
     ) { size in
-      let set = Set(0 ..< size)
+      let set = PersistentSet(0 ..< size)
       return { timer in
         for i in set.indices {
           blackHole(set[i])
@@ -74,10 +55,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Set<Int> successful contains",
+      title: "PersistentSet<Int> successful contains",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let set = Set(input)
+      let set = PersistentSet(input)
       return { timer in
         for i in lookups {
           precondition(set.contains(i))
@@ -86,10 +67,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Set<Int> unsuccessful contains",
+      title: "PersistentSet<Int> unsuccessful contains",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let set = Set(input)
+      let set = PersistentSet(input)
       let lookups = lookups.map { $0 + input.count }
       return { timer in
         for i in lookups {
@@ -99,10 +80,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "Set<Int> insert",
+      title: "PersistentSet<Int> insert",
       input: [Int].self
     ) { input in
-      var set: Set<Int> = []
+      var set: PersistentSet<Int> = []
       for i in input {
         set.insert(i)
       }
@@ -111,23 +92,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "Set<Int> insert, reserving capacity",
+      title: "PersistentSet<Int> insert, shared",
       input: [Int].self
     ) { input in
-      var set: Set<Int> = []
-      set.reserveCapacity(input.count)
-      for i in input {
-        set.insert(i)
-      }
-      precondition(set.count == input.count)
-      blackHole(set)
-    }
-
-    self.addSimple(
-      title: "Set<Int> insert, shared",
-      input: [Int].self
-    ) { input in
-      var set: Set<Int> = []
+      var set: PersistentSet<Int> = []
       for i in input {
         let copy = set
         set.insert(i)
@@ -138,10 +106,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Set<Int> insert one + subtract, shared",
+      title: "PersistentSet<Int> insert one + subtract, shared",
       input: [Int].self
     ) { input in
-      let original = Set(input)
+      let original = PersistentSet(input)
       let newMember = input.count
       return { timer in
         var copy = original
@@ -152,12 +120,27 @@ extension Benchmark {
       }
     }
 
+    do {
+      var timer = Timer()
+      let input = 0 ..< 1_000
+      let newMember = input.count
+
+      let original = PersistentSet(input)
+      timer.measure {
+        var copy = original
+        copy.insert(newMember)
+        let diff = copy.subtracting(original)
+        precondition(diff.count == 1 && diff.first == newMember)
+        blackHole(copy)
+      }
+    }
+
     self.add(
-      title: "Set<Int> remove",
+      title: "PersistentSet<Int> remove",
       input: ([Int], [Int]).self
     ) { input, removals in
       return { timer in
-        var set = Set(input)
+        var set = PersistentSet(input)
         for i in removals {
           set.remove(i)
         }
@@ -167,11 +150,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Set<Int> remove, shared",
+      title: "PersistentSet<Int> remove, shared",
       input: ([Int], [Int]).self
     ) { input, removals in
       return { timer in
-        var set = Set(input)
+        var set = PersistentSet(input)
         for i in removals {
           let copy = set
           set.remove(i)
@@ -194,12 +177,12 @@ extension Benchmark {
     do {
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> union with Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> union with Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
-          let b = Set(start ..< start + input.count)
+          let a = PersistentSet(input)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
             blackHole(a.union(identity(b)))
           }
@@ -208,12 +191,12 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> intersection with Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> intersection with Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
-          let b = Set(start ..< start + input.count)
+          let a = PersistentSet(input)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
             blackHole(a.intersection(identity(b)))
           }
@@ -222,12 +205,12 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> symmetricDifference with Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> symmetricDifference with Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
-          let b = Set(start ..< start + input.count)
+          let a = PersistentSet(input)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
             blackHole(a.symmetricDifference(identity(b)))
           }
@@ -236,12 +219,12 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> subtracting Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> subtracting Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
-          let b = Set(start ..< start + input.count)
+          let a = PersistentSet(input)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
             blackHole(a.subtracting(identity(b)))
           }
@@ -253,11 +236,11 @@ extension Benchmark {
     do {
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> union with Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> union with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
+          let a = PersistentSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.union(identity(b)))
@@ -267,11 +250,11 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> intersection with Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> intersection with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
+          let a = PersistentSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.intersection(identity(b)))
@@ -281,11 +264,11 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> symmetricDifference with Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> symmetricDifference with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
+          let a = PersistentSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.symmetricDifference(identity(b)))
@@ -295,11 +278,11 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> subtracting Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> subtracting Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = Set(input)
+          let a = PersistentSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.subtracting(identity(b)))
@@ -312,13 +295,13 @@ extension Benchmark {
     do {
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> formUnion with Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> formUnion with Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let b = Set(start ..< start + input.count)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.formUnion(identity(b))
             }
@@ -329,13 +312,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> formIntersection with Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> formIntersection with Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let b = Set(start ..< start + input.count)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.formIntersection(identity(b))
             }
@@ -346,13 +329,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> formSymmetricDifference with Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> formSymmetricDifference with Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let b = Set(start ..< start + input.count)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.formSymmetricDifference(identity(b))
             }
@@ -363,13 +346,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> subtract Self (\(percentage) overlap)",
+          title: "PersistentSet<Int> subtract Self (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let b = Set(start ..< start + input.count)
+          let b = PersistentSet(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.subtract(identity(b))
             }
@@ -383,13 +366,13 @@ extension Benchmark {
     do {
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> formUnion with Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> formUnion with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.formUnion(identity(b))
             }
@@ -400,13 +383,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> formIntersection with Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> formIntersection with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.formIntersection(identity(b))
             }
@@ -417,13 +400,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> formSymmetricDifference with Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> formSymmetricDifference with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.formSymmetricDifference(identity(b))
             }
@@ -434,13 +417,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "Set<Int> subtract Array (\(percentage) overlap)",
+          title: "PersistentSet<Int> subtract Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = Set(input)
+            var a = PersistentSet(input)
             timer.measure {
               a.subtract(identity(b))
             }

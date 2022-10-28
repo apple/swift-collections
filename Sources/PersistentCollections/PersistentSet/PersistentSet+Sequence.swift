@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentSet: Sequence {
+  /// An iterator over the members of a `PersistentSet`.
   @frozen
   public struct Iterator: IteratorProtocol {
     @usableFromInline
@@ -23,12 +24,19 @@ extension PersistentSet: Sequence {
       _it = _HashTreeIterator(root: _root)
     }
 
+    /// Advances to the next element and returns it, or `nil` if no next element
+    /// exists.
+    ///
+    /// Once `nil` has been returned, all subsequent calls return `nil`.
+    ///
+    /// - Complexity: O(1)
     public mutating func next() -> Element? {
       guard let (node, slot) = _it.next() else { return nil }
       return _UnsafeHandle.read(node) { $0[item: slot].key }
     }
   }
 
+  /// Returns an iterator over the members of the set.
   @inlinable
   public func makeIterator() -> Iterator {
     Iterator(_root: _root.raw)

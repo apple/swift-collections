@@ -26,14 +26,19 @@ class PersistentSetTests: CollectionTestCase {
     withEachFixture { fixture in
       withLifetimeTracking { tracker in
         let (set, ref) = tracker.persistentSet(for: fixture)
-        checkBidirectionalCollection(set, expectedContents: ref, by: ==)
+        checkCollection(set, expectedContents: ref, by: ==)
+        _checkBidirectionalCollection_indexOffsetBy(
+          set, expectedContents: ref, by: ==)
       }
     }
   }
 
   func test_BidirectionalCollection_random100() {
     let s = PersistentSet<Int>(0 ..< 100)
-    checkBidirectionalCollection(s, expectedContents: Array(s))
+    let ref = Array(s)
+    checkCollection(s, expectedContents: ref)
+    _checkBidirectionalCollection_indexOffsetBy(
+      s, expectedContents: ref, by: ==)
   }
 
   func test_basics() {
@@ -106,7 +111,11 @@ class PersistentSetTests: CollectionTestCase {
     let end = a.endIndex
     expectEqual(end.description, "@.end(1)")
     expectEqual(end.debugDescription, "@.end(1)")
+  }
 
+  func test_index_hashing() {
+    let s = PersistentSet(0 ..< 100)
+    checkHashable(s.indices, equalityOracle: ==)
   }
 
   func test_insert_fixtures() {
@@ -125,6 +134,26 @@ class PersistentSetTests: CollectionTestCase {
 
               let key2 = tracker.instance(for: item)
               ref.insert(key2)
+              expectEqualSets(s, ref)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_remove_at() {
+    withEachFixture { fixture in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          withEvery("offset", in: 0 ..< fixture.count) { offset in
+            let f = tracker.persistentSet(for: fixture)
+            var s = f.map
+            var ref = Set(f.ref)
+            withHiddenCopies(if: isShared, of: &s) { s in
+              let i = s.index(s.startIndex, offsetBy: offset)
+              let old = s.remove(at: i)
+              expectNotNil(ref.remove(old))
               expectEqualSets(s, ref)
             }
           }
@@ -611,5 +640,116 @@ class PersistentSetTests: CollectionTestCase {
         }
       }
     }
+  }
+
+  func test_Hashable() {
+    let classes: [[PersistentSet<String>]] = [
+      [
+        []
+      ],
+      [
+        ["a"]
+      ],
+      [
+        ["b"]
+      ],
+      [
+        ["c"]
+      ],
+      [
+        ["d"]
+      ],
+      [
+        ["e"]
+      ],
+      [
+        ["a", "b"], ["b", "a"],
+      ],
+      [
+        ["a", "d"], ["d", "a"],
+      ],
+      [
+        ["a", "b", "c"], ["a", "c", "b"],
+        ["b", "a", "c"], ["b", "c", "a"],
+        ["c", "a", "b"], ["c", "b", "a"],
+      ],
+      [
+        ["a", "d", "e"], ["a", "e", "d"],
+        ["d", "a", "e"], ["d", "e", "a"],
+        ["e", "a", "d"], ["e", "d", "a"],
+      ],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
+  func test_Codable() throws {
+    let s1: PersistentSet<Int> = []
+    let v1: MinimalEncoder.Value = .array([])
+    expectEqual(try MinimalEncoder.encode(s1), v1)
+
+    let s2: PersistentSet<Int> = [3]
+    let v2: MinimalEncoder.Value = .array([.int(3)])
+    expectEqual(try MinimalEncoder.encode(s2), v2)
+
+    let s3: PersistentSet<Int> = [0, 1, 2, 3]
+    let v3: MinimalEncoder.Value = .array(s3.map { .int($0) })
+    expectEqual(try MinimalEncoder.encode(s3), v3)
+
+    let s4 = PersistentSet<Int>(0 ..< 100)
+    let v4: MinimalEncoder.Value = .array(s4.map { .int($0) })
+    expectEqual(try MinimalEncoder.encode(s4), v4)
+  }
+
+  func test_Decodable() throws {
+    let s1: PersistentSet<Int> = []
+    let v1: MinimalEncoder.Value = .array([])
+    expectEqual(try MinimalDecoder.decode(v1, as: PersistentSet<Int>.self), s1)
+
+    let s2: PersistentSet<Int> = [3]
+    let v2: MinimalEncoder.Value = .array([.int(3)])
+    expectEqual(try MinimalDecoder.decode(v2, as: PersistentSet<Int>.self), s2)
+
+    let s3: PersistentSet<Int> = [0, 1, 2, 3]
+    let v3: MinimalEncoder.Value = .array([.int(0), .int(1), .int(2), .int(3)])
+    expectEqual(try MinimalDecoder.decode(v3, as: PersistentSet<Int>.self), s3)
+
+    let s4 = PersistentSet<Int>(0 ..< 100)
+    let v4: MinimalEncoder.Value = .array((0 ..< 100).map { .int($0) })
+    expectEqual(try MinimalDecoder.decode(v4, as: PersistentSet<Int>.self), s4)
+
+    let v5: MinimalEncoder.Value = .array([.int(0), .int(1), .int(0)])
+    expectThrows(
+      try MinimalDecoder.decode(v5, as: PersistentSet<Int>.self)
+    ) { error in
+      expectNotNil(error as? DecodingError) { error in
+        guard case .dataCorrupted(let context) = error else {
+          expectFailure("Unexpected error \(error)")
+          return
+        }
+        expectEqual(context.debugDescription,
+                    "Decoded elements aren't unique (first duplicate at offset 2)")
+      }
+    }
+
+    let v6: MinimalEncoder.Value = .array([.int16(42)])
+    expectThrows(
+      try MinimalDecoder.decode(v6, as: PersistentSet<Int>.self)
+    ) { error in
+      expectNotNil(error as? DecodingError) { error in
+        guard case .typeMismatch(_, _) = error else {
+          expectFailure("Unexpected error \(error)")
+          return
+        }
+      }
+    }
+  }
+
+  func test_CustomReflectable() {
+    let s: PersistentSet = [0, 1, 2, 3]
+    let mirror = Mirror(reflecting: s)
+    expectEqual(mirror.displayStyle, .set)
+    expectNil(mirror.superclassMirror)
+    expectTrue(mirror.children.compactMap { $0.label }.isEmpty)
+    expectEqualElements(mirror.children.map { $0.value as? Int }, s.map { $0 })
   }
 }

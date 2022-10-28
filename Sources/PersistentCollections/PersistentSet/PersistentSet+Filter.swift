@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentSet {
-  /// Returns a new persistent set containing the values pairs of the ordered
+  /// Returns a new persistent set containing all the members of this persistent
   /// set that satisfy the given predicate.
   ///
   /// - Parameter isIncluded: A closure that takes a value as its
