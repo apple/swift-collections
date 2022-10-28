@@ -1,4 +1,4 @@
-# ``Collections/OrderedSet/UnorderedView``
+# ``OrderedCollections/OrderedSet/UnorderedView``
 
 <!-- Summary -->
 

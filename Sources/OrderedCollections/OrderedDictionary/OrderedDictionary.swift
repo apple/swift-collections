@@ -658,7 +658,7 @@ extension OrderedDictionary {
   /// in a string:
   ///
   ///     let message = "Hello, Elle!"
-  ///     var letterCounts: [Character: Int] = [:]
+  ///     var letterCounts: OrderedDictionary<Character, Int> = [:]
   ///     for letter in message {
   ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
   ///             count += 1

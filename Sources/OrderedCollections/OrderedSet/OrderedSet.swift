@@ -531,7 +531,7 @@ extension OrderedSet {
 }
 
 extension OrderedSet {
-  /// Returns a new ordered set containing the values pairs of the ordered set
+  /// Returns a new ordered set containing all the members of this ordered set
   /// that satisfy the given predicate.
   ///
   /// - Parameter isIncluded: A closure that takes a value as its
