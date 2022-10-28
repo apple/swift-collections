@@ -8,6 +8,49 @@
 
 ## Topics
 
+### Collection Views
+
+- ``uncounted``
+
+### Creating a Set
+
+- ``init()``
+- ``init(reservingCapacity:)``
+- ``init(_:)-15cws``
+- ``init(_:)-38hho``
+- ``init(_:)-2of3i``
+- ``init(_:)-5fhls``
+- ``init(bitPattern:)``
+- ``init(words:)``
+- ``random(upTo:)``
+- ``random(upTo:using:)``
+
+### Finding Elements
+
+- ``contains(_:)``
+- ``firstIndex(of:)``
+- ``lastIndex(of:)``
+
+### Adding and Updating Elements
+
+- ``insert(_:)``
+- ``update(with:)``
+
+### Removing Elements
+
+- ``filter(_:)``
+- ``remove(_:)``
+- ``remove(at:)``
+
+### Sorted Set Operations
+
+- ``subscript(member:)``
+- ``subscript(members:)-5nkxk``
+- ``subscript(members:)-5xfq5``
+- ``min()``
+- ``max()``
+- ``sorted()``
+
 ### Binary Set Operations
 
 - ``intersection(_:)-1wfb5``

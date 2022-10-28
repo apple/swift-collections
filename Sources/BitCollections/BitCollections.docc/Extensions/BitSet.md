@@ -8,11 +8,51 @@
 
 ## Topics
 
-### Nested Structures
+### Collection Views
 
 - ``Counted-swift.struct``
+- ``counted-swift.property``
 
-### Binary Set Operations
+### Creating a Set
+
+- ``init()``
+- ``init(reservingCapacity:)``
+- ``init(_:)-15cws``
+- ``init(_:)-38hho``
+- ``init(_:)-2of3i``
+- ``init(_:)-5fhls``
+- ``init(bitPattern:)``
+- ``init(words:)``
+- ``random(upTo:)``
+- ``random(upTo:using:)``
+
+### Finding Elements
+
+- ``contains(_:)``
+- ``firstIndex(of:)``
+- ``lastIndex(of:)``
+
+### Adding and Updating Elements
+
+- ``insert(_:)``
+- ``update(with:)``
+
+### Removing Elements
+
+- ``filter(_:)``
+- ``remove(_:)``
+- ``remove(at:)``
+
+### Sorted Set Operations
+
+- ``subscript(member:)``
+- ``subscript(members:)-5nkxk``
+- ``subscript(members:)-5xfq5``
+- ``min()``
+- ``max()``
+- ``sorted()``
+
+### Combining Sets
 
 - ``intersection(_:)-84q4u``
 - ``intersection(_:)-8hcl9``
@@ -54,7 +94,7 @@
 - ``formSymmetricDifference(_:)-7wole``
 - ``formSymmetricDifference(_:)-8vcnf``
 
-### Binary Set Predicates
+### Comparing Sets
 
 - ``==(_:_:)``
 - ``isEqual(to:)-5zfpo``
@@ -86,3 +126,7 @@
 - ``isDisjoint(with:)-3klxy``
 - ``isDisjoint(with:)-4uidy``
 - ``isDisjoint(with:)-78a8w``
+
+### Memory Management
+
+- ``reserveCapacity(_:)``
