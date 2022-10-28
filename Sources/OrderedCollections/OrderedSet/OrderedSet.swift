@@ -132,28 +132,24 @@
 ///
 /// However, `OrderedSet` is able to partially implement these two protocols;
 /// namely, there is no issue with mutation operations that merely change the
-/// order of elements, or just remove some subset of existing members:
+/// order of elements, or just remove some subset of existing members.
 ///
-///     // Permutation operations from MutableCollection:
-///     func swapAt(_ i: Int, _ j: Int)
-///     func partition(by predicate: (Element) throws -> Bool) -> rethrows Int
-///     func sort() where Element: Comparable
-///     func sort(by predicate: (Element, Element) throws -> Bool) rethrows
-///     func shuffle()
-///     func shuffle<T: RandomNumberGenerator>(using generator: inout T)
-///     func reverse()
+/// Accordingly, `OrderedSet` provides permutation operations from `MutableCollection`:
+/// - ``swapAt(_:_:)``
+/// - ``partition(by:)``
+/// - ``sort()``, ``sort(by:)``
+/// - ``shuffle()``, ``shuffle(using:)``
+/// - ``reverse()``
 ///
-///     // Removal operations from RangeReplaceableCollection:
-///     func removeAll(keepingCapacity: Bool = false)
-///     func remove(at index: Int) -> Element
-///     func removeSubrange(_ bounds: Range<Int>)
-///     func removeLast() -> Element
-///     func removeLast(_ n: Int)
-///     func removeFirst() -> Element
-///     func removeFirst(_ n: Int)
-///     func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows
+/// It also supports removal operations from `RangeReplaceableCollection`:
+/// - ``removeAll(keepingCapacity:)``
+/// - ``remove(at:)``
+/// - ``removeSubrange(_:)-2fqke``, ``removeSubrange(_:)-62u6a``
+/// - ``removeLast()``, ``removeLast(_:)``
+/// - ``removeFirst()``, ``removeFirst(_:)``
+/// - ``removeAll(where:)``
 ///
-/// `OrderedSet` also implements `reserveCapacity(_)` from
+/// `OrderedSet` also implements ``reserveCapacity(_:)`` from
 /// `RangeReplaceableCollection`, to allow for efficient insertion of a known
 /// number of elements. (However, unlike `Array` and `Set`, `OrderedSet` does
 /// not provide a `capacity` property.)
@@ -175,20 +171,77 @@
 ///     pickyFunction(set.elements) // OK
 ///
 /// It is also possible to mutate the set by updating the value of the
-/// `elements` property. This guarantees that direct mutations happen in place
+/// ``elements`` property. This guarantees that direct mutations happen in place
 /// when possible (i.e., without spurious copy-on-write copies).
 ///
 /// However, the set needs to ensure the uniqueness of its members, so every
-/// update to `elements` includes a postprocessing step to detect and remove
+/// update to ``elements`` includes a postprocessing step to detect and remove
 /// duplicates over the entire array. This can be slower than doing the
 /// equivalent updates with direct `OrderedSet` operations, so updating
-/// `elements` is best used in cases where direct implementations aren't
+/// ``elements`` is best used in cases where direct implementations aren't
 /// available -- for example, when you need to call a `MutableCollection`
 /// algorithm that isn't directly implemented by `OrderedSet` itself.
 ///
 /// # Performance
 ///
-/// Like the standard `Set` type, the performance of hashing operations in
+/// An `OrderedSet` stores its members in a standard `Array` value (exposed by
+/// the ``elements`` property). It also maintains a separate hash table
+/// containing array indices into this array; this hash table is used to ensure
+/// member uniqueness and to implement fast membership tests.
+///
+/// ## Element Lookups
+///
+/// Like the standard `Set`, looking up a member is expected to execute
+/// a constant number of hashing and equality check operations. To look up
+/// an element, `OrderedSet` generates a hash value from it, and then finds a
+/// set of array indices within the hash table that could potentially contain
+/// the element we're looking for. By looking through these indices in the
+/// storage array, `OrderedSet` is able to determine if the element is a member.
+/// As long as `Element` properly implements hashing, the size of this set of
+/// candidate indices is expected to have a constant upper bound, so looking up
+/// an item will be a constant operation.
+///
+/// ## Appending New Items
+///
+/// Similarly, appending a new element to the end of an `OrderedSet` is expected
+/// to require amortized O(1) hashing/comparison/copy operations on the
+/// element type, just like inserting an item into a standard `Set`.
+/// (If the ordered set value has multiple copies, then appending an item will
+/// need to copy all its items into unique storage (again just like the standard
+/// `Set`) -- but once the set has been uniqued, additional appends will only
+/// perform a constant number of operations, so when averaged over many appends,
+/// the overall complexity comes out as O(1).)
+///
+/// ## Removing Items and Inserting in Places Other Than the End
+///
+/// Unfortunately, `OrderedSet` does not emulate `Set`'s performance for all
+/// operations. In particular, operations that insert or remove elements at the
+/// front or in the middle of an ordered set are generally expected to be
+/// significantly slower than with `Set`. To perform these operations, an
+/// `OrderedSet` needs to perform the corresponding operation in the storage
+/// array, and then it needs to renumber all subsequent members in the hash
+/// table. Both of these phases take a number of steps that grows linearly with
+/// the size of the ordered set, while the standard `Set` can do the
+/// corresponding operations with O(1) expected complexity.
+///
+/// This generally makes `OrderedSet` a poor replacement to `Set` in use cases
+/// that do not specifically require a particular element ordering.
+///
+/// ## Memory Utilization
+///
+/// The hash table in an ordered set never needs to store larger indices than
+/// the current size of the storage array, and `OrderedSet` makes use of this
+/// observation to reduce the number of bits it uses to encode these integer
+/// vaues. Additionally, the actual hashed elements are stored in a flat array
+/// value rather than the hash table itself, so they aren't subject to the hash
+/// table's strict maximum load factor. These two observations combine to
+/// optimize the memory utilization of `OrderedSet`, sometimes making it even
+/// more efficient than the standard `Set` -- despite the additional
+/// functionality of preserving element ordering.
+///
+/// ## Proper Hashing is Crucial
+///
+/// Similar to the standard `Set` type, the performance of hashing operations in
 /// `OrderedSet` is highly sensitive to the quality of hashing implemented by
 /// the `Element` type. Failing to correctly implement hashing can easily lead
 /// to unacceptable performance, with the severity of the effect increasing with
@@ -201,37 +254,18 @@
 /// cannot be induced merely by adding a particular list of members to the set.
 ///
 /// The easiest way to achieve this is to make sure `Element` implements hashing
-/// following `Hashable`'s documented best practices. The conformance must
-/// implement the `hash(into:)` requirement, and every bit of information that
-/// is compared in `==` needs to be combined into the supplied `Hasher` value.
-/// When used correctly, `Hasher` produces high-quality, randomly seeded hash
-/// values that prevent repeatable hash collisions.
+/// following `Hashable`'s documented best practices. The `Element` type must
+/// implement the `hash(into:)` requirement (not `hashValue`) in such a way that
+/// every bit of information that is compared in `==` is fed into the supplied
+/// `Hasher` value. When used correctly, `Hasher` produces high-quality,
+/// randomly seeded hash values that prevent repeatable hash collisions and
+/// therefore avoid (intentional or accidental) denial of service attacks.
 ///
-/// When `Element` implements `Hashable` correctly, testing for membership in an
-/// ordered set is expected to take O(1) equality checks on average. Hash
-/// collisions can still occur organically, so the worst-case lookup performance
-/// is technically still O(*n*) (where *n* is the size of the set); however,
-/// long lookup chains are unlikely to occur in practice.
-///
-/// # Implementation Details
-///
-/// An `OrderedSet` stores its members in a regular `Array` value (exposed by
-/// the `elements` property). It also maintains a standalone hash table
-/// containing array indices alongside the array; this is used to implement fast
-/// membership tests. The size of the array is limited by the capacity of the
-/// corresponding hash table, so indices stored inside the hash table can be
-/// encoded into fewer bits than a standard `Int` value, leading to a storage
-/// representation that can often be more compact than that of `Set` itself.
-///
-/// Inserting or removing a single member (or a range of members) needs to
-/// perform the corresponding operation in the storage array, in addition to
-/// renumbering any subsequent members in the hash table. Therefore, these
-/// operations are expected to have performance characteristics similar to an
-/// `Array`: inserting or removing an element to the end of an ordered set is
-/// expected to execute in O(1) operations, while they are expected to take
-/// linear time at the front (or in the middle) of the set. (Note that this is
-/// different to the standard `Set`, where insertions and removals are expected
-/// to take amortized O(1) time.)
+/// Like with all hashed collection types, all complexity guarantees are null
+/// and void if `Element` implements `Hashable` incorrectly. In the worst case,
+/// the hash table can regress into a particularly slow implementation of an
+/// unsorted array, with even basic lookup operations taking complexity
+/// proportional to the size of the set.
 @frozen
 public struct OrderedSet<Element> where Element: Hashable
 {

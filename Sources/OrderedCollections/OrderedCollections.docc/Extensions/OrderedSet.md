@@ -33,7 +33,7 @@
 - ``firstIndex(of:)``
 - ``lastIndex(of:)``
 
-### Adding Elements
+### Adding and Updating Elements
 
 - ``append(_:)``
 - ``append(contentsOf:)``
@@ -134,7 +134,7 @@
 
 ### Creating and Applying Differences
 
-- ``difference(from:)-30bkk``
+- ``difference(from:)``
 - ``applying(_:)``
 
 ### Memory Management
