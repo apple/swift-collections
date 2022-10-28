@@ -168,7 +168,7 @@ class OrderedSetTests: CollectionTestCase {
     do {
       let set: OrderedSet<Int> = [1, 2, 3]
       let mirror = Mirror(reflecting: set)
-      expectEqual(mirror.displayStyle, .collection)
+      expectEqual(mirror.displayStyle, .set)
       expectNil(mirror.superclassMirror)
       expectTrue(mirror.children.compactMap { $0.label }.isEmpty) // No label
       expectEqualElements(mirror.children.map { $0.value as? Int }, set.map { $0 })

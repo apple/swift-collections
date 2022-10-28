@@ -1526,12 +1526,12 @@ final class BitSetTest: CollectionTestCase {
     }
 
     expectEqual(check(BitSet()), """
-      - 0 elements
+      - 0 members
 
       """)
 
     expectEqual(check([1, 2, 3] as BitSet), """
-      ▿ 3 elements
+      ▿ 3 members
         - 1
         - 2
         - 3
