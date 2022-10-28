@@ -44,4 +44,66 @@ class PersistentDictionaryKeysTests: CollectionTestCase {
         "PersistentDictionary<String, Int>.Keys([\"b\", \"a\"])")
     }
   }
+
+  func test_contains() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentDictionary<RawCollider, Int>(
+        uniqueKeysWithValues: a.lazy.map { ($0, 2 * $0.identity) })
+      let u = Set(a)
+
+      func checkSequence<S: Sequence>(
+        _ items: S,
+        _ value: S.Element
+      ) -> Bool
+      where S.Element: Equatable {
+        items.contains(value)
+      }
+
+      withEvery("key", in: testItems) { key in
+        expectEqual(x.keys.contains(key), u.contains(key))
+        expectEqual(checkSequence(x.keys, key), u.contains(key))
+      }
+    }
+  }
+
+  func test_intersection_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentDictionary<RawCollider, Int>(
+        uniqueKeysWithValues: a.lazy.map { ($0, 2 * $0.identity) })
+      let u = Set(a)
+      expectEqualSets(x.keys.intersection(x.keys), u)
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentDictionary<RawCollider, Int>(
+          uniqueKeysWithValues: b.lazy.map { ($0, -$0.identity - 1) })
+        let v = Set(b)
+        let z = PersistentSet(b)
+
+        let reference = u.intersection(v)
+
+        expectEqualSets(x.keys.intersection(y.keys), reference)
+        expectEqualSets(x.keys.intersection(z), reference)
+      }
+    }
+  }
+
+  func test_subtracting_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = PersistentDictionary<RawCollider, Int>(
+        uniqueKeysWithValues: a.lazy.map { ($0, 2 * $0.identity) })
+      let u = Set(a)
+      expectEqualSets(x.keys.subtracting(x.keys), [])
+      withEverySubset("b", of: testItems) { b in
+        let y = PersistentDictionary<RawCollider, Int>(
+          uniqueKeysWithValues: b.lazy.map { ($0, -$0.identity - 1) })
+        let v = Set(b)
+        let z = PersistentSet(b)
+
+        let reference = u.subtracting(v)
+
+        expectEqualSets(x.keys.subtracting(y.keys), reference)
+        expectEqualSets(x.keys.subtracting(z), reference)
+      }
+    }
+  }
+
 }

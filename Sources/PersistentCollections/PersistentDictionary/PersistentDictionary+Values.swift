@@ -33,19 +33,10 @@ extension PersistentDictionary {
   /// A collection containing just the values of the dictionary.
   @inlinable
   public var values: Values {
+    // Note: this property is kept read only for now until we decide whether
+    // it's worth providing setters without a `MutableCollection` conformance.
     get {
       Values(_base: self)
-    }
-    set { // FIXME: Consider removing
-      self = newValue._base
-    }
-    _modify { // FIXME: Consider removing
-      var values = Values(_base: self)
-      self = Self()
-      defer {
-        self = values._base
-      }
-      yield &values
     }
   }
 }
@@ -123,28 +114,12 @@ extension PersistentDictionary.Values: Collection {
 
   @inlinable
   public subscript(index: Index) -> Element {
+    // The subscript is kept read only for now until we decide whether it's
+    // worth providing setters without a `MutableCollection` conformance.
+    // (With the current index implementation, mutating values must invalidate
+    // indices.)
     get {
       _base[index].value
-    }
-    set { // FIXME: Consider removing
-      precondition(_base._isValid(index), "Invalid index")
-      precondition(index._path.isOnItem, "Cannot set value at end index")
-      let (leaf, slot) = _base._root.ensureUnique(level: .top, at: index._path)
-      _UnsafeHandle.update(leaf) { $0[item: slot].value = newValue }
-      _base._invalidateIndices()
-    }
-    _modify { // FIXME: Consider removing
-      precondition(_base._isValid(index), "Invalid index")
-      precondition(index._path.isOnItem, "Cannot set value at end index")
-      let (leaf, slot) = _base._root.ensureUnique(level: .top, at: index._path)
-      var item = _UnsafeHandle.update(leaf) { $0.itemPtr(at: slot).move() }
-      defer {
-        _Node.UnsafeHandle.update(leaf) {
-          $0.itemPtr(at: slot).initialize(to: item)
-        }
-        _base._invalidateIndices()
-      }
-      yield &item.value
     }
   }
 
@@ -178,6 +153,9 @@ extension PersistentDictionary.Values: Collection {
 
 #if false
 extension PersistentDictionary.Values: BidirectionalCollection {
+  // Note: Let's not do this. `BidirectionalCollection` would imply that
+  // the ordering of elements would be meaningful, which isn't true for
+  // `PersistentDictionary.Values`.
   @inlinable
   public func formIndex(before i: inout Index) {
     _base.formIndex(before: &i)

@@ -167,6 +167,9 @@ extension PersistentDictionary.Keys: Collection {
 
 #if false
 extension PersistentDictionary.Keys: BidirectionalCollection {
+  // Note: Let's not do this. `BidirectionalCollection` would imply that
+  // the ordering of elements would be meaningful, which isn't true for
+  // `PersistentDictionary.Keys`.
   @inlinable
   public func formIndex(before i: inout Index) {
     _base.formIndex(before: &i)
@@ -180,15 +183,103 @@ extension PersistentDictionary.Keys: BidirectionalCollection {
 #endif
 
 extension PersistentDictionary.Keys {
-  public func intersection(_ other: Self) -> Self {
+  /// Returns a new keys view with the elements that are common to both this
+  /// view and the provided other one.
+  ///
+  ///     var a: PersistentDictionary = ["a": 1, "b": 2, "c": 3]
+  ///     let b: PersistentDictionary = ["b": 4, "d": 5, "e": 6]
+  ///     let c = a.keys.intersection(b.keys)
+  ///     // `c` is `["b"]`
+  ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
+  ///
+  /// - Parameter other: The keys view of a persistent dictionary with the same
+  ///    `Key` type.
+  ///
+  /// - Complexity: Expected complexity is O(`self.count`) in
+  ///     the worst case, if `Element` properly implements hashing.
+  ///     However, the implementation is careful to make the best use of
+  ///     hash tree structure to minimize work when possible, e.g. by linking
+  ///     parts of the input trees directly into the result.
+  public func intersection<Value2>(
+    _ other: PersistentDictionary<Key, Value2>.Keys
+  ) -> Self {
     guard let r = _base._root.intersection(.top, other._base._root) else {
       return self
     }
     return PersistentDictionary(_new: r).keys
   }
 
-  public func subtracting(_ other: Self) -> Self {
+  /// Returns a new keys view with the elements that are common to both this
+  /// view and the provided persistent set.
+  ///
+  ///     var a: PersistentDictionary = ["a": 1, "b": 2, "c": 3]
+  ///     let b: PersistentSet = ["b", "d", "e"]
+  ///     let c = a.keys.intersection(b)
+  ///     // `c` is `["b"]`
+  ///
+  /// The result will only contain instances that were originally in `self`.
+  /// (This matters if equal members can be distinguished by comparing their
+  /// identities, or by some other means.)
+  ///
+  /// - Parameter other: A persistent set whose `Element` type is `Key`.
+  ///
+  /// - Complexity: Expected complexity is O(`self.count`) in
+  ///     the worst case, if `Element` properly implements hashing.
+  ///     However, the implementation is careful to make the best use of
+  ///     hash tree structure to minimize work when possible, e.g. by linking
+  ///     parts of the input trees directly into the result.
+  public func intersection(_ other: PersistentSet<Key>) -> Self {
+    guard let r = _base._root.intersection(.top, other._root) else {
+      return self
+    }
+    return PersistentDictionary(_new: r).keys
+  }
+
+  /// Returns a new keys view containing the elements of `self` that do not
+  /// occur in the provided other one.
+  ///
+  ///     var a: PersistentDictionary = ["a": 1, "b": 2, "c": 3]
+  ///     let b: PersistentDictionary = ["b": 4, "d": 5, "e": 6]
+  ///     let c = a.keys.subtracting(b.keys)
+  ///     // `c` is some permutation of `["a", "c"]`
+  ///
+  /// - Parameter other: The keys view of a persistent dictionary with the same
+  ///    `Key` type.
+  ///
+  /// - Complexity: Expected complexity is O(`self.count`) in
+  ///     the worst case, if `Element` properly implements hashing.
+  ///     However, the implementation is careful to make the best use of
+  ///     hash tree structure to minimize work when possible, e.g. by linking
+  ///     parts of the input trees directly into the result.
+  public func subtracting<Value2>(
+    _ other: PersistentDictionary<Key, Value2>.Keys
+  ) -> Self {
     guard let r = _base._root.subtracting(.top, other._base._root) else {
+      return self
+    }
+    return PersistentDictionary(_new: r).keys
+  }
+
+  /// Returns a new keys view containing the elements of `self` that do not
+  /// occur in the provided persistent set.
+  ///
+  ///     var a: PersistentDictionary = ["a": 1, "b": 2, "c": 3]
+  ///     let b: PersistentSet = ["b", "d", "e"]
+  ///     let c = a.keys.subtracting(b)
+  ///     // `c` is some permutation of `["a", "c"]`
+  ///
+  /// - Parameter other: A persistent set whose `Element` type is `Key`.
+  ///
+  /// - Complexity: Expected complexity is O(`self.count`) in
+  ///     the worst case, if `Element` properly implements hashing.
+  ///     However, the implementation is careful to make the best use of
+  ///     hash tree structure to minimize work when possible, e.g. by linking
+  ///     parts of the input trees directly into the result.
+  public func subtracting(_ other: PersistentSet<Key>) -> Self {
+    guard let r = _base._root.subtracting(.top, other._root) else {
       return self
     }
     return PersistentDictionary(_new: r).keys
