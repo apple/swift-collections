@@ -56,6 +56,7 @@ add_library(BitCollections
   "BitSet/BitSet+SetAlgebra subtracting.swift"
   "BitSet/BitSet+SetAlgebra symmetricDifference.swift"
   "BitSet/BitSet+SetAlgebra union.swift"
+  "BitSet/BitSet+Sorted Collection APIs.swift"
   "BitSet/BitSet.Counted.swift"
   "BitSet/BitSet.Index.swift"
   "BitSet/BitSet._UnsafeHandle.swift"
