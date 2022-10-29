@@ -25,7 +25,8 @@ extension LifetimeTracker {
     let k = Array(keys)
     let keys = self.instances(for: k)
     let values = self.instances(for: k.map { $0 + 100 })
-    let dictionary = PersistentDictionary(uniqueKeys: keys, values: values)
+    let dictionary = PersistentDictionary(
+      uniqueKeysWithValues: zip(keys, values))
     return (dictionary, keys, values)
   }
 }
@@ -144,18 +145,18 @@ func expectEqualSets<Element: Hashable>(
     file: file, line: line)
 }
 
-func expectEqualSets<Element: Hashable>(
-  _ set: PersistentSet<Element>,
-  _ ref: Set<Element>,
+func expectEqualSets<C: Collection>(
+  _ set: C,
+  _ ref: Set<C.Element>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #file,
   line: UInt = #line
 ) {
   var ref = ref
-  var seen: Set<Element> = []
-  var extras: [Element] = []
-  var dupes: [Element: Int] = [:]
+  var seen: Set<C.Element> = []
+  var extras: [C.Element] = []
+  var dupes: [C.Element: Int] = [:]
   for item in set {
     if !seen.insert(item).inserted {
       dupes[item, default: 1] += 1

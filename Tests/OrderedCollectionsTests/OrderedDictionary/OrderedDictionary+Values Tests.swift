@@ -25,6 +25,18 @@ class OrderedDictionaryValueTests: CollectionTestCase {
     expectEqualElements(d.values, [1, 2, 3, 4])
   }
 
+  func test_descriptions() {
+    let d: OrderedDictionary = [
+      "a": 1,
+      "b": 2
+    ]
+
+    expectEqual(d.values.description, "[1, 2]")
+    expectEqual(
+      d.values.debugDescription,
+      "OrderedDictionary<String, Int>.Keys([1, 2])")
+  }
+
   func test_values_RandomAccessCollection() {
     withEvery("count", in: 0 ..< 30) { count in
       let keys = 0 ..< count

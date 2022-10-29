@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension OrderedDictionary {
   /// A view of an ordered dictionary's values as a standalone collection.
   @frozen
@@ -28,6 +30,23 @@ extension OrderedDictionary {
 extension OrderedDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
 #endif
+
+extension OrderedDictionary.Values: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    _arrayDescription(for: self)
+  }
+}
+
+extension OrderedDictionary.Values: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _arrayDescription(
+      for: self,
+      debug: true,
+      typeName: "OrderedDictionary<\(Key.self), \(Value.self)>.Keys")
+  }
+}
 
 extension OrderedDictionary.Values {
   /// A read-only view of the contents of this collection as an array value.

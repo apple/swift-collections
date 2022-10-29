@@ -4,7 +4,7 @@
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "NO">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -104,20 +104,6 @@
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "NO"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SortedCollectionsTests"
-               BuildableName = "SortedCollectionsTests"
-               BlueprintName = "SortedCollectionsTests"
-               ReferencedContainer = "container:..">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -181,9 +167,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "SortedCollectionsTests"
-               BuildableName = "SortedCollectionsTests"
-               BlueprintName = "SortedCollectionsTests"
+               BlueprintIdentifier = "HeapTests"
+               BuildableName = "HeapTests"
+               BlueprintName = "HeapTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>

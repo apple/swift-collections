@@ -152,11 +152,23 @@ class OrderedSetTests: CollectionTestCase {
     expectEqual(c.debugDescription, "OrderedSet<Int>([0, 1, 2, 3, 4])")
   }
 
+  func test_SubSequence_descriptions() {
+    let s: OrderedSet = [0, 1, 2, 3]
+
+    let slice = s[1 ..< 3]
+
+    expectEqual(slice.description, "[1, 2]")
+    expectEqual(
+      slice.debugDescription,
+      "OrderedSet<Int>.SubSequence([1, 2])")
+
+  }
+
   func test_customReflectable() {
     do {
       let set: OrderedSet<Int> = [1, 2, 3]
       let mirror = Mirror(reflecting: set)
-      expectEqual(mirror.displayStyle, .collection)
+      expectEqual(mirror.displayStyle, .set)
       expectNil(mirror.superclassMirror)
       expectTrue(mirror.children.compactMap { $0.label }.isEmpty) // No label
       expectEqualElements(mirror.children.map { $0.value as? Int }, set.map { $0 })
@@ -940,6 +952,9 @@ class OrderedSetTests: CollectionTestCase {
       let actual1 = u1.union(u2)
       expectEqualElements(actual1, expected)
 
+      let actual1u = u1.union(u2.unordered)
+      expectEqualElements(actual1u, expected)
+
       let actual2 = actual1.union(u2).union(u1)
       expectEqualElements(actual2, expected)
     }
@@ -965,6 +980,26 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_formUnion_UnorderedView() {
+    withSampleRanges { r1, r2 in
+      let expected = Set(r1).union(r2).sorted()
+
+      var res: OrderedSet<Int> = []
+
+      let u1 = OrderedSet(r1)
+      res.formUnion(u1.unordered)
+      expectEqualElements(res, r1)
+
+      let u2 = OrderedSet(r2)
+      res.formUnion(u2.unordered)
+      expectEqualElements(res, expected)
+
+      res.formUnion(u1.unordered)
+      res.formUnion(u2.unordered)
+      expectEqualElements(res, expected)
+    }
+  }
+
   func test_union_generic() {
     withSampleRanges { r1, r2 in
       let expected = Set(r1).union(r2).sorted()
@@ -974,6 +1009,13 @@ class OrderedSetTests: CollectionTestCase {
 
       let u3 = u2.union(r1)
       expectEqualElements(u3, expected)
+
+      let a = Array(r2)
+      let actual3 = u1.union(a)
+      expectEqualElements(actual3, expected)
+
+      let actual4 = u1.union(a + a)
+      expectEqualElements(actual4, expected)
     }
   }
 
@@ -1004,6 +1046,9 @@ class OrderedSetTests: CollectionTestCase {
       let actual1 = u1.intersection(u2)
       expectEqualElements(actual1, expected)
 
+      let actual1u = u1.intersection(u2.unordered)
+      expectEqualElements(actual1u, expected)
+
       let actual2 = actual1.intersection(r1)
       expectEqualElements(actual2, expected)
     }
@@ -1026,6 +1071,23 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_formIntersection_UnorderedView() {
+    withSampleRanges { r1, r2 in
+      let expected = Set(r1).intersection(r2).sorted()
+
+      let u1 = OrderedSet(r1)
+      let u2 = OrderedSet(r2)
+      var res = u1
+      res.formIntersection(u2.unordered)
+      expectEqualElements(res, expected)
+      expectEqualElements(u1, r1)
+
+      res.formIntersection(u1.unordered)
+      res.formIntersection(u2.unordered)
+      expectEqualElements(res, expected)
+    }
+  }
+
   func test_intersection_generic() {
     withSampleRanges { r1, r2 in
       let expected = Set(r1).intersection(r2).sorted()
@@ -1036,6 +1098,13 @@ class OrderedSetTests: CollectionTestCase {
 
       let actual2 = actual1.intersection(r1).intersection(r2)
       expectEqualElements(actual2, expected)
+
+      let a = Array(r2)
+      let actual3 = u1.intersection(a)
+      expectEqualElements(actual3, expected)
+
+      let actual4 = u1.intersection(a + a)
+      expectEqualElements(actual4, expected)
     }
   }
 
@@ -1062,6 +1131,9 @@ class OrderedSetTests: CollectionTestCase {
       let actual1 = u1.symmetricDifference(u2)
       expectEqualElements(actual1, expected)
 
+      let actual1u = u1.symmetricDifference(u2.unordered)
+      expectEqualElements(actual1u, expected)
+
       let actual2 = actual1.symmetricDifference(u1).symmetricDifference(u2)
       expectEqual(actual2.count, 0)
     }
@@ -1084,6 +1156,23 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_formSymmetricDifference_UnorderedView() {
+    withSampleRanges { r1, r2 in
+      let expected = Set(r1).symmetricDifference(r2).sorted()
+
+      let u1 = OrderedSet(r1)
+      let u2 = OrderedSet(r2)
+      var res = u1
+      res.formSymmetricDifference(u2.unordered)
+      expectEqualElements(res, expected)
+      expectEqualElements(u1, r1)
+
+      res.formSymmetricDifference(u1.unordered)
+      res.formSymmetricDifference(u2.unordered)
+      expectEqual(res.count, 0)
+    }
+  }
+
   func test_symmetricDifference_generic() {
     withSampleRanges { r1, r2 in
       let expected = Set(r1).symmetricDifference(r2).sorted()
@@ -1094,6 +1183,13 @@ class OrderedSetTests: CollectionTestCase {
 
       let actual2 = actual1.symmetricDifference(r1).symmetricDifference(r2)
       expectEqual(actual2.count, 0)
+
+      let a = Array(r2)
+      let actual3 = u1.symmetricDifference(a)
+      expectEqualElements(actual3, expected)
+
+      let actual4 = u1.symmetricDifference(a + a)
+      expectEqualElements(actual4, expected)
     }
   }
 
@@ -1120,6 +1216,9 @@ class OrderedSetTests: CollectionTestCase {
       let actual1 = u1.subtracting(u2)
       expectEqualElements(actual1, expected)
 
+      let actual1u = u1.subtracting(u2.unordered)
+      expectEqualElements(actual1u, expected)
+
       let actual2 = actual1.subtracting(u2)
       expectEqualElements(actual2, expected)
     }
@@ -1141,6 +1240,22 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_subtract_UnorderedView() {
+    withSampleRanges { r1, r2 in
+      let expected = Set(r1).subtracting(r2).sorted()
+
+      let u1 = OrderedSet(r1)
+      let u2 = OrderedSet(r2)
+      var res = u1
+      res.subtract(u2.unordered)
+      expectEqualElements(res, expected)
+      expectEqualElements(u1, r1)
+
+      res.subtract(u2.unordered)
+      expectEqualElements(res, expected)
+    }
+  }
+
   func test_subtracting_generic() {
     withSampleRanges { r1, r2 in
       let expected = Set(r1).subtracting(r2).sorted()
@@ -1151,6 +1266,13 @@ class OrderedSetTests: CollectionTestCase {
 
       let actual2 = actual1.subtracting(r2)
       expectEqualElements(actual2, expected)
+
+      let a = Array(r2)
+      let actual3 = u1.subtracting(a)
+      expectEqualElements(actual3, expected)
+
+      let actual4 = u1.subtracting(a + a)
+      expectEqualElements(actual4, expected)
     }
   }
 

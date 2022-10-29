@@ -70,7 +70,6 @@ public protocol SetAPIChecker {
 
 extension Set: SetAPIChecker {}
 
-
 public protocol SetAPIExtras: SetAPIChecker {
   // Non-standard extensions
 

@@ -62,6 +62,18 @@ extension Benchmark {
     }
 
     self.add(
+      title: "Set<Int> sequential iteration, indices",
+      input: Int.self
+    ) { size in
+      let set = Set(0 ..< size)
+      return { timer in
+        for i in set.indices {
+          blackHole(set[i])
+        }
+      }
+    }
+
+    self.add(
       title: "Set<Int> successful contains",
       input: ([Int], [Int]).self
     ) { input, lookups in
@@ -111,6 +123,35 @@ extension Benchmark {
       blackHole(set)
     }
 
+    self.addSimple(
+      title: "Set<Int> insert, shared",
+      input: [Int].self
+    ) { input in
+      var set: Set<Int> = []
+      for i in input {
+        let copy = set
+        set.insert(i)
+        blackHole(copy)
+      }
+      precondition(set.count == input.count)
+      blackHole(set)
+    }
+
+    self.add(
+      title: "Set<Int> insert one + subtract, shared",
+      input: [Int].self
+    ) { input in
+      let original = Set(input)
+      let newMember = input.count
+      return { timer in
+        var copy = original
+        copy.insert(newMember)
+        let diff = copy.subtracting(original)
+        precondition(diff.count == 1 && diff.first == newMember)
+        blackHole(copy)
+      }
+    }
+
     self.add(
       title: "Set<Int> remove",
       input: ([Int], [Int]).self
@@ -119,6 +160,22 @@ extension Benchmark {
         var set = Set(input)
         for i in removals {
           set.remove(i)
+        }
+        precondition(set.isEmpty)
+        blackHole(set)
+      }
+    }
+
+    self.add(
+      title: "Set<Int> remove, shared",
+      input: ([Int], [Int]).self
+    ) { input, removals in
+      return { timer in
+        var set = Set(input)
+        for i in removals {
+          let copy = set
+          set.remove(i)
+          blackHole(copy)
         }
         precondition(set.isEmpty)
         blackHole(set)
@@ -392,6 +449,5 @@ extension Benchmark {
         }
       }
     }
-
   }
 }

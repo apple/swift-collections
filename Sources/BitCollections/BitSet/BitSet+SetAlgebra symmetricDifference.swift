@@ -22,7 +22,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public __consuming func symmetricDifference(_ other: __owned Self) -> Self {
+  public func symmetricDifference(_ other: Self) -> Self {
     self._read { first in
       other._read { second in
         Self(
@@ -31,6 +31,39 @@ extension BitSet {
           using: { $0.symmetricDifference($1) })
       }
     }
+  }
+
+  /// Returns a new bit set with the elements that are either in this set or in
+  /// `other`, but not in both.
+  ///
+  ///     let set: BitSet = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [6, 4, 2, 0]
+  ///     set.symmetricDifference(other) // [0, 1, 3, 6]
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public func symmetricDifference(_ other: Counted) -> Self {
+    symmetricDifference(other._bits)
+  }
+
+  /// Returns a new bit set with the elements that are either in this set or in
+  /// `other`, but not in both.
+  ///
+  ///     let set: BitSet = [1, 2, 3, 4]
+  ///     set.formSymmetricDifference(3 ..< 7) // [1, 2, 5, 6]
+  ///
+  /// - Parameter other: A range of nonnegative integers.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public func symmetricDifference(_ other: Range<Int>) -> Self {
+    var result = self
+    result.formSymmetricDifference(other)
+    return result
   }
 
   /// Returns a new bit set with the elements that are either in this set or in
@@ -46,7 +79,7 @@ extension BitSet {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public __consuming func symmetricDifference<S: Sequence>(
+  public func symmetricDifference<S: Sequence>(
     _ other: __owned S
   ) -> Self
   where S.Element == Int
@@ -54,23 +87,7 @@ extension BitSet {
     if S.self == Range<Int>.self {
       return symmetricDifference(other as! Range<Int>)
     }
+    // Note: BitSet & BitSet.Counted are handled in the BitSet initializer below
     return symmetricDifference(BitSet(other))
-  }
-
-  /// Returns a new bit set with the elements that are either in this set or in
-  /// `other`, but not in both.
-  ///
-  ///     let set: BitSet = [1, 2, 3, 4]
-  ///     set.formSymmetricDifference(3 ..< 7) // [1, 2, 5, 6]
-  ///
-  /// - Parameter other: A range of nonnegative integers.
-  ///
-  /// - Returns: A new set.
-  ///
-  /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public __consuming func symmetricDifference(_ other: Range<Int>) -> Self {
-    var result = self
-    result.formSymmetricDifference(other)
-    return result
   }
 }

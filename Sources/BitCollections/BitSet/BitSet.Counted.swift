@@ -188,12 +188,14 @@ extension BitSet.Counted: Codable {
 }
 
 extension BitSet.Counted: CustomStringConvertible {
+  // A textual representation of this instance.
   public var description: String {
     _bits.description
   }
 }
 
 extension BitSet.Counted: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
     _bits._debugDescription(typeName: "BitSet.Counted")
   }
@@ -256,14 +258,50 @@ extension BitSet.Counted { // Extras
     _bits[members: bounds]
   }
 
-  public func sorted() -> BitSet.Counted { self }
-}
+  public mutating func remove(at index: Index) -> Int {
+    defer { self._count &-= 1 }
+    return _bits.remove(at: index)
+  }
 
-extension BitSet.Counted {
   public func filter(
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
     BitSet.Counted(try _bits.filter(isIncluded))
+  }
+}
+
+extension BitSet.Counted: _SortedCollection {
+  /// Returns the current set (already sorted).
+  ///
+  /// - Complexity: O(1)
+  public func sorted() -> BitSet.Counted { self }
+
+  /// Returns the minimum element in this set.
+  ///
+  /// Bit sets are sorted, so the minimum element is always at the first
+  /// position in the set.
+  ///
+  /// - Returns: The bit set's minimum element. If the sequence has no
+  ///   elements, returns `nil`.
+  ///
+  /// - Complexity: O(1)
+  @warn_unqualified_access
+  public func min() -> Element? {
+    first
+  }
+
+  /// Returns the maximum element in this set.
+  ///
+  /// Bit sets are sorted, so the maximum element is always at the last
+  /// position in the set.
+  ///
+  /// - Returns: The bit set's maximum element. If the sequence has no
+  ///   elements, returns `nil`.
+  ///
+  /// - Complexity: O(1)
+  @warn_unqualified_access
+  public func max() -> Element? {
+    last
   }
 }
 
@@ -308,112 +346,332 @@ extension BitSet.Counted: SetAlgebra {
 }
 
 extension BitSet.Counted {
-  public func union(_ other: __owned BitSet.Counted) -> BitSet.Counted {
-    Self(_bits.union(other))
+  /// Returns a new set with the elements of both this and the given set.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [0, 2, 4, 6]
+  ///     set.union(other) // [0, 1, 2, 3, 4, 6]
+  ///
+  /// - Parameter other: The set of elements to insert.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public func union(_ other: BitSet.Counted) -> BitSet.Counted {
+    _bits.union(other).counted
   }
 
-  public func union(_ other: __owned BitSet) -> BitSet.Counted {
-    Self(_bits.union(other))
+  /// Returns a new set with the elements of both this and the given set.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.union(other) // [0, 1, 2, 3, 4, 6]
+  ///
+  /// - Parameter other: The set of elements to insert.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public func union(_ other: BitSet) -> BitSet.Counted {
+    _bits.union(other).counted
   }
 
+  /// Returns a new set with the elements of both this set and the given
+  /// range of integers.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.union(3 ..< 7) // [1, 2, 3, 4, 5, 6]
+  ///
+  /// - Parameter other: A range of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public func union(_ other: Range<Int>) -> BitSet.Counted {
-    Self(_bits.union(other))
+    _bits.union(other).counted
   }
 
+  /// Returns a new set with the elements of both this set and the given
+  /// sequence of integers.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, 2, 0]
+  ///     set.union(other) // [0, 1, 2, 3, 4, 6]
+  ///
+  /// - Parameter other: A sequence of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in either
+  ///    input, and *k* is the complexity of iterating over all elements in
+  ///    `other`.
   @inlinable
-  public __consuming func union<S: Sequence>(
+  public func union<S: Sequence>(
     _ other: __owned S
   ) -> Self
   where S.Element == Int {
-    Self(_bits.union(other))
+    _bits.union(other).counted
   }
 }
 
 extension BitSet.Counted {
+  /// Returns a new bit set with the elements that are common to both this set
+  /// and the given set.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet.Counted = [6, 4, 2, 0]
+  ///     let c = a.intersection(b)
+  ///     // c is now [2, 4]
+  ///
+  /// - Parameter other: A bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
   public func intersection(_ other: BitSet.Counted) -> BitSet.Counted {
-    Self(_bits.intersection(other))
+    _bits.intersection(other).counted
   }
 
-  public func intersection(_ other: __owned BitSet) -> BitSet.Counted {
-    Self(_bits.intersection(other))
+  /// Returns a new bit set with the elements that are common to both this set
+  /// and the given set.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet = [6, 4, 2, 0]
+  ///     let c = a.intersection(b)
+  ///     // c is now [2, 4]
+  ///
+  /// - Parameter other: A bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public func intersection(_ other: BitSet) -> BitSet.Counted {
+    _bits.intersection(other).counted
   }
 
+  /// Returns a new bit set with the elements that are common to both this set
+  /// and the given range of integers.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let c = a.intersection(-10 ..< 3)
+  ///     // c is now [3, 4]
+  ///
+  /// - Parameter other: A range of integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   public func intersection(_ other: Range<Int>) -> BitSet.Counted {
-    Self(_bits.intersection(other))
+    _bits.intersection(other).counted
   }
 
+  /// Returns a new bit set with the elements that are common to both this set
+  /// and the given sequence.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b = [6, 4, 2, 0]
+  ///     let c = a.intersection(b)
+  ///     // c is now [2, 4]
+  ///
+  /// - Parameter other: A sequence of integer values.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public __consuming func intersection<S: Sequence>(
+  public func intersection<S: Sequence>(
     _ other: __owned S
   ) -> Self
   where S.Element == Int {
-    Self(_bits.intersection(other))
+    _bits.intersection(other).counted
   }
 }
 
 extension BitSet.Counted {
-  public func symmetricDifference(_ other: __owned BitSet.Counted) -> BitSet.Counted {
-    Self(_bits.symmetricDifference(other))
+  /// Returns a new bit set with the elements that are either in this set or in
+  /// `other`, but not in both.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [6, 4, 2, 0]
+  ///     set.symmetricDifference(other) // [0, 1, 3, 6]
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public func symmetricDifference(_ other: BitSet.Counted) -> BitSet.Counted {
+    _bits.symmetricDifference(other).counted
   }
 
-  public func symmetricDifference(_ other: __owned BitSet) -> BitSet.Counted {
-    Self(_bits.symmetricDifference(other))
+  /// Returns a new bit set with the elements that are either in this set or in
+  /// `other`, but not in both.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [6, 4, 2, 0]
+  ///     set.symmetricDifference(other) // [0, 1, 3, 6]
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public func symmetricDifference(_ other: BitSet) -> BitSet.Counted {
+    _bits.symmetricDifference(other).counted
   }
 
+  /// Returns a new bit set with the elements that are either in this set or in
+  /// `other`, but not in both.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.formSymmetricDifference(3 ..< 7) // [1, 2, 5, 6]
+  ///
+  /// - Parameter other: A range of nonnegative integers.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public func symmetricDifference(_ other: Range<Int>) -> BitSet.Counted {
-    Self(_bits.symmetricDifference(other))
+    _bits.symmetricDifference(other).counted
   }
 
+  /// Returns a new bit set with the elements that are either in this set or in
+  /// `other`, but not in both.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, 2, 0]
+  ///     set.formSymmetricDifference(other) // [0, 1, 3, 6]
+  ///
+  /// - Parameter other: A sequence of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in either
+  ///    input, and *k* is the complexity of iterating over all elements in
+  ///    `other`.
   @inlinable
-  public __consuming func symmetricDifference<S: Sequence>(
+  public func symmetricDifference<S: Sequence>(
     _ other: __owned S
   ) -> Self
   where S.Element == Int {
-    Self(_bits.symmetricDifference(other))
+    _bits.symmetricDifference(other).counted
   }
 }
 
 extension BitSet.Counted {
-  public func subtracting(_ other: __owned BitSet.Counted) -> BitSet.Counted {
-    Self(_bits.subtracting(other))
+  /// Returns a new set containing the elements of this set that do not occur
+  /// in the given other set.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [0, 2, 4, 6]
+  ///     set.subtracting(other) // [1, 3]
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public func subtracting(_ other: BitSet.Counted) -> BitSet.Counted {
+    _bits.subtracting(other).counted
   }
 
-  public func subtracting(_ other: __owned BitSet) -> BitSet.Counted {
-    Self(_bits.subtracting(other))
+  /// Returns a new set containing the elements of this set that do not occur
+  /// in the given other set.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.subtracting(other) // [1, 3]
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public func subtracting(_ other: BitSet) -> BitSet.Counted {
+    _bits.subtracting(other).counted
   }
 
+  /// Returns a new set containing the elements of this set that do not occur
+  /// in the given range of integers.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.subtracting(-10 ..< 3) // [3, 4]
+  ///
+  /// - Parameter other: A range of arbitrary integers.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in self.
   public func subtracting(_ other: Range<Int>) -> BitSet.Counted {
-    Self(_bits.subtracting(other))
+    _bits.subtracting(other).counted
   }
 
+  /// Returns a new set containing the elements of this set that do not occur
+  /// in the given sequence of integers.
+  ///
+  ///     let set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, -2, -4]
+  ///     set.subtracting(other) // [1, 3]
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public __consuming func subtracting<S: Sequence>(
+  public func subtracting<S: Sequence>(
     _ other: __owned S
   ) -> Self
   where S.Element == Int {
-    Self(_bits.subtracting(other))
+    _bits.subtracting(other).counted
   }
 }
 
 extension BitSet.Counted {
-  public mutating func formUnion(_ other: __owned BitSet.Counted) {
+  /// Adds the elements of the given set to this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [0, 2, 4, 6]
+  ///     set.formUnion(other)
+  ///     // `set` is now `[0, 1, 2, 3, 4, 6]`
+  ///
+  /// - Parameter other: The set of elements to insert.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public mutating func formUnion(_ other: BitSet.Counted) {
     _bits.formUnion(other._bits)
     _count = _bits.count
     _checkInvariants()
   }
 
-  public mutating func formUnion(_ other: __owned BitSet) {
+  /// Adds the elements of the given set to this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.formUnion(other)
+  ///     // `set` is now `[0, 1, 2, 3, 4, 6]`
+  ///
+  /// - Parameter other: The set of elements to insert.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public mutating func formUnion(_ other: BitSet) {
     _bits.formUnion(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Adds the elements of the given range of integers to this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.formUnion(3 ..< 7)
+  ///     // `set` is now `[1, 2, 3, 4, 5, 6]`
+  ///
+  /// - Parameter other: A range of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func formUnion(_ other: Range<Int>) {
     _bits.formUnion(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Adds the elements of the given sequence to this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, 2, 0]
+  ///     set.formUnion(other)
+  ///     // `set` is now `[0, 1, 2, 3, 4, 6]`
+  ///
+  /// - Parameter other: A sequence of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in either
+  ///    input, and *k* is the complexity of iterating over all elements in
+  ///    `other`.
   @inlinable
   public mutating func formUnion<S: Sequence>(
     _ other: __owned S
@@ -425,24 +683,64 @@ extension BitSet.Counted {
 }
 
 extension BitSet.Counted {
+  /// Removes the elements of this set that aren't also in the given one.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [0, 2, 4, 6]
+  ///     set.formIntersection(other)
+  ///     // set is now [2, 4]
+  ///
+  /// - Parameter other: A bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
   public mutating func formIntersection(_ other: BitSet.Counted) {
     _bits.formIntersection(other._bits)
     _count = _bits.count
     _checkInvariants()
   }
 
-  public mutating func formIntersection(_ other: __owned BitSet) {
+  /// Removes the elements of this set that aren't also in the given one.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.formIntersection(other)
+  ///     // set is now [2, 4]
+  ///
+  /// - Parameter other: A bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public mutating func formIntersection(_ other: BitSet) {
     _bits.formIntersection(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Removes the elements of this set that aren't also in the given range.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.formIntersection(-10 ..< 3)
+  ///     // set is now [3, 4]
+  ///
+  /// - Parameter other: A range of integers.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public mutating func formIntersection(_ other: Range<Int>) {
     _bits.formIntersection(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Removes the elements of this set that aren't also in the given sequence.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: Set<Int> = [6, 4, 2, 0]
+  ///     set.formIntersection(other)
+  ///     // set is now [2, 4]
+  ///
+  /// - Parameter other: A sequence of integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///     and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public mutating func formIntersection<S: Sequence>(
     _ other: __owned S
@@ -454,24 +752,69 @@ extension BitSet.Counted {
 }
 
 extension BitSet.Counted {
-  public mutating func formSymmetricDifference(_ other: __owned BitSet.Counted) {
+  /// Replace this set with the elements contained in this set or the given
+  /// set, but not both.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [0, 2, 4, 6]
+  ///     set.formSymmetricDifference(other)
+  ///     // set is now [0, 1, 3, 6]
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public mutating func formSymmetricDifference(_ other: BitSet.Counted) {
     _bits.formSymmetricDifference(other._bits)
     _count = _bits.count
     _checkInvariants()
   }
 
-  public mutating func formSymmetricDifference(_ other: __owned BitSet) {
+  /// Replace this set with the elements contained in this set or the given
+  /// set, but not both.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.formSymmetricDifference(other)
+  ///     // set is now [0, 1, 3, 6]
+  ///
+  /// - Parameter other: Another set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either set.
+  public mutating func formSymmetricDifference(_ other: BitSet) {
     _bits.formSymmetricDifference(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Replace this set with the elements contained in this set or the given
+  /// range of integers, but not both.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.formSymmetricDifference(3 ..< 7)
+  ///     // set is now [1, 2, 5, 6]
+  ///
+  /// - Parameter other: A range of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public mutating func formSymmetricDifference(_ other: Range<Int>) {
     _bits.formSymmetricDifference(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Replace this set with the elements contained in this set or the given
+  /// sequence, but not both.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, 2, 0]
+  ///     set.formSymmetricDifference(other)
+  ///     // set is now [0, 1, 3, 6]
+  ///
+  /// - Parameter other: A sequence of nonnegative integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in either
+  ///    input, and *k* is the complexity of iterating over all elements in
+  ///    `other`.
   @inlinable
   public mutating func formSymmetricDifference<S: Sequence>(
     _ other: __owned S
@@ -483,24 +826,66 @@ extension BitSet.Counted {
 }
 
 extension BitSet.Counted {
-  public mutating func subtract(_ other: __owned BitSet.Counted) {
+  /// Removes the elements of the given bit set from this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet.Counted = [0, 2, 4, 6]
+  ///     set.subtract(other)
+  ///     // set is now [1, 3]
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public mutating func subtract(_ other: BitSet.Counted) {
     _bits.subtract(other._bits)
     _count = _bits.count
     _checkInvariants()
   }
 
-  public mutating func subtract(_ other: __owned BitSet) {
+  /// Removes the elements of the given bit set from this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other: BitSet = [0, 2, 4, 6]
+  ///     set.subtract(other)
+  ///     // set is now [1, 3]
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
+  public mutating func subtract(_ other: BitSet) {
     _bits.subtract(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Removes the elements of the given range of integers from this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     set.subtract(-10 ..< 3)
+  ///     // set is now [3, 4]
+  ///
+  /// - Parameter other: A range of arbitrary integers.
+  ///
+  /// - Returns: A new set.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in self.
   public mutating func subtract(_ other: Range<Int>) {
     _bits.subtract(other)
     _count = _bits.count
     _checkInvariants()
   }
 
+  /// Removes the elements of the given sequence of integers from this set.
+  ///
+  ///     var set: BitSet.Counted = [1, 2, 3, 4]
+  ///     let other = [6, 4, 2, 0, -2, -4]
+  ///     set.subtract(other)
+  ///     // set is now [1, 3]
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public mutating func subtract<S: Sequence>(
     _ other: __owned S
@@ -512,65 +897,311 @@ extension BitSet.Counted {
 }
 
 extension BitSet.Counted {
+  /// Returns a Boolean value indicating whether two bit sets are equal. Two
+  /// bit sets are considered equal if they contain the same elements.
+  ///
+  /// - Complexity: O(*max*), where *max* is value of the largest member of
+  ///     either set.
+  public func isEqual(to other: Self) -> Bool {
+    guard self.count == other.count else { return false }
+    return self._bits.isEqual(to: other._bits)
+  }
+
+  /// Returns a Boolean value indicating whether a bit set is equal to a counted
+  /// bit set, i.e., whether they contain the same values.
+  ///
+  /// - Complexity: O(*max*), where *max* is value of the largest member of
+  ///     either set.
+  public func isEqual(to other: BitSet) -> Bool {
+    self._bits.isEqual(to: other)
+  }
+
+  /// Returns a Boolean value indicating whether a bit set is equal to a range
+  /// of integers, i.e., whether they contain the same values.
+  ///
+  /// - Complexity: O(min(*max*, `other.upperBound`), where *max* is the largest
+  ///    member of `self`.
+  public func isEqual(to other: Range<Int>) -> Bool {
+    guard self.count == other.count else { return false }
+    return _bits.isEqual(to: other)
+  }
+
+  /// Returns a Boolean value indicating whether this bit set contains the same
+  /// elements as the given `other` sequence.
+  ///
+  /// Duplicate items in `other` do not prevent it from comparing equal to
+  /// `self`.
+  ///
+  ///     let bits: BitSet = [0, 1, 5, 6]
+  ///     let other = [5, 5, 0, 1, 1, 6, 5, 0, 1, 6, 6, 5]
+  ///
+  ///     bits.isEqual(to: other) // true
+  ///
+  /// - Complexity: O(*n*), where *n* is the number of items in `other`.
+  @inlinable
+  public func isEqual<S: Sequence>(to other: S) -> Bool
+  where S.Element == Int
+  {
+    guard self.count >= other.underestimatedCount else { return false }
+    return _bits.isEqual(to: other)
+  }
+}
+
+extension BitSet.Counted {
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the given set.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet.Counted = [1, 2, 4]
+  ///     let c: BitSet.Counted = [0, 1]
+  ///     a.isSubset(of: a) // true
+  ///     b.isSubset(of: a) // true
+  ///     c.isSubset(of: a) // false
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: Self) -> Bool {
     if self.count > other.count { return false }
     return self._bits.isSubset(of: other._bits)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the given set.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: BitSet) -> Bool {
     self._bits.isSubset(of: other)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the given range of integers.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  ///     let b: BitSet.Counted = [0, 1, 2]
+  ///     let c: BitSet.Counted = [2, 3, 4]
+  ///     b.isSubset(of: -10 ..< 4) // true
+  ///     c.isSubset(of: -10 ..< 4) // false
+  ///
+  /// - Parameter other: An arbitrary range of integers.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isSubset(of other: Range<Int>) -> Bool {
-    guard !isEmpty else { return true }
-    return _bits.isSubset(of: other)
+    _bits.isSubset(of: other)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a subset of
+  /// the values in a given sequence of integers.
+  ///
+  /// Set *A* is a subset of another set *B* if every member of *A* is also a
+  /// member of *B*.
+  ///
+  ///     let a = [1, 2, 3, 4, -10]
+  ///     let b: BitSet.Counted = [1, 2, 4]
+  ///     let c: BitSet.Counted = [0, 1]
+  ///     b.isSubset(of: a) // true
+  ///     c.isSubset(of: a) // false
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Int
   {
-    guard !isEmpty else { return true }
-    return _bits.isSubset(of: other)
+    _bits.isSubset(of: other)
   }
 }
 
 extension BitSet.Counted {
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// the given set.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet.Counted = [1, 2, 4]
+  ///     let c: BitSet.Counted = [0, 1]
+  ///     a.isSuperset(of: a) // true
+  ///     a.isSuperset(of: b) // true
+  ///     a.isSuperset(of: c) // false
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `other`.
   public func isSuperset(of other: Self) -> Bool {
     other.isSubset(of: self)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// the given set.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*.
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `other`.
   public func isSuperset(of other: BitSet) -> Bool {
     other.isSubset(of: self)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// a given range of integers.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*.
+  ///
+  ///     let a: BitSet = [0, 1, 2, 3, 4, 10]
+  ///     a.isSuperset(of: 0 ..< 4) // true
+  ///     a.isSuperset(of: -10 ..< 4) // false
+  ///
+  /// - Parameter other: An arbitrary range of integers.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(`range.count`)
   public func isSuperset(of other: Range<Int>) -> Bool {
-    return _bits.isSuperset(of: other)
+    _bits.isSuperset(of: other)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// the values in a given sequence of integers.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*.
+  ///
+  ///     let a = [1, 2, 3]
+  ///     let b: BitSet = [0, 1, 2, 3, 4]
+  ///     let c: BitSet = [0, 1, 2]
+  ///     b.isSuperset(of: a) // true
+  ///     c.isSuperset(of: a) // false
+  ///
+  /// - Parameter other: A sequence of arbitrary integers, some of whose members
+  ///    may appear more than once. (Duplicate items are ignored.)
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: The same as the complexity of iterating over all elements
+  ///    in `other`.
   @inlinable
   public func isSuperset<S: Sequence>(of other: S) -> Bool
   where S.Element == Int
   {
-    return _bits.isSubset(of: other)
+    _bits.isSuperset(of: other)
   }
 }
 
 extension BitSet.Counted {
+  /// Returns a Boolean value that indicates whether this bit set is a strict
+  /// subset of the given set.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet.Counted = [1, 2, 4]
+  ///     let c: BitSet.Counted = [0, 1]
+  ///     a.isStrictSubset(of: a) // false
+  ///     b.isStrictSubset(of: a) // true
+  ///     c.isStrictSubset(of: a) // false
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: Self) -> Bool {
     guard self.count < other.count else { return false }
     return _bits.isStrictSubset(of: other._bits)
   }
 
+  /// Returns a Boolean value that indicates whether this bit set is a strict
+  /// subset of the given set.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: BitSet) -> Bool {
     _bits.isStrictSubset(of: other)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a strict
+  /// subset of the given set.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  ///     let b: BitSet.Counted = [0, 1, 2]
+  ///     let c: BitSet.Counted = [2, 3, 4]
+  ///     b.isStrictSubset(of: -10 ..< 4) // true
+  ///     c.isStrictSubset(of: -10 ..< 4) // false
+  ///
+  /// - Parameter other: An arbitrary range of integers.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isStrictSubset(of other: Range<Int>) -> Bool {
     guard self.count < other.count else { return false }
     return _bits.isStrictSubset(of: other)
   }
 
+  /// Returns a Boolean value that indicates whether this bit set is a strict
+  /// subset of the values in a given sequence of integers.
+  ///
+  /// Set *A* is a strict subset of another set *B* if every member of *A* is
+  /// also a member of *B* and *B* contains at least one element that is not a
+  /// member of *A*.
+  ///
+  ///     let a = [1, 2, 3, 4, -10]
+  ///     let b: BitSet.Counted = [1, 2, 4]
+  ///     let c: BitSet.Counted = [0, 1]
+  ///     b.isStrictSubset(of: a) // true
+  ///     c.isStrictSubset(of: a) // false
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: `true` if the set is a strict subset of `other`;
+  ///     otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isStrictSubset<S: Sequence>(of other: S) -> Bool
   where S.Element == Int
@@ -580,18 +1211,83 @@ extension BitSet.Counted {
 }
 
 extension BitSet.Counted {
+  /// Returns a Boolean value that indicates whether this set is a strict
+  /// superset of another set.
+  ///
+  /// Set *A* is a strict superset of another set *B* if every member of *B* is
+  /// also a member of *A* and *A* contains at least one element that is *not*
+  /// a member of *B*.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet.Counted = [1, 2, 4]
+  ///     let c: BitSet.Counted = [0, 1]
+  ///     a.isStrictSuperset(of: a) // false
+  ///     a.isStrictSuperset(of: b) // true
+  ///     a.isStrictSuperset(of: c) // false
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `other`.
   public func isStrictSuperset(of other: Self) -> Bool {
     other.isStrictSubset(of: self)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a strict
+  /// superset of another set.
+  ///
+  /// Set *A* is a strict superset of another set *B* if every member of *B* is
+  /// also a member of *A* and *A* contains at least one element that is *not*
+  /// a member of *B*.
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `other`.
   public func isStrictSuperset(of other: BitSet) -> Bool {
     other.isStrictSubset(of: self)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// a given range of integers.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*.
+  ///
+  ///     let a: BitSet.Counted = [0, 1, 2, 3, 4, 10]
+  ///     a.isSuperset(of: 0 ..< 4) // true
+  ///     a.isSuperset(of: -10 ..< 4) // false
+  ///
+  /// - Parameter other: An arbitrary range of integers.
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(`range.count`)
   public func isStrictSuperset(of other: Range<Int>) -> Bool {
     _bits.isStrictSuperset(of: other)
   }
 
+  /// Returns a Boolean value that indicates whether this set is a superset of
+  /// the values in a given sequence of integers.
+  ///
+  /// Set *A* is a superset of another set *B* if every member of *B* is also a
+  /// member of *A*.
+  ///
+  ///     let a = [1, 2, 3]
+  ///     let b: BitSet.Counted = [0, 1, 2, 3, 4]
+  ///     let c: BitSet.Counted = [0, 1, 2]
+  ///     b.isSuperset(of: a) // true
+  ///     c.isSuperset(of: a) // false
+  ///
+  /// - Parameter other: A sequence of arbitrary integers, some of whose members
+  ///    may appear more than once. (Duplicate items are ignored.)
+  ///
+  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `other`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isStrictSuperset<S: Sequence>(of other: S) -> Bool
   where S.Element == Int
@@ -601,18 +1297,70 @@ extension BitSet.Counted {
 }
 
 extension BitSet.Counted {
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given set.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet.Counted = [5, 6]
+  ///     a.isDisjoint(with: b) // true
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public func isDisjoint(with other: Self) -> Bool {
     _bits.isDisjoint(with: other._bits)
   }
 
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given set.
+  ///
+  ///     let a: BitSet.Counted = [1, 2, 3, 4]
+  ///     let b: BitSet = [5, 6]
+  ///     a.isDisjoint(with: b) // true
+  ///
+  /// - Parameter other: Another bit set.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in either input.
   public func isDisjoint(with other: BitSet) -> Bool {
     _bits.isDisjoint(with: other)
   }
 
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given range of integers.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     a.isDisjoint(with: -10 ..< 0) // true
+  ///
+  /// - Parameter other: A range of arbitrary integers.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*), where *max* is the largest item in `self`.
   public func isDisjoint(with other: Range<Int>) -> Bool {
     _bits.isDisjoint(with: other)
   }
 
+  /// Returns a Boolean value that indicates whether the set has no members in
+  /// common with the given sequence of integers.
+  ///
+  ///     let a: BitSet = [1, 2, 3, 4]
+  ///     let b: BitSet = [5, 6, -10, 42]
+  ///     a.isDisjoint(with: b) // true
+  ///
+  /// - Parameter other: A sequence of arbitrary integers.
+  ///
+  /// - Returns: `true` if `self` has no elements in common with `other`;
+  ///   otherwise, `false`.
+  ///
+  /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
+  ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
   public func isDisjoint<S: Sequence>(with other: S) -> Bool
   where S.Element == Int

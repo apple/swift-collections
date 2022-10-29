@@ -14,6 +14,19 @@ extension _Node {
   internal func intersection<Value2>(
     _ level: _Level,
     _ other: _Node<Key, Value2>
+  ) -> _Node? {
+    assert(level.isAtRoot)
+    let builder = _intersection(level, other)
+    guard let builder = builder else { return nil }
+    let root = builder.finalize(.top)
+    root._fullInvariantCheck()
+    return root
+  }
+
+  @inlinable
+  internal func _intersection<Value2>(
+    _ level: _Level,
+    _ other: _Node<Key, Value2>
   ) -> Builder? {
     if self.raw.storage === other.raw.storage { return nil }
 
@@ -68,7 +81,7 @@ extension _Node {
           else if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
             let branch = l[child: lslot]
-              .intersection(level.descend(), r[child: rslot])
+              ._intersection(level.descend(), r[child: rslot])
             if let branch = branch {
               assert(branch.count < self.count)
               if !removing {
@@ -143,7 +156,7 @@ extension _Node {
           }
           if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
-            return intersection(level.descend(), r[child: rslot])
+            return _intersection(level.descend(), r[child: rslot])
               .map { .childBranch(level, $0, at: bucket) }
           }
           return .empty(level)
@@ -166,7 +179,7 @@ extension _Node {
         }
         if l.childMap.contains(bucket) {
           let lslot = l.childMap.slot(of: bucket)
-          let branch = l[child: lslot].intersection(level.descend(), other)
+          let branch = l[child: lslot]._intersection(level.descend(), other)
           guard let branch = branch else {
             assert(l[child: lslot].isCollisionNode)
             assert(l[child: lslot].collisionHash == r.collisionHash)
