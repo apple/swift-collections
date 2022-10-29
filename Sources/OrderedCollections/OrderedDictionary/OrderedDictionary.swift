@@ -79,7 +79,7 @@
 ///
 /// If the `Value` type implements reference semantics, or when you need to
 /// perform a series of individual mutations on the values, the closure-based
-/// `updateValue(forKey:default:_:)` method provides an easier-to-use
+/// ``updateValue(forKey:default:with:)`` method provides an easier-to-use
 /// alternative to the defaulted key-based subscript.
 ///
 ///     let text = "short string"
@@ -93,13 +93,14 @@
 ///
 /// (This isn't currently available on the regular `Dictionary`.)
 ///
-/// The `Dictionary` type's original `updateValue(_:forKey:)` method is also
-/// available, and so is `index(forKey:)`, grouping/uniquing initializers
-/// (`init(uniqueKeysWithValues:)`, `init(_:uniquingKeysWith:)`,
-/// `init(grouping:by:)`), methods for merging one dictionary with another
-/// (`merge`, `merging`), filtering dictionary entries (`filter(_:)`),
-/// transforming values (`mapValues(_:)`), and a combination of these two
-/// (`compactMapValues(_:)`).
+/// The `Dictionary` type's original ``updateValue(_:forKey:)`` method is also
+/// available, and so is ``index(forKey:)``, grouping/uniquing initializers
+/// (``init(uniqueKeysWithValues:)-5ux9r``, ``init(_:uniquingKeysWith:)-2y39b``,
+/// ``init(grouping:by:)-6mahw``), methods for merging one dictionary with
+/// another (``merge(_:uniquingKeysWith:)-6ka2i``,
+/// ``merging(_:uniquingKeysWith:)-4z49c``), filtering dictionary entries
+/// (``filter(_:)``), transforming values (``mapValues(_:)``), and a combination
+/// of these two (``compactMapValues(_:)``).
 ///
 /// ### Sequence and Collection Operations
 ///
@@ -114,53 +115,51 @@
 ///
 /// Because ordered dictionaries need to maintain unique keys, neither
 /// `OrderedDictionary` nor its `elements` view can conform to the full
-/// `MutableCollection` or `RangeReplaceableCollection` protocols. However, they
-/// are able to partially implement requirements: they support mutations
-/// that merely change the order of elements, or just remove a subset of
-/// existing members:
+/// `MutableCollection` or `RangeReplaceableCollection` protocols.
 ///
-///     // Permutation operations from MutableCollection:
-///     func swapAt(_ i: Int, _ j: Int)
-///     func partition(by predicate: (Element) throws -> Bool) -> rethrows Int
-///     func sort() where Element: Comparable
-///     func sort(by predicate: (Element, Element) throws -> Bool) rethrows
-///     func shuffle()
-///     func shuffle<T: RandomNumberGenerator>(using generator: inout T)
+/// However, `OrderedDictioanr` is still able to implement some of the
+/// requirements of these protocols. In particular, it supports permutation
+/// operations from `MutableCollection`:
 ///
-///     // Removal operations from RangeReplaceableCollection:
-///     func removeAll(keepingCapacity: Bool = false)
-///     func remove(at index: Int) -> Element
-///     func removeSubrange(_ bounds: Range<Int>)
-///     func removeLast() -> Element
-///     func removeLast(_ n: Int)
-///     func removeFirst() -> Element
-///     func removeFirst(_ n: Int)
-///     func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows
+/// - ``swapAt(_:_:)``
+/// - ``partition(by:)``
+/// - ``sort()``, ``sort(by:)``
+/// - ``shuffle()``, ``shuffle(using:)``
+/// - ``reverse()``
 ///
-/// `OrderedDictionary` also implements `reserveCapacity(_)` from
+/// It also supports removal operations from `RangeReplaceableCollection`:
+///
+/// - ``removeAll(keepingCapacity:)``
+/// - ``remove(at:)``
+/// - ``removeSubrange(_:)-512n3``, ``removeSubrange(_:)-8rmzx``
+/// - ``removeLast()``, ``removeLast(_:)``
+/// - ``removeFirst()``, ``removeFirst(_:)``
+/// - ``removeAll(where:)``
+///
+/// `OrderedDictionary` also implements ``reserveCapacity(_:)`` from
 /// `RangeReplaceableCollection`, to allow for efficient insertion of a known
 /// number of elements. (However, unlike `Array` and `Dictionary`,
 /// `OrderedDictionary` does not provide a `capacity` property.)
 ///
 /// ### Keys and Values Views
 ///
-/// Like the standard `Dictionary`, `OrderedDictionary` provides `keys` and
-/// `values` properties that provide lightweight views into the corresponding
-/// parts of the dictionary.
+/// Like the standard `Dictionary`, `OrderedDictionary` provides ``keys`` and
+/// ``values-swift.property`` properties that provide lightweight views into
+/// the corresponding parts of the dictionary.
 ///
-/// The `keys` collection is of type `OrderedSet<Key>`, containing all the keys
+/// The ``keys`` collection is of type ``OrderedSet``, containing all the keys
 /// in the original dictionary.
 ///
 ///     let d: OrderedDictionary = [2: "two", 1: "one", 0: "zero"]
 ///     d.keys // [2, 1, 0] as OrderedSet<Int>
 ///
-/// The `keys` property is read-only, so you cannot mutate the dictionary
+/// The ``keys`` property is read-only, so you cannot mutate the dictionary
 /// through it. However, it returns an ordinary ordered set value, which can be
 /// copied out and then mutated if desired. (Such mutations won't affect the
 /// original dictionary value.)
 ///
-/// The `values` collection is a mutable random-access collection of the values
-/// in the dictionary:
+/// The ``values-swift.property`` collection is a mutable random-access
+/// collection of the values in the dictionary:
 ///
 ///     d.values // "two", "one", "zero"
 ///     d.values[2] = "nada"
@@ -169,40 +168,37 @@
 ///     // `d` is now [2: "nada", 1: "one", 0: "two"]
 ///
 /// Both views store their contents in regular `Array` values, accessible
-/// through their `elements` property.
+/// through their ``elements-swift.property`` property.
 ///
 /// ## Performance
 ///
-/// Like the standard `Dictionary` type, the performance of hashing operations
-/// in `OrderedDictionary` is highly sensitive to the quality of hashing
-/// implemented by the `Key` type. Failing to correctly implement hashing can
-/// easily lead to unacceptable performance, with the severity of the effect
-/// increasing with the size of the hash table.
-///
-/// In particular, if a certain set of keys all produce the same hash value,
-/// then hash table lookups regress to searching an element in an unsorted
-/// array, i.e., a linear operation. To ensure hashed collection types exhibit
-/// their target performance, it is important to ensure that such collisions
-/// cannot be induced merely by adding a particular list of keys to the
-/// dictionary.
-///
-/// The easiest way to achieve this is to make sure `Key` implements hashing
-/// following `Hashable`'s documented best practices. The conformance must
-/// implement the `hash(into:)` requirement, and every bit of information that
-/// is compared in `==` needs to be combined into the supplied `Hasher` value.
-/// When used correctly, `Hasher` produces high-quality, randomly seeded hash
-/// values that prevent repeatable hash collisions.
-///
-/// When `Key` correctly conforms to `Hashable`, key-based lookups in an ordered
-/// dictionary is expected to take O(1) equality checks on average. Hash
-/// collisions can still occur organically, so the worst-case lookup performance
-/// is technically still O(*n*) (where *n* is the size of the dictionary);
-/// however, long lookup chains are unlikely to occur in practice.
-///
-/// ## Implementation Details
-///
-/// An ordered dictionary consists of an ordered set of keys, alongside a
+/// An ordered dictionary consists of an ``OrderedSet`` of keys, alongside a
 /// regular `Array` value that contains their associated values.
+/// The performance characteristics of `OrderedDictionary` are mostly dictated
+/// by this setup.
+///
+/// - Looking up a member in an ordered dictionary is expected to execute
+///    a constant number of hashing and equality check operations, just like
+///    the standard `Dictionary`.
+/// - `OrderedDictionary` is also able to append new items at the end of the
+///    dictionary with an expected amortized complexity of O(1), similar to
+///    inserting new items into `Dictionary`.
+/// - Unfortunately, removing or inserting items at the start or middle of an
+///    `OrderedDictionary` has linear complexity, making these significantly
+///    slower than `Dictionary`.
+/// - Storing keys and values outside of the hash table makes
+///    `OrderedDictionary` more memory efficient than most alternative
+///    ordered dictionary representations. It can sometimes also be more memory
+///    efficient than the standard `Dictionary`, despote the additional
+///    functionality of preserving element ordering.
+///
+/// Like all hashed data structures, ordered dictionaries are extremely
+/// sensitive to the quality of the `Key` type's `Hashable` conformance.
+/// All complexity guarantees are null and void if `Key` implements `Hashable`
+/// incorrectly.
+///
+/// See ``OrderedSet`` for a more detailed discussion of these performance
+/// characteristics.
 @frozen
 public struct OrderedDictionary<Key: Hashable, Value> {
   @usableFromInline
@@ -662,7 +658,7 @@ extension OrderedDictionary {
   /// in a string:
   ///
   ///     let message = "Hello, Elle!"
-  ///     var letterCounts: [Character: Int] = [:]
+  ///     var letterCounts: OrderedDictionary<Character, Int> = [:]
   ///     for letter in message {
   ///         letterCounts.updateValue(forKey: letter, default: 0) { count in
   ///             count += 1
