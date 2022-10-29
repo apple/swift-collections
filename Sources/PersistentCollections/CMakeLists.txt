@@ -55,6 +55,7 @@ add_library(PersistentCollections
   "PersistentDictionary/PersistentDictionary+Equatable.swift"
   "PersistentDictionary/PersistentDictionary+ExpressibleByDictionaryLiteral.swift"
   "PersistentDictionary/PersistentDictionary+Filter.swift"
+  "PersistentDictionary/PersistentDictionary+Fluent Operations.swift"
   "PersistentDictionary/PersistentDictionary+Hashable.swift"
   "PersistentDictionary/PersistentDictionary+Initializers.swift"
   "PersistentDictionary/PersistentDictionary+Keys.swift"
