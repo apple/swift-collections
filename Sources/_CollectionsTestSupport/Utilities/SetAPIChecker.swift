@@ -75,7 +75,7 @@ public protocol SetAPIExtras: SetAPIChecker {
 
   mutating func update(_ member: Element, at index: Index) -> Element
 
-  func isEqual(to other: Self) -> Bool
-  func isEqual<S: Sequence>(to other: S) -> Bool
+  func isEqualSet(to other: Self) -> Bool
+  func isEqualSet<S: Sequence>(to other: S) -> Bool
   where S.Element == Element
 }

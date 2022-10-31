@@ -98,10 +98,10 @@
 ### Comparing Sets
 
 - ``==(_:_:)``
-- ``isEqual(to:)-5zfpo``
-- ``isEqual(to:)-93d52``
-- ``isEqual(to:)-542zl``
-- ``isEqual(to:)-1d66i``
+- ``isEqualSet(to:)-4xfa9``
+- ``isEqualSet(to:)-359ao``
+- ``isEqualSet(to:)-5ap6y``
+- ``isEqualSet(to:)-2dezf``
 
 - ``isSubset(of:)-73apg``
 - ``isSubset(of:)-14xt1``

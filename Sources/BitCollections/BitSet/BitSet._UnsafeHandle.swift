@@ -624,7 +624,7 @@ extension BitSet._UnsafeHandle {
     return _words[upper.word].intersection(uw) == uw
   }
 
-  internal func isEqual(to range: Range<UInt>) -> Bool {
+  internal func isEqualSet(to range: Range<UInt>) -> Bool {
     if range.isEmpty { return self.isEmpty }
     let r = range.clamped(to: 0 ..< UInt(capacity))
     guard r == range else { return false }

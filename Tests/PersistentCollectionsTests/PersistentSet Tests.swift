@@ -264,7 +264,7 @@ class PersistentSetTests: CollectionTestCase {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
       let u = Set(a)
-      expectTrue(x.isEqual(to: x))
+      expectTrue(x.isEqualSet(to: x))
       withEverySubset("b", of: testItems) { b in
         let y = PersistentSet(b)
         let v = Set(b)
@@ -277,15 +277,15 @@ class PersistentSetTests: CollectionTestCase {
           _ b: S
         ) -> Bool
         where S.Element == RawCollider {
-          a.isEqual(to: b)
+          a.isEqualSet(to: b)
         }
 
-        expectEqual(x.isEqual(to: y), reference)
-        expectEqual(x.isEqual(to: z.keys), reference)
+        expectEqual(x.isEqualSet(to: y), reference)
+        expectEqual(x.isEqualSet(to: z.keys), reference)
         expectEqual(checkSequence(x, y), reference)
-        expectEqual(x.isEqual(to: v), reference)
-        expectEqual(x.isEqual(to: b), reference)
-        expectEqual(x.isEqual(to: b + b), reference)
+        expectEqual(x.isEqualSet(to: v), reference)
+        expectEqual(x.isEqualSet(to: b), reference)
+        expectEqual(x.isEqualSet(to: b + b), reference)
       }
     }
   }

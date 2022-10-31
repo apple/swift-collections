@@ -642,6 +642,36 @@ extension OrderedSet.UnorderedView {
 }
 
 extension OrderedSet.UnorderedView {
+  /// Returns a Boolean value indicating whether two set values contain the
+  /// same elements, but not necessarily in the same order.
+  ///
+  /// - Note: This member implements different behavior than the `==(_:_:)`
+  ///    operator -- the latter implements an ordered comparison, matching
+  ///    the stricter concept of equality expected of an ordered collection
+  ///    type.
+  ///
+  /// - Complexity: O(`min(left.count, right.count)`), as long as`Element`
+  ///    properly implements hashing.
+  public func isEqualSet(to other: Self) -> Bool {
+    self == other
+  }
+
+  /// Returns a Boolean value indicating whether an ordered set contains the
+  /// same values as a given sequence, but not necessarily in the same
+  /// order.
+  ///
+  /// Duplicate items in `other` do not prevent it from comparing equal to
+  /// `self`.
+  ///
+  /// - Complexity: O(*n*), where *n* is the number of items in
+  ///    `other`, as long as`Element` properly implements hashing.
+  public func isEqualSet<S: Sequence>(to other: S) -> Bool
+  where S.Element == Element {
+    self._base.isEqualSet(to: other)
+  }
+}
+
+extension OrderedSet.UnorderedView {
   /// Returns a Boolean value that indicates whether this set is a subset of
   /// the given set.
   ///

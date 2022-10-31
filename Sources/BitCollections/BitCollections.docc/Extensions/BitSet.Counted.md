@@ -94,10 +94,10 @@
 ### Binary Set Predicates
 
 - ``==(_:_:)``
-- ``isEqual(to:)-5bw9h``
-- ``isEqual(to:)-8jxq5``
-- ``isEqual(to:)-7w9qy``
-- ``isEqual(to:)-9tnfo``
+- ``isEqualSet(to:)-11031``
+- ``isEqualSet(to:)-1hvpp``
+- ``isEqualSet(to:)-1mvpq``
+- ``isEqualSet(to:)-878x1``
 
 - ``isSubset(of:)-8iy8c``
 - ``isSubset(of:)-1r41b``

@@ -38,28 +38,25 @@
 ### Binary Set Predicates
 
 - ``==(_:_:)`` 
+- ``isEqualSet(to:)-1szq``
+- ``isEqualSet(to:)-9djqq``
 
-- ``isSubset(of:)-n4t7`` 
 - ``isSubset(of:)-2dx31`` 
 - ``isSubset(of:)-801lo`` 
 - ``isSubset(of:)-952h5`` 
 
-- ``isSuperset(of:)-4ea6h`` 
 - ``isSuperset(of:)-9t33p`` 
 - ``isSuperset(of:)-2vtig`` 
 - ``isSuperset(of:)-9krpz`` 
 
-- ``isStrictSubset(of:)-33z0l``
 - ``isStrictSubset(of:)-9o6mg``
 - ``isStrictSubset(of:)-91par``
 - ``isStrictSubset(of:)-7n66e`` 
 
-- ``isStrictSuperset(of:)-8pbce`` 
 - ``isStrictSuperset(of:)-89ig3``
 - ``isStrictSuperset(of:)-1e0xt`` 
 - ``isStrictSuperset(of:)-5dsfd`` 
 
-- ``isDisjoint(with:)-7sbsg``
 - ``isDisjoint(with:)-3wuso``
 - ``isDisjoint(with:)-25vmx``
 - ``isDisjoint(with:)-8nfqs`` 

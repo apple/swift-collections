@@ -16,7 +16,7 @@ extension OrderedSet: Equatable {
   /// elements in the same order.
   ///
   /// - Note: This operator implements different behavior than the
-  ///    `isEqual(to:)` method -- the latter implements an unordered
+  ///    `isEqualSet(to:)` method -- the latter implements an unordered
   ///    comparison, to match the behavior of members like `isSubset(of:)`,
   ///    `isStrictSuperset(of:)` etc.
   ///

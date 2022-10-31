@@ -155,16 +155,16 @@ final class BitSetCountedTests: CollectionTestCase {
     let a: BitSet.Counted = [1, 2, 3, 4]
 
     let b = 1 ..< 5
-    expectTrue(a.isEqual(to: BitSet.Counted(b)))
-    expectTrue(a.isEqual(to: BitSet(b)))
-    expectTrue(a.isEqual(to: b))
-    expectTrue(a.isEqual(to: Set(b)))
+    expectTrue(a.isEqualSet(to: BitSet.Counted(b)))
+    expectTrue(a.isEqualSet(to: BitSet(b)))
+    expectTrue(a.isEqualSet(to: b))
+    expectTrue(a.isEqualSet(to: Set(b)))
 
     let c = 2 ..< 7
-    expectFalse(a.isEqual(to: BitSet.Counted(c)))
-    expectFalse(a.isEqual(to: BitSet(c)))
-    expectFalse(a.isEqual(to: c))
-    expectFalse(a.isEqual(to: Set(c)))
+    expectFalse(a.isEqualSet(to: BitSet.Counted(c)))
+    expectFalse(a.isEqualSet(to: BitSet(c)))
+    expectFalse(a.isEqualSet(to: c))
+    expectFalse(a.isEqualSet(to: Set(c)))
   }
 
   func test_isSubset() {
