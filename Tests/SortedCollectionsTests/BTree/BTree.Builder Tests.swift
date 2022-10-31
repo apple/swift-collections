@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if DEBUG
 import _CollectionsTestSupport
 @_spi(Testing) @testable import SortedCollections
 
@@ -27,4 +28,4 @@ final class BTreeBuilderTests: CollectionTestCase {
     }
   }
 }
-
+#endif

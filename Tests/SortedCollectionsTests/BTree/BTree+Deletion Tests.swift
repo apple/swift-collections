@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if DEBUG
 import _CollectionsTestSupport
 @_spi(Testing) @testable import SortedCollections
 
@@ -29,3 +30,4 @@ final class NodeDeletionTests: CollectionTestCase {
     }
   }
 }
+#endif
