@@ -50,7 +50,7 @@ add_library(OrderedCollections
   "OrderedSet/OrderedSet+Partial SetAlgebra formUnion.swift"
   "OrderedSet/OrderedSet+Partial SetAlgebra intersection.swift"
   "OrderedSet/OrderedSet+Partial SetAlgebra isDisjoint.swift"
-  "OrderedSet/OrderedSet+Partial SetAlgebra isEqual.swift"
+  "OrderedSet/OrderedSet+Partial SetAlgebra isEqualSet.swift"
   "OrderedSet/OrderedSet+Partial SetAlgebra isStrictSubset.swift"
   "OrderedSet/OrderedSet+Partial SetAlgebra isStrictSuperset.swift"
   "OrderedSet/OrderedSet+Partial SetAlgebra isSubset.swift"
