@@ -30,6 +30,7 @@ extension PersistentSet: Sequence {
     /// Once `nil` has been returned, all subsequent calls return `nil`.
     ///
     /// - Complexity: O(1)
+    @inlinable
     public mutating func next() -> Element? {
       guard let (node, slot) = _it.next() else { return nil }
       return _UnsafeHandle.read(node) { $0[item: slot].key }
