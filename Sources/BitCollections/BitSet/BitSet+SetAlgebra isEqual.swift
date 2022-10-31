@@ -22,6 +22,15 @@ extension BitSet {
     self._storage == other._storage
   }
 
+  /// Returns a Boolean value indicating whether a bit set is equal to a counted
+  /// bit set, i.e., whether they contain the same values.
+  ///
+  /// - Complexity: O(*max*), where *max* is value of the largest member of
+  ///     either set.
+  public func isEqual(to other: BitSet.Counted) -> Bool {
+    self.isEqual(to: other._bits)
+  }
+
   /// Returns a Boolean value indicating whether a bit set is equal to a range
   /// of integers, i.e., whether they contain the same values.
   ///
@@ -30,14 +39,6 @@ extension BitSet {
   public func isEqual(to other: Range<Int>) -> Bool {
     guard let other = other._toUInt() else { return false }
     return _read { $0.isEqual(to: other) }
-  }
-
-  /// Returns a Boolean value indicating whether a bit set is equal to a counted
-  /// bit set, i.e., whether they contain the same values.
-  ///
-  /// - Complexity: O(*max*), where *max* is
-  public func isEqual(to other: BitSet.Counted) -> Bool {
-    self.isEqual(to: other._bits)
   }
 
   /// Returns a Boolean value indicating whether this bit set contains the same

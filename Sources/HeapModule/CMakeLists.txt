@@ -8,11 +8,12 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(HeapModule
-  _Node.swift
-  Heap.swift
-  Heap+ExpressibleByArrayLiteral.swift
-  Heap+Invariants.swift
-  Heap+UnsafeHandle.swift)
+  "_Node.swift"
+  "Heap.swift"
+  "Heap+Descriptions.swift"
+  "Heap+ExpressibleByArrayLiteral.swift"
+  "Heap+Invariants.swift"
+  "Heap+UnsafeHandle.swift")
 target_link_libraries(HeapModule PRIVATE
   _CollectionsUtilities)
 set_target_properties(HeapModule PROPERTIES

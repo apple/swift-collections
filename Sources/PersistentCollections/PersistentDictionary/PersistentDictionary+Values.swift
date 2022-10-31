@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension PersistentDictionary {
   /// A view of a dictionary’s values.
   @frozen
@@ -31,19 +33,10 @@ extension PersistentDictionary {
   /// A collection containing just the values of the dictionary.
   @inlinable
   public var values: Values {
+    // Note: this property is kept read only for now until we decide whether
+    // it's worth providing setters without a `MutableCollection` conformance.
     get {
       Values(_base: self)
-    }
-    set { // FIXME: Consider removing
-      self = newValue._base
-    }
-    _modify { // FIXME: Consider removing
-      var values = Values(_base: self)
-      self = Self()
-      defer {
-        self = values._base
-      }
-      yield &values
     }
   }
 }
@@ -52,6 +45,23 @@ extension PersistentDictionary {
 extension PersistentDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
 #endif
+
+extension PersistentDictionary.Values: CustomStringConvertible {
+  // A textual representation of this instance.
+  public var description: String {
+    _arrayDescription(for: self)
+  }
+}
+
+extension PersistentDictionary.Values: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
+  public var debugDescription: String {
+    _arrayDescription(
+      for: self,
+      debug: true,
+      typeName: "\(PersistentDictionary._debugTypeName()).Values")
+  }
+}
 
 extension PersistentDictionary.Values: Sequence {
   public typealias Element = Value
@@ -87,7 +97,7 @@ where Key: Sendable, Value: Sendable {}
 
 // Note: This cannot be a MutableCollection because its subscript setter
 // needs to invalidate indices.
-extension PersistentDictionary.Values: BidirectionalCollection {
+extension PersistentDictionary.Values: Collection {
   public typealias Index = PersistentDictionary.Index
 
   @inlinable
@@ -104,28 +114,12 @@ extension PersistentDictionary.Values: BidirectionalCollection {
 
   @inlinable
   public subscript(index: Index) -> Element {
+    // The subscript is kept read only for now until we decide whether it's
+    // worth providing setters without a `MutableCollection` conformance.
+    // (With the current index implementation, mutating values must invalidate
+    // indices.)
     get {
       _base[index].value
-    }
-    set { // FIXME: Consider removing
-      precondition(_base._isValid(index), "Invalid index")
-      precondition(index._path.isOnItem, "Cannot set value at end index")
-      let (leaf, slot) = _base._root.ensureUnique(level: .top, at: index._path)
-      _UnsafeHandle.update(leaf) { $0[item: slot].value = newValue }
-      _base._invalidateIndices()
-    }
-    _modify { // FIXME: Consider removing
-      precondition(_base._isValid(index), "Invalid index")
-      precondition(index._path.isOnItem, "Cannot set value at end index")
-      let (leaf, slot) = _base._root.ensureUnique(level: .top, at: index._path)
-      var item = _UnsafeHandle.update(leaf) { $0.itemPtr(at: slot).move() }
-      defer {
-        _Node.UnsafeHandle.update(leaf) {
-          $0.itemPtr(at: slot).initialize(to: item)
-        }
-        _base._invalidateIndices()
-      }
-      yield &item.value
     }
   }
 
@@ -135,18 +129,8 @@ extension PersistentDictionary.Values: BidirectionalCollection {
   }
 
   @inlinable
-  public func formIndex(before i: inout Index) {
-    _base.formIndex(before: &i)
-  }
-
-  @inlinable
   public func index(after i: Index) -> Index {
     _base.index(after: i)
-  }
-
-  @inlinable
-  public func index(before i: Index) -> Index {
-    _base.index(before: i)
   }
 
   @inlinable
@@ -166,3 +150,20 @@ extension PersistentDictionary.Values: BidirectionalCollection {
     _base.distance(from: start, to: end)
   }
 }
+
+#if false
+extension PersistentDictionary.Values: BidirectionalCollection {
+  // Note: Let's not do this. `BidirectionalCollection` would imply that
+  // the ordering of elements would be meaningful, which isn't true for
+  // `PersistentDictionary.Values`.
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    _base.formIndex(before: &i)
+  }
+
+  @inlinable
+  public func index(before i: Index) -> Index {
+    _base.index(before: i)
+  }
+}
+#endif

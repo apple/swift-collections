@@ -333,12 +333,14 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
 }
 
 extension OrderedDictionary.Elements: CustomStringConvertible {
+  // A textual representation of this instance.
   public var description: String {
     _base.description
   }
 }
 
 extension OrderedDictionary.Elements: CustomDebugStringConvertible {
+  /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
     _dictionaryDescription(
       for: self,

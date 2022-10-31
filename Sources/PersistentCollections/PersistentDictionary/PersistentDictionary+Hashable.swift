@@ -10,6 +10,10 @@
 //===----------------------------------------------------------------------===//
 
 extension PersistentDictionary: Hashable where Value: Hashable {
+  /// Hashes the essential components of this value by feeding them into the
+  /// given hasher.
+  ///
+  /// Complexity: O(`count`)
   @inlinable
   public func hash(into hasher: inout Hasher) {
     var commutativeHash = 0

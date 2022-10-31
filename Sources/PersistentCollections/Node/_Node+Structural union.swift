@@ -11,23 +11,23 @@
 
 extension _Node {
   @inlinable
-  internal func union(
+  internal func union<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> (copied: Bool, node: _Node) {
-    guard self.count > 0 else { return (true, other) }
-    guard other.count > 0 else { return (false, self) }
+    _ other: _Node<Key, Value2>
+  ) -> (copied: Bool, node: _Node<Key, Void>) {
+    guard self.count > 0 else { return (true, other.mapValuesToVoid()) }
+    guard other.count > 0 else { return (false, self.mapValuesToVoid()) }
     if level.isAtRoot, self.hasSingletonItem {
       // In this special case, the root node may turn into a collision node
       // during the merge process. Prevent this from causing issues below by
       // handling it up front.
       return self.read { l in
         let lp = l.itemPtr(at: .zero)
-        var copy = other
+        var copy = other.mapValuesToVoid(copy: true)
         let r = copy.updateValue(
           level, forKey: lp.pointee.key, _Hash(lp.pointee.key)
         ) {
-          $0.initialize(to: lp.pointee)
+          $0.initialize(to: (lp.pointee.key, ()))
         }
         if !r.inserted {
           UnsafeHandle.update(r.leaf) {
@@ -41,12 +41,12 @@ extension _Node {
   }
 
   @inlinable
-  internal func _union(
+  internal func _union<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> (copied: Bool, node: _Node) {
+    _ other: _Node<Key, Value2>
+  ) -> (copied: Bool, node: _Node<Key, Void>) {
     if self.raw.storage === other.raw.storage {
-      return (false, self)
+      return (false, self.mapValuesToVoid())
     }
 
     if self.isCollisionNode || other.isCollisionNode {
@@ -55,7 +55,7 @@ extension _Node {
 
     return self.read { l in
       other.read { r in
-        var node = self
+        var node = self.mapValuesToVoid()
         var copied = false
 
         for (bucket, lslot) in l.itemMap {
@@ -75,7 +75,7 @@ extension _Node {
                 replacing: bucket,
                 itemSlot: slot,
                 newHash: _Hash(rp.pointee.key),
-                { $0.initialize(to: rp.pointee) })
+                { $0.initialize(to: (rp.pointee.key, ())) })
               // If we hadn't handled the singleton root node case above,
               // then this call would sometimes turn `node` into a collision
               // node on a compressed path, causing mischief.
@@ -90,7 +90,8 @@ extension _Node {
             node.ensureUnique(
               isUnique: copied, withFreeSpace: _Node.spaceForSpawningChild)
             let item = node.removeItem(at: bucket)
-            let r = rp.pointee.inserting(level.descend(), item, _Hash(item.key))
+            let r = rp.pointee.mapValuesToVoid()
+              .inserting(level.descend(), (item.key, ()), _Hash(item.key))
             node.insertChild(r.node, bucket)
             copied = true
           }
@@ -102,7 +103,8 @@ extension _Node {
             let rslot = r.itemMap.slot(of: bucket)
             let rp = r.itemPtr(at: rslot)
             let h = _Hash(rp.pointee.key)
-            let r = l[child: lslot].inserting(level.descend(), rp.pointee, h)
+            let r = l[child: lslot].mapValuesToVoid()
+              .inserting(level.descend(), (rp.pointee.key, ()), h)
             guard r.inserted else {
               // Nothing to do
               continue
@@ -134,7 +136,7 @@ extension _Node {
         for (bucket, _) in r.itemMap.subtracting(seen) {
           let rslot = r.itemMap.slot(of: bucket)
           node.ensureUniqueAndInsertItem(
-            isUnique: copied, r[item: rslot], at: bucket)
+            isUnique: copied, (r[item: rslot].key, ()), at: bucket)
           copied = true
         }
         for (bucket, _) in r.childMap.subtracting(seen) {
@@ -142,7 +144,7 @@ extension _Node {
           node.ensureUnique(
             isUnique: copied, withFreeSpace: _Node.spaceForNewChild)
           copied = true
-          node.insertChild(r[child: rslot], bucket)
+          node.insertChild(r[child: rslot].mapValuesToVoid(), bucket)
         }
 
         return (copied, node)
@@ -151,30 +153,30 @@ extension _Node {
   }
 
   @inlinable @inline(never)
-  internal func _union_slow(
+  internal func _union_slow<Value2>(
     _ level: _Level,
-    _ other: _Node
-  ) -> (copied: Bool, node: _Node) {
+    _ other: _Node<Key, Value2>
+  ) -> (copied: Bool, node: _Node<Key, Void>) {
     let lc = self.isCollisionNode
     let rc = other.isCollisionNode
     if lc && rc {
       return read { l in
         other.read { r in
           guard l.collisionHash == r.collisionHash else {
-            let node = _Node.build(
+            let node = _Node<Key, Void>.build(
               level: level,
-              child1: self, l.collisionHash,
-              child2: other, r.collisionHash)
+              child1: self.mapValuesToVoid(), l.collisionHash,
+              child2: other.mapValuesToVoid(), r.collisionHash)
             return (true, node)
           }
           var copied = false
-          var node = self
+          var node = self.mapValuesToVoid()
           let litems = l.reverseItems
           for rs: _Slot in stride(from: .zero, to: r.itemsEndSlot, by: 1) {
             let p = r.itemPtr(at: rs)
             if !litems.contains(where: { $0.key == p.pointee.key }) {
               _ = node.ensureUniqueAndAppendCollision(
-                isUnique: copied, p.pointee)
+                isUnique: copied, (p.pointee.key, ()))
               copied = true
             }
           }
@@ -199,24 +201,25 @@ extension _Node {
               r.hasSingletonItem
               && l.reverseItems.contains(where: { $0.key == rp.pointee.key })
             {
-              return (false, self)
+              return (false, self.mapValuesToVoid())
             }
-            let node = other.copyNodeAndPushItemIntoNewChild(
-              level: level, self, at: bucket, itemSlot: rslot)
+            let node = other.mapValuesToVoid().copyNodeAndPushItemIntoNewChild(
+              level: level, self.mapValuesToVoid(), at: bucket, itemSlot: rslot)
             return (true, node)
           }
 
           if r.childMap.contains(bucket) {
             let rslot = r.childMap.slot(of: bucket)
             let res = self._union(level.descend(), r[child: rslot])
-            var node = other.copy()
+            var node = other.mapValuesToVoid(copy: true)
             let delta = node.replaceChild(at: bucket, rslot, with: res.node)
             assert(delta >= 0)
             return (true, node)
           }
 
-          var node = other.copy(withFreeSpace: _Node.spaceForNewChild)
-          node.insertChild(self, bucket)
+          var node = other.mapValuesToVoid(
+            copy: true, extraBytes: _Node<Key, Void>.spaceForNewChild)
+          node.insertChild(self.mapValuesToVoid(), bucket)
           return (true, node)
         }
       }
@@ -224,28 +227,29 @@ extension _Node {
 
     assert(rc)
     // `other` is a collision node on a compressed path.
-    return read { l in
-      other.read { r in
+    return read { l -> (copied: Bool, node: _Node<Key, Void>) in
+      other.read { r -> (copied: Bool, node: _Node<Key, Void>) in
         let bucket = r.collisionHash[level]
         if l.itemMap.contains(bucket) {
           let lslot = l.itemMap.slot(of: bucket)
           assert(!l.hasSingletonItem) // Handled up front above
-          let node = self.copyNodeAndPushItemIntoNewChild(
-            level: level, other, at: bucket, itemSlot: lslot)
+          let node = self.mapValuesToVoid().copyNodeAndPushItemIntoNewChild(
+            level: level, other.mapValuesToVoid(), at: bucket, itemSlot: lslot)
           return (true, node)
         }
         if l.childMap.contains(bucket) {
           let lslot = l.childMap.slot(of: bucket)
           let child = l[child: lslot]._union(level.descend(), other)
-          guard child.copied else { return (false, self) }
-          var node = self.copy()
+          guard child.copied else { return (false, self.mapValuesToVoid()) }
+          var node = self.mapValuesToVoid(copy: true)
           let delta = node.replaceChild(at: bucket, lslot, with: child.node)
           assert(delta > 0) // If we didn't add an item, why did we copy?
           return (true, node)
         }
 
-        var node = self.copy(withFreeSpace: _Node.spaceForNewChild)
-        node.insertChild(other, bucket)
+        var node = self.mapValuesToVoid(
+          copy: true, extraBytes: _Node.spaceForNewChild)
+        node.insertChild(other.mapValuesToVoid(), bucket)
         return (true, node)
       }
     }

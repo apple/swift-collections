@@ -21,13 +21,17 @@ public protocol DictionaryAPIChecker {
 
   typealias Element = (key: Key, value: Value)
 
-  associatedtype Keys: Collection where Keys.Element == Key
+  associatedtype Keys: Collection
+  where Keys.Element == Key, Keys.Index == Index
+
   var keys: Keys { get }
 
   // `Values` ought to be a `MutableCollection` when possible, with `values`
   // providing a setter. Unfortunately, tree-based dictionaries need to
   // invalidate indices when mutating keys.
-  associatedtype Values: Collection where Values.Element == Value
+  associatedtype Values: Collection
+  where Values.Element == Value, Values.Index == Index
+
   var values: Values { get }
 
   var isEmpty: Bool { get }
@@ -103,10 +107,10 @@ public protocol DictionaryAPIExtras: DictionaryAPIChecker {
     uniqueKeysWithValues keysAndValues: S
   ) where S.Element == Element
 
-  init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value
+//  init<Keys: Sequence, Values: Sequence>(
+//    uniqueKeys keys: Keys,
+//    values: Values
+//  ) where Keys.Element == Key, Values.Element == Value
 
   init<S: Sequence>(
     _ keysAndValues: S,

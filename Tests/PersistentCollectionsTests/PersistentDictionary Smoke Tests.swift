@@ -10,7 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 import _CollectionsTestSupport
-@testable import PersistentCollections
+import PersistentCollections
+
+extension PersistentDictionary {
+  fileprivate func contains(_ key: Key) -> Bool {
+    self[key] != nil
+  }
+}
 
 final class PersistentDictionarySmokeTests: CollectionTestCase {
   func testDummy() {
@@ -202,31 +208,6 @@ final class PersistentDictionarySmokeTests: CollectionTestCase {
     expectEqual(res13, res31)
     expectNotEqual(res13, res12)
     expectNotEqual(res31, res12)
-  }
-
-  func testCountForCopyOnWriteInsertion() {
-    let map = PersistentDictionary([
-      Collider(1): Collider(1),
-      Collider(32769_1, 32769): Collider(32769_1, 32769),
-      Collider(32769_2, 32769): Collider(32769_2, 32769)
-    ])
-    expectEqual(map._root.count, 3)
-    expectEqual(map.reduce(0, { count, _ in count + 1 }), 3)
-    map._root._invariantCheck()
-  }
-
-  func testCountForCopyOnWriteDeletion() {
-    var map: PersistentDictionary<Collider, Collider> = [:]
-
-    map[Collider(32769)] = Collider(32769)
-    map[Collider(11, 1)] = Collider(11, 1)
-    map[Collider(12, 1)] = Collider(12, 1)
-    map[Collider(33, 33)] = Collider(33, 33)
-    map[Collider(11, 1)] = nil
-    map[Collider(12, 1)] = nil
-    expectEqual(map._root.count, 2)
-    expectEqual(map.reduce(0, { count, _ in count + 1 }), 2)
-    map._root._invariantCheck()
   }
 
   func testCompactionWhenDeletingFromHashCollisionNode1() {

@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 import _CollectionsTestSupport
-@testable import PersistentCollections
+import PersistentCollections
 
 extension PersistentDictionary: DictionaryAPIExtras {}
 
@@ -254,38 +254,20 @@ class PersistentDictionaryTests: CollectionTestCase {
     withEachFixture { fixture in
       withLifetimeTracking { tracker in
         let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(d, expectedContents: ref, by: ==)
+        checkCollection(d, expectedContents: ref, by: ==)
+        _checkBidirectionalCollection_indexOffsetBy(
+          d, expectedContents: ref, by: ==)
       }
     }
   }
 
   func test_BidirectionalCollection_random100() {
-    let d = PersistentDictionary<Int, Int>(uniqueKeys: 0 ..< 100, values: 0 ..< 100)
-    checkBidirectionalCollection(d, expectedContents: Array(d), by: ==)
-  }
-
-  func test_Keys_BidirectionalCollection_fixtures() {
-    withEachFixture { fixture in
-      withLifetimeTracking { tracker in
-        let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(
-          d.keys,
-          expectedContents: ref.map { $0.key },
-          by: ==)
-      }
-    }
-  }
-
-  func test_Values_BidirectionalCollection_fixtures() {
-    withEachFixture { fixture in
-      withLifetimeTracking { tracker in
-        let (d, ref) = tracker.persistentDictionary(for: fixture)
-        checkBidirectionalCollection(
-          d.values,
-          expectedContents: ref.map { $0.value },
-          by: ==)
-      }
-    }
+    let d = PersistentDictionary<Int, Int>(
+      uniqueKeysWithValues: (0 ..< 100).map { ($0, $0) })
+    let ref = Array(d)
+    checkCollection(d, expectedContents: ref, by: ==)
+    _checkBidirectionalCollection_indexOffsetBy(
+      d, expectedContents: ref, by: ==)
   }
 
 #if swift(>=5.6)
@@ -507,6 +489,31 @@ class PersistentDictionaryTests: CollectionTestCase {
     expectEqual(
       c.debugDescription,
       "PersistentDictionary<Int, Int>([\(cd)])")
+  }
+
+
+  func test_index_descriptions() {
+    let a: PersistentDictionary = [
+      RawCollider(1, "1"): 1,
+      RawCollider(2, "21"): 2,
+      RawCollider(3, "22"): 3,
+    ]
+
+    let i = a.startIndex
+    expectEqual(i.description, "@[0]")
+    expectEqual(i.debugDescription, "@[0]")
+
+    let j = a.index(i, offsetBy: 1)
+    expectEqual(j.description, "@.0[0]")
+    expectEqual(j.debugDescription, "@.0[0]")
+
+    let k = a.index(j, offsetBy: 1)
+    expectEqual(k.description, "@.0[1]")
+    expectEqual(k.debugDescription, "@.0[1]")
+
+    let end = a.endIndex
+    expectEqual(end.description, "@.end(1)")
+    expectEqual(end.debugDescription, "@.end(1)")
   }
 
 
@@ -1579,19 +1586,6 @@ class PersistentDictionaryTests: CollectionTestCase {
       ("three", 3),
     ]
     let d = PersistentDictionary(uniqueKeysWithValues: items)
-    expectEqualElements(d.sorted(by: <), items.sorted(by: <))
-  }
-
-  func test_uniqueKeys_values() {
-    let items: [(key: String, value: Int)] = [
-      (key: "zero", value: 0),
-      (key: "one", value: 1),
-      (key: "two", value: 2),
-      (key: "three", value: 3)
-    ]
-    let d = PersistentDictionary(
-      uniqueKeys: ["zero", "one", "two", "three"],
-      values: [0, 1, 2, 3])
     expectEqualElements(d.sorted(by: <), items.sorted(by: <))
   }
 

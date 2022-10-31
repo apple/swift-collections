@@ -12,6 +12,6 @@
 extension OrderedSet: CustomReflectable {
   /// The custom mirror for this instance.
   public var customMirror: Mirror {
-    Mirror(self, unlabeledChildren: _elements, displayStyle: .collection)
+    Mirror(self, unlabeledChildren: _elements, displayStyle: .set)
   }
 }

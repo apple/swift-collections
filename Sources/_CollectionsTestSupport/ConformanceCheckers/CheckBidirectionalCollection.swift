@@ -80,6 +80,61 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
     file: file, line: line)
 }
 
+public func _checkBidirectionalCollection_indexOffsetBy<
+  C: Collection
+>(
+  _ collection: C,
+  expectedContents: [C.Element],
+  by areEquivalent: (C.Element, C.Element) -> Bool,
+  maxSamples: Int? = nil,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  var allIndices = collection._indicesByIndexAfter()
+  allIndices.append(collection.endIndex)
+
+  withSomeRanges(
+    "range",
+    in: 0 ..< allIndices.count - (1 as Int),
+    maxSamples: maxSamples
+  ) { range in
+    let i = range.lowerBound
+    let j = range.upperBound
+
+    // Check `index(_,offsetBy:)` with negative offsets
+    let a = collection.index(allIndices[j], offsetBy: i - j)
+    expectEqual(a, allIndices[i])
+    if i < expectedContents.count {
+      expectEquivalent(
+        collection[a], expectedContents[i],
+        by: areEquivalent)
+    }
+
+    // Check `distance(from:to:)` with decreasing indices
+    let d = collection.distance(from: allIndices[j], to: allIndices[i])
+    expectEqual(d, i - j)
+  }
+
+  // Check `index(_,offsetBy:limitedBy:)`
+  let limits =
+  Set([0, allIndices.count - 1, allIndices.count / 2])
+    .sorted()
+  withEvery("limit", in: limits) { limit in
+    withEvery("i", in: 0 ..< allIndices.count) { i in
+      let min = -i - (limit <= i ? 2 : 0)
+      withEvery("delta", in: stride(from: 0, through: min, by: -1)) { delta in
+        let actual = collection.index(
+          allIndices[i],
+          offsetBy: delta,
+          limitedBy: allIndices[limit])
+        let j = i + delta
+        let expected = i < limit || j >= limit ? allIndices[j] : nil
+        expectEqual(actual, expected)
+      }
+    }
+  }
+}
+
 public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence>(
   _ collection: C,
   expectedContents: S,
@@ -112,6 +167,11 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
     by: areEquivalent,
     "\(expectedContents)")
 
+  // Check `distance(from:to:)`, `index(_:offsetBy)` and
+  // `index(_:offsetBy:limitedBy:)`.
+  _checkBidirectionalCollection_indexOffsetBy(
+    collection, expectedContents: expectedContents, by: areEquivalent)
+
   var allIndices = indicesByIndexAfter
   allIndices.append(collection.endIndex)
 
@@ -123,42 +183,10 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
     let i = range.lowerBound
     let j = range.upperBound
 
-    // Check `index(_,offsetBy:)` with negative offsets
-    let a = collection.index(allIndices[j], offsetBy: i - j)
-    expectEqual(a, allIndices[i])
-    if i < expectedContents.count {
-      expectEquivalent(
-        collection[a], expectedContents[i],
-        by: areEquivalent)
-    }
-
-    // Check `distance(from:to:)` with decreasing indices
-    let d = collection.distance(from: allIndices[j], to: allIndices[i])
-    expectEqual(d, i - j)
-
     // Check slicing.
     let slice = collection[allIndices[i] ..< allIndices[j]]
     expectEqualElements(slice._indicesByIndexBefore(), allIndices[i ..< j])
     expectEqualElements(slice._indicesByFormIndexBefore(), allIndices[i ..< j])
-  }
-
-  // Check `index(_,offsetBy:limitedBy:)`
-  let limits =
-  Set([0, allIndices.count - 1, allIndices.count / 2])
-    .sorted()
-  withEvery("limit", in: limits) { limit in
-    withEvery("i", in: 0 ..< allIndices.count) { i in
-      let min = -i - (limit <= i ? 2 : 0)
-      withEvery("delta", in: stride(from: 0, through: min, by: -1)) { delta in
-        let actual = collection.index(
-          allIndices[i],
-          offsetBy: delta,
-          limitedBy: allIndices[limit])
-        let j = i + delta
-        let expected = i < limit || j >= limit ? allIndices[j] : nil
-        expectEqual(actual, expected)
-      }
-    }
   }
 
   // Check the Indices associated type
