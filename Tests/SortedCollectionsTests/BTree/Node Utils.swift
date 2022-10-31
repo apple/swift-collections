@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if DEBUG
 import _CollectionsTestSupport
 @_spi(Testing) @testable import SortedCollections
 
@@ -81,3 +82,4 @@ struct NodeTemplateBuilder {
 func tree(@NodeTemplateBuilder _ builder: () -> NodeTemplate) -> NodeTemplate {
   return builder()
 }
+#endif
