@@ -120,18 +120,27 @@ extension Benchmark {
       }
     }
 
-    do {
-      var timer = Timer()
-      let input = 0 ..< 1_000
-      let newMember = input.count
+    self.addSimple(
+      title: "PersistentSet<Int> model diffing",
+      input: Int.self
+    ) { input in
+      typealias Model = PersistentSet<Int>
 
-      let original = PersistentSet(input)
-      timer.measure {
-        var copy = original
-        copy.insert(newMember)
-        let diff = copy.subtracting(original)
-        precondition(diff.count == 1 && diff.first == newMember)
-        blackHole(copy)
+      var _state: Model = [] // Private
+      func updateState(
+        with model: Model
+      ) -> (insertions: Model, removals: Model) {
+        let insertions = model.subtracting(_state)
+        let removals = _state.subtracting(model)
+        _state = model
+        return (insertions, removals)
+      }
+
+      var model: Model = []
+      for i in 0 ..< input {
+        model.insert(i)
+        let r = updateState(with: model)
+        precondition(r.insertions.count == 1 && r.removals.count == 0)
       }
     }
 
