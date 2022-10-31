@@ -26,8 +26,8 @@ extension PersistentSet {
   ///    every available shortcut to reduce complexity, e.g. by skipping
   ///    comparing elements in shared subtrees.
   @inlinable
-  public func isEqual(to other: Self) -> Bool {
-    _root.isEqual(to: other._root, by: { _, _ in true })
+  public func isEqualSet(to other: Self) -> Bool {
+    _root.isEqualSet(to: other._root, by: { _, _ in true })
   }
 
   /// Returns a Boolean value indicating whether a persistent set compares equal
@@ -45,10 +45,10 @@ extension PersistentSet {
   ///    every available shortcut to reduce complexity, e.g. by skipping
   ///    comparing elements in shared subtrees.
   @inlinable
-  public func isEqual<Value>(
+  public func isEqualSet<Value>(
     to other: PersistentDictionary<Element, Value>.Keys
   ) -> Bool {
-    _root.isEqual(to: other._base._root, by: { _, _ in true })
+    _root.isEqualSet(to: other._base._root, by: { _, _ in true })
   }
 
   /// Returns a Boolean value indicating whether this persistent set contains
@@ -61,7 +61,7 @@ extension PersistentSet {
   ///     let this: PersistentSet = [0, 1, 5, 6]
   ///     let that = [5, 5, 0, 1, 1, 6, 5, 0, 1, 6, 6, 5]
   ///
-  ///     this.isEqual(to: that) // true
+  ///     this.isEqualSet(to: that) // true
   ///
   /// - Parameter other: The keys view of a persistent dictionary.
   ///
@@ -75,11 +75,11 @@ extension PersistentSet {
   ///    every available shortcut to reduce complexity, e.g. by skipping
   ///    comparing elements in shared subtrees.
   @inlinable
-  public func isEqual<S: Sequence>(to other: S) -> Bool
+  public func isEqualSet<S: Sequence>(to other: S) -> Bool
   where S.Element == Element
   {
     if S.self == Self.self {
-      return isEqual(to: other as! Self)
+      return isEqualSet(to: other as! Self)
     }
 
     if self.isEmpty {

@@ -1333,18 +1333,18 @@ class OrderedSetTests: CollectionTestCase {
           _ set: OrderedSet<Int>,
           _ other: S
         ) -> Bool where S.Element == Int {
-          set.isEqual(to: other)
+          set.isEqualSet(to: other)
         }
 
-        expectEqual(a.isEqual(to: b), expected)
-        expectEqual(a.isEqual(to: b.unordered), expected)
-        expectEqual(a.isEqual(to: c), expected)
+        expectEqual(a.isEqualSet(to: b), expected)
+        expectEqual(a.isEqualSet(to: b.unordered), expected)
+        expectEqual(a.isEqualSet(to: c), expected)
 
         expectEqual(checkSequence(a, b), expected)
         expectEqual(checkSequence(a, c), expected)
-        expectEqual(a.isEqual(to: d), expected)
-        expectEqual(a.isEqual(to: d + d), expected)
-        expectEqual(a.isEqual(to: r2), expected)
+        expectEqual(a.isEqualSet(to: d), expected)
+        expectEqual(a.isEqualSet(to: d + d), expected)
+        expectEqual(a.isEqualSet(to: r2), expected)
       }
     }
   }

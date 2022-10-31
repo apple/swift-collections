@@ -12,7 +12,7 @@
 // TODO: `Equatable` needs more test coverage, apart from hash-collision smoke test
 extension _Node {
   @inlinable
-  internal func isEqual<Value2>(
+  internal func isEqualSet<Value2>(
     to other: _Node<Key, Value2>,
     by areEquivalent: (Value, Value2) -> Bool
   ) -> Bool {
@@ -54,7 +54,7 @@ extension _Node {
         let rc = r.children
         return lc.elementsEqual(
           rc,
-          by: { $0.isEqual(to: $1, by: areEquivalent) })
+          by: { $0.isEqualSet(to: $1, by: areEquivalent) })
       }
     }
   }

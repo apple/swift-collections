@@ -22,7 +22,7 @@ extension OrderedSet {
   ///
   /// - Complexity: O(`min(left.count, right.count)`), as long as`Element`
   ///    properly implements hashing.
-  public func isEqual(to other: Self) -> Bool {
+  public func isEqualSet(to other: Self) -> Bool {
     self.unordered == other.unordered
   }
 
@@ -31,7 +31,7 @@ extension OrderedSet {
   ///
   /// - Complexity: O(`min(left.count, right.count)`), as long as`Element`
   ///    properly implements hashing.
-  public func isEqual(to other: UnorderedView) -> Bool {
+  public func isEqualSet(to other: UnorderedView) -> Bool {
     self.unordered == other
   }
 
@@ -44,10 +44,10 @@ extension OrderedSet {
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in
   ///    `other`, as long as`Element` properly implements hashing.
-  public func isEqual<S: Sequence>(to other: S) -> Bool
+  public func isEqualSet<S: Sequence>(to other: S) -> Bool
   where S.Element == Element {
     if S.self == Self.self {
-      return isEqual(to: other as! Self)
+      return isEqualSet(to: other as! Self)
     }
 
     if self.isEmpty {

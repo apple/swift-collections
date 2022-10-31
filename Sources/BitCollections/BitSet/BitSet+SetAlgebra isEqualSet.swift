@@ -18,7 +18,7 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is value of the largest member of
   ///     either set.
-  public func isEqual(to other: Self) -> Bool {
+  public func isEqualSet(to other: Self) -> Bool {
     self._storage == other._storage
   }
 
@@ -27,8 +27,8 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is value of the largest member of
   ///     either set.
-  public func isEqual(to other: BitSet.Counted) -> Bool {
-    self.isEqual(to: other._bits)
+  public func isEqualSet(to other: BitSet.Counted) -> Bool {
+    self.isEqualSet(to: other._bits)
   }
 
   /// Returns a Boolean value indicating whether a bit set is equal to a range
@@ -36,9 +36,9 @@ extension BitSet {
   ///
   /// - Complexity: O(min(*max*, `other.upperBound`), where *max* is the largest
   ///    member of `self`.
-  public func isEqual(to other: Range<Int>) -> Bool {
+  public func isEqualSet(to other: Range<Int>) -> Bool {
     guard let other = other._toUInt() else { return false }
-    return _read { $0.isEqual(to: other) }
+    return _read { $0.isEqualSet(to: other) }
   }
 
   /// Returns a Boolean value indicating whether this bit set contains the same
@@ -50,18 +50,18 @@ extension BitSet {
   ///     let bits: BitSet = [0, 1, 5, 6]
   ///     let other = [5, 5, 0, 1, 1, 6, 5, 0, 1, 6, 6, 5]
   ///
-  ///     bits.isEqual(to: other) // true
+  ///     bits.isEqualSet(to: other) // true
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `other`.
-  public func isEqual<S: Sequence>(to other: S) -> Bool where S.Element == Int {
+  public func isEqualSet<S: Sequence>(to other: S) -> Bool where S.Element == Int {
     if S.self == Self.self {
-      return isEqual(to: other as! Self)
+      return isEqualSet(to: other as! Self)
     }
     if S.self == BitSet.Counted.self {
-      return isEqual(to: other as! BitSet.Counted)
+      return isEqualSet(to: other as! BitSet.Counted)
     }
     if S.self == Range<Int>.self {
-      return isEqual(to: other as! Range<Int>)
+      return isEqualSet(to: other as! Range<Int>)
     }
 
     if self.isEmpty {

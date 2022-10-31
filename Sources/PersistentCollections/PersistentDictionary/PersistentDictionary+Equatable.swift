@@ -18,6 +18,6 @@ extension PersistentDictionary: Equatable where Value: Equatable {
   /// - Complexity: O(`min(left.count, right.count)`)
   @inlinable
   public static func == (left: Self, right: Self) -> Bool {
-    left._root.isEqual(to: right._root, by: { $0 == $1 })
+    left._root.isEqualSet(to: right._root, by: { $0 == $1 })
   }
 }

@@ -138,9 +138,9 @@ average -- typically they will need to compare against just one member.
 ### Comparing Sets
 
 - ``==(_:_:)`` 
-- ``isEqual(to:)-3m3in`` 
-- ``isEqual(to:)-7mkn1`` 
-- ``isEqual(to:)-5px5r`` 
+- ``isEqualSet(to:)-7egih`` 
+- ``isEqualSet(to:)-4t0k5`` 
+- ``isEqualSet(to:)-7s0cu`` 
 
 - ``isSubset(of:)-9mp7l`` 
 - ``isSubset(of:)-2jlh`` 
