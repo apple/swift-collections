@@ -19,7 +19,7 @@ data structure based on their hash values. For example, assuming 16 bit hash
 values sliced into 4-bit chunks, each node in the prefix tree would have
 sixteen slots (one for each digit), each of which may contain a member, a
 child node reference, or it may be empty. A `PersistentSet` containing the
-tree items `Maximo`, `Julia` and `Don Pablo` (with hash values of `0x2B65`,
+three items `Maximo`, `Julia` and `Don Pablo` (with hash values of `0x2B65`,
 `0xA69F` and `0xADA1`, respectively) may be organized into a prefix tree of
 two nodes:
 
