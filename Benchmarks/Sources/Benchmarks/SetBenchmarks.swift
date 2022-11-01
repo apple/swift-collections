@@ -152,6 +152,30 @@ extension Benchmark {
       }
     }
 
+    self.addSimple(
+      title: "Set<Int> model diffing",
+      input: Int.self
+    ) { input in
+      typealias Model = Set<Int>
+
+      var _state: Model = [] // Private
+      func updateState(
+        with model: Model
+      ) -> (insertions: Model, removals: Model) {
+        let insertions = model.subtracting(_state)
+        let removals = _state.subtracting(model)
+        _state = model
+        return (insertions, removals)
+      }
+
+      var model: Model = []
+      for i in 0 ..< input {
+        model.insert(i)
+        let r = updateState(with: model)
+        precondition(r.insertions.count == 1 && r.removals.count == 0)
+      }
+    }
+
     self.add(
       title: "Set<Int> remove",
       input: ([Int], [Int]).self

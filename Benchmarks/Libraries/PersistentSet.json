@@ -278,9 +278,15 @@
                     "title": "insert",
                     "tasks": [
                         "PersistentSet<Int> insert",
-                        "PersistentSet<Int> insert, shared",
                         "Set<Int> insert",
                         "Set<Int> insert, reserving capacity",
+                    ]
+                },
+                {
+                    "kind": "chart",
+                    "title": "insert-shared",
+                    "tasks": [
+                        "PersistentSet<Int> insert, shared",
                         "Set<Int> insert, shared",
                     ]
                 },

@@ -8,6 +8,15 @@
 
 ### Collection Views
 
+`PersistentDictionary` provides the customary dictionary views, `keys` and
+`values`. These are collection types that are projections of the dictionary
+itself, with elements that match only the keys or values of the dictionary,
+respectively. The `Keys` view is notable in that it provides operations for
+subtracting and intersecting the keys of two dictionaries, allowing for easy
+detection of inserted and removed items between two snapshots of the same
+dictionary. Because `PersistentDictionary` needs to invalidate indices on every
+mutation, its `Values` view is not a `MutableCollection`.
+
 - ``Keys-swift.struct``
 - ``Values-swift.struct``
 - ``keys-swift.property``
@@ -40,6 +49,13 @@
 
 ### Adding or Updating Keys and Values
 
+Beyond the standard `updateValue(_:forKey:)` method, `PersistentDictionary` also
+provides additional `updateValue` variants that take closure arguments. These
+provide a more straightforward way to perform in-place mutations on dictionary
+values (compared to mutating values through the corresponding subscript
+operation.) `PersistentDictionary` also provides the standard `merge` and
+`merging` operations for combining dictionary values.
+
 - ``updateValue(_:forKey:)``
 - ``updateValue(forKey:with:)``
 - ``updateValue(forKey:default:with:)``
@@ -54,6 +70,7 @@
 
 - ``removeValue(forKey:)``
 - ``remove(at:)``
+- ``filter(_:)``
 
 ### Non-mutating Dictionary Operations
 
@@ -66,7 +83,6 @@
 
 ### Transforming a Dictionary
 
-- ``filter(_:)``
 - ``mapValues(_:)``
 - ``compactMapValues(_:)``
 

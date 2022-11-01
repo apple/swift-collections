@@ -16,7 +16,7 @@ data structure based on their hash values. For example, assuming 16 bit hash
 values sliced into 4-bit chunks, each node in the prefix tree would have
 sixteen slots (one for each digit), each of which may contain a member, a
 child node reference, or it may be empty. A `PersistentSet` containing the
-tree items `Maximo`, `Julia` and `Don Pablo` (with hash values of `0x2B65`,
+three items `Maximo`, `Julia` and `Don Pablo` (with hash values of `0x2B65`,
 `0xA69F` and `0xADA1`, respectively) may be organized into a prefix tree of
 two nodes:
 
@@ -66,8 +66,6 @@ As long as `Element` properly implements `Hashable`, lookup operations in a
 particular item by looking at no more than a constant number of items on
 average -- typically they will need to compare against just one member.
 
-<!-- ## Overview -->
-
 ## Topics
 
 ### Creating a Set
@@ -91,17 +89,29 @@ average -- typically they will need to compare against just one member.
 
 ### Removing Elements
 
-- ``filter(_:)``
 - ``remove(_:)``
 - ``remove(at:)``
+- ``filter(_:)``
 
 ### Non-mutating Set Operations
+
+To acknowledge the efficiency of `PersistentSet` at inserting and removing items
+from copies of a set, we provide a family of non-mutating primitives that
+perform these operations. Instead of directly modifying the set they're given,
+they return a brand new set with the desired result.
 
 - ``inserting(_:)``
 - ``updating(with:)``
 - ``removing(_:)``
 
 ### Combining Sets
+
+All the standard combining operations (intersection, union, subtraction and
+symmetric difference) are supported, in both non-mutating and mutating forms.
+`SetAlgebra` only requires the ability to combine one set instance with another,
+but `PersistentSet` follows the tradition established by `Set` in providing
+additional overloads to each operation that allow combining a set with
+additional types, including arbitrary sequences.
 
 - ``intersection(_:)-9dx2a``
 - ``intersection(_:)-5z4my``
@@ -136,6 +146,13 @@ average -- typically they will need to compare against just one member.
 - ``formSymmetricDifference(_:)-4t8jr``
 
 ### Comparing Sets
+
+`PersistentSet` supports all standard set comparisons (subset tests, superset
+tests, disjunctness test), including the customary overloads established by
+`Set`. As an additional extension, the `isEqualSet` family of member functions
+generalize the standard `==` operation to support checking whether a
+`PersistentSet` consists of exactly the same members as an arbitrary sequence,
+ignoring element ordering and duplicates (if any).
 
 - ``==(_:_:)`` 
 - ``isEqualSet(to:)-7egih`` 

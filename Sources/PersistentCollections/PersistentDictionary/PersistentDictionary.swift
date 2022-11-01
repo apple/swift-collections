@@ -20,18 +20,18 @@
 /// neither type provides any guarantees about the ordering of their items.
 ///
 /// However, `PersistentDictionary` is optimizing specifically for use cases
-/// that need to mutate shared copies or to compare a set value to one of its
-/// older snapshots.
+/// that need to mutate shared copies or to compare a dictionary value to one of
+/// its older snapshots.
 ///
 /// The standard `Dictionary` stores its members in a single, flat hash table,
 /// and it implements value semantics with all-or-nothing copy-on-write
-/// behavior: every time a shared copy of a set is mutated, the mutation needs
-/// to make a full copy of the set's storage. `PersistentDictionary` takes a
-/// different approach: it organizes its members into a tree structure, the
-/// nodes of which can be freely shared across collection values. When mutating
-/// a shared copy of a set value, `PersistentSet` is able to simply link the
-/// unchanged parts of the tree directly into the result, saving both time and
-/// memory.
+/// behavior: every time a shared copy of a dictionary is mutated, the mutation
+/// needs to make a full copy of the dictionary's storage.
+/// `PersistentDictionary` takes a different approach: it organizes its members
+/// into a tree structure, the nodes of which can be freely shared across
+/// collection values. When mutating a shared copy of a dictionary value,
+/// `PersistentDictionary` is able to simply link the unchanged parts of the
+/// tree directly into the result, saving both time and memory.
 ///
 /// This structural sharing also makes it more efficient to compare mutated
 /// dictionaries values to earlier versions of themselves. When comparing or
