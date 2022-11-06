@@ -74,9 +74,9 @@ average -- typically they will need to compare against just one member.
 ### Creating a Set
 
 - ``init()``
-- ``init(_:)-6nn9e``
-- ``init(_:)-6qbps``
-- ``init(_:)-30nei``
+- ``init(_:)-1qufh``
+- ``init(_:)-49yo2``
+- ``init(_:)-56pm1``
 
 ### Finding Elements
 
@@ -95,6 +95,7 @@ average -- typically they will need to compare against just one member.
 - ``remove(_:)``
 - ``remove(at:)``
 - ``filter(_:)``
+- ``removeAll(where:)``
 
 ### Non-mutating Set Operations
 
@@ -116,37 +117,37 @@ but `ShareableSet` follows the tradition established by `Set` in providing
 additional overloads to each operation that allow combining a set with
 additional types, including arbitrary sequences.
 
-- ``intersection(_:)-9dx2a``
-- ``intersection(_:)-5z4my``
-- ``intersection(_:)-1d4e0``
+- ``intersection(_:)-8few3``
+- ``intersection(_:)-61b7q``
+- ``intersection(_:)-2ncm4``
 
-- ``union(_:)-1nk1t``
-- ``union(_:)-8otnp``
-- ``union(_:)-6eysm``
+- ``union(_:)-3e3nw``
+- ``union(_:)-8twku``
+- ``union(_:)-9f4y4``
 
-- ``subtracting(_:)-8sczx``
-- ``subtracting(_:)-2iv0a``
-- ``subtracting(_:)-63bfb``
+- ``subtracting(_:)-6v3hx``
+- ``subtracting(_:)-zt78``
+- ``subtracting(_:)-9n0oc``
 
-- ``symmetricDifference(_:)-76bw``
-- ``symmetricDifference(_:)-92ha9``
-- ``symmetricDifference(_:)-1n89g``
+- ``symmetricDifference(_:)-7o2iv``
+- ``symmetricDifference(_:)-3jhi3``
+- ``symmetricDifference(_:)-2hxgg``
 
-- ``formIntersection(_:)-4s0od``
-- ``formIntersection(_:)-7dqfx``
-- ``formIntersection(_:)-8i59p``
+- ``formIntersection(_:)-48ki1``
+- ``formIntersection(_:)-8qfxe``
+- ``formIntersection(_:)-nne6``
 
-- ``formUnion(_:)-68pog``
-- ``formUnion(_:)-82rrc``
-- ``formUnion(_:)-4r7qz``
+- ``formUnion(_:)-1qwuq``
+- ``formUnion(_:)-2raoj``
+- ``formUnion(_:)-ew7g``
 
-- ``subtract(_:)-7rmd3``
-- ``subtract(_:)-47r93``
-- ``subtract(_:)-3v8ms``
+- ``subtract(_:)-24txa``
+- ``subtract(_:)-69g3``
+- ``subtract(_:)-5l8bb``
 
-- ``formSymmetricDifference(_:)-499uq``
-- ``formSymmetricDifference(_:)-8wue8``
-- ``formSymmetricDifference(_:)-4t8jr``
+- ``formSymmetricDifference(_:)-6zqa1``
+- ``formSymmetricDifference(_:)-mv0q``
+- ``formSymmetricDifference(_:)-2qzlu``
 
 ### Comparing Sets
 
@@ -159,26 +160,26 @@ Like `==`, the `isEqualSet` functions ignore element ordering and duplicates (if
 any).
 
 - ``==(_:_:)`` 
-- ``isEqualSet(to:)-7egih`` 
-- ``isEqualSet(to:)-4t0k5`` 
-- ``isEqualSet(to:)-7s0cu`` 
+- ``isEqualSet(to:)-5lpwv`` 
+- ``isEqualSet(to:)-6ont2`` 
+- ``isEqualSet(to:)-58q8h`` 
 
-- ``isSubset(of:)-9mp7l`` 
-- ``isSubset(of:)-2jlh`` 
-- ``isSubset(of:)-8vn0j`` 
+- ``isSubset(of:)-2itju`` 
+- ``isSubset(of:)-2nice`` 
+- ``isSubset(of:)-8qszd`` 
 
-- ``isSuperset(of:)-5af8o`` 
-- ``isSuperset(of:)-6mvxj`` 
-- ``isSuperset(of:)-864jy`` 
+- ``isSuperset(of:)-9mp0j`` 
+- ``isSuperset(of:)-3pm0f`` 
+- ``isSuperset(of:)-63haf`` 
 
-- ``isStrictSubset(of:)-48nx2`` 
-- ``isStrictSubset(of:)-2j680`` 
-- ``isStrictSubset(of:)-1s6n9`` 
+- ``isStrictSubset(of:)-1cdr`` 
+- ``isStrictSubset(of:)-3xlgn`` 
+- ``isStrictSubset(of:)-8oyb4`` 
 
-- ``isStrictSuperset(of:)-nd5j`` 
-- ``isStrictSuperset(of:)-5z263``
-- ``isStrictSuperset(of:)-ivbh`` 
+- ``isStrictSuperset(of:)-7qgvz`` 
+- ``isStrictSuperset(of:)-3fdsl``
+- ``isStrictSuperset(of:)-2ujyn`` 
 
-- ``isDisjoint(with:)-12irx``
-- ``isDisjoint(with:)-1hhyf``
-- ``isDisjoint(with:)-61lde``
+- ``isDisjoint(with:)-eq16``
+- ``isDisjoint(with:)-8bgbj``
+- ``isDisjoint(with:)-5b64c``

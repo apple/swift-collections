@@ -28,25 +28,25 @@ mutation, its `Values` view is not a `MutableCollection`.
 ### Creating a Dictionary
 
 - ``init()``
-- ``init(_:)-7jshe``
-- ``init(_:)-8ls8p``
-- ``init(uniqueKeysWithValues:)-65ax0``
-- ``init(uniqueKeysWithValues:)-5ok18``
-- ``init(_:uniquingKeysWith:)-7fuzu``
-- ``init(_:uniquingKeysWith:)-4jee3``
-- ``init(grouping:by:)-8ntzv``
-- ``init(grouping:by:)-7cu86``
+- ``init(_:)-68s80``
+- ``init(_:)-2ngkk``
+- ``init(uniqueKeysWithValues:)-688fi``
+- ``init(uniqueKeysWithValues:)-3h2xe``
+- ``init(_:uniquingKeysWith:)-6t92n``
+- ``init(_:uniquingKeysWith:)-9opgv``
+- ``init(grouping:by:)-6ddmm``
+- ``init(grouping:by:)-9rc24``
 - ``init(keys:valueGenerator:)``
 
 
 ### Inspecting a Dictionary
 
-- ``isEmpty-65s43``
-- ``count-9cdqd``
+- ``isEmpty-25p4``
+- ``count-8s588``
 
 ### Accessing Keys and Values
 
-- ``subscript(_:)-g0oi``
+- ``subscript(_:)-6jbab``
 - ``subscript(_:default:)``
 - ``index(forKey:)``
 
@@ -62,12 +62,12 @@ operation.) `ShareableDictionary` also provides the standard `merge` and
 - ``updateValue(_:forKey:)``
 - ``updateValue(forKey:with:)``
 - ``updateValue(forKey:default:with:)``
-- ``merge(_:uniquingKeysWith:)-853bf``
-- ``merge(_:uniquingKeysWith:)-19xxn``
-- ``merge(_:uniquingKeysWith:)-2osh``
-- ``merging(_:uniquingKeysWith:)-2a7cl``
-- ``merging(_:uniquingKeysWith:)-1tq3e``
-- ``merging(_:uniquingKeysWith:)-2kjqq``
+- ``merge(_:uniquingKeysWith:)-218dc``
+- ``merge(_:uniquingKeysWith:)-8gdr2``
+- ``merge(_:uniquingKeysWith:)-6j72k``
+- ``merging(_:uniquingKeysWith:)-88sah``
+- ``merging(_:uniquingKeysWith:)-2qknu``
+- ``merging(_:uniquingKeysWith:)-3hao7``
 
 ### Removing Keys and Values
 
