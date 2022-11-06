@@ -300,6 +300,14 @@
                 },
                 {
                     "kind": "chart",
+                    "title": "diffing2",
+                    "tasks": [
+                        "PersistentSet<Int> model diffing",
+                        "Set<Int> model diffing",
+                    ]
+                },
+                {
+                    "kind": "chart",
                     "title": "remove",
                     "tasks": [
                         "PersistentSet<Int> remove",
