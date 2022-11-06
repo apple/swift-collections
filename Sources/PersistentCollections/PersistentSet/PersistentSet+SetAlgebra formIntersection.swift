@@ -30,6 +30,7 @@ extension PersistentSet {
   ///     parts of the input trees directly into the result.
   @inlinable
   public mutating func formIntersection(_ other: Self) {
+    // FIXME: Implement in-place reductions
     self = intersection(other)
   }
 
@@ -51,6 +52,7 @@ extension PersistentSet {
   public mutating func formIntersection<Value>(
     _ other: PersistentDictionary<Element, Value>.Keys
   ) {
+    // FIXME: Implement in-place reductions
     self = intersection(other)
   }
 

@@ -26,6 +26,7 @@ extension PersistentSet {
   ///     parts of the input trees directly into the result.
   @inlinable
   public mutating func subtract(_ other: Self) {
+    // FIXME: Implement in-place reductions
     self = subtracting(other)
   }
 
@@ -48,6 +49,7 @@ extension PersistentSet {
   public mutating func subtract<Value>(
     _ other: PersistentDictionary<Element, Value>.Keys
   ) {
+    // FIXME: Implement in-place reductions
     self = subtracting(other)
   }
 
