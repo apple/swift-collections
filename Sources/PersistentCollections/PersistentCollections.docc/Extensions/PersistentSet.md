@@ -151,8 +151,9 @@ additional types, including arbitrary sequences.
 tests, disjunctness test), including the customary overloads established by
 `Set`. As an additional extension, the `isEqualSet` family of member functions
 generalize the standard `==` operation to support checking whether a
-`PersistentSet` consists of exactly the same members as an arbitrary sequence,
-ignoring element ordering and duplicates (if any).
+`PersistentSet` consists of exactly the same members as an arbitrary sequence.
+Like `==`, the `isEqualSet` functions ignore element ordering and duplicates (if
+any).
 
 - ``==(_:_:)`` 
 - ``isEqualSet(to:)-7egih`` 
