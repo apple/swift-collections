@@ -1,0 +1,211 @@
+{
+  "kind": "group",
+  "title": "ShareableDictionary Benchmarks",
+  "directory": "Results",
+  "contents": [
+    {
+      "kind": "group",
+      "title": "ShareableDictionary Operations",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "all",
+          "tasks": [
+            "ShareableDictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "ShareableDictionary<Int, Int> sequential iteration",
+            "ShareableDictionary<Int, Int> sequential iteration, indices",
+            "ShareableDictionary<Int, Int>.Keys sequential iteration",
+            "ShareableDictionary<Int, Int>.Values sequential iteration",
+            "ShareableDictionary<Int, Int> indexing subscript",
+            "ShareableDictionary<Int, Int> subscript, successful lookups",
+            "ShareableDictionary<Int, Int> subscript, unsuccessful lookups",
+            "ShareableDictionary<Int, Int> subscript, noop setter",
+            "ShareableDictionary<Int, Int> subscript, set existing",
+            "ShareableDictionary<Int, Int> subscript, _modify",
+            "ShareableDictionary<Int, Int> subscript, insert, unique",
+            "ShareableDictionary<Int, Int> subscript, insert, shared",
+            "ShareableDictionary<Int, Int> subscript, remove existing, unique",
+            "ShareableDictionary<Int, Int> subscript, remove existing, shared",
+            "ShareableDictionary<Int, Int> subscript, remove missing",
+            "ShareableDictionary<Int, Int> defaulted subscript, successful lookups",
+            "ShareableDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+            "ShareableDictionary<Int, Int> defaulted subscript, _modify existing",
+            "ShareableDictionary<Int, Int> defaulted subscript, _modify missing",
+            "ShareableDictionary<Int, Int> successful index(forKey:)",
+            "ShareableDictionary<Int, Int> unsuccessful index(forKey:)",
+            "ShareableDictionary<Int, Int> updateValue(_:forKey:), existing",
+            "ShareableDictionary<Int, Int> updateValue(_:forKey:), insert",
+            "ShareableDictionary<Int, Int> random removals (existing keys)",
+            "ShareableDictionary<Int, Int> random removals (missing keys)",
+          ]
+        }
+      ]
+    },
+    {
+      "kind": "group",
+      "title": "Comparisons against reference implementations",
+      "directory": "versus",
+      "contents": [
+        {
+          "kind": "chart",
+          "title": "init(uniqueKeysWithValues:)",
+          "tasks": [
+            "ShareableDictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "Dictionary<Int, Int> init(uniqueKeysWithValues:)",
+            "OrderedDictionary<Int, Int> init(uniqueKeysWithValues:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration",
+          "tasks": [
+            "ShareableDictionary<Int, Int> sequential iteration",
+            "Dictionary<Int, Int> sequential iteration",
+            "OrderedDictionary<Int, Int> sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration [Keys]",
+          "tasks": [
+            "ShareableDictionary<Int, Int>.Keys sequential iteration",
+            "Dictionary<Int, Int>.Keys sequential iteration",
+            "OrderedDictionary<Int, Int>.Keys sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration [Values]",
+          "tasks": [
+            "ShareableDictionary<Int, Int>.Values sequential iteration",
+            "Dictionary<Int, Int>.Values sequential iteration",
+            "OrderedDictionary<Int, Int>.Values sequential iteration",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "sequential iteration using indices",
+          "tasks": [
+            "ShareableDictionary<Int, Int> sequential iteration, indices",
+            "Dictionary<Int, Int> sequential iteration, indices",
+            "OrderedDictionary<Int, Int> sequential iteration, indices",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "indexing subscript",
+          "tasks": [
+            "ShareableDictionary<Int, Int> indexing subscript",
+            "Dictionary<Int, Int> indexing subscript",
+            "OrderedDictionary<Int, Int> indexing subscript",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, successful lookups",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, successful lookups",
+            "Dictionary<Int, Int> subscript, successful lookups",
+            "OrderedDictionary<Int, Int> subscript, successful lookups",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, unsuccessful lookups",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, unsuccessful lookups",
+            "Dictionary<Int, Int> subscript, unsuccessful lookups",
+            "OrderedDictionary<Int, Int> subscript, unsuccessful lookups",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, insert into unique collection",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, insert, unique",
+            "Dictionary<Int, Int> subscript, insert, unique",
+            "Dictionary<Int, Int> subscript, insert, reserving capacity",
+            "OrderedDictionary<Int, Int> subscript, append, unique",
+            "OrderedDictionary<Int, Int> subscript, append, reserving capacity",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, insert into shared collection",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, insert, shared",
+            "Dictionary<Int, Int> subscript, insert, shared",
+            "OrderedDictionary<Int, Int> subscript, append, shared",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, remove existing from unique collection",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, remove existing, unique",
+            "Dictionary<Int, Int> subscript, remove existing, unique",
+            "OrderedDictionary<Int, Int> subscript, remove existing, unique",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, remove existing from shared collection",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, remove existing, shared",
+            "Dictionary<Int, Int> subscript, remove existing, shared",
+            "OrderedDictionary<Int, Int> subscript, remove existing, shared",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "subscript, _modify existing",
+          "tasks": [
+            "ShareableDictionary<Int, Int> subscript, _modify",
+            "ShareableDictionary<Int, Int> defaulted subscript, _modify existing",
+            "Dictionary<Int, Int> subscript, _modify",
+            "Dictionary<Int, Int> defaulted subscript, _modify existing",
+            "OrderedDictionary<Int, Int> subscript, _modify",
+            "OrderedDictionary<Int, Int> defaulted subscript, _modify existing",
+          ]
+        },
+
+        {
+          "kind": "chart",
+          "title": "index(forKey:), successful index(forKey:)",
+          "tasks": [
+            "ShareableDictionary<Int, Int> successful index(forKey:)",
+            "Dictionary<Int, Int> successful index(forKey:)",
+            "OrderedDictionary<Int, Int> successful index(forKey:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "index(forKey:), unsuccessful index(forKey:)",
+          "tasks": [
+            "ShareableDictionary<Int, Int> unsuccessful index(forKey:)",
+            "Dictionary<Int, Int> unsuccessful index(forKey:)",
+            "OrderedDictionary<Int, Int> unsuccessful index(forKey:)",
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "updateValue(_:forKey:), existing",
+          "tasks": [
+            "ShareableDictionary<Int, Int> updateValue(_:forKey:), existing",
+            "Dictionary<Int, Int> updateValue(_:forKey:), existing",
+            "OrderedDictionary<Int, Int> updateValue(_:forKey:), existing"
+           ]
+        },
+        {
+          "kind": "chart",
+          "title": "updateValue(_:forKey:), insert",
+          "tasks": [
+            "ShareableDictionary<Int, Int> updateValue(_:forKey:), insert",
+            "Dictionary<Int, Int> updateValue(_:forKey:), insert",
+            "OrderedDictionary<Int, Int> updateValue(_:forKey:), append"
+          ]
+        },
+      ]
+    },
+  ]
+}
