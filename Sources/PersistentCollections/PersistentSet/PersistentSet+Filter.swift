@@ -28,4 +28,28 @@ extension PersistentSet {
     guard let result = result else { return self }
     return PersistentSet(_new: result.finalize(.top))
   }
+
+  /// Removes all the elements that satisfy the given predicate.
+  ///
+  /// Use this method to remove every element in the set that meets
+  /// particular criteria.
+  /// This example removes all the odd values from an
+  /// set of numbers:
+  ///
+  ///     var numbers: PersistentSet = [5, 6, 7, 8, 9, 10, 11]
+  ///     numbers.removeAll(where: { $0 % 2 != 0 })
+  ///     // numbers == [6, 8, 10], in some order
+  ///
+  /// - Parameter shouldBeRemoved: A closure that takes an element of the
+  ///   set as its argument and returns a Boolean value indicating
+  ///   whether the element should be removed from the collection.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public mutating func removeAll(
+    where shouldBeRemoved: (Element) throws -> Bool
+  ) rethrows {
+    // FIXME: Implement in-place reductions
+    self = try filter { try !shouldBeRemoved($0) }
+  }
 }

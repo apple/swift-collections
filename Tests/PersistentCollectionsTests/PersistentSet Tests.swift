@@ -509,6 +509,21 @@ class PersistentSetTests: CollectionTestCase {
     }
   }
 
+  func test_removeAll_where_exhaustive() {
+    withEvery("isShared", in: [false, true]) { isShared in
+      withEverySubset("a", of: testItems) { a in
+        withEverySubset("b", of: a) { b in
+          var x = PersistentSet(a)
+          let v = Set(b)
+          withHiddenCopies(if: isShared, of: &x) { x in
+            x.removeAll { !v.contains($0) }
+            expectEqualSets(x, v)
+          }
+        }
+      }
+    }
+  }
+
   func test_union_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = PersistentSet(a)
