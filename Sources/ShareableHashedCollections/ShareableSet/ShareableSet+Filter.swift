@@ -33,12 +33,12 @@ extension ShareableSet {
   ///
   /// Use this method to remove every element in the set that meets
   /// particular criteria.
-  /// This example removes all the odd values from an
+  /// This example removes all the odd values from a
   /// set of numbers:
   ///
   ///     var numbers: ShareableSet = [5, 6, 7, 8, 9, 10, 11]
   ///     numbers.removeAll(where: { $0 % 2 != 0 })
-  ///     // numbers == [6, 8, 10], in some order
+  ///     // numbers == [6, 8, 10]
   ///
   /// - Parameter shouldBeRemoved: A closure that takes an element of the
   ///   set as its argument and returns a Boolean value indicating

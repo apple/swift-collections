@@ -1520,6 +1520,27 @@ class ShareableDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_removeAll_where_exhaustive() {
+    withEvery("isShared", in: [false, true]) { isShared in
+      withEverySubset("a", of: testItems) { a in
+        withEverySubset("b", of: a) { b in
+          var x = ShareableDictionary(
+            uniqueKeysWithValues: a.lazy.map {
+              ($0, $0.identity + 100)
+            })
+          let y = Dictionary(
+            uniqueKeysWithValues: b.lazy.map {
+              ($0, $0.identity + 100)
+            })
+          withHiddenCopies(if: isShared, of: &x) { x in
+            x.removeAll { y[$0.key] == nil }
+            expectEqualDictionaries(x, y)
+          }
+        }
+      }
+    }
+  }
+
   func test_merge_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       withEverySubset("b", of: testItems) { b in

@@ -28,4 +28,29 @@ extension ShareableDictionary {
     guard let result = result else { return self }
     return ShareableDictionary(_new: result.finalize(.top))
   }
+
+  /// Removes all the elements that satisfy the given predicate.
+  ///
+  /// Use this method to remove every element in the dictionary that meets
+  /// particular criteria.
+  /// This example removes all the odd valued items from a
+  /// dictionary mapping strings to numbers:
+  ///
+  ///     var numbers: ShareableDictionary = ["a": 5, "b": 6, "c": 7, "d": 8]
+  ///     numbers.removeAll(where: { $0.value % 2 != 0 })
+  ///     // numbers == ["b": 6, "d": 8]
+  ///
+  /// - Parameter shouldBeRemoved: A closure that takes an element of the
+  ///   dictionary as its argument and returns a Boolean value indicating
+  ///   whether the element should be removed from the collection.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public mutating func removeAll(
+    where shouldBeRemoved: (Element) throws -> Bool
+  ) rethrows {
+    // FIXME: Implement in-place reductions
+    self = try filter { try !shouldBeRemoved($0) }
+  }
+
 }
