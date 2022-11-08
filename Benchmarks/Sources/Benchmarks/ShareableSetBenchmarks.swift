@@ -105,21 +105,6 @@ extension Benchmark {
       blackHole(set)
     }
 
-    self.add(
-      title: "ShareableSet<Int> insert one + subtract, shared",
-      input: [Int].self
-    ) { input in
-      let original = ShareableSet(input)
-      let newMember = input.count
-      return { timer in
-        var copy = original
-        copy.insert(newMember)
-        let diff = copy.subtracting(original)
-        precondition(diff.count == 1 && diff.first == newMember)
-        blackHole(copy)
-      }
-    }
-
     self.addSimple(
       title: "ShareableSet<Int> model diffing",
       input: Int.self
@@ -184,58 +169,68 @@ extension Benchmark {
 
     // SetAlgebra operations with Self
     do {
-      for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> union with Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let a = ShareableSet(input)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            blackHole(a.union(identity(b)))
-          }
+      func makeB(
+        _ a: ShareableSet<Int>, _ range: Range<Int>, shared: Bool
+      ) -> ShareableSet<Int> {
+        guard shared else {
+          return ShareableSet(range)
         }
+        var b = a
+        b.subtract(0 ..< range.lowerBound)
+        b.formUnion(range)
+        return b
       }
 
       for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> intersection with Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let a = ShareableSet(input)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            blackHole(a.intersection(identity(b)))
-          }
-        }
-      }
+        for shared in [false, true] {
+          let qualifier = "\(percentage) overlap, \(shared ? "shared" : "distinct")"
 
-      for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> symmetricDifference with Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let a = ShareableSet(input)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            blackHole(a.symmetricDifference(identity(b)))
+          self.add(
+            title: "ShareableSet<Int> union with Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            let a = ShareableSet(input)
+            let b = makeB(a, start ..< start + input.count, shared: shared)
+            return { timer in
+              blackHole(a.union(identity(b)))
+            }
           }
-        }
-      }
 
-      for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> subtracting Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let a = ShareableSet(input)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            blackHole(a.subtracting(identity(b)))
+          self.add(
+            title: "ShareableSet<Int> intersection with Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            let a = ShareableSet(input)
+            let b = makeB(a, start ..< start + input.count, shared: shared)
+            return { timer in
+              blackHole(a.intersection(identity(b)))
+            }
+          }
+
+          self.add(
+            title: "ShareableSet<Int> symmetricDifference with Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            let a = ShareableSet(input)
+            let b = makeB(a, start ..< start + input.count, shared: shared)
+            return { timer in
+              blackHole(a.symmetricDifference(identity(b)))
+            }
+          }
+
+          self.add(
+            title: "ShareableSet<Int> subtracting Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            let a = ShareableSet(input)
+            let b = makeB(a, start ..< start + input.count, shared: shared)
+            return { timer in
+              blackHole(a.subtracting(identity(b)))
+            }
           }
         }
       }
@@ -302,70 +297,80 @@ extension Benchmark {
 
     // SetAlgebra mutations with Self
     do {
-      for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> formUnion with Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            var a = ShareableSet(input)
-            timer.measure {
-              a.formUnion(identity(b))
-            }
-            blackHole(a)
-          }
+      func makeB(
+        _ a: ShareableSet<Int>, _ range: Range<Int>, shared: Bool
+      ) -> ShareableSet<Int> {
+        guard shared else {
+          return ShareableSet(range)
         }
+        var b = a
+        b.subtract(0 ..< range.lowerBound)
+        b.formUnion(range)
+        return b
       }
 
       for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> formIntersection with Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            var a = ShareableSet(input)
-            timer.measure {
-              a.formIntersection(identity(b))
-            }
-            blackHole(a)
-          }
-        }
-      }
+        for shared in [false, true] {
+          let qualifier = "\(percentage) overlap, \(shared ? "shared" : "distinct")"
 
-      for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> formSymmetricDifference with Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            var a = ShareableSet(input)
-            timer.measure {
-              a.formSymmetricDifference(identity(b))
+          self.add(
+            title: "ShareableSet<Int> formUnion with Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            return { timer in
+              var a = ShareableSet(input)
+              let b = makeB(a, start ..< start + input.count, shared: shared)
+              timer.measure {
+                a.formUnion(identity(b))
+              }
+              blackHole(a)
             }
-            blackHole(a)
           }
-        }
-      }
 
-      for (percentage, start) in overlaps {
-        self.add(
-          title: "ShareableSet<Int> subtract Self (\(percentage) overlap)",
-          input: [Int].self
-        ) { input in
-          let start = start(input.count)
-          let b = ShareableSet(start ..< start + input.count)
-          return { timer in
-            var a = ShareableSet(input)
-            timer.measure {
-              a.subtract(identity(b))
+          self.add(
+            title: "ShareableSet<Int> formIntersection with Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            return { timer in
+              var a = ShareableSet(input)
+              let b = makeB(a, start ..< start + input.count, shared: shared)
+              timer.measure {
+                a.formIntersection(identity(b))
+              }
+              blackHole(a)
             }
-            blackHole(a)
+          }
+
+          self.add(
+            title: "ShareableSet<Int> formSymmetricDifference with Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            return { timer in
+              var a = ShareableSet(input)
+              let b = makeB(a, start ..< start + input.count, shared: shared)
+              timer.measure {
+                a.formSymmetricDifference(identity(b))
+              }
+              blackHole(a)
+            }
+          }
+
+          self.add(
+            title: "ShareableSet<Int> subtract Self (\(qualifier))",
+            input: [Int].self
+          ) { input in
+            let start = start(input.count)
+            return { timer in
+              var a = ShareableSet(input)
+              let b = makeB(a, start ..< start + input.count, shared: shared)
+              timer.measure {
+                a.subtract(identity(b))
+              }
+              blackHole(a)
+            }
           }
         }
       }
