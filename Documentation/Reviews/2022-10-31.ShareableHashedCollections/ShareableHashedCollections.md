@@ -136,16 +136,16 @@ func lastIndex(of: Element) -> Index?
 #### Adding and Updating Elements
 
 ```swift
-func insert(Element) -> (inserted: Bool, memberAfterInsert: Element)
-func update(with: Element) -> Element?
-func update(Element, at: Index) -> Element
+mutating func insert(Element) -> (inserted: Bool, memberAfterInsert: Element)
+mutating func update(with: Element) -> Element?
+mutating func update(Element, at: Index) -> Element
 ```
 
 #### Removing Elements
 
 ```swift
-func remove(Element) -> Element?
-func remove(at: Index) -> Element
+mutating func remove(Element) -> Element?
+mutating func remove(at: Index) -> Element
 func filter((Element) throws -> Bool) rethrows -> ShareableSet<Element>
 mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows
 ```
@@ -171,21 +171,21 @@ func symmetricDifference(`Self`) -> ShareableSet<Element>
 func symmetricDifference<Value>(ShareableDictionary<Element, Value>.Keys) -> ShareableSet<Element>
 func symmetricDifference<S>(S) -> ShareableSet<Element>
 
-func formIntersection(`Self`)
-func formIntersection<Value>(ShareableDictionary<Element, Value>.Keys)
-func formIntersection<S>(S)
+mutating func formIntersection(`Self`)
+mutating func formIntersection<Value>(ShareableDictionary<Element, Value>.Keys)
+mutating func formIntersection<S>(S)
 
-func formUnion(`Self`)
-func formUnion<Value>(ShareableDictionary<Element, Value>.Keys)
-func formUnion<S>(S)
+mutating func formUnion(`Self`)
+mutating func formUnion<Value>(ShareableDictionary<Element, Value>.Keys)
+mutating func formUnion<S>(S)
 
-func subtract(`Self`)
-func subtract<Value>(ShareableDictionary<Element, Value>.Keys)
-func subtract<S>(S)
+mutating func subtract(`Self`)
+mutating func subtract<Value>(ShareableDictionary<Element, Value>.Keys)
+mutating func subtract<S>(S)
 
-func formSymmetricDifference(`Self`)
-func formSymmetricDifference<Value>(ShareableDictionary<Element, Value>.Keys)
-func formSymmetricDifference<S>(S)
+mutating func formSymmetricDifference(`Self`)
+mutating func formSymmetricDifference<Value>(ShareableDictionary<Element, Value>.Keys)
+mutating func formSymmetricDifference<S>(S)
 ```
 
 #### Comparing Sets
@@ -293,12 +293,12 @@ func index(forKey: Key) -> Index?
 Beyond the standard `updateValue(_:forKey:)` method, `ShareableDictionary` also provides additional `updateValue` variants that take closure arguments. These provide a more straightforward way to perform in-place mutations on dictionary values (compared to mutating values through the corresponding subscript operation.) `ShareableDictionary` also provides the standard `merge` and `merging` operations for combining dictionary values.
 
 ```swift
-func updateValue(Value, forKey: Key) -> Value?
-func updateValue<R>(forKey: Key, with: (inout Value?) throws -> R) rethrows -> R
-func updateValue<R>(forKey: Key, default: () -> Value, with: (inout Value) throws -> R) rethrows -> R
+mutating func updateValue(Value, forKey: Key) -> Value?
+mutating func updateValue<R>(forKey: Key, with: (inout Value?) throws -> R) rethrows -> R
+mutating func updateValue<R>(forKey: Key, default: () -> Value, with: (inout Value) throws -> R) rethrows -> R
 
-func merge(`Self`, uniquingKeysWith: (Value, Value) throws -> Value) rethrows
-func merge<S>(S, uniquingKeysWith: (Value, Value) throws -> Value) rethrows
+mutating func merge(`Self`, uniquingKeysWith: (Value, Value) throws -> Value) rethrows
+mutating func merge<S>(S, uniquingKeysWith: (Value, Value) throws -> Value) rethrows
 
 func merging(`Self`, uniquingKeysWith: (Value, Value) throws -> Value) rethrows -> ShareableDictionary<Key, Value>
 func merging<S>(S, uniquingKeysWith: (Value, Value) throws -> Value) rethrows -> ShareableDictionary<Key, Value>
@@ -307,8 +307,8 @@ func merging<S>(S, uniquingKeysWith: (Value, Value) throws -> Value) rethrows ->
 #### Removing Keys and Values
 
 ```swift
-func removeValue(forKey: Key) -> Value?
-func remove(at: Index) -> Element
+mutating func removeValue(forKey: Key) -> Value?
+mutating func remove(at: Index) -> Element
 func filter((Element) throws -> Bool) rethrows -> ShareableDictionary<Key, Value>
 mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows
 ```
