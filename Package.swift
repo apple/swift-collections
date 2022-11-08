@@ -52,7 +52,7 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-    .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
+    .library(name: "ShareableHashedCollections", targets: ["ShareableHashedCollections"]),
   ],
   targets: [
     .target(
@@ -62,7 +62,7 @@ let package = Package(
         "DequeModule",
         "HeapModule",
         "OrderedCollections",
-        "PersistentCollections",
+        "ShareableHashedCollections",
       ],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
@@ -134,15 +134,15 @@ let package = Package(
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // PersistentSet<Element>, PersistentDictionary<Key, Value>
+    // ShareableSet<Element>, ShareableDictionary<Key, Value>
     .target(
-      name: "PersistentCollections",
+      name: "ShareableHashedCollections",
       dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
-      name: "PersistentCollectionsTests",
-      dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+      name: "ShareableHashedCollectionsTests",
+      dependencies: ["ShareableHashedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
   ]
 )
