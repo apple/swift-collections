@@ -84,7 +84,7 @@ For this particular use case, hash-array mapped prefix trees proved to be a far 
 
 Maintaining the prefix tree involves a lot more bookkeeping than a flat hash table, including having to descend through multiple nodes when looking up items or iterating through the collection:
 
-![](ShareableSet-sequential iteration.png)
+![](ShareableSet-sequential%20iteration.png)
 
 Not having to think about reserving capacity also means that the tree cannot preallocate nodes in advance, even if we know exactly how many items we will need to insert -- it needs to organically allocate/deallocate nodes as needed. The more complicated structure therefore leads to worse expected behavior (by a constant factor) when the use case cannot exercise the benefits of node sharing, such as when we only mutate a single dictionary in place, without ever making a copy of it.
 
