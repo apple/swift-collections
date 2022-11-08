@@ -72,11 +72,6 @@ operation.) `ShareableDictionary` also provides the standard `merge` and
 - ``remove(at:)``
 - ``filter(_:)``
 
-### Non-mutating Dictionary Operations
-
-- ``updatingValue(_:forKey:)``
-- ``removingValue(forKey:)``
-
 ### Comparing Dictionaries
 
 - ``==(_:_:)``

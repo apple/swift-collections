@@ -75,11 +75,10 @@ final class ShareableDictionarySmokeTests: CollectionTestCase {
   }
 
   func testTriggerOverwrite1() {
-    let map: ShareableDictionary<Int, String> = [1: "a", 2: "b"]
+    var map: ShareableDictionary<Int, String> = [1: "a", 2: "b"]
 
-    _ = map
-      .updatingValue("x", forKey: 1) // triggers COW
-      .updatingValue("y", forKey: 2) // triggers COW
+    map.updateValue("x", forKey: 1) // triggers COW
+    map.updateValue("y", forKey: 2) // triggers COW
 
     var res1: ShareableDictionary<Int, String> = [:]
     res1.updateValue("a", forKey: 1) // in-place

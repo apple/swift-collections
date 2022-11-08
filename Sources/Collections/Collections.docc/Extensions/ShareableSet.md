@@ -97,17 +97,6 @@ average -- typically they will need to compare against just one member.
 - ``filter(_:)``
 - ``removeAll(where:)``
 
-### Non-mutating Set Operations
-
-To acknowledge the efficiency of `ShareableSet` at inserting and removing items
-from copies of a set, we provide a family of non-mutating primitives that
-perform these operations. Instead of directly modifying the set they're given,
-they return a brand new set with the desired result.
-
-- ``inserting(_:)``
-- ``updating(with:)``
-- ``removing(_:)``
-
 ### Combining Sets
 
 All the standard combining operations (intersection, union, subtraction and
