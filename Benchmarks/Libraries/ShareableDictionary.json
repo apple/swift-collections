@@ -1,7 +1,7 @@
 {
   "kind": "group",
   "title": "ShareableDictionary Benchmarks",
-  "directory": "Results",
+  "directory": "ShareableDictionary",
   "contents": [
     {
       "kind": "group",

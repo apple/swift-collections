@@ -40,7 +40,7 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Deque<Int> sequential iteration (contiguous)",
+      title: "Deque<Int> sequential iteration (contiguous, iterator)",
       input: [Int].self
     ) { input in
       let deque = Deque(input)
@@ -52,13 +52,37 @@ extension Benchmark {
     }
 
     self.add(
-      title: "Deque<Int> sequential iteration (discontiguous)",
+      title: "Deque<Int> sequential iteration (discontiguous, iterator)",
       input: [Int].self
     ) { input in
       let deque = Deque(discontiguous: input)
       return { timer in
         for i in deque {
           blackHole(i)
+        }
+      }
+    }
+
+    self.add(
+      title: "Deque<Int> sequential iteration (contiguous, indices)",
+      input: [Int].self
+    ) { input in
+      let deque = Deque(input)
+      return { timer in
+        for i in deque.indices {
+          blackHole(deque[i])
+        }
+      }
+    }
+
+    self.add(
+      title: "Deque<Int> sequential iteration (discontiguous, indices)",
+      input: [Int].self
+    ) { input in
+      let deque = Deque(discontiguous: input)
+      return { timer in
+        for i in deque.indices {
+          blackHole(deque[i])
         }
       }
     }
