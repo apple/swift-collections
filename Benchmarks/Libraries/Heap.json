@@ -1,7 +1,7 @@
 {
   "kind": "group",
   "title": "Heap Benchmarks",
-  "directory": "Results",
+  "directory": "Heap",
   "contents": [
     {
       "kind": "group",
@@ -46,8 +46,8 @@
     },
     {
       "kind": "group",
-      "title": "Heap vs std::priority_queue",
-      "directory": "Heap + priority_queue",
+      "title": "Heap vs CFBinaryHeap and std::priority_queue",
+      "directory": "versus",
       "contents": [
         {
           "kind": "chart",
