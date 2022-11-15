@@ -134,7 +134,7 @@ public protocol DictionaryAPIExtras: DictionaryAPIChecker {
   ) rethrows -> R
 
 #if false
-  // Potential additions implemented by ShareableDictionary:
+  // Potential additions implemented by TreeDictionary:
 
   func contains(_ key: Key) -> Bool
 

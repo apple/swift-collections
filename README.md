@@ -20,7 +20,7 @@ The package currently provides the following implementations:
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
-- [`ShareableSet`][ShareableSet] and [`ShareableDictionary`][ShareableDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
+- [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
 
 [BitSet]: Documentation/BitSet.md
 [BitArray]: Documentation/BitArray.md
@@ -28,8 +28,8 @@ The package currently provides the following implementations:
 [Heap]: Documentation/Heap.md
 [OrderedSet]: Documentation/OrderedSet.md
 [OrderedDictionary]: Documentation/OrderedDictionary.md
-[ShareableSet]: Documentation/ShareableSet.md
-[ShareableDictionary]: Documentation/ShareableDictionary.md
+[TreeSet]: Documentation/TreeSet.md
+[TreeDictionary]: Documentation/TreeDictionary.md
 
 The following data structures are currently being worked on but they aren't ready for inclusion in a tagged release:
 
@@ -55,7 +55,7 @@ The Swift Collections package is source stable. The version numbers follow [Sema
 
 [semver]: https://semver.org
 
-The public API of version 1.1 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `ShareableHashedCollections` modules.
+The public API of version 1.1 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules.
 
 Interfaces that aren't part of the public API may continue to change in any release, including patch releases. 
 If you have a use case that requires using underscored APIs, please [submit a Feature Request][enhancement] describing it! We'd like the public interface to be as useful as possible -- although preferably without compromising safety or limiting future evolution.

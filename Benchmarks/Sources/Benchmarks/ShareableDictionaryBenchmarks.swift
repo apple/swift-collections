@@ -10,25 +10,25 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-import ShareableHashedCollections
+import HashTreeCollections
 
 extension Benchmark {
-  public mutating func addShareableDictionaryBenchmarks() {
+  public mutating func addTreeDictionaryBenchmarks() {
     self.add(
-      title: "ShareableDictionary<Int, Int> init(uniqueKeysWithValues:)",
+      title: "TreeDictionary<Int, Int> init(uniqueKeysWithValues:)",
       input: [Int].self
     ) { input in
       let keysAndValues = input.map { ($0, 2 * $0) }
       return { timer in
-        blackHole(ShareableDictionary(uniqueKeysWithValues: keysAndValues))
+        blackHole(TreeDictionary(uniqueKeysWithValues: keysAndValues))
       }
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> sequential iteration",
+      title: "TreeDictionary<Int, Int> sequential iteration",
       input: [Int].self
     ) { input in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for item in d {
           blackHole(item)
@@ -37,10 +37,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int>.Keys sequential iteration",
+      title: "TreeDictionary<Int, Int>.Keys sequential iteration",
       input: [Int].self
     ) { input in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for item in d.keys {
           blackHole(item)
@@ -49,10 +49,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int>.Values sequential iteration",
+      title: "TreeDictionary<Int, Int>.Values sequential iteration",
       input: [Int].self
     ) { input in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for item in d.values {
           blackHole(item)
@@ -61,10 +61,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> sequential iteration, indices",
+      title: "TreeDictionary<Int, Int> sequential iteration, indices",
       input: [Int].self
     ) { input in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in d.indices {
           blackHole(d[i])
@@ -73,10 +73,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> striding, 10 steps",
+      title: "TreeDictionary<Int, Int> striding, 10 steps",
       input: [Int].self
     ) { input in
-      let d = ShareableDictionary(
+      let d = TreeDictionary(
         uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       let steps = stride(from: 0, through: 10 * d.count, by: d.count)
         .map { $0 / 10 }
@@ -92,10 +92,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> indexing subscript",
+      title: "TreeDictionary<Int, Int> indexing subscript",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       let indices = lookups.map { d.index(forKey: $0)! }
       return { timer in
         for i in indices {
@@ -105,10 +105,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, successful lookups",
+      title: "TreeDictionary<Int, Int> subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in lookups {
           precondition(d[i] == 2 * i)
@@ -117,10 +117,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, unsuccessful lookups",
+      title: "TreeDictionary<Int, Int> subscript, unsuccessful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       let c = input.count
       return { timer in
         for i in lookups {
@@ -130,11 +130,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, noop setter",
+      title: "TreeDictionary<Int, Int> subscript, noop setter",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in lookups {
@@ -147,11 +147,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, set existing",
+      title: "TreeDictionary<Int, Int> subscript, set existing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d[i] = 0
@@ -163,11 +163,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, _modify",
+      title: "TreeDictionary<Int, Int> subscript, _modify",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d[i]! *= 2
@@ -179,10 +179,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "ShareableDictionary<Int, Int> subscript, insert, unique",
+      title: "TreeDictionary<Int, Int> subscript, insert, unique",
       input: [Int].self
     ) { input in
-      var d: ShareableDictionary<Int, Int> = [:]
+      var d: TreeDictionary<Int, Int> = [:]
       for i in input {
         d[i] = 2 * i
       }
@@ -191,10 +191,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "ShareableDictionary<Int, Int> subscript, insert, shared",
+      title: "TreeDictionary<Int, Int> subscript, insert, shared",
       input: [Int].self
     ) { input in
-      var d: ShareableDictionary<Int, Int> = [:]
+      var d: TreeDictionary<Int, Int> = [:]
       for i in input {
         let copy = d
         d[i] = 2 * i
@@ -205,11 +205,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, remove existing, unique",
+      title: "TreeDictionary<Int, Int> subscript, remove existing, unique",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d[i] = nil
@@ -221,11 +221,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, remove existing, shared",
+      title: "TreeDictionary<Int, Int> subscript, remove existing, shared",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             let copy = d
@@ -239,11 +239,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> subscript, remove missing",
+      title: "TreeDictionary<Int, Int> subscript, remove missing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in lookups {
@@ -256,10 +256,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> defaulted subscript, successful lookups",
+      title: "TreeDictionary<Int, Int> defaulted subscript, successful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in lookups {
           precondition(d[i, default: -1] != -1)
@@ -268,10 +268,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
+      title: "TreeDictionary<Int, Int> defaulted subscript, unsuccessful lookups",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         let c = d.count
         for i in lookups {
@@ -281,11 +281,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> defaulted subscript, _modify existing",
+      title: "TreeDictionary<Int, Int> defaulted subscript, _modify existing",
       input: [Int].self
     ) { input in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in input {
             d[i, default: -1] *= 2
@@ -297,11 +297,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> defaulted subscript, _modify missing",
+      title: "TreeDictionary<Int, Int> defaulted subscript, _modify missing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         let c = input.count
         timer.measure {
           for i in lookups {
@@ -314,10 +314,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> successful index(forKey:)",
+      title: "TreeDictionary<Int, Int> successful index(forKey:)",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in lookups {
           precondition(d.index(forKey: i) != nil)
@@ -326,10 +326,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> unsuccessful index(forKey:)",
+      title: "TreeDictionary<Int, Int> unsuccessful index(forKey:)",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+      let d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
       return { timer in
         for i in lookups {
           precondition(d.index(forKey: lookups.count + i) == nil)
@@ -338,11 +338,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> updateValue(_:forKey:), existing",
+      title: "TreeDictionary<Int, Int> updateValue(_:forKey:), existing",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d.updateValue(0, forKey: i)
@@ -354,11 +354,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> updateValue(_:forKey:), insert",
+      title: "TreeDictionary<Int, Int> updateValue(_:forKey:), insert",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             d.updateValue(0, forKey: input.count + i)
@@ -370,11 +370,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> random removals (existing keys)",
+      title: "TreeDictionary<Int, Int> random removals (existing keys)",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { ($0, 2 * $0) })
         timer.measure {
           for i in lookups {
             precondition(d.removeValue(forKey: i) != nil)
@@ -386,12 +386,12 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Int, Int> random removals (missing keys)",
+      title: "TreeDictionary<Int, Int> random removals (missing keys)",
       input: ([Int], [Int]).self
     ) { input, lookups in
       return { timer in
         let c = input.count
-        var d = ShareableDictionary(uniqueKeysWithValues: input.lazy.map { (c + $0, 2 * $0) })
+        var d = TreeDictionary(uniqueKeysWithValues: input.lazy.map { (c + $0, 2 * $0) })
         timer.measure {
           for i in lookups {
             precondition(d.removeValue(forKey: i) == nil)
@@ -403,11 +403,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Large, Large> subscript, insert, unique",
+      title: "TreeDictionary<Large, Large> subscript, insert, unique",
       input: [Large].self
     ) { input in
       return { timer in
-        var d: ShareableDictionary<Large, Large> = [:]
+        var d: TreeDictionary<Large, Large> = [:]
         timer.measure {
           for value in input {
             d[value] = value
@@ -419,11 +419,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Large, Large> subscript, insert, shared",
+      title: "TreeDictionary<Large, Large> subscript, insert, shared",
       input: [Large].self
     ) { input in
       return { timer in
-        var d: ShareableDictionary<Large, Large> = [:]
+        var d: TreeDictionary<Large, Large> = [:]
         timer.measure {
           for value in input {
             let copy = d
@@ -437,11 +437,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Large, Large> subscript, remove existing, unique",
+      title: "TreeDictionary<Large, Large> subscript, remove existing, unique",
       input: ([Large], [Large]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(
+        var d = TreeDictionary(
           uniqueKeysWithValues: input.lazy.map { ($0, $0) })
         timer.measure {
           for key in lookups {
@@ -454,11 +454,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableDictionary<Large, Large> subscript, remove existing, shared",
+      title: "TreeDictionary<Large, Large> subscript, remove existing, shared",
       input: ([Large], [Large]).self
     ) { input, lookups in
       return { timer in
-        var d = ShareableDictionary(
+        var d = TreeDictionary(
           uniqueKeysWithValues: input.lazy.map { ($0, $0) })
         timer.measure {
           for key in lookups {

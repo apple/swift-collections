@@ -52,7 +52,7 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-    .library(name: "ShareableHashedCollections", targets: ["ShareableHashedCollections"]),
+    .library(name: "HashTreeCollections", targets: ["HashTreeCollections"]),
   ],
   targets: [
     .target(
@@ -62,7 +62,7 @@ let package = Package(
         "DequeModule",
         "HeapModule",
         "OrderedCollections",
-        "ShareableHashedCollections",
+        "HashTreeCollections",
       ],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
@@ -134,15 +134,15 @@ let package = Package(
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // ShareableSet<Element>, ShareableDictionary<Key, Value>
+    // TreeSet<Element>, TreeDictionary<Key, Value>
     .target(
-      name: "ShareableHashedCollections",
+      name: "HashTreeCollections",
       dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
-      name: "ShareableHashedCollectionsTests",
-      dependencies: ["ShareableHashedCollections", "_CollectionsTestSupport"],
+      name: "HashTreeCollectionsTests",
+      dependencies: ["HashTreeCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
   ]
 )
