@@ -98,9 +98,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ShareableHashedCollectionsTests"
-               BuildableName = "ShareableHashedCollectionsTests"
-               BlueprintName = "ShareableHashedCollectionsTests"
+               BlueprintIdentifier = "HashTreeCollectionsTests"
+               BuildableName = "HashTreeCollectionsTests"
+               BlueprintName = "HashTreeCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -157,9 +157,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "ShareableHashedCollectionsTests"
-               BuildableName = "ShareableHashedCollectionsTests"
-               BlueprintName = "ShareableHashedCollectionsTests"
+               BlueprintIdentifier = "HeapTests"
+               BuildableName = "HeapTests"
+               BlueprintName = "HeapTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
@@ -167,9 +167,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "HeapTests"
-               BuildableName = "HeapTests"
-               BlueprintName = "HeapTests"
+               BlueprintIdentifier = "HashTreeCollectionsTests"
+               BuildableName = "HashTreeCollectionsTests"
+               BlueprintName = "HashTreeCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>
