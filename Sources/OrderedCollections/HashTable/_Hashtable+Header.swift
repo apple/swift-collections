@@ -17,7 +17,7 @@ extension _HashTable {
   @usableFromInline
   internal struct Header {
     /// We are packing the scale data into the lower bits of the seed & bias
-    /// to saves a bit of space that would be otherwise taken up by padding.
+    /// to save a bit of space that would be otherwise taken up by padding.
     ///
     /// Layout:
     ///
