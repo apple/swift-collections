@@ -25,25 +25,25 @@ mutation, its `Values` view is not a `MutableCollection`.
 ### Creating a Dictionary
 
 - ``init()``
-- ``init(_:)-68s80``
-- ``init(_:)-2ngkk``
-- ``init(uniqueKeysWithValues:)-688fi``
-- ``init(uniqueKeysWithValues:)-3h2xe``
-- ``init(_:uniquingKeysWith:)-6t92n``
-- ``init(_:uniquingKeysWith:)-9opgv``
-- ``init(grouping:by:)-6ddmm``
-- ``init(grouping:by:)-9rc24``
+- ``init(_:)-111p1``
+- ``init(_:)-9atjh``
+- ``init(uniqueKeysWithValues:)-2hosl``
+- ``init(uniqueKeysWithValues:)-92276``
+- ``init(_:uniquingKeysWith:)-6nofo``
+- ``init(_:uniquingKeysWith:)-99403``
+- ``init(grouping:by:)-a4ma``
+- ``init(grouping:by:)-4he86``
 - ``init(keys:valueGenerator:)``
 
 
 ### Inspecting a Dictionary
 
-- ``isEmpty-25p4``
-- ``count-8s588``
+- ``isEmpty-6icj0``
+- ``count-ibl8``
 
 ### Accessing Keys and Values
 
-- ``subscript(_:)-6jbab``
+- ``subscript(_:)-8gx3j``
 - ``subscript(_:default:)``
 - ``index(forKey:)``
 
@@ -59,12 +59,12 @@ operation.) `TreeDictionary` also provides the standard `merge` and
 - ``updateValue(_:forKey:)``
 - ``updateValue(forKey:with:)``
 - ``updateValue(forKey:default:with:)``
-- ``merge(_:uniquingKeysWith:)-218dc``
-- ``merge(_:uniquingKeysWith:)-8gdr2``
-- ``merge(_:uniquingKeysWith:)-6j72k``
-- ``merging(_:uniquingKeysWith:)-88sah``
-- ``merging(_:uniquingKeysWith:)-2qknu``
-- ``merging(_:uniquingKeysWith:)-3hao7``
+- ``merge(_:uniquingKeysWith:)-59cm5``
+- ``merge(_:uniquingKeysWith:)-38axt``
+- ``merge(_:uniquingKeysWith:)-3s4cw``
+- ``merging(_:uniquingKeysWith:)-3khxe``
+- ``merging(_:uniquingKeysWith:)-1k63w``
+- ``merging(_:uniquingKeysWith:)-87wp7``
 
 ### Removing Keys and Values
 

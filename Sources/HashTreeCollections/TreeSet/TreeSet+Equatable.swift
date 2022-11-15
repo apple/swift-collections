@@ -17,7 +17,7 @@ extension TreeSet: Equatable {
   /// Two persistent sets are considered equal if they contain the same
   /// elements, but not necessarily in the same order.
   ///
-  /// - Note: This simply forwards to the ``isEqualSet(to:)-5lpwv`` method.
+  /// - Note: This simply forwards to the ``isEqualSet(to:)-4bc1i`` method.
   /// That method has additional overloads that can be used to compare
   /// persistent sets with additional types.
   ///

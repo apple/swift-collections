@@ -74,9 +74,9 @@ average -- typically they will need to compare against just one member.
 ### Creating a Set
 
 - ``init()``
-- ``init(_:)-1qufh``
-- ``init(_:)-49yo2``
-- ``init(_:)-56pm1``
+- ``init(_:)-2uun3``
+- ``init(_:)-714nu``
+- ``init(_:)-6lt4a``
 
 ### Finding Elements
 
@@ -106,37 +106,37 @@ but `TreeSet` follows the tradition established by `Set` in providing
 additional overloads to each operation that allow combining a set with
 additional types, including arbitrary sequences.
 
-- ``intersection(_:)-8few3``
-- ``intersection(_:)-61b7q``
-- ``intersection(_:)-2ncm4``
+- ``intersection(_:)-8ltpr``
+- ``intersection(_:)-9kwc0``
+- ``intersection(_:)-4u7ew``
 
-- ``union(_:)-3e3nw``
-- ``union(_:)-8twku``
-- ``union(_:)-9f4y4``
+- ``union(_:)-89jj2``
+- ``union(_:)-9yvze``
+- ``union(_:)-7p0m2``
 
-- ``subtracting(_:)-6v3hx``
-- ``subtracting(_:)-zt78``
-- ``subtracting(_:)-9n0oc``
+- ``subtracting(_:)-cnsi``
+- ``subtracting(_:)-3yfac``
+- ``subtracting(_:)-90wrb``
 
-- ``symmetricDifference(_:)-7o2iv``
-- ``symmetricDifference(_:)-3jhi3``
-- ``symmetricDifference(_:)-2hxgg``
+- ``symmetricDifference(_:)-5bz4f``
+- ``symmetricDifference(_:)-6p8n5``
+- ``symmetricDifference(_:)-3qk9w``
 
-- ``formIntersection(_:)-48ki1``
-- ``formIntersection(_:)-8qfxe``
-- ``formIntersection(_:)-nne6``
+- ``formIntersection(_:)-1zcar``
+- ``formIntersection(_:)-4xkf0``
+- ``formIntersection(_:)-6jb2z``
 
-- ``formUnion(_:)-1qwuq``
-- ``formUnion(_:)-2raoj``
-- ``formUnion(_:)-ew7g``
+- ``formUnion(_:)-420zl``
+- ``formUnion(_:)-8zu6q``
+- ``formUnion(_:)-423id``
 
-- ``subtract(_:)-24txa``
-- ``subtract(_:)-69g3``
-- ``subtract(_:)-5l8bb``
+- ``subtract(_:)-49o9``
+- ``subtract(_:)-3ebkc``
+- ``subtract(_:)-87rhs``
 
-- ``formSymmetricDifference(_:)-6zqa1``
-- ``formSymmetricDifference(_:)-mv0q``
-- ``formSymmetricDifference(_:)-2qzlu``
+- ``formSymmetricDifference(_:)-94f6x``
+- ``formSymmetricDifference(_:)-4x7vw``
+- ``formSymmetricDifference(_:)-6ypuy``
 
 ### Comparing Sets
 
@@ -149,26 +149,26 @@ Like `==`, the `isEqualSet` functions ignore element ordering and duplicates (if
 any).
 
 - ``==(_:_:)`` 
-- ``isEqualSet(to:)-5lpwv`` 
-- ``isEqualSet(to:)-6ont2`` 
-- ``isEqualSet(to:)-58q8h`` 
+- ``isEqualSet(to:)-4bc1i`` 
+- ``isEqualSet(to:)-7x4yi`` 
+- ``isEqualSet(to:)-44fkf`` 
 
-- ``isSubset(of:)-2itju`` 
-- ``isSubset(of:)-2nice`` 
-- ``isSubset(of:)-8qszd`` 
+- ``isSubset(of:)-2ktpu`` 
+- ``isSubset(of:)-5oufi`` 
+- ``isSubset(of:)-9tq5c`` 
 
-- ``isSuperset(of:)-9mp0j`` 
-- ``isSuperset(of:)-3pm0f`` 
-- ``isSuperset(of:)-63haf`` 
+- ``isSuperset(of:)-3zd41`` 
+- ``isSuperset(of:)-6xa75`` 
+- ``isSuperset(of:)-6vw4t`` 
 
-- ``isStrictSubset(of:)-1cdr`` 
-- ``isStrictSubset(of:)-3xlgn`` 
-- ``isStrictSubset(of:)-8oyb4`` 
+- ``isStrictSubset(of:)-6xuil`` 
+- ``isStrictSubset(of:)-22f80`` 
+- ``isStrictSubset(of:)-5f78e`` 
 
-- ``isStrictSuperset(of:)-7qgvz`` 
-- ``isStrictSuperset(of:)-3fdsl``
-- ``isStrictSuperset(of:)-2ujyn`` 
+- ``isStrictSuperset(of:)-4ryjr`` 
+- ``isStrictSuperset(of:)-3ephc``
+- ``isStrictSuperset(of:)-9ftlc`` 
 
-- ``isDisjoint(with:)-eq16``
-- ``isDisjoint(with:)-8bgbj``
-- ``isDisjoint(with:)-5b64c``
+- ``isDisjoint(with:)-4a9xa``
+- ``isDisjoint(with:)-12a64``
+- ``isDisjoint(with:)-5lvdr``
