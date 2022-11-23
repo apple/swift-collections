@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension _Node {
   @inlinable @inline(__always)
   internal static func _emptyNode() -> _Node {
