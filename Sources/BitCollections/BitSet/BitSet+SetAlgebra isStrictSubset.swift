@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitSet {
   /// Returns a Boolean value that indicates whether this bit set is a strict
   /// subset of the given set.
