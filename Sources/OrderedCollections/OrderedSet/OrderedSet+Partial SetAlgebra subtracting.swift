@@ -90,19 +90,21 @@ extension OrderedSet {
     _ other: S
   ) -> Self where S.Element == Element {
     guard count > 0 else { return Self() }
-    return _UnsafeBitset.withTemporaryBitset(capacity: count) { difference in
+    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { difference in
       difference.insertAll(upTo: count)
+      var c = count
       for item in other {
         if let index = self._find(item).index {
-          if difference.remove(index), difference.count == 0 {
-            return Self()
+          if difference.remove(index) {
+            c &-= 1
+            if c == 0 {
+              return Self()
+            }
           }
         }
       }
-      assert(difference.count > 0)
-      let result = _extractSubset(using: difference)
-      result._checkInvariants()
-      return result
+      assert(c > 0)
+      return _extractSubset(using: difference, count: c)
     }
   }
 }

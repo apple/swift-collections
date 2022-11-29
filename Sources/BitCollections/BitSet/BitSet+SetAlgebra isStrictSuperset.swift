@@ -108,13 +108,12 @@ extension BitSet {
     if S.self == Range<Int>.self {
       return isStrictSuperset(of: other as! Range<Int>)
     }
-    return _UnsafeHandle.withTemporaryBitset(
+    return _UnsafeHandle.withTemporaryBitSet(
       wordCount: _storage.count
     ) { seen in
-      var c = 0
       for i in other {
         guard contains(i) else { return false }
-        if seen.insert(UInt(i)) { c += 1 }
+        seen.insert(UInt(i))
       }
       return !_storage.elementsEqual(seen._words)
     }

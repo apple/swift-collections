@@ -134,17 +134,21 @@ extension OrderedSet {
       return !other.allSatisfy { self.contains($0) }
     }
 
-    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
       var isKnownStrict = false
+      var c = 0
       for item in other {
         if let index = _find(item).index {
-          if seen.insert(index), seen.count == self.count, isKnownStrict {
-            // We've seen enough.
-            return true
+          if seen.insert(index) {
+            c &+= 1
+            if c == self.count, isKnownStrict {
+              // We've seen enough.
+              return true
+            }
           }
         } else {
-          if !isKnownStrict, seen.count == self.count { return true }
+          if !isKnownStrict, c == self.count { return true }
           isKnownStrict = true
         }
       }

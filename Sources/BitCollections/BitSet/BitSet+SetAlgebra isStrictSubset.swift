@@ -129,7 +129,7 @@ extension BitSet {
     }
 
     let selfCount = self.count
-    return _UnsafeHandle.withTemporaryBitset(
+    return _UnsafeHandle.withTemporaryBitSet(
       wordCount: _storage.count
     ) { seen in
       var strict = false
@@ -141,7 +141,7 @@ extension BitSet {
           continue
         }
         if seen.insert(UInt(i)) {
-          c += 1
+          c &+= 1
           if c == selfCount {
             while !strict, let i = it.next() {
               strict = !self.contains(i)

@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 /// An ordered, random-access collection of `Bool` values, implemented as an
 /// uncompressed bitmap of as many bits as the count of the array.
 ///
@@ -19,6 +21,9 @@
 /// structure, treating it as a set of nonnegative integers corresponding to
 /// `true` bits.
 public struct BitArray {
+  @usableFromInline
+  internal typealias _BitPosition = _UnsafeBitSet.Index
+
   @usableFromInline
   internal var _storage: [_Word]
 

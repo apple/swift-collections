@@ -69,12 +69,15 @@ extension OrderedSet {
       return seen == self.count
     }
 
-    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
+      var c = 0
       for item in other {
         guard let index = _find(item).index else { return false }
-        _ = seen.insert(index) // Ignore dupes
+        if seen.insert(index) {
+          c &+= 1
+        }
       }
-      return seen.count == count
+      return c == count
     }
   }
 }

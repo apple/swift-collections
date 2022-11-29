@@ -477,24 +477,27 @@ extension OrderedSet {
   @inlinable
   @inline(never)
   internal __consuming func _extractSubset(
-    using bitset: _UnsafeBitset,
+    using bitset: _UnsafeBitSet,
+    count: Int? = nil,
     extraCapacity: Int = 0
   ) -> Self {
-    assert(bitset.count == 0 || bitset.max()! <= count)
-    if bitset.count == 0 { return Self(minimumCapacity: extraCapacity) }
-    if bitset.count == self.count {
+    let c = count ?? bitset.count
+    assert(c == 0 || bitset.max()! <= self.count)
+    if c == 0 { return Self(minimumCapacity: extraCapacity) }
+    if c == self.count {
       if extraCapacity <= self._capacity - self.count {
         return self
       }
       var copy = self
-      copy.reserveCapacity(count + extraCapacity)
+      copy.reserveCapacity(c + extraCapacity)
       return copy
     }
-    var result = Self(minimumCapacity: bitset.count + extraCapacity)
+    var result = Self(minimumCapacity: c + extraCapacity)
     for offset in bitset {
-      result._appendNew(_elements[offset])
+      result._appendNew(_elements[Int(bitPattern: offset)])
     }
-    assert(result.count == bitset.count)
+    assert(result.count == c)
+    result._checkInvariants()
     return result
   }
 }
@@ -545,13 +548,11 @@ extension OrderedSet {
   public func filter(
     _ isIncluded: (Element) throws -> Bool
   ) rethrows -> Self {
-    try _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset in
+    try _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       for i in _elements.indices where try isIncluded(_elements[i]) {
         bitset.insert(i)
       }
-      let result = self._extractSubset(using: bitset)
-      result._checkInvariants()
-      return result
+      return self._extractSubset(using: bitset)
     }
   }
 }
