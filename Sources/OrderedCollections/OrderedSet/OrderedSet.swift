@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 /// An ordered collection of unique elements.
 ///
 /// Similar to the standard `Set`, ordered sets ensure that each element appears

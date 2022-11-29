@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitSet {
   /// Returns a Boolean value that indicates whether this set is a strict
   /// superset of another set.
