@@ -31,7 +31,7 @@ rm -rf "$output_dir_base"
 
 components="\
     BitCollections DequeModule HeapModule OrderedCollections \
-    ShareableHashedCollections"
+    HashTreeCollections"
 
 if [ $# -eq 0 ]; then
     targets="Collections $components"

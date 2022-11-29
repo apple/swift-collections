@@ -1,4 +1,4 @@
-# ``Collections``
+# ``HashTreeCollections``
 
 **Swift Collections** is an open-source package of data structure implementations for the Swift programming language.
 
@@ -14,25 +14,7 @@
 
 ## Topics
 
-### Bit Collections
-
-- ``BitSet``
-- ``BitArray``
-
-### Deque Module
-
-- ``Deque``
-
-### Heap Module
-
-- ``Heap``
-
-### Ordered Collections
-
-- ``OrderedSet``
-- ``OrderedDictionary``
-
-### Persistent Hashed Collections
+### Persistent Collections
 
 - ``TreeSet``
 - ``TreeDictionary``

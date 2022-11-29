@@ -10,31 +10,31 @@
 //===----------------------------------------------------------------------===//
 
 import CollectionsBenchmark
-import ShareableHashedCollections
+import HashTreeCollections
 
 extension Benchmark {
-  public mutating func addShareableSetBenchmarks() {
+  public mutating func addTreeSetBenchmarks() {
     self.addSimple(
-      title: "ShareableSet<Int> init from range",
+      title: "TreeSet<Int> init from range",
       input: Int.self
     ) { size in
-      blackHole(ShareableSet(0 ..< size))
+      blackHole(TreeSet(0 ..< size))
     }
 
     self.addSimple(
-      title: "ShareableSet<Int> init from unsafe buffer",
+      title: "TreeSet<Int> init from unsafe buffer",
       input: [Int].self
     ) { input in
       input.withUnsafeBufferPointer { buffer in
-        blackHole(ShareableSet(buffer))
+        blackHole(TreeSet(buffer))
       }
     }
 
     self.add(
-      title: "ShareableSet<Int> sequential iteration",
+      title: "TreeSet<Int> sequential iteration",
       input: Int.self
     ) { size in
-      let set = ShareableSet(0 ..< size)
+      let set = TreeSet(0 ..< size)
       return { timer in
         for i in set {
           blackHole(i)
@@ -43,10 +43,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableSet<Int> sequential iteration, indices",
+      title: "TreeSet<Int> sequential iteration, indices",
       input: Int.self
     ) { size in
-      let set = ShareableSet(0 ..< size)
+      let set = TreeSet(0 ..< size)
       return { timer in
         for i in set.indices {
           blackHole(set[i])
@@ -55,10 +55,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableSet<Int> successful contains",
+      title: "TreeSet<Int> successful contains",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let set = ShareableSet(input)
+      let set = TreeSet(input)
       return { timer in
         for i in lookups {
           precondition(set.contains(i))
@@ -67,10 +67,10 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableSet<Int> unsuccessful contains",
+      title: "TreeSet<Int> unsuccessful contains",
       input: ([Int], [Int]).self
     ) { input, lookups in
-      let set = ShareableSet(input)
+      let set = TreeSet(input)
       let lookups = lookups.map { $0 + input.count }
       return { timer in
         for i in lookups {
@@ -80,10 +80,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "ShareableSet<Int> insert",
+      title: "TreeSet<Int> insert",
       input: [Int].self
     ) { input in
-      var set: ShareableSet<Int> = []
+      var set: TreeSet<Int> = []
       for i in input {
         set.insert(i)
       }
@@ -92,10 +92,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "ShareableSet<Int> insert, shared",
+      title: "TreeSet<Int> insert, shared",
       input: [Int].self
     ) { input in
-      var set: ShareableSet<Int> = []
+      var set: TreeSet<Int> = []
       for i in input {
         let copy = set
         set.insert(i)
@@ -106,10 +106,10 @@ extension Benchmark {
     }
 
     self.addSimple(
-      title: "ShareableSet<Int> model diffing",
+      title: "TreeSet<Int> model diffing",
       input: Int.self
     ) { input in
-      typealias Model = ShareableSet<Int>
+      typealias Model = TreeSet<Int>
 
       var _state: Model = [] // Private
       func updateState(
@@ -130,11 +130,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableSet<Int> remove",
+      title: "TreeSet<Int> remove",
       input: ([Int], [Int]).self
     ) { input, removals in
       return { timer in
-        var set = ShareableSet(input)
+        var set = TreeSet(input)
         for i in removals {
           set.remove(i)
         }
@@ -144,11 +144,11 @@ extension Benchmark {
     }
 
     self.add(
-      title: "ShareableSet<Int> remove, shared",
+      title: "TreeSet<Int> remove, shared",
       input: ([Int], [Int]).self
     ) { input, removals in
       return { timer in
-        var set = ShareableSet(input)
+        var set = TreeSet(input)
         for i in removals {
           let copy = set
           set.remove(i)
@@ -170,10 +170,10 @@ extension Benchmark {
     // SetAlgebra operations with Self
     do {
       func makeB(
-        _ a: ShareableSet<Int>, _ range: Range<Int>, shared: Bool
-      ) -> ShareableSet<Int> {
+        _ a: TreeSet<Int>, _ range: Range<Int>, shared: Bool
+      ) -> TreeSet<Int> {
         guard shared else {
-          return ShareableSet(range)
+          return TreeSet(range)
         }
         var b = a
         b.subtract(0 ..< range.lowerBound)
@@ -186,11 +186,11 @@ extension Benchmark {
           let qualifier = "\(percentage) overlap, \(shared ? "shared" : "distinct")"
 
           self.add(
-            title: "ShareableSet<Int> union with Self (\(qualifier))",
+            title: "TreeSet<Int> union with Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
-            let a = ShareableSet(input)
+            let a = TreeSet(input)
             let b = makeB(a, start ..< start + input.count, shared: shared)
             return { timer in
               blackHole(a.union(identity(b)))
@@ -198,11 +198,11 @@ extension Benchmark {
           }
 
           self.add(
-            title: "ShareableSet<Int> intersection with Self (\(qualifier))",
+            title: "TreeSet<Int> intersection with Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
-            let a = ShareableSet(input)
+            let a = TreeSet(input)
             let b = makeB(a, start ..< start + input.count, shared: shared)
             return { timer in
               blackHole(a.intersection(identity(b)))
@@ -210,11 +210,11 @@ extension Benchmark {
           }
 
           self.add(
-            title: "ShareableSet<Int> symmetricDifference with Self (\(qualifier))",
+            title: "TreeSet<Int> symmetricDifference with Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
-            let a = ShareableSet(input)
+            let a = TreeSet(input)
             let b = makeB(a, start ..< start + input.count, shared: shared)
             return { timer in
               blackHole(a.symmetricDifference(identity(b)))
@@ -222,11 +222,11 @@ extension Benchmark {
           }
 
           self.add(
-            title: "ShareableSet<Int> subtracting Self (\(qualifier))",
+            title: "TreeSet<Int> subtracting Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
-            let a = ShareableSet(input)
+            let a = TreeSet(input)
             let b = makeB(a, start ..< start + input.count, shared: shared)
             return { timer in
               blackHole(a.subtracting(identity(b)))
@@ -240,11 +240,11 @@ extension Benchmark {
     do {
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> union with Array (\(percentage) overlap)",
+          title: "TreeSet<Int> union with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = ShareableSet(input)
+          let a = TreeSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.union(identity(b)))
@@ -254,11 +254,11 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> intersection with Array (\(percentage) overlap)",
+          title: "TreeSet<Int> intersection with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = ShareableSet(input)
+          let a = TreeSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.intersection(identity(b)))
@@ -268,11 +268,11 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> symmetricDifference with Array (\(percentage) overlap)",
+          title: "TreeSet<Int> symmetricDifference with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = ShareableSet(input)
+          let a = TreeSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.symmetricDifference(identity(b)))
@@ -282,11 +282,11 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> subtracting Array (\(percentage) overlap)",
+          title: "TreeSet<Int> subtracting Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
-          let a = ShareableSet(input)
+          let a = TreeSet(input)
           let b = Array(start ..< start + input.count)
           return { timer in
             blackHole(a.subtracting(identity(b)))
@@ -298,10 +298,10 @@ extension Benchmark {
     // SetAlgebra mutations with Self
     do {
       func makeB(
-        _ a: ShareableSet<Int>, _ range: Range<Int>, shared: Bool
-      ) -> ShareableSet<Int> {
+        _ a: TreeSet<Int>, _ range: Range<Int>, shared: Bool
+      ) -> TreeSet<Int> {
         guard shared else {
-          return ShareableSet(range)
+          return TreeSet(range)
         }
         var b = a
         b.subtract(0 ..< range.lowerBound)
@@ -314,12 +314,12 @@ extension Benchmark {
           let qualifier = "\(percentage) overlap, \(shared ? "shared" : "distinct")"
 
           self.add(
-            title: "ShareableSet<Int> formUnion with Self (\(qualifier))",
+            title: "TreeSet<Int> formUnion with Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
             return { timer in
-              var a = ShareableSet(input)
+              var a = TreeSet(input)
               let b = makeB(a, start ..< start + input.count, shared: shared)
               timer.measure {
                 a.formUnion(identity(b))
@@ -329,12 +329,12 @@ extension Benchmark {
           }
 
           self.add(
-            title: "ShareableSet<Int> formIntersection with Self (\(qualifier))",
+            title: "TreeSet<Int> formIntersection with Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
             return { timer in
-              var a = ShareableSet(input)
+              var a = TreeSet(input)
               let b = makeB(a, start ..< start + input.count, shared: shared)
               timer.measure {
                 a.formIntersection(identity(b))
@@ -344,12 +344,12 @@ extension Benchmark {
           }
 
           self.add(
-            title: "ShareableSet<Int> formSymmetricDifference with Self (\(qualifier))",
+            title: "TreeSet<Int> formSymmetricDifference with Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
             return { timer in
-              var a = ShareableSet(input)
+              var a = TreeSet(input)
               let b = makeB(a, start ..< start + input.count, shared: shared)
               timer.measure {
                 a.formSymmetricDifference(identity(b))
@@ -359,12 +359,12 @@ extension Benchmark {
           }
 
           self.add(
-            title: "ShareableSet<Int> subtract Self (\(qualifier))",
+            title: "TreeSet<Int> subtract Self (\(qualifier))",
             input: [Int].self
           ) { input in
             let start = start(input.count)
             return { timer in
-              var a = ShareableSet(input)
+              var a = TreeSet(input)
               let b = makeB(a, start ..< start + input.count, shared: shared)
               timer.measure {
                 a.subtract(identity(b))
@@ -380,13 +380,13 @@ extension Benchmark {
     do {
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> formUnion with Array (\(percentage) overlap)",
+          title: "TreeSet<Int> formUnion with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = ShareableSet(input)
+            var a = TreeSet(input)
             timer.measure {
               a.formUnion(identity(b))
             }
@@ -397,13 +397,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> formIntersection with Array (\(percentage) overlap)",
+          title: "TreeSet<Int> formIntersection with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = ShareableSet(input)
+            var a = TreeSet(input)
             timer.measure {
               a.formIntersection(identity(b))
             }
@@ -414,13 +414,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> formSymmetricDifference with Array (\(percentage) overlap)",
+          title: "TreeSet<Int> formSymmetricDifference with Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = ShareableSet(input)
+            var a = TreeSet(input)
             timer.measure {
               a.formSymmetricDifference(identity(b))
             }
@@ -431,13 +431,13 @@ extension Benchmark {
 
       for (percentage, start) in overlaps {
         self.add(
-          title: "ShareableSet<Int> subtract Array (\(percentage) overlap)",
+          title: "TreeSet<Int> subtract Array (\(percentage) overlap)",
           input: [Int].self
         ) { input in
           let start = start(input.count)
           let b = Array(start ..< start + input.count)
           return { timer in
-            var a = ShareableSet(input)
+            var a = TreeSet(input)
             timer.measure {
               a.subtract(identity(b))
             }
