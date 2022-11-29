@@ -131,13 +131,17 @@ extension OrderedSet {
       return true
     }
 
-    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
+      var c = 0
       for item in other {
         if let index = _find(item).index {
-          if seen.insert(index), seen.count == self.count {
-            // We've seen enough.
-            return true
+          if seen.insert(index) {
+            c &+= 1
+            if c == self.count {
+              // We've seen enough.
+              return true
+            }
           }
         }
       }

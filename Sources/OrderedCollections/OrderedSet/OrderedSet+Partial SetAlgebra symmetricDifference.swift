@@ -37,8 +37,8 @@ extension OrderedSet {
   ///    `Element` implements high-quality hashing.
   @inlinable
   public __consuming func symmetricDifference(_ other: __owned Self) -> Self {
-    _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset1 in
-      _UnsafeBitset.withTemporaryBitset(capacity: other.count) { bitset2 in
+    _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset1 in
+      _UnsafeBitSet.withTemporaryBitSet(capacity: other.count) { bitset2 in
         bitset1.insertAll(upTo: self.count)
         for item in other {
           if let index = self._find(item).index {
@@ -54,7 +54,7 @@ extension OrderedSet {
         var result = self._extractSubset(using: bitset1,
                                          extraCapacity: bitset2.count)
         for offset in bitset2 {
-          result._appendNew(other._elements[offset])
+          result._appendNew(other._elements[Int(bitPattern: offset)])
         }
         result._checkInvariants()
         return result
@@ -112,7 +112,7 @@ extension OrderedSet {
   public __consuming func symmetricDifference<S: Sequence>(
     _ other: __owned S
   ) -> Self where S.Element == Element {
-    _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset in
+    _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       var new = Self()
       bitset.insertAll(upTo: self.count)
       for item in other {

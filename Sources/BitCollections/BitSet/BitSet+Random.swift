@@ -21,7 +21,7 @@ extension BitSet {
   ) -> BitSet {
     precondition(limit >= 0, "Invalid limit value")
     guard limit > 0 else { return BitSet() }
-    let (w, b) = _BitPosition(limit).endSplit
+    let (w, b) = _UnsafeHandle.Index(limit).endSplit
     var words = (0 ... w).map { _ in _Word(rng.next() as UInt) }
     words[w].formIntersection(_Word(upTo: b))
     return BitSet(_words: words)

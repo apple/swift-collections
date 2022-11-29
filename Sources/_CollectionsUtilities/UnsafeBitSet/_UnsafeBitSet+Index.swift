@@ -9,48 +9,53 @@
 //
 //===----------------------------------------------------------------------===//
 
-@usableFromInline
-@frozen
-internal struct _BitPosition: Comparable, Hashable {
-  @usableFromInline
-  internal var value: UInt
+extension _UnsafeBitSet {
+  @frozen
+  public struct Index: Comparable, Hashable {
+    @usableFromInline
+    internal typealias _Word = _UnsafeBitSet._Word
 
-  @inlinable
-  internal init(_ value: UInt) {
-    self.value = value
+    public var value: UInt
+
+    @inlinable
+    public init(_ value: UInt) {
+      self.value = value
+    }
+
+    @inlinable
+    public init(_ value: Int) {
+      self.value = UInt(value)
+    }
+
+    @inlinable
+    public init(word: Int, bit: UInt) {
+      assert(word >= 0 && word <= Int.max / _Word.capacity)
+      assert(bit < _Word.capacity)
+      self.value = UInt(word &* _Word.capacity) &+ bit
+    }
   }
+}
 
+extension _UnsafeBitSet.Index {
   @inlinable
-  internal init(_ value: Int) {
-    self.value = UInt(value)
-  }
-
-  @inlinable
-  internal init(word: Int, bit: UInt) {
-    assert(word >= 0 && word <= Int.max / _Word.capacity)
-    assert(bit < _Word.capacity)
-    self.value = UInt(word &* _Word.capacity) &+ bit
-  }
-
-  @inlinable
-  internal var word: Int {
+  public var word: Int {
     // Note: We perform on UInts to get faster unsigned math (shifts).
     Int(truncatingIfNeeded: value / UInt(bitPattern: _Word.capacity))
   }
 
   @inlinable
-  internal var bit: UInt {
+  public var bit: UInt {
     // Note: We perform on UInts to get faster unsigned math (masking).
     value % UInt(bitPattern: _Word.capacity)
   }
 
   @inlinable
-  internal var split: (word: Int, bit: UInt) {
+  public var split: (word: Int, bit: UInt) {
     (word, bit)
   }
 
   @inlinable
-  internal var endSplit: (word: Int, bit: UInt) {
+  public var endSplit: (word: Int, bit: UInt) {
     let w = word
     let b = bit
     if w > 0, b == 0 { return (w &- 1, UInt(_Word.capacity)) }
@@ -58,27 +63,27 @@ internal struct _BitPosition: Comparable, Hashable {
   }
 
   @inlinable
-  static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     left.value == right.value
   }
 
   @inlinable
-  static func <(left: Self, right: Self) -> Bool {
+  public static func <(left: Self, right: Self) -> Bool {
     left.value < right.value
   }
 
   @inlinable
-  func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hasher.combine(value)
   }
 
   @inlinable
-  func successor() -> Self {
+  internal func _successor() -> Self {
     Self(value + 1)
   }
 
   @inlinable
-  func predecessor() -> Self {
+  internal func _predecessor() -> Self {
     Self(value - 1)
   }
 }

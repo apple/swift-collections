@@ -68,7 +68,7 @@ add_library(OrderedCollections
   "OrderedSet/OrderedSet+UnorderedView.swift"
   "OrderedSet/OrderedSet+UnstableInternals.swift"
   "OrderedSet/OrderedSet.swift"
-  "Utilities/_UnsafeBitset.swift"
+  "Utilities/_UnsafeBitSet.swift"
   )
 target_link_libraries(OrderedCollections PRIVATE
   _CollectionsUtilities)

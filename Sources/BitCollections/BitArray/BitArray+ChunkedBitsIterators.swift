@@ -9,7 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 internal struct _ChunkedBitsForwardIterator {
+  internal typealias _BitPosition = _UnsafeBitSet.Index
+
   internal let words: UnsafeBufferPointer<_Word>
   internal let end: _BitPosition
   internal var position: _BitPosition
@@ -43,6 +47,8 @@ internal struct _ChunkedBitsForwardIterator {
 }
 
 internal struct _ChunkedBitsBackwardIterator {
+  internal typealias _BitPosition = _UnsafeBitSet.Index
+
   internal let words: UnsafeBufferPointer<_Word>
   internal let start: _BitPosition
   internal var position: _BitPosition
