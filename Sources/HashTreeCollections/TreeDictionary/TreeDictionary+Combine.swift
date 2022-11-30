@@ -21,11 +21,13 @@ public protocol TreeDictionaryCombiningStrategy<Key, Value> {
   associatedtype Key: Hashable
   associatedtype Value
 
-  var commonBehavior: CombiningBehavior { get }
-  var addBehavior: CombiningBehavior { get }
-  var removeBehavior: CombiningBehavior { get }
+  var valuesOnlyInFirst: CombiningBehavior { get }
+  var valuesOnlyInSecond: CombiningBehavior { get }
+  var equalValuesInBoth: CombiningBehavior { get }
+  var unequalValuesInBoth: CombiningBehavior { get }
 
   func areEquivalentValues(_ a: Value, _ b: Value) -> Bool
+
   func merge(_ key: Key, _ value1: Value?, _ value2: Value?) throws -> Value?
 }
 

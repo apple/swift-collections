@@ -38,7 +38,7 @@ extension _HashNode {
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
     if left.raw.storage === right.raw.storage {
-      switch strategy.commonBehavior {
+      switch strategy.equalValuesInBoth {
       case .include:
         return .node(level, left)
       case .discard:
@@ -245,7 +245,7 @@ extension _HashNode {
     left: _HashNode,
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
-    switch strategy.removeBehavior {
+    switch strategy.valuesOnlyInFirst {
     case .include:
       return .node(level, left)
     case .discard:
@@ -263,7 +263,7 @@ extension _HashNode {
     right: _HashNode,
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
-    switch strategy.addBehavior {
+    switch strategy.valuesOnlyInSecond {
     case .include:
       return .node(level, right)
     case .discard:
@@ -283,7 +283,7 @@ extension _HashNode {
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
     let hash = _Hash(left.pointee.key)
-    switch strategy.addBehavior {
+    switch strategy.valuesOnlyInSecond {
     case .include:
       if var t = right.removing(level, left.pointee.key, hash) {
         guard let item = try strategy._processCommon(left, &t.removed) else {
@@ -347,7 +347,7 @@ extension _HashNode {
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
     let hash = _Hash(right.pointee.key)
-    switch strategy.removeBehavior {
+    switch strategy.valuesOnlyInFirst {
     case .include:
       if var t = left.removing(level, right.pointee.key, hash) {
         guard let item = try strategy._processCommon(&t.removed, right) else {
@@ -534,7 +534,7 @@ extension _HashNode {
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
     assert(left.isCollisionNode)
-    switch strategy.removeBehavior {
+    switch strategy.valuesOnlyInFirst {
     case .include:
       return .node(level, left)
     case .discard:
@@ -553,7 +553,7 @@ extension _HashNode {
     by strategy: some TreeDictionaryCombiningStrategy<Key, Value>
   ) throws -> Builder {
     assert(right.isCollisionNode)
-    switch strategy.addBehavior {
+    switch strategy.valuesOnlyInSecond {
     case .include:
       return .node(level, right)
     case .discard:
@@ -717,24 +717,31 @@ extension TreeDictionaryCombiningStrategy {
     _ item2: Element
   ) throws -> Element? {
     assert(item1.key == item2.key)
-    let b = commonBehavior
-    if
-      b == .merge
-        || !areEquivalentValues(item1.value, item2.value)
-    {
+    let equals = self.equalValuesInBoth
+    let unequals = self.unequalValuesInBoth
+
+    let result: CombiningBehavior
+
+    if equals == unequals || areEquivalentValues(item1.value, item2.value) {
+      result = equals
+    } else {
+      result = unequals
+    }
+    switch result {
+    case .include:
+      return item1
+    case .discard:
+      return nil
+    case .merge:
       let v = try merge(item1.key, item1.value, item2.value)
       guard let v = v else { return nil }
       return (item1.key, v)
     }
-    if b == .include {
-      return item1
-    }
-    return nil
   }
 
   @inlinable
   internal func _processRemove(_ item: Element) throws -> Element? {
-    switch addBehavior {
+    switch valuesOnlyInFirst {
     case .include:
       return item
     case .discard:
@@ -748,7 +755,7 @@ extension TreeDictionaryCombiningStrategy {
 
   @inlinable
   internal func _processAdd(_ item: Element) throws -> Element? {
-    switch removeBehavior {
+    switch valuesOnlyInSecond {
     case .include:
       return item
     case .discard:
