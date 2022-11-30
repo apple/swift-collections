@@ -10,24 +10,26 @@
 //===----------------------------------------------------------------------===//
 
 extension _Node {
+  /// - Returns: The number of new items added to `self`.
   @inlinable
   internal mutating func merge(
   _ level: _Level,
   _ other: _Node,
   _ combine: (Value, Value) throws -> Value
-  ) rethrows {
-    guard other.count > 0 else { return }
+  ) rethrows -> Int {
+    guard other.count > 0 else { return 0 }
     guard self.count > 0 else {
       self = other
-      return
+      return self.count
     }
     if level.isAtRoot, self.hasSingletonItem {
       // In this special case, the root node may turn into a collision node
       // during the merge process. Prevent this from causing issues below by
       // handling it up front.
       var copy = other
-      try self.read { l in
+      let delta = try self.read { l in
         let lp = l.itemPtr(at: .zero)
+        let c = copy.count
         let res = copy.updateValue(
           level, forKey: lp.pointee.key, _Hash(lp.pointee.key)
         ) {
@@ -39,12 +41,13 @@ extension _Node {
             p.pointee.value = try combine(lp.pointee.value, p.pointee.value)
           }
         }
+        return c - (res.inserted ? 0 : 1)
       }
       self = copy
-      return
+      return delta
     }
 
-    try _merge(level, other, combine)
+    return try _merge(level, other, combine)
   }
 
   @inlinable
@@ -52,18 +55,18 @@ extension _Node {
     _ level: _Level,
     _ other: _Node,
     _ combine: (Value, Value) throws -> Value
-  ) rethrows {
+  ) rethrows -> Int {
     // Note: don't check storage identities -- we do need to merge the contents
     // of identical nodes.
 
     if self.isCollisionNode || other.isCollisionNode {
-      try _merge_slow(level, other, combine)
-      return
+      return try _merge_slow(level, other, combine)
     }
 
-    var isUnique = self.isUnique()
+    return try other.read { r in
+      var isUnique = self.isUnique()
+      var delta = 0
 
-    try other.read { r in
       let (originalItems, originalChildren) = self.read {
         ($0.itemMap, $0.childMap)
       }
@@ -93,6 +96,7 @@ extension _Node {
             // then this call would sometimes turn `self` into a collision
             // node on a compressed path, causing mischief.
             assert(!self.isCollisionNode)
+            delta &+= 1
           }
           isUnique = true
         }
@@ -103,6 +107,7 @@ extension _Node {
           self.ensureUnique(
             isUnique: isUnique, withFreeSpace: _Node.spaceForSpawningChild)
           let item = self.removeItem(at: bucket)
+          delta &-= 1
           var child = rp.pointee
           let r = child.updateValue(
             level.descend(), forKey: item.key, _Hash(item.key)
@@ -117,6 +122,7 @@ extension _Node {
           }
           self.insertChild(child, bucket)
           isUnique = true
+          delta &+= child.count
         }
       }
 
@@ -138,6 +144,7 @@ extension _Node {
           }
           if res.inserted {
             self.count &+= 1
+            delta &+= 1
           } else {
             try UnsafeHandle.update(res.leaf) {
               let p = $0.itemPtr(at: res.slot)
@@ -149,12 +156,14 @@ extension _Node {
         else if r.childMap.contains(bucket) {
           let rslot = r.childMap.slot(of: bucket)
           self.ensureUnique(isUnique: isUnique)
-          try self.update { l in
+          let d = try self.update { l in
             try l[child: lslot].merge(
               level.descend(),
               r[child: rslot],
               combine)
           }
+          self.count &+= d
+          delta &+= d
           isUnique = true
         }
       }
@@ -167,6 +176,7 @@ extension _Node {
         let rslot = r.itemMap.slot(of: bucket)
         self.ensureUniqueAndInsertItem(
           isUnique: isUnique, r[item: rslot], at: bucket)
+        delta &+= 1
         isUnique = true
       }
       for (bucket, _) in r.childMap.subtracting(seen) {
@@ -174,10 +184,12 @@ extension _Node {
         self.ensureUnique(
           isUnique: isUnique, withFreeSpace: _Node.spaceForNewChild)
         self.insertChild(r[child: rslot], bucket)
+        delta &+= r[child: rslot].count
         isUnique = true
       }
 
       assert(isUnique)
+      return delta
     }
   }
 
@@ -186,7 +198,7 @@ extension _Node {
     _ level: _Level,
     _ other: _Node,
     _ combine: (Value, Value) throws -> Value
-  ) rethrows {
+  ) rethrows -> Int {
     let lc = self.isCollisionNode
     let rc = other.isCollisionNode
     if lc && rc {
@@ -195,10 +207,11 @@ extension _Node {
           level: level,
           child1: self, self.collisionHash,
           child2: other, other.collisionHash)
-        return
+        return other.count
       }
-      var isUnique = self.isUnique()
       return try other.read { r in
+        var isUnique = self.isUnique()
+        var delta = 0
         let originalItemCount = self.count
         for rs: _Slot in stride(from: .zero, to: r.itemsEndSlot, by: 1) {
           let rp = r.itemPtr(at: rs)
@@ -218,10 +231,11 @@ extension _Node {
           } else {
             _ = self.ensureUniqueAndAppendCollision(
               isUnique: isUnique, rp.pointee)
+            delta &+= 1
           }
           isUnique = true
         }
-        return
+        return delta
       }
     }
 
@@ -251,22 +265,23 @@ extension _Node {
           }
           self = other._copyNodeAndReplaceItemWithNewChild(
             level: level, self, at: bucket, itemSlot: rslot)
-          return
+          return other.count - (res.inserted ? 0 : 1)
         }
 
         if r.childMap.contains(bucket) {
+          let originalCount = self.count
           let rslot = r.childMap.slot(of: bucket)
-          try self._merge(level.descend(), r[child: rslot], combine)
+          _ = try self._merge(level.descend(), r[child: rslot], combine)
           var node = other.copy()
           _ = node.replaceChild(at: bucket, rslot, with: self)
           self = node
-          return
+          return self.count - originalCount
         }
 
         var node = other.copy(withFreeSpace: _Node.spaceForNewChild)
         node.insertChild(self, bucket)
         self = node
-        return
+        return other.count
       }
     }
 
@@ -292,25 +307,23 @@ extension _Node {
         }
         assert(self.count > 0) // Singleton case handled up front above
         self.insertChild(copy, bucket)
-        return
+        return other.count - (res.inserted ? 0 : 1)
       }
       if self.read({ $0.childMap.contains(bucket) }) {
         self.ensureUnique(isUnique: isUnique)
         let delta: Int = try self.update { l in
           let lslot = l.childMap.slot(of: bucket)
           let lchild = l.childPtr(at: lslot)
-          let origCount = lchild.pointee.count
-          try lchild.pointee._merge(level.descend(), other, combine)
-          return lchild.pointee.count &- origCount
+          return try lchild.pointee._merge(level.descend(), other, combine)
         }
         assert(delta >= 0)
         self.count &+= delta
-        return
+        return delta
       }
       self.ensureUnique(
         isUnique: isUnique, withFreeSpace: _Node.spaceForNewChild)
       self.insertChild(other, bucket)
-      return
+      return other.count
     }
   }
 }
