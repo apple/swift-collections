@@ -300,5 +300,6 @@ extension TreeDictionary {
         array.append(value)
       }
     }
+    _invariantCheck()
   }
 }

@@ -209,7 +209,9 @@ extension TreeDictionary.Keys {
     guard let r = _base._root.intersection(.top, other._base._root) else {
       return self
     }
-    return TreeDictionary(_new: r).keys
+    let d = TreeDictionary(_new: r)
+    d._invariantCheck()
+    return d.keys
   }
 
   /// Returns a new keys view with the elements that are common to both this
@@ -235,7 +237,9 @@ extension TreeDictionary.Keys {
     guard let r = _base._root.intersection(.top, other._root) else {
       return self
     }
-    return TreeDictionary(_new: r).keys
+    let d = TreeDictionary(_new: r)
+    d._invariantCheck()
+    return d.keys
   }
 
   /// Returns a new keys view containing the elements of `self` that do not
@@ -260,7 +264,9 @@ extension TreeDictionary.Keys {
     guard let r = _base._root.subtracting(.top, other._base._root) else {
       return self
     }
-    return TreeDictionary(_new: r).keys
+    let d = TreeDictionary(_new: r)
+    d._invariantCheck()
+    return d.keys
   }
 
   /// Returns a new keys view containing the elements of `self` that do not
@@ -282,6 +288,8 @@ extension TreeDictionary.Keys {
     guard let r = _base._root.subtracting(.top, other._root) else {
       return self
     }
-    return TreeDictionary(_new: r).keys
+    let d = TreeDictionary(_new: r)
+    d._invariantCheck()
+    return d.keys
   }
 }
