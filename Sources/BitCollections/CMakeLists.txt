@@ -64,7 +64,6 @@ add_library(BitCollections
   "Shared/Range+Utilities.swift"
   "Shared/Slice+Utilities.swift"
   "Shared/UInt+Tricks.swift"
-  "Shared/_BitPosition.swift"
   "Shared/_Word.swift"
   )
 target_link_libraries(BitCollections PRIVATE
