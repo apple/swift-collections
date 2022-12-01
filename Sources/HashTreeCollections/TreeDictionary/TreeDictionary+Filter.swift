@@ -26,7 +26,9 @@ extension TreeDictionary {
   ) rethrows -> Self {
     let result = try _root.filter(.top, isIncluded)
     guard let result = result else { return self }
-    return TreeDictionary(_new: result.finalize(.top))
+    let r = TreeDictionary(_new: result.finalize(.top))
+    r._invariantCheck()
+    return r
   }
 
   /// Removes all the elements that satisfy the given predicate.

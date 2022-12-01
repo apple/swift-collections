@@ -25,7 +25,9 @@ extension TreeDictionary {
     _ transform: (Value) throws -> T
   ) rethrows -> TreeDictionary<Key, T> {
     let transformed = try _root.mapValues { try transform($0.value) }
-    return TreeDictionary<Key, T>(_new: transformed)
+    let r = TreeDictionary<Key, T>(_new: transformed)
+    r._invariantCheck()
+    return r
   }
 
   /// Returns a new dictionary containing only the key-value pairs that have
@@ -59,6 +61,8 @@ extension TreeDictionary {
     _ transform: (Value) throws -> T?
   ) rethrows -> TreeDictionary<Key, T> {
     let result = try _root.compactMapValues(.top, transform)
-    return TreeDictionary<Key, T>(_new: result.finalize(.top))
+    let d = TreeDictionary<Key, T>(_new: result.finalize(.top))
+    d._invariantCheck()
+    return d
   }
 }

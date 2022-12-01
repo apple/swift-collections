@@ -206,6 +206,7 @@ func expectEqualDictionaries<Key: Hashable, Value: Equatable>(
   file: StaticString = #file,
   line: UInt = #line
 ) {
+  expectEqual(map.count, dict.count, "Mismatching count", file: file, line: line)
   var dict = dict
   var seen: Set<Key> = []
   var mismatches: [(key: Key, map: Value?, dict: Value?)] = []

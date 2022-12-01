@@ -43,7 +43,8 @@ extension TreeDictionary {
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows {
     _invalidateIndices()
-    try _root.merge(.top, keysAndValues._root, combine)
+    _ = try _root.merge(.top, keysAndValues._root, combine)
+    _invariantCheck()
   }
 
   /// Merges the key-value pairs in the given sequence into the dictionary,
@@ -87,6 +88,7 @@ extension TreeDictionary {
         }
       }
     }
+    _invariantCheck()
   }
 
   /// Merges the key-value pairs in the given sequence into the dictionary,
