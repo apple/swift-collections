@@ -96,7 +96,7 @@ extension BitSet {
   public subscript(members bounds: Range<Int>) -> Slice<BitSet> {
     let bounds: Range<Index> = _read { handle in
       let bounds = bounds._clampedToUInt()
-      var lower = _BitPosition(bounds.lowerBound)
+      var lower = _UnsafeBitSet.Index(bounds.lowerBound)
       if lower >= handle.endIndex {
         lower = handle.endIndex
       } else if !handle.contains(lower.value) {
@@ -104,7 +104,7 @@ extension BitSet {
       }
       assert(lower == handle.endIndex || handle.contains(lower.value))
 
-      var upper = _BitPosition(bounds.upperBound)
+      var upper = _UnsafeBitSet.Index(bounds.upperBound)
       if upper <= lower {
         upper = lower
       } else if upper >= handle.endIndex {

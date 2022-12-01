@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 /// A sorted collection of small nonnegative integers, implemented as an
 /// uncompressed bitmap of as many bits as the value of the largest member.
 ///
@@ -65,7 +67,7 @@ extension BitSet {
   }
 
   internal mutating func _shrink() {
-    let suffix = _read { $0.emptySuffix() }
+    let suffix = _read { $0._emptySuffix() }
     if suffix > 0 { _storage.removeLast(suffix) }
   }
 

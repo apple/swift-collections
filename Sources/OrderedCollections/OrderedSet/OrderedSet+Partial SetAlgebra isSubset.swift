@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // `OrderedSet` does not directly conform to `SetAlgebra` because its definition
 // of equality conflicts with `SetAlgebra` requirements. However, it still
 // implements most `SetAlgebra` requirements (except `insert`, which is replaced
@@ -131,13 +133,17 @@ extension OrderedSet {
       return true
     }
 
-    return _UnsafeBitset.withTemporaryBitset(capacity: count) { seen in
+    return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { seen in
       // Mark elements in `self` that we've seen in `other`.
+      var c = 0
       for item in other {
         if let index = _find(item).index {
-          if seen.insert(index), seen.count == self.count {
-            // We've seen enough.
-            return true
+          if seen.insert(index) {
+            c &+= 1
+            if c == self.count {
+              // We've seen enough.
+              return true
+            }
           }
         }
       }

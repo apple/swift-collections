@@ -47,7 +47,7 @@ add_library(BitCollections
   "BitSet/BitSet+SetAlgebra formUnion.swift"
   "BitSet/BitSet+SetAlgebra intersection.swift"
   "BitSet/BitSet+SetAlgebra isDisjoint.swift"
-  "BitSet/BitSet+SetAlgebra isEqual.swift"
+  "BitSet/BitSet+SetAlgebra isEqualSet.swift"
   "BitSet/BitSet+SetAlgebra isStrictSubset.swift"
   "BitSet/BitSet+SetAlgebra isStrictSuperset.swift"
   "BitSet/BitSet+SetAlgebra isSubset.swift"
@@ -64,7 +64,6 @@ add_library(BitCollections
   "Shared/Range+Utilities.swift"
   "Shared/Slice+Utilities.swift"
   "Shared/UInt+Tricks.swift"
-  "Shared/_BitPosition.swift"
   "Shared/_Word.swift"
   )
 target_link_libraries(BitCollections PRIVATE

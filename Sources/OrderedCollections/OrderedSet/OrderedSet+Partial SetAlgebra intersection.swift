@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 // `OrderedSet` does not directly conform to `SetAlgebra` because its definition
 // of equality conflicts with `SetAlgebra` requirements. However, it still
 // implements most `SetAlgebra` requirements (except `insert`, which is replaced
@@ -93,15 +95,13 @@ extension OrderedSet {
   public __consuming func intersection<S: Sequence>(
     _ other: S
   ) -> Self where S.Element == Element {
-    _UnsafeBitset.withTemporaryBitset(capacity: self.count) { bitset in
+    _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       for item in other {
         if let index = self._find_inlined(item).index {
           bitset.insert(index)
         }
       }
-      let result = self._extractSubset(using: bitset)
-      result._checkInvariants()
-      return result
+      return self._extractSubset(using: bitset)
     }
   }
 }

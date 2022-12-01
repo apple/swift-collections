@@ -9,12 +9,17 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitArray {
   /// An unsafe-unowned bitarray view over `UInt` storage, providing bit array
   /// primitives.
   @usableFromInline
   @frozen
   internal struct _UnsafeHandle {
+    @usableFromInline
+    internal typealias _BitPosition = _UnsafeBitSet.Index
+
     @usableFromInline
     internal let _words: UnsafeBufferPointer<_Word>
 

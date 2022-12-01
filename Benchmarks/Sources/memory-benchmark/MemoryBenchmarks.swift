@@ -30,11 +30,11 @@ struct MemoryBenchmarks: ParsableCommand {
     var i = 0
 
     var d: Dictionary<String, String> = [:]
-    var pd: PersistentDictionary<String, String> = [:]
+    var pd: TreeDictionary<String, String> = [:]
 
     print("""
       Size,"Dictionary<String, String>",\
-      "PersistentDictionary<String, String>",\
+      "TreeDictionary<String, String>",\
       "average node size",\
       "average item depth"
       """)
@@ -67,9 +67,9 @@ struct MemoryBenchmarks: ParsableCommand {
     complain("""
       Averages:
         Dictionary: \(sumd / Double(sizes.count))
-        PersistentDictionary: \(sump / Double(sizes.count))
+        TreeDictionary: \(sump / Double(sizes.count))
 
-      PersistentDictionary at 1M items:
+      TreeDictionary at 1M items:
         average node size: \(pstats.averageNodeSize)
         average item depth: \(pstats.averageItemDepth)
         average lookup chain length: \(pstats.averageLookupChainLength)

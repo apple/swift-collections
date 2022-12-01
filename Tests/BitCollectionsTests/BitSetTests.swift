@@ -1091,25 +1091,25 @@ final class BitSetTest: CollectionTestCase {
 
   func test_isEqual_to_integer_range() {
     let a = BitSet(200 ..< 400)
-    expectTrue(a.isEqual(to: 200 ..< 400))
-    expectFalse(a.isEqual(to: 201 ..< 401))
-    expectFalse(a.isEqual(to: -1 ..< 200))
-    expectFalse(a.isEqual(to: 0 ..< 0))
-    expectFalse(a.isEqual(to: 0 ..< 1000))
-    expectFalse(a.isEqual(to: 0 ..< 250))
-    expectFalse(a.isEqual(to: 270 ..< 400))
+    expectTrue(a.isEqualSet(to: 200 ..< 400))
+    expectFalse(a.isEqualSet(to: 201 ..< 401))
+    expectFalse(a.isEqualSet(to: -1 ..< 200))
+    expectFalse(a.isEqualSet(to: 0 ..< 0))
+    expectFalse(a.isEqualSet(to: 0 ..< 1000))
+    expectFalse(a.isEqualSet(to: 0 ..< 250))
+    expectFalse(a.isEqualSet(to: 270 ..< 400))
 
     var b = a
     b.remove(300)
-    expectFalse(b.isEqual(to: 200 ..< 400))
+    expectFalse(b.isEqualSet(to: 200 ..< 400))
 
     let c = BitSet(130 ..< 160)
-    expectTrue(c.isEqual(to: 130 ..< 160))
+    expectTrue(c.isEqualSet(to: 130 ..< 160))
   }
 
   func test_isEqual_to_counted_BitSet() {
     let a = BitSet(200 ..< 400)
-    expectTrue(a.isEqual(to: a.counted))
+    expectTrue(a.isEqualSet(to: a.counted))
   }
 
   func test_isEqual_to_Sequence() {
@@ -1117,7 +1117,7 @@ final class BitSetTest: CollectionTestCase {
       _ bits: BitSet,
       _ items: S
     ) -> Bool where S.Element == Int {
-      bits.isEqual(to: items)
+      bits.isEqualSet(to: items)
     }
 
     let bits: BitSet = [3, 6, 8, 11]

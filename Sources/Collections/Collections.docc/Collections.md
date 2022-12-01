@@ -32,7 +32,7 @@
 - ``OrderedSet``
 - ``OrderedDictionary``
 
-### Persistent Collections
+### Persistent Hashed Collections
 
-- ``PersistentSet``
-- ``PersistentDictionary``
+- ``TreeSet``
+- ``TreeDictionary``

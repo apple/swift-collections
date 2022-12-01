@@ -14,7 +14,7 @@ target_link_libraries(Collections PRIVATE
   DequeModule
   HeapModule
   OrderedCollections
-  PersistentCollections
+  HashTreeCollections
   )
 set_target_properties(Collections PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})

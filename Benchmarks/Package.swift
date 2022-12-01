@@ -29,9 +29,6 @@ let package = Package(
         .product(name: "Collections", package: "swift-collections"),
         .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
         "CppBenchmarks",
-      ],
-      resources: [
-        .copy("Library.json"),
       ]
     ),
     .target(

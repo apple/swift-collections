@@ -902,9 +902,9 @@ extension BitSet.Counted {
   ///
   /// - Complexity: O(*max*), where *max* is value of the largest member of
   ///     either set.
-  public func isEqual(to other: Self) -> Bool {
+  public func isEqualSet(to other: Self) -> Bool {
     guard self.count == other.count else { return false }
-    return self._bits.isEqual(to: other._bits)
+    return self._bits.isEqualSet(to: other._bits)
   }
 
   /// Returns a Boolean value indicating whether a bit set is equal to a counted
@@ -912,8 +912,8 @@ extension BitSet.Counted {
   ///
   /// - Complexity: O(*max*), where *max* is value of the largest member of
   ///     either set.
-  public func isEqual(to other: BitSet) -> Bool {
-    self._bits.isEqual(to: other)
+  public func isEqualSet(to other: BitSet) -> Bool {
+    self._bits.isEqualSet(to: other)
   }
 
   /// Returns a Boolean value indicating whether a bit set is equal to a range
@@ -921,9 +921,9 @@ extension BitSet.Counted {
   ///
   /// - Complexity: O(min(*max*, `other.upperBound`), where *max* is the largest
   ///    member of `self`.
-  public func isEqual(to other: Range<Int>) -> Bool {
+  public func isEqualSet(to other: Range<Int>) -> Bool {
     guard self.count == other.count else { return false }
-    return _bits.isEqual(to: other)
+    return _bits.isEqualSet(to: other)
   }
 
   /// Returns a Boolean value indicating whether this bit set contains the same
@@ -935,15 +935,15 @@ extension BitSet.Counted {
   ///     let bits: BitSet = [0, 1, 5, 6]
   ///     let other = [5, 5, 0, 1, 1, 6, 5, 0, 1, 6, 6, 5]
   ///
-  ///     bits.isEqual(to: other) // true
+  ///     bits.isEqualSet(to: other) // true
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `other`.
   @inlinable
-  public func isEqual<S: Sequence>(to other: S) -> Bool
+  public func isEqualSet<S: Sequence>(to other: S) -> Bool
   where S.Element == Int
   {
     guard self.count >= other.underestimatedCount else { return false }
-    return _bits.isEqual(to: other)
+    return _bits.isEqualSet(to: other)
   }
 }
 

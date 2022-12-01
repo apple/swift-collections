@@ -27,11 +27,11 @@
 
 ### Adding Elements
 
-- ``append(_:)``
+- ``append(_:)-8dqhn``
 - ``append(contentsOf:)-18dwf``
 - ``append(contentsOf:)-576q4``
 - ``append(contentsOf:)-8xkr8``
-- ``insert(_:at:)``
+- ``insert(_:at:)-9t4hf``
 - ``insert(contentsOf:at:)-7e1xn``
 - ``insert(contentsOf:at:)-35dp3``
 - ``insert(contentsOf:at:)-1wsgw``
@@ -46,8 +46,8 @@
 - ``removeSubrange(_:)-18qe7``
 - ``removeLast()``
 - ``removeLast(_:)``
-- ``removeFirst()``
-- ``removeFirst(_:)``
+- ``removeFirst()-dcsp``
+- ``removeFirst(_:)-9nqlo``
 - ``popLast()``
 
 ### Replacing Elements

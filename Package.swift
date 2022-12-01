@@ -52,7 +52,7 @@ let package = Package(
     .library(name: "DequeModule", targets: ["DequeModule"]),
     .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-    .library(name: "PersistentCollections", targets: ["PersistentCollections"]),
+    .library(name: "HashTreeCollections", targets: ["HashTreeCollections"]),
     .library(name: "SortedCollections", targets: ["SortedCollections"]),
   ],
   targets: [
@@ -63,7 +63,7 @@ let package = Package(
         "DequeModule",
         "HeapModule",
         "OrderedCollections",
-        "PersistentCollections",
+        "HashTreeCollections",
         "SortedCollections",
       ],
       exclude: ["CMakeLists.txt"],
@@ -136,15 +136,15 @@ let package = Package(
       dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
-    // PersistentSet<Element>, PersistentDictionary<Key, Value>
+    // TreeSet<Element>, TreeDictionary<Key, Value>
     .target(
-      name: "PersistentCollections",
+      name: "HashTreeCollections",
       dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
-      name: "PersistentCollectionsTests",
-      dependencies: ["PersistentCollections", "_CollectionsTestSupport"],
+      name: "HashTreeCollectionsTests",
+      dependencies: ["HashTreeCollections", "_CollectionsTestSupport"],
       swiftSettings: settings),
 
     // SortedSet<Element>, SortedDictionary<Key, Value>

@@ -91,9 +91,9 @@
 ### Comparing Sets
 
 - ``==(_:_:)`` 
-- ``isEqual(to:)-69p52`` 
-- ``isEqual(to:)-1xzfo`` 
-- ``isEqual(to:)-3ab2q`` 
+- ``isEqualSet(to:)-6zqj7`` 
+- ``isEqualSet(to:)-34yz0`` 
+- ``isEqualSet(to:)-2bhxr`` 
 
 - ``isSubset(of:)-ptij`` 
 - ``isSubset(of:)-3mw6r`` 
@@ -132,7 +132,7 @@
 
 ### Creating and Applying Differences
 
-- ``difference(from:)``
+- ``difference(from:)-30bkk``
 - ``applying(_:)``
 
 ### Memory Management

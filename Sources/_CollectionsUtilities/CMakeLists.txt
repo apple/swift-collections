@@ -8,9 +8,10 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(_CollectionsUtilities
-  "_SortedCollection.swift"
-  "_UniqueCollection.swift"
-  "Array+WithContiguousStorage Compatibility.swift"
+  "Compatibility/Array+WithContiguousStorage Compatibility.swift"
+  "Compatibility/UnsafeMutableBufferPointer+SE-0370.swift"
+  "Compatibility/UnsafeMutablePointer+SE-0370.swift"
+  "Compatibility/UnsafeRawPointer extensions.swift"
   "Debugging.swift"
   "Descriptions.swift"
   "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift"
@@ -18,11 +19,13 @@ add_library(_CollectionsUtilities
   "IntegerTricks/UInt+first and last set bit.swift"
   "IntegerTricks/UInt+reversed.swift"
   "RandomAccessCollection+Offsets.swift"
+  "UnsafeBitSet/_UnsafeBitSet+Index.swift"
+  "UnsafeBitSet/_UnsafeBitSet+_Word.swift"
+  "UnsafeBitSet/_UnsafeBitSet.swift"
   "UnsafeBufferPointer+Extras.swift"
   "UnsafeMutableBufferPointer+Extras.swift"
-  "UnsafeMutableBufferPointer+SE-0370.swift"
-  "UnsafeMutablePointer+SE-0370.swift"
-  "UnsafeRawPointer extensions.swift"
+  "_SortedCollection.swift"
+  "_UniqueCollection.swift"
   )
 set_target_properties(_CollectionsUtilities PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
