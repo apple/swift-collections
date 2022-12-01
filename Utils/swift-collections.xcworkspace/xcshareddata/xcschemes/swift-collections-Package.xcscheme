@@ -84,9 +84,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PersistentCollections"
-               BuildableName = "PersistentCollections"
-               BlueprintName = "PersistentCollections"
+               BlueprintIdentifier = "ShareableHashedCollections"
+               BuildableName = "ShareableHashedCollections"
+               BlueprintName = "ShareableHashedCollections"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -196,9 +196,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PersistentCollectionsTests"
-               BuildableName = "PersistentCollectionsTests"
-               BlueprintName = "PersistentCollectionsTests"
+               BlueprintIdentifier = "ShareableHashedCollectionsTests"
+               BuildableName = "ShareableHashedCollectionsTests"
+               BlueprintName = "ShareableHashedCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
@@ -269,9 +269,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "PersistentCollectionsTests"
-               BuildableName = "PersistentCollectionsTests"
-               BlueprintName = "PersistentCollectionsTests"
+               BlueprintIdentifier = "ShareableHashedCollectionsTests"
+               BuildableName = "ShareableHashedCollectionsTests"
+               BlueprintName = "ShareableHashedCollectionsTests"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </TestableReference>

@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import _CollectionsUtilities
+
 extension BitSet {
   /// An opaque type that represents a position in a bit set.
   ///
