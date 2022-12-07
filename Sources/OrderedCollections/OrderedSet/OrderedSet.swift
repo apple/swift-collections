@@ -66,10 +66,11 @@
 /// it provides its own variants for insertion that are more explicit about
 /// where in the collection new elements gets inserted:
 ///
-///     func insert(_ item: Element, at index: Int) -> (inserted: Bool, index: Int)
 ///     func append(_ item: Element) -> (inserted: Bool, index: Int)
-///     func update(at index: Int, with item: Element) -> Element
+///     func insert(_ item: Element, at index: Int) -> (inserted: Bool, index: Int)
 ///     func updateOrAppend(_ item: Element) -> Element?
+///     func updateOrInsert(_ item: Element, at index: Int) -> (originalMember: Element?, index: Int)
+///     func update(_ item: Element, at index: Int) -> Element
 ///
 /// Additionally,`OrderedSet` has an order-sensitive definition of equality (see
 /// above) that is incompatible with `SetAlgebra`'s documented semantic
