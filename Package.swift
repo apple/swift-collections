@@ -63,7 +63,7 @@ let package = Package(
         "OrderedCollections",
       ],
       path: "Sources/Collections",
-      exclude: ["CMakeLists.txt"],
+      exclude: ["CMakeLists.txt", "Collections.docc"],
       swiftSettings: settings),
 
     // Testing support module
@@ -85,7 +85,7 @@ let package = Package(
     // Deque<Element>
     .target(
       name: "DequeModule",
-      exclude: ["CMakeLists.txt"],
+      exclude: ["CMakeLists.txt", "DequeModule.docc"],
       swiftSettings: settings),
     .testTarget(
       name: "DequeTests",
@@ -95,7 +95,7 @@ let package = Package(
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
-      exclude: ["CMakeLists.txt"],
+      exclude: ["CMakeLists.txt", "OrderedCollections.docc"],
       swiftSettings: settings),
     .testTarget(
       name: "OrderedCollectionsTests",
