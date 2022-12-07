@@ -10,7 +10,7 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
-- (Coming soon) [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections. For now available on `main`.
+- (Coming soon) [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections. Available for now on `main`.
 
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
 
