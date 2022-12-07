@@ -14,7 +14,7 @@ The package currently provides the following implementations:
 
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
 
-- (Coming soon) [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue. For now available on `main`.
+- (Coming soon) [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue. Available for now on `main`.
 
 - [`OrderedSet<Element>`][OrderedSet], a variant of the standard `Set` where the order of items is well-defined and items can be arbitrarily reordered. Uses a `ContiguousArray` as its backing store, augmented by a separate hash table of bit packed offsets into it.
 
