@@ -93,13 +93,14 @@
 ///
 /// (This isn't currently available on the regular `Dictionary`.)
 ///
-/// The `Dictionary` type's original `updateValue(_:forKey:)` method is also
-/// available, and so is `index(forKey:)`, grouping/uniquing initializers
-/// (`init(uniqueKeysWithValues:)`, `init(_:uniquingKeysWith:)`,
-/// `init(grouping:by:)`), methods for merging one dictionary with another
-/// (`merge`, `merging`), filtering dictionary entries (`filter(_:)`),
-/// transforming values (`mapValues(_:)`), and a combination of these two
-/// (`compactMapValues(_:)`).
+/// The `Dictionary` type's original ``updateValue(_:forKey:)`` method is also
+/// available, and so is ``index(forKey:)``, grouping/uniquing initializers
+/// (``init(uniqueKeysWithValues:)-5ux9r``, ``init(_:uniquingKeysWith:)-2y39b``,
+/// ``init(grouping:by:)-6mahw``), methods for merging one dictionary with
+/// another (``merge(_:uniquingKeysWith:)-6ka2i``,
+/// ``merging(_:uniquingKeysWith:)-4z49c``), filtering dictionary entries
+/// (``filter(_:)``), transforming values (``mapValues(_:)``),
+/// and a combination of these two (``compactMapValues(_:)``).
 ///
 /// ### Sequence and Collection Operations
 ///
@@ -107,60 +108,43 @@
 /// beginning of the collection. However, to avoid ambiguity between key-based
 /// and indexing subscripts, `OrderedDictionary` doesn't directly conform to
 /// `Collection`. Instead, it only conforms to `Sequence`, and provides a
-/// random-access collection view over its key-value pairs:
+/// random-access collection view over its key-value pairs, called
+/// ``elements-swift.property``:
 ///
 ///     responses[0] // `nil` (key-based subscript)
 ///     responses.elements[0] // `(200, "OK")` (index-based subscript)
 ///
 /// Because ordered dictionaries need to maintain unique keys, neither
-/// `OrderedDictionary` nor its `elements` view can conform to the full
-/// `MutableCollection` or `RangeReplaceableCollection` protocols. However, they
-/// are able to partially implement requirements: they support mutations
-/// that merely change the order of elements, or just remove a subset of
-/// existing members:
+/// `OrderedDictionary` nor its ``elements-swift.property`` view can conform to
+/// the full `MutableCollection` or `RangeReplaceableCollection` protocols.
+/// However, they are able to partially implement requirements: they support
+/// mutations that merely change the order of elements, or just remove a subset
+/// of existing members.
 ///
-///     // Permutation operations from MutableCollection:
-///     func swapAt(_ i: Int, _ j: Int)
-///     func partition(by predicate: (Element) throws -> Bool) -> rethrows Int
-///     func sort() where Element: Comparable
-///     func sort(by predicate: (Element, Element) throws -> Bool) rethrows
-///     func shuffle()
-///     func shuffle<T: RandomNumberGenerator>(using generator: inout T)
-///
-///     // Removal operations from RangeReplaceableCollection:
-///     func removeAll(keepingCapacity: Bool = false)
-///     func remove(at index: Int) -> Element
-///     func removeSubrange(_ bounds: Range<Int>)
-///     func removeLast() -> Element
-///     func removeLast(_ n: Int)
-///     func removeFirst() -> Element
-///     func removeFirst(_ n: Int)
-///     func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows
-///
-/// `OrderedDictionary` also implements `reserveCapacity(_)` from
+/// `OrderedDictionary` also implements ``reserveCapacity(_:)`` from
 /// `RangeReplaceableCollection`, to allow for efficient insertion of a known
 /// number of elements. (However, unlike `Array` and `Dictionary`,
 /// `OrderedDictionary` does not provide a `capacity` property.)
 ///
 /// ### Keys and Values Views
 ///
-/// Like the standard `Dictionary`, `OrderedDictionary` provides `keys` and
-/// `values` properties that provide lightweight views into the corresponding
-/// parts of the dictionary.
+/// Like the standard `Dictionary`, `OrderedDictionary` provides ``keys`` and
+/// ``values-swift.property`` properties that provide lightweight views into
+/// the corresponding parts of the dictionary.
 ///
-/// The `keys` collection is of type `OrderedSet<Key>`, containing all the keys
-/// in the original dictionary.
+/// The ``keys`` collection is of type `OrderedSet<Key>`, containing all the
+/// keys in the original dictionary.
 ///
 ///     let d: OrderedDictionary = [2: "two", 1: "one", 0: "zero"]
 ///     d.keys // [2, 1, 0] as OrderedSet<Int>
 ///
-/// The `keys` property is read-only, so you cannot mutate the dictionary
+/// The ``keys`` property is read-only, so you cannot mutate the dictionary
 /// through it. However, it returns an ordinary ordered set value, which can be
 /// copied out and then mutated if desired. (Such mutations won't affect the
 /// original dictionary value.)
 ///
-/// The `values` collection is a mutable random-access collection of the values
-/// in the dictionary:
+/// The ``values-swift.property`` property returns a mutable random-access
+/// collection of the values in the dictionary:
 ///
 ///     d.values // "two", "one", "zero"
 ///     d.values[2] = "nada"
@@ -169,7 +153,7 @@
 ///     // `d` is now [2: "nada", 1: "one", 0: "two"]
 ///
 /// Both views store their contents in regular `Array` values, accessible
-/// through their `elements` property.
+/// through their own `elements` property.
 ///
 /// ## Performance
 ///
