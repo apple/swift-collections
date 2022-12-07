@@ -10,17 +10,21 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
-- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
-
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
-
-- [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue.
 
 - [`OrderedSet<Element>`][OrderedSet], a variant of the standard `Set` where the order of items is well-defined and items can be arbitrarily reordered. Uses a `ContiguousArray` as its backing store, augmented by a separate hash table of bit packed offsets into it.
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
+The following additional types are expected to ship soon, in version 1.1:
+
+- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
+
+- [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue.
+
 - [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
+
+Preview versions of these new types are available on the `release/1.1` branch. Note that until these types ship in a tagged release, their API and implementation may change without notice -- it isn't a good idea to rely on them in production code yet. However, you can try these in experimental projects by using a branch- or commit-based dependency requirement in your package manifest.
 
 [BitSet]: Documentation/BitSet.md
 [BitArray]: Documentation/BitArray.md
@@ -31,7 +35,7 @@ The package currently provides the following implementations:
 [TreeSet]: Documentation/TreeSet.md
 [TreeDictionary]: Documentation/TreeDictionary.md
 
-The following data structures are currently being worked on but they aren't ready for inclusion in a tagged release:
+The following additional data structures are currently under development on but they aren't stable enough to preview yet.
 
 - [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
 - [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
