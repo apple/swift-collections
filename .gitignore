@@ -7,3 +7,4 @@ xcuserdata/
 .*.sw?
 /Benchmarks/.swiftpm
 /Benchmarks/.build
+.docc-build

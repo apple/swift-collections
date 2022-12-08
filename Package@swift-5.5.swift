@@ -1,9 +1,9 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.5
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -17,7 +17,7 @@ import PackageDescription
 // from the package manager command line:
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
-var settings: [SwiftSetting]? = [
+var settings: [SwiftSetting] = [
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -41,12 +41,7 @@ var settings: [SwiftSetting]? = [
   // the hash table itself. This setting should never be enabled in production
   // code.
 //  .define("COLLECTIONS_DETERMINISTIC_HASHING"),
-
 ]
-
-// Prevent SPM 5.3 from throwing an error on empty settings arrays.
-// (This has been fixed in 5.4.)
-if settings?.isEmpty == true { settings = nil }
 
 let package = Package(
   name: "swift-collections",
@@ -63,7 +58,7 @@ let package = Package(
         "OrderedCollections",
       ],
       path: "Sources/Collections",
-      exclude: ["CMakeLists.txt", "Collections.docc"],
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
 
     // Testing support module
@@ -85,7 +80,7 @@ let package = Package(
     // Deque<Element>
     .target(
       name: "DequeModule",
-      exclude: ["CMakeLists.txt", "DequeModule.docc"],
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "DequeTests",
@@ -95,7 +90,7 @@ let package = Package(
     // OrderedSet<Element>, OrderedDictionary<Key, Value>
     .target(
       name: "OrderedCollections",
-      exclude: ["CMakeLists.txt", "OrderedCollections.docc"],
+      exclude: ["CMakeLists.txt"],
       swiftSettings: settings),
     .testTarget(
       name: "OrderedCollectionsTests",
