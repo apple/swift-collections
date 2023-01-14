@@ -22,16 +22,34 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
   // occur within rare constellations of deque state -- such as when the range
   // of occupied slots is wrapped at a particular point.
 
-  func test_emptyInitializer() {
+func test_emptyInitializer() {
+    /**
+     * Test case for the empty initializer of Deque
+     *  - check if the deque is empty
+     *  - check if the count of the deque is zero
+     *  - check if the start and end index of the deque is equal
+     *  - check if the distance between start and end index of the deque is zero
+     *  - check if the array representation of the deque is empty
+     */
     let deque = Deque<Int>()
     expectTrue(deque.isEmpty)
     expectEqual(deque.count, 0)
     expectEqual(deque.startIndex, deque.endIndex)
     expectEqual(deque.distance(from: deque.startIndex, to: deque.endIndex), 0)
     expectEqual(Array(deque), [])
-  }
+}
 
-  func test_singleElement() {
+func test_singleElement() {
+    /**
+     * Test case for the single element initializer of Deque
+     *  - check if the deque is not empty
+     *  - check if the count of the deque is one
+     *  - check if the start index of the deque is less than the end index
+     *  - check if the index after start index is equal to the end index
+     *  - check if the distance between start and end index of the deque is one
+     *  - check if the first element of the deque is 42
+     *  - check if the array representation of the deque is [42]
+     */
     let deque = Deque([42])
     expectFalse(deque.isEmpty)
     expectEqual(deque.count, 1)
@@ -40,9 +58,13 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
     expectEqual(deque.distance(from: deque.startIndex, to: deque.endIndex), 1)
     expectEqual(deque[0], 42)
     expectEqual(Array(deque), [42])
-  }
+}
 
-  func test_sequenceInitializer() {
+func test_sequenceInitializer() {
+    /**
+     * Test case for the sequence initializer of Deque
+     *  - check if the deque is initialized correctly using a minimal sequence
+     */
     withEvery("count", in: [0, 1, 2, 10, 100]) { count in
       let ucVariants: [UnderestimatedCountBehavior] = [.precise, .half, .value(min(1, count))]
       withEvery("underestimatedCount", in: ucVariants) { underestimatedCount in
@@ -53,9 +75,17 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
         }
       }
     }
-  }
-
-  func test_sequenceInitializer_ContiguousArray() {
+}
+/**
+  test_sequenceInitializer_ContiguousArray() function tests the initializer of Deque type,
+  that takes a ContiguousArray as an argument.
+  It tests the case when the count of the ContiguousArray is in [0, 1, 2, 10, 100]
+  withLifetimeTracking is used to track the lifetimes of the objects that are created.
+  It creates a ContiguousArray with the help of tracker.instances(for: 0 ..< count) and assigns it to the variable contents.
+  Then it creates a Deque with the help of Deque(contents) and assigns it to the variable d1.
+  It compares the elements of d1 with the elements of contents using expectEqualElements(d1, contents)
+*/
+func test_sequenceInitializer_ContiguousArray() {
     withEvery("count", in: [0, 1, 2, 10, 100]) { count in
       withLifetimeTracking { tracker in
         let contents = ContiguousArray(tracker.instances(for: 0 ..< count))
@@ -64,7 +94,17 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
       }
     }
   }
-
+  
+  /**
+  test_sequenceInitializer_bridgedArray() function tests the initializer of Deque type,
+  that takes an Array as an argument.
+  It tests the case when the count of the Array is in [0, 1, 2, 10, 100]
+  It creates an Array of NSObjects with the help of (0 ..< count).map { _ in NSObject() } and assigns it to the variable contents.
+  Then it creates an NSArray with the help of NSArray(objects: buffer.baseAddress, count: buffer.count) as [AnyObject]
+  and assigns it to the variable array.
+  Then it creates a Deque with the help of Deque(array) and assigns it to the variable deque.
+  It compares the elements of deque with the elements of contents using expectEquivalentElements(deque, contents, by: ===)
+  */
   func test_sequenceInitializer_bridgedArray() {
     // https://github.com/apple/swift-collections/issues/27
     withEvery("count", in: [0, 1, 2, 10, 100]) { count in
@@ -77,7 +117,14 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
     }
   }
 
-  func test_replaceSubrange_withMinimalCollection() {
+ /**
+ * test_replaceSubrange_withMinimalCollection
+ *
+ * Test replacing a range in a Deque using a MinimalCollection. Iterates through different
+ * capacities of deque, different ranges to replace, different number of replacement elements,
+ * and different shared/not shared deques.
+ */
+func test_replaceSubrange_withMinimalCollection() {
     withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("replacementCount", in: [0, 1, 2, 3, 5, 10]) { replacementCount in
@@ -98,6 +145,13 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
     }
   }
 
+/**
+ * test_replaceSubrange_withArray
+ *
+ * Test replacing a range in a Deque using an array. Iterates through different capacities of
+ * deque, different ranges to replace, different number of replacement elements, and different
+ * shared/not shared deques.
+ */
   func test_replaceSubrange_withArray() {
     withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -118,11 +172,22 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
     }
   }
 
-  func test_reserveCapacity() {
+  /**
+ * Test the reserveCapacity method of the Deque class.
+ * 
+ * This test is currently not implemented.
+ */
+func test_reserveCapacity() {
     // FIXME: Implement
-  }
+}
 
-  func test_repeatingInitializer() {
+/**
+ * Test the repeating initializer of the Deque class.
+ * 
+ * This test creates a deque by passing an element and a count to the repeating initializer.
+ * The test verifies that the resulting deque has the correct count and elements.
+ */
+func test_repeatingInitializer() {
     withEvery("count", in: 0 ..< 10) { count in
       withLifetimeTracking { tracker in
         let item = tracker.instance(for: 0)
@@ -130,9 +195,15 @@ final class RangeReplaceableCollectionTests: CollectionTestCase {
         expectEqual(Array(deque), Array(repeating: item, count: count))
       }
     }
-  }
+}
 
-  func test_appendOne() {
+/**
+ * Test the append method of the Deque class.
+ * 
+ * This test creates a deque and appends a new element to it.
+ * The test verifies that the resulting deque has the correct count and elements.
+ */
+func test_appendOne() {
     withEveryDeque("deque", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("isShared", in: [false, true]) { isShared in
         withLifetimeTracking { tracker in
