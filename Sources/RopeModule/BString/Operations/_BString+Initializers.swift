@@ -46,6 +46,33 @@ extension _BString {
     builder.append(piece)
     self = builder.finalize()
   }
+
+  internal init(
+    _ other: Self,
+    in range: Range<Index>
+  ) {
+    self.rope = other.rope.extract(
+      from: range.lowerBound._utf8Offset,
+      to: range.upperBound._utf8Offset,
+      in: UTF8Metric())
+    var old = other._breakState(upTo: range.lowerBound).state
+    var new = _CharacterRecognizer()
+    _ = self.rope.resyncBreaks(old: &old, new: &new)
+  }
+
+  internal init(
+    _ other: Self,
+    in range: Range<Index>,
+    state: inout _CharacterRecognizer
+  ) {
+    self.rope = other.rope.extract(
+      from: range.lowerBound._utf8Offset,
+      to: range.upperBound._utf8Offset,
+      in: UTF8Metric())
+    var old = other._breakState(upTo: range.lowerBound).state
+    var new = state
+    self.rope.resyncBreaksToEnd(old: &old, new: &new)
+  }
 }
 
 extension String {
@@ -59,7 +86,7 @@ extension String {
   
   internal init(_from big: _BString, in range: Range<_BString.Index>) {
     self.init()
-    guard range.lowerBound._utf8Offset < range.upperBound._utf8Offset else {
+    guard range._isEmptyUTF8 else {
       // We can safely ignore UTF-16 offsets, as we're rounding down to scalar boundaries
       // anyway.
       return
@@ -71,7 +98,7 @@ extension String {
       self += start.chunk.string[start.path.chunk ..< end.path.chunk]
       return
     }
-    
+
     self += start.chunk.string[start.path.chunk...]
     
     var it = big.rope.makeIterator(from: start.path.rope)

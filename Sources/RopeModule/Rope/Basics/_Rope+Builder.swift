@@ -44,7 +44,7 @@ extension _Rope {
     
     var isPrefixEmpty: Bool {
       if prefix != nil { return false }
-      if let seedling = self.prefixLeaf, !seedling.isEmpty { return false }
+      if let leaf = self.prefixLeaf, !leaf.isEmpty { return false }
       return prefixTrees.isEmpty
     }
     
@@ -58,8 +58,8 @@ extension _Rope {
       for sapling in prefixTrees {
         sum.add(sapling.summary)
       }
-      if let seedling = prefixLeaf { sum.add(seedling.summary) }
-      if let seed = prefix { sum.add(seed.summary) }
+      if let leaf = prefixLeaf { sum.add(leaf.summary) }
+      if let item = prefix { sum.add(item.summary) }
       return sum
     }
 
@@ -75,8 +75,8 @@ extension _Rope {
     var lastPrefixItem: _Rope.Item {
       get {
         assert(!isPrefixEmpty)
-        if let prefix { return prefix }
-        if let prefixLeaf { return prefixLeaf.lastItem }
+        if let item = self.prefix { return item }
+        if let leaf = self.prefixLeaf { return leaf.lastItem }
         return prefixTrees.last!.root.lastItem
       }
       _modify {
@@ -127,29 +127,29 @@ extension _Rope {
           guard prefixTrees[i].forEachWhile({ body($0, nil) }) else { return false }
           i += 1
         }
-        if let seedling = self.prefixLeaf {
-          guard seedling.forEachWhile({ body($0, nil) }) else { return false }
+        if let leaf = self.prefixLeaf {
+          guard leaf.forEachWhile({ body($0, nil) }) else { return false }
         }
-        if let seed = self.prefix {
-          guard body(seed.value, nil) else { return false }
+        if let item = self.prefix {
+          guard body(item.value, nil) else { return false }
         }
         return true
       }
 
-      if let seedling = self.prefixLeaf {
-        let size = metric.size(of: seedling.summary)
+      if let leaf = self.prefixLeaf {
+        let size = metric.size(of: leaf.summary)
         if position < size {
-          guard seedling.forEachWhile(from: position, in: metric, body) else { return false }
-          if let seed = self.prefix {
-            guard body(seed.value, nil) else { return false }
+          guard leaf.forEachWhile(from: position, in: metric, body) else { return false }
+          if let item = self.prefix {
+            guard body(item.value, nil) else { return false }
           }
           return true
         }
         position -= size
       }
-      if let seed = self.prefix {
-        let i = metric.index(at: position, in: seed.value)
-        guard body(seed.value, i) else { return false}
+      if let item = self.prefix {
+        let i = metric.index(at: position, in: item.value)
+        guard body(item.value, i) else { return false}
       }
       return true
     }
@@ -175,28 +175,28 @@ extension _Rope {
     
     mutating func append(_ item: __owned _Rope.Item) {
       guard !item.isEmpty else { return }
-      guard var seed = self.prefix._take() else {
+      guard var prefix = self.prefix._take() else {
         self.prefix = item
         return
       }
       var item = item
-      if seed.rebalance(nextNeighbor: &item) {
-        self.prefix = seed
+      if prefix.rebalance(nextNeighbor: &item) {
+        self.prefix = prefix
         return
       }
-      _append(seed)
+      _append(prefix)
       self.prefix = item
     }
     
     mutating func _append(_ item: __owned _Rope.Item) {
       assert(self.prefix == nil)
       assert(!item.isUndersized)
-      var seedling = self.prefixLeaf._take() ?? .createLeaf()
-      seedling._appendItem(item)
-      if seedling.isFull {
-        self._append(seedling)
+      var leaf = self.prefixLeaf._take() ?? .createLeaf()
+      leaf._appendItem(item)
+      if leaf.isFull {
+        self._append(leaf)
       } else {
-        self.prefixLeaf = seedling
+        self.prefixLeaf = leaf
       }
       invariantCheck()
     }
@@ -214,19 +214,19 @@ extension _Rope {
           append(node.firstItem)
           return
         }
-        if let seed = self.prefix._take() {
-          if let spawn = node.prepend(seed) {
+        if let item = self.prefix._take() {
+          if let spawn = node.prepend(item) {
             append(node)
             append(spawn)
             return
           }
         }
-        if var seedling = self.prefixLeaf._take() {
-          if seedling.rebalance(nextNeighbor: &node), !seedling.isFull {
-            self.prefixLeaf = seedling
+        if var leaf = self.prefixLeaf._take() {
+          if leaf.rebalance(nextNeighbor: &node), !leaf.isFull {
+            self.prefixLeaf = leaf
             return
           }
-          self._append(seedling)
+          self._append(leaf)
         }
         
         if node.isFull {
@@ -237,13 +237,13 @@ extension _Rope {
         return
       }
       
-      if var seed = self.prefix._take() {
-        if !seed.isUndersized || !node.firstItem.rebalance(prevNeighbor: &seed) {
-          self._append(seed)
+      if var prefix = self.prefix._take() {
+        if !prefix.isUndersized || !node.firstItem.rebalance(prevNeighbor: &prefix) {
+          self._append(prefix)
         }
       }
-      if let seedling = self.prefixLeaf._take() {
-        _append(seedling)
+      if let leaf = self.prefixLeaf._take() {
+        _append(leaf)
       }
       _append(node)
     }
@@ -353,33 +353,33 @@ extension _Rope {
       if let suffixItem = self.suffix._take() {
         append(suffixItem)
       }
-      if var seed = self.prefix._take() {
-        if !seed.isUndersized {
-          _append(seed)
+      if var prefix = self.prefix._take() {
+        if !prefix.isUndersized {
+          _append(prefix)
         } else if !self.isPrefixEmpty {
-          if !self.lastPrefixItem.rebalance(nextNeighbor: &seed) {
-            _append(seed)
+          if !self.lastPrefixItem.rebalance(nextNeighbor: &prefix) {
+            _append(prefix)
           }
         } else if !self.isSuffixEmpty {
-          if !self.firstSuffixItem.rebalance(prevNeighbor: &seed) {
-            _append(seed)
+          if !self.firstSuffixItem.rebalance(prevNeighbor: &prefix) {
+            _append(prefix)
           }
         } else {
           // We only have the seed; allow undersized chunk
-          return Rope(root: .createLeaf(seed))
+          return Rope(root: .createLeaf(prefix))
         }
       }
       assert(self.prefix == nil && self.suffix == nil)
-      while let sapling = suffixTrees.popLast() {
-        append(sapling)
+      while let tree = suffixTrees.popLast() {
+        append(tree)
       }
       // Merge all saplings, the seedling and the seed into a single rope.
-      if let seed = self.prefix._take() {
-        _append(seed)
+      if let item = self.prefix._take() {
+        _append(item)
       }
       var rope = Rope(root: prefixLeaf._take())
-      while let sapling = prefixTrees.popLast() {
-        rope.prepend(sapling)
+      while let tree = prefixTrees.popLast() {
+        rope.prepend(tree)
       }
       assert(prefixLeaf == nil && prefixTrees.isEmpty && suffixTrees.isEmpty)
       rope.invariantCheck()
@@ -394,16 +394,16 @@ extension _Rope {
         sapling.invariantCheck()
         h = sapling.height
       }
-      if let seedling = self.prefixLeaf {
-        precondition(seedling.height == 0)
-        precondition(!seedling.isFull)
-        seedling.invariantCheck(depth: 0, height: 0)
+      if let leaf = self.prefixLeaf {
+        precondition(leaf.height == 0)
+        precondition(!leaf.isFull)
+        leaf.invariantCheck(depth: 0, height: 0)
       }
       h = 0
-      for sapling in suffixTrees.reversed() {
-        precondition(sapling.height >= h)
-        sapling.invariantCheck()
-        h = sapling.height
+      for tree in suffixTrees.reversed() {
+        precondition(tree.height >= h)
+        tree.invariantCheck()
+        h = tree.height
       }
 #endif
       
@@ -414,25 +414,25 @@ extension _Rope {
         print("Sapling \(i):")
         self.prefixTrees[i].dump(heightLimit: heightLimit, firstPrefix: "  ", restPrefix: "  ")
       }
-      if let seedling = self.prefixLeaf {
+      if let leaf = self.prefixLeaf {
         print("Seedling:")
-        seedling.dump(heightLimit: heightLimit, firstPrefix: "  ", restPrefix: "  ")
+        leaf.dump(heightLimit: heightLimit, firstPrefix: "  ", restPrefix: "  ")
       }
-      if let seed = self.prefix {
+      if let item = self.prefix {
         print("Seed:")
-        print("  \(seed)")
+        print("  \(item)")
       }
       print("---")
       var i = 0
-      if let suffix = self.suffix {
+      if let item = self.suffix {
         print("Suffix \(i):")
         i += 1
-        print("  \(suffix)")
+        print("  \(item)")
       }
-      for suffix in self.suffixTrees.reversed() {
+      for tree in self.suffixTrees.reversed() {
         print("Suffix \(i)")
         i += 1
-        suffix.dump(heightLimit: heightLimit, firstPrefix: "  ", restPrefix: "  ")
+        tree.dump(heightLimit: heightLimit, firstPrefix: "  ", restPrefix: "  ")
       }
     }
   }

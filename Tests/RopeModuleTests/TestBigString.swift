@@ -512,4 +512,29 @@ class TestBigString: XCTestCase {
       checkCharacterIndices(input, big)
     }
   }
+
+  func test_init_from_substring() {
+    let flat = sampleString
+    let big = BigString(flat)
+
+    let (indices1, indices2) = checkScalarIndices(flat, big)
+
+    for i in randomStride(from: 0, to: indices1.count, by: 1000, seed: 0) {
+      let a1 = indices1[i]
+      let a2 = indices2[i]
+      for j in randomStride(from: i, to: indices1.count, by: 1000, seed: i) {
+        let b1 = indices1[j]
+        let b2 = indices2[j]
+
+        let expected = String(flat[a1 ..< b1])
+        let actual = BigString(big[a2 ..< b2])
+        actual._invariantCheck()
+        XCTAssertEqual(String(big), flat)
+        checkUTF8Indices(expected, actual)
+        checkUTF16Indices(expected, actual)
+        checkScalarIndices(expected, actual)
+        checkCharacterIndices(expected, actual)
+      }
+    }
+  }
 }

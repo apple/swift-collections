@@ -94,7 +94,12 @@ extension _BString.Builder {
     var state = _CharacterRecognizer()
     append(other.rope, state: &state)
   }
-  
+
+  mutating func append(_ other: __owned _BString, in range: Range<_BString.Index>) {
+    let extract = _BString(other, in: range, state: &self.prefixEndState)
+    self.base.append(extract.rope)
+  }
+
   mutating func append(_ other: __owned Rope, state: inout _CharacterRecognizer) {
     guard !other.isEmpty else { return }
     var other = _BString(rope: other)

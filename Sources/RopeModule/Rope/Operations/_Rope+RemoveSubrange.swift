@@ -43,7 +43,9 @@ extension _Rope {
     in metric: some _RopeMetric<Element>
   ) -> Builder {
     let size = metric.size(of: summary)
-    precondition(bounds.lowerBound >= 0 && bounds.upperBound <= size, "Position out of bounds")
+    precondition(
+      bounds.lowerBound >= 0 && bounds.upperBound <= size,
+      "Range out of bounds")
 
     guard !bounds.isEmpty else {
       return builder(splittingAt: bounds.lowerBound, in: metric)

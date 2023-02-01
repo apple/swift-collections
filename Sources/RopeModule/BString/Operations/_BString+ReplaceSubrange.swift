@@ -33,6 +33,28 @@ extension _BString {
     self = builder.finalize()
   }
 
+  mutating func replaceSubrange(
+    _ targetRange: Range<Index>,
+    with newElements: _BString,
+    in sourceRange: Range<Index>
+  ) {
+    if sourceRange._isEmptyUTF8 {
+      removeSubrange(targetRange)
+      return
+    }
+    if targetRange._isEmptyUTF8 {
+      insert(
+        contentsOf: newElements,
+        in: sourceRange,
+        at: targetRange.lowerBound)
+      return
+    }
+    precondition(targetRange.upperBound <= endIndex, "Index out of bounds")
+    var builder = _split(removing: targetRange)
+    builder.append(newElements, in: sourceRange)
+    self = builder.finalize()
+  }
+
   mutating func _split(removing range: Range<Index>) -> Builder {
     let lower = range.lowerBound._utf8Offset
     let upper = range.upperBound._utf8Offset

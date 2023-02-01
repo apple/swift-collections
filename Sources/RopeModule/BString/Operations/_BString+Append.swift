@@ -66,20 +66,48 @@ extension _BString {
     _ = other.resyncBreaks(old: &old, new: &new)
     _append(other)
   }
-  
+
+  mutating func append(contentsOf other: __owned _BString, in range: Range<Index>) {
+    guard !range._isEmptyUTF8 else { return }
+    guard !self.isEmpty else {
+      self = Self(other, in: range)
+      return
+    }
+
+    var other = _BString(other, in: range)
+    let hint = other._firstUnicodeScalar
+    var old = _CharacterRecognizer()
+    var new = self._breakState(upTo: endIndex, nextScalarHint: hint).state
+    _ = other.rope.resyncBreaks(old: &old, new: &new)
+    _append(other.rope)
+  }
+
   mutating func prepend(contentsOf other: __owned _BString) {
     guard !other.isEmpty else { return }
     guard !self.isEmpty else {
       self = other
       return
     }
-    
     let hint = self._firstUnicodeScalar
     var old = _CharacterRecognizer()
     var new = other._breakState(upTo: other.endIndex, nextScalarHint: hint).state
     _ = self.rope.resyncBreaks(old: &old, new: &new)
-    
+
     _prepend(other.rope)
+  }
+
+  mutating func prepend(contentsOf other: __owned _BString, in range: Range<Index>) {
+    guard !range._isEmptyUTF8 else { return }
+    let extract = Self(other, in: range)
+    guard !self.isEmpty else {
+      self = extract
+      return
+    }
+    let hint = self._firstUnicodeScalar
+    var old = _CharacterRecognizer()
+    var new = extract._breakState(upTo: extract.endIndex, nextScalarHint: hint).state
+    _ = self.rope.resyncBreaks(old: &old, new: &new)
+    _prepend(extract.rope)
   }
 }
 

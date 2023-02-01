@@ -196,6 +196,12 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     self._guts = elements._guts
   }
 
+  public init(_ elements: Self.SubSequence) {
+    let lower = elements.startIndex._value
+    let upper = elements.endIndex._value
+    self._guts = _BString(elements.base._guts, in: lower ..< upper)
+  }
+
   public init(repeating scalar: Unicode.Scalar, count: Int) {
     self._guts = _BString(repeating: _BString(String(scalar)), count: count)
   }
@@ -228,6 +234,12 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     _guts.append(contentsOf: newElements._guts)
   }
 
+  public mutating func append(contentsOf newElements: __owned Self.SubSequence) {
+    let lower = newElements.startIndex._value
+    let upper = newElements.endIndex._value
+    _guts.append(contentsOf: newElements.base._guts, in: lower ..< upper)
+  }
+
   public mutating func insert(_ newElement: __owned Unicode.Scalar, at i: Index) {
     _guts.insert(contentsOf: String(newElement), at: i._value)
   }
@@ -254,6 +266,12 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
 
   public mutating func insert(contentsOf newElements: Self, at i: Index) {
     _guts.insert(contentsOf: newElements._guts, at: i._value)
+  }
+
+  public mutating func insert(contentsOf newElements: __owned Self.SubSequence, at i: Index) {
+    let lower = newElements.startIndex._value
+    let upper = newElements.endIndex._value
+    _guts.insert(contentsOf: newElements.base._guts, in: lower ..< upper, at: i._value)
   }
 
   @discardableResult

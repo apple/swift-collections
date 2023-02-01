@@ -76,3 +76,22 @@ extension _BString {
     self = builder.finalize()
   }
 }
+
+extension _BString {
+  mutating func insert(contentsOf other: __owned Self, in range: Range<Index>, at index: Index) {
+    guard index < endIndex else {
+      precondition(index == endIndex, "Index out of bounds")
+      self.append(contentsOf: other, in: range)
+      return
+    }
+    guard index > startIndex else {
+      self.prepend(contentsOf: other, in: range)
+      return
+    }
+    guard !range._isEmptyUTF8 else { return }
+    // FIXME: Fast path when `other` is tiny.
+    var builder = self.split(at: index)
+    builder.append(other, in: range)
+    self = builder.finalize()
+  }
+}
