@@ -114,16 +114,50 @@ extension BitArray {
   /// - Complexity: O(value.count)
   public static prefix func ~(value: Self) -> Self {
     var result = value
-    result._update { handle in
+    result.toggleAll()
+    return result
+  }
+
+  public mutating func toggleAll() {
+    _update { handle in
+      let w = handle._mutableWords
       for i in 0 ..< handle._words.count {
-        handle._mutableWords[i].formComplement()
+        w[i].formComplement()
       }
-      let p = _BitPosition(handle._count)
+      let p = handle.end
       if p.bit > 0 {
-        handle._mutableWords[p.word].subtract(_Word(upTo: p.bit).complement())
+        w[p.word].subtract(_Word(upTo: p.bit).complement())
       }
     }
-    result._checkInvariants()
-    return result
+    _checkInvariants()
+  }
+
+  public mutating func toggleAll(in range: Range<Int>) {
+    precondition(range.upperBound <= count, "Range out of bounds")
+    _update { handle in
+      let words = handle._mutableWords
+      let start = _BitPosition(range.lowerBound)
+      let end = _BitPosition(range.upperBound)
+      if start.word == end.word {
+        let bits = _Word(from: start.bit, to: end.bit)
+        words[start.word].formSymmetricDifference(bits)
+        return
+      }
+      words[start.word].formSymmetricDifference(
+        _Word(upTo: start.bit).complement())
+      for i in stride(from: start.word + 1, to: end.word, by: 1) {
+        words[i].formComplement()
+      }
+      if end.bit > 0 {
+        words[end.word].formSymmetricDifference(_Word(upTo: end.bit))
+      }
+    }
+  }
+
+  @inlinable
+  public mutating func toggleAll<R: RangeExpression>(
+    in range: R
+  ) where R.Bound == Int {
+    toggleAll(in: range.relative(to: self))
   }
 }
