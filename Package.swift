@@ -53,6 +53,7 @@ let package = Package(
     .library(name: "HeapModule", targets: ["HeapModule"]),
     .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
     .library(name: "HashTreeCollections", targets: ["HashTreeCollections"]),
+    .library(name: "RopeModule", targets: ["RopeModule"]),
   ],
   targets: [
     .target(
@@ -143,6 +144,16 @@ let package = Package(
     .testTarget(
       name: "HashTreeCollectionsTests",
       dependencies: ["HashTreeCollections", "_CollectionsTestSupport"],
+      swiftSettings: settings),
+
+    // BigString
+    .target(
+      name: "RopeModule",
+      dependencies: ["_CollectionsUtilities"],
+      swiftSettings: settings),
+    .testTarget(
+      name: "RopeModuleTests",
+      dependencies: ["RopeModule", "_CollectionsTestSupport"],
       swiftSettings: settings),
   ]
 )

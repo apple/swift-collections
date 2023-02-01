@@ -1,0 +1,34 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
+extension _BString {
+  func invariantCheck() {
+#if DEBUG
+    rope.invariantCheck()
+    let allowUndersize = rope.isSingleton
+    
+    var state = _CharacterRecognizer()
+    for chunk in rope {
+      precondition(allowUndersize || !chunk.isUndersized, "Undersized chunk")
+      let (characters, prefix, suffix) = state.edgeCounts(consuming: chunk.string)
+      precondition(
+        chunk.prefixCount == prefix,
+        "Inconsistent position of first grapheme break in chunk")
+      precondition(
+        chunk.suffixCount == suffix,
+        "Inconsistent position of last grapheme break in chunk")
+      precondition(
+        chunk.characterCount == characters,
+        "Inconsistent character count in chunk")
+    }
+#endif
+  }
+}
