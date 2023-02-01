@@ -26,4 +26,12 @@ extension BitArray {
     let count = value.bitWidth
     self.init(_storage: words, count: count)
   }
+
+  /// Creates a new, empty bit array with preallocated space for at least the
+  /// specified number of elements.
+  public init(minimumCapacity: Int) {
+    self.init()
+    reserveCapacity(minimumCapacity)
+  }
+}
 }
