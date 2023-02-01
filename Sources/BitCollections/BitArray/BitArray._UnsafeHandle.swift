@@ -81,6 +81,24 @@ extension BitArray._UnsafeHandle {
     Int(_count)
   }
 
+  internal var end: _BitPosition {
+    _BitPosition(_count)
+  }
+
+  internal func set(at position: Int) {
+    ensureMutable()
+    assert(position >= 0 && position < _count)
+    let (word, bit) = _BitPosition(UInt(position)).split
+    _mutableWords[word].insert(bit)
+  }
+
+  internal func clear(at position: Int) {
+    ensureMutable()
+    assert(position >= 0 && position < _count)
+    let (word, bit) = _BitPosition(UInt(position)).split
+    _mutableWords[word].remove(bit)
+  }
+
   internal subscript(position: Int) -> Bool {
     get {
       assert(position >= 0 && position < _count)
