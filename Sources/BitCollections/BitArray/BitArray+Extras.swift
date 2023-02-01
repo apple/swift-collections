@@ -28,3 +28,24 @@ extension BitArray {
     }
   }
 }
+
+extension BitArray {
+  public mutating func insert(
+    repeating value: Bool,
+    count: Int,
+    at index: Int
+  ) {
+    precondition(count >= 0, "Can't insert a negative number of values")
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    guard count > 0 else { return }
+    _extend(by: count, with: false)
+    _copy(from: index ..< self.count - count, to: index + count)
+    fill(in: index ..< index + count, with: value)
+  }
+
+  public mutating func append(repeating value: Bool, count: Int) {
+    precondition(count >= 0, "Can't append a negative number of values")
+    guard count > 0 else { return }
+    _extend(by: count, with: value)
+  }
+}

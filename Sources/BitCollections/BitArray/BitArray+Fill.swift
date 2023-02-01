@@ -31,4 +31,11 @@ extension BitArray {
       }
     }
   }
+
+  public mutating func fill<R: RangeExpression>(
+    in range: R,
+    with value: Bool = true
+  ) where R.Bound == Int {
+    fill(in: range.relative(to: self), with: value)
+  }
 }
