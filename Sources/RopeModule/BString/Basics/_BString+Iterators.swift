@@ -94,17 +94,26 @@ extension _BString.UTF16Iterator: IteratorProtocol {
 extension _BString {
   internal struct UnicodeScalarIterator {
     internal var _rope: Rope.Iterator
-    internal var _chunk: String.UnicodeScalarView.Iterator
+    // FIXME: Change to using String.UnicodeScalarView.Iterator once makeIterator(from:) is a thing
+    internal var _chunk: String.UnicodeScalarView
+    internal var _index: String.Index
 
-    internal init(_base: Rope.Iterator) {
+    internal init(_base: Rope.Iterator, _ chunk: Chunk, _ index: String.Index) {
       self._rope = _base
-      let str = self._rope.next()?.string ?? ""
-      self._chunk = str.unicodeScalars.makeIterator()
+      self._chunk = chunk.string.unicodeScalars
+      self._index = index
     }
   }
 
   internal func makeUnicodeScalarIterator() -> UnicodeScalarIterator {
-    UnicodeScalarIterator(_base: self.rope.makeIterator())
+    makeUnicodeScalarIterator(from: startIndex)
+  }
+
+  internal func makeUnicodeScalarIterator(from index: Index) -> UnicodeScalarIterator {
+    let (path, chunk) = self.path(to: index, preferEnd: false)
+    var base = self.rope.makeIterator(from: path.rope)
+    _ = base.next()
+    return UnicodeScalarIterator(_base: base, chunk, path.chunk)
   }
 }
 
@@ -112,57 +121,146 @@ extension _BString.UnicodeScalarIterator: IteratorProtocol {
   internal typealias Element = Unicode.Scalar
 
   internal mutating func next() -> Unicode.Scalar? {
-    if let scalar = _chunk.next() {
-      return scalar
+    if _index == _chunk.endIndex {
+      guard let chunk = _rope.next() else { return nil }
+      _chunk = chunk.string.unicodeScalars
+      _index = _chunk.startIndex
+      assert(_index < _chunk.endIndex)
     }
-    guard let chunk = _rope.next() else { return nil }
-    _chunk = chunk.string.unicodeScalars.makeIterator()
-    return _chunk.next()!
+    let scalar = _chunk[_index]
+    _index = _chunk.index(after: _index)
+    return scalar
   }
 }
 
 extension _BString {
   internal struct CharacterIterator {
     internal var _base: _Rope<Chunk>.Iterator
-    internal var _str: Substring
+    internal var _index: String.Index
+    internal var _next: String.Index
 
     internal init(_base: _Rope<Chunk>.Iterator) {
       self._base = _base
-      if let chunk = self._base.next() {
-        assert(chunk.firstBreak == chunk.string.startIndex)
-        self._str = chunk.wholeCharacters
-      } else {
-        self._str = ""
+      guard !_base.isAtEnd else {
+        _index = "".startIndex
+        _next = "".endIndex
+        return
       }
+      let chunk = _base.current
+      assert(chunk.firstBreak == chunk.string.startIndex)
+      self._index = chunk.firstBreak
+      self._next = chunk.string[_index...].index(after: _index)
+    }
+
+    internal init(_base: _Rope<Chunk>.Iterator, _ i: String.Index) {
+      self._base = _base
+      self._index = i
+      assert(i >= _base.current.firstBreak)
+      guard !_base.isAtEnd, i < _base.current.string.endIndex else {
+        self._next = i
+        return
+      }
+      self._next = _base.current.wholeCharacters.index(after: i)
     }
   }
 
   internal func makeCharacterIterator() -> CharacterIterator {
     CharacterIterator(_base: rope.makeIterator())
   }
+
+  internal func makeCharacterIterator(from index: Index) -> CharacterIterator {
+    if index == endIndex {
+      return CharacterIterator(_base: rope.makeIterator(from: rope.endIndex))
+    }
+    let (path, _) = self.path(to: index, preferEnd: false)
+    let base = rope.makeIterator(from: path.rope)
+    return CharacterIterator(_base: base, path.chunk)
+  }
 }
 
 extension _BString.CharacterIterator: IteratorProtocol {
   internal typealias Element = Character
 
-  internal mutating func next() -> Character? {
-    guard !_str.isEmpty else { return nil }
+  internal var isAtEnd: Bool {
+    _index == _next
+  }
 
-    let j = _str.index(after: _str.startIndex)
-    var result = String(_str[..<j])
-    if j < _str.endIndex {
-      _str = _str[j...]
-      return Character(result)
+  internal var isAtStart: Bool {
+    _base.isAtStart && _index._utf8Offset == 0
+  }
+
+  internal var current: Element {
+    assert(!isAtEnd)
+    var r = _base.withCurrent { chunk -> (str: String, done: Bool) in
+      assert(_index >= chunk.firstBreak)
+      return (String(chunk.string[_index ..< _next]), _next < chunk.string.endIndex)
     }
-    while let next = _base.next() {
-      let firstBreak = next.firstBreak
-      result.append(contentsOf: next.string[..<firstBreak])
-      if firstBreak < next.string.endIndex {
-        _str = next.string[firstBreak...]
-        return Character(result)
+    guard !r.done else { return Character(r.str) }
+    var it = self._base
+    while it.stepForward(), !r.done {
+      it.withCurrent { chunk in
+        let i = chunk.firstBreak
+        r.str += chunk.string[..<i]
+        r.done = i < chunk.string.endIndex
       }
     }
-    _str = ""
-    return Character(result)
+    return Character(r.str)
+  }
+
+  mutating func stepForward() -> Bool {
+    guard !isAtEnd else { return false }
+    let chunk = _base.current
+    if _next < chunk.string.endIndex {
+      _index = _next
+      _next = chunk.wholeCharacters.index(after: _next)
+      return true
+    }
+    while _base.stepForward() {
+      let chunk = _base.current
+      let i = chunk.firstBreak
+      if i < chunk.string.endIndex {
+        _index = i
+        _next = chunk.string[i...].index(after: i)
+        return true
+      }
+    }
+    return false
+  }
+
+  mutating func stepBackward() -> Bool {
+    if !isAtEnd {
+      let chunk = _base.current
+      let i = chunk.firstBreak
+      if _index > i {
+        _next = _index
+        _index = chunk.string[i...].index(before: _index)
+        return true
+      }
+    }
+    while _base.stepBackward() {
+      let chunk = _base.current
+      if chunk.hasBreaks {
+        _next = chunk.string.endIndex
+        _index = chunk.lastBreak
+        return true
+      }
+    }
+    return false
+  }
+
+  internal mutating func next() -> Character? {
+    guard !isAtEnd else { return nil }
+    let item = self.current
+    if !stepForward() {
+      _index = _next
+    }
+    return item
+  }
+}
+
+extension _BString.CharacterIterator {
+  var index: _BString.Index {
+    let utf8Base = _base.rope.offset(of: _base.index, in: _BString.UTF8Metric())
+    return _BString.Index(_utf8Offset: utf8Base + _index._utf8Offset)
   }
 }

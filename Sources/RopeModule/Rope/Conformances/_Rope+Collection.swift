@@ -157,6 +157,10 @@ extension _Rope {
     }
     return -root.distance(from: end, to: start, in: metric)
   }
+
+  func offset(of index: Index, in metric: some _RopeMetric<Element>) -> Int {
+    distance(from: startIndex, to: index, in: metric)
+  }
 }
 
 extension _Rope.Node {

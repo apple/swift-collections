@@ -70,6 +70,46 @@ extension _BString {
 }
 
 extension _BString {
+  // FIXME: See if we need direct implementations for these.
+
+  func characterOffset(of index: Index) -> Int {
+    characterDistance(from: startIndex, to: index)
+  }
+  
+  func unicodeScalarOffset(of index: Index) -> Int {
+    unicodeScalarDistance(from: startIndex, to: index)
+  }
+  
+  func utf16Offset(of index: Index) -> Int {
+    utf16Distance(from: startIndex, to: index)
+  }
+
+  func utf8Offset(of index: Index) -> Int {
+    utf8Distance(from: startIndex, to: index)
+  }
+}
+
+extension _BString {
+  // FIXME: See if we need direct implementations for these.
+
+  func characterIndex(at offset: Int) -> Index {
+    characterIndex(startIndex, offsetBy: offset)
+  }
+
+  func unicodeScalarIndex(at offset: Int) -> Index {
+    unicodeScalarIndex(startIndex, offsetBy: offset)
+  }
+
+  func utf16Index(at offset: Int) -> Index {
+    utf16Index(startIndex, offsetBy: offset)
+  }
+
+  func utf8Index(at offset: Int) -> Index {
+    utf8Index(startIndex, offsetBy: offset)
+  }
+}
+
+extension _BString {
   func _path(
     _ i: Index,
     offsetBy distance: Int,

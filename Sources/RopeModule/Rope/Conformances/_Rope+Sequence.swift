@@ -19,7 +19,7 @@ extension _Rope: Sequence {
   }
   
   struct Iterator: IteratorProtocol {
-    private let rope: _Rope
+    let rope: _Rope
     private(set) var index: Index
     private var leaf: Node?
     
@@ -58,7 +58,7 @@ extension _Rope: Sequence {
       }
       return true
     }
-    
+
     mutating func stepBackward() -> Bool {
       guard let leaf = self.leaf else {
         guard !rope.isEmpty else { return false }
@@ -78,10 +78,17 @@ extension _Rope: Sequence {
       return true
     }
     
+    mutating func stepToEnd() {
+      leaf = nil
+      index = rope.endIndex
+    }
+
     mutating func next() -> Element? {
       guard !isAtEnd else { return nil }
       let item = self.current
-      if !stepForward() { leaf = nil; index = rope.endIndex }
+      if !stepForward() {
+        stepToEnd()
+      }
       return item
     }
   }

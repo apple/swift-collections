@@ -88,7 +88,15 @@ extension String.Index {
   init(_utf8Offset: Int) {
     self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | Self.__utf8Bit)
   }
+  
+  init(_utf8Offset: Int, utf16Delta: Int) {
+    assert(utf16Delta >= 0 && utf16Delta <= 1)
+    let transcodedOffset: UInt64 = (utf16Delta != 0 ? 1 &<< 14 : 0)
+    self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | transcodedOffset | Self.__utf8Bit)
+  }
+}
 
+extension String.Index {
   @inline(__always)
   var _chunkData: UInt16 {
     UInt16(_rawBits &>> 14)

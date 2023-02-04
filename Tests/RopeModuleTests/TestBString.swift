@@ -56,6 +56,20 @@ class TestBString: XCTestCase {
     _ big: _BString,
     file: StaticString = #file, line: UInt = #line
   ) -> (flat: [String.Index], big: [_BString.Index]) {
+    // Check iterators
+    var it1 = flat.makeIterator()
+    var it2 = big.makeCharacterIterator()
+    while true {
+      let a = it1.next()
+      let b = it2.next()
+      guard a == b else {
+        XCTAssertEqual(a, b)
+        break
+      }
+      if a == nil { break }
+    }
+
+    // Check indices
     let indices1 = Array(flat.indices) + [flat.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
@@ -78,6 +92,20 @@ class TestBString: XCTestCase {
     _ big: _BString,
     file: StaticString = #file, line: UInt = #line
   ) -> (flat: [String.Index], big: [_BString.Index]) {
+    // Check iterators
+    var it1 = flat.unicodeScalars.makeIterator()
+    var it2 = big.makeUnicodeScalarIterator()
+    while true {
+      let a = it1.next()
+      let b = it2.next()
+      guard a == b else {
+        XCTAssertEqual(a, b)
+        break
+      }
+      if a == nil { break }
+    }
+
+    // Check indices
     let indices1 = Array(flat.unicodeScalars.indices) + [flat.unicodeScalars.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
@@ -100,6 +128,20 @@ class TestBString: XCTestCase {
     _ big: _BString,
     file: StaticString = #file, line: UInt = #line
   ) -> (flat: [String.Index], big: [_BString.Index]) {
+    // Check iterators
+    var it1 = flat.utf8.makeIterator()
+    var it2 = big.makeUTF8Iterator()
+    while true {
+      let a = it1.next()
+      let b = it2.next()
+      guard a == b else {
+        XCTAssertEqual(a, b)
+        break
+      }
+      if a == nil { break }
+    }
+
+    // Check indices
     let indices1 = Array(flat.utf8.indices) + [flat.utf8.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
@@ -122,6 +164,20 @@ class TestBString: XCTestCase {
     _ big: _BString,
     file: StaticString = #file, line: UInt = #line
   ) -> (flat: [String.Index], big: [_BString.Index]) {
+    // Check iterators
+    var it1 = flat.utf16.makeIterator()
+    var it2 = big.makeUTF16Iterator()
+    while true {
+      let a = it1.next()
+      let b = it2.next()
+      guard a == b else {
+        XCTAssertEqual(a, b)
+        break
+      }
+      if a == nil { break }
+    }
+
+    // Check indices
     let indices1 = Array(flat.utf16.indices) + [flat.utf16.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
