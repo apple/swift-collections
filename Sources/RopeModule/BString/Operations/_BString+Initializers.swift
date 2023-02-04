@@ -86,7 +86,7 @@ extension String {
   
   internal init(_from big: _BString, in range: Range<_BString.Index>) {
     self.init()
-    guard range._isEmptyUTF8 else {
+    guard !range._isEmptyUTF8 else {
       // We can safely ignore UTF-16 offsets, as we're rounding down to scalar boundaries
       // anyway.
       return
