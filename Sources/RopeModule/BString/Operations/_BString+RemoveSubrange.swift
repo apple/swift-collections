@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   mutating func removeSubrange(_ bounds: Range<Index>) {
     precondition(bounds.upperBound <= endIndex, "Index out of bounds")
@@ -19,6 +22,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   mutating func removeCharacter(at i: Index) -> Character {
     let (start, chunk) = self.path(to: i, preferEnd: false)
@@ -40,3 +44,5 @@ extension _BString {
     return scalar
   }
 }
+
+#endif

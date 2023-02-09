@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public struct UTF16View {
     internal var _guts: _BString
@@ -36,12 +39,14 @@ extension BigString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public init(_ content: UTF16View) {
     self._guts = content._guts
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: CustomStringConvertible {
   public var description: String {
     var d = "<"
@@ -53,24 +58,28 @@ extension BigString.UTF16View: CustomStringConvertible {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     left._guts.utf8IsEqual(to: right._guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: Comparable {
   public static func <(left: Self, right: Self) -> Bool {
     left._guts.utf8IsLess(than: right._guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: Hashable {
   public func hash(into hasher: inout Hasher) {
     _guts.hashUTF8(into: &hasher)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: Sequence {
   public struct Iterator: IteratorProtocol {
     public typealias Element = UInt16
@@ -91,6 +100,7 @@ extension BigString.UTF16View: Sequence {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias Element = UInt16
@@ -127,3 +137,5 @@ extension BigString.UTF16View: BidirectionalCollection {
     _guts[utf16: position._value]
   }
 }
+
+#endif

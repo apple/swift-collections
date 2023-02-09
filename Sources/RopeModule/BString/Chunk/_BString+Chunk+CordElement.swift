@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk: _RopeElement {
   typealias Summary = _BString.Summary
   typealias Index = String.Index
@@ -112,6 +115,7 @@ extension _BString.Chunk: _RopeElement {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   static func _redistributeData(
     _ left: inout Self,
@@ -149,3 +153,5 @@ extension _BString.Chunk {
     left = Self(left.string[..<i], counts.left)
   }
 }
+
+#endif

@@ -9,12 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension UInt8 {
   /// Returns true if this is a leading code unit in the UTF-8 encoding of a Unicode scalar that
   /// is outside the BMP.
   var _isUTF8NonBMPLeadingCodeUnit: Bool { self >= 0b11110000 }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   func characterDistance(from start: String.Index, to end: String.Index) -> Int {
     let firstBreak = self.firstBreak
@@ -104,3 +108,5 @@ extension _BString.Chunk {
     return (false, false)
   }
 }
+
+#endif

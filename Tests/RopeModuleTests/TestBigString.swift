@@ -9,9 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
 import RopeModule
 import XCTest
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 class TestBigString: XCTestCase {
   override class func setUp() {
     // Turn off output buffering.
@@ -538,3 +540,4 @@ class TestBigString: XCTestCase {
     }
   }
 }
+#endif

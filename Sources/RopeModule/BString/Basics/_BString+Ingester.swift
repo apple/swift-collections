@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func ingester(
     forInserting input: __owned Substring,
@@ -21,6 +24,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   struct Ingester {
     typealias Chunk = _BString.Chunk
@@ -133,6 +137,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String {
   func _nextSlice(
     after i: Index,
@@ -148,6 +153,7 @@ extension String {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   init(_ string: String) {
     guard !string.isEmpty else { self.init(); return }
@@ -157,3 +163,5 @@ extension _BString.Chunk {
     assert(ingester.isAtEnd)
   }
 }
+
+#endif

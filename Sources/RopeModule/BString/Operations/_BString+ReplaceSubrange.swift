@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   mutating func replaceSubrange(_ range: Range<Index>, with newElements: some StringProtocol) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")
@@ -69,3 +72,4 @@ extension _BString {
   }
 }
 
+#endif

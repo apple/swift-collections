@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   var isEmpty: Bool {
     rope.summary.isZero
@@ -23,6 +26,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   var characterCount: Int { rope.summary.characters }
   var unicodeScalarCount: Int { rope.summary.unicodeScalars }
@@ -30,6 +34,7 @@ extension _BString {
   var utf8Count: Int { rope.summary.utf8 }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func distance(
     from start: Index,
@@ -68,6 +73,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   // FIXME: See if we need direct implementations for these.
 
@@ -88,6 +94,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   // FIXME: See if we need direct implementations for these.
 
@@ -108,6 +115,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func _path(
     _ i: Index,
@@ -193,6 +201,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(after i: Index) -> Index {
     index(i, offsetBy: 1, in: CharacterMetric())
@@ -213,6 +222,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(before i: Index) -> Index {
     index(i, offsetBy: -1, in: CharacterMetric())
@@ -233,6 +243,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(roundingDown i: Index) -> Index {
     let offset = i._utf8Offset - 1
@@ -287,6 +298,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func _character(
     at start: Path, base: Index?, in chunk: Chunk
@@ -359,3 +371,5 @@ extension _BString {
     return chunk.string.unicodeScalars[path.chunk]
   }
 }
+
+#endif

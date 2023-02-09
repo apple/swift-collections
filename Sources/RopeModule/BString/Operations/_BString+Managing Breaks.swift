@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func _breakState(
     upTo end: Path,
@@ -61,6 +64,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   /// - Returns: the position at which the grapheme breaks finally sync up with the originals.
   ///  (or nil if they never did).
@@ -96,6 +100,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Rope {
   mutating func resyncBreaks(
     old: inout _CharacterRecognizer,
@@ -152,6 +157,7 @@ extension _BString.Rope {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   /// Resyncronize chunk metadata with the (possibly) reshuffled grapheme
   /// breaks after an insertion that ended at `index`.
@@ -261,3 +267,5 @@ extension _BString.Chunk {
     return
   }
 }
+
+#endif

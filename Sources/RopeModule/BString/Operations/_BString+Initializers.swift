@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal init(_ input: some StringProtocol) {
     var builder = Rope.Builder()
@@ -75,6 +78,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String {
   internal init(_from big: _BString) {
     guard !big.isEmpty else {
@@ -123,6 +127,7 @@ extension String {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal init(repeating value: Self, count: Int) {
     precondition(count >= 0, "Negative count")
@@ -146,3 +151,5 @@ extension _BString {
     }
   }
 }
+
+#endif

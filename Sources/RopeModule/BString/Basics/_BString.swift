@@ -9,7 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
 /// The core of a B-tree based String implementation.
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 internal struct _BString: Sendable {
   typealias Rope = _Rope<Chunk>
   
@@ -23,3 +26,10 @@ internal struct _BString: Sendable {
     self.rope = rope
   }
 }
+
+#else
+
+@available(*, unavailable, message: "_BString requires Swift 5.8")
+internal struct _BString: Sendable {}
+
+#endif

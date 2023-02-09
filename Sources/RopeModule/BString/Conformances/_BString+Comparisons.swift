@@ -9,12 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func isIdentical(to other: Self) -> Bool {
     self.rope.isIdentical(to: other.rope)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal func characterIsEqual(to other: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
@@ -93,6 +97,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   /// Lexicographically compare the UTF-8 representations of `left` to `right`, returning a Boolean
   /// value indicating whether `left` is equal to `right`.
@@ -183,3 +188,5 @@ extension _BString {
     }
   }
 }
+
+#endif

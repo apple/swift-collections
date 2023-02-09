@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   mutating func append(contentsOf other: __owned some StringProtocol) {
     append(contentsOf: Substring(other))
@@ -46,6 +49,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   var _firstUnicodeScalar: Unicode.Scalar {
     assert(!isEmpty)
@@ -111,12 +115,14 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   var isUndersized: Bool {
     utf8Count < Chunk.minUTF8Count
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   /// Note: This assumes `other` already has the correct break positions.
   mutating func _append(_ other: __owned Chunk) {
@@ -197,3 +203,5 @@ extension _BString {
     self.rope = Rope.join(other, self.rope)
   }
 }
+
+#endif

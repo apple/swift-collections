@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public struct Index {
     internal var _value: _BString.Index
@@ -19,48 +22,56 @@ extension BigString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.Index: CustomStringConvertible {
   public var description: String {
     "\(_value)"
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.Index: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     left._value == right._value
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.Index: Comparable {
   public static func <(left: Self, right: Self) -> Bool {
     left._value < right._value
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.Index: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_value)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Equatable {
   public static func == (left: Self, right: Self) -> Bool {
     left._guts.characterIsEqual(to: right._guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Comparable {
   public static func < (left: Self, right: Self) -> Bool {
     left._guts.characterIsLess(than: right._guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Hashable {
   public func hash(into hasher: inout Hasher) {
     _guts.hashCharacters(into: &hasher)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Sequence {
   public struct Iterator: IteratorProtocol {
     public typealias Element = Character
@@ -81,6 +92,7 @@ extension BigString: Sequence {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: BidirectionalCollection {
   public typealias Element = Character
 
@@ -117,6 +129,7 @@ extension BigString: BidirectionalCollection {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: RangeReplaceableCollection {
   public mutating func replaceSubrange(
     _ subrange: Range<Index>,
@@ -279,3 +292,5 @@ extension BigString: RangeReplaceableCollection {
     _guts = _BString()
   }
 }
+
+#endif

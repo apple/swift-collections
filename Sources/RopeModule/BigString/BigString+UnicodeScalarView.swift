@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public struct UnicodeScalarView {
     var _guts: _BString
@@ -36,42 +39,49 @@ extension BigString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public init(_ content: UnicodeScalarView) {
     self._guts = content._guts
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(_guts: _BString(value))
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
     String(_from: _guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     left._guts.utf8IsEqual(to: right._guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Comparable {
   public static func <(left: Self, right: Self) -> Bool {
     left._guts.utf8IsLess(than: right._guts)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Hashable {
   public func hash(into hasher: inout Hasher) {
     _guts.hashUTF8(into: &hasher)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Sequence {
   public struct Iterator: IteratorProtocol {
     public typealias Element = Unicode.Scalar
@@ -92,6 +102,7 @@ extension BigString.UnicodeScalarView: Sequence {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: BidirectionalCollection {
   public typealias Element = Unicode.Scalar
   public typealias Index = BigString.Index
@@ -129,6 +140,7 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   public mutating func replaceSubrange(
     _ subrange: Range<Index>,
@@ -287,3 +299,5 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     _guts = _BString()
   }
 }
+
+#endif

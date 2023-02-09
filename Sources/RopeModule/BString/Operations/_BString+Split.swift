@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   mutating func split(
     at index: Index
@@ -28,3 +31,5 @@ extension _BString {
     return builder
   }
 }
+
+#endif

@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct Index {
     // The layout is similar to (and somewhat compatible with) String.Index.
@@ -26,6 +29,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index {
   @inline(__always)
   internal var _orderingValue: UInt64 {
@@ -33,24 +37,28 @@ extension _BString.Index {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
     left._orderingValue == right._orderingValue
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: Comparable {
   internal static func <(left: Self, right: Self) -> Bool {
     left._orderingValue < right._orderingValue
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: Hashable {
   internal func hash(into hasher: inout Hasher) {
     hasher.combine(_orderingValue)
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: CustomStringConvertible {
   internal var description: String {
     let offset = _utf16Delta == 0 ? "" : "+\(_utf16Delta)"
@@ -58,6 +66,7 @@ extension _BString.Index: CustomStringConvertible {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index {
   @inline(__always)
   internal static func _bitsForUTF8Offset(_ utf8Offset: Int) -> UInt64 {
@@ -94,3 +103,5 @@ extension _BString.Index {
     Self(_utf8Offset: _utf8Offset + delta)
   }
 }
+
+#endif

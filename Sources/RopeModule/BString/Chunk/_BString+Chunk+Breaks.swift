@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   @inline(__always)
   var hasBreaks: Bool { counts.hasBreaks }
@@ -37,6 +40,7 @@ extension _BString.Chunk {
   var wholeCharacters: Substring { string[firstBreak...] }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   var immediateLastBreakState: _CharacterRecognizer? {
     guard hasBreaks else { return nil }
@@ -64,3 +68,4 @@ extension _BString.Chunk {
   }
 }
 
+#endif

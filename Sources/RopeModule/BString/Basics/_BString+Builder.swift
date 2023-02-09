@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   struct Builder {
     typealias Chunk = _BString.Chunk
@@ -37,6 +40,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _Rope<_BString.Chunk>.Builder {
   func breakState() -> _CharacterRecognizer {
     let chars = self.prefixSummary.characters
@@ -55,6 +59,7 @@ extension _Rope<_BString.Chunk>.Builder {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Builder {
   mutating func append(_ str: __owned some StringProtocol) {
     append(Substring(str))
@@ -126,6 +131,7 @@ extension _BString.Builder {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Builder {
   mutating func finalize() -> _BString {
     // Resync breaks in suffix.
@@ -139,3 +145,5 @@ extension _BString.Builder {
     return string
   }
 }
+
+#endif

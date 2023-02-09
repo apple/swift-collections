@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   func splitCounts(at i: String.Index) -> (left: Counts, right: Counts) {
     precondition(i <= string.endIndex)
@@ -142,3 +145,5 @@ extension _BString.Chunk {
     return result
   }
 }
+
+#endif

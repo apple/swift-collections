@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk {
   struct Counts: Equatable {
     /// The number of UTF-8 code units within this chunk.
@@ -96,6 +99,7 @@ extension _BString.Chunk {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk.Counts {
   var characters: Int {
     get { Int(_characters) }
@@ -121,6 +125,7 @@ extension _BString.Chunk.Counts {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Chunk.Counts {
   mutating func append(_ other: Self) {
     assert(hasSpaceToMerge(other))
@@ -144,3 +149,4 @@ extension _BString.Chunk.Counts {
   }
 }
 
+#endif

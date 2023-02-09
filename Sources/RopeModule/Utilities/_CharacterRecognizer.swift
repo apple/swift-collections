@@ -9,125 +9,26 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// CR and LF are common special cases in grapheme breaking logic
-private var _CR: UInt8 { return 0x0d }
-private var _LF: UInt8 { return 0x0a }
+#if swift(>=5.8)
 
-internal func _hasGraphemeBreakBetween(
-  _ lhs: Unicode.Scalar, _ rhs: Unicode.Scalar
-) -> Bool {
-  
-  // CR-LF is a special case: no break between these
-  if lhs == Unicode.Scalar(_CR) && rhs == Unicode.Scalar(_LF) {
-    return false
-  }
-  
-  // Whether the given scalar, when it appears paired with another scalar
-  // satisfying this property, has a grapheme break between it and the other
-  // scalar.
-  func hasBreakWhenPaired(_ x: Unicode.Scalar) -> Bool {
-    // TODO: This doesn't generate optimal code, tune/re-write at a lower
-    // level.
-    //
-    // NOTE: Order of case ranges affects codegen, and thus performance. All
-    // things being equal, keep existing order below.
-    switch x.value {
-      // Unified CJK Han ideographs, common and some supplemental, amongst
-      // others:
-      //   U+3400 ~ U+A4CF
-    case 0x3400...0xa4cf: return true
-      
-      // Repeat sub-300 check, this is beneficial for common cases of Latin
-      // characters embedded within non-Latin script (e.g. newlines, spaces,
-      // proper nouns and/or jargon, punctuation).
-      //
-      // NOTE: CR-LF special case has already been checked.
-    case 0x0000...0x02ff: return true
-      
-      // Non-combining kana:
-      //   U+3041 ~ U+3096
-      //   U+30A1 ~ U+30FC
-    case 0x3041...0x3096: return true
-    case 0x30a1...0x30fc: return true
-      
-      // Non-combining modern (and some archaic) Cyrillic:
-      //   U+0400 ~ U+0482 (first half of Cyrillic block)
-    case 0x0400...0x0482: return true
-      
-      // Modern Arabic, excluding extenders and prependers:
-      //   U+061D ~ U+064A
-    case 0x061d...0x064a: return true
-      
-      // Precomposed Hangul syllables:
-      //   U+AC00 ~ U+D7AF
-    case 0xac00...0xd7af: return true
-      
-      // Common general use punctuation, excluding extenders:
-      //   U+2010 ~ U+2029
-    case 0x2010...0x2029: return true
-      
-      // CJK punctuation characters, excluding extenders:
-      //   U+3000 ~ U+3029
-    case 0x3000...0x3029: return true
-      
-      // Full-width forms:
-      //   U+FF01 ~ U+FF9D
-    case 0xFF01...0xFF9D: return true
-      
-    default: return false
-    }
-  }
-  return hasBreakWhenPaired(lhs) && hasBreakWhenPaired(rhs)
-}
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 
-// FIXME: This has terrible performance.
-// FIXME: Replace with Unicode._CharacterRecognizer once it gets into a build.
-struct _CharacterRecognizer {
-  private var string: String
-  
-  init() {
-    string = ""
-  }
-  
-  init(first: Unicode.Scalar) {
-    string = String(first)
-  }
-  
-  static func quickBreak(
-    between scalar1: Unicode.Scalar,
-    and scalar2: Unicode.Scalar
-  ) -> Bool? {
-    if scalar1 == Unicode.Scalar(_CR) && scalar2 == Unicode.Scalar(_LF) { return false }
-    if _hasGraphemeBreakBetween(scalar1, scalar2) { return true }
-    return nil
-  }
-  
-  mutating func hasBreak(
-    before next: Unicode.Scalar
-  ) -> Bool {
-    let next = String(next)
-    guard !string.isEmpty else {
-      string = next
-      return true
-    }
-    string.append(next)
-    let i = string.index(after: string.startIndex)
-    if i == string.endIndex { return false }
-    string = next
-    return true
-  }
-}
-
-extension _CharacterRecognizer: Equatable {
-  static func ==(left: Self, right: Self) -> Bool {
-    left.string.utf8.elementsEqual(right.string.utf8)
-  }
-}
-
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
   ) -> Range<String.Index>? {
+    #if true
+    var str = str
+    let scalarRange = str.withUTF8 { buffer in
+      self._firstBreak(inUncheckedUnsafeUTF8Buffer: buffer)
+    }
+    guard let scalarRange else { return nil }
+    let lower = str._utf8Index(at: scalarRange.lowerBound)
+    let upper = str._utf8Index(at: scalarRange.upperBound)
+    return lower ..< upper
+    #else
     guard !str.isEmpty else { return nil }
     let c = self.string.utf8.count
     if c == 0 {
@@ -151,8 +52,11 @@ extension _CharacterRecognizer {
     let lower = str._utf8Index(at: offset - c)
     let upper = str._utf8Index(at: offset - c + scalarWidth)
     return lower ..< upper
+    #endif
   }
 }
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _CharacterRecognizer {
   init(partialCharacter: Substring.UnicodeScalarView) {
     self.init()
@@ -257,31 +161,4 @@ extension _CharacterRecognizer {
   }
 }
 
-extension String {
-  // FIXME: Remove once the stdlib entry point gets into a build.
-  func _index(roundingDown i: Index) -> Index {
-    guard i < endIndex else { return endIndex }
-    guard !i._isCharacterAligned else { return i }
-    return index(before: index(after: i))
-  }
-}
-
-extension Substring {
-  // FIXME: Remove once the stdlib entry point gets into a build.
-  func _index(roundingDown i: Index) -> Index {
-    index(i, offsetBy: 0)
-  }
-  
-  func _nextBreak(onOrAfter i: Index) -> Index {
-    let nearestDown = _index(roundingDown: i)
-    guard nearestDown != i else { return nearestDown }
-    return index(after: nearestDown)
-  }
-}
-
-extension String.UnicodeScalarView {
-  // FIXME: Remove once the stdlib entry point gets into a build.
-  func _index(roundingDown i: Index) -> Index {
-    index(i, offsetBy: 0)
-  }
-}
+#endif

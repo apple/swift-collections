@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   struct ChunkIterator {
     var base: Rope.Iterator
@@ -23,6 +26,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.ChunkIterator: IteratorProtocol {
   typealias Element = String
 
@@ -31,6 +35,7 @@ extension _BString.ChunkIterator: IteratorProtocol {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct UTF8Iterator {
     internal var _rope: Rope.Iterator
@@ -48,6 +53,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UTF8Iterator: IteratorProtocol {
   internal typealias Element = UInt8
 
@@ -61,6 +67,7 @@ extension _BString.UTF8Iterator: IteratorProtocol {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct UTF16Iterator {
     internal var _rope: Rope.Iterator
@@ -78,6 +85,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UTF16Iterator: IteratorProtocol {
   internal typealias Element = UInt16
 
@@ -91,6 +99,7 @@ extension _BString.UTF16Iterator: IteratorProtocol {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct UnicodeScalarIterator {
     internal var _rope: Rope.Iterator
@@ -117,6 +126,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarIterator: IteratorProtocol {
   internal typealias Element = Unicode.Scalar
 
@@ -133,6 +143,7 @@ extension _BString.UnicodeScalarIterator: IteratorProtocol {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct CharacterIterator {
     internal var _utf8BaseOffset: Int
@@ -186,6 +197,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.CharacterIterator: IteratorProtocol {
   internal typealias Element = Character
 
@@ -270,6 +282,7 @@ extension _BString.CharacterIterator: IteratorProtocol {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.CharacterIterator {
   // The UTF-8 offset of the current position, from the start of the string.
   var utf8Offset: Int {
@@ -310,3 +323,5 @@ extension _BString.CharacterIterator {
     return self._index < path.chunk
   }
 }
+
+#endif

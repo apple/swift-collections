@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 internal protocol _StringMetric: _RopeMetric where Element == _BString.Chunk {
   func distance(
     from start: String.Index,
@@ -23,6 +26,7 @@ internal protocol _StringMetric: _RopeMetric where Element == _BString.Chunk {
   ) -> (found: Bool, forward: Bool)
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct CharacterMetric: _StringMetric {
     typealias Element = _BString.Chunk
@@ -201,3 +205,5 @@ extension _BString {
     }
   }
 }
+
+#endif

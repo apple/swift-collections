@@ -9,6 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(>=5.8)
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   struct Path {
     var rope: Rope.Index
@@ -42,12 +45,14 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Path: CustomStringConvertible {
   var description: String {
     "\(rope).\(chunk._description)"
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func path(
     to i: Index,
@@ -62,6 +67,7 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func baseIndex(
     with index: Index,
@@ -83,3 +89,5 @@ extension _BString {
     return index(base: base, offsetBy: path.chunk)
   }
 }
+
+#endif
