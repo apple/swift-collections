@@ -77,6 +77,14 @@ extension _BString {
 
 extension String {
   internal init(_from big: _BString) {
+    guard !big.isEmpty else {
+      self.init()
+      return
+    }
+    if big.rope.isSingleton {
+      self = big.rope[big.rope.startIndex].string
+      return
+    }
     self.init()
     self.reserveCapacity(big.utf8Count)
     for chunk in big.rope {
@@ -86,11 +94,17 @@ extension String {
   
   internal init(_from big: _BString, in range: Range<_BString.Index>) {
     self.init()
-    guard !range._isEmptyUTF8 else {
+    let estimatedUTF8Size = range.upperBound._utf8Offset - range.lowerBound._utf8Offset
+    guard estimatedUTF8Size > 0 else {
       // We can safely ignore UTF-16 offsets, as we're rounding down to scalar boundaries
       // anyway.
       return
     }
+    // Note: if the range isn't scalar aligned, then this may be slightly under- or overestimating
+    // the actual size of the result. (Underestimations can be problematic due to String's
+    // exponential resizing. If those become an issue, consider adding +3 here.)
+    self.reserveCapacity(estimatedUTF8Size)
+
     let start = big.path(to: range.lowerBound, preferEnd: false)
     let end = big.path(to: range.upperBound, preferEnd: true)
     

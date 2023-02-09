@@ -64,3 +64,9 @@ extension String.UnicodeScalarView {
     self = String().unicodeScalars
   }
 }
+
+extension Range<BigString.Index> {
+  internal var _base: Range<_BString.Index> {
+    Range<_BString.Index>(uncheckedBounds: (lowerBound._value, upperBound._value))
+  }
+}

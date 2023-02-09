@@ -135,11 +135,13 @@ extension _BString.UnicodeScalarIterator: IteratorProtocol {
 
 extension _BString {
   internal struct CharacterIterator {
+    internal var _utf8BaseOffset: Int
     internal var _base: _Rope<Chunk>.Iterator
     internal var _index: String.Index
     internal var _next: String.Index
 
-    internal init(_base: _Rope<Chunk>.Iterator) {
+    internal init(_base: _Rope<Chunk>.Iterator, utf8BaseOffset: Int) {
+      self._utf8BaseOffset = utf8BaseOffset
       self._base = _base
       guard !_base.isAtEnd else {
         _index = "".startIndex
@@ -152,7 +154,8 @@ extension _BString {
       self._next = chunk.string[_index...].index(after: _index)
     }
 
-    internal init(_base: _Rope<Chunk>.Iterator, _ i: String.Index) {
+    internal init(_base: _Rope<Chunk>.Iterator, utf8BaseOffset: Int, _ i: String.Index) {
+      self._utf8BaseOffset = utf8BaseOffset
       self._base = _base
       self._index = i
       assert(i >= _base.current.firstBreak)
@@ -165,16 +168,21 @@ extension _BString {
   }
 
   internal func makeCharacterIterator() -> CharacterIterator {
-    CharacterIterator(_base: rope.makeIterator())
+    CharacterIterator(_base: rope.makeIterator(), utf8BaseOffset: 0)
   }
 
   internal func makeCharacterIterator(from index: Index) -> CharacterIterator {
     if index == endIndex {
-      return CharacterIterator(_base: rope.makeIterator(from: rope.endIndex))
+      return CharacterIterator(
+        _base: rope.makeIterator(from: rope.endIndex),
+        utf8BaseOffset: index._utf8Offset)
     }
     let (path, _) = self.path(to: index, preferEnd: false)
     let base = rope.makeIterator(from: path.rope)
-    return CharacterIterator(_base: base, path.chunk)
+    return CharacterIterator(
+      _base: base,
+      utf8BaseOffset: index._utf8Offset - path.chunk._utf8Offset,
+      path.chunk)
   }
 }
 
@@ -215,7 +223,10 @@ extension _BString.CharacterIterator: IteratorProtocol {
       _next = chunk.wholeCharacters.index(after: _next)
       return true
     }
-    while _base.stepForward() {
+    while true {
+      let c = _base.current.utf8Count
+      guard _base.stepForward() else { break }
+      _utf8BaseOffset += c
       let chunk = _base.current
       let i = chunk.firstBreak
       if i < chunk.string.endIndex {
@@ -239,6 +250,7 @@ extension _BString.CharacterIterator: IteratorProtocol {
     }
     while _base.stepBackward() {
       let chunk = _base.current
+      _utf8BaseOffset -= chunk.utf8Count
       if chunk.hasBreaks {
         _next = chunk.string.endIndex
         _index = chunk.lastBreak
@@ -259,8 +271,42 @@ extension _BString.CharacterIterator: IteratorProtocol {
 }
 
 extension _BString.CharacterIterator {
+  // The UTF-8 offset of the current position, from the start of the string.
+  var utf8Offset: Int {
+    _utf8BaseOffset + _index._utf8Offset
+  }
+
+  /// The UTF-8 offset range of the current character, measured from the start of the string.
+  var utf8Range: Range<Int> {
+    assert(!isAtEnd)
+    let start = utf8Offset
+    var end = _utf8BaseOffset
+    if _next < _base.current.string.endIndex {
+      end += _next._utf8Offset
+      return Range(uncheckedBounds: (start, end))
+    }
+    var it = _base
+    while true {
+      end += it.current.utf8Count
+      guard it.stepForward() else { break }
+      let chunk = it.current
+      let i = chunk.firstBreak
+      if i < chunk.string.endIndex {
+        end += i._utf8Offset
+        break
+      }
+    }
+    return Range(uncheckedBounds: (start, end))
+  }
+
   var index: _BString.Index {
     let utf8Base = _base.rope.offset(of: _base.index, in: _BString.UTF8Metric())
     return _BString.Index(_utf8Offset: utf8Base + _index._utf8Offset)
+  }
+
+  func isBelow(_ path: _BString.Path) -> Bool {
+    if self._base.index < path.rope { return true }
+    guard self._base.index == path.rope else { return false }
+    return self._index < path.chunk
   }
 }

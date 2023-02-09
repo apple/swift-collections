@@ -36,10 +36,9 @@ extension _BString {
     to end: Index,
     in metric: some _StringMetric
   ) -> Int {
-    guard !isEmpty else {
-      precondition(start == end && start == endIndex, "Invalid index")
-      return 0
-    }
+    precondition(start <= endIndex && end <= endIndex, "Invalid index")
+    guard start != end else { return 0 }
+    assert(!isEmpty)
     let a = path(to: Swift.min(start, end), preferEnd: false)
     let b = path(to: Swift.max(start, end), preferEnd: true)
     if a.path.rope == b.path.rope {
@@ -320,9 +319,19 @@ extension _BString {
     return chunk.string.utf8[path.chunk]
   }
 
+  subscript(utf8 offset: Int) -> UInt8 {
+    let (path, chunk) = _path(startIndex, offsetBy: offset, in: UTF8Metric())
+    return chunk.string.utf8[path.chunk]
+  }
+
   subscript(utf16 index: Index) -> UInt16 {
     precondition(index < endIndex, "Index out of bounds")
     let (path, chunk) = path(to: index, preferEnd: false)
+    return chunk.string.utf16[path.chunk]
+  }
+
+  subscript(utf16 offset: Int) -> UInt16 {
+    let (path, chunk) = _path(startIndex, offsetBy: offset, in: UTF16Metric())
     return chunk.string.utf16[path.chunk]
   }
 

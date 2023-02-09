@@ -37,6 +37,38 @@ extension _BString {
     return true
   }
 
+  internal static func characterIsEqual(
+    _ left: Self,
+    in leftRange: Range<Index>,
+    to right: Self,
+    in rightRange: Range<Index>
+  ) -> Bool {
+    // FIXME: Implement properly normalized comparisons & hashing.
+    // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
+    // split up on random Character boundaries -- Unicode does not promise that
+    // norm(a + c) == norm(a) + norm(b) in this case.
+    // To do this properly, we'll probably need to expose new stdlib entry points. :-/
+    if left.isIdentical(to: right), leftRange == rightRange { return true }
+
+    // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
+    var it1 = left.makeCharacterIterator(from: leftRange.lowerBound)
+    var it2 = right.makeCharacterIterator(from: rightRange.upperBound)
+
+    let leftEnd = left.path(to: leftRange.upperBound, preferEnd: true).path
+    let rightEnd = right.path(to: rightRange.upperBound, preferEnd: true).path
+
+    var a: Character? = nil
+    var b: Character? = nil
+    while it1.isBelow(leftEnd), it2.isBelow(rightEnd) {
+      a = it1.next()
+      b = it2.next()
+      assert(a != nil && b != nil)
+      guard a == b else { return false }
+    }
+    return !it1.isBelow(leftEnd) && !it2.isBelow(rightEnd)
+  }
+
+
   internal func characterIsLess(than other: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
     // This is somewhat tricky as we shouldn't just normalize individual pieces of the string

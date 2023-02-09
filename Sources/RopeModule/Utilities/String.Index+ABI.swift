@@ -12,54 +12,54 @@
 // Bits of String.Index that are ABI but aren't exposed by public API.
 extension String.Index {
   @inline(__always)
-  var _rawBits: UInt64 {
+  var _abi_rawBits: UInt64 {
     unsafeBitCast(self, to: UInt64.self)
   }
   
   @inline(__always)
-  var _encodedOffset: Int {
-    Int(truncatingIfNeeded: _rawBits &>> 16)
+  var _abi_encodedOffset: Int {
+    Int(truncatingIfNeeded: _abi_rawBits &>> 16)
   }
 
   @inline(__always)
-  var _transcodedOffset: Int {
-    Int(truncatingIfNeeded: (_rawBits &>> 14) & 0x3)
+  var _abi_transcodedOffset: Int {
+    Int(truncatingIfNeeded: (_abi_rawBits &>> 14) & 0x3)
   }
 
   @inline(__always)
-  static var __scalarAlignmentBit: UInt64 { 0x1 }
-  
+  static var _abi_scalarAlignmentBit: UInt64 { 0x1 }
+
   @inline(__always)
-  static var __characterAlignmentBit: UInt64 { 0x2 }
-  
+  static var _abi_characterAlignmentBit: UInt64 { 0x2 }
+
   @inline(__always)
-  static var __utf8Bit: UInt64 { 0x4 }
-  
+  static var _abi_utf8Bit: UInt64 { 0x4 }
+
   @inline(__always)
-  static var __utf16Bit: UInt64 { 0x8 }
-  
+  static var _abi_utf16Bit: UInt64 { 0x8 }
+
   
   @inline(__always)
   var _encodingBits: UInt64 {
-    _rawBits & (Self.__utf8Bit | Self.__utf16Bit)
+    _abi_rawBits & (Self._abi_utf8Bit | Self._abi_utf16Bit)
   }
   
   @inline(__always)
   var _canBeUTF8: Bool {
     // The only way an index cannot be UTF-8 is it has only the UTF-16 flag set.
-    _encodingBits != Self.__utf16Bit
+    _encodingBits != Self._abi_utf16Bit
   }
   
   var _isScalarAligned: Bool {
-    0 != _rawBits & Self.__scalarAlignmentBit
+    0 != _abi_rawBits & Self._abi_scalarAlignmentBit
   }
   
   var _isCharacterAligned: Bool {
-    0 != _rawBits & Self.__characterAlignmentBit
+    0 != _abi_rawBits & Self._abi_characterAlignmentBit
   }
   
   var _characterAligned: String.Index {
-    let r = _rawBits | Self.__characterAlignmentBit | Self.__scalarAlignmentBit
+    let r = _abi_rawBits | Self._abi_characterAlignmentBit | Self._abi_scalarAlignmentBit
     return unsafeBitCast(r, to: String.Index.self)
   }
 }
@@ -68,13 +68,13 @@ extension String.Index {
   @inline(__always)
   var _utf8Offset: Int {
     assert(_canBeUTF8)
-    return _encodedOffset
+    return _abi_encodedOffset
   }
 
   @inline(__always)
   var _utf16Delta: Int {
     assert(_canBeUTF8)
-    let r = _transcodedOffset
+    let r = _abi_transcodedOffset
     assert(r <= 1)
     return r
   }
@@ -86,20 +86,20 @@ extension String.Index {
 
   @inline(__always)
   init(_utf8Offset: Int) {
-    self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | Self.__utf8Bit)
+    self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | Self._abi_utf8Bit)
   }
   
   init(_utf8Offset: Int, utf16Delta: Int) {
     assert(utf16Delta >= 0 && utf16Delta <= 1)
     let transcodedOffset: UInt64 = (utf16Delta != 0 ? 1 &<< 14 : 0)
-    self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | transcodedOffset | Self.__utf8Bit)
+    self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | transcodedOffset | Self._abi_utf8Bit)
   }
 }
 
 extension String.Index {
   @inline(__always)
   var _chunkData: UInt16 {
-    UInt16(_rawBits &>> 14)
+    UInt16(_abi_rawBits &>> 14)
   }
 
   @inline(__always)

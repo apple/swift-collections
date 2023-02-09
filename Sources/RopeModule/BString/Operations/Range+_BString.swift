@@ -9,12 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension Range<BigString.Index> {
-  internal var _base: Range<_BString.Index> {
-    Range<_BString.Index>(uncheckedBounds: (lowerBound._value, upperBound._value))
-  }
-}
-
 extension Range<_BString.Index> {
   internal var _isEmptyUTF8: Bool {
     lowerBound._utf8Offset == upperBound._utf8Offset
