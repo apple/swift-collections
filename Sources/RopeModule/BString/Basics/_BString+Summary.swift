@@ -47,7 +47,13 @@ extension _BString.Summary: CustomStringConvertible {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Summary: _RopeSummary {
   @inline(__always)
-  static var maxNodeSize: Int { 10 }
+  static var maxNodeSize: Int {
+    #if DEBUG
+    return 10
+    #else
+    return 15
+    #endif
+  }
 
   @inline(__always)
   static var nodeSizeBitWidth: Int { 4 }

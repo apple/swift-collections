@@ -37,7 +37,7 @@ protocol _RopeSummary: Equatable, Sendable {
 
 extension _RopeSummary {
   @inline(__always)
-  static var minNodeSize: Int { maxNodeSize / 2 }
+  static var minNodeSize: Int { (maxNodeSize + 1) / 2 }
 }
 
 extension _RopeSummary {
