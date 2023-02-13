@@ -47,6 +47,9 @@ extension BigString: TextOutputStream {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
+  public static var _minimumCapacity: Int { _BString.minimumCapacity }
+  public static var _maximumCapacity: Int { _BString.maximumCapacity }
+
   public func _invariantCheck() {
     _guts.invariantCheck()
   }

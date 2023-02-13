@@ -9,10 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG
+#if swift(>=5.8) && DEBUG
 @testable import RopeModule
 import XCTest
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 class TestBString: XCTestCase {
   override class func setUp() {
     // Turn off output buffering.
@@ -24,7 +25,19 @@ class TestBString: XCTestCase {
   override func setUp() {
     print("Global seed: \(globalSeed)")
   }
-  
+
+  func test_capacity() {
+    let min = _BString.minimumCapacity
+    let max = _BString.maximumCapacity
+
+    XCTAssertLessThanOrEqual(min, max)
+#if !DEBUG // Debug builds have smaller nodes
+    // We want big strings to hold at least as many UTF-8 code units as a regular String.
+    // We want big strings to hold at least as many UTF-8 code units as a regular String.
+    XCTAssertGreaterThanOrEqual(min, 1 << 48)
+#endif
+  }
+
   func test_empty() {
     let s = _BString()
     s.invariantCheck()

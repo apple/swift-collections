@@ -13,6 +13,28 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
+  /// The estimated maximum number of UTF-8 code units that `_BString` is guaranteed to be able
+  /// to hold without encountering an overflow in its operations. This corresponds to the capacity
+  /// of the deepest tree where every node is the minimum possible size.
+  static var minimumCapacity: Int {
+    let c = Rope.minimumCapacity
+    let (r, overflow) = Chunk.minUTF8Count.multipliedReportingOverflow(by: c)
+    guard !overflow else { return Int.max }
+    return r
+  }
+
+  /// The maximum number of UTF-8 code units that `_BString` may be able to store in the best
+  /// possible case, when every node in the underlying tree is fully filled with data.
+  static var maximumCapacity: Int {
+    let c = Rope.maximumCapacity
+    let (r, overflow) = Chunk.maxUTF8Count.multipliedReportingOverflow(by: c)
+    guard !overflow else { return Int.max }
+    return r
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
   var isEmpty: Bool {
     rope.summary.isZero
   }

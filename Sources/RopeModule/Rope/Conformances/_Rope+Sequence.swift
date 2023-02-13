@@ -96,7 +96,7 @@ extension _Rope: Sequence {
 
 extension _Rope {
   func _leaf(at index: Index) -> Node? {
-    assert(index._height == root.height)
+    assert(index.height == root.height)
     var node = root
     while true {
       let h = node.height

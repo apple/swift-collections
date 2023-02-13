@@ -26,6 +26,17 @@ class TestBigString: XCTestCase {
     print("Global seed: \(globalSeed)")
   }
 
+  func test_capacity() {
+    let min = BigString._minimumCapacity
+    let max = BigString._maximumCapacity
+
+    XCTAssertLessThanOrEqual(min, max)
+#if !DEBUG // Debug builds have smaller nodes
+    // We want big strings to hold at least as many UTF-8 code units as a regular String.
+    XCTAssertGreaterThanOrEqual(min, 1 << 48)
+#endif
+  }
+
   func test_empty() {
     let s = BigString()
     s._invariantCheck()

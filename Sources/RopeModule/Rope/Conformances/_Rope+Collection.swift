@@ -61,39 +61,44 @@ extension _Rope {
   struct Index {
     typealias Summary = _Rope.Summary
 
-    var _height: UInt8
+    // ┌──────────────────────────────────┬────────┐
+    // │ b63:b8                           │ b7:b0  │
+    // ├──────────────────────────────────┼────────┤
+    // │ path                             │ height │
+    // └──────────────────────────────────┴────────┘
     var _path: UInt64
-    
+
+    @inline(__always)
+    static var _pathBitWidth: Int { 56 }
+
     init(height: UInt8) {
-      self._height = height
-      self._path = 0
-      assert(Int(_height + 1) * Summary.nodeSizeBitWidth < UInt64.bitWidth)
+      self._path = UInt64(truncatingIfNeeded: height)
+      assert((Int(height) + 1) * Summary.nodeSizeBitWidth <= Self._pathBitWidth)
     }
   }
 }
 
 extension _Rope.Index: Equatable {
   static func ==(left: Self, right: Self) -> Bool {
-    left._height == right._height && left._path == right._path
+    left._path == right._path
   }
 }
 extension _Rope.Index: Hashable {
   func hash(into hasher: inout Hasher) {
-    hasher.combine(_height)
     hasher.combine(_path)
   }
 }
 
 extension _Rope.Index: Comparable {
   static func <(left: Self, right: Self) -> Bool {
-    (left._height, left._path) < (right._height, right._path)
+    left._path < right._path
   }
 }
 
 extension _Rope.Index: CustomStringConvertible {
   var description: String {
     var r = "<"
-    for h in stride(from: _height, through: 0, by: -1) {
+    for h in stride(from: height, through: 0, by: -1) {
       r += "\(self[height: h])"
       if h > 0 { r += ", " }
     }
@@ -103,17 +108,21 @@ extension _Rope.Index: CustomStringConvertible {
 }
 
 extension _Rope.Index {
+  var height: UInt8 {
+    UInt8(truncatingIfNeeded: _path)
+  }
+
   subscript(height height: UInt8) -> Int {
     get {
-      assert(height <= self._height)
-      let shift = Int(height) * Summary.nodeSizeBitWidth
+      assert(height <= self.height)
+      let shift = 8 + Int(height) * Summary.nodeSizeBitWidth
       let mask: UInt64 = (1 &<< Summary.nodeSizeBitWidth) &- 1
       return numericCast((_path &>> shift) & mask)
     }
     set {
-      assert(height <= self._height)
+      assert(height <= self.height)
       assert(newValue >= 0 && newValue <= Summary.maxNodeSize)
-      let shift = Int(height) * Summary.nodeSizeBitWidth
+      let shift = 8 + Int(height) * Summary.nodeSizeBitWidth
       let mask: UInt64 = (1 &<< Summary.nodeSizeBitWidth) &- 1
       _path &= ~(mask &<< shift)
       _path |= numericCast(newValue) &<< shift
@@ -122,16 +131,52 @@ extension _Rope.Index {
   
   func isEmpty(below height: UInt8) -> Bool {
     let shift = Int(height) * Summary.nodeSizeBitWidth
-    assert(shift + Summary.nodeSizeBitWidth < UInt64.bitWidth)
-    let mask: UInt64 = (1 &<< shift) - 1
+    assert(shift + Summary.nodeSizeBitWidth <= Self._pathBitWidth)
+    let mask: UInt64 = ((1 &<< shift) - 1) &<< 8
     return (_path & mask) == 0
   }
   
   mutating func clear(below height: UInt8) {
     let shift = Int(height) * Summary.nodeSizeBitWidth
-    assert(shift + Summary.nodeSizeBitWidth < UInt64.bitWidth)
-    let mask: UInt64 = (1 &<< shift) - 1
+    assert(shift + Summary.nodeSizeBitWidth <= Self._pathBitWidth)
+    let mask: UInt64 = ((1 &<< shift) - 1) &<< 8
     _path &= ~mask
+  }
+}
+
+extension _Rope {
+  static var maxHeight: Int {
+    Index._pathBitWidth / Summary.nodeSizeBitWidth
+  }
+
+  /// The estimated maximum number of items that can fit in this rope in the worst possible case,
+  /// i.e., when the tree consists of minimum-sized nodes. (The data structure itself has no
+  /// inherent limit, but this implementation of it is limited by the fixed 56-bit path
+  /// representation used in the `Index` type.)
+  ///
+  /// This is one less than the minimum possible size for a rope whose size exceeds the maximum.
+  static var minimumCapacity: Int {
+    var c = 2
+    for _ in 0 ..< maxHeight {
+      let (r, overflow) = c.multipliedReportingOverflow(by: Summary.minNodeSize)
+      if overflow { return .max }
+      c = r
+    }
+    return c - 1
+  }
+
+  /// The maximum number of items that can fit in this rope in the best possible case, i.e., when
+  /// the tree consists of maximum-sized nodes. (The data structure itself has no inherent limit,
+  /// but this implementation of it is limited by the fixed 56-bit path representation used in
+  /// the `Index` type.)
+  static var maximumCapacity: Int {
+    var c = 1
+    for _ in 0 ... maxHeight {
+      let (r, overflow) = c.multipliedReportingOverflow(by: Summary.maxNodeSize)
+      if overflow { return .max }
+      c = r
+    }
+    return c
   }
 }
 
