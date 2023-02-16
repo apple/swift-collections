@@ -175,7 +175,8 @@ extension _BString {
     offsetBy distance: Int,
     in metric: some _StringMetric
   ) -> Index {
-    var (path, chunk) = path(to: i, preferEnd: false)
+    precondition(i <= endIndex, "Index out of bounds")
+    var (path, chunk) = path(to: i, preferEnd: i == endIndex || distance < 0)
     let base = baseIndex(with: i, at: path.chunk)
     var d = distance
     let r = metric.formIndex(&path.chunk, offsetBy: &d, in: chunk)
@@ -268,7 +269,7 @@ extension _BString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(roundingDown i: Index) -> Index {
-    let offset = i._utf8Offset - 1
+    let offset = i._utf8Offset
     precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
     guard offset > 0, offset < utf8Count else { return Index(_utf8Offset: offset) }
 

@@ -27,6 +27,20 @@ extension _BString {
     hasher.combine(0xFF as UInt8)
   }
 
+  internal func hashCharacters(into hasher: inout Hasher, from range: Range<Index>) {
+    var it = self.makeCharacterIterator(from: range.lowerBound)
+    let endOffset = range.upperBound._utf8Offset
+    while let character = it.next() {
+      var s = String(character)
+      if it.utf8Offset > endOffset {
+        let i = s.unicodeScalars._index(roundingDown: s._utf8Index(at: it.utf8Offset - endOffset))
+        s.removeSubrange(i...)
+      }
+      s._withNFCCodeUnits { hasher.combine($0) }
+    }
+    hasher.combine(0xFF as UInt8)
+  }
+
   /// Feed the UTF-8 encoding of `self` into hasher, with a terminating byte.
   internal func hashUTF8(into hasher: inout Hasher) {
     for chunk in self.rope {

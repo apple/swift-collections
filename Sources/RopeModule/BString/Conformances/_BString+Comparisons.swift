@@ -58,6 +58,8 @@ extension _BString {
     var it1 = left.makeCharacterIterator(from: leftRange.lowerBound)
     var it2 = right.makeCharacterIterator(from: rightRange.upperBound)
 
+    if leftRange._isEmptyUTF8 { return rightRange._isEmptyUTF8 }
+
     let leftEnd = left.path(to: leftRange.upperBound, preferEnd: true).path
     let rightEnd = right.path(to: rightRange.upperBound, preferEnd: true).path
 

@@ -146,14 +146,15 @@ extension _BString.UnicodeScalarIterator: IteratorProtocol {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct CharacterIterator {
-    internal var _utf8BaseOffset: Int
     internal var _base: _Rope<Chunk>.Iterator
+
+    internal var _utf8BaseOffset: Int
     internal var _index: String.Index
     internal var _next: String.Index
 
-    internal init(_base: _Rope<Chunk>.Iterator, utf8BaseOffset: Int) {
-      self._utf8BaseOffset = utf8BaseOffset
-      self._base = _base
+    internal init(_ string: _BString) {
+      self._utf8BaseOffset = 0
+      self._base = string.rope.makeIterator()
       guard !_base.isAtEnd else {
         _index = "".startIndex
         _next = "".endIndex
@@ -165,35 +166,32 @@ extension _BString {
       self._next = chunk.string[_index...].index(after: _index)
     }
 
-    internal init(_base: _Rope<Chunk>.Iterator, utf8BaseOffset: Int, _ i: String.Index) {
-      self._utf8BaseOffset = utf8BaseOffset
-      self._base = _base
-      self._index = i
-      assert(i >= _base.current.firstBreak)
-      guard !_base.isAtEnd, i < _base.current.string.endIndex else {
-        self._next = i
+    internal init(
+      _ string: _BString,
+      from start: Index
+    ) {
+      self._utf8BaseOffset = start._utf8Offset
+
+      if start == string.endIndex {
+        self._base = string.rope.makeIterator(from: string.rope.endIndex)
+        self._index = "".startIndex
+        self._next = "".endIndex
         return
       }
-      self._next = _base.current.wholeCharacters.index(after: i)
+      let path = string.path(to: start, preferEnd: false).path
+      self._base = string.rope.makeIterator(from: path.rope)
+      self._utf8BaseOffset -= path.chunk._utf8Offset
+      self._index = path.chunk
+      self._next = _base.current.wholeCharacters.index(after: path.chunk)
     }
   }
 
   internal func makeCharacterIterator() -> CharacterIterator {
-    CharacterIterator(_base: rope.makeIterator(), utf8BaseOffset: 0)
+    CharacterIterator(self)
   }
 
   internal func makeCharacterIterator(from index: Index) -> CharacterIterator {
-    if index == endIndex {
-      return CharacterIterator(
-        _base: rope.makeIterator(from: rope.endIndex),
-        utf8BaseOffset: index._utf8Offset)
-    }
-    let (path, _) = self.path(to: index, preferEnd: false)
-    let base = rope.makeIterator(from: path.rope)
-    return CharacterIterator(
-      _base: base,
-      utf8BaseOffset: index._utf8Offset - path.chunk._utf8Offset,
-      path.chunk)
+    CharacterIterator(self, from: index)
   }
 }
 
