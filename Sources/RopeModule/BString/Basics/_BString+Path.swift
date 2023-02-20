@@ -58,12 +58,11 @@ extension _BString {
     to i: Index,
     preferEnd: Bool
   ) -> (path: Path, chunk: Chunk) {
-    let r = rope.find(at: i._utf8Offset, in: UTF8Metric(), preferEnd: preferEnd)
-    return r.node!.readLeaf {
-      let slot = r.index[height: 0]
-      let index = $0.children[slot].value.index(at: r.remaining, utf16Delta: i._utf16Delta)
-      return (Path(r.index, index), $0.children[slot].value)
-    }
+    let (ropeIndex, remaining) = rope.find(
+      at: i._utf8Offset, in: UTF8Metric(), preferEnd: preferEnd)
+    let chunk = rope[ropeIndex]
+    let chunkIndex = chunk.index(at: remaining, utf16Delta: i._utf16Delta)
+    return (Path(ropeIndex, chunkIndex), chunk)
   }
 }
 

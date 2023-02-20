@@ -22,6 +22,12 @@ private func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
   _addressString(for: object.toOpaque())
 }
 
+extension _Rope.UnmanagedLeaf: CustomStringConvertible {
+  var description: String {
+    _addressString(for: _ref.toOpaque())
+  }
+}
+
 extension _Rope {
   var nodeCount: Int { _root?.nodeCount ?? 0 }
 }

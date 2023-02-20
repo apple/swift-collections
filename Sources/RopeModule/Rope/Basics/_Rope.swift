@@ -14,15 +14,18 @@
 /// quick lookup operations.
 struct _Rope<Element: _RopeElement> {
   var _root: Node?
-  
+  var _version: _RopeVersion
+
   init() {
     self._root = nil
+    self._version = _RopeVersion()
   }
   
   init(root: Node?) {
     self._root = root
+    self._version = _RopeVersion()
   }
-  
+
   var root: Node {
     get { _root.unsafelyUnwrapped }
     @inline(__always) _modify { yield &_root! }
@@ -30,6 +33,7 @@ struct _Rope<Element: _RopeElement> {
   
   init(_ value: Element) {
     self._root = .createLeaf(Item(value))
+    self._version = _RopeVersion()
   }
 }
 

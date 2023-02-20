@@ -38,8 +38,14 @@ extension _Rope {
     from index: inout Index,
     _ body: (inout Element) -> Bool
   ) -> Bool {
+    validate(index)
     guard _root != nil else { return true }
-    return root.mutatingForEach(from: &index, body: body).continue
+    defer {
+      invalidateIndices()
+      index._version = _version
+    }
+    let r = root.mutatingForEach(from: &index, body: body).continue
+    return r
   }
 }
 
@@ -50,7 +56,7 @@ extension _Rope.Node {
   ) -> (continue: Bool, delta: Summary) {
     ensureUnique()
     let h = height
-    var slot = index[height: h]
+    var slot = index._path[h]
     precondition(slot <= childCount, "Index out of bounds")
     guard slot < childCount else { return (true, .zero) }
     var delta = Summary.zero
@@ -63,13 +69,15 @@ extension _Rope.Node {
           delta.add(d)
           guard r else { return false }
           slot += 1
-          index.clear(below: h)
-          index[height: h] = slot
+          index._path.clear(below: h)
+          index._path[h] = slot
         }
+        index._leaf = nil
         return true
       }
       return (r, delta)
     }
+    index._leaf = asUnmanagedLeaf
     let r = updateLeaf {
       let c = $0.mutableChildren
       while slot < c.count {
@@ -78,7 +86,7 @@ extension _Rope.Node {
         delta.add(c[slot].summary.subtracting(sum))
         guard r else { return false }
         slot += 1
-        index[height: h] = slot
+        index._path[h] = slot
       }
       return true
     }

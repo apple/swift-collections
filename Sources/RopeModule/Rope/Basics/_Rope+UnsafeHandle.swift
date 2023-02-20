@@ -185,4 +185,15 @@ extension _Rope.UnsafeHandle {
     src.childCount -= count
     return children.prefix(count)._sum()
   }
+
+  func distance(from start: Int, to end: Int, in metric: some _RopeMetric<Element>) -> Int {
+    if start <= end {
+      return children[start ..< end].reduce(into: 0) {
+        $0 += metric.nonnegativeSize(of: $1.summary)
+      }
+    }
+    return -children[end ..< start].reduce(into: 0) {
+      $0 += metric.nonnegativeSize(of: $1.summary)
+    }
+  }
 }

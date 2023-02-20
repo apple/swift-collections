@@ -21,16 +21,16 @@ extension _Rope: Sequence {
   struct Iterator: IteratorProtocol {
     let rope: _Rope
     private(set) var index: Index
-    private var leaf: Node?
-    
+
     init(_ rope: _Rope, from start: Index) {
+      rope.validate(start)
       self.rope = rope
       self.index = start
-      self.leaf = start == rope.endIndex ? nil : rope._leaf(at: start)
+      self.rope.ensureLeaf(in: &index)
     }
     
     var isAtEnd: Bool {
-      leaf == nil
+      index._leaf == nil
     }
     
     var isAtStart: Bool {
@@ -38,48 +38,35 @@ extension _Rope: Sequence {
     }
     
     var current: Element {
-      leaf!.readLeaf { $0.children[index[height: 0]].value }
+      guard let leaf = index._leaf else {
+        preconditionFailure("Cannot access current element in iterator at end")
+      }
+      return leaf.read { $0.children[index._path[0]].value }
     }
     
     func withCurrent<R>(_ body: (Element) -> R) -> R {
-      leaf!.readLeaf { body($0.children[index[height: 0]].value) }
+      guard let leaf = index._leaf else {
+        preconditionFailure("Cannot access current element in iterator at end")
+      }
+      return leaf.read { body($0.children[index._path[0]].value) }
     }
     
     mutating func stepForward() -> Bool {
-      guard let leaf = self.leaf else { return false }
-      self.leaf = nil
-      if leaf.formSuccessor(of: &index) {
-        self.leaf = leaf
-      } else if rope.root.formSuccessor(of: &index) {
-        self.leaf = rope._leaf(at: index)
-      } else {
-        self.leaf = leaf
-        return false
-      }
+      let end = rope.endPath
+      guard index._path < end else { return false }
+      let next = rope.index(after: index)
+      guard next._path < end else { return false }
+      index = next
       return true
     }
 
     mutating func stepBackward() -> Bool {
-      guard let leaf = self.leaf else {
-        guard !rope.isEmpty else { return false }
-        self.index = rope.index(before: rope.endIndex)
-        self.leaf = rope._leaf(at: index)
-        return true
-      }
-      self.leaf = nil
-      if leaf.formPredecessor(of: &index) {
-        self.leaf = leaf
-      } else if rope.root.formPredecessor(of: &index) {
-        self.leaf = rope._leaf(at: index)
-      } else {
-        self.leaf = leaf
-        return false
-      }
+      guard index._path > rope.startPath else { return false }
+      rope.formIndex(before: &index)
       return true
     }
     
     mutating func stepToEnd() {
-      leaf = nil
       index = rope.endIndex
     }
 
@@ -95,12 +82,19 @@ extension _Rope: Sequence {
 }
 
 extension _Rope {
-  func _leaf(at index: Index) -> Node? {
-    assert(index.height == root.height)
+  func _unmanagedLeaf(at path: Path) -> UnmanagedLeaf? {
+    assert(path.height == self.height)
+    guard path < endPath else { return nil }
+    return root.unmanagedLeaf(at: path)
+  }
+
+  func _leaf(at path: Path) -> Node? {
+    assert(path.height == self.height)
+    guard _root != nil else { return nil }
     var node = root
     while true {
       let h = node.height
-      let slot = index[height: h]
+      let slot = path[h]
       guard slot < node.childCount else { return nil }
       if h == 0 { break }
       node = node.readInner { $0.child(at: slot)! }

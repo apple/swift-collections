@@ -36,7 +36,8 @@ extension _BString {
     // full grapheme breaking state of the ingester at the start of the insertion.
     // (We'll use it to resync grapheme breaks in the parts that follow the insertion.)
     var (ingester, _, path) = ingester(forInserting: other, at: index, allowForwardPeek: false)
-    let r = rope[path.rope].insert(from: &ingester, at: path.chunk)
+    let i = path.chunk
+    let r = rope.update(at: &path.rope) { $0.insert(from: &ingester, at: i) }
     switch r {
     case let .inline(r):
       assert(ingester.isAtEnd)

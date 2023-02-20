@@ -11,28 +11,30 @@
 
 extension _Rope {
   mutating func remove(at index: Index) -> Element {
-    let old = root.remove(at: index).removed
+    validate(index)
+    let old = root.remove(at: index._path).removed
     if root.isEmpty {
       _root = nil
     } else if root.childCount == 1, root.height > 0 {
       root = root.readInner { $0.children.first! }
     }
+    invalidateIndices()
     return old.value
   }
 }
 
 extension _Rope.Node {
   mutating func remove(
-    at index: Index
+    at path: Path
   ) -> (removed: Item, delta: Summary, needsFixing: Bool) {
     ensureUnique()
-    let slot = index[height: height]
+    let slot = path[height]
     precondition(slot < childCount, "Invalid index")
     guard height > 0 else {
       let r = _removeItem(at: slot)
       return (r.removed, r.delta, self.isUndersized)
     }
-    let r = updateInner { $0.mutableChildren[slot].remove(at: index) }
+    let r = updateInner { $0.mutableChildren[slot].remove(at: path) }
     self.summary.subtract(r.delta)
     if r.needsFixing {
       fixDeficiency(at: slot)
@@ -46,6 +48,7 @@ extension _Rope {
     at position: Int,
     in metric: some _RopeMetric<Element>
   ) -> Element {
+    invalidateIndices()
     let old = root.remove(at: position, in: metric).removed
     if root.isEmpty {
       _root = nil

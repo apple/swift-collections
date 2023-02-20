@@ -17,7 +17,9 @@ extension _Rope {
     typealias Item = _Rope.Item
     typealias Storage = _Rope.Storage
     typealias UnsafeHandle = _Rope.UnsafeHandle
-    
+    typealias Path = _Rope.Path
+    typealias UnmanagedLeaf = _Rope.UnmanagedLeaf
+
     var object: AnyObject
     var summary: Summary
     
@@ -335,59 +337,86 @@ extension _Rope.Node {
 }
 
 extension _Rope.Node {
-  var startIndex: Index {
-    var i = Index(height: self.height)
-    descendToFirstItem(under: &i)
-    return i
+  var startPath: Path {
+    Path(height: self.height)
   }
   
-  var lastIndex: Index {
-    var i = Index(height: self.height)
-    descendToLastItem(under: &i)
-    return i
+  var lastPath: Path {
+    var path = Path(height: self.height)
+    _ = descendToLastItem(under: &path)
+    return path
   }
   
-  func isAtEnd(_ i: Index) -> Bool {
-    i[height: self.height] == childCount
+  func isAtEnd(_ path: Path) -> Bool {
+    path[self.height] == childCount
   }
   
-  func descendToFirstItem(under i: inout Index) {
-    i.clear(below: self.height + 1)
+  func descendToFirstItem(under path: inout Path) -> UnmanagedLeaf {
+    path.clear(below: self.height + 1)
+    return unmanagedLeaf(at: path)
   }
   
-  func descendToLastItem(under i: inout Index) {
+  func descendToLastItem(under path: inout Path) -> UnmanagedLeaf {
     let h = self.height
     let slot = self.childCount - 1
-    i[height: h] = slot
+    path[h] = slot
     if h > 0 {
-      readInner { $0.children[slot].descendToLastItem(under: &i) }
+      return readInner { $0.children[slot].descendToLastItem(under: &path) }
     }
+    return asUnmanagedLeaf
   }
   
+  var asUnmanagedLeaf: UnmanagedLeaf {
+    assert(height == 0)
+    return UnmanagedLeaf(unsafeDowncast(self.object, to: Storage<Item>.self))
+  }
+  
+  func unmanagedLeaf(at path: Path) -> UnmanagedLeaf {
+    if height == 0 {
+      return asUnmanagedLeaf
+    }
+    let slot = path[height]
+    return readInner { $0.children[slot].unmanagedLeaf(at: path) }
+  }
+}
+
+extension _Rope.Node {
   func formSuccessor(of i: inout Index) -> Bool {
     let h = self.height
-    var slot = i[height: h]
+    var slot = i._path[h]
     if h == 0 {
-      slot += 1
-      guard slot < childCount else { return false }
-      i[height: h] = slot
+      slot &+= 1
+      guard slot < childCount else {
+        return false
+      }
+      i._path[h] = slot
+      i._leaf = asUnmanagedLeaf
       return true
     }
-    let success = readInner { $0.children[slot].formSuccessor(of: &i) }
-    if success { return true }
-    slot += 1
-    guard slot < childCount else { return false }
-    i[height: h] = slot
-    i.clear(below: h)
-    return true
+    return readInner {
+      let c = $0.children
+      if c[slot].formSuccessor(of: &i) {
+        return true
+      }
+      slot += 1
+      guard slot < childCount else {
+        return false
+      }
+      i._path[h] = slot
+      i._leaf = c[slot].descendToFirstItem(under: &i._path)
+      return true
+    }
   }
   
   func formPredecessor(of i: inout Index) -> Bool {
     let h = self.height
-    var slot = i[height: h]
+    var slot = i._path[h]
     if h == 0 {
-      guard slot > 0 else { return false }
-      i[height: h] = slot - 1
+      guard slot > 0 else {
+        return false
+      }
+      i._path[h] = slot &- 1
+      i._leaf = asUnmanagedLeaf
       return true
     }
     return readInner {
@@ -395,17 +424,21 @@ extension _Rope.Node {
       if slot < c.count, c[slot].formPredecessor(of: &i) {
         return true
       }
-      guard slot > 0 else { return false }
+      guard slot > 0 else {
+        return false
+      }
       slot -= 1
-      i[height: h] = slot
-      c[slot].descendToLastItem(under: &i)
+      i._path[h] = slot
+      i._leaf = c[slot].descendToLastItem(under: &i._path)
       return true
     }
   }
-  
+}
+
+extension _Rope.Node {
   var lastItem: Item {
     get {
-      self[lastIndex]
+      self[lastPath]
     }
     _modify {
       assert(childCount > 0)
@@ -413,87 +446,89 @@ extension _Rope.Node {
       defer {
         _ = _finalizeModify(&state)
       }
-      yield &state.value
+      yield &state.item
     }
   }
   
   var firstItem: Item {
     get {
-      self[startIndex]
+      self[startPath]
     }
     _modify {
-      yield &self[startIndex]
+      yield &self[startPath]
     }
   }
   
-  subscript(i: Index) -> Item {
+  subscript(path: Path) -> Item {
     get {
       let h = height
-      let slot = i[height: h]
-      precondition(slot < childCount, "Index out of bounds")
+      let slot = path[h]
+      precondition(slot < childCount, "Path out of bounds")
       guard h == 0 else {
-        return readInner { $0.children[slot][i] }
+        return readInner { $0.children[slot][path] }
       }
       return readLeaf { $0.children[slot] }
     }
     @inline(__always)
     _modify {
-      var state = _prepareModify(at: i)
+      var state = _prepareModify(at: path)
       defer {
         _ = _finalizeModify(&state)
       }
-      yield &state.value
+      yield &state.item
     }
   }
   
   struct ModifyState {
-    var index: Index
-    var value: Item
+    var path: Path
+    var item: Item
     var summary: Summary
   }
   
-  mutating func _prepareModify(at i: Index) -> ModifyState {
+  mutating func _prepareModify(at path: Path) -> ModifyState {
     ensureUnique()
     let h = height
-    let slot = i[height: h]
-    precondition(slot < childCount, "Index out of bounds")
+    let slot = path[h]
+    precondition(slot < childCount, "Path out of bounds")
     guard h == 0 else {
-      return updateInner { $0.mutableChildren[slot]._prepareModify(at: i) }
+      return updateInner { $0.mutableChildren[slot]._prepareModify(at: path) }
     }
-    let value = updateLeaf { $0.mutableChildren.moveElement(from: slot) }
-    return ModifyState(index: i, value: value, summary: value.summary)
+    let item = updateLeaf { $0.mutableChildren.moveElement(from: slot) }
+    return ModifyState(path: path, item: item, summary: item.summary)
   }
   
   mutating func _prepareModifyLast() -> ModifyState {
-    var i = Index(height: height)
-    return _prepareModifyLast(&i)
+    var path = Path(height: height)
+    return _prepareModifyLast(&path)
   }
   
-  mutating func _prepareModifyLast(_ i: inout Index) -> ModifyState {
+  mutating func _prepareModifyLast(_ path: inout Path) -> ModifyState {
     ensureUnique()
     let h = height
     let slot = self.childCount - 1
-    i[height: h] = slot
+    path[h] = slot
     guard h == 0 else {
-      return updateInner { $0.mutableChildren[slot]._prepareModifyLast(&i) }
+      return updateInner { $0.mutableChildren[slot]._prepareModifyLast(&path) }
     }
-    let value = updateLeaf { $0.mutableChildren.moveElement(from: slot) }
-    return ModifyState(index: i, value: value, summary: value.summary)
+    let item = updateLeaf { $0.mutableChildren.moveElement(from: slot) }
+    return ModifyState(path: path, item: item, summary: item.summary)
   }
   
-  mutating func _finalizeModify(_ state: inout ModifyState) -> Summary {
+  mutating func _finalizeModify(
+    _ state: inout ModifyState
+  ) -> (delta: Summary, leaf: UnmanagedLeaf) {
     assert(isUnique())
     let h = height
-    let slot = state.index[height: h]
-    assert(slot < childCount, "Index out of bounds")
+    let slot = state.path[h]
+    assert(slot < childCount, "Path out of bounds")
     guard h == 0 else {
-      let delta = updateInner { $0.mutableChildren[slot]._finalizeModify(&state) }
-      summary.add(delta)
-      return delta
+      let r = updateInner { $0.mutableChildren[slot]._finalizeModify(&state) }
+      summary.add(r.delta)
+      return r
     }
-    let delta = state.value.summary.subtracting(state.summary)
-    updateLeaf { $0.mutableChildren.initializeElement(at: slot, to: state.value) }
+    let delta = state.item.summary.subtracting(state.summary)
+    updateLeaf { $0.mutableChildren.initializeElement(at: slot, to: state.item) }
     summary.add(delta)
-    return delta
+    return (delta, asUnmanagedLeaf)
   }
 }

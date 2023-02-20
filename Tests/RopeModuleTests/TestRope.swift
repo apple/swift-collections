@@ -150,8 +150,17 @@ class TestRope: XCTestCase {
         Chunk(length: ($0 % 4) + 1, value: $0)
       }
       let rope = _Rope(ref)
-      XCTAssertTrue(rope.elementsEqual(ref))
-      
+
+      var it = rope.makeIterator()
+      var i = 0
+      while let next = it.next() {
+        let expected = ref[i]
+        XCTAssertEqual(next, expected)
+        guard next == expected else { break }
+        i += 1
+      }
+      XCTAssertEqual(i, ref.count)
+
       let expectedLength = ref.reduce(into: 0) { $0 += $1.length }
       let actualLength = rope.reduce(into: 0) { $0 += $1.length }
       XCTAssertEqual(actualLength, expectedLength)

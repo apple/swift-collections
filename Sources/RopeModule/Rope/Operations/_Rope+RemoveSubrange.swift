@@ -14,6 +14,7 @@ extension _Rope {
     _ bounds: Range<Int>,
     in metric: some _RopeMetric<Element>
   ) {
+    invalidateIndices()
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= count(in: metric),
       "Position out of bounds")
@@ -31,6 +32,7 @@ extension _Rope {
     // FIXME: Implement insert(contentsOf:at:in:) and dispatch to it when bounds.isEmpty.
     // FIXME: Add fast path for replacing tiny ranges with tiny data.
     // FIXME: Add special cases if newElements is itself a _Rope etc.
+    invalidateIndices()
     var builder = builder(removing: bounds, in: metric)
     for item in newElements {
       builder.append(item)
@@ -42,6 +44,7 @@ extension _Rope {
     removing bounds: Range<Int>,
     in metric: some _RopeMetric<Element>
   ) -> Builder {
+    invalidateIndices()
     let size = metric.size(of: summary)
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= size,

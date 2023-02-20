@@ -14,26 +14,27 @@ extension _Rope {
     at position: Int,
     in metric: some _RopeMetric<Element>,
     preferEnd: Bool
-  ) -> (index: Index, node: Node?, remaining: Int) {
+  ) -> (index: Index, remaining: Int) {
     let wholeSize = _root == nil ? 0 : metric.size(of: root.summary)
     precondition(position >= 0 && position <= wholeSize, "Position out of bounds")
     guard preferEnd || position < wholeSize else {
-      return (endIndex, nil, position)
+      return (endIndex, position)
     }
     var position = position
     var node = root
-    var index = Index(height: node.height)
+    var path = Path(height: node.height)
     while node.height > 0 {
       node = node.readInner {
         let r = $0.findSlot(at: position, in: metric, preferEnd: preferEnd)
         position = r.remaining
-        index[height: $0.height] = r.slot
+        path[$0.height] = r.slot
         return $0.children[r.slot]
       }
     }
     let r = node.readLeaf { $0.findSlot(at: position, in: metric, preferEnd: preferEnd) }
-    index[height: 0] = r.slot
-    return (index, node, r.remaining)
+    path[0] = r.slot
+    let index = Index(version: _version, path: path, leaf: node.asUnmanagedLeaf)
+    return (index, r.remaining)
   }
 }
 

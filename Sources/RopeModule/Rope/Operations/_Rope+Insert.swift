@@ -11,6 +11,7 @@
 
 extension _Rope {
   mutating func prepend(_ item: __owned Element) {
+    invalidateIndices()
     insert(item, at: startIndex)
   }
   
@@ -18,13 +19,22 @@ extension _Rope {
     _ item: __owned Element,
     at index: Index
   ) {
-    if index == endIndex {
+    validate(index)
+    insert(item, at: index._path)
+  }
+
+  mutating func insert(
+    _ item: __owned Element,
+    at path: Path
+  ) {
+    if path == endPath {
       append(item)
       return
     }
-    if let spawn = root.insert(Item(item), at: index) {
+    if let spawn = root.insert(Item(item), at: path) {
       _root = .createInner(children: root, spawn)
     }
+    invalidateIndices()
   }
   
   mutating func insert(
@@ -39,24 +49,25 @@ extension _Rope {
     if let spawn = root.insert(Item(item), at: position, in: metric) {
       _root = .createInner(children: root, spawn)
     }
+    invalidateIndices()
   }
 }
 
 extension _Rope.Node {
   mutating func prepend(_ item: __owned Item) -> Self? {
-    insert(item, at: startIndex)
+    insert(item, at: startPath)
   }
   
   mutating func insert(
     _ item: __owned Item,
-    at index: Index
+    at path: Path
   ) -> Self? {
     ensureUnique()
     let h = height
-    let slot = index[height: h]
+    let slot = path[h]
     if h > 0 {
       precondition(slot < childCount, "Index out of bounds")
-      return _innerInsert(at: slot) { $0.insert(item, at: index) }
+      return _innerInsert(at: slot) { $0.insert(item, at: path) }
     }
     precondition(slot <= childCount, "Index out of bounds")
     return _leafInsert(item, at: slot)

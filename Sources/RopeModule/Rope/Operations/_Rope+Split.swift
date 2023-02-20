@@ -14,6 +14,7 @@ extension _Rope {
     splittingAt position: Int,
     in metric: some _RopeMetric<Element>
   ) -> Builder {
+    invalidateIndices()
     var builder = Builder()
 
     var position = position
@@ -35,20 +36,22 @@ extension _Rope {
   }
 
   mutating func split(at index: Index) -> (builder: Builder, item: Element) {
+    validate(index)
     precondition(index < endIndex)
     var builder = Builder()
     
     var node = root
     _root = nil
     while !node.isLeaf {
-      let slot = index[height: node.height]
+      let slot = index._path[node.height]
       precondition(slot < node.childCount, "Index out of bounds")
       node._innerSplit(at: slot, into: &builder)
     }
     
-    let slot = index[height: node.height]
+    let slot = index._path[node.height]
     precondition(slot < node.childCount, "Index out of bounds")
     let item = node._leafSplit(at: slot, into: &builder)
+    invalidateIndices()
     return (builder, item.value)
   }
 
