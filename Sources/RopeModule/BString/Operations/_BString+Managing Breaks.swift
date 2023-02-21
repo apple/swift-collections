@@ -34,19 +34,22 @@ extension _BString {
       return (Path(end.rope, r.prevBreak), r.state)
     }
     // Find chunk that includes the start of the character.
-    var it = rope.makeIterator(from: end.rope)
-    while it.stepBackward() {
-      if it.current.hasBreaks { break }
+    var i = end.rope
+    while i > rope.startIndex {
+      rope.formIndex(before: &i)
+      if rope[i].hasBreaks { break }
     }
-    precondition(it.index < end.rope)
-    let prev = Path(it.index, it.current.lastBreak)
+    precondition(i < end.rope)
+    let prev = Path(i, rope[i].lastBreak)
 
     // Collect grapheme breaking state.
-    var state = _CharacterRecognizer(partialCharacter: it.current.suffix)
-    while it.stepForward(), it.index < end.rope {
-      state.consumePartialCharacter(it.current.string[...])
+    var state = _CharacterRecognizer(partialCharacter: rope[i].suffix)
+    rope.formIndex(after: &i)
+    while i < end.rope {
+      state.consumePartialCharacter(rope[i].string[...])
+      rope.formIndex(after: &i)
     }
-    state.consumePartialCharacter(it.current.string[..<end.chunk])
+    state.consumePartialCharacter(rope[end.rope].string[..<end.chunk])
     return (prev, state)
   }
 
@@ -129,29 +132,35 @@ extension _BString.Rope {
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
   ) {
-    guard let (index, i) = _resyncBreaks(old: &old, new: &new) else { return }
+    guard let (index, stringIndex) = _resyncBreaks(old: &old, new: &new) else { return }
 
     let chars = self.summary.characters
     if chars > 0 {
-      var it = makeIterator(from: endIndex)
-      while it.stepBackward() {
-        if it.current.hasBreaks { break }
-        if it.index == index { break }
+      var i = endIndex
+      while i > startIndex {
+        formIndex(before: &i)
+        if self[i].hasBreaks { break }
+        if i == index { break }
       }
-      if it.index > index || it.current.lastBreak > i {
-        new = it.current.immediateLastBreakState!
-        while it.stepForward() {
-          new.consumePartialCharacter(it.current.string[...])
+      if i > index || self[i].lastBreak > stringIndex {
+        new = self[i].immediateLastBreakState!
+        formIndex(after: &i)
+        while i < endIndex {
+          new.consumePartialCharacter(self[i].string[...])
+          formIndex(after: &i)
         }
         old = new
         return
       }
     }
-    var it = makeIterator(from: index)
-    let suffix = it.current.string.unicodeScalars[i...].dropFirst()
+
+    var i = index
+    let suffix = self[i].string.unicodeScalars[stringIndex...].dropFirst()
     new.consumePartialCharacter(suffix)
-    while it.stepForward() {
-      new.consumePartialCharacter(it.current.string[...])
+    formIndex(after: &i)
+    while i < endIndex {
+      new.consumePartialCharacter(self[i].string[...])
+      formIndex(after: &i)
     }
     old = new
   }

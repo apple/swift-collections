@@ -118,10 +118,10 @@ extension String {
     }
 
     self += start.chunk.string[start.path.chunk...]
-    
-    var it = big.rope.makeIterator(from: start.path.rope)
-    while it.stepForward(), it.index < end.path.rope {
-      self += it.current.string
+    var i = big.rope.index(after: start.path.rope)
+    while i < end.path.rope {
+      self += big.rope[i].string
+      big.rope.formIndex(after: &i)
     }
     self += end.chunk.string[..<end.path.chunk]
   }

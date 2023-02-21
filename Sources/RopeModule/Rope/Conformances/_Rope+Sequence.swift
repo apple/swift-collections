@@ -29,53 +29,10 @@ extension _Rope: Sequence {
       self.rope.ensureLeaf(in: &index)
     }
     
-    var isAtEnd: Bool {
-      index._leaf == nil
-    }
-    
-    var isAtStart: Bool {
-      index == rope.startIndex
-    }
-    
-    var current: Element {
-      guard let leaf = index._leaf else {
-        preconditionFailure("Cannot access current element in iterator at end")
-      }
-      return leaf.read { $0.children[index._path[0]].value }
-    }
-    
-    func withCurrent<R>(_ body: (Element) -> R) -> R {
-      guard let leaf = index._leaf else {
-        preconditionFailure("Cannot access current element in iterator at end")
-      }
-      return leaf.read { body($0.children[index._path[0]].value) }
-    }
-    
-    mutating func stepForward() -> Bool {
-      let end = rope.endPath
-      guard index._path < end else { return false }
-      let next = rope.index(after: index)
-      guard next._path < end else { return false }
-      index = next
-      return true
-    }
-
-    mutating func stepBackward() -> Bool {
-      guard index._path > rope.startPath else { return false }
-      rope.formIndex(before: &index)
-      return true
-    }
-    
-    mutating func stepToEnd() {
-      index = rope.endIndex
-    }
-
     mutating func next() -> Element? {
-      guard !isAtEnd else { return nil }
-      let item = self.current
-      if !stepForward() {
-        stepToEnd()
-      }
+      guard let leaf = index._leaf else { return nil }
+      let item = leaf.read { $0.children[index._path[0]].value }
+      rope.formIndex(after: &index)
       return item
     }
   }

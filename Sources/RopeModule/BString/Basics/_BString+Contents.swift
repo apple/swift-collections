@@ -273,7 +273,7 @@ extension _BString {
     precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
     guard offset > 0, offset < utf8Count else { return Index(_utf8Offset: offset) }
 
-    let (path, chunk) = path(to: i, preferEnd: true)
+    var (path, chunk) = path(to: i, preferEnd: true)
     var base = baseIndex(with: i, at: path.chunk)
     if chunk.hasBreaks {
       let first = chunk.firstBreak
@@ -290,12 +290,14 @@ extension _BString {
       }
     }
 
-    var it = self.rope.makeIterator(from: path.rope)
-    while it.stepBackward() {
-      base = base._advanceUTF8(by: -it.current.utf8Count)
-      if it.current.hasBreaks { break }
+    var i = path.rope
+    while i > self.rope.startIndex {
+      self.rope.formIndex(before: &i)
+      chunk = self.rope[i]
+      base = base._advanceUTF8(by: -chunk.utf8Count)
+      if chunk.hasBreaks { break }
     }
-    return base._advanceUTF8(by: it.current.string._utf8Offset(of: it.current.lastBreak))
+    return base._advanceUTF8(by: chunk.lastBreak._utf8Offset)
   }
 
   func unicodeScalarIndex(roundingDown i: Index) -> Index {
@@ -337,15 +339,23 @@ extension _BString {
     }
     var s = String(c)
     var base = base
-    var it = self.rope.makeIterator(from: start.rope)
+    var i = start.rope
+    var j = start.chunk
     while true {
-      base = base?._advanceUTF8(by: it.current.utf8Count)
-      guard it.stepForward() else { break }
-      let chunk = it.current
+      base = base?._advanceUTF8(by: rope[i].utf8Count)
+      rope.formIndex(after: &i)
+      guard i < rope.endIndex else {
+        j = "".endIndex
+        break
+      }
+      let chunk = rope[i]
       s.append(contentsOf: chunk.prefix)
-      if chunk.hasBreaks { break }
+      if chunk.hasBreaks {
+        j = rope[i].firstBreak
+        break
+      }
     }
-    return (Character(s), Path(it.index, it.current.firstBreak), base)
+    return (Character(s), Path(i, j), base)
   }
 
   subscript(utf8 index: Index) -> UInt8 {
