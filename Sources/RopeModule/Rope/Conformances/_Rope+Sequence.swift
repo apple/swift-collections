@@ -37,25 +37,3 @@ extension _Rope: Sequence {
     }
   }
 }
-
-extension _Rope {
-  func _unmanagedLeaf(at path: Path) -> UnmanagedLeaf? {
-    assert(path.height == self.height)
-    guard path < endPath else { return nil }
-    return root.unmanagedLeaf(at: path)
-  }
-
-  func _leaf(at path: Path) -> Node? {
-    assert(path.height == self.height)
-    guard _root != nil else { return nil }
-    var node = root
-    while true {
-      let h = node.height
-      let slot = path[h]
-      guard slot < node.childCount else { return nil }
-      if h == 0 { break }
-      node = node.readInner { $0.child(at: slot)! }
-    }
-    return node
-  }
-}

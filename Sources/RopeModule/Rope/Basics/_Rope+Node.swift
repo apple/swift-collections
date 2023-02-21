@@ -365,7 +365,17 @@ extension _Rope.Node {
     }
     return asUnmanagedLeaf
   }
-  
+}
+
+extension _Rope {
+  func _unmanagedLeaf(at path: Path) -> UnmanagedLeaf? {
+    assert(path.height == self.height)
+    guard path < endPath else { return nil }
+    return root.unmanagedLeaf(at: path)
+  }
+}
+
+extension _Rope.Node {
   var asUnmanagedLeaf: UnmanagedLeaf {
     assert(height == 0)
     return UnmanagedLeaf(unsafeDowncast(self.object, to: Storage<Item>.self))
