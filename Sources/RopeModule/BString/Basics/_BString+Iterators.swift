@@ -149,25 +149,26 @@ extension _BString.UnicodeScalarIterator: IteratorProtocol {
 extension _BString {
   internal struct CharacterIterator {
     internal let _base: _BString
-    internal var _i: Rope.Index
-
     internal var _utf8BaseOffset: Int
-    internal var _index: String.Index
+    internal var _ropeIndex: Rope.Index
+    internal var _chunkIndex: String.Index
     internal var _next: String.Index
 
     internal init(_ string: _BString) {
       self._base = string
-      self._i = string.rope.startIndex
+      self._ropeIndex = string.rope.startIndex
+      string.rope.ensureLeaf(in: &_ropeIndex)
+
       self._utf8BaseOffset = 0
-      guard _i < string.rope.endIndex else {
-        _index = "".startIndex
+      guard _ropeIndex < string.rope.endIndex else {
+        _chunkIndex = "".startIndex
         _next = "".endIndex
         return
       }
-      let chunk = _base.rope[_i]
+      let chunk = _base.rope[_ropeIndex]
       assert(chunk.firstBreak == chunk.string.startIndex)
-      self._index = chunk.firstBreak
-      self._next = chunk.string[_index...].index(after: _index)
+      self._chunkIndex = chunk.firstBreak
+      self._next = chunk.string[_chunkIndex...].index(after: _chunkIndex)
     }
 
     internal init(
@@ -178,16 +179,16 @@ extension _BString {
       self._utf8BaseOffset = start._utf8Offset
 
       if start == string.endIndex {
-        self._i = string.rope.endIndex
-        self._index = "".startIndex
+        self._ropeIndex = string.rope.endIndex
+        self._chunkIndex = "".startIndex
         self._next = "".endIndex
         return
       }
       let i = string.resolve(start, preferEnd: false)
-      self._i = i._rope!
+      self._ropeIndex = i._rope!
       self._utf8BaseOffset = i._utf8BaseOffset
-      self._index = i._chunkIndex
-      self._next = _base.rope[_i].wholeCharacters.index(after: _index)
+      self._chunkIndex = i._chunkIndex
+      self._next = _base.rope[_ropeIndex].wholeCharacters.index(after: _chunkIndex)
     }
   }
 
@@ -205,20 +206,20 @@ extension _BString.CharacterIterator: IteratorProtocol {
   internal typealias Element = Character
 
   internal var isAtEnd: Bool {
-    _index == _next
+    _chunkIndex == _next
   }
 
   internal var isAtStart: Bool {
-    _i == _base.rope.startIndex && _index._utf8Offset == 0
+    _ropeIndex == _base.rope.startIndex && _chunkIndex._utf8Offset == 0
   }
 
   internal var current: Element {
     assert(!isAtEnd)
-    let chunk = _base.rope[_i]
-    var str = String(chunk.string[_index ..< _next])
+    let chunk = _base.rope[_ropeIndex]
+    var str = String(chunk.string[_chunkIndex ..< _next])
     if _next < chunk.string.endIndex { return Character(str) }
 
-    var i = _base.rope.index(after: _i)
+    var i = _base.rope.index(after: _ropeIndex)
     while i < _base.rope.endIndex {
       let chunk = _base.rope[i]
       let b = chunk.firstBreak
@@ -231,21 +232,21 @@ extension _BString.CharacterIterator: IteratorProtocol {
 
   mutating func stepForward() -> Bool {
     guard !isAtEnd else { return false }
-    let chunk = _base.rope[_i]
+    let chunk = _base.rope[_ropeIndex]
     if _next < chunk.string.endIndex {
-      _index = _next
+      _chunkIndex = _next
       _next = chunk.wholeCharacters.index(after: _next)
       return true
     }
     var baseOffset = _utf8BaseOffset + chunk.utf8Count
-    var i = _base.rope.index(after: _i)
+    var i = _base.rope.index(after: _ropeIndex)
     while i < _base.rope.endIndex {
       let chunk = _base.rope[i]
       let b = chunk.firstBreak
       if b < chunk.string.endIndex {
-        _i = i
+        _ropeIndex = i
         _utf8BaseOffset = baseOffset
-        _index = b
+        _chunkIndex = b
         _next = chunk.string[b...].index(after: b)
         return true
       }
@@ -257,25 +258,25 @@ extension _BString.CharacterIterator: IteratorProtocol {
 
   mutating func stepBackward() -> Bool {
     if !isAtEnd {
-      let chunk = _base.rope[_i]
+      let chunk = _base.rope[_ropeIndex]
       let i = chunk.firstBreak
-      if _index > i {
-        _next = _index
-        _index = chunk.string[i...].index(before: _index)
+      if _chunkIndex > i {
+        _next = _chunkIndex
+        _chunkIndex = chunk.string[i...].index(before: _chunkIndex)
         return true
       }
     }
-    var i = _i
+    var i = _ropeIndex
     var baseOffset = _utf8BaseOffset
     while i > _base.rope.startIndex {
       _base.rope.formIndex(before: &i)
       let chunk = _base.rope[i]
       baseOffset -= chunk.utf8Count
       if chunk.hasBreaks {
-        _i = i
+        _ropeIndex = i
         _utf8BaseOffset = baseOffset
         _next = chunk.string.endIndex
-        _index = chunk.lastBreak
+        _chunkIndex = chunk.lastBreak
         return true
       }
     }
@@ -287,7 +288,7 @@ extension _BString.CharacterIterator: IteratorProtocol {
     guard !isAtEnd else { return nil }
     let item = self.current
     if !stepForward() {
-      _index = _next
+      _chunkIndex = _next
     }
     return item
   }
@@ -297,7 +298,7 @@ extension _BString.CharacterIterator: IteratorProtocol {
 extension _BString.CharacterIterator {
   // The UTF-8 offset of the current position, from the start of the string.
   var utf8Offset: Int {
-    _utf8BaseOffset + _index._utf8Offset
+    _utf8BaseOffset + _chunkIndex._utf8Offset
   }
 
   var index: _BString.Index {
@@ -309,13 +310,13 @@ extension _BString.CharacterIterator {
     assert(!isAtEnd)
     let start = utf8Offset
     var end = _utf8BaseOffset
-    var chunk = _base.rope[_i]
+    var chunk = _base.rope[_ropeIndex]
     if _next < chunk.string.endIndex {
       end += _next._utf8Offset
       return Range(uncheckedBounds: (start, end))
     }
     end += chunk.utf8Count
-    var i = _base.rope.index(after: _i)
+    var i = _base.rope.index(after: _ropeIndex)
     while i < _base.rope.endIndex {
       chunk = _base.rope[i]
       let b = chunk.firstBreak
@@ -333,9 +334,9 @@ extension _BString.CharacterIterator {
     assert(index._rope != nil)
     let ropeIndex = index._rope!
     let chunkIndex = index._chunkIndex
-    if _i < ropeIndex { return true }
-    guard _i == ropeIndex else { return false }
-    return self._index < chunkIndex
+    if _ropeIndex < ropeIndex { return true }
+    guard _ropeIndex == ropeIndex else { return false }
+    return self._chunkIndex < chunkIndex
   }
 }
 
