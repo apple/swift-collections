@@ -29,6 +29,16 @@ extension _Rope {
   }
 }
 
+extension _Rope.Index {
+  static var invalid: Self {
+    Self(version: _RopeVersion(0), path: _RopePath(_value: .max), leaf: nil)
+  }
+
+  var isValid: Bool {
+    _path._value != .max
+  }
+}
+
 extension _Rope.Index: Equatable {
   static func ==(left: Self, right: Self) -> Bool {
     left._path == right._path

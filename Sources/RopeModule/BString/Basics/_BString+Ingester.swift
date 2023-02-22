@@ -17,10 +17,10 @@ extension _BString {
     forInserting input: __owned Substring,
     at index: Index,
     allowForwardPeek: Bool
-  ) -> (ingester: Ingester, start: Path, end: Path) {
+  ) -> Ingester {
     let hint = allowForwardPeek ? input.unicodeScalars.first : nil
-    let r = self._breakState(upTo: index, nextScalarHint: hint)
-    return (Ingester(input, startState: r.state), r.start, r.end)
+    let state = self._breakState(upTo: index, nextScalarHint: hint)
+    return Ingester(input, startState: state)
   }
 }
 

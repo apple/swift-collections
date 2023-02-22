@@ -20,6 +20,10 @@ struct _RopePath<Summary: _RopeSummary> {
   @inline(__always)
   static var _pathBitWidth: Int { 56 }
 
+  init(_value: UInt64) {
+    self._value = _value
+  }
+
   init(height: UInt8) {
     self._value = UInt64(truncatingIfNeeded: height)
     assert((Int(height) + 1) * Summary.nodeSizeBitWidth <= Self._pathBitWidth)

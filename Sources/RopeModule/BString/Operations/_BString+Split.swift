@@ -16,19 +16,26 @@ extension _BString {
   mutating func split(
     at index: Index
   ) -> Builder {
-    let b = rope.builder(splittingAt: index._utf8Offset, in: UTF8Metric())
+    let b = _ropeBuilder(at: index)
     let state = b.breakState()
     let builder = Builder(base: b, prefixEndState: state, suffixStartState: state)
     return builder
   }
-  
-  mutating func _split(
-    at path: Path,
+
+  mutating func split(
+    at index: Index,
     state: _CharacterRecognizer
   ) -> Builder {
-    let b = rope.split(at: path.rope, path.chunk)
+    let b = _ropeBuilder(at: index)
     let builder = Builder(base: b, prefixEndState: state, suffixStartState: state)
     return builder
+  }
+
+  mutating func _ropeBuilder(at index: Index) -> Rope.Builder {
+    if let ri = index._rope, rope.isValid(ri) {
+      return rope.split(at: ri, index._chunkIndex)
+    }
+    return rope.builder(splittingAt: index._utf8Offset, in: UTF8Metric())
   }
 }
 

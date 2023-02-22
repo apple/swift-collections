@@ -14,56 +14,50 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func _breakState(
-    upTo end: Path,
-    in chunk: Chunk,
+    upTo index: Index,
     nextScalarHint: Unicode.Scalar? = nil
-  ) -> (prevBreak: Path, state: _CharacterRecognizer) {
-    guard end.rope > rope.startIndex || end._chunk > 0 else {
-      return (Path(startOf: rope.startIndex), _CharacterRecognizer())
+  ) -> _CharacterRecognizer {
+    assert(index == unicodeScalarIndex(roundingDown: index))
+    guard index > startIndex else {
+      return _CharacterRecognizer()
+    }
+    let index = resolve(index, preferEnd: true)
+    let ropeIndex = index._rope!
+    let chunkIndex = index._chunkIndex
+    let chunk = rope[ropeIndex]
+
+    guard ropeIndex > rope.startIndex || chunkIndex > chunk.string.startIndex else {
+      return _CharacterRecognizer()
     }
 
-    if let next = nextScalarHint, end.chunk > chunk.string.startIndex {
-      let i = chunk.string.unicodeScalars.index(before: end.chunk)
+    if let next = nextScalarHint, chunkIndex > chunk.string.startIndex {
+      let i = chunk.string.unicodeScalars.index(before: chunkIndex)
       let prev = chunk.string.unicodeScalars[i]
       if _CharacterRecognizer.quickBreak(between: prev, and: next) == true {
-        return (end, _CharacterRecognizer())
+        return _CharacterRecognizer()
       }
     }
 
-    if let r = chunk.immediateBreakState(upTo: end.chunk) {
-      return (Path(end.rope, r.prevBreak), r.state)
+    if let r = chunk.immediateBreakState(upTo: chunkIndex) {
+      return r.state
     }
     // Find chunk that includes the start of the character.
-    var i = end.rope
-    while i > rope.startIndex {
-      rope.formIndex(before: &i)
-      if rope[i].hasBreaks { break }
+    var ri = ropeIndex
+    while ri > rope.startIndex {
+      rope.formIndex(before: &ri)
+      if rope[ri].hasBreaks { break }
     }
-    precondition(i < end.rope)
-    let prev = Path(i, rope[i].lastBreak)
+    precondition(ri < ropeIndex)
 
     // Collect grapheme breaking state.
-    var state = _CharacterRecognizer(partialCharacter: rope[i].suffix)
-    rope.formIndex(after: &i)
-    while i < end.rope {
-      state.consumePartialCharacter(rope[i].string[...])
-      rope.formIndex(after: &i)
+    var state = _CharacterRecognizer(partialCharacter: rope[ri].suffix)
+    rope.formIndex(after: &ri)
+    while ri < ropeIndex {
+      state.consumePartialCharacter(rope[ri].string[...])
+      rope.formIndex(after: &ri)
     }
-    state.consumePartialCharacter(rope[end.rope].string[..<end.chunk])
-    return (prev, state)
-  }
-
-  func _breakState(
-    upTo index: Index,
-    nextScalarHint: Unicode.Scalar? = nil
-  ) -> (start: Path, end: Path, state: _CharacterRecognizer) {
-    guard index > startIndex else {
-      let dummy = Path(startOf: rope.startIndex)
-      return (dummy, dummy, _CharacterRecognizer())
-    }
-    let end = path(to: index, preferEnd: true)
-    let r = _breakState(upTo: end.path, in: end.chunk, nextScalarHint: nextScalarHint)
-    return (r.prevBreak, end.path, r.state)
+    state.consumePartialCharacter(chunk.string[..<chunkIndex])
+    return state
   }
 }
 
@@ -76,19 +70,21 @@ extension _BString {
     startingAt index: Index,
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> Path? {
+  ) -> (ropeIndex: Rope.Index, chunkIndex: String.Index)? {
     guard index < endIndex else { return nil }
-    let p = path(to: index, preferEnd: false).path
-    var path = (rope: p.rope, chunk: p.chunk)
-
-    let end = rope.mutatingForEach(from: &path.rope) { chunk in
-      let start = path.chunk
-      path.chunk = "".startIndex
-      return chunk.resyncBreaks(startingAt: start, old: &old, new: &new)
+    let i = resolve(index, preferEnd: false)
+    var ropeIndex = i._rope!
+    var chunkIndex = i._chunkIndex
+    let end = rope.mutatingForEach(from: &ropeIndex) { chunk in
+      let start = chunkIndex
+      chunkIndex = String.Index(_utf8Offset: 0)
+      if let i = chunk.resyncBreaks(startingAt: start, old: &old, new: &new) {
+        return i
+      }
+      return nil
     }
     guard let end else { return nil }
-    path.chunk = end
-    return Path(path.rope, path.chunk)
+    return (ropeIndex, end)
   }
 
   mutating func resyncBreaksToEnd(
@@ -97,7 +93,7 @@ extension _BString {
     new: inout _CharacterRecognizer
   ) {
     guard let _ = resyncBreaks(startingAt: index, old: &old, new: &new) else { return }
-    let state = _breakState(upTo: endIndex).state
+    let state = _breakState(upTo: endIndex)
     old = state
     new = state
   }
@@ -109,40 +105,35 @@ extension _BString.Rope {
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
   ) -> Bool {
-    var index = startIndex
-    let r = self.mutatingForEach(from: &index) {
-      $0.resyncBreaksFromStart(old: &old, new: &new)
-    }
-    return r != nil
+    _resyncBreaks(old: &old, new: &new) != nil
   }
 
   mutating func _resyncBreaks(
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> (path: Index, String.Index)? {
-    var index = startIndex
-    let r = self.mutatingForEach(from: &index) {
+  ) -> (ropeIndex: Index, chunkIndex: String.Index)? {
+    var ropeIndex = startIndex
+    let chunkIndex = self.mutatingForEach(from: &ropeIndex) {
       $0.resyncBreaksFromStart(old: &old, new: &new)
     }
-    guard let r else { return nil }
-    return (index, r)
+    guard let chunkIndex else { return nil }
+    return (ropeIndex, chunkIndex)
   }
 
   mutating func resyncBreaksToEnd(
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
   ) {
-    guard let (index, stringIndex) = _resyncBreaks(old: &old, new: &new) else { return }
+    guard let (ropeIndex, chunkIndex) = _resyncBreaks(old: &old, new: &new) else { return }
 
     let chars = self.summary.characters
     if chars > 0 {
       var i = endIndex
-      while i > startIndex {
+      while i > ropeIndex {
         formIndex(before: &i)
         if self[i].hasBreaks { break }
-        if i == index { break }
       }
-      if i > index || self[i].lastBreak > stringIndex {
+      if i > ropeIndex || self[i].lastBreak > chunkIndex {
         new = self[i].immediateLastBreakState!
         formIndex(after: &i)
         while i < endIndex {
@@ -154,13 +145,13 @@ extension _BString.Rope {
       }
     }
 
-    var i = index
-    let suffix = self[i].string.unicodeScalars[stringIndex...].dropFirst()
+    var ri = ropeIndex
+    let suffix = self[ri].string.unicodeScalars[chunkIndex...].dropFirst()
     new.consumePartialCharacter(suffix)
-    formIndex(after: &i)
-    while i < endIndex {
-      new.consumePartialCharacter(self[i].string[...])
-      formIndex(after: &i)
+    formIndex(after: &ri)
+    while ri < endIndex {
+      new.consumePartialCharacter(self[ri].string[...])
+      formIndex(after: &ri)
     }
     old = new
   }

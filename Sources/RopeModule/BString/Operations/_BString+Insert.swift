@@ -35,23 +35,27 @@ extension _BString {
     // Note: we must disable the forward peeking optimization as we'll need to know the actual
     // full grapheme breaking state of the ingester at the start of the insertion.
     // (We'll use it to resync grapheme breaks in the parts that follow the insertion.)
-    var (ingester, _, path) = ingester(forInserting: other, at: index, allowForwardPeek: false)
-    let i = path.chunk
-    let r = rope.update(at: &path.rope) { $0.insert(from: &ingester, at: i) }
+    let index = self.resolve(index, preferEnd: true)
+    var ingester = ingester(forInserting: other, at: index, allowForwardPeek: false)
+    var ri = index._rope!
+    var ci = index._chunkIndex
+    let r = rope.update(at: &ri) { $0.insert(from: &ingester, at: ci) }
     switch r {
     case let .inline(r):
       assert(ingester.isAtEnd)
       guard var r = r else { break }
-      let i = index._advanceUTF8(by: r.increment)
+      ci = String.Index(_utf8Offset: ci._utf8Offset + r.increment)
+      let i = Index(baseUTF8Offset: index._utf8BaseOffset, rope: ri, chunk: ci)
       resyncBreaks(startingAt: i, old: &r.old, new: &r.new)
     case let .split(spawn: spawn, endStates: r):
       assert(ingester.isAtEnd)
-      rope.insert(spawn, at: rope.index(after: path.rope))
+      rope.formIndex(after: &ri)
+      rope.insert(spawn, at: ri)
       guard var r = r else { break }
-      let i = index._advanceUTF8(by: r.increment)
+      let i = Index(_utf8Offset: index._utf8Offset + r.increment, rope: ri, chunkOffset: spawn.utf8Count)
       resyncBreaks(startingAt: i, old: &r.old, new: &r.new)
     case .large:
-      var builder = self._split(at: path, state: ingester.state)
+      var builder = self.split(at: index, state: ingester.state)
       builder.append(from: &ingester)
       self = builder.finalize()
     }

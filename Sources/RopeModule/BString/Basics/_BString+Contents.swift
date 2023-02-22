@@ -66,15 +66,24 @@ extension _BString {
     precondition(start <= endIndex && end <= endIndex, "Invalid index")
     guard start != end else { return 0 }
     assert(!isEmpty)
-    let a = path(to: Swift.min(start, end), preferEnd: false)
-    let b = path(to: Swift.max(start, end), preferEnd: true)
-    if a.path.rope == b.path.rope {
-      return metric.distance(from: a.path.chunk, to: b.path.chunk, in: a.chunk)
-    }
+    let a = resolve(Swift.min(start, end), preferEnd: false)
+    let b = resolve(Swift.max(start, end), preferEnd: true)
     var d = 0
-    d += rope.distance(from: a.path.rope, to: b.path.rope, in: metric)
-    d -= metric.distance(from: a.chunk.string.startIndex, to: a.path.chunk, in: a.chunk)
-    d += metric.distance(from: b.chunk.string.startIndex, to: b.path.chunk, in: b.chunk)
+
+    let ropeIndexA = a._rope!
+    let ropeIndexB = b._rope!
+    let chunkIndexA = a._chunkIndex
+    let chunkIndexB = b._chunkIndex
+
+    if ropeIndexA == ropeIndexB {
+      d = metric.distance(from: chunkIndexA, to: chunkIndexB, in: rope[ropeIndexA])
+    } else {
+      let chunkA = rope[ropeIndexA]
+      let chunkB = rope[ropeIndexB]
+      d += rope.distance(from: ropeIndexA, to: ropeIndexB, in: metric)
+      d -= metric.distance(from: chunkA.string.startIndex, to: chunkIndexA, in: chunkA)
+      d += metric.distance(from: chunkB.string.startIndex, to: chunkIndexB, in: chunkB)
+    }
     return start <= end ? d : -d
   }
   
@@ -139,70 +148,45 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  func _path(
-    _ i: Index,
-    offsetBy distance: Int,
-    in metric: some _StringMetric
-  ) -> (path: Path, chunk: Chunk) {
-    var (path, chunk) = path(to: i, preferEnd: false)
-    var d = distance
-    let r = metric.formIndex(&path.chunk, offsetBy: &d, in: chunk)
-    if r.found {
-      return (path, chunk)
-    }
-    
-    if r.forward {
-      assert(distance >= 0)
-      assert(path.chunk == chunk.string.endIndex)
-      d += metric.nonnegativeSize(of: chunk.summary)
-      rope.formIndex(&path.rope, offsetBy: &d, in: metric, preferEnd: false)
-      precondition(path.rope < rope.endIndex)
-      chunk = rope[path.rope]
-      path.chunk = metric.index(at: d, in: chunk)
-      return (path, chunk)
-    }
-    
-    assert(distance <= 0)
-    assert(path.chunk == chunk.string.startIndex)
-    rope.formIndex(&path.rope, offsetBy: &d, in: metric, preferEnd: false)
-    chunk = rope[path.rope]
-    path.chunk = metric.index(at: d, in: chunk)
-    return (path, chunk)
-  }
-  
   func index(
     _ i: Index,
     offsetBy distance: Int,
     in metric: some _StringMetric
   ) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
-    var (path, chunk) = path(to: i, preferEnd: i == endIndex || distance < 0)
-    let base = baseIndex(with: i, at: path.chunk)
+    let i = resolve(i, preferEnd: i == endIndex || distance < 0)
+    var ri = i._rope!
+    var ci = i._chunkIndex
     var d = distance
-    let r = metric.formIndex(&path.chunk, offsetBy: &d, in: chunk)
+    var chunk = rope[ri]
+    let r = metric.formIndex(&ci, offsetBy: &d, in: chunk)
     if r.found {
-      return index(base: base, offsetBy: path.chunk)
+      return Index(baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: ci)
     }
-    
+
     if r.forward {
       assert(distance >= 0)
-      assert(path.chunk == chunk.string.endIndex)
+      assert(ci == chunk.string.endIndex)
       d += metric.nonnegativeSize(of: chunk.summary)
-      rope.formIndex(&path.rope, offsetBy: &d, in: metric, preferEnd: false)
-      if path.rope == rope.endIndex {
-        return Index(_utf8Offset: self.utf8Count)
+      let start = ri
+      rope.formIndex(&ri, offsetBy: &d, in: metric, preferEnd: false)
+      if ri == rope.endIndex {
+        return endIndex
       }
-      chunk = rope[path.rope]
-      path.chunk = metric.index(at: d, in: chunk)
-      return index(of: path)
+      chunk = rope[ri]
+      ci = metric.index(at: d, in: chunk)
+      let base = i._utf8BaseOffset + rope.distance(from: start, to: ri, in: UTF8Metric())
+      return Index(baseUTF8Offset: base, rope: ri, chunk: ci)
     }
-    
+
     assert(distance <= 0)
-    assert(path.chunk == chunk.string.startIndex)
-    rope.formIndex(&path.rope, offsetBy: &d, in: metric, preferEnd: false)
-    chunk = rope[path.rope]
-    path.chunk = metric.index(at: d, in: chunk)
-    return index(of: path)
+    assert(ci == chunk.string.startIndex)
+    let start = ri
+    rope.formIndex(&ri, offsetBy: &d, in: metric, preferEnd: false)
+    chunk = rope[ri]
+    ci = metric.index(at: d, in: chunk)
+    let base = i._utf8BaseOffset + rope.distance(from: start, to: ri, in: UTF8Metric())
+    return Index(baseUTF8Offset: base, rope: ri, chunk: ci)
   }
   
   func characterIndex(_ i: Index, offsetBy distance: Int) -> Index {
@@ -271,51 +255,57 @@ extension _BString {
   func characterIndex(roundingDown i: Index) -> Index {
     let offset = i._utf8Offset
     precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
-    guard offset > 0, offset < utf8Count else { return Index(_utf8Offset: offset) }
+    guard offset > 0 else { return resolve(i, preferEnd: false) }
+    guard offset < utf8Count else { return resolve(i, preferEnd: true) }
 
-    var (path, chunk) = path(to: i, preferEnd: true)
-    var base = baseIndex(with: i, at: path.chunk)
+    let i = resolve(i, preferEnd: true)
+    var ri = i._rope!
+    let ci = i._chunkIndex
+    var chunk = rope[ri]
     if chunk.hasBreaks {
       let first = chunk.firstBreak
       let last = chunk.lastBreak
-      if path.chunk == first || path.chunk == last {
-        return i
+      if ci == first || ci == last { return i }
+      if ci > last {
+        return Index(baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: last)
       }
-      if path.chunk > chunk.lastBreak {
-        return base._advanceUTF8(by: chunk.string._utf8Offset(of: chunk.lastBreak))
-      }
-      if path.chunk > chunk.firstBreak {
-        let j = chunk.string._index(roundingDown: path.chunk)
-        return base._advanceUTF8(by: chunk.string._utf8Offset(of: j))
+      if ci > first {
+        let j = chunk.wholeCharacters._index(roundingDown: ci)
+        return Index(baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: j)
       }
     }
 
-    var i = path.rope
-    while i > self.rope.startIndex {
-      self.rope.formIndex(before: &i)
-      chunk = self.rope[i]
-      base = base._advanceUTF8(by: -chunk.utf8Count)
+    var baseOffset = i._utf8BaseOffset
+    while ri > self.rope.startIndex {
+      self.rope.formIndex(before: &ri)
+      chunk = self.rope[ri]
+      baseOffset -= chunk.utf8Count
       if chunk.hasBreaks { break }
     }
-    return base._advanceUTF8(by: chunk.lastBreak._utf8Offset)
+    return Index(baseUTF8Offset: baseOffset, rope: ri, chunk: chunk.lastBreak)
   }
 
   func unicodeScalarIndex(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
-    guard i > startIndex, i < endIndex else { return Index(_utf8Offset: i._utf8Offset) }
-    let (path, chunk) = path(to: i, preferEnd: true)
-    let j = chunk.string.unicodeScalars._index(roundingDown: path.chunk)
-    return i._advanceUTF8(by: j._utf8Offset - path.chunk._utf8Offset)
+    guard i > startIndex else { return resolve(i, preferEnd: false) }
+    guard i < endIndex else { return endIndex }
+
+    let start = self.resolve(i, preferEnd: false)
+    let ri = start._rope!
+    let chunk = self.rope[ri]
+    let ci = chunk.string.unicodeScalars._index(roundingDown: start._chunkIndex)
+    return Index(baseUTF8Offset: start._utf8BaseOffset, rope: ri, chunk: ci)
   }
 
   func utf8Index(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
-    // Clear any UTF-16 offset
-    return Index(_utf8Offset: i._utf8Offset)
+    var r = i
+    r._clearUTF16TrailingSurrogate()
+    return r
   }
 
   func utf16Index(roundingDown i: Index) -> Index {
-    if i._utf16Delta > 0 {
+    if i._isUTF16TrailingSurrogate {
       precondition(i <= endIndex, "Index out of bounds")
       return i
     }
@@ -325,83 +315,80 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  func _character(
-    at start: Path, base: Index?, in chunk: Chunk
-  ) -> (character: Character, end: Path, base: Index?) {
-    let offset = chunk.string._utf8Offset(of: start.chunk)
-    let c = chunk.string[start.chunk]
-    let d = c.utf8.count
-    if offset + d < chunk.utf8Count {
-      return (
-        character: c,
-        end: Path(start.rope, chunk.string._utf8Index(at: offset + d)),
-        base: base)
+  func _character(at start: Index) -> (character: Character, end: Index) {
+    precondition(start._utf8Offset < utf8Count, "Index out of bounds")
+    let start = resolve(start, preferEnd: false)
+    var ri = start._rope!
+    var ci = start._chunkIndex
+    var chunk = rope[ri]
+    let char = chunk.string[ci]
+    let endOffset = start._utf8ChunkOffset + char.utf8.count
+    if endOffset < chunk.utf8Count {
+      let endIndex = chunk.string._utf8Index(at: endOffset)
+      return (char, Index(baseUTF8Offset: start._utf8BaseOffset, rope: ri, chunk: endIndex))
     }
-    var s = String(c)
-    var base = base
-    var i = start.rope
-    var j = start.chunk
+    var s = String(char)
+    var base = start._utf8BaseOffset + chunk.utf8Count
     while true {
-      base = base?._advanceUTF8(by: rope[i].utf8Count)
-      rope.formIndex(after: &i)
-      guard i < rope.endIndex else {
-        j = "".endIndex
+      rope.formIndex(after: &ri)
+      guard ri < rope.endIndex else {
+        ci = "".endIndex
         break
       }
-      let chunk = rope[i]
+      chunk = rope[ri]
       s.append(contentsOf: chunk.prefix)
       if chunk.hasBreaks {
-        j = rope[i].firstBreak
+        ci = chunk.firstBreak
         break
       }
+      base += chunk.utf8Count
     }
-    return (Character(s), Path(i, j), base)
+    return (Character(s), Index(baseUTF8Offset: base, rope: ri, chunk: ci))
   }
 
   subscript(utf8 index: Index) -> UInt8 {
     precondition(index < endIndex, "Index out of bounds")
-    let (path, chunk) = path(to: index, preferEnd: false)
-    return chunk.string.utf8[path.chunk]
+    let index = resolve(index, preferEnd: false)
+    return rope[index._rope!].string.utf8[index._chunkIndex]
   }
 
   subscript(utf8 offset: Int) -> UInt8 {
-    let (path, chunk) = _path(startIndex, offsetBy: offset, in: UTF8Metric())
-    return chunk.string.utf8[path.chunk]
+    precondition(offset >= 0 && offset < utf8Count, "Offset out of bounds")
+    let index = utf8Index(at: offset)
+    return self[utf8: index]
   }
 
   subscript(utf16 index: Index) -> UInt16 {
     precondition(index < endIndex, "Index out of bounds")
-    let (path, chunk) = path(to: index, preferEnd: false)
-    return chunk.string.utf16[path.chunk]
+    let index = resolve(index, preferEnd: false)
+    return rope[index._rope!].string.utf16[index._chunkIndex]
   }
 
   subscript(utf16 offset: Int) -> UInt16 {
-    let (path, chunk) = _path(startIndex, offsetBy: offset, in: UTF16Metric())
-    return chunk.string.utf16[path.chunk]
+    precondition(offset >= 0 && offset < utf16Count, "Offset out of bounds")
+    let index = utf16Index(at: offset)
+    return self[utf16: index]
   }
 
   subscript(character index: Index) -> Character {
-    precondition(index < endIndex, "Index out of bounds")
-    let (path, chunk) = path(to: index, preferEnd: false)
-    let base = baseIndex(with: index, at: path.chunk)
-    return _character(at: path, base: base, in: chunk).character
+    _character(at: index).character
   }
 
   subscript(character offset: Int) -> Character {
-    let (path, chunk) = _path(startIndex, offsetBy: offset, in: CharacterMetric())
-    return _character(at: path, base: nil, in: chunk).character
+    precondition(offset >= 0 && offset < utf8Count, "Offset out of bounds")
+    return _character(at: Index(_utf8Offset: offset)).character
   }
 
   subscript(unicodeScalar index: Index) -> Unicode.Scalar {
     precondition(index < endIndex, "Index out of bounds")
-    let (path, chunk) = path(to: index, preferEnd: false)
-    return chunk.string.unicodeScalars[path.chunk]
+    let index = resolve(index, preferEnd: false)
+    return rope[index._rope!].string.unicodeScalars[index._chunkIndex]
   }
 
   subscript(unicodeScalar offset: Int) -> Unicode.Scalar {
     precondition(offset >= 0 && offset < unicodeScalarCount, "Offset out of bounds")
-    let (path, chunk) = _path(startIndex, offsetBy: offset, in: UnicodeScalarMetric())
-    return chunk.string.unicodeScalars[path.chunk]
+    let index = unicodeScalarIndex(at: offset)
+    return self[unicodeScalar: index]
   }
 }
 

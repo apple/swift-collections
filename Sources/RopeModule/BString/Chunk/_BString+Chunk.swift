@@ -15,7 +15,6 @@
 extension _BString {
   struct Chunk {
     typealias Slice = (string: Substring, characters: Int, prefix: Int, suffix: Int)
-    typealias Path = _BString.Path
     
     var string: String
     var counts: Counts

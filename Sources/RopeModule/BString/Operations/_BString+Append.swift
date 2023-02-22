@@ -27,7 +27,7 @@ extension _BString {
       self = Self(other)
       return
     }
-    var ingester = ingester(forInserting: other, at: endIndex, allowForwardPeek: true).ingester
+    var ingester = ingester(forInserting: other, at: endIndex, allowForwardPeek: true)
     
     let last = rope.index(before: rope.endIndex)
     if let final = rope[last].append(from: &ingester) {
@@ -66,7 +66,7 @@ extension _BString {
     let hint = other._firstUnicodeScalar
     var other = other.rope    
     var old = _CharacterRecognizer()
-    var new = self._breakState(upTo: endIndex, nextScalarHint: hint).state
+    var new = self._breakState(upTo: endIndex, nextScalarHint: hint)
     _ = other.resyncBreaks(old: &old, new: &new)
     _append(other)
   }
@@ -81,7 +81,7 @@ extension _BString {
     var other = _BString(other, in: range)
     let hint = other._firstUnicodeScalar
     var old = _CharacterRecognizer()
-    var new = self._breakState(upTo: endIndex, nextScalarHint: hint).state
+    var new = self._breakState(upTo: endIndex, nextScalarHint: hint)
     _ = other.rope.resyncBreaks(old: &old, new: &new)
     _append(other.rope)
   }
@@ -94,9 +94,8 @@ extension _BString {
     }
     let hint = self._firstUnicodeScalar
     var old = _CharacterRecognizer()
-    var new = other._breakState(upTo: other.endIndex, nextScalarHint: hint).state
+    var new = other._breakState(upTo: other.endIndex, nextScalarHint: hint)
     _ = self.rope.resyncBreaks(old: &old, new: &new)
-
     _prepend(other.rope)
   }
 
@@ -109,7 +108,7 @@ extension _BString {
     }
     let hint = self._firstUnicodeScalar
     var old = _CharacterRecognizer()
-    var new = extract._breakState(upTo: extract.endIndex, nextScalarHint: hint).state
+    var new = extract._breakState(upTo: extract.endIndex, nextScalarHint: hint)
     _ = self.rope.resyncBreaks(old: &old, new: &new)
     _prepend(extract.rope)
   }

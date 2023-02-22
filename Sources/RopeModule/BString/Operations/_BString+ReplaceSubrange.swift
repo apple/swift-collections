@@ -64,8 +64,8 @@ extension _BString {
 
     // FIXME: Don't split the indices twice -- they are currently split once here and once in the
     // builder initializer below.
-    let startState = _breakState(upTo: range.lowerBound).state
-    let endState = _breakState(upTo: range.upperBound).state
+    let startState = _breakState(upTo: range.lowerBound)
+    let endState = _breakState(upTo: range.upperBound)
 
     let b = rope.builder(removing: lower ..< upper, in: UTF8Metric())
     return Builder(base: b, prefixEndState: startState, suffixStartState: endState)

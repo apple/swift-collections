@@ -56,12 +56,12 @@ extension _BString {
 
     // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
     var it1 = left.makeCharacterIterator(from: leftRange.lowerBound)
-    var it2 = right.makeCharacterIterator(from: rightRange.upperBound)
+    var it2 = right.makeCharacterIterator(from: rightRange.lowerBound)
 
     if leftRange._isEmptyUTF8 { return rightRange._isEmptyUTF8 }
 
-    let leftEnd = left.path(to: leftRange.upperBound, preferEnd: true).path
-    let rightEnd = right.path(to: rightRange.upperBound, preferEnd: true).path
+    let leftEnd = left.resolve(leftRange.upperBound, preferEnd: true)
+    let rightEnd = right.resolve(rightRange.upperBound, preferEnd: true)
 
     var a: Character? = nil
     var b: Character? = nil
@@ -81,8 +81,7 @@ extension _BString {
     // split up on random Character boundaries -- Unicode does not promise that
     // norm(a + c) == norm(a) + norm(b) in this case.
     // To do this properly, we'll probably need to expose new stdlib entry points. :-/
-    if self.isIdentical(to: other) { return true }
-    guard self.characterCount == other.characterCount else { return false }
+    if self.isIdentical(to: other) { return false }
     // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
     var it1 = self.makeCharacterIterator()
     var it2 = other.makeCharacterIterator()

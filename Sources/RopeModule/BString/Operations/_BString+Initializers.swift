@@ -58,7 +58,7 @@ extension _BString {
       from: range.lowerBound._utf8Offset,
       to: range.upperBound._utf8Offset,
       in: UTF8Metric())
-    var old = other._breakState(upTo: range.lowerBound).state
+    var old = other._breakState(upTo: range.lowerBound)
     var new = _CharacterRecognizer()
     _ = self.rope.resyncBreaks(old: &old, new: &new)
   }
@@ -72,7 +72,7 @@ extension _BString {
       from: range.lowerBound._utf8Offset,
       to: range.upperBound._utf8Offset,
       in: UTF8Metric())
-    var old = other._breakState(upTo: range.lowerBound).state
+    var old = other._breakState(upTo: range.lowerBound)
     var new = state
     self.rope.resyncBreaksToEnd(old: &old, new: &new)
   }
@@ -98,32 +98,32 @@ extension String {
   
   internal init(_from big: _BString, in range: Range<_BString.Index>) {
     self.init()
-    let estimatedUTF8Size = range.upperBound._utf8Offset - range.lowerBound._utf8Offset
-    guard estimatedUTF8Size > 0 else {
-      // We can safely ignore UTF-16 offsets, as we're rounding down to scalar boundaries
-      // anyway.
+
+    var start = big.unicodeScalarIndex(roundingDown: range.lowerBound)
+    start = big.resolve(start, preferEnd: false)
+
+    var end = big.unicodeScalarIndex(roundingDown: range.upperBound)
+    end = big.resolve(end, preferEnd: true)
+
+    let utf8Capacity = end._utf8Offset - start._utf8Offset
+    guard utf8Capacity > 0 else { return }
+
+    self.reserveCapacity(utf8Capacity)
+
+    let startRopeIndex = start._rope!
+    let endRopeIndex = end._rope!
+    if startRopeIndex == endRopeIndex {
+      self += big.rope[startRopeIndex].string[start._chunkIndex ..< end._chunkIndex]
       return
     }
-    // Note: if the range isn't scalar aligned, then this may be slightly under- or overestimating
-    // the actual size of the result. (Underestimations can be problematic due to String's
-    // exponential resizing. If those become an issue, consider adding +3 here.)
-    self.reserveCapacity(estimatedUTF8Size)
 
-    let start = big.path(to: range.lowerBound, preferEnd: false)
-    let end = big.path(to: range.upperBound, preferEnd: true)
-    
-    if start.path.rope == end.path.rope {
-      self += start.chunk.string[start.path.chunk ..< end.path.chunk]
-      return
-    }
-
-    self += start.chunk.string[start.path.chunk...]
-    var i = big.rope.index(after: start.path.rope)
-    while i < end.path.rope {
+    self += big.rope[startRopeIndex].string[start._chunkIndex...]
+    var i = big.rope.index(after: startRopeIndex)
+    while i < endRopeIndex {
       self += big.rope[i].string
       big.rope.formIndex(after: &i)
     }
-    self += end.chunk.string[..<end.path.chunk]
+    self += big.rope[endRopeIndex].string[..<end._chunkIndex]
   }
 }
 

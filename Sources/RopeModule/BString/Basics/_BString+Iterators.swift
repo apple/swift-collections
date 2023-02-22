@@ -119,10 +119,12 @@ extension _BString {
   }
 
   internal func makeUnicodeScalarIterator(from index: Index) -> UnicodeScalarIterator {
-    let (path, chunk) = self.path(to: index, preferEnd: false)
-    var base = self.rope.makeIterator(from: path.rope)
+    let i = resolve(index, preferEnd: index == endIndex)
+    let ropeIndex = i._rope!
+    let chunkIndex = i._chunkIndex
+    var base = self.rope.makeIterator(from: ropeIndex)
     _ = base.next()
-    return UnicodeScalarIterator(_base: base, chunk, path.chunk)
+    return UnicodeScalarIterator(_base: base, rope[ropeIndex], chunkIndex)
   }
 }
 
@@ -181,11 +183,11 @@ extension _BString {
         self._next = "".endIndex
         return
       }
-      let path = string.path(to: start, preferEnd: false).path
-      self._i = path.rope
-      self._utf8BaseOffset -= path.chunk._utf8Offset
-      self._index = path.chunk
-      self._next = _base.rope[_i].wholeCharacters.index(after: path.chunk)
+      let i = string.resolve(start, preferEnd: false)
+      self._i = i._rope!
+      self._utf8BaseOffset = i._utf8BaseOffset
+      self._index = i._chunkIndex
+      self._next = _base.rope[_i].wholeCharacters.index(after: _index)
     }
   }
 
@@ -327,10 +329,13 @@ extension _BString.CharacterIterator {
     return Range(uncheckedBounds: (start, end))
   }
 
-  func isBelow(_ path: _BString.Path) -> Bool {
-    if _i < path.rope { return true }
-    guard _i == path.rope else { return false }
-    return self._index < path.chunk
+  func isBelow(_ index: _BString.Index) -> Bool {
+    assert(index._rope != nil)
+    let ropeIndex = index._rope!
+    let chunkIndex = index._chunkIndex
+    if _i < ropeIndex { return true }
+    guard _i == ropeIndex else { return false }
+    return self._index < chunkIndex
   }
 }
 

@@ -72,7 +72,14 @@ extension _CharacterRecognizer {
   init(partialCharacter: Substring) {
     self.init(partialCharacter: partialCharacter.unicodeScalars)
   }
-  
+
+  mutating func consumePartialCharacter(_ s: String) {
+    for scalar in s.unicodeScalars {
+      let b = hasBreak(before: scalar)
+      assert(!b)
+    }
+  }
+
   mutating func consumePartialCharacter(_ s: Substring) {
     for scalar in s.unicodeScalars {
       let b = hasBreak(before: scalar)
