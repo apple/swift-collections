@@ -17,7 +17,7 @@ extension _Rope {
   ) -> (index: Index, remaining: Int) {
     let wholeSize = _root == nil ? 0 : metric.size(of: root.summary)
     precondition(position >= 0 && position <= wholeSize, "Position out of bounds")
-    guard preferEnd || position < wholeSize else {
+    guard !isEmpty, preferEnd || position < wholeSize else {
       return (endIndex, position)
     }
     var position = position

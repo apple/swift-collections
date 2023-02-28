@@ -151,7 +151,7 @@ extension _BString {
   func resolve(_ i: Index, preferEnd: Bool) -> Index {
     if var ri = i._rope, rope.isValid(ri) {
       if preferEnd {
-        guard i._utf8ChunkOffset == 0 else { return i }
+        guard i._utf8ChunkOffset == 0, i._utf8Offset > 0 else { return i }
         rope.formIndex(before: &ri)
         let length = rope[ri].utf8Count
         let ci = String.Index(_utf8Offset: length)

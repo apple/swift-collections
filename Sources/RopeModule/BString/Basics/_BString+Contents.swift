@@ -154,6 +154,10 @@ extension _BString {
     in metric: some _StringMetric
   ) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
+    if isEmpty {
+      precondition(distance == 0, "Index out of bounds")
+      return startIndex
+    }
     let i = resolve(i, preferEnd: i == endIndex || distance < 0)
     var ri = i._rope!
     var ci = i._chunkIndex
@@ -265,7 +269,7 @@ extension _BString {
     let i = resolve(i, preferEnd: false)
     let ri = i._rope!
     var ci = i._chunkIndex
-    var chunk = rope[ri]
+    let chunk = rope[ri]
     chunk.string.utf8.formIndex(after: &ci)
     if ci == chunk.string.endIndex {
       return Index(
@@ -360,9 +364,10 @@ extension _BString {
 
   func utf8Index(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
+    guard i < endIndex else { return endIndex }
     var r = i
     r._clearUTF16TrailingSurrogate()
-    return r
+    return resolve(r, preferEnd: false)
   }
 
   func utf16Index(roundingDown i: Index) -> Index {
