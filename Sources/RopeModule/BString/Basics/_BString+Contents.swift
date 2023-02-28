@@ -202,9 +202,47 @@ extension _BString {
   }
   
   func utf8Index(_ i: Index, offsetBy distance: Int) -> Index {
-    let offset = i._utf8Offset + distance
-    precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
-    return Index(_utf8Offset: offset)
+    index(i, offsetBy: distance, in: UTF8Metric())
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  func index(
+    _ i: Index,
+    offsetBy distance: Int,
+    limitedBy limit: Index,
+    in metric: some _StringMetric
+  ) -> Index? {
+    // FIXME: Do we need a direct implementation?
+    if distance >= 0 {
+      if limit >= i {
+        let d = self.distance(from: i, to: limit, in: metric)
+        if d < distance { return nil }
+      }
+    } else {
+      if limit <= i {
+        let d = self.distance(from: i, to: limit, in: metric)
+        if d > distance { return nil }
+      }
+    }
+    return self.index(i, offsetBy: distance, in: metric)
+  }
+
+  func characterIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    index(i, offsetBy: distance, limitedBy: limit, in: CharacterMetric())
+  }
+
+  func unicodeScalarIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    index(i, offsetBy: distance, limitedBy: limit, in: UnicodeScalarMetric())
+  }
+
+  func utf16Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    index(i, offsetBy: distance, limitedBy: limit, in: UTF16Metric())
+  }
+
+  func utf8Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    index(i, offsetBy: distance, limitedBy: limit, in: UTF8Metric())
   }
 }
 
@@ -223,9 +261,19 @@ extension _BString {
   }
   
   func utf8Index(after i: Index) -> Index {
-    let offset = i._utf8Offset + 1
-    precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
-    return Index(_utf8Offset: offset)
+    precondition(i < endIndex, "Can't advance above end index")
+    let i = resolve(i, preferEnd: false)
+    let ri = i._rope!
+    var ci = i._chunkIndex
+    var chunk = rope[ri]
+    chunk.string.utf8.formIndex(after: &ci)
+    if ci == chunk.string.endIndex {
+      return Index(
+        baseUTF8Offset: i._utf8BaseOffset + chunk.utf8Count,
+        rope: rope.index(after: ri),
+        chunk: String.Index(_utf8Offset: 0))
+    }
+    return Index(_utf8Offset: i._utf8Offset + 1, rope: ri, chunkOffset: ci._utf8Offset)
   }
 }
 
@@ -244,9 +292,22 @@ extension _BString {
   }
   
   func utf8Index(before i: Index) -> Index {
-    let offset = i._utf8Offset - 1
-    precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
-    return Index(_utf8Offset: offset)
+    precondition(i > startIndex, "Can't advance below start index")
+    let i = resolve(i, preferEnd: true)
+    var ri = i._rope!
+    let ci = i._chunkIndex
+    if ci._utf8Offset > 0 {
+      return Index(
+        _utf8Offset: i._utf8Offset &- 1,
+        rope: ri,
+        chunkOffset: ci._utf8Offset &- 1)
+    }
+    rope.formIndex(before: &ri)
+    let chunk = rope[ri]
+    return Index(
+      baseUTF8Offset: i._utf8BaseOffset - chunk.utf8Count,
+      rope: ri,
+      chunk: String.Index(_utf8Offset: chunk.utf8Count - 1))
   }
 }
 
@@ -310,6 +371,37 @@ extension _BString {
       return i
     }
     return unicodeScalarIndex(roundingDown: i)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  func characterIndex(roundingUp i: Index) -> Index {
+    let j = characterIndex(roundingDown: i)
+    if i == j { return j }
+    return characterIndex(after: j)
+  }
+
+  func unicodeScalarIndex(roundingUp i: Index) -> Index {
+    let j = unicodeScalarIndex(roundingDown: i)
+    if i == j { return j }
+    return unicodeScalarIndex(after: j)
+  }
+
+  func utf8Index(roundingUp i: Index) -> Index {
+    // Note: this orders UTF-16 trailing surrogate indices in between the first and second byte
+    // of the UTF-8 encoding.
+    let j = utf8Index(roundingDown: i)
+    if i == j { return j }
+    return utf8Index(after: j)
+  }
+
+  func utf16Index(roundingUp i: Index) -> Index {
+    // Note: if `i` addresses some byte in the middle of a non-BMP scalar then the result will
+    // point to the trailing surrogate.
+    let j = utf16Index(roundingDown: i)
+    if i == j { return j }
+    return utf16Index(after: j)
   }
 }
 

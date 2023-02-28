@@ -38,18 +38,25 @@ extension _BString.ChunkIterator: IteratorProtocol {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct UTF8Iterator {
-    internal var _rope: Rope.Iterator
-    internal var _chunk: String.UTF8View.Iterator
-
-    internal init(_base: Rope.Iterator) {
-      self._rope = _base
-      let str = self._rope.next()?.string ?? ""
-      self._chunk = str.utf8.makeIterator()
+    internal let _base: _BString
+    internal var _index: _BString.Index
+    
+    internal init(_base: _BString, from index: _BString.Index) {
+      self._base = _base
+      if index < _base.endIndex {
+        self._index = _base.resolve(index, preferEnd: false)
+      } else {
+        self._index = index
+      }
     }
   }
-
+  
   internal func makeUTF8Iterator() -> UTF8Iterator {
-    UTF8Iterator(_base: self.rope.makeIterator())
+    UTF8Iterator(_base: self, from: self.startIndex)
+  }
+
+  internal func makeUTF8Iterator(from index: Index) -> UTF8Iterator {
+    UTF8Iterator(_base: self, from: index)
   }
 }
 
@@ -58,12 +65,56 @@ extension _BString.UTF8Iterator: IteratorProtocol {
   internal typealias Element = UInt8
 
   internal mutating func next() -> UInt8? {
-    if let codeUnit = _chunk.next() {
-      return codeUnit
+    guard _index < _base.endIndex else { return nil }
+    // Hand-optimized from `_base.subscript(utf8:)` and `_base.utf8Index(after:)`.
+    var ri = _index._rope!
+    var ci = _index._chunkIndex
+    let chunk = _base.rope[ri]
+    let result = chunk.string.utf8[ci]
+
+    chunk.string.utf8.formIndex(after: &ci)
+    if ci < chunk.string.endIndex {
+      _index = _BString.Index(baseUTF8Offset: _index._utf8BaseOffset, rope: ri, chunk: ci)
+    } else {
+      _index = _BString.Index(
+        baseUTF8Offset: _index._utf8BaseOffset + chunk.utf8Count,
+        rope: _base.rope.index(after: ri),
+        chunk: String.Index(_utf8Offset: 0))
     }
-    guard let chunk = _rope.next() else { return nil }
-    _chunk = chunk.string.utf8.makeIterator()
-    return _chunk.next()!
+    return result
+  }
+
+  internal mutating func next<R>(
+    maximumCount: Int,
+    with body: (UnsafeBufferPointer<UInt8>) -> (consumed: Int, result: R)
+  ) -> R {
+    guard _index < _base.endIndex else {
+      let r = body(UnsafeBufferPointer(start: nil, count: 0))
+      precondition(r.consumed == 0)
+      return r.result
+    }
+    var ri = _index._rope!
+    var ci = _index._utf8ChunkOffset
+    var utf8Offset = _index._utf8Offset
+    var string = _base.rope[ri].string
+    let (haveMore, result) = string.withUTF8 { buffer in
+      let slice = buffer[ci...].prefix(maximumCount)
+      assert(!slice.isEmpty)
+      let (consumed, result) = body(UnsafeBufferPointer(rebasing: slice))
+      precondition(consumed >= 0 && consumed <= slice.count)
+      utf8Offset += consumed
+      ci += consumed
+      return (ci < buffer.count, result)
+    }
+    if haveMore {
+      _index = _BString.Index(_utf8Offset: utf8Offset, rope: ri, chunkOffset: ci)
+    } else {
+      _index = _BString.Index(
+        baseUTF8Offset: _index._utf8BaseOffset + string.utf8.count,
+        rope: _base.rope.index(after: ri),
+        chunk: String.Index(_utf8Offset: 0))
+    }
+    return result
   }
 }
 
@@ -280,7 +331,6 @@ extension _BString.CharacterIterator: IteratorProtocol {
         return true
       }
     }
-    assert(_base.rope.isEmpty)
     return false
   }
 
@@ -302,7 +352,27 @@ extension _BString.CharacterIterator {
   }
 
   var index: _BString.Index {
-    _BString.Index(_utf8Offset: utf8Offset)
+    _BString.Index(baseUTF8Offset: _utf8BaseOffset, rope: _ropeIndex, chunk: _chunkIndex)
+  }
+
+  internal var nextIndex: _BString.Index {
+    assert(!isAtEnd)
+    let chunk = _base.rope[_ropeIndex]
+    if _next < chunk.string.endIndex {
+      return _BString.Index(baseUTF8Offset: _utf8BaseOffset, rope: _ropeIndex, chunk: _next)
+    }
+    var i = _base.rope.index(after: _ropeIndex)
+    var base = _utf8BaseOffset
+    while i < _base.rope.endIndex {
+      let chunk = _base.rope[i]
+      let b = chunk.firstBreak
+      if b < chunk.string.endIndex {
+        return _BString.Index(baseUTF8Offset: base, rope: i, chunk: b)
+      }
+      base += chunk.utf8Count
+      _base.rope.formIndex(after: &i)
+    }
+    return _base.endIndex
   }
 
   /// The UTF-8 offset range of the current character, measured from the start of the string.
@@ -330,13 +400,12 @@ extension _BString.CharacterIterator {
     return Range(uncheckedBounds: (start, end))
   }
 
+  func isAbove(_ index: _BString.Index) -> Bool {
+    self.utf8Offset > index._utf8Offset
+  }
+
   func isBelow(_ index: _BString.Index) -> Bool {
-    assert(index._rope != nil)
-    let ropeIndex = index._rope!
-    let chunkIndex = index._chunkIndex
-    if _ropeIndex < ropeIndex { return true }
-    guard _ropeIndex == ropeIndex else { return false }
-    return self._chunkIndex < chunkIndex
+    self.utf8Offset < index._utf8Offset
   }
 }
 

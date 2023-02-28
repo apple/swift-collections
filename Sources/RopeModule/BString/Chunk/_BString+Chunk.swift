@@ -26,6 +26,7 @@ extension _BString {
     
     init(_ string: String, _ counts: Counts) {
       self.string = string
+      self.string.makeContiguousUTF8()
       self.counts = counts
       invariantCheck()
     }
@@ -38,9 +39,9 @@ extension _BString {
     
     init(_ slice: Slice) {
       self.string = String(slice.string)
-      var slice = slice
-      slice.string = self.string[...]
-      self.counts = Counts(slice)
+      self.string.makeContiguousUTF8()
+      self.counts = Counts((self.string[...], slice.characters, slice.prefix, slice.suffix))
+      invariantCheck()
     }
   }
 }

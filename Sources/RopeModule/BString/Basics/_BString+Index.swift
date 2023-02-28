@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  internal struct Index {
+  internal struct Index: Sendable {
     typealias Rope = _BString.Rope
 
     // ┌─────────────────────┬──────────────┬────────────────────┐
@@ -56,7 +56,8 @@ extension _BString.Index {
 
   internal var _chunkIndex: String.Index {
     assert(_rope != nil)
-    return String.Index(_utf8Offset: _utf8ChunkOffset, utf16Delta: _isUTF16TrailingSurrogate ? 1 : 0)
+    return String.Index(
+        _utf8Offset: _utf8ChunkOffset, utf16TrailingSurrogate: _isUTF16TrailingSurrogate)
   }
 
   @inline(__always)
@@ -164,7 +165,8 @@ extension _BString {
 
     let (ri, chunkOffset) = rope.find(
       at: i._utf8Offset, in: UTF8Metric(), preferEnd: preferEnd)
-    let ci = String.Index(_utf8Offset: chunkOffset, utf16Delta: i._isUTF16TrailingSurrogate ? 1 : 0)
+    let ci = String.Index(
+        _utf8Offset: chunkOffset, utf16TrailingSurrogate: i._isUTF16TrailingSurrogate)
     return Index(baseUTF8Offset: i._utf8Offset - ci._utf8Offset, rope: ri, chunk: ci)
   }
 }

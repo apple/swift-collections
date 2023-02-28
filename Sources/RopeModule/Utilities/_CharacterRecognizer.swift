@@ -19,40 +19,27 @@ extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
   ) -> Range<String.Index>? {
-    #if true
-    var str = str
-    let scalarRange = str.withUTF8 { buffer in
+    let r = str.utf8.withContiguousStorageIfAvailable { buffer in
       self._firstBreak(inUncheckedUnsafeUTF8Buffer: buffer)
     }
-    guard let scalarRange else { return nil }
-    let lower = str._utf8Index(at: scalarRange.lowerBound)
-    let upper = str._utf8Index(at: scalarRange.upperBound)
-    return lower ..< upper
-    #else
-    guard !str.isEmpty else { return nil }
-    let c = self.string.utf8.count
-    if c == 0 {
-      // Report a break before the first scalar at start
-      let lower = str.startIndex
-      let upper = str.unicodeScalars.index(after: lower)
-      self.string = String(str.unicodeScalars[lower])
+    if let r {
+      guard let scalarRange = r else { return nil }
+      let lower = str._utf8Index(at: scalarRange.lowerBound)
+      let upper = str._utf8Index(at: scalarRange.upperBound)
       return lower ..< upper
     }
-    
-    self.string += str
-    let i = self.string.index(after: self.string.startIndex)
-    if i == self.string.endIndex { return nil }
-    
-    // Keep first scalar following break; discard everything else.
-    let offset = self.string._utf8Offset(of: i)
-    precondition(offset >= c)
-    self.string = String(self.string.unicodeScalars[i])
-    let scalarWidth = self.string.utf8.count
-    
-    let lower = str._utf8Index(at: offset - c)
-    let upper = str._utf8Index(at: offset - c + scalarWidth)
-    return lower ..< upper
-    #endif
+    guard !str.isEmpty else { return nil }
+
+    var i = str.startIndex
+    while i < str.endIndex {
+      let next = str.unicodeScalars.index(after: i)
+      let scalar = str.unicodeScalars[i]
+      if self.hasBreak(before: scalar) {
+        return i ..< next
+      }
+      i = next
+    }
+    return nil
   }
 }
 

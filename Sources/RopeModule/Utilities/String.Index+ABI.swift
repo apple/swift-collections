@@ -89,9 +89,8 @@ extension String.Index {
     self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | Self._abi_utf8Bit)
   }
   
-  init(_utf8Offset: Int, utf16Delta: Int) {
-    assert(utf16Delta >= 0 && utf16Delta <= 1)
-    let transcodedOffset: UInt64 = (utf16Delta != 0 ? 1 &<< 14 : 0)
+  init(_utf8Offset: Int, utf16TrailingSurrogate: Bool) {
+    let transcodedOffset: UInt64 = (utf16TrailingSurrogate ? 1 &<< 14 : 0)
     self.init(_rawBits: (UInt64(_utf8Offset) &<< 16) | transcodedOffset | Self._abi_utf8Bit)
   }
 }

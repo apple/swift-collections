@@ -103,44 +103,59 @@ extension _BString {
   /// Lexicographically compare the UTF-8 representations of `left` to `right`, returning a Boolean
   /// value indicating whether `left` is equal to `right`.
   internal func utf8IsEqual(to other: Self) -> Bool {
-    guard self.rope.summary == other.rope.summary else { return false }
     if self.isIdentical(to: other) { return true }
+    guard self.rope.summary == other.rope.summary else { return false }
 
     // FIXME: Implement a structural comparison that ignores shared subtrees when possible.
     // This is somewhat tricky as this is only possible to do when the shared subtrees start
     // at the same logical position in both trees. Additionally, the two input trees may not
     // have the same height, even if they are equal.
 
-    var it1 = self.makeChunkIterator()
-    var it2 = other.makeChunkIterator()
-    var s1: Substring = ""
-    var s2: Substring = ""
-    while true {
-      if s1.isEmpty {
-        s1 = it1.next()?[...] ?? ""
-      }
-      if s2.isEmpty {
-        s2 = it2.next()?[...] ?? ""
-      }
-      guard s1.isEmpty == s2.isEmpty else { return false }
-      if s1.isEmpty { break }
-      let c = Swift.min(s1.utf8.count, s2.utf8.count)
-      assert(c > 0)
-      let stop = s1.withUTF8 { b1 in
-        s2.withUTF8 { b2 in
-          for i in 0 ..< c {
-            guard b1[i] == b2[i] else {
-              return true
-            }
-          }
-          return false
+    var it1 = self.makeUTF8Iterator()
+    var it2 = other.makeUTF8Iterator()
+    var remaining = self.utf8Count
+
+    while remaining > 0 {
+      let consumed = it1.next(maximumCount: remaining) { b1 in
+        let consumed = it2.next(maximumCount: b1.count) { b2 in
+          guard b2.elementsEqual(b1.prefix(b2.count)) else { return (0, 0) }
+          return (b2.count, b2.count)
         }
+        return (consumed, consumed)
       }
-      if stop { return false }
-      s1 = s1.suffix(from: s1._utf8Index(at: c))
-      s2 = s2.suffix(from: s2._utf8Index(at: c))
+      guard consumed > 0 else { return false }
+      remaining -= consumed
     }
     return true
+  }
+
+  internal static func utf8IsEqual(
+    _ left: Self,
+    in leftRange: Range<Index>,
+    to right: Self,
+    in rightRange: Range<Index>
+  ) -> Bool {
+    let leftUTF8Count = left.utf8Distance(from: leftRange.lowerBound, to: leftRange.upperBound)
+    let rightUTF8Count = right.utf8Distance(from: rightRange.lowerBound, to: rightRange.upperBound)
+    guard leftUTF8Count == rightUTF8Count else { return false }
+
+    var remaining = leftUTF8Count
+    var it1 = left.makeUTF8Iterator(from: leftRange.lowerBound)
+    var it2 = right.makeUTF8Iterator(from: rightRange.lowerBound)
+
+    while remaining > 0 {
+      let consumed = it1.next(maximumCount: remaining) { b1 in
+        let consumed = it2.next(maximumCount: b1.count) { b2 in
+          guard b2.elementsEqual(b1.prefix(b2.count)) else { return (0, 0) }
+          return (b2.count, b2.count)
+        }
+        return (consumed, consumed)
+      }
+      guard consumed > 0 else { return false }
+      remaining -= consumed
+    }
+    return true
+
   }
 
   /// Lexicographically compare the UTF-8 representations of `left` to `right`, returning a Boolean

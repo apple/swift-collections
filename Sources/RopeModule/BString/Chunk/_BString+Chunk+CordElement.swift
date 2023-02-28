@@ -26,6 +26,7 @@ extension _BString.Chunk: _RopeElement {
 
   func invariantCheck() {
 #if DEBUG
+    precondition(string.endIndex._canBeUTF8)
     let c = utf8Count
     if c == 0 {
       precondition(counts == Counts(), "Non-empty counts")

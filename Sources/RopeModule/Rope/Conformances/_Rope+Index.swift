@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  struct Index {
+  struct Index: @unchecked Sendable {
     typealias Path = _Rope.Path
     typealias Summary = _Rope.Summary
 
