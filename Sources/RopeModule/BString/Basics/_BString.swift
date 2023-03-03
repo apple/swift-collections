@@ -29,7 +29,9 @@ internal struct _BString: Sendable {
 
 #else
 
-@available(*, unavailable, message: "_BString requires Swift 5.8")
+// `_BString` depends on fixes and newly exposed functionality that landed in
+// version 5.8 of the Swift Standard Library.
+@available(*, unavailable, message: "_BString depends on version 5.8 of the Swift Standard Library")
 internal struct _BString: Sendable {}
 
 #endif
