@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Optional {
-  mutating func _take() -> Self {
+  internal mutating func _take() -> Self {
     let r = self
     self = nil
     return r
