@@ -16,6 +16,19 @@ internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _CharacterRecognizer {
+  internal func _isKnownEqual(to other: Self) -> Bool {
+#if swift(>=5.9)
+    if #available(macOS 9999, iOS 9999, tvOS 9999, watchOS 9999, *) { // SwiftStdlib 5.9
+      return self == other
+    }
+#endif
+    return false
+  }
+}
+
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
   ) -> Range<String.Index>? {

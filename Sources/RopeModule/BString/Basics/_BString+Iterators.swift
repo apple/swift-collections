@@ -67,7 +67,7 @@ extension _BString.UTF8Iterator: IteratorProtocol {
   internal mutating func next() -> UInt8? {
     guard _index < _base.endIndex else { return nil }
     // Hand-optimized from `_base.subscript(utf8:)` and `_base.utf8Index(after:)`.
-    var ri = _index._rope!
+    let ri = _index._rope!
     var ci = _index._chunkIndex
     let chunk = _base.rope[ri]
     let result = chunk.string.utf8[ci]
@@ -93,7 +93,7 @@ extension _BString.UTF8Iterator: IteratorProtocol {
       precondition(r.consumed == 0)
       return r.result
     }
-    var ri = _index._rope!
+    let ri = _index._rope!
     var ci = _index._utf8ChunkOffset
     var utf8Offset = _index._utf8Offset
     var string = _base.rope[ri].string

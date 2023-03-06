@@ -193,7 +193,7 @@ extension _BString.Chunk {
       case (true, true):
         break loop // Resync complete ✨
       case (false, false):
-        if old == new { break loop }
+        if old._isKnownEqual(to: new) { break loop }
       case (false, true):
         counts._characters += 1
       case (true, false):
@@ -259,7 +259,7 @@ extension _BString.Chunk {
     if i < lastBreak {
       new = _CharacterRecognizer(partialCharacter: string[lastBreak...])
     } else {
-      assert(old == new)
+      //assert(old == new)
       let j = string.unicodeScalars.index(after: i)
       new.consumePartialCharacter(string[j...])
     }

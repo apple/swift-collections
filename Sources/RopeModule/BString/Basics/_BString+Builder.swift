@@ -113,7 +113,7 @@ extension _BString.Builder {
   }
   
   mutating func append(from ingester: inout Ingester) {
-    assert(ingester.state == self.prefixEndState)
+    //assert(ingester.state._isKnownEqual(to: self.prefixEndState))
     if var prefix = base.prefix._take() {
       if let first = ingester.nextSlice(maxUTF8Count: prefix.value.availableSpace) {
         prefix.value._append(first)
