@@ -9,8 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-let sampleString =
-    #"""
+let sampleString = #"""
     The powerful programming language that is also easy to learn.
     Swift is a powerful and intuitive programming language for iOS, iPadOS, macOS, \#
     tvOS, and watchOS. Writing Swift code is interactive and fun, the syntax is \#
@@ -54,6 +53,9 @@ let sampleString =
     T̸h̴e̶ ̵p̷o̷w̶e̵r̷f̸u̷l̷ ̵p̴r̷o̷g̶r̷a̸m̸m̶i̸n̴g̴ ̷l̶a̴n̸g̵u̵a̶g̸e̶ ̸t̶h̴a̵t̵ ̶i̷s̶ ̵a̷l̴s̸o̷ ̵e̵a̷s̷y̴ ̵t̵o̷ ̷l̷e̶a̵r̴n̸.̵
     """#
 
+let shortSample = #"""
+    Swift 👨‍👨‍👧‍👧 简洁 c̴̭̈͘ǫ̷̯͋̊d̸͖̩̈̈́ḛ̴́ 🇺🇸🇨🇦🇺🇸 코드
+    """#
 
 func randomStride(
   from start: Int,

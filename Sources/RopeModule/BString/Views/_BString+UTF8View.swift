@@ -54,6 +54,8 @@ extension _BString.UTF8View: BidirectionalCollection {
   @inline(__always)
   internal var endIndex: Index { _base.endIndex }
 
+  internal var count: Int { _base.utf8Count }
+
   @inline(__always)
   internal func index(after i: Index) -> Index {
     _base.utf8Index(after: i)

@@ -40,11 +40,11 @@ extension _BString {
   }
   
   var startIndex: Index {
-    Index(_utf8Offset: 0)
+    Index(_utf8Offset: 0)._knownCharacterAligned()
   }
   
   var endIndex: Index {
-    Index(_utf8Offset: utf8Count)
+    Index(_utf8Offset: utf8Count)._knownCharacterAligned()
   }
 }
 
@@ -158,6 +158,7 @@ extension _BString {
       precondition(distance == 0, "Index out of bounds")
       return startIndex
     }
+    if i == endIndex, distance == 0 { return i }
     let i = resolve(i, preferEnd: i == endIndex || distance < 0)
     var ri = i._rope!
     var ci = i._chunkIndex
@@ -387,8 +388,9 @@ extension _BString {
 
   func utf16Index(roundingDown i: Index) -> Index {
     if i._isUTF16TrailingSurrogate {
-      precondition(i <= endIndex, "Index out of bounds")
-      return i
+      precondition(i < endIndex, "Index out of bounds")
+      // (We know i can't be the endIndex -- it addresses a trailing surrogate.)
+      return self.resolve(i, preferEnd: false)
     }
     return unicodeScalarIndex(roundingDown: i)
   }
