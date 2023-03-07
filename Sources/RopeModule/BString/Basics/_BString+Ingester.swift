@@ -145,7 +145,7 @@ extension String {
     maxUTF8Count: Int
   ) -> Range<Index>? {
     assert(maxUTF8Count >= 0)
-    assert(i._isScalarAligned)
+    assert(i._isKnownScalarAligned)
     guard i < limit else { return nil }
     let end = self.utf8.index(i, offsetBy: maxUTF8Count, limitedBy: limit) ?? limit
     let j = self.unicodeScalars._index(roundingDown: end)

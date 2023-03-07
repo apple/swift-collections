@@ -50,15 +50,20 @@ extension String.Index {
     _encodingBits != Self._abi_utf16Bit
   }
   
-  var _isScalarAligned: Bool {
+  var _isKnownScalarAligned: Bool {
     0 != _abi_rawBits & Self._abi_scalarAlignmentBit
   }
   
-  var _isCharacterAligned: Bool {
+  var _isKnownCharacterAligned: Bool {
     0 != _abi_rawBits & Self._abi_characterAlignmentBit
   }
   
-  var _characterAligned: String.Index {
+  var _knownCharacterAligned: String.Index {
+    let r = _abi_rawBits | Self._abi_characterAlignmentBit | Self._abi_scalarAlignmentBit
+    return unsafeBitCast(r, to: String.Index.self)
+  }
+
+  var _knownScalarAligned: String.Index {
     let r = _abi_rawBits | Self._abi_characterAlignmentBit | Self._abi_scalarAlignmentBit
     return unsafeBitCast(r, to: String.Index.self)
   }
@@ -72,11 +77,11 @@ extension String.Index {
   }
 
   @inline(__always)
-  var _utf16Delta: Int {
+  var _isUTF16TrailingSurrogate: Bool {
     assert(_canBeUTF8)
     let r = _abi_transcodedOffset
     assert(r <= 1)
-    return r
+    return r > 0
   }
 
   @inline(__always)

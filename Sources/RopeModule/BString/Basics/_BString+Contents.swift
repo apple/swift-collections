@@ -194,11 +194,11 @@ extension _BString {
   }
   
   func characterIndex(_ i: Index, offsetBy distance: Int) -> Index {
-    index(i, offsetBy: distance, in: CharacterMetric())
+    index(i, offsetBy: distance, in: CharacterMetric())._knownCharacterAligned()
   }
   
   func unicodeScalarIndex(_ i: Index, offsetBy distance: Int) -> Index {
-    index(i, offsetBy: distance, in: UnicodeScalarMetric())
+    index(i, offsetBy: distance, in: UnicodeScalarMetric())._knownScalarAligned()
   }
   
   func utf16Index(_ i: Index, offsetBy distance: Int) -> Index {
@@ -234,11 +234,17 @@ extension _BString {
   }
 
   func characterIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    index(i, offsetBy: distance, limitedBy: limit, in: CharacterMetric())
+    guard let j = index(i, offsetBy: distance, limitedBy: limit, in: CharacterMetric()) else {
+      return nil
+    }
+    return j._knownCharacterAligned()
   }
 
   func unicodeScalarIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    index(i, offsetBy: distance, limitedBy: limit, in: UnicodeScalarMetric())
+    guard let j = index(i, offsetBy: distance, limitedBy: limit, in: UnicodeScalarMetric()) else {
+      return nil
+    }
+    return j._knownScalarAligned()
   }
 
   func utf16Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
@@ -253,11 +259,11 @@ extension _BString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(after i: Index) -> Index {
-    index(i, offsetBy: 1, in: CharacterMetric())
+    index(i, offsetBy: 1, in: CharacterMetric())._knownCharacterAligned()
   }
   
   func unicodeScalarIndex(after i: Index) -> Index {
-    index(i, offsetBy: 1, in: UnicodeScalarMetric())
+    index(i, offsetBy: 1, in: UnicodeScalarMetric())._knownScalarAligned()
   }
   
   func utf16Index(after i: Index) -> Index {
@@ -284,11 +290,11 @@ extension _BString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(before i: Index) -> Index {
-    index(i, offsetBy: -1, in: CharacterMetric())
+    index(i, offsetBy: -1, in: CharacterMetric())._knownCharacterAligned()
   }
   
   func unicodeScalarIndex(before i: Index) -> Index {
-    index(i, offsetBy: -1, in: UnicodeScalarMetric())
+    index(i, offsetBy: -1, in: UnicodeScalarMetric())._knownScalarAligned()
   }
   
   func utf16Index(before i: Index) -> Index {
@@ -320,10 +326,12 @@ extension _BString {
   func characterIndex(roundingDown i: Index) -> Index {
     let offset = i._utf8Offset
     precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
-    guard offset > 0 else { return resolve(i, preferEnd: false) }
-    guard offset < utf8Count else { return resolve(i, preferEnd: true) }
+    guard offset > 0 else { return resolve(i, preferEnd: false)._knownCharacterAligned() }
+    guard offset < utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let i = resolve(i, preferEnd: true)
+    guard !i._isKnownCharacterAligned else { return i }
+
     var ri = i._rope!
     let ci = i._chunkIndex
     var chunk = rope[ri]
@@ -332,11 +340,13 @@ extension _BString {
       let last = chunk.lastBreak
       if ci == first || ci == last { return i }
       if ci > last {
-        return Index(baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: last)
+        return Index(
+          baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: last
+        )._knownCharacterAligned()
       }
       if ci > first {
         let j = chunk.wholeCharacters._index(roundingDown: ci)
-        return Index(baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: j)
+        return Index(baseUTF8Offset: i._utf8BaseOffset, rope: ri, chunk: j)._knownCharacterAligned()
       }
     }
 
@@ -347,26 +357,31 @@ extension _BString {
       baseOffset -= chunk.utf8Count
       if chunk.hasBreaks { break }
     }
-    return Index(baseUTF8Offset: baseOffset, rope: ri, chunk: chunk.lastBreak)
+    return Index(
+      baseUTF8Offset: baseOffset, rope: ri, chunk: chunk.lastBreak
+    )._knownCharacterAligned()
   }
 
   func unicodeScalarIndex(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
-    guard i > startIndex else { return resolve(i, preferEnd: false) }
-    guard i < endIndex else { return endIndex }
+    guard i > startIndex else { return resolve(i, preferEnd: false)._knownCharacterAligned() }
+    guard i < endIndex else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let start = self.resolve(i, preferEnd: false)
+    guard !i._isKnownScalarAligned else { return i }
     let ri = start._rope!
     let chunk = self.rope[ri]
     let ci = chunk.string.unicodeScalars._index(roundingDown: start._chunkIndex)
-    return Index(baseUTF8Offset: start._utf8BaseOffset, rope: ri, chunk: ci)
+    return Index(baseUTF8Offset: start._utf8BaseOffset, rope: ri, chunk: ci)._knownScalarAligned()
   }
 
   func utf8Index(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
     guard i < endIndex else { return endIndex }
     var r = i
-    r._clearUTF16TrailingSurrogate()
+    if i._isUTF16TrailingSurrogate {
+      r._clearUTF16TrailingSurrogate()
+    }
     return resolve(r, preferEnd: false)
   }
 
@@ -421,8 +436,11 @@ extension _BString {
     let char = chunk.string[ci]
     let endOffset = start._utf8ChunkOffset + char.utf8.count
     if endOffset < chunk.utf8Count {
-      let endIndex = chunk.string._utf8Index(at: endOffset)
-      return (char, Index(baseUTF8Offset: start._utf8BaseOffset, rope: ri, chunk: endIndex))
+      let endStringIndex = chunk.string._utf8Index(at: endOffset)
+      let endIndex = Index(
+        baseUTF8Offset: start._utf8BaseOffset, rope: ri, chunk: endStringIndex
+      )._knownCharacterAligned()
+      return (char, endIndex)
     }
     var s = String(char)
     var base = start._utf8BaseOffset + chunk.utf8Count
@@ -440,7 +458,7 @@ extension _BString {
       }
       base += chunk.utf8Count
     }
-    return (Character(s), Index(baseUTF8Offset: base, rope: ri, chunk: ci))
+    return (Character(s), Index(baseUTF8Offset: base, rope: ri, chunk: ci)._knownCharacterAligned())
   }
 
   subscript(utf8 index: Index) -> UInt8 {
