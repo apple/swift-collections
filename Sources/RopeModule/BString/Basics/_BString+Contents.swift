@@ -509,4 +509,39 @@ extension _BString {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  func _foreachChunk(
+    from start: Index,
+    to end: Index,
+    _ body: (Substring) -> Void
+  ) {
+    precondition(start <= end)
+    guard start < end else { return }
+    let start = resolve(start, preferEnd: false)
+    let end = resolve(end, preferEnd: true)
+
+    var ri = start._rope!
+    let endRopeIndex = end._rope!
+
+    if ri == endRopeIndex {
+      let str = self.rope[ri].string
+      body(str[start._chunkIndex ..< end._chunkIndex])
+      return
+    }
+
+    let firstChunk = self.rope[ri].string
+    body(firstChunk[start._chunkIndex...])
+
+    rope.formIndex(after: &ri)
+    while ri < endRopeIndex {
+      var string = rope[ri].string
+      body(string[...])
+    }
+
+    let lastChunk = self.rope[ri].string
+    body(lastChunk[..<end._chunkIndex])
+  }
+}
+
 #endif
