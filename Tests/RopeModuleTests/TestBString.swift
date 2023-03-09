@@ -433,5 +433,65 @@ class TestBString: XCTestCase {
       checkCharacterIndices(flat, big)
     }
   }
+  
+  func testCharacterIndexRounding() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      var next = str.characterIndex(after: current)
+      for i in indices {
+        if i >= next {
+          current = next
+          next = str.characterIndex(after: current)
+        }
+        let j = str.characterIndex(roundingDown: i)
+        XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
+        XCTAssertEqual(str[character: i], str[character: j], "i: \(i)", file: file, line: line)
+      }
+      XCTAssertEqual(next, str.endIndex, "end", file: file, line: line)
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.characters.indices)
+    XCTAssertEqual(str.characterIndex(roundingDown: str.endIndex), str.endIndex)
+
+  }
+
+  func testUnicodeScalarIndexRounding() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      var next = str.unicodeScalarIndex(after: current)
+      for i in indices {
+        while i >= next {
+          current = next
+          next = str.unicodeScalarIndex(after: current)
+        }
+        let j = str.unicodeScalarIndex(roundingDown: i)
+        XCTAssertEqual(j, current, "\(i)", file: file, line: line)
+        XCTAssertEqual(str[unicodeScalar: i], str[unicodeScalar: j], "i: \(i)", file: file, line: line)
+      }
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.characters.indices)
+    XCTAssertEqual(str.unicodeScalarIndex(roundingDown: str.endIndex), str.endIndex)
+  }
 }
 #endif

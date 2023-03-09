@@ -330,7 +330,7 @@ extension _BString {
     guard offset > 0 else { return resolve(i, preferEnd: false)._knownCharacterAligned() }
     guard offset < utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
-    let i = resolve(i, preferEnd: true)
+    let i = resolve(i, preferEnd: false)
     guard !i._isKnownCharacterAligned else { return i }
 
     var ri = i._rope!
@@ -430,12 +430,13 @@ extension _BString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func _character(at start: Index) -> (character: Character, end: Index) {
+    let start = characterIndex(roundingDown: start)
     precondition(start._utf8Offset < utf8Count, "Index out of bounds")
-    let start = resolve(start, preferEnd: false)
+
     var ri = start._rope!
     var ci = start._chunkIndex
     var chunk = rope[ri]
-    let char = chunk.string[ci]
+    let char = chunk.wholeCharacters[ci]
     let endOffset = start._utf8ChunkOffset + char.utf8.count
     if endOffset < chunk.utf8Count {
       let endStringIndex = chunk.string._utf8Index(at: endOffset)

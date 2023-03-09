@@ -56,10 +56,10 @@ extension _BString.Index {
   internal static var _utf16TrailingSurrogateBits: UInt64 { 0x400 }
 
   @inline(__always)
-  internal static var _characterAlignmentBits: UInt64 { 0x300 }
+  internal static var _characterAlignmentBit: UInt64 { 0x200 }
 
   @inline(__always)
-  internal static var _scalarAlignmentBits: UInt64 { 0x100 }
+  internal static var _scalarAlignmentBit: UInt64 { 0x100 }
 
   internal var _utf8Offset: Int {
     Int(truncatingIfNeeded: _rawBits &>> 11)
@@ -125,22 +125,22 @@ extension _BString.Index {
 
   internal func _knownScalarAligned() -> Self {
     var copy = self
-    copy._flags = Self._scalarAlignmentBits
+    copy._flags = Self._scalarAlignmentBit
     return copy
   }
 
   internal func _knownCharacterAligned() -> Self {
     var copy = self
-    copy._flags = Self._characterAlignmentBits
+    copy._flags = Self._characterAlignmentBit | Self._scalarAlignmentBit
     return copy
   }
 
   internal var _isKnownScalarAligned: Bool {
-    _rawBits & Self._scalarAlignmentBits != 0
+    _rawBits & Self._scalarAlignmentBit != 0
   }
 
   internal var _isKnownCharacterAligned: Bool {
-    _rawBits & Self._characterAlignmentBits != 0
+    _rawBits & Self._characterAlignmentBit != 0
   }
 
   internal init(_utf8Offset: Int) {
