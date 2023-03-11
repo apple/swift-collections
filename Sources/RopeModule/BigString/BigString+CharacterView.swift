@@ -53,7 +53,7 @@ extension BigString.Index: Hashable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Equatable {
   public static func == (left: Self, right: Self) -> Bool {
-    left._guts.characterwiseIsEqual(to: right._guts)
+    left._guts == right._guts
   }
 }
 

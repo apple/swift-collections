@@ -69,11 +69,7 @@ extension String {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String.UnicodeScalarView {
   public init(_ big: BigString.UnicodeScalarView) {
-    self = String(_from: big._guts).unicodeScalars
-  }
-
-  public init(_ big: BigString.UnicodeScalarView.SubSequence) {
-    self = String().unicodeScalars
+    self = String(_from: big._guts._base).unicodeScalars
   }
 }
 

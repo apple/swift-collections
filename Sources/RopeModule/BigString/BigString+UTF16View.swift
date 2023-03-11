@@ -14,35 +14,22 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public struct UTF16View {
-    internal var _guts: _BString
+    internal var _guts: _BString.UTF16View
 
-    internal init(_guts: _BString) {
+    internal init(_guts: _BString.UTF16View) {
       self._guts = _guts
     }
   }
 
   public var utf16: UTF16View {
-    get {
-      UTF16View(_guts: _guts)
-    }
-    set {
-      _guts = newValue._guts
-    }
-    _modify {
-      var view = UTF16View(_guts: _guts)
-      self._guts = .init()
-      defer {
-        self._guts = view._guts
-      }
-      yield &view
-    }
+    UTF16View(_guts: _guts.utf16)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public init(_ content: UTF16View) {
-    self._guts = content._guts
+    self._guts = _BString(content._guts)
   }
 }
 
@@ -61,21 +48,14 @@ extension BigString.UTF16View: CustomStringConvertible {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
-    _BString.utf8IsEqual(left._guts, to: right._guts)
-  }
-}
-
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UTF16View: Comparable {
-  public static func <(left: Self, right: Self) -> Bool {
-    left._guts.utf8IsLess(than: right._guts)
+    left._guts == right._guts
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF16View: Hashable {
   public func hash(into hasher: inout Hasher) {
-    _guts.hashUTF8(into: &hasher)
+    _guts.hash(into: &hasher)
   }
 }
 
@@ -96,7 +76,7 @@ extension BigString.UTF16View: Sequence {
   }
 
   public func makeIterator() -> Iterator {
-    Iterator(_base: self._guts.makeUTF16Iterator())
+    Iterator(_base: self._guts.makeIterator())
   }
 }
 
@@ -106,7 +86,7 @@ extension BigString.UTF16View: BidirectionalCollection {
   public typealias Element = UInt16
 
   public var count: Int {
-    _guts.utf16Count
+    _guts.count
   }
 
   public var startIndex: Index {
@@ -118,23 +98,23 @@ extension BigString.UTF16View: BidirectionalCollection {
   }
 
   public func index(after i: Index) -> Index {
-    Index(_guts.utf16Index(after: i._value))
+    Index(_guts.index(after: i._value))
   }
 
   public func index(before i: Index) -> Index {
-    Index(_guts.utf16Index(before: i._value))
+    Index(_guts.index(before: i._value))
   }
 
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
-    Index(_guts.utf16Index(i._value, offsetBy: distance))
+    Index(_guts.index(i._value, offsetBy: distance))
   }
 
   public func distance(from start: Index, to end: Index) -> Int {
-    _guts.utf16Distance(from: start._value, to: end._value)
+    _guts.distance(from: start._value, to: end._value)
   }
 
   public subscript(position: Index) -> UInt16 {
-    _guts[utf16: position._value]
+    _guts[position._value]
   }
 }
 

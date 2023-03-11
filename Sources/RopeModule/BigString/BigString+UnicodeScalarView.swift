@@ -14,25 +14,25 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public struct UnicodeScalarView {
-    var _guts: _BString
-    
-    init(_guts: _BString) {
+    var _guts: _BString.UnicodeScalarView
+
+    init(_guts: _BString.UnicodeScalarView) {
       self._guts = _guts
     }
   }
   
   public var unicodeScalars: UnicodeScalarView {
     get {
-      UnicodeScalarView(_guts: _guts)
+      UnicodeScalarView(_guts: _guts.unicodeScalars)
     }
     set {
-      _guts = newValue._guts
+      _guts = newValue._guts._base
     }
     _modify {
-      var view = UnicodeScalarView(_guts: _guts)
+      var view = UnicodeScalarView(_guts: _guts.unicodeScalars)
       self._guts = .init()
       defer {
-        self._guts = view._guts
+        self._guts = view._guts._base
       }
       yield &view
     }
@@ -42,42 +42,35 @@ extension BigString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public init(_ content: UnicodeScalarView) {
-    self._guts = content._guts
+    self._guts = _BString(content._guts)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
-    self.init(_guts: _BString(value))
+    self.init(_guts: _BString(value).unicodeScalars)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
-    String(_from: _guts)
+    String(_from: _guts._base)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
-    _BString.utf8IsEqual(left._guts, to: right._guts)
-  }
-}
-
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UnicodeScalarView: Comparable {
-  public static func <(left: Self, right: Self) -> Bool {
-    left._guts.utf8IsLess(than: right._guts)
+    left._guts == right._guts
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Hashable {
   public func hash(into hasher: inout Hasher) {
-    _guts.hashUTF8(into: &hasher)
+    _guts.hash(into: &hasher)
   }
 }
 
@@ -98,7 +91,7 @@ extension BigString.UnicodeScalarView: Sequence {
   }
 
   public func makeIterator() -> Iterator {
-    Iterator(_base: _guts.makeUnicodeScalarIterator())
+    Iterator(_base: _guts.makeIterator())
   }
 }
 
@@ -108,7 +101,7 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
   public typealias Index = BigString.Index
 
   public var count: Int {
-    _guts.unicodeScalarCount
+    _guts.count
   }
 
   public var startIndex: Index {
@@ -120,23 +113,23 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
   }
 
   public func index(after i: Index) -> Index {
-    Index(_guts.unicodeScalarIndex(after: i._value))
+    Index(_guts.index(after: i._value))
   }
 
   public func index(before i: Index) -> Index {
-    Index(_guts.unicodeScalarIndex(after: i._value))
+    Index(_guts.index(after: i._value))
   }
 
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
-    Index(_guts.unicodeScalarIndex(i._value, offsetBy: distance))
+    Index(_guts.index(i._value, offsetBy: distance))
   }
 
   public func distance(from start: Index, to end: Index) -> Int {
-    _guts.unicodeScalarDistance(from: start._value, to: end._value)
+    _guts.distance(from: start._value, to: end._value)
   }
 
   public subscript(index: Index) -> Unicode.Scalar {
-    _guts[unicodeScalar: index._value]
+    _guts[index._value]
   }
 }
 
@@ -151,38 +144,7 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
       _guts.replaceSubrange(subrange._base, with: replacement._guts)
       return
     }
-    if C.self == String.UnicodeScalarView.self {
-      let replacement = _identityCast(newElements, to: String.UnicodeScalarView.self)
-      _guts.replaceSubrange(subrange._base, with: String(replacement))
-      return
-    }
-    if C.self == Substring.UnicodeScalarView.self {
-      let replacement = _identityCast(newElements, to: Substring.UnicodeScalarView.self)
-      _guts.replaceSubrange(subrange._base, with: Substring(replacement))
-      return
-    }
-    _guts.replaceSubrange(subrange._base, with: _BString(_from: newElements))
-  }
-
-  public mutating func replaceSubrange(
-    _ subrange: Range<Index>,
-    with newElements: __owned String.UnicodeScalarView
-  ) {
-    _guts.replaceSubrange(subrange._base, with: String(newElements))
-  }
-
-  public mutating func replaceSubrange(
-    _ subrange: Range<Index>,
-    with newElements: __owned Substring.UnicodeScalarView
-  ) {
-    _guts.replaceSubrange(subrange._base, with: Substring(newElements))
-  }
-
-  public mutating func replaceSubrange(
-    _ subrange: Range<Index>,
-    with newElements: __owned BigString.UnicodeScalarView
-  ) {
-    _guts.replaceSubrange(subrange._base, with: newElements._guts)
+    _guts.replaceSubrange(subrange._base, with: newElements)
   }
 
   public mutating func reserveCapacity(_ n: Int) {}
@@ -197,43 +159,15 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
       self._guts = elements._guts
       return
     }
-    if S.self == String.UnicodeScalarView.self {
-      let elements = _identityCast(elements, to: String.UnicodeScalarView.self)
-      self._guts = _BString(_from: String(elements))
-      return
-    }
-    if S.self == Substring.UnicodeScalarView.self {
-      let elements = _identityCast(elements, to: Substring.UnicodeScalarView.self)
-      self._guts = _BString(_from: Substring(elements))
-      return
-    }
-    self._guts = _BString(_from: elements)
+    self._guts = _BString.UnicodeScalarView(elements)
   }
 
-  public init(_ elements: String.UnicodeScalarView) {
-    self._guts = _BString(_from: String(elements))
+  public init(repeating scalar: UnicodeScalar, count: Int) {
+    self._guts = _BString.UnicodeScalarView(repeating: scalar, count: count)
   }
 
-  public init(_ elements: Substring.UnicodeScalarView) {
-    self._guts = _BString(_from: Substring(elements))
-  }
-
-  public init(_ elements: Self) {
-    self._guts = elements._guts
-  }
-
-  public init(_ elements: Self.SubSequence) {
-    let lower = elements.startIndex._value
-    let upper = elements.endIndex._value
-    self._guts = _BString(_from: elements.base._guts, in: lower ..< upper)
-  }
-
-  public init(repeating scalar: Unicode.Scalar, count: Int) {
-    self._guts = _BString(repeating: _BString(String(scalar)), count: count)
-  }
-
-  public mutating func append(_ newElement: __owned Element) {
-    _guts.append(contentsOf: String(newElement))
+  public mutating func append(_ newElement: __owned UnicodeScalar) {
+    _guts.append(newElement)
   }
 
   public mutating func append<S: Sequence>(
@@ -246,44 +180,15 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     }
     if S.self == BigString.UnicodeScalarView.SubSequence.self {
       let newElements = _identityCast(newElements, to: BigString.UnicodeScalarView.SubSequence.self)
-      _guts._append(
-        contentsOf: newElements.base._guts,
-        in: newElements.startIndex._value ..< newElements.endIndex._value)
+      let range = newElements.startIndex ..< newElements.endIndex
+      _guts.append(contentsOf: newElements.base._guts[range._base])
       return
     }
-    if S.self == String.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: String.UnicodeScalarView.self)
-      _guts.append(contentsOf: String(newElements))
-      return
-    }
-    if S.self == Substring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: Substring.UnicodeScalarView.self)
-      _guts.append(contentsOf: Substring(newElements))
-      return
-    }
-    _guts.append(contentsOf: _BString(_from: newElements))
-  }
-
-  public mutating func append(contentsOf newElements: __owned String.UnicodeScalarView) {
-    _guts.append(contentsOf: String(newElements))
-  }
-
-  public mutating func append(contentsOf newElements: __owned Substring.UnicodeScalarView) {
-    _guts.append(contentsOf: Substring(newElements))
-  }
-
-  public mutating func append(contentsOf newElements: __owned Self) {
-    _guts.append(contentsOf: newElements._guts)
-  }
-
-  public mutating func append(contentsOf newElements: __owned Self.SubSequence) {
-    let lower = newElements.startIndex._value
-    let upper = newElements.endIndex._value
-    _guts._append(contentsOf: newElements.base._guts, in: lower ..< upper)
+    _guts.append(contentsOf: newElements)
   }
 
   public mutating func insert(_ newElement: __owned Unicode.Scalar, at i: Index) {
-    _guts.insert(contentsOf: String(newElement), at: i._value)
+    _guts.insert(newElement, at: i._value)
   }
 
   public mutating func insert<C: Collection<Unicode.Scalar>>(
@@ -296,46 +201,16 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     }
     if C.self == BigString.UnicodeScalarView.SubSequence.self {
       let newElements = _identityCast(newElements, to: BigString.UnicodeScalarView.SubSequence.self)
-      self._guts._insert(
-        contentsOf: newElements.base._guts,
-        in: newElements.startIndex._value ..< newElements.endIndex._value,
-        at: i._value)
+      let range = newElements.startIndex ..< newElements.endIndex
+      self._guts.insert(contentsOf: newElements.base._guts[range._base], at: i._value)
       return
     }
-    if C.self == String.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: String.UnicodeScalarView.self)
-      self._guts.insert(contentsOf: String(newElements), at: i._value)
-      return
-    }
-    if C.self == Substring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: Substring.UnicodeScalarView.self)
-      self._guts.insert(contentsOf: Substring(newElements), at: i._value)
-      return
-    }
-    _guts.insert(contentsOf: _BString(_from: newElements), at: i._value)
-  }
-
-  public mutating func insert(contentsOf newElements: String.UnicodeScalarView, at i: Index) {
-    _guts.insert(contentsOf: String(newElements), at: i._value)
-  }
-
-  public mutating func insert(contentsOf newElements: Substring.UnicodeScalarView, at i: Index) {
-    _guts.insert(contentsOf: Substring(newElements), at: i._value)
-  }
-
-  public mutating func insert(contentsOf newElements: Self, at i: Index) {
-    _guts.insert(contentsOf: newElements._guts, at: i._value)
-  }
-
-  public mutating func insert(contentsOf newElements: __owned Self.SubSequence, at i: Index) {
-    let lower = newElements.startIndex._value
-    let upper = newElements.endIndex._value
-    _guts._insert(contentsOf: newElements.base._guts, in: lower ..< upper, at: i._value)
+    _guts.insert(contentsOf: newElements, at: i._value)
   }
 
   @discardableResult
   public mutating func remove(at i: Index) -> Unicode.Scalar {
-    _guts.removeUnicodeScalar(at: i._value)
+    _guts.remove(at: i._value)
   }
 
   public mutating func removeSubrange(_ bounds: Range<Index>) {
@@ -343,7 +218,7 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   }
 
   public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
-    _guts = _BString()
+    _guts.removeAll(keepingCapacity: keepCapacity)
   }
 }
 
