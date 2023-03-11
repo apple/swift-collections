@@ -169,4 +169,17 @@ extension _BSubstring.UTF16View: BidirectionalCollection {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UTF16View {
+  internal func index(roundingDown i: Index) -> Index {
+    precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
+    return _base.utf16Index(roundingDown: i)
+  }
+
+  internal func index(roundingUp i: Index) -> Index {
+    precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
+    return _base.utf16Index(roundingUp: i)
+  }
+}
+
 #endif

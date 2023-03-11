@@ -61,4 +61,15 @@ extension _BString: BidirectionalCollection {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  internal func index(roundingDown i: Index) -> Index {
+    characterIndex(roundingDown: i)
+  }
+
+  internal func index(roundingUp i: Index) -> Index {
+    characterIndex(roundingUp: i)
+  }
+}
+
 #endif

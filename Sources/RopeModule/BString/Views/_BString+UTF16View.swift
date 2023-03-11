@@ -97,4 +97,15 @@ extension _BString.UTF16View: BidirectionalCollection {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UTF16View {
+  internal func index(roundingDown i: Index) -> Index {
+    _base.utf16Index(roundingDown: i)
+  }
+
+  internal func index(roundingUp i: Index) -> Index {
+    _base.utf16Index(roundingUp: i)
+  }
+}
+
 #endif

@@ -102,6 +102,17 @@ extension _BString.UnicodeScalarView: BidirectionalCollection {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UnicodeScalarView {
+  internal func index(roundingDown i: Index) -> Index {
+    _base.unicodeScalarIndex(roundingDown: i)
+  }
+
+  internal func index(roundingUp i: Index) -> Index {
+    _base.unicodeScalarIndex(roundingUp: i)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: RangeReplaceableCollection {
   internal init() {
     self._base = _BString()

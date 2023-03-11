@@ -215,6 +215,19 @@ extension _BSubstring: BidirectionalCollection {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring {
+  internal func index(roundingDown i: Index) -> Index {
+    precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
+    return _base.characterIndex(roundingDown: i)
+  }
+
+  internal func index(roundingUp i: Index) -> Index {
+    precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
+    return _base.characterIndex(roundingUp: i)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring {
   /// Run the closure `body` to mutate the contents of this view within `range`, then update
   /// the bounds of this view to maintain an approximation of their logical position in the
   /// resulting string.
