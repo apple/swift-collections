@@ -124,7 +124,7 @@ extension _Rope.UnsafeHandle {
     assertMutable()
     assert(slot >= 0 && slot < childCount)
     let result = (_start + slot).move()
-    (_start + slot).moveInitialize(from: _start + slot + 1, count: childCount - slot)
+    (_start + slot).moveInitialize(from: _start + slot + 1, count: childCount - slot - 1)
     childCount -= 1
     return result
   }
