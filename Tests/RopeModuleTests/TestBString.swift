@@ -41,10 +41,10 @@ class TestBString: XCTestCase {
   func test_empty() {
     let s = _BString()
     s.invariantCheck()
-    XCTAssertEqual(s.characterCount, 0)
-    XCTAssertEqual(s.unicodeScalarCount, 0)
-    XCTAssertEqual(s.utf16Count, 0)
-    XCTAssertEqual(s.utf8Count, 0)
+    XCTAssertEqual(s.count, 0)
+    XCTAssertEqual(s.unicodeScalars.count, 0)
+    XCTAssertEqual(s.utf16.count, 0)
+    XCTAssertEqual(s.utf8.count, 0)
     XCTAssertTrue(s.isEmpty)
     XCTAssertEqual(s.startIndex, s.endIndex)
     XCTAssertEqual(s.startIndex._utf8Offset, 0)
@@ -54,11 +54,11 @@ class TestBString: XCTestCase {
     let big = _BString(sampleString)
     
     big.invariantCheck()
-    XCTAssertEqual(big.characterCount, sampleString.count)
-    XCTAssertEqual(big.unicodeScalarCount, sampleString.unicodeScalars.count)
-    XCTAssertEqual(big.utf16Count, sampleString.utf16.count)
-    XCTAssertEqual(big.utf8Count, sampleString.utf8.count)
-    
+    XCTAssertEqual(big.count, sampleString.count)
+    XCTAssertEqual(big.unicodeScalars.count, sampleString.unicodeScalars.count)
+    XCTAssertEqual(big.utf16.count, sampleString.utf16.count)
+    XCTAssertEqual(big.utf8.count, sampleString.utf8.count)
+
     let flat = String(_from: big)
     XCTAssertEqual(flat, sampleString)
   }
@@ -71,7 +71,7 @@ class TestBString: XCTestCase {
   ) -> (flat: [String.Index], big: [_BString.Index]) {
     // Check iterators
     var it1 = flat.makeIterator()
-    var it2 = big.makeCharacterIterator()
+    var it2 = big.makeIterator()
     while true {
       let a = it1.next()
       let b = it2.next()
@@ -86,14 +86,14 @@ class TestBString: XCTestCase {
     let indices1 = Array(flat.indices) + [flat.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
-        $0 == big.endIndex ? nil : big.characterIndex(after: $0)
+        $0 == big.endIndex ? nil : big.index(after: $0)
       }
     )
     
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
     for i in 0 ..< min(indices1.count, indices2.count) {
       let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8Distance(from: big.startIndex, to: indices2[i])
+      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
       XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
     }
     return (indices1, indices2)
@@ -107,7 +107,7 @@ class TestBString: XCTestCase {
   ) -> (flat: [String.Index], big: [_BString.Index]) {
     // Check iterators
     var it1 = flat.unicodeScalars.makeIterator()
-    var it2 = big.makeUnicodeScalarIterator()
+    var it2 = big.unicodeScalars.makeIterator()
     while true {
       let a = it1.next()
       let b = it2.next()
@@ -122,14 +122,14 @@ class TestBString: XCTestCase {
     let indices1 = Array(flat.unicodeScalars.indices) + [flat.unicodeScalars.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
-        $0 == big.endIndex ? nil : big.unicodeScalarIndex(after: $0)
+        $0 == big.endIndex ? nil : big.unicodeScalars.index(after: $0)
       }
     )
     
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
     for i in 0 ..< min(indices1.count, indices2.count) {
       let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8Distance(from: big.startIndex, to: indices2[i])
+      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
       XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
     }
     return (indices1, indices2)
@@ -143,7 +143,7 @@ class TestBString: XCTestCase {
   ) -> (flat: [String.Index], big: [_BString.Index]) {
     // Check iterators
     var it1 = flat.utf8.makeIterator()
-    var it2 = big.makeUTF8Iterator()
+    var it2 = big.utf8.makeIterator()
     while true {
       let a = it1.next()
       let b = it2.next()
@@ -158,14 +158,14 @@ class TestBString: XCTestCase {
     let indices1 = Array(flat.utf8.indices) + [flat.utf8.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
-        $0 == big.endIndex ? nil : big.utf8Index(after: $0)
+        $0 == big.endIndex ? nil : big.utf8.index(after: $0)
       }
     )
     
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
     for i in 0 ..< min(indices1.count, indices2.count) {
       let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8Distance(from: big.startIndex, to: indices2[i])
+      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
       XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
     }
     return (indices1, indices2)
@@ -179,7 +179,7 @@ class TestBString: XCTestCase {
   ) -> (flat: [String.Index], big: [_BString.Index]) {
     // Check iterators
     var it1 = flat.utf16.makeIterator()
-    var it2 = big.makeUTF16Iterator()
+    var it2 = big.utf16.makeIterator()
     while true {
       let a = it1.next()
       let b = it2.next()
@@ -194,14 +194,14 @@ class TestBString: XCTestCase {
     let indices1 = Array(flat.utf16.indices) + [flat.utf16.endIndex]
     let indices2 = Array(
       sequence(first: big.startIndex) {
-        $0 == big.endIndex ? nil : big.utf16Index(after: $0)
+        $0 == big.endIndex ? nil : big.utf16.index(after: $0)
       }
     )
     
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
     for i in 0 ..< min(indices1.count, indices2.count) {
       let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8Distance(from: big.startIndex, to: indices2[i])
+      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
       XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]._description), i2: \(indices2[i])", file: file, line: line)
     }
     return (indices1, indices2)
@@ -221,7 +221,7 @@ class TestBString: XCTestCase {
         let a = String(sampleString[i1 ..< j1])
         
         let i2 = indices2[i]
-        let j2 = big.characterIndex(i2, offsetBy: j - i)
+        let j2 = big.index(i2, offsetBy: j - i)
         let b = String(_from: big, in: i2 ..< j2)
         XCTAssertEqual(b, a)
       }
@@ -240,7 +240,7 @@ class TestBString: XCTestCase {
         let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
         
         let i2 = indices2[i]
-        let j2 = big.unicodeScalarIndex(i2, offsetBy: j - i)
+        let j2 = big.unicodeScalars.index(i2, offsetBy: j - i)
         let b = String(_from: big, in: i2 ..< j2)
         XCTAssertEqual(b, a)
       }
@@ -259,7 +259,7 @@ class TestBString: XCTestCase {
         let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
         
         let i2 = indices2[i]
-        let j2 = big.utf16Index(i2, offsetBy: j - i)
+        let j2 = big.utf16.index(i2, offsetBy: j - i)
         let b = String(_from: big, in: i2 ..< j2)
         XCTAssertEqual(b, a)
       }
@@ -278,7 +278,7 @@ class TestBString: XCTestCase {
         let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
         
         let i2 = indices2[i]
-        let j2 = big.utf8Index(i2, offsetBy: j - i)
+        let j2 = big.utf8.index(i2, offsetBy: j - i)
         let b = String(_from: big, in: i2 ..< j2)
         XCTAssertEqual(b, a)
       }
@@ -303,7 +303,7 @@ class TestBString: XCTestCase {
       checkUTF8Indices(flat, big)
       checkScalarIndices(flat, big)
       checkCharacterIndices(flat, big)
-      XCTAssertTrue(big.utf8IsEqual(to: ref))
+      XCTAssertTrue(big.utf8 == ref.utf8)
     }
   }
   
@@ -327,7 +327,7 @@ class TestBString: XCTestCase {
       checkUTF8Indices(flat, big)
       checkScalarIndices(flat, big)
       checkCharacterIndices(flat, big)
-      XCTAssertTrue(big.utf8IsEqual(to: ref))
+      XCTAssertTrue(big.utf8 == ref.utf8)
     }
   }
   
@@ -366,7 +366,7 @@ class TestBString: XCTestCase {
         let j = smol._utf8Index(at: utf8Offset)
         smol.insert(contentsOf: piece.str, at: j)
         
-        let index = big.utf8Index(big.startIndex, offsetBy: utf8Offset)
+        let index = big.utf8.index(big.startIndex, offsetBy: utf8Offset)
         //print("\(i)/\(pieces.count): i: \(piece.i), start: \(index), str: \(piece.str._properDebugDescription)")
         big.insert(contentsOf: piece.str, at: index)
         
@@ -381,7 +381,7 @@ class TestBString: XCTestCase {
         }
       }
       big.invariantCheck()
-      XCTAssertTrue(big.utf8IsEqual(to: ref))
+      XCTAssertTrue(big.utf8 == ref.utf8)
       checkUTF8Indices(flat, big)
       checkUTF16Indices(flat, big)
       checkScalarIndices(flat, big)
@@ -426,7 +426,7 @@ class TestBString: XCTestCase {
         }
       }
       big.invariantCheck()
-      XCTAssertTrue(big.utf8IsEqual(to: ref))
+      XCTAssertTrue(big.utf8 == ref.utf8)
       checkUTF8Indices(flat, big)
       checkUTF16Indices(flat, big)
       checkScalarIndices(flat, big)
@@ -444,13 +444,13 @@ class TestBString: XCTestCase {
       line: UInt = #line
     ) {
       var current = str.startIndex
-      var next = str.characterIndex(after: current)
+      var next = str.index(after: current)
       for i in indices {
         if i >= next {
           current = next
-          next = str.characterIndex(after: current)
+          next = str.index(after: current)
         }
-        let j = str.characterIndex(roundingDown: i)
+        let j = str.index(roundingDown: i)
         XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
         XCTAssertEqual(str[character: i], str[character: j], "i: \(i)", file: file, line: line)
       }
@@ -461,7 +461,7 @@ class TestBString: XCTestCase {
     check(str.utf16.indices)
     check(str.unicodeScalars.indices)
     check(str.indices)
-    XCTAssertEqual(str.characterIndex(roundingDown: str.endIndex), str.endIndex)
+    XCTAssertEqual(str.index(roundingDown: str.endIndex), str.endIndex)
 
   }
 
@@ -476,10 +476,10 @@ class TestBString: XCTestCase {
     ) {
       var current = str.startIndex
       for i in indices {
-        let j = str.characterIndex(roundingUp: i)
+        let j = str.index(roundingUp: i)
         XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
         while i >= current {
-          current = str.characterIndex(after: current)
+          current = str.index(after: current)
         }
       }
       XCTAssertEqual(current, str.endIndex, "end", file: file, line: line)
@@ -489,7 +489,7 @@ class TestBString: XCTestCase {
     check(str.utf16.indices)
     check(str.unicodeScalars.indices)
     check(str.indices)
-    XCTAssertEqual(str.characterIndex(roundingDown: str.endIndex), str.endIndex)
+    XCTAssertEqual(str.index(roundingDown: str.endIndex), str.endIndex)
 
   }
 
@@ -503,13 +503,13 @@ class TestBString: XCTestCase {
       line: UInt = #line
     ) {
       var current = str.startIndex
-      var next = str.unicodeScalarIndex(after: current)
+      var next = str.unicodeScalars.index(after: current)
       for i in indices {
         while i >= next {
           current = next
-          next = str.unicodeScalarIndex(after: current)
+          next = str.unicodeScalars.index(after: current)
         }
-        let j = str.unicodeScalarIndex(roundingDown: i)
+        let j = str.unicodeScalars.index(roundingDown: i)
         XCTAssertEqual(j, current, "\(i)", file: file, line: line)
         XCTAssertEqual(str[unicodeScalar: i], str[unicodeScalar: j], "i: \(i)", file: file, line: line)
       }
@@ -519,7 +519,7 @@ class TestBString: XCTestCase {
     check(str.utf16.indices)
     check(str.unicodeScalars.indices)
     check(str.indices)
-    XCTAssertEqual(str.unicodeScalarIndex(roundingDown: str.endIndex), str.endIndex)
+    XCTAssertEqual(str.unicodeScalars.index(roundingDown: str.endIndex), str.endIndex)
   }
 
   func testUnicodeScalarIndexRoundingUp() {
@@ -534,9 +534,9 @@ class TestBString: XCTestCase {
       var current = str.startIndex
       for i in indices {
         while i > current {
-          current = str.unicodeScalarIndex(after: current)
+          current = str.unicodeScalars.index(after: current)
         }
-        let j = str.unicodeScalarIndex(roundingUp: i)
+        let j = str.unicodeScalars.index(roundingUp: i)
         XCTAssertEqual(j, current, "\(i)", file: file, line: line)
       }
     }
@@ -545,7 +545,7 @@ class TestBString: XCTestCase {
     check(str.utf16.indices)
     check(str.unicodeScalars.indices)
     check(str.indices)
-    XCTAssertEqual(str.unicodeScalarIndex(roundingDown: str.endIndex), str.endIndex)
+    XCTAssertEqual(str.unicodeScalars.index(roundingDown: str.endIndex), str.endIndex)
   }
 
   func testSubstringMutationIndexRounding() {
