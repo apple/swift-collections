@@ -61,7 +61,7 @@ extension BigString.UTF8View: CustomStringConvertible {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF8View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
-    left._guts.utf8IsEqual(to: right._guts)
+    _BString.utf8IsEqual(left._guts, to: right._guts)
   }
 }
 

@@ -68,7 +68,26 @@ extension _BSubstring: LosslessStringConvertible {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
-    _BString.characterwiseIsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
+    // FIXME: Implement properly normalized comparisons & hashing.
+    // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
+    // split up on random Character boundaries -- Unicode does not promise that
+    // norm(a + c) == norm(a) + norm(b) in this case.
+    // To do this properly, we'll probably need to expose new stdlib entry points. :-/
+    if left.isIdentical(to: right) { return true }
+
+    guard left.count == right.count else { return false }
+
+    // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
+    var it1 = left.makeIterator()
+    var it2 = right.makeIterator()
+    var a: Character? = nil
+    var b: Character? = nil
+    repeat {
+      a = it1.next()
+      b = it2.next()
+      guard a == b else { return false }
+    } while a != nil
+    return true
   }
 
   internal func isIdentical(to other: Self) -> Bool {

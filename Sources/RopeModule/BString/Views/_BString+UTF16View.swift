@@ -31,7 +31,7 @@ extension _BString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UTF16View: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
-    left._base.utf8IsEqual(to: right._base)
+    _BString.utf8IsEqual(left._base, to: right._base)
   }
 }
 
