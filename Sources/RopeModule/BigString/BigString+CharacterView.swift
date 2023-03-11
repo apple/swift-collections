@@ -53,14 +53,14 @@ extension BigString.Index: Hashable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Equatable {
   public static func == (left: Self, right: Self) -> Bool {
-    left._guts.characterIsEqual(to: right._guts)
+    left._guts.characterwiseIsEqual(to: right._guts)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Comparable {
   public static func < (left: Self, right: Self) -> Bool {
-    left._guts.characterIsLess(than: right._guts)
+    left._guts.characterwiseIsLess(than: right._guts)
   }
 }
 
@@ -196,7 +196,7 @@ extension BigString: RangeReplaceableCollection {
   public init(_ elements: Self.SubSequence) {
     let lower = elements.startIndex._value
     let upper = elements.endIndex._value
-    self._guts = _BString(elements.base._guts, in: lower ..< upper)
+    self._guts = _BString(_from: elements.base._guts, in: lower ..< upper)
   }
 
   public init(repeating repeatedValue: Character, count: Int) {
@@ -242,7 +242,7 @@ extension BigString: RangeReplaceableCollection {
   public mutating func append(contentsOf newElements: __owned Self.SubSequence) {
     let lower = newElements.startIndex._value
     let upper = newElements.endIndex._value
-    _guts.append(contentsOf: newElements.base._guts, in: lower ..< upper)
+    _guts._append(contentsOf: newElements.base._guts, in: lower ..< upper)
   }
 
   public mutating func insert(_ newElement: __owned Character, at i: Index) {
@@ -276,7 +276,7 @@ extension BigString: RangeReplaceableCollection {
   public mutating func insert(contentsOf newElements: __owned Self.SubSequence, at i: Index) {
     let lower = newElements.startIndex._value
     let upper = newElements.endIndex._value
-    _guts.insert(contentsOf: newElements.base._guts, in: lower ..< upper, at: i._value)
+    _guts._insert(contentsOf: newElements.base._guts, in: lower ..< upper, at: i._value)
   }
 
   @discardableResult

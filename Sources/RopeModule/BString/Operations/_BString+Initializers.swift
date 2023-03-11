@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  internal init(_ input: some StringProtocol) {
+  internal init(_from input: some StringProtocol) {
     var builder = Rope.Builder()
     var ingester = Ingester(input)
     while let chunk = ingester.nextWellSizedChunk() {
@@ -22,7 +22,7 @@ extension _BString {
     self.rope = builder.finalize()
   }
 
-  internal init(_ input: some Sequence<Character>) {
+  internal init(_from input: some Sequence<Character>) {
     var builder = Builder()
     var piece = ""
     for character in input {
@@ -36,7 +36,7 @@ extension _BString {
     self = builder.finalize()
   }
 
-  internal init(_ input: some Sequence<UnicodeScalar>) {
+  internal init(_from input: some Sequence<UnicodeScalar>) {
     var builder = Builder()
     var piece = ""
     for scalar in input {
@@ -50,8 +50,16 @@ extension _BString {
     self = builder.finalize()
   }
 
+  internal init(_from other: _BSubstring) {
+    self.init(_from: other._base, in: other._bounds)
+  }
+
+  internal init(_from other: _BSubstring.UnicodeScalarView) {
+    self.init(_from: other._base, in: other._bounds)
+  }
+
   internal init(
-    _ other: Self,
+    _from other: Self,
     in range: Range<Index>
   ) {
     self.rope = other.rope.extract(
@@ -124,31 +132,6 @@ extension String {
       big.rope.formIndex(after: &i)
     }
     self += big.rope[endRopeIndex].string[..<end._chunkIndex]
-  }
-}
-
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension _BString {
-  internal init(repeating value: Self, count: Int) {
-    precondition(count >= 0, "Negative count")
-    guard count > 0 else {
-      self.init()
-      return
-    }
-    self.init()
-    var c = 0
-
-    var piece = value
-    var current = 1
-
-    while c < count {
-      if count & current != 0 {
-        self.append(contentsOf: piece)
-        c |= current
-      }
-      piece.append(contentsOf: piece)
-      current *= 2
-    }
   }
 }
 

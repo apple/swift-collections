@@ -35,21 +35,6 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  var isEmpty: Bool {
-    rope.summary.isZero
-  }
-  
-  var startIndex: Index {
-    Index(_utf8Offset: 0)._knownCharacterAligned()
-  }
-  
-  var endIndex: Index {
-    Index(_utf8Offset: utf8Count)._knownCharacterAligned()
-  }
-}
-
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension _BString {
   var characterCount: Int { rope.summary.characters }
   var unicodeScalarCount: Int { rope.summary.unicodeScalars }
   var utf16Count: Int { rope.summary.utf16 }
@@ -536,7 +521,7 @@ extension _BString {
 
     rope.formIndex(after: &ri)
     while ri < endRopeIndex {
-      var string = rope[ri].string
+      let string = rope[ri].string
       body(string[...])
     }
 

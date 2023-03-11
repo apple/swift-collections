@@ -434,7 +434,7 @@ class TestBString: XCTestCase {
     }
   }
   
-  func testCharacterIndexRounding() {
+  func testCharacterIndexRoundingDown() {
     let ref = sampleString
     let str = _BString(ref)
 
@@ -460,12 +460,40 @@ class TestBString: XCTestCase {
     check(str.utf8.indices)
     check(str.utf16.indices)
     check(str.unicodeScalars.indices)
-    check(str.characters.indices)
+    check(str.indices)
     XCTAssertEqual(str.characterIndex(roundingDown: str.endIndex), str.endIndex)
 
   }
 
-  func testUnicodeScalarIndexRounding() {
+  func testCharacterIndexRoundingUp() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      for i in indices {
+        let j = str.characterIndex(roundingUp: i)
+        XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
+        while i >= current {
+          current = str.characterIndex(after: current)
+        }
+      }
+      XCTAssertEqual(current, str.endIndex, "end", file: file, line: line)
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.indices)
+    XCTAssertEqual(str.characterIndex(roundingDown: str.endIndex), str.endIndex)
+
+  }
+
+  func testUnicodeScalarIndexRoundingDown() {
     let ref = sampleString
     let str = _BString(ref)
 
@@ -490,8 +518,57 @@ class TestBString: XCTestCase {
     check(str.utf8.indices)
     check(str.utf16.indices)
     check(str.unicodeScalars.indices)
-    check(str.characters.indices)
+    check(str.indices)
     XCTAssertEqual(str.unicodeScalarIndex(roundingDown: str.endIndex), str.endIndex)
+  }
+
+  func testUnicodeScalarIndexRoundingUp() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      for i in indices {
+        while i > current {
+          current = str.unicodeScalarIndex(after: current)
+        }
+        let j = str.unicodeScalarIndex(roundingUp: i)
+        XCTAssertEqual(j, current, "\(i)", file: file, line: line)
+      }
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.indices)
+    XCTAssertEqual(str.unicodeScalarIndex(roundingDown: str.endIndex), str.endIndex)
+  }
+
+  func testSubstringMutationIndexRounding() {
+    let b1: _BString = "Foobar"
+    var s1 = b1.suffix(3)
+    XCTAssertEqual(s1, "bar")
+    s1.insert("\u{308}", at: s1.startIndex) // Combining diaresis
+    XCTAssertEqual(s1.base, "Foöbar")
+    XCTAssertEqual(s1, "öbar")
+
+    let b2: _BString = "Foo👩👧bar" // WOMAN, GIRL
+    var s2: _BSubstring = b2.prefix(4)
+    XCTAssertEqual(s2, "Foo👩")
+    s2.append("\u{200d}") // ZWJ
+    XCTAssertEqual(s2, "Foo")
+    XCTAssertEqual(s2.base, "Foo👩‍👧bar") // family with mother and daughter
+
+    let b3: _BString = "Foo🇺🇸🇨🇦🇺🇸🇨🇦bar" // Regional indicators "USCAUSCA"
+    var s3: _BSubstring = b3.prefix(7)
+    XCTAssertEqual(s3, "Foo🇺🇸🇨🇦🇺🇸🇨🇦")
+    s3.insert("\u{1f1ed}", at: s3.index(s3.startIndex, offsetBy: 3)) // Regional indicator "H"
+    XCTAssertEqual(s3, "Foo🇭🇺🇸🇨🇦🇺🇸🇨\u{1f1e6}") // Regional indicators "HUSCAUSCA"
+    XCTAssertEqual(s3.base, "Foo🇭🇺🇸🇨🇦🇺🇸🇨\u{1f1e6}bar")
   }
 }
 #endif

@@ -12,6 +12,13 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString: Hashable {
+  internal func hash(into hasher: inout Hasher) {
+    hashCharacters(into: &hasher)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal func hashCharacters(into hasher: inout Hasher) {
     // FIXME: Implement properly normalized comparisons & hashing.

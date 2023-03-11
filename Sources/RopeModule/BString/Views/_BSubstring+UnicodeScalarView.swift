@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring {
-  internal struct UnicodeScalarView {
+  internal struct UnicodeScalarView: Sendable {
     internal var _base: _BString
     internal var _bounds: Range<Index>
 
@@ -36,6 +36,13 @@ extension _BSubstring {
 
   internal var unicodeScalars: UnicodeScalarView {
     UnicodeScalarView(_substring: self)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  internal init(_ view: _BSubstring.UnicodeScalarView) {
+    self.init(_from: view._base, in: view._bounds)
   }
 }
 
@@ -117,6 +124,127 @@ extension _BSubstring.UnicodeScalarView: BidirectionalCollection {
       bounds.lowerBound >= startIndex && bounds.upperBound <= endIndex,
       "Range out of bounds")
     return Self(_base, in: bounds)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UnicodeScalarView {
+  /// Run the closure `body` to mutate the contents of this view within `range`, then update
+  /// the bounds of this view to maintain their logical position in the resulting string.
+  /// The `range` argument is validated to be within the original bounds of the substring.
+  internal mutating func _mutateBasePreservingBounds<R>(
+    in range: Range<Index>,
+    with body: (inout _BString.UnicodeScalarView) -> R
+  ) -> R {
+    precondition(
+      range.lowerBound >= _bounds.lowerBound && range.upperBound <= _bounds.upperBound,
+      "Range out of bounds")
+
+    let startOffset = self.startIndex._utf8Offset
+    let endOffset = self.endIndex._utf8Offset
+    let oldCount = self._base.utf8Count
+
+    var view = _BString.UnicodeScalarView(_base: self._base)
+    self._base = _BString()
+
+    defer {
+      // The Unicode scalar view is regular -- we just need to maintain the UTF-8 offsets of
+      // our bounds across the mutation. No extra adjustment/rounding is necessary.
+      self._base = view._base
+      let delta = self._base.utf8Count - oldCount
+      let start = _base.utf8Index(at: startOffset)._knownScalarAligned()
+      let end = _base.utf8Index(at: endOffset + delta)._knownScalarAligned()
+      self._bounds = start ..< end
+    }
+    return body(&view)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UnicodeScalarView: RangeReplaceableCollection {
+  internal init() {
+    self.init(_substring: _BSubstring())
+  }
+  
+  internal mutating func reserveCapacity(_ n: Int) {
+    // Do nothing.
+  }
+  
+  internal mutating func replaceSubrange<C: Collection<UnicodeScalar>>(
+    _ subrange: Range<Index>, with newElements: __owned C
+  ) {
+    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
+  }
+
+  internal mutating func replaceSubrange(
+    _ subrange: Range<Index>, with newElements: __owned String.UnicodeScalarView
+  ) {
+    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
+  }
+
+  internal mutating func replaceSubrange(
+    _ subrange: Range<Index>, with newElements: __owned Substring.UnicodeScalarView
+  ) {
+    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
+  }
+
+  internal mutating func replaceSubrange(
+    _ subrange: Range<Index>, with newElements: __owned _BString.UnicodeScalarView
+  ) {
+    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
+  }
+
+  internal mutating func replaceSubrange(
+    _ subrange: Range<Index>, with newElements: __owned _BSubstring.UnicodeScalarView
+  ) {
+    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
+  }
+
+  internal init<S: Sequence<UnicodeScalar>>(_ elements: S) {
+    let base = _BString.UnicodeScalarView(elements)
+    self.init(base._base, in: base.startIndex ..< base.endIndex)
+  }
+
+  internal mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
+    _mutateBasePreservingBounds(in: endIndex ..< endIndex) {
+      $0.append(contentsOf: newElements)
+    }
+  }
+
+  internal mutating func insert(_ newElement: UnicodeScalar, at i: Index) {
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(newElement, at: i)
+    }
+  }
+
+
+  internal mutating func insert<C: Collection<UnicodeScalar>>(
+    contentsOf newElements: __owned C, at i: Index
+  ) {
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(contentsOf: newElements, at: i)
+    }
+  }
+
+  @discardableResult
+  internal mutating func remove(at i: Index) -> UnicodeScalar {
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.remove(at: i)
+    }
+  }
+
+  internal mutating func removeSubrange(_ bounds: Range<Index>) {
+    _mutateBasePreservingBounds(in: bounds) {
+      $0.removeSubrange(bounds)
+    }
+  }
+
+  internal mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
+    let bounds = _bounds
+    _mutateBasePreservingBounds(in: bounds) {
+      $0.removeSubrange(bounds)
+    }
+    assert(_bounds.isEmpty)
   }
 }
 

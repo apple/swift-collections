@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  mutating func replaceSubrange(_ range: Range<Index>, with newElements: some StringProtocol) {
+  mutating func _replaceSubrange(_ range: Range<Index>, with newElements: some StringProtocol) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")
     if range.isEmpty {
       insert(contentsOf: newElements, at: range.lowerBound)
@@ -25,7 +25,7 @@ extension _BString {
     self = builder.finalize()
   }
 
-  mutating func replaceSubrange(_ range: Range<Index>, with newElements: _BString) {
+  mutating func _replaceSubrange(_ range: Range<Index>, with newElements: _BString) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")
     if range.isEmpty {
       insert(contentsOf: newElements, at: range.lowerBound)
@@ -36,7 +36,14 @@ extension _BString {
     self = builder.finalize()
   }
 
-  mutating func replaceSubrange(
+  mutating func _replaceSubrange(
+    _ targetRange: Range<Index>,
+    with newElements: _BSubstring
+  ) {
+    _replaceSubrange(targetRange, with: newElements._base, in: newElements._bounds)
+  }
+
+  mutating func _replaceSubrange(
     _ targetRange: Range<Index>,
     with newElements: _BString,
     in sourceRange: Range<Index>
@@ -46,7 +53,7 @@ extension _BString {
       return
     }
     if targetRange._isEmptyUTF8 {
-      insert(
+      _insert(
         contentsOf: newElements,
         in: sourceRange,
         at: targetRange.lowerBound)

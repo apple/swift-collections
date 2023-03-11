@@ -13,15 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  mutating func insert(contentsOf other: __owned some StringProtocol, at index: Index) {
-    insert(contentsOf: Substring(other), at: index)
-  }
-  
-  mutating func insert(contentsOf other: __owned String, at index: Index) {
-    insert(contentsOf: other[...], at: index)
-  }
-  
-  mutating func insert(
+  mutating func _insert(
     contentsOf other: __owned Substring,
     at index: Index
   ) {
@@ -64,7 +56,7 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  mutating func insert(contentsOf other: __owned Self, at index: Index) {
+  mutating func _insert(contentsOf other: __owned Self, at index: Index) {
     guard index < endIndex else {
       precondition(index == endIndex, "Index out of bounds")
       self.append(contentsOf: other)
@@ -88,10 +80,10 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  mutating func insert(contentsOf other: __owned Self, in range: Range<Index>, at index: Index) {
+  mutating func _insert(contentsOf other: __owned Self, in range: Range<Index>, at index: Index) {
     guard index < endIndex else {
       precondition(index == endIndex, "Index out of bounds")
-      self.append(contentsOf: other, in: range)
+      self._append(contentsOf: other, in: range)
       return
     }
     guard index > startIndex else {

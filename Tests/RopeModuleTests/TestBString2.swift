@@ -33,7 +33,7 @@ class TestBString2: CollectionTestCase {
 
   func testCharacterView() {
     let str = _BString(shortSample)
-    checkBidirectionalCollection(str.characters, expectedContents: shortSample)
+    checkBidirectionalCollection(str, expectedContents: shortSample)
   }
 }
 

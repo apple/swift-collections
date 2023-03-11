@@ -11,23 +11,20 @@
 
 #if swift(>=5.8)
 
-/// The core of a B-tree based String implementation.
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-internal struct _BString: Sendable {
-  typealias Rope = _Rope<Chunk>
-  
-  var rope: Rope
-  
-  internal init(rope: Rope) {
-    self.rope = rope
+extension _BString: TextOutputStream {
+  public mutating func write(_ string: String) {
+    append(contentsOf: string)
   }
 }
 
-#else
-
-// `_BString` depends on fixes and newly exposed functionality that landed in
-// version 5.8 of the Swift Standard Library.
-@available(*, unavailable, message: "_BString depends on version 5.8 of the Swift Standard Library")
-internal struct _BString: Sendable {}
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString: TextOutputStreamable {
+  public func write(to target: inout some TextOutputStream) {
+    for chunk in rope {
+      chunk.string.write(to: &target)
+    }
+  }
+}
 
 #endif

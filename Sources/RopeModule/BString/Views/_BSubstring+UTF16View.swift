@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring {
-  internal struct UTF16View {
+  internal struct UTF16View: Sendable {
     internal var _base: _BString
     internal var _bounds: Range<Index>
 

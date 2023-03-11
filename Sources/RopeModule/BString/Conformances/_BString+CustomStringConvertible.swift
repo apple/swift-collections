@@ -12,13 +12,6 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension _BString: ExpressibleByStringLiteral {
-  internal init(stringLiteral value: String) {
-    self.init(value)
-  }
-}
-
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: CustomStringConvertible {
   internal var description: String {
     String(_from: self)

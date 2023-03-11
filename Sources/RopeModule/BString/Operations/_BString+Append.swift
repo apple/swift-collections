@@ -13,15 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  mutating func append(contentsOf other: __owned some StringProtocol) {
-    append(contentsOf: Substring(other))
-  }
-  
-  mutating func append(contentsOf other: __owned String) {
-    append(contentsOf: other[...])
-  }
-  
-  mutating func append(contentsOf other: __owned Substring) {
+  mutating func _append(contentsOf other: __owned Substring) {
     if other.isEmpty { return }
     if isEmpty {
       self = Self(other)
@@ -56,7 +48,7 @@ extension _BString {
     return rope.root.firstItem.value.string.unicodeScalars.first!
   }
 
-  mutating func append(contentsOf other: __owned _BString) {
+  mutating func _append(contentsOf other: __owned _BString) {
     guard !other.isEmpty else { return }
     guard !self.isEmpty else {
       self = other
@@ -71,14 +63,14 @@ extension _BString {
     _append(other)
   }
 
-  mutating func append(contentsOf other: __owned _BString, in range: Range<Index>) {
+  mutating func _append(contentsOf other: __owned _BString, in range: Range<Index>) {
     guard !range._isEmptyUTF8 else { return }
     guard !self.isEmpty else {
-      self = Self(other, in: range)
+      self = Self(_from: other, in: range)
       return
     }
 
-    var other = _BString(other, in: range)
+    var other = _BString(_from: other, in: range)
     let hint = other._firstUnicodeScalar
     var old = _CharacterRecognizer()
     var new = self._breakState(upTo: endIndex, nextScalarHint: hint)
@@ -101,7 +93,7 @@ extension _BString {
 
   mutating func prepend(contentsOf other: __owned _BString, in range: Range<Index>) {
     guard !range._isEmptyUTF8 else { return }
-    let extract = Self(other, in: range)
+    let extract = Self(_from: other, in: range)
     guard !self.isEmpty else {
       self = extract
       return

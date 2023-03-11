@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  mutating func removeSubrange(_ bounds: Range<Index>) {
+  mutating func _removeSubrange(_ bounds: Range<Index>) {
     precondition(bounds.upperBound <= endIndex, "Index out of bounds")
     if bounds.isEmpty { return }
     let lower = bounds.lowerBound._utf8Offset
