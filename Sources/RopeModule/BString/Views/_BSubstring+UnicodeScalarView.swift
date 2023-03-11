@@ -41,8 +41,8 @@ extension _BSubstring {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  internal init(_ view: _BSubstring.UnicodeScalarView) {
-    self.init(_from: view._base, in: view._bounds)
+  internal init(_ unicodeScalars: _BSubstring.UnicodeScalarView) {
+    self.init(_from: unicodeScalars._base, in: unicodeScalars._bounds)
   }
 }
 

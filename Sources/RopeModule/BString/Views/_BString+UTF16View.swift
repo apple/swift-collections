@@ -26,6 +26,10 @@ extension _BString {
   internal var utf16: UTF16View {
     UTF16View(_base: self)
   }
+
+  internal init(_ utf16: UTF16View) {
+    self = utf16._base
+  }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)

@@ -40,6 +40,19 @@ extension _BSubstring {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  internal init?(_ utf16: _BSubstring.UTF16View) {
+    guard
+      !utf16.startIndex._isUTF16TrailingSurrogate,
+      !utf16.endIndex._isUTF16TrailingSurrogate
+    else {
+      return nil
+    }
+    self.init(_from: utf16._base, in: utf16._bounds)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View {
   internal var base: _BString.UTF16View { _base.utf16 }
 }

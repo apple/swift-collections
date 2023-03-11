@@ -40,6 +40,19 @@ extension _BSubstring {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString {
+  internal init?(_ utf8: _BSubstring.UTF8View) {
+    guard
+      utf8._base.unicodeScalars.index(roundingDown: utf8.startIndex) == utf8.startIndex,
+      utf8._base.unicodeScalars.index(roundingDown: utf8.endIndex) == utf8.endIndex
+    else {
+      return nil
+    }
+    self.init(_from: utf8._base, in: utf8._bounds)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF8View {
   internal var base: _BString.UTF8View { _base.utf8 }
 }
