@@ -564,10 +564,10 @@ class TestBString: XCTestCase {
     XCTAssertEqual(s2.base, "Foo👩‍👧bar") // family with mother and daughter
 
     let b3: _BString = "Foo🇺🇸🇨🇦🇺🇸🇨🇦bar" // Regional indicators "USCAUSCA"
-    var s3: _BSubstring = b3.prefix(7)
-    XCTAssertEqual(s3, "Foo🇺🇸🇨🇦🇺🇸🇨🇦")
+    var s3: _BSubstring = b3.prefix(6)
+    XCTAssertEqual(s3, "Foo🇺🇸🇨🇦🇺🇸")
     s3.insert("\u{1f1ed}", at: s3.index(s3.startIndex, offsetBy: 3)) // Regional indicator "H"
-    XCTAssertEqual(s3, "Foo🇭🇺🇸🇨🇦🇺🇸🇨\u{1f1e6}") // Regional indicators "HUSCAUSCA"
+    XCTAssertEqual(s3, "Foo🇭🇺🇸🇨🇦🇺") // Regional indicators "HUSCAUSCA"
     XCTAssertEqual(s3.base, "Foo🇭🇺🇸🇨🇦🇺🇸🇨\u{1f1e6}bar")
   }
 }
