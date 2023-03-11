@@ -41,13 +41,9 @@ extension _BString {
     internal let _base: _BString
     internal var _index: _BString.Index
     
-    internal init(_base: _BString, from index: _BString.Index) {
+    internal init(_base: _BString, from start: _BString.Index) {
       self._base = _base
-      if index < _base.endIndex {
-        self._index = _base.resolve(index, preferEnd: false)
-      } else {
-        self._index = index
-      }
+      self._index = _base.utf8Index(roundingDown: start)
     }
   }
   
@@ -55,8 +51,8 @@ extension _BString {
     UTF8Iterator(_base: self, from: self.startIndex)
   }
 
-  internal func makeUTF8Iterator(from index: Index) -> UTF8Iterator {
-    UTF8Iterator(_base: self, from: index)
+  internal func makeUTF8Iterator(from start: Index) -> UTF8Iterator {
+    UTF8Iterator(_base: self, from: start)
   }
 }
 
@@ -121,18 +117,21 @@ extension _BString.UTF8Iterator: IteratorProtocol {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct UTF16Iterator {
-    internal var _rope: Rope.Iterator
-    internal var _chunk: String.UTF16View.Iterator
-
-    internal init(_base: Rope.Iterator) {
-      self._rope = _base
-      let str = self._rope.next()?.string ?? ""
-      self._chunk = str.utf16.makeIterator()
+    internal let _base: _BString
+    internal var _index: _BString.Index
+    
+    internal init(_base: _BString, from start: _BString.Index) {
+      self._base = _base
+      self._index = _base.utf16Index(roundingDown: start)
     }
   }
-
+  
   internal func makeUTF16Iterator() -> UTF16Iterator {
-    UTF16Iterator(_base: self.rope.makeIterator())
+    UTF16Iterator(_base: self, from: self.startIndex)
+  }
+
+  internal func makeUTF16Iterator(from start: Index) -> UTF16Iterator {
+    UTF16Iterator(_base: self, from: start)
   }
 }
 
@@ -141,41 +140,43 @@ extension _BString.UTF16Iterator: IteratorProtocol {
   internal typealias Element = UInt16
 
   internal mutating func next() -> UInt16? {
-    if let codeUnit = _chunk.next() {
-      return codeUnit
+    guard _index < _base.endIndex else { return nil }
+    let ri = _index._rope!
+    var ci = _index._chunkIndex
+    let chunk = _base.rope[ri]
+    let result = chunk.string.utf16[ci]
+
+    chunk.string.utf16.formIndex(after: &ci)
+    if ci < chunk.string.endIndex {
+      _index = _BString.Index(baseUTF8Offset: _index._utf8BaseOffset, rope: ri, chunk: ci)
+    } else {
+      _index = _BString.Index(
+        baseUTF8Offset: _index._utf8BaseOffset + chunk.utf8Count,
+        rope: _base.rope.index(after: ri),
+        chunk: String.Index(_utf8Offset: 0))
     }
-    guard let chunk = _rope.next() else { return nil }
-    _chunk = chunk.string.utf16.makeIterator()
-    return _chunk.next()!
+    return result
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   internal struct UnicodeScalarIterator {
-    internal var _rope: Rope.Iterator
-    // FIXME: Change to using String.UnicodeScalarView.Iterator once makeIterator(from:) is a thing
-    internal var _chunk: String.UnicodeScalarView
-    internal var _index: String.Index
+    internal let _base: _BString
+    internal var _index: _BString.Index
 
-    internal init(_base: Rope.Iterator, _ chunk: Chunk, _ index: String.Index) {
-      self._rope = _base
-      self._chunk = chunk.string.unicodeScalars
-      self._index = index
+    internal init(_base: _BString, from start: _BString.Index) {
+      self._base = _base
+      self._index = _base.unicodeScalarIndex(roundingDown: start)
     }
   }
 
   internal func makeUnicodeScalarIterator() -> UnicodeScalarIterator {
-    makeUnicodeScalarIterator(from: startIndex)
+    UnicodeScalarIterator(_base: self, from: startIndex)
   }
 
-  internal func makeUnicodeScalarIterator(from index: Index) -> UnicodeScalarIterator {
-    let i = resolve(index, preferEnd: index == endIndex)
-    let ropeIndex = i._rope!
-    let chunkIndex = i._chunkIndex
-    var base = self.rope.makeIterator(from: ropeIndex)
-    _ = base.next()
-    return UnicodeScalarIterator(_base: base, rope[ropeIndex], chunkIndex)
+  internal func makeUnicodeScalarIterator(from start: Index) -> UnicodeScalarIterator {
+    UnicodeScalarIterator(_base: self, from: start)
   }
 }
 
@@ -184,15 +185,22 @@ extension _BString.UnicodeScalarIterator: IteratorProtocol {
   internal typealias Element = Unicode.Scalar
 
   internal mutating func next() -> Unicode.Scalar? {
-    if _index == _chunk.endIndex {
-      guard let chunk = _rope.next() else { return nil }
-      _chunk = chunk.string.unicodeScalars
-      _index = _chunk.startIndex
-      assert(_index < _chunk.endIndex)
+    guard _index < _base.endIndex else { return nil }
+    let ri = _index._rope!
+    var ci = _index._chunkIndex
+    let chunk = _base.rope[ri]
+    let result = chunk.string.unicodeScalars[ci]
+
+    chunk.string.unicodeScalars.formIndex(after: &ci)
+    if ci < chunk.string.endIndex {
+      _index = _BString.Index(baseUTF8Offset: _index._utf8BaseOffset, rope: ri, chunk: ci)
+    } else {
+      _index = _BString.Index(
+        baseUTF8Offset: _index._utf8BaseOffset + chunk.utf8Count,
+        rope: _base.rope.index(after: ri),
+        chunk: String.Index(_utf8Offset: 0))
     }
-    let scalar = _chunk[_index]
-    _index = _chunk.index(after: _index)
-    return scalar
+    return result
   }
 }
 

@@ -66,9 +66,32 @@ extension _BSubstring.UnicodeScalarView: Hashable {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UnicodeScalarView: Sequence {
+  typealias Element = UnicodeScalar
+
+  internal struct Iterator: IteratorProtocol {
+    var _it: _BString.UnicodeScalarIterator
+    let _end: _BString.Index
+
+    internal init(_substring: _BSubstring.UnicodeScalarView) {
+      self._it = _substring._base.makeUnicodeScalarIterator(from: _substring.startIndex)
+      self._end = _substring._base.resolve(_substring.endIndex, preferEnd: true)
+    }
+
+    internal mutating func next() -> UnicodeScalar? {
+      guard _it._index < _end else { return nil }
+      return _it.next()
+    }
+  }
+
+  internal func makeIterator() -> Iterator {
+    Iterator(_substring: self)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UnicodeScalarView: BidirectionalCollection {
   typealias Index = _BString.Index
-  typealias Element = UnicodeScalar
   typealias SubSequence = Self
 
   @inline(__always)

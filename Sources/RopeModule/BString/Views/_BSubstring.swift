@@ -80,9 +80,32 @@ extension _BSubstring: Hashable {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring: Sequence {
+  typealias Element = Character
+
+  internal struct Iterator: IteratorProtocol {
+    let _end: _BString.Index
+    var _it: _BString.Iterator
+
+    init(_substring: _BSubstring) {
+      self._it = _substring._base.makeCharacterIterator(from: _substring.startIndex)
+      self._end = _substring.endIndex
+    }
+
+    internal mutating func next() -> Character? {
+      guard _it.isBelow(_end) else { return nil }
+      return _it.next()
+    }
+  }
+
+  internal func makeIterator() -> Iterator {
+    Iterator(_substring: self)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: BidirectionalCollection {
   typealias Index = _BString.Index
-  typealias Element = Character
   typealias SubSequence = Self
 
   @inline(__always)

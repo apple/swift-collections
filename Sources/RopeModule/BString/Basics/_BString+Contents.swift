@@ -316,7 +316,7 @@ extension _BString {
     guard offset < utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let i = resolve(i, preferEnd: false)
-    guard !i._isKnownCharacterAligned else { return i }
+    guard !i._isKnownCharacterAligned else { return resolve(i, preferEnd: false) }
 
     var ri = i._rope!
     let ci = i._chunkIndex
@@ -354,7 +354,7 @@ extension _BString {
     guard i < endIndex else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let start = self.resolve(i, preferEnd: false)
-    guard !i._isKnownScalarAligned else { return i }
+    guard !i._isKnownScalarAligned else { return resolve(i, preferEnd: false) }
     let ri = start._rope!
     let chunk = self.rope[ri]
     let ci = chunk.string.unicodeScalars._index(roundingDown: start._chunkIndex)

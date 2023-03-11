@@ -43,9 +43,18 @@ extension _BString.UTF16View: Hashable {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UTF16View: Sequence {
+  typealias Element = UInt16
+  typealias Iterator = _BString.UTF16Iterator
+
+  internal func makeIterator() -> _BString.UTF16Iterator {
+    _base.makeUTF16Iterator()
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UTF16View: BidirectionalCollection {
   typealias Index = _BString.Index
-  typealias Element = UInt16
   typealias SubSequence = _BSubstring.UTF16View
 
   @inline(__always)

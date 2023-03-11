@@ -59,9 +59,32 @@ extension _BSubstring.UTF8View: Hashable {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UTF8View: Sequence {
+  typealias Element = UInt8
+
+  internal struct Iterator: IteratorProtocol {
+    var _it: _BString.UTF8Iterator
+    var _end: _BString.Index
+
+    init(_substring: _BSubstring.UTF8View) {
+      self._it = _substring._base.makeUTF8Iterator(from: _substring.startIndex)
+      self._end = _substring.endIndex
+    }
+
+    internal mutating func next() -> UInt8? {
+      guard _it._index < _end else { return nil }
+      return _it.next()
+    }
+  }
+
+  internal func makeIterator() -> Iterator {
+    Iterator(_substring: self)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF8View: BidirectionalCollection {
   typealias Index = _BString.Index
-  typealias Element = UInt8
   typealias SubSequence = Self
 
   @inline(__always)

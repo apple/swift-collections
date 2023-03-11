@@ -85,9 +85,32 @@ extension _BSubstring.UTF16View: Hashable {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UTF16View: Sequence {
+  typealias Element = UInt16
+
+  internal struct Iterator: IteratorProtocol {
+    var _it: _BString.UTF16Iterator
+    var _end: _BString.Index
+
+    init(_substring: _BSubstring.UTF16View) {
+      self._it = _substring._base.makeUTF16Iterator(from: _substring.startIndex)
+      self._end = _substring.endIndex
+    }
+
+    internal mutating func next() -> UInt16? {
+      guard _it._index < _end else { return nil }
+      return _it.next()
+    }
+  }
+
+  internal func makeIterator() -> Iterator {
+    Iterator(_substring: self)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View: BidirectionalCollection {
   typealias Index = _BString.Index
-  typealias Element = UInt16
   typealias SubSequence = Self
 
   @inline(__always)

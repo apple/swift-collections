@@ -47,9 +47,18 @@ extension _BString.UnicodeScalarView: Hashable {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UnicodeScalarView: Sequence {
+  typealias Element = UnicodeScalar
+  typealias Iterator = _BString.UnicodeScalarIterator
+
+  internal func makeIterator() -> _BString.UnicodeScalarIterator {
+    _base.makeUnicodeScalarIterator()
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: BidirectionalCollection {
   typealias Index = _BString.Index
-  typealias Element = UnicodeScalar
   typealias SubSequence = _BSubstring.UnicodeScalarView
 
   @inline(__always)
