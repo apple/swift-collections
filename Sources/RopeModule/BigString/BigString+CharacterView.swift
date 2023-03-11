@@ -60,7 +60,7 @@ extension BigString: Equatable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Comparable {
   public static func < (left: Self, right: Self) -> Bool {
-    left._guts.characterwiseIsLess(than: right._guts)
+    left._guts < right._guts
   }
 }
 

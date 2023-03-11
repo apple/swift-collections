@@ -14,22 +14,15 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: Comparable {
   internal static func < (left: Self, right: Self) -> Bool {
-    left.characterwiseIsLess(than: right)
-  }
-}
-
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension _BString {
-  internal func characterwiseIsLess(than other: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
     // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
     // split up on random Character boundaries -- Unicode does not promise that
     // norm(a + c) == norm(a) + norm(b) in this case.
     // To do this properly, we'll probably need to expose new stdlib entry points. :-/
-    if self.isIdentical(to: other) { return false }
+    if left.isIdentical(to: right) { return false }
     // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
-    var it1 = self.makeCharacterIterator()
-    var it2 = other.makeCharacterIterator()
+    var it1 = left.makeIterator()
+    var it2 = right.makeIterator()
     while true {
       switch (it1.next(), it2.next()) {
       case (nil, nil): return false

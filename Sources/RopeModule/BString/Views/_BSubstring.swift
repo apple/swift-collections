@@ -70,12 +70,42 @@ extension _BSubstring: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
     _BString.characterwiseIsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
   }
+
+  internal func isIdentical(to other: Self) -> Bool {
+    guard self._base.isIdentical(to: other._base) else { return false }
+    return self._bounds == other._bounds
+  }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: Hashable {
   internal func hash(into hasher: inout Hasher) {
     _base.hashCharacters(into: &hasher, from: _bounds)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring: Comparable {
+  internal static func < (left: Self, right: Self) -> Bool {
+    // FIXME: Implement properly normalized comparisons & hashing.
+    // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
+    // split up on random Character boundaries -- Unicode does not promise that
+    // norm(a + c) == norm(a) + norm(b) in this case.
+    // To do this properly, we'll probably need to expose new stdlib entry points. :-/
+    if left.isIdentical(to: right) { return false }
+    // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
+    var it1 = left.makeIterator()
+    var it2 = right.makeIterator()
+    while true {
+      switch (it1.next(), it2.next()) {
+      case (nil, nil): return false
+      case (nil, .some): return true
+      case (.some, nil): return false
+      case let (a?, b?):
+        if a == b { continue }
+        return a < b
+      }
+    }
   }
 }
 
