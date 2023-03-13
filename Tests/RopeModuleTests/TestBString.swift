@@ -537,7 +537,7 @@ class TestBString: XCTestCase {
           current = str.unicodeScalars.index(after: current)
         }
         let j = str.unicodeScalars.index(roundingUp: i)
-        XCTAssertEqual(j, current, "\(i)", file: file, line: line)
+        XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
       }
     }
 
@@ -546,6 +546,124 @@ class TestBString: XCTestCase {
     check(str.unicodeScalars.indices)
     check(str.indices)
     XCTAssertEqual(str.unicodeScalars.index(roundingDown: str.endIndex), str.endIndex)
+  }
+
+  func testUTF8IndexRoundingDown() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      var next = str.utf8.index(after: current)
+      for i in indices {
+        while i >= next {
+          current = next
+          next = str.utf8.index(after: current)
+        }
+        let j = str.utf8.index(roundingDown: i)
+        XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
+        XCTAssertEqual(str[utf8: i], str[utf8: j], "i: \(i)", file: file, line: line)
+      }
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.indices)
+    XCTAssertEqual(str.utf8.index(roundingDown: str.endIndex), str.endIndex)
+  }
+
+  func testUTF8IndexRoundingUp() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      for i in indices {
+        while i > current {
+          current = str.utf8.index(after: current)
+        }
+        let j = str.utf8.index(roundingUp: i)
+        XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
+      }
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.indices)
+    XCTAssertEqual(str.utf8.index(roundingDown: str.endIndex), str.endIndex)
+  }
+
+  func testUTF16IndexRoundingDown() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      // Note: UTF-16 index rounding is not rounding in the usual sense -- it rounds UTF-8 indices
+      // down to the nearest scalar boundary, not the nearest UTF-16 index. This is because
+      // UTF-16 indices addressing trailing surrogates are ordered below UTF-8 continuation bytes,
+      // but this rounds those down to the scalar.
+      var next = str.unicodeScalars.index(after: current)  // Note: intentionally not utf16
+      for i in indices {
+        while i >= next {
+          current = next
+          next = str.unicodeScalars.index(after: current) // Note: intentionally not utf16
+        }
+        let j = str.utf16.index(roundingDown: i)
+        if i._isUTF16TrailingSurrogate {
+          XCTAssertEqual(j, i, "i: \(i)", file: file, line: line)
+        } else {
+          XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
+        }
+        XCTAssertEqual(str[utf16: i], str[utf16: j], "i: \(i)", file: file, line: line)
+      }
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.indices)
+    XCTAssertEqual(str.utf16.index(roundingDown: str.endIndex), str.endIndex)
+  }
+
+  func testUTF1t6IndexRoundingUp() {
+    let ref = sampleString
+    let str = _BString(ref)
+
+    func check(
+      _ indices: some Sequence<_BString.Index>,
+      file: StaticString = #file,
+      line: UInt = #line
+    ) {
+      var current = str.startIndex
+      for i in indices {
+        while i > current {
+          current = str.utf8.index(after: current)
+        }
+        let j = str.utf8.index(roundingUp: i)
+        XCTAssertEqual(j, current, "i: \(i)", file: file, line: line)
+      }
+    }
+
+    check(str.utf8.indices)
+    check(str.utf16.indices)
+    check(str.unicodeScalars.indices)
+    check(str.indices)
+    XCTAssertEqual(str.utf8.index(roundingDown: str.endIndex), str.endIndex)
   }
 
   func testSubstringMutationIndexRounding() {
