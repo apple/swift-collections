@@ -689,6 +689,24 @@ class TestBString: XCTestCase {
     XCTAssertEqual(s3.base, "Foo🇭🇺🇸🇨🇦🇺🇸🇨\u{1f1e6}bar")
   }
 
+  func test_unicodeScalars_mutations() {
+    let b1: _BString = "Foo👩👧bar" // WOMAN, GIRL
+    var s1 = b1.prefix(4)
+    XCTAssertEqual(s1, "Foo👩")
+
+    // Append a ZWJ at the end of the substring via its Unicode scalars view.
+    func mutate<T>(_ value: inout T, by body: (inout T) -> Void) {
+      body(&value)
+    }
+    mutate(&s1.unicodeScalars) { view in
+      view.append("\u{200d}") // ZWJ
+      XCTAssertEqual(view, "Foo👩\u{200d}")
+    }
+
+    XCTAssertEqual(s1, "Foo")
+    XCTAssertEqual(s1.base, "Foo👩‍👧bar")
+  }
+
   func test_ExpressibleByStringLiteral_and_CustomStringConvertible() {
     let a: _BString = "foobar"
     XCTAssertEqual(a.description, "foobar")

@@ -35,7 +35,20 @@ extension _BSubstring {
   }
 
   internal var unicodeScalars: UnicodeScalarView {
-    UnicodeScalarView(_substring: self)
+    get {
+      UnicodeScalarView(_substring: self)
+    }
+    set {
+      self = Self(newValue._base, in: newValue._bounds)
+    }
+    _modify {
+      var view = UnicodeScalarView(_unchecked: _base, in: _bounds)
+      self = Self()
+      defer {
+        self = Self(view._base, in: view._bounds)
+      }
+      yield &view
+    }
   }
 }
 

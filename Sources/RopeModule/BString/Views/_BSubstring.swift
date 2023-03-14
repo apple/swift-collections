@@ -356,6 +356,7 @@ extension _BSubstring: RangeReplaceableCollection {
     _mutateBasePreservingBounds(in: bounds) {
       $0.removeSubrange(bounds)
     }
+    assert(_bounds.isEmpty)
   }
 }
 

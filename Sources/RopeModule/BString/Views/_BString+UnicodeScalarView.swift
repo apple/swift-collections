@@ -24,7 +24,20 @@ extension _BString {
 
   @inline(__always)
   internal var unicodeScalars: UnicodeScalarView {
-    UnicodeScalarView(_base: self)
+    get {
+      UnicodeScalarView(_base: self)
+    }
+    set {
+      self = newValue._base
+    }
+    _modify {
+      var view = UnicodeScalarView(_base: self)
+      self = .init()
+      defer {
+        self = view._base
+      }
+      yield &view
+    }
   }
 
   internal init(_ view: _BString.UnicodeScalarView) {
