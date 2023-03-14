@@ -12,11 +12,11 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString {
-  public struct UTF8View {
-    internal var _guts: _BString.UTF8View
+extension BigSubstring {
+  public struct UTF8View: Sendable {
+    internal var _guts: _BSubstring.UTF8View
 
-    internal init(_guts: _BString.UTF8View) {
+    internal init(_guts: _BSubstring.UTF8View) {
       self._guts = _guts
     }
   }
@@ -28,99 +28,89 @@ extension BigString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  public init(_ content: UTF8View) {
-    self._guts = _BString(content._guts)
+  public init?(_ utf8: BigSubstring.UTF8View) {
+    guard let guts = _BString(utf8._guts) else { return nil }
+    self.init(_guts: guts)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UTF8View: CustomStringConvertible {
-  public var description: String {
-    var d = "<"
-    d += self.lazy
-      .map { String($0, radix: 16, uppercase: true)._lpad(to: 2, with: "0") }
-      .joined(separator: " ")
-    d += ">"
-    return d
+extension BigSubstring.UTF8View {
+  public var base: BigString.UTF8View {
+    BigString.UTF8View(_guts: _guts.base)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UTF8View: Equatable {
+extension BigSubstring.UTF8View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     left._guts == right._guts
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UTF8View: Hashable {
+extension BigSubstring.UTF8View: Hashable {
   public func hash(into hasher: inout Hasher) {
     _guts.hash(into: &hasher)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UTF8View: Sequence {
+extension BigSubstring.UTF8View: Sequence {
   public typealias Element = UInt8
 
   public struct Iterator: IteratorProtocol {
-    public typealias Element = UInt8
+    internal var _guts: _BSubstring.UTF8View.Iterator
 
-    internal var _base: _BString.UTF8Iterator
-
-    internal init(_base: _BString.UTF8Iterator) {
-      self._base = _base
+    internal init(_guts: _BSubstring.UTF8View.Iterator) {
+      self._guts = _guts
     }
 
     public mutating func next() -> UInt8? {
-      _base.next()
+      _guts.next()
     }
   }
 
   public func makeIterator() -> Iterator {
-    Iterator(_base: self._guts.makeIterator())
+    Iterator(_guts: _guts.makeIterator())
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.UTF8View: BidirectionalCollection {
+extension BigSubstring.UTF8View: BidirectionalCollection {
   public typealias Index = BigString.Index
-  public typealias SubSequence = BigSubstring.UTF8View
+  public typealias SubSequence = Self
 
-  public var count: Int {
-    _guts.count
-  }
-
-  public var startIndex: Index {
-    Index(_guts.startIndex)
-  }
-
-  public var endIndex: Index {
-    Index(_guts.endIndex)
-  }
-
-  public func index(after i: Index) -> Index {
-    Index(_guts.index(after: i._value))
-  }
-
-  public func index(before i: Index) -> Index {
-    Index(_guts.index(before: i._value))
-  }
-
+  public var startIndex: Index { Index(_guts.startIndex) }
+  public var endIndex: Index { Index(_guts.endIndex) }
+  public var count: Int { _guts.count }
+  public func index(after i: Index) -> Index { Index(_guts.index(after: i._value)) }
+  public func index(before i: Index) -> Index { Index(_guts.index(after: i._value)) }
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
     Index(_guts.index(i._value, offsetBy: distance))
   }
-
+  public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    _guts.index(i._value, offsetBy: distance, limitedBy: limit._value).map { Index($0) }
+  }
   public func distance(from start: Index, to end: Index) -> Int {
     _guts.distance(from: start._value, to: end._value)
   }
-
   public subscript(position: Index) -> UInt8 {
     _guts[position._value]
   }
-
-  public subscript(bounds: Range<Index>) -> BigSubstring.UTF8View {
+  public subscript(bounds: Range<Index>) -> Self {
     BigSubstring.UTF8View(_guts: _guts[bounds._base])
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension BigSubstring.UTF8View {
+  internal func index(roundingDown i: Index) -> Index {
+    Index(_guts.index(roundingDown: i._value))
+  }
+
+  internal func index(roundingUp i: Index) -> Index {
+    Index(_guts.index(roundingUp: i._value))
   }
 }
 

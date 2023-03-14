@@ -18,10 +18,6 @@ public struct BigString: Sendable {
   internal init(_guts: _BString) {
     self._guts = _guts
   }
-  
-  public init() {
-    _guts = _BString()
-  }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
@@ -60,15 +56,27 @@ extension String {
   public init(_ big: BigString) {
     self.init(_from: big._guts)
   }
+  
+  public init(_ big: BigSubstring) {
+    self.init(_from: big._guts)
+  }
 
-  public init(_ big: BigString.SubSequence) {
-    self.init(_from: big.base._guts, in: big.startIndex._value ..< big.endIndex._value)
+  public init(_ big: BigString.UnicodeScalarView) {
+    self.init(_from: big._guts)
+  }
+
+  public init(_ big: BigSubstring.UnicodeScalarView) {
+    self.init(_from: big._guts)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String.UnicodeScalarView {
   public init(_ big: BigString.UnicodeScalarView) {
+    self = String(_from: big._guts._base).unicodeScalars
+  }
+
+  public init(_ big: BigSubstring.UnicodeScalarView) {
     self = String(_from: big._guts._base).unicodeScalars
   }
 }

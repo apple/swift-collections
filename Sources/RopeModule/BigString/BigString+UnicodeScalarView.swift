@@ -76,6 +76,8 @@ extension BigString.UnicodeScalarView: Hashable {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Sequence {
+  public typealias Element = Unicode.Scalar
+
   public struct Iterator: IteratorProtocol {
     public typealias Element = Unicode.Scalar
 
@@ -97,8 +99,8 @@ extension BigString.UnicodeScalarView: Sequence {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: BidirectionalCollection {
-  public typealias Element = Unicode.Scalar
   public typealias Index = BigString.Index
+  public typealias SubSequence = BigSubstring.UnicodeScalarView
 
   public var count: Int {
     _guts.count
@@ -130,6 +132,10 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
 
   public subscript(index: Index) -> Unicode.Scalar {
     _guts[index._value]
+  }
+
+  public subscript(bounds: Range<Index>) -> BigSubstring.UnicodeScalarView {
+    BigSubstring.UnicodeScalarView(_guts: _guts[bounds._base])
   }
 }
 

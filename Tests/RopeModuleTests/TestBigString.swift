@@ -99,17 +99,23 @@ class TestBigString: XCTestCase {
 
     let c = min(indices1.count, indices2.count)
 
-    for i in 0 ..< min(c, indices1.count - 1) {
-      let c1 = flat[indices1[i]]
-      let c2 = big[indices2[i]]
-      XCTAssertEqual(c1, c2, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+    for i in 0 ..< c {
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
+      let c1 = flat[i1]
+      let c2 = big[i2]
+      XCTAssertEqual(c1, c2, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< c {
-      let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
-      XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
+      let d2 = big.utf8.distance(from: big.startIndex, to: i2)
+      XCTAssertEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
     }
+
     return (indices1, indices2)
   }
 
@@ -130,17 +136,23 @@ class TestBigString: XCTestCase {
 
     let c = min(indices1.count, indices2.count)
 
-    for i in 0 ..< min(c, indices1.count - 1) {
-      let s1 = flat.unicodeScalars[indices1[i]]
-      let s2 = big.unicodeScalars[indices2[i]]
-      XCTAssertEqual(s1, s2, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+    for i in 0 ..< c {
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
+      let c1 = flat.unicodeScalars[i1]
+      let c2 = big.unicodeScalars[i2]
+      XCTAssertEqual(c1, c2, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< min(indices1.count, indices2.count) {
-      let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
-      XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
+      let d2 = big.utf8.distance(from: big.startIndex, to: i2)
+      XCTAssertEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
     }
+
     return (indices1, indices2)
   }
 
@@ -161,17 +173,23 @@ class TestBigString: XCTestCase {
 
     let c = min(indices1.count, indices2.count)
 
-    for i in 0 ..< min(c, indices1.count - 1) {
-      let c1 = flat.utf8[indices1[i]]
-      let c2 = big.utf8[indices2[i]]
-      XCTAssertEqual(c1, c2, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+    for i in 0 ..< c {
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
+      let c1 = flat.utf8[i1]
+      let c2 = big.utf8[i2]
+      XCTAssertEqual(c1, c2, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< min(indices1.count, indices2.count) {
-      let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
-      XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
+      let d2 = big.utf8.distance(from: big.startIndex, to: i2)
+      XCTAssertEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
     }
+
     return (indices1, indices2)
   }
 
@@ -192,17 +210,23 @@ class TestBigString: XCTestCase {
 
     let c = min(indices1.count, indices2.count)
 
-    for i in 0 ..< min(c, indices1.count - 1) {
-      let c1 = flat.utf16[indices1[i]]
-      let c2 = big.utf16[indices2[i]]
-      XCTAssertEqual(c1, c2, "i: \(i), i1: \(indices1[i]), i2: \(indices2[i])", file: file, line: line)
+    for i in 0 ..< c {
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
+      let c1 = flat.utf16[i1]
+      let c2 = big.utf16[i2]
+      XCTAssertEqual(c1, c2, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< min(indices1.count, indices2.count) {
-      let d1 = flat.utf8.distance(from: flat.startIndex, to: indices1[i])
-      let d2 = big.utf8.distance(from: big.startIndex, to: indices2[i])
-      XCTAssertEqual(d2, d1, "i: \(i), i1: \(indices1[i]._description), i2: \(indices2[i])", file: file, line: line)
+      let i1 = indices1[i]
+      let i2 = indices2[i]
+      let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
+      let d2 = big.utf8.distance(from: big.startIndex, to: i2)
+      XCTAssertEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
     }
+
     return (indices1, indices2)
   }
 
@@ -282,12 +306,9 @@ class TestBigString: XCTestCase {
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 20, seed: 0) {
       for j in randomStride(from: i, to: c, by: 20, seed: i) {
-        let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
-
         let i2 = indices2[i]
         let j2 = big.unicodeScalars.index(i2, offsetBy: j - i)
-        let b = String(big[i2 ..< j2])
-        XCTAssertEqual(b, a)
+        XCTAssertEqual(j2, indices2[j])
       }
     }
   }
@@ -301,12 +322,9 @@ class TestBigString: XCTestCase {
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 20, seed: 0) {
       for j in randomStride(from: i, to: c, by: 20, seed: i) {
-        let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
-
         let i2 = indices2[i]
         let j2 = big.utf16.index(i2, offsetBy: j - i)
-        let b = String(big[i2 ..< j2])
-        XCTAssertEqual(b, a)
+        XCTAssertEqual(j2, indices2[j])
       }
     }
   }
@@ -320,12 +338,9 @@ class TestBigString: XCTestCase {
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 40, seed: 0) {
       for j in randomStride(from: i, to: c, by: 40, seed: i) {
-        let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
-
         let i2 = indices2[i]
         let j2 = big.utf8.index(i2, offsetBy: j - i)
-        let b = String(big[i2 ..< j2])
-        XCTAssertEqual(b, a)
+        XCTAssertEqual(j2, indices2[j])
       }
     }
   }
@@ -504,7 +519,7 @@ class TestBigString: XCTestCase {
 
         let k1 = big.utf8.index(big.startIndex, offsetBy: utf8Offset)
         let k2 = big.utf8.index(k1, offsetBy: placeholder.utf8.count)
-        print("\(i)/\(pieces.count): i: \(piece.i), range: \(k1 ..< k2), str: \(piece.str.debugDescription)")
+        //print("\(i)/\(pieces.count): i: \(piece.i), range: \(k1 ..< k2), str: \(piece.str.debugDescription)")
 
         big.replaceSubrange(k1 ..< k2, with: piece.str)
 
@@ -530,7 +545,7 @@ class TestBigString: XCTestCase {
     let flat = sampleString
     let big = BigString(flat)
 
-    let (indices1, indices2) = checkScalarIndices(flat, big)
+    let (indices1, indices2) = checkCharacterIndices(flat, big)
 
     for i in randomStride(from: 0, to: indices1.count, by: 1000, seed: 0) {
       let a1 = indices1[i]
@@ -542,7 +557,7 @@ class TestBigString: XCTestCase {
         let expected = String(flat[a1 ..< b1])
         let actual = BigString(big[a2 ..< b2])
         actual._invariantCheck()
-        XCTAssertEqual(String(big), flat)
+        XCTAssertEqual(String(actual), expected)
         checkUTF8Indices(expected, actual)
         checkUTF16Indices(expected, actual)
         checkScalarIndices(expected, actual)
