@@ -21,19 +21,19 @@ extension _BString: RangeReplaceableCollection {
     // Do nothing.
   }
 
-  internal mutating func replaceSubrange<C: Collection<Character>>(
-    _ subrange: Range<Index>, with newElements: __owned C
+  internal mutating func replaceSubrange<S: Sequence<Character>>( // Note: Sequence, not Collection
+    _ subrange: Range<Index>, with newElements: __owned S
   ) {
-    if C.self == String.self {
+    if S.self == String.self {
       let newElements = _identityCast(newElements, to: String.self)
       self._replaceSubrange(subrange, with: newElements)
-    } else if C.self == Substring.self {
+    } else if S.self == Substring.self {
       let newElements = _identityCast(newElements, to: Substring.self)
       self._replaceSubrange(subrange, with: newElements)
-    } else if C.self == _BString.self {
+    } else if S.self == _BString.self {
       let newElements = _identityCast(newElements, to: _BString.self)
       self._replaceSubrange(subrange, with: newElements)
-    } else if C.self == _BSubstring.self {
+    } else if S.self == _BSubstring.self {
       let newElements = _identityCast(newElements, to: _BSubstring.self)
       self._replaceSubrange(subrange, with: newElements)
     } else {
@@ -128,6 +128,10 @@ extension _BString: RangeReplaceableCollection {
     }
   }
 
+  internal init(repeating value: _BSubstring, count: Int) {
+    self.init(repeating: _BString(value), count: count)
+  }
+
   internal mutating func append(_ newElement: __owned Character) {
     append(contentsOf: String(newElement))
   }
@@ -170,19 +174,19 @@ extension _BString: RangeReplaceableCollection {
     insert(contentsOf: String(newElement), at: i)
   }
 
-  internal mutating func insert<C: Collection<Character>>(
-    contentsOf newElements: __owned C, at i: Index
+  internal mutating func insert<S: Sequence<Character>>( // Note: Sequence, not Collection
+    contentsOf newElements: __owned S, at i: Index
   ) {
-    if C.self == String.self {
+    if S.self == String.self {
       let newElements = _identityCast(newElements, to: String.self)
       insert(contentsOf: newElements, at: i)
-    } else if C.self == Substring.self {
+    } else if S.self == Substring.self {
       let newElements = _identityCast(newElements, to: Substring.self)
       insert(contentsOf: newElements, at: i)
-    } else if C.self == _BString.self {
+    } else if S.self == _BString.self {
       let newElements = _identityCast(newElements, to: _BString.self)
       insert(contentsOf: newElements, at: i)
-    } else if C.self == _BSubstring.self {
+    } else if S.self == _BSubstring.self {
       let newElements = _identityCast(newElements, to: _BSubstring.self)
       insert(contentsOf: newElements, at: i)
     } else {

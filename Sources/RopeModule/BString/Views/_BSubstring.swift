@@ -54,6 +54,13 @@ extension _BSubstring: CustomStringConvertible {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring: CustomDebugStringConvertible {
+  internal var debugDescription: String {
+    description.debugDescription
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: ExpressibleByStringLiteral {
   internal init(stringLiteral value: String) {
     self.init(value)
@@ -269,11 +276,85 @@ extension _BSubstring: RangeReplaceableCollection {
     self.init(_unchecked: str, in: bounds)
   }
 
-  internal mutating func replaceSubrange<C: Collection>(
-    _ subrange: Range<Index>, with newElements: C
-  ) where C.Element == Character {
+  internal mutating func reserveCapacity(_ n: Int) {
+    // Do nothing.
+  }
+
+  internal mutating func replaceSubrange<C: Sequence<Character>>( // Note: Sequence, not Collection
+    _ subrange: Range<Index>, with newElements: __owned C
+  ) {
     _mutateBasePreservingBounds(in: subrange) {
       $0.replaceSubrange(subrange, with: newElements)
+    }
+  }
+
+  internal init<S: Sequence<Character>>(_ elements: S) {
+    let base = _BString(elements)
+    self.init(base, in: base.startIndex ..< base.endIndex)
+  }
+
+  internal init(repeating repeatedValue: Character, count: Int) {
+    self.init(_BString(repeating: repeatedValue, count: count))
+  }
+
+  internal init(repeating repeatedValue: some StringProtocol, count: Int) {
+    self.init(_BString(repeating: repeatedValue, count: count))
+  }
+
+  internal init(repeating repeatedValue: _BString, count: Int) {
+    self.init(_BString(repeating: repeatedValue, count: count))
+  }
+
+  internal init(repeating repeatedValue: _BSubstring, count: Int) {
+    self.init(_BString(repeating: repeatedValue, count: count))
+  }
+
+  internal mutating func append(_ newElement: Character) {
+    let i = endIndex
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(newElement, at: i)
+    }
+  }
+
+  internal mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
+    let i = endIndex
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(contentsOf: newElements, at: i)
+    }
+  }
+
+  internal mutating func insert(_ newElement: Character, at i: Index) {
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(newElement, at: i)
+    }
+  }
+
+  internal mutating func insert<C: Sequence<Character>>( // Note: Sequence, not Collection
+    contentsOf newElements: __owned C, at i: Index
+  ) {
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(contentsOf: newElements, at: i)
+    }
+  }
+
+  @discardableResult
+  internal mutating func remove(at i: Index) -> Character {
+    let j = self.index(after: i)
+    return _mutateBasePreservingBounds(in: i ..< j) {
+      $0.remove(at: i)
+    }
+  }
+
+  internal mutating func removeSubrange(_ bounds: Range<Index>) {
+    _mutateBasePreservingBounds(in: bounds) {
+      $0.removeSubrange(bounds)
+    }
+  }
+
+  internal mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
+    let bounds = self._bounds
+    _mutateBasePreservingBounds(in: bounds) {
+      $0.removeSubrange(bounds)
     }
   }
 }

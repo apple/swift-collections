@@ -52,6 +52,27 @@ extension _BSubstring.UnicodeScalarView {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UnicodeScalarView: ExpressibleByStringLiteral {
+  internal init(stringLiteral value: String) {
+    self.init(value.unicodeScalars)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UnicodeScalarView: CustomStringConvertible {
+  internal var description: String {
+    String(_from: _base, in: _bounds)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BSubstring.UnicodeScalarView: CustomDebugStringConvertible {
+  internal var debugDescription: String {
+    description.debugDescription
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UnicodeScalarView: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
     _BString.utf8IsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
@@ -206,32 +227,8 @@ extension _BSubstring.UnicodeScalarView: RangeReplaceableCollection {
     // Do nothing.
   }
   
-  internal mutating func replaceSubrange<C: Collection<UnicodeScalar>>(
+  internal mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     _ subrange: Range<Index>, with newElements: __owned C
-  ) {
-    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
-  }
-
-  internal mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned String.UnicodeScalarView
-  ) {
-    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
-  }
-
-  internal mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned Substring.UnicodeScalarView
-  ) {
-    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
-  }
-
-  internal mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned _BString.UnicodeScalarView
-  ) {
-    _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
-  }
-
-  internal mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned _BSubstring.UnicodeScalarView
   ) {
     _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
   }
@@ -239,6 +236,17 @@ extension _BSubstring.UnicodeScalarView: RangeReplaceableCollection {
   internal init<S: Sequence<UnicodeScalar>>(_ elements: S) {
     let base = _BString.UnicodeScalarView(elements)
     self.init(base._base, in: base.startIndex ..< base.endIndex)
+  }
+
+  internal init(repeating repeatedValue: UnicodeScalar, count: Int) {
+    let base = _BString.UnicodeScalarView(repeating: repeatedValue, count: count)
+    self.init(base._base, in: base.startIndex ..< base.endIndex)
+  }
+
+  internal mutating func append(_ newElement: UnicodeScalar) {
+    _mutateBasePreservingBounds(in: endIndex ..< endIndex) {
+      $0.append(newElement)
+    }
   }
 
   internal mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
@@ -254,7 +262,7 @@ extension _BSubstring.UnicodeScalarView: RangeReplaceableCollection {
   }
 
 
-  internal mutating func insert<C: Collection<UnicodeScalar>>(
+  internal mutating func insert<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     contentsOf newElements: __owned C, at i: Index
   ) {
     _mutateBasePreservingBounds(in: i ..< i) {

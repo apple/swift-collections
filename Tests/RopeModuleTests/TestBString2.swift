@@ -20,20 +20,43 @@ class TestBString2: CollectionTestCase {
     let str = _BString(shortSample)
     checkBidirectionalCollection(str.utf8, expectedContents: shortSample.utf8)
   }
-
+  
   func testUTF16View() {
     let str = _BString(shortSample)
     checkBidirectionalCollection(str.utf16, expectedContents: shortSample.utf16)
   }
-
+  
   func testUnicodeScalarView() {
     let str = _BString(shortSample)
     checkBidirectionalCollection(str.unicodeScalars, expectedContents: shortSample.unicodeScalars)
   }
-
+  
   func testCharacterView() {
     let str = _BString(shortSample)
     checkBidirectionalCollection(str, expectedContents: shortSample)
+  }
+  
+  func testHashable_Characters() {
+    let classes: [[_BString]] = [
+      ["Cafe\u{301}", "Café"],
+      ["Foo\u{301}\u{327}", "Foo\u{327}\u{301}"],
+      ["Foo;bar", "Foo\u{37e}bar"],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+  
+  func testHashable_Scalars() {
+    let classes: [_BString] = [
+      "Cafe\u{301}",
+      "Café",
+      "Foo\u{301}\u{327}",
+      "Foo\u{327}\u{301}",
+      "Foo;bar",
+      "Foo\u{37e}bar",
+    ]
+    checkHashable(equivalenceClasses: classes.map { [$0.unicodeScalars] })
+    checkHashable(equivalenceClasses: classes.map { [$0.utf8] })
+    checkHashable(equivalenceClasses: classes.map { [$0.utf16] })
   }
 }
 

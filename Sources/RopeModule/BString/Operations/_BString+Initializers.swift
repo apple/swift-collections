@@ -133,6 +133,18 @@ extension String {
     }
     self += big.rope[endRopeIndex].string[..<end._chunkIndex]
   }
+
+  internal init(_from big: _BSubstring) {
+    self.init(_from: big._base, in: big._bounds)
+  }
+
+  internal init(_from big: _BString.UnicodeScalarView) {
+    self.init(_from: big._base)
+  }
+
+  internal init(_from big: _BSubstring.UnicodeScalarView) {
+    self.init(_from: big._base, in: big._bounds)
+  }
 }
 
 #endif

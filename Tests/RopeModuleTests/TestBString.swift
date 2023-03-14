@@ -688,5 +688,32 @@ class TestBString: XCTestCase {
     XCTAssertEqual(s3, "Foo🇭🇺🇸🇨🇦🇺") // Regional indicators "HUSCAUSCA"
     XCTAssertEqual(s3.base, "Foo🇭🇺🇸🇨🇦🇺🇸🇨\u{1f1e6}bar")
   }
+
+  func test_ExpressibleByStringLiteral_and_CustomStringConvertible() {
+    let a: _BString = "foobar"
+    XCTAssertEqual(a.description, "foobar")
+    XCTAssertEqual(a.debugDescription, "\"foobar\"")
+
+    let b: _BSubstring = "foobar"
+    XCTAssertEqual(b.description, "foobar")
+    XCTAssertEqual(b.debugDescription, "\"foobar\"")
+
+    let c: _BString.UnicodeScalarView = "foobar"
+    XCTAssertEqual(c.description, "foobar")
+    XCTAssertEqual(c.debugDescription, "\"foobar\"")
+
+    let d: _BSubstring.UnicodeScalarView = "foobar"
+    XCTAssertEqual(d.description, "foobar")
+    XCTAssertEqual(d.debugDescription, "\"foobar\"")
+  }
+
+  func testCharacterwiseEquality() {
+    let cafe1: _BString = "Cafe\u{301}"
+    let cafe2: _BString = "Café"
+    XCTAssertEqual(cafe1, cafe2)
+    XCTAssertNotEqual(cafe1.unicodeScalars, cafe2.unicodeScalars)
+    XCTAssertNotEqual(cafe1.utf8, cafe2.utf8)
+    XCTAssertNotEqual(cafe1.utf16, cafe2.utf16)
+  }
 }
 #endif

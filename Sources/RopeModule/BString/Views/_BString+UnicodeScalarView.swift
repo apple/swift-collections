@@ -33,6 +33,27 @@ extension _BString {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UnicodeScalarView: ExpressibleByStringLiteral {
+  internal init(stringLiteral value: String) {
+    self.init(value.unicodeScalars)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UnicodeScalarView: CustomStringConvertible {
+  internal var description: String {
+    String(_from: _base)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UnicodeScalarView: CustomDebugStringConvertible {
+  internal var debugDescription: String {
+    description.debugDescription
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
     _BString.utf8IsEqual(left._base, to: right._base)
@@ -122,7 +143,7 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
     // Do nothing.
   }
 
-  internal mutating func replaceSubrange<C: Collection<UnicodeScalar>>(
+  internal mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     _ subrange: Range<Index>, with newElements: __owned C
   ) {
     if C.self == String.UnicodeScalarView.self {
@@ -259,7 +280,7 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
     _base.insert(contentsOf: String(newElement), at: i)
   }
 
-  internal mutating func insert<C: Collection<UnicodeScalar>>(
+  internal mutating func insert<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     contentsOf newElements: __owned C, at i: Index
   ) {
     if C.self == String.UnicodeScalarView.self {
