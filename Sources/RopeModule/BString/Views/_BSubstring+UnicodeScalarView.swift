@@ -257,14 +257,16 @@ extension _BSubstring.UnicodeScalarView: RangeReplaceableCollection {
   }
 
   internal mutating func append(_ newElement: UnicodeScalar) {
-    _mutateBasePreservingBounds(in: endIndex ..< endIndex) {
-      $0.append(newElement)
+    let i = endIndex
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(newElement, at: i)
     }
   }
 
   internal mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
-    _mutateBasePreservingBounds(in: endIndex ..< endIndex) {
-      $0.append(contentsOf: newElements)
+    let i = endIndex
+    _mutateBasePreservingBounds(in: i ..< i) {
+      $0.insert(contentsOf: newElements, at: i)
     }
   }
 
@@ -285,7 +287,8 @@ extension _BSubstring.UnicodeScalarView: RangeReplaceableCollection {
 
   @discardableResult
   internal mutating func remove(at i: Index) -> UnicodeScalar {
-    _mutateBasePreservingBounds(in: i ..< i) {
+    let j = self.index(after: i)
+    return _mutateBasePreservingBounds(in: i ..< j) {
       $0.remove(at: i)
     }
   }
