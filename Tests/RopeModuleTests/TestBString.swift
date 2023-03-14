@@ -48,6 +48,9 @@ class TestBString: XCTestCase {
     XCTAssertTrue(s.isEmpty)
     XCTAssertEqual(s.startIndex, s.endIndex)
     XCTAssertEqual(s.startIndex._utf8Offset, 0)
+
+    XCTAssertEqual(String(_from: s), "")
+    XCTAssertEqual(String(_from: s[...]), "")
   }
   
   func test_string_conversion() {
