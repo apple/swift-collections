@@ -42,6 +42,8 @@ var settings: [SwiftSetting] = [
   // code.
 //  .define("COLLECTIONS_DETERMINISTIC_HASHING"),
 
+  // Enables randomized testing of some data structure implementations.
+  .define("COLLECTIONS_RANDOMIZED_TESTING")
 ]
 
 let package = Package(

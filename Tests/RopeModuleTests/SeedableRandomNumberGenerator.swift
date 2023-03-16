@@ -10,7 +10,11 @@
 //===----------------------------------------------------------------------===//
 
 var globalSeed: Int {
+  #if COLLECTIONS_RANDOMIZED_TESTING
   42.hashValue
+  #else
+  0
+  #endif
 }
 
 public struct RepeatableRandomNumberGenerator: RandomNumberGenerator {
