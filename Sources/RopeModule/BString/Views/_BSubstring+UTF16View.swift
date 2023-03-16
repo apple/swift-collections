@@ -85,6 +85,11 @@ extension _BSubstring.UTF16View: Equatable {
 
     return _BString.utf8IsEqual(left._base, in: i1 ..< j1, to: right._base, in: i2 ..< j2)
   }
+
+  internal func isIdentical(to other: Self) -> Bool {
+    guard self._base.isIdentical(to: other._base) else { return false }
+    return self._bounds == other._bounds
+  }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)

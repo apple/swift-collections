@@ -90,6 +90,11 @@ extension _BSubstring.UnicodeScalarView: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
     _BString.utf8IsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
   }
+
+  internal func isIdentical(to other: Self) -> Bool {
+    guard self._base.isIdentical(to: other._base) else { return false }
+    return self._bounds == other._bounds
+  }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)

@@ -71,6 +71,10 @@ extension _BString.UnicodeScalarView: Equatable {
   internal static func ==(left: Self, right: Self) -> Bool {
     _BString.utf8IsEqual(left._base, to: right._base)
   }
+
+  internal func isIdentical(to other: Self) -> Bool {
+    self._base.isIdentical(to: other._base)
+  }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
