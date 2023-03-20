@@ -3,7 +3,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021-2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -96,7 +96,7 @@ registerTargets(
     swiftSettings: _settings)
 )
 
-registerUnstableLibrary(
+registerLibrary(
   "BitCollections",
   .target(
     name: "BitCollections",
@@ -137,7 +137,7 @@ registerLibrary(
     swiftSettings: _settings)
 )
 
-registerUnstableLibrary(
+registerLibrary(
   "HeapModule",
   .target(
     name: "HeapModule",
