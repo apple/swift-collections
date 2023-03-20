@@ -9,8 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_exported import BitCollections
 @_exported import DequeModule
-@_exported import HeapModule
 @_exported import OrderedCollections
 @_exported import HashTreeCollections
+
+#if COLLECTIONS_ENABLE_UNSTABLE_MODULES
+@_exported import BitCollections
+@_exported import HeapModule
+@_exported import RopeModule
+#endif

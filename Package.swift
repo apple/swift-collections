@@ -17,7 +17,7 @@ import PackageDescription
 // from the package manager command line:
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
-var settings: [SwiftSetting] = [
+var defines: [String] = [
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -26,7 +26,7 @@ var settings: [SwiftSetting] = [
   // This is mostly useful while debugging an issue with the implementation of
   // the hash table itself. This setting should never be enabled in production
   // code.
-//  .define("COLLECTIONS_INTERNAL_CHECKS"),
+//  "COLLECTIONS_INTERNAL_CHECKS",
 
   // Hashing collections provided by this package usually seed their hash
   // function with the address of the memory location of their storage,
@@ -40,122 +40,152 @@ var settings: [SwiftSetting] = [
   // This is mostly useful while debugging an issue with the implementation of
   // the hash table itself. This setting should never be enabled in production
   // code.
-//  .define("COLLECTIONS_DETERMINISTIC_HASHING"),
+//  "COLLECTIONS_DETERMINISTIC_HASHING",
 
   // Enables randomized testing of some data structure implementations.
-  .define("COLLECTIONS_RANDOMIZED_TESTING")
+  "COLLECTIONS_RANDOMIZED_TESTING",
+
+  // Enable modules that aren't source stable yet, and aren't ready for general use.
+//  "COLLECTIONS_ENABLE_UNSTABLE_MODULES",
 ]
+
+var _modules: [String] = []
+var _products: [Product] = []
+var _targets: [Target] = []
+var _settings: [SwiftSetting] = defines.map { .define($0) }
+
+func registerTargets(_ targets: [Target]) {
+  _targets.append(contentsOf: targets)
+}
+func registerTargets(_ targets: Target...) { registerTargets(targets) }
+
+func registerLibrary(_ module: String, _ targets: [Target]) {
+  _modules.append(module)
+  _products.append(.library(name: module, targets: [module]))
+  registerTargets(targets)
+}
+func registerLibrary(_ module: String, _ targets: Target...) {
+  registerLibrary(module, targets)
+}
+
+func registerUnstableLibrary(_ module: String, _ targets: Target...) {
+  if defines.contains("COLLECTIONS_ENABLE_UNSTABLE_MODULES") {
+    registerLibrary(module, targets)
+  }
+}
+
+registerTargets(
+  .target(
+    name: "_CollectionsTestSupport",
+    dependencies: ["_CollectionsUtilities"],
+    swiftSettings: _settings,
+    linkerSettings: [
+      .linkedFramework(
+        "XCTest",
+        .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
+    ]
+  ),
+  .testTarget(
+    name: "CollectionsTestSupportTests",
+    dependencies: ["_CollectionsTestSupport"],
+    swiftSettings: _settings),
+
+  .target(
+    name: "_CollectionsUtilities",
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings)
+)
+
+registerUnstableLibrary(
+  "BitCollections",
+  .target(
+    name: "BitCollections",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings),
+  .testTarget(
+    name: "BitCollectionsTests",
+    dependencies: [
+      "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
+    ],
+    swiftSettings: _settings)
+)
+
+registerLibrary(
+  "DequeModule",
+  .target(
+    name: "DequeModule",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings),
+  .testTarget(
+    name: "DequeTests",
+    dependencies: ["DequeModule", "_CollectionsTestSupport"],
+    swiftSettings: _settings)
+)
+
+registerLibrary(
+  "HashTreeCollections",
+  .target(
+    name: "HashTreeCollections",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings),
+  .testTarget(
+    name: "HashTreeCollectionsTests",
+    dependencies: ["HashTreeCollections", "_CollectionsTestSupport"],
+    swiftSettings: _settings)
+)
+
+registerUnstableLibrary(
+  "HeapModule",
+  .target(
+    name: "HeapModule",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings),
+  .testTarget(
+    name: "HeapTests",
+    dependencies: ["HeapModule", "_CollectionsTestSupport"],
+    swiftSettings: _settings)
+)
+
+registerLibrary(
+  "OrderedCollections",
+  .target(
+    name: "OrderedCollections",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings),
+  .testTarget(
+    name: "OrderedCollectionsTests",
+    dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
+    swiftSettings: _settings)
+)
+
+registerUnstableLibrary(
+  "RopeModule",
+  .target(
+    name: "RopeModule",
+    dependencies: ["_CollectionsUtilities"],
+    swiftSettings: _settings),
+  .testTarget(
+    name: "RopeModuleTests",
+    dependencies: ["RopeModule", "_CollectionsTestSupport"],
+    swiftSettings: _settings)
+)
+
+registerLibrary(
+  "Collections",
+  .target(
+    name: "Collections",
+    dependencies: _modules.map { .target(name: $0) },
+    exclude: ["CMakeLists.txt"],
+    swiftSettings: _settings)
+)
 
 let package = Package(
   name: "swift-collections",
-  products: [
-    .library(name: "Collections", targets: ["Collections"]),
-    .library(name: "BitCollections", targets: ["BitCollections"]),
-    .library(name: "DequeModule", targets: ["DequeModule"]),
-    .library(name: "HeapModule", targets: ["HeapModule"]),
-    .library(name: "OrderedCollections", targets: ["OrderedCollections"]),
-    .library(name: "HashTreeCollections", targets: ["HashTreeCollections"]),
-    .library(name: "RopeModule", targets: ["RopeModule"]),
-  ],
-  targets: [
-    .target(
-      name: "Collections",
-      dependencies: [
-        "BitCollections",
-        "DequeModule",
-        "HeapModule",
-        "OrderedCollections",
-        "HashTreeCollections",
-      ],
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-
-    // Testing support module
-    .target(
-      name: "_CollectionsTestSupport",
-      dependencies: ["_CollectionsUtilities"],
-      swiftSettings: settings,
-      linkerSettings: [
-        .linkedFramework(
-          "XCTest",
-          .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
-      ]
-    ),
-    .testTarget(
-      name: "CollectionsTestSupportTests",
-      dependencies: ["_CollectionsTestSupport"],
-      swiftSettings: settings),
-
-    .target(
-      name: "_CollectionsUtilities",
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-
-    // BitSet, BitArray
-    .target(
-      name: "BitCollections",
-      dependencies: ["_CollectionsUtilities"],
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "BitCollectionsTests",
-      dependencies: [
-        "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
-      ],
-      swiftSettings: settings),
-
-    // Deque<Element>
-    .target(
-      name: "DequeModule",
-      dependencies: ["_CollectionsUtilities"],
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "DequeTests",
-      dependencies: ["DequeModule", "_CollectionsTestSupport"],
-      swiftSettings: settings),
-
-    // Heap<Value>
-    .target(
-      name: "HeapModule",
-      dependencies: ["_CollectionsUtilities"],
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "HeapTests",
-      dependencies: ["HeapModule", "_CollectionsTestSupport"],
-      swiftSettings: settings),
-
-    // OrderedSet<Element>, OrderedDictionary<Key, Value>
-    .target(
-      name: "OrderedCollections",
-      dependencies: ["_CollectionsUtilities"],
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "OrderedCollectionsTests",
-      dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
-      swiftSettings: settings),
-
-    // TreeSet<Element>, TreeDictionary<Key, Value>
-    .target(
-      name: "HashTreeCollections",
-      dependencies: ["_CollectionsUtilities"],
-      exclude: ["CMakeLists.txt"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "HashTreeCollectionsTests",
-      dependencies: ["HashTreeCollections", "_CollectionsTestSupport"],
-      swiftSettings: settings),
-
-    // BigString
-    .target(
-      name: "RopeModule",
-      dependencies: ["_CollectionsUtilities"],
-      swiftSettings: settings),
-    .testTarget(
-      name: "RopeModuleTests",
-      dependencies: ["RopeModule", "_CollectionsTestSupport"],
-      swiftSettings: settings),
-  ]
+  products: _products,
+  targets: _targets
 )
