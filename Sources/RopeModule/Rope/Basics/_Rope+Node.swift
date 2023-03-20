@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if swift(<5.8)
+import _CollectionsUtilities // for 5.8 polyfills
+#endif
+
 extension _Rope {
   struct Node: _RopeItem {
     typealias Element = _Rope.Element

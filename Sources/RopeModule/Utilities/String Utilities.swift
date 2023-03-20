@@ -60,6 +60,7 @@ extension String {
   }
 }
 
+#if swift(>=5.8) // _CharacterRecognizer
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String {
   @discardableResult
@@ -123,3 +124,4 @@ extension String {
     return result
   }
 }
+#endif

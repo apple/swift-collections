@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022-2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -11,6 +11,7 @@
 
 // Note: These are adapted from SE-0370 in the Swift 5.8 Standard Library.
 
+#if swift(<5.8)
 extension UnsafeMutableBufferPointer {
   /// Deinitializes every instance in this buffer.
   ///
@@ -31,7 +32,9 @@ extension UnsafeMutableBufferPointer {
                  count: count * MemoryLayout<Element>.stride)
   }
 }
+#endif
 
+#if swift(<5.8)
 extension UnsafeMutableBufferPointer {
   /// Initializes the buffer's memory with
   /// every element of the source.
@@ -213,7 +216,9 @@ extension UnsafeMutableBufferPointer {
     p.deinitialize(count: 1)
   }
 }
+#endif
 
+#if swift(<5.8)
 extension Slice {
   /// Initializes the buffer slice's memory with with
   /// every element of the source.
@@ -366,6 +371,7 @@ extension Slice {
     base.baseAddress.unsafelyUnwrapped.advanced(by: index).initialize(to: value)
   }
 }
+#endif
 
 #if swift(<5.8)
 extension UnsafeMutableBufferPointer {
