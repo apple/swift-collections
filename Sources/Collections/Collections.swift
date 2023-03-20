@@ -15,6 +15,4 @@
 @_exported import HeapModule
 @_exported import OrderedCollections
 
-#if COLLECTIONS_ENABLE_UNSTABLE_MODULES
-@_exported import RopeModule
-#endif
+//@_exported import _RopeModule

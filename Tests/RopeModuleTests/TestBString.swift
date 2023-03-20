@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if swift(>=5.8) && DEBUG
-@testable import RopeModule
+@testable import _RopeModule
 import XCTest
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)

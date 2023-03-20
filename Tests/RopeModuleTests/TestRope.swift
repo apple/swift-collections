@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if DEBUG
-@testable import RopeModule
+@testable import _RopeModule
 import XCTest
 
 struct Chunk: _RopeElement, Equatable, CustomStringConvertible {

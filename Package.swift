@@ -163,15 +163,16 @@ registerLibrary(
     swiftSettings: _settings)
 )
 
-registerUnstableLibrary(
-  "RopeModule",
+registerLibrary(
+  "_RopeModule",
   .target(
-    name: "RopeModule",
+    name: "_RopeModule",
     dependencies: ["_CollectionsUtilities"],
+    path: "Sources/RopeModule",
     swiftSettings: _settings),
   .testTarget(
     name: "RopeModuleTests",
-    dependencies: ["RopeModule", "_CollectionsTestSupport"],
+    dependencies: ["_RopeModule", "_CollectionsTestSupport"],
     swiftSettings: _settings)
 )
 
