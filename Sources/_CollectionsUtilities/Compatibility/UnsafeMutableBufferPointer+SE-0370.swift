@@ -34,7 +34,7 @@ extension UnsafeMutableBufferPointer {
 }
 #endif
 
-#if swift(<5.8)
+// Note: this is left unconditionally enabled because we need the SR14663 workaround. :-(
 extension UnsafeMutableBufferPointer {
   /// Initializes the buffer's memory with
   /// every element of the source.
@@ -89,7 +89,10 @@ extension UnsafeMutableBufferPointer {
     )
     return startIndex.advanced(by: copied)
   }
+}
 
+#if swift(<5.8)
+extension UnsafeMutableBufferPointer {
   /// Moves every element of an initialized source buffer into the
   /// uninitialized memory referenced by this buffer, leaving the source memory
   /// uninitialized and this buffer's memory initialized.
