@@ -33,7 +33,7 @@ extension Heap {
   }
 
   @inlinable
-  internal func _checkInvariants(node: _Node, min: Element?, max: Element?) {
+  internal func _checkInvariants(node: _HeapNode, min: Element?, max: Element?) {
     let value = _storage[node.offset]
     if let min = min {
       precondition(value >= min,

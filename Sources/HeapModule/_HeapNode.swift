@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 @usableFromInline @frozen
-internal struct _Node {
+internal struct _HeapNode {
   @usableFromInline
   internal var offset: Int
 
@@ -33,7 +33,7 @@ internal struct _Node {
   }
 }
 
-extension _Node: Comparable {
+extension _HeapNode: Comparable {
   @inlinable @inline(__always)
   internal static func ==(left: Self, right: Self) -> Bool {
     left.offset == right.offset
@@ -45,29 +45,29 @@ extension _Node: Comparable {
   }
 }
 
-extension _Node: CustomStringConvertible {
+extension _HeapNode: CustomStringConvertible {
   @usableFromInline
   internal var description: String {
     "(offset: \(offset), level: \(level))"
   }
 }
 
-extension _Node {
+extension _HeapNode {
   @inlinable @inline(__always)
   internal static func level(forOffset offset: Int) -> Int {
     (offset &+ 1)._binaryLogarithm()
   }
 
   @inlinable @inline(__always)
-  internal static func firstNode(onLevel level: Int) -> _Node {
+  internal static func firstNode(onLevel level: Int) -> _HeapNode {
     assert(level >= 0)
-    return _Node(offset: (1 &<< level) &- 1, level: level)
+    return _HeapNode(offset: (1 &<< level) &- 1, level: level)
   }
 
   @inlinable @inline(__always)
-  internal static func lastNode(onLevel level: Int) -> _Node {
+  internal static func lastNode(onLevel level: Int) -> _HeapNode {
     assert(level >= 0)
-    return _Node(offset: (1 &<< (level &+ 1)) &- 2, level: level)
+    return _HeapNode(offset: (1 &<< (level &+ 1)) &- 2, level: level)
   }
 
   @inlinable @inline(__always)
@@ -76,7 +76,7 @@ extension _Node {
   }
 }
 
-extension _Node {
+extension _HeapNode {
   /// The root node in the heap.
   @inlinable @inline(__always)
   internal static var root: Self {
@@ -106,7 +106,7 @@ extension _Node {
   }
 }
 
-extension _Node {
+extension _HeapNode {
   /// Returns the parent of this index, or `nil` if the index has no parent
   /// (i.e. when this is the root index).
   @inlinable @inline(__always)
@@ -160,11 +160,11 @@ extension _Node {
   }
 }
 
-extension ClosedRange where Bound == _Node {
+extension ClosedRange where Bound == _HeapNode {
   @inlinable @inline(__always)
-  internal func _forEach(_ body: (_Node) -> Void) {
+  internal func _forEach(_ body: (_HeapNode) -> Void) {
     assert(
-      isEmpty || _Node.level(forOffset: upperBound.offset) == lowerBound.level)
+      isEmpty || _HeapNode.level(forOffset: upperBound.offset) == lowerBound.level)
     var node = self.lowerBound
     while node.offset <= self.upperBound.offset {
       body(node)
