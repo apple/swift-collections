@@ -13,22 +13,22 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func ingester(
+  func _ingester(
     forInserting input: __owned Substring,
     at index: Index,
     allowForwardPeek: Bool
-  ) -> Ingester {
+  ) -> _Ingester {
     let hint = allowForwardPeek ? input.unicodeScalars.first : nil
     let state = self._breakState(upTo: index, nextScalarHint: hint)
-    return Ingester(input, startState: state)
+    return _Ingester(input, startState: state)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  struct Ingester {
-    typealias Chunk = BigString.Chunk
-    typealias Counts = BigString.Chunk.Counts
+  internal struct _Ingester {
+    typealias _Chunk = BigString._Chunk
+    typealias Counts = BigString._Chunk.Counts
     
     var input: Substring
     
@@ -67,8 +67,8 @@ extension BigString {
     }
     
     mutating func nextSlice(
-      maxUTF8Count: Int = Chunk.maxUTF8Count
-    ) -> Chunk.Slice? {
+      maxUTF8Count: Int = _Chunk.maxUTF8Count
+    ) -> _Chunk.Slice? {
       guard let range = input.base._nextSlice(
         after: start, limit: input.endIndex, maxUTF8Count: maxUTF8Count)
       else {
@@ -110,29 +110,29 @@ extension BigString {
         suffix: suffixCount)
     }
     
-    mutating func nextChunk(maxUTF8Count: Int = Chunk.maxUTF8Count) -> Chunk? {
+    mutating func nextChunk(maxUTF8Count: Int = _Chunk.maxUTF8Count) -> _Chunk? {
       guard let slice = nextSlice(maxUTF8Count: maxUTF8Count) else { return nil }
-      return Chunk(slice)
+      return _Chunk(slice)
     }
     
     static func desiredNextChunkSize(remaining: Int) -> Int {
-      if remaining <= Chunk.maxUTF8Count {
+      if remaining <= _Chunk.maxUTF8Count {
         return remaining
       }
-      if remaining >= Chunk.maxUTF8Count + Chunk.minUTF8Count {
-        return Chunk.maxUTF8Count
+      if remaining >= _Chunk.maxUTF8Count + _Chunk.minUTF8Count {
+        return _Chunk.maxUTF8Count
       }
-      return remaining - Chunk.minUTF8Count
+      return remaining - _Chunk.minUTF8Count
     }
     
-    mutating func nextWellSizedSlice(suffix: Int = 0) -> Chunk.Slice? {
+    mutating func nextWellSizedSlice(suffix: Int = 0) -> _Chunk.Slice? {
       let desired = Self.desiredNextChunkSize(remaining: remainingUTF8 + suffix)
       return nextSlice(maxUTF8Count: desired)
     }
     
-    mutating func nextWellSizedChunk(suffix: Int = 0) -> Chunk? {
+    mutating func nextWellSizedChunk(suffix: Int = 0) -> _Chunk? {
       guard let slice = nextWellSizedSlice(suffix: suffix) else { return nil }
-      return Chunk(slice)
+      return _Chunk(slice)
     }
   }
 }
@@ -154,11 +154,11 @@ extension String {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   init(_ string: String) {
     guard !string.isEmpty else { self.init(); return }
     assert(string.utf8.count <= Self.maxUTF8Count)
-    var ingester = BigString.Ingester(string)
+    var ingester = BigString._Ingester(string)
     self = ingester.nextChunk()!
     assert(ingester.isAtEnd)
   }

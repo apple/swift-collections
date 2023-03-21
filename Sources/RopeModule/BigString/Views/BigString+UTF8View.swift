@@ -60,7 +60,7 @@ extension BigString.UTF8View: Sequence {
 
     internal init(_base: BigString, from start: BigString.Index) {
       self._base = _base
-      self._index = _base.utf8Index(roundingDown: start)
+      self._index = _base._utf8Index(roundingDown: start)
     }
   }
 
@@ -140,33 +140,33 @@ extension BigString.UTF8View: BidirectionalCollection {
   @inline(__always)
   public var endIndex: Index { _base.endIndex }
 
-  public var count: Int { _base.utf8Count }
+  public var count: Int { _base._utf8Count }
 
   @inline(__always)
   public func index(after i: Index) -> Index {
-    _base.utf8Index(after: i)
+    _base._utf8Index(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
-    _base.utf8Index(before: i)
+    _base._utf8Index(before: i)
   }
 
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
-    _base.utf8Index(i, offsetBy: distance)
+    _base._utf8Index(i, offsetBy: distance)
   }
 
   public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    _base.utf8Index(i, offsetBy: distance, limitedBy: limit)
+    _base._utf8Index(i, offsetBy: distance, limitedBy: limit)
   }
 
   public func distance(from start: Index, to end: Index) -> Int {
-    _base.utf8Distance(from: start, to: end)
+    _base._utf8Distance(from: start, to: end)
   }
 
   public subscript(position: Index) -> UInt8 {
-    _base[utf8: position]
+    _base[_utf8: position]
   }
 
   public subscript(bounds: Range<Index>) -> BigSubstring.UTF8View {
@@ -177,11 +177,11 @@ extension BigString.UTF8View: BidirectionalCollection {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF8View {
   public func index(roundingDown i: Index) -> Index {
-    _base.utf8Index(roundingDown: i)
+    _base._utf8Index(roundingDown: i)
   }
 
   public func index(roundingUp i: Index) -> Index {
-    _base.utf8Index(roundingUp: i)
+    _base._utf8Index(roundingUp: i)
   }
 }
 

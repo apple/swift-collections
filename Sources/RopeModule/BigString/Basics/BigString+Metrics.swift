@@ -12,24 +12,24 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-internal protocol _StringMetric: _RopeMetric where Element == BigString.Chunk {
+internal protocol _StringMetric: _RopeMetric where Element == BigString._Chunk {
   func distance(
     from start: String.Index,
     to end: String.Index,
-    in chunk: BigString.Chunk
+    in chunk: BigString._Chunk
   ) -> Int
   
   func formIndex(
     _ i: inout String.Index,
     offsetBy distance: inout Int,
-    in chunk: BigString.Chunk
+    in chunk: BigString._Chunk
   ) -> (found: Bool, forward: Bool)
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  internal struct CharacterMetric: _StringMetric {
-    typealias Element = BigString.Chunk
+  internal struct _CharacterMetric: _StringMetric {
+    typealias Element = BigString._Chunk
     typealias Summary = BigString.Summary
     
     @inline(__always)
@@ -40,7 +40,7 @@ extension BigString {
     func distance(
       from start: String.Index,
       to end: String.Index,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> Int {
       chunk.characterDistance(from: start, to: end)
     }
@@ -48,18 +48,18 @@ extension BigString {
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> (found: Bool, forward: Bool) {
       chunk.formCharacterIndex(&i, offsetBy: &distance)
     }
     
-    func index(at offset: Int, in chunk: BigString.Chunk) -> String.Index {
+    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       precondition(offset < chunk.characterCount)
       return chunk.wholeCharacters._index(at: offset)
     }
   }
   
-  internal struct UnicodeScalarMetric: _StringMetric {
+  internal struct _UnicodeScalarMetric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.unicodeScalars
@@ -68,7 +68,7 @@ extension BigString {
     func distance(
       from start: String.Index,
       to end: String.Index,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> Int {
       chunk.string.unicodeScalars.distance(from: start, to: end)
     }
@@ -76,7 +76,7 @@ extension BigString {
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> (found: Bool, forward: Bool) {
       guard distance != 0 else {
         i = chunk.string.unicodeScalars._index(roundingDown: i)
@@ -98,12 +98,12 @@ extension BigString {
       return (distance == 0, false)
     }
     
-    func index(at offset: Int, in chunk: BigString.Chunk) -> String.Index {
+    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       chunk.string.unicodeScalars.index(chunk.string.startIndex, offsetBy: offset)
     }
   }
   
-  internal struct UTF8Metric: _StringMetric {
+  internal struct _UTF8Metric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.utf8
@@ -112,7 +112,7 @@ extension BigString {
     func distance(
       from start: String.Index,
       to end: String.Index,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> Int {
       chunk.string.utf8.distance(from: start, to: end)
     }
@@ -120,7 +120,7 @@ extension BigString {
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> (found: Bool, forward: Bool) {
       // Here we make use of the fact that the UTF-8 view of native Swift strings
       // have O(1) index distance & offset calculations.
@@ -147,12 +147,12 @@ extension BigString {
       return (true, false)
     }
     
-    func index(at offset: Int, in chunk: BigString.Chunk) -> String.Index {
+    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       chunk.string.utf8.index(chunk.string.startIndex, offsetBy: offset)
     }
   }
   
-  internal struct UTF16Metric: _StringMetric {
+  internal struct _UTF16Metric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.utf16
@@ -161,7 +161,7 @@ extension BigString {
     func distance(
       from start: String.Index,
       to end: String.Index,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> Int {
       chunk.string.utf16.distance(from: start, to: end)
     }
@@ -169,7 +169,7 @@ extension BigString {
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString.Chunk
+      in chunk: BigString._Chunk
     ) -> (found: Bool, forward: Bool) {
       if distance >= 0 {
         if
@@ -200,7 +200,7 @@ extension BigString {
       return (false, false)
     }
     
-    func index(at offset: Int, in chunk: BigString.Chunk) -> String.Index {
+    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       chunk.string.utf16.index(chunk.string.startIndex, offsetBy: offset)
     }
   }

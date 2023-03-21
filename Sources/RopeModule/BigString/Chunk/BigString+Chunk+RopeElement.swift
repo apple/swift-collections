@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk: _RopeElement {
+extension BigString._Chunk: _RopeElement {
   typealias Summary = BigString.Summary
   typealias Index = String.Index
 
@@ -65,7 +65,7 @@ extension BigString.Chunk: _RopeElement {
     guard !right.isEmpty else { return true }
     guard self.isUndersized || right.isUndersized else { return false }
     let sum = self.utf8Count + right.utf8Count
-    let desired = BigString.Ingester.desiredNextChunkSize(remaining: sum)
+    let desired = BigString._Ingester.desiredNextChunkSize(remaining: sum)
 
     precondition(desired != self.utf8Count)
     if desired < self.utf8Count {
@@ -89,7 +89,7 @@ extension BigString.Chunk: _RopeElement {
     guard !left.isEmpty else { return true }
     guard left.isUndersized || self.isUndersized else { return false }
     let sum = left.utf8Count + self.utf8Count
-    let desired = BigString.Ingester.desiredNextChunkSize(remaining: sum)
+    let desired = BigString._Ingester.desiredNextChunkSize(remaining: sum)
 
     precondition(desired != self.utf8Count)
     if desired < self.utf8Count {
@@ -117,7 +117,7 @@ extension BigString.Chunk: _RopeElement {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   static func _redistributeData(
     _ left: inout Self,
     _ right: inout Self,

@@ -27,7 +27,7 @@ extension BigString: Equatable {
     // norm(a + c) == norm(a) + norm(b) in this case.
     // To do this properly, we'll probably need to expose new stdlib entry points. :-/
     if left.isIdentical(to: right) { return true }
-    guard left.characterCount == right.characterCount else { return false }
+    guard left._characterCount == right._characterCount else { return false }
     // FIXME: Even if we keep doing characterwise comparisons, we should skip over shared subtrees.
     var it1 = left.makeIterator()
     var it2 = right.makeIterator()
@@ -57,7 +57,7 @@ extension BigString {
 
     var it1 = left.utf8.makeIterator()
     var it2 = right.utf8.makeIterator()
-    var remaining = left.utf8Count
+    var remaining = left._utf8Count
 
     while remaining > 0 {
       let consumed = it1.next(maximumCount: remaining) { b1 in
@@ -79,8 +79,8 @@ extension BigString {
     to right: Self,
     in rightRange: Range<Index>
   ) -> Bool {
-    let leftUTF8Count = left.utf8Distance(from: leftRange.lowerBound, to: leftRange.upperBound)
-    let rightUTF8Count = right.utf8Distance(from: rightRange.lowerBound, to: rightRange.upperBound)
+    let leftUTF8Count = left._utf8Distance(from: leftRange.lowerBound, to: leftRange.upperBound)
+    let rightUTF8Count = right._utf8Distance(from: rightRange.lowerBound, to: rightRange.upperBound)
     guard leftUTF8Count == rightUTF8Count else { return false }
 
     var remaining = leftUTF8Count

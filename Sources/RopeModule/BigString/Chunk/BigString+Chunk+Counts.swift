@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   struct Counts: Equatable {
     /// The number of UTF-8 code units within this chunk.
     var utf8: UInt8
@@ -87,7 +87,7 @@ extension BigString.Chunk {
     
     init(_ slice: Slice) {
       let c = slice.string.utf8.count
-      precondition(c <= BigString.Chunk.maxUTF8Count)
+      precondition(c <= BigString._Chunk.maxUTF8Count)
       self.init(
         utf8: slice.string.utf8.count,
         utf16: slice.string.utf16.count,
@@ -100,7 +100,7 @@ extension BigString.Chunk {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk.Counts {
+extension BigString._Chunk.Counts {
   var characters: Int {
     get { Int(_characters) }
     set { _characters = UInt8(newValue) }
@@ -121,12 +121,12 @@ extension BigString.Chunk.Counts {
   }
   
   func hasSpaceToMerge(_ other: Self) -> Bool {
-    Int(utf8) + Int(other.utf8) <= BigString.Chunk.maxUTF8Count
+    Int(utf8) + Int(other.utf8) <= BigString._Chunk.maxUTF8Count
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk.Counts {
+extension BigString._Chunk.Counts {
   mutating func append(_ other: Self) {
     assert(hasSpaceToMerge(other))
     

@@ -94,7 +94,7 @@ extension BigString.UnicodeScalarView: Sequence {
 
     internal init(_base: BigString, from start: BigString.Index) {
       self._base = _base
-      self._index = _base.unicodeScalarIndex(roundingDown: start)
+      self._index = _base._unicodeScalarIndex(roundingDown: start)
     }
   }
 
@@ -138,33 +138,33 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
   @inline(__always)
   public var endIndex: Index { _base.endIndex }
 
-  public var count: Int { _base.unicodeScalarCount }
+  public var count: Int { _base._unicodeScalarCount }
 
   @inline(__always)
   public func index(after i: Index) -> Index {
-    _base.unicodeScalarIndex(after: i)
+    _base._unicodeScalarIndex(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
-    _base.unicodeScalarIndex(before: i)
+    _base._unicodeScalarIndex(before: i)
   }
 
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
-    _base.unicodeScalarIndex(i, offsetBy: distance)
+    _base._unicodeScalarIndex(i, offsetBy: distance)
   }
 
   public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    _base.unicodeScalarIndex(i, offsetBy: distance, limitedBy: limit)
+    _base._unicodeScalarIndex(i, offsetBy: distance, limitedBy: limit)
   }
 
   public func distance(from start: Index, to end: Index) -> Int {
-    _base.unicodeScalarDistance(from: start, to: end)
+    _base._unicodeScalarDistance(from: start, to: end)
   }
 
   public subscript(position: Index) -> UnicodeScalar {
-    _base[unicodeScalar: position]
+    _base[_unicodeScalar: position]
   }
 
   public subscript(bounds: Range<Index>) -> BigSubstring.UnicodeScalarView {
@@ -175,11 +175,11 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView {
   public func index(roundingDown i: Index) -> Index {
-    _base.unicodeScalarIndex(roundingDown: i)
+    _base._unicodeScalarIndex(roundingDown: i)
   }
 
   public func index(roundingUp i: Index) -> Index {
-    _base.unicodeScalarIndex(roundingUp: i)
+    _base._unicodeScalarIndex(roundingUp: i)
   }
 }
 

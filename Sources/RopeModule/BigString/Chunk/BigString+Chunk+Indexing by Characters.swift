@@ -19,7 +19,7 @@ extension UInt8 {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   func characterDistance(from start: String.Index, to end: String.Index) -> Int {
     let firstBreak = self.firstBreak
     let (start, a) = start < firstBreak ? (firstBreak, 1) : (start, 0)

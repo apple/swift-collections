@@ -220,7 +220,7 @@ extension BigString {
         j._flags = i._flags
         return j
       }
-      guard i.utf8Offset < utf8Count, i._utf8ChunkOffset == _rope[ri].utf8Count else {
+      guard i.utf8Offset < _utf8Count, i._utf8ChunkOffset == _rope[ri].utf8Count else {
         return i
       }
       _rope.formIndex(after: &ri)
@@ -231,7 +231,7 @@ extension BigString {
     }
 
     let (ri, chunkOffset) = _rope.find(
-      at: i.utf8Offset, in: UTF8Metric(), preferEnd: preferEnd)
+      at: i.utf8Offset, in: _UTF8Metric(), preferEnd: preferEnd)
     let ci = String.Index(
         _utf8Offset: chunkOffset, utf16TrailingSurrogate: i._isUTF16TrailingSurrogate)
     return Index(baseUTF8Offset: i.utf8Offset - ci._utf8Offset, _rope: ri, chunk: ci)

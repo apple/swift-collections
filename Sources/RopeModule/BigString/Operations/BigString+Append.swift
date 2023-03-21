@@ -19,7 +19,7 @@ extension BigString {
       self = Self(other)
       return
     }
-    var ingester = ingester(forInserting: other, at: endIndex, allowForwardPeek: true)
+    var ingester = _ingester(forInserting: other, at: endIndex, allowForwardPeek: true)
     
     let last = _rope.index(before: _rope.endIndex)
     if let final = _rope[last].append(from: &ingester) {
@@ -109,14 +109,14 @@ extension BigString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   var isUndersized: Bool {
-    utf8Count < Chunk.minUTF8Count
+    _utf8Count < _Chunk.minUTF8Count
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   /// Note: This assumes `other` already has the correct break positions.
-  mutating func _append(_ other: __owned Chunk) {
+  mutating func _append(_ other: __owned _Chunk) {
     assert(!other.isEmpty)
     guard !self.isEmpty else {
       self._rope.append(other)
@@ -135,7 +135,7 @@ extension BigString {
   }
   
   /// Note: This assumes `self` and `other` already have the correct break positions.
-  mutating func _prepend(_ other: __owned Chunk) {
+  mutating func _prepend(_ other: __owned _Chunk) {
     assert(!other.isEmpty)
     guard !self.isEmpty else {
       self._rope.prepend(other)

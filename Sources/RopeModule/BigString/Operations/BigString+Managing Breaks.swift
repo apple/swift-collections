@@ -17,7 +17,7 @@ extension BigString {
     upTo index: Index,
     nextScalarHint: Unicode.Scalar? = nil
   ) -> _CharacterRecognizer {
-    assert(index == unicodeScalarIndex(roundingDown: index))
+    assert(index == _unicodeScalarIndex(roundingDown: index))
     guard index > startIndex else {
       return _CharacterRecognizer()
     }
@@ -158,7 +158,7 @@ extension BigString._Storage {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   /// Resyncronize chunk metadata with the (possibly) reshuffled grapheme
   /// breaks after an insertion that ended at `index`.
   ///

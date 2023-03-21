@@ -18,7 +18,7 @@ extension BigString {
     if bounds.isEmpty { return }
     let lower = bounds.lowerBound.utf8Offset
     let upper = bounds.upperBound.utf8Offset
-    _rope.removeSubrange(lower ..< upper, in: UTF8Metric())
+    _rope.removeSubrange(lower ..< upper, in: _UTF8Metric())
   }
 }
 
@@ -33,7 +33,7 @@ extension BigString {
 
   mutating func removeUnicodeScalar(at i: Index) -> Unicode.Scalar {
     precondition(i < endIndex, "Index out of bounds")
-    let start = unicodeScalarIndex(roundingDown: i)
+    let start = _unicodeScalarIndex(roundingDown: i)
     let ropeIndex = start._rope!
     let chunkIndex = start._chunkIndex
     let chunk = _rope[ropeIndex]

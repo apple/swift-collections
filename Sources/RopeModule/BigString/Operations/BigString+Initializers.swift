@@ -15,7 +15,7 @@
 extension BigString {
   internal init(_from input: some StringProtocol) {
     var builder = _Storage.Builder()
-    var ingester = Ingester(input)
+    var ingester = _Ingester(input)
     while let chunk = ingester.nextWellSizedChunk() {
       builder.append(chunk)
     }
@@ -27,7 +27,7 @@ extension BigString {
     var piece = ""
     for character in input {
       piece.append(character)
-      if piece.utf8.count >= Chunk.minUTF8Count {
+      if piece.utf8.count >= _Chunk.minUTF8Count {
         builder.append(piece)
         piece = ""
       }
@@ -41,7 +41,7 @@ extension BigString {
     var piece = ""
     for scalar in input {
       piece.unicodeScalars.append(scalar)
-      if piece.utf8.count >= Chunk.minUTF8Count {
+      if piece.utf8.count >= _Chunk.minUTF8Count {
         builder.append(piece)
         piece = ""
       }
@@ -65,7 +65,7 @@ extension BigString {
     self._rope = other._rope.extract(
       from: range.lowerBound.utf8Offset,
       to: range.upperBound.utf8Offset,
-      in: UTF8Metric())
+      in: _UTF8Metric())
     var old = other._breakState(upTo: range.lowerBound)
     var new = _CharacterRecognizer()
     _ = self._rope.resyncBreaks(old: &old, new: &new)
@@ -79,7 +79,7 @@ extension BigString {
     self._rope = other._rope.extract(
       from: range.lowerBound.utf8Offset,
       to: range.upperBound.utf8Offset,
-      in: UTF8Metric())
+      in: _UTF8Metric())
     var old = other._breakState(upTo: range.lowerBound)
     var new = state
     self._rope.resyncBreaksToEnd(old: &old, new: &new)
@@ -98,7 +98,7 @@ extension String {
       return
     }
     self.init()
-    self.reserveCapacity(big.utf8Count)
+    self.reserveCapacity(big._utf8Count)
     for chunk in big._rope {
       self.append(chunk.string)
     }
@@ -107,10 +107,10 @@ extension String {
   internal init(_from big: BigString, in range: Range<BigString.Index>) {
     self.init()
 
-    var start = big.unicodeScalarIndex(roundingDown: range.lowerBound)
+    var start = big._unicodeScalarIndex(roundingDown: range.lowerBound)
     start = big.resolve(start, preferEnd: false)
 
-    var end = big.unicodeScalarIndex(roundingDown: range.upperBound)
+    var end = big._unicodeScalarIndex(roundingDown: range.upperBound)
     end = big.resolve(end, preferEnd: true)
 
     let utf8Capacity = end.utf8Offset - start.utf8Offset

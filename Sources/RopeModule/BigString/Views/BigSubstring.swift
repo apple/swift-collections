@@ -17,8 +17,8 @@ public struct BigSubstring: Sendable {
   var _bounds: Range<Index>
 
   public init(_unchecked base: BigString, in bounds: Range<Index>) {
-    assert(bounds.lowerBound == base.characterIndex(roundingDown: bounds.lowerBound))
-    assert(bounds.upperBound == base.characterIndex(roundingDown: bounds.upperBound))
+    assert(bounds.lowerBound == base.index(roundingDown: bounds.lowerBound))
+    assert(bounds.upperBound == base.index(roundingDown: bounds.upperBound))
     self._base = base
     self._bounds = bounds
   }
@@ -28,8 +28,8 @@ public struct BigSubstring: Sendable {
     // Sub-character slicing could change character boundaries in the tree, requiring
     // resyncing metadata. This would not be acceptable to do during slicing, so let's
     // round substring bounds down to the nearest character.
-    let start = base.characterIndex(roundingDown: bounds.lowerBound)
-    let end = base.characterIndex(roundingDown: bounds.upperBound)
+    let start = base.index(roundingDown: bounds.lowerBound)
+    let end = base.index(roundingDown: bounds.upperBound)
     self._bounds = Range(uncheckedBounds: (start, end))
   }
 }
@@ -184,26 +184,26 @@ extension BigSubstring: BidirectionalCollection {
   @inline(__always)
   public func index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
-    return _base.characterIndex(after: i)
+    return _base.index(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
-    return _base.characterIndex(before: i)
+    return _base.index(before: i)
   }
 
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    let j = _base.characterIndex(i, offsetBy: distance)
+    let j = _base.index(i, offsetBy: distance)
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
   public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    guard let j = _base.characterIndex(i, offsetBy: distance, limitedBy: limit) else { return nil }
+    guard let j = _base.index(i, offsetBy: distance, limitedBy: limit) else { return nil }
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
@@ -211,12 +211,12 @@ extension BigSubstring: BidirectionalCollection {
   public func distance(from start: Index, to end: Index) -> Int {
     precondition(start >= startIndex && start <= endIndex, "Index out of bounds")
     precondition(end >= startIndex && end <= endIndex, "Index out of bounds")
-    return _base.characterDistance(from: start, to: end)
+    return _base.distance(from: start, to: end)
   }
 
   public subscript(position: Index) -> Character {
     precondition(position >= startIndex && position < endIndex, "Index out of bounds")
-    return _base[character: position]
+    return _base[position]
   }
 
   public subscript(bounds: Range<Index>) -> Self {
@@ -231,12 +231,12 @@ extension BigSubstring: BidirectionalCollection {
 extension BigSubstring {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    return _base.characterIndex(roundingDown: i)
+    return _base.index(roundingDown: i)
   }
 
   public func index(roundingUp i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    return _base.characterIndex(roundingUp: i)
+    return _base.index(roundingUp: i)
   }
 }
 
@@ -257,7 +257,7 @@ extension BigSubstring {
 
     let startOffset = self.startIndex.utf8Offset
     let endOffset = self.endIndex.utf8Offset
-    let oldCount = self._base.utf8Count
+    let oldCount = self._base._utf8Count
 
     defer {
       // Substring mutations may change grapheme boundaries across the bounds of the original
@@ -266,9 +266,9 @@ extension BigSubstring {
       // superior to others. To keep the behavior easier to explan, we emulate substring
       // initialization and round the start and end indices down to the nearest Character boundary
       // after each mutation.
-      let delta = self._base.utf8Count - oldCount
-      let start = _base.characterIndex(roundingDown: Index(_utf8Offset: startOffset))
-      let end = _base.characterIndex(roundingDown: Index(_utf8Offset: endOffset + delta))
+      let delta = self._base._utf8Count - oldCount
+      let start = _base.index(roundingDown: Index(_utf8Offset: startOffset))
+      let end = _base.index(roundingDown: Index(_utf8Offset: endOffset + delta))
       self._bounds = start ..< end
     }
     return body(&self._base)

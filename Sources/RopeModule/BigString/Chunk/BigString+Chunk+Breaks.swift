@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   @inline(__always)
   var hasBreaks: Bool { counts.hasBreaks }
 
@@ -41,7 +41,7 @@ extension BigString.Chunk {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   var immediateLastBreakState: _CharacterRecognizer? {
     guard hasBreaks else { return nil }
     return _CharacterRecognizer(partialCharacter: string[lastBreak...])

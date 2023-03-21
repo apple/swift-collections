@@ -28,7 +28,7 @@ extension BigString {
     // full grapheme breaking state of the ingester at the start of the insertion.
     // (We'll use it to resync grapheme breaks in the parts that follow the insertion.)
     let index = self.resolve(index, preferEnd: true)
-    var ingester = ingester(forInserting: other, at: index, allowForwardPeek: false)
+    var ingester = _ingester(forInserting: other, at: index, allowForwardPeek: false)
     var ri = index._rope!
     var ci = index._chunkIndex
     let r = _rope.update(at: &ri) { $0.insert(from: &ingester, at: ci) }

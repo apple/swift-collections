@@ -146,7 +146,7 @@ extension _CharacterRecognizer {
   }
   
   mutating func consume(
-    _ chunk: BigString.Chunk, upTo index: String.Index
+    _ chunk: BigString._Chunk, upTo index: String.Index
   ) -> (firstBreak: String.Index, prevBreak: String.Index)? {
     let index = chunk.string.unicodeScalars._index(roundingDown: index)
     let first = chunk.firstBreak

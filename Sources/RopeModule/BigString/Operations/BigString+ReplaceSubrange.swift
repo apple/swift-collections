@@ -20,7 +20,7 @@ extension BigString {
       return
     }
     var builder = _split(removing: range)
-    var ingester = Ingester(Substring(newElements), startState: builder.prefixEndState)
+    var ingester = _Ingester(Substring(newElements), startState: builder.prefixEndState)
     builder.append(from: &ingester)
     self = builder.finalize()
   }
@@ -74,7 +74,7 @@ extension BigString {
     let startState = _breakState(upTo: range.lowerBound)
     let endState = _breakState(upTo: range.upperBound)
 
-    let b = _rope.builder(removing: lower ..< upper, in: UTF8Metric())
+    let b = _rope.builder(removing: lower ..< upper, in: _UTF8Metric())
     return Builder(base: b, prefixEndState: startState, suffixStartState: endState)
   }
 }

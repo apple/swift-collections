@@ -24,8 +24,8 @@ extension BigSubstring {
 
     public init(_ base: BigString, in bounds: Range<Index>) {
       self._base = base
-      let lower = base.utf8Index(roundingDown: bounds.lowerBound)
-      let upper = base.utf8Index(roundingDown: bounds.upperBound)
+      let lower = base._utf8Index(roundingDown: bounds.lowerBound)
+      let upper = base._utf8Index(roundingDown: bounds.upperBound)
       self._bounds = Range(uncheckedBounds: (lower, upper))
     }
 
@@ -118,26 +118,26 @@ extension BigSubstring.UTF8View: BidirectionalCollection {
   @inline(__always)
   public func index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
-    return _base.utf8Index(after: i)
+    return _base._utf8Index(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
-    return _base.utf8Index(before: i)
+    return _base._utf8Index(before: i)
   }
 
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    let j = _base.utf8Index(i, offsetBy: distance)
+    let j = _base._utf8Index(i, offsetBy: distance)
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
   public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    guard let j = _base.utf8Index(i, offsetBy: distance, limitedBy: limit) else { return nil }
+    guard let j = _base._utf8Index(i, offsetBy: distance, limitedBy: limit) else { return nil }
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
@@ -145,12 +145,12 @@ extension BigSubstring.UTF8View: BidirectionalCollection {
   public func distance(from start: Index, to end: Index) -> Int {
     precondition(start >= startIndex && start <= endIndex, "Index out of bounds")
     precondition(end >= startIndex && end <= endIndex, "Index out of bounds")
-    return _base.utf8Distance(from: start, to: end)
+    return _base._utf8Distance(from: start, to: end)
   }
 
   public subscript(position: Index) -> UInt8 {
     precondition(position >= startIndex && position < endIndex, "Index out of bounds")
-    return _base[utf8: position]
+    return _base[_utf8: position]
   }
 
   public subscript(bounds: Range<Index>) -> Self {
@@ -165,12 +165,12 @@ extension BigSubstring.UTF8View: BidirectionalCollection {
 extension BigSubstring.UTF8View {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    return _base.utf8Index(roundingDown: i)
+    return _base._utf8Index(roundingDown: i)
   }
 
   public func index(roundingUp i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    return _base.utf8Index(roundingUp: i)
+    return _base._utf8Index(roundingUp: i)
   }
 }
 

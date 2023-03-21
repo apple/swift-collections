@@ -12,13 +12,13 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   mutating func append(_ other: __owned Self) {
     self._append(other.string[...], other.counts)
   }
 
-  mutating func append(from ingester: inout BigString.Ingester) -> Self? {
-    let desired = BigString.Ingester.desiredNextChunkSize(
+  mutating func append(from ingester: inout BigString._Ingester) -> Self? {
+    let desired = BigString._Ingester.desiredNextChunkSize(
       remaining: self.utf8Count + ingester.remainingUTF8)
     if desired == self.utf8Count {
       return nil
@@ -67,7 +67,7 @@ extension BigString.Chunk {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   mutating func _insert(
     _ slice: Slice,
     at index: String.Index,
@@ -92,7 +92,7 @@ extension BigString.Chunk {
   typealias States = (increment: Int, old: _CharacterRecognizer, new: _CharacterRecognizer)
 
   mutating func insertAll(
-    from ingester: inout BigString.Ingester,
+    from ingester: inout BigString._Ingester,
     at index: String.Index
   ) -> States? {
     let remaining = ingester.remainingUTF8
@@ -110,12 +110,12 @@ extension BigString.Chunk {
 
   enum InsertResult {
     case inline(States?)
-    case split(spawn: BigString.Chunk, endStates: States?)
+    case split(spawn: BigString._Chunk, endStates: States?)
     case large
   }
 
   mutating func insert(
-    from ingester: inout BigString.Ingester,
+    from ingester: inout BigString._Ingester,
     at index: String.Index
   ) -> InsertResult {
     let origCount = self.utf8Count
@@ -129,7 +129,7 @@ extension BigString.Chunk {
       return .inline(r)
     }
 
-    let desired = BigString.Ingester.desiredNextChunkSize(remaining: sum)
+    let desired = BigString._Ingester.desiredNextChunkSize(remaining: sum)
     guard sum - desired + Self.maxSlicingError <= Self.maxUTF8Count else { return .large }
 
     if desired <= offset {

@@ -28,7 +28,7 @@ extension BigString {
       utf8 = 0
     }
 
-    init(_ chunk: BigString.Chunk) {
+    init(_ chunk: BigString._Chunk) {
       self.utf8 = chunk.utf8Count
       self.utf16 = Int(chunk.counts.utf16)
       self.unicodeScalars = Int(chunk.counts.unicodeScalars)

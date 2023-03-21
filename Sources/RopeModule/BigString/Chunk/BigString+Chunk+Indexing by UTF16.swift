@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   /// UTF-16 index lookup.
   func index(at utf8Offset: Int, utf16TrailingSurrogate: Bool) -> String.Index {
     var index = string._utf8Index(at: utf8Offset)

@@ -18,16 +18,16 @@ extension BigSubstring {
     internal var _bounds: Range<Index>
 
     public init(_unchecked base: BigString, in bounds: Range<Index>) {
-      assert(bounds.lowerBound == base.unicodeScalarIndex(roundingDown: bounds.lowerBound))
-      assert(bounds.upperBound == base.unicodeScalarIndex(roundingDown: bounds.upperBound))
+      assert(bounds.lowerBound == base._unicodeScalarIndex(roundingDown: bounds.lowerBound))
+      assert(bounds.upperBound == base._unicodeScalarIndex(roundingDown: bounds.upperBound))
       self._base = base
       self._bounds = bounds
     }
 
     public init(_ base: BigString, in bounds: Range<Index>) {
       self._base = base
-      let lower = base.unicodeScalarIndex(roundingDown: bounds.lowerBound)
-      let upper = base.unicodeScalarIndex(roundingDown: bounds.upperBound)
+      let lower = base._unicodeScalarIndex(roundingDown: bounds.lowerBound)
+      let upper = base._unicodeScalarIndex(roundingDown: bounds.upperBound)
       self._bounds = Range(uncheckedBounds: (lower, upper))
     }
 
@@ -148,26 +148,28 @@ extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
   @inline(__always)
   public func index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
-    return _base.unicodeScalarIndex(after: i)
+    return _base._unicodeScalarIndex(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
-    return _base.unicodeScalarIndex(before: i)
+    return _base._unicodeScalarIndex(before: i)
   }
 
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    let j = _base.unicodeScalarIndex(i, offsetBy: distance)
+    let j = _base._unicodeScalarIndex(i, offsetBy: distance)
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
   public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    guard let j = _base.unicodeScalarIndex(i, offsetBy: distance, limitedBy: limit) else { return nil }
+    guard let j = _base._unicodeScalarIndex(i, offsetBy: distance, limitedBy: limit) else {
+      return nil
+    }
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
@@ -175,12 +177,12 @@ extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
   public func distance(from start: Index, to end: Index) -> Int {
     precondition(start >= startIndex && start <= endIndex, "Index out of bounds")
     precondition(end >= startIndex && end <= endIndex, "Index out of bounds")
-    return _base.unicodeScalarDistance(from: start, to: end)
+    return _base._unicodeScalarDistance(from: start, to: end)
   }
 
   public subscript(position: Index) -> UnicodeScalar {
     precondition(position >= startIndex && position < endIndex, "Index out of bounds")
-    return _base[unicodeScalar: position]
+    return _base[_unicodeScalar: position]
   }
 
   public subscript(bounds: Range<Index>) -> Self {
@@ -195,12 +197,12 @@ extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
 extension BigSubstring.UnicodeScalarView {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    return _base.unicodeScalarIndex(roundingDown: i)
+    return _base._unicodeScalarIndex(roundingDown: i)
   }
 
   public func index(roundingUp i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
-    return _base.unicodeScalarIndex(roundingUp: i)
+    return _base._unicodeScalarIndex(roundingUp: i)
   }
 }
 
@@ -219,7 +221,7 @@ extension BigSubstring.UnicodeScalarView {
 
     let startOffset = self.startIndex.utf8Offset
     let endOffset = self.endIndex.utf8Offset
-    let oldCount = self._base.utf8Count
+    let oldCount = self._base._utf8Count
 
     var view = BigString.UnicodeScalarView(_base: self._base)
     self._base = BigString()
@@ -228,9 +230,9 @@ extension BigSubstring.UnicodeScalarView {
       // The Unicode scalar view is regular -- we just need to maintain the UTF-8 offsets of
       // our bounds across the mutation. No extra adjustment/rounding is necessary.
       self._base = view._base
-      let delta = self._base.utf8Count - oldCount
-      let start = _base.utf8Index(at: startOffset)._knownScalarAligned()
-      let end = _base.utf8Index(at: endOffset + delta)._knownScalarAligned()
+      let delta = self._base._utf8Count - oldCount
+      let start = _base._utf8Index(at: startOffset)._knownScalarAligned()
+      let end = _base._utf8Index(at: endOffset + delta)._knownScalarAligned()
       self._bounds = start ..< end
     }
     return body(&view)

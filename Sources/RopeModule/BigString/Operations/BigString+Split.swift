@@ -17,7 +17,7 @@ extension BigString {
     at index: Index
   ) -> Builder {
     let b = _ropeBuilder(at: index)
-    let state = b.breakState()
+    let state = b._breakState()
     let builder = Builder(base: b, prefixEndState: state, suffixStartState: state)
     return builder
   }
@@ -35,7 +35,7 @@ extension BigString {
     if let ri = index._rope, _rope.isValid(ri) {
       return _rope.split(at: ri, index._chunkIndex)
     }
-    return _rope.builder(splittingAt: index.utf8Offset, in: UTF8Metric())
+    return _rope.builder(splittingAt: index.utf8Offset, in: _UTF8Metric())
   }
 }
 

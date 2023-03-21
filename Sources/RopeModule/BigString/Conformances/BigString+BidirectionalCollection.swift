@@ -24,36 +24,36 @@ extension BigString: BidirectionalCollection {
   }
 
   public var endIndex: Index {
-    Index(_utf8Offset: utf8Count)._knownCharacterAligned()
+    Index(_utf8Offset: _utf8Count)._knownCharacterAligned()
   }
 
-  public var count: Int { characterCount }
+  public var count: Int { _characterCount }
 
   @inline(__always)
   public func index(after i: Index) -> Index {
-    characterIndex(after: i)
+    _characterIndex(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
-    characterIndex(before: i)
+    _characterIndex(before: i)
   }
 
   @inline(__always)
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
-    characterIndex(i, offsetBy: distance)
+    _characterIndex(i, offsetBy: distance)
   }
 
   public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    characterIndex(i, offsetBy: distance, limitedBy: limit)
+    _characterIndex(i, offsetBy: distance, limitedBy: limit)
   }
 
   public func distance(from start: Index, to end: Index) -> Int {
-    characterDistance(from: start, to: end)
+    _characterDistance(from: start, to: end)
   }
 
   public subscript(position: Index) -> Character {
-    self[character: position]
+    self[_character: position]
   }
 
   public subscript(bounds: Range<Index>) -> BigSubstring {
@@ -64,11 +64,11 @@ extension BigString: BidirectionalCollection {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public func index(roundingDown i: Index) -> Index {
-    characterIndex(roundingDown: i)
+    _characterIndex(roundingDown: i)
   }
 
   public func index(roundingUp i: Index) -> Index {
-    characterIndex(roundingUp: i)
+    _characterIndex(roundingUp: i)
   }
 }
 

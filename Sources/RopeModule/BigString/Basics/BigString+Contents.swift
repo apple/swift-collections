@@ -18,7 +18,7 @@ extension BigString {
   /// of the deepest tree where every node is the minimum possible size.
   public static var _minimumCapacity: Int {
     let c = _Storage.minimumCapacity
-    let (r, overflow) = Chunk.minUTF8Count.multipliedReportingOverflow(by: c)
+    let (r, overflow) = _Chunk.minUTF8Count.multipliedReportingOverflow(by: c)
     guard !overflow else { return Int.max }
     return r
   }
@@ -27,7 +27,7 @@ extension BigString {
   /// possible case, when every node in the underlying tree is fully filled with data.
   public static var _maximumCapacity: Int {
     let c = _Storage.maximumCapacity
-    let (r, overflow) = Chunk.maxUTF8Count.multipliedReportingOverflow(by: c)
+    let (r, overflow) = _Chunk.maxUTF8Count.multipliedReportingOverflow(by: c)
     guard !overflow else { return Int.max }
     return r
   }
@@ -35,15 +35,15 @@ extension BigString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  var characterCount: Int { _rope.summary.characters }
-  var unicodeScalarCount: Int { _rope.summary.unicodeScalars }
-  var utf16Count: Int { _rope.summary.utf16 }
-  var utf8Count: Int { _rope.summary.utf8 }
+  var _characterCount: Int { _rope.summary.characters }
+  var _unicodeScalarCount: Int { _rope.summary.unicodeScalars }
+  var _utf16Count: Int { _rope.summary.utf16 }
+  var _utf8Count: Int { _rope.summary.utf8 }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func distance(
+  func _distance(
     from start: Index,
     to end: Index,
     in metric: some _StringMetric
@@ -72,19 +72,19 @@ extension BigString {
     return start <= end ? d : -d
   }
   
-  func characterDistance(from start: Index, to end: Index) -> Int {
-    distance(from: start, to: end, in: CharacterMetric())
+  func _characterDistance(from start: Index, to end: Index) -> Int {
+    _distance(from: start, to: end, in: _CharacterMetric())
   }
   
-  func unicodeScalarDistance(from start: Index, to end: Index) -> Int {
-    distance(from: start, to: end, in: UnicodeScalarMetric())
+  func _unicodeScalarDistance(from start: Index, to end: Index) -> Int {
+    _distance(from: start, to: end, in: _UnicodeScalarMetric())
   }
   
-  func utf16Distance(from start: Index, to end: Index) -> Int {
-    distance(from: start, to: end, in: UTF16Metric())
+  func _utf16Distance(from start: Index, to end: Index) -> Int {
+    _distance(from: start, to: end, in: _UTF16Metric())
   }
   
-  func utf8Distance(from start: Index, to end: Index) -> Int {
+  func _utf8Distance(from start: Index, to end: Index) -> Int {
     end.utf8Offset - start.utf8Offset
   }
 }
@@ -93,20 +93,20 @@ extension BigString {
 extension BigString {
   // FIXME: See if we need direct implementations for these.
 
-  func characterOffset(of index: Index) -> Int {
-    characterDistance(from: startIndex, to: index)
+  func _characterOffset(of index: Index) -> Int {
+    _characterDistance(from: startIndex, to: index)
   }
   
-  func unicodeScalarOffset(of index: Index) -> Int {
-    unicodeScalarDistance(from: startIndex, to: index)
+  func _unicodeScalarOffset(of index: Index) -> Int {
+    _unicodeScalarDistance(from: startIndex, to: index)
   }
   
-  func utf16Offset(of index: Index) -> Int {
-    utf16Distance(from: startIndex, to: index)
+  func _utf16Offset(of index: Index) -> Int {
+    _utf16Distance(from: startIndex, to: index)
   }
 
-  func utf8Offset(of index: Index) -> Int {
-    utf8Distance(from: startIndex, to: index)
+  func _utf8Offset(of index: Index) -> Int {
+    _utf8Distance(from: startIndex, to: index)
   }
 }
 
@@ -114,26 +114,26 @@ extension BigString {
 extension BigString {
   // FIXME: See if we need direct implementations for these.
 
-  func characterIndex(at offset: Int) -> Index {
-    characterIndex(startIndex, offsetBy: offset)
+  func _characterIndex(at offset: Int) -> Index {
+    _characterIndex(startIndex, offsetBy: offset)
   }
 
-  func unicodeScalarIndex(at offset: Int) -> Index {
-    unicodeScalarIndex(startIndex, offsetBy: offset)
+  func _unicodeScalarIndex(at offset: Int) -> Index {
+    _unicodeScalarIndex(startIndex, offsetBy: offset)
   }
 
-  func utf16Index(at offset: Int) -> Index {
-    utf16Index(startIndex, offsetBy: offset)
+  func _utf16Index(at offset: Int) -> Index {
+    _utf16Index(startIndex, offsetBy: offset)
   }
 
-  func utf8Index(at offset: Int) -> Index {
-    utf8Index(startIndex, offsetBy: offset)
+  func _utf8Index(at offset: Int) -> Index {
+    _utf8Index(startIndex, offsetBy: offset)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func index(
+  func _index(
     _ i: Index,
     offsetBy distance: Int,
     in metric: some _StringMetric
@@ -165,7 +165,7 @@ extension BigString {
       }
       chunk = _rope[ri]
       ci = metric.index(at: d, in: chunk)
-      let base = i._utf8BaseOffset + _rope.distance(from: start, to: ri, in: UTF8Metric())
+      let base = i._utf8BaseOffset + _rope.distance(from: start, to: ri, in: _UTF8Metric())
       return Index(baseUTF8Offset: base, _rope: ri, chunk: ci)
     }
 
@@ -175,30 +175,30 @@ extension BigString {
     _rope.formIndex(&ri, offsetBy: &d, in: metric, preferEnd: false)
     chunk = _rope[ri]
     ci = metric.index(at: d, in: chunk)
-    let base = i._utf8BaseOffset + _rope.distance(from: start, to: ri, in: UTF8Metric())
+    let base = i._utf8BaseOffset + _rope.distance(from: start, to: ri, in: _UTF8Metric())
     return Index(baseUTF8Offset: base, _rope: ri, chunk: ci)
   }
   
-  func characterIndex(_ i: Index, offsetBy distance: Int) -> Index {
-    index(i, offsetBy: distance, in: CharacterMetric())._knownCharacterAligned()
+  func _characterIndex(_ i: Index, offsetBy distance: Int) -> Index {
+    _index(i, offsetBy: distance, in: _CharacterMetric())._knownCharacterAligned()
   }
   
-  func unicodeScalarIndex(_ i: Index, offsetBy distance: Int) -> Index {
-    index(i, offsetBy: distance, in: UnicodeScalarMetric())._knownScalarAligned()
+  func _unicodeScalarIndex(_ i: Index, offsetBy distance: Int) -> Index {
+    _index(i, offsetBy: distance, in: _UnicodeScalarMetric())._knownScalarAligned()
   }
   
-  func utf16Index(_ i: Index, offsetBy distance: Int) -> Index {
-    index(i, offsetBy: distance, in: UTF16Metric())
+  func _utf16Index(_ i: Index, offsetBy distance: Int) -> Index {
+    _index(i, offsetBy: distance, in: _UTF16Metric())
   }
   
-  func utf8Index(_ i: Index, offsetBy distance: Int) -> Index {
-    index(i, offsetBy: distance, in: UTF8Metric())
+  func _utf8Index(_ i: Index, offsetBy distance: Int) -> Index {
+    _index(i, offsetBy: distance, in: _UTF8Metric())
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func index(
+  func _index(
     _ i: Index,
     offsetBy distance: Int,
     limitedBy limit: Index,
@@ -207,56 +207,56 @@ extension BigString {
     // FIXME: Do we need a direct implementation?
     if distance >= 0 {
       if limit >= i {
-        let d = self.distance(from: i, to: limit, in: metric)
+        let d = self._distance(from: i, to: limit, in: metric)
         if d < distance { return nil }
       }
     } else {
       if limit <= i {
-        let d = self.distance(from: i, to: limit, in: metric)
+        let d = self._distance(from: i, to: limit, in: metric)
         if d > distance { return nil }
       }
     }
-    return self.index(i, offsetBy: distance, in: metric)
+    return self._index(i, offsetBy: distance, in: metric)
   }
 
-  func characterIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    guard let j = index(i, offsetBy: distance, limitedBy: limit, in: CharacterMetric()) else {
+  func _characterIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    guard let j = _index(i, offsetBy: distance, limitedBy: limit, in: _CharacterMetric()) else {
       return nil
     }
     return j._knownCharacterAligned()
   }
 
-  func unicodeScalarIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    guard let j = index(i, offsetBy: distance, limitedBy: limit, in: UnicodeScalarMetric()) else {
+  func _unicodeScalarIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    guard let j = _index(i, offsetBy: distance, limitedBy: limit, in: _UnicodeScalarMetric()) else {
       return nil
     }
     return j._knownScalarAligned()
   }
 
-  func utf16Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    index(i, offsetBy: distance, limitedBy: limit, in: UTF16Metric())
+  func _utf16Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    _index(i, offsetBy: distance, limitedBy: limit, in: _UTF16Metric())
   }
 
-  func utf8Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-    index(i, offsetBy: distance, limitedBy: limit, in: UTF8Metric())
+  func _utf8Index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    _index(i, offsetBy: distance, limitedBy: limit, in: _UTF8Metric())
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func characterIndex(after i: Index) -> Index {
-    index(i, offsetBy: 1, in: CharacterMetric())._knownCharacterAligned()
+  func _characterIndex(after i: Index) -> Index {
+    _index(i, offsetBy: 1, in: _CharacterMetric())._knownCharacterAligned()
   }
   
-  func unicodeScalarIndex(after i: Index) -> Index {
-    index(i, offsetBy: 1, in: UnicodeScalarMetric())._knownScalarAligned()
+  func _unicodeScalarIndex(after i: Index) -> Index {
+    _index(i, offsetBy: 1, in: _UnicodeScalarMetric())._knownScalarAligned()
   }
   
-  func utf16Index(after i: Index) -> Index {
-    index(i, offsetBy: 1, in: UTF16Metric())
+  func _utf16Index(after i: Index) -> Index {
+    _index(i, offsetBy: 1, in: _UTF16Metric())
   }
   
-  func utf8Index(after i: Index) -> Index {
+  func _utf8Index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
     let i = resolve(i, preferEnd: false)
     let ri = i._rope!
@@ -275,19 +275,19 @@ extension BigString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func characterIndex(before i: Index) -> Index {
-    index(i, offsetBy: -1, in: CharacterMetric())._knownCharacterAligned()
+  func _characterIndex(before i: Index) -> Index {
+    _index(i, offsetBy: -1, in: _CharacterMetric())._knownCharacterAligned()
   }
   
-  func unicodeScalarIndex(before i: Index) -> Index {
-    index(i, offsetBy: -1, in: UnicodeScalarMetric())._knownScalarAligned()
+  func _unicodeScalarIndex(before i: Index) -> Index {
+    _index(i, offsetBy: -1, in: _UnicodeScalarMetric())._knownScalarAligned()
   }
   
-  func utf16Index(before i: Index) -> Index {
-    index(i, offsetBy: -1, in: UTF16Metric())
+  func _utf16Index(before i: Index) -> Index {
+    _index(i, offsetBy: -1, in: _UTF16Metric())
   }
   
-  func utf8Index(before i: Index) -> Index {
+  func _utf8Index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
     let i = resolve(i, preferEnd: true)
     var ri = i._rope!
@@ -309,11 +309,11 @@ extension BigString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func characterIndex(roundingDown i: Index) -> Index {
+  func _characterIndex(roundingDown i: Index) -> Index {
     let offset = i.utf8Offset
-    precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
+    precondition(offset >= 0 && offset <= _utf8Count, "Index out of bounds")
     guard offset > 0 else { return resolve(i, preferEnd: false)._knownCharacterAligned() }
-    guard offset < utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
+    guard offset < _utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let i = resolve(i, preferEnd: false)
     guard !i._isKnownCharacterAligned else { return resolve(i, preferEnd: false) }
@@ -348,7 +348,7 @@ extension BigString {
     )._knownCharacterAligned()
   }
 
-  func unicodeScalarIndex(roundingDown i: Index) -> Index {
+  func _unicodeScalarIndex(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
     guard i > startIndex else { return resolve(i, preferEnd: false)._knownCharacterAligned() }
     guard i < endIndex else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
@@ -361,7 +361,7 @@ extension BigString {
     return Index(baseUTF8Offset: start._utf8BaseOffset, _rope: ri, chunk: ci)._knownScalarAligned()
   }
 
-  func utf8Index(roundingDown i: Index) -> Index {
+  func _utf8Index(roundingDown i: Index) -> Index {
     precondition(i <= endIndex, "Index out of bounds")
     guard i < endIndex else { return endIndex }
     var r = i
@@ -371,52 +371,52 @@ extension BigString {
     return resolve(r, preferEnd: false)
   }
 
-  func utf16Index(roundingDown i: Index) -> Index {
+  func _utf16Index(roundingDown i: Index) -> Index {
     if i._isUTF16TrailingSurrogate {
       precondition(i < endIndex, "Index out of bounds")
       // (We know i can't be the endIndex -- it addresses a trailing surrogate.)
       return self.resolve(i, preferEnd: false)
     }
-    return unicodeScalarIndex(roundingDown: i)
+    return _unicodeScalarIndex(roundingDown: i)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  func characterIndex(roundingUp i: Index) -> Index {
-    let j = characterIndex(roundingDown: i)
+  func _characterIndex(roundingUp i: Index) -> Index {
+    let j = _characterIndex(roundingDown: i)
     if i == j { return j }
-    return characterIndex(after: j)
+    return _characterIndex(after: j)
   }
 
-  func unicodeScalarIndex(roundingUp i: Index) -> Index {
-    let j = unicodeScalarIndex(roundingDown: i)
+  func _unicodeScalarIndex(roundingUp i: Index) -> Index {
+    let j = _unicodeScalarIndex(roundingDown: i)
     if i == j { return j }
-    return unicodeScalarIndex(after: j)
+    return _unicodeScalarIndex(after: j)
   }
 
-  func utf8Index(roundingUp i: Index) -> Index {
+  func _utf8Index(roundingUp i: Index) -> Index {
     // Note: this orders UTF-16 trailing surrogate indices in between the first and second byte
     // of the UTF-8 encoding.
-    let j = utf8Index(roundingDown: i)
+    let j = _utf8Index(roundingDown: i)
     if i == j { return j }
-    return utf8Index(after: j)
+    return _utf8Index(after: j)
   }
 
-  func utf16Index(roundingUp i: Index) -> Index {
+  func _utf16Index(roundingUp i: Index) -> Index {
     // Note: if `i` addresses some byte in the middle of a non-BMP scalar then the result will
     // point to the trailing surrogate.
-    let j = utf16Index(roundingDown: i)
+    let j = _utf16Index(roundingDown: i)
     if i == j { return j }
-    return utf16Index(after: j)
+    return _utf16Index(after: j)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   func _character(at start: Index) -> (character: Character, end: Index) {
-    let start = characterIndex(roundingDown: start)
-    precondition(start.utf8Offset < utf8Count, "Index out of bounds")
+    let start = _characterIndex(roundingDown: start)
+    precondition(start.utf8Offset < _utf8Count, "Index out of bounds")
 
     var ri = start._rope!
     var ci = start._chunkIndex
@@ -449,49 +449,49 @@ extension BigString {
     return (Character(s), Index(baseUTF8Offset: base, _rope: ri, chunk: ci)._knownCharacterAligned())
   }
 
-  subscript(utf8 index: Index) -> UInt8 {
+  subscript(_utf8 index: Index) -> UInt8 {
     precondition(index < endIndex, "Index out of bounds")
     let index = resolve(index, preferEnd: false)
     return _rope[index._rope!].string.utf8[index._chunkIndex]
   }
 
-  subscript(utf8 offset: Int) -> UInt8 {
-    precondition(offset >= 0 && offset < utf8Count, "Offset out of bounds")
-    let index = utf8Index(at: offset)
-    return self[utf8: index]
+  subscript(_utf8 offset: Int) -> UInt8 {
+    precondition(offset >= 0 && offset < _utf8Count, "Offset out of bounds")
+    let index = _utf8Index(at: offset)
+    return self[_utf8: index]
   }
 
-  subscript(utf16 index: Index) -> UInt16 {
+  subscript(_utf16 index: Index) -> UInt16 {
     precondition(index < endIndex, "Index out of bounds")
     let index = resolve(index, preferEnd: false)
     return _rope[index._rope!].string.utf16[index._chunkIndex]
   }
 
-  subscript(utf16 offset: Int) -> UInt16 {
-    precondition(offset >= 0 && offset < utf16Count, "Offset out of bounds")
-    let index = utf16Index(at: offset)
-    return self[utf16: index]
+  subscript(_utf16 offset: Int) -> UInt16 {
+    precondition(offset >= 0 && offset < _utf16Count, "Offset out of bounds")
+    let index = _utf16Index(at: offset)
+    return self[_utf16: index]
   }
 
-  subscript(character index: Index) -> Character {
+  subscript(_character index: Index) -> Character {
     _character(at: index).character
   }
 
-  subscript(character offset: Int) -> Character {
-    precondition(offset >= 0 && offset < utf8Count, "Offset out of bounds")
+  subscript(_character offset: Int) -> Character {
+    precondition(offset >= 0 && offset < _utf8Count, "Offset out of bounds")
     return _character(at: Index(_utf8Offset: offset)).character
   }
 
-  subscript(unicodeScalar index: Index) -> Unicode.Scalar {
+  subscript(_unicodeScalar index: Index) -> Unicode.Scalar {
     precondition(index < endIndex, "Index out of bounds")
     let index = resolve(index, preferEnd: false)
     return _rope[index._rope!].string.unicodeScalars[index._chunkIndex]
   }
 
-  subscript(unicodeScalar offset: Int) -> Unicode.Scalar {
-    precondition(offset >= 0 && offset < unicodeScalarCount, "Offset out of bounds")
-    let index = unicodeScalarIndex(at: offset)
-    return self[unicodeScalar: index]
+  subscript(_unicodeScalar offset: Int) -> Unicode.Scalar {
+    precondition(offset >= 0 && offset < _unicodeScalarCount, "Offset out of bounds")
+    let index = _unicodeScalarIndex(at: offset)
+    return self[_unicodeScalar: index]
   }
 }
 

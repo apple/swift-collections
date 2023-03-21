@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk {
+extension BigString._Chunk {
   func splitCounts(at i: String.Index) -> (left: Counts, right: Counts) {
     precondition(i <= string.endIndex)
     guard i < string.endIndex else {

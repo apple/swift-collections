@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Chunk: CustomStringConvertible {
+extension BigString._Chunk: CustomStringConvertible {
   var description: String {
     let counts = """
           ❨\(utf8Count)⋅\(utf16Count)⋅\(unicodeScalarCount)⋅\(characterCount)❩
