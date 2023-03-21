@@ -14,7 +14,7 @@ extension Array {
   /// in the stdlib we're currently running on.
   ///
   /// See https://bugs.swift.org/browse/SR-14663.
-  @inlinable
+  @inlinable @inline(__always)
   internal static func _isWCSIABroken() -> Bool {
     #if _runtime(_ObjC)
     guard _isBridgedVerbatimToObjectiveC(Element.self) else {
