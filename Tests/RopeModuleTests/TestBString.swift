@@ -27,6 +27,7 @@ class TestBString: CollectionTestCase {
   
   override func setUp() {
     print("Global seed: \(globalSeed)")
+    super.setUp()
   }
 
   func test_capacity() {

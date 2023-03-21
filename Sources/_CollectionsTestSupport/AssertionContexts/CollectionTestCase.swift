@@ -35,8 +35,10 @@ open class CollectionTestCase: XCTestCase {
   }
 
   open override func tearDown() {
-    TestContext.pop(context)
-    _context = nil
+    if let context = _context {
+      TestContext.pop(context)
+      _context = nil
+    }
     super.tearDown()
   }
 }
