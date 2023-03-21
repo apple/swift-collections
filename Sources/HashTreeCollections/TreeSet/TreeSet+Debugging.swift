@@ -32,7 +32,7 @@ extension TreeSet {
   }
 
   public static var _maxDepth: Int {
-    _Level.limit
+    _HashLevel.limit
   }
 
   public var _statistics: _HashTreeStatistics {

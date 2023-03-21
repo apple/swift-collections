@@ -16,7 +16,7 @@ extension TreeDictionary {
   @frozen
   public struct Keys {
     @usableFromInline
-    internal typealias _Node = HashTreeCollections._Node<Key, Value>
+    internal typealias _HashNode = HashTreeCollections._HashNode<Key, Value>
 
     @usableFromInline
     internal var _base: TreeDictionary

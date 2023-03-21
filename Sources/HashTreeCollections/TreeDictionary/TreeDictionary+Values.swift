@@ -16,10 +16,10 @@ extension TreeDictionary {
   @frozen
   public struct Values {
     @usableFromInline
-    internal typealias _Node = HashTreeCollections._Node<Key, Value>
+    internal typealias _HashNode = HashTreeCollections._HashNode<Key, Value>
 
     @usableFromInline
-    internal typealias _UnsafeHandle = _Node.UnsafeHandle
+    internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
 
     @usableFromInline
     internal var _base: TreeDictionary

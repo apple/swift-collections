@@ -14,13 +14,13 @@ extension TreeSet: Sequence {
   @frozen
   public struct Iterator: IteratorProtocol {
     @usableFromInline
-    internal typealias _UnsafeHandle = _Node.UnsafeHandle
+    internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
 
     @usableFromInline
     internal var _it: _HashTreeIterator
 
     @inlinable
-    internal init(_root: _RawNode) {
+    internal init(_root: _RawHashNode) {
       _it = _HashTreeIterator(root: _root)
     }
 

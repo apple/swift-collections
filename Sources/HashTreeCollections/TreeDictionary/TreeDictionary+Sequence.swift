@@ -22,13 +22,13 @@ extension TreeDictionary: Sequence {
     // before any items within children.
 
     @usableFromInline
-    internal typealias _UnsafeHandle = _Node.UnsafeHandle
+    internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
 
     @usableFromInline
     internal var _it: _HashTreeIterator
 
     @inlinable
-    internal init(_root: _RawNode) {
+    internal init(_root: _RawHashNode) {
       self._it = _HashTreeIterator(root: _root)
     }
   }

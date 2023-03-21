@@ -60,25 +60,25 @@
 @frozen // Not really -- this package is not at all ABI stable
 public struct TreeSet<Element: Hashable> {
   @usableFromInline
-  internal typealias _Node = HashTreeCollections._Node<Element, Void>
+  internal typealias _HashNode = HashTreeCollections._HashNode<Element, Void>
 
   @usableFromInline
-  internal typealias _UnsafeHandle = _Node.UnsafeHandle
+  internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
 
   @usableFromInline
-  internal var _root: _Node
+  internal var _root: _HashNode
 
   @usableFromInline
   internal var _version: UInt
 
   @inlinable
-  internal init(_root: _Node, version: UInt) {
+  internal init(_root: _HashNode, version: UInt) {
     self._root = _root
     self._version = version
   }
 
   @inlinable
-  internal init(_new: _Node) {
+  internal init(_new: _HashNode) {
     self.init(_root: _new, version: _new.initialVersionNumber)
   }
 }
