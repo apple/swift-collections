@@ -16,6 +16,8 @@ import XCTest
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 class TestBString2: CollectionTestCase {
+  override var isAvailable: Bool { isRunningOnSwiftStdlib5_8 }
+
   func testUTF8View() {
     let str = _BString(shortSample)
     checkBidirectionalCollection(str.utf8, expectedContents: shortSample.utf8)

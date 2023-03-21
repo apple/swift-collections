@@ -17,12 +17,22 @@ open class CollectionTestCase: XCTestCase {
 
   public var context: TestContext { _context! }
 
-  public override func setUp() {
+  open var isAvailable: Bool { true }
+
+  public override func invokeTest() {
+    guard isAvailable else {
+      print("\(Self.self) unavailable; skipping")
+      return
+    }
+    return super.invokeTest()
+  }
+
+  open override func setUp() {
     super.setUp()
     _context = TestContext.pushNew()
   }
 
-  public override func tearDown() {
+  open override func tearDown() {
     TestContext.pop(context)
     _context = nil
     super.tearDown()
