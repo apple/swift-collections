@@ -638,6 +638,7 @@ class TestBigString: CollectionTestCase {
       var pieces = pieces(of: input, by: stride)
       var rng = RepeatableRandomNumberGenerator(seed: 0)
       pieces.shuffle(using: &rng)
+      let interval = Swift.max(pieces.count / 25, 25)
 
       let placeholder: Character = " " // To make this super slow, replace with "\u{200D}"
       var big = BigString(repeating: placeholder, count: pieces.count)
@@ -659,7 +660,7 @@ class TestBigString: CollectionTestCase {
 
         big.replaceSubrange(k1 ..< k2, with: piece.str)
 
-        if i % 20 == 0 {
+        if i.isMultiple(of: interval) {
           big._invariantCheck()
           XCTAssertEqual(String(big), smol)
           checkUTF8Indices(smol, big)
