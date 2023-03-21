@@ -149,12 +149,13 @@ extension Rope._Node {
       _insertNode(spawn, at: nextSlot)
       return nil
     }
-    var spawn2 = split(keeping: childCount / 2)
-    if nextSlot < childCount {
+    if nextSlot < Summary.minNodeSize {
+      let spawn2 = split(keeping: childCount / 2)
       _insertNode(spawn, at: nextSlot)
-    } else {
-      spawn2._insertNode(spawn, at: nextSlot - childCount)
+      return spawn2
     }
+    var spawn2 = split(keeping: childCount / 2)
+    spawn2._insertNode(spawn, at: nextSlot - childCount)
     return spawn2
   }
 }
@@ -171,12 +172,13 @@ extension Rope._Node {
       _insertItem(item, at: slot)
       return nil
     }
-    var spawn = split(keeping: childCount / 2)
-    if slot <= childCount {
+    if slot < Summary.minNodeSize {
+      let spawn = split(keeping: childCount - Summary.minNodeSize)
       _insertItem(item, at: slot)
-    } else {
-      spawn._insertItem(item, at: slot - childCount)
+      return spawn
     }
+    var spawn = split(keeping: Summary.minNodeSize)
+    spawn._insertItem(item, at: slot - childCount)
     return spawn
   }
   

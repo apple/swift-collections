@@ -57,7 +57,7 @@ extension Rope._Node {
         return nil
       }
       
-      var spawn2 = split(keeping: childCount / 2)
+      var spawn2 = split(keeping: Summary.minNodeSize)
       spawn2._appendNode(spawn)
       return spawn2
     }
@@ -65,7 +65,7 @@ extension Rope._Node {
       _appendItem(item)
       return nil
     }
-    var spawn = split(keeping: childCount / 2)
+    var spawn = split(keeping: Summary.minNodeSize)
     spawn._appendItem(item)
     return spawn
   }
