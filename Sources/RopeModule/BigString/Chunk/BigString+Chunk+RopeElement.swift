@@ -25,7 +25,7 @@ extension BigString._Chunk: RopeElement {
   var isUndersized: Bool { utf8Count < Self.minUTF8Count }
 
   func invariantCheck() {
-#if DEBUG
+#if COLLECTIONS_INTERNAL_CHECKS
     precondition(string.endIndex._canBeUTF8)
     let c = utf8Count
     if c == 0 {

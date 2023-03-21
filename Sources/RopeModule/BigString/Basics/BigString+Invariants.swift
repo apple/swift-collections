@@ -14,7 +14,7 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public func _invariantCheck() {
-#if DEBUG
+#if COLLECTIONS_INTERNAL_CHECKS
     _rope._invariantCheck()
     let allowUndersize = _rope.isSingleton
     

@@ -391,7 +391,7 @@ extension Rope {
     }
     
     public func _invariantCheck() {
-#if DEBUG
+#if COLLECTIONS_INTERNAL_CHECKS
       var h = UInt8.max
       for sapling in _prefixTrees {
         precondition(sapling._height <= h)
