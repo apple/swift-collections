@@ -14,7 +14,7 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   internal init(_from input: some StringProtocol) {
-    var builder = _Storage.Builder()
+    var builder = _Rope.Builder()
     var ingester = _Ingester(input)
     while let chunk = ingester.nextWellSizedChunk() {
       builder.append(chunk)

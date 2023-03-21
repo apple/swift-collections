@@ -9,33 +9,33 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
-  internal struct UnmanagedLeaf {
-    typealias Item = _Rope.Item
-    typealias Leaf = Storage<Item>
-    typealias UnsafeHandle = _Rope.UnsafeHandle
+extension Rope {
+  internal struct _UnmanagedLeaf {
+    typealias _Item = Rope._Item
+    typealias _Leaf = _Storage<_Item>
+    typealias _UnsafeHandle = Rope._UnsafeHandle
 
-    var _ref: Unmanaged<Leaf>
+    var _ref: Unmanaged<_Leaf>
 
-    init(_ leaf: __shared Leaf) {
+    init(_ leaf: __shared _Leaf) {
       _ref = .passUnretained(leaf)
     }
   }
 }
 
-extension _Rope.UnmanagedLeaf: Equatable {
+extension Rope._UnmanagedLeaf: Equatable {
   static func ==(left: Self, right: Self) -> Bool {
     left._ref.toOpaque() == right._ref.toOpaque()
   }
 }
 
-extension _Rope.UnmanagedLeaf {
+extension Rope._UnmanagedLeaf {
   func read<R>(
-    body: (UnsafeHandle<Item>) -> R
+    body: (_UnsafeHandle<_Item>) -> R
   ) -> R {
     _ref._withUnsafeGuaranteedRef { leaf in
       leaf.withUnsafeMutablePointers { h, p in
-        let handle = UnsafeHandle(isMutable: false, header: h, start: p)
+        let handle = _UnsafeHandle(isMutable: false, header: h, start: p)
         return body(handle)
       }
     }

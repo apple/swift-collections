@@ -14,7 +14,7 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: RangeReplaceableCollection {
   public init() {
-    self.init(_rope: _Storage())
+    self.init(_rope: _Rope())
   }
 
   public mutating func reserveCapacity(_ n: Int) {

@@ -12,8 +12,8 @@
 /// An ordered data structure of `Element` values that organizes itself into a tree.
 /// The rope is augmented by the commutative group specified by `Element.Summary`, enabling
 /// quick lookup operations.
-public struct _Rope<Element: _RopeElement> {
-  var _root: Node?
+public struct Rope<Element: RopeElement> {
+  var _root: _Node?
   var _version: _RopeVersion
 
   public init() {
@@ -21,40 +21,40 @@ public struct _Rope<Element: _RopeElement> {
     self._version = _RopeVersion()
   }
   
-  init(root: Node?) {
+  init(root: _Node?) {
     self._root = root
     self._version = _RopeVersion()
   }
 
-  var root: Node {
+  var root: _Node {
     get { _root.unsafelyUnwrapped }
     @inline(__always) _modify { yield &_root! }
   }
   
   public init(_ value: Element) {
-    self._root = .createLeaf(Item(value))
+    self._root = .createLeaf(_Item(value))
     self._version = _RopeVersion()
   }
 }
 
-extension _Rope: Sendable where Element: Sendable {}
+extension Rope: Sendable where Element: Sendable {}
 
-extension _Rope {
-  mutating func ensureUnique() {
+extension Rope {
+  mutating func _ensureUnique() {
     guard _root != nil else { return }
     root.ensureUnique()
   }
 }
 
-extension _Rope {
-  var isSingleton: Bool {
+extension Rope {
+  public var isSingleton: Bool {
     guard _root != nil else { return false }
     return root.isSingleton
   }
 }
 
-extension _Rope {
-  func isIdentical(to other: Self) -> Bool {
+extension Rope {
+  public func isIdentical(to other: Self) -> Bool {
     self._root?.object === other._root?.object
   }
 }

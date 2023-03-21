@@ -9,14 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-public protocol _RopeMetric<Element>: Sendable {
-  associatedtype Element: _RopeElement
+public protocol RopeMetric<Element>: Sendable {
+  associatedtype Element: RopeElement
 
   func size(of summary: Element.Summary) -> Int
   func index(at offset: Int, in element: Element) -> Element.Index
 }
 
-extension _RopeMetric {
+extension RopeMetric {
   @inline(__always)
   internal func _nonnegativeSize(of summary: Element.Summary) -> Int {
     let r = size(of: summary)

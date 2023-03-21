@@ -15,7 +15,7 @@
 extension BigString {
   public func _invariantCheck() {
 #if DEBUG
-    _rope.invariantCheck()
+    _rope._invariantCheck()
     let allowUndersize = _rope.isSingleton
     
     var state = _CharacterRecognizer()

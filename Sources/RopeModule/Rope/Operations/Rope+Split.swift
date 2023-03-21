@@ -9,12 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
-  mutating func builder(
+extension Rope {
+  public mutating func builder(
     splittingAt position: Int,
-    in metric: some _RopeMetric<Element>
+    in metric: some RopeMetric<Element>
   ) -> Builder {
-    invalidateIndices()
+    _invalidateIndices()
     var builder = Builder()
 
     var position = position
@@ -30,12 +30,12 @@ extension _Rope {
     var item = node._leafSplit(at: r.slot, into: &builder)
     let index = metric.index(at: r.remaining, in: item.value)
     let suffix = item.split(at: index)
-    builder.prependSuffix(suffix)
+    builder._prependSuffix(suffix)
     builder.append(item.value)
     return builder
   }
 
-  mutating func split(at index: Index) -> (builder: Builder, item: Element) {
+  public mutating func split(at index: Index) -> (builder: Builder, item: Element) {
     validate(index)
     precondition(index < endIndex)
     var builder = Builder()
@@ -51,15 +51,15 @@ extension _Rope {
     let slot = index._path[node.height]
     precondition(slot < node.childCount, "Index out of bounds")
     let item = node._leafSplit(at: slot, into: &builder)
-    invalidateIndices()
+    _invalidateIndices()
     return (builder, item.value)
   }
 
-  mutating func split(at ropeIndex: Index, _ itemIndex: Element.Index) -> Builder {
+  public mutating func split(at ropeIndex: Index, _ itemIndex: Element.Index) -> Builder {
     var (builder, item) = self.split(at: ropeIndex)
     let suffix = item.split(at: itemIndex)
     if !suffix.isEmpty {
-      builder.prependSuffix(_Rope.Item(suffix))
+      builder.prependSuffix(suffix)
     }
     if !item.isEmpty {
       builder.append(item)
@@ -68,10 +68,10 @@ extension _Rope {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func _innerSplit(
     at slot: Int,
-    into builder: inout _Rope.Builder
+    into builder: inout Rope.Builder
   ) {
     assert(!self.isLeaf)
     assert(slot >= 0 && slot < childCount)
@@ -79,10 +79,10 @@ extension _Rope.Node {
     
     var slot = slot
     if slot == childCount - 2 {
-      builder.prependSuffix(_removeNode(at: childCount - 1))
+      builder._prependSuffix(_removeNode(at: childCount - 1))
     }
     if slot == 1 {
-      builder.append(_removeNode(at: 0))
+      builder._append(_removeNode(at: 0))
       slot -= 1
     }
     
@@ -91,22 +91,22 @@ extension _Rope.Node {
     
     guard n.childCount > 0 else { return }
     if slot == 0 {
-      builder.prependSuffix(n)
+      builder._prependSuffix(n)
       return
     }
     if slot == n.childCount {
-      builder.append(n)
+      builder._append(n)
       return
     }
     let suffix = n.split(keeping: slot)
-    builder.append(n)
-    builder.prependSuffix(suffix)
+    builder._append(n)
+    builder._prependSuffix(suffix)
   }
   
   __consuming func _leafSplit(
     at slot: Int,
-    into builder: inout _Rope.Builder
-  ) -> Item {
+    into builder: inout Rope.Builder
+  ) -> _Item {
     var n = self
     n.ensureUnique()
     
@@ -115,7 +115,7 @@ extension _Rope.Node {
     
     var slot = slot
     if slot == n.childCount - 2 {
-      builder.prependSuffix(n._removeItem(at: childCount - 1).removed)
+      builder._prependSuffix(n._removeItem(at: childCount - 1).removed)
     }
     if slot == 1 {
       builder.append(n._removeItem(at: 0).removed.value)
@@ -126,13 +126,13 @@ extension _Rope.Node {
     
     guard n.childCount > 0 else { return item }
     if slot == 0 {
-      builder.prependSuffix(n)
+      builder._prependSuffix(n)
     } else if slot == n.childCount {
-      builder.append(n)
+      builder._append(n)
     } else {
       let suffix = n.split(keeping: slot)
-      builder.append(n)
-      builder.prependSuffix(suffix)
+      builder._append(n)
+      builder._prependSuffix(suffix)
     }
     return item
   }

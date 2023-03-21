@@ -30,13 +30,13 @@ extension BigString {
     
     // Make a temp rope out of the rest of the chunks and then join the two trees together.
     if !ingester.isAtEnd {
-      var builder = _Storage.Builder()
+      var builder = _Rope.Builder()
       while let chunk = ingester.nextWellSizedChunk() {
         precondition(!chunk.isUndersized)
         builder.append(chunk)
       }
       precondition(ingester.isAtEnd)
-      _rope = _Storage.join(_rope, builder.finalize())
+      _rope = _Rope.join(_rope, builder.finalize())
     }
   }
 }
@@ -153,7 +153,7 @@ extension BigString {
   }
   
   /// Note: This assumes `other` already has the correct break positions.
-  mutating func _append(_ other: __owned _Storage) {
+  mutating func _append(_ other: __owned _Rope) {
     guard !other.isEmpty else { return }
     guard !self._rope.isEmpty else {
       self._rope = other
@@ -170,11 +170,11 @@ extension BigString {
       self._prepend(chunk)
       return
     }
-    self._rope = _Storage.join(self._rope, other)
+    self._rope = _Rope.join(self._rope, other)
   }
   
   /// Note: This assumes `self` and `other` already have the correct break positions.
-  mutating func _prepend(_ other: __owned _Storage) {
+  mutating func _prepend(_ other: __owned _Rope) {
     guard !other.isEmpty else { return }
     guard !self.isEmpty else {
       self._rope = other
@@ -191,7 +191,7 @@ extension BigString {
       self._append(chunk)
       return
     }
-    self._rope = _Storage.join(other, self._rope)
+    self._rope = _Rope.join(other, self._rope)
   }
 }
 

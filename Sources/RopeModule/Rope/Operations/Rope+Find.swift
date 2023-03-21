@@ -9,10 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public func find(
     at position: Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) -> (index: Index, remaining: Int) {
     let wholeSize = _root == nil ? 0 : metric.size(of: root.summary)
@@ -22,7 +22,7 @@ extension _Rope {
     }
     var position = position
     var node = root
-    var path = Path(height: node.height)
+    var path = _Path(height: node.height)
     while node.height > 0 {
       node = node.readInner {
         let r = $0.findSlot(at: position, in: metric, preferEnd: preferEnd)
@@ -38,10 +38,10 @@ extension _Rope {
   }
 }
 
-extension _Rope.UnsafeHandle {
+extension Rope._UnsafeHandle {
   func findSlot(
     at position: Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool = true
   ) -> (slot: Int, remaining: Int) {
     var remaining = position
@@ -62,7 +62,7 @@ extension _Rope.UnsafeHandle {
   func findSlot(
     from p: (slot: Int, remaining: Int),
     offsetBy distance: Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool = true
   ) -> (slot: Int, remaining: Int) {
     assert(p.slot >= 0 && p.slot < childCount)

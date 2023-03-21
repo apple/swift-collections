@@ -9,10 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
-  internal struct UnsafeHandle<Child: _RopeItem<Summary>> {
-    typealias Summary = _Rope.Summary
-    typealias Element = _Rope.Element
+extension Rope {
+  internal struct _UnsafeHandle<Child: _RopeItem<Summary>> {
+    typealias Summary = Rope.Summary
+    typealias Element = Rope.Element
     
     let _header: UnsafeMutablePointer<_RopeStorageHeader>
     let _start: UnsafeMutablePointer<Child>
@@ -41,7 +41,7 @@ extension _Rope {
   }
 }
 
-extension _Rope.UnsafeHandle {
+extension Rope._UnsafeHandle {
   @inline(__always)
   var capacity: Int { Summary.maxNodeSize }
   
@@ -82,8 +82,8 @@ extension _Rope.UnsafeHandle {
     return UnsafeMutableBufferPointer(start: _start, count: capacity)
   }
   
-  func copy() -> _Rope.Storage<Child> {
-    let new = _Rope.Storage<Child>.create(height: self.height)
+  func copy() -> Rope._Storage<Child> {
+    let new = Rope._Storage<Child>.create(height: self.height)
     let c = self.childCount
     new.header.childCount = c
     new.withUnsafeMutablePointerToElements { target in
@@ -92,9 +92,9 @@ extension _Rope.UnsafeHandle {
     return new
   }
 
-  func copy(slots: Range<Int>) -> (object: _Rope.Storage<Child>, summary: Summary) {
+  func copy(slots: Range<Int>) -> (object: Rope._Storage<Child>, summary: Summary) {
     assert(slots.lowerBound >= 0 && slots.upperBound <= childCount)
-    let object = _Rope.Storage<Child>.create(height: self.height)
+    let object = Rope._Storage<Child>.create(height: self.height)
     let c = slots.count
     let summary = object.withUnsafeMutablePointers { h, p in
       h.pointee.childCount = c
@@ -186,7 +186,7 @@ extension _Rope.UnsafeHandle {
     return children.prefix(count)._sum()
   }
 
-  func distance(from start: Int, to end: Int, in metric: some _RopeMetric<Element>) -> Int {
+  func distance(from start: Int, to end: Int, in metric: some RopeMetric<Element>) -> Int {
     if start <= end {
       return children[start ..< end].reduce(into: 0) {
         $0 += metric._nonnegativeSize(of: $1.summary)

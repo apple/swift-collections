@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-internal struct _RopePath<Summary: _RopeSummary> {
+internal struct _RopePath<Summary: RopeSummary> {
   // ┌──────────────────────────────────┬────────┐
   // │ b63:b8                           │ b7:b0  │
   // ├──────────────────────────────────┼────────┤
@@ -30,8 +30,8 @@ internal struct _RopePath<Summary: _RopeSummary> {
   }
 }
 
-extension _Rope {
-  typealias Path = _RopePath<Summary>
+extension Rope {
+  typealias _Path = _RopePath<Summary>
 }
 
 extension _RopePath: Equatable {

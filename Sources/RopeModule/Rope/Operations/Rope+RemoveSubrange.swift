@@ -9,12 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public mutating func removeSubrange(
     _ bounds: Range<Int>,
-    in metric: some _RopeMetric<Element>
+    in metric: some RopeMetric<Element>
   ) {
-    invalidateIndices()
+    _invalidateIndices()
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= count(in: metric),
       "Position out of bounds")
@@ -26,13 +26,13 @@ extension _Rope {
 
   public mutating func replaceSubrange(
     _ bounds: Range<Int>,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     with newElements: __owned some Collection<Element>
   ) {
     // FIXME: Implement insert(contentsOf:at:in:) and dispatch to it when bounds.isEmpty.
     // FIXME: Add fast path for replacing tiny ranges with tiny data.
     // FIXME: Add special cases if newElements is itself a _Rope etc.
-    invalidateIndices()
+    _invalidateIndices()
     var builder = builder(removing: bounds, in: metric)
     for item in newElements {
       builder.append(item)
@@ -40,11 +40,11 @@ extension _Rope {
     self = builder.finalize()
   }
 
-  mutating func builder(
+  public mutating func builder(
     removing bounds: Range<Int>,
-    in metric: some _RopeMetric<Element>
+    in metric: some RopeMetric<Element>
   ) -> Builder {
-    invalidateIndices()
+    _invalidateIndices()
     let size = metric.size(of: summary)
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= size,
@@ -87,28 +87,28 @@ extension _Rope {
     assert(l.slot == u.slot)
     var item = node._leafSplit(at: l.slot, into: &builder)
     let i2 = metric.index(at: u.remaining, in: item.value)
-    builder.prependSuffix(Item(item.value.split(at: i2)))
+    builder._prependSuffix(item.split(at: i2))
     let i1 = metric.index(at: l.remaining, in: item.value)
     _ = item.split(at: i1)
-    builder.append(item.value)
+    builder._append(item)
     return builder
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   __consuming func _removeSubrange(
     from start: (slot: Int, remaining: Int),
     to end: (slot: Int, remaining: Int),
-    in metric: some _RopeMetric<Element>,
-    into builder: inout _Rope.Builder
+    in metric: some RopeMetric<Element>,
+    into builder: inout Rope.Builder
   ) {
     assert(start.slot >= 0 && start.slot < end.slot && end.slot < childCount)
     assert(start.remaining >= 0)
     assert(end.remaining >= 0)
 
-    builder.append(slots: 0 ..< start.slot, in: self)
+    builder._append(slots: 0 ..< start.slot, in: self)
     if end.slot < childCount {
-      builder.prependSuffix(slots: end.slot + 1 ..< childCount, in: self)
+      builder._prependSuffix(slots: end.slot + 1 ..< childCount, in: self)
     }
 
     guard isLeaf else {
@@ -126,14 +126,14 @@ extension _Rope.Node {
     let i1 = metric.index(at: start.remaining, in: lower.value)
     let i2 = metric.index(at: end.remaining, in: upper.value)
     _ = lower.split(at: i1)
-    builder.append(lower)
-    builder.prependSuffix(upper.split(at: i2))
+    builder._append(lower)
+    builder._prependSuffix(upper.split(at: i2))
   }
 
   __consuming func removeSuffix(
     from position: Int,
-    in metric: some _RopeMetric<Element>,
-    into builder: inout _Rope.Builder
+    in metric: some RopeMetric<Element>,
+    into builder: inout Rope.Builder
   ) {
 
     var node = self
@@ -141,7 +141,7 @@ extension _Rope.Node {
     while true {
       guard position > 0 else { return }
       guard position < metric.size(of: node.summary) else {
-        builder.append(node)
+        builder._append(node)
         return
       }
 
@@ -155,19 +155,19 @@ extension _Rope.Node {
     var item = node._leafRemoveSuffix(returning: r.slot, into: &builder)
     let i = metric.index(at: r.remaining, in: item.value)
     _ = item.split(at: i)
-    builder.append(item)
+    builder._append(item)
   }
 
   __consuming func removePrefix(
     upTo position: Int,
-    in metric: some _RopeMetric<Element>,
-    into builder: inout _Rope.Builder
+    in metric: some RopeMetric<Element>,
+    into builder: inout Rope.Builder
   ) {
     var node = self
     var position = position
     while true {
       guard position > 0 else {
-        builder.prependSuffix(node)
+        builder._prependSuffix(node)
         return
       }
       guard position < metric.size(of: node.summary) else { return }
@@ -181,12 +181,12 @@ extension _Rope.Node {
     let r = node.readLeaf { $0.findSlot(at: position, in: metric) }
     var item = node._leafRemovePrefix(returning: r.slot, into: &builder)
     let i = metric.index(at: r.remaining, in: item.value)
-    builder.prependSuffix(item.split(at: i))
+    builder._prependSuffix(item.split(at: i))
   }
 
   mutating func _innerRemoveSuffix(
     descending slot: Int,
-    into builder: inout _Rope.Builder
+    into builder: inout Rope.Builder
   ) {
     assert(!self.isLeaf)
     assert(slot >= 0 && slot <= childCount)
@@ -200,7 +200,7 @@ extension _Rope.Node {
         let c = $0.children
         return (c[0], c[1])
       }
-      builder.append(remaining)
+      builder._append(remaining)
       self = new
       return
     }
@@ -213,13 +213,13 @@ extension _Rope.Node {
     var n = _removeNode(at: slot)
     swap(&self, &n)
     assert(n.childCount > 1)
-    builder.append(n)
+    builder._append(n)
   }
 
   __consuming func _leafRemoveSuffix(
     returning slot: Int,
-    into builder: inout _Rope.Builder
-  ) -> Item {
+    into builder: inout Rope.Builder
+  ) -> _Item {
     assert(self.isLeaf)
     assert(slot >= 0 && slot < childCount)
 
@@ -231,7 +231,7 @@ extension _Rope.Node {
         let c = $0.children
         return (c[0], c[1])
       }
-      builder.append(remaining)
+      builder._append(remaining)
       return new
     }
 
@@ -242,13 +242,13 @@ extension _Rope.Node {
       n.summary.subtract(delta)
     }
     let item = n._removeItem(at: slot).removed
-    builder.append(n)
+    builder._append(n)
     return item
   }
 
   mutating func _innerRemovePrefix(
     descending slot: Int,
-    into builder: inout _Rope.Builder
+    into builder: inout Rope.Builder
   ) {
     assert(!self.isLeaf)
     assert(slot >= 0 && slot < childCount)
@@ -262,7 +262,7 @@ extension _Rope.Node {
         let c = $0.children
         return (c[$0.childCount - 2], c[$0.childCount - 1])
       }
-      builder.prependSuffix(remaining)
+      builder._prependSuffix(remaining)
       self = new
       return
     }
@@ -276,13 +276,13 @@ extension _Rope.Node {
     self.summary.subtract(delta)
     assert(self.childCount > 1)
     swap(&self, &n)
-    builder.prependSuffix(n)
+    builder._prependSuffix(n)
   }
 
   __consuming func _leafRemovePrefix(
     returning slot: Int,
-    into builder: inout _Rope.Builder
-  ) -> Item {
+    into builder: inout Rope.Builder
+  ) -> _Item {
     assert(self.isLeaf)
     assert(slot >= 0 && slot <= childCount)
 
@@ -294,7 +294,7 @@ extension _Rope.Node {
         let c = $0.children
         return (c[$0.childCount - 2], c[$0.childCount - 1])
       }
-      builder.prependSuffix(remaining)
+      builder._prependSuffix(remaining)
       return new
     }
 
@@ -307,7 +307,7 @@ extension _Rope.Node {
     }
     n.summary.subtract(delta)
     assert(n.childCount > 1)
-    builder.prependSuffix(n)
+    builder._prependSuffix(n)
     return item
   }
 }

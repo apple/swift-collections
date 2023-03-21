@@ -14,7 +14,7 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public  struct Index: Sendable {
-    typealias _Storage = BigString._Storage
+    typealias _Rope = BigString._Rope
 
     // ┌───────────────────────────────┬───┬───────────┬────────────────────┐
     // │ b63:b11                       │b10│ b9:b8     │ b7:b0              │
@@ -31,9 +31,9 @@ extension BigString {
     var _rawBits: UInt64
 
     /// A (possibly invalid) rope index.
-    var _rope: _Storage.Index?
+    var _rope: _Rope.Index?
 
-    internal init(_raw: UInt64, _rope: _Storage.Index?) {
+    internal init(_raw: UInt64, _rope: _Rope.Index?) {
       self._rawBits = _raw
       self._rope = _rope
     }
@@ -157,7 +157,7 @@ extension BigString.Index {
   }
 
   internal init(
-    _utf8Offset: Int, utf16TrailingSurrogate: Bool = false, _rope: _Storage.Index, chunkOffset: Int
+    _utf8Offset: Int, utf16TrailingSurrogate: Bool = false, _rope: _Rope.Index, chunkOffset: Int
   ) {
     _rawBits = Self._bitsForUTF8Offset(_utf8Offset)
     if utf16TrailingSurrogate {
@@ -168,7 +168,7 @@ extension BigString.Index {
     self._rope = _rope
   }
 
-  internal init(baseUTF8Offset: Int, _rope: _Storage.Index, chunk: String.Index) {
+  internal init(baseUTF8Offset: Int, _rope: _Rope.Index, chunk: String.Index) {
     let chunkUTF8Offset = chunk._utf8Offset
     self.init(
       _utf8Offset: baseUTF8Offset + chunkUTF8Offset,

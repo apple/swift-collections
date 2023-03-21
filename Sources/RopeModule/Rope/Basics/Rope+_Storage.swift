@@ -28,14 +28,14 @@ internal struct _RopeStorageHeader {
   }
 }
 
-extension _Rope {
-  final class Storage<Child: _RopeItem<Summary>>: ManagedBuffer<_RopeStorageHeader, Child> {
+extension Rope {
+  final class _Storage<Child: _RopeItem<Summary>>: ManagedBuffer<_RopeStorageHeader, Child> {
     typealias Summary = Element.Summary
-    typealias UnsafeHandle = _Rope.UnsafeHandle
+    typealias _UnsafeHandle = Rope._UnsafeHandle
     
-    static func create(height: UInt8) -> Storage {
+    static func create(height: UInt8) -> _Storage {
       let object = create(minimumCapacity: Summary.maxNodeSize) { _ in .init(height: height) }
-      return unsafeDowncast(object, to: Storage.self)
+      return unsafeDowncast(object, to: _Storage.self)
     }
     
     deinit {

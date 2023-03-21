@@ -31,7 +31,7 @@ extension BigString {
     return builder
   }
 
-  mutating func _ropeBuilder(at index: Index) -> _Storage.Builder {
+  mutating func _ropeBuilder(at index: Index) -> _Rope.Builder {
     if let ri = index._rope, _rope.isValid(ri) {
       return _rope.split(at: ri, index._chunkIndex)
     }

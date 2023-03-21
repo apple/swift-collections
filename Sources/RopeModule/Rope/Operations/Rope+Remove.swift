@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public mutating func remove(at index: Index) -> Element {
     validate(index)
     let old = root.remove(at: index._path).removed
@@ -18,15 +18,15 @@ extension _Rope {
     } else if root.childCount == 1, root.height > 0 {
       root = root.readInner { $0.children.first! }
     }
-    invalidateIndices()
+    _invalidateIndices()
     return old.value
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func remove(
-    at path: Path
-  ) -> (removed: Item, delta: Summary, needsFixing: Bool) {
+    at path: _Path
+  ) -> (removed: _Item, delta: Summary, needsFixing: Bool) {
     ensureUnique()
     let slot = path[height]
     precondition(slot < childCount, "Invalid index")
@@ -43,12 +43,12 @@ extension _Rope.Node {
   }
 }
 
-extension _Rope {
+extension Rope {
   mutating func remove(
     at position: Int,
-    in metric: some _RopeMetric<Element>
+    in metric: some RopeMetric<Element>
   ) -> Element {
-    invalidateIndices()
+    _invalidateIndices()
     let old = root.remove(at: position, in: metric).removed
     if root.isEmpty {
       _root = nil
@@ -59,11 +59,11 @@ extension _Rope {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func remove(
     at position: Int,
-    in metric: some _RopeMetric<Element>
-  ) -> (removed: Item, delta: Summary, needsFixing: Bool) {
+    in metric: some RopeMetric<Element>
+  ) -> (removed: _Item, delta: Summary, needsFixing: Bool) {
     ensureUnique()
     guard height > 0 else {
       let (slot, remaining) = readLeaf {
@@ -85,7 +85,7 @@ extension _Rope.Node {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func fixDeficiency(at slot: Int) {
     assert(isUnique())
     updateInner {

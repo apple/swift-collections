@@ -17,7 +17,7 @@ extension BigString {
   /// to hold without encountering an overflow in its operations. This corresponds to the capacity
   /// of the deepest tree where every node is the minimum possible size.
   public static var _minimumCapacity: Int {
-    let c = _Storage.minimumCapacity
+    let c = _Rope._minimumCapacity
     let (r, overflow) = _Chunk.minUTF8Count.multipliedReportingOverflow(by: c)
     guard !overflow else { return Int.max }
     return r
@@ -26,7 +26,7 @@ extension BigString {
   /// The maximum number of UTF-8 code units that `BigString` may be able to store in the best
   /// possible case, when every node in the underlying tree is fully filled with data.
   public static var _maximumCapacity: Int {
-    let c = _Storage.maximumCapacity
+    let c = _Rope._maximumCapacity
     let (r, overflow) = _Chunk.maxUTF8Count.multipliedReportingOverflow(by: c)
     guard !overflow else { return Int.max }
     return r

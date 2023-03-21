@@ -22,25 +22,27 @@ private func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
   _addressString(for: object.toOpaque())
 }
 
-extension _Rope.UnmanagedLeaf: CustomStringConvertible {
+extension Rope._UnmanagedLeaf: CustomStringConvertible {
   var description: String {
     _addressString(for: _ref.toOpaque())
   }
 }
 
-extension _Rope {
-  var nodeCount: Int { _root?.nodeCount ?? 0 }
+extension Rope {
+  public var _nodeCount: Int {
+    _root?.nodeCount ?? 0
+  }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   var nodeCount: Int {
     guard !isLeaf else { return 1 }
     return readInner { $0.children.reduce(into: 1) { $0 += $1.nodeCount } }
   }
 }
 
-extension _Rope {
-  public func dump(
+extension Rope {
+  public func _dump(
     heightLimit: Int = .max,
     firstPrefix: String = "",
     restPrefix: String = ""
@@ -53,7 +55,7 @@ extension _Rope {
   }
 }
 
-extension _Rope.Node: CustomStringConvertible {
+extension Rope._Node: CustomStringConvertible {
   var description: String {
         """
         \(height > 0 ? "Inner@\(height)" : "Leaf")(\
@@ -64,7 +66,7 @@ extension _Rope.Node: CustomStringConvertible {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   internal func dump(
     heightLimit: Int = .max,
     firstPrefix: String = "",

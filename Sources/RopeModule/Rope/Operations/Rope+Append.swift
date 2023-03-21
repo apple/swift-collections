@@ -9,21 +9,21 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public mutating func append(_ item: __owned Element) {
-    invalidateIndices()
+    _invalidateIndices()
     if _root == nil {
-      _root = .createLeaf(Item(item))
+      _root = .createLeaf(_Item(item))
       return
     }
-    if let spawn = root.append(Item(item)) {
+    if let spawn = root.append(_Item(item)) {
       _root = .createInner(children: root, spawn)
     }
   }
 }
 
-extension _Rope.Node {
-  mutating func append(_ item: __owned Item) -> Self? {
+extension Rope._Node {
+  mutating func append(_ item: __owned _Item) -> Self? {
     var item = item
     if item.isUndersized, !self.isEmpty, self.lastItem.rebalance(nextNeighbor: &item) {
       return nil

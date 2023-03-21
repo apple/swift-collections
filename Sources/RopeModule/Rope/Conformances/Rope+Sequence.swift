@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope: Sequence {
+extension Rope: Sequence {
   public func makeIterator() -> Iterator {
     Iterator(self, from: self.startIndex)
   }
@@ -19,14 +19,14 @@ extension _Rope: Sequence {
   }
   
   public struct Iterator: IteratorProtocol {
-    let rope: _Rope
+    let rope: Rope
     private(set) var index: Index
 
-    init(_ rope: _Rope, from start: Index) {
+    init(_ rope: Rope, from start: Index) {
       rope.validate(start)
       self.rope = rope
       self.index = start
-      self.rope.ensureLeaf(in: &index)
+      self.rope.grease(&index)
     }
     
     public mutating func next() -> Element? {

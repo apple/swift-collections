@@ -25,14 +25,14 @@ extension BigString {
   public struct Iterator {
     internal let _base: BigString
     internal var _utf8BaseOffset: Int
-    internal var _ropeIndex: _Storage.Index
+    internal var _ropeIndex: _Rope.Index
     internal var _chunkIndex: String.Index
     internal var _next: String.Index
 
     internal init(_ string: BigString) {
       self._base = string
       self._ropeIndex = string._rope.startIndex
-      string._rope.ensureLeaf(in: &_ropeIndex)
+      string._rope.grease(&_ropeIndex)
 
       self._utf8BaseOffset = 0
       guard _ropeIndex < string._rope.endIndex else {

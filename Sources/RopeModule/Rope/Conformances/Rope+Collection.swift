@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public func isValid(_ index: Index) -> Bool {
     index._version == _version
   }
@@ -18,45 +18,49 @@ extension _Rope {
     precondition(isValid(index), "Invalid index")
   }
 
-  mutating func invalidateIndices() {
+  mutating func _invalidateIndices() {
     _version.bump()
   }
 
-  func ensureLeaf(in index: inout Index) {
+  /// Validate `index` and fill out all cached information in it,
+  /// to speed up subsequent lookups.
+  public func grease(_ index: inout Index) {
     validate(index)
     guard index._leaf == nil else { return }
     index._leaf = _unmanagedLeaf(at: index._path)
   }
 }
 
-extension _Rope: BidirectionalCollection {
-  var height: UInt8 {
+extension Rope {
+  public var _height: UInt8 {
     _root?.height ?? 0
   }
 
+  var _startPath: _Path {
+    _Path(height: _height)
+  }
+
+  var _endPath: _Path {
+    guard let root = _root else { return _startPath }
+    var path = _Path(height: _height)
+    path[_height] = root.childCount
+    return path
+  }
+}
+
+extension Rope: BidirectionalCollection {
   public var isEmpty: Bool {
     guard _root != nil else { return true }
     return root.childCount == 0
   }
 
-  var startPath: Path {
-    Path(height: height)
-  }
-
-  var endPath: Path {
-    guard let root = _root else { return startPath }
-    var path = Path(height: height)
-    path[height] = root.childCount
-    return path
-  }
-
   public var startIndex: Index {
     // Note: `leaf` is intentionally not set here, to speed up accessing this property.
-    return Index(version: _version, path: startPath, leaf: nil)
+    return Index(version: _version, path: _startPath, leaf: nil)
   }
 
   public var endIndex: Index {
-    Index(version: _version, path: endPath, leaf: nil)
+    Index(version: _version, path: _endPath, leaf: nil)
   }
   
   public func index(after i: Index) -> Index {
@@ -117,13 +121,13 @@ extension _Rope: BidirectionalCollection {
     @inline(__always) _modify {
       validate(i)
       // Note: we must not use _leaf -- it may not be on a unique path.
-      defer { invalidateIndices() }
+      defer { _invalidateIndices() }
       yield &root[i._path].value
     }
   }
 }
 
-extension _Rope {
+extension Rope {
   /// Update the element at the given index, while keeping the index valid.
   public mutating func update<R>(
     at index: inout Index,
@@ -138,9 +142,9 @@ extension _Rope {
   }
 }
 
-extension _Rope {
-  public static var maxHeight: Int {
-    Path._pathBitWidth / Summary.nodeSizeBitWidth
+extension Rope {
+  public static var _maxHeight: Int {
+    _Path._pathBitWidth / Summary.nodeSizeBitWidth
   }
 
   /// The estimated maximum number of items that can fit in this rope in the worst possible case,
@@ -149,9 +153,9 @@ extension _Rope {
   /// representation used in the `Index` type.)
   ///
   /// This is one less than the minimum possible size for a rope whose size exceeds the maximum.
-  public static var minimumCapacity: Int {
+  public static var _minimumCapacity: Int {
     var c = 2
-    for _ in 0 ..< maxHeight {
+    for _ in 0 ..< _maxHeight {
       let (r, overflow) = c.multipliedReportingOverflow(by: Summary.minNodeSize)
       if overflow { return .max }
       c = r
@@ -163,9 +167,9 @@ extension _Rope {
   /// the tree consists of maximum-sized nodes. (The data structure itself has no inherent limit,
   /// but this implementation of it is limited by the fixed 56-bit path representation used in
   /// the `Index` type.)
-  public static var maximumCapacity: Int {
+  public static var _maximumCapacity: Int {
     var c = 1
-    for _ in 0 ... maxHeight {
+    for _ in 0 ... _maxHeight {
       let (r, overflow) = c.multipliedReportingOverflow(by: Summary.maxNodeSize)
       if overflow { return .max }
       c = r
@@ -174,21 +178,21 @@ extension _Rope {
   }
 }
 
-extension _Rope {
-  public func count(in metric: some _RopeMetric<Element>) -> Int {
+extension Rope {
+  public func count(in metric: some RopeMetric<Element>) -> Int {
     guard _root != nil else { return 0 }
     return root.count(in: metric)
   }
 }
 
-extension _Rope.Node {
-  public func count(in metric: some _RopeMetric<Element>) -> Int {
+extension Rope._Node {
+  public func count(in metric: some RopeMetric<Element>) -> Int {
     metric._nonnegativeSize(of: self.summary)
   }
 }
 
-extension _Rope {
-  public func distance(from start: Index, to end: Index, in metric: some _RopeMetric<Element>) -> Int {
+extension Rope {
+  public func distance(from start: Index, to end: Index, in metric: some RopeMetric<Element>) -> Int {
     validate(start)
     validate(end)
     if start == end { return 0 }
@@ -208,19 +212,19 @@ extension _Rope {
     return -root.distance(from: end, to: start, in: metric)
   }
 
-  func offset(of index: Index, in metric: some _RopeMetric<Element>) -> Int {
+  func offset(of index: Index, in metric: some RopeMetric<Element>) -> Int {
     validate(index)
     if _root == nil { return 0 }
     return root.distanceFromStart(to: index, in: metric)
   }
 }
 
-extension _Rope.Node {
-  func distanceFromStart(to index: Index, in metric: some _RopeMetric<Element>) -> Int {
+extension Rope._Node {
+  func distanceFromStart(to index: Index, in metric: some RopeMetric<Element>) -> Int {
     let slot = index._path[height]
     precondition(slot <= childCount, "Invalid index")
     if slot == childCount {
-      precondition(index.isEmpty(below: height), "Invalid index")
+      precondition(index._isEmpty(below: height), "Invalid index")
       return metric._nonnegativeSize(of: self.summary)
     }
     if height == 0 {
@@ -233,13 +237,13 @@ extension _Rope.Node {
     }
   }
   
-  func distanceToEnd(from index: Index, in metric: some _RopeMetric<Element>) -> Int {
+  func distanceToEnd(from index: Index, in metric: some RopeMetric<Element>) -> Int {
     let d = metric._nonnegativeSize(of: self.summary) - self.distanceFromStart(to: index, in: metric)
     assert(d >= 0)
     return d
   }
   
-  func distance(from start: Index, to end: Index, in metric: some _RopeMetric<Element>) -> Int {
+  func distance(from start: Index, to end: Index, in metric: some RopeMetric<Element>) -> Int {
     assert(start < end)
     let a = start._path[height]
     let b = end._path[height]
@@ -247,7 +251,7 @@ extension _Rope.Node {
     precondition(b <= childCount, "Invalid index")
     assert(a <= b)
     if b == childCount {
-      precondition(end.isEmpty(below: height), "Invalid index")
+      precondition(end._isEmpty(below: height), "Invalid index")
       return distanceToEnd(from: start, in: metric)
     }
     if height == 0 {
@@ -267,11 +271,11 @@ extension _Rope.Node {
   }
 }
 
-extension _Rope {
+extension Rope {
   public func formIndex(
     _ i: inout Index,
     offsetBy distance: inout Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) {
     validate(i)
@@ -303,7 +307,7 @@ extension _Rope {
   public func index(
     _ i: Index,
     offsetBy distance: Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) -> (index: Index, remainder: Int) {
     var i = i
@@ -313,11 +317,11 @@ extension _Rope {
   }
 }
 
-extension _Rope.UnsafeHandle {
+extension Rope._UnsafeHandle {
   func _seekForwardInLeaf(
-    from path: inout _Rope.Path,
+    from path: inout Rope._Path,
     by distance: inout Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) -> Bool {
     assert(distance >= 0)
@@ -337,9 +341,9 @@ extension _Rope.UnsafeHandle {
   }
 
   func _seekBackwardInLeaf(
-    from path: inout _Rope.Path,
+    from path: inout Rope._Path,
     by distance: inout Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) -> Bool {
     assert(distance >= 0)
@@ -360,11 +364,11 @@ extension _Rope.UnsafeHandle {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   func seekForward(
     from i: inout Index,
     by distance: inout Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) -> Bool {
     assert(distance >= 0)
@@ -391,7 +395,7 @@ extension _Rope.Node {
         let d = metric.size(of: c[slot].summary)
         if preferEnd ? d >= distance : d > distance {
           i._path[$0.height] = slot
-          i.clear(below: $0.height)
+          i._clear(below: $0.height)
           let success = c[slot].seekForward(
             from: &i, by: &distance, in: metric, preferEnd: preferEnd)
           precondition(success)
@@ -407,7 +411,7 @@ extension _Rope.Node {
   func seekBackward(
     from i: inout Index,
     by distance: inout Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     preferEnd: Bool
   ) -> Bool {
     assert(distance >= 0)
@@ -431,7 +435,7 @@ extension _Rope.Node {
         let d = metric.size(of: c[slot].summary)
         if preferEnd ? d > distance : d >= distance {
           i._path[$0.height] = slot
-          i.clear(below: $0.height)
+          i._clear(below: $0.height)
           distance = d - distance
           let success = c[slot].seekForward(
             from: &i, by: &distance, in: metric, preferEnd: preferEnd)

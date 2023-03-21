@@ -9,20 +9,20 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public mutating func append(_ other: __owned Self) {
-    self = _Rope.join(self, other)
+    self = Rope.join(self, other)
   }
   
   public mutating func prepend(_ other: __owned Self) {
-    self = _Rope.join(other, self)
+    self = Rope.join(other, self)
   }
   
-  mutating func append(_ other: __owned Node) {
+  mutating func _append(_ other: __owned _Node) {
     append(Self(root: other))
   }
   
-  mutating func prepend(_ other: __owned Node) {
+  mutating func _prepend(_ other: __owned _Node) {
     prepend(Self(root: other))
   }
   
@@ -41,19 +41,19 @@ extension _Rope {
       let r = left._graftBack(&right)
       guard let remainder = r.remainder else { return Self(root: left) }
       assert(left.height == remainder.height)
-      let root = Node.createInner(children: left, remainder)
+      let root = _Node.createInner(children: left, remainder)
       return Self(root: root)
       
     }
     let r = right._graftFront(&left)
     guard let remainder = r.remainder else { return Self(root: right) }
     assert(right.height == remainder.height)
-    let root = Node.createInner(children: remainder, right)
+    let root = _Node.createInner(children: remainder, right)
     return Self(root: root)
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func _graftFront(_ scion: inout Self) -> (remainder: Self?, delta: Summary) {
     assert(self.height >= scion.height)
     guard self.height > scion.height else {

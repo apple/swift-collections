@@ -45,7 +45,7 @@ extension BigString.Summary: CustomStringConvertible {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString.Summary: _RopeSummary {
+extension BigString.Summary: RopeSummary {
   @inline(__always)
   static var maxNodeSize: Int {
     #if DEBUG

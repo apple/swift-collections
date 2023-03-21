@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 /// A commutative group that is used to augment a tree, enabling quick lookup operations.
-public protocol _RopeSummary: Equatable, Sendable {
+public protocol RopeSummary: Equatable, Sendable {
   static var maxNodeSize: Int { get }
   static var nodeSizeBitWidth: Int { get }
 
@@ -35,12 +35,12 @@ public protocol _RopeSummary: Equatable, Sendable {
   mutating func subtract(_ other: Self)
 }
 
-extension _RopeSummary {
+extension RopeSummary {
   @inlinable @inline(__always)
   public static var minNodeSize: Int { (maxNodeSize + 1) / 2 }
 }
 
-extension _RopeSummary {
+extension RopeSummary {
   @inlinable
   public func adding(_ other: Self) -> Self {
     var c = self

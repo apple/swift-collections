@@ -9,15 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
-  public func invariantCheck() {
+extension Rope {
+  public func _invariantCheck() {
 #if DEBUG
     _root?.invariantCheck(depth: 0, height: root.height, recursive: true)
 #endif
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   func invariantCheck(depth: UInt8, height: UInt8, recursive: Bool = true) {
 #if DEBUG
     precondition(height == self.height, "Mismatching rope height")

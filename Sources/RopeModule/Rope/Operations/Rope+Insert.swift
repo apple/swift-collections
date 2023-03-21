@@ -9,9 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public mutating func prepend(_ item: __owned Element) {
-    invalidateIndices()
+    _invalidateIndices()
     insert(item, at: startIndex)
   }
   
@@ -25,42 +25,42 @@ extension _Rope {
 
   mutating func insert(
     _ item: __owned Element,
-    at path: Path
+    at path: _Path
   ) {
-    if path == endPath {
+    if path == _endPath {
       append(item)
       return
     }
-    if let spawn = root.insert(Item(item), at: path) {
+    if let spawn = root.insert(_Item(item), at: path) {
       _root = .createInner(children: root, spawn)
     }
-    invalidateIndices()
+    _invalidateIndices()
   }
   
   public mutating func insert(
     _ item: __owned Element,
     at position: Int,
-    in metric: some _RopeMetric<Element>
+    in metric: some RopeMetric<Element>
   ) {
     if position == metric.size(of: summary) {
       append(item)
       return
     }
-    if let spawn = root.insert(Item(item), at: position, in: metric) {
+    if let spawn = root.insert(_Item(item), at: position, in: metric) {
       _root = .createInner(children: root, spawn)
     }
-    invalidateIndices()
+    _invalidateIndices()
   }
 }
 
-extension _Rope.Node {
-  mutating func prepend(_ item: __owned Item) -> Self? {
-    insert(item, at: startPath)
+extension Rope._Node {
+  mutating func prepend(_ item: __owned _Item) -> Self? {
+    insert(item, at: _startPath)
   }
   
   mutating func insert(
-    _ item: __owned Item,
-    at path: Path
+    _ item: __owned _Item,
+    at path: _Path
   ) -> Self? {
     ensureUnique()
     let h = height
@@ -74,9 +74,9 @@ extension _Rope.Node {
   }
   
   mutating func insert(
-    _ item: __owned Item,
+    _ item: __owned _Item,
     at position: Int,
-    in metric: some _RopeMetric<Element>
+    in metric: some RopeMetric<Element>
   ) -> Self? {
     ensureUnique()
     if height > 0 {
@@ -93,7 +93,7 @@ extension _Rope.Node {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func _innerInsert(
     at slot: Int,
     with body: (inout Self) -> Self?
@@ -159,8 +159,8 @@ extension _Rope.Node {
   }
 }
 
-extension _Rope.Node {
-  mutating func _leafInsert(_ item: __owned Item, at slot: Int) -> Self? {
+extension Rope._Node {
+  mutating func _leafInsert(_ item: __owned _Item, at slot: Int) -> Self? {
     assert(slot <= childCount)
     var item = item
     if item.isUndersized, childCount > 0, _rebalanceBeforeInsert(&item, at: slot) {
@@ -180,7 +180,7 @@ extension _Rope.Node {
     return spawn
   }
   
-  mutating func _rebalanceBeforeInsert(_ item: inout Item, at slot: Int) -> Bool {
+  mutating func _rebalanceBeforeInsert(_ item: inout _Item, at slot: Int) -> Bool {
     assert(item.isUndersized)
     let r = updateLeaf { (h) -> (merged: Bool, delta: Summary) in
       if slot > 0 {

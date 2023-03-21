@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   @inline(__always)
   @discardableResult
   public mutating func mutatingForEach<R>(
@@ -41,7 +41,7 @@ extension _Rope {
     validate(index)
     guard _root != nil else { return true }
     defer {
-      invalidateIndices()
+      _invalidateIndices()
       index._version = _version
     }
     let r = root.mutatingForEach(from: &index, body: body).continue
@@ -49,7 +49,7 @@ extension _Rope {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   mutating func mutatingForEach(
     from index: inout Index,
     body: (inout Element) -> Bool

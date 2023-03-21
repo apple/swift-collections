@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension _Rope {
+extension Rope {
   public func forEachWhile(
     _ body: (Element) -> Bool
   ) -> Bool {
@@ -19,7 +19,7 @@ extension _Rope {
 
   public func forEachWhile(
     from position: Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     _ body: (Element, Element.Index?) -> Bool
   ) -> Bool {
     guard _root != nil else {
@@ -30,7 +30,7 @@ extension _Rope {
   }
 }
 
-extension _Rope.Node {
+extension Rope._Node {
   func forEachWhile(
     _ body: (Element) -> Bool
   ) -> Bool {
@@ -54,7 +54,7 @@ extension _Rope.Node {
 
   func forEachWhile(
     from position: Int,
-    in metric: some _RopeMetric<Element>,
+    in metric: some RopeMetric<Element>,
     _ body: (Element, Element.Index?) -> Bool
   ) -> Bool {
     if isLeaf {

@@ -16,14 +16,14 @@ extension BigString {
   struct Builder {
     typealias _Chunk = BigString._Chunk
     typealias _Ingester = BigString._Ingester
-    typealias _Storage = BigString._Storage
+    typealias _Rope = BigString._Rope
     
-    var base: _Storage.Builder
+    var base: _Rope.Builder
     var suffixStartState: _CharacterRecognizer
     var prefixEndState: _CharacterRecognizer
     
     init(
-      base: _Storage.Builder,
+      base: _Rope.Builder,
       prefixEndState: _CharacterRecognizer,
       suffixStartState: _CharacterRecognizer
     ) {
@@ -33,7 +33,7 @@ extension BigString {
     }
 
     init() {
-      self.base = _Storage.Builder()
+      self.base = _Rope.Builder()
       self.suffixStartState = _CharacterRecognizer()
       self.prefixEndState = _CharacterRecognizer()
     }
@@ -41,7 +41,7 @@ extension BigString {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension _Rope<BigString._Chunk>.Builder {
+extension Rope<BigString._Chunk>.Builder {
   internal func _breakState() -> _CharacterRecognizer {
     let chars = self.prefixSummary.characters
     assert(self.isPrefixEmpty || chars > 0)
@@ -72,11 +72,11 @@ extension BigString.Builder {
   mutating func append(_ str: __owned Substring) {
     guard !str.isEmpty else { return }
     var ingester = _Ingester(str, startState: self.prefixEndState)
-    if var prefix = base.prefix._take() {
+    if var prefix = base._prefix._take() {
       if let slice = ingester.nextSlice(maxUTF8Count: prefix.value.availableSpace) {
         prefix.value._append(slice)
       }
-      self.base.prefix = prefix
+      self.base._prefix = prefix
     }
     while let next = ingester.nextChunk() {
       base.append(next)
@@ -105,7 +105,7 @@ extension BigString.Builder {
     self.base.append(extract._rope)
   }
 
-  mutating func append(_ other: __owned _Storage, state: inout _CharacterRecognizer) {
+  mutating func append(_ other: __owned _Rope, state: inout _CharacterRecognizer) {
     guard !other.isEmpty else { return }
     var other = BigString(_rope: other)
     other._rope.resyncBreaksToEnd(old: &state, new: &self.prefixEndState)
@@ -114,14 +114,14 @@ extension BigString.Builder {
   
   mutating func append(from ingester: inout _Ingester) {
     //assert(ingester.state._isKnownEqual(to: self.prefixEndState))
-    if var prefix = base.prefix._take() {
+    if var prefix = base._prefix._take() {
       if let first = ingester.nextSlice(maxUTF8Count: prefix.value.availableSpace) {
         prefix.value._append(first)
       }
-      base.prefix = prefix
+      base._prefix = prefix
     }
     
-    let suffixCount = base.suffix?.value.utf8Count ?? 0
+    let suffixCount = base._suffix?.value.utf8Count ?? 0
     
     while let chunk = ingester.nextWellSizedChunk(suffix: suffixCount) {
       base.append(chunk)
@@ -139,8 +139,8 @@ extension BigString.Builder {
       chunk.resyncBreaksFromStart(old: &suffixStartState, new: &prefixEndState)
     }
     // Roll it all up.
-    let _rope = self.base.finalize()
-    let string = BigString(_rope: _rope)
+    let rope = self.base.finalize()
+    let string = BigString(_rope: rope)
     string._invariantCheck()
     return string
   }

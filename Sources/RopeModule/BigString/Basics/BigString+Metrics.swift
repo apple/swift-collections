@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-internal protocol _StringMetric: _RopeMetric where Element == BigString._Chunk {
+internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   func distance(
     from start: String.Index,
     to end: String.Index,

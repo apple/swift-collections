@@ -70,7 +70,7 @@ extension BigString {
     startingAt index: Index,
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> (ropeIndex: _Storage.Index, chunkIndex: String.Index)? {
+  ) -> (ropeIndex: _Rope.Index, chunkIndex: String.Index)? {
     guard index < endIndex else { return nil }
     let i = resolve(index, preferEnd: false)
     var ropeIndex = i._rope!
@@ -100,7 +100,7 @@ extension BigString {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension BigString._Storage {
+extension BigString._Rope {
   mutating func resyncBreaks(
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
