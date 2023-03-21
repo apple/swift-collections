@@ -19,13 +19,15 @@ open class CollectionTestCase: XCTestCase {
 
   open var isAvailable: Bool { true }
 
-  public override func invokeTest() {
+  #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+  open override func invokeTest() {
     guard isAvailable else {
       print("\(Self.self) unavailable; skipping")
       return
     }
     return super.invokeTest()
   }
+  #endif
 
   open override func setUp() {
     super.setUp()
