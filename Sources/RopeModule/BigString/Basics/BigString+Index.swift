@@ -212,7 +212,9 @@ extension BigString {
   func resolve(_ i: Index, preferEnd: Bool) -> Index {
     if var ri = i._rope, _rope.isValid(ri) {
       if preferEnd {
-        guard i.utf8Offset > 0, i._utf8ChunkOffset == 0 else { return i }
+        guard i.utf8Offset > 0, i._utf8ChunkOffset == 0, !i._isUTF16TrailingSurrogate else {
+          return i
+        }
         _rope.formIndex(before: &ri)
         let length = _rope[ri].utf8Count
         let ci = String.Index(_utf8Offset: length)
@@ -230,10 +232,18 @@ extension BigString {
       return j
     }
 
+    // Indices addressing trailing surrogates must never be resolved at the end of chunk,
+    // because the +1 doesn't make sense on any endIndex.
+    let trailingSurrogate = i._isUTF16TrailingSurrogate
+
     let (ri, chunkOffset) = _rope.find(
-      at: i.utf8Offset, in: _UTF8Metric(), preferEnd: preferEnd)
+      at: i.utf8Offset,
+      in: _UTF8Metric(),
+      preferEnd: preferEnd && !trailingSurrogate)
+
     let ci = String.Index(
-        _utf8Offset: chunkOffset, utf16TrailingSurrogate: i._isUTF16TrailingSurrogate)
+      _utf8Offset: chunkOffset,
+      utf16TrailingSurrogate: trailingSurrogate)
     return Index(baseUTF8Offset: i.utf8Offset - ci._utf8Offset, _rope: ri, chunk: ci)
   }
 }

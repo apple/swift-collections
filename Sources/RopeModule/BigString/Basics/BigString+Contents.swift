@@ -51,8 +51,9 @@ extension BigString {
     precondition(start <= endIndex && end <= endIndex, "Invalid index")
     guard start != end else { return 0 }
     assert(!isEmpty)
-    let a = resolve(Swift.min(start, end), preferEnd: false)
-    let b = resolve(Swift.max(start, end), preferEnd: true)
+    let (lesser, greater) = (start <= end ? (start, end) : (end, start))
+    let a = resolve(lesser, preferEnd: false)
+    let b = resolve(greater, preferEnd: true)
     var d = 0
 
     let ropeIndexA = a._rope!

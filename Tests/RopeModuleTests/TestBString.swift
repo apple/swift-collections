@@ -412,8 +412,7 @@ class TestBigString: CollectionTestCase {
         XCTAssertEqual(big.utf16.index(roundingDown: j2), j2)
         let b = big.utf16[i2 ..< j2]
         XCTAssertEqual(b.first, a.first)
-        // FIXME: Crash when i == 10 && j == 1282, seed == -3769053804926450170
-        //XCTAssertEqual(b.last, a.last)
+        XCTAssertEqual(b.last, a.last)
       }
     }
   }
