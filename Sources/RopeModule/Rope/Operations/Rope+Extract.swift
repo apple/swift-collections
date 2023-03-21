@@ -46,19 +46,19 @@ extension Rope._Node {
             at: u.remaining - metric._nonnegativeSize(of: item.summary),
             in: item2.value)
           _ = item2.split(at: j)
-          builder._append(item2)
+          builder._insertBeforeTip(item2)
           return
         }
         assert(l.slot < u.slot)
         var left = c[l.slot]
         left = left.split(at: metric.index(at: l.remaining, in: left.value))
-        builder._append(left)
+        builder._insertBeforeTip(left)
         for i in l.slot + 1 ..< u.slot {
-          builder._append(c[i])
+          builder._insertBeforeTip(c[i])
         }
         var right = c[u.slot]
         _ = right.split(at: metric.index(at: u.remaining, in: right.value))
-        builder._append(right)
+        builder._insertBeforeTip(right)
       }
       return
     }
@@ -76,7 +76,7 @@ extension Rope._Node {
       let lsize = metric._nonnegativeSize(of: c[l.slot].summary)
       c[l.slot].extract(from: l.remaining, to: lsize, in: metric, into: &builder)
       for i in l.slot + 1 ..< u.slot {
-        builder._append(c[i])
+        builder._insertBeforeTip(c[i])
       }
       c[u.slot].extract(from: 0, to: u.remaining, in: metric, into: &builder)
     }

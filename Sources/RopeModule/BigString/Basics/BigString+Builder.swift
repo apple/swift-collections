@@ -79,7 +79,7 @@ extension BigString.Builder {
       self.base._prefix = prefix
     }
     while let next = ingester.nextChunk() {
-      base.append(next)
+      base.insertBeforeTip(next)
     }
     self.prefixEndState = ingester.state
   }
@@ -92,7 +92,7 @@ extension BigString.Builder {
   mutating func append(_ newChunk: __owned _Chunk, state: inout _CharacterRecognizer) {
     var newChunk = newChunk
     newChunk.resyncBreaksFromStartToEnd(old: &state, new: &self.prefixEndState)
-    self.base.append(newChunk)
+    self.base.insertBeforeTip(newChunk)
   }
   
   mutating func append(_ other: __owned BigString) {
@@ -102,14 +102,14 @@ extension BigString.Builder {
 
   mutating func append(_ other: __owned BigString, in range: Range<BigString.Index>) {
     let extract = BigString(other, in: range, state: &self.prefixEndState)
-    self.base.append(extract._rope)
+    self.base.insertBeforeTip(extract._rope)
   }
 
   mutating func append(_ other: __owned _Rope, state: inout _CharacterRecognizer) {
     guard !other.isEmpty else { return }
     var other = BigString(_rope: other)
     other._rope.resyncBreaksToEnd(old: &state, new: &self.prefixEndState)
-    self.base.append(other._rope)
+    self.base.insertBeforeTip(other._rope)
   }
   
   mutating func append(from ingester: inout _Ingester) {
@@ -124,7 +124,7 @@ extension BigString.Builder {
     let suffixCount = base._suffix?.value.utf8Count ?? 0
     
     while let chunk = ingester.nextWellSizedChunk(suffix: suffixCount) {
-      base.append(chunk)
+      base.insertBeforeTip(chunk)
     }
     precondition(ingester.isAtEnd)
     self.prefixEndState = ingester.state

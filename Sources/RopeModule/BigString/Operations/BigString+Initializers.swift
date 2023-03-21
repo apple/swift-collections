@@ -17,7 +17,7 @@ extension BigString {
     var builder = _Rope.Builder()
     var ingester = _Ingester(input)
     while let chunk = ingester.nextWellSizedChunk() {
-      builder.append(chunk)
+      builder.insertBeforeTip(chunk)
     }
     self._rope = builder.finalize()
   }

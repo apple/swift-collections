@@ -132,7 +132,7 @@ class TestRope: XCTestCase {
     }
     var builder = Rope<Chunk>.Builder()
     for chunk in ref {
-      builder.append(chunk)
+      builder.insertBeforeTip(chunk)
       builder._invariantCheck()
     }
     let rope = builder.finalize()

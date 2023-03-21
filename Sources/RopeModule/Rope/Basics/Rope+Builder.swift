@@ -18,7 +18,7 @@ extension Rope {
     }
     var builder = Builder()
     for item in items {
-      builder.append(item)
+      builder.insertBeforeTip(item)
     }
     self = builder.finalize()
   }
@@ -170,11 +170,11 @@ extension Rope {
       return nil
     }
     
-    public mutating func append(_ item: __owned Element) {
-      _append(Rope._Item(item))
+    public mutating func insertBeforeTip(_ item: __owned Element) {
+      _insertBeforeTip(Rope._Item(item))
     }
     
-    mutating func _append(_ item: __owned Rope._Item) {
+    mutating func _insertBeforeTip(_ item: __owned Rope._Item) {
       guard !item.isEmpty else { return }
       guard var prefix = self._prefix._take() else {
         self._prefix = item
@@ -202,23 +202,23 @@ extension Rope {
       _invariantCheck()
     }
     
-    public mutating func append(_ rope: __owned Rope) {
+    public mutating func insertBeforeTip(_ rope: __owned Rope) {
       guard rope._root != nil else { return }
-      _append(rope.root)
+      _insertBeforeTip(rope.root)
     }
     
-    mutating func _append(_ node: __owned Rope._Node) {
+    mutating func _insertBeforeTip(_ node: __owned Rope._Node) {
       defer { _invariantCheck() }
       var node = node
       if node.height == 0 {
         if node.childCount == 1 {
-          _append(node.firstItem)
+          _insertBeforeTip(node.firstItem)
           return
         }
         if let item = self._prefix._take() {
           if let spawn = node.prepend(item) {
-            _append(node)
-            _append(spawn)
+            _insertBeforeTip(node)
+            _insertBeforeTip(spawn)
             return
           }
         }
@@ -287,11 +287,11 @@ extension Rope {
       _prefixTrees.append(Rope(root: new))
     }
 
-    public mutating func prependSuffix(_ item: __owned Element) {
-      _prependSuffix(_Item(item))
+    public mutating func insertAfterTip(_ item: __owned Element) {
+      _insertAfterTip(_Item(item))
     }
 
-    mutating func _prependSuffix(_ item: __owned _Item) {
+    mutating func _insertAfterTip(_ item: __owned _Item) {
       guard !item.isEmpty else { return }
       if var suffixItem = self._suffix._take() {
         var item = item
@@ -306,56 +306,56 @@ extension Rope {
       self._suffix = item
     }
     
-    public mutating func prependSuffix(_ rope: __owned Rope) {
+    public mutating func insertAfterTip(_ rope: __owned Rope) {
       assert(_suffix == nil)
       assert(_suffixTrees.isEmpty || rope._height <= _suffixTrees.last!._height)
       _suffixTrees.append(rope)
     }
     
-    mutating func _prependSuffix(_ rope: __owned Rope._Node) {
-      prependSuffix(Rope(root: rope))
+    mutating func _insertAfterTip(_ rope: __owned Rope._Node) {
+      insertAfterTip(Rope(root: rope))
     }
 
-    mutating func _append(slots: Range<Int>, in node: __owned Rope._Node) {
+    mutating func _insertBeforeTip(slots: Range<Int>, in node: __owned Rope._Node) {
       assert(slots.lowerBound >= 0 && slots.upperBound <= node.childCount)
       let c = slots.count
       guard c > 0 else { return }
       if c == 1 {
         if node.isLeaf {
           let item = node.readLeaf { $0.children[slots.lowerBound] }
-          _append(item)
+          _insertBeforeTip(item)
         } else {
           let child = node.readInner { $0.children[slots.lowerBound] }
-          _append(child)
+          _insertBeforeTip(child)
         }
         return
       }
       let copy = node.copy(slots: slots)
-      _append(copy)
+      _insertBeforeTip(copy)
     }
 
-    mutating func _prependSuffix(slots: Range<Int>, in node: __owned Rope._Node) {
+    mutating func _insertAfterTip(slots: Range<Int>, in node: __owned Rope._Node) {
       assert(slots.lowerBound >= 0 && slots.upperBound <= node.childCount)
       let c = slots.count
       guard c > 0 else { return }
       if c == 1 {
         if node.isLeaf {
           let item = node.readLeaf { $0.children[slots.lowerBound] }
-          _prependSuffix(item)
+          _insertAfterTip(item)
         } else {
           let child = node.readInner { $0.children[slots.lowerBound] }
-          _prependSuffix(child)
+          _insertAfterTip(child)
         }
         return
       }
       let copy = node.copy(slots: slots)
-      _prependSuffix(copy)
+      _insertAfterTip(copy)
     }
 
     public mutating func finalize() -> Rope {
       // Integrate prefix & suffix chunks.
       if let suffixItem = self._suffix._take() {
-        _append(suffixItem)
+        _insertBeforeTip(suffixItem)
       }
       if var prefix = self._prefix._take() {
         if !prefix.isUndersized {
@@ -375,7 +375,7 @@ extension Rope {
       }
       assert(self._prefix == nil && self._suffix == nil)
       while let tree = _suffixTrees.popLast() {
-        append(tree)
+        insertBeforeTip(tree)
       }
       // Merge all saplings, the seedling and the seed into a single rope.
       if let item = self._prefix._take() {

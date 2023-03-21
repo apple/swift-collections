@@ -33,7 +33,7 @@ extension BigString {
       var builder = _Rope.Builder()
       while let chunk = ingester.nextWellSizedChunk() {
         precondition(!chunk.isUndersized)
-        builder.append(chunk)
+        builder.insertBeforeTip(chunk)
       }
       precondition(ingester.isAtEnd)
       _rope = _Rope.join(_rope, builder.finalize())

@@ -30,8 +30,8 @@ extension Rope {
     var item = node._leafSplit(at: r.slot, into: &builder)
     let index = metric.index(at: r.remaining, in: item.value)
     let suffix = item.split(at: index)
-    builder._prependSuffix(suffix)
-    builder.append(item.value)
+    builder._insertAfterTip(suffix)
+    builder._insertBeforeTip(item)
     return builder
   }
 
@@ -59,10 +59,10 @@ extension Rope {
     var (builder, item) = self.split(at: ropeIndex)
     let suffix = item.split(at: itemIndex)
     if !suffix.isEmpty {
-      builder.prependSuffix(suffix)
+      builder.insertAfterTip(suffix)
     }
     if !item.isEmpty {
-      builder.append(item)
+      builder.insertBeforeTip(item)
     }
     return builder
   }
@@ -79,10 +79,10 @@ extension Rope._Node {
     
     var slot = slot
     if slot == childCount - 2 {
-      builder._prependSuffix(_removeNode(at: childCount - 1))
+      builder._insertAfterTip(_removeNode(at: childCount - 1))
     }
     if slot == 1 {
-      builder._append(_removeNode(at: 0))
+      builder._insertBeforeTip(_removeNode(at: 0))
       slot -= 1
     }
     
@@ -91,16 +91,16 @@ extension Rope._Node {
     
     guard n.childCount > 0 else { return }
     if slot == 0 {
-      builder._prependSuffix(n)
+      builder._insertAfterTip(n)
       return
     }
     if slot == n.childCount {
-      builder._append(n)
+      builder._insertBeforeTip(n)
       return
     }
     let suffix = n.split(keeping: slot)
-    builder._append(n)
-    builder._prependSuffix(suffix)
+    builder._insertBeforeTip(n)
+    builder._insertAfterTip(suffix)
   }
   
   __consuming func _leafSplit(
@@ -115,10 +115,10 @@ extension Rope._Node {
     
     var slot = slot
     if slot == n.childCount - 2 {
-      builder._prependSuffix(n._removeItem(at: childCount - 1).removed)
+      builder._insertAfterTip(n._removeItem(at: childCount - 1).removed)
     }
     if slot == 1 {
-      builder.append(n._removeItem(at: 0).removed.value)
+      builder.insertBeforeTip(n._removeItem(at: 0).removed.value)
       slot -= 1
     }
     
@@ -126,13 +126,13 @@ extension Rope._Node {
     
     guard n.childCount > 0 else { return item }
     if slot == 0 {
-      builder._prependSuffix(n)
+      builder._insertAfterTip(n)
     } else if slot == n.childCount {
-      builder._append(n)
+      builder._insertBeforeTip(n)
     } else {
       let suffix = n.split(keeping: slot)
-      builder._append(n)
-      builder._prependSuffix(suffix)
+      builder._insertBeforeTip(n)
+      builder._insertAfterTip(suffix)
     }
     return item
   }
