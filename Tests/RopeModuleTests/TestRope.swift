@@ -9,8 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG
-@testable import _RopeModule
+import _RopeModule
 import XCTest
 
 struct Chunk: RopeElement, Equatable, CustomStringConvertible {
@@ -541,4 +540,3 @@ class TestRope: XCTestCase {
   }
 
 }
-#endif

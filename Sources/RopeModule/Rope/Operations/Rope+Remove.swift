@@ -44,7 +44,7 @@ extension Rope._Node {
 }
 
 extension Rope {
-  mutating func remove(
+  public mutating func remove(
     at position: Int,
     in metric: some RopeMetric<Element>
   ) -> Element {

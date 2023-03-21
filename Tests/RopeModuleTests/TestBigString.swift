@@ -37,7 +37,6 @@ class TestBigString: CollectionTestCase {
     XCTAssertLessThanOrEqual(min, max)
 #if !DEBUG // Debug builds have smaller nodes
     // We want big strings to hold at least as many UTF-8 code units as a regular String.
-    // We want big strings to hold at least as many UTF-8 code units as a regular String.
     XCTAssertGreaterThanOrEqual(min, 1 << 48)
 #endif
   }
@@ -78,7 +77,7 @@ class TestBigString: CollectionTestCase {
 
   func test_string_conversion() {
     let big = BigString(sampleString)
-    
+
     big._invariantCheck()
     XCTAssertEqual(big.count, sampleString.count)
     XCTAssertEqual(big.unicodeScalars.count, sampleString.unicodeScalars.count)
@@ -88,7 +87,50 @@ class TestBigString: CollectionTestCase {
     let flat = String(big)
     XCTAssertEqual(flat, sampleString)
   }
-  
+
+  func testUTF8View() {
+    let str = BigString(shortSample)
+    checkBidirectionalCollection(str.utf8, expectedContents: shortSample.utf8)
+  }
+
+  func testUTF16View() {
+    let str = BigString(shortSample)
+    checkBidirectionalCollection(str.utf16, expectedContents: shortSample.utf16)
+  }
+
+  func testUnicodeScalarView() {
+    let str = BigString(shortSample)
+    checkBidirectionalCollection(str.unicodeScalars, expectedContents: shortSample.unicodeScalars)
+  }
+
+  func testCharacterView() {
+    let str = BigString(shortSample)
+    checkBidirectionalCollection(str, expectedContents: shortSample)
+  }
+
+  func testHashable_Characters() {
+    let classes: [[BigString]] = [
+      ["Cafe\u{301}", "Café"],
+      ["Foo\u{301}\u{327}", "Foo\u{327}\u{301}"],
+      ["Foo;bar", "Foo\u{37e}bar"],
+    ]
+    checkHashable(equivalenceClasses: classes)
+  }
+
+  func testHashable_Scalars() {
+    let classes: [BigString] = [
+      "Cafe\u{301}",
+      "Café",
+      "Foo\u{301}\u{327}",
+      "Foo\u{327}\u{301}",
+      "Foo;bar",
+      "Foo\u{37e}bar",
+    ]
+    checkHashable(equivalenceClasses: classes.map { [$0.unicodeScalars] })
+    checkHashable(equivalenceClasses: classes.map { [$0.utf8] })
+    checkHashable(equivalenceClasses: classes.map { [$0.utf16] })
+  }
+
   @discardableResult
   func checkCharacterIndices(
     _ flat: String,
