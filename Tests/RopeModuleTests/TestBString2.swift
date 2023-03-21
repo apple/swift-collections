@@ -15,31 +15,31 @@ import XCTest
 @testable import _RopeModule
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-class TestBString2: CollectionTestCase {
+class TestBigString2: CollectionTestCase {
   override var isAvailable: Bool { isRunningOnSwiftStdlib5_8 }
 
   func testUTF8View() {
-    let str = _BString(shortSample)
+    let str = BigString(shortSample)
     checkBidirectionalCollection(str.utf8, expectedContents: shortSample.utf8)
   }
   
   func testUTF16View() {
-    let str = _BString(shortSample)
+    let str = BigString(shortSample)
     checkBidirectionalCollection(str.utf16, expectedContents: shortSample.utf16)
   }
   
   func testUnicodeScalarView() {
-    let str = _BString(shortSample)
+    let str = BigString(shortSample)
     checkBidirectionalCollection(str.unicodeScalars, expectedContents: shortSample.unicodeScalars)
   }
   
   func testCharacterView() {
-    let str = _BString(shortSample)
+    let str = BigString(shortSample)
     checkBidirectionalCollection(str, expectedContents: shortSample)
   }
   
   func testHashable_Characters() {
-    let classes: [[_BString]] = [
+    let classes: [[BigString]] = [
       ["Cafe\u{301}", "Café"],
       ["Foo\u{301}\u{327}", "Foo\u{327}\u{301}"],
       ["Foo;bar", "Foo\u{37e}bar"],
@@ -48,7 +48,7 @@ class TestBString2: CollectionTestCase {
   }
   
   func testHashable_Scalars() {
-    let classes: [_BString] = [
+    let classes: [BigString] = [
       "Cafe\u{301}",
       "Café",
       "Foo\u{301}\u{327}",
