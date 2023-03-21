@@ -10,11 +10,11 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  mutating func append(_ other: __owned Self) {
+  public mutating func append(_ other: __owned Self) {
     self = _Rope.join(self, other)
   }
   
-  mutating func prepend(_ other: __owned Self) {
+  public mutating func prepend(_ other: __owned Self) {
     self = _Rope.join(other, self)
   }
   
@@ -27,7 +27,7 @@ extension _Rope {
   }
   
   /// Concatenate `left` and `right` by linking up the two trees.
-  static func join(_ left: __owned Self, _ right: __owned Self) -> Self {
+  public static func join(_ left: __owned Self, _ right: __owned Self) -> Self {
     guard !right.isEmpty else { return left }
     guard !left.isEmpty else { return right }
     

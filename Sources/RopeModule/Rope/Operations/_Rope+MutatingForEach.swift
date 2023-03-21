@@ -12,7 +12,7 @@
 extension _Rope {
   @inline(__always)
   @discardableResult
-  mutating func mutatingForEach<R>(
+  public mutating func mutatingForEach<R>(
     _ body: (inout Element) -> R?
   ) -> R? {
     var i = startIndex
@@ -21,7 +21,7 @@ extension _Rope {
   
   @inline(__always)
   @discardableResult
-  mutating func mutatingForEach<R>(
+  public mutating func mutatingForEach<R>(
     from index: inout Index,
     _ body: (inout Element) -> R?
   ) -> R? {

@@ -40,7 +40,7 @@ extension _Rope.Node {
 }
 
 extension _Rope {
-  internal func dump(
+  public func dump(
     heightLimit: Int = .max,
     firstPrefix: String = "",
     restPrefix: String = ""

@@ -66,8 +66,8 @@ extension _BString {
   }
 
   mutating func _split(removing range: Range<Index>) -> Builder {
-    let lower = range.lowerBound._utf8Offset
-    let upper = range.upperBound._utf8Offset
+    let lower = range.lowerBound.utf8Offset
+    let upper = range.upperBound.utf8Offset
 
     // FIXME: Don't split the indices twice -- they are currently split once here and once in the
     // builder initializer below.

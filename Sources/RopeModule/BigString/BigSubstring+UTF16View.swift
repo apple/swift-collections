@@ -58,21 +58,10 @@ extension BigSubstring.UTF16View: Hashable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigSubstring.UTF16View: Sequence {
   public typealias Element = UInt16
-
-  public struct Iterator: IteratorProtocol {
-    internal var _guts: _BSubstring.UTF16View.Iterator
-
-    internal init(_guts: _BSubstring.UTF16View.Iterator) {
-      self._guts = _guts
-    }
-
-    public mutating func next() -> UInt16? {
-      _guts.next()
-    }
-  }
+  public typealias Iterator = _BSubstring.UTF16View.Iterator
 
   public func makeIterator() -> Iterator {
-    Iterator(_guts: _guts.makeIterator())
+    _guts.makeIterator()
   }
 }
 

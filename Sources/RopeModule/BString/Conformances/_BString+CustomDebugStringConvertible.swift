@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: CustomDebugStringConvertible {
-  internal var debugDescription: String {
+  public var debugDescription: String {
     description.debugDescription
   }
 }

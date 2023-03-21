@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  internal struct UnicodeScalarView: Sendable {
+  public struct UnicodeScalarView: Sendable {
     var _base: _BString
 
     @inline(__always)
@@ -23,7 +23,7 @@ extension _BString {
   }
 
   @inline(__always)
-  internal var unicodeScalars: UnicodeScalarView {
+  public var unicodeScalars: UnicodeScalarView {
     get {
       UnicodeScalarView(_base: self)
     }
@@ -40,127 +40,160 @@ extension _BString {
     }
   }
 
-  internal init(_ view: _BString.UnicodeScalarView) {
+  public init(_ view: _BString.UnicodeScalarView) {
     self = view._base
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: ExpressibleByStringLiteral {
-  internal init(stringLiteral value: String) {
+  public init(stringLiteral value: String) {
     self.init(value.unicodeScalars)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: CustomStringConvertible {
-  internal var description: String {
-    String(_from: _base)
+  public var description: String {
+    String(_base)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: CustomDebugStringConvertible {
-  internal var debugDescription: String {
+  public var debugDescription: String {
     description.debugDescription
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: Equatable {
-  internal static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     _BString.utf8IsEqual(left._base, to: right._base)
   }
 
-  internal func isIdentical(to other: Self) -> Bool {
+  public func isIdentical(to other: Self) -> Bool {
     self._base.isIdentical(to: other._base)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: Hashable {
-  internal func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: Sequence {
-  typealias Element = UnicodeScalar
-  typealias Iterator = _BString.UnicodeScalarIterator
+  public typealias Element = UnicodeScalar
 
-  internal func makeIterator() -> _BString.UnicodeScalarIterator {
-    _base.makeUnicodeScalarIterator()
+  public struct Iterator {
+    internal let _base: _BString
+    internal var _index: _BString.Index
+
+    internal init(_base: _BString, from start: _BString.Index) {
+      self._base = _base
+      self._index = _base.unicodeScalarIndex(roundingDown: start)
+    }
+  }
+
+  public func makeIterator() -> Iterator {
+    Iterator(_base: self._base, from: self.startIndex)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension _BString.UnicodeScalarView.Iterator: IteratorProtocol {
+  public typealias Element = UnicodeScalar
+
+  public mutating func next() -> UnicodeScalar? {
+    guard _index < _base.endIndex else { return nil }
+    let ri = _index._rope!
+    var ci = _index._chunkIndex
+    let chunk = _base.rope[ri]
+    let result = chunk.string.unicodeScalars[ci]
+
+    chunk.string.unicodeScalars.formIndex(after: &ci)
+    if ci < chunk.string.endIndex {
+      _index = _BString.Index(baseUTF8Offset: _index._utf8BaseOffset, rope: ri, chunk: ci)
+    } else {
+      _index = _BString.Index(
+        baseUTF8Offset: _index._utf8BaseOffset + chunk.utf8Count,
+        rope: _base.rope.index(after: ri),
+        chunk: String.Index(_utf8Offset: 0))
+    }
+    return result
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: BidirectionalCollection {
-  typealias Index = _BString.Index
-  typealias SubSequence = _BSubstring.UnicodeScalarView
+  public typealias Index = _BString.Index
+  public typealias SubSequence = _BSubstring.UnicodeScalarView
 
   @inline(__always)
-  internal var startIndex: Index { _base.startIndex }
+  public var startIndex: Index { _base.startIndex }
 
   @inline(__always)
-  internal var endIndex: Index { _base.endIndex }
+  public var endIndex: Index { _base.endIndex }
 
-  internal var count: Int { _base.unicodeScalarCount }
+  public var count: Int { _base.unicodeScalarCount }
 
   @inline(__always)
-  internal func index(after i: Index) -> Index {
+  public func index(after i: Index) -> Index {
     _base.unicodeScalarIndex(after: i)
   }
 
   @inline(__always)
-  internal func index(before i: Index) -> Index {
+  public func index(before i: Index) -> Index {
     _base.unicodeScalarIndex(before: i)
   }
 
   @inline(__always)
-  internal func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Index, offsetBy distance: Int) -> Index {
     _base.unicodeScalarIndex(i, offsetBy: distance)
   }
 
-  internal func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+  public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     _base.unicodeScalarIndex(i, offsetBy: distance, limitedBy: limit)
   }
 
-  internal func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Index, to end: Index) -> Int {
     _base.unicodeScalarDistance(from: start, to: end)
   }
 
-  internal subscript(position: Index) -> UnicodeScalar {
+  public subscript(position: Index) -> UnicodeScalar {
     _base[unicodeScalar: position]
   }
 
-  internal subscript(bounds: Range<Index>) -> _BSubstring.UnicodeScalarView {
+  public subscript(bounds: Range<Index>) -> _BSubstring.UnicodeScalarView {
     _BSubstring.UnicodeScalarView(_base, in: bounds)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView {
-  internal func index(roundingDown i: Index) -> Index {
+  public func index(roundingDown i: Index) -> Index {
     _base.unicodeScalarIndex(roundingDown: i)
   }
 
-  internal func index(roundingUp i: Index) -> Index {
+  public func index(roundingUp i: Index) -> Index {
     _base.unicodeScalarIndex(roundingUp: i)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.UnicodeScalarView: RangeReplaceableCollection {
-  internal init() {
+  public init() {
     self._base = _BString()
   }
 
-  internal mutating func reserveCapacity(_ n: Int) {
+  public mutating func reserveCapacity(_ n: Int) {
     // Do nothing.
   }
 
-  internal mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
+  public mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     _ subrange: Range<Index>, with newElements: __owned C
   ) {
     if C.self == String.UnicodeScalarView.self {
@@ -180,31 +213,31 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
     }
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned String.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: String(newElements))
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned Substring.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: Substring(newElements))
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned _BString.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: newElements._base)
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned _BSubstring.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: newElements._base, in: newElements._bounds)
   }
 
-  internal init<S: Sequence<UnicodeScalar>>(_ elements: S) {
+  public init<S: Sequence<UnicodeScalar>>(_ elements: S) {
     if S.self == String.UnicodeScalarView.self {
       let elements = _identityCast(elements, to: String.UnicodeScalarView.self)
       self.init(_base: _BString(_from: elements))
@@ -222,44 +255,44 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
     }
   }
 
-  internal init(_ elements: String.UnicodeScalarView) {
+  public init(_ elements: String.UnicodeScalarView) {
     self.init(_base: _BString(_from: elements))
   }
 
-  internal init(_ elements: Substring.UnicodeScalarView) {
+  public init(_ elements: Substring.UnicodeScalarView) {
     self.init(_base: _BString(_from: elements))
   }
 
-  internal init(_ elements: _BString.UnicodeScalarView) {
+  public init(_ elements: _BString.UnicodeScalarView) {
     self.init(_base: elements._base)
   }
 
-  internal init(_ elements: _BSubstring.UnicodeScalarView) {
+  public init(_ elements: _BSubstring.UnicodeScalarView) {
     self.init(_base: _BString(_from: elements._base, in: elements._bounds))
   }
 
-  internal init(repeating repeatedValue: UnicodeScalar, count: Int) {
+  public init(repeating repeatedValue: UnicodeScalar, count: Int) {
     self.init(_base: _BString(repeating: _BString(String(repeatedValue)), count: count))
   }
 
-  internal init(repeating repeatedValue: some StringProtocol, count: Int) {
+  public init(repeating repeatedValue: some StringProtocol, count: Int) {
     self.init(_base: _BString(repeating: _BString(_from: repeatedValue), count: count))
   }
 
-  internal init(repeating value: _BString.UnicodeScalarView, count: Int) {
+  public init(repeating value: _BString.UnicodeScalarView, count: Int) {
     self.init(_base: _BString(repeating: value._base, count: count))
   }
 
-  internal init(repeating value: _BSubstring.UnicodeScalarView, count: Int) {
+  public init(repeating value: _BSubstring.UnicodeScalarView, count: Int) {
     let value = _BString(value)
     self.init(_base: _BString(repeating: value, count: count))
   }
 
-  internal mutating func append(_ newElement: __owned UnicodeScalar) {
+  public mutating func append(_ newElement: __owned UnicodeScalar) {
     _base.append(contentsOf: String(newElement))
   }
 
-  internal mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
+  public mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
     if S.self == String.UnicodeScalarView.self {
       let newElements = _identityCast(newElements, to: String.UnicodeScalarView.self)
       append(contentsOf: newElements)
@@ -277,27 +310,27 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
     }
   }
 
-  internal mutating func append(contentsOf newElements: __owned String.UnicodeScalarView) {
+  public mutating func append(contentsOf newElements: __owned String.UnicodeScalarView) {
     _base.append(contentsOf: String(newElements))
   }
 
-  internal mutating func append(contentsOf newElements: __owned Substring.UnicodeScalarView) {
+  public mutating func append(contentsOf newElements: __owned Substring.UnicodeScalarView) {
     _base.append(contentsOf: Substring(newElements))
   }
 
-  internal mutating func append(contentsOf newElements: __owned _BString.UnicodeScalarView) {
+  public mutating func append(contentsOf newElements: __owned _BString.UnicodeScalarView) {
     _base.append(contentsOf: newElements._base)
   }
 
-  internal mutating func append(contentsOf newElements: __owned _BSubstring.UnicodeScalarView) {
+  public mutating func append(contentsOf newElements: __owned _BSubstring.UnicodeScalarView) {
     _base._append(contentsOf: newElements._base, in: newElements._bounds)
   }
 
-  internal mutating func insert(_ newElement: UnicodeScalar, at i: Index) {
+  public mutating func insert(_ newElement: UnicodeScalar, at i: Index) {
     _base.insert(contentsOf: String(newElement), at: i)
   }
 
-  internal mutating func insert<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
+  public mutating func insert<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     contentsOf newElements: __owned C, at i: Index
   ) {
     if C.self == String.UnicodeScalarView.self {
@@ -317,28 +350,28 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
     }
   }
 
-  internal mutating func insert(
+  public mutating func insert(
     contentsOf newElements: __owned String.UnicodeScalarView,
     at i: Index
   ) {
     _base.insert(contentsOf: String(newElements), at: i)
   }
 
-  internal mutating func insert(
+  public mutating func insert(
     contentsOf newElements: __owned Substring.UnicodeScalarView,
     at i: Index
   ) {
     _base.insert(contentsOf: Substring(newElements), at: i)
   }
 
-  internal mutating func insert(
+  public mutating func insert(
     contentsOf newElements: __owned _BString.UnicodeScalarView,
     at i: Index
   ) {
     _base.insert(contentsOf: newElements._base, at: i)
   }
 
-  internal mutating func insert(
+  public mutating func insert(
     contentsOf newElements: __owned _BSubstring.UnicodeScalarView,
     at i: Index
   ) {
@@ -346,15 +379,15 @@ extension _BString.UnicodeScalarView: RangeReplaceableCollection {
   }
 
   @discardableResult
-  internal mutating func remove(at i: Index) -> UnicodeScalar {
+  public mutating func remove(at i: Index) -> UnicodeScalar {
     _base.removeUnicodeScalar(at: i)
   }
 
-  internal mutating func removeSubrange(_ bounds: Range<Index>) {
+  public mutating func removeSubrange(_ bounds: Range<Index>) {
     _base._removeSubrange(bounds)
   }
 
-  internal mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
+  public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
     self._base = _BString()
   }
 }

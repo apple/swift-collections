@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  mutating func append(_ item: __owned Element) {
+  public mutating func append(_ item: __owned Element) {
     invalidateIndices()
     if _root == nil {
       _root = .createLeaf(Item(item))

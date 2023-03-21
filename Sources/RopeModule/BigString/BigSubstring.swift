@@ -71,21 +71,10 @@ extension BigSubstring: Comparable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigSubstring: Sequence {
   public typealias Element = Character
-
-  public struct Iterator: IteratorProtocol {
-    var _guts: _BSubstring.Iterator
-
-    init(_guts: _BSubstring.Iterator) {
-      self._guts = _guts
-    }
-
-    public mutating func next() -> Element? {
-      _guts.next()
-    }
-  }
+  public typealias Iterator = _BSubstring.Iterator
 
   public func makeIterator() -> Iterator {
-    Iterator(_guts: _guts.makeIterator())
+    _guts.makeIterator()
   }
 }
 

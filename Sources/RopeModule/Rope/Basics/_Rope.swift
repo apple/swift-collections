@@ -12,11 +12,11 @@
 /// An ordered data structure of `Element` values that organizes itself into a tree.
 /// The rope is augmented by the commutative group specified by `Element.Summary`, enabling
 /// quick lookup operations.
-struct _Rope<Element: _RopeElement> {
+public struct _Rope<Element: _RopeElement> {
   var _root: Node?
   var _version: _RopeVersion
 
-  init() {
+  public init() {
     self._root = nil
     self._version = _RopeVersion()
   }
@@ -31,7 +31,7 @@ struct _Rope<Element: _RopeElement> {
     @inline(__always) _modify { yield &_root! }
   }
   
-  init(_ value: Element) {
+  public init(_ value: Element) {
     self._root = .createLeaf(Item(value))
     self._version = _RopeVersion()
   }

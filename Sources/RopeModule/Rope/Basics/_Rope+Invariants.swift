@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  func invariantCheck() {
+  public func invariantCheck() {
 #if DEBUG
     _root?.invariantCheck(depth: 0, height: root.height, recursive: true)
 #endif

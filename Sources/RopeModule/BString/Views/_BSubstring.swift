@@ -12,16 +12,18 @@
 #if swift(>=5.8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-struct _BSubstring: Sendable {
+public struct _BSubstring: Sendable {
   var _base: _BString
   var _bounds: Range<Index>
 
-  init(_unchecked base: _BString, in bounds: Range<Index>) {
+  public init(_unchecked base: _BString, in bounds: Range<Index>) {
+    assert(bounds.lowerBound == base.characterIndex(roundingDown: bounds.lowerBound))
+    assert(bounds.upperBound == base.characterIndex(roundingDown: bounds.upperBound))
     self._base = base
     self._bounds = bounds
   }
 
-  init(_ base: _BString, in bounds: Range<Index>) {
+  public init(_ base: _BString, in bounds: Range<Index>) {
     self._base = base
     // Sub-character slicing could change character boundaries in the tree, requiring
     // resyncing metadata. This would not be acceptable to do during slicing, so let's
@@ -34,7 +36,7 @@ struct _BSubstring: Sendable {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring {
-  internal var base: _BString { _base }
+  public var base: _BString { _base }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
@@ -48,21 +50,21 @@ extension _BSubstring {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: CustomStringConvertible {
-  internal var description: String {
+  public var description: String {
     String(_from: _base, in: _bounds)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: CustomDebugStringConvertible {
-  internal var debugDescription: String {
+  public var debugDescription: String {
     description.debugDescription
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: ExpressibleByStringLiteral {
-  internal init(stringLiteral value: String) {
+  public init(stringLiteral value: String) {
     self.init(value)
   }
 }
@@ -74,7 +76,7 @@ extension _BSubstring: LosslessStringConvertible {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: Equatable {
-  internal static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
     // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
     // split up on random Character boundaries -- Unicode does not promise that
@@ -97,7 +99,7 @@ extension _BSubstring: Equatable {
     return true
   }
 
-  internal func isIdentical(to other: Self) -> Bool {
+  public func isIdentical(to other: Self) -> Bool {
     guard self._base.isIdentical(to: other._base) else { return false }
     return self._bounds == other._bounds
   }
@@ -105,14 +107,14 @@ extension _BSubstring: Equatable {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: Hashable {
-  internal func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     _base.hashCharacters(into: &hasher, from: _bounds)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: Comparable {
-  internal static func < (left: Self, right: Self) -> Bool {
+  public static func < (left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
     // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
     // split up on random Character boundaries -- Unicode does not promise that
@@ -137,9 +139,9 @@ extension _BSubstring: Comparable {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: Sequence {
-  typealias Element = Character
+  public typealias Element = Character
 
-  internal struct Iterator: IteratorProtocol {
+  public struct Iterator: IteratorProtocol {
     let _end: _BString.Index
     var _it: _BString.Iterator
 
@@ -148,71 +150,71 @@ extension _BSubstring: Sequence {
       self._end = _substring.endIndex
     }
 
-    internal mutating func next() -> Character? {
+    public mutating func next() -> Character? {
       guard _it.isBelow(_end) else { return nil }
       return _it.next()
     }
   }
 
-  internal func makeIterator() -> Iterator {
+  public func makeIterator() -> Iterator {
     Iterator(_substring: self)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: BidirectionalCollection {
-  typealias Index = _BString.Index
-  typealias SubSequence = Self
+  public typealias Index = _BString.Index
+  public typealias SubSequence = Self
 
   @inline(__always)
-  internal var startIndex: Index { _bounds.lowerBound }
+  public var startIndex: Index { _bounds.lowerBound }
 
   @inline(__always)
-  internal var endIndex: Index { _bounds.upperBound }
+  public var endIndex: Index { _bounds.upperBound }
 
-  internal var count: Int {
+  public var count: Int {
     distance(from: _bounds.lowerBound, to: _bounds.upperBound)
   }
 
   @inline(__always)
-  internal func index(after i: Index) -> Index {
+  public func index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
     return _base.characterIndex(after: i)
   }
 
   @inline(__always)
-  internal func index(before i: Index) -> Index {
+  public func index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
     return _base.characterIndex(before: i)
   }
 
   @inline(__always)
-  internal func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     let j = _base.characterIndex(i, offsetBy: distance)
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
-  internal func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+  public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     guard let j = _base.characterIndex(i, offsetBy: distance, limitedBy: limit) else { return nil }
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
-  internal func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Index, to end: Index) -> Int {
     precondition(start >= startIndex && start <= endIndex, "Index out of bounds")
     precondition(end >= startIndex && end <= endIndex, "Index out of bounds")
     return _base.characterDistance(from: start, to: end)
   }
 
-  internal subscript(position: Index) -> Character {
+  public subscript(position: Index) -> Character {
     precondition(position >= startIndex && position < endIndex, "Index out of bounds")
     return _base[character: position]
   }
 
-  internal subscript(bounds: Range<Index>) -> Self {
+  public subscript(bounds: Range<Index>) -> Self {
     precondition(
       bounds.lowerBound >= startIndex && bounds.upperBound <= endIndex,
       "Range out of bounds")
@@ -222,12 +224,12 @@ extension _BSubstring: BidirectionalCollection {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring {
-  internal func index(roundingDown i: Index) -> Index {
+  public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     return _base.characterIndex(roundingDown: i)
   }
 
-  internal func index(roundingUp i: Index) -> Index {
+  public func index(roundingUp i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     return _base.characterIndex(roundingUp: i)
   }
@@ -248,8 +250,8 @@ extension _BSubstring {
       range.lowerBound >= _bounds.lowerBound && range.upperBound <= _bounds.upperBound,
       "Range out of bounds")
 
-    let startOffset = self.startIndex._utf8Offset
-    let endOffset = self.endIndex._utf8Offset
+    let startOffset = self.startIndex.utf8Offset
+    let endOffset = self.endIndex.utf8Offset
     let oldCount = self._base.utf8Count
 
     defer {
@@ -270,17 +272,17 @@ extension _BSubstring {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring: RangeReplaceableCollection {
-  init() {
+  public init() {
     let str = _BString()
     let bounds = Range(uncheckedBounds: (str.startIndex, str.endIndex))
     self.init(_unchecked: str, in: bounds)
   }
 
-  internal mutating func reserveCapacity(_ n: Int) {
+  public mutating func reserveCapacity(_ n: Int) {
     // Do nothing.
   }
 
-  internal mutating func replaceSubrange<C: Sequence<Character>>( // Note: Sequence, not Collection
+  public mutating func replaceSubrange<C: Sequence<Character>>( // Note: Sequence, not Collection
     _ subrange: Range<Index>, with newElements: __owned C
   ) {
     _mutateBasePreservingBounds(in: subrange) {
@@ -288,48 +290,48 @@ extension _BSubstring: RangeReplaceableCollection {
     }
   }
 
-  internal init<S: Sequence<Character>>(_ elements: S) {
+  public init<S: Sequence<Character>>(_ elements: S) {
     let base = _BString(elements)
     self.init(base, in: base.startIndex ..< base.endIndex)
   }
 
-  internal init(repeating repeatedValue: Character, count: Int) {
+  public init(repeating repeatedValue: Character, count: Int) {
     self.init(_BString(repeating: repeatedValue, count: count))
   }
 
-  internal init(repeating repeatedValue: some StringProtocol, count: Int) {
+  public init(repeating repeatedValue: some StringProtocol, count: Int) {
     self.init(_BString(repeating: repeatedValue, count: count))
   }
 
-  internal init(repeating repeatedValue: _BString, count: Int) {
+  public init(repeating repeatedValue: _BString, count: Int) {
     self.init(_BString(repeating: repeatedValue, count: count))
   }
 
-  internal init(repeating repeatedValue: _BSubstring, count: Int) {
+  public init(repeating repeatedValue: _BSubstring, count: Int) {
     self.init(_BString(repeating: repeatedValue, count: count))
   }
 
-  internal mutating func append(_ newElement: Character) {
+  public mutating func append(_ newElement: Character) {
     let i = endIndex
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(newElement, at: i)
     }
   }
 
-  internal mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
+  public mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
     let i = endIndex
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(contentsOf: newElements, at: i)
     }
   }
 
-  internal mutating func insert(_ newElement: Character, at i: Index) {
+  public mutating func insert(_ newElement: Character, at i: Index) {
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(newElement, at: i)
     }
   }
 
-  internal mutating func insert<C: Sequence<Character>>( // Note: Sequence, not Collection
+  public mutating func insert<C: Sequence<Character>>( // Note: Sequence, not Collection
     contentsOf newElements: __owned C, at i: Index
   ) {
     _mutateBasePreservingBounds(in: i ..< i) {
@@ -338,20 +340,20 @@ extension _BSubstring: RangeReplaceableCollection {
   }
 
   @discardableResult
-  internal mutating func remove(at i: Index) -> Character {
+  public mutating func remove(at i: Index) -> Character {
     let j = self.index(after: i)
     return _mutateBasePreservingBounds(in: i ..< j) {
       $0.remove(at: i)
     }
   }
 
-  internal mutating func removeSubrange(_ bounds: Range<Index>) {
+  public mutating func removeSubrange(_ bounds: Range<Index>) {
     _mutateBasePreservingBounds(in: bounds) {
       $0.removeSubrange(bounds)
     }
   }
 
-  internal mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
+  public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
     let bounds = self._bounds
     _mutateBasePreservingBounds(in: bounds) {
       $0.removeSubrange(bounds)

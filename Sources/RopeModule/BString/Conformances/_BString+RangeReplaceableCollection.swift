@@ -13,15 +13,15 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: RangeReplaceableCollection {
-  internal init() {
+  public init() {
     self.init(rope: Rope())
   }
 
-  internal mutating func reserveCapacity(_ n: Int) {
+  public mutating func reserveCapacity(_ n: Int) {
     // Do nothing.
   }
 
-  internal mutating func replaceSubrange<S: Sequence<Character>>( // Note: Sequence, not Collection
+  public mutating func replaceSubrange<S: Sequence<Character>>( // Note: Sequence, not Collection
     _ subrange: Range<Index>, with newElements: __owned S
   ) {
     if S.self == String.self {
@@ -41,31 +41,31 @@ extension _BString: RangeReplaceableCollection {
     }
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned String
   ) {
     _replaceSubrange(subrange, with: newElements)
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned Substring
   ) {
     _replaceSubrange(subrange, with: newElements)
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned _BString
   ) {
     _replaceSubrange(subrange, with: newElements)
   }
 
-  internal mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ subrange: Range<Index>, with newElements: __owned _BSubstring
   ) {
     _replaceSubrange(subrange, with: newElements)
   }
 
-  internal init<S: Sequence<Character>>(_ elements: S) {
+  public init<S: Sequence<Character>>(_ elements: S) {
     if S.self == String.self {
       let elements = _identityCast(elements, to: String.self)
       self.init(_from: elements)
@@ -82,31 +82,31 @@ extension _BString: RangeReplaceableCollection {
     }
   }
 
-  internal init(_ elements: String) {
+  public init(_ elements: String) {
     self.init(_from: elements)
   }
 
-  internal init(_ elements: Substring) {
+  public init(_ elements: Substring) {
     self.init(_from: elements)
   }
 
-  internal init(_ elements: _BString) {
+  public init(_ elements: _BString) {
     self = elements
   }
 
-  internal init(_ elements: _BSubstring) {
+  public init(_ elements: _BSubstring) {
     self.init(_from: elements)
   }
 
-  internal init(repeating repeatedValue: Character, count: Int) {
+  public init(repeating repeatedValue: Character, count: Int) {
     self.init(repeating: _BString(String(repeatedValue)), count: count)
   }
 
-  internal init(repeating repeatedValue: some StringProtocol, count: Int) {
+  public init(repeating repeatedValue: some StringProtocol, count: Int) {
     self.init(repeating: _BString(repeatedValue), count: count)
   }
 
-  internal init(repeating value: Self, count: Int) {
+  public init(repeating value: Self, count: Int) {
     precondition(count >= 0, "Negative count")
     guard count > 0 else {
       self.init()
@@ -128,15 +128,15 @@ extension _BString: RangeReplaceableCollection {
     }
   }
 
-  internal init(repeating value: _BSubstring, count: Int) {
+  public init(repeating value: _BSubstring, count: Int) {
     self.init(repeating: _BString(value), count: count)
   }
 
-  internal mutating func append(_ newElement: __owned Character) {
+  public mutating func append(_ newElement: __owned Character) {
     append(contentsOf: String(newElement))
   }
 
-  internal mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
+  public mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
     if S.self == String.self {
       let newElements = _identityCast(newElements, to: String.self)
       append(contentsOf: newElements)
@@ -154,27 +154,27 @@ extension _BString: RangeReplaceableCollection {
     }
   }
 
-  internal mutating func append(contentsOf newElements: __owned String) {
+  public mutating func append(contentsOf newElements: __owned String) {
     _append(contentsOf: newElements[...])
   }
 
-  internal mutating func append(contentsOf newElements: __owned Substring) {
+  public mutating func append(contentsOf newElements: __owned Substring) {
     _append(contentsOf: newElements)
   }
 
-  internal mutating func append(contentsOf newElements: __owned _BString) {
+  public mutating func append(contentsOf newElements: __owned _BString) {
     _append(contentsOf: newElements)
   }
 
-  internal mutating func append(contentsOf newElements: __owned _BSubstring) {
+  public mutating func append(contentsOf newElements: __owned _BSubstring) {
     _append(contentsOf: newElements._base, in: newElements._bounds)
   }
 
-  internal mutating func insert(_ newElement: Character, at i: Index) {
+  public mutating func insert(_ newElement: Character, at i: Index) {
     insert(contentsOf: String(newElement), at: i)
   }
 
-  internal mutating func insert<S: Sequence<Character>>( // Note: Sequence, not Collection
+  public mutating func insert<S: Sequence<Character>>( // Note: Sequence, not Collection
     contentsOf newElements: __owned S, at i: Index
   ) {
     if S.self == String.self {
@@ -194,32 +194,32 @@ extension _BString: RangeReplaceableCollection {
     }
   }
 
-  internal mutating func insert(contentsOf newElements: __owned String, at i: Index) {
+  public mutating func insert(contentsOf newElements: __owned String, at i: Index) {
     _insert(contentsOf: newElements[...], at: i)
   }
 
-  internal mutating func insert(contentsOf newElements: __owned Substring, at i: Index) {
+  public mutating func insert(contentsOf newElements: __owned Substring, at i: Index) {
     _insert(contentsOf: newElements, at: i)
   }
 
-  internal mutating func insert(contentsOf newElements: __owned _BString, at i: Index) {
+  public mutating func insert(contentsOf newElements: __owned _BString, at i: Index) {
     _insert(contentsOf: newElements, at: i)
   }
 
-  internal mutating func insert(contentsOf newElements: __owned _BSubstring, at i: Index) {
+  public mutating func insert(contentsOf newElements: __owned _BSubstring, at i: Index) {
     _insert(contentsOf: newElements._base, in: newElements._bounds, at: i)
   }
 
   @discardableResult
-  internal mutating func remove(at i: Index) -> Character {
+  public mutating func remove(at i: Index) -> Character {
     removeCharacter(at: i)
   }
 
-  internal mutating func removeSubrange(_ bounds: Range<Index>) {
+  public mutating func removeSubrange(_ bounds: Range<Index>) {
     _removeSubrange(bounds)
   }
 
-  internal mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
+  public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
     self = _BString()
   }
 }

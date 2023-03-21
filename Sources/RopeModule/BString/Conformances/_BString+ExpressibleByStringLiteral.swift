@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: ExpressibleByStringLiteral {
-  internal init(stringLiteral value: String) {
+  public init(stringLiteral value: String) {
     self.init(value)
   }
 }

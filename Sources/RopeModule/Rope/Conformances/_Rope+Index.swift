@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  struct Index: @unchecked Sendable {
+  public struct Index: @unchecked Sendable {
     typealias Path = _Rope.Path
     typealias Summary = _Rope.Summary
 
@@ -40,24 +40,24 @@ extension _Rope.Index {
 }
 
 extension _Rope.Index: Equatable {
-  static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     left._path == right._path
   }
 }
 extension _Rope.Index: Hashable {
-  func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hasher.combine(_path)
   }
 }
 
 extension _Rope.Index: Comparable {
-  static func <(left: Self, right: Self) -> Bool {
+  public static func <(left: Self, right: Self) -> Bool {
     left._path < right._path
   }
 }
 
 extension _Rope.Index: CustomStringConvertible {
-  var description: String {
+  public var description: String {
     "\(_path)"
   }
 }

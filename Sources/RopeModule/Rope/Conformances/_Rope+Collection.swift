@@ -10,11 +10,11 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  func isValid(_ index: Index) -> Bool {
+  public func isValid(_ index: Index) -> Bool {
     index._version == _version
   }
 
-  func validate(_ index: Index) {
+  public func validate(_ index: Index) {
     precondition(isValid(index), "Invalid index")
   }
 
@@ -34,7 +34,7 @@ extension _Rope: BidirectionalCollection {
     _root?.height ?? 0
   }
 
-  var isEmpty: Bool {
+  public var isEmpty: Bool {
     guard _root != nil else { return true }
     return root.childCount == 0
   }
@@ -50,28 +50,28 @@ extension _Rope: BidirectionalCollection {
     return path
   }
 
-  var startIndex: Index {
+  public var startIndex: Index {
     // Note: `leaf` is intentionally not set here, to speed up accessing this property.
     return Index(version: _version, path: startPath, leaf: nil)
   }
 
-  var endIndex: Index {
+  public var endIndex: Index {
     Index(version: _version, path: endPath, leaf: nil)
   }
   
-  func index(after i: Index) -> Index {
+  public func index(after i: Index) -> Index {
     var i = i
     formIndex(after: &i)
     return i
   }
   
-  func index(before i: Index) -> Index {
+  public func index(before i: Index) -> Index {
     var i = i
     formIndex(before: &i)
     return i
   }
   
-  func formIndex(after i: inout Index) {
+  public func formIndex(after i: inout Index) {
     validate(i)
     precondition(i < endIndex, "Can't move after endIndex")
     if let leaf = i._leaf {
@@ -88,7 +88,7 @@ extension _Rope: BidirectionalCollection {
     }
   }
   
-  func formIndex(before i: inout Index) {
+  public func formIndex(before i: inout Index) {
     validate(i)
     precondition(i > startIndex, "Can't move before startIndex")
     if let leaf = i._leaf {
@@ -104,7 +104,7 @@ extension _Rope: BidirectionalCollection {
     precondition(success, "Invalid index")
   }
   
-  subscript(i: Index) -> Element {
+  public subscript(i: Index) -> Element {
     get {
       validate(i)
       if let ref = i._leaf {
@@ -125,7 +125,7 @@ extension _Rope: BidirectionalCollection {
 
 extension _Rope {
   /// Update the element at the given index, while keeping the index valid.
-  mutating func update<R>(
+  public mutating func update<R>(
     at index: inout Index,
     by body: (inout Element) -> R
   ) -> R {
@@ -139,7 +139,7 @@ extension _Rope {
 }
 
 extension _Rope {
-  static var maxHeight: Int {
+  public static var maxHeight: Int {
     Path._pathBitWidth / Summary.nodeSizeBitWidth
   }
 
@@ -149,7 +149,7 @@ extension _Rope {
   /// representation used in the `Index` type.)
   ///
   /// This is one less than the minimum possible size for a rope whose size exceeds the maximum.
-  static var minimumCapacity: Int {
+  public static var minimumCapacity: Int {
     var c = 2
     for _ in 0 ..< maxHeight {
       let (r, overflow) = c.multipliedReportingOverflow(by: Summary.minNodeSize)
@@ -163,7 +163,7 @@ extension _Rope {
   /// the tree consists of maximum-sized nodes. (The data structure itself has no inherent limit,
   /// but this implementation of it is limited by the fixed 56-bit path representation used in
   /// the `Index` type.)
-  static var maximumCapacity: Int {
+  public static var maximumCapacity: Int {
     var c = 1
     for _ in 0 ... maxHeight {
       let (r, overflow) = c.multipliedReportingOverflow(by: Summary.maxNodeSize)
@@ -175,20 +175,20 @@ extension _Rope {
 }
 
 extension _Rope {
-  func count(in metric: some _RopeMetric<Element>) -> Int {
+  public func count(in metric: some _RopeMetric<Element>) -> Int {
     guard _root != nil else { return 0 }
     return root.count(in: metric)
   }
 }
 
 extension _Rope.Node {
-  func count(in metric: some _RopeMetric<Element>) -> Int {
-    metric.nonnegativeSize(of: self.summary)
+  public func count(in metric: some _RopeMetric<Element>) -> Int {
+    metric._nonnegativeSize(of: self.summary)
   }
 }
 
 extension _Rope {
-  func distance(from start: Index, to end: Index, in metric: some _RopeMetric<Element>) -> Int {
+  public func distance(from start: Index, to end: Index, in metric: some _RopeMetric<Element>) -> Int {
     validate(start)
     validate(end)
     if start == end { return 0 }
@@ -221,7 +221,7 @@ extension _Rope.Node {
     precondition(slot <= childCount, "Invalid index")
     if slot == childCount {
       precondition(index.isEmpty(below: height), "Invalid index")
-      return metric.nonnegativeSize(of: self.summary)
+      return metric._nonnegativeSize(of: self.summary)
     }
     if height == 0 {
       return readLeaf { $0.distance(from: 0, to: slot, in: metric) }
@@ -234,7 +234,7 @@ extension _Rope.Node {
   }
   
   func distanceToEnd(from index: Index, in metric: some _RopeMetric<Element>) -> Int {
-    let d = metric.nonnegativeSize(of: self.summary) - self.distanceFromStart(to: index, in: metric)
+    let d = metric._nonnegativeSize(of: self.summary) - self.distanceFromStart(to: index, in: metric)
     assert(d >= 0)
     return d
   }
@@ -268,7 +268,7 @@ extension _Rope.Node {
 }
 
 extension _Rope {
-  func formIndex(
+  public func formIndex(
     _ i: inout Index,
     offsetBy distance: inout Int,
     in metric: some _RopeMetric<Element>,
@@ -300,7 +300,7 @@ extension _Rope {
     i = endIndex
   }
   
-  func index(
+  public func index(
     _ i: Index,
     offsetBy distance: Int,
     in metric: some _RopeMetric<Element>,
@@ -326,7 +326,7 @@ extension _Rope.UnsafeHandle {
     var slot = path[0]
     defer { path[0] = slot }
     while slot < c.count {
-      let d = metric.nonnegativeSize(of: c[slot].summary)
+      let d = metric._nonnegativeSize(of: c[slot].summary)
       if preferEnd ? d >= distance : d > distance {
         return true
       }
@@ -347,7 +347,7 @@ extension _Rope.UnsafeHandle {
     let c = children
     var slot = path[0] &- 1
     while slot >= 0 {
-      let d = metric.nonnegativeSize(of: c[slot].summary)
+      let d = metric._nonnegativeSize(of: c[slot].summary)
       if preferEnd ? d > distance : d >= distance {
         path[0] = slot
         distance = d &- distance

@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: Comparable {
-  internal static func < (left: Self, right: Self) -> Bool {
+  public static func < (left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
     // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
     // split up on random Character boundaries -- Unicode does not promise that

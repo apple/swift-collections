@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: Hashable {
-  internal func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hashCharacters(into: &hasher)
   }
 }
@@ -36,7 +36,7 @@ extension _BString {
   
   internal func hashCharacters(into hasher: inout Hasher, from range: Range<Index>) {
     var it = self.makeCharacterIterator(from: range.lowerBound)
-    let endOffset = range.upperBound._utf8Offset
+    let endOffset = range.upperBound.utf8Offset
     while let character = it.next() {
       var s = String(character)
       if it.utf8Offset > endOffset {

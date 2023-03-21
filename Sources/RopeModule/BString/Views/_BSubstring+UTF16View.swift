@@ -13,16 +13,16 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring {
-  internal struct UTF16View: Sendable {
+  public struct UTF16View: Sendable {
     internal var _base: _BString
     internal var _bounds: Range<Index>
 
-    internal init(_unchecked base: _BString, in bounds: Range<Index>) {
+    public init(_unchecked base: _BString, in bounds: Range<Index>) {
       self._base = base
       self._bounds = bounds
     }
 
-    internal init(_ base: _BString, in bounds: Range<Index>) {
+    public init(_ base: _BString, in bounds: Range<Index>) {
       self._base = base
       let lower = base.utf16Index(roundingDown: bounds.lowerBound)
       let upper = base.utf16Index(roundingDown: bounds.upperBound)
@@ -34,14 +34,14 @@ extension _BSubstring {
     }
   }
 
-  internal var utf16: UTF16View {
+  public var utf16: UTF16View {
     UTF16View(_substring: self)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  internal init?(_ utf16: _BSubstring.UTF16View) {
+  public init?(_ utf16: _BSubstring.UTF16View) {
     guard
       !utf16.startIndex._isUTF16TrailingSurrogate,
       !utf16.endIndex._isUTF16TrailingSurrogate
@@ -54,12 +54,12 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View {
-  internal var base: _BString.UTF16View { _base.utf16 }
+  public var base: _BString.UTF16View { _base.utf16 }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View: Equatable {
-  internal static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     var i1 = left._bounds.lowerBound
     var i2 = right._bounds.lowerBound
 
@@ -86,7 +86,7 @@ extension _BSubstring.UTF16View: Equatable {
     return _BString.utf8IsEqual(left._base, in: i1 ..< j1, to: right._base, in: i2 ..< j2)
   }
 
-  internal func isIdentical(to other: Self) -> Bool {
+  public func isIdentical(to other: Self) -> Bool {
     guard self._base.isIdentical(to: other._base) else { return false }
     return self._bounds == other._bounds
   }
@@ -94,7 +94,7 @@ extension _BSubstring.UTF16View: Equatable {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View: Hashable {
-  internal func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     for codeUnit in self {
       hasher.combine(codeUnit)
     }
@@ -104,82 +104,82 @@ extension _BSubstring.UTF16View: Hashable {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View: Sequence {
-  typealias Element = UInt16
+  public typealias Element = UInt16
 
-  internal struct Iterator: IteratorProtocol {
-    var _it: _BString.UTF16Iterator
+  public struct Iterator: IteratorProtocol {
+    var _it: _BString.UTF16View.Iterator
     var _end: _BString.Index
 
     init(_substring: _BSubstring.UTF16View) {
-      self._it = _substring._base.makeUTF16Iterator(from: _substring.startIndex)
+      self._it = .init(_base: _substring._base, from: _substring.startIndex)
       self._end = _substring.endIndex
     }
 
-    internal mutating func next() -> UInt16? {
+    public mutating func next() -> UInt16? {
       guard _it._index < _end else { return nil }
       return _it.next()
     }
   }
 
-  internal func makeIterator() -> Iterator {
+  public func makeIterator() -> Iterator {
     Iterator(_substring: self)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View: BidirectionalCollection {
-  typealias Index = _BString.Index
-  typealias SubSequence = Self
+  public typealias Index = _BString.Index
+  public typealias SubSequence = Self
 
   @inline(__always)
-  internal var startIndex: Index { _bounds.lowerBound }
+  public var startIndex: Index { _bounds.lowerBound }
 
   @inline(__always)
-  internal var endIndex: Index { _bounds.upperBound }
+  public var endIndex: Index { _bounds.upperBound }
 
-  internal var count: Int {
+  public var count: Int {
     distance(from: _bounds.lowerBound, to: _bounds.upperBound)
   }
 
   @inline(__always)
-  internal func index(after i: Index) -> Index {
+  public func index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
     return _base.utf16Index(after: i)
   }
 
   @inline(__always)
-  internal func index(before i: Index) -> Index {
+  public func index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
     return _base.utf16Index(before: i)
   }
 
   @inline(__always)
-  internal func index(_ i: Index, offsetBy distance: Int) -> Index {
+  public func index(_ i: Index, offsetBy distance: Int) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     let j = _base.utf16Index(i, offsetBy: distance)
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
-  internal func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+  public func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     guard let j = _base.utf16Index(i, offsetBy: distance, limitedBy: limit) else { return nil }
     precondition(j >= startIndex && j <= endIndex, "Index out of bounds")
     return j
   }
 
-  internal func distance(from start: Index, to end: Index) -> Int {
+  public func distance(from start: Index, to end: Index) -> Int {
     precondition(start >= startIndex && start <= endIndex, "Index out of bounds")
     precondition(end >= startIndex && end <= endIndex, "Index out of bounds")
     return _base.utf16Distance(from: start, to: end)
   }
 
-  internal subscript(position: Index) -> UInt16 {
+  public subscript(position: Index) -> UInt16 {
     precondition(position >= startIndex && position < endIndex, "Index out of bounds")
     return _base[utf16: position]
   }
 
-  internal subscript(bounds: Range<Index>) -> Self {
+  public subscript(bounds: Range<Index>) -> Self {
     precondition(
       bounds.lowerBound >= startIndex && bounds.upperBound <= endIndex,
       "Range out of bounds")
@@ -189,12 +189,12 @@ extension _BSubstring.UTF16View: BidirectionalCollection {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BSubstring.UTF16View {
-  internal func index(roundingDown i: Index) -> Index {
+  public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     return _base.utf16Index(roundingDown: i)
   }
 
-  internal func index(roundingUp i: Index) -> Index {
+  public func index(roundingUp i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
     return _base.utf16Index(roundingUp: i)
   }

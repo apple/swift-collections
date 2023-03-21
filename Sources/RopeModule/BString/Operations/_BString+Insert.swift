@@ -44,7 +44,7 @@ extension _BString {
       rope.formIndex(after: &ri)
       rope.insert(spawn, at: ri)
       guard var r = r else { break }
-      let i = Index(_utf8Offset: index._utf8Offset + r.increment, rope: ri, chunkOffset: spawn.utf8Count)
+      let i = Index(_utf8Offset: index.utf8Offset + r.increment, rope: ri, chunkOffset: spawn.utf8Count)
       resyncBreaks(startingAt: i, old: &r.old, new: &r.new)
     case .large:
       var builder = self.split(at: index, state: ingester.state)

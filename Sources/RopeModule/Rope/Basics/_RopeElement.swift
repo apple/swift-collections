@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 /// The element type of an augmented tree.
-protocol _RopeElement {
+public protocol _RopeElement {
   /// The commutative group that is used to augment the tree.
   associatedtype Summary: _RopeSummary
   associatedtype Index: Comparable
@@ -30,7 +30,8 @@ protocol _RopeElement {
 }
 
 extension _RopeElement {
-  mutating func rebalance(prevNeighbor left: inout Self) -> Bool {
+  @inlinable
+  public mutating func rebalance(prevNeighbor left: inout Self) -> Bool {
     guard left.rebalance(nextNeighbor: &self) else { return false }
     swap(&self, &left)
     return true

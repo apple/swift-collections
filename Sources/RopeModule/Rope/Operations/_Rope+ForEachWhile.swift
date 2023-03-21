@@ -10,14 +10,14 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  func forEachWhile(
+  public func forEachWhile(
     _ body: (Element) -> Bool
   ) -> Bool {
     guard _root != nil else { return true }
     return root.forEachWhile(body)
   }
 
-  func forEachWhile(
+  public func forEachWhile(
     from position: Int,
     in metric: some _RopeMetric<Element>,
     _ body: (Element, Element.Index?) -> Bool

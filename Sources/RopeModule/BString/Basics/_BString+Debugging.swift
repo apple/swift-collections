@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  func dump(heightLimit: Int = .max) {
+  public func dump(heightLimit: Int = .max) {
     rope.dump(heightLimit: heightLimit)
   }
 }

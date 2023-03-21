@@ -13,14 +13,14 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  func isIdentical(to other: Self) -> Bool {
+  public func isIdentical(to other: Self) -> Bool {
     self.rope.isIdentical(to: other.rope)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString: Equatable {
-  internal static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
     // This is somewhat tricky as we shouldn't just normalize individual pieces of the string
     // split up on random Character boundaries -- Unicode does not promise that
@@ -73,8 +73,8 @@ extension _BString {
     // at the same logical position in both trees. Additionally, the two input trees may not
     // have the same height, even if they are equal.
 
-    var it1 = left.makeUTF8Iterator()
-    var it2 = right.makeUTF8Iterator()
+    var it1 = left.utf8.makeIterator()
+    var it2 = right.utf8.makeIterator()
     var remaining = left.utf8Count
 
     while remaining > 0 {
@@ -102,8 +102,8 @@ extension _BString {
     guard leftUTF8Count == rightUTF8Count else { return false }
 
     var remaining = leftUTF8Count
-    var it1 = left.makeUTF8Iterator(from: leftRange.lowerBound)
-    var it2 = right.makeUTF8Iterator(from: rightRange.lowerBound)
+    var it1 = _BString.UTF8View.Iterator(_base: left, from: leftRange.lowerBound)
+    var it2 = _BString.UTF8View.Iterator(_base: right, from: rightRange.lowerBound)
 
     while remaining > 0 {
       let consumed = it1.next(maximumCount: remaining) { b1 in

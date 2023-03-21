@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  mutating func remove(at index: Index) -> Element {
+  public mutating func remove(at index: Index) -> Element {
     validate(index)
     let old = root.remove(at: index._path).removed
     if root.isEmpty {

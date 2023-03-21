@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  func find(
+  public func find(
     at position: Int,
     in metric: some _RopeMetric<Element>,
     preferEnd: Bool

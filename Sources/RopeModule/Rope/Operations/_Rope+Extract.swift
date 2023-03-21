@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  func extract(from start: Int, to end: Int, in metric: some _RopeMetric<Element>) -> Self {
+  public func extract(from start: Int, to end: Int, in metric: some _RopeMetric<Element>) -> Self {
     if _root == nil {
       precondition(start == 0 && end == 0, "Invalid range")
       return Self()
@@ -43,7 +43,7 @@ extension _Rope.Node {
           let i = metric.index(at: l.remaining, in: item.value)
           var item2 = item.split(at: i)
           let j = metric.index(
-            at: u.remaining - metric.nonnegativeSize(of: item.summary),
+            at: u.remaining - metric._nonnegativeSize(of: item.summary),
             in: item2.value)
           _ = item2.split(at: j)
           builder.append(item2)
@@ -73,7 +73,7 @@ extension _Rope.Node {
         return
       }
       assert(l.slot < u.slot)
-      let lsize = metric.nonnegativeSize(of: c[l.slot].summary)
+      let lsize = metric._nonnegativeSize(of: c[l.slot].summary)
       c[l.slot].extract(from: l.remaining, to: lsize, in: metric, into: &builder)
       for i in l.slot + 1 ..< u.slot {
         builder.append(c[i])

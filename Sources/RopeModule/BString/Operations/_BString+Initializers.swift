@@ -63,8 +63,8 @@ extension _BString {
     in range: Range<Index>
   ) {
     self.rope = other.rope.extract(
-      from: range.lowerBound._utf8Offset,
-      to: range.upperBound._utf8Offset,
+      from: range.lowerBound.utf8Offset,
+      to: range.upperBound.utf8Offset,
       in: UTF8Metric())
     var old = other._breakState(upTo: range.lowerBound)
     var new = _CharacterRecognizer()
@@ -77,8 +77,8 @@ extension _BString {
     state: inout _CharacterRecognizer
   ) {
     self.rope = other.rope.extract(
-      from: range.lowerBound._utf8Offset,
-      to: range.upperBound._utf8Offset,
+      from: range.lowerBound.utf8Offset,
+      to: range.upperBound.utf8Offset,
       in: UTF8Metric())
     var old = other._breakState(upTo: range.lowerBound)
     var new = state
@@ -88,7 +88,7 @@ extension _BString {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String {
-  internal init(_from big: _BString) {
+  public init(_ big: _BString) {
     guard !big.isEmpty else {
       self.init()
       return
@@ -113,7 +113,7 @@ extension String {
     var end = big.unicodeScalarIndex(roundingDown: range.upperBound)
     end = big.resolve(end, preferEnd: true)
 
-    let utf8Capacity = end._utf8Offset - start._utf8Offset
+    let utf8Capacity = end.utf8Offset - start.utf8Offset
     guard utf8Capacity > 0 else { return }
 
     self.reserveCapacity(utf8Capacity)
@@ -134,15 +134,15 @@ extension String {
     self += big.rope[endRopeIndex].string[..<end._chunkIndex]
   }
 
-  internal init(_from big: _BSubstring) {
+  public init(_ big: _BSubstring) {
     self.init(_from: big._base, in: big._bounds)
   }
 
-  internal init(_from big: _BString.UnicodeScalarView) {
-    self.init(_from: big._base)
+  public init(_ big: _BString.UnicodeScalarView) {
+    self.init(big._base)
   }
 
-  internal init(_from big: _BSubstring.UnicodeScalarView) {
+  public init(_ big: _BSubstring.UnicodeScalarView) {
     self.init(_from: big._base, in: big._bounds)
   }
 }

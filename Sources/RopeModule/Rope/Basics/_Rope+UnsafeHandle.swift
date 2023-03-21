@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  struct UnsafeHandle<Child: _RopeItem<Summary>> {
+  internal struct UnsafeHandle<Child: _RopeItem<Summary>> {
     typealias Summary = _Rope.Summary
     typealias Element = _Rope.Element
     
@@ -189,11 +189,11 @@ extension _Rope.UnsafeHandle {
   func distance(from start: Int, to end: Int, in metric: some _RopeMetric<Element>) -> Int {
     if start <= end {
       return children[start ..< end].reduce(into: 0) {
-        $0 += metric.nonnegativeSize(of: $1.summary)
+        $0 += metric._nonnegativeSize(of: $1.summary)
       }
     }
     return -children[end ..< start].reduce(into: 0) {
-      $0 += metric.nonnegativeSize(of: $1.summary)
+      $0 += metric._nonnegativeSize(of: $1.summary)
     }
   }
 }

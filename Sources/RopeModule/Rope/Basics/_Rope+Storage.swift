@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct _RopeStorageHeader {
+internal struct _RopeStorageHeader {
   var _childCount: UInt16
   let height: UInt8
   

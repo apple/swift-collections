@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct _RopeVersion {
+internal struct _RopeVersion {
   // FIXME: Replace this probabilistic mess with atomics when Swift gets its act together.
   var _value: UInt
 

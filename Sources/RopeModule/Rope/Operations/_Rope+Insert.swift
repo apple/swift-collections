@@ -10,12 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  mutating func prepend(_ item: __owned Element) {
+  public mutating func prepend(_ item: __owned Element) {
     invalidateIndices()
     insert(item, at: startIndex)
   }
   
-  mutating func insert(
+  public mutating func insert(
     _ item: __owned Element,
     at index: Index
   ) {
@@ -37,7 +37,7 @@ extension _Rope {
     invalidateIndices()
   }
   
-  mutating func insert(
+  public mutating func insert(
     _ item: __owned Element,
     at position: Int,
     in metric: some _RopeMetric<Element>

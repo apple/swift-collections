@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  init(_ items: some Sequence<Element>) {
+  public init(_ items: some Sequence<Element>) {
     if let items = items as? Self {
       self = items
       return
@@ -24,8 +24,8 @@ extension _Rope {
 }
 
 extension _Rope {
-  struct Builder {
-    typealias Rope = _Rope
+  public struct Builder {
+    public typealias Rope = _Rope
     
     //       ║                    ║
     //       ║ ║                ║ ║
@@ -169,7 +169,7 @@ extension _Rope {
       return nil
     }
     
-    mutating func append(_ item: __owned Element) {
+    public mutating func append(_ item: __owned Element) {
       append(_Rope.Item(item))
     }
     
@@ -201,7 +201,7 @@ extension _Rope {
       invariantCheck()
     }
     
-    mutating func append(_ rope: __owned Rope) {
+    public mutating func append(_ rope: __owned Rope) {
       guard rope._root != nil else { return }
       append(rope.root)
     }
@@ -301,7 +301,7 @@ extension _Rope {
       self.suffix = item
     }
     
-    mutating func prependSuffix(_ rope: __owned Rope) {
+    public mutating func prependSuffix(_ rope: __owned Rope) {
       assert(suffix == nil)
       assert(suffixTrees.isEmpty || rope.height <= suffixTrees.last!.height)
       suffixTrees.append(rope)
@@ -347,8 +347,7 @@ extension _Rope {
       prependSuffix(copy)
     }
 
-
-    mutating func finalize() -> Rope {
+    public mutating func finalize() -> Rope {
       // Integrate prefix & suffix chunks.
       if let suffixItem = self.suffix._take() {
         append(suffixItem)
@@ -386,7 +385,7 @@ extension _Rope {
       return rope
     }
     
-    func invariantCheck() {
+    public func invariantCheck() {
 #if DEBUG
       var h = UInt8.max
       for sapling in prefixTrees {
@@ -409,7 +408,7 @@ extension _Rope {
       
     }
     
-    func dump(heightLimit: Int = Int.max) {
+    public func dump(heightLimit: Int = Int.max) {
       for i in self.prefixTrees.indices {
         print("Sapling \(i):")
         self.prefixTrees[i].dump(heightLimit: heightLimit, firstPrefix: "  ", restPrefix: "  ")

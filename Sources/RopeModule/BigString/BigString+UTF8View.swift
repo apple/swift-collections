@@ -62,23 +62,10 @@ extension BigString.UTF8View: Hashable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UTF8View: Sequence {
   public typealias Element = UInt8
-
-  public struct Iterator: IteratorProtocol {
-    public typealias Element = UInt8
-
-    internal var _base: _BString.UTF8Iterator
-
-    internal init(_base: _BString.UTF8Iterator) {
-      self._base = _base
-    }
-
-    public mutating func next() -> UInt8? {
-      _base.next()
-    }
-  }
+  public typealias Iterator = _BString.UTF8View.Iterator
 
   public func makeIterator() -> Iterator {
-    Iterator(_base: self._guts.makeIterator())
+    _guts.makeIterator()
   }
 }
 

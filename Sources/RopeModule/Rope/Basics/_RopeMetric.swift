@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-protocol _RopeMetric<Element>: Sendable {
+public protocol _RopeMetric<Element>: Sendable {
   associatedtype Element: _RopeElement
 
   func size(of summary: Element.Summary) -> Int
@@ -18,7 +18,7 @@ protocol _RopeMetric<Element>: Sendable {
 
 extension _RopeMetric {
   @inline(__always)
-  func nonnegativeSize(of summary: Element.Summary) -> Int {
+  internal func _nonnegativeSize(of summary: Element.Summary) -> Int {
     let r = size(of: summary)
     assert(r >= 0)
     return r

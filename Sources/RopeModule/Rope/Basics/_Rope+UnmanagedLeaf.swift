@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  struct UnmanagedLeaf {
+  internal struct UnmanagedLeaf {
     typealias Item = _Rope.Item
     typealias Leaf = Storage<Item>
     typealias UnsafeHandle = _Rope.UnsafeHandle

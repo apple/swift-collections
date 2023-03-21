@@ -13,7 +13,7 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
-  internal struct Index: Sendable {
+  public  struct Index: Sendable {
     typealias Rope = _BString.Rope
 
     // ┌───────────────────────────────┬───┬───────────┬────────────────────┐
@@ -61,7 +61,12 @@ extension _BString.Index {
   @inline(__always)
   internal static var _scalarAlignmentBit: UInt64 { 0x100 }
 
+  @available(*, deprecated, renamed: "utf8Offset")
   internal var _utf8Offset: Int {
+    utf8Offset
+  }
+
+  public var utf8Offset: Int {
     Int(truncatingIfNeeded: _rawBits &>> 11)
   }
 
@@ -78,7 +83,7 @@ extension _BString.Index {
 
   /// The base offset of the addressed chunk. Only valid if `_rope` is not nil.
   internal var _utf8BaseOffset: Int {
-    _utf8Offset - _utf8ChunkOffset
+    utf8Offset - _utf8ChunkOffset
   }
 
   @inline(__always)
@@ -180,30 +185,30 @@ extension _BString.Index {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: Equatable {
-  static func ==(left: Self, right: Self) -> Bool {
+  public static func ==(left: Self, right: Self) -> Bool {
     left._orderingValue == right._orderingValue
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: Comparable {
-  static func <(left: Self, right: Self) -> Bool {
+  public static func <(left: Self, right: Self) -> Bool {
     left._orderingValue < right._orderingValue
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: Hashable {
-  func hash(into hasher: inout Hasher) {
+  public func hash(into hasher: inout Hasher) {
     hasher.combine(_orderingValue)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString.Index: CustomStringConvertible {
-  internal var description: String {
+  public var description: String {
     let utf16Offset = _isUTF16TrailingSurrogate ? "+1" : ""
-    return "\(_utf8Offset)[utf8]\(utf16Offset)"
+    return "\(utf8Offset)[utf8]\(utf16Offset)"
   }
 }
 
@@ -212,29 +217,29 @@ extension _BString {
   func resolve(_ i: Index, preferEnd: Bool) -> Index {
     if var ri = i._rope, rope.isValid(ri) {
       if preferEnd {
-        guard i._utf8Offset > 0, i._utf8ChunkOffset == 0 else { return i }
+        guard i.utf8Offset > 0, i._utf8ChunkOffset == 0 else { return i }
         rope.formIndex(before: &ri)
         let length = rope[ri].utf8Count
         let ci = String.Index(_utf8Offset: length)
-        var j = Index(baseUTF8Offset: i._utf8Offset - length, rope: ri, chunk: ci)
+        var j = Index(baseUTF8Offset: i.utf8Offset - length, rope: ri, chunk: ci)
         j._flags = i._flags
         return j
       }
-      guard i._utf8Offset < utf8Count, i._utf8ChunkOffset == rope[ri].utf8Count else {
+      guard i.utf8Offset < utf8Count, i._utf8ChunkOffset == rope[ri].utf8Count else {
         return i
       }
       rope.formIndex(after: &ri)
       let ci = String.Index(_utf8Offset: 0)
-      var j = Index(baseUTF8Offset: i._utf8Offset, rope: ri, chunk: ci)
+      var j = Index(baseUTF8Offset: i.utf8Offset, rope: ri, chunk: ci)
       j._flags = i._flags
       return j
     }
 
     let (ri, chunkOffset) = rope.find(
-      at: i._utf8Offset, in: UTF8Metric(), preferEnd: preferEnd)
+      at: i.utf8Offset, in: UTF8Metric(), preferEnd: preferEnd)
     let ci = String.Index(
         _utf8Offset: chunkOffset, utf16TrailingSurrogate: i._isUTF16TrailingSurrogate)
-    return Index(baseUTF8Offset: i._utf8Offset - ci._utf8Offset, rope: ri, chunk: ci)
+    return Index(baseUTF8Offset: i.utf8Offset - ci._utf8Offset, rope: ri, chunk: ci)
   }
 }
 #endif

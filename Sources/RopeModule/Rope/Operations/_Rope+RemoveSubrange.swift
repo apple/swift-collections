@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope {
-  mutating func removeSubrange(
+  public mutating func removeSubrange(
     _ bounds: Range<Int>,
     in metric: some _RopeMetric<Element>
   ) {
@@ -24,7 +24,7 @@ extension _Rope {
     self = builder.finalize()
   }
 
-  mutating func replaceSubrange(
+  public mutating func replaceSubrange(
     _ bounds: Range<Int>,
     in metric: some _RopeMetric<Element>,
     with newElements: __owned some Collection<Element>

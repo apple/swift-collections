@@ -74,23 +74,10 @@ extension BigString: Hashable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Sequence {
   public typealias Element = Character
-
-  public struct Iterator: IteratorProtocol {
-    public typealias Element = Character
-
-    internal var _base: _BString.CharacterIterator
-
-    internal init(_base: _BString.CharacterIterator) {
-      self._base = _base
-    }
-
-    public mutating func next() -> Character? {
-      _base.next()
-    }
-  }
+  public typealias Iterator = _BString.Iterator
 
   public func makeIterator() -> Iterator {
-    Iterator(_base: _guts.makeIterator())
+    _guts.makeIterator()
   }
 }
 

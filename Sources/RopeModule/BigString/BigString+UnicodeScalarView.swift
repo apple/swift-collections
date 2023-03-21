@@ -56,7 +56,7 @@ extension BigString.UnicodeScalarView: ExpressibleByStringLiteral {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
-    String(_from: _guts._base)
+    String(_guts._base)
   }
 }
 
@@ -77,23 +77,10 @@ extension BigString.UnicodeScalarView: Hashable {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString.UnicodeScalarView: Sequence {
   public typealias Element = Unicode.Scalar
-
-  public struct Iterator: IteratorProtocol {
-    public typealias Element = Unicode.Scalar
-
-    internal var _base: _BString.UnicodeScalarIterator
-
-    internal init(_base: _BString.UnicodeScalarIterator) {
-      self._base = _base
-    }
-
-    public mutating func next() -> Unicode.Scalar? {
-      _base.next()
-    }
-  }
+  public typealias Iterator = _BString.UnicodeScalarView.Iterator
 
   public func makeIterator() -> Iterator {
-    Iterator(_base: _guts.makeIterator())
+    _guts.makeIterator()
   }
 }
 

@@ -16,7 +16,7 @@ extension _BString {
   /// The estimated maximum number of UTF-8 code units that `_BString` is guaranteed to be able
   /// to hold without encountering an overflow in its operations. This corresponds to the capacity
   /// of the deepest tree where every node is the minimum possible size.
-  static var minimumCapacity: Int {
+  public static var minimumCapacity: Int {
     let c = Rope.minimumCapacity
     let (r, overflow) = Chunk.minUTF8Count.multipliedReportingOverflow(by: c)
     guard !overflow else { return Int.max }
@@ -25,7 +25,7 @@ extension _BString {
 
   /// The maximum number of UTF-8 code units that `_BString` may be able to store in the best
   /// possible case, when every node in the underlying tree is fully filled with data.
-  static var maximumCapacity: Int {
+  public static var maximumCapacity: Int {
     let c = Rope.maximumCapacity
     let (r, overflow) = Chunk.maxUTF8Count.multipliedReportingOverflow(by: c)
     guard !overflow else { return Int.max }
@@ -85,7 +85,7 @@ extension _BString {
   }
   
   func utf8Distance(from start: Index, to end: Index) -> Int {
-    end._utf8Offset - start._utf8Offset
+    end.utf8Offset - start.utf8Offset
   }
 }
 
@@ -157,7 +157,7 @@ extension _BString {
     if r.forward {
       assert(distance >= 0)
       assert(ci == chunk.string.endIndex)
-      d += metric.nonnegativeSize(of: chunk.summary)
+      d += metric._nonnegativeSize(of: chunk.summary)
       let start = ri
       rope.formIndex(&ri, offsetBy: &d, in: metric, preferEnd: false)
       if ri == rope.endIndex {
@@ -269,7 +269,7 @@ extension _BString {
         rope: rope.index(after: ri),
         chunk: String.Index(_utf8Offset: 0))
     }
-    return Index(_utf8Offset: i._utf8Offset + 1, rope: ri, chunkOffset: ci._utf8Offset)
+    return Index(_utf8Offset: i.utf8Offset + 1, rope: ri, chunkOffset: ci._utf8Offset)
   }
 }
 
@@ -294,7 +294,7 @@ extension _BString {
     let ci = i._chunkIndex
     if ci._utf8Offset > 0 {
       return Index(
-        _utf8Offset: i._utf8Offset &- 1,
+        _utf8Offset: i.utf8Offset &- 1,
         rope: ri,
         chunkOffset: ci._utf8Offset &- 1)
     }
@@ -310,7 +310,7 @@ extension _BString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _BString {
   func characterIndex(roundingDown i: Index) -> Index {
-    let offset = i._utf8Offset
+    let offset = i.utf8Offset
     precondition(offset >= 0 && offset <= utf8Count, "Index out of bounds")
     guard offset > 0 else { return resolve(i, preferEnd: false)._knownCharacterAligned() }
     guard offset < utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
@@ -416,7 +416,7 @@ extension _BString {
 extension _BString {
   func _character(at start: Index) -> (character: Character, end: Index) {
     let start = characterIndex(roundingDown: start)
-    precondition(start._utf8Offset < utf8Count, "Index out of bounds")
+    precondition(start.utf8Offset < utf8Count, "Index out of bounds")
 
     var ri = start._rope!
     var ci = start._chunkIndex

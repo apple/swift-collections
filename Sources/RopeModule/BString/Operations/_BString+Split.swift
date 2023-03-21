@@ -35,7 +35,7 @@ extension _BString {
     if let ri = index._rope, rope.isValid(ri) {
       return rope.split(at: ri, index._chunkIndex)
     }
-    return rope.builder(splittingAt: index._utf8Offset, in: UTF8Metric())
+    return rope.builder(splittingAt: index.utf8Offset, in: UTF8Metric())
   }
 }
 

@@ -16,8 +16,8 @@ extension _BString {
   mutating func _removeSubrange(_ bounds: Range<Index>) {
     precondition(bounds.upperBound <= endIndex, "Index out of bounds")
     if bounds.isEmpty { return }
-    let lower = bounds.lowerBound._utf8Offset
-    let upper = bounds.upperBound._utf8Offset
+    let lower = bounds.lowerBound.utf8Offset
+    let upper = bounds.upperBound.utf8Offset
     rope.removeSubrange(lower ..< upper, in: UTF8Metric())
   }
 }

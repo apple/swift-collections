@@ -30,7 +30,7 @@ extension BigString: ExpressibleByStringLiteral {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: CustomStringConvertible, LosslessStringConvertible {
   public var description: String {
-    String(_from: _guts)
+    String(_guts)
   }
 }
 
@@ -54,30 +54,30 @@ extension BigString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String {
   public init(_ big: BigString) {
-    self.init(_from: big._guts)
+    self.init(big._guts)
   }
   
   public init(_ big: BigSubstring) {
-    self.init(_from: big._guts)
+    self.init(big._guts)
   }
 
   public init(_ big: BigString.UnicodeScalarView) {
-    self.init(_from: big._guts)
+    self.init(big._guts)
   }
 
   public init(_ big: BigSubstring.UnicodeScalarView) {
-    self.init(_from: big._guts)
+    self.init(big._guts)
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension String.UnicodeScalarView {
   public init(_ big: BigString.UnicodeScalarView) {
-    self = String(_from: big._guts._base).unicodeScalars
+    self = String(big._guts._base).unicodeScalars
   }
 
   public init(_ big: BigSubstring.UnicodeScalarView) {
-    self = String(_from: big._guts._base).unicodeScalars
+    self = String(big._guts._base).unicodeScalars
   }
 }
 

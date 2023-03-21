@@ -10,15 +10,15 @@
 //===----------------------------------------------------------------------===//
 
 extension _Rope: Sequence {
-  func makeIterator() -> Iterator {
+  public func makeIterator() -> Iterator {
     Iterator(self, from: self.startIndex)
   }
   
-  func makeIterator(from start: Index) -> Iterator {
+  public func makeIterator(from start: Index) -> Iterator {
     Iterator(self, from: start)
   }
   
-  struct Iterator: IteratorProtocol {
+  public struct Iterator: IteratorProtocol {
     let rope: _Rope
     private(set) var index: Index
 
@@ -29,7 +29,7 @@ extension _Rope: Sequence {
       self.rope.ensureLeaf(in: &index)
     }
     
-    mutating func next() -> Element? {
+    public mutating func next() -> Element? {
       guard let leaf = index._leaf else { return nil }
       let item = leaf.read { $0.children[index._path[0]].value }
       rope.formIndex(after: &index)
