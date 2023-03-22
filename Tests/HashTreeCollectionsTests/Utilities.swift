@@ -118,22 +118,6 @@ extension LifetimeTracker {
   }
 }
 
-func _expectFailure(
-  _ diagnostic: String,
-  _ message: () -> String,
-  trapping: Bool,
-  file: StaticString,
-  line: UInt
-) {
-  expectFailure(
-      """
-      \(diagnostic)
-      \(message())
-      """,
-      trapping: trapping,
-      file: file, line: line)
-}
-
 func expectEqualSets<Element: Hashable>(
   _ set: TreeSet<Element>,
   _ ref: [Element],

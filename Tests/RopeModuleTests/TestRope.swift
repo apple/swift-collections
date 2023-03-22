@@ -116,7 +116,7 @@ struct Chunk: RopeElement, Equatable, CustomStringConvertible {
 
 class TestRope: XCTestCase {
   override func setUp() {
-    print("Global seed: \(globalSeed)")
+    print("Global seed: \(RepeatableRandomNumberGenerator.globalSeed)")
   }
   
   func test_empty() {

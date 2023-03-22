@@ -30,7 +30,7 @@ class TestBigString: CollectionTestCase {
   }
   
   override func setUp() {
-    print("Global seed: \(globalSeed)")
+    print("Global seed: \(RepeatableRandomNumberGenerator.globalSeed)")
     super.setUp()
   }
 

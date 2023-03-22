@@ -27,7 +27,7 @@ public func expectFailure(
   }
 }
 
-internal func _expectFailure(
+public func _expectFailure(
   _ diagnostic: String,
   _ message: () -> String,
   trapping: Bool,
