@@ -113,7 +113,7 @@ extension TreeSet {
     }
 
     // FIXME: Would making this a BitSet of seen positions be better?
-    var seen: _HashNode = ._emptyNode()
+    var seen: _Node = ._emptyNode()
     var doneCollecting = false
     var isStrict = false
     var it = other.makeIterator()

@@ -61,9 +61,7 @@ extension TreeSet {
   }
 
   @inlinable
-  internal func _intersection<V>(
-    _ other: HashTreeCollections._HashNode<Element, V>
-  ) -> Self {
+  internal func _intersection<V>(_ other: _HashNode<Element, V>) -> Self {
     guard let r = _root.intersection(.top, other) else { return self }
     return Self(_new: r)
   }
@@ -97,7 +95,7 @@ extension TreeSet {
       return self.filter { other.contains($0) }
     }
 
-    var result: _HashNode = ._emptyNode()
+    var result: _Node = ._emptyNode()
     for item in other {
       let hash = _Hash(item)
       if let r = self._root.lookup(.top, item, hash) {

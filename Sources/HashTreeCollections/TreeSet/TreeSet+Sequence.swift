@@ -14,7 +14,7 @@ extension TreeSet: Sequence {
   @frozen
   public struct Iterator: IteratorProtocol {
     @usableFromInline
-    internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
+    internal typealias _UnsafeHandle = _Node.UnsafeHandle
 
     @usableFromInline
     internal var _it: _HashTreeIterator

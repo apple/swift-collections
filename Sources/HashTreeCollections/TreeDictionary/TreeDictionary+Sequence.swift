@@ -22,7 +22,7 @@ extension TreeDictionary: Sequence {
     // before any items within children.
 
     @usableFromInline
-    internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
+    internal typealias _UnsafeHandle = _Node.UnsafeHandle
 
     @usableFromInline
     internal var _it: _HashTreeIterator

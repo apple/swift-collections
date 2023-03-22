@@ -65,13 +65,13 @@
 @frozen // Not really -- this package is not at all ABI stable
 public struct TreeDictionary<Key: Hashable, Value> {
   @usableFromInline
-  internal typealias _HashNode = HashTreeCollections._HashNode<Key, Value>
+  internal typealias _Node = _HashNode<Key, Value>
 
   @usableFromInline
-  internal typealias _UnsafeHandle = _HashNode.UnsafeHandle
+  internal typealias _UnsafeHandle = _Node.UnsafeHandle
 
   @usableFromInline
-  var _root: _HashNode
+  var _root: _Node
 
   /// The version number of this instance, used for quick index validation.
   /// This is initialized to a (very weakly) random value and it gets
@@ -80,13 +80,13 @@ public struct TreeDictionary<Key: Hashable, Value> {
   var _version: UInt
 
   @inlinable
-  internal init(_root: _HashNode, version: UInt) {
+  internal init(_root: _Node, version: UInt) {
     self._root = _root
     self._version = version
   }
 
   @inlinable
-  internal init(_new: _HashNode) {
+  internal init(_new: _Node) {
     self.init(_root: _new, version: _new.initialVersionNumber)
   }
 }
