@@ -10,9 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 #if swift(>=5.8)
+import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import _RopeModule
-import XCTest
+#endif
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 class TestBigString: CollectionTestCase {

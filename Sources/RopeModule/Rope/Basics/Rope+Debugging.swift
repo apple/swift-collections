@@ -9,18 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-private func _addressString(for pointer: UnsafeRawPointer) -> String {
-  let address = UInt(bitPattern: pointer)
-  return "0x\(String(address, radix: 16))"
-}
-
-private func _addressString(for object: AnyObject) -> String {
-  _addressString(for: Unmanaged.passUnretained(object).toOpaque())
-}
-
-private func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
-  _addressString(for: object.toOpaque())
-}
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension Rope._UnmanagedLeaf: CustomStringConvertible {
   var description: String {

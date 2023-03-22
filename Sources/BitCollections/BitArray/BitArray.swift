@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 /// An ordered, random-access collection of `Bool` values, implemented as an
 /// uncompressed bitmap of as many bits as the count of the array.

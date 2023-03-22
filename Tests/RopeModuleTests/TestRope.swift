@@ -9,8 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _RopeModule
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import _RopeModule
+import _CollectionsTestSupport
+#endif
 
 struct Chunk: RopeElement, Equatable, CustomStringConvertible {
   var length: Int

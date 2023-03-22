@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 /// An unsafe, unowned, type-erased reference to a hash tree node; essentially
 /// just a lightweight wrapper around `Unmanaged<_RawHashStorage>`.

@@ -9,8 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import HashTreeCollections
+#endif
 
 /// A set of items whose subsets will produce a bunch of interesting test
 /// cases.

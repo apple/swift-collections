@@ -10,7 +10,9 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsTestSupport
+#endif
 
 final class IndexRangeCollectionTests: CollectionTestCase {
   func testCollection() {

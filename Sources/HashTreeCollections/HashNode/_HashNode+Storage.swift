@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 /// A base representation of a hash tree node, capturing functionality
 /// independent of the `Key` and `Value` types.

@@ -9,8 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
 
 @usableFromInline
 internal typealias _UnsafeBitSet = _CollectionsUtilities._UnsafeBitSet
-
+#endif

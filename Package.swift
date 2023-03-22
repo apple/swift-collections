@@ -47,6 +47,11 @@ var defines: [String] = [
 
   // Enable modules that aren't source stable yet, and aren't ready for general use.
 //  "COLLECTIONS_ENABLE_UNSTABLE_MODULES",
+
+  // Enable this to allow building the sources as a single, large module.
+  // Note: this setting isn't a supported package configuration, but it's listed
+  // here for completeness.
+//  "COLLECTIONS_SINGLE_MODULE",
 ]
 
 var _modules: [String] = []

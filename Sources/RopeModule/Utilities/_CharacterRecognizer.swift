@@ -17,7 +17,6 @@ internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension _CharacterRecognizer {
   internal func _isKnownEqual(to other: Self) -> Bool {
-#if SWIFT_PACKAGE
     // FIXME: Enable when Swift 5.9 ships.
 //  #if swift(>=5.9)
 //    if #available(macOS 9999, iOS 9999, tvOS 9999, watchOS 9999, *) { // SwiftStdlib 5.9
@@ -25,9 +24,6 @@ extension _CharacterRecognizer {
 //    }
 //  #endif
     return false
-#else // !SWIFT_PACKAGE
-    return self == other
-#endif
   }
 }
 

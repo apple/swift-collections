@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 /// This protocol simply lists Collection/Sequence extensions that ought to be
 /// customized for sorted collections.
