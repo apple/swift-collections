@@ -15,6 +15,21 @@ import _CollectionsUtilities
 
 extension RandomAccessCollection {
   @inline(__always)
+  internal func _index(at offset: Int) -> Index {
+    index(startIndex, offsetBy: offset)
+  }
+
+  @inline(__always)
+  internal func _offset(of index: Index) -> Int {
+    distance(from: startIndex, to: index)
+  }
+
+  @inline(__always)
+  internal subscript(_offset offset: Int) -> Element {
+    self[_index(at: offset)]
+  }
+
+  @inline(__always)
   internal func _indexRange(at offsets: Range<Int>) -> Range<Index> {
     _index(at: offsets.lowerBound) ..< _index(at: offsets.upperBound)
   }

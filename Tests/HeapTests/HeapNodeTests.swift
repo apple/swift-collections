@@ -12,7 +12,7 @@
 #if DEBUG // These unit tests need access to HeapModule internals
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-import Collections
+@testable import Collections
 #else
 @testable import HeapModule
 #endif
