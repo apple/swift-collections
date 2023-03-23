@@ -28,7 +28,7 @@ extension TreeDictionary: Sequence {
     internal var _it: _HashTreeIterator
 
     @inlinable
-    internal init(_root: _RawNode) {
+    internal init(_root: _RawHashNode) {
       self._it = _HashTreeIterator(root: _root)
     }
   }

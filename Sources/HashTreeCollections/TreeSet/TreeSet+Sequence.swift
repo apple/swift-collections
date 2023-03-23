@@ -20,7 +20,7 @@ extension TreeSet: Sequence {
     internal var _it: _HashTreeIterator
 
     @inlinable
-    internal init(_root: _RawNode) {
+    internal init(_root: _RawHashNode) {
       _it = _HashTreeIterator(root: _root)
     }
 

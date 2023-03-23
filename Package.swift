@@ -45,145 +45,260 @@ var defines: [String] = [
   // Enables randomized testing of some data structure implementations.
   "COLLECTIONS_RANDOMIZED_TESTING",
 
-  // Enable modules that aren't source stable yet, and aren't ready for general use.
-//  "COLLECTIONS_ENABLE_UNSTABLE_MODULES",
+  // Enable this to build the sources as a single, large module.
+  // This removes the distinct modules for each data structure, instead
+  // putting them all directly into the `Collections` module.
+  // Note: This is a source-incompatible variation of the default configuration.
+//  "COLLECTIONS_SINGLE_MODULE",
 ]
 
-var _modules: [String] = []
-var _products: [Product] = []
-var _targets: [Target] = []
 var _settings: [SwiftSetting] = defines.map { .define($0) }
 
-func registerTargets(_ targets: [Target]) {
-  _targets.append(contentsOf: targets)
-}
-func registerTargets(_ targets: Target...) { registerTargets(targets) }
+struct CustomTarget {
+  enum Kind {
+    case exported
+    case hidden
+    case test
+    case testSupport
+  }
 
-func registerLibrary(_ module: String, _ targets: [Target]) {
-  _modules.append(module)
-  _products.append(.library(name: module, targets: [module]))
-  registerTargets(targets)
-}
-func registerLibrary(_ module: String, _ targets: Target...) {
-  registerLibrary(module, targets)
+  var kind: Kind
+  var name: String
+  var dependencies: [Target.Dependency]
+  var directory: String
+  var exclude: [String]
 }
 
-func registerUnstableLibrary(_ module: String, _ targets: Target...) {
-  if defines.contains("COLLECTIONS_ENABLE_UNSTABLE_MODULES") {
-    registerLibrary(module, targets)
+extension CustomTarget.Kind {
+  func path(for name: String) -> String {
+    switch self {
+    case .exported, .hidden: return "Sources/\(name)"
+    case .test, .testSupport: return "Tests/\(name)"
+    }
+  }
+
+  var isTest: Bool {
+    switch self {
+    case .exported, .hidden: return false
+    case .test, .testSupport: return true
+    }
   }
 }
 
-registerTargets(
+extension CustomTarget {
+  static func target(
+    kind: Kind,
+    name: String,
+    dependencies: [Target.Dependency] = [],
+    directory: String? = nil,
+    exclude: [String] = []
+  ) -> CustomTarget {
+    CustomTarget(
+      kind: kind,
+      name: name,
+      dependencies: dependencies,
+      directory: directory ?? name,
+      exclude: exclude)
+  }
+
+  func toTarget() -> Target {
+    var linkerSettings: [LinkerSetting] = []
+    if kind == .testSupport {
+      linkerSettings.append(
+        .linkedFramework("XCTest", .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])))
+    }
+    switch kind {
+    case .exported, .hidden, .testSupport:
+      return Target.target(
+        name: name,
+        dependencies: dependencies,
+        path: kind.path(for: directory),
+        exclude: exclude,
+        swiftSettings: _settings,
+        linkerSettings: linkerSettings)
+    case .test:
+      return Target.testTarget(
+        name: name,
+        dependencies: dependencies,
+        path: kind.path(for: directory),
+        exclude: exclude,
+        swiftSettings: _settings,
+        linkerSettings: linkerSettings)
+    }
+  }
+}
+
+extension Array where Element == CustomTarget {
+  func toMonolithicTarget(
+    name: String,
+    linkerSettings: [LinkerSetting] = []
+  ) -> Target {
+    let targets = self.filter { !$0.kind.isTest }
+    return Target.target(
+      name: name,
+      path: "Sources",
+      exclude: [
+        "CMakeLists.txt",
+        "BitCollections/BitCollections.docc",
+        "Collections/Collections.docc",
+        "DequeModule/DequeModule.docc",
+        "HashTreeCollections/HashTreeCollections.docc",
+        "HeapModule/HeapModule.docc",
+        "OrderedCollections/OrderedCollections.docc",
+      ] + targets.flatMap { t in
+        t.exclude.map { "\(t.name)/\($0)" }
+      },
+      sources: targets.map { "\($0.directory)" },
+      swiftSettings: _settings,
+      linkerSettings: linkerSettings)
+  }
+
+  func toMonolithicTestTarget(
+    name: String,
+    dependencies: [Target.Dependency] = [],
+    linkerSettings: [LinkerSetting] = []
+  ) -> Target {
+    let targets = self.filter { $0.kind.isTest }
+    return Target.testTarget(
+      name: name,
+      dependencies: dependencies,
+      path: "Tests",
+      exclude: targets.flatMap { t in
+        t.exclude.map { "\(t.name)/\($0)" }
+      },
+      sources: targets.map { "\($0.name)" },
+      swiftSettings: _settings,
+      linkerSettings: linkerSettings)
+  }
+}
+
+let targets: [CustomTarget] = [
   .target(
+    kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["_CollectionsUtilities"],
-    swiftSettings: _settings,
-    linkerSettings: [
-      .linkedFramework(
-        "XCTest",
-        .when(platforms: [.macOS, .iOS, .watchOS, .tvOS])),
-    ]
-  ),
-  .testTarget(
+    dependencies: ["_CollectionsUtilities"]),
+  .target(
+    kind: .test,
     name: "CollectionsTestSupportTests",
-    dependencies: ["_CollectionsTestSupport"],
-    swiftSettings: _settings),
-
+    dependencies: ["_CollectionsTestSupport"]),
   .target(
+    kind: .hidden,
     name: "_CollectionsUtilities",
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings)
-)
+    exclude: [
+      "CMakeLists.txt",
+      "Compatibility/Array+WithContiguousStorage Compatibility.swift.gyb",
+      "Compatibility/UnsafeMutableBufferPointer+SE-0370.swift.gyb",
+      "Compatibility/UnsafeMutablePointer+SE-0370.swift.gyb",
+      "Compatibility/UnsafeRawPointer extensions.swift.gyb",
+      "Debugging.swift.gyb",
+      "Descriptions.swift.gyb",
+      "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift.gyb",
+      "IntegerTricks/Integer rank.swift.gyb",
+      "IntegerTricks/UInt+first and last set bit.swift.gyb",
+      "IntegerTricks/UInt+reversed.swift.gyb",
+      "RandomAccessCollection+Offsets.swift.gyb",
+      "UnsafeBitSet/_UnsafeBitSet+Index.swift.gyb",
+      "UnsafeBitSet/_UnsafeBitSet+_Word.swift.gyb",
+      "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
+      "UnsafeBufferPointer+Extras.swift.gyb",
+      "UnsafeMutableBufferPointer+Extras.swift.gyb",
+    ]),
 
-registerLibrary(
-  "BitCollections",
   .target(
+    kind: .exported,
     name: "BitCollections",
     dependencies: ["_CollectionsUtilities"],
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings),
-  .testTarget(
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
     name: "BitCollectionsTests",
     dependencies: [
       "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
-    ],
-    swiftSettings: _settings)
-)
+    ]),
 
-registerLibrary(
-  "DequeModule",
   .target(
+    kind: .exported,
     name: "DequeModule",
     dependencies: ["_CollectionsUtilities"],
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings),
-  .testTarget(
-    name: "DequeTests",
-    dependencies: ["DequeModule", "_CollectionsTestSupport"],
-    swiftSettings: _settings)
-)
-
-registerLibrary(
-  "HashTreeCollections",
+    exclude: ["CMakeLists.txt"]),
   .target(
+    kind: .test,
+    name: "DequeTests",
+    dependencies: ["DequeModule", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "HashTreeCollections",
     dependencies: ["_CollectionsUtilities"],
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings),
-  .testTarget(
-    name: "HashTreeCollectionsTests",
-    dependencies: ["HashTreeCollections", "_CollectionsTestSupport"],
-    swiftSettings: _settings)
-)
-
-registerLibrary(
-  "HeapModule",
+    exclude: ["CMakeLists.txt"]),
   .target(
+    kind: .test,
+    name: "HashTreeCollectionsTests",
+    dependencies: ["HashTreeCollections", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "HeapModule",
     dependencies: ["_CollectionsUtilities"],
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings),
-  .testTarget(
-    name: "HeapTests",
-    dependencies: ["HeapModule", "_CollectionsTestSupport"],
-    swiftSettings: _settings)
-)
-
-registerLibrary(
-  "OrderedCollections",
+    exclude: ["CMakeLists.txt"]),
   .target(
+    kind: .test,
+    name: "HeapTests",
+    dependencies: ["HeapModule", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "OrderedCollections",
     dependencies: ["_CollectionsUtilities"],
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings),
-  .testTarget(
-    name: "OrderedCollectionsTests",
-    dependencies: ["OrderedCollections", "_CollectionsTestSupport"],
-    swiftSettings: _settings)
-)
-
-registerLibrary(
-  "_RopeModule",
+    exclude: ["CMakeLists.txt"]),
   .target(
+    kind: .test,
+    name: "OrderedCollectionsTests",
+    dependencies: ["OrderedCollections", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "_RopeModule",
     dependencies: ["_CollectionsUtilities"],
-    path: "Sources/RopeModule",
-    swiftSettings: _settings),
-  .testTarget(
-    name: "RopeModuleTests",
-    dependencies: ["_RopeModule", "_CollectionsTestSupport"],
-    swiftSettings: _settings)
-)
-
-registerLibrary(
-  "Collections",
+    directory: "RopeModule"),
   .target(
+    kind: .test,
+    name: "RopeModuleTests",
+    dependencies: ["_RopeModule", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "Collections",
-    dependencies: _modules.map { .target(name: $0) },
-    exclude: ["CMakeLists.txt"],
-    swiftSettings: _settings)
-)
+    dependencies: [
+      "BitCollections",
+      "DequeModule",
+      "HashTreeCollections",
+      "HeapModule",
+      "OrderedCollections",
+      "_RopeModule",
+    ],
+    exclude: ["CMakeLists.txt"])
+]
+
+var _products: [Product] = []
+var _targets: [Target] = []
+if defines.contains("COLLECTIONS_SINGLE_MODULE") {
+  _products = [
+    .library(name: "Collections", targets: ["Collections"]),
+  ]
+  _targets = [
+    targets.toMonolithicTarget(name: "Collections"),
+    targets.toMonolithicTestTarget(
+      name: "CollectionsTests",
+    dependencies: ["Collections"]),
+  ]
+} else {
+  _products = targets.compactMap { t in
+    guard t.kind == .exported else { return nil }
+    return .library(name: t.name, targets: [t.name])
+  }
+  _targets = targets.map { $0.toTarget() }
+}
 
 let package = Package(
   name: "swift-collections",

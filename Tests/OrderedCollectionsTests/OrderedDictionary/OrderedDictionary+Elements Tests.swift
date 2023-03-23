@@ -10,9 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+@_spi(Testing) import Collections
+#else
 @_spi(Testing) import OrderedCollections
-
 import _CollectionsTestSupport
+#endif
 
 class OrderedDictionaryElementsTests: CollectionTestCase {
   func test_elements_getter() {

@@ -10,8 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+@_spi(Testing) import Collections
+#else
 import _CollectionsTestSupport
 @_spi(Testing) import BitCollections
+#endif
 
 extension BitArray {
   static func _fromSequence<S: Sequence>(

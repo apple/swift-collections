@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 internal struct _ChunkedBitsForwardIterator {
   internal typealias _BitPosition = _UnsafeBitSet.Index

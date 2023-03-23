@@ -9,8 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_SINGLE_MODULE
+@_spi(Testing) import Collections
+#else
 import _CollectionsTestSupport
 @_spi(Testing) import OrderedCollections
+#endif
 
 struct OrderedSetLayout: Hashable, CustomStringConvertible {
   let scale: Int

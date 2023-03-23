@@ -10,8 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 @_spi(Testing) import OrderedCollections
 import _CollectionsTestSupport
+#endif
 
 // Note: This cannot really work unless `UnorderedView` becomes a Collection.
 // extension OrderedSet.UnorderedView: SetAPIChecker {}

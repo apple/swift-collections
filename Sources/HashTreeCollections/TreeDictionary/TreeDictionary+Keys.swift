@@ -9,14 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeDictionary {
   /// A view of a persistent dictionary’s keys, as a standalone collection.
   @frozen
   public struct Keys {
     @usableFromInline
-    internal typealias _Node = HashTreeCollections._Node<Key, Value>
+    internal typealias _Node = _HashNode<Key, Value>
 
     @usableFromInline
     internal var _base: TreeDictionary

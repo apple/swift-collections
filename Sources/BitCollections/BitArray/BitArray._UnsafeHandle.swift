@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension BitArray {
   /// An unsafe-unowned bitarray view over `UInt` storage, providing bit array

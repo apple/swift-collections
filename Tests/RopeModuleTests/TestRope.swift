@@ -9,8 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-import _RopeModule
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import _RopeModule
+import _CollectionsTestSupport
+#endif
 
 struct Chunk: RopeElement, Equatable, CustomStringConvertible {
   var length: Int
@@ -111,7 +116,7 @@ struct Chunk: RopeElement, Equatable, CustomStringConvertible {
 
 class TestRope: XCTestCase {
   override func setUp() {
-    print("Global seed: \(globalSeed)")
+    print("Global seed: \(RepeatableRandomNumberGenerator.globalSeed)")
   }
   
   func test_empty() {

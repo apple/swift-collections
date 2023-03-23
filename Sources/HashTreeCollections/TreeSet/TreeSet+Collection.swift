@@ -19,7 +19,7 @@ extension TreeSet {
   @frozen
   public struct Index {
     @usableFromInline
-    internal let _root: _UnmanagedNode
+    internal let _root: _UnmanagedHashNode
 
     @usableFromInline
     internal var _version: UInt
@@ -29,7 +29,7 @@ extension TreeSet {
 
     @inlinable @inline(__always)
     internal init(
-      _root: _UnmanagedNode, version: UInt, path: _UnsafePath
+      _root: _UnmanagedHashNode, version: UInt, path: _UnsafePath
     ) {
       self._root = _root
       self._version = version

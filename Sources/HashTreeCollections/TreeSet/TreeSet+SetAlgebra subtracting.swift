@@ -54,7 +54,7 @@ extension TreeSet {
 
   @inlinable
   internal __consuming func _subtracting<V>(
-    _ other: HashTreeCollections._Node<Element, V>
+    _ other: _HashNode<Element, V>
   ) -> Self {
     guard let r = _root.subtracting(.top, other) else { return self }
     return Self(_new: r)

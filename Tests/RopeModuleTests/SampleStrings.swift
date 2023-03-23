@@ -9,6 +9,24 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsTestSupport
+#endif
+
+func randomStride(
+  from start: Int,
+  to end: Int,
+  by maxStep: Int,
+  seed: Int
+) -> UnfoldSequence<Int, Int> {
+  var rng = RepeatableRandomNumberGenerator(seed: seed)
+  return sequence(state: start, next: {
+    $0 += Int.random(in: 1 ... maxStep, using: &rng)
+    guard $0 < end else { return nil }
+    return $0
+  })
+}
+
 let sampleString = #"""
     The powerful programming language that is also easy to learn.
     Swift is a powerful and intuitive programming language for iOS, iPadOS, macOS, \#
@@ -56,21 +74,6 @@ let sampleString = #"""
 let shortSample = #"""
     Swift 👨‍👨‍👧‍👧 简洁 c̴̭̈͘ǫ̷̯͋̊d̸͖̩̈̈́ḛ̴́ 🇺🇸🇨🇦🇺🇸 코드
     """#
-
-func randomStride(
-  from start: Int,
-  to end: Int,
-  by maxStep: Int,
-  seed: Int
-) -> UnfoldSequence<Int, Int> {
-  var rng = RepeatableRandomNumberGenerator(seed: seed)
-  return sequence(state: start, next: {
-    $0 += Int.random(in: 1 ... maxStep, using: &rng)
-    guard $0 < end else { return nil }
-    return $0
-  })
-}
-
 
 let sampleString2 =
     #"""

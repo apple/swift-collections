@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 /// A sorted collection of small nonnegative integers, implemented as an
 /// uncompressed bitmap of as many bits as the value of the largest member.

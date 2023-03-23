@@ -9,8 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import HashTreeCollections
+#endif
 
 extension LifetimeTracker {
   func shareableDictionary<Keys: Sequence>(
@@ -112,22 +116,6 @@ extension LifetimeTracker {
   {
     shareableDictionary(keys, with: IntDataGenerator(valueOffset: 100))
   }
-}
-
-func _expectFailure(
-  _ diagnostic: String,
-  _ message: () -> String,
-  trapping: Bool,
-  file: StaticString,
-  line: UInt
-) {
-  expectFailure(
-      """
-      \(diagnostic)
-      \(message())
-      """,
-      trapping: trapping,
-      file: file, line: line)
 }
 
 func expectEqualSets<Element: Hashable>(

@@ -9,10 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG
 import XCTest
-@testable import _CollectionsTestSupport
 
+#if !COLLECTIONS_SINGLE_MODULE && DEBUG
+@testable import _CollectionsTestSupport
+#endif
+
+#if COLLECTIONS_SINGLE_MODULE || DEBUG
 final class UtilitiesTests: CollectionTestCase {
   func testIntegerSquareRoot() {
     withSome("i", in: 0 ..< Int.max, maxSamples: 100_000) { i in
@@ -22,5 +25,4 @@ final class UtilitiesTests: CollectionTestCase {
     }
   }
 }
-
 #endif

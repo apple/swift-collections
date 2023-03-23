@@ -9,14 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeDictionary {
   /// A view of a dictionary’s values.
   @frozen
   public struct Values {
     @usableFromInline
-    internal typealias _Node = HashTreeCollections._Node<Key, Value>
+    internal typealias _Node = TreeDictionary._Node
 
     @usableFromInline
     internal typealias _UnsafeHandle = _Node.UnsafeHandle

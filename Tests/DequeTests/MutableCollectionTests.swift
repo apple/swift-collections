@@ -10,8 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
+#endif
 
 final class MutableCollectiontests: CollectionTestCase {
   // Note: Most of the test below are exhaustively testing the behavior

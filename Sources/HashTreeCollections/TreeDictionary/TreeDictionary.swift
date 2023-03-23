@@ -65,7 +65,7 @@
 @frozen // Not really -- this package is not at all ABI stable
 public struct TreeDictionary<Key: Hashable, Value> {
   @usableFromInline
-  internal typealias _Node = HashTreeCollections._Node<Key, Value>
+  internal typealias _Node = _HashNode<Key, Value>
 
   @usableFromInline
   internal typealias _UnsafeHandle = _Node.UnsafeHandle
