@@ -1797,9 +1797,9 @@
 		7DEBDB9329CCE4A600ADC226 /* Xcode */ = {
 			isa = PBXGroup;
 			children = (
-				7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */,
 				7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */,
 				7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */,
+				7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */,
 				7D5A64D229CCE8CC00CB2595 /* README.md */,
 			);
 			name = Xcode;
@@ -2350,9 +2350,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 1;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 			};
 			name = Debug;
 		};
@@ -2360,9 +2357,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 1;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
@@ -2370,27 +2364,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
-				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -2398,27 +2371,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
-				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++20";
-				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -2426,8 +2378,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 1;
-				MARKETING_VERSION = 1.0;
 			};
 			name = Debug;
 		};
@@ -2435,9 +2385,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */;
 			buildSettings = {
-				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				MARKETING_VERSION = 1.0;
 			};
 			name = Release;
 		};
