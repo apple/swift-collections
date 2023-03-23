@@ -45,14 +45,11 @@ var defines: [String] = [
   // Enables randomized testing of some data structure implementations.
   "COLLECTIONS_RANDOMIZED_TESTING",
 
-  // Enable modules that aren't source stable yet, and aren't ready for general use.
-//  "COLLECTIONS_ENABLE_UNSTABLE_MODULES",
-
   // Enable this to build the sources as a single, large module.
   // This removes the distinct modules for each data structure, instead
   // putting them all directly into the `Collections` module.
   // Note: This is a source-incompatible variation of the default configuration.
-  "COLLECTIONS_SINGLE_MODULE",
+//  "COLLECTIONS_SINGLE_MODULE",
 ]
 
 var _settings: [SwiftSetting] = defines.map { .define($0) }
