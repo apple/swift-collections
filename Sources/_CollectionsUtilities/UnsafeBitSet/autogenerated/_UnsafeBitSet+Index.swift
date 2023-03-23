@@ -23,11 +23,12 @@
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
 extension _UnsafeBitSet {
-  @frozen
+  @frozen @usableFromInline
   internal struct Index: Comparable, Hashable {
     @usableFromInline
     internal typealias _Word = _UnsafeBitSet._Word
 
+    @usableFromInline
     internal var value: UInt
 
     @inlinable
@@ -107,6 +108,7 @@ extension _UnsafeBitSet {
     @usableFromInline
     internal typealias _Word = _UnsafeBitSet._Word
 
+    
     public var value: UInt
 
     @inlinable

@@ -24,8 +24,9 @@
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
 extension _UnsafeBitSet {
-  @frozen
+  @frozen @usableFromInline
   internal struct _Word {
+    @usableFromInline
     internal var value: UInt
 
     @inlinable
@@ -51,6 +52,7 @@ extension _UnsafeBitSet {
 }
 
 extension _UnsafeBitSet._Word: CustomStringConvertible {
+  @usableFromInline
   internal var description: String {
     String(value, radix: 16)
   }
@@ -263,52 +265,52 @@ extension _UnsafeBitSet._Word: Hashable {
 }
 
 extension _UnsafeBitSet._Word {
-  @inline(__always)
+  @inlinable @inline(__always)
   internal func complement() -> Self {
     Self(~self.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal mutating func formComplement() {
     self.value = ~self.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal func union(_ other: Self) -> Self {
     Self(self.value | other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal mutating func formUnion(_ other: Self) {
     self.value |= other.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal func intersection(_ other: Self) -> Self {
     Self(self.value & other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal mutating func formIntersection(_ other: Self) {
     self.value &= other.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal func symmetricDifference(_ other: Self) -> Self {
     Self(self.value ^ other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal mutating func formSymmetricDifference(_ other: Self) {
     self.value ^= other.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal func subtracting(_ other: Self) -> Self {
     Self(self.value & ~other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   internal mutating func subtract(_ other: Self) {
     self.value &= ~other.value
   }
@@ -333,6 +335,7 @@ extension _UnsafeBitSet._Word {
 extension _UnsafeBitSet {
   @frozen
   public struct _Word {
+    
     public var value: UInt
 
     @inlinable
@@ -358,6 +361,7 @@ extension _UnsafeBitSet {
 }
 
 extension _UnsafeBitSet._Word: CustomStringConvertible {
+  //@usableFromInline
   public var description: String {
     String(value, radix: 16)
   }
@@ -570,52 +574,52 @@ extension _UnsafeBitSet._Word: Hashable {
 }
 
 extension _UnsafeBitSet._Word {
-  @inline(__always)
+  @inlinable @inline(__always)
   public func complement() -> Self {
     Self(~self.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public mutating func formComplement() {
     self.value = ~self.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public func union(_ other: Self) -> Self {
     Self(self.value | other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public mutating func formUnion(_ other: Self) {
     self.value |= other.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public func intersection(_ other: Self) -> Self {
     Self(self.value & other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public mutating func formIntersection(_ other: Self) {
     self.value &= other.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public func symmetricDifference(_ other: Self) -> Self {
     Self(self.value ^ other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public mutating func formSymmetricDifference(_ other: Self) {
     self.value ^= other.value
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public func subtracting(_ other: Self) -> Self {
     Self(self.value & ~other.value)
   }
 
-  @inline(__always)
+  @inlinable @inline(__always)
   public mutating func subtract(_ other: Self) {
     self.value &= ~other.value
   }

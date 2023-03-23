@@ -23,16 +23,18 @@
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
 
+@usableFromInline
 internal func _addressString(for pointer: UnsafeRawPointer) -> String {
   let address = UInt(bitPattern: pointer)
   return "0x\(String(address, radix: 16))"
 }
 
+@usableFromInline
 internal func _addressString(for object: AnyObject) -> String {
   _addressString(for: Unmanaged.passUnretained(object).toOpaque())
 }
 
-@inlinable
+@usableFromInline
 internal func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
   _addressString(for: object.toOpaque())
 }
@@ -106,16 +108,18 @@ internal func _dictionaryDescription<Key, Value, C: Collection>(
 }
 #else // !COLLECTIONS_SINGLE_MODULE
 
+//@usableFromInline
 public func _addressString(for pointer: UnsafeRawPointer) -> String {
   let address = UInt(bitPattern: pointer)
   return "0x\(String(address, radix: 16))"
 }
 
+//@usableFromInline
 public func _addressString(for object: AnyObject) -> String {
   _addressString(for: Unmanaged.passUnretained(object).toOpaque())
 }
 
-@inlinable
+//@usableFromInline
 public func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
   _addressString(for: object.toOpaque())
 }

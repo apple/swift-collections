@@ -97,7 +97,25 @@ registerTargets(
 
   .target(
     name: "_CollectionsUtilities",
-    exclude: ["CMakeLists.txt"],
+    exclude: [
+      "CMakeLists.txt",
+      "Compatibility/Array+WithContiguousStorage Compatibility.swift.gyb",
+      "Compatibility/UnsafeMutableBufferPointer+SE-0370.swift.gyb",
+      "Compatibility/UnsafeMutablePointer+SE-0370.swift.gyb",
+      "Compatibility/UnsafeRawPointer extensions.swift.gyb",
+      "Debugging.swift.gyb",
+      "Descriptions.swift.gyb",
+      "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift.gyb",
+      "IntegerTricks/Integer rank.swift.gyb",
+      "IntegerTricks/UInt+first and last set bit.swift.gyb",
+      "IntegerTricks/UInt+reversed.swift.gyb",
+      "RandomAccessCollection+Offsets.swift.gyb",
+      "UnsafeBitSet/_UnsafeBitSet+Index.swift.gyb",
+      "UnsafeBitSet/_UnsafeBitSet+_Word.swift.gyb",
+      "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
+      "UnsafeBufferPointer+Extras.swift.gyb",
+      "UnsafeMutableBufferPointer+Extras.swift.gyb",
+    ],
     swiftSettings: _settings)
 )
 
