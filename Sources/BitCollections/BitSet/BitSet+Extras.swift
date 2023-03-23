@@ -69,7 +69,7 @@ extension BitSet {
       }
       if newValue {
         _ensureCapacity(forValue: member)
-      } else if member > _capacity {
+      } else if member >= _capacity {
         return
       }
       _updateThenShrink { handle, shrink in
