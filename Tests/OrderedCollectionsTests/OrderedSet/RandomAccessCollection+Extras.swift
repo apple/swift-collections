@@ -14,6 +14,7 @@ import _CollectionsUtilities
 #endif
 
 extension RandomAccessCollection {
+  #if SWIFT_PACKAGE
   @inline(__always)
   internal func _index(at offset: Int) -> Index {
     index(startIndex, offsetBy: offset)
@@ -28,6 +29,7 @@ extension RandomAccessCollection {
   internal subscript(_offset offset: Int) -> Element {
     self[_index(at: offset)]
   }
+  #endif
 
   @inline(__always)
   internal func _indexRange(at offsets: Range<Int>) -> Range<Index> {
