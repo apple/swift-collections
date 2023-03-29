@@ -184,7 +184,11 @@ extension _UnsafeBitset {
   @_effects(releasenone)
   internal mutating func clear() {
     guard _words.count > 0 else { return }
+    #if swift(>=5.8)
+    _words.baseAddress!.update(repeating: .empty, count: _words.count)
+    #else
     _words.baseAddress!.assign(repeating: .empty, count: _words.count)
+    #endif
     _count = 0
   }
 

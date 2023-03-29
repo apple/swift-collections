@@ -484,7 +484,11 @@ extension _UnsafeHashTable {
   @usableFromInline
   internal func clear() {
     assertMutable()
+    #if swift(>=5.8)
+    _buckets.update(repeating: 0, count: wordCount)
+    #else
     _buckets.assign(repeating: 0, count: wordCount)
+    #endif
   }
 }
 
