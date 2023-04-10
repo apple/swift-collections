@@ -119,7 +119,7 @@ extension BigString.Index {
     _flags = 0
   }
 
-  internal var _isUTF16TrailingSurrogate: Bool {
+  public var _isUTF16TrailingSurrogate: Bool {
     _orderingValue & 1 != 0
   }
 
@@ -135,20 +135,20 @@ extension BigString.Index {
     return copy
   }
 
-  internal var _isKnownScalarAligned: Bool {
+  public var _isKnownScalarAligned: Bool {
     _rawBits & Self._scalarAlignmentBit != 0
   }
 
-  internal var _isKnownCharacterAligned: Bool {
+  public var _isKnownCharacterAligned: Bool {
     _rawBits & Self._characterAlignmentBit != 0
   }
 
-  internal init(_utf8Offset: Int) {
+  public init(_utf8Offset: Int) {
     _rawBits = Self._bitsForUTF8Offset(_utf8Offset)
     _rope = nil
   }
 
-  internal init(_utf8Offset: Int, utf16TrailingSurrogate: Bool) {
+  public init(_utf8Offset: Int, utf16TrailingSurrogate: Bool) {
     _rawBits = Self._bitsForUTF8Offset(_utf8Offset)
     if utf16TrailingSurrogate {
       _rawBits |= Self._utf16TrailingSurrogateBits
