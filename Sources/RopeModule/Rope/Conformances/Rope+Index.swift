@@ -10,18 +10,27 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @frozen // Not really! This module isn't ABI stable.
   public struct Index: @unchecked Sendable {
-    typealias Summary = Rope.Summary
-    typealias _Path = Rope._Path
+    @usableFromInline internal typealias Summary = Rope.Summary
+    @usableFromInline internal typealias _Path = Rope._Path
 
-    var _version: _RopeVersion
-    var _path: _Path
+    @usableFromInline
+    internal var _version: _RopeVersion
+
+    @usableFromInline
+    internal var _path: _Path
+
     /// A direct reference to the leaf node addressed by this index.
     /// This must only be dereferenced while we own a tree with a matching
     /// version.
-    var _leaf: _UnmanagedLeaf?
+    @usableFromInline
+    internal var _leaf: _UnmanagedLeaf?
 
-    init(version: _RopeVersion, path: _Path, leaf: __shared _UnmanagedLeaf?) {
+    @inlinable
+    internal init(
+      version: _RopeVersion, path: _Path, leaf: __shared _UnmanagedLeaf?
+    ) {
       self._version = version
       self._path = path
       self._leaf = leaf
@@ -30,27 +39,32 @@ extension Rope {
 }
 
 extension Rope.Index {
-  static var _invalid: Self {
+  @inlinable
+  internal static var _invalid: Self {
     Self(version: _RopeVersion(0), path: _RopePath(_value: .max), leaf: nil)
   }
 
-  var _isValid: Bool {
+  @inlinable
+  internal var _isValid: Bool {
     _path._value != .max
   }
 }
 
 extension Rope.Index: Equatable {
+  @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
     left._path == right._path
   }
 }
 extension Rope.Index: Hashable {
+  @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_path)
   }
 }
 
 extension Rope.Index: Comparable {
+  @inlinable
   public static func <(left: Self, right: Self) -> Bool {
     left._path < right._path
   }
@@ -63,15 +77,18 @@ extension Rope.Index: CustomStringConvertible {
 }
 
 extension Rope.Index {
-  var _height: UInt8 {
+  @inlinable
+  internal var _height: UInt8 {
     _path.height
   }
 
-  func _isEmpty(below height: UInt8) -> Bool {
+  @inlinable
+  internal func _isEmpty(below height: UInt8) -> Bool {
     _path.isEmpty(below: height)
   }
 
-  mutating func _clear(below height: UInt8) {
+  @inlinable
+  internal mutating func _clear(below height: UInt8) {
     _path.clear(below: height)
   }
 }

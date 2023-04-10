@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @inlinable
   public mutating func removeSubrange(
     _ bounds: Range<Int>,
     in metric: some RopeMetric<Element>
@@ -24,6 +25,7 @@ extension Rope {
     self = builder.finalize()
   }
 
+  @inlinable
   public mutating func replaceSubrange(
     _ bounds: Range<Int>,
     in metric: some RopeMetric<Element>,
@@ -40,6 +42,7 @@ extension Rope {
     self = builder.finalize()
   }
 
+  @inlinable
   public mutating func builder(
     removing bounds: Range<Int>,
     in metric: some RopeMetric<Element>
@@ -96,7 +99,8 @@ extension Rope {
 }
 
 extension Rope._Node {
-  __consuming func _removeSubrange(
+  @inlinable
+  internal __consuming func _removeSubrange(
     from start: (slot: Int, remaining: Int),
     to end: (slot: Int, remaining: Int),
     in metric: some RopeMetric<Element>,
@@ -130,7 +134,8 @@ extension Rope._Node {
     builder._insertAfterTip(upper.split(at: i2))
   }
 
-  __consuming func removeSuffix(
+  @inlinable
+  internal __consuming func removeSuffix(
     from position: Int,
     in metric: some RopeMetric<Element>,
     into builder: inout Rope.Builder
@@ -158,7 +163,8 @@ extension Rope._Node {
     builder._insertBeforeTip(item)
   }
 
-  __consuming func removePrefix(
+  @inlinable
+  internal __consuming func removePrefix(
     upTo position: Int,
     in metric: some RopeMetric<Element>,
     into builder: inout Rope.Builder
@@ -184,7 +190,8 @@ extension Rope._Node {
     builder._insertAfterTip(item.split(at: i))
   }
 
-  mutating func _innerRemoveSuffix(
+  @inlinable
+  internal mutating func _innerRemoveSuffix(
     descending slot: Int,
     into builder: inout Rope.Builder
   ) {
@@ -216,7 +223,8 @@ extension Rope._Node {
     builder._insertBeforeTip(n)
   }
 
-  __consuming func _leafRemoveSuffix(
+  @inlinable
+  internal __consuming func _leafRemoveSuffix(
     returning slot: Int,
     into builder: inout Rope.Builder
   ) -> _Item {
@@ -246,7 +254,8 @@ extension Rope._Node {
     return item
   }
 
-  mutating func _innerRemovePrefix(
+  @inlinable
+  internal mutating func _innerRemovePrefix(
     descending slot: Int,
     into builder: inout Rope.Builder
   ) {
@@ -279,7 +288,8 @@ extension Rope._Node {
     builder._insertAfterTip(n)
   }
 
-  __consuming func _leafRemovePrefix(
+  @inlinable
+  internal __consuming func _leafRemovePrefix(
     returning slot: Int,
     into builder: inout Rope.Builder
   ) -> _Item {

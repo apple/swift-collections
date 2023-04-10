@@ -14,19 +14,22 @@ import _CollectionsUtilities
 #endif
 
 extension Rope._UnmanagedLeaf: CustomStringConvertible {
-  var description: String {
+  @usableFromInline
+  internal var description: String {
     _addressString(for: _ref.toOpaque())
   }
 }
 
 extension Rope {
+  @inlinable
   public var _nodeCount: Int {
     _root?.nodeCount ?? 0
   }
 }
 
 extension Rope._Node {
-  var nodeCount: Int {
+  @inlinable
+  internal var nodeCount: Int {
     guard !isLeaf else { return 1 }
     return readInner { $0.children.reduce(into: 1) { $0 += $1.nodeCount } }
   }
@@ -47,7 +50,8 @@ extension Rope {
 }
 
 extension Rope._Node: CustomStringConvertible {
-  var description: String {
+  @usableFromInline
+  internal var description: String {
         """
         \(height > 0 ? "Inner@\(height)" : "Leaf")(\
         at: \(_addressString(for: object)), \
@@ -58,6 +62,7 @@ extension Rope._Node: CustomStringConvertible {
 }
 
 extension Rope._Node {
+  @usableFromInline
   internal func dump(
     heightLimit: Int = .max,
     firstPrefix: String = "",

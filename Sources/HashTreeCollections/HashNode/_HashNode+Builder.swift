@@ -13,7 +13,7 @@ extension _HashNode {
   @usableFromInline
   @frozen
   internal struct Builder {
-    @usableFromInline typealias Element = _HashNode.Element
+    @usableFromInline internal typealias Element = _HashNode.Element
 
     @usableFromInline
     @frozen

@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @inlinable
   public func extract(from start: Int, to end: Int, in metric: some RopeMetric<Element>) -> Self {
     if _root == nil {
       precondition(start == 0 && end == 0, "Invalid range")
@@ -22,7 +23,8 @@ extension Rope {
 }
 
 extension Rope._Node {
-  func extract(
+  @inlinable
+  internal func extract(
     from start: Int,
     to end: Int,
     in metric: some RopeMetric<Element>,

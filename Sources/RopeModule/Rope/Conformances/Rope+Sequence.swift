@@ -10,29 +10,37 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope: Sequence {
+  @inlinable
   public func makeIterator() -> Iterator {
     Iterator(self, from: self.startIndex)
   }
-  
+
+  @inlinable
   public func makeIterator(from start: Index) -> Iterator {
     Iterator(self, from: start)
   }
-  
-  public struct Iterator: IteratorProtocol {
-    let rope: Rope
-    private(set) var index: Index
 
-    init(_ rope: Rope, from start: Index) {
+  @frozen // Not really! This module isn't ABI stable.
+  public struct Iterator: IteratorProtocol {
+    @usableFromInline
+    internal let _rope: Rope
+
+    @usableFromInline
+    internal var _index: Index
+
+    @inlinable
+    internal init(_ rope: Rope, from start: Index) {
       rope.validate(start)
-      self.rope = rope
-      self.index = start
-      self.rope.grease(&index)
+      self._rope = rope
+      self._index = start
+      self._rope.grease(&_index)
     }
-    
+
+    @inlinable
     public mutating func next() -> Element? {
-      guard let leaf = index._leaf else { return nil }
-      let item = leaf.read { $0.children[index._path[0]].value }
-      rope.formIndex(after: &index)
+      guard let leaf = _index._leaf else { return nil }
+      let item = leaf.read { $0.children[_index._path[0]].value }
+      _rope.formIndex(after: &_index)
       return item
     }
   }

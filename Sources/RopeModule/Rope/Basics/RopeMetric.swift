@@ -17,7 +17,7 @@ public protocol RopeMetric<Element>: Sendable {
 }
 
 extension RopeMetric {
-  @inline(__always)
+  @inlinable @inline(__always)
   internal func _nonnegativeSize(of summary: Element.Summary) -> Int {
     let r = size(of: summary)
     assert(r >= 0)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1500"
+   LastUpgradeVersion = "1430"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,15 +14,15 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "RopeModule"
-               BuildableName = "RopeModule"
-               BlueprintName = "RopeModule"
+               BlueprintIdentifier = "_RopeModule"
+               BuildableName = "_RopeModule"
+               BlueprintName = "_RopeModule"
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
             buildForTesting = "YES"
-            buildForRunning = "YES"
+            buildForRunning = "NO"
             buildForProfiling = "NO"
             buildForArchiving = "NO"
             buildForAnalyzing = "NO">
@@ -75,9 +75,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "RopeModule"
-            BuildableName = "RopeModule"
-            BlueprintName = "RopeModule"
+            BlueprintIdentifier = "_RopeModule"
+            BuildableName = "_RopeModule"
+            BlueprintName = "_RopeModule"
             ReferencedContainer = "container:..">
          </BuildableReference>
       </MacroExpansion>
@@ -89,7 +89,4 @@
       buildConfiguration = "Release"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
-   <InstallAction
-      buildConfiguration = "Release">
-   </InstallAction>
 </Scheme>

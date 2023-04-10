@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @inlinable @inline(__always)
   public func _invariantCheck() {
 #if COLLECTIONS_INTERNAL_CHECKS
     _root?.invariantCheck(depth: 0, height: root.height, recursive: true)
@@ -18,8 +19,9 @@ extension Rope {
 }
 
 extension Rope._Node {
-  func invariantCheck(depth: UInt8, height: UInt8, recursive: Bool = true) {
 #if COLLECTIONS_INTERNAL_CHECKS
+  @usableFromInline
+  internal func invariantCheck(depth: UInt8, height: UInt8, recursive: Bool = true) {
     precondition(height == self.height, "Mismatching rope height")
     if isLeaf {
       precondition(self.childCount <= Summary.maxNodeSize, "Oversized leaf")
@@ -58,6 +60,11 @@ extension Rope._Node {
         child.invariantCheck(depth: depth + 1, height: height - 1, recursive: true)
       }
     }
-#endif
   }
+#else
+  @inlinable @inline(__always)
+  internal func invariantCheck(depth: UInt8, height: UInt8, recursive: Bool = true) {
+    // Do nothing.
+  }
+#endif
 }

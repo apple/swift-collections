@@ -25,6 +25,7 @@ extension Rope {
 }
 
 extension Rope {
+  @frozen // Not really! This module isn't ABI stable.
   public struct Builder {
     //       ║                    ║
     //       ║ ║                ║ ║
@@ -34,26 +35,31 @@ extension Rope {
     // →prefixTrees→  ↑  ↑  ←suffixTrees←
     //           prefix  suffix
     
-    private var _prefixTrees: [Rope] = []
-    private var _prefixLeaf: Rope._Node?
-    var _prefix: Rope._Item?
-    
-    var _suffix: Rope._Item?
-    var _suffixTrees: [Rope] = []
+    @usableFromInline internal var _prefixTrees: [Rope] = []
+    @usableFromInline internal var _prefixLeaf: Rope._Node?
 
+    @usableFromInline internal var _prefix: Rope._Item?
+    
+    @usableFromInline internal var _suffix: Rope._Item?
+    @usableFromInline internal var _suffixTrees: [Rope] = []
+
+    @inlinable
     public init() {}
 
+    @inlinable
     public var isPrefixEmpty: Bool {
       if _prefix != nil { return false }
       if let leaf = self._prefixLeaf, !leaf.isEmpty { return false }
       return _prefixTrees.isEmpty
     }
     
+    @inlinable
     public var isSuffixEmpty: Bool {
       if _suffix != nil { return false }
       return _suffixTrees.isEmpty
     }
 
+    @inlinable
     public var prefixSummary: Summary {
       var sum = Summary.zero
       for sapling in _prefixTrees {
@@ -64,6 +70,7 @@ extension Rope {
       return sum
     }
 
+    @inlinable
     public var suffixSummary: Summary {
       var sum = Summary.zero
       if let item = _suffix { sum.add(item.summary) }
@@ -73,6 +80,7 @@ extension Rope {
       return sum
     }
 
+    @inlinable
     var _lastPrefixItem: Rope._Item {
       get {
         assert(!isPrefixEmpty)
@@ -92,6 +100,7 @@ extension Rope {
       }
     }
     
+    @inlinable
     var _firstSuffixItem: Rope._Item {
       get {
         assert(!isSuffixEmpty)
@@ -108,6 +117,7 @@ extension Rope {
       }
     }
 
+    @inlinable
     public func forEachElementInPrefix(
       from position: Int,
       in metric: some RopeMetric<Element>,
@@ -155,6 +165,7 @@ extension Rope {
       return true
     }
     
+    @inlinable
     public mutating func mutatingForEachSuffix<R>(
       _ body: (inout Element) -> R?
     ) -> R? {
@@ -170,10 +181,12 @@ extension Rope {
       return nil
     }
     
+    @inlinable
     public mutating func insertBeforeTip(_ item: __owned Element) {
       _insertBeforeTip(Rope._Item(item))
     }
     
+    @inlinable
     mutating func _insertBeforeTip(_ item: __owned Rope._Item) {
       guard !item.isEmpty else { return }
       guard var prefix = self._prefix._take() else {
@@ -189,6 +202,7 @@ extension Rope {
       self._prefix = item
     }
     
+    @inlinable
     mutating func _appendNow(_ item: __owned Rope._Item) {
       assert(self._prefix == nil)
       assert(!item.isUndersized)
@@ -202,11 +216,13 @@ extension Rope {
       _invariantCheck()
     }
     
+    @inlinable
     public mutating func insertBeforeTip(_ rope: __owned Rope) {
       guard rope._root != nil else { return }
       _insertBeforeTip(rope.root)
     }
     
+    @inlinable
     mutating func _insertBeforeTip(_ node: __owned Rope._Node) {
       defer { _invariantCheck() }
       var node = node
@@ -249,6 +265,7 @@ extension Rope {
       _appendNow(node)
     }
 
+    @inlinable
     mutating func _appendNow(_ rope: __owned Rope._Node) {
       assert(self._prefix == nil && self._prefixLeaf == nil)
       var new = rope
@@ -287,10 +304,12 @@ extension Rope {
       _prefixTrees.append(Rope(root: new))
     }
 
+    @inlinable
     public mutating func insertAfterTip(_ item: __owned Element) {
       _insertAfterTip(_Item(item))
     }
 
+    @inlinable
     mutating func _insertAfterTip(_ item: __owned _Item) {
       guard !item.isEmpty else { return }
       if var suffixItem = self._suffix._take() {
@@ -306,16 +325,19 @@ extension Rope {
       self._suffix = item
     }
     
+    @inlinable
     public mutating func insertAfterTip(_ rope: __owned Rope) {
       assert(_suffix == nil)
       assert(_suffixTrees.isEmpty || rope._height <= _suffixTrees.last!._height)
       _suffixTrees.append(rope)
     }
     
+    @inlinable
     mutating func _insertAfterTip(_ rope: __owned Rope._Node) {
       insertAfterTip(Rope(root: rope))
     }
 
+    @inlinable
     mutating func _insertBeforeTip(slots: Range<Int>, in node: __owned Rope._Node) {
       assert(slots.lowerBound >= 0 && slots.upperBound <= node.childCount)
       let c = slots.count
@@ -334,6 +356,7 @@ extension Rope {
       _insertBeforeTip(copy)
     }
 
+    @inlinable
     mutating func _insertAfterTip(slots: Range<Int>, in node: __owned Rope._Node) {
       assert(slots.lowerBound >= 0 && slots.upperBound <= node.childCount)
       let c = slots.count
@@ -352,6 +375,7 @@ extension Rope {
       _insertAfterTip(copy)
     }
 
+    @inlinable
     public mutating func finalize() -> Rope {
       // Integrate prefix & suffix chunks.
       if let suffixItem = self._suffix._take() {
@@ -390,6 +414,7 @@ extension Rope {
       return rope
     }
     
+    @inlinable
     public func _invariantCheck() {
 #if COLLECTIONS_INTERNAL_CHECKS
       var h = UInt8.max
