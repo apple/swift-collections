@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -60,7 +60,6 @@ where Key: Encodable, Value: Encodable
       }
       return
     }
-#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
             Key.self is CodingKeyRepresentable.Type {
       // Since the keys are CodingKeyRepresentable, we can use the `codingKey`
@@ -73,7 +72,6 @@ where Key: Encodable, Value: Encodable
       }
       return
     }
-#endif
     // Keys are Encodable but not Strings or Ints, so we cannot arbitrarily
     // convert to keys. We can encode as an array of alternating key-value
     // pairs, though.
@@ -133,7 +131,6 @@ where Key: Decodable, Value: Decodable
       return
     }
 
-#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
        let keyType = Key.self as? CodingKeyRepresentable.Type {
       // The keys are CodingKeyRepresentable, so we should be able to expect
@@ -152,7 +149,6 @@ where Key: Decodable, Value: Decodable
       }
       return
     }
-#endif
 
     // We should have encoded as an array of alternating key-value pairs.
     var container = try decoder.unkeyedContainer()
