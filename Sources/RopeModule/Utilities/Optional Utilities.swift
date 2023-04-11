@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Optional {
+  @inlinable
   internal mutating func _take() -> Self {
     let r = self
     self = nil

@@ -10,17 +10,23 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @usableFromInline
   internal struct _UnsafeHandle<Child: _RopeItem<Summary>> {
-    typealias Summary = Rope.Summary
-    typealias Element = Rope.Element
+    @usableFromInline internal typealias Summary = Rope.Summary
+    @usableFromInline internal typealias Element = Rope.Element
     
-    let _header: UnsafeMutablePointer<_RopeStorageHeader>
-    let _start: UnsafeMutablePointer<Child>
+    @usableFromInline
+    internal let _header: UnsafeMutablePointer<_RopeStorageHeader>
+
+    @usableFromInline
+    internal let _start: UnsafeMutablePointer<Child>
 #if DEBUG
-    let _isMutable: Bool
+    @usableFromInline
+    internal let _isMutable: Bool
 #endif
-    
-    init(
+
+    @inlinable
+    internal init(
       isMutable: Bool,
       header: UnsafeMutablePointer<_RopeStorageHeader>,
       start: UnsafeMutablePointer<Child>
@@ -32,8 +38,8 @@ extension Rope {
 #endif
     }
     
-    @inline(__always)
-    func assertMutable() {
+    @inlinable @inline(__always)
+    internal func assertMutable() {
 #if DEBUG
       assert(_isMutable)
 #endif
@@ -42,47 +48,54 @@ extension Rope {
 }
 
 extension Rope._UnsafeHandle {
-  @inline(__always)
-  var capacity: Int { Summary.maxNodeSize }
+  @inlinable @inline(__always)
+  internal var capacity: Int { Summary.maxNodeSize }
   
-  @inline(__always)
-  var height: UInt8 { _header.pointee.height }
-  
-  var childCount: Int {
+  @inlinable @inline(__always)
+  internal var height: UInt8 { _header.pointee.height }
+
+  @inlinable
+  internal var childCount: Int {
     get { _header.pointee.childCount }
     nonmutating set {
       assertMutable()
       _header.pointee.childCount = newValue
     }
   }
-  
-  var children: UnsafeBufferPointer<Child> {
+
+  @inlinable
+  internal var children: UnsafeBufferPointer<Child> {
     UnsafeBufferPointer(start: _start, count: childCount)
   }
-  
-  func child(at slot: Int) -> Child? {
+
+  @inlinable
+  internal func child(at slot: Int) -> Child? {
     assert(slot >= 0)
     guard slot < childCount else { return nil }
     return (_start + slot).pointee
   }
-  
-  var mutableChildren: UnsafeMutableBufferPointer<Child> {
+
+  @inlinable
+  internal var mutableChildren: UnsafeMutableBufferPointer<Child> {
     assertMutable()
     return UnsafeMutableBufferPointer(start: _start, count: childCount)
   }
-  
-  func mutableChildPtr(at slot: Int) -> UnsafeMutablePointer<Child> {
+
+  @inlinable
+  internal func mutableChildPtr(at slot: Int) -> UnsafeMutablePointer<Child> {
     assertMutable()
     assert(slot >= 0 && slot < childCount)
     return _start + slot
   }
-  
-  var mutableBuffer: UnsafeMutableBufferPointer<Child> {
+
+  @inlinable
+  internal var mutableBuffer: UnsafeMutableBufferPointer<Child> {
     assertMutable()
     return UnsafeMutableBufferPointer(start: _start, count: capacity)
   }
-  
-  func copy() -> Rope._Storage<Child> {
+
+  @inlinable
+  internal func copy() -> Rope._Storage<Child> {
     let new = Rope._Storage<Child>.create(height: self.height)
     let c = self.childCount
     new.header.childCount = c
@@ -92,7 +105,10 @@ extension Rope._UnsafeHandle {
     return new
   }
 
-  func copy(slots: Range<Int>) -> (object: Rope._Storage<Child>, summary: Summary) {
+  @inlinable
+  internal func copy(
+    slots: Range<Int>
+  ) -> (object: Rope._Storage<Child>, summary: Summary) {
     assert(slots.lowerBound >= 0 && slots.upperBound <= childCount)
     let object = Rope._Storage<Child>.create(height: self.height)
     let c = slots.count
@@ -104,7 +120,8 @@ extension Rope._UnsafeHandle {
     return (object, summary)
   }
 
-  func _insertChild(_ child: __owned Child, at slot: Int) {
+  @inlinable
+  internal func _insertChild(_ child: __owned Child, at slot: Int) {
     assertMutable()
     assert(childCount < capacity)
     assert(slot >= 0 && slot <= childCount)
@@ -112,15 +129,17 @@ extension Rope._UnsafeHandle {
     (_start + slot).initialize(to: child)
     childCount += 1
   }
-  
-  func _appendChild(_ child: __owned Child) {
+
+  @inlinable
+  internal func _appendChild(_ child: __owned Child) {
     assertMutable()
     assert(childCount < capacity)
     (_start + childCount).initialize(to: child)
     childCount += 1
   }
-  
-  func _removeChild(at slot: Int) -> Child {
+
+  @inlinable
+  internal func _removeChild(at slot: Int) -> Child {
     assertMutable()
     assert(slot >= 0 && slot < childCount)
     let result = (_start + slot).move()
@@ -129,7 +148,8 @@ extension Rope._UnsafeHandle {
     return result
   }
 
-  func _removePrefix(_ n: Int) -> Summary {
+  @inlinable
+  internal func _removePrefix(_ n: Int) -> Summary {
     assertMutable()
     assert(n <= childCount)
     var delta = Summary.zero
@@ -143,7 +163,8 @@ extension Rope._UnsafeHandle {
     return delta
   }
 
-  func _removeSuffix(_ n: Int) -> Summary {
+  @inlinable
+  internal func _removeSuffix(_ n: Int) -> Summary {
     assertMutable()
     assert(n <= childCount)
     var delta = Summary.zero
@@ -155,8 +176,11 @@ extension Rope._UnsafeHandle {
     childCount -= n
     return delta
   }
-  
-  func _appendChildren(movingFromPrefixOf src: Self, count: Int) -> Summary {
+
+  @inlinable
+  internal func _appendChildren(
+    movingFromPrefixOf src: Self, count: Int
+  ) -> Summary {
     assertMutable()
     src.assertMutable()
     assert(self.height == src.height)
@@ -170,8 +194,11 @@ extension Rope._UnsafeHandle {
     src.childCount -= count
     return children.suffix(count)._sum()
   }
-  
-  func _prependChildren(movingFromSuffixOf src: Self, count: Int) -> Summary {
+
+  @inlinable
+  internal func _prependChildren(
+    movingFromSuffixOf src: Self, count: Int
+  ) -> Summary {
     assertMutable()
     src.assertMutable()
     assert(self.height == src.height)
@@ -186,7 +213,10 @@ extension Rope._UnsafeHandle {
     return children.prefix(count)._sum()
   }
 
-  func distance(from start: Int, to end: Int, in metric: some RopeMetric<Element>) -> Int {
+  @inlinable
+  internal func distance(
+    from start: Int, to end: Int, in metric: some RopeMetric<Element>
+  ) -> Int {
     if start <= end {
       return children[start ..< end].reduce(into: 0) {
         $0 += metric._nonnegativeSize(of: $1.summary)

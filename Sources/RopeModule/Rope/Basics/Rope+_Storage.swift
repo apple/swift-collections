@@ -9,16 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+@usableFromInline
 internal struct _RopeStorageHeader {
-  var _childCount: UInt16
-  let height: UInt8
-  
-  init(height: UInt8) {
+  @usableFromInline var _childCount: UInt16
+  @usableFromInline let height: UInt8
+
+  @inlinable
+  internal init(height: UInt8) {
     self._childCount = 0
     self.height = height
   }
-  
-  var childCount: Int {
+
+  @inlinable
+  internal var childCount: Int {
     get {
       numericCast(_childCount)
     }
@@ -29,15 +32,20 @@ internal struct _RopeStorageHeader {
 }
 
 extension Rope {
-  final class _Storage<Child: _RopeItem<Summary>>: ManagedBuffer<_RopeStorageHeader, Child> {
-    typealias Summary = Element.Summary
-    typealias _UnsafeHandle = Rope._UnsafeHandle
-    
-    static func create(height: UInt8) -> _Storage {
+  @usableFromInline
+  internal final class _Storage<Child: _RopeItem<Summary>>:
+    ManagedBuffer<_RopeStorageHeader, Child>
+  {
+    @usableFromInline internal typealias Summary = Element.Summary
+    @usableFromInline internal typealias _UnsafeHandle = Rope._UnsafeHandle
+
+    @inlinable
+    internal static func create(height: UInt8) -> _Storage {
       let object = create(minimumCapacity: Summary.maxNodeSize) { _ in .init(height: height) }
       return unsafeDowncast(object, to: _Storage.self)
     }
-    
+
+    @inlinable
     deinit {
       withUnsafeMutablePointers { h, p in
         p.deinitialize(count: h.pointee.childCount)

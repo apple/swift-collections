@@ -10,27 +10,31 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @usableFromInline
   internal struct _UnmanagedLeaf {
-    typealias _Item = Rope._Item
-    typealias _Leaf = _Storage<_Item>
-    typealias _UnsafeHandle = Rope._UnsafeHandle
+    @usableFromInline internal typealias _Item = Rope._Item
+    @usableFromInline internal typealias _Leaf = _Storage<_Item>
+    @usableFromInline internal typealias _UnsafeHandle = Rope._UnsafeHandle
 
-    var _ref: Unmanaged<_Leaf>
+    @usableFromInline var _ref: Unmanaged<_Leaf>
 
-    init(_ leaf: __shared _Leaf) {
+    @inlinable
+    internal init(_ leaf: __shared _Leaf) {
       _ref = .passUnretained(leaf)
     }
   }
 }
 
 extension Rope._UnmanagedLeaf: Equatable {
-  static func ==(left: Self, right: Self) -> Bool {
+  @inlinable
+  internal static func ==(left: Self, right: Self) -> Bool {
     left._ref.toOpaque() == right._ref.toOpaque()
   }
 }
 
 extension Rope._UnmanagedLeaf {
-  func read<R>(
+  @inlinable
+  internal func read<R>(
     body: (_UnsafeHandle<_Item>) -> R
   ) -> R {
     _ref._withUnsafeGuaranteedRef { leaf in

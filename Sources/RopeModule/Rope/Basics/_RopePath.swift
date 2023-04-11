@@ -9,50 +9,58 @@
 //
 //===----------------------------------------------------------------------===//
 
+@usableFromInline
+@frozen // Not really! This module isn't ABI stable
 internal struct _RopePath<Summary: RopeSummary> {
   // ┌──────────────────────────────────┬────────┐
   // │ b63:b8                           │ b7:b0  │
   // ├──────────────────────────────────┼────────┤
   // │ path                             │ height │
   // └──────────────────────────────────┴────────┘
-  var _value: UInt64
+  @usableFromInline internal var _value: UInt64
 
-  @inline(__always)
-  static var _pathBitWidth: Int { 56 }
+  @inlinable @inline(__always)
+  internal static var _pathBitWidth: Int { 56 }
 
-  init(_value: UInt64) {
+  @inlinable
+  internal init(_value: UInt64) {
     self._value = _value
   }
 
-  init(height: UInt8) {
+  @inlinable
+  internal init(height: UInt8) {
     self._value = UInt64(truncatingIfNeeded: height)
     assert((Int(height) + 1) * Summary.nodeSizeBitWidth <= Self._pathBitWidth)
   }
 }
 
 extension Rope {
-  typealias _Path = _RopePath<Summary>
+  @usableFromInline internal typealias _Path = _RopePath<Summary>
 }
 
 extension _RopePath: Equatable {
-  static func ==(left: Self, right: Self) -> Bool {
+  @inlinable
+  internal static func ==(left: Self, right: Self) -> Bool {
     left._value == right._value
   }
 }
 extension _RopePath: Hashable {
-  func hash(into hasher: inout Hasher) {
+  @inlinable
+  internal func hash(into hasher: inout Hasher) {
     hasher.combine(_value)
   }
 }
 
 extension _RopePath: Comparable {
-  static func <(left: Self, right: Self) -> Bool {
+  @inlinable
+  internal static func <(left: Self, right: Self) -> Bool {
     left._value < right._value
   }
 }
 
 extension _RopePath: CustomStringConvertible {
-  var description: String {
+  @usableFromInline
+  internal var description: String {
     var r = "<"
     for h in stride(from: height, through: 0, by: -1) {
       r += "\(self[h])"
@@ -64,11 +72,13 @@ extension _RopePath: CustomStringConvertible {
 }
 
 extension _RopePath {
-  var height: UInt8 {
+  @inlinable
+  internal var height: UInt8 {
     UInt8(truncatingIfNeeded: _value)
   }
 
-  subscript(height: UInt8) -> Int {
+  @inlinable
+  internal subscript(height: UInt8) -> Int {
     get {
       assert(height <= self.height)
       let shift = 8 + Int(height) * Summary.nodeSizeBitWidth
@@ -85,14 +95,16 @@ extension _RopePath {
     }
   }
 
-  func isEmpty(below height: UInt8) -> Bool {
+  @inlinable
+  internal func isEmpty(below height: UInt8) -> Bool {
     let shift = Int(height) * Summary.nodeSizeBitWidth
     assert(shift + Summary.nodeSizeBitWidth <= Self._pathBitWidth)
     let mask: UInt64 = ((1 &<< shift) - 1) &<< 8
     return (_value & mask) == 0
   }
 
-  mutating func clear(below height: UInt8) {
+  @inlinable
+  internal mutating func clear(below height: UInt8) {
     let shift = Int(height) * Summary.nodeSizeBitWidth
     assert(shift + Summary.nodeSizeBitWidth <= Self._pathBitWidth)
     let mask: UInt64 = ((1 &<< shift) - 1) &<< 8

@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @inlinable
   public func forEachWhile(
     _ body: (Element) -> Bool
   ) -> Bool {
@@ -17,6 +18,7 @@ extension Rope {
     return root.forEachWhile(body)
   }
 
+  @inlinable
   public func forEachWhile(
     from position: Int,
     in metric: some RopeMetric<Element>,
@@ -31,7 +33,8 @@ extension Rope {
 }
 
 extension Rope._Node {
-  func forEachWhile(
+  @inlinable
+  internal func forEachWhile(
     _ body: (Element) -> Bool
   ) -> Bool {
     if isLeaf {
@@ -52,7 +55,8 @@ extension Rope._Node {
     }
   }
 
-  func forEachWhile(
+  @inlinable
+  internal func forEachWhile(
     from position: Int,
     in metric: some RopeMetric<Element>,
     _ body: (Element, Element.Index?) -> Bool

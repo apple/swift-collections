@@ -10,11 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @inlinable
   public mutating func prepend(_ item: __owned Element) {
     _invalidateIndices()
     insert(item, at: startIndex)
   }
-  
+
+  @inlinable
   public mutating func insert(
     _ item: __owned Element,
     at index: Index
@@ -23,6 +25,7 @@ extension Rope {
     insert(item, at: index._path)
   }
 
+  @inlinable
   mutating func insert(
     _ item: __owned Element,
     at path: _Path
@@ -36,7 +39,8 @@ extension Rope {
     }
     _invalidateIndices()
   }
-  
+
+  @inlinable
   public mutating func insert(
     _ item: __owned Element,
     at position: Int,
@@ -54,11 +58,13 @@ extension Rope {
 }
 
 extension Rope._Node {
-  mutating func prepend(_ item: __owned _Item) -> Self? {
+  @inlinable
+  internal mutating func prepend(_ item: __owned _Item) -> Self? {
     insert(item, at: _startPath)
   }
-  
-  mutating func insert(
+
+  @inlinable
+  internal mutating func insert(
     _ item: __owned _Item,
     at path: _Path
   ) -> Self? {
@@ -72,8 +78,9 @@ extension Rope._Node {
     precondition(slot <= childCount, "Index out of bounds")
     return _leafInsert(item, at: slot)
   }
-  
-  mutating func insert(
+
+  @inlinable
+  internal mutating func insert(
     _ item: __owned _Item,
     at position: Int,
     in metric: some RopeMetric<Element>
@@ -94,7 +101,8 @@ extension Rope._Node {
 }
 
 extension Rope._Node {
-  mutating func _innerInsert(
+  @inlinable
+  internal mutating func _innerInsert(
     at slot: Int,
     with body: (inout Self) -> Self?
   ) -> Self? {
@@ -111,8 +119,11 @@ extension Rope._Node {
     guard let spawn = spawn else { return nil }
     return _applySpawn(spawn, of: slot)
   }
-  
-  mutating func _applySpawn(_ spawn: __owned Self, of slot: Int) -> Self? {
+
+  @inlinable
+  internal mutating func _applySpawn(
+    _ spawn: __owned Self, of slot: Int
+  ) -> Self? {
     var spawn = spawn
     var nextSlot = slot + 1
 #if true // Compress existing nodes if possible.
@@ -161,7 +172,10 @@ extension Rope._Node {
 }
 
 extension Rope._Node {
-  mutating func _leafInsert(_ item: __owned _Item, at slot: Int) -> Self? {
+  @inlinable
+  internal mutating func _leafInsert(
+    _ item: __owned _Item, at slot: Int
+  ) -> Self? {
     assert(slot <= childCount)
     var item = item
     if item.isUndersized, childCount > 0, _rebalanceBeforeInsert(&item, at: slot) {
@@ -181,8 +195,11 @@ extension Rope._Node {
     spawn._insertItem(item, at: slot - childCount)
     return spawn
   }
-  
-  mutating func _rebalanceBeforeInsert(_ item: inout _Item, at slot: Int) -> Bool {
+
+  @inlinable
+  internal mutating func _rebalanceBeforeInsert(
+    _ item: inout _Item, at slot: Int
+  ) -> Bool {
     assert(item.isUndersized)
     let r = updateLeaf { (h) -> (merged: Bool, delta: Summary) in
       if slot > 0 {

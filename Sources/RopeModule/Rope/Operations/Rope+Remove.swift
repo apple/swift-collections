@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @inlinable
   public mutating func remove(at index: Index) -> Element {
     validate(index)
     let old = root.remove(at: index._path).removed
@@ -24,7 +25,8 @@ extension Rope {
 }
 
 extension Rope._Node {
-  mutating func remove(
+  @inlinable
+  internal mutating func remove(
     at path: _Path
   ) -> (removed: _Item, delta: Summary, needsFixing: Bool) {
     ensureUnique()
@@ -44,6 +46,7 @@ extension Rope._Node {
 }
 
 extension Rope {
+  @inlinable
   public mutating func remove(
     at position: Int,
     in metric: some RopeMetric<Element>
@@ -60,7 +63,8 @@ extension Rope {
 }
 
 extension Rope._Node {
-  mutating func remove(
+  @inlinable
+  internal mutating func remove(
     at position: Int,
     in metric: some RopeMetric<Element>
   ) -> (removed: _Item, delta: Summary, needsFixing: Bool) {
@@ -86,7 +90,8 @@ extension Rope._Node {
 }
 
 extension Rope._Node {
-  mutating func fixDeficiency(at slot: Int) {
+  @inlinable
+  internal mutating func fixDeficiency(at slot: Int) {
     assert(isUnique())
     updateInner {
       let c = $0.mutableChildren
