@@ -52,6 +52,10 @@ extension Rope {
   }
 }
 
+extension Rope._Node: @unchecked Sendable where Element: Sendable {
+  // @unchecked because `object` is stored as an `AnyObject` above.
+}
+
 extension Rope._Node {
   @inlinable
   internal var _headerPtr: UnsafePointer<_RopeStorageHeader> {
