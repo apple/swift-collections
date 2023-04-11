@@ -159,7 +159,7 @@
 /// original dictionary value.)
 ///
 /// The ``values-swift.property`` collection is a mutable random-access
-/// collection of the values in the dictionary:
+/// ordered collection of the values in the dictionary:
 ///
 ///     d.values // "two", "one", "zero"
 ///     d.values[2] = "nada"
@@ -219,7 +219,7 @@ public struct OrderedDictionary<Key: Hashable, Value> {
 }
 
 extension OrderedDictionary {
-  /// A read-only collection view for the keys contained in this dictionary, as
+  /// A read-only ordered collection view for the keys contained in this dictionary, as
   /// an `OrderedSet`.
   ///
   /// - Complexity: O(1)
@@ -227,7 +227,7 @@ extension OrderedDictionary {
   @inline(__always)
   public var keys: OrderedSet<Key> { _keys }
 
-  /// A mutable collection view containing the values in this dictionary.
+  /// A mutable collection view containing the ordered values in this dictionary.
   ///
   /// - Complexity: O(1)
   @inlinable
