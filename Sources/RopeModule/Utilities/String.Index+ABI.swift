@@ -64,7 +64,7 @@ extension String.Index {
   }
 
   var _knownScalarAligned: String.Index {
-    let r = _abi_rawBits | Self._abi_characterAlignmentBit | Self._abi_scalarAlignmentBit
+    let r = _abi_rawBits | Self._abi_scalarAlignmentBit
     return unsafeBitCast(r, to: String.Index.self)
   }
 }
