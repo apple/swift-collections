@@ -253,7 +253,7 @@ class TestRope: XCTestCase {
           : ref[j..<i].reduce(into: 0) { $0 -= $1.length })
         let r = rope.index(indices[i], offsetBy: d, in: Chunk.Metric(), preferEnd: false)
         XCTAssertEqual(r.index, indices[j])
-        XCTAssertEqual(r.remainder, 0)
+        XCTAssertEqual(r.remaining, 0)
       }
     }
   }

@@ -345,7 +345,7 @@ extension Rope {
     offsetBy distance: Int,
     in metric: some RopeMetric<Element>,
     preferEnd: Bool
-  ) -> (index: Index, remainder: Int) {
+  ) -> (index: Index, remaining: Int) {
     var i = i
     var distance = distance
     formIndex(&i, offsetBy: &distance, in: metric, preferEnd: preferEnd)
