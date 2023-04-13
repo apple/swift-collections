@@ -11,6 +11,7 @@
 
 extension Rope {
   @inlinable
+  @discardableResult
   public mutating func remove(at index: Index) -> Element {
     validate(index)
     let old = root.remove(at: index._path).removed

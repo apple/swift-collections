@@ -56,6 +56,8 @@ extension Rope {
 }
 
 extension Rope: BidirectionalCollection {
+  public typealias SubSequence = Slice<Self>
+
   @inlinable
   public var isEmpty: Bool {
     guard _root != nil else { return true }

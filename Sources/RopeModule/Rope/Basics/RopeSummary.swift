@@ -37,6 +37,11 @@ public protocol RopeSummary: Equatable, Sendable {
 
 extension RopeSummary {
   @inlinable @inline(__always)
+  public static var nodeSizeBitWidth: Int {
+    Int.bitWidth - maxNodeSize.leadingZeroBitCount
+  }
+
+  @inlinable @inline(__always)
   public static var minNodeSize: Int { (maxNodeSize + 1) / 2 }
 }
 
