@@ -154,6 +154,8 @@ extension Rope {
     validate(index)
     var state = root._prepareModify(at: index._path)
     defer {
+      _invalidateIndices()
+      index._version = self._version
       index._leaf = root._finalizeModify(&state).leaf
     }
     return body(&state.item.value)
