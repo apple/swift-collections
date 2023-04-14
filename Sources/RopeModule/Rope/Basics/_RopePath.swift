@@ -78,6 +78,15 @@ extension _RopePath {
   }
 
   @inlinable
+  internal mutating func popRoot() {
+    let heightMask: UInt64 = 255
+    let h = height
+    assert(h > 0 && self[h] == 0)
+    _value &= ~heightMask
+    _value |= UInt64(truncatingIfNeeded: h - 1) & heightMask
+  }
+
+  @inlinable
   internal subscript(height: UInt8) -> Int {
     get {
       assert(height <= self.height)
