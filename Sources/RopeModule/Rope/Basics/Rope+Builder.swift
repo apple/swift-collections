@@ -194,7 +194,7 @@ extension Rope {
         return
       }
       var item = item
-      if prefix.rebalance(nextNeighbor: &item) {
+      if (prefix.isUndersized || item.isUndersized), prefix.rebalance(nextNeighbor: &item) {
         self._prefix = prefix
         return
       }
@@ -221,7 +221,19 @@ extension Rope {
       guard rope._root != nil else { return }
       _insertBeforeTip(rope.root)
     }
-    
+
+    @inlinable
+    public mutating func insertBeforeTip<S: Sequence<Element>>(_ items: __owned S) {
+      if S.self == Rope.self {
+        let items = _identityCast(items, to: Rope.self)
+        self.insertBeforeTip(items)
+      } else {
+        for item in items {
+          self.insertBeforeTip(item)
+        }
+      }
+    }
+
     @inlinable
     mutating func _insertBeforeTip(_ node: __owned Rope._Node) {
       defer { _invariantCheck() }
