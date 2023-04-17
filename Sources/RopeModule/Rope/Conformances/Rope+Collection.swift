@@ -56,6 +56,8 @@ extension Rope {
 }
 
 extension Rope: BidirectionalCollection {
+  public typealias SubSequence = Slice<Self>
+
   @inlinable
   public var isEmpty: Bool {
     guard _root != nil else { return true }
@@ -152,6 +154,8 @@ extension Rope {
     validate(index)
     var state = root._prepareModify(at: index._path)
     defer {
+      _invalidateIndices()
+      index._version = self._version
       index._leaf = root._finalizeModify(&state).leaf
     }
     return body(&state.item.value)
@@ -343,7 +347,7 @@ extension Rope {
     offsetBy distance: Int,
     in metric: some RopeMetric<Element>,
     preferEnd: Bool
-  ) -> (index: Index, remainder: Int) {
+  ) -> (index: Index, remaining: Int) {
     var i = i
     var distance = distance
     formIndex(&i, offsetBy: &distance, in: metric, preferEnd: preferEnd)

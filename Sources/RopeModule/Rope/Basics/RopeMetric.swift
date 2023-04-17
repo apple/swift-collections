@@ -12,7 +12,16 @@
 public protocol RopeMetric<Element>: Sendable {
   associatedtype Element: RopeElement
 
+  /// Returns the size of a summarized rope element in this metric.
   func size(of summary: Element.Summary) -> Int
+
+  /// Returns an index addressing the content at the given offset from
+  /// the start of the specified rope element.
+  ///
+  /// - Parameter offset: An integer offset from the start of `element` in this
+  ///     metric, not exceeding `size(of: element.summary)`.
+  /// - Parameter element: An arbitary rope element.
+  /// - Returns: The index addressing the desired position in the input element.
   func index(at offset: Int, in element: Element) -> Element.Index
 }
 

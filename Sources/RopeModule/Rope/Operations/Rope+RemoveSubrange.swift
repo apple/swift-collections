@@ -29,16 +29,14 @@ extension Rope {
   public mutating func replaceSubrange(
     _ bounds: Range<Int>,
     in metric: some RopeMetric<Element>,
-    with newElements: __owned some Collection<Element>
+    with newElements: __owned some Sequence<Element>
   ) {
     // FIXME: Implement insert(contentsOf:at:in:) and dispatch to it when bounds.isEmpty.
     // FIXME: Add fast path for replacing tiny ranges with tiny data.
     // FIXME: Add special cases if newElements is itself a _Rope etc.
     _invalidateIndices()
     var builder = builder(removing: bounds, in: metric)
-    for item in newElements {
-      builder.insertBeforeTip(item)
-    }
+    builder.insertBeforeTip(newElements)
     self = builder.finalize()
   }
 

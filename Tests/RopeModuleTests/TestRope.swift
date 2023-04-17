@@ -253,7 +253,7 @@ class TestRope: XCTestCase {
           : ref[j..<i].reduce(into: 0) { $0 -= $1.length })
         let r = rope.index(indices[i], offsetBy: d, in: Chunk.Metric(), preferEnd: false)
         XCTAssertEqual(r.index, indices[j])
-        XCTAssertEqual(r.remainder, 0)
+        XCTAssertEqual(r.remaining, 0)
       }
     }
   }
@@ -347,7 +347,35 @@ class TestRope: XCTestCase {
     XCTAssertTrue(rope.isEmpty)
     XCTAssertEqual(rope.summary, .zero)
   }
-  
+
+  func test_remove_at_inout_index() {
+    let c = 1000
+    let ref = (0 ..< c).map {
+      Chunk(length: ($0 % 4) + 1, value: $0)
+    }
+
+    var rope = Rope<Chunk>(ref)
+
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    let input = ref.shuffled(using: &rng)
+
+    for i in input.indices {
+      let chunk = input[i]
+      let (offset, position) = input[i...].reduce(into: (0, 0)) {
+        guard $1.value < chunk.value else { return }
+        $0.0 += 1
+        $0.1 += $1.length
+      }
+      var index = rope.index(rope.startIndex, offsetBy: offset)
+      let removed = rope.remove(at: &index)
+      XCTAssertEqual(removed, chunk)
+      XCTAssertEqual(rope.offset(of: index, in: Chunk.Metric()), position, "\(i)")
+      rope._invariantCheck()
+    }
+    XCTAssertTrue(rope.isEmpty)
+    XCTAssertEqual(rope.summary, .zero)
+  }
+
   func test_remove_at_position() {
     let c = 1000
     let ref = (0 ..< c).map {
@@ -364,8 +392,9 @@ class TestRope: XCTestCase {
       let position = input[i...].reduce(into: 0) {
         $0 += $1.value < chunk.value ? $1.length : 0
       }
-      let removed = rope.remove(at: position, in: Chunk.Metric())
-      XCTAssertEqual(removed, chunk)
+      let r = rope.remove(at: position, in: Chunk.Metric())
+      XCTAssertEqual(r.removed, chunk)
+      XCTAssertEqual(rope.offset(of: r.next, in: Chunk.Metric()), position, "\(i)")
       rope._invariantCheck()
     }
     XCTAssertTrue(rope.isEmpty)

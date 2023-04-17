@@ -11,6 +11,11 @@
 
 extension Rope {
   @inlinable
+  public func extract(_ offsetRange: Range<Int>, in metric: some RopeMetric<Element>) -> Self {
+    extract(from: offsetRange.lowerBound, to: offsetRange.upperBound, in: metric)
+  }
+
+  @inlinable
   public func extract(from start: Int, to end: Int, in metric: some RopeMetric<Element>) -> Self {
     if _root == nil {
       precondition(start == 0 && end == 0, "Invalid range")
