@@ -64,10 +64,10 @@ extension Rope._Node {
       let prepended = fixDeficiency(on: &path)
       isAtEnd = isAtEnd && prepended
     }
-    if isAtEnd {
+    if isAtEnd, path[h] < childCount - 1 {
       path[h] += 1
       path.clear(below: h)
-      isAtEnd = path[h] == childCount
+      isAtEnd = false
     }
     return (r.removed, r.delta, self.isUndersized, isAtEnd)
   }
@@ -134,10 +134,10 @@ extension Rope._Node {
       let prepended = fixDeficiency(on: &path)
       isAtEnd = isAtEnd && prepended
     }
-    if isAtEnd {
+    if isAtEnd, path[h] < childCount - 1 {
       path[h] += 1
       path.clear(below: h)
-      isAtEnd = path[h] == childCount
+      isAtEnd = false
     }
     return (r.removed, r.delta, self.isUndersized, isAtEnd)
   }
