@@ -10,9 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import BitCollections
 import OrderedCollections
+#endif
 
 extension BitSet: SetAPIExtras {
   public mutating func update(_ member: Int, at index: Index) -> Int {

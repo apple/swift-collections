@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 @usableFromInline
 internal typealias _UnsafeHashTable = _HashTable.UnsafeHandle

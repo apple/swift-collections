@@ -2,14 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension Deque: Sequence {
   // Implementation note: we could also use the default `IndexingIterator` here.
@@ -162,9 +164,7 @@ extension Deque: Sequence {
   }
 }
 
-#if swift(>=5.5)
 extension Deque.Iterator: Sendable where Element: Sendable {}
-#endif
 
 extension Deque: RandomAccessCollection {
   public typealias Index = Int

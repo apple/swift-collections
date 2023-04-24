@@ -2,15 +2,19 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import HashTreeCollections
+#endif
 
 extension TreeDictionary: DictionaryAPIExtras {}
 
@@ -270,7 +274,6 @@ class TreeDictionaryTests: CollectionTestCase {
       d, expectedContents: ref, by: ==)
   }
 
-#if swift(>=5.6)
   @available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *)
   struct FancyDictionaryKey: CodingKeyRepresentable, Hashable, Codable {
     var value: Int
@@ -286,7 +289,6 @@ class TreeDictionaryTests: CollectionTestCase {
       self.init(value)
     }
   }
-#endif
 
   struct BoringDictionaryKey: Hashable, Codable {
     var value: Int
@@ -312,7 +314,6 @@ class TreeDictionaryTests: CollectionTestCase {
     ])
     expectEqual(try MinimalEncoder.encode(d2), v2)
 
-#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
       let d3: TreeDictionary<FancyDictionaryKey, Int16> = [
         FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
@@ -322,7 +323,6 @@ class TreeDictionaryTests: CollectionTestCase {
       ])
       expectEqual(try MinimalEncoder.encode(d3), v3)
     }
-#endif
 
     let d4: TreeDictionary<BoringDictionaryKey, UInt8> = [
       // Note: we only have a single element to prevent ordering
@@ -358,7 +358,6 @@ class TreeDictionaryTests: CollectionTestCase {
       try MinimalDecoder.decode(v2, as: PD<Int, String>.self),
       d2)
 
-#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
       let d3: TreeDictionary<FancyDictionaryKey, Int16> = [
         FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
@@ -370,7 +369,6 @@ class TreeDictionaryTests: CollectionTestCase {
         try MinimalDecoder.decode(v3, as: PD<FancyDictionaryKey, Int16>.self),
         d3)
     }
-#endif
 
     let d4: TreeDictionary<BoringDictionaryKey, UInt8> = [
       // Note: we only have a single element to prevent ordering
@@ -392,7 +390,6 @@ class TreeDictionaryTests: CollectionTestCase {
       expectTrue($0 is DecodingError)
     }
 
-#if swift(>=5.6)
     if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
       let v6: MinimalEncoder.Value = .dictionary([
         "This is not a number": .string("bus"),
@@ -415,7 +412,6 @@ class TreeDictionaryTests: CollectionTestCase {
         try MinimalDecoder.decode(v7, as: PD<FancyDictionaryKey, String>.self),
         d7)
     }
-#endif
 
     let v8: MinimalEncoder.Value = .array([
       .int32(1), .string("bike"), .int32(2),

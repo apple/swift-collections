@@ -60,7 +60,7 @@
 @frozen // Not really -- this package is not at all ABI stable
 public struct TreeSet<Element: Hashable> {
   @usableFromInline
-  internal typealias _Node = HashTreeCollections._Node<Element, Void>
+  internal typealias _Node = _HashNode<Element, Void>
 
   @usableFromInline
   internal typealias _UnsafeHandle = _Node.UnsafeHandle

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -35,9 +35,7 @@ public struct Heap<Element: Comparable> {
   }
 }
 
-#if swift(>=5.5)
 extension Heap: Sendable where Element: Sendable {}
-#endif
 
 extension Heap {
   /// A Boolean value indicating whether or not the heap is empty.
@@ -76,7 +74,7 @@ extension Heap {
     _storage.append(element)
 
     _update { handle in
-      handle.bubbleUp(_Node(offset: handle.count - 1))
+      handle.bubbleUp(_HeapNode(offset: handle.count - 1))
     }
     _checkInvariants()
   }
@@ -119,7 +117,7 @@ extension Heap {
 
     if _storage.count > 0 {
       _update { handle in
-        let minNode = _Node.root
+        let minNode = _HeapNode.root
         handle.swapAt(minNode, with: &removed)
         handle.trickleDownMin(minNode)
       }
@@ -191,7 +189,7 @@ extension Heap {
 
     var removed = replacement
     _update { handle in
-      let minNode = _Node.root
+      let minNode = _HeapNode.root
       handle.swapAt(minNode, with: &removed)
       handle.trickleDownMin(minNode)
     }

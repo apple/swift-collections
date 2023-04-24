@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension OrderedDictionary: CustomStringConvertible {
   /// A textual representation of this instance.

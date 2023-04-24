@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension OrderedSet {
   /// Returns a Boolean value indicating whether two set values contain the

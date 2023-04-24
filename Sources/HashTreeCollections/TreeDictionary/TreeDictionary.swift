@@ -65,7 +65,7 @@
 @frozen // Not really -- this package is not at all ABI stable
 public struct TreeDictionary<Key: Hashable, Value> {
   @usableFromInline
-  internal typealias _Node = HashTreeCollections._Node<Key, Value>
+  internal typealias _Node = _HashNode<Key, Value>
 
   @usableFromInline
   internal typealias _UnsafeHandle = _Node.UnsafeHandle
@@ -345,6 +345,7 @@ extension TreeDictionary {
   public mutating func updateValue(
     _ value: __owned Value, forKey key: Key
   ) -> Value? {
+    defer { _fixLifetime(self) }
     let hash = _Hash(key)
     let r = _root.updateValue(.top, forKey: key, hash) {
       $0.initialize(to: (key, value))
@@ -364,6 +365,7 @@ extension TreeDictionary {
   internal mutating func _updateValue(
     _ value: __owned Value, forKey key: Key
   ) -> Bool {
+    defer { _fixLifetime(self) }
     let hash = _Hash(key)
     let r = _root.updateValue(.top, forKey: key, hash) {
       $0.initialize(to: (key, value))
@@ -470,6 +472,7 @@ extension TreeDictionary {
     default defaultValue: @autoclosure () -> Value,
     with body: (inout Value) throws -> R
   ) rethrows -> R {
+    defer { _fixLifetime(self) }
     let hash = _Hash(key)
     let r = _root.updateValue(.top, forKey: key, hash) {
       $0.initialize(to: (key, defaultValue()))

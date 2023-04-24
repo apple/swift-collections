@@ -10,8 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+@_spi(Testing) import Collections
+#else
 import _CollectionsTestSupport
 @_spi(Testing) import BitCollections
+#endif
 
 extension BitArray {
   static func _fromSequence<S: Sequence>(
@@ -144,7 +148,115 @@ final class BitArrayTests: CollectionTestCase {
       expectEqualElements(actual, expected)
     }
   }
-  
+
+  func test_conversion_to_BinaryInteger_truncating() {
+    let cases: [(bits: BitArray, signed: Int8, unsigned: UInt8)] = [
+      ("", 0, 0),
+      ("0", 0, 0),
+      ("1", -1, 1),
+      ("00", 0, 0),
+      ("01", 1, 1),
+      ("10", -2, 2),
+      ("11", -1, 3),
+      ("001", 1, 1),
+      ("010", 2, 2),
+      ("011", 3, 3),
+      ("100", -4, 4),
+      ("101", -3, 5),
+      ("110", -2, 6),
+      ("111", -1, 7),
+      // 8 bits
+      ("00000000", 0, 0),
+      ("10000000", -128, 128),
+      ("10000001", -127, 129),
+      ("11111111", -1, 255),
+      // 9 bits
+      ("000000000", 0, 0),
+      ("000000100", 4, 4),
+      ("010000000", -128, 128),
+      ("010000001", -127, 129),
+      ("011111111", -1, 255),
+      ("100000000", 0, 0),
+      ("100000001", 1, 1),
+      ("101111111", 127, 127),
+      ("110000000", -128, 128),
+      ("110000001", -127, 129),
+      ("111111110", -2, 254),
+      ("111111111", -1, 255),
+      // 32 bits
+      ("00000000000000000000000000000000", 0, 0),
+      ("00000000000000000000000001111111", 127, 127),
+      ("00000000000000000000000010000000", -128, 128),
+      ("00000000000000000000000011111111", -1, 255),
+      ("00000000000000000000000100000000", 0, 0),
+      ("11111111111111111111111110000000", -128, 128),
+      ("11111111111111111111111111111110", -2, 254),
+      ("11111111111111111111111111111111", -1, 255),
+    ]
+
+    withEvery("pair", in: cases) { (bits, signed, unsigned) in
+      let actual1 = Int8(truncatingIfNeeded: bits)
+      expectEqual(actual1, signed)
+
+      let actual2 = UInt8(truncatingIfNeeded: bits)
+      expectEqual(actual2, unsigned)
+    }
+  }
+
+  func test_conversion_to_BinaryInteger_exact() {
+    let cases: [(bits: BitArray, signed: Int8?, unsigned: UInt8?)] = [
+      ("", 0, 0),
+      ("0", 0, 0),
+      ("1", -1, 1),
+      ("00", 0, 0),
+      ("01", 1, 1),
+      ("10", -2, 2),
+      ("11", -1, 3),
+      ("001", 1, 1),
+      ("010", 2, 2),
+      ("011", 3, 3),
+      ("100", -4, 4),
+      ("101", -3, 5),
+      ("110", -2, 6),
+      ("111", -1, 7),
+      // 8 bits
+      ("00000000", 0, 0),
+      ("10000000", -128, 128),
+      ("10000001", -127, 129),
+      ("11111111", -1, 255),
+      // 9 bits
+      ("000000000", 0, 0),
+      ("000000100", 4, 4),
+      ("010000000", nil, 128),
+      ("010000001", nil, 129),
+      ("011111111", nil, 255),
+      ("100000000", nil, nil),
+      ("100000001", nil, nil),
+      ("101111111", nil, nil),
+      ("110000000", -128, nil),
+      ("110000001", -127, nil),
+      ("111111110", -2, nil),
+      ("111111111", -1, nil),
+      // 32 bits
+      ("00000000000000000000000000000000", 0, 0),
+      ("00000000000000000000000001111111", 127, 127),
+      ("00000000000000000000000010000000", nil, 128),
+      ("00000000000000000000000011111111", nil, 255),
+      ("00000000000000000000000100000000", nil, nil),
+      ("11111111111111111111111110000000", -128, nil),
+      ("11111111111111111111111111111110", -2, nil),
+      ("11111111111111111111111111111111", -1, nil),
+    ]
+
+    withEvery("pair", in: cases) { (bits, signed, unsigned) in
+      let actual1 = Int8(exactly: bits)
+      expectEqual(actual1, signed)
+
+      let actual2 = UInt8(exactly: bits)
+      expectEqual(actual2, unsigned)
+    }
+  }
+
   func test_init_BitSet() {
     expectEqualElements(BitArray(BitSet([])), [])
     expectEqualElements(BitArray(BitSet([0])), [true])
@@ -212,7 +324,76 @@ final class BitArrayTests: CollectionTestCase {
       true, true, false, false, true, true, true,
     ])
   }
-  
+
+  func test_ExpressibleByStringLiteral() {
+    let a: BitArray = ""
+    expectEqualElements(a, [])
+
+    let b: BitArray = "1"
+    expectEqualElements(b, [true])
+
+    let c: BitArray = "001"
+    expectEqualElements(c, [true, false, false])
+
+    let d: BitArray = "10001"
+    expectEqualElements(d, [true, false, false, false, true])
+
+    let e: BitArray = """
+      111001110100010110100000000100110010010101001000000100110010001
+      """
+    expectEqualElements(e, [
+      true, false, false, false, true, false, false,
+      true, true, false, false, true, false, false,
+      false, false, false, false, true, false, false,
+      true, false, true, false, true, false, false,
+      true, false, false, true, true, false, false,
+      true, false, false, false, false, false, false,
+      false, false, true, false, true, true, false,
+      true, false, false, false, true, false, true,
+      true, true, false, false, true, true, true,
+    ])
+  }
+
+  func test_literals() {
+    let cases: [(a: BitArray, b: BitArray)] = [
+      ("", []),
+      ("0", [false]),
+      ("1", [true]),
+      ("1010", [false, true, false, true]),
+      ("0101", [true, false, true, false]),
+      ("111000", [false, false, false, true, true, true]),
+      ("000111", [true, true, true, false, false, false]),
+    ]
+    withEvery("i", in: cases.indices) { i in
+      let (a, b) = cases[i]
+      expectEqual(a, b)
+    }
+  }
+
+  func test_LosslessStringConvertible() {
+    let cases: [(a: String, b: BitArray?)] = [
+      ("", []),
+      ("0", [false]),
+      ("1", [true]),
+      ("1010", [false, true, false, true]),
+      ("0101", [true, false, true, false]),
+      ("111000", [false, false, false, true, true, true]),
+      ("000111", [true, true, true, false, false, false]),
+      ("_", nil),
+      ("00010101X", nil),
+      ("①⓪⓪①", nil),
+      ("2341", nil),
+      ("00 10 01", nil),
+      ("  01", nil),
+      ("01 ", nil),
+    ]
+    withEvery("i", in: cases.indices) { i in
+      let (a, b) = cases[i]
+      let bits = BitArray(a)
+      expectEqual(bits, b)
+    }
+  }
+
   func test_Hashable() {
     // This is a silly test, but it does exercise hashing a bit.
     let classes: [[BitArray]] = [
@@ -628,7 +809,19 @@ final class BitArrayTests: CollectionTestCase {
     bits.reserveCapacity(2000)
     expectGreaterThanOrEqual(bits._capacity, 2000)
   }
-  
+
+  func test_init_minimumCapacity() {
+    let b1 = BitArray(minimumCapacity: 0)
+    expectEqual(b1._capacity, 0)
+
+    let cases = [0, 1, 100, 1000, 2000]
+    withEvery("capacity", in: cases) { capacity in
+      let bits = BitArray(minimumCapacity: capacity)
+      expectTrue(bits.isEmpty)
+      expectGreaterThanOrEqual(bits._capacity, capacity)
+    }
+  }
+
   func test_bitwiseOr() {
     withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
       withEvery("i", in: 0 ..< 10) { i in
@@ -719,35 +912,35 @@ final class BitArrayTests: CollectionTestCase {
   func test_random() {
     var rng = AllOnesRandomNumberGenerator()
     for c in [0, 10, 64, 65, 77, 1200] {
-      let array = BitArray.random(count: c, using: &rng)
+      let array = BitArray.randomBits(count: c, using: &rng)
       expectEqual(array.count, c)
       expectEqualElements(array, repeatElement(true, count: c))
     }
 
-    let a = Set((0..<10).map { _ in BitArray.random(count: 1000) })
+    let a = Set((0..<10).map { _ in BitArray.randomBits(count: 1000) })
     expectEqual(a.count, 10)
   }
 
   func test_description() {
     let a: BitArray = []
-    expectEqual("\(a)", "0")
+    expectEqual("\(a)", "")
 
     let b: BitArray = [true, false, true, true, true]
-    expectEqual("\(b)", "10111")
+    expectEqual("\(b)", "11101")
 
     let c: BitArray = [false, false, false, false, true, true, true, false]
-    expectEqual("\(c)", "00001110")
+    expectEqual("\(c)", "01110000")
   }
 
   func test_debugDescription() {
     let a: BitArray = []
-    expectEqual("\(String(reflecting: a))", "BitArray(0)")
+    expectEqual("\(String(reflecting: a))", "BitArray()")
 
     let b: BitArray = [true, false, true, true, true]
-    expectEqual("\(String(reflecting: b))", "BitArray(10111)")
+    expectEqual("\(String(reflecting: b))", "BitArray(11101)")
 
     let c: BitArray = [false, false, false, false, true, true, true, false]
-    expectEqual("\(String(reflecting: c))", "BitArray(00001110)")
+    expectEqual("\(String(reflecting: c))", "BitArray(01110000)")
   }
 
   func test_mirror() {
