@@ -108,7 +108,8 @@
 /// beginning of the collection. However, to avoid ambiguity between key-based
 /// and indexing subscripts, `OrderedDictionary` doesn't directly conform to
 /// `Collection`. Instead, it only conforms to `Sequence`, and provides a
-/// random-access collection view over its key-value pairs:
+/// random-access collection view over its key-value pairs, called
+/// ``elements-swift.property``:
 ///
 ///     responses[0] // `nil` (key-based subscript)
 ///     responses.elements[0] // `(200, "OK")` (index-based subscript)
@@ -116,7 +117,6 @@
 /// Because ordered dictionaries need to maintain unique keys, neither
 /// `OrderedDictionary` nor its `elements` view can conform to the full
 /// `MutableCollection` or `RangeReplaceableCollection` protocols.
-///
 /// However, `OrderedDictioanr` is still able to implement some of the
 /// requirements of these protocols. In particular, it supports permutation
 /// operations from `MutableCollection`:
