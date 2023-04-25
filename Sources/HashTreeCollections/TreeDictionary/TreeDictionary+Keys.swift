@@ -2,21 +2,23 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeDictionary {
   /// A view of a persistent dictionary’s keys, as a standalone collection.
   @frozen
   public struct Keys {
     @usableFromInline
-    internal typealias _Node = HashTreeCollections._Node<Key, Value>
+    internal typealias _Node = _HashNode<Key, Value>
 
     @usableFromInline
     internal var _base: TreeDictionary
@@ -36,10 +38,8 @@ extension TreeDictionary {
   }
 }
 
-#if swift(>=5.5)
 extension TreeDictionary.Keys: Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 extension TreeDictionary.Keys: _UniqueCollection {}
 
@@ -112,10 +112,8 @@ extension TreeDictionary.Keys: Sequence {
   }
 }
 
-#if swift(>=5.5)
 extension TreeDictionary.Keys.Iterator: Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 extension TreeDictionary.Keys: Collection {
   public typealias Index = TreeDictionary.Index

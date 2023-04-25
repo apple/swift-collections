@@ -132,7 +132,7 @@ extension OrderedDictionary {
   /// Use the `shuffle()` method to randomly reorder the elements of an ordered
   /// dictionary.
   ///
-  /// This method is equivalent to calling `shuffle(using:)`, passing in the
+  /// This method is equivalent to calling ``shuffle(using:)``, passing in the
   /// system's default random generator.
   ///
   /// - Complexity: O(*n*), where *n* is the length of the collection.

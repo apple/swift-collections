@@ -10,8 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import HashTreeCollections
+#endif
 
 class TreeDictionaryKeysTests: CollectionTestCase {
   func test_BidirectionalCollection_fixtures() {

@@ -11,7 +11,9 @@
 
 // The parts of MutableCollection that OrderedSet is able to implement.
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension OrderedSet {
   /// Exchanges the values at the specified indices of the set.

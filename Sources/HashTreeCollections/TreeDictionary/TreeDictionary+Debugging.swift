@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeDictionary {
   /// True if consistency checking is enabled in the implementation of this
@@ -32,7 +34,7 @@ extension TreeDictionary {
   }
 
   public static var _maxDepth: Int {
-    _Level.limit
+    _HashLevel.limit
   }
 
   public var _statistics: _HashTreeStatistics {

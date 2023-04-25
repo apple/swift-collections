@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(HeapModule
-  "_Node.swift"
+  "_HeapNode.swift"
   "Heap.swift"
   "Heap+Descriptions.swift"
   "Heap+ExpressibleByArrayLiteral.swift"

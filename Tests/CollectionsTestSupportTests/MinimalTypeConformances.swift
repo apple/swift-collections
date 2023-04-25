@@ -10,7 +10,9 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsTestSupport
+#endif
 
 final class MinimalTypeTests: CollectionTestCase {
   func testMinimalSequence() {

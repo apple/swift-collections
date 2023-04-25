@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeSet: _UniqueCollection {}
 
@@ -52,6 +54,7 @@ extension TreeSet {
   /// - Complexity: O(log(`count`)) if set storage might be shared; O(1)
   ///    otherwise.
   public mutating func update(_ member: Element, at index: Index) -> Element {
+    defer { _fixLifetime(self) }
     precondition(_isValid(index), "Invalid index")
     precondition(index._path.isOnItem, "Can't get element at endIndex")
     _invalidateIndices()

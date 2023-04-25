@@ -10,8 +10,12 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import OrderedCollections
 import _CollectionsTestSupport
+#endif
 
 class MeasuringHashable: Hashable {
   static var equalityChecks = 0

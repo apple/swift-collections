@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 /// An ordered collection of unique elements.
 ///
@@ -46,9 +48,9 @@ import _CollectionsUtilities
 /// # Set Operations
 ///
 /// `OrderedSet` implements most, but not all, `SetAlgebra` requirements. In
-/// particular, it supports the membership test `contains(_:)` as well as all
-/// high-level set operations such as `union(_:)`, `intersection(_:)` or
-/// `isSubset(of:)`.
+/// particular, it supports the membership test ``contains(_:)`` as well as all
+/// high-level set operations such as ``union(_:)-67y2h``,
+/// ``intersection(_:)-4o09a`` or ``isSubset(of:)-ptij``.
 ///
 ///     buildingMaterials.contains("glass") // false
 ///     buildingMaterials.intersection(["brick", "straw"]) // ["straw", "brick"]
@@ -58,20 +60,21 @@ import _CollectionsUtilities
 /// above, the ordering of elements in the result is guaranteed to match their
 /// order in the first input set, `buildingMaterials`.
 ///
-/// On the other hand, predicates such as `isSubset(of:)` tend to ignore element
-/// ordering:
+/// On the other hand, predicates such as ``isSubset(of:)-ptij`` tend to ignore
+/// element ordering:
 ///
 ///     let moreMaterials: OrderedSet = ["bricks", "glass", "sticks", "straw"]
 ///     buildingMaterials.isSubset(of: moreMaterials) // true
 ///
-/// However, `OrderedSet` does not implement `insert(_:)` nor `update(with:)` --
-/// it provides its own variants for insertion that are more explicit about
-/// where in the collection new elements gets inserted:
+/// `OrderedSet` does not implement `insert(_:)` nor `update(with:)` from
+/// `SetAlgebra` -- it provides its own variants for insertion that are more
+/// explicit about where in the collection new elements gets inserted:
 ///
-///     func insert(_ item: Element, at index: Int) -> (inserted: Bool, index: Int)
 ///     func append(_ item: Element) -> (inserted: Bool, index: Int)
-///     func update(at index: Int, with item: Element) -> Element
+///     func insert(_ item: Element, at index: Int) -> (inserted: Bool, index: Int)
 ///     func updateOrAppend(_ item: Element) -> Element?
+///     func updateOrInsert(_ item: Element, at index: Int) -> (originalMember: Element?, index: Int)
+///     func update(_ item: Element, at index: Int) -> Element
 ///
 /// Additionally,`OrderedSet` has an order-sensitive definition of equality (see
 /// above) that is incompatible with `SetAlgebra`'s documented semantic
@@ -83,8 +86,9 @@ import _CollectionsUtilities
 /// For cases where `SetAlgebra` conformance is desired (such as when passing an
 /// ordered set to a function that is generic over that protocol), `OrderedSet`
 /// provides an efficient *unordered view* of its elements that conforms to
-/// `SetAlgebra`. The unordered view implements the same concept of equality as
-/// the standard `Set`, ignoring element ordering.
+/// `SetAlgebra`. This view is accessed through the ``unordered`` property, and
+/// it implements the same concept of equality as the standard `Set`, ignoring
+/// element ordering.
 ///
 ///     var a: OrderedSet = [0, 1, 2, 3]
 ///     let b: OrderedSet = [3, 2, 1, 0]
@@ -128,13 +132,15 @@ import _CollectionsUtilities
 /// Because `OrderedSet` needs to keep its members unique, it cannot conform to
 /// the full `MutableCollection` or `RangeReplaceableCollection` protocols.
 /// Operations such as `MutableCollection`'s subscript setter or
-/// `RangeReplaceableCollection`'s `replaceSubrange` assume the ability to
-/// insert/replace arbitrary elements in the collection, but allowing that could
-/// lead to duplicate values.
+/// `RangeReplaceableCollection`'s `replaceSubrange` method assume the ability
+/// to insert/replace arbitrary elements in the collection, but allowing that
+/// could lead to duplicate values.
 ///
 /// However, `OrderedSet` is able to partially implement these two protocols;
-/// namely, there is no issue with mutation operations that merely change the
-/// order of elements, or just remove some subset of existing members.
+/// namely, it supports mutation operations that merely change the
+/// order of elements (such as ``sort()`` or ``swapAt(_:_:)``, or just remove
+/// some subset of existing members (such as ``remove(at:)`` or
+/// ``removeAll(where:)``).
 ///
 /// Accordingly, `OrderedSet` provides permutation operations from `MutableCollection`:
 /// - ``swapAt(_:_:)``
@@ -162,7 +168,7 @@ import _CollectionsUtilities
 /// that only takes an array value or (or something that's generic over
 /// `RangeReplaceableCollection` or `MutableCollection`), then the best option
 /// is usually to directly extract the members of the `OrderedSet` as an `Array`
-/// value using its `elements` property. `OrderedSet` uses a standard array
+/// value using its ``elements`` property. `OrderedSet` uses a standard array
 /// value for element storage, so extracting the array value has minimal
 /// overhead.
 ///

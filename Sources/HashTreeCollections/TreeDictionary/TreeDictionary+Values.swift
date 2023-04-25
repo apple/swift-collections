@@ -2,21 +2,23 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2023 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeDictionary {
   /// A view of a dictionary’s values.
   @frozen
   public struct Values {
     @usableFromInline
-    internal typealias _Node = HashTreeCollections._Node<Key, Value>
+    internal typealias _Node = TreeDictionary._Node
 
     @usableFromInline
     internal typealias _UnsafeHandle = _Node.UnsafeHandle
@@ -41,10 +43,8 @@ extension TreeDictionary {
   }
 }
 
-#if swift(>=5.5)
 extension TreeDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 extension TreeDictionary.Values: CustomStringConvertible {
   // A textual representation of this instance.
@@ -90,10 +90,8 @@ extension TreeDictionary.Values: Sequence {
   }
 }
 
-#if swift(>=5.5)
 extension TreeDictionary.Values.Iterator: Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 // Note: This cannot be a MutableCollection because its subscript setter
 // needs to invalidate indices.

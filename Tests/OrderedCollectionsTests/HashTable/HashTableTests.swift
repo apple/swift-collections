@@ -9,10 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG // These unit tests need access to OrderedSet internals
 import XCTest
+
+#if DEBUG // These unit tests use internal decls
+
+#if COLLECTIONS_SINGLE_MODULE
+@_spi(Testing) @testable import Collections
+#else
 import _CollectionsTestSupport
 @_spi(Testing) @testable import OrderedCollections
+#endif
 
 class HashTableTests: CollectionTestCase {
   typealias Bucket = _HashTable.Bucket

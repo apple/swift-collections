@@ -8,3 +8,4 @@ xcuserdata/
 /Benchmarks/.swiftpm
 /Benchmarks/.build
 .docc-build
+__pycache__

@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsUtilities
+#endif
 
 extension TreeSet: SetAlgebra {
   /// Returns a Boolean value that indicates whether the given element exists
@@ -49,6 +51,7 @@ extension TreeSet: SetAlgebra {
   public mutating func insert(
     _ newMember: __owned Element
   ) -> (inserted: Bool, memberAfterInsert: Element) {
+    defer { _fixLifetime(self) }
     let hash = _Hash(newMember)
     let r = _root.insert(.top, (newMember, ()), hash)
     if r.inserted {
@@ -115,6 +118,7 @@ extension TreeSet: SetAlgebra {
   @discardableResult
   @inlinable
   public mutating func update(with newMember: __owned Element) -> Element? {
+    defer { _fixLifetime(self) }
     let hash = _Hash(newMember)
     let r = _root.updateValue(.top, forKey: newMember, hash) {
       $0.initialize(to: (newMember, ()))
