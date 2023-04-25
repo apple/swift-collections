@@ -17,7 +17,7 @@ See https://swift.org/LICENSE.txt for license information
 function(get_swift_host_arch result_var_name)
   if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
     set("${result_var_name}" "x86_64" PARENT_SCOPE)
-  elseif ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "AArch64|aarch64|arm64")
+  elseif ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "AArch64|aarch64|arm64|ARM64")
     if(CMAKE_SYSTEM_NAME MATCHES Darwin)
       set("${result_var_name}" "arm64" PARENT_SCOPE)
     else()
