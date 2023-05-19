@@ -47,13 +47,16 @@ extension UInt {
     var shift: Self = 0
     var n = Self(truncatingIfNeeded: n)
 
-    if Self.bitWidth == 64 {
+    if MemoryLayout<UInt>.size == 8 {
       let c32 = (self & 0xFFFFFFFF)._nonzeroBitCount
       if n >= c32 {
         shift &+= 32
         n &-= c32
       }
+    } else {
+      assert(MemoryLayout<Self>.size == 4, "Unknown platform")
     }
+
     let c16 = ((self &>> shift) & 0xFFFF)._nonzeroBitCount
     if n >= c16 {
       shift &+= 16
@@ -184,13 +187,16 @@ extension UInt {
     var shift: Self = 0
     var n = Self(truncatingIfNeeded: n)
 
-    if Self.bitWidth == 64 {
+    if MemoryLayout<UInt>.size == 8 {
       let c32 = (self & 0xFFFFFFFF)._nonzeroBitCount
       if n >= c32 {
         shift &+= 32
         n &-= c32
       }
+    } else {
+      assert(MemoryLayout<Self>.size == 4, "Unknown platform")
     }
+
     let c16 = ((self &>> shift) & 0xFFFF)._nonzeroBitCount
     if n >= c16 {
       shift &+= 16
