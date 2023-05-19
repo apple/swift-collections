@@ -1109,6 +1109,14 @@ final class BitSetTest: CollectionTestCase {
 
     let c = BitSet(130 ..< 160)
     expectTrue(c.isEqualSet(to: 130 ..< 160))
+
+    withEvery("i", in: stride(from: 0, to: 200, by: 4)) { i in
+      withEvery("j", in: stride(from: i, to: 200, by: 4)) { j in
+        let c = BitSet(i ..< j)
+        expectTrue(c.isEqualSet(to: i ..< j))
+        expectFalse(c.isEqualSet(to: i ..< (j + 1)))
+      }
+    }
   }
 
   func test_isEqual_to_counted_BitSet() {
