@@ -21,20 +21,34 @@ import HashTreeCollections
 ///
 /// Note: Try to keep this short. Every new item added here will quadruple
 /// testing costs.
-let testItems = [
-  RawCollider(1, "A"),
-  RawCollider(2, "B"),
-  RawCollider(3, "ACA"),
-  RawCollider(4, "ACB"),
-  RawCollider(5, "ACAD"),
-  RawCollider(6, "ACAD"),
-  RawCollider(7, "ACAEB"),
-  RawCollider(8, "ACAEB"),
-  RawCollider(9, "ACAEB"),
-  //    RawCollider(10, "ACAEB"),
-  //    RawCollider(11, "ADAD"),
-  //    RawCollider(12, "ACC"),
-]
+let testItems: [RawCollider] = {
+  var testItems = [
+    RawCollider(1, "A"),
+    RawCollider(2, "B"),
+    RawCollider(3, "ACA"),
+    RawCollider(4, "ACB"),
+    RawCollider(5, "ACAD"),
+    RawCollider(6, "ACAD"),
+  ]
+  if MemoryLayout<Int>.size == 8 {
+    // Cut testing workload down a bit on 32-bit systems. In practice a 32-bit Int
+    // usually means we're running on a watchOS device (arm64_32), and those are relatively slow
+    // to run these.
+    testItems += [
+      RawCollider(7, "ACAEB"),
+      RawCollider(8, "ACAEB"),
+      RawCollider(9, "ACAEB"),
+    ]
+  }
+  #if false // Enable for even deeper testing
+  testItems += [
+    RawCollider(10, "ACAEB"),
+    RawCollider(11, "ADAD"),
+    RawCollider(12, "ACC"),
+  ]
+  #endif
+  return testItems
+}()
 
 extension LifetimeTracker {
   func shareableDictionary<Key, Value, C: Collection>(
@@ -106,12 +120,35 @@ extension LifetimeTracker {
 /// the same order as we expect a preorder walk would visit them in the
 /// resulting tree. The resulting ordering is then used to insert key/value
 /// pairs into the map, with sequentially increasing keys.
-let _fixtures: KeyValuePairs<String, [String]> = [
-  "empty": [],
-  "single-item": [
-    "A"
-  ],
-  "single-node": [
+let fixtures: [Fixture] = {
+  var fixtures: Array<Fixture> = []
+
+  enum FixtureFlavor {
+    case any
+    case small // 32-bit platforms
+    case large // 64-bit platforms
+
+    func isAllowed() -> Bool {
+      let reject: FixtureFlavor
+#if arch(i386) || arch(arm64_32)
+      reject = .large
+#else
+      precondition(MemoryLayout<Int>.size == 8, "Unknown platform")
+      reject = .small
+#endif
+      return self != reject
+    }
+  }
+
+  func add(_ title: String, flavor: FixtureFlavor = .any, _ contents: [String]) {
+    // Ignore unsupported flavors
+    guard flavor.isAllowed() else { return }
+    fixtures.append(Fixture(title: title, contents: contents))
+  }
+  
+  add("empty", [])
+  add("single-item", ["A"])
+  add("single-node", [
     "0",
     "1",
     "2",
@@ -121,26 +158,28 @@ let _fixtures: KeyValuePairs<String, [String]> = [
     "B",
     "C",
     "D",
-  ],
-  "few-collisions": [
+  ])
+  add("few-collisions", [
     "42*5"
-  ],
-  "many-collisions": [
+  ])
+  add("many-collisions", [
     "42*40"
-  ],
-  "few-different-collisions": [
+  ])
+  
+  add("few-different-collisions", [
     "1*3",
     "21*3",
     "22*3",
     "3*3",
-  ],
-  "everything-on-the-2nd-level": [
+  ])
+  
+  add("everything-on-the-2nd-level", [
     "00", "01", "02", "03", "04",
     "10", "11", "12", "13", "14",
     "20", "21", "22", "23", "24",
     "30", "31", "32", "33", "34",
-  ],
-  "two-levels-mixed": [
+  ])
+  add("two-levels-mixed", [
     "00", "01",
     "2",
     "30", "33",
@@ -151,64 +190,65 @@ let _fixtures: KeyValuePairs<String, [String]> = [
     "8",
     "94", "98", "9A",
     "A3", "A4",
-  ],
-  "vee": [
+  ])
+  add("vee", [
     "11110",
     "11115",
     "11119",
     "1111B",
     "66664",
     "66667",
-  ],
-  "fork": [
+  ])
+  
+  add("fork", [
     "31110",
     "31115",
     "31119",
     "3111B",
     "36664",
     "36667",
-  ],
-  "chain-left": [
+  ])
+  add("chain-left", [
     "0",
     "10",
     "110",
     "1110",
     "11110",
     "11111",
-  ],
-  "chain-right": [
+  ])
+  add("chain-right", [
     "1",
     "01",
     "001",
     "0001",
     "00001",
     "000001",
-  ],
-  "expansion0": [
-    "00000001*3",
-    "00001",
-  ],
-  "expansion1": [
-    "00000001*3",
+  ])
+  add("expansion0", [
+    "000001*3",
+    "0001",
+  ])
+  add("expansion1", [
+    "000001*3",
     "01",
-    "00001",
-  ],
-  "expansion2": [
-    "11111111*3",
+    "0001",
+  ])
+  add("expansion2", [
+    "111111*3",
     "10",
-    "11110",
-  ],
-  "expansion3": [
+    "1110",
+  ])
+  add("expansion3", [
     "01",
-    "00001",
-    "00000001*3",
-  ],
-  "expansion4": [
+    "0001",
+    "000001*3",
+  ])
+  add("expansion4", [
     "10",
-    "11110",
-    "11111111*3",
-  ],
-  "nested": [
+    "1110",
+    "111111*3",
+  ])
+  add("nested", flavor: .large, [
     "50",
     "51",
     "520",
@@ -243,24 +283,21 @@ let _fixtures: KeyValuePairs<String, [String]> = [
     "5224",
     "53",
     "54",
-  ],
-  "deep": [
+  ])
+  add("deep", [
     "0",
-
+    
     // Deeply nested children with only the leaf containing items
-    "1234560",
-    "1234561",
-    "1234562",
-    "1234563",
-
+    "123450",
+    "123451",
+    "123452",
+    "123453",
+    
     "22",
     "25",
-  ],
-]
-
-let fixtures: [Fixture] = _fixtures.map {
-  Fixture(title: $0, contents: $1)
-}
+  ])
+  return fixtures
+}()
 
 struct Fixture {
   let title: String
@@ -280,20 +317,20 @@ struct Fixture {
 
     var items: [(path: String, item: RawCollider)] = []
     var seen: Set<String> = []
-    for var path in contents {
+    for path in contents {
       if let i = path.unicodeScalars.firstIndex(of: "*") {
         // We need to extend the path of collisions with zeroes to
         // make sure they sort correctly.
         let p = String(path.unicodeScalars.prefix(upTo: i))
         guard let count = Int(path.suffix(from: i).dropFirst(), radix: 10)
         else { fatalError("Invalid item: '\(path)'") }
-        path = normalized(p)
+        let path = normalized(p)
         let hash = Hash(path)!
         for _ in 0 ..< count {
           items.append((path, RawCollider(items.count, hash)))
         }
       } else {
-        path = normalized(path)
+        let path = normalized(path)
         let hash = Hash(path)!
         items.append((path, RawCollider(items.count, hash)))
       }
