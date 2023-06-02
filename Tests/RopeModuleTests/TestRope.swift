@@ -484,6 +484,9 @@ class TestRope: CollectionTestCase {
 
   func test_removeSubrange_simple() {
     var rope = Rope<Chunk>()
+
+    checkRemoveSubrange(rope, [], range: 0 ..< 0)
+
     for i in 0 ..< 10 {
       rope.append(Chunk(length: 10, value: i))
     }
@@ -533,7 +536,6 @@ class TestRope: CollectionTestCase {
     checkRemoveSubrange(rope, ref, range: 1 ..< 99)
     checkRemoveSubrange(rope, ref, range: 1 ..< 59)
     checkRemoveSubrange(rope, ref, range: 61 ..< 99)
-
   }
 
   func test_removeSubrange_larger() {
@@ -582,4 +584,65 @@ class TestRope: CollectionTestCase {
     }
   }
 
+  func test_replaceSubrange_simple() {
+    let ranges: [Range<Int>] = [
+      // Basics
+      0 ..< 0, 30 ..< 30, 0 ..< 100,
+      // Whole individual chunks
+      90 ..< 100, 0 ..< 10, 30 ..< 40, 70 ..< 80,
+      // Prefixes of single chunks
+      0 ..< 1, 30 ..< 35, 60 ..< 66, 90 ..< 98,
+
+      // Suffixes of single chunks
+      9 ..< 10, 35 ..< 40, 64 ..< 70, 98 ..< 100,
+
+      // Neighboring couple of whole chunks
+      0 ..< 20, 80 ..< 100, 10 ..< 30,
+      50 ..< 70, // Crosses nodes!
+
+      // Longer whole chunk sequences
+      0 ..< 30, 70 ..< 90,
+      0 ..< 60, // entire first node
+      60 ..< 100, // entire second node
+      40 ..< 70, // crosses into second node
+      10 ..< 90, // crosses into second node
+
+      // Arbitrary cuts
+      0 ..< 69, 42 ..< 73, 21 ..< 89, 1 ..< 99, 1 ..< 59, 61 ..< 99,
+    ]
+
+    let replacements: [[Chunk]] = [
+      [],
+      [-1],
+      Array(repeating: -1, count: 10),
+      Array(repeating: -1, count: 100),
+    ].map { chunkify($0) }
+
+    let rope: Rope<Chunk> = {
+      var rope = Rope<Chunk>()
+      for i in 0 ..< 10 {
+        rope.append(Chunk(length: 10, value: i))
+      }
+      return rope
+    }()
+    let ref = (0 ..< 10).flatMap { Array(repeating: $0, count: 10) }
+
+    withEvery("replacement", in: replacements) { replacement in
+      var rope = Rope<Chunk>()
+      rope.replaceSubrange(0 ..< 0, in: Chunk.Metric(), with: replacement)
+      checkEqual(rope, replacement)
+    }
+
+    withEvery("replacement", in: replacements) { replacement in
+      withEvery("range", in: ranges) { range in
+        var expected = ref
+        expected.removeSubrange(range)
+
+        var actual = rope
+        actual.removeSubrange(range, in: Chunk.Metric())
+
+        checkEqual(actual, expected)
+      }
+    }
+  }
 }

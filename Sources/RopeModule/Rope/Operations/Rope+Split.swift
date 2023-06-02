@@ -18,6 +18,10 @@ extension Rope {
     _invalidateIndices()
     var builder = Builder()
 
+    if self.isEmpty {
+      precondition(position == 0, "Position out of bounds")
+      return builder
+    }
     var position = position
     var node = root
     _root = nil
