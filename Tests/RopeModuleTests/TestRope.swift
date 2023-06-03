@@ -235,7 +235,29 @@ class TestRope: CollectionTestCase {
       }
     }
   }
-  
+
+  func test_find() {
+    let c = 500
+
+    let chunks = (0 ..< c).map {
+      Chunk(length: ($0 % 4) + 1, value: $0)
+    }
+    let rope = Rope<Chunk>(chunks)
+    let ref = chunks.flatMap { Array(repeating: $0.value, count: $0.length) }
+
+    for i in 0 ..< ref.count {
+      let (index, remaining) = rope.find(at: i, in: Chunk.Metric(), preferEnd: false)
+      let chunk = rope[index]
+      expectEqual(chunk.value, ref[i])
+      let pos = ref[..<i].lastIndex { $0 != ref[i] }.map { $0 + 1 }
+      expectEqual(remaining, i - (pos ?? 0))
+    }
+
+    let end = rope.find(at: ref.count, in: Chunk.Metric(), preferEnd: false)
+    expectEqual(end.index, rope.endIndex)
+    expectEqual(end.remaining, 0)
+  }
+
   func test_index_offsetBy() {
     let c = 500
     

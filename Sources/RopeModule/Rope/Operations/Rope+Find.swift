@@ -19,7 +19,7 @@ extension Rope {
     let wholeSize = _root == nil ? 0 : metric.size(of: root.summary)
     precondition(position >= 0 && position <= wholeSize, "Position out of bounds")
     guard !isEmpty, preferEnd || position < wholeSize else {
-      return (endIndex, position)
+      return (endIndex, 0)
     }
     var position = position
     var node = root
