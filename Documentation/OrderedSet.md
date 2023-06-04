@@ -224,7 +224,7 @@ cannot be induced merely by adding a particular list of members to the set.
 The easiest way to achieve this is to make sure `Element` implements hashing
 following `Hashable`'s documented best practices. The conformance must
 implement the `hash(into:)` requirement, and every bit of information that
-is compared in `==` needs to be combined into the supplied `Hasher` value.
+is combined into the supplied `Hasher` value must be compared in `==`.
 When used correctly, `Hasher` produces high-quality, randomly seeded hash
 values that prevent repeatable hash collisions.
 
