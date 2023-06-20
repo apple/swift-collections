@@ -32,7 +32,7 @@ two nodes:
 ```
 
 The root node directly contains `Maximo`, because it is the only set member
-whose hash value starts with `8`. However, the first digits of the hashes of
+whose hash value starts with `2`. However, the first digits of the hashes of
 `Julia` and `Don Pablo` are both `A`, so these items reside in a separate
 node, one level below the root.
 
