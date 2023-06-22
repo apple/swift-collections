@@ -35,7 +35,7 @@ extension Array {
     // The bug is caused by a bogus precondition inside a non-inlinable stdlib
     // method, so to determine if we're affected, we need to check the currently
     // running OS version.
-    #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+    #if canImport(Darwin)
     if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
       // The OS is too new to be affected by this bug. (>= 5.5 stdlib)
       return false

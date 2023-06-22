@@ -19,7 +19,7 @@ open class CollectionTestCase: XCTestCase {
 
   open var isAvailable: Bool { true }
 
-  #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
+  #if canImport(Darwin)
   open override func invokeTest() {
     guard isAvailable else {
       print("\(Self.self) unavailable; skipping")
