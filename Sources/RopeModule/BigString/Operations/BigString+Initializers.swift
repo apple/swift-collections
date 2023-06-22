@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   internal init(_from input: some StringProtocol) {
     var builder = _Rope.Builder()
@@ -86,7 +86,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension String {
   public init(_ big: BigString) {
     guard !big.isEmpty else {
@@ -103,7 +103,7 @@ extension String {
       self.append(chunk.string)
     }
   }
-  
+
   internal init(_from big: BigString, in range: Range<BigString.Index>) {
     self.init()
 

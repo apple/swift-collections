@@ -11,17 +11,17 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   struct Builder {
     typealias _Chunk = BigString._Chunk
     typealias _Ingester = BigString._Ingester
     typealias _Rope = BigString._Rope
-    
+
     var base: _Rope.Builder
     var suffixStartState: _CharacterRecognizer
     var prefixEndState: _CharacterRecognizer
-    
+
     init(
       base: _Rope.Builder,
       prefixEndState: _CharacterRecognizer,
@@ -40,7 +40,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension Rope<BigString._Chunk>.Builder {
   internal func _breakState() -> _CharacterRecognizer {
     let chars = self.prefixSummary.characters
@@ -59,16 +59,16 @@ extension Rope<BigString._Chunk>.Builder {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Builder {
   mutating func append(_ str: __owned some StringProtocol) {
     append(Substring(str))
   }
-  
+
   mutating func append(_ str: __owned String) {
     append(str[...])
   }
-  
+
   mutating func append(_ str: __owned Substring) {
     guard !str.isEmpty else { return }
     var ingester = _Ingester(str, startState: self.prefixEndState)
@@ -83,18 +83,18 @@ extension BigString.Builder {
     }
     self.prefixEndState = ingester.state
   }
-  
+
   mutating func append(_ newChunk: __owned _Chunk) {
     var state = _CharacterRecognizer()
     append(newChunk, state: &state)
   }
-  
+
   mutating func append(_ newChunk: __owned _Chunk, state: inout _CharacterRecognizer) {
     var newChunk = newChunk
     newChunk.resyncBreaksFromStartToEnd(old: &state, new: &self.prefixEndState)
     self.base.insertBeforeTip(newChunk)
   }
-  
+
   mutating func append(_ other: __owned BigString) {
     var state = _CharacterRecognizer()
     append(other._rope, state: &state)
@@ -111,7 +111,7 @@ extension BigString.Builder {
     other._rope.resyncBreaksToEnd(old: &state, new: &self.prefixEndState)
     self.base.insertBeforeTip(other._rope)
   }
-  
+
   mutating func append(from ingester: inout _Ingester) {
     //assert(ingester.state._isKnownEqual(to: self.prefixEndState))
     if var prefix = base._prefix._take() {
@@ -120,9 +120,9 @@ extension BigString.Builder {
       }
       base._prefix = prefix
     }
-    
+
     let suffixCount = base._suffix?.value.utf8Count ?? 0
-    
+
     while let chunk = ingester.nextWellSizedChunk(suffix: suffixCount) {
       base.insertBeforeTip(chunk)
     }
@@ -131,7 +131,7 @@ extension BigString.Builder {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Builder {
   mutating func finalize() -> BigString {
     // Resync breaks in suffix.

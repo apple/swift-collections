@@ -60,7 +60,7 @@ where Key: Encodable, Value: Encodable
       }
       return
     }
-    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, xrOS 1.0, *),
             Key.self is CodingKeyRepresentable.Type {
       // Since the keys are CodingKeyRepresentable, we can use the `codingKey`
       // to create `_DictionaryCodingKey` instances.
@@ -131,7 +131,7 @@ where Key: Decodable, Value: Decodable
       return
     }
 
-    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *),
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, xrOS 1.0, *),
        let keyType = Key.self as? CodingKeyRepresentable.Type {
       // The keys are CodingKeyRepresentable, so we should be able to expect
       // a keyed container.

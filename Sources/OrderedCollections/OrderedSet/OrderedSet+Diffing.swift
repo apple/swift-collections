@@ -15,7 +15,7 @@ extension OrderedSet {
   /// testing and the member uniqueness guarantees of `OrderedSet`.
   ///
   /// - Complexity: O(`self.count + other.count`)
-  @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+  @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, xrOS 1.0, *)
   public func difference(
     from other: Self
   ) -> CollectionDifference<Element> {
@@ -91,7 +91,7 @@ extension OrderedSet {
   ///
   /// - Complexity: O(*n* + *c*), where *n* is `self.count` and *c*
   ///   is the number of changes contained by the parameter.
-  @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+  @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, xrOS 1.0, *)
   public func applying(_ difference: CollectionDifference<Element>) -> Self? {
     guard let array = self.elements.applying(difference) else { return nil }
     let result = OrderedSet(array)

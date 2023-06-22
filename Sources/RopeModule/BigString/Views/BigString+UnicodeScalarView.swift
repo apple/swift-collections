@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   public struct UnicodeScalarView: Sendable {
     var _base: BigString
@@ -45,28 +45,28 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value.unicodeScalars)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
     String(_base)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, to: right._base)
@@ -77,14 +77,14 @@ extension BigString.UnicodeScalarView: Equatable {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: Sequence {
   public typealias Element = UnicodeScalar
 
@@ -103,7 +103,7 @@ extension BigString.UnicodeScalarView: Sequence {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView.Iterator: IteratorProtocol {
   public typealias Element = UnicodeScalar
 
@@ -127,7 +127,7 @@ extension BigString.UnicodeScalarView.Iterator: IteratorProtocol {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = BigSubstring.UnicodeScalarView
@@ -172,7 +172,7 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView {
   public func index(roundingDown i: Index) -> Index {
     _base._unicodeScalarIndex(roundingDown: i)
@@ -183,7 +183,7 @@ extension BigString.UnicodeScalarView {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   public init() {
     self._base = BigString()

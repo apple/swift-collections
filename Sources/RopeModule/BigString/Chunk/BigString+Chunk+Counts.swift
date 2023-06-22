@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString._Chunk {
   struct Counts: Equatable {
     /// The number of UTF-8 code units within this chunk.
@@ -28,7 +28,7 @@ extension BigString._Chunk {
     /// The number of UTF-8 code units at the end of this chunk that form the start a Character
     /// whose end scalar is in a subsequent chunk.
     var _suffix: UInt8
-    
+
     init() {
       self.utf8 = 0
       self.utf16 = 0
@@ -37,7 +37,7 @@ extension BigString._Chunk {
       self._prefix =  0
       self._suffix = 0
     }
-    
+
     init(
       utf8: UInt8,
       utf16: UInt8,
@@ -54,7 +54,7 @@ extension BigString._Chunk {
       self._prefix = prefix
       self._suffix = suffix
     }
-    
+
     init(
       utf8: Int,
       utf16: Int,
@@ -71,7 +71,7 @@ extension BigString._Chunk {
       self._prefix = UInt8(prefix)
       self._suffix = UInt8(suffix)
     }
-    
+
     init(
       anomalousUTF8 utf8: Int,
       utf16: Int,
@@ -84,7 +84,7 @@ extension BigString._Chunk {
       self._prefix = self.utf8
       self._suffix = self.utf8
     }
-    
+
     init(_ slice: Slice) {
       let c = slice.string.utf8.count
       precondition(c <= BigString._Chunk.maxUTF8Count)
@@ -99,37 +99,37 @@ extension BigString._Chunk {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString._Chunk.Counts {
   var characters: Int {
     get { Int(_characters) }
     set { _characters = UInt8(newValue) }
   }
-  
+
   var prefix: Int {
     get { Int(_prefix) }
     set { _prefix = UInt8(newValue) }
   }
-  
+
   var suffix: Int {
     get { Int(_suffix) }
     set { _suffix = UInt8(newValue) }
   }
-  
+
   var hasBreaks: Bool {
     _prefix < utf8
   }
-  
+
   func hasSpaceToMerge(_ other: Self) -> Bool {
     Int(utf8) + Int(other.utf8) <= BigString._Chunk.maxUTF8Count
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString._Chunk.Counts {
   mutating func append(_ other: Self) {
     assert(hasSpaceToMerge(other))
-    
+
     switch (self.hasBreaks, other.hasBreaks) {
     case (true, true):
       self._suffix = other._suffix

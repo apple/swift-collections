@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 var isRunningOnSwiftStdlib5_8: Bool {
-  if #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *) {
+  if #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *) {
     return true
   }
   return false

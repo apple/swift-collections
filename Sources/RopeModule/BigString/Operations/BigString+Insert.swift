@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   mutating func _insert(
     contentsOf other: __owned Substring,
@@ -23,7 +23,7 @@ extension BigString {
       self.append(contentsOf: other)
       return
     }
-    
+
     // Note: we must disable the forward peeking optimization as we'll need to know the actual
     // full grapheme breaking state of the ingester at the start of the insertion.
     // (We'll use it to resync grapheme breaks in the parts that follow the insertion.)
@@ -54,7 +54,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   mutating func _insert(contentsOf other: __owned Self, at index: Index) {
     guard index < endIndex else {
@@ -78,7 +78,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   mutating func _insert(contentsOf other: __owned Self, in range: Range<Index>, at index: Index) {
     guard index < endIndex else {

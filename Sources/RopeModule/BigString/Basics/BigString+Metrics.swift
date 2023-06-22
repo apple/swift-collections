@@ -11,14 +11,14 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   func distance(
     from start: String.Index,
     to end: String.Index,
     in chunk: BigString._Chunk
   ) -> Int
-  
+
   func formIndex(
     _ i: inout String.Index,
     offsetBy distance: inout Int,
@@ -26,17 +26,17 @@ internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   ) -> (found: Bool, forward: Bool)
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   internal struct _CharacterMetric: _StringMetric {
     typealias Element = BigString._Chunk
     typealias Summary = BigString.Summary
-    
+
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.characters
     }
-    
+
     func distance(
       from start: String.Index,
       to end: String.Index,
@@ -44,7 +44,7 @@ extension BigString {
     ) -> Int {
       chunk.characterDistance(from: start, to: end)
     }
-    
+
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
@@ -52,19 +52,19 @@ extension BigString {
     ) -> (found: Bool, forward: Bool) {
       chunk.formCharacterIndex(&i, offsetBy: &distance)
     }
-    
+
     func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       precondition(offset < chunk.characterCount)
       return chunk.wholeCharacters._index(at: offset)
     }
   }
-  
+
   internal struct _UnicodeScalarMetric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.unicodeScalars
     }
-    
+
     func distance(
       from start: String.Index,
       to end: String.Index,
@@ -72,7 +72,7 @@ extension BigString {
     ) -> Int {
       chunk.string.unicodeScalars.distance(from: start, to: end)
     }
-    
+
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
@@ -97,18 +97,18 @@ extension BigString {
       }
       return (distance == 0, false)
     }
-    
+
     func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       chunk.string.unicodeScalars.index(chunk.string.startIndex, offsetBy: offset)
     }
   }
-  
+
   internal struct _UTF8Metric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.utf8
     }
-    
+
     func distance(
       from start: String.Index,
       to end: String.Index,
@@ -116,7 +116,7 @@ extension BigString {
     ) -> Int {
       chunk.string.utf8.distance(from: start, to: end)
     }
-    
+
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
@@ -136,7 +136,7 @@ extension BigString {
         distance = 0
         return (true, true)
       }
-      
+
       if offset + distance < 0 {
         i = chunk.string.startIndex
         distance += offset
@@ -146,18 +146,18 @@ extension BigString {
       distance = 0
       return (true, false)
     }
-    
+
     func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       chunk.string.utf8.index(chunk.string.startIndex, offsetBy: offset)
     }
   }
-  
+
   internal struct _UTF16Metric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.utf16
     }
-    
+
     func distance(
       from start: String.Index,
       to end: String.Index,
@@ -165,7 +165,7 @@ extension BigString {
     ) -> Int {
       chunk.string.utf16.distance(from: start, to: end)
     }
-    
+
     func formIndex(
       _ i: inout String.Index,
       offsetBy distance: inout Int,
@@ -185,7 +185,7 @@ extension BigString {
         i = chunk.string.endIndex
         return (false, true)
       }
-      
+
       if
         distance.magnitude <= chunk.utf16Count,
         let r = chunk.string.utf16.index(
@@ -199,7 +199,7 @@ extension BigString {
       i = chunk.string.startIndex
       return (false, false)
     }
-    
+
     func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
       chunk.string.utf16.index(chunk.string.startIndex, offsetBy: offset)
     }

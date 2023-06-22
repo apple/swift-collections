@@ -18,7 +18,7 @@ import _CollectionsTestSupport
 import _RopeModule
 #endif
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 class TestBigString: CollectionTestCase {
   override var isAvailable: Bool { isRunningOnSwiftStdlib5_8 }
 
@@ -28,7 +28,7 @@ class TestBigString: CollectionTestCase {
     setbuf(stderr, nil)
     super.setUp()
   }
-  
+
   override func setUp() {
     print("Global seed: \(RepeatableRandomNumberGenerator.globalSeed)")
     super.setUp()
@@ -161,7 +161,7 @@ class TestBigString: CollectionTestCase {
         $0 == big.endIndex ? nil : big.index(after: $0)
       }
     )
-    
+
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
 
     let c = min(indices1.count, indices2.count)
@@ -184,7 +184,7 @@ class TestBigString: CollectionTestCase {
     }
     return (indices1, indices2)
   }
-  
+
   @discardableResult
   func checkScalarIndices(
     _ flat: String,
@@ -211,7 +211,7 @@ class TestBigString: CollectionTestCase {
         $0 == big.endIndex ? nil : big.unicodeScalars.index(after: $0)
       }
     )
-    
+
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
 
     let c = min(indices1.count, indices2.count)
@@ -234,7 +234,7 @@ class TestBigString: CollectionTestCase {
     }
     return (indices1, indices2)
   }
-  
+
   @discardableResult
   func checkUTF8Indices(
     _ flat: String,
@@ -261,7 +261,7 @@ class TestBigString: CollectionTestCase {
         $0 == big.endIndex ? nil : big.utf8.index(after: $0)
       }
     )
-    
+
     XCTAssertEqual(indices2.count, indices1.count, file: file, line: line)
 
     let c = min(indices1.count, indices2.count)
@@ -284,7 +284,7 @@ class TestBigString: CollectionTestCase {
     }
     return (indices1, indices2)
   }
-  
+
   @discardableResult
   func checkUTF16Indices(
     _ flat: String,
@@ -399,16 +399,16 @@ class TestBigString: CollectionTestCase {
   func test_indices_character() {
     let flat = sampleString
     let big = BigString(flat)
-    
+
     let (indices1, indices2) = checkCharacterIndices(flat, big)
-    
+
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 5, seed: 0) {
       for j in randomStride(from: i, to: c, by: 5, seed: i) {
         let i1 = indices1[i]
         let j1 = indices1[j]
         let a = String(sampleString[i1 ..< j1])
-        
+
         let i2 = indices2[i]
         let j2 = big.index(i2, offsetBy: j - i)
         XCTAssertEqual(big.index(roundingDown: i2), i2)
@@ -418,18 +418,18 @@ class TestBigString: CollectionTestCase {
       }
     }
   }
-  
+
   func test_indices_scalar() {
     let flat = sampleString
     let big = BigString(flat)
-    
+
     let (indices1, indices2) = checkScalarIndices(flat, big)
-    
+
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 20, seed: 0) {
       for j in randomStride(from: i, to: c, by: 20, seed: i) {
         let a = String(sampleString.unicodeScalars[indices1[i] ..< indices1[j]])
-        
+
         let i2 = indices2[i]
         let j2 = big.unicodeScalars.index(i2, offsetBy: j - i)
         XCTAssertEqual(big.unicodeScalars.index(roundingDown: i2), i2)
@@ -440,13 +440,13 @@ class TestBigString: CollectionTestCase {
       }
     }
   }
-  
+
   func test_indices_utf16() {
     let flat = sampleString
     let big = BigString(flat)
-    
+
     let (indices1, indices2) = checkUTF16Indices(flat, big)
-    
+
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 20, seed: 0) {
       for j in randomStride(from: i, to: c, by: 20, seed: i) {
@@ -462,13 +462,13 @@ class TestBigString: CollectionTestCase {
       }
     }
   }
-  
+
   func test_indices_utf8() {
     let flat = sampleString
     let big = BigString(flat)
-    
+
     let (indices1, indices2) = checkUTF8Indices(flat, big)
-    
+
     let c = min(indices1.count, indices2.count)
     for i in randomStride(from: 0, to: c, by: 40, seed: 0) {
       for j in randomStride(from: i, to: c, by: 40, seed: i) {
@@ -484,7 +484,7 @@ class TestBigString: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_string() {
     let flat = sampleString
     let ref = BigString(flat)
@@ -506,7 +506,7 @@ class TestBigString: CollectionTestCase {
       XCTAssertTrue(big.utf8 == ref.utf8)
     }
   }
-  
+
   func test_append_big() {
     let flat = sampleString
     let ref = BigString(flat)
@@ -530,7 +530,7 @@ class TestBigString: CollectionTestCase {
       XCTAssertTrue(big.utf8 == ref.utf8)
     }
   }
-  
+
   func pieces(of str: String, by stride: Int) -> [(i: Int, str: String)] {
     var pieces: [(i: Int, str: String)] = []
     var c = 0
@@ -544,7 +544,7 @@ class TestBigString: CollectionTestCase {
     }
     return pieces
   }
-  
+
   func test_insert_string() {
     let flat = sampleString
     let ref = BigString(flat)
@@ -553,7 +553,7 @@ class TestBigString: CollectionTestCase {
       var pieces = pieces(of: flat, by: stride)
       var rng = RepeatableRandomNumberGenerator(seed: 0)
       pieces.shuffle(using: &rng)
-      
+
       var big: BigString = ""
       var smol = ""
       for i in pieces.indices {
@@ -562,17 +562,17 @@ class TestBigString: CollectionTestCase {
           guard $1.i < piece.i else { return }
           $0 += $1.str.utf8.count
         }
-        
+
         let j = smol.utf8.index(smol.startIndex, offsetBy: utf8Offset)
         smol.insert(contentsOf: piece.str, at: j)
-        
+
         let index = big.utf8.index(big.startIndex, offsetBy: utf8Offset)
         //print("\(i)/\(pieces.count): i: \(piece.i), start: \(index), str: \(piece.str._properDebugDescription)")
         big.insert(contentsOf: piece.str, at: index)
-        
+
         if i % 20 == 0 {
           big._invariantCheck()
-          
+
           XCTAssertEqual(String(big), smol)
           checkUTF8Indices(smol, big)
           checkUTF16Indices(smol, big)
@@ -588,7 +588,7 @@ class TestBigString: CollectionTestCase {
       checkCharacterIndices(flat, big)
     }
   }
-  
+
   func test_insert_big() {
     let flat = sampleString
     let ref = BigString(flat)
@@ -597,7 +597,7 @@ class TestBigString: CollectionTestCase {
       var pieces = pieces(of: flat, by: stride)
       var rng = RepeatableRandomNumberGenerator(seed: 0)
       pieces.shuffle(using: &rng)
-      
+
       var big: BigString = ""
       var smol = ""
       for i in pieces.indices {
@@ -606,16 +606,16 @@ class TestBigString: CollectionTestCase {
           guard $1.i < piece.i else { return }
           $0 += $1.str.utf8.count
         }
-        
+
         let j = smol.utf8.index(smol.startIndex, offsetBy: utf8Offset)
         smol.insert(contentsOf: piece.str, at: j)
-        
+
         let index = big.utf8.index(big.startIndex, offsetBy: utf8Offset)
         //print("\(i)/\(pieces.count): i: \(piece.i), start: \(index), str: \(piece.str._properDebugDescription)")
-        
+
         let p = BigString(piece.str)
         big.insert(contentsOf: p, at: index)
-        
+
         if i % 20 == 0 {
           big._invariantCheck()
           XCTAssertEqual(String(big), smol)

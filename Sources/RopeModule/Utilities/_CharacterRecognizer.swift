@@ -11,15 +11,15 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension _CharacterRecognizer {
   internal func _isKnownEqual(to other: Self) -> Bool {
     // FIXME: Enable when Swift 5.9 ships.
 //  #if swift(>=5.9)
-//    if #available(macOS 9999, iOS 9999, tvOS 9999, watchOS 9999, *) { // SwiftStdlib 5.9
+//    if #available(macOS 9999, iOS 9999, tvOS 9999, watchOS 9999, xrOS 1.0, *) { // SwiftStdlib 5.9
 //      return self == other
 //    }
 //  #endif
@@ -28,7 +28,7 @@ extension _CharacterRecognizer {
 }
 
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
@@ -57,7 +57,7 @@ extension _CharacterRecognizer {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension _CharacterRecognizer {
   init(partialCharacter: Substring.UnicodeScalarView) {
     self.init()
@@ -69,7 +69,7 @@ extension _CharacterRecognizer {
       assert(!b)
     }
   }
-  
+
   init(partialCharacter: Substring) {
     self.init(partialCharacter: partialCharacter.unicodeScalars)
   }
@@ -87,14 +87,14 @@ extension _CharacterRecognizer {
       assert(!b)
     }
   }
-  
+
   mutating func consumePartialCharacter(_ s: Substring.UnicodeScalarView) {
     for scalar in s {
       let b = hasBreak(before: scalar)
       assert(!b)
     }
   }
-  
+
   mutating func consumeUntilFirstBreak(
     in s: Substring.UnicodeScalarView,
     from i: inout String.Index
@@ -107,24 +107,24 @@ extension _CharacterRecognizer {
     }
     return nil
   }
-  
+
   init(consuming str: some StringProtocol) {
     self.init()
     _ = self.consume(str)
   }
-  
+
   mutating func consume(
     _ s: some StringProtocol
   ) -> (characters: Int, firstBreak: String.Index, lastBreak: String.Index)? {
     consume(Substring(s))
   }
-  
+
   mutating func consume(
     _ s: Substring
   ) -> (characters: Int, firstBreak: String.Index, lastBreak: String.Index)? {
     consume(s.unicodeScalars)
   }
-  
+
   mutating func consume(
     _ s: Substring.UnicodeScalarView
   ) -> (characters: Int, firstBreak: String.Index, lastBreak: String.Index)? {
@@ -140,7 +140,7 @@ extension _CharacterRecognizer {
     }
     return (characters, first, last)
   }
-  
+
   mutating func consume(
     _ chunk: BigString._Chunk, upTo index: String.Index
   ) -> (firstBreak: String.Index, prevBreak: String.Index)? {
@@ -155,7 +155,7 @@ extension _CharacterRecognizer {
     consumePartialCharacter(chunk.string[prev..<index])
     return (first, prev)
   }
-  
+
   mutating func edgeCounts(
     consuming s: String
   ) -> (characters: Int, prefixCount: Int, suffixCount: Int) {

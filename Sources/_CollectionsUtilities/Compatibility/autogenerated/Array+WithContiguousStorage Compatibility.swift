@@ -39,11 +39,11 @@ extension Array {
     // method, so to determine if we're affected, we need to check the currently
     // running OS version.
     #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
-    if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, *) {
+    if #available(macOS 12.0, iOS 15.0, watchOS 8.0, tvOS 15.0, xrOS 1.0, *) {
       // The OS is too new to be affected by this bug. (>= 5.5 stdlib)
       return false
     }
-//    guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13, *) else {
+//    guard #available(macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13, xrOS 1.0, *) else {
 //      // The OS is too old to be affected by this bug. (< 5.1 stdlib)
 //      return false
 //    }

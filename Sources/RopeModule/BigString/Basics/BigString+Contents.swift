@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   /// The estimated maximum number of UTF-8 code units that `BigString` is guaranteed to be able
   /// to hold without encountering an overflow in its operations. This corresponds to the capacity
@@ -33,7 +33,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   var _characterCount: Int { _rope.summary.characters }
   var _unicodeScalarCount: Int { _rope.summary.unicodeScalars }
@@ -41,7 +41,7 @@ extension BigString {
   var _utf8Count: Int { _rope.summary.utf8 }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _distance(
     from start: Index,
@@ -72,36 +72,36 @@ extension BigString {
     }
     return start <= end ? d : -d
   }
-  
+
   func _characterDistance(from start: Index, to end: Index) -> Int {
     _distance(from: start, to: end, in: _CharacterMetric())
   }
-  
+
   func _unicodeScalarDistance(from start: Index, to end: Index) -> Int {
     _distance(from: start, to: end, in: _UnicodeScalarMetric())
   }
-  
+
   func _utf16Distance(from start: Index, to end: Index) -> Int {
     _distance(from: start, to: end, in: _UTF16Metric())
   }
-  
+
   func _utf8Distance(from start: Index, to end: Index) -> Int {
     end.utf8Offset - start.utf8Offset
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   // FIXME: See if we need direct implementations for these.
 
   func _characterOffset(of index: Index) -> Int {
     _characterDistance(from: startIndex, to: index)
   }
-  
+
   func _unicodeScalarOffset(of index: Index) -> Int {
     _unicodeScalarDistance(from: startIndex, to: index)
   }
-  
+
   func _utf16Offset(of index: Index) -> Int {
     _utf16Distance(from: startIndex, to: index)
   }
@@ -111,7 +111,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   // FIXME: See if we need direct implementations for these.
 
@@ -132,7 +132,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _index(
     _ i: Index,
@@ -179,25 +179,25 @@ extension BigString {
     let base = i._utf8BaseOffset + _rope.distance(from: start, to: ri, in: _UTF8Metric())
     return Index(baseUTF8Offset: base, _rope: ri, chunk: ci)
   }
-  
+
   func _characterIndex(_ i: Index, offsetBy distance: Int) -> Index {
     _index(i, offsetBy: distance, in: _CharacterMetric())._knownCharacterAligned()
   }
-  
+
   func _unicodeScalarIndex(_ i: Index, offsetBy distance: Int) -> Index {
     _index(i, offsetBy: distance, in: _UnicodeScalarMetric())._knownScalarAligned()
   }
-  
+
   func _utf16Index(_ i: Index, offsetBy distance: Int) -> Index {
     _index(i, offsetBy: distance, in: _UTF16Metric())
   }
-  
+
   func _utf8Index(_ i: Index, offsetBy distance: Int) -> Index {
     _index(i, offsetBy: distance, in: _UTF8Metric())
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _index(
     _ i: Index,
@@ -243,20 +243,20 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _characterIndex(after i: Index) -> Index {
     _index(i, offsetBy: 1, in: _CharacterMetric())._knownCharacterAligned()
   }
-  
+
   func _unicodeScalarIndex(after i: Index) -> Index {
     _index(i, offsetBy: 1, in: _UnicodeScalarMetric())._knownScalarAligned()
   }
-  
+
   func _utf16Index(after i: Index) -> Index {
     _index(i, offsetBy: 1, in: _UTF16Metric())
   }
-  
+
   func _utf8Index(after i: Index) -> Index {
     precondition(i < endIndex, "Can't advance above end index")
     let i = resolve(i, preferEnd: false)
@@ -274,20 +274,20 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _characterIndex(before i: Index) -> Index {
     _index(i, offsetBy: -1, in: _CharacterMetric())._knownCharacterAligned()
   }
-  
+
   func _unicodeScalarIndex(before i: Index) -> Index {
     _index(i, offsetBy: -1, in: _UnicodeScalarMetric())._knownScalarAligned()
   }
-  
+
   func _utf16Index(before i: Index) -> Index {
     _index(i, offsetBy: -1, in: _UTF16Metric())
   }
-  
+
   func _utf8Index(before i: Index) -> Index {
     precondition(i > startIndex, "Can't advance below start index")
     let i = resolve(i, preferEnd: true)
@@ -308,7 +308,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _characterIndex(roundingDown i: Index) -> Index {
     let offset = i.utf8Offset
@@ -382,7 +382,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _characterIndex(roundingUp i: Index) -> Index {
     let j = _characterIndex(roundingDown: i)
@@ -413,7 +413,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _character(at start: Index) -> (character: Character, end: Index) {
     let start = _characterIndex(roundingDown: start)
@@ -496,7 +496,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func _foreachChunk(
     from start: Index,

@@ -9,34 +9,34 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension StringProtocol {
   @inline(__always)
   var _indexOfLastCharacter: Index {
     guard !isEmpty else { return endIndex }
     return index(before: endIndex)
   }
-  
+
   @inline(__always)
   func _index(at offset: Int) -> Index {
     self.index(self.startIndex, offsetBy: offset)
   }
-  
+
   @inline(__always)
   func _utf8Index(at offset: Int) -> Index {
     self.utf8.index(startIndex, offsetBy: offset)
   }
-  
+
   @inline(__always)
   func _utf8ClampedIndex(at offset: Int) -> Index {
     self.utf8.index(startIndex, offsetBy: offset, limitedBy: endIndex) ?? endIndex
   }
-  
+
   @inline(__always)
   func _utf8Offset(of index: Index) -> Int {
     self.utf8.distance(from: startIndex, to: index)
   }
-  
+
   @inline(__always)
   var _lastCharacter: (index: Index, utf8Length: Int) {
     let i = _indexOfLastCharacter
@@ -45,7 +45,7 @@ extension StringProtocol {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension String {
   internal func _lpad(to width: Int, with pad: Character = " ") -> String {
     let c = self.count
@@ -61,7 +61,7 @@ extension String {
 }
 
 #if swift(>=5.8) // _CharacterRecognizer
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension String {
   @discardableResult
   mutating func _appendQuotedProtectingLeft(
@@ -86,9 +86,9 @@ extension String {
       needsBreak = (scalar != String(us))
       self.append(scalar)
       _ = state.consume(scalar[...])
-      
+
       str.unicodeScalars.formIndex(after: &i)
-      
+
       let start = self._utf8Index(at: startUTF8)
       if self.distance(from: start, to: self.endIndex) >= maxLength {
         break
@@ -96,7 +96,7 @@ extension String {
     }
     return i
   }
-  
+
   mutating func _appendProtectingRight(_ str: String, with state: inout _CharacterRecognizer) {
     var suffix = str
     while !self.isEmpty {
@@ -112,7 +112,7 @@ extension String {
       suffix.insert(contentsOf: last.escaped(asASCII: true), at: suffix.startIndex)
     }
   }
-  
+
   /// A representation of the string that is suitable for debugging.
   /// This implementation differs from `String.debugDescription` by properly quoting
   /// continuation characters after the opening quotation mark and similar meta-characters.

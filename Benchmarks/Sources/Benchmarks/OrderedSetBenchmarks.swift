@@ -242,7 +242,7 @@ extension Benchmark {
       }
     }
 
-    if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *) {
+    if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, xrOS 1.0, *) {
       self.add(
         title: "OrderedSet<Int> diff computation",
         input: ([Int], [Int]).self

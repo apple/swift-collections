@@ -37,7 +37,7 @@ class MeasuringHashable: Hashable {
   }
 }
 
-@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, xrOS 1.0, *)
 class OrderedSetDiffingTests: CollectionTestCase {
 
   func _validatePerformance<T: Hashable>(from a: OrderedSet<T>, to b: OrderedSet<T>) {

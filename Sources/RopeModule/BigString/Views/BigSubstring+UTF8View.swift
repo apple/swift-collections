@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring {
   public struct UTF8View: Sendable {
     internal var _base: BigString
@@ -39,7 +39,7 @@ extension BigSubstring {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   public init?(_ utf8: BigSubstring.UTF8View) {
     guard
@@ -52,12 +52,12 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UTF8View {
   public var base: BigString.UTF8View { _base.utf8 }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UTF8View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
@@ -69,14 +69,14 @@ extension BigSubstring.UTF8View: Equatable {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UTF8View: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher, from: _bounds.lowerBound, to: _bounds.upperBound)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UTF8View: Sequence {
   public typealias Element = UInt8
 
@@ -100,7 +100,7 @@ extension BigSubstring.UTF8View: Sequence {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UTF8View: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -161,7 +161,7 @@ extension BigSubstring.UTF8View: BidirectionalCollection {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UTF8View {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")

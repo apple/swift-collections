@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring {
   public struct UnicodeScalarView: Sendable {
     internal var _base: BigString
@@ -54,40 +54,40 @@ extension BigSubstring {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   public init(_ unicodeScalars: BigSubstring.UnicodeScalarView) {
     self.init(_from: unicodeScalars._base, in: unicodeScalars._bounds)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView {
   public var base: BigString.UnicodeScalarView { _base.unicodeScalars }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value.unicodeScalars)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
     String(_from: _base, in: _bounds)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
@@ -99,14 +99,14 @@ extension BigSubstring.UnicodeScalarView: Equatable {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher, from: _bounds.lowerBound, to: _bounds.upperBound)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: Sequence {
   public typealias Element = UnicodeScalar
 
@@ -130,7 +130,7 @@ extension BigSubstring.UnicodeScalarView: Sequence {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -193,7 +193,7 @@ extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
@@ -206,7 +206,7 @@ extension BigSubstring.UnicodeScalarView {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView {
   /// Run the closure `body` to mutate the contents of this view within `range`, then update
   /// the bounds of this view to maintain their logical position in the resulting string.
@@ -239,16 +239,16 @@ extension BigSubstring.UnicodeScalarView {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
   public init() {
     self.init(_substring: BigSubstring())
   }
-  
+
   public mutating func reserveCapacity(_ n: Int) {
     // Do nothing.
   }
-  
+
   public mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
     _ subrange: Range<Index>, with newElements: __owned C
   ) {

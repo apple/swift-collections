@@ -274,7 +274,7 @@ class TreeDictionaryTests: CollectionTestCase {
       d, expectedContents: ref, by: ==)
   }
 
-  @available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *)
+  @available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, xrOS 1.0, *)
   struct FancyDictionaryKey: CodingKeyRepresentable, Hashable, Codable {
     var value: Int
 
@@ -314,7 +314,7 @@ class TreeDictionaryTests: CollectionTestCase {
     ])
     expectEqual(try MinimalEncoder.encode(d2), v2)
 
-    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, xrOS 1.0, *) {
       let d3: TreeDictionary<FancyDictionaryKey, Int16> = [
         FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
       ]
@@ -358,7 +358,7 @@ class TreeDictionaryTests: CollectionTestCase {
       try MinimalDecoder.decode(v2, as: PD<Int, String>.self),
       d2)
 
-    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, xrOS 1.0, *) {
       let d3: TreeDictionary<FancyDictionaryKey, Int16> = [
         FancyDictionaryKey(1): 10, FancyDictionaryKey(2): 20
       ]
@@ -390,7 +390,7 @@ class TreeDictionaryTests: CollectionTestCase {
       expectTrue($0 is DecodingError)
     }
 
-    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, *) {
+    if #available(macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4, xrOS 1.0, *) {
       let v6: MinimalEncoder.Value = .dictionary([
         "This is not a number": .string("bus"),
         "42": .string("train")])

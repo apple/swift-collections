@@ -11,7 +11,7 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   public  struct Index: Sendable {
     typealias _Rope = BigString._Rope
@@ -40,7 +40,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index {
   @inline(__always)
   internal static func _bitsForUTF8Offset(_ utf8Offset: Int) -> UInt64 {
@@ -95,7 +95,7 @@ extension BigString.Index {
 }
 
 extension String.Index {
-  @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+  @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
   func _copyingAlignmentBits(from i: BigString.Index) -> String.Index {
     var bits = _abi_rawBits & ~3
     bits |= (i._flags &>> 8) & 3
@@ -103,7 +103,7 @@ extension String.Index {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index {
   internal var _chunkIndex: String.Index {
     assert(_rope != nil)
@@ -113,7 +113,7 @@ extension BigString.Index {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index {
   internal mutating func _clearUTF16TrailingSurrogate() {
     _flags = 0
@@ -178,28 +178,28 @@ extension BigString.Index {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     left._orderingValue == right._orderingValue
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index: Comparable {
   public static func <(left: Self, right: Self) -> Bool {
     left._orderingValue < right._orderingValue
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_orderingValue)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString.Index: CustomStringConvertible {
   public var description: String {
     let utf16Offset = _isUTF16TrailingSurrogate ? "+1" : ""
@@ -207,7 +207,7 @@ extension BigString.Index: CustomStringConvertible {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   func resolve(_ i: Index, preferEnd: Bool) -> Index {
     if var ri = i._rope, _rope.isValid(ri) {

@@ -42,7 +42,7 @@ extension BitArray {
   internal var _bitString: String {
     guard !isEmpty else { return "" }
     var result: String
-    if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *) {
+    if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, xrOS 1.0, *) {
       result = String(unsafeUninitializedCapacity: self.count) { target in
         var i = count - 1
         for v in self {

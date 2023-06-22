@@ -11,14 +11,14 @@
 
 #if swift(>=5.8)
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString: Hashable {
   public func hash(into hasher: inout Hasher) {
     hashCharacters(into: &hasher)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, xrOS 1.0, *)
 extension BigString {
   internal func hashCharacters(into hasher: inout Hasher) {
     // FIXME: Implement properly normalized comparisons & hashing.
@@ -33,7 +33,7 @@ extension BigString {
     }
     hasher.combine(0xFF as UInt8)
   }
-  
+
   /// Feed the UTF-8 encoding of `self` into hasher, with a terminating byte.
   internal func hashUTF8(into hasher: inout Hasher) {
     for chunk in self._rope {
