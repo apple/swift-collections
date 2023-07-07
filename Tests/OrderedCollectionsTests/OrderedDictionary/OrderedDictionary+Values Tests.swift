@@ -35,9 +35,7 @@ class OrderedDictionaryValueTests: CollectionTestCase {
     ]
 
     expectEqual(d.values.description, "[1, 2]")
-    expectEqual(
-      d.values.debugDescription,
-      "OrderedDictionary<String, Int>.Keys([1, 2])")
+    expectEqual(d.values.debugDescription, "[1, 2]")
   }
 
   func test_values_RandomAccessCollection() {

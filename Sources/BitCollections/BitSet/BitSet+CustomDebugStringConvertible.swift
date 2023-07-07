@@ -12,11 +12,7 @@
 extension BitSet: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _debugDescription(typeName: "BitSet")
-  }
-
-  internal func _debugDescription(typeName: String) -> String {
-    var result = "\(typeName)(["
+    var result = "["
     var first = true
     for item in self {
       if first {
@@ -26,7 +22,7 @@ extension BitSet: CustomDebugStringConvertible {
       }
       debugPrint(item, terminator: "", to: &result)
     }
-    result += "])"
+    result += "]"
     return result
   }
 }

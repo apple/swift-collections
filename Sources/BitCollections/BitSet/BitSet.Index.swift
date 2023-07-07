@@ -55,7 +55,7 @@ extension BitSet.Index: CustomStringConvertible {
 extension BitSet.Index: CustomDebugStringConvertible {
   // A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    "BitSet.Index(\(_value))"
+    description
   }
 }
 

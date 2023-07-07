@@ -33,8 +33,23 @@ extension BitArray: CustomStringConvertible {
 
 extension BitArray: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
+  ///
+  /// Bit arrays print themselves as a string of binary bits, with the highest-indexed elements
+  /// appearing first, as in the binary representation of integers:
+  ///
+  ///     let bits: BitArray = [false, false, false, true, true]
+  ///     print(bits) // "11000"
+  ///
+  /// As a special case, the debug description of an empty bit array is an empty pair of brackets.
+  /// This makes this case read better in structured printouts, like when the `BitArray` is printed
+  /// as part of another collection value:
+  ///
+  ///     let list: [BitArray] = [[false, true], [], [false]]
+  ///     print(list) // "[10, [], 0]"
+  ///
   public var debugDescription: String {
-    "BitArray(\(_bitString))"
+    guard !isEmpty else { return "[]" }
+    return description
   }
 }
 
