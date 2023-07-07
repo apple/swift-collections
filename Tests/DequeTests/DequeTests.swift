@@ -52,19 +52,18 @@ final class DequeTests: CollectionTestCase {
     expectEqual("\([1, 2, nil, 3] as Deque<Int?>)", "[Optional(1), Optional(2), nil, Optional(3)]")
 
     let deque: Deque<StringConvertibleValue> = [1, 2, 3]
-    expectEqual("\(deque)", "[description(1), description(2), description(3)]")
+    expectEqual("\(deque)", "[debugDescription(1), debugDescription(2), debugDescription(3)]")
   }
 
   func test_debugDescription() {
-    expectEqual(String(reflecting: [] as Deque<Int>),
-                "Deque<Int>([])")
-    expectEqual(String(reflecting: [1, 2, 3] as Deque<Int>),
-                "Deque<Int>([1, 2, 3])")
-    expectEqual(String(reflecting: [1, 2, nil, 3] as Deque<Int?>),
-                "Deque<Optional<Int>>([Optional(1), Optional(2), nil, Optional(3)])")
+    expectEqual(String(reflecting: [] as Deque<Int>), "[]")
+    expectEqual(String(reflecting: [1, 2, 3] as Deque<Int>), "[1, 2, 3]")
+    expectEqual(
+      String(reflecting: [1, 2, nil, 3] as Deque<Int?>),
+      "[Optional(1), Optional(2), nil, Optional(3)]")
 
     let deque: Deque<StringConvertibleValue> = [1, 2, 3]
-    expectEqual(String(reflecting: deque), "Deque<StringConvertibleValue>([debugDescription(1), debugDescription(2), debugDescription(3)])")
+    expectEqual(String(reflecting: deque), "[debugDescription(1), debugDescription(2), debugDescription(3)]")
   }
 
   func test_customMirror() {

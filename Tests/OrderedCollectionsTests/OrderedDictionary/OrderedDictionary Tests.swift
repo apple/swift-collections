@@ -866,16 +866,13 @@ class OrderedDictionaryTests: CollectionTestCase {
 
   func test_CustomDebugStringConvertible() {
     let a: OrderedDictionary<Int, Int> = [:]
-    expectEqual(a.debugDescription,
-                "OrderedDictionary<Int, Int>([:])")
+    expectEqual(a.debugDescription, "[:]")
 
     let b: OrderedDictionary<Int, Int> = [0: 1]
-    expectEqual(b.debugDescription,
-                "OrderedDictionary<Int, Int>([0: 1])")
+    expectEqual(b.debugDescription, "[0: 1]")
 
     let c: OrderedDictionary<Int, Int> = [0: 1, 2: 3, 4: 5]
-    expectEqual(c.debugDescription,
-                "OrderedDictionary<Int, Int>([0: 1, 2: 3, 4: 5])")
+    expectEqual(c.debugDescription, "[0: 1, 2: 3, 4: 5]")
   }
 
   func test_CustomReflectable() {

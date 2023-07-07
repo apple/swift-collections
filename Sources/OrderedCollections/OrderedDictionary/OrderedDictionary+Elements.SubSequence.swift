@@ -47,11 +47,7 @@ extension OrderedDictionary.Elements.SubSequence: CustomStringConvertible {
 extension OrderedDictionary.Elements.SubSequence: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _dictionaryDescription(
-      for: self,
-      debug: true,
-      typeName: "\(OrderedDictionary._debugTypeName()).Elements.SubSequence"
-    )
+    description
   }
 }
 

@@ -63,11 +63,7 @@ extension OrderedSet.SubSequence: CustomStringConvertible {
 extension OrderedSet.SubSequence: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _arrayDescription(
-      for: self,
-      debug: true,
-      typeName: "\(OrderedSet._debugTypeName()).SubSequence"
-    )
+    description
   }
 }
 

@@ -41,10 +41,7 @@ extension OrderedDictionary.Values: CustomStringConvertible {
 extension OrderedDictionary.Values: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _arrayDescription(
-      for: self,
-      debug: true,
-      typeName: "OrderedDictionary<\(Key.self), \(Value.self)>.Keys")
+    description
   }
 }
 
