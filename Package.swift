@@ -280,6 +280,16 @@ let targets: [CustomTarget] = [
 
   .target(
     kind: .exported,
+    name: "ARTreeModule",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "ARTreeModuleTests",
+    dependencies: ["ARTreeModule", "_CollectionsTestSupport"]),
+
+  .target(
+    kind: .exported,
     name: "Collections",
     dependencies: [
       "BitCollections",
