@@ -1,3 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
 protocol NodePrettyPrinter {
   func print<Value>(value: Value.Type) -> String
   func prettyPrint<Value>(depth: Int, value: Value.Type) -> String
@@ -41,7 +52,7 @@ extension Node {
 }
 
 extension NodeLeaf: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+  func prettyPrint<_Value>(depth: Int, value: _Value.Type) -> String {
     "\(self.keyLength)\(self.key) -> \(self.value)"
   }
 }

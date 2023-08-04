@@ -1,3 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
 struct Node48 {
   static let numKeys = 48
 
@@ -164,7 +175,7 @@ extension Node48: Node {
 
     // 6. Shrink the node to Node16 if needed.
     if count == 13 {  // TODO: Should be made tunable.
-      var newNode = Node16.allocate(copyFrom: self)
+      let newNode = Node16.allocate(copyFrom: self)
       ref?.pointee = newNode.pointer
       pointer.deallocate()
     }
