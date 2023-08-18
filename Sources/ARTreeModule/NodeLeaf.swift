@@ -23,7 +23,6 @@ extension NodeLeaf {
 
 extension NodeLeaf {
   struct Header {
-    var type: NodeType
     var keyLength: UInt32
   }
 

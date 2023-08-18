@@ -51,7 +51,14 @@ extension Node4 {
 extension Node4 {
   static func allocate() -> Self {
     let buf: NodeStorage<Self> = NodeStorage.allocate()
-    return Self(storage: buf)
+    let node = Self(storage: buf)
+    node.withBody { keys, childs in
+      UnsafeMutableRawPointer(keys.baseAddress!)
+        .bindMemory(to: UInt8.self, capacity: Self.numKeys)
+      UnsafeMutableRawPointer(childs.baseAddress!)
+        .bindMemory(to: (any Node)?.self, capacity: Self.numKeys)
+    }
+    return node
   }
 
   static func allocate(copyFrom: Node16) -> Self {

@@ -44,7 +44,10 @@ extension NodeStorage where ArtNode: InternalNode {
     let size = ArtNode.size
     let buf = NodeStorage<ArtNode>.create(type: ArtNode.type, size: size)
     let storage = NodeStorage(buf)
-    storage.withBodyPointer { $0.initializeMemory(as: UInt8.self, repeating: 0, count: size) }
+    buf.withUnsafeMutablePointerToElements {
+      $0.initialize(repeating: 0, count: size)
+      UnsafeMutableRawPointer($0).bindMemory(to: Header.self, capacity: 1)
+    }
     return storage
   }
 }

@@ -40,7 +40,12 @@ extension Node256 {
 extension Node256 {
   static func allocate() -> Node256 {
     let buf: NodeStorage<Self> = NodeStorage.allocate()
-    return Node256(storage: buf)
+    let node = Self(storage: buf)
+    node.withBody { childs in
+      UnsafeMutableRawPointer(childs.baseAddress!)
+        .bindMemory(to: (any Node)?.self, capacity: Self.numKeys)
+    }
+    return node
   }
 
   static func allocate(copyFrom: Node48) -> Self {
