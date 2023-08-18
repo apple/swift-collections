@@ -14,18 +14,18 @@ struct Node16 {
 
   var storage: Storage
 
-  init(ptr: RawNodeBuffer) {
-      self.init(storage: Storage(ptr))
+  init(buffer: RawNodeBuffer) {
+    self.init(storage: Storage(raw: buffer))
   }
 
   init(storage: Storage) {
-      self.storage = storage
+    self.storage = storage
   }
 }
 
 extension Node16 {
   typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<(any Node)?>
+  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
 
   func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
     return try storage.withBodyPointer { bodyPtr in
@@ -35,7 +35,7 @@ extension Node16 {
       )
       let childPtr = bodyPtr
         .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
-        .assumingMemoryBound(to: (any Node)?.self)
+        .assumingMemoryBound(to: RawNode?.self)
       let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
 
       return try body(keys, childs)
@@ -51,7 +51,7 @@ extension Node16 {
       UnsafeMutableRawPointer(keys.baseAddress!)
         .bindMemory(to: UInt8.self, capacity: Self.numKeys)
       UnsafeMutableRawPointer(childs.baseAddress!)
-        .bindMemory(to: (any Node)?.self, capacity: Self.numKeys)
+        .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
     }
     return node
   }
@@ -97,17 +97,15 @@ extension Node16 {
   }
 }
 
-extension Node16: Node {
+extension Node16: InternalNode {
   static let type: NodeType = .node16
   var type: NodeType { .node16 }
-}
 
-extension Node16: InternalNode {
   static let numKeys: Int = 16
 
   static var size: Int {
     MemoryLayout<InternalNodeHeader>.stride + Self.numKeys
-      * (MemoryLayout<KeyPart>.stride + MemoryLayout<(any Node)?>.stride)
+      * (MemoryLayout<KeyPart>.stride + MemoryLayout<RawNode?>.stride)
   }
 
   func index(forKey k: KeyPart) -> Index? {
@@ -148,7 +146,7 @@ extension Node16: InternalNode {
     }
   }
 
-  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> (any Node)? {
+  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> RawNode? {
     guard let index = index(forKey: k) else {
       return nil
     }
@@ -159,14 +157,14 @@ extension Node16: InternalNode {
     }
   }
 
-  func child(at: Index) -> (any Node)? {
+  func child(at: Index) -> RawNode? {
     assert(at < Self.numKeys, "maximum \(Self.numKeys) childs allowed")
     return withBody { _, childs in
       return childs[at]
     }
   }
 
-  func child(at index: Index, ref: inout ChildSlotPtr?) -> (any Node)? {
+  func child(at index: Index, ref: inout ChildSlotPtr?) -> RawNode? {
     assert(
       index < Self.numKeys,
       "maximum \(Self.numKeys) childs allowed, given index = \(index)")
@@ -178,7 +176,7 @@ extension Node16: InternalNode {
 
   mutating func addChild(
     forKey k: KeyPart,
-    node: any Node,
+    node: any ManagedNode,
     ref: ChildSlotPtr?
   ) {
     if let slot = _insertSlot(forKey: k) {
@@ -187,13 +185,13 @@ extension Node16: InternalNode {
         keys.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         childs.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         keys[slot] = k
-        childs[slot] = node
+        childs[slot] = node.rawNode
         count += 1
       }
     } else {
       var newNode = Node48.allocate(copyFrom: self)
       newNode.addChild(forKey: k, node: node)
-      ref?.pointee = newNode
+      ref?.pointee = RawNode(from: newNode)
       // pointer.deallocate()
     }
   }
@@ -216,7 +214,7 @@ extension Node16: InternalNode {
       if count == 3 {
         // Shrink to Node4.
         let newNode = Node4.allocate(copyFrom: self)
-        ref?.pointee = newNode
+        ref?.pointee = RawNode(from: newNode)
         // pointer.deallocate()
       }
     }

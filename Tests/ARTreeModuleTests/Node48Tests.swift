@@ -16,8 +16,8 @@ import XCTest
 final class ARTreeNode48Tests: XCTestCase {
   func test48Basic() throws {
     var node = Node48.allocate()
-    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1]))
-    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [2]))
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1], of: [UInt8].self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [2], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node48 {childs=2, partial=[]}\n" +
@@ -27,9 +27,9 @@ final class ARTreeNode48Tests: XCTestCase {
 
   func test48DeleteAtIndex() throws {
     var node = Node48.allocate()
-    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1]))
-    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [2]))
-    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [3]))
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1], of: [UInt8].self))
+    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [2], of: [UInt8].self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [3], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node48 {childs=3, partial=[]}\n" +

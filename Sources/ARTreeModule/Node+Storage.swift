@@ -11,48 +11,56 @@
 
 typealias RawNodeBuffer = ManagedBuffer<NodeType, UInt8>
 
-final class NodeBuffer<ArtNode: Node>: RawNodeBuffer {
+final class NodeBuffer<Mn: ManagedNode>: RawNodeBuffer {
   deinit {
-    ArtNode.deinitialize(NodeStorage(self))
+    Mn.deinitialize(NodeStorage(self))
   }
 }
 
-struct NodeStorage<ArtNode: Node> {
-  typealias Header = ArtNode.Header
-  var buf: NodeBuffer<ArtNode>
+struct NodeStorage<Mn: ManagedNode> {
+  var buf: NodeBuffer<Mn>
 }
 
 extension NodeStorage {
-  fileprivate init(_ buf: NodeBuffer<ArtNode>) {
+  fileprivate init(_ buf: NodeBuffer<Mn>) {
     self.buf = buf
   }
 
-  init(_ raw: RawNodeBuffer) {
-    self.buf = unsafeDowncast(raw, to: NodeBuffer<ArtNode>.self)
+  init(raw: RawNodeBuffer) {
+    self.buf = raw as! NodeBuffer<Mn>
   }
 }
 
 extension NodeStorage {
   static func create(type: NodeType, size: Int) -> RawNodeBuffer {
-    return NodeBuffer<ArtNode>.create(minimumCapacity: size,
-                                      makingHeaderWith: {_ in type })
+    let buf = NodeBuffer<Mn>.create(minimumCapacity: size,
+                                    makingHeaderWith: {_ in type })
+    buf.withUnsafeMutablePointerToElements {
+      $0.initialize(repeating: 0, count: size)
+    }
+    return buf
+  }
+
+  func withUnsafePointer<R>(_ body: (UnsafeMutableRawPointer) throws -> R) rethrows -> R {
+    return try buf.withUnsafeMutablePointerToElements {
+      return try body(UnsafeMutableRawPointer($0))
+    }
   }
 }
 
-extension NodeStorage where ArtNode: InternalNode {
-  static func allocate() -> NodeStorage<ArtNode> {
-    let size = ArtNode.size
-    let buf = NodeStorage<ArtNode>.create(type: ArtNode.type, size: size)
-    let storage = NodeStorage(buf)
+extension NodeStorage where Mn: InternalNode {
+  typealias Header = Mn.Header
+
+  static func allocate() -> NodeStorage<Mn> {
+    let size = Mn.size
+    let buf = NodeStorage<Mn>.create(type: Mn.type, size: size)
+    let storage = NodeStorage(raw: buf)
     buf.withUnsafeMutablePointerToElements {
-      $0.initialize(repeating: 0, count: size)
       UnsafeMutableRawPointer($0).bindMemory(to: Header.self, capacity: 1)
     }
     return storage
   }
-}
 
-extension NodeStorage {
   func withHeaderPointer<R>(_ body: (UnsafeMutablePointer<Header>) throws -> R) rethrows -> R {
     return try buf.withUnsafeMutablePointerToElements {
       return try body(UnsafeMutableRawPointer($0).assumingMemoryBound(to: Header.self))

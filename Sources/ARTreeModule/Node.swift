@@ -12,21 +12,70 @@
 public typealias KeyPart = UInt8
 public typealias Key = [KeyPart]
 
-typealias ChildSlotPtr = UnsafeMutablePointer<(any Node)?>
+typealias ChildSlotPtr = UnsafeMutablePointer<RawNode?>
 
-/// Shared protocol implementation for Node types in an Adaptive Radix Tree
-protocol Node: NodePrettyPrinter {
-  associatedtype Header
-
-  var storage: NodeStorage<Self> { get }
-  var type: NodeType { get }
+struct RawNode {
+  var storage: RawNodeBuffer
 }
 
-protocol InternalNode: Node {
+extension RawNode {
+  init<N: ManagedNode>(from: N) {
+    self.storage = from.storage.buf
+  }
+}
+
+extension RawNode {
+  var type: NodeType {
+    @inline(__always) get { return storage.header }
+  }
+
+  func toInternalNode() -> any InternalNode {
+    switch type {
+    case .node4:
+      return Node4(buffer: storage)
+    case .node16:
+      return Node16(buffer: storage)
+    case .node48:
+      return Node48(buffer: storage)
+    case .node256:
+      return Node256(buffer: storage)
+    default:
+      assert(false, "leaf nodes are not internal nodes")
+    }
+  }
+
+  func toLeafNode() -> NodeLeaf {
+    assert(type == .leaf)
+    return NodeLeaf(ptr: storage)
+  }
+
+  func toManagedNode() -> any ManagedNode {
+    switch type {
+    case .leaf:
+      return toLeafNode()
+    default:
+      return toInternalNode()
+    }
+  }
+}
+
+protocol ManagedNode: NodePrettyPrinter {
+  var storage: NodeStorage<Self> { get }
+  static func deinitialize<N: ManagedNode>(_ storage: NodeStorage<N>)
+
+  static var type: NodeType { get }
+  var type: NodeType { get }
+  var rawNode: RawNode { get }
+}
+
+extension ManagedNode {
+  var rawNode: RawNode { RawNode(from: self) }
+}
+
+protocol InternalNode: ManagedNode {
   typealias Index = Int
   typealias Header = InternalNodeHeader
 
-  static var type: NodeType { get }
   static var size: Int { get }
 
   var count: Int { get set }
@@ -37,15 +86,15 @@ protocol InternalNode: Node {
   func index() -> Index?
   func next(index: Index) -> Index?
 
-  func child(forKey k: KeyPart) -> (any Node)?
-  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> (any Node)?
-  func child(at: Index) -> (any Node)?
-  func child(at index: Index, ref: inout ChildSlotPtr?) -> (any Node)?
+  func child(forKey k: KeyPart) -> RawNode?
+  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> RawNode?
+  func child(at: Index) -> RawNode?
+  func child(at index: Index, ref: inout ChildSlotPtr?) -> RawNode?
 
-  mutating func addChild(forKey k: KeyPart, node: any Node)
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode)
   mutating func addChild(
     forKey k: KeyPart,
-    node: any Node,
+    node: any ManagedNode,
     ref: ChildSlotPtr?)
 
   // TODO: Shrinking/expand logic can be moved out.
@@ -53,8 +102,8 @@ protocol InternalNode: Node {
   mutating func deleteChild(at index: Index, ref: ChildSlotPtr?)
 }
 
-extension Node {
-  static func deinitialize<AdaptiveNode: Node>(_ storage: NodeStorage<AdaptiveNode>) {
+extension ManagedNode {
+  static func deinitialize<N: ManagedNode>(_ storage: NodeStorage<N>) {
     // TODO
   }
 }

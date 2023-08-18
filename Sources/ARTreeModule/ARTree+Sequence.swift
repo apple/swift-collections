@@ -22,7 +22,8 @@ extension ARTree: Sequence {
       self.tree = tree
       self.path = []
       if let node = tree.root {
-        let n = node as! any InternalNode
+        assert(node.type != .leaf)
+        let n = node.toInternalNode()
         self.path = [(n, n.index())]
       }
     }
@@ -61,13 +62,13 @@ extension ARTree.Iterator: IteratorProtocol {
 
         let next = node.child(at: index)!
         if next.type == .leaf {
-          let leaf = next as! NodeLeaf<Value>
-          let result = (leaf.key, leaf.value)
+          let leaf: NodeLeaf = next.toLeafNode()
+          let result: (Key, Value) = (leaf.key, leaf.value())
           advanceToNextChild()
           return result
         }
 
-        path.append((next as! any InternalNode, node.index()))
+        path.append((next.toInternalNode(), node.index()))
       }
     }
 

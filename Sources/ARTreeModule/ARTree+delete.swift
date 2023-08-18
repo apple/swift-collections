@@ -24,26 +24,26 @@ extension ARTree {
     fatalError("not implemented")
   }
 
-  private mutating func _delete(node: any Node, ref: inout ChildSlotPtr?, key: Key, depth: Int) -> Bool
+  private mutating func _delete(node: RawNode, ref: inout ChildSlotPtr?, key: Key, depth: Int) -> Bool
   {
     var newDepth = depth
     var _node = node
 
     if _node.type == .leaf {
-      let leaf = _node as! NodeLeaf<Value>
+      let leaf: NodeLeaf = _node.toLeafNode()
 
       if !leaf.keyEquals(with: key, depth: depth) {
         return false
       }
 
       ref?.pointee = nil
-      leaf.withKeyValue { _, valuePtr in
-        valuePtr.deinitialize(count: 1)
+      leaf.withValue(of: Value.self) {
+        $0.deinitialize(count: 1)
       }
       return true
     }
 
-    var node = _node as! any InternalNode
+    var node = _node.toInternalNode()
     if node.partialLength > 0 {
       let matchedBytes = node.prefixMismatch(withKey: key, fromIndex: depth)
       assert(matchedBytes <= node.partialLength)

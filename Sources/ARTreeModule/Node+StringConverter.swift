@@ -33,10 +33,16 @@ func indent(_ width: Int, last: Bool) -> String {
 extension ARTree: CustomStringConvertible {
   public var description: String {
     if let node = root {
-      return "○ " + node.prettyPrint(depth: 0, value: Value.self)
+      return "○ " + node.toManagedNode().prettyPrint(depth: 0, value: Value.self)
     } else {
       return "<>"
     }
+  }
+}
+
+extension RawNode: NodePrettyPrinter {
+  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+    return toManagedNode().prettyPrint(depth: depth, value: Value.self)
   }
 }
 
@@ -52,8 +58,9 @@ extension InternalNode {
 }
 
 extension NodeLeaf: NodePrettyPrinter {
-  func prettyPrint<_Value>(depth: Int, value: _Value.Type) -> String {
-    "\(self.keyLength)\(self.key) -> \(self.value)"
+  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+    let val: Value = self.value()
+    return "\(self.keyLength)\(self.key) -> \(val)"
   }
 }
 

@@ -16,8 +16,8 @@ import XCTest
 final class ARTreeNode4Tests: XCTestCase {
   func test4Basic() throws {
     var node = Node4.allocate()
-    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [11]))
-    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [22]))
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [11], of: [UInt8].self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [22], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=2, partial=[]}\n" +
@@ -25,12 +25,23 @@ final class ARTreeNode4Tests: XCTestCase {
       "└──○ 20: 1[20] -> [22]")
   }
 
+  func test4BasicInt() throws {
+    var node = Node4.allocate()
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: 11, of: Int.self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: 22, of: Int.self))
+    XCTAssertEqual(
+      node.print(value: Int.self),
+      "○ Node4 {childs=2, partial=[]}\n" +
+      "├──○ 10: 1[10] -> 11\n" +
+      "└──○ 20: 1[20] -> 22")
+  }
+
   func test4AddInMiddle() throws {
     var node = Node4.allocate()
-    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1]))
-    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [2]))
-    node.addChild(forKey: 30, node: NodeLeaf.allocate(key: [30], value: [3]))
-    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [4]))
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1], of: [UInt8].self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [2], of: [UInt8].self))
+    node.addChild(forKey: 30, node: NodeLeaf.allocate(key: [30], value: [3], of: [UInt8].self))
+    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [4], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=4, partial=[]}\n" +
@@ -42,9 +53,9 @@ final class ARTreeNode4Tests: XCTestCase {
 
   func test4DeleteAtIndex() throws {
     var node = Node4.allocate()
-    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1]))
-    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [2]))
-    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [3]))
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1], of: [UInt8].self))
+    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [2], of: [UInt8].self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [3], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=3, partial=[]}\n" +
@@ -58,7 +69,7 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
 
-    var ptr: (any Node)? = node
+    var ptr: RawNode? = node.rawNode
     node.deleteChild(at: 1, ref: &ptr)
     XCTAssertNotNil(ptr)
     XCTAssertEqual(ptr?.type, .leaf)
@@ -66,11 +77,10 @@ final class ARTreeNode4Tests: XCTestCase {
 
   func test4ExapandTo16() throws {
     var node = Node4.allocate()
-
-    node.addChild(forKey: 1, node: NodeLeaf.allocate(key: [1], value: [1]))
-    node.addChild(forKey: 2, node: NodeLeaf.allocate(key: [2], value: [2]))
-    node.addChild(forKey: 3, node: NodeLeaf.allocate(key: [3], value: [3]))
-    node.addChild(forKey: 4, node: NodeLeaf.allocate(key: [4], value: [4]))
+    node.addChild(forKey: 1, node: NodeLeaf.allocate(key: [1], value: [1], of: [UInt8].self))
+    node.addChild(forKey: 2, node: NodeLeaf.allocate(key: [2], value: [2], of: [UInt8].self))
+    node.addChild(forKey: 3, node: NodeLeaf.allocate(key: [3], value: [3], of: [UInt8].self))
+    node.addChild(forKey: 4, node: NodeLeaf.allocate(key: [4], value: [4], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=4, partial=[]}\n" +
@@ -79,10 +89,12 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 3: 1[3] -> [3]\n" +
       "└──○ 4: 1[4] -> [4]")
 
-    var addr: (any Node)? = node
+    var addr: RawNode? = node.rawNode
     withUnsafeMutablePointer(to: &addr) {
       let ref: ChildSlotPtr? = $0
-      node.addChild(forKey: 5, node: NodeLeaf.allocate(key: [5], value: [5]), ref: ref)
+      node.addChild(forKey: 5,
+                    node: NodeLeaf.allocate(key: [5], value: [5], of: [UInt8].self),
+                    ref: ref)
       XCTAssertEqual(
         ref!.pointee!.print(value: [UInt8].self),
         "○ Node16 {childs=5, partial=[]}\n" +
@@ -96,9 +108,9 @@ final class ARTreeNode4Tests: XCTestCase {
 
   func test4DeleteKey() throws {
     var node = Node4.allocate()
-    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1]))
-    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [2]))
-    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [3]))
+    node.addChild(forKey: 10, node: NodeLeaf.allocate(key: [10], value: [1], of: [UInt8].self))
+    node.addChild(forKey: 15, node: NodeLeaf.allocate(key: [15], value: [2], of: [UInt8].self))
+    node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [3], of: [UInt8].self))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=3, partial=[]}\n" +

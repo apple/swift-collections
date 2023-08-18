@@ -11,7 +11,7 @@
 
 extension ARTree {
   public mutating func insert(key: Key, value: Value) -> Bool {
-    var current: (any Node)? = root
+    var current: RawNode = root!
 
     // Location of child (current) pointer in parent, i.e. memory address where the
     // address of current node is stored inside the parent node.
@@ -20,19 +20,15 @@ extension ARTree {
 
     var depth = 0
     while depth < key.count {
-      guard var _node = current else {
-        assert(false, "current node can never be nil")
-      }
-
       // Reached leaf already, replace it with a new node, or update the existing value.
-      if _node.type == .leaf {
-        let leaf = _node as! NodeLeaf<Value>
+      if current.type == .leaf {
+        let leaf: NodeLeaf = current.toLeafNode()
         if leaf.keyEquals(with: key) {
           //TODO: Replace value.
           fatalError("replace not supported")
         }
 
-        let newLeaf = NodeLeaf.allocate(key: key, value: value)
+        let newLeaf = NodeLeaf.allocate(key: key, value: value, of: Value.self)
         var longestPrefix = leaf.longestCommonPrefix(with: newLeaf, fromIndex: depth)
 
         var newNode = Node4.allocate()
@@ -55,11 +51,11 @@ extension ARTree {
           newNode = nextNode
         }
 
-        ref?.pointee = newNode  // Replace child in parent.
+        ref?.pointee = RawNode(from: newNode)  // Replace child in parent.
         return true
       }
 
-      var node = _node as! any InternalNode
+      var node = current.toInternalNode()
       if node.partialLength > 0 {
         let partialLength = node.partialLength
         let prefixDiff = node.prefixMismatch(withKey: key, fromIndex: depth)
@@ -80,9 +76,9 @@ extension ARTree {
           node.partialBytes.shiftLeft(toIndex: prefixDiff + 1)
           node.partialLength -= prefixDiff + 1
 
-          let newLeaf = NodeLeaf.allocate(key: key, value: value)
+          let newLeaf = NodeLeaf.allocate(key: key, value: value, of: Value.self)
           newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
-          ref?.pointee = newNode
+          ref?.pointee = newNode.rawNode
           return true
         }
       }
@@ -90,7 +86,7 @@ extension ARTree {
       // Find next child to continue.
       guard let next = node.child(forKey: key[depth], ref: &ref) else {
         // No child, insert leaf within us.
-        let newLeaf = NodeLeaf.allocate(key: key, value: value)
+        let newLeaf = NodeLeaf.allocate(key: key, value: value, of: Value.self)
         node.addChild(forKey: key[depth], node: newLeaf, ref: ref)
         return true
       }

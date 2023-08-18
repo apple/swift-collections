@@ -19,13 +19,13 @@ extension ARTree {
       }
 
       if _node.type == .leaf {
-        let leaf = _node as! NodeLeaf<Value>
+        let leaf: NodeLeaf = _node.toLeafNode()
         return leaf.keyEquals(with: key)
-          ? leaf.value
+          ? leaf.value()
           : nil
       }
 
-      let node = _node as! any InternalNode
+      let node = _node.toInternalNode()
       if node.partialLength > 0 {
         let prefixLen = node.prefixMismatch(withKey: key, fromIndex: depth)
         assert(prefixLen <= Const.maxPartialLength, "partial length is always bounded")

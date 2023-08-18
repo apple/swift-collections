@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct NodeLeaf<Value> {
+struct NodeLeaf {
   typealias Storage = NodeStorage<Self>
 
   var storage: Storage
@@ -17,22 +17,43 @@ struct NodeLeaf<Value> {
 
 extension NodeLeaf {
   init(ptr: RawNodeBuffer) {
-    self.init(storage: Storage(ptr))
+    self.init(storage: Storage(raw: ptr))
   }
 }
 
-extension NodeLeaf {
-  struct Header {
-    var keyLength: UInt32
+extension NodeLeaf: ManagedNode {
+  typealias KeyPtr = UnsafeMutableBufferPointer<KeyPart>
+
+  static var type: NodeType { .leaf }
+  var type: NodeType { .leaf }
+
+  func withKey<R>(body: (KeyPtr) throws -> R) rethrows -> R {
+    return try storage.withUnsafePointer {
+      let keyPtr = UnsafeMutableBufferPointer(
+        start: $0
+          .advanced(by: MemoryLayout<UInt32>.stride)
+          .assumingMemoryBound(to: KeyPart.self),
+        count: Int(keyLength))
+      return try body(keyPtr)
+    }
   }
 
-  typealias KeyPtr = UnsafeMutableBufferPointer<KeyPart>
-  typealias ValuePtr = UnsafeMutablePointer<Value>
+  func withValue<R, Value>(of: Value.Type,
+                           body: (UnsafeMutablePointer<Value>) throws -> R) rethrows -> R {
+    return try storage.withUnsafePointer {
+      return try body(
+        $0.advanced(by: MemoryLayout<UInt32>.stride)
+          .advanced(by: keyLength)
+          .assumingMemoryBound(to: Value.self))
+    }
+  }
 
-  func withKeyValue<R>(body: (KeyPtr, ValuePtr) throws -> R) rethrows -> R {
-    return try storage.withBodyPointer {
+  func withKeyValue<R, Value>(
+    body: (KeyPtr, UnsafeMutablePointer<Value>) throws -> R) rethrows -> R {
+    return try storage.withUnsafePointer {
+      let base = $0.advanced(by: MemoryLayout<UInt32>.stride)
       let keyPtr = UnsafeMutableBufferPointer(
-        start: $0.assumingMemoryBound(to: KeyPart.self),
+        start: base.assumingMemoryBound(to: KeyPart.self),
         count: Int(keyLength)
       )
       let valuePtr = UnsafeMutableRawPointer(
@@ -43,31 +64,34 @@ extension NodeLeaf {
   }
 
   var key: Key {
-    withKeyValue { k, _ in Array(k) }
+    get { withKey { k in Array(k) } }
   }
 
-  var value: Value {
-    get { withKeyValue { $1.pointee } }
-    set { withKeyValue { $1.pointee = newValue } }
-  }
-
-  var keyLength: UInt32 {
+  var keyLength: Int {
     get {
-      storage.withHeaderPointer { $0.pointee.keyLength }
+      storage.withUnsafePointer {
+        Int($0.assumingMemoryBound(to: UInt32.self).pointee)
+      }
     }
     set {
-      storage.withHeaderPointer { $0.pointee.keyLength = newValue }
+      storage.withUnsafePointer {
+        $0.assumingMemoryBound(to: UInt32.self).pointee = UInt32(newValue)
+      }
     }
+  }
+
+  func value<Value>() -> Value {
+    return withValue(of: Value.self) { $0.pointee }
   }
 }
 
 extension NodeLeaf {
-  static func allocate(key: Key, value: Value) -> Self {
-    let size = MemoryLayout<Header>.stride + key.count + MemoryLayout<Value>.stride
+    static func allocate<Value>(key: Key, value: Value, of: Value.Type) -> Self {
+    let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
     let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
     var leaf = Self(ptr: buf)
 
-    leaf.keyLength = UInt32(key.count)
+    leaf.keyLength = key.count
     leaf.withKeyValue { keyPtr, valuePtr in
       key.withUnsafeBytes {
         UnsafeMutableRawBufferPointer(keyPtr).copyBytes(from: $0)
@@ -83,7 +107,7 @@ extension NodeLeaf {
       return false
     }
 
-    return withKeyValue { keyPtr, _ in
+    return withKey { keyPtr in
       for ii in depth..<key.count {
         if key[ii] != keyPtr[ii] {
           return false
@@ -95,10 +119,10 @@ extension NodeLeaf {
   }
 
   func longestCommonPrefix(with other: Self, fromIndex: Int) -> Int {
-    let maxComp = Int(min(keyLength, other.keyLength) - UInt32(fromIndex))
+    let maxComp = Int(min(keyLength, other.keyLength) - fromIndex)
 
-    return withKeyValue { keyPtr, _ in
-      return other.withKeyValue { otherKeyPtr, _ in
+    return withKey { keyPtr in
+      return other.withKey { otherKeyPtr in
         for index in 0..<maxComp {
           if keyPtr[fromIndex + index] != otherKeyPtr[fromIndex + index] {
             return index
@@ -108,8 +132,4 @@ extension NodeLeaf {
       }
     }
   }
-}
-
-extension NodeLeaf: Node {
-  var type: NodeType { .leaf }
 }

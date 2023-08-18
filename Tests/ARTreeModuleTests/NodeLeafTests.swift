@@ -15,18 +15,18 @@ import XCTest
 
 final class ARTreeNodeLeafTests: XCTestCase {
   func testLeafBasic() throws {
-    let leaf1 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0])
+    let leaf1 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0], of: [UInt8].self)
     XCTAssertEqual(leaf1.print(value: [UInt8].self), "○ 4[10, 20, 30, 40] -> [0]")
 
-    let leaf2 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0, 1, 2])
+    let leaf2 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0, 1, 2], of: [UInt8].self)
     XCTAssertEqual(leaf2.print(value: [UInt8].self), "○ 4[10, 20, 30, 40] -> [0, 1, 2]")
 
-    let leaf3 = NodeLeaf.allocate(key: [], value: [])
+    let leaf3 = NodeLeaf.allocate(key: [], value: [], of: [UInt8].self)
     XCTAssertEqual(leaf3.print(value: [UInt8].self), "○ 0[] -> []")
   }
 
   func testLeafKeyEquals() throws {
-    let leaf1 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0])
+    let leaf1 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0], of: [UInt8].self)
     XCTAssertFalse(leaf1.keyEquals(with: [10, 20, 30, 50]))
     XCTAssertFalse(leaf1.keyEquals(with: [10, 20, 30]))
     XCTAssertFalse(leaf1.keyEquals(with: [10, 20, 30, 40, 50]))
@@ -34,46 +34,46 @@ final class ARTreeNodeLeafTests: XCTestCase {
   }
 
   func testCasts() throws {
-    let leaf = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0])
+    let leaf = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0], of: [UInt8].self)
     XCTAssertEqual(leaf.key, [10, 20, 30, 40])
-    XCTAssertEqual(leaf.value, [0])
+    XCTAssertEqual(leaf.value(), [0])
   }
 
   func testLeafLcp() throws {
-    let leaf1 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0, 1, 2])
+    let leaf1 = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0, 1, 2], of: [UInt8].self)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [0, 1, 2, 3], value: [0]),
+        with: NodeLeaf.allocate(key: [0, 1, 2, 3], value: [0], of: [UInt8].self),
         fromIndex: 0),
       0)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [0], value: [0]),
+        with: NodeLeaf.allocate(key: [0], value: [0], of: [UInt8].self),
         fromIndex: 0),
       0)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [0, 1], value: [0]),
+        with: NodeLeaf.allocate(key: [0, 1], value: [0], of: [UInt8].self),
         fromIndex: 0),
       0)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [10, 1], value: [0]),
+        with: NodeLeaf.allocate(key: [10, 1], value: [0], of: [UInt8].self),
         fromIndex: 0),
       1)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [10, 20], value: [0]),
+        with: NodeLeaf.allocate(key: [10, 20], value: [0], of: [UInt8].self),
         fromIndex: 0),
       2)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [10, 20], value: [0]),
+        with: NodeLeaf.allocate(key: [10, 20], value: [0], of: [UInt8].self),
         fromIndex: 1),
       1)
     XCTAssertEqual(
       leaf1.longestCommonPrefix(
-        with: NodeLeaf.allocate(key: [10, 20], value: [0]),
+        with: NodeLeaf.allocate(key: [10, 20], value: [0], of: [UInt8].self),
         fromIndex: 2),
       0)
 

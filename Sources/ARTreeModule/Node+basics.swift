@@ -50,21 +50,13 @@ extension InternalNode {
     }
   }
 
-  func child(forKey k: KeyPart) -> (any Node)? {
-    var ref = UnsafeMutablePointer<(any Node)?>(nil)
+  func child(forKey k: KeyPart) -> RawNode? {
+    var ref = UnsafeMutablePointer<RawNode?>(nil)
     return child(forKey: k, ref: &ref)
   }
 
-  mutating func addChild(forKey k: KeyPart, node: any Node) {
-    let ref = UnsafeMutablePointer<(any Node)?>(nil)
-    addChild(forKey: k, node: node, ref: ref)
-  }
-
-  mutating func addChild(
-    forKey k: KeyPart,
-    node: any Node,
-    ref: ChildSlotPtr?
-  ) {
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) {
+    let ref = UnsafeMutablePointer<RawNode?>(nil)
     addChild(forKey: k, node: node, ref: ref)
   }
 
@@ -77,12 +69,12 @@ extension InternalNode {
   }
 
   mutating func deleteChild(forKey k: KeyPart) {
-    var ptr: (any Node)? = self
+    var ptr: RawNode? = RawNode(from:self)
     return deleteChild(forKey: k, ref: &ptr)
   }
 
   mutating func deleteChild(at index: Index) {
-    var ptr: (any Node)? = self
+    var ptr: RawNode? = RawNode(from: self)
     deleteChild(at: index, ref: &ptr)
   }
 
