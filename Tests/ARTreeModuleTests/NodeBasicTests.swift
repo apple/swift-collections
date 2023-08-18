@@ -16,15 +16,17 @@ import XCTest
 final class ARTreeNodeBasicTests: XCTestCase {
   func testNodeSizes() throws {
     let header = MemoryLayout<InternalNodeHeader>.stride
-    XCTAssertEqual(header, 14)
+    XCTAssertEqual(header, 12)
 
     let childSlotSize = MemoryLayout<(any Node)?>.stride
     let ptrSize = MemoryLayout<Int>.stride
+    let refSize = MemoryLayout<(any Node)?>.stride
     let size4 = Node4.size
     let size16 = Node16.size
     let size48 = Node48.size
     let size256 = Node256.size
 
+    print("sizeof((any Node)?) = \(refSize)")
     print("sizeOf(Int) = \(ptrSize)")
     print("sizeOf(childSlot) = \(childSlotSize)")
     print("sizeOf(Header) = \(header)")
