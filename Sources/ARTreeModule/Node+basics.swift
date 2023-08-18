@@ -9,9 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension Node {
-  fileprivate var header: NodeHeaderPtr { self.pointer.assumingMemoryBound(to: NodeHeader.self) }
-
+extension InternalNode {
   var partialLength: Int {
     get { Int(self.header.pointee.partialLength) }
     set {
@@ -30,27 +28,22 @@ extension Node {
     set { header.pointee.count = UInt16(newValue) }
   }
 
-  func child(forKey k: KeyPart) -> NodePtr? {
-    var ref = UnsafeMutablePointer<NodePtr?>(nil)
+  func child(forKey k: KeyPart) -> (any Node)? {
+    var ref = UnsafeMutablePointer<(any Node)?>(nil)
     return child(forKey: k, ref: &ref)
   }
 
-  mutating func addChild(forKey k: KeyPart, node: NodePtr) {
-    let ref = UnsafeMutablePointer<NodePtr?>(nil)
-    addChild(forKey: k, node: node, ref: ref)
-  }
-
-  mutating func addChild(forKey k: KeyPart, node: Node) {
-    let ref = UnsafeMutablePointer<NodePtr?>(nil)
+  mutating func addChild(forKey k: KeyPart, node: any Node) {
+    let ref = UnsafeMutablePointer<(any Node)?>(nil)
     addChild(forKey: k, node: node, ref: ref)
   }
 
   mutating func addChild(
     forKey k: KeyPart,
-    node: Node,
+    node: any Node,
     ref: ChildSlotPtr?
   ) {
-    addChild(forKey: k, node: node.pointer, ref: ref)
+    addChild(forKey: k, node: node, ref: ref)
   }
 
   mutating func deleteChild(forKey k: KeyPart, ref: ChildSlotPtr?) {
@@ -62,16 +55,16 @@ extension Node {
   }
 
   mutating func deleteChild(forKey k: KeyPart) {
-    var ptr: NodePtr? = self.pointer
+    var ptr: (any Node)? = self
     return deleteChild(forKey: k, ref: &ptr)
   }
 
   mutating func deleteChild(at index: Index) {
-    var ptr: NodePtr? = self.pointer
+    var ptr: (any Node)? = self
     deleteChild(at: index, ref: &ptr)
   }
 
-  mutating func copyHeader(from: any Node) {
+  mutating func copyHeader(from: any InternalNode) {
     let src = from.header.pointee
     header.pointee.count = src.count
     header.pointee.partialLength = src.partialLength

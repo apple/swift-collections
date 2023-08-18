@@ -20,7 +20,9 @@ final class ARTreeNode4Tests: XCTestCase {
     node.addChild(forKey: 20, node: NodeLeaf.allocate(key: [20], value: [22]))
     XCTAssertEqual(
       node.print(value: [UInt8].self),
-      "○ Node4 {childs=2, partial=[]}\n" + "├──○ 10: 1[10] -> [11]\n" + "└──○ 20: 1[20] -> [22]")
+      "○ Node4 {childs=2, partial=[]}\n" +
+        "├──○ 10: 1[10] -> [11]\n" +
+        "└──○ 20: 1[20] -> [22]")
   }
 
   func test4AddInMiddle() throws {
@@ -49,10 +51,10 @@ final class ARTreeNode4Tests: XCTestCase {
       node.print(value: [UInt8].self),
       "○ Node4 {childs=2, partial=[]}\n" + "├──○ 15: 1[15] -> [2]\n" + "└──○ 20: 1[20] -> [3]")
 
-    var ptr: NodePtr? = node.pointer
+    var ptr: (any Node)? = node
     node.deleteChild(at: 1, ref: &ptr)
     XCTAssertNotNil(ptr)
-    XCTAssertEqual(ptr?.type(), .leaf)
+    XCTAssertEqual(ptr?.type, .leaf)
   }
 
   func test4ExapandTo16() throws {
@@ -67,12 +69,12 @@ final class ARTreeNode4Tests: XCTestCase {
       "○ Node4 {childs=4, partial=[]}\n" + "├──○ 1: 1[1] -> [1]\n" + "├──○ 2: 1[2] -> [2]\n"
         + "├──○ 3: 1[3] -> [3]\n" + "└──○ 4: 1[4] -> [4]")
 
-    var addr = Optional(node.pointer)
+    var addr: (any Node)? = node
     withUnsafeMutablePointer(to: &addr) {
       let ref: ChildSlotPtr? = $0
       node.addChild(forKey: 5, node: NodeLeaf.allocate(key: [5], value: [5]), ref: ref)
       XCTAssertEqual(
-        ref!.pointee!.asNode(of: [UInt8].self)!.print(value: [UInt8].self),
+        ref!.pointee!.print(value: [UInt8].self),
         "○ Node16 {childs=5, partial=[]}\n" + "├──○ 1: 1[1] -> [1]\n" + "├──○ 2: 1[2] -> [2]\n"
           + "├──○ 3: 1[3] -> [3]\n" + "├──○ 4: 1[4] -> [4]\n" + "└──○ 5: 1[5] -> [5]")
     }

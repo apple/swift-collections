@@ -10,38 +10,56 @@
 //===----------------------------------------------------------------------===//
 
 struct Node16 {
-  static let numKeys = 16
+  typealias Storage = NodeStorage<Self>
 
-  var pointer: NodePtr
-  var keys: UnsafeMutableBufferPointer<KeyPart>
-  var childs: UnsafeMutableBufferPointer<NodePtr?>
+  var storage: Storage
 
-  init(ptr: NodePtr) {
-    self.pointer = ptr
-    let body = ptr + MemoryLayout<NodeHeader>.stride
-    self.keys = UnsafeMutableBufferPointer(
-      start: body.assumingMemoryBound(to: KeyPart.self),
-      count: Self.numKeys
-    )
+  init(ptr: RawNodeBuffer) {
+      self.init(storage: Storage(ptr))
+  }
 
-    let childPtr = (body + Self.numKeys * MemoryLayout<KeyPart>.stride)
-      .assumingMemoryBound(to: NodePtr?.self)
-    self.childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
+  init(storage: Storage) {
+      self.storage = storage
+  }
+}
+
+extension Node16 {
+  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
+  typealias Childs = UnsafeMutableBufferPointer<(any Node)?>
+
+  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+    return try storage.withBodyPointer { bodyPtr in
+      let keys = UnsafeMutableBufferPointer(
+        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
+        count: Self.numKeys
+      )
+      let childPtr = bodyPtr
+        .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
+        .assumingMemoryBound(to: (any Node)?.self)
+      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
+
+      return try body(keys, childs)
+    }
   }
 }
 
 extension Node16 {
   static func allocate() -> Self {
-    let buf = NodeBuffer.allocate(type: .node16, size: size)
-    return Self(ptr: buf)
+    let buf: NodeStorage<Self> = NodeStorage.allocate()
+    return Self(storage: buf)
   }
 
   static func allocate(copyFrom: Node4) -> Self {
     var node = Self.allocate()
     node.copyHeader(from: copyFrom)
-    UnsafeMutableRawBufferPointer(node.keys).copyBytes(from: copyFrom.keys)
-    UnsafeMutableRawBufferPointer(node.childs).copyBytes(
-      from: UnsafeMutableRawBufferPointer(copyFrom.childs))
+
+    copyFrom.withBody { fromKeys, fromChilds in
+      node.withBody { newKeys, newChilds in
+        UnsafeMutableRawBufferPointer(newKeys).copyBytes(from: fromKeys)
+        UnsafeMutableRawBufferPointer(newChilds).copyBytes(
+          from: UnsafeMutableRawBufferPointer(fromChilds))
+      }
+    }
     return node
   }
 
@@ -49,39 +67,55 @@ extension Node16 {
     var node = Self.allocate()
     node.copyHeader(from: copyFrom)
 
-    var slot = 0
-    for key: UInt8 in 0...255 {
-      let childPosition = Int(copyFrom.keys[Int(key)])
-      if childPosition == 0xFF {
-        continue
-      }
+    copyFrom.withBody { fromKeys, fromChilds in
+      node.withBody { newKeys, newChilds in
+        var slot = 0
+        for key: UInt8 in 0...255 {
+          let childPosition = Int(fromKeys[Int(key)])
+          if childPosition == 0xFF {
+            continue
+          }
 
-      node.keys[slot] = key
-      node.childs[slot] = copyFrom.childs[childPosition]
-      slot += 1
+          newKeys[slot] = key
+          newChilds[slot] = fromChilds[childPosition]
+          slot += 1
+        }
+
+        assert(slot == node.count)
+      }
     }
 
-    assert(slot == node.count)
     return node
-  }
-
-  static var size: Int {
-    MemoryLayout<NodeHeader>.stride + Self.numKeys
-      * (MemoryLayout<KeyPart>.stride + MemoryLayout<NodePtr>.stride)
   }
 }
 
 extension Node16: Node {
-  func type() -> NodeType { .node16 }
+  static let type: NodeType = .node16
+  var type: NodeType { .node16 }
+}
+
+extension Node16: InternalNode {
+  static let numKeys: Int = 16
+
+  static var size: Int {
+    MemoryLayout<InternalNodeHeader>.stride + Self.numKeys
+      * (MemoryLayout<KeyPart>.stride + MemoryLayout<(any Node)?>.stride)
+  }
+
+  var header: UnsafeMutablePointer<InternalNodeHeader> {
+    storage.withHeaderPointer { $0 }
+  }
 
   func index(forKey k: KeyPart) -> Index? {
-    for (index, key) in keys.enumerated() {
-      if key == k {
-        return index
+    return withBody { keys, _ in
+      for (index, key) in keys.enumerated() {
+        if key == k {
+          return index
+        }
       }
-    }
 
-    return nil
+      return nil
+    }
   }
 
   func index() -> Index? {
@@ -95,58 +129,68 @@ extension Node16: Node {
 
   func _insertSlot(forKey k: KeyPart) -> Int? {
     // TODO: Binary search.
-    if count >= Self.numKeys {
-      return nil
-    }
-
-    for idx in 0..<count {
-      if keys[idx] >= Int(k) {
-        return idx
+    return withBody { keys, _ in
+      if count >= Self.numKeys {
+        return nil
       }
-    }
 
-    return count
+      for idx in 0..<count {
+        if keys[idx] >= Int(k) {
+          return idx
+        }
+      }
+
+      return count
+    }
   }
 
-  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> NodePtr? {
+  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> (any Node)? {
     guard let index = index(forKey: k) else {
       return nil
     }
 
-    ref = childs.baseAddress! + index
-    return child(at: index)
+    return withBody {_, childs in
+      ref = childs.baseAddress! + index
+      return child(at: index)
+    }
   }
 
-  func child(at: Index) -> NodePtr? {
+  func child(at: Index) -> (any Node)? {
     assert(at < Self.numKeys, "maximum \(Self.numKeys) childs allowed")
-    return childs[at]
+    return withBody { _, childs in
+      return childs[at]
+    }
   }
 
-  func child(at index: Index, ref: inout ChildSlotPtr?) -> NodePtr? {
+  func child(at index: Index, ref: inout ChildSlotPtr?) -> (any Node)? {
     assert(
       index < Self.numKeys,
       "maximum \(Self.numKeys) childs allowed, given index = \(index)")
-    ref = childs.baseAddress! + index
-    return childs[index]
+    return withBody { _, childs in
+      ref = childs.baseAddress! + index
+      return childs[index]
+    }
   }
 
   mutating func addChild(
     forKey k: KeyPart,
-    node: NodePtr,
+    node: any Node,
     ref: ChildSlotPtr?
   ) {
-    if let slot = _insertSlot(forKey: k) {
-      assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")
-      keys.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
-      childs.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
-      keys[slot] = k
-      childs[slot] = node
-      count += 1
-    } else {
-      var newNode = Node48.allocate(copyFrom: self)
-      newNode.addChild(forKey: k, node: node)
-      ref?.pointee = newNode.pointer
-      pointer.deallocate()
+    withBody {keys, childs in
+      if let slot = _insertSlot(forKey: k) {
+        assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")
+        keys.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
+        childs.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
+        keys[slot] = k
+        childs[slot] = node
+        count += 1
+      } else {
+        var newNode = Node48.allocate(copyFrom: self)
+        newNode.addChild(forKey: k, node: node)
+        ref?.pointee = newNode
+        // pointer.deallocate()
+      }
     }
   }
 
@@ -155,20 +199,22 @@ extension Node16: Node {
     assert(index < count, "not enough childs in node")
 
     let childBuf = child(at: index)
-    childBuf?.deallocate()
+    // childBuf?.deallocate()
 
-    keys[self.count] = 0
-    childs[self.count] = nil
+    withBody { keys, childs in
+      keys[self.count] = 0
+      childs[self.count] = nil
 
-    count -= 1
-    keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
-    childs.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
+      count -= 1
+      keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
+      childs.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
 
-    if count == 3 {
-      // Shrink to Node4.
-      let newNode = Node4.allocate(copyFrom: self)
-      ref?.pointee = newNode.pointer
-      pointer.deallocate()
+      if count == 3 {
+        // Shrink to Node4.
+        let newNode = Node4.allocate(copyFrom: self)
+        ref?.pointee = newNode
+        // pointer.deallocate()
+      }
     }
   }
 }

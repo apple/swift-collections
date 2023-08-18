@@ -32,7 +32,7 @@ func indent(_ width: Int, last: Bool) -> String {
 
 extension ARTree: CustomStringConvertible {
   public var description: String {
-    if let node = root?.asNode(of: Value.self) {
+    if let node = root {
       return "○ " + node.prettyPrint(depth: 0, value: Value.self)
     } else {
       return "<>"
@@ -40,7 +40,7 @@ extension ARTree: CustomStringConvertible {
   }
 }
 
-extension Node {
+extension InternalNode {
   fileprivate var partial: [UInt8] {
     var arr = [UInt8](repeating: 0, count: partialLength)
     let bytes = partialBytes
@@ -60,16 +60,18 @@ extension NodeLeaf: NodePrettyPrinter {
 extension Node4: NodePrettyPrinter {
   func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
     var output = "Node4 {childs=\(count), partial=\(partial)}\n"
-    for idx in 0..<count {
-      let key = keys[idx]
-      let last = idx == count - 1
-      output += indent(depth, last: last)
-      output += String(key) + ": "
-      output += child(forKey: key)!.asNode(of: Value.self)!.prettyPrint(
-        depth: depth + 1,
-        value: value)
-      if !last {
-        output += "\n"
+    withBody { keys, childs in
+      for idx in 0..<count {
+        let key = keys[idx]
+        let last = idx == count - 1
+        output += indent(depth, last: last)
+        output += String(key) + ": "
+        output += child(forKey: key)!.prettyPrint(
+          depth: depth + 1,
+          value: value)
+        if !last {
+          output += "\n"
+        }
       }
     }
 
@@ -80,16 +82,18 @@ extension Node4: NodePrettyPrinter {
 extension Node16: NodePrettyPrinter {
   func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
     var output = "Node16 {childs=\(count), partial=\(partial)}\n"
-    for idx in 0..<count {
-      let key = keys[idx]
-      let last = idx == count - 1
-      output += indent(depth, last: last)
-      output += String(key) + ": "
-      output += child(forKey: key)!.asNode(of: Value.self)!.prettyPrint(
-        depth: depth + 1,
-        value: value)
-      if !last {
-        output += "\n"
+    withBody { keys, childs in
+      for idx in 0..<count {
+        let key = keys[idx]
+        let last = idx == count - 1
+        output += indent(depth, last: last)
+        output += String(key) + ": "
+        output += child(forKey: key)!.prettyPrint(
+          depth: depth + 1,
+          value: value)
+        if !last {
+          output += "\n"
+        }
       }
     }
 
@@ -101,20 +105,22 @@ extension Node48: NodePrettyPrinter {
   func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
     var output = "Node48 {childs=\(count), partial=\(partial)}\n"
     var total = 0
-    for (key, slot) in keys.enumerated() {
-      if slot >= 0xFF {
-        continue
-      }
+    withBody { keys, childs in
+      for (key, slot) in keys.enumerated() {
+        if slot >= 0xFF {
+          continue
+        }
 
-      total += 1
-      let last = total == count
-      output += indent(depth, last: last)
-      output += String(key) + ": "
-      output += child(at: Int(slot))!.asNode(of: Value.self)!.prettyPrint(
-        depth: depth + 1,
-        value: value)
-      if !last {
-        output += "\n"
+        total += 1
+        let last = total == count
+        output += indent(depth, last: last)
+        output += String(key) + ": "
+        output += child(at: Int(slot))!.prettyPrint(
+          depth: depth + 1,
+          value: value)
+        if !last {
+          output += "\n"
+        }
       }
     }
 
@@ -126,20 +132,22 @@ extension Node256: NodePrettyPrinter {
   func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
     var output = "Node256 {childs=\(count), partial=\(partial)}\n"
     var total = 0
-    for (key, child) in childs.enumerated() {
-      if child == nil {
-        continue
-      }
+    withBody { childs in
+      for (key, child) in childs.enumerated() {
+        if child == nil {
+          continue
+        }
 
-      total += 1
-      let last = total == count
-      output += indent(depth, last: last)
-      output += String(key) + ": "
-      output += child!.asNode(of: Value.self)!.prettyPrint(
-        depth: depth + 1,
-        value: value)
-      if !last {
-        output += "\n"
+        total += 1
+        let last = total == count
+        output += indent(depth, last: last)
+        output += String(key) + ": "
+        output += child!.prettyPrint(
+          depth: depth + 1,
+          value: value)
+        if !last {
+          output += "\n"
+        }
       }
     }
     return output

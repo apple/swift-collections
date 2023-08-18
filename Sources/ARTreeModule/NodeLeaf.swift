@@ -10,10 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 struct NodeLeaf<Value> {
-  let pointer: NodePtr
+  typealias Storage = NodeStorage<Self>
+  var storage: Storage
+}
 
-  init(ptr: UnsafeMutableRawPointer) {
-    self.pointer = ptr
+extension NodeLeaf {
+  init(ptr: RawNodeBuffer) {
+      self.init(storage: Storage(ptr))
   }
 }
 
@@ -32,12 +35,14 @@ extension NodeLeaf {
   }
 
   private var header: UnsafeMutablePointer<Header> {
-    pointer.assumingMemoryBound(to: Header.self)
+    let pointer = storage.getPointer()
+    return pointer.assumingMemoryBound(to: Header.self)
   }
 
   var keyPtr: UnsafeMutableBufferPointer<KeyPart> {
-    UnsafeMutableBufferPointer(
-      start: (self.pointer + MemoryLayout<Header>.stride)
+    let pointer = storage.getPointer()
+    return UnsafeMutableBufferPointer(
+      start: (pointer + MemoryLayout<Header>.stride)
         .assumingMemoryBound(to: KeyPart.self),
       count: Int(keyLength))
   }
@@ -51,7 +56,7 @@ extension NodeLeaf {
 extension NodeLeaf {
   static func allocate(key: Key, value: Value) -> Self {
     let size = MemoryLayout<Header>.stride + key.count + MemoryLayout<Value>.stride
-    let buf = NodeBuffer.allocate(byteCount: size, alignment: Const.defaultAlignment)
+    let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
     var leaf = Self(ptr: buf)
 
     leaf.keyLength = UInt32(key.count)
@@ -88,40 +93,6 @@ extension NodeLeaf {
   }
 }
 
-private let _failMsg = "NodeLeaf: should never be called"
-
 extension NodeLeaf: Node {
-  func type() -> NodeType { .leaf }
-
-  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> NodePtr? {
-    fatalError(_failMsg)
-  }
-
-  func index() -> Index? {
-    fatalError(_failMsg)
-  }
-
-  func index(forKey k: KeyPart) -> Index? {
-    fatalError(_failMsg)
-  }
-
-  func next(index: Index) -> Index? {
-    fatalError(_failMsg)
-  }
-
-  func child(at index: Index) -> NodePtr? {
-    fatalError(_failMsg)
-  }
-
-  func child(at index: Index, ref: inout ChildSlotPtr?) -> NodePtr? {
-    fatalError(_failMsg)
-  }
-
-  func addChild(forKey k: KeyPart, node: NodePtr, ref: ChildSlotPtr?) {
-    fatalError(_failMsg)
-  }
-
-  func deleteChild(at index: Index, ref: ChildSlotPtr?) {
-    fatalError(_failMsg)
-  }
+  var type: NodeType { .leaf }
 }

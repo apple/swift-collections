@@ -11,7 +11,7 @@
 
 extension ARTree {
   public mutating func insert(key: Key, value: Value) -> Bool {
-    var current: NodePtr? = root
+    var current: (any Node)? = root
 
     // Location of child (current) pointer in parent, i.e. memory address where the
     // address of current node is stored inside the parent node.
@@ -20,13 +20,13 @@ extension ARTree {
 
     var depth = 0
     while depth < key.count {
-      guard var node = current?.asNode(of: Value.self) else {
+      guard var _node = current else {
         assert(false, "current node can never be nil")
       }
 
       // Reached leaf already, replace it with a new node, or update the existing value.
-      if node.type() == .leaf {
-        let leaf = node as! NodeLeaf<Value>
+      if _node.type == .leaf {
+        let leaf = _node as! NodeLeaf<Value>
         if leaf.keyEquals(with: key) {
           //TODO: Replace value.
           fatalError("replace not supported")
@@ -55,10 +55,11 @@ extension ARTree {
           newNode = nextNode
         }
 
-        ref?.pointee = newNode.pointer  // Replace child in parent.
+        ref?.pointee = newNode  // Replace child in parent.
         return true
       }
 
+      var node = _node as! any InternalNode
       if node.partialLength > 0 {
         let partialLength = node.partialLength
         let prefixDiff = node.prefixMismatch(withKey: key, fromIndex: depth)
@@ -81,7 +82,7 @@ extension ARTree {
 
           let newLeaf = NodeLeaf.allocate(key: key, value: value)
           newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
-          ref?.pointee = newNode.pointer
+          ref?.pointee = newNode
           return true
         }
       }

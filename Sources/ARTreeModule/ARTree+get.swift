@@ -14,17 +14,18 @@ extension ARTree {
     var current = root
     var depth = 0
     while depth <= key.count {
-      guard let node = current?.asNode(of: Value.self) else {
+      guard let _node = current else {
         return nil
       }
 
-      if node.type() == .leaf {
-        let leaf: NodeLeaf<Value> = node.pointer.asLeaf()
+      if _node.type == .leaf {
+        let leaf = _node as! NodeLeaf<Value>
         return leaf.keyEquals(with: key)
           ? leaf.value
           : nil
       }
 
+      let node = _node as! any InternalNode
       if node.partialLength > 0 {
         let prefixLen = node.prefixMismatch(withKey: key, fromIndex: depth)
         assert(prefixLen <= Const.maxPartialLength, "partial length is always bounded")

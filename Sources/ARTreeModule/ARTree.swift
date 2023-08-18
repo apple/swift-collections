@@ -27,9 +27,9 @@
 // * Values should be whatever.
 
 public struct ARTree<Value> {
-  var root: NodePtr?
+  var root: (any Node)?
 
   public init() {
-    self.root = Node4.allocate().pointer
+    self.root = Node4.allocate()
   }
 }

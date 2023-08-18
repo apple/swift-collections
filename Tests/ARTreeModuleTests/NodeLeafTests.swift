@@ -34,8 +34,7 @@ final class ARTreeNodeLeafTests: XCTestCase {
   }
 
   func testCasts() throws {
-    let ptr = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0]).pointer
-    let leaf: NodeLeaf<[UInt8]> = ptr.asLeaf()
+    let leaf = NodeLeaf.allocate(key: [10, 20, 30, 40], value: [0])
     XCTAssertEqual(leaf.key, [10, 20, 30, 40])
     XCTAssertEqual(leaf.value, [0])
   }

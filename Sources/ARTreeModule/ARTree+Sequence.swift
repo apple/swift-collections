@@ -13,16 +13,17 @@ extension ARTree: Sequence {
   public typealias Element = (Key, Value)
 
   public struct Iterator {
-    typealias _ChildIndex = Node.Index
+    typealias _ChildIndex = InternalNode.Index
 
     private let tree: ARTree
-    private var path: [(Node, _ChildIndex?)]
+    private var path: [(any InternalNode, _ChildIndex?)]
 
     init(tree: ARTree) {
       self.tree = tree
       self.path = []
-      if let node = tree.root?.asNode(of: Value.self) {
-        self.path = [(node, node.index())]
+      if let node = tree.root {
+        let n = node as! any InternalNode
+        self.path = [(n, n.index())]
       }
     }
   }
@@ -59,14 +60,14 @@ extension ARTree.Iterator: IteratorProtocol {
         }
 
         let next = node.child(at: index)!
-        if next.type() == .leaf {
-          let leaf: NodeLeaf<Value> = next.asLeaf()
+        if next.type == .leaf {
+          let leaf = next as! NodeLeaf<Value>
           let result = (leaf.key, leaf.value)
           advanceToNextChild()
           return result
         }
 
-        path.append((next.asNode(of: Value.self)!, node.index()))
+        path.append((next as! any InternalNode, node.index()))
       }
     }
 

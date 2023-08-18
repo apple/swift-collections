@@ -12,7 +12,7 @@
 extension ARTree {
   public mutating func delete(key: Key) -> Bool {
     var ref: ChildSlotPtr? = ChildSlotPtr(&root)
-    if let node = root?.asNode(of: Value.self) {
+    if let node = root {
       return _delete(node: node, ref: &ref, key: key, depth: 0)
     }
 
@@ -24,13 +24,13 @@ extension ARTree {
     fatalError("not implemented")
   }
 
-  private mutating func _delete(node: Node, ref: inout ChildSlotPtr?, key: Key, depth: Int) -> Bool
+  private mutating func _delete(node: any Node, ref: inout ChildSlotPtr?, key: Key, depth: Int) -> Bool
   {
     var newDepth = depth
-    var node = node
+    var _node = node
 
-    if node.type() == .leaf {
-      let leaf = node as! NodeLeaf<Value>
+    if _node.type == .leaf {
+      let leaf = _node as! NodeLeaf<Value>
 
       if !leaf.keyEquals(with: key, depth: depth) {
         return false
@@ -41,6 +41,7 @@ extension ARTree {
       return true
     }
 
+    var node = _node as! any InternalNode
     if node.partialLength > 0 {
       let matchedBytes = node.prefixMismatch(withKey: key, fromIndex: depth)
       assert(matchedBytes <= node.partialLength)
@@ -53,7 +54,7 @@ extension ARTree {
     }
 
     var childRef: ChildSlotPtr?
-    let child = node.child(at: childPosition, ref: &childRef)!.asNode(of: Value.self)!
+    let child = node.child(at: childPosition, ref: &childRef)!
     if !_delete(node: child, ref: &childRef, key: key, depth: newDepth + 1) {
       return false
     }
