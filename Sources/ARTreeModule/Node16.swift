@@ -103,10 +103,6 @@ extension Node16: InternalNode {
       * (MemoryLayout<KeyPart>.stride + MemoryLayout<(any Node)?>.stride)
   }
 
-  var header: UnsafeMutablePointer<InternalNodeHeader> {
-    storage.withHeaderPointer { $0 }
-  }
-
   func index(forKey k: KeyPart) -> Index? {
     return withBody { keys, _ in
       for (index, key) in keys.enumerated() {

@@ -115,10 +115,6 @@ extension Node48: InternalNode {
       Self.numKeys*MemoryLayout<(any Node)?>.stride
   }
 
-  var header: UnsafeMutablePointer<InternalNodeHeader> {
-    storage.withHeaderPointer { $0 }
-  }
-
   func index(forKey k: KeyPart) -> Index? {
     return withBody { keys, _ in
       let childIndex = Int(keys[Int(k)])

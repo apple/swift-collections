@@ -76,10 +76,6 @@ extension Node256: InternalNode {
     MemoryLayout<InternalNodeHeader>.stride + 256 * MemoryLayout<(any Node)?>.stride
   }
 
-  var header: UnsafeMutablePointer<InternalNodeHeader> {
-    storage.withHeaderPointer { $0 }
-  }
-
   func index(forKey k: KeyPart) -> Index? {
     return withBody { childs in
       return childs[Int(k)] != nil ? Int(k) : nil

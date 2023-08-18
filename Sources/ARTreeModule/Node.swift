@@ -29,8 +29,6 @@ protocol InternalNode: Node {
   static var type: NodeType { get }
   static var size: Int { get }
 
-  var header: UnsafeMutablePointer<InternalNodeHeader> { get }
-
   var count: Int { get set }
   var partialLength: Int { get }
   var partialBytes: PartialBytes { get set }

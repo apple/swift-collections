@@ -11,21 +11,43 @@
 
 extension InternalNode {
   var partialLength: Int {
-    get { Int(self.header.pointee.partialLength) }
+    get {
+      storage.withHeaderPointer {
+        Int($0.pointee.partialLength)
+      }
+    }
     set {
       assert(newValue <= Const.maxPartialLength)
-      self.header.pointee.partialLength = KeyPart(newValue)
+      storage.withHeaderPointer {
+        $0.pointee.partialLength = KeyPart(newValue)
+      }
     }
   }
 
   var partialBytes: PartialBytes {
-    get { header.pointee.partialBytes }
-    set { header.pointee.partialBytes = newValue }
+    get {
+      storage.withHeaderPointer {
+        $0.pointee.partialBytes
+      }
+    }
+    set {
+      storage.withHeaderPointer {
+        $0.pointee.partialBytes = newValue
+      }
+    }
   }
 
   var count: Int {
-    get { Int(header.pointee.count) }
-    set { header.pointee.count = UInt16(newValue) }
+    get {
+      storage.withHeaderPointer {
+        Int($0.pointee.count)
+      }
+    }
+    set {
+      storage.withHeaderPointer {
+        $0.pointee.count = UInt16(newValue)
+      }
+    }
   }
 
   func child(forKey k: KeyPart) -> (any Node)? {
@@ -65,10 +87,11 @@ extension InternalNode {
   }
 
   mutating func copyHeader(from: any InternalNode) {
-    let src = from.header.pointee
-    header.pointee.count = src.count
-    header.pointee.partialLength = src.partialLength
-    header.pointee.partialBytes = src.partialBytes
+    self.storage.withHeaderPointer { header in
+      header.pointee.count = UInt16(from.count)
+      header.pointee.partialLength = UInt8(from.partialLength)
+      header.pointee.partialBytes = from.partialBytes
+    }
   }
 
   // Calculates the index at which prefix mismatches.
