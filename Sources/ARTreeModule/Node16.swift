@@ -60,6 +60,7 @@ extension Node16 {
           from: UnsafeMutableRawBufferPointer(fromChilds))
       }
     }
+
     return node
   }
 
@@ -129,11 +130,11 @@ extension Node16: InternalNode {
 
   func _insertSlot(forKey k: KeyPart) -> Int? {
     // TODO: Binary search.
-    return withBody { keys, _ in
-      if count >= Self.numKeys {
-        return nil
-      }
+    if count >= Self.numKeys {
+      return nil
+    }
 
+    return withBody { keys, _ in
       for idx in 0..<count {
         if keys[idx] >= Int(k) {
           return idx
@@ -177,20 +178,20 @@ extension Node16: InternalNode {
     node: any Node,
     ref: ChildSlotPtr?
   ) {
-    withBody {keys, childs in
-      if let slot = _insertSlot(forKey: k) {
+    if let slot = _insertSlot(forKey: k) {
+      withBody {keys, childs in
         assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")
         keys.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         childs.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         keys[slot] = k
         childs[slot] = node
         count += 1
-      } else {
-        var newNode = Node48.allocate(copyFrom: self)
-        newNode.addChild(forKey: k, node: node)
-        ref?.pointee = newNode
-        // pointer.deallocate()
       }
+    } else {
+      var newNode = Node48.allocate(copyFrom: self)
+      newNode.addChild(forKey: k, node: node)
+      ref?.pointee = newNode
+      // pointer.deallocate()
     }
   }
 

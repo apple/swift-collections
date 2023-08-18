@@ -18,7 +18,7 @@ final class NodeBuffer<ArtNode: Node>: RawNodeBuffer {
 }
 
 struct NodeStorage<ArtNode: Node> {
-  typealias Header = InternalNodeHeader
+  typealias Header = ArtNode.Header
   var buf: NodeBuffer<ArtNode>
 }
 
@@ -47,7 +47,9 @@ extension NodeStorage where ArtNode: InternalNode {
     storage.withBodyPointer { $0.initializeMemory(as: UInt8.self, repeating: 0, count: size) }
     return storage
   }
+}
 
+extension NodeStorage {
   func withHeaderPointer<R>(_ body: (UnsafeMutablePointer<Header>) throws -> R) rethrows -> R {
     return try buf.withUnsafeMutablePointerToElements {
       return try body(UnsafeMutableRawPointer($0).assumingMemoryBound(to: Header.self))
@@ -57,15 +59,6 @@ extension NodeStorage where ArtNode: InternalNode {
   func withBodyPointer<R>(_ body: (UnsafeMutableRawPointer) throws -> R) rethrows -> R {
     return try buf.withUnsafeMutablePointerToElements {
       return try body(UnsafeMutableRawPointer($0).advanced(by: MemoryLayout<Header>.stride))
-    }
-  }
-}
-
-
-extension NodeStorage {
-  func getPointer() -> UnsafeMutableRawPointer {
-    return self.buf.withUnsafeMutablePointerToElements {
-      UnsafeMutableRawPointer($0)
     }
   }
 }

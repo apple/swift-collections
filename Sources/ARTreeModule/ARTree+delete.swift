@@ -37,7 +37,9 @@ extension ARTree {
       }
 
       ref?.pointee = nil
-      leaf.valuePtr.deinitialize(count: 1)
+      leaf.withKeyValue { _, valuePtr in
+        valuePtr.deinitialize(count: 1)
+      }
       return true
     }
 

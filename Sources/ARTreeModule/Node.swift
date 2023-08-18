@@ -16,8 +16,9 @@ typealias ChildSlotPtr = UnsafeMutablePointer<(any Node)?>
 
 /// Shared protocol implementation for Node types in an Adaptive Radix Tree
 protocol Node: NodePrettyPrinter {
-  var storage: NodeStorage<Self> { get }
+  associatedtype Header
 
+  var storage: NodeStorage<Self> { get }
   var type: NodeType { get }
 }
 

@@ -11,45 +11,54 @@
 
 struct NodeLeaf<Value> {
   typealias Storage = NodeStorage<Self>
+
   var storage: Storage
 }
 
 extension NodeLeaf {
   init(ptr: RawNodeBuffer) {
-      self.init(storage: Storage(ptr))
+    self.init(storage: Storage(ptr))
   }
 }
 
 extension NodeLeaf {
-  var key: Key { Array(keyPtr) }
-  var value: Value { valuePtr.pointee }
-
-  var keyLength: UInt32 {
-    get { header.pointee.keyLength }
-    set { header.pointee.keyLength = newValue }
-  }
-
-  private struct Header {
+  struct Header {
     var type: NodeType
     var keyLength: UInt32
   }
 
-  private var header: UnsafeMutablePointer<Header> {
-    let pointer = storage.getPointer()
-    return pointer.assumingMemoryBound(to: Header.self)
+  typealias KeyPtr = UnsafeMutableBufferPointer<KeyPart>
+  typealias ValuePtr = UnsafeMutablePointer<Value>
+
+  func withKeyValue<R>(body: (KeyPtr, ValuePtr) throws -> R) rethrows -> R {
+    return try storage.withBodyPointer {
+      let keyPtr = UnsafeMutableBufferPointer(
+        start: $0.assumingMemoryBound(to: KeyPart.self),
+        count: Int(keyLength)
+      )
+      let valuePtr = UnsafeMutableRawPointer(
+        keyPtr.baseAddress?.advanced(by: Int(keyLength)))!
+        .assumingMemoryBound(to: Value.self)
+      return try body(keyPtr, valuePtr)
+    }
   }
 
-  var keyPtr: UnsafeMutableBufferPointer<KeyPart> {
-    let pointer = storage.getPointer()
-    return UnsafeMutableBufferPointer(
-      start: (pointer + MemoryLayout<Header>.stride)
-        .assumingMemoryBound(to: KeyPart.self),
-      count: Int(keyLength))
+  var key: Key {
+    withKeyValue { k, _ in Array(k) }
   }
 
-  var valuePtr: UnsafeMutablePointer<Value> {
-    let ptr = UnsafeMutableRawPointer(self.keyPtr.baseAddress?.advanced(by: Int(keyLength)))!
-    return ptr.assumingMemoryBound(to: Value.self)
+  var value: Value {
+    get { withKeyValue { $1.pointee } }
+    set { withKeyValue { $1.pointee = newValue } }
+  }
+
+  var keyLength: UInt32 {
+    get {
+      storage.withHeaderPointer { $0.pointee.keyLength }
+    }
+    set {
+      storage.withHeaderPointer { $0.pointee.keyLength = newValue }
+    }
   }
 }
 
@@ -60,10 +69,12 @@ extension NodeLeaf {
     var leaf = Self(ptr: buf)
 
     leaf.keyLength = UInt32(key.count)
-    key.withUnsafeBytes {
-      UnsafeMutableRawBufferPointer(leaf.keyPtr).copyBytes(from: $0)
+    leaf.withKeyValue { keyPtr, valuePtr in
+      key.withUnsafeBytes {
+        UnsafeMutableRawBufferPointer(keyPtr).copyBytes(from: $0)
+      }
+      valuePtr.pointee = value
     }
-    leaf.valuePtr.pointee = value
 
     return leaf
   }
@@ -73,23 +84,30 @@ extension NodeLeaf {
       return false
     }
 
-    for ii in depth..<key.count {
-      if key[ii] != keyPtr[ii] {
-        return false
+    return withKeyValue { keyPtr, _ in
+      for ii in depth..<key.count {
+        if key[ii] != keyPtr[ii] {
+          return false
+        }
       }
-    }
 
-    return true
+      return true
+    }
   }
 
   func longestCommonPrefix(with other: Self, fromIndex: Int) -> Int {
     let maxComp = Int(min(keyLength, other.keyLength) - UInt32(fromIndex))
-    for index in 0..<maxComp {
-      if keyPtr[fromIndex + index] != other.keyPtr[fromIndex + index] {
-        return index
+
+    return withKeyValue { keyPtr, _ in
+      return other.withKeyValue { otherKeyPtr, _ in
+        for index in 0..<maxComp {
+          if keyPtr[fromIndex + index] != otherKeyPtr[fromIndex + index] {
+            return index
+          }
+        }
+        return maxComp
       }
     }
-    return maxComp
   }
 }
 
