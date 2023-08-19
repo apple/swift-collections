@@ -140,17 +140,6 @@ extension Node16: InternalNode {
     }
   }
 
-  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> RawNode? {
-    guard let index = index(forKey: k) else {
-      return nil
-    }
-
-    return withBody {_, childs in
-      ref = childs.baseAddress! + index
-      return child(at: index)
-    }
-  }
-
   func child(at: Index) -> RawNode? {
     assert(at < Self.numKeys, "maximum \(Self.numKeys) childs allowed")
     return withBody { _, childs in
@@ -195,6 +184,14 @@ extension Node16: InternalNode {
       }
 
       return .noop
+    }
+  }
+
+  mutating func withChildRef<R>(at index: Index, _ body: (ChildSlotPtr) -> R) -> R {
+    assert(index < count, "not enough childs in node")
+    return withBody {_, childs in
+      let ref = childs.baseAddress! + index
+      return body(ref)
     }
   }
 

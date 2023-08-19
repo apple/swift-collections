@@ -73,7 +73,7 @@ extension Node4: NodePrettyPrinter {
         let last = idx == count - 1
         output += indent(depth, last: last)
         output += String(key) + ": "
-        output += child(forKey: key)!.prettyPrint(
+        output += child(at: idx)!.prettyPrint(
           depth: depth + 1,
           value: value)
         if !last {
@@ -95,7 +95,7 @@ extension Node16: NodePrettyPrinter {
         let last = idx == count - 1
         output += indent(depth, last: last)
         output += String(key) + ": "
-        output += child(forKey: key)!.prettyPrint(
+        output += child(at: idx)!.prettyPrint(
           depth: depth + 1,
           value: value)
         if !last {

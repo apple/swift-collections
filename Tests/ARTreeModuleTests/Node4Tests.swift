@@ -157,18 +157,18 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(forKey: 10)
+    _ = node.index(forKey: 10).flatMap { node.deleteChild(at: $0) }
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(forKey: 15)
+    _ = node.index(forKey: 15).flatMap { node.deleteChild(at: $0) }
     XCTAssertEqual(
       node.print(value: [UInt8].self),
       "○ Node4 {childs=1, partial=[]}\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(forKey: 20)
+    _ = node.index(forKey: 20).flatMap { node.deleteChild(at: $0) }
     XCTAssertEqual(node.print(value: [UInt8].self), "○ Node4 {childs=0, partial=[]}\n")
   }
 }

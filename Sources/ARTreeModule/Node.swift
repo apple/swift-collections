@@ -12,10 +12,9 @@
 public typealias KeyPart = UInt8
 public typealias Key = [KeyPart]
 
-typealias ChildSlotPtr = UnsafeMutablePointer<RawNode?>
-
 protocol ManagedNode: NodePrettyPrinter {
   typealias Storage = NodeStorage<Self>
+  typealias ChildSlotPtr = UnsafeMutablePointer<RawNode?>
 
   static func deinitialize(_ storage: NodeStorage<Self>)
   static var type: NodeType { get }
@@ -40,12 +39,12 @@ protocol InternalNode: ManagedNode {
   func next(index: Index) -> Index?
 
   func child(forKey k: KeyPart) -> RawNode?
-  func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> RawNode?
   func child(at: Index) -> RawNode?
 
   mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?>
-  mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?>
   mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?>
+
+  mutating func withChildRef<R>(at index: Index, _ body: (ChildSlotPtr) -> R) -> R
 }
 
 extension ManagedNode {
@@ -59,17 +58,34 @@ enum UpdateResult<T> {
 }
 
 extension InternalNode {
+  mutating func child(forKey k: KeyPart, ref: inout ChildSlotPtr) -> RawNode? {
+    if count == 0 {
+      return nil
+    }
+
+    return index(forKey: k).flatMap { index in
+      return withChildRef(at: index) { _ref in
+        ref = _ref
+        return ref.pointee
+      }
+    }
+  }
+
   mutating func updateChild(forKey k: KeyPart, body: (RawNode?) -> UpdateResult<RawNode?>)
     -> UpdateResult<RawNode?> {
 
-    var ref: ChildSlotPtr?
-    let child = child(forKey: k, ref: &ref)
+    guard let childPosition = index(forKey: k) else {
+      return .noop
+    }
+
+    let ref = withChildRef(at: childPosition) { $0 }
+    let child = child(at: childPosition)
     switch body(child) {
     case .noop:
       return .noop
     case .replaceWith(nil):
       let shouldDeleteMyself = count == 1
-      switch deleteChild(forKey: k) {
+      switch deleteChild(at: childPosition) {
       case .noop:
         return .noop
       case .replaceWith(nil) where shouldDeleteMyself:
@@ -78,7 +94,7 @@ extension InternalNode {
         return .replaceWith(newValue)
       }
     case .replaceWith(let newValue):
-      ref?.pointee = newValue
+      ref.pointee = newValue
       return .noop
     }
   }

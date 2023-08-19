@@ -17,7 +17,7 @@ extension ARTree {
     // Location of child (current) pointer in parent, i.e. memory address where the
     // address of current node is stored inside the parent node.
     // TODO: Fix warning here?
-    var ref: ChildSlotPtr? = ChildSlotPtr(&root)
+    var ref = UnsafeMutablePointer(&root)
 
     var depth = 0
     while depth < key.count {
@@ -52,7 +52,7 @@ extension ARTree {
           newNode = nextNode
         }
 
-        ref?.pointee = RawNode(from: newNode)  // Replace child in parent.
+        ref.pointee = RawNode(from: newNode)  // Replace child in parent.
         return true
       }
 
@@ -79,7 +79,7 @@ extension ARTree {
 
           let newLeaf = Self.allocateLeaf(key: key, value: value)
           _ = newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
-          ref?.pointee = newNode.rawNode
+          ref.pointee = newNode.rawNode
           return true
         }
       }
@@ -89,7 +89,7 @@ extension ARTree {
         // No child, insert leaf within us.
         let newLeaf = Self.allocateLeaf(key: key, value: value)
         if case .replaceWith(let newNode) = node.addChild(forKey: key[depth], node: newLeaf) {
-          ref?.pointee = newNode
+          ref.pointee = newNode
         }
         return true
       }

@@ -51,18 +51,7 @@ extension InternalNode {
   }
 
   func child(forKey k: KeyPart) -> RawNode? {
-    var ref = UnsafeMutablePointer<RawNode?>(nil)
-    return child(forKey: k, ref: &ref)
-  }
-
-  mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?> {
-    let index = index(forKey: k)
-    assert(index != nil, "trying to delete key that doesn't exist")
-    if index != nil {
-      return deleteChild(at: index!)
-    }
-
-    return .noop
+    return index(forKey: k).flatMap { child(at: $0) }
   }
 
   mutating func copyHeader(from: any InternalNode) {
