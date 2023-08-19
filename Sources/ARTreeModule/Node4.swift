@@ -132,16 +132,6 @@ extension Node4: InternalNode {
     }
   }
 
-  func child(at index: Index, ref: inout ChildSlotPtr?) -> RawNode? {
-    assert(
-      index < Self.numKeys,
-      "maximum \(Self.numKeys) childs allowed, given index = \(index)")
-    return withBody { _, childs in
-      ref = childs.baseAddress! + index
-      return childs[index]
-    }
-  }
-
   mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?> {
     if let slot = _insertSlot(forKey: k) {
       withBody { keys, childs in

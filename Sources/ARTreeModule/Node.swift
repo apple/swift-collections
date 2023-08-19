@@ -42,7 +42,6 @@ protocol InternalNode: ManagedNode {
   func child(forKey k: KeyPart) -> RawNode?
   func child(forKey k: KeyPart, ref: inout ChildSlotPtr?) -> RawNode?
   func child(at: Index) -> RawNode?
-  func child(at index: Index, ref: inout ChildSlotPtr?) -> RawNode?
 
   mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?>
   mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?>
