@@ -55,11 +55,6 @@ extension InternalNode {
     return child(forKey: k, ref: &ref)
   }
 
-  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) {
-    let ref = UnsafeMutablePointer<RawNode?>(nil)
-    addChild(forKey: k, node: node, ref: ref)
-  }
-
   mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?> {
     let index = index(forKey: k)
     assert(index != nil, "trying to delete key that doesn't exist")

@@ -116,15 +116,12 @@ extension Node256: InternalNode {
     }
   }
 
-  mutating func addChild(
-    forKey k: KeyPart,
-    node: any ManagedNode,
-    ref: ChildSlotPtr?
-  ) {
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?> {
     return withBody { childs in
       assert(childs[Int(k)] == nil, "node for key \(k) already exists")
       childs[Int(k)] = node.rawNode
       count += 1
+      return .noop
     }
   }
 

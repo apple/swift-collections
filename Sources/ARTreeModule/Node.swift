@@ -25,11 +25,6 @@ protocol ManagedNode: NodePrettyPrinter {
   var rawNode: RawNode { get }
 }
 
-enum UpdateResult<T> {
-  case noop
-  case replaceWith(T)
-}
-
 protocol InternalNode: ManagedNode {
   typealias Index = Int
   typealias Header = InternalNodeHeader
@@ -49,16 +44,7 @@ protocol InternalNode: ManagedNode {
   func child(at: Index) -> RawNode?
   func child(at index: Index, ref: inout ChildSlotPtr?) -> RawNode?
 
-  mutating func addChild(forKey k: KeyPart, node: any ManagedNode)
-  mutating func addChild(
-    forKey k: KeyPart,
-    node: any ManagedNode,
-    ref: ChildSlotPtr?)
-
-  mutating func updateChild(forKey k: KeyPart, body: (RawNode?) -> UpdateResult<RawNode?>)
-    -> UpdateResult<RawNode?>
-
-  // TODO: Shrinking/expand logic can be moved out.
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?>
   mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?>
   mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?>
 }
@@ -66,6 +52,11 @@ protocol InternalNode: ManagedNode {
 extension ManagedNode {
   var rawNode: RawNode { RawNode(from: self) }
   var type: NodeType { Self.type }
+}
+
+enum UpdateResult<T> {
+  case noop
+  case replaceWith(T)
 }
 
 extension InternalNode {

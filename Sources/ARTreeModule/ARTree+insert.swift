@@ -72,12 +72,12 @@ extension ARTree {
           assert(
             node.partialLength <= Const.maxPartialLength,
             "partial length is always bounded")
-          newNode.addChild(forKey: node.partialBytes[prefixDiff], node: node)
+          _ = newNode.addChild(forKey: node.partialBytes[prefixDiff], node: node)
           node.partialBytes.shiftLeft(toIndex: prefixDiff + 1)
           node.partialLength -= prefixDiff + 1
 
           let newLeaf = Self.allocateLeaf(key: key, value: value)
-          newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
+          _ = newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
           ref?.pointee = newNode.rawNode
           return true
         }
@@ -87,7 +87,7 @@ extension ARTree {
       guard let next = node.child(forKey: key[depth], ref: &ref) else {
         // No child, insert leaf within us.
         let newLeaf = Self.allocateLeaf(key: key, value: value)
-        node.addChild(forKey: key[depth], node: newLeaf, ref: ref)
+        node.addChild(forKey: key[depth], node: newLeaf)
         return true
       }
 

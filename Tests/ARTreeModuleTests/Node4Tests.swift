@@ -14,6 +14,15 @@ import XCTest
 @testable import ARTreeModule
 
 extension InternalNode {
+  mutating func addChildReturn(forKey k: KeyPart, node: any ManagedNode) -> (any ManagedNode)? {
+    switch addChild(forKey: k, node: node) {
+    case .noop:
+      return self
+    case .replaceWith(let newValue):
+      return newValue?.toManagedNode()
+    }
+  }
+
   mutating func deleteChildReturn(at idx: Index) -> (any ManagedNode)? {
     switch deleteChild(at: idx) {
     case .noop:
@@ -125,21 +134,16 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 3: 1[3] -> [3]\n" +
       "└──○ 4: 1[4] -> [4]")
 
-    var addr: RawNode? = node.rawNode
-    withUnsafeMutablePointer(to: &addr) {
-      let ref: ChildSlotPtr? = $0
-      node.addChild(forKey: 5,
-                    node: NodeLeaf.allocate(key: [5], value: [5], of: [UInt8].self),
-                    ref: ref)
-      XCTAssertEqual(
-        ref!.pointee!.print(value: [UInt8].self),
-        "○ Node16 {childs=5, partial=[]}\n" +
-        "├──○ 1: 1[1] -> [1]\n" +
-        "├──○ 2: 1[2] -> [2]\n" +
-        "├──○ 3: 1[3] -> [3]\n" +
-        "├──○ 4: 1[4] -> [4]\n" +
-        "└──○ 5: 1[5] -> [5]")
-    }
+    let newNode = node.addChildReturn(
+      forKey: 5, node: NodeLeaf.allocate(key: [5], value: [5], of: [UInt8].self))
+    XCTAssertEqual(
+      newNode!.print(value: [UInt8].self),
+      "○ Node16 {childs=5, partial=[]}\n" +
+      "├──○ 1: 1[1] -> [1]\n" +
+      "├──○ 2: 1[2] -> [2]\n" +
+      "├──○ 3: 1[3] -> [3]\n" +
+      "├──○ 4: 1[4] -> [4]\n" +
+      "└──○ 5: 1[5] -> [5]")
   }
 
   func test4DeleteKey() throws {

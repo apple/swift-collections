@@ -142,11 +142,7 @@ extension Node4: InternalNode {
     }
   }
 
-  mutating func addChild(
-    forKey k: KeyPart,
-    node: any ManagedNode,
-    ref: ChildSlotPtr?
-  ) {
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?> {
     if let slot = _insertSlot(forKey: k) {
       withBody { keys, childs in
         assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")
@@ -156,10 +152,11 @@ extension Node4: InternalNode {
         childs[slot] = node.rawNode
         count += 1
       }
+      return .noop
     } else {
       var newNode = Node16.allocate(copyFrom: self)
       newNode.addChild(forKey: k, node: node)
-      ref?.pointee = RawNode(from: newNode)
+      return .replaceWith(RawNode(from: newNode))
       // pointer.deallocate()
     }
   }
