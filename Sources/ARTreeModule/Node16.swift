@@ -194,12 +194,9 @@ extension Node16: InternalNode {
     assert(index < Self.numKeys, "index can't >= 16 in Node16")
     assert(index < count, "not enough childs in node")
 
-    let childBuf = child(at: index)
-    // childBuf?.deallocate()
-
     withBody { keys, childs in
-      keys[self.count] = 0
-      childs[self.count] = nil
+      keys[index] = 0
+      childs[index] = nil
 
       count -= 1
       keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)

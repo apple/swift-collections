@@ -75,6 +75,35 @@ final class ARTreeNode4Tests: XCTestCase {
     XCTAssertEqual(ptr?.type, .leaf)
   }
 
+  func test4DeleteFromFull() throws {
+    var node = Node4.allocate()
+    node.addChild(forKey: 1, node: NodeLeaf.allocate(key: [1], value: 1, of: Int.self))
+    node.addChild(forKey: 2, node: NodeLeaf.allocate(key: [2], value: 2, of: Int.self))
+    node.addChild(forKey: 3, node: NodeLeaf.allocate(key: [3], value: 3, of: Int.self))
+    node.addChild(forKey: 4, node: NodeLeaf.allocate(key: [4], value: 4, of: Int.self))
+    XCTAssertEqual(node.type, .node4)
+    XCTAssertEqual(
+      node.print(value: Int.self),
+      "○ Node4 {childs=4, partial=[]}\n" +
+      "├──○ 1: 1[1] -> 1\n" +
+      "├──○ 2: 1[2] -> 2\n" +
+      "├──○ 3: 1[3] -> 3\n" +
+      "└──○ 4: 1[4] -> 4")
+    node.deleteChild(at: 1)
+    XCTAssertEqual(
+      node.print(value: Int.self),
+      "○ Node4 {childs=3, partial=[]}\n" +
+      "├──○ 1: 1[1] -> 1\n" +
+      "├──○ 3: 1[3] -> 3\n" +
+      "└──○ 4: 1[4] -> 4")
+
+    var ptr: RawNode? = node.rawNode
+    node.deleteChild(at: 1, ref: &ptr)
+    node.deleteChild(at: 1, ref: &ptr)
+    XCTAssertNotNil(ptr)
+    XCTAssertEqual(ptr?.type, .leaf)
+  }
+
   func test4ExapandTo16() throws {
     var node = Node4.allocate()
     node.addChild(forKey: 1, node: NodeLeaf.allocate(key: [1], value: [1], of: [UInt8].self))

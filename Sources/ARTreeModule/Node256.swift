@@ -130,7 +130,6 @@ extension Node256: InternalNode {
 
   public mutating func deleteChild(at index: Index, ref: ChildSlotPtr?) {
     return withBody { childs in
-      // childs[index]?.deallocate()
       childs[index] = nil
       count -= 1
 

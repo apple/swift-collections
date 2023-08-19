@@ -168,12 +168,9 @@ extension Node4: InternalNode {
     assert(index < 4, "index can't >= 4 in Node4")
     assert(index < count, "not enough childs in node")
 
-    let childBuf = child(at: index)
-    // childBuf?.deallocate()
-
     withBody { keys, childs in
-      keys[self.count] = 0
-      childs[self.count] = nil
+      keys[index] = 0
+      childs[index] = nil
 
       count -= 1
       keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
