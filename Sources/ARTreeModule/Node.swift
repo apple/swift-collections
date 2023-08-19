@@ -60,10 +60,10 @@ extension RawNode {
 }
 
 protocol ManagedNode: NodePrettyPrinter {
-  var storage: NodeStorage<Self> { get }
   static func deinitialize<N: ManagedNode>(_ storage: NodeStorage<N>)
-
   static var type: NodeType { get }
+
+  var storage: NodeStorage<Self> { get }
   var type: NodeType { get }
   var rawNode: RawNode { get }
 }
