@@ -179,9 +179,8 @@ extension Node48: InternalNode {
       return .noop
     } else {
       var newNode = Node256.allocate(copyFrom: self)
-      newNode.addChild(forKey: k, node: node)
+      _ = newNode.addChild(forKey: k, node: node)
       return .replaceWith(RawNode(from: newNode))
-      // pointer.deallocate()
     }
   }
 
@@ -189,9 +188,6 @@ extension Node48: InternalNode {
     return withBody { keys, childs in
       let targetSlot = Int(keys[index])
       assert(targetSlot != 0xFF, "slot is empty already")
-      let targetChildBuf = childs[targetSlot]
-      // targetChildBuf?.deallocate()
-
       // 1. Find out who has the last slot.
       var lastSlotKey = 0
       for k in 0..<256 {
@@ -218,7 +214,6 @@ extension Node48: InternalNode {
       if count == 13 {
         let newNode = Node16.allocate(copyFrom: self)
         return .replaceWith(RawNode(from: newNode))
-        // pointer.deallocate()
       }
 
       return .noop

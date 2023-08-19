@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension ARTree {
+  @discardableResult
   public mutating func insert(key: Key, value: Value) -> Bool {
     var current: RawNode = root!
 
@@ -32,8 +33,8 @@ extension ARTree {
         var longestPrefix = leaf.longestCommonPrefix(with: newLeaf, fromIndex: depth)
 
         var newNode = Node4.allocate()
-        newNode.addChild(forKey: leaf.key[depth + longestPrefix], node: leaf)
-        newNode.addChild(forKey: newLeaf.key[depth + longestPrefix], node: newLeaf)
+        _ = newNode.addChild(forKey: leaf.key[depth + longestPrefix], node: leaf)
+        _ = newNode.addChild(forKey: newLeaf.key[depth + longestPrefix], node: newLeaf)
 
         while longestPrefix > 0 {
           let nBytes = Swift.min(Const.maxPartialLength, longestPrefix)
@@ -47,7 +48,7 @@ extension ARTree {
           }
 
           var nextNode = Node4.allocate()
-          nextNode.addChild(forKey: key[start - 1], node: newNode)
+          _ = nextNode.addChild(forKey: key[start - 1], node: newNode)
           newNode = nextNode
         }
 

@@ -51,7 +51,7 @@ extension NodeStorage where Mn: InternalNode {
     let size = Mn.size
     let buf = NodeStorage<Mn>.create(type: Mn.type, size: size)
     let storage = NodeStorage(raw: buf)
-    buf.withUnsafeMutablePointerToElements {
+    _ = buf.withUnsafeMutablePointerToElements {
       UnsafeMutableRawPointer($0).bindMemory(to: Header.self, capacity: 1)
     }
     return storage

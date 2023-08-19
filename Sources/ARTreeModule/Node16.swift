@@ -181,9 +181,8 @@ extension Node16: InternalNode {
       return .noop
     } else {
       var newNode = Node48.allocate(copyFrom: self)
-      newNode.addChild(forKey: k, node: node)
+      _ = newNode.addChild(forKey: k, node: node)
       return .replaceWith(RawNode(from: newNode))
-      // pointer.deallocate()
     }
   }
 

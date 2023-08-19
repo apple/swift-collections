@@ -26,7 +26,7 @@ extension Node256 {
   static func allocate() -> Node256 {
     let buf: NodeStorage<Self> = NodeStorage.allocate()
     let node = Self(storage: buf)
-    node.withBody { childs in
+    _ = node.withBody { childs in
       UnsafeMutableRawPointer(childs.baseAddress!)
         .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
     }
@@ -133,7 +133,6 @@ extension Node256: InternalNode {
       if count == 40 {
         let newNode = Node48.allocate(copyFrom: self)
         return .replaceWith(RawNode(from: newNode))
-        // pointer.deallocate()
       }
 
       return .noop

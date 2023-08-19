@@ -15,9 +15,9 @@ import XCTest
 
 final class ARTreeSequenceTests: XCTestCase {
   func testSequenceEmpty() throws {
-    var t = ARTree<[UInt8]>()
+    let t = ARTree<[UInt8]>()
     var total = 0
-    for (k, v) in t {
+    for (_, _) in t {
       total += 1
     }
     XCTAssertEqual(total, 0)
