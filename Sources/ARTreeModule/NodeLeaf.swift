@@ -10,8 +10,6 @@
 //===----------------------------------------------------------------------===//
 
 struct NodeLeaf {
-  typealias Storage = NodeStorage<Self>
-
   var storage: Storage
 }
 

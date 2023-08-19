@@ -28,7 +28,7 @@ extension ARTree {
           fatalError("replace not supported")
         }
 
-        let newLeaf = NodeLeaf.allocate(key: key, value: value, of: Value.self)
+        let newLeaf = Self.allocateLeaf(key: key, value: value)
         var longestPrefix = leaf.longestCommonPrefix(with: newLeaf, fromIndex: depth)
 
         var newNode = Node4.allocate()
@@ -76,7 +76,7 @@ extension ARTree {
           node.partialBytes.shiftLeft(toIndex: prefixDiff + 1)
           node.partialLength -= prefixDiff + 1
 
-          let newLeaf = NodeLeaf.allocate(key: key, value: value, of: Value.self)
+          let newLeaf = Self.allocateLeaf(key: key, value: value)
           newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
           ref?.pointee = newNode.rawNode
           return true
@@ -86,7 +86,7 @@ extension ARTree {
       // Find next child to continue.
       guard let next = node.child(forKey: key[depth], ref: &ref) else {
         // No child, insert leaf within us.
-        let newLeaf = NodeLeaf.allocate(key: key, value: value, of: Value.self)
+        let newLeaf = Self.allocateLeaf(key: key, value: value)
         node.addChild(forKey: key[depth], node: newLeaf, ref: ref)
         return true
       }

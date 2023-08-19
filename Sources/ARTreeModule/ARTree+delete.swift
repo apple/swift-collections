@@ -26,24 +26,23 @@ extension ARTree {
 
   private mutating func _delete(node: RawNode, ref: inout ChildSlotPtr?, key: Key, depth: Int) -> Bool
   {
-    var newDepth = depth
-    var _node = node
-
-    if _node.type == .leaf {
-      let leaf: NodeLeaf = _node.toLeafNode()
+    if node.type == .leaf {
+      let leaf: NodeLeaf = node.toLeafNode()
 
       if !leaf.keyEquals(with: key, depth: depth) {
         return false
       }
 
       ref?.pointee = nil
-      leaf.withValue(of: Value.self) {
+      _ = leaf.withValue(of: Value.self) {
         $0.deinitialize(count: 1)
       }
       return true
     }
 
-    var node = _node.toInternalNode()
+    var newDepth = depth
+    var node = node.toInternalNode()
+
     if node.partialLength > 0 {
       let matchedBytes = node.prefixMismatch(withKey: key, fromIndex: depth)
       assert(matchedBytes <= node.partialLength)
