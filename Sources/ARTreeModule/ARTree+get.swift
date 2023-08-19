@@ -11,21 +11,22 @@
 
 extension ARTree {
   public func getValue(key: Key) -> Value? {
+    assert(root != nil, "root can't be nil")
     var current = root
     var depth = 0
     while depth <= key.count {
-      guard let _node = current else {
+      guard let _rawNode = current else {
         return nil
       }
 
-      if _node.type == .leaf {
-        let leaf: NodeLeaf = _node.toLeafNode()
+      if _rawNode.type == .leaf {
+        let leaf: NodeLeaf = _rawNode.toLeafNode()
         return leaf.keyEquals(with: key)
           ? leaf.value()
           : nil
       }
 
-      let node = _node.toInternalNode()
+      let node = _rawNode.toInternalNode()
       if node.partialLength > 0 {
         let prefixLen = node.prefixMismatch(withKey: key, fromIndex: depth)
         assert(prefixLen <= Const.maxPartialLength, "partial length is always bounded")

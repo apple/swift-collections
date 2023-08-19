@@ -14,62 +14,15 @@ public typealias Key = [KeyPart]
 
 typealias ChildSlotPtr = UnsafeMutablePointer<RawNode?>
 
-struct RawNode {
-  var storage: RawNodeBuffer
-}
-
-extension RawNode {
-  init<N: ManagedNode>(from: N) {
-    self.storage = from.storage.buf
-  }
-}
-
-extension RawNode {
-  var type: NodeType {
-    @inline(__always) get { return storage.header }
-  }
-
-  func toInternalNode() -> any InternalNode {
-    switch type {
-    case .node4:
-      return Node4(buffer: storage)
-    case .node16:
-      return Node16(buffer: storage)
-    case .node48:
-      return Node48(buffer: storage)
-    case .node256:
-      return Node256(buffer: storage)
-    default:
-      assert(false, "leaf nodes are not internal nodes")
-    }
-  }
-
-  func toLeafNode() -> NodeLeaf {
-    assert(type == .leaf)
-    return NodeLeaf(ptr: storage)
-  }
-
-  func toManagedNode() -> any ManagedNode {
-    switch type {
-    case .leaf:
-      return toLeafNode()
-    default:
-      return toInternalNode()
-    }
-  }
-}
-
 protocol ManagedNode: NodePrettyPrinter {
-  static func deinitialize<N: ManagedNode>(_ storage: NodeStorage<N>)
+  typealias Storage = NodeStorage<Self>
+
+  static func deinitialize(_ storage: NodeStorage<Self>)
   static var type: NodeType { get }
 
-  var storage: NodeStorage<Self> { get }
+  var storage: Storage { get }
   var type: NodeType { get }
   var rawNode: RawNode { get }
-}
-
-extension ManagedNode {
-  var rawNode: RawNode { RawNode(from: self) }
 }
 
 protocol InternalNode: ManagedNode {
@@ -103,7 +56,6 @@ protocol InternalNode: ManagedNode {
 }
 
 extension ManagedNode {
-  static func deinitialize<N: ManagedNode>(_ storage: NodeStorage<N>) {
-    // TODO
-  }
+  var rawNode: RawNode { RawNode(from: self) }
+  var type: NodeType { Self.type }
 }

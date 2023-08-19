@@ -10,39 +10,15 @@
 //===----------------------------------------------------------------------===//
 
 struct Node4 {
-  static let numKeys: Int = 4
-
-  typealias Storage = NodeStorage<Self>
-
   var storage: Storage
 }
 
 extension Node4 {
+  static let type: NodeType = .node4
+  static let numKeys: Int = 4
+
   init(buffer: RawNodeBuffer) {
     self.init(storage: Storage(raw: buffer))
-  }
-
-  static let type: NodeType = .node4
-  var type: NodeType { .node4 }
-}
-
-extension Node4 {
-  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
-
-  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
-    return try storage.withBodyPointer { bodyPtr in
-      let keys = UnsafeMutableBufferPointer(
-        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
-        count: Self.numKeys
-      )
-      let childPtr = bodyPtr
-        .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
-        .assumingMemoryBound(to: RawNode?.self)
-      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
-
-      return try body(keys, childs)
-    }
   }
 }
 
@@ -72,6 +48,26 @@ extension Node4 {
       }
     }
     return node
+  }
+}
+
+extension Node4 {
+  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
+  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+
+  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+    return try storage.withBodyPointer { bodyPtr in
+      let keys = UnsafeMutableBufferPointer(
+        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
+        count: Self.numKeys
+      )
+      let childPtr = bodyPtr
+        .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
+        .assumingMemoryBound(to: RawNode?.self)
+      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
+
+      return try body(keys, childs)
+    }
   }
 }
 
@@ -188,5 +184,8 @@ extension Node4: InternalNode {
         ref?.pointee = childs[0]
       }
     }
+  }
+
+  static func deinitialize(_ storage: NodeStorage<Self>) {
   }
 }

@@ -10,36 +10,15 @@
 //===----------------------------------------------------------------------===//
 
 struct Node16 {
-  typealias Storage = NodeStorage<Self>
-
   var storage: Storage
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
-
-  init(storage: Storage) {
-    self.storage = storage
-  }
 }
 
 extension Node16 {
-  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+  static let type: NodeType = .node16
+  static let numKeys: Int = 16
 
-  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
-    return try storage.withBodyPointer { bodyPtr in
-      let keys = UnsafeMutableBufferPointer(
-        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
-        count: Self.numKeys
-      )
-      let childPtr = bodyPtr
-        .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
-        .assumingMemoryBound(to: RawNode?.self)
-      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
-
-      return try body(keys, childs)
-    }
+  init(buffer: RawNodeBuffer) {
+    self.init(storage: Storage(raw: buffer))
   }
 }
 
@@ -97,12 +76,27 @@ extension Node16 {
   }
 }
 
+extension Node16 {
+  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
+  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+
+  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+    return try storage.withBodyPointer { bodyPtr in
+      let keys = UnsafeMutableBufferPointer(
+        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
+        count: Self.numKeys
+      )
+      let childPtr = bodyPtr
+        .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
+        .assumingMemoryBound(to: RawNode?.self)
+      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
+
+      return try body(keys, childs)
+    }
+  }
+}
+
 extension Node16: InternalNode {
-  static let type: NodeType = .node16
-  var type: NodeType { .node16 }
-
-  static let numKeys: Int = 16
-
   static var size: Int {
     MemoryLayout<InternalNodeHeader>.stride + Self.numKeys
       * (MemoryLayout<KeyPart>.stride + MemoryLayout<RawNode?>.stride)
@@ -218,5 +212,8 @@ extension Node16: InternalNode {
         // pointer.deallocate()
       }
     }
+  }
+
+  static func deinitialize(_ storage: NodeStorage<Self>) {
   }
 }

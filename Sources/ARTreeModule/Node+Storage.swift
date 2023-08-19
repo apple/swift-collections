@@ -13,7 +13,7 @@ typealias RawNodeBuffer = ManagedBuffer<NodeType, UInt8>
 
 final class NodeBuffer<Mn: ManagedNode>: RawNodeBuffer {
   deinit {
-    Mn.deinitialize(NodeStorage(self))
+    Mn.deinitialize(NodeStorage(buf: self))
   }
 }
 
@@ -22,16 +22,10 @@ struct NodeStorage<Mn: ManagedNode> {
 }
 
 extension NodeStorage {
-  fileprivate init(_ buf: NodeBuffer<Mn>) {
-    self.buf = buf
-  }
-
   init(raw: RawNodeBuffer) {
     self.buf = raw as! NodeBuffer<Mn>
   }
-}
 
-extension NodeStorage {
   static func create(type: NodeType, size: Int) -> RawNodeBuffer {
     let buf = NodeBuffer<Mn>.create(minimumCapacity: size,
                                     makingHeaderWith: {_ in type })
@@ -40,7 +34,9 @@ extension NodeStorage {
     }
     return buf
   }
+}
 
+extension NodeStorage {
   func withUnsafePointer<R>(_ body: (UnsafeMutableRawPointer) throws -> R) rethrows -> R {
     return try buf.withUnsafeMutablePointerToElements {
       return try body(UnsafeMutableRawPointer($0))

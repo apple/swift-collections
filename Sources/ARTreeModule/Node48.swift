@@ -10,41 +10,15 @@
 //===----------------------------------------------------------------------===//
 
 struct Node48 {
-  typealias Storage = NodeStorage<Self>
-
   var storage: Storage
+}
+
+extension Node48 {
+  static let type: NodeType = .node48
+  static let numKeys: Int = 48
 
   init(buffer: RawNodeBuffer) {
     self.init(storage: Storage(raw: buffer))
-  }
-
-  init(storage: Storage) {
-    self.storage = storage
-  }
-}
-
-
-extension Node48 {
-  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
-
-  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
-    return try storage.withBodyPointer { bodyPtr in
-      let keys = UnsafeMutableBufferPointer(
-        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
-        count: 256
-      )
-
-      // NOTE: Initializes each key pointer to point to a value > number of children, as 0 will
-      // refer to the first child.
-      // TODO: Can we initialize buffer using any stdlib method?
-      let childPtr = bodyPtr
-        .advanced(by: 256 * MemoryLayout<KeyPart>.stride)
-        .assumingMemoryBound(to: RawNode?.self)
-      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
-
-      return try body(keys, childs)
-    }
   }
 }
 
@@ -107,13 +81,31 @@ extension Node48 {
   }
 }
 
+extension Node48 {
+  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
+  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+
+  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+    return try storage.withBodyPointer { bodyPtr in
+      let keys = UnsafeMutableBufferPointer(
+        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
+        count: 256
+      )
+
+      // NOTE: Initializes each key pointer to point to a value > number of children, as 0 will
+      // refer to the first child.
+      // TODO: Can we initialize buffer using any stdlib method?
+      let childPtr = bodyPtr
+        .advanced(by: 256 * MemoryLayout<KeyPart>.stride)
+        .assumingMemoryBound(to: RawNode?.self)
+      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
+
+      return try body(keys, childs)
+    }
+  }
+}
 
 extension Node48: InternalNode {
-  static let type: NodeType = .node48
-  var type: NodeType { .node48 }
-
-  static let numKeys: Int = 48
-
   static var size: Int {
     MemoryLayout<InternalNodeHeader>.stride + 256*MemoryLayout<KeyPart>.stride +
       Self.numKeys*MemoryLayout<RawNode?>.stride
@@ -246,4 +238,6 @@ extension Node48: InternalNode {
     }
   }
 
+  static func deinitialize(_ storage: NodeStorage<Self>) {
+  }
 }

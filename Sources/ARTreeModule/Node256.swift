@@ -9,31 +9,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct Node256: ManagedNode {
-  typealias Storage = NodeStorage<Self>
-
+struct Node256 {
   var storage: Storage
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
-
-  init(storage: Storage) {
-      self.storage = storage
-  }
 }
 
 extension Node256 {
-  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+  static let type: NodeType = .node256
+  static let numKeys: Int = 256
 
-  func withBody<R>(body: (Childs) throws -> R) rethrows -> R {
-    return try storage.withBodyPointer {
-      return try body(
-        UnsafeMutableBufferPointer(
-          start: $0.assumingMemoryBound(to: RawNode?.self),
-          count: 256))
-    }
+  init(buffer: RawNodeBuffer) {
+    self.init(storage: Storage(raw: buffer))
   }
 }
 
@@ -68,13 +53,21 @@ extension Node256 {
   }
 }
 
+extension Node256 {
+  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
+  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+
+  func withBody<R>(body: (Childs) throws -> R) rethrows -> R {
+    return try storage.withBodyPointer {
+      return try body(
+        UnsafeMutableBufferPointer(
+          start: $0.assumingMemoryBound(to: RawNode?.self),
+          count: 256))
+    }
+  }
+}
 
 extension Node256: InternalNode {
-  static let type: NodeType = .node256
-  var type: NodeType { .node256 }
-
-  static let numKeys: Int = 256
-
   static var size: Int {
     MemoryLayout<InternalNodeHeader>.stride + 256 * MemoryLayout<RawNode?>.stride
   }
@@ -147,5 +140,8 @@ extension Node256: InternalNode {
         // pointer.deallocate()
       }
     }
+  }
+
+  static func deinitialize(_ storage: NodeStorage<Self>) {
   }
 }

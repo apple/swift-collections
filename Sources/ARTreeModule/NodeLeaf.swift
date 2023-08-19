@@ -16,16 +16,33 @@ struct NodeLeaf {
 }
 
 extension NodeLeaf {
+  static var type: NodeType { .leaf }
+
   init(ptr: RawNodeBuffer) {
     self.init(storage: Storage(raw: ptr))
   }
 }
 
-extension NodeLeaf: ManagedNode {
-  typealias KeyPtr = UnsafeMutableBufferPointer<KeyPart>
+extension NodeLeaf {
+  static func allocate<Value>(key: Key, value: Value, of: Value.Type) -> Self {
+    let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
+    let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
+    var leaf = Self(ptr: buf)
 
-  static var type: NodeType { .leaf }
-  var type: NodeType { .leaf }
+    leaf.keyLength = key.count
+    leaf.withKeyValue { keyPtr, valuePtr in
+      key.withUnsafeBytes {
+        UnsafeMutableRawBufferPointer(keyPtr).copyBytes(from: $0)
+      }
+      valuePtr.pointee = value
+    }
+
+    return leaf
+  }
+}
+
+extension NodeLeaf {
+  typealias KeyPtr = UnsafeMutableBufferPointer<KeyPart>
 
   func withKey<R>(body: (KeyPtr) throws -> R) rethrows -> R {
     return try storage.withUnsafePointer {
@@ -86,22 +103,6 @@ extension NodeLeaf: ManagedNode {
 }
 
 extension NodeLeaf {
-    static func allocate<Value>(key: Key, value: Value, of: Value.Type) -> Self {
-    let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
-    let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
-    var leaf = Self(ptr: buf)
-
-    leaf.keyLength = key.count
-    leaf.withKeyValue { keyPtr, valuePtr in
-      key.withUnsafeBytes {
-        UnsafeMutableRawBufferPointer(keyPtr).copyBytes(from: $0)
-      }
-      valuePtr.pointee = value
-    }
-
-    return leaf
-  }
-
   func keyEquals(with key: Key, depth: Int = 0) -> Bool {
     if key.count != keyLength {
       return false
@@ -131,5 +132,10 @@ extension NodeLeaf {
         return maxComp
       }
     }
+  }
+}
+
+extension NodeLeaf: ManagedNode {
+  static func deinitialize(_ storage: NodeStorage<Self>) {
   }
 }
