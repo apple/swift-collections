@@ -25,6 +25,11 @@ protocol ManagedNode: NodePrettyPrinter {
   var rawNode: RawNode { get }
 }
 
+enum UpdateResult<T> {
+  case noop
+  case replaceWith(T)
+}
+
 protocol InternalNode: ManagedNode {
   typealias Index = Int
   typealias Header = InternalNodeHeader
@@ -50,12 +55,41 @@ protocol InternalNode: ManagedNode {
     node: any ManagedNode,
     ref: ChildSlotPtr?)
 
+  mutating func updateChild(forKey k: KeyPart, body: (RawNode?) -> UpdateResult<RawNode?>)
+    -> UpdateResult<RawNode?>
+
   // TODO: Shrinking/expand logic can be moved out.
-  mutating func deleteChild(forKey k: KeyPart, ref: ChildSlotPtr?)
-  mutating func deleteChild(at index: Index, ref: ChildSlotPtr?)
+  mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?>
+  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?>
 }
 
 extension ManagedNode {
   var rawNode: RawNode { RawNode(from: self) }
   var type: NodeType { Self.type }
+}
+
+extension InternalNode {
+  mutating func updateChild(forKey k: KeyPart, body: (RawNode?) -> UpdateResult<RawNode?>)
+    -> UpdateResult<RawNode?> {
+
+    var ref: ChildSlotPtr?
+    let child = child(forKey: k, ref: &ref)
+    switch body(child) {
+    case .noop:
+      return .noop
+    case .replaceWith(nil):
+      let shouldDeleteMyself = count == 1
+      switch deleteChild(forKey: k) {
+      case .noop:
+        return .noop
+      case .replaceWith(nil) where shouldDeleteMyself:
+        return .replaceWith(nil)
+      case .replaceWith(let newValue):
+        return .replaceWith(newValue)
+      }
+    case .replaceWith(let newValue):
+      ref?.pointee = newValue
+      return .noop
+    }
+  }
 }

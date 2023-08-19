@@ -60,22 +60,14 @@ extension InternalNode {
     addChild(forKey: k, node: node, ref: ref)
   }
 
-  mutating func deleteChild(forKey k: KeyPart, ref: ChildSlotPtr?) {
+  mutating func deleteChild(forKey k: KeyPart) -> UpdateResult<RawNode?> {
     let index = index(forKey: k)
     assert(index != nil, "trying to delete key that doesn't exist")
     if index != nil {
-      deleteChild(at: index!, ref: ref)
+      return deleteChild(at: index!)
     }
-  }
 
-  mutating func deleteChild(forKey k: KeyPart) {
-    var ptr: RawNode? = RawNode(from:self)
-    return deleteChild(forKey: k, ref: &ptr)
-  }
-
-  mutating func deleteChild(at index: Index) {
-    var ptr: RawNode? = RawNode(from: self)
-    deleteChild(at: index, ref: &ptr)
+    return .noop
   }
 
   mutating func copyHeader(from: any InternalNode) {

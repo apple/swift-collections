@@ -13,6 +13,17 @@ import XCTest
 
 @testable import ARTreeModule
 
+extension InternalNode {
+  mutating func deleteChildReturn(at idx: Index) -> (any ManagedNode)? {
+    switch deleteChild(at: idx) {
+    case .noop:
+      return self
+    case .replaceWith(let newValue):
+      return newValue?.toManagedNode()
+    }
+  }
+}
+
 final class ARTreeNode4Tests: XCTestCase {
   func test4Basic() throws {
     var node = Node4.allocate()
@@ -69,10 +80,8 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
 
-    var ptr: RawNode? = node.rawNode
-    node.deleteChild(at: 1, ref: &ptr)
-    XCTAssertNotNil(ptr)
-    XCTAssertEqual(ptr?.type, .leaf)
+    let newNode = node.deleteChildReturn(at: 1)
+    XCTAssertEqual(newNode?.type, .leaf)
   }
 
   func test4DeleteFromFull() throws {
@@ -97,11 +106,9 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 3: 1[3] -> 3\n" +
       "└──○ 4: 1[4] -> 4")
 
-    var ptr: RawNode? = node.rawNode
-    node.deleteChild(at: 1, ref: &ptr)
-    node.deleteChild(at: 1, ref: &ptr)
-    XCTAssertNotNil(ptr)
-    XCTAssertEqual(ptr?.type, .leaf)
+    node.deleteChild(at: 1)
+    let newNode = node.deleteChildReturn(at: 1)
+    XCTAssertEqual(newNode?.type, .leaf)
   }
 
   func test4ExapandTo16() throws {

@@ -10,13 +10,14 @@
 //===----------------------------------------------------------------------===//
 
 extension ARTree {
-  public mutating func delete(key: Key) -> Bool {
-    var ref: ChildSlotPtr? = ChildSlotPtr(&root)
-    if let node = root {
-      return _delete(node: node, ref: &ref, key: key, depth: 0)
+  public mutating func delete(key: Key) {
+    guard let node = root else { return }
+    switch _delete(node: node, key: key, depth: 0) {
+    case .noop:
+      return
+    case .replaceWith(let newValue):
+      root = newValue
     }
-
-    return false
   }
 
   public mutating func deleteRange(start: Key, end: Key) {
@@ -24,20 +25,16 @@ extension ARTree {
     fatalError("not implemented")
   }
 
-  private mutating func _delete(node: RawNode, ref: inout ChildSlotPtr?, key: Key, depth: Int) -> Bool
-  {
+  private mutating func _delete(node: RawNode,
+                                key: Key,
+                                depth: Int) -> UpdateResult<RawNode?> {
     if node.type == .leaf {
-      let leaf: NodeLeaf = node.toLeafNode()
-
+      let leaf = node.toLeafNode()
       if !leaf.keyEquals(with: key, depth: depth) {
-        return false
+        return .noop
       }
 
-      ref?.pointee = nil
-      _ = leaf.withValue(of: Value.self) {
-        $0.deinitialize(count: 1)
-      }
-      return true
+      return .replaceWith(nil)
     }
 
     var newDepth = depth
@@ -49,21 +46,9 @@ extension ARTree {
       newDepth += matchedBytes
     }
 
-    guard let childPosition = node.index(forKey: key[newDepth]) else {
-      // Key not found, nothing to do.
-      return false
+    return node.updateChild(forKey: key[newDepth]) {
+      guard let child = $0 else { return .noop }
+      return _delete(node: child, key: key, depth: newDepth + 1)
     }
-
-    var childRef: ChildSlotPtr?
-    let child = node.child(at: childPosition, ref: &childRef)!
-    if !_delete(node: child, ref: &childRef, key: key, depth: newDepth + 1) {
-      return false
-    }
-
-    let shouldDeleteNode = node.count == 1
-    node.deleteChild(at: childPosition, ref: ref)
-
-    // NOTE: node can be invalid because of node shrinking. Hence, we get count before.
-    return shouldDeleteNode
   }
 }

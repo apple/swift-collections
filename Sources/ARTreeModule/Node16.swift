@@ -190,11 +190,11 @@ extension Node16: InternalNode {
     }
   }
 
-  mutating func deleteChild(at index: Index, ref: ChildSlotPtr?) {
+  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
     assert(index < Self.numKeys, "index can't >= 16 in Node16")
     assert(index < count, "not enough childs in node")
 
-    withBody { keys, childs in
+    return withBody { keys, childs in
       keys[index] = 0
       childs[index] = nil
 
@@ -205,9 +205,10 @@ extension Node16: InternalNode {
       if count == 3 {
         // Shrink to Node4.
         let newNode = Node4.allocate(copyFrom: self)
-        ref?.pointee = RawNode(from: newNode)
-        // pointer.deallocate()
+        return .replaceWith(RawNode(from: newNode))
       }
+
+      return .noop
     }
   }
 

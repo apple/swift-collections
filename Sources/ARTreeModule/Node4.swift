@@ -164,11 +164,11 @@ extension Node4: InternalNode {
     }
   }
 
-  mutating func deleteChild(at index: Index, ref: ChildSlotPtr?) {
+  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
     assert(index < 4, "index can't >= 4 in Node4")
     assert(index < count, "not enough childs in node")
 
-    withBody { keys, childs in
+    return withBody { keys, childs in
       keys[index] = 0
       childs[index] = nil
 
@@ -178,8 +178,10 @@ extension Node4: InternalNode {
 
       if count == 1 {
         // Shrink to leaf node.
-        ref?.pointee = childs[0]
+        return .replaceWith(childs[0])
       }
+
+      return .noop
     }
   }
 

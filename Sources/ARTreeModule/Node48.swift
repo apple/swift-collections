@@ -188,8 +188,8 @@ extension Node48: InternalNode {
     }
   }
 
-  public mutating func deleteChild(at index: Index, ref: ChildSlotPtr?) {
-    withBody { keys, childs in
+  public mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+    return withBody { keys, childs in
       let targetSlot = Int(keys[index])
       assert(targetSlot != 0xFF, "slot is empty already")
       let targetChildBuf = childs[targetSlot]
@@ -218,11 +218,13 @@ extension Node48: InternalNode {
       count -= 1
 
       // 6. Shrink the node to Node16 if needed.
-      if count == 13 {  // TODO: Should be made tunable.
+      if count == 13 {
         let newNode = Node16.allocate(copyFrom: self)
-        ref?.pointee = RawNode(from: newNode)
+        return .replaceWith(RawNode(from: newNode))
         // pointer.deallocate()
       }
+
+      return .noop
     }
   }
 

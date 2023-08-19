@@ -128,16 +128,18 @@ extension Node256: InternalNode {
     }
   }
 
-  public mutating func deleteChild(at index: Index, ref: ChildSlotPtr?) {
+  public mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
     return withBody { childs in
       childs[index] = nil
       count -= 1
 
       if count == 40 {
         let newNode = Node48.allocate(copyFrom: self)
-        ref?.pointee = RawNode(from: newNode)
+        return .replaceWith(RawNode(from: newNode))
         // pointer.deallocate()
       }
+
+      return .noop
     }
   }
 
