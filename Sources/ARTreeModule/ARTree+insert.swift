@@ -88,7 +88,9 @@ extension ARTree {
       guard let next = node.child(forKey: key[depth], ref: &ref) else {
         // No child, insert leaf within us.
         let newLeaf = Self.allocateLeaf(key: key, value: value)
-        node.addChild(forKey: key[depth], node: newLeaf)
+        if case .replaceWith(let newNode) = node.addChild(forKey: key[depth], node: newLeaf) {
+          ref?.pointee = newNode
+        }
         return true
       }
 
