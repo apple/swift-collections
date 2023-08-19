@@ -14,6 +14,15 @@ import XCTest
 @testable import ARTreeModule
 
 final class ARTreeSequenceTests: XCTestCase {
+  func testSequenceEmpty() throws {
+    var t = ARTree<[UInt8]>()
+    var total = 0
+    for (k, v) in t {
+      total += 1
+    }
+    XCTAssertEqual(total, 0)
+  }
+
   func testSequenceBasic() throws {
     let sizes = [3, 12, 30, 70]
     for size in sizes {

@@ -21,9 +21,11 @@ extension ARTree: Sequence {
     init(tree: ARTree) {
       self.tree = tree
       self.path = []
-      if let node = tree.root {
-        assert(node.type != .leaf)
-        let n = node.toInternalNode()
+      guard let node = tree.root else { return }
+
+      assert(node.type != .leaf, "root can't be leaf")
+      let n = node.toInternalNode()
+      if node.toInternalNode().count > 0 {
         self.path = [(n, n.index())]
       }
     }
