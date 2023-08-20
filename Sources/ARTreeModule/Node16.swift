@@ -161,7 +161,7 @@ extension Node16: InternalNode {
     } else {
       var newNode = Node48.allocate(copyFrom: self)
       _ = newNode.addChild(forKey: k, node: node)
-      return .replaceWith(RawNode(from: newNode))
+      return .replaceWith(newNode.rawNode)
     }
   }
 
@@ -180,7 +180,7 @@ extension Node16: InternalNode {
       if count == 3 {
         // Shrink to Node4.
         let newNode = Node4.allocate(copyFrom: self)
-        return .replaceWith(RawNode(from: newNode))
+        return .replaceWith(newNode.rawNode)
       }
 
       return .noop

@@ -117,7 +117,7 @@ extension Node256: InternalNode {
 
       if count == 40 {
         let newNode = Node48.allocate(copyFrom: self)
-        return .replaceWith(RawNode(from: newNode))
+        return .replaceWith(newNode.rawNode)
       }
 
       return .noop

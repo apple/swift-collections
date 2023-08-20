@@ -49,7 +49,7 @@ extension ARTree {
         newNode = nextNode
       }
 
-      ref.pointee = RawNode(from: newNode)  // Replace child in parent.
+      ref.pointee = newNode.rawNode  // Replace child in parent.
 
     case .splitNode(var node, let depth, let prefixDiff):
       var newNode = Node4.allocate()

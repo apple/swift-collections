@@ -160,7 +160,7 @@ extension Node48: InternalNode {
     } else {
       var newNode = Node256.allocate(copyFrom: self)
       _ = newNode.addChild(forKey: k, node: node)
-      return .replaceWith(RawNode(from: newNode))
+      return .replaceWith(newNode.rawNode)
     }
   }
 
@@ -193,7 +193,7 @@ extension Node48: InternalNode {
       // 6. Shrink the node to Node16 if needed.
       if count == 13 {
         let newNode = Node16.allocate(copyFrom: self)
-        return .replaceWith(RawNode(from: newNode))
+        return .replaceWith(newNode.rawNode)
       }
 
       return .noop

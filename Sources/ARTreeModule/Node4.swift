@@ -135,7 +135,7 @@ extension Node4: InternalNode {
     } else {
       var newNode = Node16.allocate(copyFrom: self)
       _ = newNode.addChild(forKey: k, node: node)
-      return .replaceWith(RawNode(from: newNode))
+      return .replaceWith(newNode.rawNode)
     }
   }
 
