@@ -52,21 +52,38 @@ extension ManagedNode {
   var type: NodeType { Self.type }
 }
 
+struct NodeReference {
+  var _ptr: InternalNode.ChildSlotPtr
+
+  init(_ ptr: InternalNode.ChildSlotPtr) {
+    self._ptr = ptr
+  }
+}
+
+extension NodeReference {
+  var pointee: RawNode? {
+    @inline(__always) get { _ptr.pointee }
+    @inline(__always) set {
+      _ptr.pointee = newValue
+    }
+  }
+}
+
 enum UpdateResult<T> {
   case noop
   case replaceWith(T)
 }
 
 extension InternalNode {
-  mutating func child(forKey k: KeyPart, ref: inout ChildSlotPtr) -> RawNode? {
+  mutating func child(forKey k: KeyPart, ref: inout NodeReference) -> RawNode? {
     if count == 0 {
       return nil
     }
 
     return index(forKey: k).flatMap { index in
-      return withChildRef(at: index) { _ref in
-        ref = _ref
-        return ref.pointee
+      self.withChildRef(at: index) { ptr in
+        ref = NodeReference(ptr)
+        return ptr.pointee
       }
     }
   }

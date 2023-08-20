@@ -19,7 +19,7 @@ extension ARTree {
 
   @discardableResult
   public mutating func insert(key: Key, value: Value) -> Bool {
-    guard let (action, ref) = _findInsertNode(startNode: root!, key: key) else { return false }
+    guard var (action, ref) = _findInsertNode(startNode: root!, key: key) else { return false }
 
     switch action {
     case .replace(var _):
@@ -79,11 +79,11 @@ extension ARTree {
   }
 
   fileprivate mutating func _findInsertNode(startNode: RawNode, key: Key)
-    -> (InsertAction, InternalNode.ChildSlotPtr)? {
+    -> (InsertAction, NodeReference)? {
 
     var current: RawNode = startNode
     var depth = 0
-    var ref = UnsafeMutablePointer(&root)
+    var ref = NodeReference(&root)
 
     while depth < key.count {
       // Reached leaf already, replace it with a new node, or update the existing value.
