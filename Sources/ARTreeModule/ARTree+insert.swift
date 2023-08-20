@@ -10,50 +10,90 @@
 //===----------------------------------------------------------------------===//
 
 extension ARTree {
+  fileprivate enum InsertAction {
+    case replace(NodeLeaf)
+    case splitLeaf(NodeLeaf, depth: Int)
+    case splitNode(any InternalNode, depth: Int, prefixDiff: Int)
+    case insertInto(any InternalNode, depth: Int)
+  }
+
   @discardableResult
   public mutating func insert(key: Key, value: Value) -> Bool {
-    var current: RawNode = root!
+    guard let (action, ref) = _findInsertNode(startNode: root!, key: key) else { return false }
 
-    // Location of child (current) pointer in parent, i.e. memory address where the
-    // address of current node is stored inside the parent node.
-    // TODO: Fix warning here?
+    switch action {
+    case .replace(var _):
+      fatalError("replace not supported")
+
+    case .splitLeaf(let leaf, let depth):
+      let newLeaf = Self.allocateLeaf(key: key, value: value)
+      var longestPrefix = leaf.longestCommonPrefix(with: newLeaf, fromIndex: depth)
+
+      var newNode = Node4.allocate()
+      _ = newNode.addChild(forKey: leaf.key[depth + longestPrefix], node: leaf)
+      _ = newNode.addChild(forKey: newLeaf.key[depth + longestPrefix], node: newLeaf)
+
+      while longestPrefix > 0 {
+        let nBytes = Swift.min(Const.maxPartialLength, longestPrefix)
+        let start = depth + longestPrefix - nBytes
+        newNode.partialLength = nBytes
+        newNode.partialBytes.copy(src: key[...], start: start, count: nBytes)
+        longestPrefix -= nBytes + 1
+
+        if longestPrefix <= 0 {
+          break
+        }
+
+        var nextNode = Node4.allocate()
+        _ = nextNode.addChild(forKey: key[start - 1], node: newNode)
+        newNode = nextNode
+      }
+
+      ref.pointee = RawNode(from: newNode)  // Replace child in parent.
+
+    case .splitNode(var node, let depth, let prefixDiff):
+      var newNode = Node4.allocate()
+      newNode.partialLength = prefixDiff
+      // TODO: Just copy min(maxPartialLength, prefixDiff) bytes
+      newNode.partialBytes = node.partialBytes
+
+      assert(
+        node.partialLength <= Const.maxPartialLength,
+        "partial length is always bounded")
+      _ = newNode.addChild(forKey: node.partialBytes[prefixDiff], node: node)
+      node.partialBytes.shiftLeft(toIndex: prefixDiff + 1)
+      node.partialLength -= prefixDiff + 1
+
+      let newLeaf = Self.allocateLeaf(key: key, value: value)
+      _ = newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
+      ref.pointee = newNode.rawNode
+
+    case .insertInto(var node, let depth):
+      let newLeaf = Self.allocateLeaf(key: key, value: value)
+      if case .replaceWith(let newNode) = node.addChild(forKey: key[depth], node: newLeaf) {
+        ref.pointee = newNode
+      }
+    }
+
+    return true
+  }
+
+  fileprivate mutating func _findInsertNode(startNode: RawNode, key: Key)
+    -> (InsertAction, InternalNode.ChildSlotPtr)? {
+
+    var current: RawNode = startNode
+    var depth = 0
     var ref = UnsafeMutablePointer(&root)
 
-    var depth = 0
     while depth < key.count {
       // Reached leaf already, replace it with a new node, or update the existing value.
       if current.type == .leaf {
         let leaf: NodeLeaf = current.toLeafNode()
         if leaf.keyEquals(with: key) {
-          //TODO: Replace value.
-          fatalError("replace not supported")
+          return (.replace(leaf), ref)
         }
 
-        let newLeaf = Self.allocateLeaf(key: key, value: value)
-        var longestPrefix = leaf.longestCommonPrefix(with: newLeaf, fromIndex: depth)
-
-        var newNode = Node4.allocate()
-        _ = newNode.addChild(forKey: leaf.key[depth + longestPrefix], node: leaf)
-        _ = newNode.addChild(forKey: newLeaf.key[depth + longestPrefix], node: newLeaf)
-
-        while longestPrefix > 0 {
-          let nBytes = Swift.min(Const.maxPartialLength, longestPrefix)
-          let start = depth + longestPrefix - nBytes
-          newNode.partialLength = nBytes
-          newNode.partialBytes.copy(src: key[...], start: start, count: nBytes)
-          longestPrefix -= nBytes + 1
-
-          if longestPrefix <= 0 {
-            break
-          }
-
-          var nextNode = Node4.allocate()
-          _ = nextNode.addChild(forKey: key[start - 1], node: newNode)
-          newNode = nextNode
-        }
-
-        ref.pointee = RawNode(from: newNode)  // Replace child in parent.
-        return true
+        return (.splitLeaf(leaf, depth: depth), ref)
       }
 
       var node = current.toInternalNode()
@@ -65,39 +105,20 @@ extension ARTree {
           depth += partialLength
         } else {
           // Incomplete match with partial bytes, hence needs splitting.
-          var newNode = Node4.allocate()
-          newNode.partialLength = prefixDiff
-          // TODO: Just copy min(maxPartialLength, prefixDiff) bytes
-          newNode.partialBytes = node.partialBytes
-
-          assert(
-            node.partialLength <= Const.maxPartialLength,
-            "partial length is always bounded")
-          _ = newNode.addChild(forKey: node.partialBytes[prefixDiff], node: node)
-          node.partialBytes.shiftLeft(toIndex: prefixDiff + 1)
-          node.partialLength -= prefixDiff + 1
-
-          let newLeaf = Self.allocateLeaf(key: key, value: value)
-          _ = newNode.addChild(forKey: key[depth + prefixDiff], node: newLeaf)
-          ref.pointee = newNode.rawNode
-          return true
+          return (.splitNode(node, depth: depth, prefixDiff: prefixDiff), ref)
         }
       }
 
       // Find next child to continue.
       guard let next = node.child(forKey: key[depth], ref: &ref) else {
         // No child, insert leaf within us.
-        let newLeaf = Self.allocateLeaf(key: key, value: value)
-        if case .replaceWith(let newNode) = node.addChild(forKey: key[depth], node: newLeaf) {
-          ref.pointee = newNode
-        }
-        return true
+        return (.insertInto(node, depth: depth), ref)
       }
 
       depth += 1
       current = next
     }
 
-    return false
+    return nil
   }
 }

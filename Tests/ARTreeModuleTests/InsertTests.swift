@@ -320,7 +320,6 @@ final class ARTreeInsertTests: XCTestCase {
     var total = 0
     for (k, v)in tree {
       total += 1
-      print("<--->", k, v)
     }
     XCTAssertEqual(total, testCase.count)
     XCTAssertEqual(tree.root?.type, .node4)
