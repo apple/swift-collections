@@ -160,7 +160,7 @@ extension Node4: InternalNode {
     }
   }
 
-  mutating func withChildRef<R>(at index: Index, _ body: (ChildSlotPtr) -> R) -> R {
+  mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
     assert(index < count, "index=\(index) less than count=\(count)")
     return withBody {_, childs in
       let ref = childs.baseAddress! + index

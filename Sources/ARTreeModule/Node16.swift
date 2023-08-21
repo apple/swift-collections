@@ -187,7 +187,7 @@ extension Node16: InternalNode {
     }
   }
 
-  mutating func withChildRef<R>(at index: Index, _ body: (ChildSlotPtr) -> R) -> R {
+  mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
     assert(index < count, "not enough childs in node")
     return withBody {_, childs in
       let ref = childs.baseAddress! + index

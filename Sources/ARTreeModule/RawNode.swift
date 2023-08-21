@@ -17,12 +17,16 @@ struct RawNode {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RawNode {
+  typealias SlotRef = UnsafeMutablePointer<RawNode?>
+
   var type: NodeType {
     @inline(__always) get { return storage.header }
   }
+}
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension RawNode {
   func toInternalNode<Spec: ARTreeSpec>() -> any InternalNode<Spec> {
     switch type {
     case .node4:

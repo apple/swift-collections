@@ -17,7 +17,6 @@ protocol ManagedNode<Spec> {
   
   typealias Value = Spec.Value
   typealias Storage = NodeStorage<Self>
-  typealias ChildSlotPtr = UnsafeMutablePointer<RawNode?>
 
   static func deinitialize(_ storage: Storage)
   static var type: NodeType { get }
@@ -48,7 +47,7 @@ protocol InternalNode<Spec>: ManagedNode {
   mutating func addChild(forKey k: KeyPart, node: any ManagedNode<Spec>) -> UpdateResult<RawNode?>
   mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?>
 
-  mutating func withChildRef<R>(at index: Index, _ body: (ChildSlotPtr) -> R) -> R
+  mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R
 }
 
 extension ManagedNode {
@@ -56,10 +55,10 @@ extension ManagedNode {
   var type: NodeType { Self.type }
 }
 
-struct NodeReference<Spec: ARTreeSpec> {
-  var _ptr: (any InternalNode<Spec>).ChildSlotPtr
+struct NodeReference {
+  var _ptr: RawNode.SlotRef
 
-  init(_ ptr: (any InternalNode<Spec>).ChildSlotPtr) {
+  init(_ ptr: RawNode.SlotRef) {
     self._ptr = ptr
   }
 }
@@ -79,7 +78,7 @@ enum UpdateResult<T> {
 }
 
 extension InternalNode {
-  mutating func child(forKey k: KeyPart, ref: inout NodeReference<Spec>) -> RawNode? {
+  mutating func child(forKey k: KeyPart, ref: inout NodeReference) -> RawNode? {
     if count == 0 {
       return nil
     }

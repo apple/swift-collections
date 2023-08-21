@@ -81,11 +81,11 @@ extension ARTree {
   }
 
   fileprivate mutating func _findInsertNode(startNode: RawNode, key: Key)
-    -> (InsertAction, NodeReference<Spec>)? {
+    -> (InsertAction, NodeReference)? {
 
     var current: RawNode = startNode
     var depth = 0
-    var ref = NodeReference<Spec>(&root)
+    var ref = NodeReference(&root)
 
     while depth < key.count {
       // Reached leaf already, replace it with a new node, or update the existing value.
