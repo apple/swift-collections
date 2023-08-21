@@ -211,4 +211,20 @@ extension Node16: ManagedNode {
       node.count = 0
     }
   }
+
+  func clone() -> Self {
+    var node = Self.allocate()
+    node.copyHeader(from: self)
+
+    self.withBody { fromKeys, fromChildren in
+      node.withBody { newKeys, newChildren in
+        for idx in 0..<Self.numKeys {
+          newKeys[idx] = fromKeys[idx]
+          newChildren[idx] = fromChildren[idx]
+        }
+      }
+    }
+
+    return node
+  }
 }

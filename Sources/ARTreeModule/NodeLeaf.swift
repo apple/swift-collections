@@ -140,4 +140,8 @@ extension NodeLeaf: ManagedNode {
       }
     }
   }
+
+  func clone() -> Self {
+    return Self.allocate(key: key, value: value)
+  }
 }

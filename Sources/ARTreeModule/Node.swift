@@ -24,6 +24,8 @@ protocol ManagedNode<Spec> {
   var storage: Storage { get }
   var type: NodeType { get }
   var rawNode: RawNode { get }
+
+  func clone() -> Self
 }
 
 protocol InternalNode<Spec>: ManagedNode {

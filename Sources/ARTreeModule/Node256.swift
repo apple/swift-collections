@@ -152,4 +152,18 @@ extension Node256: ManagedNode {
       node.count = 0
     }
   }
+
+  func clone() -> Self {
+    let node = Self.allocate()
+
+    self.withBody { fromChildren in
+      node.withBody { newChildren in
+        for idx in 0..<256 {
+          newChildren[idx] = fromChildren[idx]
+        }
+      }
+    }
+
+    return node
+  }
 }

@@ -241,4 +241,23 @@ extension Node48: ManagedNode {
       node.count = 0
     }
   }
+
+  func clone() -> Self {
+    var node = Self.allocate()
+    node.copyHeader(from: self)
+
+    self.withBody { fromKeys, fromChildren in
+      node.withBody { newKeys, newChildren in
+        for idx in 0..<256 {
+          let slot = fromKeys[idx]
+          newKeys[idx] = slot
+          if slot != 0xFF {
+            newChildren[Int(slot)] = fromChildren[Int(slot)]
+          }
+        }
+      }
+    }
+
+    return node
+  }
 }
