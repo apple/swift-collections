@@ -13,6 +13,7 @@ import XCTest
 
 @testable import ARTreeModule
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeInsertTests: XCTestCase {
   func testInsertBasic() throws {
     var t = ARTree<[UInt8]>()
@@ -68,7 +69,8 @@ final class ARTreeInsertTests: XCTestCase {
   }
 
   func testInsertExpandTo48() throws {
-    var t = ARTree<[UInt8]>()
+    typealias T = ARTree<[UInt8]>
+    var t = T()
     for ii: UInt8 in 0..<40 {
       t.insert(key: [ii
         + 1], value: [ii
@@ -82,7 +84,7 @@ final class ARTreeInsertTests: XCTestCase {
       }
     }
 
-    let root = t.root!.toInternalNode()
+    let root: any InternalNode<T.Spec> = t.root!.toInternalNode()
     XCTAssertEqual(root.count, 40)
     XCTAssertEqual(
       t.description,
@@ -130,7 +132,8 @@ final class ARTreeInsertTests: XCTestCase {
   }
 
   func testInsertExpandTo256() throws {
-    var t = ARTree<[UInt8]>()
+    typealias T = ARTree<[UInt8]>
+    var t = T()
     for ii: UInt8 in 0..<70 {
       t.insert(key: [ii
         + 1], value: [ii
@@ -144,7 +147,7 @@ final class ARTreeInsertTests: XCTestCase {
       }
     }
 
-    let root = t.root!.toInternalNode()
+    let root: any InternalNode<T.Spec> = t.root!.toInternalNode()
     XCTAssertEqual(root.count, 70)
     XCTAssertEqual(
       t.description,

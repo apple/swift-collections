@@ -9,13 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct Node4 {
+struct Node4<Spec: ARTreeSpec> {
   var storage: Storage
 }
 
 extension Node4 {
-  static let type: NodeType = .node4
-  static let numKeys: Int = 4
+  static var type: NodeType { .node4 }
+  static var numKeys: Int { 4 }
 
   init(buffer: RawNodeBuffer) {
     self.init(storage: Storage(raw: buffer))
@@ -35,7 +35,7 @@ extension Node4 {
     return node
   }
 
-  static func allocate(copyFrom: Node16) -> Self {
+  static func allocate(copyFrom: Node16<Spec>) -> Self {
     var node = Self.allocate()
     node.copyHeader(from: copyFrom)
     node.withBody { newKeys, newChilds in
@@ -121,7 +121,7 @@ extension Node4: InternalNode {
     }
   }
 
-  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?> {
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode<Spec>) -> UpdateResult<RawNode?> {
     if let slot = _insertSlot(forKey: k) {
       withBody { keys, childs in
         assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")

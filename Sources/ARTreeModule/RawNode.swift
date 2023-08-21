@@ -17,37 +17,40 @@ struct RawNode {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RawNode {
   var type: NodeType {
     @inline(__always) get { return storage.header }
   }
 
-  func toInternalNode() -> any InternalNode {
+  func toInternalNode<Spec: ARTreeSpec>() -> any InternalNode<Spec> {
     switch type {
     case .node4:
-      return Node4(buffer: storage)
+      return Node4<Spec>(buffer: storage)
     case .node16:
-      return Node16(buffer: storage)
+      return Node16<Spec>(buffer: storage)
     case .node48:
-      return Node48(buffer: storage)
+      return Node48<Spec>(buffer: storage)
     case .node256:
-      return Node256(buffer: storage)
+      return Node256<Spec>(buffer: storage)
     default:
       assert(false, "leaf nodes are not internal nodes")
     }
   }
 
-  func toLeafNode() -> NodeLeaf {
+  func toLeafNode<Spec: ARTreeSpec>() -> NodeLeaf<Spec> {
     assert(type == .leaf)
     return NodeLeaf(ptr: storage)
   }
 
-  func toManagedNode() -> any ManagedNode {
+  func toManagedNode<Spec: ARTreeSpec>() -> any ManagedNode<Spec> {
     switch type {
     case .leaf:
-      return toLeafNode()
+      let r: NodeLeaf<Spec> = toLeafNode()
+      return r
     default:
-      return toInternalNode()
+      let r: any ManagedNode<Spec> = toInternalNode()
+      return r
     }
   }
 }

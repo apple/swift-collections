@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree {
   public func getValue(key: Key) -> Value? {
     assert(root != nil, "root can't be nil")
@@ -20,13 +21,13 @@ extension ARTree {
       }
 
       if _rawNode.type == .leaf {
-        let leaf: NodeLeaf = _rawNode.toLeafNode()
+        let leaf: NodeLeaf<Spec> = _rawNode.toLeafNode()
         return leaf.keyEquals(with: key)
-          ? leaf.value()
+          ? leaf.value
           : nil
       }
 
-      let node = _rawNode.toInternalNode()
+      let node: any InternalNode<Spec> = _rawNode.toInternalNode()
       if node.partialLength > 0 {
         let prefixLen = node.prefixMismatch(withKey: key, fromIndex: depth)
         assert(prefixLen <= Const.maxPartialLength, "partial length is always bounded")

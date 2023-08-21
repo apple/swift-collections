@@ -20,10 +20,20 @@
 // * Better test cases.
 // * Fuzz testing.
 // * Leaf don't need to store entire key.
+
+public protocol ARTreeSpec {
+  associatedtype Value
+}
+
+public struct DefaultSpec<_Value>: ARTreeSpec {
+  public typealias Value = _Value
+}
+
 public struct ARTree<Value> {
+  public typealias Spec = DefaultSpec<Value>
   var root: RawNode?
 
   public init() {
-    self.root = Node4.allocate().rawNode
+    self.root = Node4<Spec>.allocate().rawNode
   }
 }

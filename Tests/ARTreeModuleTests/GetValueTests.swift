@@ -20,6 +20,7 @@ func randomByteArray(minSize: Int, maxSize: Int, minByte: UInt8, maxByte: UInt8)
   return result
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeGetValueTests: XCTestCase {
   func testGetValueBasic() throws {
     var t = ARTree<[UInt8]>()

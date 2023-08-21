@@ -10,13 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 protocol NodePrettyPrinter {
-  func print<Value>(value: Value.Type) -> String
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String
+  func print() -> String
+  func prettyPrint(depth: Int) -> String
 }
 
 extension NodePrettyPrinter {
-  func print<Value>(value: Value.Type) -> String {
-    return "○ " + prettyPrint(depth: 0, value: value)
+  func print() -> String {
+    return "○ " + prettyPrint(depth: 0)
   }
 }
 
@@ -30,22 +30,48 @@ func indent(_ width: Int, last: Bool) -> String {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree: CustomStringConvertible {
   public var description: String {
     if let node = root {
-      return "○ " + node.toManagedNode().prettyPrint(depth: 0, value: Value.self)
+      return "○ " + node.prettyPrint(depth: 0, with: Spec.self)
     } else {
       return "<>"
     }
   }
 }
 
-extension RawNode: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
-    return toManagedNode().prettyPrint(depth: depth, value: Value.self)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension ManagedNode {
+  public var description: String {
+    return "○ " + prettyPrint(depth: 0)
+  }
+
+  func prettyPrint(depth: Int) -> String {
+    switch self.type {
+    case .leaf:
+      return (self as! NodeLeaf<Spec>).prettyPrint(depth: depth)
+    case .node4:
+      return (self as! Node4<Spec>).prettyPrint(depth: depth)
+    case .node16:
+      return (self as! Node16<Spec>).prettyPrint(depth: depth)
+    case .node48:
+      return (self as! Node48<Spec>).prettyPrint(depth: depth)
+    case .node256:
+      return (self as! Node256<Spec>).prettyPrint(depth: depth)
+    }
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension RawNode {
+  func prettyPrint<Spec: ARTreeSpec>(depth: Int, with: Spec.Type) -> String {
+    let n: any ManagedNode<Spec> = toManagedNode()
+    return n.prettyPrint(depth: depth)
+  }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension InternalNode {
   fileprivate var partial: [UInt8] {
     var arr = [UInt8](repeating: 0, count: partialLength)
@@ -57,15 +83,16 @@ extension InternalNode {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension NodeLeaf: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
-    let val: Value = self.value()
-    return "\(self.keyLength)\(self.key) -> \(val)"
+  func prettyPrint(depth: Int) -> String {
+    return "\(self.keyLength)\(self.key) -> \(self.value)"
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node4: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+  func prettyPrint(depth: Int) -> String {
     var output = "Node4 {childs=\(count), partial=\(partial)}\n"
     withBody { keys, childs in
       for idx in 0..<count {
@@ -73,9 +100,7 @@ extension Node4: NodePrettyPrinter {
         let last = idx == count - 1
         output += indent(depth, last: last)
         output += String(key) + ": "
-        output += child(at: idx)!.prettyPrint(
-          depth: depth + 1,
-          value: value)
+        output += child(at: idx)!.prettyPrint(depth: depth + 1, with: Spec.self)
         if !last {
           output += "\n"
         }
@@ -86,8 +111,9 @@ extension Node4: NodePrettyPrinter {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node16: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+  func prettyPrint(depth: Int) -> String {
     var output = "Node16 {childs=\(count), partial=\(partial)}\n"
     withBody { keys, childs in
       for idx in 0..<count {
@@ -95,9 +121,7 @@ extension Node16: NodePrettyPrinter {
         let last = idx == count - 1
         output += indent(depth, last: last)
         output += String(key) + ": "
-        output += child(at: idx)!.prettyPrint(
-          depth: depth + 1,
-          value: value)
+        output += child(at: idx)!.prettyPrint(depth: depth + 1, with: Spec.self)
         if !last {
           output += "\n"
         }
@@ -108,8 +132,9 @@ extension Node16: NodePrettyPrinter {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node48: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+  func prettyPrint(depth: Int) -> String {
     var output = "Node48 {childs=\(count), partial=\(partial)}\n"
     var total = 0
     withBody { keys, childs in
@@ -122,9 +147,7 @@ extension Node48: NodePrettyPrinter {
         let last = total == count
         output += indent(depth, last: last)
         output += String(key) + ": "
-        output += child(at: Int(slot))!.prettyPrint(
-          depth: depth + 1,
-          value: value)
+        output += child(at: Int(slot))!.prettyPrint(depth: depth + 1, with: Spec.self)
         if !last {
           output += "\n"
         }
@@ -135,8 +158,9 @@ extension Node48: NodePrettyPrinter {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node256: NodePrettyPrinter {
-  func prettyPrint<Value>(depth: Int, value: Value.Type) -> String {
+  func prettyPrint(depth: Int) -> String {
     var output = "Node256 {childs=\(count), partial=\(partial)}\n"
     var total = 0
     withBody { childs in
@@ -149,9 +173,7 @@ extension Node256: NodePrettyPrinter {
         let last = total == count
         output += indent(depth, last: last)
         output += String(key) + ": "
-        output += child!.prettyPrint(
-          depth: depth + 1,
-          value: value)
+        output += child!.prettyPrint(depth: depth + 1, with: Spec.self)
         if !last {
           output += "\n"
         }

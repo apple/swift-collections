@@ -9,7 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct NodeLeaf {
+struct NodeLeaf<Spec: ARTreeSpec> {
+  typealias Value = Spec.Value
   var storage: Storage
 }
 
@@ -22,7 +23,7 @@ extension NodeLeaf {
 }
 
 extension NodeLeaf {
-  static func allocate<Value>(key: Key, value: Value, of: Value.Type) -> Self {
+  static func allocate(key: Key, value: Value) -> Self {
     let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
     let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
     var leaf = Self(ptr: buf)
@@ -53,8 +54,7 @@ extension NodeLeaf {
     }
   }
 
-  func withValue<R, Value>(of: Value.Type,
-                           body: (UnsafeMutablePointer<Value>) throws -> R) rethrows -> R {
+  func withValue<R>(body: (UnsafeMutablePointer<Value>) throws -> R) rethrows -> R {
     return try storage.withUnsafePointer {
       return try body(
         $0.advanced(by: MemoryLayout<UInt32>.stride)
@@ -63,8 +63,7 @@ extension NodeLeaf {
     }
   }
 
-  func withKeyValue<R, Value>(
-    body: (KeyPtr, UnsafeMutablePointer<Value>) throws -> R) rethrows -> R {
+  func withKeyValue<R>(body: (KeyPtr, UnsafeMutablePointer<Value>) throws -> R) rethrows -> R {
     return try storage.withUnsafePointer {
       let base = $0.advanced(by: MemoryLayout<UInt32>.stride)
       let keyPtr = UnsafeMutableBufferPointer(
@@ -95,8 +94,8 @@ extension NodeLeaf {
     }
   }
 
-  func value<Value>() -> Value {
-    return withValue(of: Value.self) { $0.pointee }
+  var value: Value {
+    get { withValue() { $0.pointee } }
   }
 }
 
@@ -134,6 +133,9 @@ extension NodeLeaf {
 }
 
 extension NodeLeaf: ManagedNode {
-  static func deinitialize(_ storage: NodeStorage<Self>) {
+  static func deinitialize(_ storage: Storage) {
+    Self(storage: storage).withValue {
+      $0.deinitialize(count: 1)
+    }
   }
 }

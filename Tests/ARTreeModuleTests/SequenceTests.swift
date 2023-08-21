@@ -13,6 +13,7 @@ import XCTest
 
 @testable import ARTreeModule
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeSequenceTests: XCTestCase {
   func testSequenceEmpty() throws {
     let t = ARTree<[UInt8]>()

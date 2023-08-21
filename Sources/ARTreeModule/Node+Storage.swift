@@ -12,8 +12,10 @@
 typealias RawNodeBuffer = ManagedBuffer<NodeType, UInt8>
 
 final class NodeBuffer<Mn: ManagedNode>: RawNodeBuffer {
+  typealias Value = Mn.Value
+  
   deinit {
-    Mn.deinitialize(NodeStorage(buf: self))
+    Mn.deinitialize(NodeStorage<Mn>(buf: self))
   }
 }
 

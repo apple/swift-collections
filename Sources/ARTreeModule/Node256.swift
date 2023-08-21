@@ -9,13 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-struct Node256 {
+struct Node256<Spec: ARTreeSpec> {
   var storage: Storage
 }
 
 extension Node256 {
-  static let type: NodeType = .node256
-  static let numKeys: Int = 256
+  static var type: NodeType { .node256 }
+  static var numKeys: Int { 256 }
 
   init(buffer: RawNodeBuffer) {
     self.init(storage: Storage(raw: buffer))
@@ -33,7 +33,7 @@ extension Node256 {
     return node
   }
 
-  static func allocate(copyFrom: Node48) -> Self {
+  static func allocate(copyFrom: Node48<Spec>) -> Self {
     var node = Self.allocate()
     node.copyHeader(from: copyFrom)
 
@@ -101,7 +101,7 @@ extension Node256: InternalNode {
     }
   }
 
-  mutating func addChild(forKey k: KeyPart, node: any ManagedNode) -> UpdateResult<RawNode?> {
+  mutating func addChild(forKey k: KeyPart, node: any ManagedNode<Spec>) -> UpdateResult<RawNode?> {
     return withBody { childs in
       assert(childs[Int(k)] == nil, "node for key \(k) already exists")
       childs[Int(k)] = node.rawNode

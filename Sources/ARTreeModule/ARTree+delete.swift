@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree {
   public mutating func delete(key: Key) {
     guard let node = root else { return }
@@ -29,7 +30,7 @@ extension ARTree {
                                 key: Key,
                                 depth: Int) -> UpdateResult<RawNode?> {
     if node.type == .leaf {
-      let leaf = node.toLeafNode()
+      let leaf: NodeLeaf<Spec> = node.toLeafNode()
       if !leaf.keyEquals(with: key, depth: depth) {
         return .noop
       }
@@ -38,7 +39,7 @@ extension ARTree {
     }
 
     var newDepth = depth
-    var node = node.toInternalNode()
+    var node: any InternalNode<Spec> = node.toInternalNode()
 
     if node.partialLength > 0 {
       let matchedBytes = node.prefixMismatch(withKey: key, fromIndex: depth)

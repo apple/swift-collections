@@ -21,6 +21,7 @@ private class TestBox {
   }
 }
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeRefCountTest: XCTestCase {
   func testRefCountBasic() throws {
     // TODO: Why is it 2?

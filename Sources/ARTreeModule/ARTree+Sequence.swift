@@ -9,14 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree: Sequence {
-  public typealias Element = (Key, Value)
+  public typealias Iterator = _Iterator<Spec>
 
-  public struct Iterator {
-    typealias _ChildIndex = InternalNode.Index
+  public struct _Iterator<Spec: ARTreeSpec> {
+    typealias _ChildIndex = InternalNode<Spec>.Index
 
     private let tree: ARTree
-    private var path: [(any InternalNode, _ChildIndex?)]
+    private var path: [(any InternalNode<Spec>, _ChildIndex?)]
 
     init(tree: ARTree) {
       self.tree = tree
@@ -24,8 +25,8 @@ extension ARTree: Sequence {
       guard let node = tree.root else { return }
 
       assert(node.type != .leaf, "root can't be leaf")
-      let n = node.toInternalNode()
-      if node.toInternalNode().count > 0 {
+      let n: any InternalNode<Spec> = node.toInternalNode()
+      if n.count > 0 {
         self.path = [(n, n.index())]
       }
     }
@@ -37,8 +38,9 @@ extension ARTree: Sequence {
 }
 
 // TODO: Instead of index, use node iterators, to advance to next child.
-extension ARTree.Iterator: IteratorProtocol {
-  public typealias Element = (Key, Value)
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension ARTree._Iterator: IteratorProtocol {
+  public typealias Element = (Key, Spec.Value) // TODO: Why just Value fails?
 
   // Exhausted childs on the tip of path. Forward to sibling.
   mutating private func advanceToSibling() {
@@ -64,8 +66,8 @@ extension ARTree.Iterator: IteratorProtocol {
 
         let next = node.child(at: index)!
         if next.type == .leaf {
-          let leaf: NodeLeaf = next.toLeafNode()
-          let result: (Key, Value) = (leaf.key, leaf.value())
+          let leaf: NodeLeaf<Spec> = next.toLeafNode()
+          let result = (leaf.key, leaf.value)
           advanceToNextChild()
           return result
         }

@@ -18,13 +18,14 @@ final class ARTreeNodeBasicTests: XCTestCase {
     let header = MemoryLayout<InternalNodeHeader>.stride
     XCTAssertEqual(header, 12)
 
+    typealias Spec = DefaultSpec<Int>
     let childSlotSize = MemoryLayout<RawNode?>.stride
     let ptrSize = MemoryLayout<Int>.stride
     let refSize = MemoryLayout<RawNode?>.stride
-    let size4 = Node4.size
-    let size16 = Node16.size
-    let size48 = Node48.size
-    let size256 = Node256.size
+    let size4 = Node4<Spec>.size
+    let size16 = Node16<Spec>.size
+    let size48 = Node48<Spec>.size
+    let size256 = Node256<Spec>.size
 
     print("sizeof(RawNode?) = \(refSize)")
     print("sizeOf(Int) = \(ptrSize)")
