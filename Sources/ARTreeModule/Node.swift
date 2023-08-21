@@ -81,31 +81,66 @@ enum UpdateResult<T> {
 }
 
 extension InternalNode {
-  mutating func updateChild(forKey k: KeyPart, body: (RawNode?) -> UpdateResult<RawNode?>)
-    -> UpdateResult<RawNode?> {
+  mutating func updateChild(forKey k: KeyPart, isUnique: Bool,
+                            body: (RawNode?) -> UpdateResult<RawNode?>) -> UpdateResult<RawNode?> {
 
     guard let childPosition = index(forKey: k) else {
       return .noop
     }
 
-    let ref = withChildRef(at: childPosition) { $0 }
     let child = child(at: childPosition)
-    switch body(child) {
-    case .noop:
-      return .noop
-    case .replaceWith(nil):
-      let shouldDeleteMyself = count == 1
-      switch deleteChild(at: childPosition) {
+
+    // TODO: This is ugly. Rewrite.
+    let action = body(child)
+    if isUnique {
+      switch action {
       case .noop:
         return .noop
-      case .replaceWith(nil) where shouldDeleteMyself:
-        return .replaceWith(nil)
+      case .replaceWith(nil):
+        let shouldDeleteMyself = count == 1
+        switch deleteChild(at: childPosition) {
+        case .noop:
+          return .noop
+        case .replaceWith(nil) where shouldDeleteMyself:
+          return .replaceWith(nil)
+        case .replaceWith(let newValue):
+          return .replaceWith(newValue)
+        }
       case .replaceWith(let newValue):
-        return .replaceWith(newValue)
+        _ = withChildRef(at: childPosition) {
+          $0.pointee = newValue
+        }
+
+        return .noop
       }
-    case .replaceWith(let newValue):
-      ref.pointee = newValue
-      return .noop
+    } else {
+      switch action {
+      case .noop:
+        // Key wasn't in the tree.
+        return .noop
+      case .replaceWith(nil) where count == 1:
+        // Subtree was deleted, and that was our last child. Delete myself.
+        return .replaceWith(nil)
+      case .replaceWith(nil):
+        // Clone myself and remove the child from the clone.
+        var myClone = clone()
+        switch myClone.deleteChild(at: childPosition) {
+        case .noop:
+          return .replaceWith(myClone.rawNode)
+        case .replaceWith(nil):
+          fatalError("unexpected state: should be handled in branch where count == 1")
+        case .replaceWith(let newValue):
+          // Our clone got shrunk down after delete.
+          return .replaceWith(newValue)
+        }
+      case .replaceWith(let newValue):
+        // Clone myself and update the subtree.
+        var myClone = clone()
+        _ = myClone.withChildRef(at: childPosition) {
+          $0.pointee = newValue
+        }
+        return .replaceWith(myClone.rawNode)
+      }
     }
   }
 }

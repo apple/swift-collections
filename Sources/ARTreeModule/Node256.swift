@@ -154,7 +154,8 @@ extension Node256: ManagedNode {
   }
 
   func clone() -> Self {
-    let node = Self.allocate()
+    var node = Self.allocate()
+    node.copyHeader(from: self)
 
     self.withBody { fromChildren in
       node.withBody { newChildren in

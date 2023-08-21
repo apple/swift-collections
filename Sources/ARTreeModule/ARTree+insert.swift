@@ -21,7 +21,7 @@ extension ARTree {
   @discardableResult
   @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
   public mutating func insert(key: Key, value: Value) -> Bool {
-    guard var (action, ref) = _findInsertNode(startNode: root!, key: key) else { return false }
+    guard var (action, ref) = _findInsertNode(key: key) else { return false }
 
     switch action {
     case .replace(_):
@@ -80,11 +80,10 @@ extension ARTree {
     return true
   }
 
-  fileprivate mutating func _findInsertNode(startNode: RawNode, key: Key)
-    -> (InsertAction, NodeReference)? {
-
-    var current: RawNode = startNode
+  fileprivate mutating func _findInsertNode(key: Key) -> (InsertAction, NodeReference)? {
     var depth = 0
+    var isUnique = root!.isUnique()
+    var current = root!
     var ref = NodeReference(&root)
 
     while depth < key.count {
@@ -95,10 +94,19 @@ extension ARTree {
           return (.replace(leaf), ref)
         }
 
-        return (.splitLeaf(leaf, depth: depth), ref)
+        if isUnique {
+          return (.splitLeaf(leaf, depth: depth), ref)
+        } else {
+          return (.splitLeaf(leaf.clone(), depth: depth), ref)
+        }
       }
 
       var node: any InternalNode<Spec> = current.toInternalNode()
+      if !isUnique {
+        node = node.clone()
+        ref.pointee = node.rawNode
+      }
+
       if node.partialLength > 0 {
         let partialLength = node.partialLength
         let prefixDiff = node.prefixMismatch(withKey: key, fromIndex: depth)
@@ -112,11 +120,12 @@ extension ARTree {
       }
 
       // Find next child to continue.
-      guard let next = node.child(forKey: key[depth], ref: &ref) else {
+      guard var next = node.child(forKey: key[depth], ref: &ref) else {
         // No child, insert leaf within us.
         return (.insertInto(node, depth: depth), ref)
       }
 
+      isUnique = next.isUnique()
       depth += 1
       current = next
     }

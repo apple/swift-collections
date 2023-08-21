@@ -12,8 +12,9 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree {
   public mutating func delete(key: Key) {
-    guard let node = root else { return }
-    switch _delete(node: node, key: key, depth: 0) {
+    guard var node = root else { return }
+    let isUnique = true
+    switch _delete(node: &node, key: key, depth: 0, isUniquePath: isUnique) {
     case .noop:
       return
     case .replaceWith(let newValue):
@@ -26,9 +27,10 @@ extension ARTree {
     fatalError("not implemented")
   }
 
-  private mutating func _delete(node: RawNode,
+  private mutating func _delete(node: inout RawNode,
                                 key: Key,
-                                depth: Int) -> UpdateResult<RawNode?> {
+                                depth: Int,
+                                isUniquePath: Bool) -> UpdateResult<RawNode?> {
     if node.type == .leaf {
       let leaf: NodeLeaf<Spec> = node.toLeafNode()
       if !leaf.keyEquals(with: key, depth: depth) {
@@ -38,6 +40,7 @@ extension ARTree {
       return .replaceWith(nil)
     }
 
+    let isUnique = isUniquePath && node.isUnique()
     var newDepth = depth
     var node: any InternalNode<Spec> = node.toInternalNode()
 
@@ -47,9 +50,9 @@ extension ARTree {
       newDepth += matchedBytes
     }
 
-    return node.updateChild(forKey: key[newDepth]) {
-      guard let child = $0 else { return .noop }
-      return _delete(node: child, key: key, depth: newDepth + 1)
+    return node.updateChild(forKey: key[newDepth], isUnique: isUnique) {
+      guard var child = $0 else { return .noop }
+      return _delete(node: &child, key: key, depth: newDepth + 1, isUniquePath: isUnique)
     }
   }
 }

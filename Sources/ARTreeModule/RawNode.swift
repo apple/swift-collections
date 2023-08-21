@@ -15,6 +15,10 @@ struct RawNode {
   init<N: ManagedNode>(from: N) {
     self.storage = from.storage.buf
   }
+
+  init(storage: RawNodeBuffer){
+    self.storage = storage
+  }
 }
 
 extension RawNode {
@@ -22,6 +26,10 @@ extension RawNode {
 
   var type: NodeType {
     @inline(__always) get { return storage.header }
+  }
+
+  mutating func isUnique() -> Bool {
+    return isKnownUniquelyReferenced(&storage)
   }
 }
 

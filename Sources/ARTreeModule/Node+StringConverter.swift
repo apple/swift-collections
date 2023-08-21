@@ -65,6 +65,10 @@ extension ManagedNode {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RawNode {
+  func print<Spec: ARTreeSpec>(with: Spec.Type) -> String {
+    return prettyPrint(depth: 0, with: Spec.self)
+  }
+
   func prettyPrint<Spec: ARTreeSpec>(depth: Int, with: Spec.Type) -> String {
     let n: any ManagedNode<Spec> = toManagedNode()
     return n.prettyPrint(depth: depth)
