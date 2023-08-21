@@ -52,6 +52,8 @@ extension Node48 {
         for (idx, key) in fromKeys.enumerated() {
           newKeys[Int(key)] = UInt8(idx)
         }
+
+        Self.retainChildren(newChilds, count: node.count)
       }
     }
 
@@ -74,6 +76,8 @@ extension Node48 {
           newChilds[slot] = child
           slot += 1
         }
+
+        Self.retainChildren(newChilds, count: node.count)
       }
     }
 
@@ -83,9 +87,9 @@ extension Node48 {
 
 extension Node48 {
   typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+  typealias Children = UnsafeMutableBufferPointer<RawNode?>
 
-  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+  func withBody<R>(body: (Keys, Children) throws -> R) rethrows -> R {
     return try storage.withBodyPointer { bodyPtr in
       let keys = UnsafeMutableBufferPointer(
         start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
@@ -221,5 +225,20 @@ extension Node48: InternalNode {
   }
 
   static func deinitialize(_ storage: NodeStorage<Self>) {
+  }
+}
+
+extension Node48: ManagedNode {
+  final class Buffer: RawNodeBuffer {
+    deinit {
+      var node = Node48(buffer: self)
+      let count = node.count
+      _ = node.withBody { _, childs in
+        for idx in 0..<count {
+          childs[idx] = nil
+        }
+      }
+      node.count = 0
+    }
   }
 }

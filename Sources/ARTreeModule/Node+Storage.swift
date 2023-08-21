@@ -10,14 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 typealias RawNodeBuffer = ManagedBuffer<NodeType, UInt8>
-
-final class NodeBuffer<Mn: ManagedNode>: RawNodeBuffer {
-  typealias Value = Mn.Value
-  
-  deinit {
-    Mn.deinitialize(NodeStorage<Mn>(buf: self))
-  }
-}
+typealias NodeBuffer<Mn: ManagedNode> = Mn.Buffer
 
 struct NodeStorage<Mn: ManagedNode> {
   var buf: NodeBuffer<Mn>
@@ -29,8 +22,8 @@ extension NodeStorage {
   }
 
   static func create(type: NodeType, size: Int) -> RawNodeBuffer {
-    let buf = NodeBuffer<Mn>.create(minimumCapacity: size,
-                                    makingHeaderWith: {_ in type })
+    let buf = Mn.Buffer.create(minimumCapacity: size,
+                               makingHeaderWith: {_ in type })
     buf.withUnsafeMutablePointerToElements {
       $0.initialize(repeating: 0, count: size)
     }

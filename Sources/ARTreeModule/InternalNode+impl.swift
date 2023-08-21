@@ -54,6 +54,19 @@ extension InternalNode {
     return index(forKey: k).flatMap { child(at: $0) }
   }
 
+  mutating func child(forKey k: KeyPart, ref: inout NodeReference) -> RawNode? {
+    if count == 0 {
+      return nil
+    }
+
+    return index(forKey: k).flatMap { index in
+      self.withChildRef(at: index) { ptr in
+        ref = NodeReference(ptr)
+        return ptr.pointee
+      }
+    }
+  }
+
   mutating func copyHeader(from: any InternalNode) {
     self.storage.withHeaderPointer { header in
       header.pointee.count = UInt16(from.count)
@@ -74,5 +87,14 @@ extension InternalNode {
     }
 
     return maxComp
+  }
+
+  // TODO: Look everywhere its used, and try to avoid unnecessary RC traffic.
+  static func retainChildren(_ children: Children, count: Int) {
+    for idx in 0..<count {
+      if let c = children[idx] {
+        _ = Unmanaged.passRetained(c.storage)
+      }
+    }
   }
 }

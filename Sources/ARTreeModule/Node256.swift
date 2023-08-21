@@ -45,6 +45,8 @@ extension Node256 {
             newChilds[key] = fromChilds[slot]
           }
         }
+
+        Self.retainChildren(newChilds, count: Self.numKeys)
       }
     }
 
@@ -55,9 +57,9 @@ extension Node256 {
 
 extension Node256 {
   typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+  typealias Children = UnsafeMutableBufferPointer<RawNode?>
 
-  func withBody<R>(body: (Childs) throws -> R) rethrows -> R {
+  func withBody<R>(body: (Children) throws -> R) rethrows -> R {
     return try storage.withBodyPointer {
       return try body(
         UnsafeMutableBufferPointer(
@@ -133,5 +135,21 @@ extension Node256: InternalNode {
   }
 
   static func deinitialize(_ storage: NodeStorage<Self>) {
+  }
+}
+
+
+extension Node256: ManagedNode {
+  final class Buffer: RawNodeBuffer {
+    deinit {
+      var node = Node256(buffer: self)
+      let count = node.count
+      _ = node.withBody { childs in
+        for idx in 0..<count {
+          childs[idx] = nil
+        }
+      }
+      node.count = 0
+    }
   }
 }

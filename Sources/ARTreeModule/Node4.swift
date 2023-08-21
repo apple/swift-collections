@@ -45,6 +45,7 @@ extension Node4 {
         UnsafeMutableRawBufferPointer(newChilds).copyBytes(
           from: UnsafeRawBufferPointer(
             UnsafeBufferPointer(rebasing: fromChilds[0..<numKeys])))
+        Self.retainChildren(newChilds, count: node.count)
       }
     }
     return node
@@ -53,9 +54,9 @@ extension Node4 {
 
 extension Node4 {
   typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+  typealias Children = UnsafeMutableBufferPointer<RawNode?>
 
-  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+  func withBody<R>(body: (Keys, Children) throws -> R) rethrows -> R {
     return try storage.withBodyPointer { bodyPtr in
       let keys = UnsafeMutableBufferPointer(
         start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
@@ -167,7 +168,19 @@ extension Node4: InternalNode {
       return body(ref)
     }
   }
+}
 
-  static func deinitialize(_ storage: NodeStorage<Self>) {
+extension Node4: ManagedNode {
+  final class Buffer: RawNodeBuffer {
+    deinit {
+      var node = Node4(buffer: self)
+      let count = node.count
+      _ = node.withBody { _, childs in
+        for idx in 0..<count {
+          childs[idx] = nil
+        }
+      }
+      node.count = 0
+    }
   }
 }

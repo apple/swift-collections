@@ -44,6 +44,7 @@ extension Node16 {
         UnsafeMutableRawBufferPointer(newKeys).copyBytes(from: fromKeys)
         UnsafeMutableRawBufferPointer(newChilds).copyBytes(
           from: UnsafeMutableRawBufferPointer(fromChilds))
+        Self.retainChildren(newChilds, count: node.count)
       }
     }
 
@@ -69,6 +70,7 @@ extension Node16 {
         }
 
         assert(slot == node.count)
+        Self.retainChildren(newChilds, count: node.count)
       }
     }
 
@@ -78,9 +80,9 @@ extension Node16 {
 
 extension Node16 {
   typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Childs = UnsafeMutableBufferPointer<RawNode?>
+  typealias Children = UnsafeMutableBufferPointer<RawNode?>
 
-  func withBody<R>(body: (Keys, Childs) throws -> R) rethrows -> R {
+  func withBody<R>(body: (Keys, Children) throws -> R) rethrows -> R {
     return try storage.withBodyPointer { bodyPtr in
       let keys = UnsafeMutableBufferPointer(
         start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
@@ -194,7 +196,19 @@ extension Node16: InternalNode {
       return body(ref)
     }
   }
+}
 
-  static func deinitialize(_ storage: NodeStorage<Self>) {
+extension Node16: ManagedNode {
+  final class Buffer: RawNodeBuffer {
+    deinit {
+      var node = Node16(buffer: self)
+      let count = node.count
+      _ = node.withBody { _, childs in
+        for idx in 0..<count {
+          childs[idx] = nil
+        }
+      }
+      node.count = 0
+    }
   }
 }

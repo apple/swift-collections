@@ -17,8 +17,8 @@ struct NodeLeaf<Spec: ARTreeSpec> {
 extension NodeLeaf {
   static var type: NodeType { .leaf }
 
-  init(ptr: RawNodeBuffer) {
-    self.init(storage: Storage(raw: ptr))
+  init(buffer: RawNodeBuffer) {
+    self.init(storage: Storage(raw: buffer))
   }
 }
 
@@ -26,7 +26,7 @@ extension NodeLeaf {
   static func allocate(key: Key, value: Value) -> Self {
     let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
     let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
-    var leaf = Self(ptr: buf)
+    var leaf = Self(buffer: buf)
 
     leaf.keyLength = key.count
     leaf.withKeyValue { keyPtr, valuePtr in
@@ -133,9 +133,11 @@ extension NodeLeaf {
 }
 
 extension NodeLeaf: ManagedNode {
-  static func deinitialize(_ storage: Storage) {
-    _ = Self(storage: storage).withValue {
-      $0.deinitialize(count: 1)
+  final class Buffer: RawNodeBuffer {
+    deinit {
+      _ = NodeLeaf(buffer: self).withValue {
+        $0.deinitialize(count: 1)
+      }
     }
   }
 }

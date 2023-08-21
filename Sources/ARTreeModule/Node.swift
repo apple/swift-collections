@@ -14,11 +14,11 @@ public typealias Key = [KeyPart]
 
 protocol ManagedNode<Spec> {
   associatedtype Spec: ARTreeSpec
-  
+  associatedtype Buffer: RawNodeBuffer
+
   typealias Value = Spec.Value
   typealias Storage = NodeStorage<Self>
 
-  static func deinitialize(_ storage: Storage)
   static var type: NodeType { get }
 
   var storage: Storage { get }
@@ -30,6 +30,7 @@ protocol InternalNode<Spec>: ManagedNode {
   typealias Value = Spec.Value
   typealias Index = Int
   typealias Header = InternalNodeHeader
+  typealias Children = UnsafeMutableBufferPointer<RawNode?>
 
   static var size: Int { get }
 
@@ -78,19 +79,6 @@ enum UpdateResult<T> {
 }
 
 extension InternalNode {
-  mutating func child(forKey k: KeyPart, ref: inout NodeReference) -> RawNode? {
-    if count == 0 {
-      return nil
-    }
-
-    return index(forKey: k).flatMap { index in
-      self.withChildRef(at: index) { ptr in
-        ref = NodeReference(ptr)
-        return ptr.pointee
-      }
-    }
-  }
-
   mutating func updateChild(forKey k: KeyPart, body: (RawNode?) -> UpdateResult<RawNode?>)
     -> UpdateResult<RawNode?> {
 

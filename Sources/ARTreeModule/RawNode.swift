@@ -44,7 +44,7 @@ extension RawNode {
 
   func toLeafNode<Spec: ARTreeSpec>() -> NodeLeaf<Spec> {
     assert(type == .leaf)
-    return NodeLeaf(ptr: storage)
+    return NodeLeaf(buffer: storage)
   }
 
   func toManagedNode<Spec: ARTreeSpec>() -> any ManagedNode<Spec> {
