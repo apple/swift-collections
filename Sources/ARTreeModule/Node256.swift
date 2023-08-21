@@ -144,7 +144,7 @@ extension Node256: ManagedNode {
     deinit {
       var node = Node256(buffer: self)
       let count = node.count
-      _ = node.withBody { childs in
+      node.withBody { childs in
         for idx in 0..<count {
           childs[idx] = nil
         }

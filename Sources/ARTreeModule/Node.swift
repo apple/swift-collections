@@ -107,7 +107,7 @@ extension InternalNode {
           return .replaceWith(newValue)
         }
       case .replaceWith(let newValue):
-        _ = withChildRef(at: childPosition) {
+        withChildRef(at: childPosition) {
           $0.pointee = newValue
         }
 
@@ -136,7 +136,7 @@ extension InternalNode {
       case .replaceWith(let newValue):
         // Clone myself and update the subtree.
         var myClone = clone()
-        _ = myClone.withChildRef(at: childPosition) {
+        myClone.withChildRef(at: childPosition) {
           $0.pointee = newValue
         }
         return .replaceWith(myClone.rawNode)

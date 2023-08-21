@@ -175,7 +175,7 @@ extension Node4: ManagedNode {
     deinit {
       var node = Node4(buffer: self)
       let count = node.count
-      _ = node.withBody { _, childs in
+      node.withBody { _, childs in
         for idx in 0..<count {
           childs[idx] = nil
         }

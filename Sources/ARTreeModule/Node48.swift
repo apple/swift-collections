@@ -233,7 +233,7 @@ extension Node48: ManagedNode {
     deinit {
       var node = Node48(buffer: self)
       let count = node.count
-      _ = node.withBody { _, childs in
+      node.withBody { _, childs in
         for idx in 0..<count {
           childs[idx] = nil
         }

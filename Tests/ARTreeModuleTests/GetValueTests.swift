@@ -61,7 +61,7 @@ final class ARTreeGetValueTests: XCTestCase {
       var testSetArray = Array(testSet.values)
 
       // (2) Insert into tree.
-      for (idx, (key, value)) in testSetArray.enumerated() {
+      for (_, (key, value)) in testSetArray.enumerated() {
         tree.insert(key: key, value: value)
         // print("Inserted: \(idx + 1) \(key) -> \(value)")
         // for (k, v) in testSetArray[0...idx] {
