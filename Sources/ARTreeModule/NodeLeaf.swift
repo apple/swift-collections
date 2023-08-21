@@ -134,7 +134,7 @@ extension NodeLeaf {
 
 extension NodeLeaf: ManagedNode {
   static func deinitialize(_ storage: Storage) {
-    Self(storage: storage).withValue {
+    _ = Self(storage: storage).withValue {
       $0.deinitialize(count: 1)
     }
   }

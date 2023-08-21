@@ -21,16 +21,12 @@
 // * Fuzz testing.
 // * Leaf don't need to store entire key.
 
-public protocol ARTreeSpec {
-  associatedtype Value
-}
+public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
 
-public struct DefaultSpec<_Value>: ARTreeSpec {
-  public typealias Value = _Value
-}
-
-public struct ARTree<Value> {
+public struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Spec = DefaultSpec<Value>
+  public typealias Value = Spec.Value
+
   var root: RawNode?
 
   public init() {

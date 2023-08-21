@@ -46,11 +46,9 @@ extension RawNode {
   func toManagedNode<Spec: ARTreeSpec>() -> any ManagedNode<Spec> {
     switch type {
     case .leaf:
-      let r: NodeLeaf<Spec> = toLeafNode()
-      return r
+      return toLeafNode()
     default:
-      let r: any ManagedNode<Spec> = toInternalNode()
-      return r
+      return toInternalNode()
     }
   }
 }

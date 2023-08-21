@@ -10,7 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 struct Const {
-  static let indentWidth = 4
-  static let defaultAlignment = 4
   static let maxPartialLength = 8
+}
+
+public protocol ARTreeSpec {
+  associatedtype Value
+}
+
+public struct DefaultSpec<_Value>: ARTreeSpec {
+  public typealias Value = _Value
 }

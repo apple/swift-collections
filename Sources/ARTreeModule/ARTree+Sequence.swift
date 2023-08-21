@@ -10,16 +10,16 @@
 //===----------------------------------------------------------------------===//
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension ARTree: Sequence {
-  public typealias Iterator = _Iterator<Spec>
+extension ARTreeImpl: Sequence {
+  public typealias Iterator = _Iterator
 
-  public struct _Iterator<Spec: ARTreeSpec> {
+  public struct _Iterator {
     typealias _ChildIndex = InternalNode<Spec>.Index
 
-    private let tree: ARTree
+    private let tree: ARTreeImpl<Spec>
     private var path: [(any InternalNode<Spec>, _ChildIndex?)]
 
-    init(tree: ARTree) {
+    init(tree: ARTreeImpl<Spec>) {
       self.tree = tree
       self.path = []
       guard let node = tree.root else { return }
@@ -39,7 +39,7 @@ extension ARTree: Sequence {
 
 // TODO: Instead of index, use node iterators, to advance to next child.
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension ARTree._Iterator: IteratorProtocol {
+extension ARTreeImpl._Iterator: IteratorProtocol {
   public typealias Element = (Key, Spec.Value) // TODO: Why just Value fails?
 
   // Exhausted childs on the tip of path. Forward to sibling.
