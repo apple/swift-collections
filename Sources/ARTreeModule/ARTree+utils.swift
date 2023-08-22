@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension ARTree {
-  static func allocateLeaf(key: Key, value: Value) -> NodeLeaf<Spec> {
+  static func allocateLeaf(key: Key, value: Value) -> NodeStorage<NodeLeaf<Spec>> {
     return NodeLeaf<Spec>.allocate(key: key, value: value)
   }
 }

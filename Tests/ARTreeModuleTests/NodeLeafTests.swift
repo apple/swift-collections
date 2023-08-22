@@ -13,6 +13,7 @@ import XCTest
 
 @testable import ARTreeModule
 
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeNodeLeafTests: XCTestCase {
   func testLeafBasic() throws {
     typealias L = NodeLeaf<DefaultSpec<[UInt8]>>
@@ -29,66 +30,67 @@ final class ARTreeNodeLeafTests: XCTestCase {
   func testLeafKeyEquals() throws {
     typealias L = NodeLeaf<DefaultSpec<[Int]>>
     let leaf1 = L.allocate(key: [10, 20, 30, 40], value: [0])
-    XCTAssertFalse(leaf1.keyEquals(with: [10, 20, 30, 50]))
-    XCTAssertFalse(leaf1.keyEquals(with: [10, 20, 30]))
-    XCTAssertFalse(leaf1.keyEquals(with: [10, 20, 30, 40, 50]))
-    XCTAssertTrue(leaf1.keyEquals(with: [10, 20, 30, 40]))
+    XCTAssertFalse(leaf1.node.keyEquals(with: [10, 20, 30, 50]))
+    XCTAssertFalse(leaf1.node.keyEquals(with: [10, 20, 30]))
+    XCTAssertFalse(leaf1.node.keyEquals(with: [10, 20, 30, 40, 50]))
+    XCTAssertTrue(leaf1.node.keyEquals(with: [10, 20, 30, 40]))
   }
 
   func testCasts() throws {
     typealias L = NodeLeaf<DefaultSpec<[Int]>>
     let leaf = L.allocate(key: [10, 20, 30, 40], value: [0])
-    XCTAssertEqual(leaf.key, [10, 20, 30, 40])
-    XCTAssertEqual(leaf.value, [0])
+    XCTAssertEqual(leaf.node.key, [10, 20, 30, 40])
+    XCTAssertEqual(leaf.node.value, [0])
   }
 
   func testLeafLcp() throws {
     typealias L = NodeLeaf<DefaultSpec<[Int]>>
     let leaf1 = L.allocate(key: [10, 20, 30, 40], value: [0, 1, 2])
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [0, 1, 2, 3], value: [0]),
-        fromIndex: 0),
-      0)
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [0], value: [0]),
-        fromIndex: 0),
-      0)
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [0, 1], value: [0]),
-        fromIndex: 0),
-      0)
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [10, 1], value: [0]),
-        fromIndex: 0),
-      1)
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [10, 20], value: [0]),
-        fromIndex: 0),
-      2)
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [10, 20], value: [0]),
-        fromIndex: 1),
-      1)
-    XCTAssertEqual(
-      leaf1.longestCommonPrefix(
-        with: L.allocate(key: [10, 20], value: [0]),
-        fromIndex: 2),
-      0)
 
-    // Breaks the contract, so its OK that these fail.
-    // XCTAssertEqual(
-    //   leaf1.longestCommonPrefix(with: L.allocate(key: [], value: [0]),
-    //                             fromIndex: 0),
-    //   0)
-    // XCTAssertEqual(
-    //   leaf1.longestCommonPrefix(with: L.allocate(key: [10], value: [0]),
-    //                             fromIndex: 2),
-    //   0)
+    L.allocate(key: [0, 1, 2, 3], value: [0]).read { other in
+      XCTAssertEqual(
+        leaf1.node.longestCommonPrefix(
+          with: other,
+          fromIndex: 0),
+        0)
+    }
+
+    L.allocate(key: [0], value: [0]).read { other in
+      XCTAssertEqual(
+        leaf1.node.longestCommonPrefix(
+          with:other,
+          fromIndex: 0),
+        0)
+    }
+    L.allocate(key: [0, 1], value: [0]).read { other in
+      XCTAssertEqual(
+        leaf1.node.longestCommonPrefix(with: other, fromIndex: 0),
+        0)
+    }
+    L.allocate(key: [10, 1], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 0),
+                     1)
+    }
+    L.allocate(key: [10, 20], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 0),
+                     2)
+    }
+    L.allocate(key: [10, 20], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 1),
+                     1)
+    }
+    L.allocate(key: [10, 20], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 2),
+                     0)
+    }
+  //   // Breaks the contract, so its OK that these fail.
+  //   // XCTAssertEqual(
+  //   //   leaf1.node.longestCommonPrefix(with: L.allocate(key: [], value: [0]),
+  //   //                             fromIndex: 0),
+  //   //   0)
+  //   // XCTAssertEqual(
+  //   //   leaf1.node.longestCommonPrefix(with: L.allocate(key: [10], value: [0]),
+  //   //                             fromIndex: 2),
+  //   //   0)
   }
 }

@@ -11,55 +11,108 @@
 
 typealias RawNodeBuffer = ManagedBuffer<NodeType, UInt8>
 
-struct NodeStorage<Mn: ManagedNode> {
-  var buf: Mn.Buffer
+struct NodeStorage<Mn: ArtNode> {
+  var ref: Mn.Buffer
+
+  var node: Mn { Mn(buffer: ref) }
+  var rawNode: RawNode { RawNode(buf: ref) }
+
+  init(raw: RawNodeBuffer) {
+    self.ref = unsafeDowncast(raw, to: Mn.Buffer.self)
+  }
 }
 
 extension NodeStorage {
-  init(raw: RawNodeBuffer) {
-    self.buf = unsafeDowncast(raw, to: Mn.Buffer.self)
-  }
-
-  static func create(type: NodeType, size: Int) -> RawNodeBuffer {
+  static func create(type: NodeType, size: Int) -> NodeStorage<Mn> {
     let buf = Mn.Buffer.create(minimumCapacity: size,
                                makingHeaderWith: {_ in type })
     buf.withUnsafeMutablePointerToElements {
       $0.initialize(repeating: 0, count: size)
     }
-    return buf
+    return NodeStorage<Mn>(raw: buf)
   }
-}
 
-extension NodeStorage {
-  func withUnsafePointer<R>(_ body: (UnsafeMutableRawPointer) throws -> R) rethrows -> R {
-    return try buf.withUnsafeMutablePointerToElements {
-      return try body(UnsafeMutableRawPointer($0))
-    }
+  func clone() -> Self {
+    read { $0.clone() }
   }
 }
 
 extension NodeStorage where Mn: InternalNode {
   typealias Header = Mn.Header
+  typealias Index = Mn.Index
 
   static func allocate() -> NodeStorage<Mn> {
     let size = Mn.size
-    let buf = NodeStorage<Mn>.create(type: Mn.type, size: size)
-    let storage = NodeStorage(raw: buf)
-    _ = buf.withUnsafeMutablePointerToElements {
+    let buf = Self.create(type: Mn.type, size: size)
+    _ = buf.ref.withUnsafeMutablePointerToElements {
       UnsafeMutableRawPointer($0).bindMemory(to: Header.self, capacity: 1)
     }
-    return storage
+    return buf
   }
 
-  func withHeaderPointer<R>(_ body: (UnsafeMutablePointer<Header>) throws -> R) rethrows -> R {
-    return try buf.withUnsafeMutablePointerToElements {
-      return try body(UnsafeMutableRawPointer($0).assumingMemoryBound(to: Header.self))
+  var type: NodeType {
+    read { $0.type }
+  }
+  var partialBytes: PartialBytes {
+    get {
+      read { $0.partialBytes }
+    }
+    set {
+      update { $0.partialBytes = newValue }
     }
   }
 
-  func withBodyPointer<R>(_ body: (UnsafeMutableRawPointer) throws -> R) rethrows -> R {
-    return try buf.withUnsafeMutablePointerToElements {
-      return try body(UnsafeMutableRawPointer($0).advanced(by: MemoryLayout<Header>.stride))
+  var partialLength: Int {
+    get {
+      read { $0.partialLength }
     }
+    set {
+      update { $0.partialLength = newValue }
+    }
+  }
+
+  mutating func index(forKey k: KeyPart) -> Index? {
+    read {
+      $0.index(forKey: k)
+    }
+  }
+
+  // TODO: Remove this so that we don't use it by mistake where `node` is invalid.
+  mutating func addChild(forKey k: KeyPart, node: some ArtNode<Mn.Spec>)
+    -> UpdateResult<RawNode?>  {
+
+    update {
+      $0.addChild(forKey: k, node: node.rawNode)
+    }
+  }
+
+  mutating func addChild<N>(forKey k: KeyPart, node: NodeStorage<N>)
+    -> UpdateResult<RawNode?> where N.Spec == Mn.Spec {
+    update {
+      $0.addChild(forKey: k, node: node.rawNode)
+    }
+  }
+
+  mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?> {
+    update {
+      $0.addChild(forKey: k, node: node)
+    }
+  }
+
+  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+    update {
+      $0.deleteChild(at: index)
+    }
+  }
+}
+
+extension NodeStorage {
+  func read<R>(_ body: (Mn) throws -> R) rethrows -> R{
+    try body(self.node)
+  }
+
+  func update<R>(_ body: (inout Mn) throws -> R) rethrows -> R {
+    var n = self.node
+    return try body(&n)
   }
 }

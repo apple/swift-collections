@@ -19,7 +19,6 @@ extension ARTree {
   }
 
   @discardableResult
-  @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
   public mutating func insert(key: Key, value: Value) -> Bool {
     guard var (action, ref) = _findInsertNode(key: key) else { return false }
 
@@ -29,11 +28,13 @@ extension ARTree {
 
     case .splitLeaf(let leaf, let depth):
       let newLeaf = Self.allocateLeaf(key: key, value: value)
-      var longestPrefix = leaf.longestCommonPrefix(with: newLeaf, fromIndex: depth)
+      var longestPrefix = newLeaf.read {
+        leaf.longestCommonPrefix(with: $0, fromIndex: depth)
+      }
 
       var newNode = Node4<Spec>.allocate()
       _ = newNode.addChild(forKey: leaf.key[depth + longestPrefix], node: leaf)
-      _ = newNode.addChild(forKey: newLeaf.key[depth + longestPrefix], node: newLeaf)
+      _ = newNode.addChild(forKey: key[depth + longestPrefix], node: newLeaf)
 
       while longestPrefix > 0 {
         let nBytes = Swift.min(Const.maxPartialLength, longestPrefix)
@@ -46,9 +47,9 @@ extension ARTree {
           break
         }
 
-        var nextNode = Node4<Spec>.allocate()
-        _ = nextNode.addChild(forKey: key[start - 1], node: newNode)
-        newNode = nextNode
+        var next = Node4<Spec>.allocate()
+        _ = next.addChild(forKey: key[start - 1], node: newNode)
+        newNode = next
       }
 
       ref.pointee = newNode.rawNode  // Replace child in parent.
@@ -56,8 +57,7 @@ extension ARTree {
     case .splitNode(var node, let depth, let prefixDiff):
       var newNode = Node4<Spec>.allocate()
       newNode.partialLength = prefixDiff
-      // TODO: Just copy min(maxPartialLength, prefixDiff) bytes
-      newNode.partialBytes = node.partialBytes
+      newNode.partialBytes = node.partialBytes // TODO: Just copy min(maxPartialLength, prefixDiff)
 
       assert(
         node.partialLength <= Const.maxPartialLength,
@@ -71,15 +71,17 @@ extension ARTree {
       ref.pointee = newNode.rawNode
 
     case .insertInto(var node, let depth):
-      let newLeaf = Self.allocateLeaf(key: key, value: value)
-      if case .replaceWith(let newNode) = node.addChild(forKey: key[depth], node: newLeaf) {
-        ref.pointee = newNode
+      Self.allocateLeaf(key: key, value: value).read { newLeaf in
+        if case .replaceWith(let newNode) = node.addChild(forKey: key[depth], node: newLeaf) {
+          ref.pointee = newNode
+        }
       }
     }
 
     return true
   }
 
+  // TODO: Make sure that the node returned have
   fileprivate mutating func _findInsertNode(key: Key) -> (InsertAction, NodeReference)? {
     var depth = 0
     var isUnique = root!.isUnique()
@@ -97,16 +99,19 @@ extension ARTree {
         if isUnique {
           return (.splitLeaf(leaf, depth: depth), ref)
         } else {
-          return (.splitLeaf(leaf.clone(), depth: depth), ref)
+          let clone = leaf.clone()
+          ref.pointee = clone.node.rawNode
+          return (.splitLeaf(clone.node, depth: depth), ref)
         }
       }
 
-      var node: any InternalNode<Spec> = current.toInternalNode()
+
       if !isUnique {
-        node = node.clone()
-        ref.pointee = node.rawNode
+        current = current.clone(spec: Spec.self)
+        ref.pointee = current
       }
 
+      var node: any InternalNode<Spec> = current.toInternalNode()
       if node.partialLength > 0 {
         let partialLength = node.partialLength
         let prefixDiff = node.prefixMismatch(withKey: key, fromIndex: depth)

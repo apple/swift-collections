@@ -42,7 +42,7 @@ extension ARTreeImpl: CustomStringConvertible {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension ManagedNode {
+extension ArtNode {
   public var description: String {
     return "○ " + prettyPrint(depth: 0)
   }
@@ -66,14 +66,22 @@ extension ManagedNode {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RawNode {
   func print<Spec: ARTreeSpec>(with: Spec.Type) -> String {
-    return prettyPrint(depth: 0, with: Spec.self)
+    return "○ " + prettyPrint(depth: 0, with: Spec.self)
   }
 
   func prettyPrint<Spec: ARTreeSpec>(depth: Int, with: Spec.Type) -> String {
-    let n: any ManagedNode<Spec> = toManagedNode()
+    let n: any ArtNode<Spec> = toArtNode()
     return n.prettyPrint(depth: depth)
   }
 }
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension NodeStorage {
+  func print() -> String {
+    return node.description
+  }
+}
+
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension InternalNode {

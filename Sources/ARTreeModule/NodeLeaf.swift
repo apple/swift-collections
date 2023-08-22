@@ -16,27 +16,24 @@ struct NodeLeaf<Spec: ARTreeSpec> {
 
 extension NodeLeaf {
   static var type: NodeType { .leaf }
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
 }
 
 extension NodeLeaf {
-  static func allocate(key: Key, value: Value) -> Self {
+  static func allocate(key: Key, value: Value) -> NodeStorage<Self> {
     let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
-    let buf = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
-    var leaf = Self(buffer: buf)
+    let storage = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
 
-    leaf.keyLength = key.count
-    leaf.withKeyValue { keyPtr, valuePtr in
-      key.withUnsafeBytes {
-        UnsafeMutableRawBufferPointer(keyPtr).copyBytes(from: $0)
+    storage.update { leaf in 
+      leaf.keyLength = key.count
+      leaf.withKeyValue { keyPtr, valuePtr in
+        key.withUnsafeBytes {
+          UnsafeMutableRawBufferPointer(keyPtr).copyBytes(from: $0)
+        }
+        valuePtr.pointee = value
       }
-      valuePtr.pointee = value
     }
 
-    return leaf
+    return storage
   }
 }
 
@@ -132,7 +129,7 @@ extension NodeLeaf {
   }
 }
 
-extension NodeLeaf: ManagedNode {
+extension NodeLeaf: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       _ = NodeLeaf(buffer: self).withValue {
@@ -141,7 +138,7 @@ extension NodeLeaf: ManagedNode {
     }
   }
 
-  func clone() -> Self {
+  func clone() -> NodeStorage<Self> {
     return Self.allocate(key: key, value: value)
   }
 }

@@ -12,12 +12,12 @@
 public typealias KeyPart = UInt8
 public typealias Key = [KeyPart]
 
-protocol ManagedNode<Spec> {
+protocol ArtNode<Spec> {
   associatedtype Spec: ARTreeSpec
   associatedtype Buffer: RawNodeBuffer
 
   typealias Value = Spec.Value
-  typealias Storage = NodeStorage<Self>
+  typealias Storage = UnmanagedNodeStorage<Self>
 
   static var type: NodeType { get }
 
@@ -25,18 +25,18 @@ protocol ManagedNode<Spec> {
   var type: NodeType { get }
   var rawNode: RawNode { get }
 
-  func clone() -> Self
+  func clone() -> NodeStorage<Self>
 
   init(storage: Storage)
 }
 
-extension ManagedNode {
+extension ArtNode {
   init(buffer: RawNodeBuffer) {
     self.init(storage: Self.Storage(raw: buffer))
   }
 }
 
-protocol InternalNode<Spec>: ManagedNode {
+protocol InternalNode<Spec>: ArtNode {
   typealias Value = Spec.Value
   typealias Index = Int
   typealias Header = InternalNodeHeader
@@ -55,14 +55,16 @@ protocol InternalNode<Spec>: ManagedNode {
   func child(forKey k: KeyPart) -> RawNode?
   func child(at: Index) -> RawNode?
 
-  mutating func addChild(forKey k: KeyPart, node: any ManagedNode<Spec>) -> UpdateResult<RawNode?>
+  mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?>
+  mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?>
+
   mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?>
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R
 }
 
-extension ManagedNode {
-  var rawNode: RawNode { RawNode(storage: self.storage.buf) }
+extension ArtNode {
+  var rawNode: RawNode { RawNode(buf: self.storage.ref.takeUnretainedValue()) }
   var type: NodeType { Self.type }
 }
 
@@ -131,23 +133,25 @@ extension InternalNode {
         return .replaceWith(nil)
       case .replaceWith(nil):
         // Clone myself and remove the child from the clone.
-        var myClone = clone()
-        switch myClone.deleteChild(at: childPosition) {
-        case .noop:
-          return .replaceWith(myClone.rawNode)
-        case .replaceWith(nil):
-          fatalError("unexpected state: should be handled in branch where count == 1")
-        case .replaceWith(let newValue):
-          // Our clone got shrunk down after delete.
-          return .replaceWith(newValue)
+        return self.clone().update { myClone in
+          switch myClone.deleteChild(at: childPosition) {
+          case .noop:
+            return .replaceWith(myClone.rawNode)
+          case .replaceWith(nil):
+            fatalError("unexpected state: should be handled in branch where count == 1")
+          case .replaceWith(let newValue):
+            // Our clone got shrunk down after delete.
+            return .replaceWith(newValue)
+          }
         }
       case .replaceWith(let newValue):
         // Clone myself and update the subtree.
-        var myClone = clone()
-        myClone.withChildRef(at: childPosition) {
-          $0.pointee = newValue
+        return clone().update { clone in
+          clone.withChildRef(at: childPosition) {
+            $0.pointee = newValue
+          }
+          return .replaceWith(clone.rawNode)
         }
-        return .replaceWith(myClone.rawNode)
       }
     }
   }

@@ -23,24 +23,24 @@ struct Tree<Value> {
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension InternalNode {
-  mutating func addChildReturn(forKey k: KeyPart, node: any ManagedNode<Spec>)
-    -> (any ManagedNode<Spec>)? {
+extension NodeStorage where Mn: InternalNode {
+  mutating func addChildReturn(forKey k: KeyPart,
+                               node: NodeStorage<some ArtNode<Mn.Spec>>) -> RawNode? {
 
     switch addChild(forKey: k, node: node) {
     case .noop:
-      return self
+      return self.rawNode
     case .replaceWith(let newValue):
-      return newValue?.toManagedNode()
+      return newValue
     }
   }
 
-  mutating func deleteChildReturn(at idx: Index) -> (any ManagedNode<Spec>)? {
+  mutating func deleteChildReturn(at idx: Index) -> RawNode? {
     switch deleteChild(at: idx) {
     case .noop:
-      return self
+      return self.rawNode
     case .replaceWith(let newValue):
-      return newValue?.toManagedNode()
+      return newValue
     }
   }
 }
@@ -155,7 +155,7 @@ final class ARTreeNode4Tests: XCTestCase {
 
     let newNode = node.addChildReturn(forKey: 5, node: T.Leaf.allocate(key: [5], value: [5]))
     XCTAssertEqual(
-      newNode!.description,
+      newNode!.print(with: T.Spec.self),
       "○ Node16 {childs=5, partial=[]}\n" +
       "├──○ 1: 1[1] -> [1]\n" +
       "├──○ 2: 1[2] -> [2]\n" +

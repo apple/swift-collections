@@ -30,6 +30,6 @@ public struct ARTreeImpl<Spec: ARTreeSpec> {
   var root: RawNode?
 
   public init() {
-    self.root = Node4<Spec>.allocate().rawNode
+    self.root = Node4<Spec>.allocate().read { $0.rawNode }
   }
 }

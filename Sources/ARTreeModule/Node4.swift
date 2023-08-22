@@ -19,32 +19,39 @@ extension Node4 {
 }
 
 extension Node4 {
-  static func allocate() -> Self {
-    let buf: NodeStorage<Self> = NodeStorage.allocate()
-    let node = Self(storage: buf)
-    node.withBody { keys, childs in
-      UnsafeMutableRawPointer(keys.baseAddress!)
-        .bindMemory(to: UInt8.self, capacity: Self.numKeys)
-      UnsafeMutableRawPointer(childs.baseAddress!)
-        .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
-    }
-    return node
-  }
+  static func allocate() -> NodeStorage<Self> {
+    let storage = NodeStorage<Self>.allocate()
 
-  static func allocate(copyFrom: Node16<Spec>) -> Self {
-    var node = Self.allocate()
-    node.copyHeader(from: copyFrom)
-    node.withBody { newKeys, newChilds in
-      copyFrom.withBody { fromKeys, fromChilds in
-        UnsafeMutableRawBufferPointer(newKeys).copyBytes(
-          from: UnsafeBufferPointer(rebasing: fromKeys[0..<numKeys]))
-        UnsafeMutableRawBufferPointer(newChilds).copyBytes(
-          from: UnsafeRawBufferPointer(
-            UnsafeBufferPointer(rebasing: fromChilds[0..<numKeys])))
-        Self.retainChildren(newChilds, count: node.count)
+    storage.update { node in 
+      node.withBody { keys, childs in
+        UnsafeMutableRawPointer(keys.baseAddress!)
+          .bindMemory(to: UInt8.self, capacity: Self.numKeys)
+        UnsafeMutableRawPointer(childs.baseAddress!)
+          .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
       }
     }
-    return node
+
+    return storage
+  }
+
+  static func allocate(copyFrom: Node16<Spec>) -> NodeStorage<Self> {
+    let storage = Self.allocate()
+
+    storage.update { node in
+      node.copyHeader(from: copyFrom)
+      node.withBody { newKeys, newChilds in
+        copyFrom.withBody { fromKeys, fromChilds in
+          UnsafeMutableRawBufferPointer(newKeys).copyBytes(
+            from: UnsafeBufferPointer(rebasing: fromKeys[0..<numKeys]))
+          UnsafeMutableRawBufferPointer(newChilds).copyBytes(
+            from: UnsafeRawBufferPointer(
+              UnsafeBufferPointer(rebasing: fromChilds[0..<numKeys])))
+          Self.retainChildren(newChilds, count: node.count)
+        }
+      }
+    }
+
+    return storage
   }
 }
 
@@ -118,14 +125,14 @@ extension Node4: InternalNode {
     }
   }
 
-  mutating func addChild(forKey k: KeyPart, node: any ManagedNode<Spec>) -> UpdateResult<RawNode?> {
+  mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?> {
     if let slot = _insertSlot(forKey: k) {
       withBody { keys, childs in
         assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")
         keys.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         childs.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         keys[slot] = k
-        childs[slot] = node.rawNode
+        childs[slot] = node
         count += 1
       }
       return .noop
@@ -166,7 +173,7 @@ extension Node4: InternalNode {
   }
 }
 
-extension Node4: ManagedNode {
+extension Node4: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       var node = Node4(buffer: self)
@@ -180,19 +187,21 @@ extension Node4: ManagedNode {
     }
   }
 
-  func clone() -> Self {
-    var node = Self.allocate()
-    node.copyHeader(from: self)
+  func clone() -> NodeStorage<Self> {
+    let storage = Self.allocate()
 
-    self.withBody { fromKeys, fromChildren in
-      node.withBody { newKeys, newChildren in
-        for idx in 0..<Self.numKeys {
-          newKeys[idx] = fromKeys[idx]
-          newChildren[idx] = fromChildren[idx]
+    storage.update { node in
+      node.copyHeader(from: self)
+      self.withBody { fromKeys, fromChildren in
+        node.withBody { newKeys, newChildren in
+          for idx in 0..<Self.numKeys {
+            newKeys[idx] = fromKeys[idx]
+            newChildren[idx] = fromChildren[idx]
+          }
         }
       }
     }
 
-    return node
+    return storage
   }
 }

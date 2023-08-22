@@ -49,11 +49,11 @@ final class ARTreeRefCountTest: XCTestCase {
     t!.insert(key: [1, 2, 3], value: 10)
     t!.insert(key: [2, 4, 4], value: 20)
 
-    XCTAssertEqual(getRc(t!.root!.storage), 2)
+    XCTAssertEqual(getRc(t!.root!.buf), 2)
     var n4 = t!.root
-    XCTAssertEqual(getRc(n4!.storage), 3)
+    XCTAssertEqual(getRc(n4!.buf), 3)
     t = nil
-    XCTAssertEqual(getRc(n4!.storage), 2)
+    XCTAssertEqual(getRc(n4!.buf), 2)
     n4 = nil
   }
 
@@ -66,11 +66,29 @@ final class ARTreeRefCountTest: XCTestCase {
     t!.insert(key: [4, 4, 4], value: 40)
     t!.insert(key: [5, 4, 4], value: 50)
 
-    XCTAssertEqual(getRc(t!.root!.storage), 2)
+    XCTAssertEqual(getRc(t!.root!.buf), 2)
     var n4 = t!.root
-    XCTAssertEqual(getRc(n4!.storage), 3)
+    XCTAssertEqual(getRc(n4!.buf), 3)
     t = nil
-    XCTAssertEqual(getRc(n4!.storage), 2)
+    XCTAssertEqual(getRc(n4!.buf), 2)
     n4 = nil
+  }
+
+  func testRefCountStorage() throws {
+    typealias Tree = ARTree<Int>
+    let node = Node4<Tree.Spec>.allocate()
+    let count0 = getRc(node.rawNode.buf)
+
+    let a = node.node
+    let count1 = getRc(node.rawNode.buf)
+    XCTAssertEqual(count1, count0)
+
+    let b = node.node
+    let count2 = getRc(node.rawNode.buf)
+    XCTAssertEqual(count2, count1)
+
+    let c = node.node.rawNode
+    let count3 = getRc(node.rawNode.buf)
+    XCTAssertEqual(count3, count2 + 1)
   }
 }

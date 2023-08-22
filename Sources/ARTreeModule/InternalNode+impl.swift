@@ -67,6 +67,10 @@ extension InternalNode {
     }
   }
 
+  mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?> {
+    return addChild(forKey: k, node: node.rawNode)
+  }
+
   mutating func copyHeader(from: any InternalNode) {
     self.storage.withHeaderPointer { header in
       header.pointee.count = UInt16(from.count)
@@ -93,7 +97,7 @@ extension InternalNode {
   static func retainChildren(_ children: Children, count: Int) {
     for idx in 0..<count {
       if let c = children[idx] {
-        _ = Unmanaged.passRetained(c.storage)
+        _ = Unmanaged.passRetained(c.buf)
       }
     }
   }
