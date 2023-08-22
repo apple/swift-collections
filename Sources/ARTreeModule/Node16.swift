@@ -16,10 +16,6 @@ struct Node16<Spec: ARTreeSpec> {
 extension Node16 {
   static var type: NodeType { .node16 }
   static var numKeys: Int { 16 }
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
 }
 
 extension Node16 {

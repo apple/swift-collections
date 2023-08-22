@@ -16,10 +16,6 @@ struct Node4<Spec: ARTreeSpec> {
 extension Node4 {
   static var type: NodeType { .node4 }
   static var numKeys: Int { 4 }
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
 }
 
 extension Node4 {

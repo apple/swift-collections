@@ -16,10 +16,6 @@ struct Node256<Spec: ARTreeSpec> {
 extension Node256 {
   static var type: NodeType { .node256 }
   static var numKeys: Int { 256 }
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
 }
 
 extension Node256 {

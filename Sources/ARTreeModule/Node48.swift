@@ -16,10 +16,6 @@ struct Node48<Spec: ARTreeSpec> {
 extension Node48 {
   static var type: NodeType { .node48 }
   static var numKeys: Int { 48 }
-
-  init(buffer: RawNodeBuffer) {
-    self.init(storage: Storage(raw: buffer))
-  }
 }
 
 extension Node48 {

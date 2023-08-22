@@ -26,6 +26,14 @@ protocol ManagedNode<Spec> {
   var rawNode: RawNode { get }
 
   func clone() -> Self
+
+  init(storage: Storage)
+}
+
+extension ManagedNode {
+  init(buffer: RawNodeBuffer) {
+    self.init(storage: Self.Storage(raw: buffer))
+  }
 }
 
 protocol InternalNode<Spec>: ManagedNode {
@@ -54,7 +62,7 @@ protocol InternalNode<Spec>: ManagedNode {
 }
 
 extension ManagedNode {
-  var rawNode: RawNode { RawNode(from: self) }
+  var rawNode: RawNode { RawNode(storage: self.storage.buf) }
   var type: NodeType { Self.type }
 }
 

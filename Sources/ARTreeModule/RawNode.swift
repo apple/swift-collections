@@ -12,10 +12,6 @@
 struct RawNode {
   var storage: RawNodeBuffer
 
-  init<N: ManagedNode>(from: N) {
-    self.storage = from.storage.buf
-  }
-
   init(storage: RawNodeBuffer){
     self.storage = storage
   }

@@ -10,15 +10,14 @@
 //===----------------------------------------------------------------------===//
 
 typealias RawNodeBuffer = ManagedBuffer<NodeType, UInt8>
-typealias NodeBuffer<Mn: ManagedNode> = Mn.Buffer
 
 struct NodeStorage<Mn: ManagedNode> {
-  var buf: NodeBuffer<Mn>
+  var buf: Mn.Buffer
 }
 
 extension NodeStorage {
   init(raw: RawNodeBuffer) {
-    self.buf = raw as! NodeBuffer<Mn>
+    self.buf = unsafeDowncast(raw, to: Mn.Buffer.self)
   }
 
   static func create(type: NodeType, size: Int) -> RawNodeBuffer {
