@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@usableFromInline
 struct RawNode {
   var buf: RawNodeBuffer
 

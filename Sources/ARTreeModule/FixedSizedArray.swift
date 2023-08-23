@@ -37,6 +37,12 @@ struct FixedSizedArray8<Elem> {
     }
   }
 
+  mutating func shiftRight() {
+    for ii in (1..<FixedArray8Count).reversed() {
+      self[ii] = self[ii - 1]
+    }
+  }
+
   subscript(position: Int) -> Elem {
     get {
       precondition(0 <= position && position < FixedArray8Count, "\(position)")

@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 // TODO:
+//
 // - Ranged Operations
 //     - Subsequence Delete
 //     - Subsequence Iteration
@@ -38,16 +39,26 @@
 //     - Safer use of unmanaged objects
 //     - Potentially refactor to use FixedSizeArray and hence classes
 
+/// An ordered collection of unique keys and associated values, optimized for space,
+/// mutating shared copies, and efficient range operations, particularly read
+/// operations.
+///
+/// `ARTree` has the same functionality as a standard `Dictionary`, and it largely
+/// implements the same APIs. However, `ARTree` is optimized specifically for use cases
+/// where underlying keys share common prefixes. The underlying data-structure is a
+/// _persistent variant of _Adaptive Radix Tree (ART)_.
+public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
+
+/// Implements a persistent Adaptive Radix Tree (ART).
 public struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Spec = Spec
   public typealias Value = Spec.Value
 
+  @usableFromInline
   internal var root: RawNode?
 
+  @inlinable
   public init() {
     self.root = nil
   }
 }
-
-/// A
-public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
