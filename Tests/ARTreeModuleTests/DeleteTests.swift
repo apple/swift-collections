@@ -125,10 +125,10 @@ final class ARTreeDeleteTests: XCTestCase {
     _ = t1.insert(key: [2, 3, 5, 5, 6], value: 8)
     _ = t1.insert(key: [4, 5, 6, 7, 8], value: 4)
     _ = t1.insert(key: [4, 5, 6, 8, 8], value: 9)
-    print(t1)
     t1.delete(key: [2, 3, 5, 5, 6])
-    print("----------")
-    print(t1)
+    XCTAssertEqual(t1.description, "○ Node4 {childs=2, partial=[4, 5, 6]}\n" +
+                                   "├──○ 7: 5[4, 5, 6, 7, 8] -> 4\n" +
+                                   "└──○ 8: 5[4, 5, 6, 8, 8] -> 9")
     t1.delete(key: [4, 5, 6, 7, 8])
     t1.delete(key: [4, 5, 6, 8, 8])
     XCTAssertEqual(t1.description, "<>")
