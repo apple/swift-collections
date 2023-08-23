@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 protocol NodePrettyPrinter {
   func print() -> String
   func prettyPrint(depth: Int) -> String
@@ -98,14 +102,16 @@ extension InternalNode {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension NodeLeaf: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
-    return "\(self.keyLength)\(self.key) -> \(self.value)"
+    let addr = Const.testPrintAddr ? "\(_addressString(for: self.rawNode.buf))" : ""
+    return "\(addr)\(self.keyLength)\(self.key) -> \(self.value)"
   }
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node4: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
-    var output = "Node4 {childs=\(count), partial=\(partial)}\n"
+    let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
+    var output = "Node4\(addr){childs=\(count), partial=\(partial)}\n"
     withBody { keys, childs in
       for idx in 0..<count {
         let key = keys[idx]
@@ -126,7 +132,8 @@ extension Node4: NodePrettyPrinter {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node16: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
-    var output = "Node16 {childs=\(count), partial=\(partial)}\n"
+    let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
+    var output = "Node16\(addr){childs=\(count), partial=\(partial)}\n"
     withBody { keys, childs in
       for idx in 0..<count {
         let key = keys[idx]
@@ -147,7 +154,8 @@ extension Node16: NodePrettyPrinter {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node48: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
-    var output = "Node48 {childs=\(count), partial=\(partial)}\n"
+    let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
+    var output = "Node48\(addr){childs=\(count), partial=\(partial)}\n"
     var total = 0
     withBody { keys, childs in
       for (key, slot) in keys.enumerated() {
@@ -173,7 +181,8 @@ extension Node48: NodePrettyPrinter {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension Node256: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
-    var output = "Node256 {childs=\(count), partial=\(partial)}\n"
+    let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
+    var output = "Node256\(addr){childs=\(count), partial=\(partial)}\n"
     var total = 0
     withBody { childs in
       for (key, child) in childs.enumerated() {

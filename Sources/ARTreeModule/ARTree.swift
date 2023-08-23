@@ -27,7 +27,7 @@ public struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Spec = Spec
   public typealias Value = Spec.Value
 
-  var root: RawNode?
+  internal var root: RawNode?
 
   public init() {
     self.root = Node4<Spec>.allocate().read { $0.rawNode }
