@@ -51,7 +51,7 @@ extension Node256 {
       }
       assert(node.count == 48, "should have exactly 48 childs")
     }
-    
+
     return storage
   }
 }

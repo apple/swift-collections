@@ -54,19 +54,6 @@ extension InternalNode {
     return index(forKey: k).flatMap { child(at: $0) }
   }
 
-  mutating func child(forKey k: KeyPart, ref: inout NodeReference) -> RawNode? {
-    if count == 0 {
-      return nil
-    }
-
-    return index(forKey: k).flatMap { index in
-      self.withChildRef(at: index) { ptr in
-        ref = NodeReference(ptr)
-        return ptr.pointee
-      }
-    }
-  }
-
   mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?> {
     return addChild(forKey: k, node: node.rawNode)
   }
@@ -101,4 +88,23 @@ extension InternalNode {
       }
     }
   }
+}
+
+@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+extension InternalNode {
+  mutating func maybeReadChild<R>(forKey k: KeyPart,
+                                  ref: inout NodeReference,
+                                  _ body: (any ArtNode<Spec>, Bool) -> R) -> R? {
+    if count == 0 {
+      return nil
+    }
+
+    return index(forKey: k).flatMap { index in
+      self.withChildRef(at: index) { ptr in
+        ref = NodeReference(ptr)
+        return body(ptr.pointee!.toArtNode(), ptr.pointee!.isUnique)
+      }
+    }
+  }
+
 }

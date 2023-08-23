@@ -52,8 +52,8 @@ protocol InternalNode<Spec>: ArtNode {
   func index() -> Index?
   func next(index: Index) -> Index?
 
-  func child(forKey k: KeyPart) -> RawNode?
-  func child(at: Index) -> RawNode?
+  func child(forKey k: KeyPart) -> RawNode? // TODO: Remove
+  func child(at: Index) -> RawNode? // TODO: Remove
 
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?>
   mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?>

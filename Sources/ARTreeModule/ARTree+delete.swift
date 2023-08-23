@@ -42,7 +42,7 @@ extension ARTree {
       return .replaceWith(nil)
     }
 
-    let isUnique = isUniquePath && node.isUnique()
+    let isUnique = isUniquePath && node.isUnique
     var newDepth = depth
     var node: any InternalNode<Spec> = node.toInternalNode()
 

@@ -84,37 +84,22 @@ extension ARTree {
   // TODO: Make sure that the node returned have
   fileprivate mutating func _findInsertNode(key: Key) -> (InsertAction, NodeReference)? {
     var depth = 0
-    var isUnique = root!.isUnique()
-    var current = root!
+    var current: any ArtNode<Spec> = root!.toArtNode()
+    var isUnique = isKnownUniquelyReferenced(&root!.buf)
     var ref = NodeReference(&root)
 
-    while depth < key.count {
+    while current.type != .leaf && depth < key.count {
       assert(!Const.testCheckUnique || isUnique,
              "unique path is expected in this test, depth=\(depth)")
 
-      // Reached leaf already, replace it with a new node, or update the existing value.
-      if current.type == .leaf {
-        let leaf: NodeLeaf<Spec> = current.toLeafNode()
-        if leaf.keyEquals(with: key) {
-          return (.replace(leaf), ref)
-        }
-
-        if isUnique {
-          return (.splitLeaf(leaf, depth: depth), ref)
-        } else {
-          let clone = leaf.clone()
-          ref.pointee = clone.node.rawNode
-          return (.splitLeaf(clone.node, depth: depth), ref)
-        }
-      }
-
-
       if !isUnique {
-        current = current.clone(spec: Spec.self)
-        ref.pointee = current
+        // TODO: Why making this one-liner crashes?
+        let clone = current.rawNode.clone(spec: Spec.self)
+        current = clone.toArtNode()
+        ref.pointee = current.rawNode
       }
 
-      var node: any InternalNode<Spec> = current.toInternalNode()
+      var node: any InternalNode<Spec> = current.rawNode.toInternalNode()
       if node.partialLength > 0 {
         let partialLength = node.partialLength
         let prefixDiff = node.prefixMismatch(withKey: key, fromIndex: depth)
@@ -128,16 +113,36 @@ extension ARTree {
       }
 
       // Find next child to continue.
-      guard var next = node.child(forKey: key[depth], ref: &ref) else {
-        // No child, insert leaf within us.
+      guard let (next, _isUnique) =
+              (node.maybeReadChild(forKey: key[depth], ref: &ref) { ($0, $1) }) else {
         return (.insertInto(node, depth: depth), ref)
       }
 
-      isUnique = next.isUnique()
       depth += 1
       current = next
+      isUnique = _isUnique
     }
 
-    return nil
+    assert(current.type == .leaf)
+    // Reached leaf already, replace it with a new node, or update the existing value.
+    if current.type == .leaf {
+      assert(!Const.testCheckUnique || isUnique,
+             "unique path is expected in this test, depth=\(depth)")
+
+      let leaf: NodeLeaf<Spec> = current.rawNode.toLeafNode()
+      if leaf.keyEquals(with: key) {
+        return (.replace(leaf), ref)
+      }
+
+      if isUnique {
+        return (.splitLeaf(leaf, depth: depth), ref)
+      } else {
+        let clone = leaf.clone()
+        ref.pointee = clone.node.rawNode
+        return (.splitLeaf(clone.node, depth: depth), ref)
+      }
+    }
+
+    fatalError("unexpected state")
   }
 }

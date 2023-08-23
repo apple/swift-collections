@@ -24,8 +24,8 @@ extension RawNode {
     @inline(__always) get { return buf.header }
   }
 
-  mutating func isUnique() -> Bool {
-    return isKnownUniquelyReferenced(&buf)
+  var isUnique: Bool {
+    mutating get { isKnownUniquelyReferenced(&buf) }
   }
 }
 

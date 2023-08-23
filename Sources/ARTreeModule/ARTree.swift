@@ -24,7 +24,7 @@
 public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
 
 public struct ARTreeImpl<Spec: ARTreeSpec> {
-  public typealias Spec = DefaultSpec<Value>
+  public typealias Spec = Spec
   public typealias Value = Spec.Value
 
   var root: RawNode?
