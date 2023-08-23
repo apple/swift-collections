@@ -31,6 +31,8 @@ extension ARTree {
                                 key: Key,
                                 depth: Int,
                                 isUniquePath: Bool) -> UpdateResult<RawNode?> {
+    assert(!Const.testCheckUnique || isUniquePath, "unique path is expected in this test")
+
     if node.type == .leaf {
       let leaf: NodeLeaf<Spec> = node.toLeafNode()
       if !leaf.keyEquals(with: key, depth: depth) {

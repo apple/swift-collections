@@ -89,6 +89,9 @@ extension ARTree {
     var ref = NodeReference(&root)
 
     while depth < key.count {
+      assert(!Const.testCheckUnique || isUnique,
+             "unique path is expected in this test, depth=\(depth)")
+
       // Reached leaf already, replace it with a new node, or update the existing value.
       if current.type == .leaf {
         let leaf: NodeLeaf<Spec> = current.toLeafNode()

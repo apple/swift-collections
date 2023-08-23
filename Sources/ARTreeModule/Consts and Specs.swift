@@ -11,6 +11,7 @@
 
 struct Const {
   static let maxPartialLength = 8
+  static var testCheckUnique = false
 }
 
 public protocol ARTreeSpec {

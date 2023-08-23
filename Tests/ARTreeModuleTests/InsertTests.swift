@@ -15,6 +15,14 @@ import XCTest
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeInsertTests: XCTestCase {
+  override func setUp() {
+    Const.testCheckUnique = true
+  }
+
+  override func tearDown() {
+    Const.testCheckUnique = false
+  }
+
   func testInsertBasic() throws {
     var t = ARTree<[UInt8]>()
     t.insert(key: [10, 20, 30], value: [11, 21, 31])
