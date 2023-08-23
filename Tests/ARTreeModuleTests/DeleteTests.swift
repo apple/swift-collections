@@ -95,7 +95,7 @@ final class ARTreeDeleteTests: XCTestCase {
       "└──○ 4: 6[4, 5, 6, 7, 8, 9] -> [2]")
   }
 
-  func testDeleteCompressToLeaf() throws {
+  func testDeleteCompressToLeafThenDeleteAllThenInsert() throws {
     var t = ARTree<[UInt8]>()
     t.insert(key: [1, 2, 3, 4, 5, 6], value: [1])
     t.insert(key: [4, 5, 6, 7, 8, 9], value: [2])
@@ -111,6 +111,27 @@ final class ARTreeDeleteTests: XCTestCase {
       "│  ├──○ 3: 6[1, 2, 3, 4, 9, 9] -> [5]\n" +
       "│  └──○ 4: 6[1, 2, 4, 5, 6, 7] -> [3]\n" +
       "└──○ 4: 6[4, 5, 6, 7, 8, 9] -> [2]")
+    t.delete(key: [1, 2, 4, 5, 6, 7])
+    t.delete(key: [4, 5, 6, 7, 8, 9])
+    t.delete(key: [1, 2, 3, 4, 9, 9])
+    XCTAssertEqual(t.description, "<>")
+    t.insert(key: [1, 2, 3, 4, 5, 6], value: [1])
+    XCTAssertEqual(t.description, "○ Node4 {childs=1, partial=[]}\n" +
+                                  "└──○ 1: 6[1, 2, 3, 4, 5, 6] -> [1]")
+  }
+
+  func testMultiLevelTreeDeleteAll() throws {
+    var t1 = ARTree<Int>()
+    _ = t1.insert(key: [2, 3, 5, 5, 6], value: 8)
+    _ = t1.insert(key: [4, 5, 6, 7, 8], value: 4)
+    _ = t1.insert(key: [4, 5, 6, 8, 8], value: 9)
+    print(t1)
+    t1.delete(key: [2, 3, 5, 5, 6])
+    print("----------")
+    print(t1)
+    t1.delete(key: [4, 5, 6, 7, 8])
+    t1.delete(key: [4, 5, 6, 8, 8])
+    XCTAssertEqual(t1.description, "<>")
   }
 
   func testDeleteCompressToNode4() throws {

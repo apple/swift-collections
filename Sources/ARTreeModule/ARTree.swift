@@ -10,18 +10,33 @@
 //===----------------------------------------------------------------------===//
 
 // TODO:
-// * Range delete.
-// * Delete node should delete all sub-childs (for range deletes)
-// * Confirm to Swift dictionary protocols.
-// * Generic/any serializable type?
-// * Binary search Node16.
-// * SIMD instructions for Node4.
-// * Replace some loops with memcpy.
-// * Better test cases.
-// * Fuzz testing.
-// * Leaf don't need to store entire key.
-
-public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
+// - Ranged Operations
+//     - Subsequence Delete
+//     - Subsequence Iteration
+// - Bulk insert
+// - Merge operation
+// - Disk-backed storage
+// - Confirm to Swift Dictionary protocol
+// - Optimizations
+//     - SIMD for Node4
+//     - Binary Search for Node16
+//     - Replace for loops with memcpy
+//     - Reduce refcount traffic
+//     - Leaf shouldn’t store entire key
+// - Testing
+//     - Tests around edge cases in general
+//     - Tests around prefixes greater than maxPrefixLimit
+//     - Fuzz testing
+// - Instrumentation and Profiling
+//     - Track number of allocations and deallocations
+//     - Write some performance benchmarks to compare against other data-structures
+//         - Use some well known datasets
+//     - Cost of dynamic dispatch
+// - Refactoring and Maintenance 
+//     - Documentation
+//     - Add assert to ensure invariants
+//     - Safer use of unmanaged objects
+//     - Potentially refactor to use FixedSizeArray and hence classes
 
 public struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Spec = Spec
@@ -30,6 +45,9 @@ public struct ARTreeImpl<Spec: ARTreeSpec> {
   internal var root: RawNode?
 
   public init() {
-    self.root = Node4<Spec>.allocate().read { $0.rawNode }
+    self.root = nil
   }
 }
+
+/// A
+public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>

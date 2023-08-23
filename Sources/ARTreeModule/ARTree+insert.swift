@@ -83,6 +83,11 @@ extension ARTree {
 
   // TODO: Make sure that the node returned have
   fileprivate mutating func _findInsertNode(key: Key) -> (InsertAction, NodeReference)? {
+    if root == nil {
+      // NOTE: Should we just create leaf? Likely tree will have more items anyway.
+      root = Node4<Spec>.allocate().read { $0.rawNode }
+    }
+
     var depth = 0
     var current: any ArtNode<Spec> = root!.toArtNode()
     var isUnique = isKnownUniquelyReferenced(&root!.buf)
