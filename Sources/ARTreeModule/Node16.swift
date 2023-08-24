@@ -182,6 +182,7 @@ extension Node16: InternalNode {
       count -= 1
       keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
       childs.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
+      childs[count] = nil // Clear the last item.
 
       if count == 3 {
         // Shrink to Node4.
@@ -208,7 +209,7 @@ extension Node16: ArtNode {
       var node = Node16(buffer: self)
       let count = node.count
       node.withBody { _, childs in
-        for idx in 0..<count {
+        for idx in 0..<16 {
           childs[idx] = nil
         }
       }

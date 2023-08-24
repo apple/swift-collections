@@ -233,7 +233,7 @@ extension Node48: ArtNode {
       var node = Node48(buffer: self)
       let count = node.count
       node.withBody { _, childs in
-        for idx in 0..<count {
+        for idx in 0..<48 {
           childs[idx] = nil
         }
       }
@@ -244,7 +244,7 @@ extension Node48: ArtNode {
   func clone() -> NodeStorage<Self> {
     let storage = Self.allocate()
 
-    storage.update { node in 
+    storage.update { node in
       node.copyHeader(from: self)
       self.withBody { fromKeys, fromChildren in
         node.withBody { newKeys, newChildren in

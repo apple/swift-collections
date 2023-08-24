@@ -171,15 +171,18 @@ extension InternalNode {
     return body(node)
   }
 
-  mutating func updateChild(forKey k: KeyPart, isUnique: Bool,
-                            body: (RawNode?) -> UpdateResult<RawNode?>) -> UpdateResult<RawNode?> {
+  mutating func updateChild(forKey k: KeyPart,
+                            isUniquePath: Bool,
+                            body: (inout RawNode?, Bool) -> UpdateResult<RawNode?>)
+    -> UpdateResult<RawNode?> {
 
     guard let childPosition = index(forKey: k) else {
       return .noop
     }
 
-    let child = child(at: childPosition)
-    let action = body(child)
+    let isUnique = isUniquePath && withChildRef(at: childPosition) { $0.pointee!.isUnique }
+    var child = child(at: childPosition)
+    let action = body(&child, isUnique)
 
     // TODO: This is ugly. Rewrite.
     switch action {

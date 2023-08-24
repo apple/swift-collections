@@ -143,7 +143,7 @@ extension Node256: ArtNode {
       var node = Node256(buffer: self)
       let count = node.count
       node.withBody { childs in
-        for idx in 0..<count {
+        for idx in 0..<256 {
           childs[idx] = nil
         }
       }

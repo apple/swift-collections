@@ -22,7 +22,7 @@ extension Node4 {
   static func allocate() -> NodeStorage<Self> {
     let storage = NodeStorage<Self>.allocate()
 
-    storage.update { node in 
+    storage.update { node in
       node.withBody { keys, childs in
         UnsafeMutableRawPointer(keys.baseAddress!)
           .bindMemory(to: UInt8.self, capacity: Self.numKeys)
@@ -154,6 +154,7 @@ extension Node4: InternalNode {
       count -= 1
       keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
       childs.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
+      childs[count] = nil // Clear the last item.
 
       if count == 1 {
         // Shrink to leaf node.
@@ -179,7 +180,7 @@ extension Node4: ArtNode {
       var node = Node4(buffer: self)
       let count = node.count
       node.withBody { _, childs in
-        for idx in 0..<count {
+        for idx in 0..<4 {
           childs[idx] = nil
         }
       }

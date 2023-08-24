@@ -12,9 +12,13 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree {
   public mutating func delete(key: Key) {
-    guard var node = root else { return }
-    let isUnique = true
-    switch _delete(node: &node, key: key, depth: 0, isUniquePath: isUnique) {
+    if root == nil {
+      return
+    }
+
+    let isUnique = root!.isUnique
+    var child = root
+    switch _delete(child: &child, key: key, depth: 0, isUniquePath: isUnique) {
     case .noop:
       return
     case .replaceWith(let newValue):
@@ -27,14 +31,12 @@ extension ARTree {
     fatalError("not implemented")
   }
 
-  private mutating func _delete(node: inout RawNode,
+  private mutating func _delete(child: inout RawNode?,
                                 key: Key,
                                 depth: Int,
                                 isUniquePath: Bool) -> UpdateResult<RawNode?> {
-    assert(!Const.testCheckUnique || isUniquePath, "unique path is expected in this test")
-
-    if node.type == .leaf {
-      let leaf: NodeLeaf<Spec> = node.toLeafNode()
+    if child?.type == .leaf {
+      let leaf: NodeLeaf<Spec> = child!.toLeafNode()
       if !leaf.keyEquals(with: key, depth: depth) {
         return .noop
       }
@@ -42,9 +44,9 @@ extension ARTree {
       return .replaceWith(nil)
     }
 
-    let isUnique = isUniquePath && node.isUnique
+    assert(!Const.testCheckUnique || isUniquePath, "unique path is expected in this test")
+    var node: any InternalNode<Spec> = child!.toInternalNode()
     var newDepth = depth
-    var node: any InternalNode<Spec> = node.toInternalNode()
 
     if node.partialLength > 0 {
       let matchedBytes = node.prefixMismatch(withKey: key, fromIndex: depth)
@@ -52,9 +54,9 @@ extension ARTree {
       newDepth += matchedBytes
     }
 
-    return node.updateChild(forKey: key[newDepth], isUnique: isUnique) {
-      guard var child = $0 else { return .noop }
-      return _delete(node: &child, key: key, depth: newDepth + 1, isUniquePath: isUnique)
+    return node.updateChild(forKey: key[newDepth], isUniquePath: isUniquePath) {
+      var child = $0
+      return _delete(child: &child, key: key, depth: newDepth + 1, isUniquePath: $1)
     }
   }
 }
