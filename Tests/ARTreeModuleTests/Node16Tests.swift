@@ -96,4 +96,34 @@ final class ARTreeNode16Tests: XCTestCase {
     _ = node.index(forKey: 20).flatMap { node.deleteChild(at: $0) }
     XCTAssertEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
   }
+
+  func test16ExpandTo48AndThenShrinkTo4() throws {
+    typealias T = Tree<Int>
+    var node = T.N16.allocate()
+    for ii: UInt8 in 0...15 {
+      switch node.addChild(forKey: ii, node: T.Leaf.allocate(key: [ii], value: Int(ii) + 10)) {
+      case .noop: break
+      case .replaceWith(_): XCTAssert(false, "node16 shouldn't expand just yet")
+      }
+    }
+
+    var newNode = node.addChildReturn(forKey: UInt8(16), node: T.Leaf.allocate(key: [16], value: 26))
+    do {
+      var count = 48
+      while newNode?.type != .node16 && count > 0 {
+        newNode = node.deleteChildReturn(at: 4)
+        count -= 1
+      }
+    }
+    XCTAssertEqual(newNode?.type, .node16)
+
+    do {
+      var count = 16
+      while newNode?.type != .node4 && count > 0 {
+        newNode = node.deleteChildReturn(at: 2)
+        count -= 1
+      }
+    }
+    XCTAssertEqual(newNode?.type, .node4)
+  }
 }

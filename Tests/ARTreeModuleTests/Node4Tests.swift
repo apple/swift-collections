@@ -146,7 +146,7 @@ final class ARTreeNode4Tests: XCTestCase {
     XCTAssertEqual(newNode?.type, .leaf)
   }
 
-  func test4ExapandTo16() throws {
+  func test4ExpandTo16ThenShrinkTo4() throws {
     typealias T = Tree<[UInt8]>
     var node = T.N4.allocate()
     _ = node.addChild(forKey: 1, node: T.Leaf.allocate(key: [1], value: [1]))
@@ -161,7 +161,7 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 3: 1[3] -> [3]\n" +
       "└──○ 4: 1[4] -> [4]")
 
-    let newNode = node.addChildReturn(forKey: 5, node: T.Leaf.allocate(key: [5], value: [5]))
+    var newNode = node.addChildReturn(forKey: 5, node: T.Leaf.allocate(key: [5], value: [5]))
     XCTAssertEqual(
       newNode!.print(with: T.Spec.self),
       "○ Node16 {childs=5, partial=[]}\n" +
@@ -170,6 +170,15 @@ final class ARTreeNode4Tests: XCTestCase {
       "├──○ 3: 1[3] -> [3]\n" +
       "├──○ 4: 1[4] -> [4]\n" +
       "└──○ 5: 1[5] -> [5]")
+
+    do {
+      var node: any InternalNode<T.Spec> = newNode!.toInternalNode()
+      node.deleteChild(at: 4)
+      switch node.deleteChild(at: 3) {
+      case .noop, .replaceWith(nil): XCTAssert(false, "node should shrink")
+      case .replaceWith(let newValue?): XCTAssertEqual(newValue.type, .node4)
+      }
+    }
   }
 
   func test4DeleteKey() throws {
@@ -197,5 +206,15 @@ final class ARTreeNode4Tests: XCTestCase {
       "└──○ 20: 1[20] -> [3]")
     _ = node.index(forKey: 20).flatMap { node.deleteChild(at: $0) }
     XCTAssertEqual(node.print(), "○ Node4 {childs=0, partial=[]}\n")
+
+    _ = node.addChild(forKey: 10, node: T.Leaf.allocate(key: [10], value: [1]))
+    _ = node.addChild(forKey: 15, node: T.Leaf.allocate(key: [15], value: [2]))
+    _ = node.addChild(forKey: 20, node: T.Leaf.allocate(key: [20], value: [3]))
+    _ = node.index(forKey: 15).flatMap { node.deleteChild(at: $0) }
+    XCTAssertEqual(
+      node.print(),
+      "○ Node4 {childs=2, partial=[]}\n" +
+      "├──○ 10: 1[10] -> [1]\n" +
+      "└──○ 20: 1[20] -> [3]")
   }
 }
