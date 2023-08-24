@@ -87,6 +87,14 @@ final class ARTreeNode4Tests: XCTestCase {
       "└──○ 30: 1[30] -> [3]")
   }
 
+  // NOTE: Should fail.
+  // func test4AddAlreadyExist() throws {
+  //   typealias T = Tree<[UInt8]>
+  //   var node = T.N4.allocate()
+  //   _ = node.addChild(forKey: 10, node: T.Leaf.allocate(key: [10], value: [1]))
+  //   node.addChild(forKey: 10, node: T.Leaf.allocate(key: [10], value: [2]))
+  // }
+
   func test4DeleteAtIndex() throws {
     typealias T = Tree<[UInt8]>
     var node = T.N4.allocate()

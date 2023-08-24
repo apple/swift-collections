@@ -84,15 +84,15 @@ final class ARTreeInsertTests: XCTestCase {
         + 1], value: [ii
         + 1])
       if ii < 4 {
-        XCTAssertEqual(t.root?.type, .node4)
+        XCTAssertEqual(t._root?.type, .node4)
       } else if ii < 16 {
-        XCTAssertEqual(t.root?.type, .node16)
+        XCTAssertEqual(t._root?.type, .node16)
       } else if ii < 48 {
-        XCTAssertEqual(t.root?.type, .node48)
+        XCTAssertEqual(t._root?.type, .node48)
       }
     }
 
-    let root: any InternalNode<T.Spec> = t.root!.toInternalNode()
+    let root: any InternalNode<T.Spec> = t._root!.toInternalNode()
     XCTAssertEqual(root.count, 40)
     XCTAssertEqual(
       t.description,
@@ -147,15 +147,15 @@ final class ARTreeInsertTests: XCTestCase {
         + 1], value: [ii
         + 1])
       if ii < 4 {
-        XCTAssertEqual(t.root?.type, .node4)
+        XCTAssertEqual(t._root?.type, .node4)
       } else if ii < 16 {
-        XCTAssertEqual(t.root?.type, .node16)
+        XCTAssertEqual(t._root?.type, .node16)
       } else if ii < 48 {
-        XCTAssertEqual(t.root?.type, .node48)
+        XCTAssertEqual(t._root?.type, .node48)
       }
     }
 
-    let root: any InternalNode<T.Spec> = t.root!.toInternalNode()
+    let root: any InternalNode<T.Spec> = t._root!.toInternalNode()
     XCTAssertEqual(root.count, 70)
     XCTAssertEqual(
       t.description,
@@ -255,7 +255,7 @@ final class ARTreeInsertTests: XCTestCase {
       for (k, v) in testCase {
         tree.insert(key: k, value: v)
       }
-      XCTAssertEqual(tree.root?.type, .node16)
+      XCTAssertEqual(tree._root?.type, .node16)
 
       testCase.shuffle()
       for (k, v) in testCase {
@@ -304,7 +304,7 @@ final class ARTreeInsertTests: XCTestCase {
       for (k, v) in testCase {
         tree.insert(key: k, value: v)
       }
-      XCTAssertEqual(tree.root?.type, .node48)
+      XCTAssertEqual(tree._root?.type, .node48)
 
       testCase.shuffle()
       for (k, v) in testCase {
@@ -333,7 +333,7 @@ final class ARTreeInsertTests: XCTestCase {
       total += 1
     }
     XCTAssertEqual(total, testCase.count)
-    XCTAssertEqual(tree.root?.type, .node4)
+    XCTAssertEqual(tree._root?.type, .node4)
 
     testCase.shuffle()
     for (k, v) in testCase {
@@ -359,7 +359,7 @@ final class ARTreeInsertTests: XCTestCase {
       print("Inserting \(k) \(v)")
       tree.insert(key: k, value: v)
     }
-    XCTAssertEqual(tree.root?.type, .node4)
+    XCTAssertEqual(tree._root?.type, .node4)
 
     testCase.reverse()
     for (k, v) in testCase {
@@ -379,7 +379,7 @@ final class ARTreeInsertTests: XCTestCase {
       print("Inserting \(k) \(v)")
       tree.insert(key: k, value: v)
     }
-    XCTAssertEqual(tree.root?.type, .node4)
+    XCTAssertEqual(tree._root?.type, .node4)
 
     testCase.reverse()
     for (k, v) in testCase {
@@ -401,7 +401,7 @@ final class ARTreeInsertTests: XCTestCase {
       print("Inserting \(k) \(v)")
       tree.insert(key: k, value: v)
     }
-    XCTAssertEqual(tree.root?.type, .node4)
+    XCTAssertEqual(tree._root?.type, .node4)
 
     testCase.reverse()
     for (k, v) in testCase {
@@ -422,7 +422,7 @@ final class ARTreeInsertTests: XCTestCase {
       print("Inserting \(k) \(v)")
       tree.insert(key: k, value: v)
     }
-    XCTAssertEqual(tree.root?.type, .node4)
+    XCTAssertEqual(tree._root?.type, .node4)
 
     testCase.reverse()
     for (k, v) in testCase {

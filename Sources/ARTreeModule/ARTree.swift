@@ -38,6 +38,7 @@
 //     - Add assert to ensure invariants
 //     - Safer use of unmanaged objects
 //     - Potentially refactor to use FixedSizeArray and hence classes
+//     - ArtNode* is unmanaged and make its use contained within closures.
 
 /// An ordered collection of unique keys and associated values, optimized for space,
 /// mutating shared copies, and efficient range operations, particularly read
@@ -55,10 +56,10 @@ public struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Value = Spec.Value
 
   @usableFromInline
-  internal var root: RawNode?
+  internal var _root: RawNode?
 
   @inlinable
   public init() {
-    self.root = nil
+    self._root = nil
   }
 }

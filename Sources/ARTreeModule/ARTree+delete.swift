@@ -12,17 +12,17 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTree {
   public mutating func delete(key: Key) {
-    if root == nil {
+    if _root == nil {
       return
     }
 
-    let isUnique = root!.isUnique
-    var child = root
+    let isUnique = _root!.isUnique
+    var child = _root
     switch _delete(child: &child, key: key, depth: 0, isUniquePath: isUnique) {
     case .noop:
       return
     case .replaceWith(let newValue):
-      root = newValue
+      _root = newValue
     }
   }
 

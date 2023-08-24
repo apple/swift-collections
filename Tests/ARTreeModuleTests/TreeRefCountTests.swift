@@ -49,8 +49,8 @@ final class ARTreeRefCountTest: XCTestCase {
     t!.insert(key: [1, 2, 3], value: 10)
     t!.insert(key: [2, 4, 4], value: 20)
 
-    XCTAssertEqual(getRc(t!.root!.buf), 2)
-    var n4 = t!.root
+    XCTAssertEqual(getRc(t!._root!.buf), 2)
+    var n4 = t!._root
     XCTAssertEqual(getRc(n4!.buf), 3)
     t = nil
     XCTAssertEqual(getRc(n4!.buf), 2)
@@ -66,8 +66,8 @@ final class ARTreeRefCountTest: XCTestCase {
     t!.insert(key: [4, 4, 4], value: 40)
     t!.insert(key: [5, 4, 4], value: 50)
 
-    XCTAssertEqual(getRc(t!.root!.buf), 2)
-    var n4 = t!.root
+    XCTAssertEqual(getRc(t!._root!.buf), 2)
+    var n4 = t!._root
     XCTAssertEqual(getRc(n4!.buf), 3)
     t = nil
     XCTAssertEqual(getRc(n4!.buf), 2)

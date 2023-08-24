@@ -164,7 +164,7 @@ final class ARTreeDeleteTests: XCTestCase {
     for i: UInt8 in 0...16 {
       t.insert(key: [i, i + 1], value: [i])
     }
-    XCTAssertEqual(t.root?.type, .node48)
+    XCTAssertEqual(t._root?.type, .node48)
     t.delete(key: [3, 4])
     t.delete(key: [4, 5])
     XCTAssertEqual(
@@ -210,7 +210,7 @@ final class ARTreeDeleteTests: XCTestCase {
     for i: UInt8 in 0...48 {
       t.insert(key: [i, i + 1], value: [i])
     }
-    XCTAssertEqual(t.root?.type, .node256)
+    XCTAssertEqual(t._root?.type, .node256)
     for i: UInt8 in 24...40 {
       if i % 2 == 0 {
         t.delete(key: [i, i + 1])

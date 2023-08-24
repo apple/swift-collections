@@ -22,7 +22,7 @@ extension ARTreeImpl: Sequence {
     init(tree: ARTreeImpl<Spec>) {
       self.tree = tree
       self.path = []
-      guard let node = tree.root else { return }
+      guard let node = tree._root else { return }
 
       assert(node.type != .leaf, "root can't be leaf")
       let n: any InternalNode<Spec> = node.toInternalNode()

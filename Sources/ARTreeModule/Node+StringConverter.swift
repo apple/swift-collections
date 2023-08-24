@@ -37,7 +37,7 @@ func indent(_ width: Int, last: Bool) -> String {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTreeImpl: CustomStringConvertible {
   public var description: String {
-    if let node = root {
+    if let node = _root {
       return "○ " + node.prettyPrint(depth: 0, with: Spec.self)
     } else {
       return "<>"
