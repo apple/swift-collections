@@ -43,13 +43,18 @@ struct FixedStorage8<T>: FixedStorage {
 }
 
 struct FixedStorage16<T>: FixedStorage {
-  internal var items: (T, T, T, T, T, T, T, T,
-                       T, T, T, T, T, T, T, T)
+  internal var items:
+    (
+      T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T
+    )
 
   @inline(__always)
   init(repeating v: T) {
-    self.items = (v, v, v, v, v, v, v, v,
-                  v, v, v, v, v, v, v, v)
+    self.items = (
+      v, v, v, v, v, v, v, v,
+      v, v, v, v, v, v, v, v
+    )
   }
 
   static var capacity: Int {
@@ -58,15 +63,20 @@ struct FixedStorage16<T>: FixedStorage {
 }
 
 struct FixedStorage48<T>: FixedStorage {
-  internal var items: (T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-                       T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-                       T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T)
+  internal var items:
+    (
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T
+    )
 
   @inline(__always)
   init(repeating v: T) {
-    self.items = (v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v,
-                  v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v,
-                  v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v)
+    self.items = (
+      v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v,
+      v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v,
+      v, v, v, v, v, v, v, v, v, v, v, v, v, v, v, v
+    )
   }
 
   static var capacity: Int {
@@ -75,24 +85,25 @@ struct FixedStorage48<T>: FixedStorage {
 }
 
 struct FixedStorage256<T>: FixedStorage {
-  internal var items: (
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
-    T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T
-  )
+  internal var items:
+    (
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
+      T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T
+    )
 
   @inline(__always)
   init(repeating v: T) {

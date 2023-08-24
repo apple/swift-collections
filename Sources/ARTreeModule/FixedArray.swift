@@ -13,7 +13,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-
 typealias FixedArray4<T> = FixedArray<FixedStorage4<T>>
 typealias FixedArray8<T> = FixedArray<FixedStorage8<T>>
 typealias FixedArray16<T> = FixedArray<FixedStorage16<T>>

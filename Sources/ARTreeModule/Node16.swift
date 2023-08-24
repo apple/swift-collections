@@ -91,7 +91,8 @@ extension Node16 {
         start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
         count: Self.numKeys
       )
-      let childPtr = bodyPtr
+      let childPtr =
+        bodyPtr
         .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
         .assumingMemoryBound(to: RawNode?.self)
       let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
@@ -154,7 +155,7 @@ extension Node16: InternalNode {
 
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?> {
     if let slot = _insertSlot(forKey: k) {
-      withBody {keys, childs in
+      withBody { keys, childs in
         assert(count == 0 || keys[slot] != k, "node for key \(k) already exists")
         keys.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
         childs.shiftRight(startIndex: slot, endIndex: count - 1, by: 1)
@@ -182,7 +183,7 @@ extension Node16: InternalNode {
       count -= 1
       keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
       childs.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
-      childs[count] = nil // Clear the last item.
+      childs[count] = nil  // Clear the last item.
 
       if count == 3 {
         // Shrink to Node4.
@@ -196,7 +197,7 @@ extension Node16: InternalNode {
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
     assert(index < count, "not enough childs in node")
-    return withBody {_, childs in
+    return withBody { _, childs in
       let ref = childs.baseAddress! + index
       return body(ref)
     }
@@ -207,7 +208,6 @@ extension Node16: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       var node = Node16(buffer: self)
-      let count = node.count
       node.withBody { _, childs in
         for idx in 0..<16 {
           childs[idx] = nil

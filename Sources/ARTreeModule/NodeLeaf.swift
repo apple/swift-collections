@@ -23,7 +23,7 @@ extension NodeLeaf {
     let size = MemoryLayout<UInt32>.stride + key.count + MemoryLayout<Value>.stride
     let storage = NodeStorage<NodeLeaf>.create(type: .leaf, size: size)
 
-    storage.update { leaf in 
+    storage.update { leaf in
       leaf.keyLength = key.count
       leaf.withKeyValue { keyPtr, valuePtr in
         key.withUnsafeBytes {
@@ -43,7 +43,8 @@ extension NodeLeaf {
   func withKey<R>(body: (KeyPtr) throws -> R) rethrows -> R {
     return try storage.withUnsafePointer {
       let keyPtr = UnsafeMutableBufferPointer(
-        start: $0
+        start:
+          $0
           .advanced(by: MemoryLayout<UInt32>.stride)
           .assumingMemoryBound(to: KeyPart.self),
         count: Int(keyLength))
@@ -75,7 +76,7 @@ extension NodeLeaf {
   }
 
   var key: Key {
-    get { withKey { k in Array(k) } }
+    withKey { k in Array(k) }
   }
 
   var keyLength: Int {
@@ -92,7 +93,7 @@ extension NodeLeaf {
   }
 
   var value: Value {
-    get { withValue() { $0.pointee } }
+    withValue { $0.pointee }
   }
 }
 

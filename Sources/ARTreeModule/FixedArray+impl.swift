@@ -28,7 +28,7 @@ extension FixedArray: RandomAccessCollection, MutableCollection {
       let res: Element = withUnsafeBytes(of: storage) {
         (rawPtr: UnsafeRawBufferPointer) -> Element in
         let stride = MemoryLayout<Element>.stride
-        assert(rawPtr.count == capacity*stride, "layout mismatch?")
+        assert(rawPtr.count == capacity * stride, "layout mismatch?")
         let bufPtr = UnsafeBufferPointer(
           start: rawPtr.baseAddress!.assumingMemoryBound(to: Element.self),
           count: capacity)
@@ -47,12 +47,12 @@ extension FixedArray: RandomAccessCollection, MutableCollection {
 
   @inline(__always)
   internal func index(after i: Index) -> Index {
-    return i+1
+    return i + 1
   }
 
   @inline(__always)
   internal func index(before i: Index) -> Index {
-    return i-1
+    return i - 1
   }
 }
 
@@ -62,7 +62,8 @@ extension FixedArray {
   ) rethrows -> R {
     let capacity = Self.capacity
     return try withUnsafeMutableBytes(of: &storage) { rawBuffer in
-      assert(rawBuffer.count == capacity*MemoryLayout<Element>.stride,
+      assert(
+        rawBuffer.count == capacity * MemoryLayout<Element>.stride,
         "layout mismatch?")
       let buffer = UnsafeMutableBufferPointer<Element>(
         start: rawBuffer.baseAddress!.assumingMemoryBound(to: Element.self),
@@ -76,7 +77,8 @@ extension FixedArray {
   ) rethrows -> R {
     let capacity = Self.capacity
     return try withUnsafeBytes(of: &storage) { rawBuffer in
-      assert(rawBuffer.count == capacity*MemoryLayout<Element>.stride,
+      assert(
+        rawBuffer.count == capacity * MemoryLayout<Element>.stride,
         "layout mismatch?")
       let buffer = UnsafeBufferPointer<Element>(
         start: rawBuffer.baseAddress!.assumingMemoryBound(to: Element.self),

@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import _CollectionsUtilities
+  import _CollectionsUtilities
 #endif
 
 protocol NodePrettyPrinter {
@@ -85,7 +85,6 @@ extension NodeStorage {
     return node.description
   }
 }
-
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension InternalNode {

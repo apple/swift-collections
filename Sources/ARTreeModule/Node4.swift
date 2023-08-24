@@ -65,7 +65,8 @@ extension Node4 {
         start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
         count: Self.numKeys
       )
-      let childPtr = bodyPtr
+      let childPtr =
+        bodyPtr
         .advanced(by: Self.numKeys * MemoryLayout<KeyPart>.stride)
         .assumingMemoryBound(to: RawNode?.self)
       let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
@@ -154,7 +155,7 @@ extension Node4: InternalNode {
       count -= 1
       keys.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
       childs.shiftLeft(startIndex: index + 1, endIndex: count, by: 1)
-      childs[count] = nil // Clear the last item.
+      childs[count] = nil  // Clear the last item.
 
       if count == 1 {
         // Shrink to leaf node.
@@ -167,7 +168,7 @@ extension Node4: InternalNode {
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
     assert(index < count, "index=\(index) less than count=\(count)")
-    return withBody {_, childs in
+    return withBody { _, childs in
       let ref = childs.baseAddress! + index
       return body(ref)
     }
@@ -178,7 +179,6 @@ extension Node4: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       var node = Node4(buffer: self)
-      let count = node.count
       node.withBody { _, childs in
         for idx in 0..<4 {
           childs[idx] = nil

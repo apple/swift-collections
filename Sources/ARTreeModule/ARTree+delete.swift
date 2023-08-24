@@ -31,10 +31,12 @@ extension ARTree {
     fatalError("not implemented")
   }
 
-  private mutating func _delete(child: inout RawNode?,
-                                key: Key,
-                                depth: Int,
-                                isUniquePath: Bool) -> UpdateResult<RawNode?> {
+  private mutating func _delete(
+    child: inout RawNode?,
+    key: Key,
+    depth: Int,
+    isUniquePath: Bool
+  ) -> UpdateResult<RawNode?> {
     if child?.type == .leaf {
       let leaf: NodeLeaf<Spec> = child!.toLeafNode()
       if !leaf.keyEquals(with: key, depth: depth) {

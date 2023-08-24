@@ -100,7 +100,8 @@ extension Node48 {
       // NOTE: Initializes each key pointer to point to a value > number of children, as 0 will
       // refer to the first child.
       // TODO: Can we initialize buffer using any stdlib method?
-      let childPtr = bodyPtr
+      let childPtr =
+        bodyPtr
         .advanced(by: 256 * MemoryLayout<KeyPart>.stride)
         .assumingMemoryBound(to: RawNode?.self)
       let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
@@ -112,8 +113,8 @@ extension Node48 {
 
 extension Node48: InternalNode {
   static var size: Int {
-    MemoryLayout<InternalNodeHeader>.stride + 256*MemoryLayout<KeyPart>.stride +
-      Self.numKeys*MemoryLayout<RawNode?>.stride
+    MemoryLayout<InternalNodeHeader>.stride + 256 * MemoryLayout<KeyPart>.stride + Self.numKeys
+      * MemoryLayout<RawNode?>.stride
   }
 
   func index(forKey k: KeyPart) -> Index? {
@@ -220,7 +221,7 @@ extension Node48: InternalNode {
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
     assert(index < count, "not enough childs in node")
-    return withBody {_, childs in
+    return withBody { _, childs in
       let ref = childs.baseAddress! + index
       return body(ref)
     }
@@ -231,7 +232,6 @@ extension Node48: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       var node = Node48(buffer: self)
-      let count = node.count
       node.withBody { _, childs in
         for idx in 0..<48 {
           childs[idx] = nil

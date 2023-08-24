@@ -136,12 +136,10 @@ extension Node256: InternalNode {
   }
 }
 
-
 extension Node256: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       var node = Node256(buffer: self)
-      let count = node.count
       node.withBody { childs in
         for idx in 0..<256 {
           childs[idx] = nil

@@ -13,7 +13,7 @@
 struct RawNode {
   var buf: RawNodeBuffer
 
-  init(buf: RawNodeBuffer){
+  init(buf: RawNodeBuffer) {
     self.buf = buf
   }
 }

@@ -33,7 +33,7 @@
 //     - Write some performance benchmarks to compare against other data-structures
 //         - Use some well known datasets
 //     - Cost of dynamic dispatch
-// - Refactoring and Maintenance 
+// - Refactoring and Maintenance
 //     - Documentation
 //     - Add assert to ensure invariants
 //     - Safer use of unmanaged objects

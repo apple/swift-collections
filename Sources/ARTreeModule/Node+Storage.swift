@@ -24,8 +24,9 @@ struct NodeStorage<Mn: ArtNode> {
 
 extension NodeStorage {
   static func create(type: NodeType, size: Int) -> NodeStorage<Mn> {
-    let buf = Mn.Buffer.create(minimumCapacity: size,
-                               makingHeaderWith: {_ in type })
+    let buf = Mn.Buffer.create(
+      minimumCapacity: size,
+      makingHeaderWith: { _ in type })
     buf.withUnsafeMutablePointerToElements {
       $0.initialize(repeating: 0, count: size)
     }
@@ -79,7 +80,8 @@ extension NodeStorage where Mn: InternalNode {
 
   // TODO: Remove this so that we don't use it by mistake where `node` is invalid.
   mutating func addChild(forKey k: KeyPart, node: some ArtNode<Mn.Spec>)
-    -> UpdateResult<RawNode?>  {
+    -> UpdateResult<RawNode?>
+  {
 
     update {
       $0.addChild(forKey: k, node: node.rawNode)
@@ -87,7 +89,8 @@ extension NodeStorage where Mn: InternalNode {
   }
 
   mutating func addChild<N>(forKey k: KeyPart, node: NodeStorage<N>)
-    -> UpdateResult<RawNode?> where N.Spec == Mn.Spec {
+    -> UpdateResult<RawNode?> where N.Spec == Mn.Spec
+  {
     update {
       $0.addChild(forKey: k, node: node.rawNode)
     }
@@ -107,7 +110,7 @@ extension NodeStorage where Mn: InternalNode {
 }
 
 extension NodeStorage {
-  func read<R>(_ body: (Mn) throws -> R) rethrows -> R{
+  func read<R>(_ body: (Mn) throws -> R) rethrows -> R {
     try body(self.node)
   }
 

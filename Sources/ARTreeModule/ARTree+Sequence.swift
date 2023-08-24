@@ -40,7 +40,7 @@ extension ARTreeImpl: Sequence {
 // TODO: Instead of index, use node iterators, to advance to next child.
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTreeImpl._Iterator: IteratorProtocol {
-  public typealias Element = (Key, Spec.Value) // TODO: Why just Value fails?
+  public typealias Element = (Key, Spec.Value)  // TODO: Why just Value fails?
 
   // Exhausted childs on the tip of path. Forward to sibling.
   mutating private func advanceToSibling() {

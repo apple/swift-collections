@@ -57,7 +57,7 @@ extension ARTree {
     case .splitNode(var node, let depth, let prefixDiff):
       var newNode = Node4<Spec>.allocate()
       newNode.partialLength = prefixDiff
-      newNode.partialBytes = node.partialBytes // TODO: Just copy min(maxPartialLength, prefixDiff)
+      newNode.partialBytes = node.partialBytes  // TODO: Just copy min(maxPartialLength, prefixDiff)
 
       assert(
         node.partialLength <= Const.maxPartialLength,
@@ -94,8 +94,9 @@ extension ARTree {
     var ref = NodeReference(&root)
 
     while current.type != .leaf && depth < key.count {
-      assert(!Const.testCheckUnique || isUnique,
-             "unique path is expected in this test, depth=\(depth)")
+      assert(
+        !Const.testCheckUnique || isUnique,
+        "unique path is expected in this test, depth=\(depth)")
 
       if !isUnique {
         // TODO: Why making this one-liner crashes?
@@ -118,8 +119,10 @@ extension ARTree {
       }
 
       // Find next child to continue.
-      guard let (next, _isUnique) =
-              (node.maybeReadChild(forKey: key[depth], ref: &ref) { ($0, $1) }) else {
+      guard
+        let (next, _isUnique) =
+          (node.maybeReadChild(forKey: key[depth], ref: &ref) { ($0, $1) })
+      else {
         return (.insertInto(node, depth: depth), ref)
       }
 
@@ -131,8 +134,9 @@ extension ARTree {
     assert(current.type == .leaf)
     // Reached leaf already, replace it with a new node, or update the existing value.
     if current.type == .leaf {
-      assert(!Const.testCheckUnique || isUnique,
-             "unique path is expected in this test, depth=\(depth)")
+      assert(
+        !Const.testCheckUnique || isUnique,
+        "unique path is expected in this test, depth=\(depth)")
 
       let leaf: NodeLeaf<Spec> = current.rawNode.toLeafNode()
       if leaf.keyEquals(with: key) {

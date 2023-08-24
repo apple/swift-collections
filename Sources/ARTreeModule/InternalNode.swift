@@ -25,8 +25,8 @@ protocol InternalNode<Spec>: ArtNode {
   func index() -> Index?
   func next(index: Index) -> Index?
 
-  func child(forKey k: KeyPart) -> RawNode? // TODO: Remove
-  func child(at: Index) -> RawNode? // TODO: Remove
+  func child(forKey k: KeyPart) -> RawNode?  // TODO: Remove
+  func child(at: Index) -> RawNode?  // TODO: Remove
 
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?>
   mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?>
@@ -44,11 +44,10 @@ struct NodeReference {
   }
 }
 
-
 extension NodeReference {
   var pointee: RawNode? {
     @inline(__always) get { _ptr.pointee }
-    @inline(__always) set {_ptr.pointee = newValue }
+    @inline(__always) set { _ptr.pointee = newValue }
   }
 }
 
@@ -135,9 +134,11 @@ extension InternalNode {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension InternalNode {
-  mutating func maybeReadChild<R>(forKey k: KeyPart,
-                                  ref: inout NodeReference,
-                                  _ body: (any ArtNode<Spec>, Bool) -> R) -> R? {
+  mutating func maybeReadChild<R>(
+    forKey k: KeyPart,
+    ref: inout NodeReference,
+    _ body: (any ArtNode<Spec>, Bool) -> R
+  ) -> R? {
     if count == 0 {
       return nil
     }
@@ -151,7 +152,6 @@ extension InternalNode {
   }
 }
 
-
 enum UpdateResult<T> {
   case noop
   case replaceWith(T)
@@ -160,8 +160,10 @@ enum UpdateResult<T> {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension InternalNode {
   @inline(__always)
-  fileprivate mutating func withSelfOrClone<R>(isUnique: Bool,
-                                      _  body: (any InternalNode<Spec>) -> R) -> R {
+  fileprivate mutating func withSelfOrClone<R>(
+    isUnique: Bool,
+    _ body: (any InternalNode<Spec>) -> R
+  ) -> R {
     if isUnique {
       return body(self)
     }
@@ -171,10 +173,13 @@ extension InternalNode {
     return body(node)
   }
 
-  mutating func updateChild(forKey k: KeyPart,
-                            isUniquePath: Bool,
-                            body: (inout RawNode?, Bool) -> UpdateResult<RawNode?>)
-    -> UpdateResult<RawNode?> {
+  mutating func updateChild(
+    forKey k: KeyPart,
+    isUniquePath: Bool,
+    body: (inout RawNode?, Bool) -> UpdateResult<RawNode?>
+  )
+    -> UpdateResult<RawNode?>
+  {
 
     guard let childPosition = index(forKey: k) else {
       return .noop
