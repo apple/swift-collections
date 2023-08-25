@@ -111,16 +111,15 @@ extension Node4: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
     let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
     var output = "Node4\(addr){childs=\(count), partial=\(partial)}\n"
-    withBody { keys, childs in
-      for idx in 0..<count {
-        let key = keys[idx]
-        let last = idx == count - 1
-        output += indent(depth, last: last)
-        output += String(key) + ": "
-        output += child(at: idx)!.prettyPrint(depth: depth + 1, with: Spec.self)
-        if !last {
-          output += "\n"
-        }
+
+    for idx in 0..<count {
+      let key = keys[idx]
+      let last = idx == count - 1
+      output += indent(depth, last: last)
+      output += String(key) + ": "
+      output += child(at: idx)!.prettyPrint(depth: depth + 1, with: Spec.self)
+      if !last {
+        output += "\n"
       }
     }
 
@@ -133,16 +132,15 @@ extension Node16: NodePrettyPrinter {
   func prettyPrint(depth: Int) -> String {
     let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
     var output = "Node16\(addr){childs=\(count), partial=\(partial)}\n"
-    withBody { keys, childs in
-      for idx in 0..<count {
-        let key = keys[idx]
-        let last = idx == count - 1
-        output += indent(depth, last: last)
-        output += String(key) + ": "
-        output += child(at: idx)!.prettyPrint(depth: depth + 1, with: Spec.self)
-        if !last {
-          output += "\n"
-        }
+
+    for idx in 0..<count {
+      let key = keys[idx]
+      let last = idx == count - 1
+      output += indent(depth, last: last)
+      output += String(key) + ": "
+      output += child(at: idx)!.prettyPrint(depth: depth + 1, with: Spec.self)
+      if !last {
+        output += "\n"
       }
     }
 
@@ -156,20 +154,19 @@ extension Node48: NodePrettyPrinter {
     let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
     var output = "Node48\(addr){childs=\(count), partial=\(partial)}\n"
     var total = 0
-    withBody { keys, childs in
-      for (key, slot) in keys.enumerated() {
-        if slot >= 0xFF {
-          continue
-        }
 
-        total += 1
-        let last = total == count
-        output += indent(depth, last: last)
-        output += String(key) + ": "
-        output += child(at: Int(slot))!.prettyPrint(depth: depth + 1, with: Spec.self)
-        if !last {
-          output += "\n"
-        }
+    for (key, slot) in keys.enumerated() {
+      if slot >= 0xFF {
+        continue
+      }
+
+      total += 1
+      let last = total == count
+      output += indent(depth, last: last)
+      output += String(key) + ": "
+      output += child(at: Int(slot))!.prettyPrint(depth: depth + 1, with: Spec.self)
+      if !last {
+        output += "\n"
       }
     }
 
@@ -183,22 +180,22 @@ extension Node256: NodePrettyPrinter {
     let addr = Const.testPrintAddr ? " \(_addressString(for: self.rawNode.buf))" : " "
     var output = "Node256\(addr){childs=\(count), partial=\(partial)}\n"
     var total = 0
-    withBody { childs in
-      for (key, child) in childs.enumerated() {
-        if child == nil {
-          continue
-        }
 
-        total += 1
-        let last = total == count
-        output += indent(depth, last: last)
-        output += String(key) + ": "
-        output += child!.prettyPrint(depth: depth + 1, with: Spec.self)
-        if !last {
-          output += "\n"
-        }
+    for (key, child) in childs.enumerated() {
+      if child == nil {
+        continue
+      }
+
+      total += 1
+      let last = total == count
+      output += indent(depth, last: last)
+      output += String(key) + ": "
+      output += child!.prettyPrint(depth: depth + 1, with: Spec.self)
+      if !last {
+        output += "\n"
       }
     }
+
     return output
   }
 }

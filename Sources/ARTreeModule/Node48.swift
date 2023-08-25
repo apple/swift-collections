@@ -19,19 +19,36 @@ extension Node48 {
 }
 
 extension Node48 {
+  var keys: UnsafeMutableBufferPointer<KeyPart> {
+    storage.withBodyPointer {
+      UnsafeMutableBufferPointer(
+        start: $0.assumingMemoryBound(to: KeyPart.self),
+        count: 256
+      )
+    }
+  }
+
+  var childs: UnsafeMutableBufferPointer<RawNode?> {
+    storage.withBodyPointer {
+      let childPtr = $0.advanced(by: 256 * MemoryLayout<KeyPart>.stride)
+        .assumingMemoryBound(to: RawNode?.self)
+      return UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
+    }
+  }
+}
+
+extension Node48 {
   static func allocate() -> NodeStorage<Self> {
     let storage = NodeStorage<Self>.allocate()
 
-    storage.update { node in
-      node.withBody { keys, childs in
-        UnsafeMutableRawPointer(keys.baseAddress!)
-          .bindMemory(to: UInt8.self, capacity: Self.numKeys)
-        UnsafeMutableRawPointer(childs.baseAddress!)
-          .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
+    storage.update { newNode in
+      UnsafeMutableRawPointer(newNode.keys.baseAddress!)
+        .bindMemory(to: UInt8.self, capacity: Self.numKeys)
+      UnsafeMutableRawPointer(newNode.childs.baseAddress!)
+        .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
 
-        for idx in 0..<256 {
-          keys[idx] = 0xFF
-        }
+      for idx in 0..<256 {
+        newNode.keys[idx] = 0xFF
       }
     }
 
@@ -41,19 +58,15 @@ extension Node48 {
   static func allocate(copyFrom: Node16<Spec>) -> NodeStorage<Self> {
     let storage = Self.allocate()
 
-    storage.update { node in
-      node.copyHeader(from: copyFrom)
-      copyFrom.withBody { fromKeys, fromChilds in
-        node.withBody { newKeys, newChilds in
-          UnsafeMutableRawBufferPointer(newChilds).copyBytes(
-            from: UnsafeMutableRawBufferPointer(fromChilds))
-          for (idx, key) in fromKeys.enumerated() {
-            newKeys[Int(key)] = UInt8(idx)
-          }
-
-          Self.retainChildren(newChilds, count: node.count)
-        }
+    storage.update { newNode in
+      newNode.copyHeader(from: copyFrom)
+      UnsafeMutableRawBufferPointer(newNode.childs).copyBytes(
+        from: UnsafeMutableRawBufferPointer(copyFrom.childs))
+      for (idx, key) in copyFrom.keys.enumerated() {
+        newNode.keys[Int(key)] = UInt8(idx)
       }
+
+      Self.retainChildren(newNode.childs, count: newNode.count)
     }
 
     return storage
@@ -62,52 +75,23 @@ extension Node48 {
   static func allocate(copyFrom: Node256<Spec>) -> NodeStorage<Self> {
     let storage = Self.allocate()
 
-    storage.update { node in
-      node.copyHeader(from: copyFrom)
-      copyFrom.withBody { fromChilds in
-        node.withBody { newKeys, newChilds in
-          var slot = 0
-          for (key, child) in fromChilds.enumerated() {
-            if child == nil {
-              continue
-            }
-
-            newKeys[key] = UInt8(slot)
-            newChilds[slot] = child
-            slot += 1
-          }
-
-          Self.retainChildren(newChilds, count: node.count)
+    storage.update { newNode in
+      newNode.copyHeader(from: copyFrom)
+      var slot = 0
+      for (key, child) in copyFrom.childs.enumerated() {
+        if child == nil {
+          continue
         }
+
+        newNode.keys[key] = UInt8(slot)
+        newNode.childs[slot] = child
+        slot += 1
       }
+
+      Self.retainChildren(newNode.childs, count: newNode.count)
     }
 
     return storage
-  }
-}
-
-extension Node48 {
-  typealias Keys = UnsafeMutableBufferPointer<KeyPart>
-  typealias Children = UnsafeMutableBufferPointer<RawNode?>
-
-  func withBody<R>(body: (Keys, Children) throws -> R) rethrows -> R {
-    return try storage.withBodyPointer { bodyPtr in
-      let keys = UnsafeMutableBufferPointer(
-        start: bodyPtr.assumingMemoryBound(to: KeyPart.self),
-        count: 256
-      )
-
-      // NOTE: Initializes each key pointer to point to a value > number of children, as 0 will
-      // refer to the first child.
-      // TODO: Can we initialize buffer using any stdlib method?
-      let childPtr =
-        bodyPtr
-        .advanced(by: 256 * MemoryLayout<KeyPart>.stride)
-        .assumingMemoryBound(to: RawNode?.self)
-      let childs = UnsafeMutableBufferPointer(start: childPtr, count: Self.numKeys)
-
-      return try body(keys, childs)
-    }
   }
 }
 
@@ -118,10 +102,8 @@ extension Node48: InternalNode {
   }
 
   func index(forKey k: KeyPart) -> Index? {
-    return withBody { keys, _ in
-      let childIndex = Int(keys[Int(k)])
-      return childIndex == 0xFF ? nil : childIndex
-    }
+    let childIndex = Int(keys[Int(k)])
+    return childIndex == 0xFF ? nil : childIndex
   }
 
   func index() -> Index? {
@@ -129,37 +111,30 @@ extension Node48: InternalNode {
   }
 
   func next(index: Index) -> Index? {
-    return withBody { keys, _ in
-      for idx: Int in index + 1..<256 {
-        if keys[idx] != 0xFF {
-          return Int(keys[idx])
-        }
+    for idx: Int in index + 1..<256 {
+      if keys[idx] != 0xFF {
+        return Int(keys[idx])
       }
-
-      return nil
     }
+
+    return nil
   }
 
   func child(at: Int) -> RawNode? {
     assert(at < Self.numKeys, "maximum \(Self.numKeys) childs allowed")
-    return withBody { _, childs in
-      return childs[at]
-    }
+    return childs[at]
   }
 
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?> {
     if count < Self.numKeys {
-      withBody { keys, childs in
-        assert(keys[Int(k)] == 0xFF, "node for key \(k) already exists")
+      assert(keys[Int(k)] == 0xFF, "node for key \(k) already exists")
 
-        guard let slot = findFreeSlot() else {
-          assert(false, "cannot find free slot in Node48")
-          return
-        }
-
-        keys[Int(k)] = KeyPart(slot)
-        childs[slot] = node
+      guard let slot = findFreeSlot() else {
+        fatalError("cannot find free slot in Node48")
       }
+
+      keys[Int(k)] = KeyPart(slot)
+      childs[slot] = node
 
       self.count += 1
       return .noop
@@ -172,59 +147,53 @@ extension Node48: InternalNode {
   }
 
   public mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
-    return withBody { keys, childs in
-      let targetSlot = Int(keys[index])
-      assert(targetSlot != 0xFF, "slot is empty already")
-      // 1. Find out who has the last slot.
-      var lastSlotKey = 0
-      for k in 0..<256 {
-        if keys[k] == count - 1 {
-          lastSlotKey = k
-          break
-        }
+    let targetSlot = Int(keys[index])
+    assert(targetSlot != 0xFF, "slot is empty already")
+    // 1. Find out who has the last slot.
+    var lastSlotKey = 0
+    for k in 0..<256 {
+      if keys[k] == count - 1 {
+        lastSlotKey = k
+        break
       }
-
-      // 2. Move last child slot into current child slot, and reset last child slot.
-      childs[targetSlot] = childs[count - 1]
-      childs[count - 1] = nil
-
-      // 3. Map that key to current slot.
-      keys[lastSlotKey] = UInt8(targetSlot)
-
-      // 4. Clear input key.
-      keys[index] = 0xFF
-
-      // 5. Reduce number of children.
-      count -= 1
-
-      // 6. Shrink the node to Node16 if needed.
-      if count == 13 {
-        let newNode = Node16.allocate(copyFrom: self)
-        return .replaceWith(newNode.node.rawNode)
-      }
-
-      return .noop
     }
+
+    // 2. Move last child slot into current child slot, and reset last child slot.
+    childs[targetSlot] = childs[count - 1]
+    childs[count - 1] = nil
+
+    // 3. Map that key to current slot.
+    keys[lastSlotKey] = UInt8(targetSlot)
+
+    // 4. Clear input key.
+    keys[index] = 0xFF
+
+    // 5. Reduce number of children.
+    count -= 1
+
+    // 6. Shrink the node to Node16 if needed.
+    if count == 13 {
+      let newNode = Node16.allocate(copyFrom: self)
+      return .replaceWith(newNode.node.rawNode)
+    }
+
+    return .noop
   }
 
   private func findFreeSlot() -> Int? {
-    return withBody { _, childs in
-      for (index, child) in childs.enumerated() {
-        if child == nil {
-          return index
-        }
+    for (index, child) in childs.enumerated() {
+      if child == nil {
+        return index
       }
-
-      return nil
     }
+
+    return nil
   }
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
     assert(index < count, "not enough childs in node")
-    return withBody { _, childs in
-      let ref = childs.baseAddress! + index
-      return body(ref)
-    }
+    let ref = childs.baseAddress! + index
+    return body(ref)
   }
 }
 
@@ -232,10 +201,8 @@ extension Node48: ArtNode {
   final class Buffer: RawNodeBuffer {
     deinit {
       var node = Node48(buffer: self)
-      node.withBody { _, childs in
-        for idx in 0..<48 {
-          childs[idx] = nil
-        }
+      for idx in 0..<48 {
+        node.childs[idx] = nil
       }
       node.count = 0
     }
@@ -244,17 +211,13 @@ extension Node48: ArtNode {
   func clone() -> NodeStorage<Self> {
     let storage = Self.allocate()
 
-    storage.update { node in
-      node.copyHeader(from: self)
-      self.withBody { fromKeys, fromChildren in
-        node.withBody { newKeys, newChildren in
-          for idx in 0..<256 {
-            let slot = fromKeys[idx]
-            newKeys[idx] = slot
-            if slot != 0xFF {
-              newChildren[Int(slot)] = fromChildren[Int(slot)]
-            }
-          }
+    storage.update { newNode in
+      newNode.copyHeader(from: self)
+      for idx in 0..<256 {
+        let slot = keys[idx]
+        newNode.keys[idx] = slot
+        if slot != 0xFF {
+          newNode.childs[Int(slot)] = childs[Int(slot)]
         }
       }
     }

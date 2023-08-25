@@ -216,6 +216,7 @@ final class ARTreeDeleteTests: XCTestCase {
         t.delete(key: [i, i + 1])
       }
     }
+    XCTAssertEqual(t._root?.type, .node48)
     XCTAssertEqual(
       t.description,
       "○ Node48 {childs=40, partial=[]}\n" +

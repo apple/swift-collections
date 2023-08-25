@@ -218,7 +218,7 @@ extension InternalNode {
             let slf: Node4<Spec> = selfRef as! Node4<Spec>
             var node: any InternalNode<Spec> = newValue.toInternalNode()
             node.partialBytes.shiftRight()
-            node.partialBytes[0] = slf.withBody { k, _ in k[0] }
+            node.partialBytes[0] = slf.keys[0]
             node.partialLength += 1
           }
           return .replaceWith(newValue)

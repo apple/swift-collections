@@ -54,7 +54,7 @@ extension ARTree {
         var next = Node4<Spec>.allocate()
         _ = next.addChild(forKey: key[start - 1], node: newNode)
         newNode = next
-        longestPrefix -= 1 // One keys goes for mapping the child in next node.
+        longestPrefix -= 1  // One keys goes for mapping the child in next node.
       }
 
       ref.pointee = newNode.rawNode  // Replace child in parent.
