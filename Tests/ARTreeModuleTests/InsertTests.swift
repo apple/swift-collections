@@ -36,6 +36,30 @@ final class ARTreeInsertTests: XCTestCase {
       "└──○ 12: 3[12, 22, 32] -> [13, 23, 33]")
   }
 
+  func testInsertDeleteInsertOnEmptyTree() throws {
+    var t = ARTree<[UInt8]>()
+    t.insert(key: [10, 20, 30], value: [1])
+    t.delete(key: [10, 20, 30])
+    XCTAssertEqual(t.description, "<>")
+    t.insert(key: [11, 21, 31], value: [2])
+    XCTAssertEqual(
+      t.description,
+      "○ Node4 {childs=1, partial=[]}\n" +
+        "└──○ 11: 3[11, 21, 31] -> [2]")
+
+    t.insert(key: [10, 20, 30], value: [3])
+    t.delete(key: [10, 20, 30])
+    XCTAssertEqual(t._root?.type, .leaf, "root should shrink to leaf")
+
+    t.insert(key: [10, 20, 30], value: [4])
+    XCTAssertEqual(t._root?.type, .node4, "should be able to insert into root leaf node")
+    XCTAssertEqual(
+      t.description,
+      "○ Node4 {childs=2, partial=[]}\n" +
+        "├──○ 10: 3[10, 20, 30] -> [4]\n" +
+        "└──○ 11: 3[11, 21, 31] -> [2]")
+  }
+
   func testInsertSharedPrefix() throws {
     var t = ARTree<[UInt8]>()
     t.insert(key: [10, 20, 30], value: [11, 21, 31])
