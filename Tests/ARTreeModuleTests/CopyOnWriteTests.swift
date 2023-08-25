@@ -173,4 +173,59 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
     XCTAssertEqual(t2.description, t2_descp_2)
     XCTAssertEqual(t3.description, t3_descp)
   }
+
+  func testCopyOnWriteReplaceValue() throws {
+    var t1 = ARTree<Int>()
+    let testCases: [[UInt8]] = [
+      [1, 2, 3, 4, 5],
+      [2, 3, 4, 5, 6],
+      [3, 4, 5, 6, 7],
+      [4, 5, 6, 7, 8],
+      [8, 9, 10, 12, 12],
+      [1, 2, 3, 5, 6],
+      [1, 2, 3, 6, 7],
+      [2, 3, 5, 5, 6],
+      [4, 5, 6, 8, 8],
+      [4, 5, 6, 9, 9]
+    ]
+
+    for (idx, test) in testCases.enumerated() {
+        t1.insert(key: test, value: idx + 1)
+    }
+    var t2 = t1
+    for (idx, test) in testCases[2...5].enumerated() {
+        t2.insert(key: test, value: idx + 10)
+    }
+
+    let t1_descp = "○ Node16 {childs=5, partial=[]}\n" +
+                   "├──○ 1: Node4 {childs=3, partial=[2, 3]}\n" +
+                   "│  ├──○ 4: 5[1, 2, 3, 4, 5] -> 1\n" +
+                   "│  ├──○ 5: 5[1, 2, 3, 5, 6] -> 6\n" +
+                   "│  └──○ 6: 5[1, 2, 3, 6, 7] -> 7\n" +
+                   "├──○ 2: Node4 {childs=2, partial=[3]}\n" +
+                   "│  ├──○ 4: 5[2, 3, 4, 5, 6] -> 2\n" +
+                   "│  └──○ 5: 5[2, 3, 5, 5, 6] -> 8\n" +
+                   "├──○ 3: 5[3, 4, 5, 6, 7] -> 3\n" +
+                   "├──○ 4: Node4 {childs=3, partial=[5, 6]}\n" +
+                   "│  ├──○ 7: 5[4, 5, 6, 7, 8] -> 4\n" +
+                   "│  ├──○ 8: 5[4, 5, 6, 8, 8] -> 9\n" +
+                   "│  └──○ 9: 5[4, 5, 6, 9, 9] -> 10\n" +
+                   "└──○ 8: 5[8, 9, 10, 12, 12] -> 5"
+    let t2_descp = "○ Node16 {childs=5, partial=[]}\n" +
+                   "├──○ 1: Node4 {childs=3, partial=[2, 3]}\n" +
+                   "│  ├──○ 4: 5[1, 2, 3, 4, 5] -> 1\n" +
+                   "│  ├──○ 5: 5[1, 2, 3, 5, 6] -> 13\n" +
+                   "│  └──○ 6: 5[1, 2, 3, 6, 7] -> 7\n" +
+                   "├──○ 2: Node4 {childs=2, partial=[3]}\n" +
+                   "│  ├──○ 4: 5[2, 3, 4, 5, 6] -> 2\n" +
+                   "│  └──○ 5: 5[2, 3, 5, 5, 6] -> 8\n" +
+                   "├──○ 3: 5[3, 4, 5, 6, 7] -> 10\n" +
+                   "├──○ 4: Node4 {childs=3, partial=[5, 6]}\n" +
+                   "│  ├──○ 7: 5[4, 5, 6, 7, 8] -> 11\n" +
+                   "│  ├──○ 8: 5[4, 5, 6, 8, 8] -> 9\n" +
+                   "│  └──○ 9: 5[4, 5, 6, 9, 9] -> 10\n" +
+                   "└──○ 8: 5[8, 9, 10, 12, 12] -> 12"
+    XCTAssertEqual(t1.description, t1_descp)
+    XCTAssertEqual(t2.description, t2_descp)
+  }
 }

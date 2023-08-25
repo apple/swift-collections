@@ -23,8 +23,10 @@ extension ARTree {
     guard var (action, ref) = _findInsertNode(key: key) else { return false }
 
     switch action {
-    case .replace(_):
-      fatalError("replace not supported")
+    case .replace(let leaf):
+      leaf.withValue {
+        $0.pointee = value
+      }
 
     case .splitLeaf(let leaf, let depth):
       let newLeaf = Self.allocateLeaf(key: key, value: value)
@@ -145,7 +147,13 @@ extension ARTree {
 
       let leaf: NodeLeaf<Spec> = current.rawNode.toLeafNode()
       if leaf.keyEquals(with: key) {
-        return (.replace(leaf), ref)
+        if isUnique {
+          return (.replace(leaf), ref)
+        } else {
+          let clone = leaf.clone()
+          ref.pointee = clone.node.rawNode
+          return (.replace(clone.node), ref)
+        }
       }
 
       if isUnique {

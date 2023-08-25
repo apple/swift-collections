@@ -549,4 +549,25 @@ final class ARTreeInsertTests: XCTestCase {
       XCTAssertEqual(tree.getValue(key: k), v)
     }
   }
+
+  func testReplace() throws {
+    var t = ARTree<Int>()
+    let testCases: [[UInt8]] = [
+      [11, 21, 31],
+      [12, 22, 32],
+      [10, 20, 32]
+    ]
+
+    for (idx, test) in testCases.enumerated() {
+      t.insert(key: test, value: idx)
+    }
+
+    for (idx, test) in testCases.enumerated() {
+      t.insert(key: test, value: idx + 10)
+    }
+
+    for (idx, test) in testCases.enumerated() {
+      XCTAssertEqual(t.getValue(key: test), idx + 10)
+    }
+  }
 }
