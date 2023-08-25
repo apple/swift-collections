@@ -12,7 +12,6 @@
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension ARTreeImpl {
   public func getValue(key: Key) -> Value? {
-    assert(_root != nil, "root can't be nil")
     var current = _root
     var depth = 0
     while depth <= key.count {

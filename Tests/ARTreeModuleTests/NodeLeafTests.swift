@@ -45,8 +45,7 @@ final class ARTreeNodeLeafTests: XCTestCase {
 
   func testLeafLcp() throws {
     typealias L = NodeLeaf<DefaultSpec<[Int]>>
-    let leaf1 = L.allocate(key: [10, 20, 30, 40], value: [0, 1, 2])
-
+    var leaf1 = L.allocate(key: [10, 20, 30, 40], value: [0, 1, 2])
     L.allocate(key: [0, 1, 2, 3], value: [0]).read { other in
       XCTAssertEqual(
         leaf1.node.longestCommonPrefix(
@@ -83,6 +82,21 @@ final class ARTreeNodeLeafTests: XCTestCase {
       XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 2),
                      0)
     }
+
+    leaf1 = L.allocate(key: [1, 2, 3, 4], value: [0])
+    L.allocate(key: [1, 2, 3, 4, 5, 6], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 0),
+                     4)
+    }
+    L.allocate(key: [1, 2, 3, 5, 5, 6], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 0),
+                     3)
+    }
+    L.allocate(key: [1, 2, 3, 4], value: [0]).read { other in
+      XCTAssertEqual(leaf1.node.longestCommonPrefix(with: other, fromIndex: 0),
+                     4)
+    }
+
   //   // Breaks the contract, so its OK that these fail.
   //   // XCTAssertEqual(
   //   //   leaf1.node.longestCommonPrefix(with: L.allocate(key: [], value: [0]),

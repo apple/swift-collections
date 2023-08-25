@@ -62,6 +62,11 @@ extension RawNode {
     }
   }
 
+  func toInternalNode<Spec: ARTreeSpec>(of: Spec.Type) -> any InternalNode<Spec> {
+    let n: any InternalNode<Spec> = toInternalNode()
+    return n
+  }
+
   func toLeafNode<Spec: ARTreeSpec>() -> NodeLeaf<Spec> {
     assert(type == .leaf)
     return NodeLeaf(buffer: buf)

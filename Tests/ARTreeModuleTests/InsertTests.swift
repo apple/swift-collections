@@ -232,6 +232,125 @@ final class ARTreeInsertTests: XCTestCase {
       "└──○ 70: 1[70] -> [70]")
   }
 
+  func testInsertPrefixSharedSmall() throws {
+    let testCase: [[UInt8]] = [
+      [1, 2, 3, 4, 5],
+      [1, 2, 3, 4, 6],
+      [1, 2, 3, 4, 7]
+    ]
+
+    var tree = ARTree<Int>()
+    for (index, test) in testCase.enumerated() {
+      tree.insert(key: test, value: index + 10)
+    }
+
+    for (val, test) in testCase.enumerated() {
+      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    }
+  }
+
+  func testInsertPrefixLongOnNodePrefixFull() throws {
+    let testCase: [[UInt8]] = [
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 11],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
+    ]
+
+    var tree = ARTree<Int>()
+    for (index, test) in testCase.enumerated() {
+      tree.insert(key: test, value: index + 10)
+    }
+
+    for (val, test) in testCase.enumerated() {
+      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    }
+  }
+
+  func testInsertPrefixLongMultiLayer1() throws {
+    let testCase: [[UInt8]] = [
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18]
+    ]
+
+    var tree = ARTree<Int>()
+    for (index, test) in testCase.enumerated() {
+      tree.insert(key: test, value: index + 10)
+    }
+
+    for (val, test) in testCase.enumerated() {
+      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    }
+  }
+
+  func testInsertPrefixLongMultiLayer2() throws {
+    let testCase: [[UInt8]] = [
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 11, 12, 13, 14, 17],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 11, 12, 13, 14, 18]
+    ]
+
+    var tree = ARTree<Int>()
+    for (index, test) in testCase.enumerated() {
+      tree.insert(key: test, value: index + 10)
+    }
+
+    for (val, test) in testCase.enumerated() {
+      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    }
+  }
+
+  func testInsertPrefixLongMultiLayer3() throws {
+    var testCase: [[UInt8]] = [
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 24]
+    ]
+
+    var tree = ARTree<Int>()
+    for (index, test) in testCase.enumerated() {
+      tree.insert(key: test, value: index + 10)
+    }
+
+    for (val, test) in testCase.enumerated() {
+      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    }
+
+    XCTAssertEqual(
+      tree.description,
+      "○ Node4 {childs=1, partial=[]}\n" +
+        "└──○ 1: Node4 {childs=1, partial=[2]}\n" +
+        "│  └──○ 3: Node4 {childs=1, partial=[4, 5, 6, 7, 8, 9, 10, 11]}\n" +
+        "│  │  └──○ 12: Node4 {childs=3, partial=[13, 14, 16, 17, 18, 19, 20, 21]}\n" +
+        "│  │  │  ├──○ 22: 21[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22] -> 10\n" +
+        "│  │  │  ├──○ 23: 21[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23] -> 11\n" +
+        "│  │  │  └──○ 24: 21[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 24] -> 12")
+
+    testCase.append([1, 2, 3, 4, 5, 6, 7, 8, 10, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23])
+    tree.insert(key:testCase.last!, value: 3 + 10)
+    for (val, test) in testCase.enumerated() {
+      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    }
+  }
+
+  func testInsertPrefixLongMultiLayer5() throws {
+    let testCase: [[UInt8]] = [
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99, 13, 14, 15, 17, 18, 19, 66, 21, 22, 77, 24, 25, 26, 27],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 88, 13, 14, 15, 17, 18, 19, 55, 21, 22, 66, 24, 25, 26, 27],
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99, 13, 14, 15, 17, 18, 19, 66, 21, 22, 44, 24, 25, 26, 27],
+    ]
+
+    var tree = ARTree<Int>()
+    for (index, test) in testCase.enumerated() {
+      tree.insert(key: test, value: index + 10)
+    }
+
+    for (val, test) in testCase.enumerated() {
+      let result = tree.getValue(key: test)
+      XCTAssertEqual(result, val + 10)
+    }
+  }
+
   func testInsertAndGetSmallSetRepeat48() throws {
     for ii in 0...10000 {
       if ii % 1000 == 0 {

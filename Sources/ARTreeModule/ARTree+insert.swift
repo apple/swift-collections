@@ -36,12 +36,16 @@ extension ARTree {
       _ = newNode.addChild(forKey: leaf.key[depth + longestPrefix], node: leaf)
       _ = newNode.addChild(forKey: key[depth + longestPrefix], node: newLeaf)
 
+      // TODO: Flip the direction of node creation.
+      // TODO: Optimization: Just set partialLength = longestPrefix, and look at minimum leaf for
+      //    rest of the bytes (at-least until we are storing entire keys inside the leaf).
+      //    Probably useful for cases where nodes share significantly long common prefix.
       while longestPrefix > 0 {
         let nBytes = Swift.min(Const.maxPartialLength, longestPrefix)
         let start = depth + longestPrefix - nBytes
         newNode.partialLength = nBytes
         newNode.partialBytes.copy(src: key[...], start: start, count: nBytes)
-        longestPrefix -= nBytes + 1
+        longestPrefix -= nBytes
 
         if longestPrefix <= 0 {
           break
@@ -50,6 +54,7 @@ extension ARTree {
         var next = Node4<Spec>.allocate()
         _ = next.addChild(forKey: key[start - 1], node: newNode)
         newNode = next
+        longestPrefix -= 1 // One keys goes for mapping the child in next node.
       }
 
       ref.pointee = newNode.rawNode  // Replace child in parent.

@@ -22,6 +22,11 @@ func randomByteArray(minSize: Int, maxSize: Int, minByte: UInt8, maxByte: UInt8)
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class ARTreeGetValueTests: XCTestCase {
+  func testGetValueNil() throws {
+    let t = ARTree<[UInt8]>()
+    XCTAssertEqual(t.getValue(key: [10, 20, 30]), nil)
+  }
+
   func testGetValueBasic() throws {
     var t = ARTree<[UInt8]>()
     t.insert(key: [10, 20, 30], value: [11, 21, 31])
