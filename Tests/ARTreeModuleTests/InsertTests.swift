@@ -9,12 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class ARTreeInsertTests: XCTestCase {
+final class ARTreeInsertTests: CollectionTestCase {
   override func setUp() {
     Const.testCheckUnique = true
   }
@@ -28,7 +27,7 @@ final class ARTreeInsertTests: XCTestCase {
     t.insert(key: [10, 20, 30], value: [11, 21, 31])
     t.insert(key: [11, 21, 31], value: [12, 22, 32])
     t.insert(key: [12, 22, 32], value: [13, 23, 33])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=3, partial=[]}\n" +
       "├──○ 10: 3[10, 20, 30] -> [11, 21, 31]\n" +
@@ -40,20 +39,20 @@ final class ARTreeInsertTests: XCTestCase {
     var t = ARTree<[UInt8]>()
     t.insert(key: [10, 20, 30], value: [1])
     t.delete(key: [10, 20, 30])
-    XCTAssertEqual(t.description, "<>")
+    expectEqual(t.description, "<>")
     t.insert(key: [11, 21, 31], value: [2])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=1, partial=[]}\n" +
         "└──○ 11: 3[11, 21, 31] -> [2]")
 
     t.insert(key: [10, 20, 30], value: [3])
     t.delete(key: [10, 20, 30])
-    XCTAssertEqual(t._root?.type, .leaf, "root should shrink to leaf")
+    expectEqual(t._root?.type, .leaf, "root should shrink to leaf")
 
     t.insert(key: [10, 20, 30], value: [4])
-    XCTAssertEqual(t._root?.type, .node4, "should be able to insert into root leaf node")
-    XCTAssertEqual(
+    expectEqual(t._root?.type, .node4, "should be able to insert into root leaf node")
+    expectEqual(
       t.description,
       "○ Node4 {childs=2, partial=[]}\n" +
         "├──○ 10: 3[10, 20, 30] -> [4]\n" +
@@ -66,7 +65,7 @@ final class ARTreeInsertTests: XCTestCase {
     t.insert(key: [11, 21, 31], value: [12, 22, 32])
     t.insert(key: [12, 22, 32], value: [13, 23, 33])
     t.insert(key: [10, 20, 32], value: [1])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=3, partial=[]}\n" +
       "├──○ 10: Node4 {childs=2, partial=[20]}\n" +
@@ -82,7 +81,7 @@ final class ARTreeInsertTests: XCTestCase {
     t.insert(key: [2], value: [2])
     t.insert(key: [3], value: [3])
     t.insert(key: [4], value: [4])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=4, partial=[]}\n" +
       "├──○ 1: 1[1] -> [1]\n" +
@@ -90,7 +89,7 @@ final class ARTreeInsertTests: XCTestCase {
       "├──○ 3: 1[3] -> [3]\n" +
       "└──○ 4: 1[4] -> [4]")
     t.insert(key: [5], value: [5])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node16 {childs=5, partial=[]}\n" +
       "├──○ 1: 1[1] -> [1]\n" +
@@ -108,17 +107,17 @@ final class ARTreeInsertTests: XCTestCase {
         + 1], value: [ii
         + 1])
       if ii < 4 {
-        XCTAssertEqual(t._root?.type, .node4)
+        expectEqual(t._root?.type, .node4)
       } else if ii < 16 {
-        XCTAssertEqual(t._root?.type, .node16)
+        expectEqual(t._root?.type, .node16)
       } else if ii < 48 {
-        XCTAssertEqual(t._root?.type, .node48)
+        expectEqual(t._root?.type, .node48)
       }
     }
 
     let root: any InternalNode<T.Spec> = t._root!.toInternalNode()
-    XCTAssertEqual(root.count, 40)
-    XCTAssertEqual(
+    expectEqual(root.count, 40)
+    expectEqual(
       t.description,
       "○ Node48 {childs=40, partial=[]}\n" +
       "├──○ 1: 1[1] -> [1]\n" +
@@ -171,17 +170,17 @@ final class ARTreeInsertTests: XCTestCase {
         + 1], value: [ii
         + 1])
       if ii < 4 {
-        XCTAssertEqual(t._root?.type, .node4)
+        expectEqual(t._root?.type, .node4)
       } else if ii < 16 {
-        XCTAssertEqual(t._root?.type, .node16)
+        expectEqual(t._root?.type, .node16)
       } else if ii < 48 {
-        XCTAssertEqual(t._root?.type, .node48)
+        expectEqual(t._root?.type, .node48)
       }
     }
 
     let root: any InternalNode<T.Spec> = t._root!.toInternalNode()
-    XCTAssertEqual(root.count, 70)
-    XCTAssertEqual(
+    expectEqual(root.count, 70)
+    expectEqual(
       t.description,
       "○ Node256 {childs=70, partial=[]}\n" +
       "├──○ 1: 1[1] -> [1]\n" +
@@ -270,7 +269,7 @@ final class ARTreeInsertTests: XCTestCase {
       }
 
       for (index, key) in items.enumerated().shuffled() {
-        XCTAssertEqual(tree.getValue(key: key), index + 10)
+        expectEqual(tree.getValue(key: key), index + 10)
       }
     }
   }
@@ -289,7 +288,7 @@ final class ARTreeInsertTests: XCTestCase {
       }
 
       for (key, value) in items.shuffled() {
-        XCTAssertEqual(tree.getValue(key: key), value)
+        expectEqual(tree.getValue(key: key), value)
       }
     }
   }
@@ -346,7 +345,7 @@ final class ARTreeInsertTests: XCTestCase {
       _ = tree.insert(key: key, value: index + 10)
     }
 
-    XCTAssertEqual(
+    expectEqual(
       tree.description,
       "○ Node4 {childs=1, partial=[]}\n" +
         "└──○ 1: Node4 {childs=1, partial=[2]}\n" +
@@ -360,7 +359,7 @@ final class ARTreeInsertTests: XCTestCase {
 
     tree.insert(key:items.last!, value: 3 + 10)
     for (val, test) in items.enumerated() {
-      XCTAssertEqual(tree.getValue(key: test), val + 10)
+      expectEqual(tree.getValue(key: test), val + 10)
     }
   }
 
@@ -501,7 +500,7 @@ final class ARTreeInsertTests: XCTestCase {
     }
 
     for (idx, test) in items.enumerated() {
-      XCTAssertEqual(t.getValue(key: test), idx + 10)
+      expectEqual(t.getValue(key: test), idx + 10)
     }
   }
 }

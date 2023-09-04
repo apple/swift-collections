@@ -9,14 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
-final class ARTreeNodeBasicTests: XCTestCase {
+final class ARTreeNodeBasicTests: CollectionTestCase {
   func testNodeSizes() throws {
     let header = MemoryLayout<InternalNodeHeader>.stride
-    XCTAssertEqual(header, 12)
+    expectEqual(header, 12)
 
     typealias Spec = DefaultSpec<Int>
     let childSlotSize = MemoryLayout<RawNode?>.stride
@@ -36,9 +35,9 @@ final class ARTreeNodeBasicTests: XCTestCase {
     print("sizeOf(.node48) = \(size48)")
     print("sizeOf(.node256) = \(size256)")
 
-    XCTAssertEqual(size4, header + 4 + 4 * ptrSize)
-    XCTAssertEqual(size16, header + 16 + 16 * ptrSize)
-    XCTAssertEqual(size48, header + 256 + 48 * ptrSize)
-    XCTAssertEqual(size256, header + 256 * ptrSize)
+    expectEqual(size4, header + 4 + 4 * ptrSize)
+    expectEqual(size16, header + 16 + 16 * ptrSize)
+    expectEqual(size48, header + 256 + 48 * ptrSize)
+    expectEqual(size256, header + 256 * ptrSize)
   }
 }

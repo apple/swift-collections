@@ -9,12 +9,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import ARTreeModule
+import _CollectionsTestSupport
+#endif
 
 @testable import ARTreeModule
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class ARTreeCopyOnWriteTests: XCTestCase {
+final class ARTreeCopyOnWriteTests: CollectionTestCase {
   func testCopyOnWriteBasicInsert() throws {
     var t1 = ARTree<Int>()
     _ = t1.insert(key: [10, 20], value: 10)
@@ -23,12 +28,12 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
     _ = t2.insert(key: [30, 40], value: 30)
     _ = t2.insert(key: [40, 50], value: 40)
 
-    XCTAssertEqual(
+    expectEqual(
       t1.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 10: 2[10, 20] -> 10\n" +
       "└──○ 20: 2[20, 30] -> 20")
-    XCTAssertEqual(
+    expectEqual(
       t2.description,
       "○ Node4 {childs=4, partial=[]}\n" +
       "├──○ 10: 2[10, 20] -> 10\n" +
@@ -49,19 +54,19 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
     t3.delete(key: [10, 20])
     t3.delete(key: [20])
 
-    XCTAssertEqual(
+    expectEqual(
       t1.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 10: 2[10, 20] -> 10\n" +
       "└──○ 20: 2[20, 30] -> 20")
-    XCTAssertEqual(
+    expectEqual(
       t2.description,
       "○ Node4 {childs=4, partial=[]}\n" +
       "├──○ 10: 2[10, 20] -> 10\n" +
       "├──○ 20: 2[20, 30] -> 20\n" +
       "├──○ 30: 2[30, 40] -> 30\n" +
       "└──○ 40: 2[40, 50] -> 40")
-    XCTAssertEqual(
+    expectEqual(
       t3.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 20: 2[20, 30] -> 20\n" +
@@ -94,7 +99,7 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
                    "│  ├──○ 8: 5[4, 5, 6, 8, 8] -> 9\n" +
                    "│  └──○ 9: 5[4, 5, 6, 9, 9] -> 10\n" +
                    "└──○ 8: 5[8, 9, 10, 12, 12] -> 5"
-    XCTAssertEqual(t1_descp, t1.description)
+    expectEqual(t1_descp, t1.description)
 
     var t2 = t1
     t2.insert(key: [5, 6, 7], value: 11)
@@ -113,8 +118,8 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
                    "│  └──○ 9: 5[4, 5, 6, 9, 9] -> 10\n" +
                    "├──○ 5: 3[5, 6, 7] -> 11\n" +
                    "└──○ 8: 5[8, 9, 10, 12, 12] -> 5"
-    XCTAssertEqual(t1.description, t1_descp)
-    XCTAssertEqual(t2.description, t2_descp)
+    expectEqual(t1.description, t1_descp)
+    expectEqual(t2.description, t2_descp)
     t2.delete(key: [2, 3, 4, 5, 6])
     let t2_descp_2 = "○ Node16 {childs=6, partial=[]}\n" +
                      "├──○ 1: Node4 {childs=3, partial=[2, 3]}\n" +
@@ -129,13 +134,13 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
                      "│  └──○ 9: 5[4, 5, 6, 9, 9] -> 10\n" +
                      "├──○ 5: 3[5, 6, 7] -> 11\n" +
                      "└──○ 8: 5[8, 9, 10, 12, 12] -> 5"
-    XCTAssertEqual(t1.description, t1_descp)
-    XCTAssertEqual(t2.description, t2_descp_2)
+    expectEqual(t1.description, t1_descp)
+    expectEqual(t2.description, t2_descp_2)
 
     var t3 = t2
     t3.insert(key: [3, 4, 7], value: 11)
-    XCTAssertEqual(t1.description, t1_descp)
-    XCTAssertEqual(t2.description, t2_descp_2)
+    expectEqual(t1.description, t1_descp)
+    expectEqual(t2.description, t2_descp_2)
     t3.delete(key: [1, 2, 3, 4, 5])
     t3.delete(key: [1, 2, 3, 6, 7])
     t3.insert(key: [5, 6, 8], value: 14)
@@ -156,9 +161,9 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
                    "└──○ 8: Node4 {childs=2, partial=[9, 10]}\n" +
                    "│  ├──○ 12: 5[8, 9, 10, 12, 12] -> 5\n" +
                    "│  └──○ 13: 5[8, 9, 10, 13, 14] -> 15"
-    XCTAssertEqual(t1.description, t1_descp)
-    XCTAssertEqual(t2.description, t2_descp_2)
-    XCTAssertEqual(t3.description, t3_descp)
+    expectEqual(t1.description, t1_descp)
+    expectEqual(t2.description, t2_descp_2)
+    expectEqual(t3.description, t3_descp)
     t1.delete(key: [1, 2, 3, 4, 5])
     t1.delete(key: [2, 3, 4, 5, 6])
     t1.delete(key: [3, 4, 5, 6, 7])
@@ -169,9 +174,9 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
     t1.delete(key: [2, 3, 5, 5, 6])
     t1.delete(key: [4, 5, 6, 8, 8])
     t1.delete(key: [4, 5, 6, 9, 9])
-    XCTAssertEqual(t1.description, "<>")
-    XCTAssertEqual(t2.description, t2_descp_2)
-    XCTAssertEqual(t3.description, t3_descp)
+    expectEqual(t1.description, "<>")
+    expectEqual(t2.description, t2_descp_2)
+    expectEqual(t3.description, t3_descp)
   }
 
   func testCopyOnWriteReplaceValue() throws {
@@ -225,7 +230,7 @@ final class ARTreeCopyOnWriteTests: XCTestCase {
                    "│  ├──○ 8: 5[4, 5, 6, 8, 8] -> 9\n" +
                    "│  └──○ 9: 5[4, 5, 6, 9, 9] -> 10\n" +
                    "└──○ 8: 5[8, 9, 10, 12, 12] -> 12"
-    XCTAssertEqual(t1.description, t1_descp)
-    XCTAssertEqual(t2.description, t2_descp)
+    expectEqual(t1.description, t1_descp)
+    expectEqual(t2.description, t2_descp)
   }
 }

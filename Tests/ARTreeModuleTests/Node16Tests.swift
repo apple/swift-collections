@@ -9,18 +9,17 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class ARTreeNode16Tests: XCTestCase {
+final class ARTreeNode16Tests: CollectionTestCase {
   func test16Basic() throws {
     typealias T = Tree<[UInt8]>
     var node = T.N16.allocate()
     _ = node.addChild(forKey: 10, node: T.Leaf.allocate(key: [10], value: [0]))
     _ = node.addChild(forKey: 20, node: T.Leaf.allocate(key: [20], value: [3]))
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=2, partial=[]}\n" +
       "├──○ 10: 1[10] -> [0]\n" +
@@ -34,7 +33,7 @@ final class ARTreeNode16Tests: XCTestCase {
     _ = node.addChild(forKey: 20, node: T.Leaf.allocate(key: [20], value: [2]))
     _ = node.addChild(forKey: 30, node: T.Leaf.allocate(key: [30], value: [3]))
     _ = node.addChild(forKey: 15, node: T.Leaf.allocate(key: [15], value: [4]))
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=4, partial=[]}\n" +
       "├──○ 10: 1[10] -> [1]\n" +
@@ -49,25 +48,25 @@ final class ARTreeNode16Tests: XCTestCase {
     _ = node.addChild(forKey: 10, node: T.Leaf.allocate(key: [10], value: [1]))
     _ = node.addChild(forKey: 15, node: T.Leaf.allocate(key: [15], value: [2]))
     _ = node.addChild(forKey: 20, node: T.Leaf.allocate(key: [20], value: [3]))
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=3, partial=[]}\n" +
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
     _ = node.deleteChild(at: 0)
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
     _ = node.deleteChild(at: 1)
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=1, partial=[]}\n" +
       "└──○ 15: 1[15] -> [2]")
     _ = node.deleteChild(at: 0)
-    XCTAssertEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
+    expectEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
   }
 
   func test16DeleteKey() throws {
@@ -76,25 +75,25 @@ final class ARTreeNode16Tests: XCTestCase {
     _ = node.addChild(forKey: 10, node: T.Leaf.allocate(key: [10], value: [1]))
     _ = node.addChild(forKey: 15, node: T.Leaf.allocate(key: [15], value: [2]))
     _ = node.addChild(forKey: 20, node: T.Leaf.allocate(key: [20], value: [3]))
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=3, partial=[]}\n" +
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
     _ = node.index(forKey: 10).flatMap { node.deleteChild(at: $0) }
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
     _ = node.index(forKey: 15).flatMap { node.deleteChild(at: $0) }
-    XCTAssertEqual(
+    expectEqual(
       node.print(),
       "○ Node16 {childs=1, partial=[]}\n" +
       "└──○ 20: 1[20] -> [3]")
     _ = node.index(forKey: 20).flatMap { node.deleteChild(at: $0) }
-    XCTAssertEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
+    expectEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
   }
 
   func test16ExpandTo48AndThenShrinkTo4() throws {
@@ -103,7 +102,7 @@ final class ARTreeNode16Tests: XCTestCase {
     for ii: UInt8 in 0...15 {
       switch node.addChild(forKey: ii, node: T.Leaf.allocate(key: [ii], value: Int(ii) + 10)) {
       case .noop: break
-      case .replaceWith(_): XCTAssert(false, "node16 shouldn't expand just yet")
+      case .replaceWith(_): expectTrue(false, "node16 shouldn't expand just yet")
       }
     }
 
@@ -115,7 +114,7 @@ final class ARTreeNode16Tests: XCTestCase {
         count -= 1
       }
     }
-    XCTAssertEqual(newNode?.type, .node16)
+    expectEqual(newNode?.type, .node16)
 
     do {
       var count = 16
@@ -124,6 +123,6 @@ final class ARTreeNode16Tests: XCTestCase {
         count -= 1
       }
     }
-    XCTAssertEqual(newNode?.type, .node4)
+    expectEqual(newNode?.type, .node4)
   }
 }

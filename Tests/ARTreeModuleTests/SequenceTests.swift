@@ -9,19 +9,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class ARTreeSequenceTests: XCTestCase {
+final class ARTreeSequenceTests: CollectionTestCase {
   func testSequenceEmpty() throws {
     let t = ARTree<[UInt8]>()
     var total = 0
     for (_, _) in t {
       total += 1
     }
-    XCTAssertEqual(total, 0)
+    expectEqual(total, 0)
   }
 
   func testSequenceBasic() throws {
@@ -44,10 +43,10 @@ final class ARTreeSequenceTests: XCTestCase {
         newPairs.append((k, v))
       }
 
-      XCTAssertEqual(pairs.count, newPairs.count)
+      expectEqual(pairs.count, newPairs.count)
       for ((k1, v1), (k2, v2)) in zip(pairs, newPairs) {
-        XCTAssertEqual(k1, k2)
-        XCTAssertEqual(v1, v2)
+        expectEqual(k1, k2)
+        expectEqual(v1, v2)
       }
     }
   }

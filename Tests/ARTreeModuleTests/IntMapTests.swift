@@ -9,8 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
 fileprivate func randomInts<T: FixedWidthInteger>(size: Int,
@@ -27,7 +26,7 @@ fileprivate func randomInts<T: FixedWidthInteger>(size: Int,
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class IntMapTests: XCTestCase {
+final class IntMapTests: CollectionTestCase {
   func _testCommon<T: FixedWidthInteger & ConvertibleToBinaryComparableBytes>(size: Int,
                                          unique: Bool,
                                          min: T,
@@ -58,10 +57,10 @@ final class IntMapTests: XCTestCase {
         print("Fetched \(k) --> \(v)")
       }
 
-      XCTAssertEqual(v, m[k])
+      expectEqual(v, m[k])
 
       if total > 1 {
-        XCTAssertLessThan(last, k, "keys should be ordered")
+        expectLessThanOrEqual(last, k, "keys should be ordered")
       }
       last = k
 
@@ -71,7 +70,7 @@ final class IntMapTests: XCTestCase {
       }
     }
 
-    XCTAssertEqual(total, m.count)
+    expectEqual(total, m.count)
   }
 
   func testUnsignedIntUniqueSmall() throws {

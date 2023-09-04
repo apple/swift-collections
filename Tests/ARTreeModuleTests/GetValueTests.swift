@@ -9,8 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
 fileprivate func randomByteArray(minSize: Int,
@@ -24,10 +23,10 @@ fileprivate func randomByteArray(minSize: Int,
 }
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class ARTreeGetValueTests: XCTestCase {
+final class ARTreeGetValueTests: CollectionTestCase {
   func testGetValueNil() throws {
     let t = ARTree<[UInt8]>()
-    XCTAssertEqual(t.getValue(key: [10, 20, 30]), nil)
+    expectEqual(t.getValue(key: [10, 20, 30]), nil)
   }
 
   func testGetValueBasic() throws {
@@ -35,9 +34,9 @@ final class ARTreeGetValueTests: XCTestCase {
     t.insert(key: [10, 20, 30], value: [11, 21, 31])
     t.insert(key: [11, 21, 31], value: [12, 22, 32])
     t.insert(key: [12, 22, 32], value: [13, 23, 33])
-    XCTAssertEqual(t.getValue(key: [10, 20, 30]), [11, 21, 31])
-    XCTAssertEqual(t.getValue(key: [11, 21, 31]), [12, 22, 32])
-    XCTAssertEqual(t.getValue(key: [12, 22, 32]), [13, 23, 33])
+    expectEqual(t.getValue(key: [10, 20, 30]), [11, 21, 31])
+    expectEqual(t.getValue(key: [11, 21, 31]), [12, 22, 32])
+    expectEqual(t.getValue(key: [12, 22, 32]), [13, 23, 33])
   }
 
   func _testCommon(reps: Int,
@@ -77,7 +76,7 @@ final class ARTreeGetValueTests: XCTestCase {
             if obs ?? [] != v {
               print("Missed After Insert: \(k): \(String(describing: obs)) instead of \(v)")
               print(tree)
-              XCTAssert(false)
+              expectTrue(false)
               return
             }
           }
@@ -97,7 +96,7 @@ final class ARTreeGetValueTests: XCTestCase {
         }
       }
 
-      XCTAssertEqual(missed, 0)
+      expectEqual(missed, 0)
       if missed > 0 {
         if debug {
           print("Total = \(numKv), Matched = \(numKv - missed), Missed = \(missed)")

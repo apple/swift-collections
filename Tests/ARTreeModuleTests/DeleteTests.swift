@@ -9,12 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-
+import _CollectionsTestSupport
 @testable import ARTreeModule
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-final class ARTreeDeleteTests: XCTestCase {
+final class ARTreeDeleteTests: CollectionTestCase {
   override func setUp() {
     Const.testCheckUnique = true
   }
@@ -29,7 +28,7 @@ final class ARTreeDeleteTests: XCTestCase {
     t.insert(key: [11, 21, 31], value: [12, 22, 32])
     t.insert(key: [12, 22, 32], value: [13, 23, 33])
     t.delete(key: [11, 21, 31])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 10: 3[10, 20, 30] -> [11, 21, 31]\n" +
@@ -44,7 +43,7 @@ final class ARTreeDeleteTests: XCTestCase {
     t.delete(key: [10, 20, 30])
     t.delete(key: [11, 21, 31])
     t.delete(key: [12, 22, 32])
-    XCTAssertEqual(t.description, "<>")
+    expectEqual(t.description, "<>")
   }
 
   func testDeleteNested1() throws {
@@ -53,15 +52,15 @@ final class ARTreeDeleteTests: XCTestCase {
     t.insert(key: [4, 5, 6], value: [2])
     t.insert(key: [1, 2, 4], value: [3])
     t.delete(key: [1, 2, 4])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 1: 3[1, 2, 3] -> [1]\n" +
       "└──○ 4: 3[4, 5, 6] -> [2]")
     t.delete(key: [1, 2, 3])
-    XCTAssertEqual(t.description, "○ 3[4, 5, 6] -> [2]")
+    expectEqual(t.description, "○ 3[4, 5, 6] -> [2]")
     t.delete(key: [4, 5, 6])
-    XCTAssertEqual(t.description, "<>")
+    expectEqual(t.description, "<>")
   }
 
   func testDeleteNested2() throws {
@@ -72,7 +71,7 @@ final class ARTreeDeleteTests: XCTestCase {
     t.insert(key: [1, 2, 3, 4, 8, 9], value: [4])
     t.insert(key: [1, 2, 3, 4, 9, 9], value: [5])
     t.delete(key: [1, 2, 3, 4, 5, 6])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 1: Node4 {childs=2, partial=[2]}\n" +
@@ -88,7 +87,7 @@ final class ARTreeDeleteTests: XCTestCase {
     t.insert(key: [1, 2, 3, 4, 5, 6], value: [1])
     t.insert(key: [4, 5, 6, 7, 8, 9], value: [2])
     t.delete(key: [1, 2, 3])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 1: 6[1, 2, 3, 4, 5, 6] -> [1]\n" +
@@ -104,7 +103,7 @@ final class ARTreeDeleteTests: XCTestCase {
     t.insert(key: [1, 2, 3, 4, 9, 9], value: [5])
     t.delete(key: [1, 2, 3, 4, 5, 6])
     t.delete(key: [1, 2, 3, 4, 8, 9])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 1: Node4 {childs=2, partial=[2]}\n" +
@@ -114,9 +113,9 @@ final class ARTreeDeleteTests: XCTestCase {
     t.delete(key: [1, 2, 4, 5, 6, 7])
     t.delete(key: [4, 5, 6, 7, 8, 9])
     t.delete(key: [1, 2, 3, 4, 9, 9])
-    XCTAssertEqual(t.description, "<>")
+    expectEqual(t.description, "<>")
     t.insert(key: [1, 2, 3, 4, 5, 6], value: [1])
-    XCTAssertEqual(t.description, "○ Node4 {childs=1, partial=[]}\n" +
+    expectEqual(t.description, "○ Node4 {childs=1, partial=[]}\n" +
                                   "└──○ 1: 6[1, 2, 3, 4, 5, 6] -> [1]")
   }
 
@@ -126,12 +125,12 @@ final class ARTreeDeleteTests: XCTestCase {
     _ = t1.insert(key: [4, 5, 6, 7, 8], value: 4)
     _ = t1.insert(key: [4, 5, 6, 8, 8], value: 9)
     t1.delete(key: [2, 3, 5, 5, 6])
-    XCTAssertEqual(t1.description, "○ Node4 {childs=2, partial=[4, 5, 6]}\n" +
+    expectEqual(t1.description, "○ Node4 {childs=2, partial=[4, 5, 6]}\n" +
                                    "├──○ 7: 5[4, 5, 6, 7, 8] -> 4\n" +
                                    "└──○ 8: 5[4, 5, 6, 8, 8] -> 9")
     t1.delete(key: [4, 5, 6, 7, 8])
     t1.delete(key: [4, 5, 6, 8, 8])
-    XCTAssertEqual(t1.description, "<>")
+    expectEqual(t1.description, "<>")
   }
 
   func testDeleteCompressToNode4() throws {
@@ -141,7 +140,7 @@ final class ARTreeDeleteTests: XCTestCase {
     t.insert(key: [3, 4, 5, 6, 7], value: [3])
     t.insert(key: [4, 5, 6, 7, 8], value: [4])
     t.insert(key: [5, 6, 7, 8, 9], value: [5])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node16 {childs=5, partial=[]}\n" +
       "├──○ 1: 5[1, 2, 3, 4, 5] -> [1]\n" +
@@ -151,7 +150,7 @@ final class ARTreeDeleteTests: XCTestCase {
       "└──○ 5: 5[5, 6, 7, 8, 9] -> [5]")
     t.delete(key: [3, 4, 5, 6, 7])
     t.delete(key: [4, 5, 6, 7, 8])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node4 {childs=3, partial=[]}\n" +
       "├──○ 1: 5[1, 2, 3, 4, 5] -> [1]\n" +
@@ -164,10 +163,10 @@ final class ARTreeDeleteTests: XCTestCase {
     for i: UInt8 in 0...16 {
       t.insert(key: [i, i + 1], value: [i])
     }
-    XCTAssertEqual(t._root?.type, .node48)
+    expectEqual(t._root?.type, .node48)
     t.delete(key: [3, 4])
     t.delete(key: [4, 5])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node48 {childs=15, partial=[]}\n" +
       "├──○ 0: 2[0, 1] -> [0]\n" +
@@ -187,7 +186,7 @@ final class ARTreeDeleteTests: XCTestCase {
       "└──○ 16: 2[16, 17] -> [16]")
     t.delete(key: [5, 6])
     t.delete(key: [6, 7])
-    XCTAssertEqual(
+    expectEqual(
       t.description,
       "○ Node16 {childs=13, partial=[]}\n" +
       "├──○ 0: 2[0, 1] -> [0]\n" +
@@ -210,14 +209,14 @@ final class ARTreeDeleteTests: XCTestCase {
     for i: UInt8 in 0...48 {
       t.insert(key: [i, i + 1], value: [i])
     }
-    XCTAssertEqual(t._root?.type, .node256)
+    expectEqual(t._root?.type, .node256)
     for i: UInt8 in 24...40 {
       if i % 2 == 0 {
         t.delete(key: [i, i + 1])
       }
     }
-    XCTAssertEqual(t._root?.type, .node48)
-    XCTAssertEqual(
+    expectEqual(t._root?.type, .node48)
+    expectEqual(
       t.description,
       "○ Node48 {childs=40, partial=[]}\n" +
       "├──○ 0: 2[0, 1] -> [0]\n" +
