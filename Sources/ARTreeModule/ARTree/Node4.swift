@@ -77,7 +77,7 @@ extension Node4: InternalNode {
   }
 
   func index(forKey k: KeyPart) -> Index? {
-    for (index, key) in keys.enumerated() {
+    for (index, key) in keys[..<count].enumerated() {
       if key == k {
         return index
       }

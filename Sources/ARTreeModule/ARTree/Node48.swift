@@ -103,7 +103,7 @@ extension Node48: InternalNode {
 
   func index(forKey k: KeyPart) -> Index? {
     let childIndex = Int(keys[Int(k)])
-    return childIndex == 0xFF ? nil : childIndex
+    return childIndex == 0xFF ? nil : Int(k)
   }
 
   func index() -> Index? {
@@ -113,16 +113,17 @@ extension Node48: InternalNode {
   func next(index: Index) -> Index? {
     for idx: Int in index + 1..<256 {
       if keys[idx] != 0xFF {
-        return Int(keys[idx])
+        return Int(idx)
       }
     }
 
     return nil
   }
 
-  func child(at: Int) -> RawNode? {
-    assert(at < Self.numKeys, "maximum \(Self.numKeys) childs allowed")
-    return childs[at]
+  func child(at: Index) -> RawNode? {
+    let slot = Int(keys[at])
+    assert(slot != 0xFF, "no child at given slot")
+    return childs[slot]
   }
 
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?> {
@@ -191,8 +192,8 @@ extension Node48: InternalNode {
   }
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
-    assert(index < count, "not enough childs in node")
-    let ref = childs.baseAddress! + index
+    assert(keys[index] != 0xFF, "child doesn't exist in given slot")
+    let ref = childs.baseAddress! + Int(keys[index])
     return body(ref)
   }
 }

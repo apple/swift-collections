@@ -32,7 +32,7 @@ extension Node256 {
   static func allocate() -> NodeStorage<Self> {
     let storage = NodeStorage<Self>.allocate()
 
-    storage.update { newNode in
+    _ = storage.update { newNode in
       UnsafeMutableRawPointer(newNode.childs.baseAddress!)
         .bindMemory(to: RawNode?.self, capacity: Self.numKeys)
     }
@@ -83,7 +83,7 @@ extension Node256: InternalNode {
     return nil
   }
 
-  func child(at: Int) -> RawNode? {
+  func child(at: Index) -> RawNode? {
     assert(at < 256, "maximum 256 childs allowed")
     return childs[at]
   }
@@ -108,7 +108,6 @@ extension Node256: InternalNode {
   }
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
-    assert(index < count, "not enough childs in node")
     let ref = childs.baseAddress! + index
     return body(ref)
   }

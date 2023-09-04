@@ -56,7 +56,7 @@ extension ARTreeImpl._Iterator: IteratorProtocol {
     path.append((node, node.next(index: index!)))
   }
 
-  mutating public func next() -> Element? {
+  mutating func next() -> Element? {
     while !path.isEmpty {
       while let (node, _index) = path.last {
         guard let index = _index else {
@@ -72,7 +72,8 @@ extension ARTreeImpl._Iterator: IteratorProtocol {
           return result
         }
 
-        path.append((next.toInternalNode(), node.index()))
+        let nextNode: any InternalNode<Spec> = next.toInternalNode()
+        path.append((nextNode, nextNode.index()))
       }
     }
 

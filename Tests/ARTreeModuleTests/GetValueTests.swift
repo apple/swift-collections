@@ -13,7 +13,10 @@ import XCTest
 
 @testable import ARTreeModule
 
-func randomByteArray(minSize: Int, maxSize: Int, minByte: UInt8, maxByte: UInt8) -> [UInt8] {
+fileprivate func randomByteArray(minSize: Int,
+                                 maxSize: Int,
+                                 minByte: UInt8,
+                                 maxByte: UInt8) -> [UInt8] {
   let size = Int.random(in: minSize...maxSize)
   var result: [UInt8] = (0..<size - 1).map { _ in .random(in: minByte...maxByte) }
   result.append(0)

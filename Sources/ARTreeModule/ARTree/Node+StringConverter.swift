@@ -164,7 +164,7 @@ extension Node48: NodePrettyPrinter {
       let last = total == count
       output += indent(depth, last: last)
       output += String(key) + ": "
-      output += child(at: Int(slot))!.prettyPrint(depth: depth + 1, with: Spec.self)
+      output += child(at: Int(key))!.prettyPrint(depth: depth + 1, with: Spec.self)
       if !last {
         output += "\n"
       }

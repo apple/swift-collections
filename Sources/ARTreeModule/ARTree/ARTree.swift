@@ -48,10 +48,10 @@
 /// implements the same APIs. However, `ARTree` is optimized specifically for use cases
 /// where underlying keys share common prefixes. The underlying data-structure is a
 /// _persistent variant of _Adaptive Radix Tree (ART)_.
-public typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
+typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
 
 /// Implements a persistent Adaptive Radix Tree (ART).
-public struct ARTreeImpl<Spec: ARTreeSpec> {
+struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Spec = Spec
   public typealias Value = Spec.Value
 
