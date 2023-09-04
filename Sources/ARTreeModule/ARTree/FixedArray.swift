@@ -13,13 +13,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-typealias FixedArray4<T> = FixedArray<FixedStorage4<T>>
-typealias FixedArray8<T> = FixedArray<FixedStorage8<T>>
-typealias FixedArray16<T> = FixedArray<FixedStorage16<T>>
-typealias FixedArray48<T> = FixedArray<FixedStorage48<T>>
-typealias FixedArray256<T> = FixedArray<FixedStorage256<T>>
+typealias FixedArray4<T> = FixedArray<FixedArrayStorage4<T>>
+typealias FixedArray8<T> = FixedArray<FixedArrayStorage8<T>>
+typealias FixedArray16<T> = FixedArray<FixedArrayStorage16<T>>
+typealias FixedArray48<T> = FixedArray<FixedArrayStorage48<T>>
+typealias FixedArray256<T> = FixedArray<FixedArrayStorage256<T>>
 
-internal struct FixedArray<Storage: FixedStorage> {
+internal struct FixedArray<Storage: FixedArrayStorage> {
   typealias Element = Storage.Element
   internal var storage: Storage
 }

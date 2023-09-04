@@ -9,14 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-protocol FixedStorage {
+protocol FixedArrayStorage {
   associatedtype Element
 
   static var capacity: Int { get }
   init(repeating: Element)
 }
 
-struct FixedStorage4<T>: FixedStorage {
+struct FixedArrayStorage4<T>: FixedArrayStorage {
   internal var items: (T, T, T, T)
 
   @inline(__always)
@@ -29,7 +29,7 @@ struct FixedStorage4<T>: FixedStorage {
   }
 }
 
-struct FixedStorage8<T>: FixedStorage {
+struct FixedArrayStorage8<T>: FixedArrayStorage {
   internal var items: (T, T, T, T, T, T, T, T)
 
   @inline(__always)
@@ -42,7 +42,7 @@ struct FixedStorage8<T>: FixedStorage {
   }
 }
 
-struct FixedStorage16<T>: FixedStorage {
+struct FixedArrayStorage16<T>: FixedArrayStorage {
   internal var items:
     (
       T, T, T, T, T, T, T, T,
@@ -62,7 +62,7 @@ struct FixedStorage16<T>: FixedStorage {
   }
 }
 
-struct FixedStorage48<T>: FixedStorage {
+struct FixedArrayStorage48<T>: FixedArrayStorage {
   internal var items:
     (
       T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
@@ -84,7 +84,7 @@ struct FixedStorage48<T>: FixedStorage {
   }
 }
 
-struct FixedStorage256<T>: FixedStorage {
+struct FixedArrayStorage256<T>: FixedArrayStorage {
   internal var items:
     (
       T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T,
