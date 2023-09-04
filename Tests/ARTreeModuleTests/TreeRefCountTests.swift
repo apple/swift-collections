@@ -24,18 +24,20 @@ private class TestBox {
 final class ARTreeRefCountTest: CollectionTestCase {
   func testRefCountBasic() throws {
     // TODO: Why is it 2?
-    var x = TestBox("foo")
-    expectEqual(_getRetainCount(x), 2)
+    let x = TestBox("foo")
+    let rc1 = _getRetainCount(x)
     var t = ARTree<TestBox>()
-    expectEqual(_getRetainCount(x), 2)
     t.insert(key: [10, 20, 30], value: x)
-    expectEqual(_getRetainCount(x), 3)
-    x = TestBox("bar")
-    expectEqual(_getRetainCount(x), 2)
-    x = t.getValue(key: [10, 20, 30])!
-    expectEqual(_getRetainCount(x), 3)
+    expectEqual(_getRetainCount(x), rc1 + 1)
+    t.insert(key: [10, 20, 40], value: x)
+    t.insert(key: [10, 20, 50], value: x)
+    expectEqual(_getRetainCount(x), rc1 + 3)
+    t.delete(key: [10, 20, 40])
+    expectEqual(_getRetainCount(x), rc1 + 2)
+    t.delete(key: [10, 20, 50])
+    expectEqual(_getRetainCount(x), rc1 + 1)
     t.delete(key: [10, 20, 30])
-    expectEqual(_getRetainCount(x), 2)
+    expectEqual(_getRetainCount(x), rc1)
   }
 
   func testRefCountNode4() throws {
