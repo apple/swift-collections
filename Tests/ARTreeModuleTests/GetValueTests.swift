@@ -40,14 +40,13 @@ final class ARTreeGetValueTests: XCTestCase {
     XCTAssertEqual(t.getValue(key: [12, 22, 32]), [13, 23, 33])
   }
 
-  func testGetValueRandom() throws {
-    // (0) Parameters.
-    let reps = 100
-    let numKv = 10000
-    let minSize = 10
-    let maxSize = 100
-    let minByte: UInt8 = 1
-    let maxByte: UInt8 = 30
+  func _testCommon(reps: Int,
+                   numKv: Int,
+                   minSize: Int,
+                   maxSize: Int,
+                   minByte: UInt8,
+                   maxByte: UInt8,
+                   debug: Bool = false) throws {
 
     for iteration in 1...reps {
       if iteration == (reps / 10) * iteration {
@@ -69,18 +68,20 @@ final class ARTreeGetValueTests: XCTestCase {
       var testSetArray = Array(testSet.values)
 
       // (2) Insert into tree.
-      for (_, (key, value)) in testSetArray.enumerated() {
+      for (idx, (key, value)) in testSetArray.enumerated() {
         tree.insert(key: key, value: value)
-        // print("Inserted: \(idx + 1) \(key) -> \(value)")
-        // for (k, v) in testSetArray[0...idx] {
-        //     let obs = tree.getValue(key: k)
-        //     if obs ?? [] != v {
-        //         print("Missed After Insert: \(k): \(obs) instead of \(v)")
-        //         print(tree)
-        //         XCTAssert(false)
-        //         return
-        //     }
-        // }
+        if debug {
+          print("Inserted: \(idx + 1) \(key) -> \(value)")
+          for (k, v) in testSetArray[0...idx] {
+              let obs = tree.getValue(key: k)
+              if obs ?? [] != v {
+                  print("Missed After Insert: \(k): \(obs) instead of \(v)")
+                  print(tree)
+                  XCTAssert(false)
+                  return
+              }
+          }
+        }
       }
 
       // (3) Shuffle test-set.
@@ -98,10 +99,22 @@ final class ARTreeGetValueTests: XCTestCase {
 
       XCTAssertEqual(missed, 0)
       if missed > 0 {
-        print("Total = \(numKv), Matched = \(numKv - missed), Missed = \(missed)")
-        print(tree)
+        if debug {
+          print("Total = \(numKv), Matched = \(numKv - missed), Missed = \(missed)")
+          print(tree)
+        }
         return
       }
     }
+  }
+
+  func testGetKeyValue() throws {
+    try _testCommon(
+      reps: 100,
+      numKv: 10000,
+      minSize: 10,
+      maxSize: 100,
+      minByte: 1,
+      maxByte: 30)
   }
 }

@@ -256,88 +256,94 @@ final class ARTreeInsertTests: XCTestCase {
       "└──○ 70: 1[70] -> [70]")
   }
 
+  func _testCommon(_ items: [[UInt8]],
+                   expectedRootType: NodeType?,
+                   reps: UInt = 1) throws {
+    for iter in 0..<reps {
+      if iter % 10 == 0 {
+        print("testInsertAndGet: Iteration: \(iter)")
+      }
+
+      var tree = ARTree<Int>()
+      for (index, key) in items.enumerated() {
+        tree.insert(key: key, value: index + 10)
+      }
+
+      for (index, key) in items.enumerated().shuffled() {
+        XCTAssertEqual(tree.getValue(key: key), index + 10)
+      }
+    }
+  }
+
+  func _testCommon(_ items: [([UInt8], [UInt8])],
+                   expectedRootType: NodeType?,
+                   reps: UInt = 1) throws {
+    for iter in 0..<reps {
+      if iter % 10 == 0 {
+        print("testInsertAndGet: Iteration: \(iter)")
+      }
+
+      var tree = ARTree<[UInt8]>()
+      for (key, value) in items {
+        tree.insert(key: key, value: value)
+      }
+
+      for (key, value) in items.shuffled() {
+        XCTAssertEqual(tree.getValue(key: key), value)
+      }
+    }
+  }
+
   func testInsertPrefixSharedSmall() throws {
-    let testCase: [[UInt8]] = [
+    let items: [[UInt8]] = [
       [1, 2, 3, 4, 5],
       [1, 2, 3, 4, 6],
       [1, 2, 3, 4, 7]
     ]
 
-    var tree = ARTree<Int>()
-    for (index, test) in testCase.enumerated() {
-      tree.insert(key: test, value: index + 10)
-    }
-
-    for (val, test) in testCase.enumerated() {
-      XCTAssertEqual(tree.getValue(key: test), val + 10)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertPrefixLongOnNodePrefixFull() throws {
-    let testCase: [[UInt8]] = [
+    let items: [[UInt8]] = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 11],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 12]
     ]
 
-    var tree = ARTree<Int>()
-    for (index, test) in testCase.enumerated() {
-      tree.insert(key: test, value: index + 10)
-    }
-
-    for (val, test) in testCase.enumerated() {
-      XCTAssertEqual(tree.getValue(key: test), val + 10)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertPrefixLongMultiLayer1() throws {
-    let testCase: [[UInt8]] = [
+    let items: [[UInt8]] = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 18]
     ]
 
-    var tree = ARTree<Int>()
-    for (index, test) in testCase.enumerated() {
-      tree.insert(key: test, value: index + 10)
-    }
-
-    for (val, test) in testCase.enumerated() {
-      XCTAssertEqual(tree.getValue(key: test), val + 10)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertPrefixLongMultiLayer2() throws {
-    let testCase: [[UInt8]] = [
+    let items: [[UInt8]] = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 11, 12, 13, 14, 17],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 12, 11, 12, 13, 14, 18]
     ]
 
-    var tree = ARTree<Int>()
-    for (index, test) in testCase.enumerated() {
-      tree.insert(key: test, value: index + 10)
-    }
-
-    for (val, test) in testCase.enumerated() {
-      XCTAssertEqual(tree.getValue(key: test), val + 10)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertPrefixLongMultiLayer3() throws {
-    var testCase: [[UInt8]] = [
+    var items: [[UInt8]] = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 24]
     ]
 
     var tree = ARTree<Int>()
-    for (index, test) in testCase.enumerated() {
-      tree.insert(key: test, value: index + 10)
-    }
-
-    for (val, test) in testCase.enumerated() {
-      XCTAssertEqual(tree.getValue(key: test), val + 10)
+    for (index, key) in items.enumerated() {
+      _ = tree.insert(key: key, value: index + 10)
     }
 
     XCTAssertEqual(
@@ -350,114 +356,77 @@ final class ARTreeInsertTests: XCTestCase {
         "│  │  │  ├──○ 23: 21[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23] -> 11\n" +
         "│  │  │  └──○ 24: 21[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 24] -> 12")
 
-    testCase.append([1, 2, 3, 4, 5, 6, 7, 8, 10, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23])
-    tree.insert(key:testCase.last!, value: 3 + 10)
-    for (val, test) in testCase.enumerated() {
+    items.append([1, 2, 3, 4, 5, 6, 7, 8, 10, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 23])
+
+    tree.insert(key:items.last!, value: 3 + 10)
+    for (val, test) in items.enumerated() {
       XCTAssertEqual(tree.getValue(key: test), val + 10)
     }
   }
 
   func testInsertPrefixLongMultiLayer5() throws {
-    let testCase: [[UInt8]] = [
+    let items: [[UInt8]] = [
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99, 13, 14, 15, 17, 18, 19, 66, 21, 22, 77, 24, 25, 26, 27],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 88, 13, 14, 15, 17, 18, 19, 55, 21, 22, 66, 24, 25, 26, 27],
       [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 99, 13, 14, 15, 17, 18, 19, 66, 21, 22, 44, 24, 25, 26, 27],
     ]
 
-    var tree = ARTree<Int>()
-    for (index, test) in testCase.enumerated() {
-      tree.insert(key: test, value: index + 10)
-    }
-
-    for (val, test) in testCase.enumerated() {
-      let result = tree.getValue(key: test)
-      XCTAssertEqual(result, val + 10)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertAndGetSmallSetRepeat48() throws {
-    for ii in 0...10000 {
-      if ii % 1000 == 0 {
-        print("testInsertAndGet: Iteration: \(ii)")
-      }
+    let items: [([UInt8], [UInt8])] = [
+      ([15, 118, 236, 37], [184, 222, 84, 178, 8, 42, 238, 20]),
+      ([45, 142, 131, 183, 171, 108, 168], [153, 208, 8, 76, 71, 219]),
+      ([132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([201, 251, 245, 67, 118, 215, 95], [232, 42, 102, 176, 41, 195, 118, 191]),
+      ([101, 234, 198, 223, 121, 0], [239, 66, 245, 90, 33, 99, 232, 56, 70, 210]),
+      ([172, 34, 70, 29, 249, 116, 239, 109], [209, 14, 239, 173, 182, 124, 148]),
+      ([99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
+      ([118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
+      ([57, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([83, 22, 7, 62, 40, 239], [137, 78, 27, 99, 66]),
+    ]
 
-      var testCase: [([UInt8], [UInt8])] = [
-        ([15, 118, 236, 37], [184, 222, 84, 178, 8, 42, 238, 20]),
-        ([45, 142, 131, 183, 171, 108, 168], [153, 208, 8, 76, 71, 219]),
-        ([132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([201, 251, 245, 67, 118, 215, 95], [232, 42, 102, 176, 41, 195, 118, 191]),
-        ([101, 234, 198, 223, 121, 0], [239, 66, 245, 90, 33, 99, 232, 56, 70, 210]),
-        ([172, 34, 70, 29, 249, 116, 239, 109], [209, 14, 239, 173, 182, 124, 148]),
-        ([99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
-        ([118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
-        ([57, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([83, 22, 7, 62, 40, 239], [137, 78, 27, 99, 66]),
-      ]
-
-      var tree = ARTree<[UInt8]>()
-      for (k, v) in testCase {
-        tree.insert(key: k, value: v)
-      }
-      XCTAssertEqual(tree._root?.type, .node16)
-
-      testCase.shuffle()
-      for (k, v) in testCase {
-        XCTAssertEqual(tree.getValue(key: k), v)
-      }
-    }
+    try _testCommon(items, expectedRootType: .node16, reps: 100)
   }
 
   func testInsertAndGetSmallSetRepeat256() throws {
-    for ii in 0...10000 {
-      if ii % 1000 == 0 {
-        print("testInsertAndGet: Iteration: \(ii)")
-      }
+    let items: [([UInt8], [UInt8])] = [
+      ([15, 118, 236, 37], [184, 222, 84, 178, 8, 42, 238, 20]),
+      ([15, 45, 142, 131, 183, 171, 108, 168], [153, 208, 8, 76, 71, 219]),
+      ([15, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([15, 45, 201, 251, 245, 67, 118, 215, 95], [232, 42, 102, 176, 41, 195, 118, 191]),
+      ([101, 234, 198, 223, 121, 0], [239, 66, 245, 90, 33, 99, 232, 56, 70, 210]),
+      ([172, 34, 70, 29, 249, 116, 239, 109], [209, 14, 239, 173, 182, 124, 148]),
+      ([99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
+      ([118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
+      ([57, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([83, 22, 7, 62, 40, 239], [137, 78, 27, 99, 66]),
+      ([15, 99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
+      ([99, 118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
+      ([118, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([24, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([45, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([12, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([22, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
+      ([15, 15, 99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
+      ([57, 99, 118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
+      ([57, 83, 22, 7, 62, 40, 239], [137, 78, 27, 99, 66]),
+      ([16, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([17, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([18, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([28, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([88, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([78, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+      ([19, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
+    ]
 
-      var testCase: [([UInt8], [UInt8])] = [
-        ([15, 118, 236, 37], [184, 222, 84, 178, 8, 42, 238, 20]),
-        ([15, 45, 142, 131, 183, 171, 108, 168], [153, 208, 8, 76, 71, 219]),
-        ([15, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([15, 45, 201, 251, 245, 67, 118, 215, 95], [232, 42, 102, 176, 41, 195, 118, 191]),
-        ([101, 234, 198, 223, 121, 0], [239, 66, 245, 90, 33, 99, 232, 56, 70, 210]),
-        ([172, 34, 70, 29, 249, 116, 239, 109], [209, 14, 239, 173, 182, 124, 148]),
-        ([99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
-        ([118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
-        ([57, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([83, 22, 7, 62, 40, 239], [137, 78, 27, 99, 66]),
-        ([15, 99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
-        ([99, 118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
-        ([118, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([24, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([45, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([12, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([22, 9, 214, 179, 231, 31, 175, 125, 231, 83], [54, 4, 138, 111, 143, 121, 2]),
-        ([15, 15, 99, 136, 84, 183, 107], [151, 55, 124, 56, 254, 255, 106]),
-        ([57, 99, 118, 20, 190, 173, 101, 67, 245], [161, 154, 111, 179, 216, 198, 248, 206, 164, 243]),
-        ([57, 83, 22, 7, 62, 40, 239], [137, 78, 27, 99, 66]),
-        ([16, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([17, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([18, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([28, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([88, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([78, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-        ([19, 132, 29, 2, 67, 152, 3, 180, 115, 216, 202], [85, 13, 131, 117, 120]),
-      ]
-
-      var tree = ARTree<[UInt8]>()
-      for (k, v) in testCase {
-        tree.insert(key: k, value: v)
-      }
-      XCTAssertEqual(tree._root?.type, .node48)
-
-      testCase.shuffle()
-      for (k, v) in testCase {
-        XCTAssertEqual(tree.getValue(key: k), v)
-      }
-    }
+    try _testCommon(items, expectedRootType: .node48, reps: 100)
   }
 
   func testInsertPrefixSmallLong() throws {
-    var testCase: [([UInt8], [UInt8])] = [
+    let items: [([UInt8], [UInt8])] = [
       ([1, 2, 1, 2, 3, 2, 3, 3, 1, 3, 1, 0, 0, 2, 0, 3, 0, 1, 1], [1, 1, 2, 0, 3, 1, 3, 1, 0, 1, 3, 3, 1, 2, 3, 1, 1, 0, 1]),
       ([1, 3, 2, 2, 1, 0, 0, 2, 3, 2, 0], [0, 0, 2, 0, 3, 3, 0, 3, 3, 0, 2, 3, 3, 1, 2, 3, 2]),
       ([2, 0, 1, 0, 1, 2, 2, 3], [3, 3, 1, 3, 2, 2, 2, 1, 2, 0, 2, 1, 0, 0, 0, 2, 0, 1, 1, 1]),
@@ -466,26 +435,11 @@ final class ARTreeInsertTests: XCTestCase {
       ([2, 1, 2, 3, 1, 2, 2, 1, 2, 1, 0, 2, 2, 1], [3, 2, 2, 3, 0, 1, 0, 3, 3, 0, 1, 2]),
     ]
 
-    var tree = ARTree<[UInt8]>()
-    for (k, v) in testCase {
-      tree.insert(key: k, value: v)
-    }
-
-    var total = 0
-    for (_, _)in tree {
-      total += 1
-    }
-    XCTAssertEqual(total, testCase.count)
-    XCTAssertEqual(tree._root?.type, .node4)
-
-    testCase.shuffle()
-    for (k, v) in testCase {
-      XCTAssertEqual(tree.getValue(key: k), v)
-    }
+    try _testCommon(items, expectedRootType: .node16)
   }
 
   func testInsertPrefixSmall2() throws {
-    var testCase: [([UInt8], [UInt8])] = [
+    let items: [([UInt8], [UInt8])] = [
       ([3, 1, 3, 1, 1, 2, 0], [2, 4, 0]),
       ([2, 4, 4, 0], [4, 1, 0]),
       ([3, 2, 1, 3, 1, 1, 0], [4, 3, 0]),
@@ -497,100 +451,56 @@ final class ARTreeInsertTests: XCTestCase {
       ([3, 1, 0], [2, 2, 3, 3, 4, 0]),
     ]
 
-    var tree = ARTree<[UInt8]>()
-    for (k, v) in testCase {
-      print("Inserting \(k) \(v)")
-      tree.insert(key: k, value: v)
-    }
-    XCTAssertEqual(tree._root?.type, .node4)
-
-    testCase.reverse()
-    for (k, v) in testCase {
-      print("Checking \(k) \(v)")
-      XCTAssertEqual(tree.getValue(key: k), v)
-    }
+    try _testCommon(items, expectedRootType: .node16)
   }
 
   func testInsertLongSharedPrefix1() throws {
-    var testCase: [([UInt8], [UInt8])] = [
+    let items: [([UInt8], [UInt8])] = [
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], [1]),
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19], [2]),
     ]
 
-    var tree = ARTree<[UInt8]>()
-    for (k, v) in testCase {
-      print("Inserting \(k) \(v)")
-      tree.insert(key: k, value: v)
-    }
-    XCTAssertEqual(tree._root?.type, .node4)
-
-    testCase.reverse()
-    for (k, v) in testCase {
-      print("Checking \(k) \(v)")
-      XCTAssertEqual(tree.getValue(key: k), v)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertLongSharedPrefix2() throws {
-    var testCase: [([UInt8], [UInt8])] = [
+    let items: [([UInt8], [UInt8])] = [
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], [1]),
       ([1, 4, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], [4]),
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19], [2]),
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 20], [3]),
     ]
 
-    var tree = ARTree<[UInt8]>()
-    for (k, v) in testCase {
-      print("Inserting \(k) \(v)")
-      tree.insert(key: k, value: v)
-    }
-    XCTAssertEqual(tree._root?.type, .node4)
-
-    testCase.reverse()
-    for (k, v) in testCase {
-      print("Checking \(k) \(v)")
-      XCTAssertEqual(tree.getValue(key: k), v)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testInsertLongSharedPrefix3() throws {
-    var testCase: [([UInt8], [UInt8])] = [
+    let items: [([UInt8], [UInt8])] = [
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], [1]),
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 19], [2]),
       ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 20], [3]),
     ]
 
-    var tree = ARTree<[UInt8]>()
-    for (k, v) in testCase {
-      print("Inserting \(k) \(v)")
-      tree.insert(key: k, value: v)
-    }
-    XCTAssertEqual(tree._root?.type, .node4)
-
-    testCase.reverse()
-    for (k, v) in testCase {
-      print("Checking \(k) \(v)")
-      XCTAssertEqual(tree.getValue(key: k), v)
-    }
+    try _testCommon(items, expectedRootType: .node4)
   }
 
   func testReplace() throws {
     var t = ARTree<Int>()
-    let testCases: [[UInt8]] = [
+    let items: [[UInt8]] = [
       [11, 21, 31],
       [12, 22, 32],
       [10, 20, 32]
     ]
 
-    for (idx, test) in testCases.enumerated() {
+    for (idx, test) in items.enumerated() {
       t.insert(key: test, value: idx)
     }
 
-    for (idx, test) in testCases.enumerated() {
+    for (idx, test) in items.enumerated() {
       t.insert(key: test, value: idx + 10)
     }
 
-    for (idx, test) in testCases.enumerated() {
+    for (idx, test) in items.enumerated() {
       XCTAssertEqual(t.getValue(key: test), idx + 10)
     }
   }
