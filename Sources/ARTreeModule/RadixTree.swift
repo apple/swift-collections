@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-public struct RadixTree<Key: ConvertibleToOrderedBytes, Value> {
+public struct RadixTree<Key: ConvertibleToBinaryComparableBytes, Value> {
   var _tree: ARTree<Value>
 
   public init() {
@@ -20,17 +20,17 @@ public struct RadixTree<Key: ConvertibleToOrderedBytes, Value> {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RadixTree {
   public mutating func insert(_ key: Key, _ value: Value) -> Bool {
-    let k = key.toOrderedBytes()
+    let k = key.toBinaryComparableBytes()
     return _tree.insert(key: k, value: value)
   }
 
   public mutating func getValue(_ key: Key) -> Value? {
-    let k = key.toOrderedBytes()
+    let k = key.toBinaryComparableBytes()
     return _tree.getValue(key: k)
   }
 
   public mutating func delete(_ key: Key) {
-    let k = key.toOrderedBytes()
+    let k = key.toBinaryComparableBytes()
     _tree.delete(key: k)
   }
 }
@@ -44,7 +44,7 @@ extension RadixTree: Sequence {
 
     mutating public func next() -> Element? {
       guard let (k, v) = _iter.next() else { return nil }
-      return (Key.fromOrderedBytes(k), v)
+      return (Key.fromBinaryComparableBytes(k), v)
     }
   }
 

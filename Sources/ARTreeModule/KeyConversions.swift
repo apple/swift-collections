@@ -9,19 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-public protocol ConvertibleToOrderedBytes {
-  func toOrderedBytes() -> [UInt8]
-  static func fromOrderedBytes(_ bytes: [UInt8]) -> Self
+public protocol ConvertibleToBinaryComparableBytes {
+  func toBinaryComparableBytes() -> [UInt8]
+  static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self
 }
 
-///-- Unsigned Integers ------------------------------------------------------//
+///-- Unsigned Integers ----------------------------------------------------------------------//
 
-extension UInt: ConvertibleToOrderedBytes {
-  public func toOrderedBytes() -> [UInt8] {
+extension UInt: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
     return withUnsafeBytes(of: self.bigEndian, Array.init)
   }
 
-  public static func fromOrderedBytes(_ bytes: [UInt8]) -> Self {
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
     let ii = bytes.withUnsafeBytes {
         $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
       }
@@ -29,12 +29,12 @@ extension UInt: ConvertibleToOrderedBytes {
   }
 }
 
-extension UInt16: ConvertibleToOrderedBytes {
-  public func toOrderedBytes() -> [UInt8] {
+extension UInt16: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
     return withUnsafeBytes(of: self.bigEndian, Array.init)
   }
 
-  public static func fromOrderedBytes(_ bytes: [UInt8]) -> Self {
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
     let ii = bytes.withUnsafeBytes {
         $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
       }
@@ -42,12 +42,12 @@ extension UInt16: ConvertibleToOrderedBytes {
   }
 }
 
-extension UInt32: ConvertibleToOrderedBytes {
-  public func toOrderedBytes() -> [UInt8] {
+extension UInt32: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
     return withUnsafeBytes(of: self.bigEndian, Array.init)
   }
 
-  public static func fromOrderedBytes(_ bytes: [UInt8]) -> Self {
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
     let ii = bytes.withUnsafeBytes {
         $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
       }
@@ -55,12 +55,12 @@ extension UInt32: ConvertibleToOrderedBytes {
   }
 }
 
-extension UInt64: ConvertibleToOrderedBytes {
-  public func toOrderedBytes() -> [UInt8] {
+extension UInt64: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
     return withUnsafeBytes(of: self.bigEndian, Array.init)
   }
 
-  public static func fromOrderedBytes(_ bytes: [UInt8]) -> Self {
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
     let ii = bytes.withUnsafeBytes {
         $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
       }
@@ -68,14 +68,59 @@ extension UInt64: ConvertibleToOrderedBytes {
   }
 }
 
-///-- Bytes ------------------------------------------------------------------//
+///-- Signed Integers ------------------------------------------------------------------------//
 
-extension [UInt8]: ConvertibleToOrderedBytes {
-  public func toOrderedBytes() -> [UInt8] {
+fileprivate func _flipSignBit<T: SignedInteger & FixedWidthInteger>(_ val: T) -> T {
+  return val ^ (1 << (T.bitWidth - 1))
+}
+
+extension Int: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
+    return withUnsafeBytes(of: _flipSignBit(self).bigEndian, Array.init)
+  }
+
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
+    let ii = bytes.withUnsafeBytes {
+        $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
+      }
+    return _flipSignBit(Self(bigEndian: ii))
+  }
+}
+
+extension Int32: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
+    return withUnsafeBytes(of: _flipSignBit(self).bigEndian, Array.init)
+  }
+
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
+    let ii = bytes.withUnsafeBytes {
+        $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
+      }
+    return _flipSignBit(Self(bigEndian: ii))
+  }
+}
+
+extension Int64: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
+    return withUnsafeBytes(of: _flipSignBit(self).bigEndian, Array.init)
+  }
+
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
+    let ii = bytes.withUnsafeBytes {
+        $0.assumingMemoryBound(to: Self.self).baseAddress!.pointee
+      }
+    return _flipSignBit(Self(bigEndian: ii))
+  }
+}
+
+///-- Bytes ----------------------------------------------------------------------------------//
+
+extension [UInt8]: ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
     return self
   }
 
-  public static func fromOrderedBytes(_ bytes: [UInt8]) -> Key {
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Key {
     return bytes
   }
 }

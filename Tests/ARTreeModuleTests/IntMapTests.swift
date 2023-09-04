@@ -19,7 +19,8 @@ fileprivate func randomInts<T: FixedWidthInteger>(size: Int,
                                                   max: T) -> [T] {
 
   if unique {
-    return (0..<size - 1).shuffled().map { T($0) }
+    assert(max - min + 1 >= size, "range not large enough")
+    return (min..<max).shuffled()[..<size].map { T($0) }
   } else {
     return (0..<size - 1).map { _ in .random(in: min...max) }
   }
@@ -27,7 +28,7 @@ fileprivate func randomInts<T: FixedWidthInteger>(size: Int,
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 final class IntMapTests: XCTestCase {
-  func _testCommon<T: FixedWidthInteger & ConvertibleToOrderedBytes>(size: Int,
+  func _testCommon<T: FixedWidthInteger & ConvertibleToBinaryComparableBytes>(size: Int,
                                          unique: Bool,
                                          min: T,
                                          max: T,
@@ -51,16 +52,20 @@ final class IntMapTests: XCTestCase {
     }
 
     var total = 0
-    var last = -1
+    var last = T.min
     for (k, v) in t {
-      total += 1
       if debug {
         print("Fetched \(k) --> \(v)")
       }
-      XCTAssertEqual(v, m[k])
-      XCTAssertLessThan(last, Int(k), "keys should be ordered")
-      last = Int(k)
 
+      XCTAssertEqual(v, m[k])
+
+      if total > 1 {
+        XCTAssertLessThan(last, k, "keys should be ordered")
+      }
+      last = k
+
+      total += 1
       if total > m.count {
         break
       }
@@ -69,8 +74,15 @@ final class IntMapTests: XCTestCase {
     XCTAssertEqual(total, m.count)
   }
 
-  func testUnsignedIntUnique() throws {
-    try _testCommon(size: 100000,
+  func testUnsignedIntUniqueSmall() throws {
+    try _testCommon(size: 100,
+                    unique: true,
+                    min: 0 as UInt,
+                    max: 1_000 as UInt)
+  }
+
+  func testUnsignedIntUniqueLarge() throws {
+    try _testCommon(size: 100_000,
                     unique: true,
                     min: 0 as UInt,
                     max: 1 << 50 as UInt)
@@ -83,10 +95,32 @@ final class IntMapTests: XCTestCase {
                     max: 50 as UInt)
   }
 
+  func testUnsignedInt32WithDuplicatesSmallSet() throws {
+    try _testCommon(size: 100,
+                    unique: false,
+                    min: 0 as UInt32,
+                    max: 50 as UInt32)
+  }
+
   func testUnsignedIntWithDuplicatesLargeSet() throws {
-    try _testCommon(size: 1000000,
+    try _testCommon(size: 1_000_000,
                     unique: false,
                     min: 0 as UInt,
-                    max: 100000 as UInt)
+                    max: 100_000 as UInt)
+  }
+
+  func testSignedIntUniqueSmall() throws {
+    try _testCommon(size: 100,
+                    unique: true,
+                    min: -100 as Int,
+                    max: 100 as Int,
+                    debug: false)
+  }
+
+  func testSignedIntUniqueLarge() throws {
+    try _testCommon(size: 1_000_000,
+                    unique: true,
+                    min: -100_000_000 as Int,
+                    max: 100_000_000 as Int)
   }
 }
