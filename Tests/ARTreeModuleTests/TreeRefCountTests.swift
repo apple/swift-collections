@@ -87,6 +87,8 @@ final class ARTreeRefCountTest: XCTestCase {
     let c = node.node.rawNode
     let count3 = _getRetainCount(ref)
     XCTAssertEqual(count3, count2 + 1)
+
+    _ = (a, b, c) // FIXME: to suppress warning
   }
 
   func testRefCountReplace() throws {
@@ -122,5 +124,7 @@ final class ARTreeRefCountTest: XCTestCase {
     _ = node.deleteChild(at: 0)
     XCTAssertFalse(isKnownUniquelyReferenced(&newNode.ref),
                   "newNode can't be unique as it is should be referenced by clone as well")
+
+    _ = (cloneNode) // FIXME: to suppress warning.
   }
 }

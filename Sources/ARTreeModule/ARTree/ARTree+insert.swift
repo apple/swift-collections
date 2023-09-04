@@ -20,7 +20,7 @@ extension ARTreeImpl {
 
   @discardableResult
   public mutating func insert(key: Key, value: Value) -> Bool {
-    guard var (action, ref) = _findInsertNode(key: key) else { return false }
+    guard case (let action, var ref)? = _findInsertNode(key: key) else { return false }
 
     switch action {
     case .replace(let leaf):

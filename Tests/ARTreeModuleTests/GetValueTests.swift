@@ -73,13 +73,13 @@ final class ARTreeGetValueTests: XCTestCase {
         if debug {
           print("Inserted: \(idx + 1) \(key) -> \(value)")
           for (k, v) in testSetArray[0...idx] {
-              let obs = tree.getValue(key: k)
-              if obs ?? [] != v {
-                  print("Missed After Insert: \(k): \(obs) instead of \(v)")
-                  print(tree)
-                  XCTAssert(false)
-                  return
-              }
+            let obs = tree.getValue(key: k)
+            if obs ?? [] != v {
+              print("Missed After Insert: \(k): \(String(describing: obs)) instead of \(v)")
+              print(tree)
+              XCTAssert(false)
+              return
+            }
           }
         }
       }
@@ -92,7 +92,7 @@ final class ARTreeGetValueTests: XCTestCase {
       for (key, value) in testSetArray {
         let obs = tree.getValue(key: key) ?? []
         if obs != value {
-          print("Missed: \(key): \(value) got \(obs)")
+          print("Missed: \(key): \(value) got \(String(describing: obs))")
           missed += 1
         }
       }
