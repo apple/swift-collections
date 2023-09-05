@@ -9,9 +9,29 @@
 //
 //===----------------------------------------------------------------------===//
 
+/// A collection which maintains key-value pairs in compact and sorted order. The keys must confirm
+/// to `ConvertibleToBinaryComparableBytes`, i.e. the keys can be converted to bytes, and the order
+/// of key is defined by order of these bytes.
+///
+/// `RadixTree` is optimized for space, mutating shared copies, and efficient range operations.
+/// Compared to `SortedDictionary` in collection library, `RadixTree` is ideal for datasets where
+/// keys often have common prefixes, or key comparison is expensive as `RadixTree` operations are
+/// often O(k) instead of O(log(n)) where `k` is key length and `n` is number of items in
+/// collection.
+///
+/// `RadixTree` has the same functionality as a standard `Dictionary`, and it largely
+/// implements the same APIs. However, `RadixTree` is optimized specifically for use cases
+/// where underlying keys share common prefixes. The underlying data-structure is a
+/// _persistent variant of _Adaptive Radix Tree (ART)_.
 public struct RadixTree<Key: ConvertibleToBinaryComparableBytes, Value> {
-  var _tree: ARTree<Value>
+  @usableFromInline
+  internal var _tree: ARTree<Value>
 
+  /// Creates an empty tree.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
   public init() {
     self._tree = ARTree<Value>()
   }
@@ -26,7 +46,7 @@ extension RadixTree {
   ///
   /// - Parameter keysAndValues: A sequence of key-value pairs to use
   ///     for the new Radix Tree.
-  /// - Complexity: O(?)
+  /// - Complexity: O(n*k)
   @inlinable
   @inline(__always)
   public init<S>(
