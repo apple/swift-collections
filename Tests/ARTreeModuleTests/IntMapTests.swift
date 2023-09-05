@@ -19,7 +19,11 @@ fileprivate func randomInts<T: FixedWidthInteger>(size: Int,
 
   if unique {
     assert(max - min + 1 >= size, "range not large enough")
-    return (min..<max).shuffled()[..<size].map { T($0) }
+    var uniques = Set<T>()
+    while uniques.count < size {
+      uniques.insert(.random(in: min...max))
+    }
+    return Array(uniques)
   } else {
     return (0..<size - 1).map { _ in .random(in: min...max) }
   }

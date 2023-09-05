@@ -10,15 +10,25 @@
 //===----------------------------------------------------------------------===//
 
 public protocol ConvertibleToBinaryComparableBytes {
-  func toBinaryComparableBytes() -> [UInt8]
+  func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R
   static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self
+}
+
+extension ConvertibleToBinaryComparableBytes {
+  public func toBinaryComparableBytes() -> [UInt8] {
+    self.withUnsafeBinaryComparableBytes { Array($0) }
+  }
 }
 
 ///-- Unsigned Integers ----------------------------------------------------------------------//
 
 extension UInt: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: self.bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    try withUnsafeBytes(of: self.bigEndian) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -30,8 +40,11 @@ extension UInt: ConvertibleToBinaryComparableBytes {
 }
 
 extension UInt16: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: self.bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    try withUnsafeBytes(of: self.bigEndian) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -43,8 +56,11 @@ extension UInt16: ConvertibleToBinaryComparableBytes {
 }
 
 extension UInt32: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: self.bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    try withUnsafeBytes(of: self.bigEndian) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -56,8 +72,11 @@ extension UInt32: ConvertibleToBinaryComparableBytes {
 }
 
 extension UInt64: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: self.bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    try withUnsafeBytes(of: self.bigEndian) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -75,8 +94,12 @@ fileprivate func _flipSignBit<T: SignedInteger & FixedWidthInteger>(_ val: T) ->
 }
 
 extension Int: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: _flipSignBit(self).bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    let ii = _flipSignBit(self).bigEndian
+    return try withUnsafeBytes(of: ii) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -88,8 +111,12 @@ extension Int: ConvertibleToBinaryComparableBytes {
 }
 
 extension Int32: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: _flipSignBit(self).bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    let ii = _flipSignBit(self).bigEndian
+    return try withUnsafeBytes(of: ii) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -101,8 +128,12 @@ extension Int32: ConvertibleToBinaryComparableBytes {
 }
 
 extension Int64: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return withUnsafeBytes(of: _flipSignBit(self).bigEndian, Array.init)
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+    let ii = _flipSignBit(self).bigEndian
+    return try withUnsafeBytes(of: ii) {
+      try body($0)
+    }
   }
 
   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
@@ -113,14 +144,27 @@ extension Int64: ConvertibleToBinaryComparableBytes {
   }
 }
 
+///-- String ---------------------------------------------------------------------------------//
+
+// extension String: ConvertibleToBinaryComparableBytes {
+//   public func toBinaryComparableBytes() -> [UInt8] {
+//     return self.withUnsafe
+//   }
+
+//   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Key {
+//     return bytes
+//   }
+// }
+
 ///-- Bytes ----------------------------------------------------------------------------------//
 
-extension [UInt8]: ConvertibleToBinaryComparableBytes {
-  public func toBinaryComparableBytes() -> [UInt8] {
-    return self
-  }
+// TODO: Disable until, we support storing bytes with shared prefixes.
+// extension [UInt8]: ConvertibleToBinaryComparableBytes {
+//   public func toBinaryComparableBytes() -> [UInt8] {
+//     return self
+//   }
 
-  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Key {
-    return bytes
-  }
-}
+//   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Key {
+//     return bytes
+//   }
+// }
