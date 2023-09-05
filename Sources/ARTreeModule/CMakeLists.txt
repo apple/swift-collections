@@ -32,7 +32,9 @@ add_library(ARTreeModule
   "ARTree/NodeType.swift"
   "ARTree/RawNode.swift"
   "ARTree/UnmanagedNodeStorage.swift"
-  "ARTree/Utils.swift"
+  "ARTree/Utils.swift",
+  "RadixTree.swift",
+  "KeyConversions.swift"
 )
 target_link_libraries(ARTreeModule PRIVATE
   _CollectionsUtilities)
