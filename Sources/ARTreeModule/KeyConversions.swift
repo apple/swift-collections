@@ -146,15 +146,19 @@ extension Int64: ConvertibleToBinaryComparableBytes {
 
 ///-- String ---------------------------------------------------------------------------------//
 
-// extension String: ConvertibleToBinaryComparableBytes {
-//   public func toBinaryComparableBytes() -> [UInt8] {
-//     return self.withUnsafe
-//   }
+extension String: ConvertibleToBinaryComparableBytes {
+  public func withUnsafeBinaryComparableBytes<R>(
+    _ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
 
-//   public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Key {
-//     return bytes
-//   }
-// }
+    try self.utf8CString.withUnsafeBytes {
+      try body($0)
+    }
+  }
+
+  public static func fromBinaryComparableBytes(_ bytes: [UInt8]) -> Self {
+    String(cString: bytes)
+  }
+}
 
 ///-- Bytes ----------------------------------------------------------------------------------//
 
