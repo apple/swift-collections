@@ -147,7 +147,7 @@ extension Node48: InternalNode {
     }
   }
 
-  public mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+  public mutating func removeChild(at index: Index) -> UpdateResult<RawNode?> {
     let targetSlot = Int(keys[index])
     assert(targetSlot != 0xFF, "slot is empty already")
     // 1. Find out who has the last slot.

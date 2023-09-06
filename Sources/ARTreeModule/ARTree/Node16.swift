@@ -153,7 +153,7 @@ extension Node16: InternalNode {
     }
   }
 
-  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+  mutating func removeChild(at index: Index) -> UpdateResult<RawNode?> {
     assert(index < Self.numKeys, "index can't >= 16 in Node16")
     assert(index < count, "not enough childs in node")
 

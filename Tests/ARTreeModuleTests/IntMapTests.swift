@@ -50,7 +50,7 @@ final class IntMapTests: CollectionTestCase {
       if debug {
         print("Inserting \(k) --> \(v)")
       }
-      _ = t.insert(k, v)
+      _ = t.updateValue(v, forKey: k)
       m[k] = v
     }
 

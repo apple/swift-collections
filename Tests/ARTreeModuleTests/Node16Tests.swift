@@ -54,18 +54,18 @@ final class ARTreeNode16Tests: CollectionTestCase {
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(at: 0)
+    _ = node.removeChild(at: 0)
     expectEqual(
       node.print(),
       "○ Node16 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(at: 1)
+    _ = node.removeChild(at: 1)
     expectEqual(
       node.print(),
       "○ Node16 {childs=1, partial=[]}\n" +
       "└──○ 15: 1[15] -> [2]")
-    _ = node.deleteChild(at: 0)
+    _ = node.removeChild(at: 0)
     expectEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
   }
 
@@ -81,18 +81,18 @@ final class ARTreeNode16Tests: CollectionTestCase {
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.index(forKey: 10).flatMap { node.deleteChild(at: $0) }
+    _ = node.index(forKey: 10).flatMap { node.removeChild(at: $0) }
     expectEqual(
       node.print(),
       "○ Node16 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.index(forKey: 15).flatMap { node.deleteChild(at: $0) }
+    _ = node.index(forKey: 15).flatMap { node.removeChild(at: $0) }
     expectEqual(
       node.print(),
       "○ Node16 {childs=1, partial=[]}\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.index(forKey: 20).flatMap { node.deleteChild(at: $0) }
+    _ = node.index(forKey: 20).flatMap { node.removeChild(at: $0) }
     expectEqual(node.print(), "○ Node16 {childs=0, partial=[]}\n")
   }
 
@@ -110,7 +110,7 @@ final class ARTreeNode16Tests: CollectionTestCase {
     do {
       var count = 48
       while newNode?.type != .node16 && count > 0 {
-        newNode = node.deleteChildReturn(at: 4)
+        newNode = node.removeChildReturn(at: 4)
         count -= 1
       }
     }
@@ -119,7 +119,7 @@ final class ARTreeNode16Tests: CollectionTestCase {
     do {
       var count = 16
       while newNode?.type != .node4 && count > 0 {
-        newNode = node.deleteChildReturn(at: 2)
+        newNode = node.removeChildReturn(at: 2)
         count -= 1
       }
     }

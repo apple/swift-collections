@@ -31,7 +31,7 @@ protocol InternalNode<Spec>: ArtNode {
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?>
   mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?>
 
-  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?>
+  mutating func removeChild(at index: Index) -> UpdateResult<RawNode?>
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R
 }
@@ -207,7 +207,7 @@ extension InternalNode {
       // - Remove successful, but we can shrink ourselves now with newValue.
       return withSelfOrClone(isUnique: isUnique) {
         var selfRef = $0
-        switch selfRef.deleteChild(at: childPosition) {
+        switch selfRef.removeChild(at: childPosition) {
         case .noop:
           // Child removed successfully, nothing to do. Keep ourselves.
           return .replaceWith(selfRef.rawNode)
@@ -224,7 +224,7 @@ extension InternalNode {
           return .replaceWith(newValue)
 
         case .replaceWith(nil):
-          fatalError("unexpected state: deleteChild should not be called with count == 1")
+          fatalError("unexpected state: removeChild should not be called with count == 1")
         }
       }
 

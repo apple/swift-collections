@@ -102,9 +102,9 @@ extension NodeStorage where Mn: InternalNode {
     }
   }
 
-  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+  mutating func removeChild(at index: Index) -> UpdateResult<RawNode?> {
     update {
-      $0.deleteChild(at: index)
+      $0.removeChild(at: index)
     }
   }
 }

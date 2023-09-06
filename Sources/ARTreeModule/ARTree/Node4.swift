@@ -130,7 +130,7 @@ extension Node4: InternalNode {
     }
   }
 
-  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+  mutating func removeChild(at index: Index) -> UpdateResult<RawNode?> {
     assert(index < 4, "index can't >= 4 in Node4")
     assert(index < count, "not enough childs in node")
 

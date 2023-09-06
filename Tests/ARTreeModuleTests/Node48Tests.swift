@@ -39,18 +39,18 @@ final class ARTreeNode48Tests: CollectionTestCase {
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(at: 10)
+    _ = node.removeChild(at: 10)
     expectEqual(
       node.print(),
       "○ Node48 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(at: 15)
+    _ = node.removeChild(at: 15)
     expectEqual(
       node.print(),
       "○ Node48 {childs=1, partial=[]}\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(at: 20)
+    _ = node.removeChild(at: 20)
     expectEqual(node.print(), "○ Node48 {childs=0, partial=[]}\n")
   }
 }

@@ -34,8 +34,8 @@ extension NodeStorage where Mn: InternalNode {
     }
   }
 
-  mutating func deleteChildReturn(at idx: Index) -> RawNode? {
-    switch deleteChild(at: idx) {
+  mutating func removeChildReturn(at idx: Index) -> RawNode? {
+    switch removeChild(at: idx) {
     case .noop:
       return self.rawNode
     case .replaceWith(let newValue):
@@ -106,14 +106,14 @@ final class ARTreeNode4Tests: CollectionTestCase {
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.deleteChild(at: 0)
+    _ = node.removeChild(at: 0)
     expectEqual(
       node.print(),
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
 
-    let newNode = node.deleteChildReturn(at: 1)
+    let newNode = node.removeChildReturn(at: 1)
     expectEqual(newNode?.type, .leaf)
   }
 
@@ -132,7 +132,7 @@ final class ARTreeNode4Tests: CollectionTestCase {
       "├──○ 2: 1[2] -> 2\n" +
       "├──○ 3: 1[3] -> 3\n" +
       "└──○ 4: 1[4] -> 4")
-    _ = node.deleteChild(at: 1)
+    _ = node.removeChild(at: 1)
     expectEqual(
       node.print(),
       "○ Node4 {childs=3, partial=[]}\n" +
@@ -140,8 +140,8 @@ final class ARTreeNode4Tests: CollectionTestCase {
       "├──○ 3: 1[3] -> 3\n" +
       "└──○ 4: 1[4] -> 4")
 
-    _ = node.deleteChild(at: 1)
-    let newNode = node.deleteChildReturn(at: 1)
+    _ = node.removeChild(at: 1)
+    let newNode = node.removeChildReturn(at: 1)
     expectEqual(newNode?.type, .leaf)
   }
 
@@ -172,8 +172,8 @@ final class ARTreeNode4Tests: CollectionTestCase {
 
     do {
       var node: any InternalNode<T.Spec> = newNode!.toInternalNode()
-      _ = node.deleteChild(at: 4)
-      switch node.deleteChild(at: 3) {
+      _ = node.removeChild(at: 4)
+      switch node.removeChild(at: 3) {
       case .noop, .replaceWith(nil): expectTrue(false, "node should shrink")
       case .replaceWith(let newValue?): expectEqual(newValue.type, .node4)
       }
@@ -192,13 +192,13 @@ final class ARTreeNode4Tests: CollectionTestCase {
       "├──○ 10: 1[10] -> [1]\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.index(forKey: 10).flatMap { node.deleteChild(at: $0) }
+    _ = node.index(forKey: 10).flatMap { node.removeChild(at: $0) }
     expectEqual(
       node.print(),
       "○ Node4 {childs=2, partial=[]}\n" +
       "├──○ 15: 1[15] -> [2]\n" +
       "└──○ 20: 1[20] -> [3]")
-    _ = node.index(forKey: 15).flatMap { node.deleteChild(at: $0) }
+    _ = node.index(forKey: 15).flatMap { node.removeChild(at: $0) }
     expectEqual(
       node.print(),
       "○ Node4 {childs=1, partial=[]}\n" +

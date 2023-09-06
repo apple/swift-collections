@@ -115,14 +115,14 @@ final class ARTreeRefCountTest: CollectionTestCase {
     expectTrue(isKnownUniquelyReferenced(&newNode.ref))
     _ = node.addChild(forKey: 10, node: newNode)
     expectFalse(isKnownUniquelyReferenced(&newNode.ref))
-    _ = node.deleteChild(at: 0)
+    _ = node.removeChild(at: 0)
     expectTrue(isKnownUniquelyReferenced(&newNode.ref))
 
     // Now do same after cloning.
     _ = node.addChild(forKey: 10, node: newNode)
     expectFalse(isKnownUniquelyReferenced(&newNode.ref))
     let cloneNode = node.clone()
-    _ = node.deleteChild(at: 0)
+    _ = node.removeChild(at: 0)
     expectFalse(isKnownUniquelyReferenced(&newNode.ref),
                   "newNode can't be unique as it is should be referenced by clone as well")
 

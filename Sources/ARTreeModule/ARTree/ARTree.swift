@@ -22,7 +22,7 @@
 typealias ARTree<Value> = ARTreeImpl<DefaultSpec<Value>>
 
 /// Implements a persistent Adaptive Radix Tree (ART).
-struct ARTreeImpl<Spec: ARTreeSpec> {
+internal struct ARTreeImpl<Spec: ARTreeSpec> {
   public typealias Spec = Spec
   public typealias Value = Spec.Value
 

@@ -95,7 +95,7 @@ extension Node256: InternalNode {
     return .noop
   }
 
-  mutating func deleteChild(at index: Index) -> UpdateResult<RawNode?> {
+  mutating func removeChild(at index: Index) -> UpdateResult<RawNode?> {
     childs[index] = nil
     count -= 1
 

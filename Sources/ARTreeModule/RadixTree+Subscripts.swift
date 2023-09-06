@@ -28,14 +28,14 @@ extension RadixTree {
   @inline(__always)
   public subscript(key: Key) -> Value? {
     get {
-        return self.getValue(key)
+      return self.getValue(forKey: key)
     }
-    
+
     set {
       if let newValue = newValue {
-        _ = self.insert(key, newValue)
+        _ = self.updateValue(newValue, forKey: key)
       } else {
-        self.delete(key)
+        self.removeValue(forKey: key)
       }
     }
   }

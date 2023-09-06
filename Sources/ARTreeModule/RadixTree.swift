@@ -19,79 +19,69 @@
 /// often O(k) instead of O(log(n)) where `k` is key length and `n` is number of items in
 /// collection.
 ///
-/// `RadixTree` has the same functionality as a standard `Dictionary`, and it largely
-/// implements the same APIs. However, `RadixTree` is optimized specifically for use cases
-/// where underlying keys share common prefixes. The underlying data-structure is a
-/// _persistent variant of _Adaptive Radix Tree (ART)_.
+/// `RadixTree` has the same functionality as a standard `Dictionary`, and it largely implements the
+/// same APIs. However, `RadixTree` is optimized specifically for use cases where underlying keys
+/// share common prefixes. The underlying data-structure is a _persistent variant of _Adaptive Radix
+/// Tree (ART)_.
 public struct RadixTree<Key: ConvertibleToBinaryComparableBytes, Value> {
-  @usableFromInline
   internal var _tree: ARTree<Value>
 
   /// Creates an empty tree.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
   public init() {
     self._tree = ARTree<Value>()
   }
 }
 
+// MARK: Accessing Keys and Values
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RadixTree {
-  /// Creates a Radix Tree collection from a sequence of key-value pairs.
+  /// Returns the value associated with the key.
   ///
-  /// If duplicates are encountered the last instance of the key-value pair is the one
-  /// that is kept.
-  ///
-  /// - Parameter keysAndValues: A sequence of key-value pairs to use
-  ///     for the new Radix Tree.
-  /// - Complexity: O(n*k)
-  @inlinable
-  @inline(__always)
-  public init<S>(
-    keysWithValues keysAndValues: S
-  ) where S: Sequence, S.Element == (key: Key, value: Value) {
-    self.init()
-
-    for (key, value) in keysAndValues {
-      _ = self.insert(key, value)
-    }
+  /// - Parameter key: The key to search for
+  /// - Returns: `nil` if the key was not present. Otherwise, the previous value.
+  /// - Complexity: O(`k`) where `k` is size of the key.
+  public func getValue(forKey key: Key) -> Value? {
+    let kb = key.toBinaryComparableBytes()
+    return _tree.getValue(key: kb)
   }
 }
 
+// MARK: Mutations
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RadixTree {
-  public mutating func insert(_ key: Key, _ value: Value) -> Bool {
-    let k = key.toBinaryComparableBytes()
-    return _tree.insert(key: k, value: value)
-  }
-
-  public func getValue(_ key: Key) -> Value? {
-    let k = key.toBinaryComparableBytes()
-    return _tree.getValue(key: k)
-  }
-
-  public mutating func delete(_ key: Key) {
-    let k = key.toBinaryComparableBytes()
-    _tree.delete(key: k)
+  /// Updates the value stored in the tree for the given key, or adds a new key-value pair if the
+  /// key does not exist.
+  ///
+  /// Use this method instead of key-based subscripting when you need to know whether the new value
+  /// supplants the value of an existing key. If the value of an existing key is updated,
+  /// `updateValue(_:forKey:)` returns the original value.
+  ///
+  /// - Parameters:
+  ///   - value: The new value to add to the tree.
+  ///   - key: The key to associate with value. If key already exists in the tree, value replaces
+  ///       the existing associated value. Inserts `(key, value)` otherwise.
+  /// - Returns: The value that was replaced, or nil if a new key-value pair was added.
+  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the dictionary.
+  public mutating func updateValue(_ value: Value, forKey key: Key) -> Bool {
+    let kb = key.toBinaryComparableBytes()
+    return _tree.insert(key: kb, value: value)
   }
 }
 
+// MARK: Removing Keys and Values
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-extension RadixTree: Sequence {
-  public struct Iterator: IteratorProtocol {
-    public typealias Element = (Key, Value)
-
-    var _iter: ARTree<Value>.Iterator
-
-    mutating public func next() -> Element? {
-      guard let (k, v) = _iter.next() else { return nil }
-      return (Key.fromBinaryComparableBytes(k), v)
-    }
-  }
-
-  public func makeIterator() -> Iterator {
-    return Iterator(_iter: _tree.makeIterator())
+extension RadixTree {
+  /// Removes the given key and its associated value from the tree.
+  ///
+  /// Calling this method invalidates any existing indices for use with this tree.
+  ///
+  /// - Parameter key: The key to remove along with its associated value.
+  /// - Returns: The value that was removed, or `nil` if the key was not present.
+  /// - Complexity: O(`log n`) where `n` is the number of key-value pairs in the collection.
+  public mutating func removeValue(forKey key: Key) {
+    let kb = key.toBinaryComparableBytes()
+    _tree.delete(key: kb)
   }
 }
