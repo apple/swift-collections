@@ -28,9 +28,11 @@ internal struct ARTreeImpl<Spec: ARTreeSpec> {
 
   @usableFromInline
   internal var _root: RawNode?
+  internal var version: Int
 
   @inlinable
   public init() {
     self._root = nil
+    self.version = -1
   }
 }

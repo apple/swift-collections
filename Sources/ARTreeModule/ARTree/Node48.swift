@@ -101,27 +101,34 @@ extension Node48: InternalNode {
       * MemoryLayout<RawNode?>.stride
   }
 
+  var startIndex: Index {
+    if count == 0 {
+      return endIndex
+    } else {
+      return index(after: -1)
+    }
+  }
+
+  var endIndex: Index { 256 }
+
   func index(forKey k: KeyPart) -> Index? {
     let childIndex = Int(keys[Int(k)])
     return childIndex == 0xFF ? nil : Int(k)
   }
 
-  func index() -> Index? {
-    return next(index: -1)
-  }
-
-  func next(index: Index) -> Index? {
+  func index(after index: Index) -> Index {
     for idx: Int in index + 1..<256 {
       if keys[idx] != 0xFF {
-        return Int(idx)
+        return idx
       }
     }
 
-    return nil
+    return 256
   }
 
-  func child(at: Index) -> RawNode? {
-    let slot = Int(keys[at])
+  func child(at index: Index) -> RawNode? {
+    assert(index < 256, "invalid index")
+    let slot = Int(keys[index])
     assert(slot != 0xFF, "no child at given slot")
     return childs[slot]
   }
@@ -148,6 +155,7 @@ extension Node48: InternalNode {
   }
 
   public mutating func removeChild(at index: Index) -> UpdateResult<RawNode?> {
+    assert(index < 256, "invalid index")
     let targetSlot = Int(keys[index])
     assert(targetSlot != 0xFF, "slot is empty already")
     // 1. Find out who has the last slot.
@@ -192,6 +200,7 @@ extension Node48: InternalNode {
   }
 
   mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R {
+    assert(index < 256, "invalid index")
     assert(keys[index] != 0xFF, "child doesn't exist in given slot")
     let ref = childs.baseAddress! + Int(keys[index])
     return body(ref)

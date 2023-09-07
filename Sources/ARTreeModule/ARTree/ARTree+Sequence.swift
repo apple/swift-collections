@@ -17,7 +17,7 @@ extension ARTreeImpl: Sequence {
     typealias _ChildIndex = InternalNode<Spec>.Index
 
     private let tree: ARTreeImpl<Spec>
-    private var path: [(any InternalNode<Spec>, _ChildIndex?)]
+    private var path: [(any InternalNode<Spec>, _ChildIndex)]
 
     init(tree: ARTreeImpl<Spec>) {
       self.tree = tree
@@ -27,7 +27,7 @@ extension ARTreeImpl: Sequence {
       assert(node.type != .leaf, "root can't be leaf")
       let n: any InternalNode<Spec> = node.toInternalNode()
       if n.count > 0 {
-        self.path = [(n, n.index())]
+        self.path = [(n, n.startIndex)]
       }
     }
   }
@@ -53,13 +53,13 @@ extension ARTreeImpl._Iterator: IteratorProtocol {
       return
     }
 
-    path.append((node, node.next(index: index!)))
+    path.append((node, node.index(after: index)))
   }
 
   mutating func next() -> Element? {
     while !path.isEmpty {
-      while let (node, _index) = path.last {
-        guard let index = _index else {
+      while let (node, index) = path.last {
+        if index == node.endIndex {
           advanceToSibling()
           break
         }
@@ -73,7 +73,7 @@ extension ARTreeImpl._Iterator: IteratorProtocol {
         }
 
         let nextNode: any InternalNode<Spec> = next.toInternalNode()
-        path.append((nextNode, nextNode.index()))
+        path.append((nextNode, nextNode.startIndex))
       }
     }
 

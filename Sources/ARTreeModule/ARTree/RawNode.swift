@@ -30,6 +30,13 @@ extension RawNode {
   }
 }
 
+extension RawNode: Equatable {
+  @usableFromInline
+  static func == (lhs: Self, rhs: Self) -> Bool {
+    return lhs.buf === rhs.buf
+  }
+}
+
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension RawNode {
   func clone<Spec: ARTreeSpec>(spec: Spec.Type) -> RawNode {

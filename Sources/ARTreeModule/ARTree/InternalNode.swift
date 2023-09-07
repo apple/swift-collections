@@ -17,23 +17,25 @@ protocol InternalNode<Spec>: ArtNode {
 
   static var size: Int { get }
 
-  var count: Int { get set }
   var partialLength: Int { get }
   var partialBytes: PartialBytes { get set }
 
-  func index(forKey k: KeyPart) -> Index?
-  func index() -> Index?
-  func next(index: Index) -> Index?
+  var count: Int { get set }
+  var startIndex: Index { get }
+  var endIndex: Index { get }
 
-  func child(forKey k: KeyPart) -> RawNode?  // TODO: Remove
+  func index(forKey: KeyPart) -> Index?
+  func index(after: Index) -> Index
+
+  func child(forKey: KeyPart) -> RawNode?  // TODO: Remove
   func child(at: Index) -> RawNode?  // TODO: Remove
 
-  mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?>
-  mutating func addChild(forKey k: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?>
+  mutating func addChild(forKey: KeyPart, node: RawNode) -> UpdateResult<RawNode?>
+  mutating func addChild(forKey: KeyPart, node: some ArtNode<Spec>) -> UpdateResult<RawNode?>
 
-  mutating func removeChild(at index: Index) -> UpdateResult<RawNode?>
+  mutating func removeChild(at: Index) -> UpdateResult<RawNode?>
 
-  mutating func withChildRef<R>(at index: Index, _ body: (RawNode.SlotRef) -> R) -> R
+  mutating func withChildRef<R>(at: Index, _ body: (RawNode.SlotRef) -> R) -> R
 }
 
 struct NodeReference {

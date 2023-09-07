@@ -97,6 +97,9 @@ extension Node16: InternalNode {
       * (MemoryLayout<KeyPart>.stride + MemoryLayout<RawNode?>.stride)
   }
 
+  var startIndex: Index { 0 }
+  var endIndex: Index { count }
+
   func index(forKey k: KeyPart) -> Index? {
     for (index, key) in keys[..<count].enumerated() {
       if key == k {
@@ -107,13 +110,13 @@ extension Node16: InternalNode {
     return nil
   }
 
-  func index() -> Index? {
-    return 0
-  }
-
-  func next(index: Index) -> Index? {
+  func index(after index: Index) -> Index {
     let next = index + 1
-    return next < count ? next : nil
+    if next >= count {
+      return count
+    } else {
+      return next
+    }
   }
 
   func _insertSlot(forKey k: KeyPart) -> Int? {
@@ -131,9 +134,10 @@ extension Node16: InternalNode {
     return count
   }
 
-  func child(at: Index) -> RawNode? {
-    assert(at < Self.numKeys, "maximum \(Self.numKeys) childs allowed")
-    return childs[at]
+  func child(at index: Index) -> RawNode? {
+    assert(index < Self.numKeys, "maximum \(Self.numKeys) childs allowed, given index = \(index)")
+    assert(index < count, "not enough childs in node")
+    return childs[index]
   }
 
   mutating func addChild(forKey k: KeyPart, node: RawNode) -> UpdateResult<RawNode?> {

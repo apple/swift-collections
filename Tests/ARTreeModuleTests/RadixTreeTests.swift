@@ -54,4 +54,26 @@ final class RadixTreeCollectionTests: CollectionTestCase {
 
     expectEqual(count, 3)
   }
+
+  func testEmptyIteration() throws {
+    var d: RadixTree<String, Int> = [:]
+    var count = 0
+    for (k, v) in d {
+      count += 1
+    }
+    expectEqual(count, 0)
+
+    d["a"] = 0
+    for _ in d {
+      count += 1
+    }
+    expectEqual(count, 1)
+
+    d["a"] = nil
+    count = 0
+    for _ in d {
+      count += 1
+    }
+    expectEqual(count, 0)
+  }
 }

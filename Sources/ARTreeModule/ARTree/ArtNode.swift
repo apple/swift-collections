@@ -40,3 +40,9 @@ extension ArtNode {
   var rawNode: RawNode { RawNode(buf: self.storage.ref.takeUnretainedValue()) }
   var type: NodeType { Self.type }
 }
+
+extension ArtNode {
+  func equals(_ other: any ArtNode<Spec>) -> Bool {
+    return self.rawNode == other.rawNode
+  }
+}
