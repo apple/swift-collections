@@ -19,7 +19,7 @@
 
 extern cpp_hash_fn custom_hash_fn;
 
-struct custom_intptr_hash: public std::unary_function<intptr_t, std::size_t>
+struct custom_intptr_hash: public std::function<std::size_t(intptr_t)>
 {
   std::size_t
   operator()(intptr_t value) const
