@@ -374,5 +374,40 @@ final class DequeTests: CollectionTestCase {
     }
   }
 
+  func test_shrinkCapacityWhenEmpty() {
+    withEvery("capacity", in: [0, 1, 2, 5, 10, 50, 100]) { capacity in
+      var deque = Deque<Int>(minimumCapacity: capacity)
+
+      XCTAssertGreaterThanOrEqual(deque._capacity, capacity)
+      XCTAssertLessThanOrEqual(deque._requestedCapacity, capacity)
+
+      let actual = deque._capacity
+      let reducedCapacity = deque._requestedCapacity / 4
+      deque.shrinkCapacity(reducedCapacity)
+
+      print(actual, deque._capacity)
+      // Shrinkage isn't guaranteed.
+      XCTAssertGreaterThanOrEqual(deque._capacity, reducedCapacity)
+      XCTAssertLessThanOrEqual(deque._requestedCapacity, reducedCapacity)
+    }
+  }
+
+  func test_shrinkCapacityWhenMoreElementsThanTarget() {
+    withEvery("count", in: [0, 1, 2, 5, 10, 50, 100]) { count in
+      var deque = Deque(repeating: 0, count: count)
+      let capacity = deque._capacity
+      deque.shrinkCapacity(0)
+      XCTAssertEqual(deque._capacity, capacity)
+    }
+  }
+
+  func test_shrinkCapacityWhenTargetIsLargerThanCurrent() {
+    withEvery("capacity", in: [0, 1, 2, 5, 10, 50, 100]) { capacity in
+      var deque = Deque<Int>(minimumCapacity: capacity)
+      let capacity = deque._capacity
+      deque.shrinkCapacity(capacity + 1)
+      XCTAssertEqual(deque._capacity, capacity)
+    }
+  }
 }
 

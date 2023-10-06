@@ -55,7 +55,10 @@ extension Deque._Storage {
         #else
         let capacity = $0.capacity
         #endif
-        return _DequeBufferHeader(capacity: capacity, count: 0, startSlot: .zero)
+        return _DequeBufferHeader(capacity: capacity,
+                                  requestedCapacity: minimumCapacity,
+                                  count: 0,
+                                  startSlot: .zero)
       })
     self.init(_buffer: _Buffer(unsafeBufferObject: object))
   }
@@ -87,6 +90,12 @@ extension Deque._Storage {
 
   @inlinable
   @inline(__always)
+  internal var requestedCapacity: Int {
+    _buffer.withUnsafeMutablePointerToHeader { $0.pointee.requestedCapacity }
+  }
+
+  @inlinable
+  @inline(__always)
   internal var count: Int {
     _buffer.withUnsafeMutablePointerToHeader { $0.pointee.count }
   }
@@ -94,8 +103,7 @@ extension Deque._Storage {
   @inlinable
   @inline(__always)
   internal var startSlot: _DequeSlot {
-    _buffer.withUnsafeMutablePointerToHeader { $0.pointee.startSlot
-    }
+    _buffer.withUnsafeMutablePointerToHeader { $0.pointee.startSlot }
   }
 }
 
@@ -170,6 +178,11 @@ extension Deque._Storage {
                      minimumCapacity)
   }
 
+  @usableFromInline
+  internal func _reduceCapacity(to targetCapacity: Int) -> Int {
+    return Swift.max(0, Swift.min(requestedCapacity, targetCapacity))
+  }
+
   /// Ensure that we have a uniquely referenced buffer with enough space to
   /// store at least `minimumCapacity` elements.
   ///
@@ -206,6 +219,29 @@ extension Deque._Storage {
       }
     } else {
       let minimumCapacity = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
+      self = self.read { source in
+        source.copyElements(minimumCapacity: minimumCapacity)
+      }
+    }
+  }
+
+  @inlinable
+  @inline(__always)
+  internal mutating func shrink(targetCapacity: Int) {
+    if count > targetCapacity { return }
+    if _slowPath(targetCapacity < requestedCapacity) {
+      _shrink(targetCapacity: targetCapacity)
+    }
+  }
+
+  @inlinable
+  internal mutating func _shrink(targetCapacity: Int) {
+    let minimumCapacity = _reduceCapacity(to: targetCapacity)
+    if isUnique() {
+      self = self.update { source in
+        source.moveElements(minimumCapacity: minimumCapacity)
+      }
+    } else {
       self = self.read { source in
         source.copyElements(minimumCapacity: minimumCapacity)
       }
