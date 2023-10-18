@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 extension Rope {
+  @frozen // Not really! This module isn't ABI stable.
   @usableFromInline
   internal struct _UnmanagedLeaf {
     @usableFromInline internal typealias _Item = Rope._Item

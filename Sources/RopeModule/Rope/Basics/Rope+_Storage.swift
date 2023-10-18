@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 @usableFromInline
+@frozen // Not really! This module isn't ABI stable.
 internal struct _RopeStorageHeader {
   @usableFromInline var _childCount: UInt16
   @usableFromInline let height: UInt8
@@ -33,6 +34,7 @@ internal struct _RopeStorageHeader {
 
 extension Rope {
   @usableFromInline
+  @_fixed_layout // Not really! This module isn't ABI stable.
   internal final class _Storage<Child: _RopeItem<Summary>>:
     ManagedBuffer<_RopeStorageHeader, Child>
   {
