@@ -11,6 +11,7 @@
 
 extension Rope {
   @usableFromInline
+  @frozen // Not really! This module isn't ABI stable.
   internal struct _UnsafeHandle<Child: _RopeItem<Summary>> {
     @usableFromInline internal typealias Summary = Rope.Summary
     @usableFromInline internal typealias Element = Rope.Element
