@@ -1,7 +1,7 @@
 #[[
 This source file is part of the Swift Collections Open Source Project
 
-Copyright (c) 2022 Apple Inc. and the Swift project authors
+Copyright (c) 2022 - 2023 Apple Inc. and the Swift project authors
 Licensed under Apache License v2.0 with Runtime Library Exception
 
 See https://swift.org/LICENSE.txt for license information
@@ -12,8 +12,6 @@ add_library(HashTreeCollections
   "HashNode/_Bitmap.swift"
   "HashNode/_Bucket.swift"
   "HashNode/_Hash.swift"
-  "HashNode/_HashTreeIterator.swift"
-  "HashNode/_HashTreeStatistics.swift"
   "HashNode/_HashLevel.swift"
   "HashNode/_HashNode+Builder.swift"
   "HashNode/_HashNode+Debugging.swift"
@@ -40,10 +38,12 @@ add_library(HashTreeCollections
   "HashNode/_HashNode+Subtree Removals.swift"
   "HashNode/_HashNode+UnsafeHandle.swift"
   "HashNode/_HashNode.swift"
-  "HashNode/_RawHashNode+UnsafeHandle.swift"
-  "HashNode/_RawHashNode.swift"
   "HashNode/_HashSlot.swift"
   "HashNode/_HashStack.swift"
+  "HashNode/_HashTreeIterator.swift"
+  "HashNode/_HashTreeStatistics.swift"
+  "HashNode/_RawHashNode+UnsafeHandle.swift"
+  "HashNode/_RawHashNode.swift"
   "HashNode/_HashNodeHeader.swift"
   "HashNode/_UnmanagedHashNode.swift"
   "HashNode/_UnsafePath.swift"
