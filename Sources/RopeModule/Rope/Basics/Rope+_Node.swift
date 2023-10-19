@@ -17,7 +17,6 @@ extension Rope {
   @frozen // Not really! This module isn't ABI stable.
   @usableFromInline
   internal struct _Node: _RopeItem {
-    @usableFromInline internal typealias Element = Rope.Element
     @usableFromInline internal typealias Summary = Rope.Summary
     @usableFromInline internal typealias Index = Rope.Index
     @usableFromInline internal typealias _Item = Rope._Item
