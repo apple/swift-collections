@@ -35,8 +35,9 @@
           - All supported distributions
     - Build systems
       - Swift Package Manager
-      - xcodebuild
-      - cmake & ninja (note: this support isn't source stable)
+      - xcodebuild (for the package)
+      - xcodebuild (for the unstable Xcode project in Xcode/)
+      - CMake & ninja (note: this support isn't source stable)
     - Configurations
       - Debug
       - Release
@@ -45,7 +46,7 @@
       - `COLLECTIONS_DETERMINISTIC_HASHING`
       - `BUILD_LIBRARY_FOR_DISTRIBUTION=YES` with xcodebuild (this is unsupported, but why break it)
       - `-warnings-as-errors` 
-      - Any combination of the above
+      - Any combinations of the above
     - Components
       - The swift-collections package
       - The private `benchmark` executable under `Benchmarks/`
@@ -55,4 +56,6 @@
 7. Draft a new release on GitHub, following the template established by [previous releases](https://github.com/apple/swift-collections/releases/tag/0.0.7).
 8. As a final chance to catch issues, generate a diff between the last tagged release and the release candidate commit. Review it in case we landed something that isn't appropriate to include; watch out for potential issues such as source compatibility problems, or new public API without adequate documentation.
 9. Double check that the new tag will have the right version number and it will be on the correct branch.
-10. Hit publish.
+10. For nontrivial releases, announce the intention to tag on the [Swift Forums](https://forums.swift.org/c/related-projects/collections/72), asking people to try building their projects with the candidate commit. Wait an appropriate number of days to see if anyone finds a blocker issue.
+11. Hit publish.
+12. File a PR on https://github.com/apple/swift that updates dependency declarations in the file [`utils/update_checkout/update-checkout-config.json`](https://github.com/apple/swift/blob/main/utils/update_checkout/update-checkout-config.json), for all appropriate branch configurations. (Typically the main branch (and its derivatives, such as rebranch, next etc.) and possibly the currently active release branch.)
