@@ -47,7 +47,7 @@
 /// items are (almost) never expected to be in sorted order.
 ///
 /// For cases where you do need to access the contents of a heap directly and
-/// you don't care about their (lack of) order, you can still do so invoking the
+/// you don't care about their (lack of) order, you can do so by invoking the
 /// `unordered` view. This read-only view gives you direct access to the
 /// underlying array value:
 ///
