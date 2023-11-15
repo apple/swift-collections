@@ -117,7 +117,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func min() -> Element? {
+  public var min: Element? {
     _storage.first
   }
 
@@ -125,7 +125,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func max() -> Element? {
+  public var max: Element? {
     _storage.withUnsafeBufferPointer { buffer in
       guard buffer.count > 2 else {
         // If count is 0, `last` will return `nil`
