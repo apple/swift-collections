@@ -55,7 +55,7 @@ high-level set operations such as `union(_:)`, `intersection(_:)` or
 
 ```swift
 buildingMaterials.contains("glass") // false
-buildingMaterials.intersection(["brick", "straw"]) // ["straw", "brick"]
+buildingMaterials.intersection(["bricks", "straw"]) // ["straw", "bricks"]
 ```
 
 Operations that return an ordered set usually preserve the ordering of
@@ -111,7 +111,7 @@ elements to the end of the collection.
 
 ```swift
 buildingMaterials.unordered.insert("glass") // => inserted: true
-// buildingMaterials is now ["straw", "sticks", "brick", "glass"]
+// buildingMaterials is now ["straw", "sticks", "bricks", "glass"]
 ```
 
 Accessing the unordered view is an efficient operation, with constant
