@@ -287,18 +287,49 @@ extension Heap {
   ///
   /// - Parameter newElements: The new elements to insert into the heap.
   ///
-  /// - Complexity: O(*n* * log(`count`)), where *n* is the length of `newElements`.
+  /// - Complexity: O(`count` + *k*), where *k* is the length of `newElements`.
   @inlinable
   public mutating func insert<S: Sequence>(
     contentsOf newElements: S
   ) where S.Element == Element {
-    if count == 0 {
+    let origCount = self.count
+    if origCount == 0 {
       self = Self(newElements)
       return
     }
-    _storage.reserveCapacity(count + newElements.underestimatedCount)
-    for element in newElements {
-      insert(element)
+    defer { _checkInvariants() }
+    _storage.append(contentsOf: newElements)
+    let newCount = self.count
+
+    guard newCount > origCount, newCount > 1 else {
+      // If we didn't append, or the result is too small to violate heapness,
+      // then we have nothing else to dp.
+      return
+    }
+
+    // Otherwise we can either insert items one by one, or we can run Floyd's
+    // algorithm to re-heapify our entire storage from scratch.
+    //
+    // If n is the original count, and k is the number of items we need to
+    // append, then Floyd's costs O(n + k) comparisons/swaps, while
+    // the naive loop costs k * log(n + k) -- so we expect that Floyd will
+    // be cheaper whenever k is "large enough" relative to n.
+    //
+    // Floyd's algorithm has a worst-case upper complexity bound of 2 * (n + k),
+    // so one simple heuristic is to use it whenever k * log(n + k) exceeds
+    // that.
+    //
+    // FIXME: Write a benchmark to verify this heuristic.
+    let heuristicLimit = 2 * newCount / newCount._binaryLogarithm()
+    let useFloyd = (newCount - origCount) < heuristicLimit
+    _update { handle in
+      if useFloyd {
+        handle.heapify()
+      } else {
+        for offset in origCount ..< handle.count {
+          handle.bubbleUp(_HeapNode(offset: offset))
+        }
+      }
     }
   }
 }
