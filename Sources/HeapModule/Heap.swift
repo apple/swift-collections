@@ -9,20 +9,54 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// A [Min-Max Heap](https://en.wikipedia.org/wiki/Min-max_heap) data structure.
+
+/// A container type implementing a double-ended priority queue.
+/// `Heap` is a container of `Comparable` elements that provides immediate
+/// access to its minimal and maximal members, and supports removing these items
+/// or inserting arbitrary new items in (amortized) logarithmic complexity.
 ///
-/// In a min-max heap, each node at an even level in the tree is less than or
-/// equal to all its descendants, while each node at an odd level in the tree is
-/// greater than or equal to all of its descendants.
+///     var queue: Heap<Int> = [3, 4, 1, 2]
+///     queue.insert(0)
+///     print(queue.min())    // 0
+///     print(queue.popMax()) // 4
+///     print(queue.max())    // 3
 ///
-/// The implementation is based on [Atkinson et al. 1986]:
+/// `Heap` implements the min-max heap data structure, based on
+/// [Atkinson et al. 1986].
 ///
 /// [Atkinson et al. 1986]: https://doi.org/10.1145/6617.6621
 ///
-/// M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte.
+/// > M.D. Atkinson, J.-R. Sack, N. Santoro, T. Strothotte.
 /// "Min-Max Heaps and Generalized Priority Queues."
 /// *Communications of the ACM*, vol. 29, no. 10, Oct. 1986., pp. 996-1000,
 /// doi:[10.1145/6617.6621](https://doi.org/10.1145/6617.6621)
+///
+/// To efficiently implement these operations, a min-max heap arranges its items
+/// into a complete binary tree, maintaining a specific invariant across levels,
+/// called the "min-max heap property": each node at an even level in the tree
+/// must be less than or equal to all its descendants, while each node at an odd
+/// level in the tree must be greater than or equal to all of its descendants.
+/// To achieve a compact representation, this tree is stored in breadth-first
+/// order inside a single contiguous array value.
+///
+/// Unlike most container types, `Heap` doesn't provide a direct way to iterate
+/// over the elements it contains -- it isn't a `Sequence` (nor a `Collection`).
+/// This is because the order of items in a heap is unspecified and unstable:
+/// it may vary between heaps that contain the same set of items, and it may
+/// sometimes change in between versions of this library. In particular, the
+/// items are (almost) never expected to be in sorted order.
+///
+/// For cases where you do need to access the contents of a heap directly and
+/// you don't care about their (lack of) order, you can do so by invoking the
+/// `unordered` view. This read-only view gives you direct access to the
+/// underlying array value:
+///
+///     for item in queue.unordered {
+///       ...
+///     }
+///
+/// The name `unordered` highlights the lack of ordering guarantees on the
+/// contents, and it helps avoid relying on any particular order.
 @frozen
 public struct Heap<Element: Comparable> {
   @usableFromInline
