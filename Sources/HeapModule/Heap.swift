@@ -17,9 +17,9 @@
 ///
 ///     var queue: Heap<Int> = [3, 4, 1, 2]
 ///     queue.insert(0)
-///     print(queue.min())    // 0
+///     print(queue.min)      // 0
 ///     print(queue.popMax()) // 4
-///     print(queue.max())    // 3
+///     print(queue.max)      // 3
 ///
 /// `Heap` implements the min-max heap data structure, based on
 /// [Atkinson et al. 1986].
