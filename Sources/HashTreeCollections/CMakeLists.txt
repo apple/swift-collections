@@ -44,7 +44,7 @@ add_library(HashTreeCollections
   "HashNode/_RawHashNode.swift"
   "HashNode/_HashSlot.swift"
   "HashNode/_HashStack.swift"
-  "HashNode/_HashNodeHeader.swift"
+  "HashNode/_StorageHeader.swift"
   "HashNode/_UnmanagedHashNode.swift"
   "HashNode/_UnsafePath.swift"
   "TreeDictionary/TreeDictionary+Codable.swift"
