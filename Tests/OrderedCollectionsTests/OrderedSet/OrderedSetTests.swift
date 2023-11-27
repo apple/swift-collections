@@ -147,13 +147,13 @@ class OrderedSetTests: CollectionTestCase {
 
   func test_CustomDebugStringConvertible() {
     let a: OrderedSet<Int> = []
-    expectEqual(a.debugDescription, "OrderedSet<Int>([])")
+    expectEqual(a.debugDescription, "[]")
 
     let b: OrderedSet<Int> = [0]
-    expectEqual(b.debugDescription, "OrderedSet<Int>([0])")
+    expectEqual(b.debugDescription, "[0]")
 
     let c: OrderedSet<Int> = [0, 1, 2, 3, 4]
-    expectEqual(c.debugDescription, "OrderedSet<Int>([0, 1, 2, 3, 4])")
+    expectEqual(c.debugDescription, "[0, 1, 2, 3, 4]")
   }
 
   func test_SubSequence_descriptions() {
@@ -162,10 +162,7 @@ class OrderedSetTests: CollectionTestCase {
     let slice = s[1 ..< 3]
 
     expectEqual(slice.description, "[1, 2]")
-    expectEqual(
-      slice.debugDescription,
-      "OrderedSet<Int>.SubSequence([1, 2])")
-
+    expectEqual(slice.debugDescription, "[1, 2]")
   }
 
   func test_customReflectable() {

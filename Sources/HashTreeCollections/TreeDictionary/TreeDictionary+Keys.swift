@@ -53,10 +53,7 @@ extension TreeDictionary.Keys: CustomStringConvertible {
 extension TreeDictionary.Keys: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _arrayDescription(
-      for: self,
-      debug: true,
-      typeName: "\(TreeDictionary._debugTypeName()).Keys")
+    description
   }
 }
 

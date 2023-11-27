@@ -23,11 +23,6 @@ extension TreeDictionary: CustomStringConvertible {
 extension TreeDictionary: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _dictionaryDescription(
-      for: self, debug: true, typeName: Self._debugTypeName())
-  }
-
-  internal static func _debugTypeName() -> String {
-    "TreeDictionary<\(Key.self), \(Value.self)>"
+    description
   }
 }

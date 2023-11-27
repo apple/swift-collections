@@ -197,7 +197,7 @@ extension BitSet.Counted: CustomStringConvertible {
 extension BitSet.Counted: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _bits._debugDescription(typeName: "BitSet.Counted")
+    description
   }
 }
 

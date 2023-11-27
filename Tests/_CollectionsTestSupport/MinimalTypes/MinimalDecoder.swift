@@ -179,7 +179,7 @@ extension MinimalDecoder.KeyedContainer: KeyedDecodingContainerProtocol {
     return input[key.stringValue] != nil
   }
 
-  func _decode<Key: CodingKey>(key: Key) throws -> Value {
+  func _decode<K: CodingKey>(key: K) throws -> Value {
     expectTrue(isValid, "Container isn't valid", trapping: true)
     commitPendingContainer()
     guard let value = input[key.stringValue] else {

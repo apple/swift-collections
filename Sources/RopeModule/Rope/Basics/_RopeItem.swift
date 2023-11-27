@@ -42,6 +42,7 @@ extension Rope {
   /// A trivial wrapper around a rope's Element type, giving it `_RopeItem` conformance without
   /// having to make the protocol public.
   @usableFromInline
+  @frozen // Not really! This module isn't ABI stable.
   internal struct _Item {
     @usableFromInline internal var value: Element
 

@@ -71,17 +71,14 @@ extension OrderedSet.UnorderedView: Sendable where Element: Sendable {}
 extension OrderedSet.UnorderedView: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
-    _base.description
+    _arrayDescription(for: _base)
   }
 }
 
 extension OrderedSet.UnorderedView: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _arrayDescription(
-      for: _base,
-      debug: true,
-      typeName: "\(OrderedSet._debugTypeName()).UnorderedView")
+    description
   }
 }
 

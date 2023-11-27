@@ -14,9 +14,9 @@ import _CollectionsUtilities // for 5.8 polyfills
 #endif
 
 extension Rope {
+  @frozen // Not really! This module isn't ABI stable.
   @usableFromInline
   internal struct _Node: _RopeItem {
-    @usableFromInline internal typealias Element = Rope.Element
     @usableFromInline internal typealias Summary = Rope.Summary
     @usableFromInline internal typealias Index = Rope.Index
     @usableFromInline internal typealias _Item = Rope._Item
@@ -550,6 +550,7 @@ extension Rope._Node {
     }
   }
 
+  @frozen // Not really! This module isn't ABI stable.
   @usableFromInline
   internal struct _ModifyState {
     @usableFromInline internal var path: _Path
