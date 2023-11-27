@@ -342,10 +342,7 @@ extension OrderedDictionary.Elements: CustomStringConvertible {
 extension OrderedDictionary.Elements: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _dictionaryDescription(
-      for: self,
-      debug: true,
-      typeName: "OrderedDictionary<\(Key.self), \(Value.self)>.Elements")
+    description
   }
 }
 

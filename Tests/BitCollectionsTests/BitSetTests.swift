@@ -1109,6 +1109,14 @@ final class BitSetTest: CollectionTestCase {
 
     let c = BitSet(130 ..< 160)
     expectTrue(c.isEqualSet(to: 130 ..< 160))
+
+    withEvery("i", in: stride(from: 0, to: 200, by: 4)) { i in
+      withEvery("j", in: stride(from: i, to: 200, by: 4)) { j in
+        let c = BitSet(i ..< j)
+        expectTrue(c.isEqualSet(to: i ..< j))
+        expectFalse(c.isEqualSet(to: i ..< (j + 1)))
+      }
+    }
   }
 
   func test_isEqual_to_counted_BitSet() {
@@ -1505,13 +1513,13 @@ final class BitSetTest: CollectionTestCase {
 
   func test_debugDescription() {
     let a: BitSet = []
-    expectEqual("\(String(reflecting: a))", "BitSet([])")
+    expectEqual("\(String(reflecting: a))", "[]")
 
     let b: BitSet = [1, 2, 3]
-    expectEqual("\(String(reflecting: b))", "BitSet([1, 2, 3])")
+    expectEqual("\(String(reflecting: b))", "[1, 2, 3]")
 
     let c: BitSet = [23, 652, 892, 19230]
-    expectEqual("\(String(reflecting: c))", "BitSet([23, 652, 892, 19230])")
+    expectEqual("\(String(reflecting: c))", "[23, 652, 892, 19230]")
   }
 
   func test_index_descriptions() {
@@ -1519,7 +1527,7 @@ final class BitSetTest: CollectionTestCase {
     let i = a.startIndex
 
     expectEqual(i.description, "3")
-    expectEqual(i.debugDescription, "BitSet.Index(3)")
+    expectEqual(i.debugDescription, "3")
   }
 
   func test_mirror() {

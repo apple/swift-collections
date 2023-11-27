@@ -23,11 +23,6 @@ extension OrderedDictionary: CustomStringConvertible {
 extension OrderedDictionary: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    _dictionaryDescription(
-      for: self.elements, debug: true, typeName: Self._debugTypeName())
-  }
-
-  internal static func _debugTypeName() -> String {
-    "OrderedDictionary<\(Key.self), \(Value.self)>"
+    description
   }
 }

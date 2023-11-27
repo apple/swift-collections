@@ -114,18 +114,19 @@ struct Chunk: RopeElement, Equatable, CustomStringConvertible {
   }
 }
 
-class TestRope: XCTestCase {
+class TestRope: CollectionTestCase {
   override func setUp() {
+    super.setUp()
     print("Global seed: \(RepeatableRandomNumberGenerator.globalSeed)")
   }
   
   func test_empty() {
     let empty = Rope<Chunk>()
     empty._invariantCheck()
-    XCTAssertTrue(empty.isEmpty)
-    XCTAssertEqual(empty.count, 0)
-    XCTAssertTrue(empty.summary.isZero)
-    XCTAssertEqual(empty.startIndex, empty.endIndex)
+    expectTrue(empty.isEmpty)
+    expectEqual(empty.count, 0)
+    expectTrue(empty.summary.isZero)
+    expectEqual(empty.startIndex, empty.endIndex)
   }
   
   func test_build() {
@@ -143,9 +144,9 @@ class TestRope: XCTestCase {
     
     let actualSum = rope.summary
     let expectedSum: Chunk.Summary = ref.reduce(into: .zero) { $0.add($1.summary) }
-    XCTAssertEqual(actualSum, expectedSum)
+    expectEqual(actualSum, expectedSum)
     
-    XCTAssertTrue(rope.elementsEqual(ref))
+    expectTrue(rope.elementsEqual(ref))
   }
   
   func test_iteration() {
@@ -159,15 +160,15 @@ class TestRope: XCTestCase {
       var i = 0
       while let next = it.next() {
         let expected = ref[i]
-        XCTAssertEqual(next, expected)
+        expectEqual(next, expected)
         guard next == expected else { break }
         i += 1
       }
-      XCTAssertEqual(i, ref.count)
+      expectEqual(i, ref.count)
 
       let expectedLength = ref.reduce(into: 0) { $0 += $1.length }
       let actualLength = rope.reduce(into: 0) { $0 += $1.length }
-      XCTAssertEqual(actualLength, expectedLength)
+      expectEqual(actualLength, expectedLength)
     }
   }
   
@@ -177,17 +178,17 @@ class TestRope: XCTestCase {
         Chunk(length: ($0 % 4) + 1, value: $0)
       }
       let rope = Rope(ref)
-      XCTAssertTrue(rope.elementsEqual(ref))
+      expectTrue(rope.elementsEqual(ref))
       
       var i = rope.startIndex
       var j = 0
       while i != rope.endIndex, j != ref.count {
-        XCTAssertEqual(rope[i], ref[j])
+        expectEqual(rope[i], ref[j])
         i = rope.index(after: i)
         j += 1
       }
-      XCTAssertEqual(i, rope.endIndex)
-      XCTAssertEqual(j, ref.count)
+      expectEqual(i, rope.endIndex)
+      expectEqual(j, ref.count)
     }
   }
   
@@ -197,7 +198,7 @@ class TestRope: XCTestCase {
         Chunk(length: ($0 % 4) + 1, value: $0)
       }
       let rope = Rope(ref)
-      XCTAssertTrue(rope.elementsEqual(ref))
+      expectTrue(rope.elementsEqual(ref))
       
       var indices: [Rope<Chunk>.Index] = []
       var i = rope.startIndex
@@ -208,7 +209,7 @@ class TestRope: XCTestCase {
       
       while let j = indices.popLast() {
         i = rope.index(before: i)
-        XCTAssertEqual(i, j)
+        expectEqual(i, j)
       }
     }
   }
@@ -222,7 +223,7 @@ class TestRope: XCTestCase {
     let rope = Rope<Chunk>(ref)
     
     let indices = Array(rope.indices) + [rope.endIndex]
-    XCTAssertEqual(indices.count, c + 1)
+    expectEqual(indices.count, c + 1)
     for i in indices.indices {
       for j in indices.indices {
         let d = rope.distance(from: indices[i], to: indices[j], in: Chunk.Metric())
@@ -230,11 +231,33 @@ class TestRope: XCTestCase {
           i <= j
           ? ref[i..<j].reduce(into: 0) { $0 += $1.length }
           : ref[j..<i].reduce(into: 0) { $0 -= $1.length })
-        XCTAssertEqual(d, r, "i: \(i), j: \(j)")
+        expectEqual(d, r, "i: \(i), j: \(j)")
       }
     }
   }
-  
+
+  func test_find() {
+    let c = 500
+
+    let chunks = (0 ..< c).map {
+      Chunk(length: ($0 % 4) + 1, value: $0)
+    }
+    let rope = Rope<Chunk>(chunks)
+    let ref = chunks.flatMap { Array(repeating: $0.value, count: $0.length) }
+
+    for i in 0 ..< ref.count {
+      let (index, remaining) = rope.find(at: i, in: Chunk.Metric(), preferEnd: false)
+      let chunk = rope[index]
+      expectEqual(chunk.value, ref[i])
+      let pos = ref[..<i].lastIndex { $0 != ref[i] }.map { $0 + 1 }
+      expectEqual(remaining, i - (pos ?? 0))
+    }
+
+    let end = rope.find(at: ref.count, in: Chunk.Metric(), preferEnd: false)
+    expectEqual(end.index, rope.endIndex)
+    expectEqual(end.remaining, 0)
+  }
+
   func test_index_offsetBy() {
     let c = 500
     
@@ -244,7 +267,7 @@ class TestRope: XCTestCase {
     let rope = Rope<Chunk>(ref)
     
     let indices = Array(rope.indices) + [rope.endIndex]
-    XCTAssertEqual(indices.count, c + 1)
+    expectEqual(indices.count, c + 1)
     for i in indices.indices {
       for j in indices.indices {
         let d = (
@@ -252,8 +275,8 @@ class TestRope: XCTestCase {
           ? ref[i..<j].reduce(into: 0) { $0 += $1.length }
           : ref[j..<i].reduce(into: 0) { $0 -= $1.length })
         let r = rope.index(indices[i], offsetBy: d, in: Chunk.Metric(), preferEnd: false)
-        XCTAssertEqual(r.index, indices[j])
-        XCTAssertEqual(r.remaining, 0)
+        expectEqual(r.index, indices[j])
+        expectEqual(r.remaining, 0)
       }
     }
   }
@@ -272,9 +295,9 @@ class TestRope: XCTestCase {
     
     let actualSum = rope.summary
     let expectedSum: Chunk.Summary = ref.reduce(into: .zero) { $0.add($1.summary) }
-    XCTAssertEqual(actualSum, expectedSum)
+    expectEqual(actualSum, expectedSum)
     
-    XCTAssertTrue(rope.elementsEqual(ref))
+    expectTrue(rope.elementsEqual(ref))
   }
   
   func test_prepend_item() {
@@ -292,9 +315,9 @@ class TestRope: XCTestCase {
     
     let actualSum = rope.summary
     let expectedSum: Chunk.Summary = ref.reduce(into: .zero) { $0.add($1.summary) }
-    XCTAssertEqual(actualSum, expectedSum)
+    expectEqual(actualSum, expectedSum)
     
-    XCTAssertTrue(rope.elementsEqual(ref))
+    expectTrue(rope.elementsEqual(ref))
   }
   
   func test_insert_item() {
@@ -318,9 +341,9 @@ class TestRope: XCTestCase {
     
     let actualSum = rope.summary
     let expectedSum: Chunk.Summary = ref.reduce(into: .zero) { $0.add($1.summary) }
-    XCTAssertEqual(actualSum, expectedSum)
+    expectEqual(actualSum, expectedSum)
     
-    XCTAssertTrue(rope.elementsEqual(ref))
+    expectTrue(rope.elementsEqual(ref))
   }
   
   func test_remove_at_index() {
@@ -341,11 +364,11 @@ class TestRope: XCTestCase {
       }
       let index = rope.index(rope.startIndex, offsetBy: offset)
       let removed = rope.remove(at: index)
-      XCTAssertEqual(removed, chunk)
+      expectEqual(removed, chunk)
       rope._invariantCheck()
     }
-    XCTAssertTrue(rope.isEmpty)
-    XCTAssertEqual(rope.summary, .zero)
+    expectTrue(rope.isEmpty)
+    expectEqual(rope.summary, .zero)
   }
 
   func test_remove_at_inout_index() {
@@ -368,12 +391,12 @@ class TestRope: XCTestCase {
       }
       var index = rope.index(rope.startIndex, offsetBy: offset)
       let removed = rope.remove(at: &index)
-      XCTAssertEqual(removed, chunk)
-      XCTAssertEqual(rope.offset(of: index, in: Chunk.Metric()), position, "\(i)")
+      expectEqual(removed, chunk)
+      expectEqual(rope.offset(of: index, in: Chunk.Metric()), position, "\(i)")
       rope._invariantCheck()
     }
-    XCTAssertTrue(rope.isEmpty)
-    XCTAssertEqual(rope.summary, .zero)
+    expectTrue(rope.isEmpty)
+    expectEqual(rope.summary, .zero)
   }
 
   func test_remove_at_position() {
@@ -393,12 +416,12 @@ class TestRope: XCTestCase {
         $0 += $1.value < chunk.value ? $1.length : 0
       }
       let r = rope.remove(at: position, in: Chunk.Metric())
-      XCTAssertEqual(r.removed, chunk)
-      XCTAssertEqual(rope.offset(of: r.next, in: Chunk.Metric()), position, "\(i)")
+      expectEqual(r.removed, chunk)
+      expectEqual(rope.offset(of: r.next, in: Chunk.Metric()), position, "\(i)")
       rope._invariantCheck()
     }
-    XCTAssertTrue(rope.isEmpty)
-    XCTAssertEqual(rope.summary, .zero)
+    expectTrue(rope.isEmpty)
+    expectEqual(rope.summary, .zero)
   }
   
   func test_join() {
@@ -421,11 +444,11 @@ class TestRope: XCTestCase {
       let joined = Rope.join(a, b)
       joined._invariantCheck()
       let actualValues = joined.map { $0.value }
-      XCTAssertEqual(actualValues, Array(expectedRange))
+      expectEqual(actualValues, Array(expectedRange))
       trees[i] = joined
       ranges.replaceSubrange(i ... i + 1, with: CollectionOfOne(expectedRange))
     }
-    XCTAssertEqual(ranges, [0 ..< c])
+    expectEqual(ranges, [0 ..< c])
   }
 
   func chunkify(_ values: [Int]) -> [Chunk] {
@@ -453,9 +476,17 @@ class TestRope: XCTestCase {
     file: StaticString = #file,
     line: UInt = #line
   ) {
+    checkEqual(x, chunkify(y), file: file, line: line)
+  }
+
+  func checkEqual(
+    _ x: Rope<Chunk>,
+    _ y: [Chunk],
+    file: StaticString = #file,
+    line: UInt = #line
+  ) {
     let u = Array(x)
-    let v = chunkify(y)
-    XCTAssertEqual(u, v, file: file, line: line)
+    expectEqual(u, y, file: file, line: line)
   }
 
   func checkRemoveSubrange(
@@ -475,6 +506,9 @@ class TestRope: XCTestCase {
 
   func test_removeSubrange_simple() {
     var rope = Rope<Chunk>()
+
+    checkRemoveSubrange(rope, [], range: 0 ..< 0)
+
     for i in 0 ..< 10 {
       rope.append(Chunk(length: 10, value: i))
     }
@@ -524,7 +558,6 @@ class TestRope: XCTestCase {
     checkRemoveSubrange(rope, ref, range: 1 ..< 99)
     checkRemoveSubrange(rope, ref, range: 1 ..< 59)
     checkRemoveSubrange(rope, ref, range: 61 ..< 99)
-
   }
 
   func test_removeSubrange_larger() {
@@ -573,4 +606,65 @@ class TestRope: XCTestCase {
     }
   }
 
+  func test_replaceSubrange_simple() {
+    let ranges: [Range<Int>] = [
+      // Basics
+      0 ..< 0, 30 ..< 30, 0 ..< 100,
+      // Whole individual chunks
+      90 ..< 100, 0 ..< 10, 30 ..< 40, 70 ..< 80,
+      // Prefixes of single chunks
+      0 ..< 1, 30 ..< 35, 60 ..< 66, 90 ..< 98,
+
+      // Suffixes of single chunks
+      9 ..< 10, 35 ..< 40, 64 ..< 70, 98 ..< 100,
+
+      // Neighboring couple of whole chunks
+      0 ..< 20, 80 ..< 100, 10 ..< 30,
+      50 ..< 70, // Crosses nodes!
+
+      // Longer whole chunk sequences
+      0 ..< 30, 70 ..< 90,
+      0 ..< 60, // entire first node
+      60 ..< 100, // entire second node
+      40 ..< 70, // crosses into second node
+      10 ..< 90, // crosses into second node
+
+      // Arbitrary cuts
+      0 ..< 69, 42 ..< 73, 21 ..< 89, 1 ..< 99, 1 ..< 59, 61 ..< 99,
+    ]
+
+    let replacements: [[Chunk]] = [
+      [],
+      [-1],
+      Array(repeating: -1, count: 10),
+      Array(repeating: -1, count: 100),
+    ].map { chunkify($0) }
+
+    let rope: Rope<Chunk> = {
+      var rope = Rope<Chunk>()
+      for i in 0 ..< 10 {
+        rope.append(Chunk(length: 10, value: i))
+      }
+      return rope
+    }()
+    let ref = (0 ..< 10).flatMap { Array(repeating: $0, count: 10) }
+
+    withEvery("replacement", in: replacements) { replacement in
+      var rope = Rope<Chunk>()
+      rope.replaceSubrange(0 ..< 0, in: Chunk.Metric(), with: replacement)
+      checkEqual(rope, replacement)
+    }
+
+    withEvery("replacement", in: replacements) { replacement in
+      withEvery("range", in: ranges) { range in
+        var expected = ref
+        expected.removeSubrange(range)
+
+        var actual = rope
+        actual.removeSubrange(range, in: Chunk.Metric())
+
+        checkEqual(actual, expected)
+      }
+    }
+  }
 }

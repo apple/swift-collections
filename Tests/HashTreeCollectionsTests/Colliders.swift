@@ -43,11 +43,11 @@ struct Collider:
   }
 
   var description: String {
-    "\(identity)"
+    "\(identity)(#\(hash))"
   }
 
   var debugDescription: String {
-    "\(identity)-#\(hash)"
+    description
   }
 }
 

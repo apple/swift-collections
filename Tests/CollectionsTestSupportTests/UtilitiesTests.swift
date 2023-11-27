@@ -21,7 +21,10 @@ final class UtilitiesTests: CollectionTestCase {
     withSome("i", in: 0 ..< Int.max, maxSamples: 100_000) { i in
       let s = i._squareRoot()
       expectLessThanOrEqual(s * s, i)
-      expectGreaterThan((s + 1) * (s + 1), i)
+      let next = (s + 1).multipliedReportingOverflow(by: s + 1)
+      if !next.overflow {
+        expectGreaterThan(next.partialValue, i)
+      }
     }
   }
 }

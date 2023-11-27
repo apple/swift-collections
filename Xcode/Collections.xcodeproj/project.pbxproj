@@ -281,7 +281,7 @@
 		7DE9215A29CA70F4004483EB /* _HashNode+Structural subtracting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE329CA70F3004483EB /* _HashNode+Structural subtracting.swift */; };
 		7DE9215B29CA70F4004483EB /* _HashNode+Structural mapValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE429CA70F3004483EB /* _HashNode+Structural mapValues.swift */; };
 		7DE9215C29CA70F4004483EB /* _Bitmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE529CA70F3004483EB /* _Bitmap.swift */; };
-		7DE9215D29CA70F4004483EB /* _StorageHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE629CA70F3004483EB /* _StorageHeader.swift */; };
+		7DE9215D29CA70F4004483EB /* _HashNodeHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE629CA70F3004483EB /* _HashNodeHeader.swift */; };
 		7DE9215E29CA70F4004483EB /* _HashNode+Lookups.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE729CA70F3004483EB /* _HashNode+Lookups.swift */; };
 		7DE9215F29CA70F4004483EB /* _UnsafePath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE829CA70F3004483EB /* _UnsafePath.swift */; };
 		7DE9216029CA70F4004483EB /* _HashNode+Structural isDisjoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91FE929CA70F3004483EB /* _HashNode+Structural isDisjoint.swift */; };
@@ -731,7 +731,7 @@
 		7DE91FE329CA70F3004483EB /* _HashNode+Structural subtracting.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "_HashNode+Structural subtracting.swift"; sourceTree = "<group>"; };
 		7DE91FE429CA70F3004483EB /* _HashNode+Structural mapValues.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "_HashNode+Structural mapValues.swift"; sourceTree = "<group>"; };
 		7DE91FE529CA70F3004483EB /* _Bitmap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _Bitmap.swift; sourceTree = "<group>"; };
-		7DE91FE629CA70F3004483EB /* _StorageHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _StorageHeader.swift; sourceTree = "<group>"; };
+		7DE91FE629CA70F3004483EB /* _HashNodeHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _HashNodeHeader.swift; sourceTree = "<group>"; };
 		7DE91FE729CA70F3004483EB /* _HashNode+Lookups.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "_HashNode+Lookups.swift"; sourceTree = "<group>"; };
 		7DE91FE829CA70F3004483EB /* _UnsafePath.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _UnsafePath.swift; sourceTree = "<group>"; };
 		7DE91FE929CA70F3004483EB /* _HashNode+Structural isDisjoint.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "_HashNode+Structural isDisjoint.swift"; sourceTree = "<group>"; };
@@ -1457,7 +1457,7 @@
 				7DE91FDE29CA70F3004483EB /* _RawHashNode+UnsafeHandle.swift */,
 				7DE91FCF29CA70F3004483EB /* _HashSlot.swift */,
 				7DE91FCB29CA70F3004483EB /* _HashStack.swift */,
-				7DE91FE629CA70F3004483EB /* _StorageHeader.swift */,
+				7DE91FE629CA70F3004483EB /* _HashNodeHeader.swift */,
 				7DE91FD929CA70F3004483EB /* _UnmanagedHashNode.swift */,
 				7DE91FE829CA70F3004483EB /* _UnsafePath.swift */,
 			);
@@ -2055,7 +2055,7 @@
 				7DE920EC29CA70F4004483EB /* BitArray+Collection.swift in Sources */,
 				7DE9201729CA70F3004483EB /* OrderedDictionary+Codable.swift in Sources */,
 				7DE9208329CA70F4004483EB /* BigString+CustomDebugStringConvertible.swift in Sources */,
-				7DE9215D29CA70F4004483EB /* _StorageHeader.swift in Sources */,
+				7DE9215D29CA70F4004483EB /* _HashNodeHeader.swift in Sources */,
 				7DE9213329CA70F4004483EB /* TreeSet+Collection.swift in Sources */,
 				7DE9217929CA70F4004483EB /* Heap+UnsafeHandle.swift in Sources */,
 				7DE920BC29CA70F4004483EB /* _UniqueCollection.swift in Sources */,

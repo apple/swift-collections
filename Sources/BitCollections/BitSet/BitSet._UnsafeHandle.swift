@@ -223,8 +223,8 @@ extension _UnsafeBitSet {
     let r = range.clamped(to: 0 ..< UInt(capacity))
     guard r == range else { return false }
 
-    let lower = Index(range.lowerBound)
-    let upper = Index(range.upperBound)
+    let lower = Index(range.lowerBound).split
+    let upper = Index(range.upperBound).endSplit
 
     guard upper.word == wordCount &- 1 else { return false }
 

@@ -1,7 +1,7 @@
 #[[
 This source file is part of the Swift Collections Open Source Project
 
-Copyright (c) 2022 Apple Inc. and the Swift project authors
+Copyright (c) 2022 - 2023 Apple Inc. and the Swift project authors
 Licensed under Apache License v2.0 with Runtime Library Exception
 
 See https://swift.org/LICENSE.txt for license information
@@ -14,6 +14,7 @@ add_library(BitCollections
   "BitArray/BitArray+Collection.swift"
   "BitArray/BitArray+Copy.swift"
   "BitArray/BitArray+CustomReflectable.swift"
+  "BitArray/BitArray+Descriptions.swift"
   "BitArray/BitArray+Equatable.swift"
   "BitArray/BitArray+ExpressibleByArrayLiteral.swift"
   "BitArray/BitArray+Extras.swift"
@@ -21,6 +22,7 @@ add_library(BitCollections
   "BitArray/BitArray+Hashable.swift"
   "BitArray/BitArray+Initializers.swift"
   "BitArray/BitArray+Invariants.swift"
+  "BitArray/BitArray+RandomBits.swift"
   "BitArray/BitArray+RangeReplaceableCollection.swift"
   "BitArray/BitArray+Testing.swift"
   "BitArray/BitArray._UnsafeHandle.swift"

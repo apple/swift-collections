@@ -99,16 +99,13 @@ class OrderedDictionaryElementsTests: CollectionTestCase {
 
   func test_CustomDebugStringConvertible() {
     let a: OrderedDictionary<Int, Int> = [:]
-    expectEqual(a.elements.debugDescription,
-                "OrderedDictionary<Int, Int>.Elements([:])")
+    expectEqual(a.elements.debugDescription, "[:]")
 
     let b: OrderedDictionary<Int, Int> = [0: 1]
-    expectEqual(b.elements.debugDescription,
-                "OrderedDictionary<Int, Int>.Elements([0: 1])")
+    expectEqual(b.elements.debugDescription, "[0: 1]")
 
     let c: OrderedDictionary<Int, Int> = [0: 1, 2: 3, 4: 5]
-    expectEqual(c.elements.debugDescription,
-                "OrderedDictionary<Int, Int>.Elements([0: 1, 2: 3, 4: 5])")
+    expectEqual(c.elements.debugDescription, "[0: 1, 2: 3, 4: 5]")
   }
 
   func test_SubSequence_descriptions() {
@@ -119,10 +116,8 @@ class OrderedDictionaryElementsTests: CollectionTestCase {
 
     let s = d.elements[0 ..< 1]
 
-    expectEqual(s.description, "[a: 1]")
-    expectEqual(
-      s.debugDescription,
-      "OrderedDictionary<String, Int>.Elements.SubSequence([\"a\": 1])")
+    expectEqual(s.description, #"["a": 1]"#)
+    expectEqual(s.debugDescription, #"["a": 1]"#)
   }
 
   func test_customReflectable() {
