@@ -536,6 +536,58 @@ extension Benchmark {
         }
       }
     }
+    
+    self.add(
+      title: "OrderedSet<Int> equality different instance",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)
+        let right = OrderedSet(0 ..< size)
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int> equality same instance",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)
+        let right = left
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int>.SubSequence equality different instance",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)[0 ..< size]
+        let right = OrderedSet(0 ..< size)[0 ..< size]
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int>.SubSequence equality same instance",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)[0 ..< size]
+        let right = left
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
 
   }
 }
