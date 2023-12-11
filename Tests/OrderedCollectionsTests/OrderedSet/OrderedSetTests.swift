@@ -1360,4 +1360,52 @@ class OrderedSetTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_equal() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let set = OrderedSet(0 ..< count)
+      let copy = set
+      expectEqual(copy, set)
+    }
+  }
+  
+  func test_not_equal() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let left = OrderedSet(0 ..< count)
+      let right = OrderedSet(0 ... count)
+      expectNotEqual(left, right)
+    }
+  }
+  
+  func test_equal_elements() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let set = OrderedSet(0 ..< count)
+      let copy = set
+      expectEqualElements(copy, set)
+    }
+  }
+  
+  func test_subsequence_equal() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let subsequence = OrderedSet(0 ..< count)[0 ..< count]
+      let copy = subsequence
+      expectEqual(copy, subsequence)
+    }
+  }
+  
+  func test_subsequence_not_equal() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let left = OrderedSet(0 ..< count)[0 ..< count]
+      let right = OrderedSet(0 ... count)[0 ... count]
+      expectNotEqual(left, right)
+    }
+  }
+  
+  func test_subsequence_equal_elements() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let subsequence = OrderedSet(0 ..< count)[0 ..< count]
+      let copy = subsequence
+      expectEqualElements(copy, subsequence)
+    }
+  }
 }
