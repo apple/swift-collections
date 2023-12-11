@@ -340,7 +340,7 @@ extension OrderedSet.SubSequence: RandomAccessCollection {
 extension OrderedSet.SubSequence: Equatable {
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
-    left.elementsEqual(right)
+    left._base._elements == right._base._elements
   }
 }
 
