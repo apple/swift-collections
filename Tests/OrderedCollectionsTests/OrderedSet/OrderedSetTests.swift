@@ -1380,8 +1380,7 @@ class OrderedSetTests: CollectionTestCase {
   func test_equal_elements() {
     withEvery("count", in: 0 ..< 20) { count in
       let set = OrderedSet(0 ..< count)
-      let copy = set
-      expectEqualElements(copy, set)
+      expectEqualElements(set, 0 ..< count)
     }
   }
   
@@ -1404,8 +1403,7 @@ class OrderedSetTests: CollectionTestCase {
   func test_subsequence_equal_elements() {
     withEvery("count", in: 0 ..< 20) { count in
       let subsequence = OrderedSet(0 ..< count)[0 ..< count]
-      let copy = subsequence
-      expectEqualElements(copy, subsequence)
+      expectEqualElements(subsequence, 0 ..< count)
     }
   }
 }
