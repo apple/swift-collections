@@ -28,7 +28,8 @@ class OrderedDictionaryValueTests: CollectionTestCase {
       "three": 3,
       "four": 4,
     ]
-    expectEqual(left.values, right.values)
+    expectEqual(left.values, left.values) // Identity fast path
+    expectEqual(left.values, right.values) // Linear algorithm
   }
   
   func test_values_getter_not_equal() {
