@@ -23,7 +23,7 @@ extension Deque: Equatable where Element: Equatable {
     }
 
     // Test referential equality.
-    if lhsCount == 0 || left._storage._buffer.buffer === right._storage._buffer.buffer {
+    if lhsCount == 0 || left._storage.isIdentical(to: right._storage) {
       return true
     }
     
