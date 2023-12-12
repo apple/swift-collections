@@ -1408,8 +1408,6 @@ class OrderedSetTests: CollectionTestCase {
       let rightSlice = items1[i + 1 ..< c]
       expectNotEqual(items1[0 ..< c], rightSlice) //  same identity
       expectNotEqual(items2[0 ..< c], rightSlice) //  different identity
-      withEvery("j", in: i ... c) { j in
-      }
     }
   }
 }
