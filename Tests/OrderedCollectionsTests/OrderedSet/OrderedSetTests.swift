@@ -1400,9 +1400,7 @@ class OrderedSetTests: CollectionTestCase {
     let c = 5
     let items1 = OrderedSet(0 ..< c)
     let items2 = OrderedSet(0 ..< c)
-    print(items1)
     withEvery("i", in: 0 ..< c) { i in
-      print("i", i)
       let leftSlice = items1[0 ..< i]
       expectNotEqual(items1[0 ..< c], leftSlice)  //  same identity
       expectNotEqual(items2[0 ..< c], leftSlice)  //  different identity
