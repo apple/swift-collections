@@ -300,22 +300,6 @@ public func expectEqualElements<S1: Sequence, S2: Sequence>(
     message, trapping: trapping, file: file, line: line)
 }
 
-public func expectNotEqualElements<S1: Sequence, S2: Sequence>(
-  _ left: S1,
-  _ right: S2,
-  _ message: @autoclosure () -> String = "",
-  trapping: Bool = false,
-  file: StaticString = #file,
-  line: UInt = #line
-) where S1.Element == S2.Element, S1.Element: Equatable {
-  let left = Array(left)
-  let right = Array(right)
-  if !left.elementsEqual(right) { return }
-  _expectFailure(
-    "'\(left)' does have equal elements to '\(right)'",
-    message, trapping: trapping, file: file, line: line)
-}
-
 public func expectEquivalentElements<S1: Sequence, S2: Sequence>(
   _ left: S1,
   _ right: S2,
