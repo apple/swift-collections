@@ -369,6 +369,23 @@ final class DequeTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_equal() {
+    let deque: Deque<Int> = [1, 2, 3, 4]
+    let copy = deque
+    expectEqual(deque, copy)
+  }
+  
+  func test_not_equal() {
+    let left: Deque<Int> = [1, 2, 3, 4]
+    let right: Deque<Int> = [1, 2, 3, 4, 5]
+    expectNotEqual(left, right)
+  }
+  
+  func test_equal_elements() {
+    let deque: Deque<Int> = [1, 2, 3, 4]
+    expectEqualElements(deque, [1, 2, 3, 4])
+  }
 
 }
 
