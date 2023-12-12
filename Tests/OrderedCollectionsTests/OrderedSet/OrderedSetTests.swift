@@ -1392,10 +1392,25 @@ class OrderedSetTests: CollectionTestCase {
       withEvery("j", in: i ... c) { j in
         expectEqual(items1[i ..< j], items1[i ..< j]) // Reflective fast path based on identity
         expectEqual(items1[i ..< j], items2[i ..< j]) // Linear path
-        var items3 = OrderedSet(i ..< j)
-        items3.remove(j)
-        items3.insert(j + 1)
-        expectNotEqual(items1[i ..< j], items3[...]) // Slow negative path
+      }
+    }
+  }
+  
+  func test_subsequence_not_equality() {
+    let c = 5
+    let items1 = OrderedSet(0 ..< c)
+    let items2 = OrderedSet(0 ..< c)
+    print(items1)
+    withEvery("i", in: 0 ..< c) { i in
+      print("i", i)
+      let leftSlice = items1[0 ..< i]
+      expectNotEqual(items1[0 ..< c], leftSlice)  //  same identity
+      expectNotEqual(items2[0 ..< c], leftSlice)  //  different identity
+      
+      let rightSlice = items1[i + 1 ..< c]
+      expectNotEqual(items1[0 ..< c], rightSlice) //  same identity
+      expectNotEqual(items2[0 ..< c], rightSlice) //  different identity
+      withEvery("j", in: i ... c) { j in
       }
     }
   }
