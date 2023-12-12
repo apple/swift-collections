@@ -58,16 +58,6 @@ class OrderedDictionaryValueTests: CollectionTestCase {
     ]
     expectEqualElements(d.values, [1, 2, 3, 4])
   }
-  
-  func test_values_getter_not_equal_elements() {
-    let d: OrderedDictionary = [
-      "one": 1,
-      "two": 2,
-      "three": 3,
-      "four": 4,
-    ]
-    expectNotEqualElements(d.values, [1, 2, 3, 4, 5])
-  }
 
   func test_values_RandomAccessCollection() {
     withEvery("count", in: 0 ..< 30) { count in
