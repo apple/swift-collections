@@ -486,5 +486,31 @@ extension Benchmark {
         blackHole(deque)
       }
     }
+    
+    self.add(
+      title: "Deque<Int> equality different instance",
+      input: Int.self
+    ) { size in
+      let left = Deque(0 ..< size)
+      let right = Deque(0 ..< size)
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "Deque<Int> equality same instance",
+      input: Int.self
+    ) { size in
+      let left = Deque(0 ..< size)
+      let right = Deque(0 ..< size)
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
   }
 }
