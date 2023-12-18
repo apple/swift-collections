@@ -46,3 +46,8 @@ extension OrderedSet {
     }
   }
 }
+
+#if swift(>=5.5)
+extension OrderedSet._UnstableInternals: Sendable
+where Element: Sendable {}
+#endif

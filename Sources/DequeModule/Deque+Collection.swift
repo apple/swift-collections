@@ -160,6 +160,10 @@ extension Deque: Sequence {
   }
 }
 
+#if swift(>=5.5)
+extension Deque.Iterator: Sendable where Element: Sendable {}
+#endif
+
 extension Deque: RandomAccessCollection {
   public typealias Index = Int
   public typealias SubSequence = Slice<Self>

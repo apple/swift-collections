@@ -25,6 +25,11 @@ extension OrderedDictionary {
   }
 }
 
+#if swift(>=5.5)
+extension OrderedDictionary.Elements: Sendable
+where Key: Sendable, Value: Sendable {}
+#endif
+
 extension OrderedDictionary {
   /// A view of the contents of this dictionary as a random-access collection.
   ///

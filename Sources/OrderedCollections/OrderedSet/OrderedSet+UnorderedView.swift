@@ -62,6 +62,10 @@ extension OrderedSet {
   }
 }
 
+#if swift(>=5.5)
+extension OrderedSet.UnorderedView: Sendable where Element: Sendable {}
+#endif
+
 extension OrderedSet.UnorderedView: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
