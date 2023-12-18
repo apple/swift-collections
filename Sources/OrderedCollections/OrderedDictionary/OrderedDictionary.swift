@@ -257,7 +257,8 @@ extension OrderedDictionary {
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
   ///     let index = countryCodes.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
+  ///     let (key, value) = countryCodes.elements[index!]
+  ///     print("Country code for \(value): '\(key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary.
