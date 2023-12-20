@@ -25,6 +25,7 @@ add_library(DequeModule
   Deque+ExpressibleByArrayLiteral.swift
   Deque+Extras.swift
   Deque+Hashable.swift
+  Deque+Sendable.swift
   Deque+Testing.swift
   UnsafeMutableBufferPointer+Utilities.swift)
 set_target_properties(DequeModule PROPERTIES
