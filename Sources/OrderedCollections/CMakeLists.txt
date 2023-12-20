@@ -32,6 +32,7 @@ add_library(OrderedCollections
   "OrderedDictionary/OrderedDictionary+Partial MutableCollection.swift"
   "OrderedDictionary/OrderedDictionary+Partial RangeReplaceableCollection.swift"
   "OrderedDictionary/OrderedDictionary+Sequence.swift"
+  "OrderedDictionary/OrderedDictionary+Sendable.swift"
   "OrderedDictionary/OrderedDictionary+Values.swift"
   "OrderedDictionary/OrderedDictionary+Deprecations.swift"
 
@@ -54,6 +55,7 @@ add_library(OrderedCollections
   "OrderedSet/OrderedSet+Partial SetAlgebra+Predicates.swift"
   "OrderedSet/OrderedSet+RandomAccessCollection.swift"
   "OrderedSet/OrderedSet+ReserveCapacity.swift"
+  "OrderedSet/OrderedSet+Sendable.swift"
   "OrderedSet/OrderedSet+SubSequence.swift"
   "OrderedSet/OrderedSet+Testing.swift"
   "OrderedSet/OrderedSet+UnorderedView.swift"
