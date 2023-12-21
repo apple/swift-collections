@@ -212,3 +212,11 @@ extension Deque._Storage {
     }
   }
 }
+
+extension Deque._Storage {
+  @inlinable
+  @inline(__always)
+  internal func isIdentical(to other: Self) -> Bool {
+    self._buffer.buffer === other._buffer.buffer
+  }
+}

@@ -17,6 +17,16 @@ extension Deque: Equatable where Element: Equatable {
   /// - Complexity: O(`min(left.count, right.count)`)
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
+    let lhsCount = left.count
+    if lhsCount != right.count {
+      return false
+    }
+
+    // Test referential equality.
+    if lhsCount == 0 || left._storage.isIdentical(to: right._storage) {
+      return true
+    }
+
     return left.elementsEqual(right)
   }
 }

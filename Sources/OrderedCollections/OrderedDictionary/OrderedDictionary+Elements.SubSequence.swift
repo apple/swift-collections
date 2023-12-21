@@ -81,7 +81,8 @@ extension OrderedDictionary.Elements.SubSequence {
   ///     let slice = countryCodes.elements[1...]
   ///     let index = slice.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
+  ///     let (key, value) = countryCodes.elements[index!]
+  ///     print("Country code for \(value): '\(key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary slice.

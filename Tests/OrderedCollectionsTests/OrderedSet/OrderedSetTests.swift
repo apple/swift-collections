@@ -1514,4 +1514,54 @@ class OrderedSetTests: CollectionTestCase {
     let os = OrderedSet([1, 2, 3, 4]).filter { $0.isMultiple(of: 2) }
     expectType(os, OrderedSet<Int>.self)
   }
+  
+  func test_equal() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let set = OrderedSet(0 ..< count)
+      let copy = set
+      expectEqual(copy, set)
+    }
+  }
+  
+  func test_not_equal() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let left = OrderedSet(0 ..< count)
+      let right = OrderedSet(0 ... count)
+      expectNotEqual(left, right)
+    }
+  }
+  
+  func test_equal_elements() {
+    withEvery("count", in: 0 ..< 20) { count in
+      let set = OrderedSet(0 ..< count)
+      expectEqualElements(set, 0 ..< count)
+    }
+  }
+  
+  func test_subsequence_equality() {
+    let c = 5
+    let items1 = OrderedSet(0 ..< c)
+    let items2 = OrderedSet(0 ..< c)
+    withEvery("i", in: 0 ... c) { i in
+      withEvery("j", in: i ... c) { j in
+        expectEqual(items1[i ..< j], items1[i ..< j]) // Reflective fast path based on identity
+        expectEqual(items1[i ..< j], items2[i ..< j]) // Linear path
+      }
+    }
+  }
+  
+  func test_subsequence_not_equality() {
+    let c = 5
+    let items1 = OrderedSet(0 ..< c)
+    let items2 = OrderedSet(0 ..< c)
+    withEvery("i", in: 0 ..< c) { i in
+      let leftSlice = items1[0 ..< i]
+      expectNotEqual(items1[0 ..< c], leftSlice)  //  same identity
+      expectNotEqual(items2[0 ..< c], leftSlice)  //  different identity
+      
+      let rightSlice = items1[i + 1 ..< c]
+      expectNotEqual(items1[0 ..< c], rightSlice) //  same identity
+      expectNotEqual(items2[0 ..< c], rightSlice) //  different identity
+    }
+  }
 }

@@ -539,5 +539,61 @@ extension Benchmark {
         blackHole(d)
       }
     }
+    
+    self.add(
+      title: "OrderedDictionary<Int, Int> equality different instance",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = OrderedDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = OrderedDictionary(uniqueKeysWithValues: keysAndValues)
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedDictionary<Int, Int> equality same instance",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = OrderedDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = left
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedDictionary<Int, Int>.Values equality different instance",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = OrderedDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = OrderedDictionary(uniqueKeysWithValues: keysAndValues)
+      return { timer in
+        timer.measure {
+          precondition(left.values == right.values)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedDictionary<Int, Int>.Values equality same instance",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = OrderedDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = left
+      return { timer in
+        timer.measure {
+          precondition(left.values == right.values)
+        }
+      }
+    }
   }
 }
