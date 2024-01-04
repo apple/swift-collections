@@ -41,5 +41,17 @@ final class NodeDeletionTests: CollectionTestCase {
       }
     }
   }
+
+  func test_removeAllWithRemoveLast() {
+    withEvery("size", in: [1, 2, 4, 8, 16, 32, 64, 128, 512]) { size in
+      btreeOfSize(size) { tree, _ in
+        expectEqual(tree.count, size)
+
+        tree.removeLast(size)
+
+        expectEqual(tree.count, 0)
+      }
+    }
+  }
 }
 #endif
