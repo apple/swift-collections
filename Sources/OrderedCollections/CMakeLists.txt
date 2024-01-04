@@ -32,6 +32,7 @@ add_library(OrderedCollections
   "OrderedDictionary/OrderedDictionary+Partial RangeReplaceableCollection.swift"
   "OrderedDictionary/OrderedDictionary+Sendable.swift"
   "OrderedDictionary/OrderedDictionary+Sequence.swift"
+  "OrderedDictionary/OrderedDictionary+Sendable.swift"
   "OrderedDictionary/OrderedDictionary+Values.swift"
   "OrderedSet/OrderedSet+Codable.swift"
   "OrderedSet/OrderedSet+CustomReflectable.swift"

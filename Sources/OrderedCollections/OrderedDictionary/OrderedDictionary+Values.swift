@@ -387,7 +387,7 @@ extension OrderedDictionary.Values: MutableCollection {
 extension OrderedDictionary.Values: Equatable where Value: Equatable {
   @inlinable
   public static func ==(left: Self, right: Self) -> Bool {
-    left.elementsEqual(right)
+    left._base._values == right._base._values
   }
 }
 
