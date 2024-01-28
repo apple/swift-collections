@@ -407,6 +407,34 @@ extension Benchmark {
         blackHole(d)
       }
     }
-
+    
+    self.add(
+      title: "Dictionary<Int, Int> equality, unique",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = Dictionary(uniqueKeysWithValues: keysAndValues)
+      let right = Dictionary(uniqueKeysWithValues: keysAndValues)
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "Dictionary<Int, Int> equality, shared",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = Dictionary(uniqueKeysWithValues: keysAndValues)
+      let right = left
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
   }
 }

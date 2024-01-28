@@ -557,7 +557,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedSet<Int> equality different instance",
+      title: "OrderedSet<Int> equality, unique",
       input: Int.self
     ) { size in
       return { timer in
@@ -570,7 +570,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedSet<Int> equality same instance",
+      title: "OrderedSet<Int> equality, shared",
       input: Int.self
     ) { size in
       return { timer in
@@ -583,7 +583,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedSet<Int>.SubSequence equality different instance",
+      title: "OrderedSet<Int>.SubSequence equality, unique",
       input: Int.self
     ) { size in
       return { timer in
@@ -596,7 +596,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedSet<Int>.SubSequence equality same instance",
+      title: "OrderedSet<Int>.SubSequence equality, shared",
       input: Int.self
     ) { size in
       return { timer in

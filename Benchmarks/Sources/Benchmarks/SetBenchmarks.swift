@@ -473,5 +473,32 @@ extension Benchmark {
         }
       }
     }
+    
+    self.add(
+      title: "Set<Int> equality, unique",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = Set(0 ..< size)
+        let right = Set(0 ..< size)
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "Set<Int> equality, shared",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = Set(0 ..< size)
+        let right = left
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
   }
 }

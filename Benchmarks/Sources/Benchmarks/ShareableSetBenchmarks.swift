@@ -446,5 +446,32 @@ extension Benchmark {
         }
       }
     }
+    
+    self.add(
+      title: "TreeSet<Int> equality, unique",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = TreeSet(0 ..< size)
+        let right = TreeSet(0 ..< size)
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "TreeSet<Int> equality, shared",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = TreeSet(0 ..< size)
+        let right = left
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
   }
 }
