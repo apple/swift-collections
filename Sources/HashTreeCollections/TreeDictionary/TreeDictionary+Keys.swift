@@ -288,3 +288,22 @@ extension TreeDictionary.Keys {
     return d.keys
   }
 }
+
+extension TreeDictionary.Keys: Equatable {
+  /// Returns a Boolean value indicating whether two values are equal.
+  /// 
+  /// Equality is the inverse of inequality. For any values `a` and `b`,
+  /// `a == b` implies that `a != b` is `false`.
+  ///
+  /// - Parameter lhs: A value to compare.
+  /// - Parameter rhs: Another value to compare.
+  ///
+  /// - Complexity: Generally O(`count`), as long as`Element` properly
+  ///    implements hashing. That said, the implementation is careful to take
+  ///    every available shortcut to reduce complexity, e.g. by skipping
+  ///    comparing elements in shared subtrees.
+  @inlinable
+  public static func == (left: Self, right: Self) -> Bool {
+    left._base._root.isEqualSet(to: right._base._root, by: { _, _ in true })
+  }
+}

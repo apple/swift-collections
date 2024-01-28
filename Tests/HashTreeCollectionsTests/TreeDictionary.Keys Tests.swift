@@ -105,5 +105,24 @@ class TreeDictionaryKeysTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_isEqual_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = TreeDictionary<RawCollider, Int>(
+        uniqueKeysWithValues: a.lazy.map { ($0, 2 * $0.identity) })
+      let u = Set(a)
+      expectEqualSets(x.keys, u)
+      withEverySubset("b", of: testItems) { b in
+        let y = TreeDictionary<RawCollider, Int>(
+          uniqueKeysWithValues: b.lazy.map { ($0, -$0.identity - 1) })
+        let v = Set(b)
+
+        let reference = u == v
+        print(reference)
+
+        expectEqual(x.keys == y.keys, reference)
+      }
+    }
+  }
 
 }
