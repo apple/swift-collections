@@ -116,6 +116,7 @@ class TreeDictionaryKeysTests: CollectionTestCase {
         let y = TreeDictionary<RawCollider, Int>(
           uniqueKeysWithValues: b.lazy.map { ($0, -$0.identity - 1) })
         let v = Set(b)
+        expectEqualSets(y.keys, v)
 
         let reference = u == v
         print(reference)
