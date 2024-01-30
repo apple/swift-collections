@@ -100,6 +100,23 @@ extension Heap {
     Array(_storage)
   }
 
+  /// Creates an empty heap with preallocated space for at least the
+  /// specified number of elements.
+  ///
+  /// Use this initializer to avoid intermediate reallocations of a heap's
+  /// storage when you know in advance how many elements you'll insert into it
+  /// after creation.
+  ///
+  /// - Parameter minimumCapacity: The minimum number of elements that the newly
+  ///   created heap should be able to store without reallocating its storage.
+  ///
+  /// - Complexity: O(1) allocations
+  @inlinable
+  public init(minimumCapacity: Int) {
+    self.init()
+    self.reserveCapacity(minimumCapacity)
+  }
+
   /// Reserves enough space to store the specified number of elements.
   ///
   /// If you are adding a known number of elements to a heap, use this method
@@ -109,6 +126,9 @@ extension Heap {
   ///
   /// For performance reasons, the size of the newly allocated storage might be
   /// greater than the requested capacity.
+  ///
+  /// - Parameter minimumCapacity: The minimum number of elements that the
+  ///   resulting heap should be able to store without reallocating its storage.
   ///
   /// - Complexity: O(`count`)
   @inlinable
