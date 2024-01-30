@@ -100,6 +100,22 @@ extension Heap {
     Array(_storage)
   }
 
+  /// Reserves enough space to store the specified number of elements.
+  ///
+  /// If you are adding a known number of elements to a heap, use this method
+  /// to avoid multiple reallocations. This method ensures that the heap has
+  /// unique, mutable, contiguous storage, with space allocated for at least
+  /// the requested number of elements.
+  ///
+  /// For performance reasons, the size of the newly allocated storage might be
+  /// greater than the requested capacity.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public mutating func reserveCapacity(_ minimumCapacity: Int) {
+    _storage.reserveCapacity(minimumCapacity)
+  }
+
   /// Inserts the given element into the heap.
   ///
   /// - Complexity: O(log(`count`)) element comparisons
