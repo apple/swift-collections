@@ -192,6 +192,7 @@ extension Heap {
   ///
   /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
+  @discardableResult
   public mutating func removeMin() -> Element {
     return popMin()!
   }
@@ -202,6 +203,7 @@ extension Heap {
   ///
   /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
+  @discardableResult
   public mutating func removeMax() -> Element {
     return popMax()!
   }
