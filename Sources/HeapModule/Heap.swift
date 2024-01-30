@@ -17,9 +17,9 @@
 ///
 ///     var queue: Heap<Int> = [3, 4, 1, 2]
 ///     queue.insert(0)
-///     print(queue.min())    // 0
+///     print(queue.min)      // 0
 ///     print(queue.popMax()) // 4
-///     print(queue.max())    // 3
+///     print(queue.max)      // 3
 ///
 /// `Heap` implements the min-max heap data structure, based on
 /// [Atkinson et al. 1986].
@@ -117,7 +117,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func min() -> Element? {
+  public var min: Element? {
     _storage.first
   }
 
@@ -125,7 +125,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func max() -> Element? {
+  public var max: Element? {
     _storage.withUnsafeBufferPointer { buffer in
       guard buffer.count > 2 else {
         // If count is 0, `last` will return `nil`
