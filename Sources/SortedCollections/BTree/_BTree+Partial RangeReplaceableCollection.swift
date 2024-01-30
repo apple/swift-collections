@@ -58,7 +58,7 @@ extension _BTree {
   @inlinable
   @inline(__always)
   public mutating func removeLast(_ k: Int) {
-    assert(0 <= k && k < self.count, "Can't remove more items from a collection than it contains")
+    assert(0 <= k && k <= self.count, "Can't remove more items from a collection than it contains")
     for _ in 0..<k {
       self.removeLast()
     }
@@ -95,7 +95,7 @@ extension _BTree {
   @inlinable
   @inline(__always)
   public mutating func removeFirst(_ k: Int) {
-    assert(0 <= k && k < self.count, "Can't remove more items from a collection than it contains")
+    assert(0 <= k && k <= self.count, "Can't remove more items from a collection than it contains")
     for _ in 0..<k {
       self.removeFirst()
     }
