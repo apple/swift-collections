@@ -12,17 +12,6 @@
 extension BitSet: CustomDebugStringConvertible {
   /// A textual representation of this instance, suitable for debugging.
   public var debugDescription: String {
-    var result = "["
-    var first = true
-    for item in self {
-      if first {
-        first = false
-      } else {
-        result += ", "
-      }
-      debugPrint(item, terminator: "", to: &result)
-    }
-    result += "]"
-    return result
+    description
   }
 }

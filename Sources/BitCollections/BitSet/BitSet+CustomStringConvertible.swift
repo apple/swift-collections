@@ -9,20 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension BitSet: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
-    var result = "["
-    var first = true
-    for item in self {
-      if first {
-        first = false
-      } else {
-        result += ", "
-      }
-      print(item, terminator: "", to: &result)
-    }
-    result += "]"
-    return result
+    _arrayDescription(for: self)
   }
 }
