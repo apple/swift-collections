@@ -263,7 +263,8 @@ let targets: [CustomTarget] = [
     kind: .exported,
     name: "_RopeModule",
     dependencies: ["_CollectionsUtilities"],
-    directory: "RopeModule"),
+    directory: "RopeModule",
+    exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
     name: "RopeModuleTests",
