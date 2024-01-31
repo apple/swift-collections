@@ -9,19 +9,20 @@
 ### Creating a Bit Array
 
 - ``init()``
+- ``init(minimumCapacity:)``
 - ``init(_:)-2y0wv``
 - ``init(repeating:count:)-4j5yd``
 - ``init(_:)-6ldyw``
 - ``init(_:)-4tksd``
 - ``init(_:)-765d2``
 - ``init(bitPattern:)``
-- ``random(count:)``
-- ``random(count:using:)``
+- ``randomBits(count:)``
+- ``randomBits(count:using:)``
 
 ### Accessing Elements
 
 - ``subscript(_:)-51ccj``
-- ``subscript(_:)-944vg``
+<!-- - ``subscript(_:)-944vg`` -->
 - ``first``
 - ``last``
 
@@ -31,10 +32,12 @@
 - ``append(contentsOf:)-18dwf``
 - ``append(contentsOf:)-576q4``
 - ``append(contentsOf:)-8xkr8``
+- ``append(repeating:count:)``
 - ``insert(_:at:)-9t4hf``
 - ``insert(contentsOf:at:)-7e1xn``
 - ``insert(contentsOf:at:)-35dp3``
 - ``insert(contentsOf:at:)-1wsgw``
+- ``insert(repeating:count:at:)``
 - ``truncateOrExtend(toCount:with:)``
 
 ### Removing Elements
@@ -52,7 +55,8 @@
 
 ### Replacing Elements
 
-- ``fill(in:with:)``
+- ``fill(in:with:)-1lrlg``
+- ``fill(in:with:)-8sf1b``
 - ``fill(with:)``
 - ``replaceSubrange(_:with:)-163u2``
 - ``replaceSubrange(_:with:)-875d8``
@@ -64,6 +68,10 @@
 - ``toggleAll()``
 - ``toggleAll(in:)-3duwn``
 - ``toggleAll(in:)-5hfhl``
+- ``maskingShiftLeft(by:)``
+- ``maskingShiftRight(by:)``
+- ``resizingShiftLeft(by:)``
+- ``resizingShiftRight(by:)``
 
 <!--- ``&(_:_:)``-->
 <!--- ``_(_:_:)-1rhw``-->
