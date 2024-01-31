@@ -151,10 +151,10 @@ extension BitArray._UnsafeHandle {
 }
 
 extension BitArray._UnsafeHandle {
-  internal mutating func copy<S: Sequence>(
-    from source: S,
+  internal mutating func copy(
+    from source: some Sequence<Bool>,
     to range: Range<Int>
-  ) where S.Element == Bool {
+  ) {
     assert(range.lowerBound >= 0 && range.upperBound <= self.count)
     var pos = _BitPosition(range.lowerBound)
     var it = source.makeIterator()

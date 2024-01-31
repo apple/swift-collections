@@ -199,6 +199,7 @@ let targets: [CustomTarget] = [
       "IntegerTricks/UInt+first and last set bit.swift.gyb",
       "IntegerTricks/UInt+reversed.swift.gyb",
       "RandomAccessCollection+Offsets.swift.gyb",
+      "Specialize.swift.gyb",
       "UnsafeBitSet/_UnsafeBitSet+Index.swift.gyb",
       "UnsafeBitSet/_UnsafeBitSet+_Word.swift.gyb",
       "UnsafeBitSet/_UnsafeBitSet.swift.gyb",

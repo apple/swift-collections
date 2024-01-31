@@ -52,12 +52,12 @@ extension BitSet.Counted {
   }
 
   @inlinable
-  public init<S: Sequence>(words: S) where S.Element == UInt {
+  public init(words: some Sequence<UInt>) {
     self.init(BitSet(words: words))
   }
 
   @inlinable
-  public init<I: BinaryInteger>(bitPattern x: I) {
+  public init(bitPattern x: some BinaryInteger) {
     self.init(words: x.words)
   }
 
@@ -66,9 +66,7 @@ extension BitSet.Counted {
   }
 
   @inlinable
-  public init<S: Sequence>(
-    _ elements: __owned S
-  ) where S.Element == Int {
+  public init(_ elements: __owned some Sequence<Int>) {
     self.init(BitSet(elements))
   }
 
@@ -252,9 +250,7 @@ extension BitSet.Counted { // Extras
     _bits[members: bounds]
   }
 
-  public subscript<R: RangeExpression>(members bounds: R) -> Slice<BitSet>
-  where R.Bound == Int
-  {
+  public subscript(members bounds: some RangeExpression<Int>) -> Slice<BitSet> {
     _bits[members: bounds]
   }
 
@@ -310,9 +306,9 @@ extension BitSet.Counted {
     BitSet.Counted(BitSet.random(upTo: limit))
   }
 
-  public static func random<R: RandomNumberGenerator>(
+  public static func random(
     upTo limit: Int,
-    using rng: inout R
+    using rng: inout some RandomNumberGenerator
   ) -> BitSet.Counted {
     BitSet.Counted(BitSet.random(upTo: limit, using: &rng))
   }
@@ -398,10 +394,9 @@ extension BitSet.Counted {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public func union<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int {
+  public func union(
+    _ other: __owned some Sequence<Int>
+  ) -> Self {
     _bits.union(other).counted
   }
 }
@@ -465,10 +460,9 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func intersection<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int {
+  public func intersection(
+    _ other: __owned some Sequence<Int>
+  ) -> Self {
     _bits.intersection(other).counted
   }
 }
@@ -534,10 +528,9 @@ extension BitSet.Counted {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public func symmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int {
+  public func symmetricDifference(
+    _ other: __owned some Sequence<Int>
+  ) -> Self {
     _bits.symmetricDifference(other).counted
   }
 }
@@ -604,10 +597,9 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func subtracting<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int {
+  public func subtracting(
+    _ other: __owned some Sequence<Int>
+  ) -> Self {
     _bits.subtracting(other).counted
   }
 }
@@ -673,9 +665,9 @@ extension BitSet.Counted {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public mutating func formUnion<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Int {
+  public mutating func formUnion(
+    _ other: __owned some Sequence<Int>
+  ) {
     _bits.formUnion(other)
     _count = _bits.count
     _checkInvariants()
@@ -742,9 +734,9 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///     and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public mutating func formIntersection<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Int {
+  public mutating func formIntersection(
+    _ other: __owned some Sequence<Int>
+  ) {
     _bits.formIntersection(other)
     _count = _bits.count
     _checkInvariants()
@@ -816,9 +808,9 @@ extension BitSet.Counted {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Int {
+  public mutating func formSymmetricDifference(
+    _ other: __owned some Sequence<Int>
+  ) {
     _bits.formSymmetricDifference(other)
     _count = _bits.count
     _checkInvariants()
@@ -887,9 +879,9 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public mutating func subtract<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Int {
+  public mutating func subtract(
+    _ other: __owned some Sequence<Int>
+  ) {
     _bits.subtract(other)
     _count = _bits.count
     _checkInvariants()
@@ -939,9 +931,7 @@ extension BitSet.Counted {
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `other`.
   @inlinable
-  public func isEqualSet<S: Sequence>(to other: S) -> Bool
-  where S.Element == Int
-  {
+  public func isEqualSet(to other: some Sequence<Int>) -> Bool {
     guard self.count >= other.underestimatedCount else { return false }
     return _bits.isEqualSet(to: other)
   }
@@ -1025,9 +1015,7 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func isSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Int
-  {
+  public func isSubset(of other: some Sequence<Int>) -> Bool {
     _bits.isSubset(of: other)
   }
 }
@@ -1109,9 +1097,7 @@ extension BitSet.Counted {
   /// - Complexity: The same as the complexity of iterating over all elements
   ///    in `other`.
   @inlinable
-  public func isSuperset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Int
-  {
+  public func isSuperset(of other: some Sequence<Int>) -> Bool {
     _bits.isSuperset(of: other)
   }
 }
@@ -1203,9 +1189,7 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func isStrictSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Int
-  {
+  public func isStrictSubset(of other: some Sequence<Int>) -> Bool {
     _bits.isStrictSubset(of: other)
   }
 }
@@ -1289,9 +1273,7 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `other`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func isStrictSuperset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Int
-  {
+  public func isStrictSuperset(of other: some Sequence<Int>) -> Bool {
     _bits.isStrictSuperset(of: other)
   }
 }
@@ -1362,9 +1344,7 @@ extension BitSet.Counted {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func isDisjoint<S: Sequence>(with other: S) -> Bool
-  where S.Element == Int
-  {
+  public func isDisjoint(with other: some Sequence<Int>) -> Bool {
     _bits.isDisjoint(with: other)
   }
 }

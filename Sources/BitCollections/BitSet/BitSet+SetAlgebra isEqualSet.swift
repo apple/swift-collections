@@ -55,15 +55,15 @@ extension BitSet {
   ///     bits.isEqualSet(to: other) // true
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `other`.
-  public func isEqualSet<S: Sequence>(to other: S) -> Bool where S.Element == Int {
-    if S.self == Self.self {
-      return isEqualSet(to: other as! Self)
+  public func isEqualSet(to other: some Sequence<Int>) -> Bool {
+    if let other = _specialize(other, for: BitSet.self) {
+      return isEqualSet(to: other)
     }
-    if S.self == BitSet.Counted.self {
-      return isEqualSet(to: other as! BitSet.Counted)
+    if let other = _specialize(other, for: BitSet.Counted.self) {
+      return isEqualSet(to: other)
     }
-    if S.self == Range<Int>.self {
-      return isEqualSet(to: other as! Range<Int>)
+    if let other = _specialize(other, for: Range<Int>.self) {
+      return isEqualSet(to: other)
     }
 
     if self.isEmpty {
@@ -82,7 +82,7 @@ extension BitSet {
       precondition(
         seen <= self.count,
         // Otherwise other.underestimatedCount != other.count
-        "Invalid Collection '\(S.self)' (bad underestimatedCount)")
+        "Invalid Collection '\(type(of: other))' (bad underestimatedCount)")
       return seen == self.count
     }
 

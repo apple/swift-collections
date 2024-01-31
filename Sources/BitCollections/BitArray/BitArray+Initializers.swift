@@ -42,7 +42,7 @@ extension BitArray {
   ///     BitArray(bitPattern: -1 as Int)   // 1111111111...1111111111
   ///
   /// - Complexity: O(value.bitWidth)
-  public init<I: BinaryInteger>(bitPattern value: I) {
+  public init(bitPattern value: some BinaryInteger) {
     var words = value.words.map { _Word($0) }
     let count = value.bitWidth
     if words.isEmpty {

@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension BitSet {
   /// Returns a new bit set with the elements that are common to both this set
   /// and the given set.
@@ -77,13 +81,9 @@ extension BitSet {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func intersection<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int
-  {
-    if S.self == Range<Int>.self {
-      return intersection(other as! Range<Int>)
+  public func intersection(_ other: __owned some Sequence<Int>) -> Self {
+    if let other = _specialize(other, for: Range<Int>.self) {
+      return intersection(other)
     }
     // Note: BitSet & BitSet.Counted are handled in the BitSet initializer below
     return intersection(BitSet(_validMembersOf: other))

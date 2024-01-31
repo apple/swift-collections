@@ -71,19 +71,15 @@ extension BitSet {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public func union<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int
-  {
-    if S.self == BitSet.self {
-      return union(other as! BitSet)
+  public func union(_ other: __owned some Sequence<Int>) -> Self {
+    if let other = _specialize(other, for: BitSet.self) {
+      return union(other)
     }
-    if S.self == BitSet.Counted.self {
-      return union(other as! BitSet.Counted)
+    if let other = _specialize(other, for: BitSet.Counted.self) {
+      return union(other)
     }
-    if S.self == Range<Int>.self {
-      return union(other as! Range<Int>)
+    if let other = _specialize(other, for: Range<Int>.self) {
+      return union(other)
     }
     var result = self
     result.formUnion(other)

@@ -32,7 +32,7 @@ extension BitArray: LosslessStringConvertible {
     self = bits
   }
 
-  internal init?<C: Collection>(_utf8 utf8: C) where C.Element == UInt8 {
+  internal init?(_utf8 utf8: some Collection<UInt8>) {
     let c = utf8.count
     self.init(repeating: false, count: c)
     var i = c &- 1

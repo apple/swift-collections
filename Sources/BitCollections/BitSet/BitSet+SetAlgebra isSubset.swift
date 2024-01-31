@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension BitSet {
   /// Returns a Boolean value that indicates whether this set is a subset of
   /// the given set.
@@ -100,17 +104,15 @@ extension BitSet {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func isSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Int
-  {
-    if S.self == BitSet.self {
-      return self.isSubset(of: other as! BitSet)
+  public func isSubset(of other: some Sequence<Int>) -> Bool {
+    if let other = _specialize(other, for: BitSet.self) {
+      return self.isSubset(of: other)
     }
-    if S.self == BitSet.Counted.self {
-      return self.isSubset(of: other as! BitSet.Counted)
+    if let other = _specialize(other, for: BitSet.Counted.self) {
+      return self.isSubset(of: other)
     }
-    if S.self == Range<Int>.self  {
-      return self.isSubset(of: other as! Range<Int>)
+    if let other = _specialize(other, for: Range<Int>.self)  {
+      return self.isSubset(of: other)
     }
 
     var it = self.makeIterator()

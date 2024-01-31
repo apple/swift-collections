@@ -140,9 +140,7 @@ extension BitSet {
   ///     // Optional(2)
   ///
   /// - Complexity: Equivalent to two invocations of `index(after:)`.
-  public subscript<R: RangeExpression>(members bounds: R) -> Slice<BitSet>
-  where R.Bound == Int
-  {
+  public subscript(members bounds: some RangeExpression<Int>) -> Slice<BitSet> {
     let bounds = bounds.relative(to: Int.min ..< Int.max)
     return self[members: bounds]
   }

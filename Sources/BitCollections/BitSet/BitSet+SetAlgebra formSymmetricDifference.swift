@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension BitSet {
   /// Replace this set with the elements contained in this set or the given
   /// set, but not both.
@@ -81,11 +85,11 @@ extension BitSet {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Int {
-    if S.self == Range<Int>.self {
-      formSymmetricDifference(other as! Range<Int>)
+  public mutating func formSymmetricDifference(
+    _ other: __owned some Sequence<Int>
+  ) {
+    if let other = _specialize(other, for: Range<Int>.self) {
+      formSymmetricDifference(other)
       return
     }
     // Note: BitSet & BitSet.Counted are handled in the BitSet initializer below

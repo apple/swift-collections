@@ -15,9 +15,9 @@ extension BitSet {
     return random(upTo: limit, using: &rng)
   }
 
-  public static func random<R: RandomNumberGenerator>(
+  public static func random(
     upTo limit: Int,
-    using rng: inout R
+    using rng: inout some RandomNumberGenerator
   ) -> BitSet {
     precondition(limit >= 0, "Invalid limit value")
     guard limit > 0 else { return BitSet() }

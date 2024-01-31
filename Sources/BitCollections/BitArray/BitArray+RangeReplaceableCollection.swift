@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension BitArray: RangeReplaceableCollection {}
 
 extension BitArray {
@@ -57,14 +61,14 @@ extension BitArray {
   /// - Complexity: O(*count*) where *count* is the number of values in
   ///   `elements`.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Bool {
+  public init(_ elements: some Sequence<Bool>) {
     defer { _checkInvariants() }
-    if S.self == BitArray.self {
-      self = elements as! BitArray
+    if let elements = _specialize(elements, for: BitArray.self) {
+      self.init(elements)
       return
     }
-    if S.self == BitArray.SubSequence.self {
-      self.init(elements as! BitArray.SubSequence)
+    if let elements = _specialize(elements, for: BitArray.SubSequence.self) {
+      self.init(elements)
       return
     }
     self.init()
@@ -80,6 +84,7 @@ extension BitArray {
   ///   `elements` must be finite.
   /// - Complexity: O(*count*) where *count* is the number of values in
   ///   `elements`.
+  @inlinable
   public init(_ elements: BitArray) {
     self = elements
   }
@@ -143,16 +148,18 @@ extension BitArray {
   ///   *m* is the length of `newElements`. If the call to this method simply
   ///   appends the contents of `newElements` to the collection, this method is
   ///   equivalent to `append(contentsOf:)`.
-  public mutating func replaceSubrange<C: Collection>(
+  public mutating func replaceSubrange(
     _ range: Range<Int>,
-    with newElements: __owned C
-  ) where C.Element == Bool {
+    with newElements: __owned some Collection<Bool>
+  ) {
     let c = newElements.count
     _prepareForReplaceSubrange(range, replacementCount: c)
-    if C.self == BitArray.self {
-      _copy(from: newElements as! BitArray, to: range.lowerBound)
-    } else if C.self == BitArray.SubSequence.self {
-      _copy(from: newElements as! BitArray.SubSequence, to: range.lowerBound)
+    if let newElements = _specialize(newElements, for: BitArray.self) {
+      _copy(from: newElements, to: range.lowerBound)
+    } else if let newElements = _specialize(
+      newElements, for: BitArray.SubSequence.self
+    ) {
+      _copy(from: newElements, to: range.lowerBound)
     } else {
       _copy(from: newElements, to: range.lowerBound ..< range.lowerBound + c)
     }
@@ -259,15 +266,17 @@ extension BitArray {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`, if
   ///    `self` is the only copy of this bit array. Otherwise O(`count` + *m*).
-  public mutating func append<S: Sequence>(
-    contentsOf newElements: __owned S
-  ) where S.Element == Bool {
-    if S.self == BitArray.self {
-      self.append(contentsOf: newElements as! BitArray)
+  public mutating func append(
+    contentsOf newElements: __owned some Sequence<Bool>
+  ) {
+    if let newElements = _specialize(newElements, for: BitArray.self) {
+      self.append(contentsOf: newElements)
       return
     }
-    if S.self == BitArray.SubSequence.self {
-      self.append(contentsOf: newElements as! BitArray.SubSequence)
+    if let newElements = _specialize(
+      newElements, for: BitArray.SubSequence.self
+    ) {
+      self.append(contentsOf: newElements)
       return
     }
     var it = newElements.makeIterator()
@@ -372,20 +381,22 @@ extension BitArray {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`).
   ///   If `i == endIndex`, this method is equivalent to `append(contentsOf:)`.
-  public mutating func insert<C: Collection>(
-    contentsOf newElements: __owned C,
+  public mutating func insert(
+    contentsOf newElements: __owned some Collection<Bool>,
     at i: Int
-  ) where C.Element == Bool {
+  ) {
     precondition(i >= 0 && i <= count)
     let c = newElements.count
     guard c > 0 else { return }
     _extend(by: c)
     _copy(from: i ..< count - c, to: i + c)
     
-    if C.self == BitArray.self {
-      _copy(from: newElements as! BitArray, to: i)
-    } else if C.self == BitArray.SubSequence.self {
-      _copy(from: newElements as! BitArray.SubSequence, to: i)
+    if let newElements = _specialize(newElements, for: BitArray.self) {
+      _copy(from: newElements, to: i)
+    } else if let newElements = _specialize(
+      newElements, for: BitArray.SubSequence.self
+    ) {
+      _copy(from: newElements, to: i)
     } else {
       _copy(from: newElements, to: i ..< i + c)
     }

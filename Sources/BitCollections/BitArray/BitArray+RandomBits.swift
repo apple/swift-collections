@@ -24,9 +24,9 @@ extension BitArray {
   ///
   /// - Parameter count: The number of random bits to generate.
   /// - Parameter rng: The random number generator to use.
-  public static func randomBits<R: RandomNumberGenerator>(
+  public static func randomBits(
     count: Int,
-    using rng: inout R
+    using rng: inout some RandomNumberGenerator
   ) -> BitArray {
     precondition(count >= 0, "Invalid count")
     guard count > 0 else { return BitArray() }

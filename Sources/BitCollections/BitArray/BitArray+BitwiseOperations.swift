@@ -187,9 +187,7 @@ extension BitArray {
   }
 
   @inlinable
-  public mutating func toggleAll<R: RangeExpression>(
-    in range: R
-  ) where R.Bound == Int {
+  public mutating func toggleAll(in range: some RangeExpression<Int>) {
     toggleAll(in: range.relative(to: self))
   }
 }
