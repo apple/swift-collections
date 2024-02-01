@@ -188,7 +188,6 @@ let targets: [CustomTarget] = [
     name: "_CollectionsUtilities",
     exclude: [
       "CMakeLists.txt",
-      "Compatibility/Array+WithContiguousStorage Compatibility.swift.gyb",
       "Compatibility/UnsafeMutableBufferPointer+SE-0370.swift.gyb",
       "Compatibility/UnsafeMutablePointer+SE-0370.swift.gyb",
       "Compatibility/UnsafeRawPointer extensions.swift.gyb",

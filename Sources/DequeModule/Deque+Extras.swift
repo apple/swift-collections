@@ -137,7 +137,7 @@ extension Deque {
   public mutating func prepend(
     contentsOf newElements: some Collection<Element>
   ) {
-    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
+    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedPrepend(contentsOf: source) }
     }
@@ -172,7 +172,7 @@ extension Deque {
   /// - SeeAlso: `append(contentsOf:)`
   @inlinable
   public mutating func prepend(contentsOf newElements: some Sequence<Element>) {
-    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
+    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedPrepend(contentsOf: source) }
     }
