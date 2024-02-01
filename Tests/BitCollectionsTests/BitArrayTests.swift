@@ -959,24 +959,24 @@ final class BitArrayTests: CollectionTestCase {
 
   func test_description() {
     let a: BitArray = []
-    expectEqual("\(a)", "")
+    expectEqual("\(a)", "<>")
 
     let b: BitArray = [true, false, true, true, true]
-    expectEqual("\(b)", "11101")
+    expectEqual("\(b)", "<11101>")
 
     let c: BitArray = [false, false, false, false, true, true, true, false]
-    expectEqual("\(c)", "01110000")
+    expectEqual("\(c)", "<01110000>")
   }
 
   func test_debugDescription() {
     let a: BitArray = []
-    expectEqual("\(String(reflecting: a))", "[]")
+    expectEqual("\(String(reflecting: a))", "<>")
 
     let b: BitArray = [true, false, true, true, true]
-    expectEqual("\(String(reflecting: b))", "11101")
+    expectEqual("\(String(reflecting: b))", "<11101>")
 
     let c: BitArray = [false, false, false, false, true, true, true, false]
-    expectEqual("\(String(reflecting: c))", "01110000")
+    expectEqual("\(String(reflecting: c))", "<01110000>")
   }
 
   func test_mirror() {

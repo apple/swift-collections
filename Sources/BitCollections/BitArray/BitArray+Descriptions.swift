@@ -17,10 +17,10 @@ extension UInt8 {
   internal static var _ascii1: Self { 49 }
 
   @inline(__always)
-  internal static var _asciiLT: Self { 49 }
+  internal static var _asciiLT: Self { 60 }
 
   @inline(__always)
-  internal static var _asciiGT: Self { 49 }
+  internal static var _asciiGT: Self { 62 }
 }
 
 extension BitArray: CustomStringConvertible {
@@ -62,15 +62,15 @@ extension BitArray {
     var result: String
     if #available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *) {
       result = String(unsafeUninitializedCapacity: self.count + 2) { target in
-        target.initializeElement(at: count - 1, to: ._asciiGT)
-        var i = count - 2
+        target.initializeElement(at: count + 1, to: ._asciiGT)
+        var i = count
         for v in self {
           target.initializeElement(at: i, to: v ? ._ascii1 : ._ascii0)
           i &-= 1
         }
         assert(i == 0)
         target.initializeElement(at: 0, to: ._asciiLT)
-        return count
+        return count + 2
       }
     } else {
       result = "<"
