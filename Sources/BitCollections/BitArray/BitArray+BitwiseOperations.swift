@@ -166,6 +166,7 @@ extension BitArray {
 
   public mutating func toggleAll(in range: Range<Int>) {
     precondition(range.upperBound <= count, "Range out of bounds")
+    guard !range.isEmpty else { return }
     _update { handle in
       let words = handle._mutableWords
       let start = _BitPosition(range.lowerBound)

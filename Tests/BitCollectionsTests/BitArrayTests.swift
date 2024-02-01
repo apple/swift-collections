@@ -906,7 +906,7 @@ final class BitArrayTests: CollectionTestCase {
   }
 
   func test_toggleAll_range() {
-    withSome("count", in: 0 ..< 512, maxSamples: 50) { count in
+    withEvery("count", in: [0, 10, 64, 90, 127, 128, 129]) { count in
       let a = randomBoolArray(count: count)
 
       withSomeRanges("range", in: 0 ..< count, maxSamples: 100) { range in
