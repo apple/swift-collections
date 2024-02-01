@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension BitSet {
   /// Returns a new set with the elements of both this and the given set.
   ///
