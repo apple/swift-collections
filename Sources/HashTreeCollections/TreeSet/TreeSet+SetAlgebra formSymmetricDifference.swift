@@ -63,8 +63,9 @@ extension TreeSet {
   /// - Parameter other: A finite sequence of elements, possibly containing
   ///     duplicate values.
   @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(_ other: __owned S)
-  where S.Element == Element {
+  public mutating func formSymmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) {
     self = symmetricDifference(other)
   }
 }

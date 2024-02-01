@@ -17,7 +17,7 @@ internal struct _Hash {
   internal var value: UInt
 
   @inlinable
-  internal init<Key: Hashable>(_ key: Key) {
+  internal init(_ key: some Hashable) {
     let hashValue = key._rawHashValue(seed: 0)
     self.value = UInt(bitPattern: hashValue)
   }

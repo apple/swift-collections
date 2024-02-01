@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension TreeSet {
   /// Creates an empty set.
   ///
@@ -32,9 +36,9 @@ extension TreeSet {
   ///    is the number of elements in the sequence), provided that
   ///    `Element` properly implements hashing.
   @inlinable
-  public init<S: Sequence>(_ items: __owned S) where S.Element == Element {
-    if S.self == Self.self {
-      self = items as! Self
+  public init(_ items: __owned some Sequence<Element>) {
+    if let items = _specialize(items, for: Self.self) {
+      self = items
       return
     }
     self.init()

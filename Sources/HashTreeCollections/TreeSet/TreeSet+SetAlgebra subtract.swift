@@ -65,8 +65,7 @@ extension TreeSet {
   /// - Complexity: O(*n*) where *n* is the number of elements in `other`,
   ///    as long as `Element` properly implements hashing.
   @inlinable
-  public mutating func subtract<S: Sequence>(_ other: S)
-  where S.Element == Element {
+  public mutating func subtract(_ other: some Sequence<Element>) {
     self = subtracting(other)
   }
 }

@@ -84,10 +84,11 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public func symmetricDifference<S: Sequence>(_ other: __owned S) -> Self
-  where S.Element == Element {
-    if S.self == Self.self {
-      return symmetricDifference(other as! Self)
+  public func symmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) -> Self {
+    if let other = _specialize(other, for: Self.self) {
+      return symmetricDifference(other)
     }
 
     if other is _UniqueCollection {

@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension TreeSet {
   /// Returns a new set with the elements of both this and the given set.
   ///
@@ -91,10 +95,9 @@ extension TreeSet {
   ///     the worst case, where *n* is the number of items in `other`,
   ///     as long as `Element` properly implements hashing.
   @inlinable
-  public func union<S: Sequence>(_ other: __owned S) -> Self
-  where S.Element == Element {
-    if S.self == Self.self {
-      return union(other as! Self)
+  public func union(_ other: __owned some Sequence<Element>) -> Self {
+    if let other = _specialize(other, for: Self.self) {
+      return union(other)
     }
 
     var root = self._root

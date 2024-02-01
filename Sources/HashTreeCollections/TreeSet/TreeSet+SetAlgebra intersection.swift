@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension TreeSet {
   /// Returns a new set with the elements that are common to both this set and
   /// the provided other one.
@@ -81,12 +85,11 @@ extension TreeSet {
   /// - Parameter other: An arbitrary finite sequence of items,
   ///    possibly containing duplicate values.
   @inlinable
-  public func intersection<S: Sequence>(
-    _ other: S
-  ) -> Self
-  where S.Element == Element {
-    if S.self == Self.self {
-      return intersection(other as! Self)
+  public func intersection(
+    _ other: some Sequence<Element>
+  ) -> Self {
+    if let other = _specialize(other, for: Self.self) {
+      return intersection(other)
     }
 
     guard let first = self.first else { return Self() }

@@ -70,9 +70,7 @@ extension TreeSet {
   /// - Parameter other: An arbitrary finite sequence of items,
   ///    possibly containing duplicate values.
   @inlinable
-  public mutating func formIntersection<S: Sequence>(
-    _ other: S
-  ) where S.Element == Element {
+  public mutating func formIntersection(_ other: some Sequence<Element>) {
     self = intersection(other)
   }
 }

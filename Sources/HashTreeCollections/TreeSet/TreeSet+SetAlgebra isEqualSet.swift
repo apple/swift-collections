@@ -77,11 +77,9 @@ extension TreeSet {
   ///    every available shortcut to reduce complexity, e.g. by skipping
   ///    comparing elements in shared subtrees.
   @inlinable
-  public func isEqualSet<S: Sequence>(to other: S) -> Bool
-  where S.Element == Element
-  {
-    if S.self == Self.self {
-      return isEqualSet(to: other as! Self)
+  public func isEqualSet(to other: some Sequence<Element>) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return isEqualSet(to: other)
     }
 
     if self.isEmpty {
@@ -99,7 +97,7 @@ extension TreeSet {
       precondition(
         seen <= self.count,
         // Otherwise other.underestimatedCount != other.count
-        "Invalid Collection '\(S.self)' (bad underestimatedCount)")
+        "Invalid Collection '\(type(of: other))' (bad underestimatedCount)")
       return seen == self.count
     }
 

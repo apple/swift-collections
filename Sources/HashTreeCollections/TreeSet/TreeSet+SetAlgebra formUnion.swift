@@ -86,8 +86,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public mutating func formUnion<S: Sequence>(_ other: __owned S)
-  where S.Element == Element {
+  public mutating func formUnion(_ other: __owned some Sequence<Element>) {
     self = union(other)
   }
 }

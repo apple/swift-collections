@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension TreeSet {
   /// Returns a Boolean value that indicates whether the set has no members in
   /// common with the given set.
@@ -66,12 +70,10 @@ extension TreeSet {
   /// - Complexity: In the worst case, this makes O(*n*) calls to
   ///    `self.contains`, where *n* is the length of the sequence.
   @inlinable
-  public func isDisjoint<S: Sequence>(with other: S) -> Bool
-  where S.Element == Element
-  {
+  public func isDisjoint(with other: some Sequence<Element>) -> Bool {
     guard !self.isEmpty else { return true }
-    if S.self == Self.self {
-      return isDisjoint(with: other as! Self)
+    if let other = _specialize(other, for: Self.self) {
+      return isDisjoint(with: other)
     }
     return other.allSatisfy { !self.contains($0) }
   }

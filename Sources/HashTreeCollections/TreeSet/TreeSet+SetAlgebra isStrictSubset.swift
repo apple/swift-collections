@@ -90,11 +90,9 @@ extension TreeSet {
   ///    and it constructs a temporary persistent set containing every
   ///    element of the sequence.
   @inlinable
-  public func isStrictSubset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Element
-  {
-    if S.self == Self.self {
-      return isStrictSubset(of: other as! Self)
+  public func isStrictSubset(of other: some Sequence<Element>) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return isStrictSubset(of: other)
     }
 
     do {
