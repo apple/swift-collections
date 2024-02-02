@@ -68,12 +68,23 @@ final class HeapTests: CollectionTestCase {
 
   func test_descriptions() {
     let a: Heap<Int> = []
-    expectEqual(a.description, "Heap<Int>(count: 0)")
-    expectEqual(a.debugDescription, "Heap<Int>(count: 0)")
+    expectTrue(
+      a.description.starts(with: "<0 items @"),
+      "\(a.description)")
+    expectTrue(
+      a.debugDescription.starts(with: "<0 items @"),
+      "\(a.debugDescription)")
 
-    let b: Heap = [1, 2]
-    expectEqual(b.description, "Heap<Int>(count: 2)")
-    expectEqual(b.debugDescription, "Heap<Int>(count: 2)")
+    let b: Heap = [1]
+    expectTrue(
+      b.description.starts(with: "<1 item @"),
+      "\(b.description)")
+    expectTrue(
+      b.debugDescription.starts(with: "<1 item @"))
+
+    let c: Heap = [1, 2]
+    expectTrue(c.description.starts(with: "<2 items @"))
+    expectTrue(c.debugDescription.starts(with: "<2 items @"))
   }
 
   func test_unordered() {

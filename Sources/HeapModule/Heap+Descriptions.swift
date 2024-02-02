@@ -12,7 +12,17 @@
 extension Heap: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
-    "Heap<\(Element.self)>(count: \(count))"
+    "<\(count) item\(count == 1 ? "" : "s") @\(_idString)>"
+  }
+
+  internal var _idString: String {
+    // "<32 items @0x2787abcf>"
+    _storage.withUnsafeBytes {
+      guard let p = $0.baseAddress else {
+        return "nil"
+      }
+      return String(UInt(bitPattern: p), radix: 16)
+    }
   }
 }
 
