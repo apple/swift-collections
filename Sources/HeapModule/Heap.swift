@@ -311,7 +311,7 @@ extension Heap {
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `elements`.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Element {
+  public init(_ elements: some Sequence<Element>) {
     _storage = ContiguousArray(elements)
     guard _storage.count > 1 else { return }
 
@@ -327,9 +327,9 @@ extension Heap {
   ///
   /// - Complexity: O(`count` + *k*), where *k* is the length of `newElements`.
   @inlinable
-  public mutating func insert<S: Sequence>(
-    contentsOf newElements: S
-  ) where S.Element == Element {
+  public mutating func insert(
+    contentsOf newElements: some Sequence<Element>
+  ) {
     let origCount = self.count
     if origCount == 0 {
       self = Self(newElements)
