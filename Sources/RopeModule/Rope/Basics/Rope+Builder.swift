@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 extension Rope {
   @inlinable
   public init(_ items: some Sequence<Element>) {
@@ -223,9 +227,8 @@ extension Rope {
     }
 
     @inlinable
-    public mutating func insertBeforeTip<S: Sequence<Element>>(_ items: __owned S) {
-      if S.self == Rope.self {
-        let items = _identityCast(items, to: Rope.self)
+    public mutating func insertBeforeTip(_ items: __owned some Sequence<Element>) {
+      if let items = _specialize(items, for: Rope.self) {
         self.insertBeforeTip(items)
       } else {
         for item in items {

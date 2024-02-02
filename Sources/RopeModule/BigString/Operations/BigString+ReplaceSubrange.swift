@@ -13,7 +13,10 @@
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
-  mutating func _replaceSubrange(_ range: Range<Index>, with newElements: some StringProtocol) {
+  mutating func _replaceSubrange(
+    _ range: Range<Index>, 
+    with newElements: some StringProtocol
+  ) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")
     if range.isEmpty {
       insert(contentsOf: newElements, at: range.lowerBound)
@@ -25,7 +28,10 @@ extension BigString {
     self = builder.finalize()
   }
 
-  mutating func _replaceSubrange(_ range: Range<Index>, with newElements: BigString) {
+  mutating func _replaceSubrange(
+    _ range: Range<Index>,
+    with newElements: BigString
+  ) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")
     if range.isEmpty {
       insert(contentsOf: newElements, at: range.lowerBound)
