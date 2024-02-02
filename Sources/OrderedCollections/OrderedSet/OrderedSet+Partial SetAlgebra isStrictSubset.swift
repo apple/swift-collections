@@ -115,14 +115,14 @@ extension OrderedSet {
   ///    is the number of elements in `other`, if `Element` implements
   ///    high-quality hashing.
   @inlinable
-  public func isStrictSubset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
-    if S.self == Self.self {
-      return self.isStrictSubset(of: other as! Self)
+  public func isStrictSubset(
+    of other: some Sequence<Element>
+  ) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return self.isStrictSubset(of: other)
     }
-    if S.self == Set<Element>.self {
-      return self.isStrictSubset(of: other as! Set<Element>)
+    if let other = _specialize(other, for: Set<Element>.self) {
+      return self.isStrictSubset(of: other)
     }
 
     var it = self.makeIterator()

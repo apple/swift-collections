@@ -115,13 +115,13 @@ extension OrderedSet {
   ///    is the number of elements in `other`, if `Element` implements
   ///    high-quality hashing.
   @inlinable
-  public func isSubset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
+  public func isSubset(
+    of other: some Sequence<Element>
+  ) -> Bool {
     guard !isEmpty else { return true }
 
-    if S.self == Self.self {
-      return isSubset(of: other as! Self)
+    if let other = _specialize(other, for: Self.self) {
+      return isSubset(of: other)
     }
 
     var it = self.makeIterator()

@@ -332,8 +332,8 @@ extension OrderedSet {
   ///   change when your program is compiled using a different version of
   ///   Swift.
   @inlinable
-  public mutating func shuffle<T: RandomNumberGenerator>(
-    using generator: inout T
+  public mutating func shuffle(
+    using generator: inout some RandomNumberGenerator
   ) {
     _elements.shuffle(using: &generator)
     _regenerateExistingHashTable()

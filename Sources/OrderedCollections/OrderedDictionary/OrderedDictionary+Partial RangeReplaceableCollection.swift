@@ -93,9 +93,9 @@ extension OrderedDictionary {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func removeSubrange<R: RangeExpression>(
-    _ bounds: R
-  ) where R.Bound == Int {
+  public mutating func removeSubrange(
+    _ bounds: some RangeExpression<Int>
+  ) {
     removeSubrange(bounds.relative(to: elements))
   }
 

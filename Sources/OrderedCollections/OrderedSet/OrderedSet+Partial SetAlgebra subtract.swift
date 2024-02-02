@@ -68,9 +68,7 @@ extension OrderedSet {
   ///    high-quality hashing.
   @inlinable
   @inline(__always)
-  public mutating func subtract<S: Sequence>(
-    _ other: S
-  ) where S.Element == Element {
+  public mutating func subtract(_ other: some Sequence<Element>) {
     self = _subtracting(other)
   }
 }

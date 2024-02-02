@@ -160,8 +160,8 @@ extension OrderedDictionary {
   ///   change when your program is compiled using a different version of
   ///   Swift.
   @inlinable
-  public mutating func shuffle<T: RandomNumberGenerator>(
-    using generator: inout T
+  public mutating func shuffle(
+    using generator: inout some RandomNumberGenerator
   ) {
     guard count > 1 else { return }
     var keys = self._keys.elements

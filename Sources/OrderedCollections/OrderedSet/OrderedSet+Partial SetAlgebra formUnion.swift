@@ -94,9 +94,9 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(`self.count` + `other.count`) on average,
   ///    if `Element` implements high-quality hashing.
   @inlinable
-  public mutating func formUnion<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Element {
+  public mutating func formUnion(
+    _ other: __owned some Sequence<Element>
+  ) {
     append(contentsOf: other)
   }
 }

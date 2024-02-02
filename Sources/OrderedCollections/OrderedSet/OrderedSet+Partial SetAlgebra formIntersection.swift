@@ -77,9 +77,9 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(*n*) on average where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.
   @inlinable
-  public mutating func formIntersection<S: Sequence>(
-    _ other: S
-  ) where S.Element == Element {
+  public mutating func formIntersection(
+    _ other: some Sequence<Element>
+  ) {
     self = self.intersection(other)
   }
 }

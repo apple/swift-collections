@@ -118,9 +118,9 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(*n*) on average, where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.
   @inlinable
-  public func isDisjoint<S: Sequence>(
-    with other: S
-  ) -> Bool where S.Element == Element {
+  public func isDisjoint(
+    with other: some Sequence<Element>
+  ) -> Bool {
     guard !self.isEmpty else { return true }
     for item in other {
       if self.contains(item) { return false }

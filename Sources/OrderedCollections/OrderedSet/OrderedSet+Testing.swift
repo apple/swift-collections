@@ -110,11 +110,11 @@ extension OrderedSet._UnstableInternals {
 
 extension OrderedSet {
   @_spi(Testing)
-  public init<S: Sequence>(
+  public init(
     _scale scale: Int,
     bias: Int,
-    contents: S
-  ) where S.Element == Element {
+    contents: some Sequence<Element>
+  ) {
     let contents = ContiguousArray(contents)
     precondition(scale >= _HashTable.scale(forCapacity: contents.count))
     precondition(scale <= _HashTable.maximumScale)

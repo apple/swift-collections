@@ -62,7 +62,9 @@ extension OrderedSet {
 
   @inlinable
   @discardableResult
-  internal mutating func _append(_ item: Element) -> (inserted: Bool, index: Int) {
+  internal mutating func _append(
+    _ item: Element
+  ) -> (inserted: Bool, index: Int) {
     let (index, bucket) = _find(item)
     if let index = index { return (false, index) }
     _appendNew(item, in: bucket)
@@ -102,9 +104,9 @@ extension OrderedSet {
   ///    hash, and compare operations on the `Element` type, if it implements
   ///    high-quality hashing.
   @inlinable
-  public mutating func append<S: Sequence>(
-    contentsOf elements: S
-  ) where S.Element == Element {
+  public mutating func append(
+    contentsOf elements: some Sequence<Element>
+  ) {
     for item in elements {
       _append(item)
     }

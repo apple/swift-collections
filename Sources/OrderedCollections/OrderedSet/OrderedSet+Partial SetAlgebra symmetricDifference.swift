@@ -113,9 +113,9 @@ extension OrderedSet {
   ///    the number of elements in `other`, if `Element` implements high-quality
   ///    hashing.
   @inlinable
-  public __consuming func symmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) -> Self where S.Element == Element {
+  public __consuming func symmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) -> Self {
     _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       var new = Self()
       bitset.insertAll(upTo: self.count)

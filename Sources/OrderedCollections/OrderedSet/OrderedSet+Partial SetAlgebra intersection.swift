@@ -94,9 +94,9 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(*n*) on average where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.
   @inlinable
-  public __consuming func intersection<S: Sequence>(
-    _ other: S
-  ) -> Self where S.Element == Element {
+  public __consuming func intersection(
+    _ other: some Sequence<Element>
+  ) -> Self {
     _UnsafeBitSet.withTemporaryBitSet(capacity: self.count) { bitset in
       for item in other {
         if let index = self._find_inlined(item).index {

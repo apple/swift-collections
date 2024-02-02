@@ -79,9 +79,9 @@ extension OrderedSet {
   ///    the number of elements in `other`, if `Element` implements high-quality
   ///    hashing.
   @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Element {
+  public mutating func formSymmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) {
     self = self.symmetricDifference(other)
   }
 }

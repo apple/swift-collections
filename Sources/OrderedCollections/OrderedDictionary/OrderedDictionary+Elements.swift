@@ -511,8 +511,8 @@ extension OrderedDictionary.Elements {
   ///   change when your program is compiled using a different version of
   ///   Swift.
   @inlinable
-  public mutating func shuffle<T: RandomNumberGenerator>(
-    using generator: inout T
+  public mutating func shuffle(
+    using generator: inout some RandomNumberGenerator
   ) {
     _base.shuffle(using: &generator)
   }
@@ -585,9 +585,9 @@ extension OrderedDictionary.Elements {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func removeSubrange<R: RangeExpression>(
-    _ bounds: R
-  ) where R.Bound == Int {
+  public mutating func removeSubrange(
+    _ bounds: some RangeExpression<Int>
+  ) {
     _base.removeSubrange(bounds)
   }
 

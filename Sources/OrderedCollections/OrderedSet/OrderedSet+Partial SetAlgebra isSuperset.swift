@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
+
 // `OrderedSet` does not directly conform to `SetAlgebra` because its definition
 // of equality conflicts with `SetAlgebra` requirements. However, it still
 // implements most `SetAlgebra` requirements (except `insert`, which is replaced
@@ -103,18 +107,14 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(*n*) on average, where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.
   @inlinable
-  public func isSuperset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
+  public func isSuperset(of other: some Sequence<Element>) -> Bool {
     _isSuperset(of: other)
   }
 
   @inlinable
-  internal func _isSuperset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
-    if S.self == Self.self {
-      return self.isSuperset(of: other as! Self)
+  internal func _isSuperset(of other: some Sequence<Element>) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return self.isSuperset(of: other)
     }
     for item in other {
       guard self.contains(item) else { return false }
