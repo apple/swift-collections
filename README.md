@@ -78,7 +78,7 @@ The following table maps existing package releases to their minimum required Swi
 | Package version         | Swift version | Xcode release |
 | ----------------------- | ------------- | ------------- |
 | swift-collections 1.0.x | >= Swift 5.3  | >= Xcode 12   |
-| swift-collections 1.1.x | >= Swift 5.6  | >= Xcode 13.3 |
+| swift-collections 1.1.x | >= Swift 5.7  | >= Xcode 13.3 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
@@ -88,7 +88,7 @@ The following table maps existing package releases to their minimum required Swi
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(

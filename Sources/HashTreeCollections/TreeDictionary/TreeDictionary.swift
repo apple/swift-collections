@@ -50,7 +50,7 @@
 /// The tree structure also eliminates the need to reserve capacity in advance:
 /// `TreeDictionary` creates, destroys and resizes individual nodes as
 /// needed, always consuming just enough memory to store its contents. As of
-/// Swift 5.7, the standard collection types never shrink their storage, so
+/// Swift 5.9, the standard collection types never shrink their storage, so
 /// temporary storage spikes can linger as unused but still allocated memory
 /// long after the collection has shrunk back to its usual size.
 ///
