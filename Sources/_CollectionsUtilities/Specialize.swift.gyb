@@ -22,6 +22,7 @@ ${visibility_boilerplate(modifier)}
 /// This cast can be useful for dispatching to specializations of generic
 /// functions.
 @_transparent
+@inlinable
 ${modifier} func _specialize<T, U>(_ x: T, for: U.Type) -> U? {
   // Note: this was ported from recent versions of the Swift stdlib.
   guard T.self == U.self else {
