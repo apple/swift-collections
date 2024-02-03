@@ -31,7 +31,7 @@ The package currently provides the following implementations:
 [TreeSet]: Documentation/TreeSet.md
 [TreeDictionary]: Documentation/TreeDictionary.md
 
-The following data structures are currently being worked on but they aren't ready for inclusion in a tagged release:
+The following data structures are currently under development but they aren't ready for inclusion in a tagged release:
 
 - [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
 - [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
@@ -75,10 +75,10 @@ We'd like this package to quickly embrace Swift language and toolchain improveme
 
 The following table maps existing package releases to their minimum required Swift toolchain release:
 
-| Package version         | Swift version | Xcode release |
-| ----------------------- | ------------- | ------------- |
-| swift-collections 1.0.x | >= Swift 5.3  | >= Xcode 12   |
-| swift-collections 1.1.x | >= Swift 5.7  | >= Xcode 13.3 |
+| Package version         | Swift version   | Xcode release |
+| ----------------------- | --------------- | ------------- |
+| swift-collections 1.0.x | >= Swift 5.3.2  | >= Xcode 12.4 |
+| swift-collections 1.1.x | >= Swift 5.7.2  | >= Xcode 14.2 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
