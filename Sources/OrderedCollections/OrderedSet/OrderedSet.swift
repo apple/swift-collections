@@ -240,7 +240,7 @@ import _CollectionsUtilities
 /// The hash table in an ordered set never needs to store larger indices than
 /// the current size of the storage array, and `OrderedSet` makes use of this
 /// observation to reduce the number of bits it uses to encode these integer
-/// vaues. Additionally, the actual hashed elements are stored in a flat array
+/// values. Additionally, the actual hashed elements are stored in a flat array
 /// value rather than the hash table itself, so they aren't subject to the hash
 /// table's strict maximum load factor. These two observations combine to
 /// optimize the memory utilization of `OrderedSet`, sometimes making it even
