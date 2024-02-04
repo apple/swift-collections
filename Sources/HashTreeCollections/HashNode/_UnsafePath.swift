@@ -874,7 +874,7 @@ extension _RawHashNode {
         }
         distance += c
       }
-      // See if the target is hiding somwhere in our immediate items.
+      // See if the target is hiding somewhere in our immediate items.
       distance &+= $0.itemCount
       if distance >= 0 {
         path.selectItem(at: _HashSlot(distance))

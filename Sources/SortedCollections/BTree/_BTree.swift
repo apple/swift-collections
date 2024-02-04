@@ -104,7 +104,7 @@ internal struct _BTree<Key: Comparable, Value> {
   /// Creates an empty B-Tree which creates node with specified capacities
   /// - Parameters:
   ///   - leafCapacity: The capacity of the leaf nodes. This is the initial buffer used to allocate.
-  ///   - internalCapacity: The capacity of the internal nodes. Generally prefered to be less than
+  ///   - internalCapacity: The capacity of the internal nodes. Generally preferred to be less than
   ///       `leafCapacity`.
   @inlinable
   @inline(__always)
@@ -115,7 +115,7 @@ internal struct _BTree<Key: Comparable, Value> {
     )
   }
   
-  /// Creates a B-Tree rooted at a specific nodey
+  /// Creates a B-Tree rooted at a specific node
   /// - Parameters:
   ///   - root: The root node.
   ///   - internalCapacity: The key capacity of new internal nodes.
@@ -231,7 +231,7 @@ extension _BTree {
   }
 }
 
-// MARK: Removal Opertations
+// MARK: Removal Operations
 extension _BTree {
   /// Removes the element of a tree at a given offset.
   ///
@@ -561,7 +561,7 @@ extension _BTree {
   
 }
 
-// MARK: Immutable Operatoins
+// MARK: Immutable Operations
 extension _BTree {
   @inlinable
   @inline(__always)

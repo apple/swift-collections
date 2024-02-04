@@ -12,14 +12,14 @@
 extension _BTree {
   /// Provides an interface for efficiently constructing a filled B-Tree from sorted data.
   ///
-  /// A builder supports duplicate keys, in which case they are inserted in the same order they are recieved.
+  /// A builder supports duplicate keys, in which case they are inserted in the same order they are received.
   /// However, is the `deduplicating` parameter is passed as `true`, operations will silently drop
   /// duplicates.
   ///
   /// This type has a few advantages when constructing a B-Tree over other approaches such as manually
   /// inserting each element or using a cursor:
   ///
-  /// This works by maintaing a list of saplings and a view of the node currently being modified. For example
+  /// This works by maintaining a list of saplings and a view of the node currently being modified. For example
   /// the following tree:
   ///
   ///             ┌─┐
@@ -49,21 +49,21 @@ extension _BTree {
   ///                 └─┘   └─┘
   ///
   ///                 ┌─┐          ┌─┐
-  ///     Seperators: │D│          │F│
+  ///     Separators: │D│          │F│
   ///                 └─┘          └─┘
   ///
   /// While the diagrams above represent a binary-tree, the representation of a B-Tree in the builder is
   /// directly analogous to this. By representing the state this way. Append operations can be efficiently
   /// performed, and the tree can also be efficiently reconstructed.
   ///
-  /// Appending works by filling in a seedling, once a seedling is full, and an associated seperator has been
-  /// provided, the seedling-seperator pair can be appended to the stack.
+  /// Appending works by filling in a seedling, once a seedling is full, and an associated separator has been
+  /// provided, the seedling-separator pair can be appended to the stack.
   @usableFromInline
   internal struct Builder {
     @usableFromInline
     enum State {
-      /// The builder needs to add a seperator to the node
-      case addingSeperator
+      /// The builder needs to add a separator to the node
+      case addingSeparator
       
       /// The builder needs to try to append to the seedling node.
       case appendingToSeedling
@@ -73,7 +73,7 @@ extension _BTree {
     internal var _saplings: [Node]
     
     @usableFromInline
-    internal var _seperators: [Element]
+    internal var _separators: [Element]
     
     @usableFromInline
     internal var _seedling: Node?
@@ -153,7 +153,7 @@ extension _BTree {
              "Capacity must be greater than one")
       
       self._saplings = []
-      self._seperators = []
+      self._separators = []
       self.state = .appendingToSeedling
       self._seedling = Node(withCapacity: leafCapacity, isLeaf: true)
       self.leafCapacity = leafCapacity
@@ -162,26 +162,26 @@ extension _BTree {
       self.lastKey = nil
     }
     
-    /// Pops a sapling and it's associated seperator
+    /// Pops a sapling and it's associated separator
     @inlinable
     @inline(__always)
     internal mutating func popSapling()
-      -> (leftNode: Node, seperator: Element)? {
+      -> (leftNode: Node, separator: Element)? {
       return _saplings.isEmpty ? nil : (
         leftNode: _saplings.removeLast(),
-        seperator: _seperators.removeLast()
+        separator: _separators.removeLast()
       )
     }
     
-    /// Appends a sapling with an associated seperator
+    /// Appends a sapling with an associated separator
     @inlinable
     @inline(__always)
     internal mutating func appendSapling(
       _ sapling: __owned Node,
-      seperatedBy seperator: Element
+      separatedBy separator: Element
     ) {
       _saplings.append(sapling)
-      _seperators.append(seperator)
+      _separators.append(separator)
     }
     
     /// Appends a sequence of sorted values to the tree
@@ -209,8 +209,8 @@ extension _BTree {
       }
       
       switch state {
-      case .addingSeperator:
-        completeSeedling(withSeperator: element)
+      case .addingSeparator:
+        completeSeedling(withSeparator: element)
         state = .appendingToSeedling
 
       case .appendingToSeedling:
@@ -220,7 +220,7 @@ extension _BTree {
         }
         
         if _slowPath(isFull) {
-          state = .addingSeperator
+          state = .addingSeparator
         }
       }
     }
@@ -231,7 +231,7 @@ extension _BTree {
     /// further operate on.
     @inlinable
     internal mutating func completeSeedling(
-      withSeperator newSeperator: __owned Element
+      withSeparator newSeparator: __owned Element
     ) {
       var sapling = Node(withCapacity: leafCapacity, isLeaf: true)
       swap(&sapling, &self.seedling)
@@ -242,7 +242,7 @@ extension _BTree {
       //     bits
       //   - The stack has saplings of decreasing depth.
       //   - Saplings on the stack are completely filled except for their roots.
-      if case (var previousSapling, let seperator)? = self.popSapling() {
+      if case (var previousSapling, let separator)? = self.popSapling() {
         let saplingDepth = sapling.storage.header.depth
         let previousSaplingDepth = previousSapling.storage.header.depth
         let previousSaplingIsFull = previousSapling.read({ $0.isFull })
@@ -260,7 +260,7 @@ extension _BTree {
           //                │       │
           //      previousSapling  sapling
           //
-          // We then use the seperator (B) to transform this into a subtree of a
+          // We then use the separator (B) to transform this into a subtree of a
           // depth increase:
           //     ┌───┐
           //     │ B │ ◄─── sapling
@@ -273,12 +273,12 @@ extension _BTree {
           // depth of our B-Tree increases
           sapling = _Node(
             leftChild: previousSapling,
-            seperator: seperator,
+            separator: separator,
             rightChild: sapling,
             capacity: internalCapacity
           )
         } else if saplingDepth + 1 == previousSaplingDepth && !previousSaplingIsFull {
-          // This is when we can append the node with the seperator:
+          // This is when we can append the node with the separator:
           //
           //     ┌───┐
           //     │ B │ ◄─ previousSapling
@@ -288,7 +288,7 @@ extension _BTree {
           //  │ A │ │ C │      │ E │ ◄─ sapling
           //  └───┘ └───┘      └───┘
           //
-          // We then use the seperator (D) to append this to previousSapling.
+          // We then use the separator (D) to append this to previousSapling.
           //      ┌────┬───┐
           //      │  B │ D │   ◄─ sapling
           //     ┌┴────┼───┴┐
@@ -297,7 +297,7 @@ extension _BTree {
           //   │ A │ │ C │ │ E │
           //   └───┘ └───┘ └───┘
           previousSapling.update {
-            $0.appendElement(seperator, withRightChild: sapling)
+            $0.appendElement(separator, withRightChild: sapling)
           }
           sapling = previousSapling
         } else {
@@ -327,11 +327,11 @@ extension _BTree {
           //   └───┘ └───┘ └───┘    └───┘ └───┘ └───┘
           //
           // We can string them together using the previous cases.
-          self.appendSapling(previousSapling, seperatedBy: seperator)
+          self.appendSapling(previousSapling, separatedBy: separator)
         }
       }
       
-      self.appendSapling(sapling, seperatedBy: newSeperator)
+      self.appendSapling(sapling, separatedBy: newSeparator)
     }
     
     /// Finishes building a tree.
@@ -344,11 +344,11 @@ extension _BTree {
       var root: Node = seedling
       _seedling = nil
       
-      while case (var sapling, let seperator)? = self.popSapling() {
+      while case (var sapling, let separator)? = self.popSapling() {
         root = _Node.join(
           &sapling,
           with: &root,
-          seperatedBy: seperator,
+          separatedBy: separator,
           capacity: internalCapacity
         )
       }

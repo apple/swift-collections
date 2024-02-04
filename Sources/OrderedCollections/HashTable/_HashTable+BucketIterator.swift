@@ -14,7 +14,7 @@ extension _HashTable {
   /// table. This is a convenient tool for implementing linear probing.
   ///
   /// Beyond merely providing bucket values, bucket iterators can also tell
-  /// you their current oposition within the hash table, and (for mutable hash
+  /// you their current opposition within the hash table, and (for mutable hash
   /// tables) they allow you update the value of the currently visited bucket.
   /// (This is useful when implementing simple insertions, for example.)
   ///

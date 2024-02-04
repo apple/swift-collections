@@ -139,7 +139,7 @@ extension _Node {
     /// storage class is indeed unique. Generally this is the wrong function to call, and should only be used
     /// when the callee has created and is guaranteed to be the only owner during the execution of the
     /// update callback, _and_ it has been identified that ``_Node.update(_:)`` or other alternatives
-    /// result in noticable slow-down.
+    /// result in noticeable slow-down.
     ///
     /// - Parameter body: A closure with a handle which allows interacting with the node
     /// - Returns: The value the closure body returns, if any.

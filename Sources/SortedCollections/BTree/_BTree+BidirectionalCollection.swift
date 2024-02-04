@@ -11,7 +11,7 @@
 
 // This contains `_BTree`'s general implementation of BidirectionalCollection.
 // These operations are bounds in contrast to most other methods on _BTree as
-// they are designed to be easily propogated to a higher-level data type.
+// they are designed to be easily propagated to a higher-level data type.
 // However, they still do not perform index validation
 
 extension _BTree: BidirectionalCollection {
