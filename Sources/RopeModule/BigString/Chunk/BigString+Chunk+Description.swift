@@ -34,7 +34,7 @@ extension BigString._Chunk: CustomStringConvertible {
 
   func _succinctContents(maxLength c: Int) -> String {
     /// 4+"short"-1
-    /// 0+"longer...tring"-1
+    /// 0+"longer...string"-1
     let pc = String(prefixCount)._lpad(to: 3)
     let sc = String(suffixCount)
 

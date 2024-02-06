@@ -968,7 +968,7 @@ class TestBigString: CollectionTestCase {
     let b1: BigString = "Foobar"
     var s1 = b1.suffix(3)
     expectEqual(s1, "bar")
-    s1.insert("\u{308}", at: s1.startIndex) // Combining diaresis
+    s1.insert("\u{308}", at: s1.startIndex) // Combining diaeresis
     expectEqual(s1.base, "Foöbar")
     expectEqual(s1, "öbar")
 

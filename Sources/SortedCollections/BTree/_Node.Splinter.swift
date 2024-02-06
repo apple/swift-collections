@@ -20,7 +20,7 @@ extension _Node {
       self.rightChild = rightChild
     }
     
-    /// The former median element which should be propogated upward.
+    /// The former median element which should be propagated upward.
     @usableFromInline
     internal let element: Element
     
@@ -42,7 +42,7 @@ extension _Node {
     ) -> _Node {
       return _Node(
         leftChild: leftChild,
-        seperator: element,
+        separator: element,
         rightChild: rightChild,
         capacity: capacity
       )

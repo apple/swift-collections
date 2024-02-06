@@ -20,7 +20,7 @@ public protocol RopeMetric<Element>: Sendable {
   ///
   /// - Parameter offset: An integer offset from the start of `element` in this
   ///     metric, not exceeding `size(of: element.summary)`.
-  /// - Parameter element: An arbitary rope element.
+  /// - Parameter element: An arbitrary rope element.
   /// - Returns: The index addressing the desired position in the input element.
   func index(at offset: Int, in element: Element) -> Element.Index
 }

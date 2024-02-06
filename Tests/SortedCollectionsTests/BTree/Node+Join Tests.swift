@@ -16,7 +16,7 @@ import _CollectionsTestSupport
 func expectNodeJoin(
   capacity: Int,
   tree1: NodeTemplate,
-  seperator: Int,
+  separator: Int,
   tree2: NodeTemplate,
   toEqual refTree: NodeTemplate
 ) {
@@ -26,7 +26,7 @@ func expectNodeJoin(
   let newTree = _Node.join(
     &tree1,
     with: &tree2,
-    seperatedBy: (seperator, -seperator),
+    separatedBy: (separator, -separator),
     capacity: capacity
   )
   
@@ -42,7 +42,7 @@ final class NodeJoinTests: CollectionTestCase {
       tree1: tree {
         0
       },
-      seperator: 1,
+      separator: 1,
       tree2: tree {
         2; 3; 4
       },
@@ -54,7 +54,7 @@ final class NodeJoinTests: CollectionTestCase {
       tree1: tree {
         0
       },
-      seperator: 1,
+      separator: 1,
       tree2: tree {
         2; 3; 4; 5
       },
@@ -76,7 +76,7 @@ final class NodeJoinTests: CollectionTestCase {
         2
         tree { 3 }
       },
-      seperator: 4,
+      separator: 4,
       tree2: tree {
         tree { 5 }
         6

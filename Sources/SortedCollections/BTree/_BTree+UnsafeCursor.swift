@@ -58,7 +58,7 @@ extension _BTree {
     /// The depth at which the last instance of sequential unique nodes starting at the root was found.
     ///
     /// In the following path where 'U' denotes a unique node, and 'S' denotes a shared node. The value
-    /// of this parameter would be '1' indicating the second level of the tre.
+    /// of this parameter would be '1' indicating the second level of the tree.
     ///
     ///     ┌─┐
     ///     │U├─┐
@@ -189,7 +189,7 @@ extension _BTree {
       // Update the bottom-most node
       var (node, result) = try self.updateNode(atDepth: path.depth - 1, body)
       
-      // Start the node above the bottom-most node, and propogate up the change
+      // Start the node above the bottom-most node, and propagate up the change
       var depth = path.depth - 2
       while depth >= 0 {
         if depth > lastUniqueDepth {
@@ -258,7 +258,7 @@ extension _BTree {
     ///   - element: A new key-value element to insert.
     ///   - capacity: Capacity of new internal nodes created during insertion.
     /// - Returns: The new root object which may equal in identity to the previous one.
-    /// - Warning: Doesn not check sortedness invariant
+    /// - Warning: Does not check sortedness invariant
     /// - Complexity: O(`log n`). Ascends the tree once
     @inlinable
     internal mutating func insertElement(
@@ -272,7 +272,7 @@ extension _BTree {
         handle.insertElement(element, withRightChild: nil, atSlot: slot)
       }
 
-      // Start the node above the bottom-most node, and propogate up the change
+      // Start the node above the bottom-most node, and propagate up the change
       var depth = path.depth - 2
       while depth >= 0 {
         let (newNode, _) = self.updateNode(atDepth: depth) { (handle, slot) in

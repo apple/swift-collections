@@ -71,11 +71,11 @@ internal struct _Node<Key: Comparable, Value> {
     self._storage = storage
   }
   
-  /// Creates a new node from a left, right, and seperator.
+  /// Creates a new node from a left, right, and separator.
   @inlinable
   internal init(
     leftChild: __owned _Node,
-    seperator: __owned Element,
+    separator: __owned Element,
     rightChild: __owned _Node,
     capacity: Int
   ) {
@@ -86,9 +86,9 @@ internal struct _Node<Key: Comparable, Value> {
     
     self.init(withCapacity: capacity, isLeaf: false)
     self.storage.updateGuaranteedUnique { handle in
-      handle.keys.initialize(to: seperator.key)
+      handle.keys.initialize(to: separator.key)
       if _Node.hasValues {
-        handle.values.unsafelyUnwrapped.initialize(to: seperator.value)
+        handle.values.unsafelyUnwrapped.initialize(to: separator.value)
       }
       
       handle.children.unsafelyUnwrapped.initialize(to: leftChild)
@@ -198,21 +198,21 @@ extension _Node {
   /// Joins the current node with another node of potentially differing depths.
   ///
   /// If you know that your nodes are the same depth, then use
-  /// ``_Node.UnsafeHandle.concatenateWith(node:seperatedBy:)``.
+  /// ``_Node.UnsafeHandle.concatenateWith(node:separatedBy:)``.
   ///
   /// - Parameters:
-  ///   - leftNode:A well-formed node with elements less than or equal to `seperator`. This
+  ///   - leftNode:A well-formed node with elements less than or equal to `separator`. This
   ///       node is **consumed and invalided** when this method is called.
-  ///   - rightNode: A well-formed node with elements greater than or equal to `seperator`. This
+  ///   - rightNode: A well-formed node with elements greater than or equal to `separator`. This
   ///       node is **consumed and invalided** when this method is called.
-  ///   - seperator: An element greater than or equal to all elements in the current node.
+  ///   - separator: An element greater than or equal to all elements in the current node.
   /// - Returns: A new node containing both the right and left node combined. This may or may not be
   ///     referentially identical to one of the old nodes.
   @inlinable
   internal static func join(
     _ leftNode: inout _Node,
     with rightNode: inout _Node,
-    seperatedBy seperator: __owned _Node.Element,
+    separatedBy separator: __owned _Node.Element,
     capacity: Int
   ) -> _Node {
     let leftNodeDepth = leftNode.storage.header.depth
@@ -226,7 +226,7 @@ extension _Node {
     ) -> _Node.Splinter? {
       if depth == 0 {
         let splinter = leftNode.update {
-          $0.concatenateWith(node: &node, seperatedBy: seperator)
+          $0.concatenateWith(node: &node, separatedBy: separator)
         }
         node = leftNode
         return splinter
@@ -252,7 +252,7 @@ extension _Node {
       
       if depth == 0 {
         // Graft at the current node
-        return node.concatenateWith(node: &rightNode, seperatedBy: seperator)
+        return node.concatenateWith(node: &rightNode, separatedBy: separator)
       } else {
         let endSlot = node.childCount - 1
         let splinter = node[childAt: endSlot].update {

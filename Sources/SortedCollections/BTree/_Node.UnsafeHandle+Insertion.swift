@@ -294,7 +294,7 @@ extension _Node.UnsafeHandle {
   
   /// Inserts a splinter, attaching the children appropriately.
   ///
-  /// This only updates the count properties by one (for the seperator). If the splinter's right child contains a
+  /// This only updates the count properties by one (for the separator). If the splinter's right child contains a
   /// different amount of elements than previously existed in the tree, explicitly handle those count changes.
   /// See ``_Node.UnsafeHandle._adjustSubtreeCount(afterSplittingTo:)`` to
   /// potentially ease this task.
@@ -361,20 +361,20 @@ extension _Node.UnsafeHandle {
   /// Additionally, this **consumes** the source node which will marked to be deallocated.
   ///
   /// - Parameters:
-  ///   - rightNode: A consumed node with keys greater than or equal to the seperator.
-  ///   - seperatedBy: A seperator greater than or equal to all keys in the current node.
+  ///   - rightNode: A consumed node with keys greater than or equal to the separator.
+  ///   - separatedBy: A separator greater than or equal to all keys in the current node.
   /// - Returns: A splinter if the node could not contain both elements.
   @inlinable
   internal func concatenateWith(
     node rightNode: inout _Node,
-    seperatedBy seperator: __owned _Node.Element
+    separatedBy separator: __owned _Node.Element
   ) -> _Node.Splinter? {
     assertMutable()
-    let seperator: _Node.Element? = rightNode.update { rightHandle in
+    let separator: _Node.Element? = rightNode.update { rightHandle in
       assert(self.elementCount + rightHandle.elementCount <= 2 * self.capacity,
              "Parameters are too large to concatenate.")
       assert(self.depth == rightHandle.depth,
-             "Cannot concatenate nodes of varying depths. See appendNode(_:seperatedBy:)")
+             "Cannot concatenate nodes of varying depths. See appendNode(_:separatedBy:)")
       
       let totalElementCount = self.elementCount + rightHandle.elementCount + 1
       
@@ -383,17 +383,17 @@ extension _Node.UnsafeHandle {
         // A splinter needs to occur
         
         // Split evenly (right biased).
-        let seperatorSlot = totalElementCount / 2
+        let separatorSlot = totalElementCount / 2
         
         // Identify who needs to splinter
-        if seperatorSlot == self.elementCount {
-          // The nice case when the seperator is the splinter
-          return seperator
-        } else if seperatorSlot < self.elementCount {
+        if separatorSlot == self.elementCount {
+          // The nice case when the separator is the splinter
+          return separator
+        } else if separatorSlot < self.elementCount {
           // Move elements from the left node to the right node
-          let splinterSeperator = self.moveElement(atSlot: seperatorSlot)
+          let splinterSeparator = self.moveElement(atSlot: separatorSlot)
           
-          let shiftedElementCount = self.elementCount - seperatorSlot - 1
+          let shiftedElementCount = self.elementCount - separatorSlot - 1
           
           rightHandle.moveInitializeElements(
             count: rightHandle.elementCount,
@@ -404,12 +404,12 @@ extension _Node.UnsafeHandle {
           
           rightHandle.initializeElement(
             atSlot: shiftedElementCount,
-            to: seperator
+            to: separator
           )
           
           self.moveInitializeElements(
             count: shiftedElementCount,
-            fromSlot: seperatorSlot + 1,
+            fromSlot: separatorSlot + 1,
             toSlot: 0,
             of: rightHandle
           )
@@ -424,66 +424,66 @@ extension _Node.UnsafeHandle {
             
             self.moveInitializeChildren(
               count: shiftedElementCount + 1,
-              fromSlot: seperatorSlot + 1,
+              fromSlot: separatorSlot + 1,
               toSlot: 0,
               of: rightHandle
             )
           }
           
           // TODO: adjust counts
-          self.elementCount = seperatorSlot
-          rightHandle.elementCount = totalElementCount - seperatorSlot - 1
+          self.elementCount = separatorSlot
+          rightHandle.elementCount = totalElementCount - separatorSlot - 1
           
           self._adjustSubtreeCount(afterSplittingTo: rightHandle)
           
-          return splinterSeperator
+          return splinterSeparator
         } else {
-          // seperatorSlot > self.elementCount
+          // separatorSlot > self.elementCount
           // Move elements from the right node to the left node
-          let seperatorSlotInRightHandle = seperatorSlot - self.elementCount - 1
-          let splinterSeperator =
-            rightHandle.moveElement(atSlot: seperatorSlotInRightHandle)
+          let separatorSlotInRightHandle = separatorSlot - self.elementCount - 1
+          let splinterSeparator =
+            rightHandle.moveElement(atSlot: separatorSlotInRightHandle)
           
           self.initializeElement(
             atSlot: self.elementCount,
-            to: seperator
+            to: separator
           )
           
           rightHandle.moveInitializeElements(
-            count: seperatorSlotInRightHandle,
+            count: separatorSlotInRightHandle,
             fromSlot: 0,
             toSlot: self.elementCount + 1,
             of: self
           )
           
           rightHandle.moveInitializeElements(
-            count: rightHandle.elementCount - (seperatorSlotInRightHandle + 1),
-            fromSlot: seperatorSlotInRightHandle + 1,
+            count: rightHandle.elementCount - (separatorSlotInRightHandle + 1),
+            fromSlot: separatorSlotInRightHandle + 1,
             toSlot: 0,
             of: rightHandle
           )
           
           if !self.isLeaf {
             rightHandle.moveInitializeChildren(
-              count: seperatorSlotInRightHandle + 1,
+              count: separatorSlotInRightHandle + 1,
               fromSlot: 0,
               toSlot: self.childCount,
               of: self
             )
           }
           
-          self.elementCount = seperatorSlot
-          rightHandle.elementCount = totalElementCount - seperatorSlot - 1
+          self.elementCount = separatorSlot
+          rightHandle.elementCount = totalElementCount - separatorSlot - 1
           
           self._adjustSubtreeCount(afterSplittingTo: rightHandle)
           
-          return splinterSeperator
+          return splinterSeparator
         }
       } else {
         // A simple merge can be performed
         self.initializeElement(
           atSlot: self.elementCount,
-          to: seperator
+          to: separator
         )
         
         rightHandle.moveInitializeElements(
@@ -513,8 +513,8 @@ extension _Node.UnsafeHandle {
     }
     
     // Check if it splintered
-    if let seperator = seperator {
-      return _Node.Splinter(element: seperator, rightChild: rightNode)
+    if let separator = separator {
+      return _Node.Splinter(element: separator, rightChild: rightNode)
     } else {
       return nil
     }
