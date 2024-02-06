@@ -512,7 +512,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "Deque<Int> equality different instance",
+      title: "Deque<Int> equality, unique",
       input: Int.self
     ) { size in
       let left = Deque(0 ..< size)
@@ -525,7 +525,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "Deque<Int> equality same instance",
+      title: "Deque<Int> equality, shared",
       input: Int.self
     ) { size in
       let left = Deque(0 ..< size)
@@ -536,5 +536,6 @@ extension Benchmark {
         }
       }
     }
+    
   }
 }

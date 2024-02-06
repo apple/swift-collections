@@ -541,7 +541,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedDictionary<Int, Int> equality different instance",
+      title: "OrderedDictionary<Int, Int> equality, unique",
       input: [Int].self
     ) { input in
       let keysAndValues = input.map { ($0, 2 * $0) }
@@ -555,7 +555,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedDictionary<Int, Int> equality same instance",
+      title: "OrderedDictionary<Int, Int> equality, shared",
       input: [Int].self
     ) { input in
       let keysAndValues = input.map { ($0, 2 * $0) }
@@ -569,7 +569,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedDictionary<Int, Int>.Values equality different instance",
+      title: "OrderedDictionary<Int, Int>.Values equality, unique",
       input: [Int].self
     ) { input in
       let keysAndValues = input.map { ($0, 2 * $0) }
@@ -583,7 +583,7 @@ extension Benchmark {
     }
     
     self.add(
-      title: "OrderedDictionary<Int, Int>.Values equality same instance",
+      title: "OrderedDictionary<Int, Int>.Values equality, shared",
       input: [Int].self
     ) { input in
       let keysAndValues = input.map { ($0, 2 * $0) }
@@ -595,5 +595,6 @@ extension Benchmark {
         }
       }
     }
+    
   }
 }
