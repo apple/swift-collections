@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -83,16 +83,12 @@ extension OrderedSet {
   ///    `Element` implements high-quality hashing.
   @inlinable
   @inline(__always)
-  public __consuming func subtracting<S: Sequence>(
-    _ other: S
-  ) -> Self where S.Element == Element {
+  public __consuming func subtracting(_ other: some Sequence<Element>) -> Self {
     _subtracting(other)
   }
 
   @inlinable
-  __consuming func _subtracting<S: Sequence>(
-    _ other: S
-  ) -> Self where S.Element == Element {
+  __consuming func _subtracting(_ other: some Sequence<Element>) -> Self {
     guard count > 0 else { return Self() }
     return _UnsafeBitSet.withTemporaryBitSet(capacity: count) { difference in
       difference.insertAll(upTo: count)

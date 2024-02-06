@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension TreeSet {
   /// Creates an empty set.
@@ -32,9 +36,9 @@ extension TreeSet {
   ///    is the number of elements in the sequence), provided that
   ///    `Element` properly implements hashing.
   @inlinable
-  public init<S: Sequence>(_ items: __owned S) where S.Element == Element {
-    if S.self == Self.self {
-      self = items as! Self
+  public init(_ items: __owned some Sequence<Element>) {
+    if let items = _specialize(items, for: Self.self) {
+      self = items
       return
     }
     self.init()

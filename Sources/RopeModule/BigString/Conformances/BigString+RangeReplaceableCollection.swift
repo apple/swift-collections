@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -10,6 +10,10 @@
 //===----------------------------------------------------------------------===//
 
 #if swift(>=5.8)
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: RangeReplaceableCollection {
@@ -21,20 +25,17 @@ extension BigString: RangeReplaceableCollection {
     // Do nothing.
   }
 
-  public mutating func replaceSubrange<S: Sequence<Character>>( // Note: Sequence, not Collection
-    _ subrange: Range<Index>, with newElements: __owned S
+  public mutating func replaceSubrange(
+    _ subrange: Range<Index>,
+    with newElements: __owned some Sequence<Character> // Note: Sequence, not Collection
   ) {
-    if S.self == String.self {
-      let newElements = _identityCast(newElements, to: String.self)
+    if let newElements = _specialize(newElements, for: String.self) {
       self._replaceSubrange(subrange, with: newElements)
-    } else if S.self == Substring.self {
-      let newElements = _identityCast(newElements, to: Substring.self)
+    } else if let newElements = _specialize(newElements, for: Substring.self) {
       self._replaceSubrange(subrange, with: newElements)
-    } else if S.self == BigString.self {
-      let newElements = _identityCast(newElements, to: BigString.self)
+    } else if let newElements = _specialize(newElements, for: BigString.self) {
       self._replaceSubrange(subrange, with: newElements)
-    } else if S.self == BigSubstring.self {
-      let newElements = _identityCast(newElements, to: BigSubstring.self)
+    } else if let newElements = _specialize(newElements, for: BigSubstring.self) {
       self._replaceSubrange(subrange, with: newElements)
     } else {
       self._replaceSubrange(subrange, with: BigString(newElements))
@@ -65,17 +66,14 @@ extension BigString: RangeReplaceableCollection {
     _replaceSubrange(subrange, with: newElements)
   }
 
-  public init<S: Sequence<Character>>(_ elements: S) {
-    if S.self == String.self {
-      let elements = _identityCast(elements, to: String.self)
+  public init(_ elements: some Sequence<Character>) {
+    if let elements = _specialize(elements, for: String.self) {
       self.init(_from: elements)
-    } else if S.self == Substring.self {
-      let elements = _identityCast(elements, to: Substring.self)
+    } else if let elements = _specialize(elements, for: Substring.self) {
       self.init(_from: elements)
-    } else if S.self == BigString.self {
-      self = _identityCast(elements, to: BigString.self)
-    } else if S.self == BigSubstring.self {
-      let elements = _identityCast(elements, to: BigSubstring.self)
+    } else if let elements = _specialize(elements, for: BigString.self) {
+      self = elements
+    } else if let elements = _specialize(elements, for: BigSubstring.self) {
       self.init(_from: elements)
     } else {
       self.init(_from: elements)
@@ -136,18 +134,18 @@ extension BigString: RangeReplaceableCollection {
     append(contentsOf: String(newElement))
   }
 
-  public mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
-    if S.self == String.self {
-      let newElements = _identityCast(newElements, to: String.self)
+  public mutating func append(
+    contentsOf newElements: __owned some Sequence<Character>
+  ) {
+    if let newElements = _specialize(newElements, for: String.self) {
       append(contentsOf: newElements)
-    } else if S.self == Substring.self {
-      let newElements = _identityCast(newElements, to: Substring.self)
+    } else if let newElements = _specialize(newElements, for: Substring.self) {
       append(contentsOf: newElements)
-    } else if S.self == BigString.self {
-      let newElements = _identityCast(newElements, to: BigString.self)
+    } else if let newElements = _specialize(newElements, for: BigString.self) {
       append(contentsOf: newElements)
-    } else if S.self == BigSubstring.self {
-      let newElements = _identityCast(newElements, to: BigSubstring.self)
+    } else if let newElements = _specialize(
+      newElements, for: BigSubstring.self
+    ) {
       append(contentsOf: newElements)
     } else {
       append(contentsOf: BigString(newElements))
@@ -174,20 +172,17 @@ extension BigString: RangeReplaceableCollection {
     insert(contentsOf: String(newElement), at: i)
   }
 
-  public mutating func insert<S: Sequence<Character>>( // Note: Sequence, not Collection
-    contentsOf newElements: __owned S, at i: Index
+  public mutating func insert(
+    contentsOf newElements: __owned some Sequence<Character>, // Note: Sequence, not Collection
+    at i: Index
   ) {
-    if S.self == String.self {
-      let newElements = _identityCast(newElements, to: String.self)
+    if let newElements = _specialize(newElements, for: String.self) {
       insert(contentsOf: newElements, at: i)
-    } else if S.self == Substring.self {
-      let newElements = _identityCast(newElements, to: Substring.self)
+    } else if let newElements = _specialize(newElements, for: Substring.self) {
       insert(contentsOf: newElements, at: i)
-    } else if S.self == BigString.self {
-      let newElements = _identityCast(newElements, to: BigString.self)
+    } else if let newElements = _specialize(newElements, for: BigString.self) {
       insert(contentsOf: newElements, at: i)
-    } else if S.self == BigSubstring.self {
-      let newElements = _identityCast(newElements, to: BigSubstring.self)
+    } else if let newElements = _specialize(newElements, for: BigSubstring.self) {
       insert(contentsOf: newElements, at: i)
     } else {
       insert(contentsOf: BigString(newElements), at: i)

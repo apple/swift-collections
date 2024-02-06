@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -110,11 +110,11 @@ extension OrderedSet._UnstableInternals {
 
 extension OrderedSet {
   @_spi(Testing)
-  public init<S: Sequence>(
+  public init(
     _scale scale: Int,
     bias: Int,
-    contents: S
-  ) where S.Element == Element {
+    contents: some Sequence<Element>
+  ) {
     let contents = ContiguousArray(contents)
     precondition(scale >= _HashTable.scale(forCapacity: contents.count))
     precondition(scale <= _HashTable.maximumScale)

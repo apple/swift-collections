@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -15,9 +15,9 @@ extension BitSet {
     return random(upTo: limit, using: &rng)
   }
 
-  public static func random<R: RandomNumberGenerator>(
+  public static func random(
     upTo limit: Int,
-    using rng: inout R
+    using rng: inout some RandomNumberGenerator
   ) -> BitSet {
     precondition(limit >= 0, "Invalid limit value")
     guard limit > 0 else { return BitSet() }

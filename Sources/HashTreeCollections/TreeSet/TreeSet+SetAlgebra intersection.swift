@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension TreeSet {
   /// Returns a new set with the elements that are common to both this set and
@@ -81,12 +85,11 @@ extension TreeSet {
   /// - Parameter other: An arbitrary finite sequence of items,
   ///    possibly containing duplicate values.
   @inlinable
-  public func intersection<S: Sequence>(
-    _ other: S
-  ) -> Self
-  where S.Element == Element {
-    if S.self == Self.self {
-      return intersection(other as! Self)
+  public func intersection(
+    _ other: some Sequence<Element>
+  ) -> Self {
+    if let other = _specialize(other, for: Self.self) {
+      return intersection(other)
     }
 
     guard let first = self.first else { return Self() }

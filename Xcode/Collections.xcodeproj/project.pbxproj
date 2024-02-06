@@ -12,6 +12,8 @@
 		7D9B859929E4F74400B291CD /* BitArray+LosslessStringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859329E4F74400B291CD /* BitArray+LosslessStringConvertible.swift */; };
 		7D9B859A29E4F74400B291CD /* BitArray+RandomBits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859429E4F74400B291CD /* BitArray+RandomBits.swift */; };
 		7D9B859B29E4F74400B291CD /* BitArray+ExpressibleByStringLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859529E4F74400B291CD /* BitArray+ExpressibleByStringLiteral.swift */; };
+		7DB0AE762B6E06B300602A20 /* Specialize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB0AE752B6E06B300602A20 /* Specialize.swift */; };
+		7DB0AE772B6E06B300602A20 /* Specialize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB0AE752B6E06B300602A20 /* Specialize.swift */; };
 		7DE91B2F29CA6721004483EB /* Collections.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DE91B2629CA6721004483EB /* Collections.framework */; };
 		7DE9200D29CA70F3004483EB /* OrderedDictionary+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91E7529CA70F3004483EB /* OrderedDictionary+Equatable.swift */; };
 		7DE9200E29CA70F3004483EB /* OrderedDictionary+ExpressibleByDictionaryLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91E7629CA70F3004483EB /* OrderedDictionary+ExpressibleByDictionaryLiteral.swift */; };
@@ -353,7 +355,6 @@
 		7DE9221D29CA8576004483EB /* DequeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE921F829CA8576004483EB /* DequeTests.swift */; };
 		7DE9221E29CA8576004483EB /* MutableCollectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE921F929CA8576004483EB /* MutableCollectionTests.swift */; };
 		7DEBDAF229CBEE5300ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDACD29CBEE5200ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift */; };
-		7DEBDAF329CBEE5300ADC226 /* Array+WithContiguousStorage Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDACE29CBEE5200ADC226 /* Array+WithContiguousStorage Compatibility.swift */; };
 		7DEBDAF429CBEE5300ADC226 /* UnsafeMutablePointer+SE-0370.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDACF29CBEE5200ADC226 /* UnsafeMutablePointer+SE-0370.swift */; };
 		7DEBDAF529CBEE5300ADC226 /* UnsafeRawPointer extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDAD029CBEE5200ADC226 /* UnsafeRawPointer extensions.swift */; };
 		7DEBDAF829CBEE5300ADC226 /* UnsafeMutableBufferPointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDAD429CBEE5300ADC226 /* UnsafeMutableBufferPointer+Extras.swift */; };
@@ -373,7 +374,6 @@
 		7DEBDB1029CBF68900ADC226 /* UInt+first and last set bit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDAEA29CBEE5300ADC226 /* UInt+first and last set bit.swift */; };
 		7DEBDB1129CBF68900ADC226 /* FixedWidthInteger+roundUpToPowerOfTwo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDAEB29CBEE5300ADC226 /* FixedWidthInteger+roundUpToPowerOfTwo.swift */; };
 		7DEBDB1229CBF68D00ADC226 /* UnsafeMutablePointer+SE-0370.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDACF29CBEE5200ADC226 /* UnsafeMutablePointer+SE-0370.swift */; };
-		7DEBDB1329CBF68D00ADC226 /* Array+WithContiguousStorage Compatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDACE29CBEE5200ADC226 /* Array+WithContiguousStorage Compatibility.swift */; };
 		7DEBDB1429CBF68D00ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDACD29CBEE5200ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift */; };
 		7DEBDB1529CBF68D00ADC226 /* UnsafeRawPointer extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDAD029CBEE5200ADC226 /* UnsafeRawPointer extensions.swift */; };
 		7DEBDB1629CBF69F00ADC226 /* _UnsafeBitSet+Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDADF29CBEE5300ADC226 /* _UnsafeBitSet+Index.swift */; };
@@ -448,6 +448,8 @@
 		7D9B859429E4F74400B291CD /* BitArray+RandomBits.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+RandomBits.swift"; sourceTree = "<group>"; };
 		7D9B859529E4F74400B291CD /* BitArray+ExpressibleByStringLiteral.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+ExpressibleByStringLiteral.swift"; sourceTree = "<group>"; };
 		7D9B859C29E4F77D00B291CD /* Collections.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = Collections.xctestplan; sourceTree = "<group>"; };
+		7DB0AE712B6E067A00602A20 /* Specialize.swift.gyb */ = {isa = PBXFileReference; lastKnownFileType = text; path = Specialize.swift.gyb; sourceTree = "<group>"; };
+		7DB0AE752B6E06B300602A20 /* Specialize.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Specialize.swift; sourceTree = "<group>"; };
 		7DE91B2629CA6721004483EB /* Collections.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Collections.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DE91B2E29CA6721004483EB /* CollectionsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CollectionsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DE91E7229CA70F3004483EB /* OrderedCollections.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = OrderedCollections.docc; sourceTree = "<group>"; };
@@ -815,10 +817,8 @@
 		7DE921F929CA8576004483EB /* MutableCollectionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutableCollectionTests.swift; sourceTree = "<group>"; };
 		7DEBDAC829CBEE5200ADC226 /* UnsafeMutablePointer+SE-0370.swift.gyb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "UnsafeMutablePointer+SE-0370.swift.gyb"; sourceTree = "<group>"; };
 		7DEBDAC929CBEE5200ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift.gyb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "UnsafeMutableBufferPointer+SE-0370.swift.gyb"; sourceTree = "<group>"; };
-		7DEBDACA29CBEE5200ADC226 /* Array+WithContiguousStorage Compatibility.swift.gyb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Array+WithContiguousStorage Compatibility.swift.gyb"; sourceTree = "<group>"; };
 		7DEBDACB29CBEE5200ADC226 /* UnsafeRawPointer extensions.swift.gyb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "UnsafeRawPointer extensions.swift.gyb"; sourceTree = "<group>"; };
 		7DEBDACD29CBEE5200ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UnsafeMutableBufferPointer+SE-0370.swift"; sourceTree = "<group>"; };
-		7DEBDACE29CBEE5200ADC226 /* Array+WithContiguousStorage Compatibility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Array+WithContiguousStorage Compatibility.swift"; sourceTree = "<group>"; };
 		7DEBDACF29CBEE5200ADC226 /* UnsafeMutablePointer+SE-0370.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UnsafeMutablePointer+SE-0370.swift"; sourceTree = "<group>"; };
 		7DEBDAD029CBEE5200ADC226 /* UnsafeRawPointer extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UnsafeRawPointer extensions.swift"; sourceTree = "<group>"; };
 		7DEBDAD129CBEE5200ADC226 /* Descriptions.swift.gyb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Descriptions.swift.gyb; sourceTree = "<group>"; };
@@ -1261,6 +1261,7 @@
 				7DEBDAED29CBEE5300ADC226 /* Debugging.swift.gyb */,
 				7DEBDAD129CBEE5200ADC226 /* Descriptions.swift.gyb */,
 				7DEBDAD229CBEE5200ADC226 /* RandomAccessCollection+Offsets.swift.gyb */,
+				7DB0AE712B6E067A00602A20 /* Specialize.swift.gyb */,
 				7DEBDAD929CBEE5300ADC226 /* UnsafeBufferPointer+Extras.swift.gyb */,
 				7DEBDAEC29CBEE5300ADC226 /* UnsafeMutableBufferPointer+Extras.swift.gyb */,
 				7DE91F2E29CA70F3004483EB /* CMakeLists.txt */,
@@ -1650,7 +1651,6 @@
 			isa = PBXGroup;
 			children = (
 				7DEBDACC29CBEE5200ADC226 /* autogenerated */,
-				7DEBDACA29CBEE5200ADC226 /* Array+WithContiguousStorage Compatibility.swift.gyb */,
 				7DEBDAC929CBEE5200ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift.gyb */,
 				7DEBDAC829CBEE5200ADC226 /* UnsafeMutablePointer+SE-0370.swift.gyb */,
 				7DEBDACB29CBEE5200ADC226 /* UnsafeRawPointer extensions.swift.gyb */,
@@ -1661,7 +1661,6 @@
 		7DEBDACC29CBEE5200ADC226 /* autogenerated */ = {
 			isa = PBXGroup;
 			children = (
-				7DEBDACE29CBEE5200ADC226 /* Array+WithContiguousStorage Compatibility.swift */,
 				7DEBDACD29CBEE5200ADC226 /* UnsafeMutableBufferPointer+SE-0370.swift */,
 				7DEBDACF29CBEE5200ADC226 /* UnsafeMutablePointer+SE-0370.swift */,
 				7DEBDAD029CBEE5200ADC226 /* UnsafeRawPointer extensions.swift */,
@@ -1675,6 +1674,7 @@
 				7DEBDAD829CBEE5300ADC226 /* Debugging.swift */,
 				7DEBDAD729CBEE5300ADC226 /* Descriptions.swift */,
 				7DEBDAD629CBEE5300ADC226 /* RandomAccessCollection+Offsets.swift */,
+				7DB0AE752B6E06B300602A20 /* Specialize.swift */,
 				7DEBDAD529CBEE5300ADC226 /* UnsafeBufferPointer+Extras.swift */,
 				7DEBDAD429CBEE5300ADC226 /* UnsafeMutableBufferPointer+Extras.swift */,
 			);
@@ -1870,7 +1870,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					7DE91B2529CA6721004483EB = {
 						CreatedOnToolsVersion = 14.3;
@@ -2005,6 +2005,7 @@
 				7DE9217629CA70F4004483EB /* TreeDictionary+Initializers.swift in Sources */,
 				7DE9207E29CA70F4004483EB /* BigString+UTF16View.swift in Sources */,
 				7DEBDAFA29CBEE5300ADC226 /* RandomAccessCollection+Offsets.swift in Sources */,
+				7DB0AE762B6E06B300602A20 /* Specialize.swift in Sources */,
 				7DE9216F29CA70F4004483EB /* TreeDictionary+CustomReflectable.swift in Sources */,
 				7DE920D729CA70F4004483EB /* BitSet+SetAlgebra isSuperset.swift in Sources */,
 				7DE920F429CA70F4004483EB /* BitArray+Hashable.swift in Sources */,
@@ -2061,7 +2062,6 @@
 				7DE920BC29CA70F4004483EB /* _UniqueCollection.swift in Sources */,
 				7D9B859B29E4F74400B291CD /* BitArray+ExpressibleByStringLiteral.swift in Sources */,
 				7DE9216529CA70F4004483EB /* _HashNode+Structural intersection.swift in Sources */,
-				7DEBDAF329CBEE5300ADC226 /* Array+WithContiguousStorage Compatibility.swift in Sources */,
 				7DE920A629CA70F4004483EB /* String Utilities.swift in Sources */,
 				7DE920E129CA70F4004483EB /* UInt+Tricks.swift in Sources */,
 				7DE920EB29CA70F4004483EB /* BitArray+Fill.swift in Sources */,
@@ -2293,6 +2293,7 @@
 				7DEBDB7929CCE44A00ADC226 /* LifetimeTracked.swift in Sources */,
 				7DE921FC29CA8576004483EB /* IndexRangeCollectionTests.swift in Sources */,
 				7DE9221229CA8576004483EB /* OrderedDictionary+Elements Tests.swift in Sources */,
+				7DB0AE772B6E06B300602A20 /* Specialize.swift in Sources */,
 				7DEBDB7629CCE44A00ADC226 /* MinimalIndex.swift in Sources */,
 				7DE9221329CA8576004483EB /* OrderedSetInternals.swift in Sources */,
 				7DE9220329CA8576004483EB /* Colliders.swift in Sources */,
@@ -2332,7 +2333,6 @@
 				7DEBDB7C29CCE44A00ADC226 /* MinimalDecoder.swift in Sources */,
 				7DE9220829CA8576004483EB /* BitSetTests.swift in Sources */,
 				7DEBDB7329CCE44A00ADC226 /* _MinimalCollectionCore.swift in Sources */,
-				7DEBDB1329CBF68D00ADC226 /* Array+WithContiguousStorage Compatibility.swift in Sources */,
 				7DE921C829CA81DC004483EB /* _UniqueCollection.swift in Sources */,
 				7DE9220629CA8576004483EB /* TreeSet Tests.swift in Sources */,
 				7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */,
@@ -2388,6 +2388,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */;
 			buildSettings = {
+				DEAD_CODE_STRIPPING = YES;
 			};
 			name = Debug;
 		};
@@ -2395,6 +2396,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */;
 			buildSettings = {
+				DEAD_CODE_STRIPPING = YES;
 			};
 			name = Release;
 		};

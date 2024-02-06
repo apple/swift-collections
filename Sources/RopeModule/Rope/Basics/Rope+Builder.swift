@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension Rope {
   @inlinable
@@ -223,9 +227,8 @@ extension Rope {
     }
 
     @inlinable
-    public mutating func insertBeforeTip<S: Sequence<Element>>(_ items: __owned S) {
-      if S.self == Rope.self {
-        let items = _identityCast(items, to: Rope.self)
+    public mutating func insertBeforeTip(_ items: __owned some Sequence<Element>) {
+      if let items = _specialize(items, for: Rope.self) {
         self.insertBeforeTip(items)
       } else {
         for item in items {

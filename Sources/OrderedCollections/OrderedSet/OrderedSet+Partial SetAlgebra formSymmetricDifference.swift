@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -79,9 +79,9 @@ extension OrderedSet {
   ///    the number of elements in `other`, if `Element` implements high-quality
   ///    hashing.
   @inlinable
-  public mutating func formSymmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Element {
+  public mutating func formSymmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) {
     self = self.symmetricDifference(other)
   }
 }

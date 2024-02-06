@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -311,7 +311,7 @@ extension Heap {
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `elements`.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Element {
+  public init(_ elements: some Sequence<Element>) {
     _storage = ContiguousArray(elements)
     guard _storage.count > 1 else { return }
 
@@ -327,9 +327,9 @@ extension Heap {
   ///
   /// - Complexity: O(`count` + *k*), where *k* is the length of `newElements`.
   @inlinable
-  public mutating func insert<S: Sequence>(
-    contentsOf newElements: S
-  ) where S.Element == Element {
+  public mutating func insert(
+    contentsOf newElements: some Sequence<Element>
+  ) {
     let origCount = self.count
     if origCount == 0 {
       self = Self(newElements)

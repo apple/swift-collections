@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -22,17 +22,29 @@ extension BitArray: LosslessStringConvertible {
   ///     BitArray("42") // nil
   ///     BitArray("Foo") // nil
   ///
+  /// To accept the display format used by `description`, the digits in the
+  /// input string are also allowed to be surrounded by a single pair of ASCII
+  /// angle brackets:
+  ///
+  ///     let bits: BitArray = [false, false, true, true]
+  ///     let string = bits.description // "<1100>"
+  ///     let sameBits = BitArray(string)! // [false, false, true, true]
+  ///
   public init?(_ description: String) {
-    let bits: BitArray? = description.utf8.withContiguousStorageIfAvailable { buffer in
-      Self(_utf8: buffer)
-    } ?? Self(_utf8: description.utf8)
+    var digits = description[...]
+    if digits.utf8.first == ._asciiLT, digits.utf8.last == ._asciiGT {
+      digits = digits.dropFirst().dropLast()
+    }
+    let bits: BitArray? = digits.utf8.withContiguousStorageIfAvailable { buffer in
+      Self(_utf8Digits: buffer)
+    } ?? Self(_utf8Digits: description.utf8)
     guard let bits = bits else {
       return nil
     }
     self = bits
   }
 
-  internal init?<C: Collection>(_utf8 utf8: C) where C.Element == UInt8 {
+  internal init?(_utf8Digits utf8: some Collection<UInt8>) {
     let c = utf8.count
     self.init(repeating: false, count: c)
     var i = c &- 1

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -115,14 +115,14 @@ extension OrderedSet {
   ///    is the number of elements in `other`, if `Element` implements
   ///    high-quality hashing.
   @inlinable
-  public func isStrictSubset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
-    if S.self == Self.self {
-      return self.isStrictSubset(of: other as! Self)
+  public func isStrictSubset(
+    of other: some Sequence<Element>
+  ) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return self.isStrictSubset(of: other)
     }
-    if S.self == Set<Element>.self {
-      return self.isStrictSubset(of: other as! Set<Element>)
+    if let other = _specialize(other, for: Set<Element>.self) {
+      return self.isStrictSubset(of: other)
     }
 
     var it = self.makeIterator()

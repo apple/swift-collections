@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -287,15 +287,16 @@ extension BigSubstring: RangeReplaceableCollection {
     // Do nothing.
   }
 
-  public mutating func replaceSubrange<C: Sequence<Character>>( // Note: Sequence, not Collection
-    _ subrange: Range<Index>, with newElements: __owned C
+  public mutating func replaceSubrange( // Note: Sequence, not Collection
+    _ subrange: Range<Index>,
+    with newElements: __owned some Sequence<Character>
   ) {
     _mutateBasePreservingBounds(in: subrange) {
       $0.replaceSubrange(subrange, with: newElements)
     }
   }
 
-  public init<S: Sequence<Character>>(_ elements: S) {
+  public init(_ elements: some Sequence<Character>) {
     let base = BigString(elements)
     self.init(base, in: base.startIndex ..< base.endIndex)
   }
@@ -323,7 +324,7 @@ extension BigSubstring: RangeReplaceableCollection {
     }
   }
 
-  public mutating func append<S: Sequence<Character>>(contentsOf newElements: __owned S) {
+  public mutating func append(contentsOf newElements: __owned some Sequence<Character>) {
     let i = endIndex
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(contentsOf: newElements, at: i)
@@ -336,8 +337,9 @@ extension BigSubstring: RangeReplaceableCollection {
     }
   }
 
-  public mutating func insert<C: Sequence<Character>>( // Note: Sequence, not Collection
-    contentsOf newElements: __owned C, at i: Index
+  public mutating func insert(
+    contentsOf newElements: __owned some Sequence<Character>, // Note: Sequence, not Collection
+    at i: Index
   ) {
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(contentsOf: newElements, at: i)

@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 // `OrderedSet` does not directly conform to `SetAlgebra` because its definition
 // of equality conflicts with `SetAlgebra` requirements. However, it still
@@ -103,18 +107,14 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(*n*) on average, where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.
   @inlinable
-  public func isSuperset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
+  public func isSuperset(of other: some Sequence<Element>) -> Bool {
     _isSuperset(of: other)
   }
 
   @inlinable
-  internal func _isSuperset<S: Sequence>(
-    of other: S
-  ) -> Bool where S.Element == Element {
-    if S.self == Self.self {
-      return self.isSuperset(of: other as! Self)
+  internal func _isSuperset(of other: some Sequence<Element>) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return self.isSuperset(of: other)
     }
     for item in other {
       guard self.contains(item) else { return false }

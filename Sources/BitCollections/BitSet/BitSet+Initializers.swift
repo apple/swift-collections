@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -50,7 +50,7 @@ extension BitSet {
   ///
   /// - Complexity: O(`words.count`)
   @inlinable
-  public init<S: Sequence>(words: S) where S.Element == UInt {
+  public init(words: some Sequence<UInt>) {
     self.init(_words: words.map { _Word($0) })
   }
   
@@ -65,7 +65,7 @@ extension BitSet {
   ///
   /// - Complexity: O(`x.bitWidth`)
   @inlinable
-  public init<I: BinaryInteger>(bitPattern x: I) {
+  public init(bitPattern x: some BinaryInteger) {
     self.init(words: x.words)
   }
 
@@ -88,15 +88,15 @@ extension BitSet {
   ///
   /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
-  public init<S: Sequence>(
-    _ elements: __owned S
-  ) where S.Element == Int {
-    if S.self == BitSet.self {
-      self = (elements as! BitSet)
+  public init(
+    _ elements: __owned some Sequence<Int>
+  ) {
+    if let elements = _specialize(elements, for: BitSet.self) {
+      self = elements
       return
     }
-    if S.self == BitSet.Counted.self {
-      self = (elements as! BitSet.Counted)._bits
+    if let elements = _specialize(elements, for: BitSet.Counted.self) {
+      self = elements._bits
       return
     }
     self.init()
@@ -115,19 +115,19 @@ extension BitSet {
   ///
   /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
-  internal init<S: Sequence>(
-    _validMembersOf elements: __owned S
-  ) where S.Element == Int {
-    if S.self == BitSet.self {
-      self = (elements as! BitSet)
+  internal init(
+    _validMembersOf elements: __owned some Sequence<Int>
+  ) {
+    if let elements = _specialize(elements, for: BitSet.self) {
+      self = elements
       return
     }
-    if S.self == BitSet.Counted.self {
-      self = (elements as! BitSet.Counted)._bits
+    if let elements = _specialize(elements, for: BitSet.Counted.self) {
+      self = elements._bits
       return
     }
-    if S.self == Range<Int>.self {
-      let r = (elements as! Range<Int>)
+    if let elements = _specialize(elements, for: Range<Int>.self) {
+      let r = elements
       self.init(_range: r._clampedToUInt())
       return
     }

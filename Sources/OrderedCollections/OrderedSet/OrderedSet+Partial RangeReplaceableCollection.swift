@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -111,9 +111,7 @@ extension OrderedSet {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func removeSubrange<R: RangeExpression>(
-    _ bounds: R
-  ) where R.Bound == Int {
+  public mutating func removeSubrange(_ bounds: some RangeExpression<Int>) {
     removeSubrange(bounds.relative(to: self))
   }
 
