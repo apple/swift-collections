@@ -307,3 +307,21 @@ extension TreeDictionary.Keys: Equatable {
     left._base._root.isEqualSet(to: right._base._root, by: { _, _ in true })
   }
 }
+
+extension TreeDictionary.Keys: Hashable {
+  /// Hashes the essential components of this value by feeding them into the
+  /// given hasher.
+  ///
+  /// Complexity: O(`count`)
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    let copy = hasher
+    let seed = copy.finalize()
+
+    var hash = 0
+    for member in self {
+      hash ^= member._rawHashValue(seed: seed)
+    }
+    hasher.combine(hash)
+  }
+}

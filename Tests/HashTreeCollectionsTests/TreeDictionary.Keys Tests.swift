@@ -125,5 +125,25 @@ class TreeDictionaryKeysTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_Equatable_Hashable() {
+    let samples: [[TreeDictionary<Int, Int>]] = [
+      [[:], [:]],
+      [[1: 100], [1: 100]],
+      [[2: 200], [2: 200]],
+      [[3: 300], [3: 300]],
+      [[100: 1], [100: 1]],
+      [[1: 1], [1: 1]],
+      [[100: 100], [100: 100]],
+      [[1: 100, 2: 200], [2: 200, 1: 100]],
+      [[1: 100, 2: 200, 3: 300],
+       [1: 100, 3: 300, 2: 200],
+       [2: 200, 1: 100, 3: 300],
+       [2: 200, 3: 300, 1: 100],
+       [3: 300, 1: 100, 2: 200],
+       [3: 300, 2: 200, 1: 100]]
+    ]
+    checkHashable(equivalenceClasses: samples.map { $0.map { $0.keys }})
+  }
 
 }
