@@ -126,7 +126,7 @@ class TreeDictionaryKeysTests: CollectionTestCase {
     }
   }
   
-  func test_Equatable_Hashable() {
+  func test_Hashable_One() {
     let samples: [[TreeDictionary<Int, Int>]] = [
       [[:], [:]],
       [[1: 100], [1: 100]],
@@ -144,6 +144,46 @@ class TreeDictionaryKeysTests: CollectionTestCase {
        [3: 300, 2: 200, 1: 100]]
     ]
     checkHashable(equivalenceClasses: samples.map { $0.map { $0.keys }})
+  }
+  
+  func test_Hashable_Two() {
+    let classes: [[TreeSet<String>]] = [
+      [
+        []
+      ],
+      [
+        ["a"]
+      ],
+      [
+        ["b"]
+      ],
+      [
+        ["c"]
+      ],
+      [
+        ["d"]
+      ],
+      [
+        ["e"]
+      ],
+      [
+        ["a", "b"], ["b", "a"],
+      ],
+      [
+        ["a", "d"], ["d", "a"],
+      ],
+      [
+        ["a", "b", "c"], ["a", "c", "b"],
+        ["b", "a", "c"], ["b", "c", "a"],
+        ["c", "a", "b"], ["c", "b", "a"],
+      ],
+      [
+        ["a", "d", "e"], ["a", "e", "d"],
+        ["d", "a", "e"], ["d", "e", "a"],
+        ["e", "a", "d"], ["e", "d", "a"],
+      ],
+    ]
+    checkHashable(equivalenceClasses: classes.map { $0.map { TreeDictionary(keys: $0, valueGenerator: { $0 }).keys }})
   }
 
 }

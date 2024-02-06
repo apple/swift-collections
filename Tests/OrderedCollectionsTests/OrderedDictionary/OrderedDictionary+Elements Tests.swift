@@ -149,6 +149,8 @@ class OrderedDictionaryElementsTests: CollectionTestCase {
       [[3: 300, 2: 200, 1: 100], [3: 300, 2: 200, 1: 100]],
       [[3: 300, 1: 100, 2: 200], [3: 300, 1: 100, 2: 200]]
     ]
+    let x = samples.map { $0.map { $0.elements }}
+    print(x)
     checkHashable(equivalenceClasses: samples.map { $0.map { $0.elements }})
   }
 
