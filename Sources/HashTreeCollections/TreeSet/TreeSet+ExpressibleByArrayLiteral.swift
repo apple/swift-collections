@@ -18,7 +18,7 @@ extension TreeSet: ExpressibleByArrayLiteral {
   /// Do not call this initializer directly. It is used by the compiler when
   /// you use an array literal. Instead, create a new persistent set using an
   /// array literal as its value by enclosing a comma-separated list of values
-  /// in square brackets. You can use an array literal anywhere a peristent set
+  /// in square brackets. You can use an array literal anywhere a persistent set
   /// is expected by the type context.
   ///
   /// Like the standard `Set`, persistent sets do not preserve the order of
