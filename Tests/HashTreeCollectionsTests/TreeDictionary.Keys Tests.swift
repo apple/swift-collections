@@ -147,6 +147,21 @@ class TreeDictionaryKeysTests: CollectionTestCase {
         ["e"]
       ],
       [
+        ["f"], ["f"],
+      ],
+      [
+        ["g"], ["g"],
+      ],
+      [
+        ["h"], ["h"],
+      ],
+      [
+        ["i"], ["i"],
+      ],
+      [
+        ["j"], ["j"],
+      ],
+      [
         ["a", "b"], ["b", "a"],
       ],
       [
@@ -163,7 +178,7 @@ class TreeDictionaryKeysTests: CollectionTestCase {
         ["e", "a", "d"], ["e", "d", "a"],
       ],
     ]
-    let keys = strings.map { $0.map { TreeDictionary(uniqueKeysWithValues: $0.map { ($0, UUID().uuidString) }).keys }}
+    let keys = strings.map { $0.map { TreeDictionary(uniqueKeysWithValues: $0.map { ($0, Int.random(in: 1...100)) }).keys }}
     checkHashable(equivalenceClasses: keys)
   }
 
