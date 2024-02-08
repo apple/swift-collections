@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -249,13 +249,14 @@ extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
     // Do nothing.
   }
   
-  public mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
-    _ subrange: Range<Index>, with newElements: __owned C
+  public mutating func replaceSubrange(
+    _ subrange: Range<Index>, 
+    with newElements: __owned some Sequence<UnicodeScalar> // Note: Sequence, not Collection
   ) {
     _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }
   }
 
-  public init<S: Sequence<UnicodeScalar>>(_ elements: S) {
+  public init(_ elements: some Sequence<UnicodeScalar>) {
     let base = BigString.UnicodeScalarView(elements)
     self.init(base._base, in: base.startIndex ..< base.endIndex)
   }
@@ -272,7 +273,9 @@ extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
     }
   }
 
-  public mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
+  public mutating func append(
+    contentsOf newElements: __owned some Sequence<UnicodeScalar>
+  ) {
     let i = endIndex
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(contentsOf: newElements, at: i)
@@ -286,8 +289,9 @@ extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
   }
 
 
-  public mutating func insert<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
-    contentsOf newElements: __owned C, at i: Index
+  public mutating func insert(
+    contentsOf newElements: __owned some Sequence<UnicodeScalar>, // Note: Sequence, not Collection
+    at i: Index
   ) {
     _mutateBasePreservingBounds(in: i ..< i) {
       $0.insert(contentsOf: newElements, at: i)

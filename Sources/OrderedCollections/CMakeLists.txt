@@ -1,7 +1,7 @@
 #[[
 This source file is part of the Swift Collections Open Source Project
 
-Copyright (c) 2021 Apple Inc. and the Swift project authors
+Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 Licensed under Apache License v2.0 with Runtime Library Exception
 
 See https://swift.org/LICENSE.txt for license information
@@ -32,6 +32,7 @@ add_library(OrderedCollections
   "OrderedDictionary/OrderedDictionary+Partial RangeReplaceableCollection.swift"
   "OrderedDictionary/OrderedDictionary+Sendable.swift"
   "OrderedDictionary/OrderedDictionary+Sequence.swift"
+  "OrderedDictionary/OrderedDictionary+Sendable.swift"
   "OrderedDictionary/OrderedDictionary+Values.swift"
   "OrderedSet/OrderedSet+Codable.swift"
   "OrderedSet/OrderedSet+CustomReflectable.swift"

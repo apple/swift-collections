@@ -2,12 +2,39 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if false
+// FIXME: Bitwise operators disabled for now. I have two concerns:
+// 1. We need to support bitwise operations over slices of bit arrays, not just
+//    whole arrays.
+// 2. We need to put in-place mutations as the primary operation, and they
+//    need to avoid copy-on-write copies unless absolutely necessary.
+//
+// It seems unlikely that the operator syntax will survive these points.
+// We have five (5!) separate cases:
+//
+//     foo |= bar
+//     foo[i ..< j] |= bar
+//     foo |= bar[u ..< v]
+//     foo[i ..< j] |= bar[u ..< v]
+//     foo[i ..< j] |= foo[k ..< l]
+//
+// The last one where the array is ORed with itself is particularly problematic
+// -- like memcpy, these operations can easily support overlapping inputs, but
+// it doesn't seem likely we can implement that with this nice slicing syntax,
+// unless we are okay with forcing a CoW copy. (Which we aren't.)
+//
+// Even ignoring that, I would not like to end up with four overloads for each
+// operator, especially not for such niche operations. So we'll entirely disable
+// these for now, to prevent any shipping API from interfering with an eventual
+// redesign. (This is an active area of experimentation, as it will potentially
+// also affect our non-copyable container design.)
 
 extension BitArray {
   /// Stores the result of performing a bitwise OR operation on two
@@ -105,7 +132,9 @@ extension BitArray {
     result ^= right
     return result
   }
+}
 
+extension BitArray {
   /// Returns the complement of the given bit array.
   ///
   /// - Parameter value: A bit array.
@@ -117,7 +146,10 @@ extension BitArray {
     result.toggleAll()
     return result
   }
+}
+#endif
 
+extension BitArray {
   public mutating func toggleAll() {
     _update { handle in
       let w = handle._mutableWords
@@ -134,6 +166,7 @@ extension BitArray {
 
   public mutating func toggleAll(in range: Range<Int>) {
     precondition(range.upperBound <= count, "Range out of bounds")
+    guard !range.isEmpty else { return }
     _update { handle in
       let words = handle._mutableWords
       let start = _BitPosition(range.lowerBound)
@@ -155,9 +188,7 @@ extension BitArray {
   }
 
   @inlinable
-  public mutating func toggleAll<R: RangeExpression>(
-    in range: R
-  ) where R.Bound == Int {
+  public mutating func toggleAll(in range: some RangeExpression<Int>) {
     toggleAll(in: range.relative(to: self))
   }
 }

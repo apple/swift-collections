@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -45,7 +45,7 @@
 ///
 /// The tree structure also eliminates the need to reserve capacity in advance:
 /// `TreeSet` creates, destroys and resizes individual nodes as needed,
-/// always consuming just enough memory to store its contents. As of Swift 5.7,
+/// always consuming just enough memory to store its contents. As of Swift 5.9,
 /// the standard collection types never shrink their storage, so temporary
 /// storage spikes can linger as unused but still allocated memory long after
 /// the collection has shrunk back to its usual size.

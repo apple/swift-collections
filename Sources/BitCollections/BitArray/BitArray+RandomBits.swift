@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022-2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -24,9 +24,9 @@ extension BitArray {
   ///
   /// - Parameter count: The number of random bits to generate.
   /// - Parameter rng: The random number generator to use.
-  public static func randomBits<R: RandomNumberGenerator>(
+  public static func randomBits(
     count: Int,
-    using rng: inout R
+    using rng: inout some RandomNumberGenerator
   ) -> BitArray {
     precondition(count >= 0, "Invalid count")
     guard count > 0 else { return BitArray() }

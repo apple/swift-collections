@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -552,6 +552,58 @@ extension Benchmark {
             }
             blackHole(a)
           }
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int> equality, unique",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)
+        let right = OrderedSet(0 ..< size)
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int> equality, shared",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)
+        let right = left
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int>.SubSequence equality, unique",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)[0 ..< size]
+        let right = OrderedSet(0 ..< size)[0 ..< size]
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "OrderedSet<Int>.SubSequence equality, shared",
+      input: Int.self
+    ) { size in
+      return { timer in
+        let left = OrderedSet(0 ..< size)[0 ..< size]
+        let right = left
+        timer.measure {
+          precondition(left == right)
         }
       }
     }

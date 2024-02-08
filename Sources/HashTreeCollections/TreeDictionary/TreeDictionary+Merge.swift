@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -75,10 +75,10 @@ extension TreeDictionary {
   ///     duplicate keys. The closure returns the desired value for the final
   ///     dictionary.
   @inlinable
-  public mutating func merge<S: Sequence>(
-    _ keysAndValues: __owned S,
+  public mutating func merge(
+    _ keysAndValues: __owned some Sequence<(Key, Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == (Key, Value) {
+  ) rethrows {
     for (key, value) in keysAndValues {
       try self.updateValue(forKey: key) { target in
         if let old = target {
@@ -120,10 +120,10 @@ extension TreeDictionary {
   ///     dictionary.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public mutating func merge<S: Sequence>(
-    _ keysAndValues: __owned S,
+  public mutating func merge(
+    _ keysAndValues: __owned some Sequence<Element>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == Element {
+  ) rethrows {
     try merge(
       keysAndValues.lazy.map { ($0.key, $0.value) },
       uniquingKeysWith: combine)
@@ -210,11 +210,10 @@ extension TreeDictionary {
   ///    number of elements in `keysAndValues`, if `Key` implements high-quality
   ///    hashing.
   @inlinable
-  public func merging<S: Sequence>(
-    _ other: __owned S,
+  public func merging(
+    _ other: __owned some Sequence<(Key, Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows -> Self
-  where S.Element == (Key, Value) {
+  ) rethrows -> Self {
     var copy = self
     try copy.merge(other, uniquingKeysWith: combine)
     return copy
@@ -257,11 +256,10 @@ extension TreeDictionary {
   ///    hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public func merging<S: Sequence>(
-    _ other: __owned S,
+  public func merging(
+    _ other: __owned some Sequence<Element>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows -> Self
-  where S.Element == Element {
+  ) rethrows -> Self {
     var copy = self
     try copy.merge(other, uniquingKeysWith: combine)
     return copy

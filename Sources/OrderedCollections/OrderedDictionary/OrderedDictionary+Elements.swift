@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -90,7 +90,8 @@ extension OrderedDictionary.Elements {
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
   ///     let index = countryCodes.elements.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
+  ///     let (key, value) = countryCodes.elements[index!]
+  ///     print("Country code for \(value): '\(key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary.
@@ -510,8 +511,8 @@ extension OrderedDictionary.Elements {
   ///   change when your program is compiled using a different version of
   ///   Swift.
   @inlinable
-  public mutating func shuffle<T: RandomNumberGenerator>(
-    using generator: inout T
+  public mutating func shuffle(
+    using generator: inout some RandomNumberGenerator
   ) {
     _base.shuffle(using: &generator)
   }
@@ -584,9 +585,9 @@ extension OrderedDictionary.Elements {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func removeSubrange<R: RangeExpression>(
-    _ bounds: R
-  ) where R.Bound == Int {
+  public mutating func removeSubrange(
+    _ bounds: some RangeExpression<Int>
+  ) {
     _base.removeSubrange(bounds)
   }
 

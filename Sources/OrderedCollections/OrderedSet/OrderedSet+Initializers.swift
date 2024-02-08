@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -32,8 +32,7 @@ extension OrderedSet {
   ///    high-quality hashing.
   @inlinable
   @inline(__always)
-  public init<S: Sequence>(uncheckedUniqueElements elements: S)
-  where S.Element == Element {
+  public init(uncheckedUniqueElements elements: some Sequence<Element>) {
     let elements = ContiguousArray<Element>(elements)
 #if DEBUG
     let (table, firstDupe) = _HashTable.create(untilFirstDuplicateIn: elements)
@@ -61,9 +60,9 @@ extension OrderedSet {
   ///    is the number of elements in the sequence), provided that
   ///    `Element` properly implements hashing.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Element {
-    if S.self == Self.self {
-      self = elements as! Self
+  public init(_ elements: some Sequence<Element>) {
+    if let elements = _specialize(elements, for: Self.self) {
+      self = elements
       return
     }
     // Fast paths for when we know elements are all unique
@@ -136,9 +135,7 @@ extension OrderedSet {
   ///    in the sequence), provided that `Element` implements
   ///    high-quality hashing.
   @inlinable
-  public init<C: RandomAccessCollection>(
-    _ elements: C
-  ) where C.Element == Element {
+  public init(_ elements: some RandomAccessCollection<Element>) {
     // This code is careful not to copy storage if `C` is an Array
     // or ContiguousArray and the elements are already unique.
     let (table, firstDupe) = _HashTable.create(

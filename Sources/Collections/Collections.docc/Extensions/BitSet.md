@@ -9,12 +9,7 @@
 
 ## Topics
 
-### Collection Views
-
-- ``Counted-swift.struct``
-- ``counted-swift.property``
-
-### Creating a Set
+### Creating a Bit Set
 
 - ``init()``
 - ``init(reservingCapacity:)``
@@ -131,3 +126,8 @@
 ### Memory Management
 
 - ``reserveCapacity(_:)``
+
+### Collection Views
+
+- ``Counted-swift.struct``
+- ``counted-swift.property``

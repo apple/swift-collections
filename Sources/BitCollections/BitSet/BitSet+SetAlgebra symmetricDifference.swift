@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension BitSet {
   /// Returns a new bit set with the elements that are either in this set or in
@@ -79,13 +83,11 @@ extension BitSet {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public func symmetricDifference<S: Sequence>(
-    _ other: __owned S
-  ) -> Self
-  where S.Element == Int
-  {
-    if S.self == Range<Int>.self {
-      return symmetricDifference(other as! Range<Int>)
+  public func symmetricDifference(
+    _ other: __owned some Sequence<Int>
+  ) -> Self {
+    if let other = _specialize(other, for: Range<Int>.self) {
+      return symmetricDifference(other)
     }
     // Note: BitSet & BitSet.Counted are handled in the BitSet initializer below
     return symmetricDifference(BitSet(other))

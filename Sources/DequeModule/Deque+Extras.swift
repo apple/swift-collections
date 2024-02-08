@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -134,8 +134,10 @@ extension Deque {
   ///
   /// - SeeAlso: `append(contentsOf:)`
   @inlinable
-  public mutating func prepend<C: Collection>(contentsOf newElements: C) where C.Element == Element {
-    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
+  public mutating func prepend(
+    contentsOf newElements: some Collection<Element>
+  ) {
+    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedPrepend(contentsOf: source) }
     }
@@ -169,8 +171,8 @@ extension Deque {
   ///
   /// - SeeAlso: `append(contentsOf:)`
   @inlinable
-  public mutating func prepend<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
-    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
+  public mutating func prepend(contentsOf newElements: some Sequence<Element>) {
+    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedPrepend(contentsOf: source) }
     }

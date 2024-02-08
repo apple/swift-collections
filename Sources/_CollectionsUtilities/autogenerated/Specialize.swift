@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -22,25 +22,33 @@
 // but in regular builds we want them to be public. Unfortunately
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
-extension FixedWidthInteger {
-  /// Round up `self` to the nearest power of two, assuming it's representable.
-  /// Returns 0 if `self` isn't positive.
-  @inlinable
-  internal func _roundUpToPowerOfTwo() -> Self {
-    guard self > 0 else { return 0 }
-    let l = Self.bitWidth - (self &- 1).leadingZeroBitCount
-    return 1 << l
+/// Returns `x` as its concrete type `U`, or `nil` if `x` has a different
+/// concrete type.
+///
+/// This cast can be useful for dispatching to specializations of generic
+/// functions.
+@_transparent
+@inlinable
+internal func _specialize<T, U>(_ x: T, for: U.Type) -> U? {
+  // Note: this was ported from recent versions of the Swift stdlib.
+  guard T.self == U.self else {
+    return nil
   }
+  return _identityCast(x, to: U.self)
 }
 #else // !COLLECTIONS_SINGLE_MODULE
-extension FixedWidthInteger {
-  /// Round up `self` to the nearest power of two, assuming it's representable.
-  /// Returns 0 if `self` isn't positive.
-  @inlinable
-  public func _roundUpToPowerOfTwo() -> Self {
-    guard self > 0 else { return 0 }
-    let l = Self.bitWidth - (self &- 1).leadingZeroBitCount
-    return 1 << l
+/// Returns `x` as its concrete type `U`, or `nil` if `x` has a different
+/// concrete type.
+///
+/// This cast can be useful for dispatching to specializations of generic
+/// functions.
+@_transparent
+@inlinable
+public func _specialize<T, U>(_ x: T, for: U.Type) -> U? {
+  // Note: this was ported from recent versions of the Swift stdlib.
+  guard T.self == U.self else {
+    return nil
   }
+  return _identityCast(x, to: U.self)
 }
 #endif // COLLECTIONS_SINGLE_MODULE
