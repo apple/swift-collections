@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -77,9 +77,9 @@ extension OrderedSet {
   /// - Complexity: Expected to be O(*n*) on average where *n* is the number of
   ///    elements in `other`, if `Element` implements high-quality hashing.
   @inlinable
-  public mutating func formIntersection<S: Sequence>(
-    _ other: S
-  ) where S.Element == Element {
+  public mutating func formIntersection(
+    _ other: some Sequence<Element>
+  ) {
     self = self.intersection(other)
   }
 }

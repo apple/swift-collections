@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -65,8 +65,7 @@ extension TreeSet {
   /// - Complexity: O(*n*) where *n* is the number of elements in `other`,
   ///    as long as `Element` properly implements hashing.
   @inlinable
-  public mutating func subtract<S: Sequence>(_ other: S)
-  where S.Element == Element {
+  public mutating func subtract(_ other: some Sequence<Element>) {
     self = subtracting(other)
   }
 }

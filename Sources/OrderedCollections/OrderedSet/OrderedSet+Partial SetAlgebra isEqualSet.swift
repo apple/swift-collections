@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -46,10 +46,9 @@ extension OrderedSet {
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in
   ///    `other`, as long as`Element` properly implements hashing.
-  public func isEqualSet<S: Sequence>(to other: S) -> Bool
-  where S.Element == Element {
-    if S.self == Self.self {
-      return isEqualSet(to: other as! Self)
+  public func isEqualSet(to other: some Sequence<Element>) -> Bool {
+    if let other = _specialize(other, for: Self.self) {
+      return isEqualSet(to: other)
     }
 
     if self.isEmpty {
@@ -67,7 +66,7 @@ extension OrderedSet {
       precondition(
         seen <= self.count,
         // Otherwise other.underestimatedCount != other.count
-        "Invalid Collection '\(S.self)' (bad underestimatedCount)")
+        "Invalid Collection '\(type(of: other))' (bad underestimatedCount)")
       return seen == self.count
     }
 

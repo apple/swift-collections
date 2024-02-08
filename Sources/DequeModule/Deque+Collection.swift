@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -544,10 +544,10 @@ extension Deque: RangeReplaceableCollection {
   ///    items that need to be moved by shifting elements either before or after
   ///    `subrange`.
   @inlinable
-  public mutating func replaceSubrange<C: Collection>(
+  public mutating func replaceSubrange(
     _ subrange: Range<Int>,
-    with newElements: __owned C
-  ) where C.Element == Element {
+    with newElements: __owned some Collection<Element>
+  ) {
     precondition(subrange.lowerBound >= 0 && subrange.upperBound <= count, "Index range out of bounds")
     let removalCount = subrange.count
     let insertionCount = newElements.count
@@ -604,7 +604,7 @@ extension Deque: RangeReplaceableCollection {
   ///
   /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Element {
+  public init(_ elements: some Sequence<Element>) {
     self.init()
     self.append(contentsOf: elements)
   }
@@ -616,14 +616,14 @@ extension Deque: RangeReplaceableCollection {
   ///
   /// - Complexity: O(`elements.count`)
   @inlinable
-  public init<C: Collection>(_ elements: C) where C.Element == Element {
+  public init(_ elements: some Collection<Element>) {
     let c = elements.count
     guard c > 0 else { _storage = _Storage(); return }
     self._storage = _Storage(minimumCapacity: c)
     _storage.update { handle in
       assert(handle.startSlot == .zero)
       let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
-      let done: Void? = elements._withContiguousStorageIfAvailable_SR14663 { source in
+      let done: Void? = elements.withContiguousStorageIfAvailable { source in
         target.initializeAll(fromContentsOf: source)
       }
       if done == nil {
@@ -679,8 +679,8 @@ extension Deque: RangeReplaceableCollection {
   ///
   /// - Complexity: Amortized O(`newElements.count`).
   @inlinable
-  public mutating func append<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
-    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
+  public mutating func append(contentsOf newElements: some Sequence<Element>) {
+    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedAppend(contentsOf: source) }
     }
@@ -690,7 +690,7 @@ extension Deque: RangeReplaceableCollection {
 
     let underestimatedCount = newElements.underestimatedCount
     _storage.ensureUnique(minimumCapacity: count + underestimatedCount)
-    var it: S.Iterator = _storage.update { target in
+    var it = _storage.update { target in
       let gaps = target.availableSegments()
       let (it, copied) = gaps.initialize(fromSequencePrefix: newElements)
       target.count += copied
@@ -721,8 +721,10 @@ extension Deque: RangeReplaceableCollection {
   ///
   /// - Complexity: Amortized O(`newElements.count`).
   @inlinable
-  public mutating func append<C: Collection>(contentsOf newElements: C) where C.Element == Element {
-    let done: Void? = newElements._withContiguousStorageIfAvailable_SR14663 { source in
+  public mutating func append(
+    contentsOf newElements: some Collection<Element>
+  ) {
+    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
       _storage.ensureUnique(minimumCapacity: count + source.count)
       _storage.update { $0.uncheckedAppend(contentsOf: source) }
     }
@@ -791,9 +793,10 @@ extension Deque: RangeReplaceableCollection {
   ///    inserting at the start or the end, this reduces the complexity to
   ///    amortized O(1).
   @inlinable
-  public mutating func insert<C: Collection>(
-    contentsOf newElements: __owned C, at index: Int
-  ) where C.Element == Element {
+  public mutating func insert(
+    contentsOf newElements: __owned some Collection<Element>,
+    at index: Int
+  ) {
     precondition(index >= 0 && index <= count,
                  "Can't insert elements at an invalid index")
     let newCount = newElements.count

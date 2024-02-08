@@ -53,8 +53,8 @@ This works by adding the new element into the end of the backing array and then 
 You can also insert a sequence of elements into a `Heap`:
 
 ```swift
-var heap = Heap((0..<10))
-heap.insert(contentsOf: (20...100).shuffled())
+var heap = Heap(0 ..< 10)
+heap.insert(contentsOf: (20 ... 100).shuffled())
 heap.insert(contentsOf: [-5, -6, -8, -12, -3])
 ```
 
@@ -63,9 +63,9 @@ heap.insert(contentsOf: [-5, -6, -8, -12, -3])
 As mentioned earlier, the smallest and largest elements can be queried in constant time:
 
 ```swift
-var heap = Heap((1...20))
-let min = heap.min()  // min = 1
-let max = heap.max()  // max = 20
+var heap = Heap(1 ... 20)
+let min = heap.min  // 1
+let max = heap.max  // 20
 ```
 
 In a min-max heap, the smallest element is stored at index 0 in the backing array; the largest element is stored at either index 1 or index 2, the first max level in the heap (so to look up the largest, we compare the two and return the larger one).

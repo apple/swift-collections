@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -84,10 +84,11 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public func symmetricDifference<S: Sequence>(_ other: __owned S) -> Self
-  where S.Element == Element {
-    if S.self == Self.self {
-      return symmetricDifference(other as! Self)
+  public func symmetricDifference(
+    _ other: __owned some Sequence<Element>
+  ) -> Self {
+    if let other = _specialize(other, for: Self.self) {
+      return symmetricDifference(other)
     }
 
     if other is _UniqueCollection {

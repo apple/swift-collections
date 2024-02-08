@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -332,8 +332,8 @@ extension OrderedSet {
   ///   change when your program is compiled using a different version of
   ///   Swift.
   @inlinable
-  public mutating func shuffle<T: RandomNumberGenerator>(
-    using generator: inout T
+  public mutating func shuffle(
+    using generator: inout some RandomNumberGenerator
   ) {
     _elements.shuffle(using: &generator)
     _regenerateExistingHashTable()

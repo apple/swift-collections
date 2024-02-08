@@ -35,12 +35,10 @@ Preview versions of these new types are available on the `release/1.1` branch. N
 [TreeSet]: Documentation/TreeSet.md
 [TreeDictionary]: Documentation/TreeDictionary.md
 
-The following additional data structures are currently under development on but they aren't stable enough to preview yet.
+The following additional data structures are currently under development but they aren't stable enough to preview yet.
 
 - [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
 - [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
-
-[Heap]: Documentation/Heap.md
 
 Swift Collections uses the same modularization approach as [**Swift Numerics**](https://github.com/apple/swift-numerics): it provides a standalone module for each thematic group of data structures it implements. For instance, if you only need a double-ended queue type, you can pull in only that by importing `DequeModule`. `OrderedSet` and `OrderedDictionary` share much of the same underlying implementation, so they are provided by a single module, called `OrderedCollections`. However, there is also a top-level `Collections` module that gives you every collection type with a single import statement:
 
@@ -79,10 +77,10 @@ We'd like this package to quickly embrace Swift language and toolchain improveme
 
 The following table maps existing package releases to their minimum required Swift toolchain release:
 
-| Package version         | Swift version | Xcode release |
-| ----------------------- | ------------- | ------------- |
-| swift-collections 1.0.x | >= Swift 5.3  | >= Xcode 12   |
-| swift-collections 1.1.x | >= Swift 5.6  | >= Xcode 13.3 |
+| Package version         | Swift version   | Xcode release |
+| ----------------------- | --------------- | ------------- |
+| swift-collections 1.0.x | >= Swift 5.3.2  | >= Xcode 12.4 |
+| swift-collections 1.1.x | >= Swift 5.7.2  | >= Xcode 14.2 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
@@ -92,7 +90,7 @@ The following table maps existing package releases to their minimum required Swi
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(

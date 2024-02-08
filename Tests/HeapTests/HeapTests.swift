@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -68,12 +68,23 @@ final class HeapTests: CollectionTestCase {
 
   func test_descriptions() {
     let a: Heap<Int> = []
-    expectEqual(a.description, "Heap<Int>(count: 0)")
-    expectEqual(a.debugDescription, "Heap<Int>(count: 0)")
+    expectTrue(
+      a.description.starts(with: "<0 items @"),
+      "\(a.description)")
+    expectTrue(
+      a.debugDescription.starts(with: "<0 items @"),
+      "\(a.debugDescription)")
 
-    let b: Heap = [1, 2]
-    expectEqual(b.description, "Heap<Int>(count: 2)")
-    expectEqual(b.debugDescription, "Heap<Int>(count: 2)")
+    let b: Heap = [1]
+    expectTrue(
+      b.description.starts(with: "<1 item @"),
+      "\(b.description)")
+    expectTrue(
+      b.debugDescription.starts(with: "<1 item @"))
+
+    let c: Heap = [1, 2]
+    expectTrue(c.description.starts(with: "<2 items @"))
+    expectTrue(c.debugDescription.starts(with: "<2 items @"))
   }
 
   func test_unordered() {
@@ -124,12 +135,12 @@ final class HeapTests: CollectionTestCase {
 
     heap.insert(contentsOf: (21...50).shuffled())
     expectEqual(heap.count, 38)
-    expectEqual(heap.max(), 50)
-    expectEqual(heap.min(), 2)
+    expectEqual(heap.max, 50)
+    expectEqual(heap.min, 2)
 
     heap.insert(contentsOf: [-10, -9, -8, -7, -6, -5].shuffled())
     expectEqual(heap.count, 44)
-    expectEqual(heap.min(), -10)
+    expectEqual(heap.min, -10)
   }
 
   func test_insert_contentsOf_withSequenceFunction() {
@@ -165,36 +176,36 @@ final class HeapTests: CollectionTestCase {
 
   func test_min() {
     var heap = Heap<Int>()
-    expectNil(heap.min())
+    expectNil(heap.min)
 
     heap.insert(5)
-    expectEqual(5, heap.min())
+    expectEqual(5, heap.min)
 
     heap.insert(12)
-    expectEqual(5, heap.min())
+    expectEqual(5, heap.min)
 
     heap.insert(2)
-    expectEqual(2, heap.min())
+    expectEqual(2, heap.min)
 
     heap.insert(1)
-    expectEqual(1, heap.min())
+    expectEqual(1, heap.min)
   }
 
   func test_max() {
     var heap = Heap<Int>()
-    expectNil(heap.max())
+    expectNil(heap.max)
 
     heap.insert(42)
-    expectEqual(42, heap.max())
+    expectEqual(42, heap.max)
 
     heap.insert(20)
-    expectEqual(42, heap.max())
+    expectEqual(42, heap.max)
 
     heap.insert(63)
-    expectEqual(63, heap.max())
+    expectEqual(63, heap.max)
 
     heap.insert(90)
-    expectEqual(90, heap.max())
+    expectEqual(90, heap.max)
   }
 
   func test_popMin() {
@@ -345,133 +356,133 @@ final class HeapTests: CollectionTestCase {
     var heap = Heap(stride(from: 0, through: 27, by: 3).shuffled())
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.min(), 0)
+    expectEqual(heap.min, 0)
 
     // No change
     heap.replaceMin(with: 0)
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.min(), 0)
+    expectEqual(heap.min, 0)
 
     // Even smaller
     heap.replaceMin(with: -1)
     expectEqual(
       heap.itemsInAscendingOrder(), [-1, 3, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.min(), -1)
+    expectEqual(heap.min, -1)
 
     // Larger, but not enough to usurp
     heap.replaceMin(with: 2)
     expectEqual(
       heap.itemsInAscendingOrder(), [2, 3, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.min(), 2)
+    expectEqual(heap.min, 2)
 
     // Larger, moving another element to be the smallest
     heap.replaceMin(with: 5)
     expectEqual(
       heap.itemsInAscendingOrder(), [3, 5, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.min(), 3)
+    expectEqual(heap.min, 3)
   }
 
   func test_maximumReplacement() {
     var heap = Heap(stride(from: 0, through: 27, by: 3).shuffled())
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.max(), 27)
+    expectEqual(heap.max, 27)
 
     // No change
     heap.replaceMax(with: 27)
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 27])
-    expectEqual(heap.max(), 27)
+    expectEqual(heap.max, 27)
 
     // Even larger
     heap.replaceMax(with: 28)
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 28])
-    expectEqual(heap.max(), 28)
+    expectEqual(heap.max, 28)
 
     // Smaller, but not enough to usurp
     heap.replaceMax(with: 26)
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 24, 26])
-    expectEqual(heap.max(), 26)
+    expectEqual(heap.max, 26)
 
     // Smaller, moving another element to be the largest
     heap.replaceMax(with: 23)
     expectEqual(
       heap.itemsInAscendingOrder(), [0, 3, 6, 9, 12, 15, 18, 21, 23, 24])
-    expectEqual(heap.max(), 24)
+    expectEqual(heap.max, 24)
 
     // Check the finer details.  As these peek into the stored structure, they
     // may need to be updated whenever the internal format changes.
     var heap2 = Heap(raw: [1])
-    expectEqual(heap2.max(), 1)
+    expectEqual(heap2.max, 1)
     expectEqual(Array(heap2.unordered), [1])
     expectEqual(heap2.replaceMax(with: 2), 1)
-    expectEqual(heap2.max(), 2)
+    expectEqual(heap2.max, 2)
     expectEqual(Array(heap2.unordered), [2])
 
     heap2 = Heap(raw: [1, 2])
-    expectEqual(heap2.max(), 2)
+    expectEqual(heap2.max, 2)
     expectEqual(Array(heap2.unordered), [1, 2])
     expectEqual(heap2.replaceMax(with: 3), 2)
-    expectEqual(heap2.max(), 3)
+    expectEqual(heap2.max, 3)
     expectEqual(Array(heap2.unordered), [1, 3])
     expectEqual(heap2.replaceMax(with: 0), 3)
-    expectEqual(heap2.max(), 1)
+    expectEqual(heap2.max, 1)
     expectEqual(Array(heap2.unordered), [0, 1])
 
     heap2 = Heap(raw: [5, 20, 31, 16, 8, 7, 18])
-    expectEqual(heap2.max(), 31)
+    expectEqual(heap2.max, 31)
     expectEqual(Array(heap2.unordered), [5, 20, 31, 16, 8, 7, 18])
     expectEqual(heap2.replaceMax(with: 29), 31)
     expectEqual(Array(heap2.unordered), [5, 20, 29, 16, 8, 7, 18])
-    expectEqual(heap2.max(), 29)
+    expectEqual(heap2.max, 29)
     expectEqual(heap2.replaceMax(with: 19), 29)
     expectEqual(Array(heap2.unordered), [5, 20, 19, 16, 8, 7, 18])
-    expectEqual(heap2.max(), 20)
+    expectEqual(heap2.max, 20)
     expectEqual(heap2.replaceMax(with: 15), 20)
     expectEqual(Array(heap2.unordered), [5, 16, 19, 15, 8, 7, 18])
-    expectEqual(heap2.max(), 19)
+    expectEqual(heap2.max, 19)
     expectEqual(heap2.replaceMax(with: 4), 19)
     expectEqual(Array(heap2.unordered), [4, 16, 18, 15, 8, 7, 5])
-    expectEqual(heap2.max(), 18)
+    expectEqual(heap2.max, 18)
   }
 
   // MARK: -
 
   func test_min_struct() {
     var heap = Heap<Task>()
-    expectNil(heap.min())
+    expectNil(heap.min)
 
     let firstTask = Task(name: "Do something", priority: 10)
     heap.insert(firstTask)
-    expectEqual(heap.min(), firstTask)
+    expectEqual(heap.min, firstTask)
 
     let higherPriorityTask = Task(name: "Urgent", priority: 100)
     heap.insert(higherPriorityTask)
-    expectEqual(heap.min(), firstTask)
+    expectEqual(heap.min, firstTask)
 
     let lowerPriorityTask = Task(name: "Get this done today", priority: 1)
     heap.insert(lowerPriorityTask)
-    expectEqual(heap.min(), lowerPriorityTask)
+    expectEqual(heap.min, lowerPriorityTask)
   }
 
   func test_max_struct() {
     var heap = Heap<Task>()
-    expectNil(heap.max())
+    expectNil(heap.max)
 
     let firstTask = Task(name: "Do something", priority: 10)
     heap.insert(firstTask)
-    expectEqual(heap.max(), firstTask)
+    expectEqual(heap.max, firstTask)
 
     let lowerPriorityTask = Task(name: "Get this done today", priority: 1)
     heap.insert(lowerPriorityTask)
-    expectEqual(heap.max(), firstTask)
+    expectEqual(heap.max, firstTask)
 
     let higherPriorityTask = Task(name: "Urgent", priority: 100)
     heap.insert(higherPriorityTask)
-    expectEqual(heap.max(), higherPriorityTask)
+    expectEqual(heap.max, higherPriorityTask)
   }
 
   func test_popMin_struct() {
@@ -516,7 +527,7 @@ final class HeapTests: CollectionTestCase {
 
   func test_initializer_fromCollection() {
     var heap = Heap((1...20).shuffled())
-    expectEqual(heap.max(), 20)
+    expectEqual(heap.max, 20)
 
     expectEqual(heap.popMin(), 1)
     expectEqual(heap.popMax(), 20)
@@ -565,12 +576,12 @@ final class HeapTests: CollectionTestCase {
         let input = (0 ..< c).shuffled(using: &rng)
         let heap = Heap(input)
         if c > 0 {
-          expectEqual(heap.min(), 0)
-          expectEqual(heap.max(), c - 1)
+          expectEqual(heap.min, 0)
+          expectEqual(heap.max, c - 1)
           expectEqualElements(heap.itemsInAscendingOrder(), 0 ..< c)
         } else {
-          expectNil(heap.min())
-          expectNil(heap.max())
+          expectNil(heap.min)
+          expectNil(heap.max)
           expectEqualElements(heap.itemsInAscendingOrder(), [])
         }
       }

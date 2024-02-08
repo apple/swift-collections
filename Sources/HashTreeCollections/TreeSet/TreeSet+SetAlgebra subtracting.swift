@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension TreeSet {
   /// Returns a new set containing the elements of this set that do not occur
@@ -73,12 +77,9 @@ extension TreeSet {
   /// - Complexity: O(*n*) where *n* is the number of elements in `other`,
   ///    as long as `Element` properly implements hashing.
   @inlinable
-  public __consuming func subtracting<S: Sequence>(
-    _ other: S
-  ) -> Self
-  where S.Element == Element {
-    if S.self == Self.self {
-      return subtracting(other as! Self)
+  public __consuming func subtracting(_ other: some Sequence<Element>) -> Self {
+    if let other = _specialize(other, for: Self.self) {
+      return subtracting(other)
     }
 
     guard let first = self.first else { return Self() }

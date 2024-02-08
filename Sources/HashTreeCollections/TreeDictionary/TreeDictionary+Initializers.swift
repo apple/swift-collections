@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension TreeDictionary {
   /// Creates an empty dictionary.
@@ -72,9 +76,9 @@ extension TreeDictionary {
   /// - Complexity: Expected O(*n*) on average, where *n* is the count if
   ///    key-value pairs, if `Key` properly implements hashing.
   @inlinable
-  public init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (Key, Value) {
+  public init(
+    uniqueKeysWithValues keysAndValues: some Sequence<(Key, Value)>
+  ) {
     self.init()
     for item in keysAndValues {
       let hash = _Hash(item.0)
@@ -104,24 +108,26 @@ extension TreeDictionary {
   ///    key-value pairs, if `Key` properly implements hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == Element {
-    if S.self == Self.self {
-      self = keysAndValues as! Self
+  public init(
+    uniqueKeysWithValues keysAndValues: some Sequence<Element>
+  ) {
+    if let keysAndValues = _specialize(keysAndValues, for: Self.self) {
+      self = keysAndValues
       return
     }
-    if S.self == Dictionary<Key, Value>.self {
-      self.init(keysAndValues as! Dictionary<Key, Value>)
+    if let keysAndValues = _specialize(
+      keysAndValues, for: Dictionary<Key, Value>.self
+    ) {
+      self.init(keysAndValues)
       return
     }
     self.init(_uniqueKeysWithValues: keysAndValues)
   }
 
   @inlinable
-  internal init<S: Sequence>(
-    _uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == Element {
+  internal init(
+    _uniqueKeysWithValues keysAndValues: some Sequence<Element>
+  ) {
     self.init()
     for item in keysAndValues {
       let hash = _Hash(item.key)
@@ -163,9 +169,10 @@ extension TreeDictionary {
   ///
   /// - Complexity: Expected O(*n*) on average, where *n* is the count of
   ///    key-value pairs, if `Key` properly implements hashing.
-  public init<S: Sequence>(
-    _ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == (Key, Value) {
+  public init(
+    _ keysAndValues: some Sequence<(Key, Value)>,
+    uniquingKeysWith combine: (Value, Value) throws -> Value
+  ) rethrows {
     self.init()
     try self.merge(keysAndValues, uniquingKeysWith: combine)
   }
@@ -203,9 +210,10 @@ extension TreeDictionary {
   /// - Complexity: Expected O(*n*) on average, where *n* is the count of
   ///    key-value pairs, if `Key` properly implements hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
-  public init<S: Sequence>(
-    _ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == Element {
+  public init(
+    _ keysAndValues: some Sequence<Element>,
+    uniquingKeysWith combine: (Value, Value) throws -> Value
+  ) rethrows {
     try self.init(
       keysAndValues.lazy.map { ($0.key, $0.value) },
       uniquingKeysWith: combine)

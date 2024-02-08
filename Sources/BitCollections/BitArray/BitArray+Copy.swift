@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -151,10 +151,10 @@ extension BitArray._UnsafeHandle {
 }
 
 extension BitArray._UnsafeHandle {
-  internal mutating func copy<S: Sequence>(
-    from source: S,
+  internal mutating func copy(
+    from source: some Sequence<Bool>,
     to range: Range<Int>
-  ) where S.Element == Bool {
+  ) {
     assert(range.lowerBound >= 0 && range.upperBound <= self.count)
     var pos = _BitPosition(range.lowerBound)
     var it = source.makeIterator()

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -104,6 +104,82 @@ class TreeDictionaryKeysTests: CollectionTestCase {
         expectEqualSets(x.keys.subtracting(z), reference)
       }
     }
+  }
+  
+  func test_isEqual_exhaustive() {
+    withEverySubset("a", of: testItems) { a in
+      let x = TreeDictionary<RawCollider, Int>(
+        uniqueKeysWithValues: a.lazy.map { ($0, 2 * $0.identity) })
+      let u = Set(a)
+      expectEqualSets(x.keys, u)
+      withEverySubset("b", of: testItems) { b in
+        let y = TreeDictionary<RawCollider, Int>(
+          uniqueKeysWithValues: b.lazy.map { ($0, -$0.identity - 1) })
+        let v = Set(b)
+        expectEqualSets(y.keys, v)
+
+        let reference = u == v
+        print(reference)
+
+        expectEqual(x.keys == y.keys, reference)
+      }
+    }
+  }
+  
+  func test_Hashable() {
+    let strings: [[[String]]] = [
+      [
+        []
+      ],
+      [
+        ["a"]
+      ],
+      [
+        ["b"]
+      ],
+      [
+        ["c"]
+      ],
+      [
+        ["d"]
+      ],
+      [
+        ["e"]
+      ],
+      [
+        ["f"], ["f"],
+      ],
+      [
+        ["g"], ["g"],
+      ],
+      [
+        ["h"], ["h"],
+      ],
+      [
+        ["i"], ["i"],
+      ],
+      [
+        ["j"], ["j"],
+      ],
+      [
+        ["a", "b"], ["b", "a"],
+      ],
+      [
+        ["a", "d"], ["d", "a"],
+      ],
+      [
+        ["a", "b", "c"], ["a", "c", "b"],
+        ["b", "a", "c"], ["b", "c", "a"],
+        ["c", "a", "b"], ["c", "b", "a"],
+      ],
+      [
+        ["a", "d", "e"], ["a", "e", "d"],
+        ["d", "a", "e"], ["d", "e", "a"],
+        ["e", "a", "d"], ["e", "d", "a"],
+      ],
+    ]
+    let keys = strings.map { $0.map { TreeDictionary(uniqueKeysWithValues: $0.map { ($0, Int.random(in: 1...100)) }).keys }}
+    checkHashable(equivalenceClasses: keys)
   }
 
 }

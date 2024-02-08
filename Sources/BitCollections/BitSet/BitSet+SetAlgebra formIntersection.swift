@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension BitSet {
   /// Removes the elements of this set that aren't also in the given one.
@@ -82,11 +86,11 @@ extension BitSet {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///     and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public mutating func formIntersection<S: Sequence>(
-    _ other: __owned S
-  ) where S.Element == Int {
-    if S.self == Range<Int>.self {
-      formIntersection(other as! Range<Int>)
+  public mutating func formIntersection(
+    _ other: __owned some Sequence<Int>
+  ) {
+    if let other = _specialize(other, for: Range<Int>.self) {
+      formIntersection(other)
       return
     }
     // Note: BitSet & BitSet.Counted are handled in the BitSet initializer below

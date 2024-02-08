@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -373,13 +373,31 @@ final class BitArrayTests: CollectionTestCase {
   func test_LosslessStringConvertible() {
     let cases: [(a: String, b: BitArray?)] = [
       ("", []),
+      ("<>", []),
       ("0", [false]),
+      ("<0>", [false]),
       ("1", [true]),
+      ("<1>", [true]),
       ("1010", [false, true, false, true]),
+      ("<1010>", [false, true, false, true]),
       ("0101", [true, false, true, false]),
+      ("<0101>", [true, false, true, false]),
       ("111000", [false, false, false, true, true, true]),
+      ("<111000>", [false, false, false, true, true, true]),
       ("000111", [true, true, true, false, false, false]),
+      ("<000111>", [true, true, true, false, false, false]),
       ("_", nil),
+      ("<", nil),
+      ("<<", nil),
+      (">", nil),
+      (">>", nil),
+      ("<01", nil),
+      ("101>", nil),
+      ("<<100>>", nil),
+      ("01<10", nil),
+      ("10>10", nil),
+      ("1<010>", nil),
+      ("<010>1", nil),
       ("00010101X", nil),
       ("①⓪⓪①", nil),
       ("2341", nil),
@@ -822,6 +840,7 @@ final class BitArrayTests: CollectionTestCase {
     }
   }
 
+  #if false // FIXME: Bitwise operations disabled for now
   func test_bitwiseOr() {
     withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
       withEvery("i", in: 0 ..< 10) { i in
@@ -887,7 +906,42 @@ final class BitArrayTests: CollectionTestCase {
       }
     }
   }
-  
+  #endif
+
+  func test_toggleAll() {
+    withSome("count", in: 0 ..< 512, maxSamples: 100) { count in
+      withEvery("i", in: 0 ..< 10) { i in
+        let a = randomBoolArray(count: count)
+
+        var b = BitArray(a)
+        b.toggleAll()
+
+        let expected = a.map { !$0 }
+
+        expectEqualElements(b, expected)
+      }
+    }
+  }
+
+  func test_toggleAll_range() {
+    withEvery("count", in: [0, 10, 64, 90, 127, 128, 129]) { count in
+      let a = randomBoolArray(count: count)
+
+      withSomeRanges("range", in: 0 ..< count, maxSamples: 100) { range in
+        withEvery("shared", in: [false, true]) { shared in
+          var expected = a
+          for i in range { expected[i].toggle() }
+
+          var b = BitArray(a)
+          withHiddenCopies(if: shared, of: &b) { b in
+            b.toggleAll(in: range)
+            expectEqualElements(b, expected)
+          }
+        }
+      }
+    }
+  }
+
   func test_truncateOrExtend() {
     withSome("oldCount", in: 0 ..< 512, maxSamples: 50) { oldCount in
       withSome("newCount", in: 0 ... 1024, maxSamples: 30) { newCount in
@@ -923,24 +977,24 @@ final class BitArrayTests: CollectionTestCase {
 
   func test_description() {
     let a: BitArray = []
-    expectEqual("\(a)", "")
+    expectEqual("\(a)", "<>")
 
     let b: BitArray = [true, false, true, true, true]
-    expectEqual("\(b)", "11101")
+    expectEqual("\(b)", "<11101>")
 
     let c: BitArray = [false, false, false, false, true, true, true, false]
-    expectEqual("\(c)", "01110000")
+    expectEqual("\(c)", "<01110000>")
   }
 
   func test_debugDescription() {
     let a: BitArray = []
-    expectEqual("\(String(reflecting: a))", "[]")
+    expectEqual("\(String(reflecting: a))", "<>")
 
     let b: BitArray = [true, false, true, true, true]
-    expectEqual("\(String(reflecting: b))", "11101")
+    expectEqual("\(String(reflecting: b))", "<11101>")
 
     let c: BitArray = [false, false, false, false, true, true, true, false]
-    expectEqual("\(String(reflecting: c))", "01110000")
+    expectEqual("\(String(reflecting: c))", "<01110000>")
   }
 
   func test_mirror() {

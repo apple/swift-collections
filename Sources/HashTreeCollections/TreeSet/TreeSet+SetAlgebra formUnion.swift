@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -86,8 +86,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public mutating func formUnion<S: Sequence>(_ other: __owned S)
-  where S.Element == Element {
+  public mutating func formUnion(_ other: __owned some Sequence<Element>) {
     self = union(other)
   }
 }

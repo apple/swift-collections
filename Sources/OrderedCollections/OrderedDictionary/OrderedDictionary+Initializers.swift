@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension OrderedDictionary {
   /// Creates an empty dictionary.
@@ -77,10 +81,12 @@ extension OrderedDictionary {
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (key: Key, value: Value) {
-    if S.self == Dictionary<Key, Value>.self {
+  public init(
+    uniqueKeysWithValues keysAndValues: some Sequence<(key: Key, value: Value)>
+  ) {
+    if let keysAndValues = _specialize(
+      keysAndValues, for: Dictionary<Key, Value>.self
+    ) {
       self.init(_uncheckedUniqueKeysWithValues: keysAndValues)
       return
     }
@@ -113,9 +119,9 @@ extension OrderedDictionary {
   /// - Complexity: Expected O(*n*) on average, where *n* is the count if
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @inlinable
-  public init<S: Sequence>(
-    uniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (Key, Value) {
+  public init(
+    uniqueKeysWithValues keysAndValues: some Sequence<(Key, Value)>
+  ) {
     self.init()
     reserveCapacity(keysAndValues.underestimatedCount)
     for (key, value) in keysAndValues {
@@ -148,10 +154,10 @@ extension OrderedDictionary {
   /// - Complexity: Expected O(*n*) on average, where *n* is the count if
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @inlinable
-  public init<Keys: Sequence, Values: Sequence>(
-    uniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value {
+  public init(
+    uniqueKeys keys: some Sequence<Key>,
+    values: some Sequence<Value>
+  ) {
     let keys = ContiguousArray(keys)
     let values = ContiguousArray(values)
     precondition(keys.count == values.count,
@@ -199,10 +205,10 @@ extension OrderedDictionary {
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
   @inline(__always)
-  public init<S: Sequence>(
-    _ keysAndValues: S,
+  public init(
+    _ keysAndValues: some Sequence<(key: Key, value: Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == (key: Key, value: Value) {
+  ) rethrows {
     self.init()
     try self.merge(keysAndValues, uniquingKeysWith: combine)
   }
@@ -241,10 +247,10 @@ extension OrderedDictionary {
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @inlinable
   @inline(__always)
-  public init<S: Sequence>(
-    _ keysAndValues: S,
+  public init(
+    _ keysAndValues: some Sequence<(Key, Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == (Key, Value) {
+  ) rethrows {
     self.init()
     try self.merge(keysAndValues, uniquingKeysWith: combine)
   }
@@ -337,9 +343,10 @@ extension OrderedDictionary {
 
 extension OrderedDictionary {
   @inlinable
-  internal init<S: Sequence>(
-    _uncheckedUniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (key: Key, value: Value) {
+  internal init(
+    _uncheckedUniqueKeysWithValues keysAndValues: 
+    some Sequence<(key: Key, value: Value)>
+  ) {
     self.init()
     reserveCapacity(keysAndValues.underestimatedCount)
     for (key, value) in keysAndValues {
@@ -372,9 +379,10 @@ extension OrderedDictionary {
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public init<S: Sequence>(
-    uncheckedUniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (key: Key, value: Value) {
+  public init(
+    uncheckedUniqueKeysWithValues keysAndValues:
+    some Sequence<(key: Key, value: Value)>
+  ) {
 #if DEBUG
     self.init(uniqueKeysWithValues: keysAndValues)
 #else
@@ -404,9 +412,9 @@ extension OrderedDictionary {
   /// - Complexity: Expected O(*n*) on average, where *n* is the count if
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @inlinable
-  public init<S: Sequence>(
-    uncheckedUniqueKeysWithValues keysAndValues: S
-  ) where S.Element == (Key, Value) {
+  public init(
+    uncheckedUniqueKeysWithValues keysAndValues: some Sequence<(Key, Value)>
+  ) {
     // Add tuple labels
     let keysAndValues = keysAndValues.lazy.map { (key: $0.0, value: $0.1) }
     self.init(uncheckedUniqueKeysWithValues: keysAndValues)
@@ -439,10 +447,10 @@ extension OrderedDictionary {
   ///    key-value pairs, if `Key` implements high-quality hashing.
   @inlinable
   @inline(__always)
-  public init<Keys: Sequence, Values: Sequence>(
-    uncheckedUniqueKeys keys: Keys,
-    values: Values
-  ) where Keys.Element == Key, Values.Element == Value {
+  public init(
+    uncheckedUniqueKeys keys: some Sequence<Key>,
+    values: some Sequence<Value>
+  ) {
 #if DEBUG
     self.init(uniqueKeys: keys, values: values)
 #else

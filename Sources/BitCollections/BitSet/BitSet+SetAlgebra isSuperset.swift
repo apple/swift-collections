@@ -2,12 +2,16 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021-2022 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 extension BitSet {
   /// Returns a Boolean value that indicates whether this set is a superset of
@@ -88,17 +92,15 @@ extension BitSet {
   /// - Complexity: The same as the complexity of iterating over all elements
   ///    in `other`.
   @inlinable
-  public func isSuperset<S: Sequence>(of other: S) -> Bool
-  where S.Element == Int
-  {
-    if S.self == BitSet.self {
-      return self.isSuperset(of: other as! BitSet)
+  public func isSuperset(of other: some Sequence<Int>) -> Bool {
+    if let other = _specialize(other, for: BitSet.self) {
+      return self.isSuperset(of: other)
     }
-    if S.self == BitSet.Counted.self {
-      return self.isSuperset(of: other as! BitSet.Counted)
+    if let other = _specialize(other, for: BitSet.Counted.self) {
+      return self.isSuperset(of: other)
     }
-    if S.self == Range<Int>.self  {
-      return self.isSuperset(of: other as! Range<Int>)
+    if let other = _specialize(other, for: Range<Int>.self)  {
+      return self.isSuperset(of: other)
     }
     for i in other {
       guard let i = UInt(exactly: i) else { return false }

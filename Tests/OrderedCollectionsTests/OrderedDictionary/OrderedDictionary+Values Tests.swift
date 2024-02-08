@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -18,7 +18,41 @@ import _CollectionsTestSupport
 #endif
 
 class OrderedDictionaryValueTests: CollectionTestCase {
-  func test_values_getter() {
+  func test_values_getter_equal() {
+    let left: OrderedDictionary = [
+      "one": 1,
+      "two": 2,
+      "three": 3,
+      "four": 4,
+    ]
+    let right: OrderedDictionary = [
+      "one": 1,
+      "two": 2,
+      "three": 3,
+      "four": 4,
+    ]
+    expectEqual(left.values, left.values) // Identity fast path
+    expectEqual(left.values, right.values) // Linear algorithm
+  }
+  
+  func test_values_getter_not_equal() {
+    let left: OrderedDictionary = [
+      "one": 1,
+      "two": 2,
+      "three": 3,
+      "four": 4,
+    ]
+    let right: OrderedDictionary = [
+      "one": 1,
+      "two": 2,
+      "three": 3,
+      "four": 4,
+      "five": 5,
+    ]
+    expectNotEqual(left.values, right.values)
+  }
+  
+  func test_values_getter_equal_elements() {
     let d: OrderedDictionary = [
       "one": 1,
       "two": 2,

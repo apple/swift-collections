@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2023 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -10,6 +10,10 @@
 //===----------------------------------------------------------------------===//
 
 #if swift(>=5.8)
+
+#if !COLLECTIONS_SINGLE_MODULE
+import _CollectionsUtilities
+#endif
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
@@ -193,62 +197,68 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     // Do nothing.
   }
 
-  public mutating func replaceSubrange<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
-    _ subrange: Range<Index>, with newElements: __owned C
+  public mutating func replaceSubrange(
+    _ subrange: Range<Index>, 
+    with newElements: __owned some Sequence<UnicodeScalar> // Note: Sequence, not Collection
   ) {
-    if C.self == String.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: String.UnicodeScalarView.self)
+    if let newElements = _specialize(
+      newElements, for: String.UnicodeScalarView.self
+    ) {
       _base._replaceSubrange(subrange, with: String(newElements))
-    } else if C.self == Substring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: Substring.UnicodeScalarView.self)
+    } else if let newElements = _specialize(
+      newElements, for: Substring.UnicodeScalarView.self
+    ) {
       _base._replaceSubrange(subrange, with: Substring(newElements))
-    } else if C.self == BigString.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: BigString.UnicodeScalarView.self)
+    } else if let newElements = _specialize(
+      newElements, for: BigString.UnicodeScalarView.self
+    ) {
       _base._replaceSubrange(subrange, with: newElements._base)
-    } else if C.self == BigSubstring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: BigSubstring.UnicodeScalarView.self)
-      _base._replaceSubrange(subrange, with: newElements._base, in: newElements._bounds)
+    } else if let newElements = _specialize(
+      newElements, for: BigSubstring.UnicodeScalarView.self
+    ) {
+      _base._replaceSubrange(
+        subrange, with: newElements._base, in: newElements._bounds)
     } else {
       _base._replaceSubrange(subrange, with: BigString(_from: newElements))
     }
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned String.UnicodeScalarView
+    _ subrange: Range<Index>, 
+    with newElements: __owned String.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: String(newElements))
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned Substring.UnicodeScalarView
+    _ subrange: Range<Index>,
+    with newElements: __owned Substring.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: Substring(newElements))
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned BigString.UnicodeScalarView
+    _ subrange: Range<Index>, 
+    with newElements: __owned BigString.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: newElements._base)
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, with newElements: __owned BigSubstring.UnicodeScalarView
+    _ subrange: Range<Index>, 
+    with newElements: __owned BigSubstring.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: newElements._base, in: newElements._bounds)
   }
 
-  public init<S: Sequence<UnicodeScalar>>(_ elements: S) {
-    if S.self == String.UnicodeScalarView.self {
-      let elements = _identityCast(elements, to: String.UnicodeScalarView.self)
+  public init(_ elements: some Sequence<UnicodeScalar>) {
+    if let elements = _specialize(elements, for: String.UnicodeScalarView.self) {
       self.init(_base: BigString(_from: elements))
-    } else if S.self == Substring.UnicodeScalarView.self {
-      let elements = _identityCast(elements, to: Substring.UnicodeScalarView.self)
+    } else if let elements = _specialize(elements, for: Substring.UnicodeScalarView.self) {
       self.init(_base: BigString(_from: elements))
-    } else if S.self == BigString.UnicodeScalarView.self {
-      let elements = _identityCast(elements, to: BigString.UnicodeScalarView.self)
+    } else if let elements = _specialize(elements, for: BigString.UnicodeScalarView.self) {
       self.init(_base: elements._base)
-    } else if S.self == BigSubstring.UnicodeScalarView.self {
-      let elements = _identityCast(elements, to: BigSubstring.UnicodeScalarView.self)
+    } else if let elements = _specialize(elements, for: BigSubstring.UnicodeScalarView.self) {
       self.init(_base: BigString(_from: elements._base, in: elements._bounds))
     } else {
       self.init(_base: BigString(_from: elements))
@@ -292,18 +302,14 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     _base.append(contentsOf: String(newElement))
   }
 
-  public mutating func append<S: Sequence<UnicodeScalar>>(contentsOf newElements: __owned S) {
-    if S.self == String.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: String.UnicodeScalarView.self)
+  public mutating func append(contentsOf newElements: __owned some Sequence<UnicodeScalar>) {
+    if let newElements = _specialize(newElements, for: String.UnicodeScalarView.self) {
       append(contentsOf: newElements)
-    } else if S.self == Substring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: Substring.UnicodeScalarView.self)
+    } else if let newElements = _specialize(newElements, for: Substring.UnicodeScalarView.self) {
       append(contentsOf: newElements)
-    } else if S.self == BigString.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: BigString.UnicodeScalarView.self)
+    } else if let newElements = _specialize(newElements, for: BigString.UnicodeScalarView.self) {
       append(contentsOf: newElements)
-    } else if S.self == BigSubstring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: BigSubstring.UnicodeScalarView.self)
+    } else if let newElements = _specialize(newElements, for: BigSubstring.UnicodeScalarView.self) {
       append(contentsOf: newElements)
     } else {
       _base.append(contentsOf: BigString(_from: newElements))
@@ -330,20 +336,17 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     _base.insert(contentsOf: String(newElement), at: i)
   }
 
-  public mutating func insert<C: Sequence<UnicodeScalar>>( // Note: Sequence, not Collection
-    contentsOf newElements: __owned C, at i: Index
+  public mutating func insert(
+    contentsOf newElements: __owned some Sequence<UnicodeScalar>, // Note: Sequence, not Collection
+    at i: Index
   ) {
-    if C.self == String.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: String.UnicodeScalarView.self)
+    if let newElements = _specialize(newElements, for: String.UnicodeScalarView.self) {
       insert(contentsOf: newElements, at: i)
-    } else if C.self == Substring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: Substring.UnicodeScalarView.self)
+    } else if let newElements = _specialize(newElements, for: Substring.UnicodeScalarView.self) {
       insert(contentsOf: newElements, at: i)
-    } else if C.self == BigString.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: BigString.UnicodeScalarView.self)
+    } else if let newElements = _specialize(newElements, for: BigString.UnicodeScalarView.self) {
       insert(contentsOf: newElements, at: i)
-    } else if C.self == BigSubstring.UnicodeScalarView.self {
-      let newElements = _identityCast(newElements, to: BigSubstring.UnicodeScalarView.self)
+    } else if let newElements = _specialize(newElements, for: BigSubstring.UnicodeScalarView.self) {
       insert(contentsOf: newElements, at: i)
     } else {
       _base.insert(contentsOf: BigString(_from: newElements), at: i)

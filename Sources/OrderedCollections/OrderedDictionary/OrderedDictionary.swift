@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -269,7 +269,8 @@ extension OrderedDictionary {
   ///     let countryCodes: OrderedDictionary = ["BR": "Brazil", "GH": "Ghana", "JP": "Japan"]
   ///     let index = countryCodes.index(forKey: "JP")
   ///
-  ///     print("Country code for \(countryCodes[offset: index!].value): '\(countryCodes[offset: index!].key)'.")
+  ///     let (key, value) = countryCodes.elements[index!]
+  ///     print("Country code for \(value): '\(key)'.")
   ///     // Prints "Country code for Japan: 'JP'."
   ///
   /// - Parameter key: The key to find in the dictionary.
@@ -818,10 +819,10 @@ extension OrderedDictionary {
   ///    elements in `keysAndValues`, if `Key` implements high-quality hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public mutating func merge<S: Sequence>(
-    _ keysAndValues: __owned S,
+  public mutating func merge(
+    _ keysAndValues: __owned some Sequence<(key: Key, value: Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == (key: Key, value: Value) {
+  ) rethrows {
     for (key, value) in keysAndValues {
       let (index, bucket) = _keys._find(key)
       if let index = index {
@@ -868,10 +869,10 @@ extension OrderedDictionary {
   /// - Complexity: Expected to be O(*n*) on average, where *n* is the number of
   ///    elements in `keysAndValues`, if `Key` implements high-quality hashing.
   @inlinable
-  public mutating func merge<S: Sequence>(
-    _ keysAndValues: __owned S,
+  public mutating func merge(
+    _ keysAndValues: __owned some Sequence<(Key, Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows where S.Element == (Key, Value) {
+  ) rethrows {
     let mapped: LazyMapSequence =
       keysAndValues.lazy.map { (key: $0.0, value: $0.1) }
     try merge(mapped, uniquingKeysWith: combine)
@@ -914,10 +915,10 @@ extension OrderedDictionary {
   ///    hashing.
   @_disfavoredOverload // https://github.com/apple/swift-collections/issues/125
   @inlinable
-  public __consuming func merging<S: Sequence>(
-    _ other: __owned S,
+  public __consuming func merging(
+    _ other: __owned some Sequence<(key: Key, value: Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows -> Self where S.Element == (key: Key, value: Value) {
+  ) rethrows -> Self {
     var copy = self
     try copy.merge(other, uniquingKeysWith: combine)
     return copy
@@ -959,10 +960,10 @@ extension OrderedDictionary {
   ///    number of elements in `keysAndValues`, if `Key` implements high-quality
   ///    hashing.
   @inlinable
-  public __consuming func merging<S: Sequence>(
-    _ other: __owned S,
+  public __consuming func merging(
+    _ other: __owned some Sequence<(Key, Value)>,
     uniquingKeysWith combine: (Value, Value) throws -> Value
-  ) rethrows -> Self where S.Element == (Key, Value) {
+  ) rethrows -> Self {
     var copy = self
     try copy.merge(other, uniquingKeysWith: combine)
     return copy

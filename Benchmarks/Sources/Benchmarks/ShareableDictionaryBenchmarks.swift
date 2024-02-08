@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -471,5 +471,62 @@ extension Benchmark {
         blackHole(d)
       }
     }
+    
+    self.add(
+      title: "TreeDictionary<Int, Int> equality, unique",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = TreeDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = TreeDictionary(uniqueKeysWithValues: keysAndValues)
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+
+    self.add(
+      title: "TreeDictionary<Int, Int> equality, shared",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = TreeDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = left
+      return { timer in
+        timer.measure {
+          precondition(left == right)
+        }
+      }
+    }
+    
+    self.add(
+      title: "TreeDictionary<Int, Int>.Keys equality, unique",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = TreeDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = TreeDictionary(uniqueKeysWithValues: keysAndValues)
+      return { timer in
+        timer.measure {
+          precondition(left.keys == right.keys)
+        }
+      }
+    }
+
+    self.add(
+      title: "TreeDictionary<Int, Int>.Keys equality, shared",
+      input: [Int].self
+    ) { input in
+      let keysAndValues = input.map { ($0, 2 * $0) }
+      let left = TreeDictionary(uniqueKeysWithValues: keysAndValues)
+      let right = left
+      return { timer in
+        timer.measure {
+          precondition(left.keys == right.keys)
+        }
+      }
+    }
+    
   }
 }

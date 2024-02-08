@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2023 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -17,9 +17,9 @@
 ///
 ///     var queue: Heap<Int> = [3, 4, 1, 2]
 ///     queue.insert(0)
-///     print(queue.min())    // 0
+///     print(queue.min)      // 0
 ///     print(queue.popMax()) // 4
-///     print(queue.max())    // 3
+///     print(queue.max)      // 3
 ///
 /// `Heap` implements the min-max heap data structure, based on
 /// [Atkinson et al. 1986].
@@ -100,6 +100,42 @@ extension Heap {
     Array(_storage)
   }
 
+  /// Creates an empty heap with preallocated space for at least the
+  /// specified number of elements.
+  ///
+  /// Use this initializer to avoid intermediate reallocations of a heap's
+  /// storage when you know in advance how many elements you'll insert into it
+  /// after creation.
+  ///
+  /// - Parameter minimumCapacity: The minimum number of elements that the newly
+  ///   created heap should be able to store without reallocating its storage.
+  ///
+  /// - Complexity: O(1) allocations
+  @inlinable
+  public init(minimumCapacity: Int) {
+    self.init()
+    self.reserveCapacity(minimumCapacity)
+  }
+
+  /// Reserves enough space to store the specified number of elements.
+  ///
+  /// If you are adding a known number of elements to a heap, use this method
+  /// to avoid multiple reallocations. This method ensures that the heap has
+  /// unique, mutable, contiguous storage, with space allocated for at least
+  /// the requested number of elements.
+  ///
+  /// For performance reasons, the size of the newly allocated storage might be
+  /// greater than the requested capacity.
+  ///
+  /// - Parameter minimumCapacity: The minimum number of elements that the
+  ///   resulting heap should be able to store without reallocating its storage.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public mutating func reserveCapacity(_ minimumCapacity: Int) {
+    _storage.reserveCapacity(minimumCapacity)
+  }
+
   /// Inserts the given element into the heap.
   ///
   /// - Complexity: O(log(`count`)) element comparisons
@@ -117,7 +153,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func min() -> Element? {
+  public var min: Element? {
     _storage.first
   }
 
@@ -125,7 +161,7 @@ extension Heap {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func max() -> Element? {
+  public var max: Element? {
     _storage.withUnsafeBufferPointer { buffer in
       guard buffer.count > 2 else {
         // If count is 0, `last` will return `nil`
@@ -192,6 +228,7 @@ extension Heap {
   ///
   /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
+  @discardableResult
   public mutating func removeMin() -> Element {
     return popMin()!
   }
@@ -202,6 +239,7 @@ extension Heap {
   ///
   /// - Complexity: O(log(`count`)) element comparisons
   @inlinable
+  @discardableResult
   public mutating func removeMax() -> Element {
     return popMax()!
   }
@@ -273,7 +311,7 @@ extension Heap {
   ///
   /// - Complexity: O(*n*), where *n* is the number of items in `elements`.
   @inlinable
-  public init<S: Sequence>(_ elements: S) where S.Element == Element {
+  public init(_ elements: some Sequence<Element>) {
     _storage = ContiguousArray(elements)
     guard _storage.count > 1 else { return }
 
@@ -289,9 +327,9 @@ extension Heap {
   ///
   /// - Complexity: O(`count` + *k*), where *k* is the length of `newElements`.
   @inlinable
-  public mutating func insert<S: Sequence>(
-    contentsOf newElements: S
-  ) where S.Element == Element {
+  public mutating func insert(
+    contentsOf newElements: some Sequence<Element>
+  ) {
     let origCount = self.count
     if origCount == 0 {
       self = Self(newElements)
