@@ -22,21 +22,19 @@ The package currently provides the following implementations:
 
 - [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
 
-[BitSet]: Documentation/BitSet.md
-[BitArray]: Documentation/BitArray.md
-[Deque]: Documentation/Deque.md
-[Heap]: Documentation/Heap.md
-[OrderedSet]: Documentation/OrderedSet.md
-[OrderedDictionary]: Documentation/OrderedDictionary.md
-[TreeSet]: Documentation/TreeSet.md
-[TreeDictionary]: Documentation/TreeDictionary.md
+[BitSet]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/bitcollections/bitset
+[BitArray]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/bitcollections/bitarray
+[Deque]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/dequemodule/deque
+[Heap]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/heapmodule/heap
+[OrderedSet]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/orderedcollections/orderedset
+[OrderedDictionary]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/orderedcollections/ordereddictionary
+[TreeSet]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/hashtreecollections/treeset
+[TreeDictionary]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/hashtreecollections/treedictionary
 
-The following data structures are currently under development but they aren't ready for inclusion in a tagged release:
+The following additional data structures are currently under development but they aren't stable enough to preview yet.
 
 - [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
 - [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
-
-[Heap]: Documentation/Heap.md
 
 Swift Collections uses the same modularization approach as [**Swift Numerics**](https://github.com/apple/swift-numerics): it provides a standalone module for each thematic group of data structures it implements. For instance, if you only need a double-ended queue type, you can pull in only that by importing `DequeModule`. `OrderedSet` and `OrderedDictionary` share much of the same underlying implementation, so they are provided by a single module, called `OrderedCollections`. However, there is also a top-level `Collections` module that gives you every collection type with a single import statement:
 
