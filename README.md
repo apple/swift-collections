@@ -116,6 +116,22 @@ We have a dedicated [Swift Collections Forum][forum] where people can ask and an
 
 If you find something that looks like a bug, please open a [Bug Report][bugreport]! Fill out as many details as you can.
 
+### Branching Strategy
+
+We maintain separate branches for each minor version of the package:
+
+| Package version         | Branch      | 
+| ----------------------- | ----------- |
+| swift-collections 1.0.x | release/1.0 |
+| swift-collections 1.1.x | release/1.1 |
+| swift-collections 1.2.x | main        |
+
+Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
+
+`release/1.0` → `release/1.1` → `main`
+
+For example, anything landing on `release/1.0` will eventually appear on `release/1.1` and then `main` too; there is no need to file standalone PRs for each release line. (Change propagation currently requires manual work -- it is performed by project maintainers.)
+
 ### Working on the package
 
 We have some basic [documentation on package internals](./Documentation/Internals/README.md) that will help you get started.
@@ -124,8 +140,9 @@ By submitting a pull request, you represent that you have the right to license y
 
 #### Fixing a bug or making a small improvement
 
-1. [Submit a PR][PR] with your change. If there is an [existing issue][issues] for the bug you're fixing, please include a reference to it.
-2. Make sure to add tests covering whatever changes you are making.
+1. Make sure to start by checking out the appropriate branch for the minor release you want the fix to ship in. (See above.)
+2. [Submit a PR][PR] with your change. If there is an [existing issue][issues] for the bug you're fixing, please include a reference to it.
+3. Make sure to add tests covering whatever changes you are making.
 
 [PR]: https://github.com/apple/swift-collections/compare
 [issues]: https://github.com/apple/swift-collections/issues
