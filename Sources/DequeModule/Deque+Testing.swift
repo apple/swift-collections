@@ -41,6 +41,11 @@ extension Deque {
     _storage.capacity
   }
 
+  @_spi(Testing)
+  public var _requestedCapacity: Int {
+    _storage.requestedCapacity
+  }
+
   /// The number of the storage slot in this deque that holds the first element.
   /// (Or would hold it after an insertion in case the deque is currently
   /// empty.)
@@ -67,7 +72,10 @@ extension Deque {
     precondition(contents.count <= capacity)
     let startSlot = _Slot(at: startSlot)
     let buffer = _DequeBuffer<Element>.create(minimumCapacity: capacity) { _ in
-      _DequeBufferHeader(capacity: capacity, count: contents.count, startSlot: startSlot)
+      _DequeBufferHeader(capacity: capacity, 
+                         requestedCapacity: capacity,
+                         count: contents.count,
+                         startSlot: startSlot)
     }
     let storage = Deque<Element>._Storage(unsafeDowncast(buffer, to: _DequeBuffer.self))
     if contents.count > 0 {
