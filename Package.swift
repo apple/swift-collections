@@ -227,6 +227,8 @@ let targets: [CustomTarget] = [
     kind: .test,
     name: "DequeTests",
     dependencies: ["DequeModule", "_CollectionsTestSupport"]),
+  
+  .target(kind: .exported, name: "DictionaryProtocol"),
 
   .target(
     kind: .exported,
@@ -251,7 +253,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "OrderedCollections",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["_CollectionsUtilities", "DictionaryProtocol"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,

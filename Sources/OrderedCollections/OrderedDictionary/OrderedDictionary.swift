@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import DictionaryProtocol
+
 /// An ordered collection of key-value pairs.
 ///
 /// Like the standard `Dictionary`, ordered dictionaries use a hash table to
@@ -217,6 +219,8 @@ public struct OrderedDictionary<Key: Hashable, Value> {
     self._values = values
   }
 }
+
+extension OrderedDictionary: DictionaryProtocol { }
 
 extension OrderedDictionary {
   /// A read-only ordered collection view for the keys contained in this dictionary, as
