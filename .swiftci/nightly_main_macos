@@ -2,5 +2,4 @@ macOSSwiftPackageJob {
     swift_version = "main"
     repo = "swift-collections"
     branch = "main"
-    display_name = "swift-collections (Branch: main, Swift: main, Platform: macOS)"
 }
