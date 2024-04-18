@@ -1,0 +1,5 @@
+LinuxSwiftPackageJob {
+    swift_version_tag = "5.9-jammy"
+    repo = "swift-collections"
+    branch = "main"
+}
