@@ -16,7 +16,13 @@ import _CollectionsTestSupport
 import HashTreeCollections
 #endif
 
+#if compiler(>=6.0)
+extension TreeDictionary: @retroactive DictionaryAPIChecker {}
+extension TreeDictionary: @retroactive DictionaryAPIExtras {}
+#else
+extension TreeDictionary: DictionaryAPIChecker {}
 extension TreeDictionary: DictionaryAPIExtras {}
+#endif
 
 class TreeDictionaryTests: CollectionTestCase {
   func test_empty() {

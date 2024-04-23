@@ -17,7 +17,13 @@ import XCTest
 import _CollectionsTestSupport
 #endif
 
+#if compiler(>=6.0)
+extension OrderedDictionary: @retroactive DictionaryAPIChecker {}
+extension OrderedDictionary: @retroactive DictionaryAPIExtras {}
+#else
+extension OrderedDictionary: DictionaryAPIChecker {}
 extension OrderedDictionary: DictionaryAPIExtras {}
+#endif
 
 class OrderedDictionaryTests: CollectionTestCase {
   func test_empty() {
