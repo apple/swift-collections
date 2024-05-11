@@ -1,19 +1,13 @@
-# This file is a list of the people responsible for ensuring that patches for a
-# particular part of Swift are reviewed, either by themselves or by someone else.
-# They are also the gatekeepers for their part of Swift, with the final word on
-# what goes in or not.
+# Lines starting with '#' are comments.
+# Each line is a case-sensitive file pattern followed by one or more owners.
+# Order is important. The last matching pattern has the most precedence.
+# More information: https://docs.github.com/en/articles/about-code-owners
 #
-# The list is sorted by surname and formatted to allow easy grepping and
-# beautification by scripts.  The fields are: name (N), email (E), web-address
-# (W), PGP key ID and fingerprint (P), description (D), and snail-mail address
-# (S).
+# Please mirror the repository's file hierarchy in case-sensitive lexicographic
+# order.
 
-# N: Karoy Lorentey
-# E: klorentey@apple.com
-# D: Everything in swift-collections not covered by someone else
+# Default owners
+*                       @lorentey
 
-###
-
-# The following lines are used by GitHub to automatically recommend reviewers.
-
-* @lorentey
+# Swift CI configuration files
+.swiftci/               @shahmishal
