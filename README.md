@@ -1,4 +1,4 @@
-# Swift Collections
+ # Swift Collections
 
 **Swift Collections** is an open-source package of data structure implementations for the Swift programming language.
 
