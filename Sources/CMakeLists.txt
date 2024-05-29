@@ -7,6 +7,7 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
+add_subdirectory(Future)
 add_subdirectory(BitCollections)
 add_subdirectory(Collections)
 add_subdirectory(DequeModule)

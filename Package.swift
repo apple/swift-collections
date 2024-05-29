@@ -207,6 +207,12 @@ let targets: [CustomTarget] = [
     ]),
 
   .target(
+      kind: .exported,
+      name: "Future",
+      dependencies: ["_CollectionsUtilities"],
+      exclude: ["CMakeLists.txt"]),
+
+  .target(
     kind: .exported,
     name: "BitCollections",
     dependencies: ["_CollectionsUtilities"],
