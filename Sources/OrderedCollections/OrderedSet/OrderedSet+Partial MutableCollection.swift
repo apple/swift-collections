@@ -12,7 +12,7 @@
 // The parts of MutableCollection that OrderedSet is able to implement.
 
 #if !COLLECTIONS_SINGLE_MODULE
-import _CollectionsUtilities
+import InternalCollectionsUtilities
 #endif
 
 extension OrderedSet {

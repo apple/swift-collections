@@ -86,7 +86,7 @@ add_library(_RopeModule
   "Utilities/Optional Utilities.swift"
   )
 target_link_libraries(_RopeModule PRIVATE
-  _CollectionsUtilities)
+  InternalCollectionsUtilities)
 set_target_properties(_RopeModule PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

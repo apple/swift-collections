@@ -12,7 +12,7 @@
 #if swift(>=5.8)
 
 #if !COLLECTIONS_SINGLE_MODULE
-import _CollectionsUtilities
+import InternalCollectionsUtilities
 #endif
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)

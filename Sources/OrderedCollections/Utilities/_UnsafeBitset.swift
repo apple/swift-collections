@@ -10,8 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import _CollectionsUtilities
+import InternalCollectionsUtilities
 
 @usableFromInline
-internal typealias _UnsafeBitSet = _CollectionsUtilities._UnsafeBitSet
+internal typealias _UnsafeBitSet = InternalCollectionsUtilities._UnsafeBitSet
 #endif

@@ -72,7 +72,7 @@ add_library(OrderedCollections
   "Utilities/_UnsafeBitset.swift"
   )
 target_link_libraries(OrderedCollections PRIVATE
-  _CollectionsUtilities)
+  InternalCollectionsUtilities)
 set_target_properties(OrderedCollections PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
