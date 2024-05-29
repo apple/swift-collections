@@ -66,7 +66,7 @@ add_library(BitCollections
   "Shared/_Word.swift"
   )
 target_link_libraries(BitCollections PRIVATE
-  _CollectionsUtilities)
+  InternalCollectionsUtilities)
 set_target_properties(BitCollections PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

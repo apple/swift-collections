@@ -15,7 +15,7 @@ add_library(HeapModule
   "Heap+Invariants.swift"
   "Heap+UnsafeHandle.swift")
 target_link_libraries(HeapModule PRIVATE
-  _CollectionsUtilities)
+  InternalCollectionsUtilities)
 set_target_properties(HeapModule PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 

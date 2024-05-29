@@ -27,7 +27,7 @@ add_library(DequeModule
   "_UnsafeWrappedBuffer.swift"
   )
 target_link_libraries(DequeModule PRIVATE
-  _CollectionsUtilities)
+  InternalCollectionsUtilities)
 set_target_properties(DequeModule PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
