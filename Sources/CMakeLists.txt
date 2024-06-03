@@ -8,10 +8,12 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_subdirectory(BitCollections)
-add_subdirectory(Collections)
 add_subdirectory(DequeModule)
 add_subdirectory(HashTreeCollections)
 add_subdirectory(HeapModule)
 add_subdirectory(OrderedCollections)
 add_subdirectory(RopeModule)
 add_subdirectory(InternalCollectionsUtilities)
+
+# Add Collections last so it can find global properties set by sub directories
+add_subdirectory(Collections)
