@@ -544,7 +544,28 @@ class TestBigString: CollectionTestCase {
     }
     return pieces
   }
-  
+
+  func test_append_copy_on_write() {
+    let flat = String(repeating: sampleString, count: 10)
+    withEvery("stride", in: [32, 64, 128, 250, 1_000, 10_000, 20_000]) { stride in
+      let pieces = self.pieces(of: flat, by: stride).map {
+        BigString($0.str)
+      }
+
+      var big: BigString = ""
+      withEvery("i", in: 0 ..< pieces.count) { i in
+        let copy = big
+        let expected = String(copy)
+
+        big.append(contentsOf: pieces[i])
+
+        let actual = String(copy)
+        expectTrue(actual == expected)
+        copy._invariantCheck()
+      }
+    }
+  }
+
   func test_insert_string() {
     let flat = sampleString
     let ref = BigString(flat)
