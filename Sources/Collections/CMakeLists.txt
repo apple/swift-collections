@@ -44,7 +44,7 @@ if(COLLECTIONS_SINGLE_MODULE)
     target_sources(${COLLECTIONS_MODULE_NAME} PRIVATE
       ${COLLECTIONS_ROPE_SOURCES})
     target_compile_options(${COLLECTIONS_MODULE_NAME} PRIVATE
-      -allowable-client FoundationEssentials)
+      "SHELL:$<$<COMPILE_LANGUAGE:Swift>:-Xfrontend -allowable-client -Xfrontend FoundationEssentials>")
   endif()
 
   target_compile_definitions(${COLLECTIONS_MODULE_NAME} PRIVATE COLLECTIONS_SINGLE_MODULE)
