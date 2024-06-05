@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if swift(<5.8) && !COLLECTIONS_SINGLE_MODULE
-import _CollectionsUtilities // for 5.8 polyfills
+import InternalCollectionsUtilities // for 5.8 polyfills
 #endif
 
 extension Rope {

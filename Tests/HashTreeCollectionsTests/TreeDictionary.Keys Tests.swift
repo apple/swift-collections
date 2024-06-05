@@ -119,7 +119,6 @@ class TreeDictionaryKeysTests: CollectionTestCase {
         expectEqualSets(y.keys, v)
 
         let reference = u == v
-        print(reference)
 
         expectEqual(x.keys == y.keys, reference)
       }

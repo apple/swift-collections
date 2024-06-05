@@ -7,7 +7,7 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-add_library(DequeModule
+list(APPEND COLLECTIONS_DEQUE_SOURCES
   "Deque+Codable.swift"
   "Deque+Collection.swift"
   "Deque+CustomReflectable.swift"
@@ -26,10 +26,16 @@ add_library(DequeModule
   "_DequeSlot.swift"
   "_UnsafeWrappedBuffer.swift"
   )
-target_link_libraries(DequeModule PRIVATE
-  _CollectionsUtilities)
-set_target_properties(DequeModule PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+set_property(GLOBAL APPEND PROPERTY COLLECTIONS_DEQUE_SOURCES ${COLLECTIONS_DEQUE_SOURCES})
 
-_install_target(DequeModule)
-set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS DequeModule)
+if(NOT COLLECTIONS_SINGLE_MODULE)
+  add_library(DequeModule
+    ${COLLECTIONS_DEQUE_SOURCES})
+  target_link_libraries(DequeModule PRIVATE
+    InternalCollectionsUtilities)
+  set_target_properties(DequeModule PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+
+  _install_target(DequeModule)
+  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS DequeModule)
+endif()

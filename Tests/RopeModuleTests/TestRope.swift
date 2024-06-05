@@ -451,6 +451,38 @@ class TestRope: CollectionTestCase {
     expectEqual(ranges, [0 ..< c])
   }
 
+  func test_join_copy_on_write() {
+    let c = 10_000
+    var trees = (0 ..< c).map {
+      let chunk = Chunk(length: ($0 % 4) + 1, value: $0)
+      return Rope(CollectionOfOne(chunk))
+    }
+    var ranges = (0 ..< c).map { $0 ..< $0 + 1 }
+
+    var rng = RepeatableRandomNumberGenerator(seed: 0)
+    while trees.count >= 2 {
+      let i = (0 ..< trees.count - 1).randomElement(using: &rng)!
+      let expectedRange = ranges[i].lowerBound ..< ranges[i + 1].upperBound
+
+      let a = trees[i]
+      let b = trees.remove(at: i + 1)
+      trees[i] = Rope()
+
+      let joined = Rope.join(a, b)
+
+      expectEqualElements(a.map { $0.value }, Array(ranges[i]), "Copy-on-write violation")
+      expectEqualElements(b.map { $0.value }, Array(ranges[i + 1]), "Copy-on-write violation")
+
+      a._invariantCheck()
+      b._invariantCheck()
+      joined._invariantCheck()
+
+      trees[i] = joined
+      ranges.replaceSubrange(i ... i + 1, with: CollectionOfOne(expectedRange))
+    }
+    expectEqual(ranges, [0 ..< c])
+  }
+
   func chunkify(_ values: [Int]) -> [Chunk] {
     var result: [Chunk] = []
     var last = Int.min
