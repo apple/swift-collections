@@ -272,7 +272,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "SortedCollections",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     directory: "SortedCollections"),
   .target(
     kind: .test,
