@@ -178,14 +178,14 @@ let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["_CollectionsUtilities"]),
+    dependencies: ["InternalCollectionsUtilities"]),
   .target(
     kind: .test,
     name: "CollectionsTestSupportTests",
     dependencies: ["_CollectionsTestSupport"]),
   .target(
     kind: .hidden,
-    name: "_CollectionsUtilities",
+    name: "InternalCollectionsUtilities",
     exclude: [
       "CMakeLists.txt",
       "Compatibility/UnsafeMutableBufferPointer+SE-0370.swift.gyb",
@@ -209,7 +209,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "BitCollections",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -221,7 +221,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "DequeModule",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -231,7 +231,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "HashTreeCollections",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -241,7 +241,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "HeapModule",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -251,7 +251,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "OrderedCollections",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -261,7 +261,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "_RopeModule",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     directory: "RopeModule",
     exclude: ["CMakeLists.txt"]),
   .target(
@@ -272,7 +272,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "SortedCollections",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     directory: "SortedCollections"),
   .target(
     kind: .test,
