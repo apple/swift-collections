@@ -306,6 +306,7 @@ extension Deque._UnsafeHandle {
         #endif
         return _DequeBufferHeader(
           capacity: capacity,
+          requestedCapacity: minimumCapacity,
           count: count,
           startSlot: .zero)
       })
@@ -340,6 +341,7 @@ extension Deque._UnsafeHandle {
         #endif
         return _DequeBufferHeader(
           capacity: capacity,
+          requestedCapacity: minimumCapacity,
           count: count,
           startSlot: .zero)
       })

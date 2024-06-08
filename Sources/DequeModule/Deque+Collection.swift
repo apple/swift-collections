@@ -525,6 +525,22 @@ extension Deque: RangeReplaceableCollection {
     _storage.ensureUnique(minimumCapacity: minimumCapacity, linearGrowth: true)
   }
 
+  /// Reduces the capacity to store at least the specified number of elements.
+  ///
+  /// Use this method to request that the deque reduces its storage capacity.
+  /// If the capacity of the deque is larger than the target capacity then
+  /// the capacity _may_ be reduced. If the capacity of the deque is smaller
+  /// than the requested capacity, or the deque contains more elements than
+  /// the requested capacity, then the capacity won't be changed.
+  ///
+  /// - Parameters:
+  ///   - targetCapacity: The requested capacity of the deque.
+  ///
+  /// - Complexity: O(`count`)
+  public mutating func shrinkCapacity(_ targetCapacity: Int) {
+    _storage.shrink(targetCapacity: targetCapacity)
+  }
+
   /// Replaces a range of elements with the elements in the specified
   /// collection.
   ///
