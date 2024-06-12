@@ -52,8 +52,7 @@ var defines: [String] = [
 //  "COLLECTIONS_SINGLE_MODULE",
 ]
 
-nonisolated(unsafe)
-var _settings: [SwiftSetting] = defines.map { .define($0) } + [
+let _settings: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
   .swiftLanguageVersion(.v5)
