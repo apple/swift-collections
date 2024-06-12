@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:6.0
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
@@ -52,7 +52,12 @@ var defines: [String] = [
 //  "COLLECTIONS_SINGLE_MODULE",
 ]
 
-var _settings: [SwiftSetting] = defines.map { .define($0) }
+nonisolated(unsafe)
+var _settings: [SwiftSetting] = defines.map { .define($0) } + [
+  .enableExperimentalFeature("BuiltinModule"),
+  .enableExperimentalFeature("NonescapableTypes"),
+  .swiftLanguageVersion(.v5)
+]
 
 struct CustomTarget {
   enum Kind {
@@ -211,6 +216,10 @@ let targets: [CustomTarget] = [
       name: "Future",
       dependencies: ["_CollectionsUtilities"],
       exclude: ["CMakeLists.txt"]),
+  .target(
+      kind: .test,
+      name: "FutureTests",
+      dependencies: ["Future"]),
 
   .target(
     kind: .exported,
