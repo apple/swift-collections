@@ -1,4 +1,4 @@
-// swift-tools-version:6.0
+// swift-tools-version:5.10
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
@@ -55,7 +55,8 @@ var defines: [String] = [
 let _settings: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
-  .swiftLanguageVersion(.v5)
+  .enableExperimentalFeature("BitwiseCopyable"),
+//  .swiftLanguageVersion(.v5)
 ]
 
 struct CustomTarget {
