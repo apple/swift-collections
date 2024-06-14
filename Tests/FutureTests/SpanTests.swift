@@ -103,15 +103,15 @@ final class SpanTests: XCTestCase {
     a.withUnsafeBufferPointer {
       let span = Span(unsafeBufferPointer: $0, owner: $0)
 
-      XCTAssertEqual(span.elementsEqual(span.prefix(1)), false)
-      XCTAssertEqual(span.prefix(0).elementsEqual(span.suffix(0)), true)
-      XCTAssertEqual(span.elementsEqual(span), true)
-      XCTAssertEqual(span.prefix(3).elementsEqual(span.suffix(3)), false)
+      XCTAssertEqual(span._elementsEqual(span.prefix(1)), false)
+      XCTAssertEqual(span.prefix(0)._elementsEqual(span.suffix(0)), true)
+      XCTAssertEqual(span._elementsEqual(span), true)
+      XCTAssertEqual(span.prefix(3)._elementsEqual(span.suffix(3)), false)
 
       let copy = span.withUnsafeBufferPointer(Array.init)
       copy.withUnsafeBufferPointer {
         let spanOfCopy = Span(unsafeBufferPointer: $0, owner: $0)
-        XCTAssertTrue(span.elementsEqual(spanOfCopy))
+        XCTAssertTrue(span._elementsEqual(spanOfCopy))
       }
     }
   }
@@ -122,9 +122,9 @@ final class SpanTests: XCTestCase {
     a.withUnsafeBufferPointer {
       let span = Span(unsafeBufferPointer: $0, owner: $0)
 
-      XCTAssertEqual(span.elementsEqual(a), true)
-      XCTAssertEqual(span.prefix(0).elementsEqual([]), true)
-      XCTAssertEqual(span.elementsEqual(a.dropLast()), false)
+      XCTAssertEqual(span._elementsEqual(a), true)
+      XCTAssertEqual(span.prefix(0)._elementsEqual([]), true)
+      XCTAssertEqual(span._elementsEqual(a.dropLast()), false)
     }
   }
 
@@ -135,9 +135,9 @@ final class SpanTests: XCTestCase {
       let span = Span(unsafeBufferPointer: $0, owner: $0)
 
       let s = AnySequence(a)
-      XCTAssertEqual(span.elementsEqual(s), true)
-      XCTAssertEqual(span.dropLast().elementsEqual(s), false)
-      XCTAssertEqual(span.elementsEqual(s.dropFirst()), false)
+      XCTAssertEqual(span._elementsEqual(s), true)
+      XCTAssertEqual(span.dropLast()._elementsEqual(s), false)
+      XCTAssertEqual(span._elementsEqual(s.dropFirst()), false)
     }
   }
 
@@ -146,10 +146,10 @@ final class SpanTests: XCTestCase {
     let a = (0..<capacity).map(String.init)
     a.withUnsafeBufferPointer {
       let span = Span(unsafeBufferPointer: $0, owner: $0)
-      XCTAssertTrue(span.elementsEqual(span.extracting(0..<span.count)))
-      XCTAssertTrue(span.elementsEqual(span.extracting(0...)))
-      XCTAssertTrue(span.elementsEqual(span.extracting(uncheckedBounds: ..<span.count)))
-      XCTAssertTrue(span.elementsEqual(span.extracting(...)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(0..<span.count)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(0...)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(uncheckedBounds: ..<span.count)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(...)))
     }
   }
 
@@ -158,10 +158,10 @@ final class SpanTests: XCTestCase {
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
       let v = Span(unsafeBufferPointer: $0, owner: $0)
-      XCTAssertTrue(v.elementsEqual(v.extracting(0..<v.count)))
-      XCTAssertTrue(v.elementsEqual(v.extracting(0...)))
-      XCTAssertTrue(v.elementsEqual(v.extracting(uncheckedBounds: ..<v.count)))
-      XCTAssertTrue(v.elementsEqual(v.extracting(...)))
+      XCTAssertTrue(v._elementsEqual(v.extracting(0..<v.count)))
+      XCTAssertTrue(v._elementsEqual(v.extracting(0...)))
+      XCTAssertTrue(v._elementsEqual(v.extracting(uncheckedBounds: ..<v.count)))
+      XCTAssertTrue(v._elementsEqual(v.extracting(...)))
     }
   }
 
@@ -188,9 +188,9 @@ final class SpanTests: XCTestCase {
     let a = (0..<capacity).map(String.init)
     a.withUnsafeBufferPointer {
       let span = Span(unsafeBufferPointer: $0, owner: $0)
-      XCTAssertTrue(span.elementsEqual(span.extracting(0..<capacity)))
-      XCTAssertTrue(span.elementsEqual(span.extracting(0...)))
-      XCTAssertTrue(span.elementsEqual(span.extracting(uncheckedBounds: ..<capacity)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(0..<capacity)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(0...)))
+      XCTAssertTrue(span._elementsEqual(span.extracting(uncheckedBounds: ..<capacity)))
     }
   }
 
@@ -220,10 +220,10 @@ final class SpanTests: XCTestCase {
       XCTAssertEqual(span.dropLast(1).last, capacity-2)
 
       XCTAssertTrue(span.prefix(upTo: 0).isEmpty)
-      XCTAssertTrue(span.prefix(upTo: span.count).elementsEqual(span))
+      XCTAssertTrue(span.prefix(upTo: span.count)._elementsEqual(span))
 
       XCTAssertFalse(span.prefix(through: 0).isEmpty)
-      XCTAssertTrue(span.prefix(through: 2).elementsEqual(span.prefix(3)))
+      XCTAssertTrue(span.prefix(through: 2)._elementsEqual(span.prefix(3)))
     }
   }
 
@@ -239,7 +239,7 @@ final class SpanTests: XCTestCase {
       XCTAssertEqual(span.dropFirst(capacity).first, nil)
       XCTAssertEqual(span.dropFirst(1).first, 1)
 
-      XCTAssertEqual(span.suffix(from: 0).elementsEqual(a), true)
+      XCTAssertEqual(span.suffix(from: 0)._elementsEqual(a), true)
       XCTAssertEqual(span.suffix(from: span.count).isEmpty, true)
     }
   }

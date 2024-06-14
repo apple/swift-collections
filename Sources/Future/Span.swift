@@ -198,7 +198,7 @@ extension Span where Element: Equatable {
   ///
   /// - Complexity: O(*m*), where *m* is the lesser of the length of the
   ///   sequence and the length of `other`.
-  public func elementsEqual(_ other: Self) -> Bool {
+  public func _elementsEqual(_ other: Self) -> Bool {
     guard count == other.count else { return false }
     if count == 0 { return true }
 
@@ -225,11 +225,11 @@ extension Span where Element: Equatable {
   /// - Complexity: O(*m*), where *m* is the lesser of the length of the
   ///   sequence and the length of `other`.
   @inlinable
-  public func elementsEqual(_ other: some Collection<Element>) -> Bool {
+  public func _elementsEqual(_ other: some Collection<Element>) -> Bool {
     guard count == other.count else { return false }
     if count == 0 { return true }
 
-    return elementsEqual(AnySequence(other))
+    return _elementsEqual(AnySequence(other))
   }
 
   /// Returns a Boolean value indicating whether this span and a Sequence
@@ -243,7 +243,7 @@ extension Span where Element: Equatable {
   /// - Complexity: O(*m*), where *m* is the lesser of the length of the
   ///   sequence and the length of `other`.
   @inlinable
-  public func elementsEqual(_ other: some Sequence<Element>) -> Bool {
+  public func _elementsEqual(_ other: some Sequence<Element>) -> Bool {
     var offset = 0
     for otherElement in other {
       if offset >= count { return false }

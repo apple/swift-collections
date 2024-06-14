@@ -104,13 +104,13 @@ final class RawSpanTests: XCTestCase {
       let sub3 = span[offsets: ...]
       let sub4 = span[uncheckedOffsets: 2...]
       XCTAssertTrue(
-        sub1.view(as: UInt8.self).elementsEqual(sub2.view(as: UInt8.self))
+        sub1.view(as: UInt8.self)._elementsEqual(sub2.view(as: UInt8.self))
       )
       XCTAssertTrue(
-        sub3.view(as: Int8.self).elementsEqual(span.view(as: Int8.self))
+        sub3.view(as: Int8.self)._elementsEqual(span.view(as: Int8.self))
       )
       XCTAssertFalse(
-        sub4.view(as: Int8.self).elementsEqual(sub3.view(as: Int8.self))
+        sub4.view(as: Int8.self)._elementsEqual(sub3.view(as: Int8.self))
       )
     }
   }
