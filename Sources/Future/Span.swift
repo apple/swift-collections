@@ -188,6 +188,16 @@ extension Span where Element: BitwiseCopyable {
 
 extension Span where Element: Equatable {
 
+  /// Returns a Boolean value indicating whether this and another span
+  /// contain equal elements in the same order.
+  ///
+  /// - Parameters:
+  ///   - other: A span to compare to this one.
+  /// - Returns: `true` if this sequence and `other` contain equivalent items,
+  ///   using `areEquivalent` as the equivalence test; otherwise, `false.`
+  ///
+  /// - Complexity: O(*m*), where *m* is the lesser of the length of the
+  ///   sequence and the length of `other`.
   public func elementsEqual(_ other: Self) -> Bool {
     guard count == other.count else { return false }
     if count == 0 { return true }
@@ -204,6 +214,16 @@ extension Span where Element: Equatable {
     return true
   }
 
+  /// Returns a Boolean value indicating whether this span and a Collection
+  /// contain equal elements in the same order.
+  ///
+  /// - Parameters:
+  ///   - other: A Collection to compare to this span.
+  /// - Returns: `true` if this sequence and `other` contain equivalent items,
+  ///   using `areEquivalent` as the equivalence test; otherwise, `false.`
+  ///
+  /// - Complexity: O(*m*), where *m* is the lesser of the length of the
+  ///   sequence and the length of `other`.
   @inlinable
   public func elementsEqual(_ other: some Collection<Element>) -> Bool {
     guard count == other.count else { return false }
@@ -212,6 +232,16 @@ extension Span where Element: Equatable {
     return elementsEqual(AnySequence(other))
   }
 
+  /// Returns a Boolean value indicating whether this span and a Sequence
+  /// contain equal elements in the same order.
+  ///
+  /// - Parameters:
+  ///   - other: A Sequence to compare to this span.
+  /// - Returns: `true` if this sequence and `other` contain equivalent items,
+  ///   using `areEquivalent` as the equivalence test; otherwise, `false.`
+  ///
+  /// - Complexity: O(*m*), where *m* is the lesser of the length of the
+  ///   sequence and the length of `other`.
   @inlinable
   public func elementsEqual(_ other: some Sequence<Element>) -> Bool {
     var offset = 0
@@ -226,12 +256,25 @@ extension Span where Element: Equatable {
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
+  /// The number of elements in the span.
+  ///
+  /// To check whether the span is empty, use its `isEmpty` property
+  /// instead of comparing `count` to zero.
+  ///
+  /// - Complexity: O(1)
   @inlinable @inline(__always)
   public var count: Int { _count }
 
+  /// A Boolean value indicating whether the span is empty.
+  ///
+  /// - Complexity: O(1)
   @inlinable @inline(__always)
   public var isEmpty: Bool { _count == 0 }
 
+  /// The indices that are valid for subscripting the span, in ascending
+  /// order.
+  ///
+  /// - Complexity: O(1)
   @inlinable @inline(__always)
   public var indices: Range<Int> {
     .init(uncheckedBounds: (0, _count))
@@ -268,6 +311,9 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: BitwiseCopyable {
 
+  /// Construct a RawSpan over the memory represented by this span
+  ///
+  /// - Returns: a RawSpan over the memory represented by this span
   @inlinable @inline(__always)
   public var rawSpan: RawSpan { RawSpan(self) }
 }
@@ -492,11 +538,22 @@ extension Span where Element: BitwiseCopyable {
 // `first` and `last` can't exist where Element: ~Copyable
 // because we can't construct an Optional of a borrow
 extension Span where Element: Copyable {
+
+  /// The first element in the span.
+  ///
+  /// If the span is empty, the value of this property is `nil`.
+  ///
+  /// - Returns: The first element in the span, or `nil` if empty
   @inlinable
   public var first: Element? {
     isEmpty ? nil : self[unchecked: 0]
   }
 
+  /// The last element in the span.
+  ///
+  /// If the span is empty, the value of this property is `nil`.
+  ///
+  /// - Returns: The last element in the span, or `nil` if empty
   @inlinable
   public var last: Element? {
     isEmpty ? nil : self[unchecked: count &- 1]
@@ -506,6 +563,16 @@ extension Span where Element: Copyable {
 //MARK: one-sided slicing operations
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
+  /// Returns a span from positions zero up to, but not
+  /// including, the specified position.
+  ///
+  /// The resulting span *does not include* the element at the position
+  /// `end`.
+  ///
+  /// - Parameter end: The "past the end" index of the resulting span.
+  /// - Returns: A span up to, but not including, the `end` position.
+  ///
+  /// - Complexity: O(1)
   borrowing public func prefix(upTo offset: Int) -> dependsOn(self) Self {
     if offset != 0 {
       boundsCheckPrecondition(offset &- 1)
@@ -513,23 +580,64 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     return Self(_unchecked: _start, count: offset, owner: self)
   }
 
+  /// Returns a span from positions zero through the specified position.
+  ///
+  /// The resulting span includes the element at the position
+  /// `end`.
+  ///
+  /// - Parameter position: The last index of the resulting span.
+  ///   `position` must be a valid index of the collection.
+  /// - Returns: A span up to, and including, the given position.
+  ///
+  /// - Complexity: O(1)
   borrowing public func prefix(through offset: Int) -> dependsOn(self) Self {
     boundsCheckPrecondition(offset)
     return Self(_unchecked: _start, count: offset &+ 1, owner: self)
   }
 
+  /// Returns a span containing the initial elements of this span,
+  /// up to the specified maximum length.
+  ///
+  /// If the maximum length exceeds the length of this span,
+  /// the result contains all the elements.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to return.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A span with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
   borrowing public func prefix(_ maxLength: Int) -> dependsOn(self) Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < count ? maxLength : count
     return Self(_unchecked: _start, count: nc, owner: self)
   }
 
+  /// Returns a span over all but the given number of final elements.
+  ///
+  /// If the number of elements to drop exceeds the number of elements in
+  /// the span, the result is an empty span.
+  ///
+  /// - Parameter k: The number of elements to drop off the end of
+  ///   the span. `k` must be greater than or equal to zero.
+  /// - Returns: A span leaving off the specified number of elements at the end.
+  ///
+  /// - Complexity: O(1)
   borrowing public func dropLast(_ k: Int = 1) -> dependsOn(self) Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < count ? count&-k : 0
     return Self(_unchecked: _start, count: nc, owner: self)
   }
 
+  /// Returns a span from the specified position to the end of this span
+  ///
+  /// Passing the span's `count` as the `start` parameter results in
+  /// an empty subsequence.
+  ///
+  /// - Parameter start: The position at which to start the resulting span.
+  ///   `start` must be a valid index of the span.
+  /// - Returns: A span starting at the `start` position.
+  ///
+  /// - Complexity: O(1)
   borrowing public func suffix(from offset: Int) -> dependsOn(self) Self {
     if offset != count {
       boundsCheckPrecondition(offset)
@@ -541,6 +649,17 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     )
   }
 
+  /// Returns a span containing the final elements of the span,
+  /// up to the given maximum length.
+  ///
+  /// If the maximum length exceeds the length of this span,
+  /// the result contains all the elements.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to return.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A span with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
   borrowing public func suffix(_ maxLength: Int) -> dependsOn(self) Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < count ? maxLength : count
@@ -548,6 +667,16 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     return Self(_unchecked: newStart, count: nc, owner: self)
   }
 
+  /// Returns a span over all but the given number of initial elements.
+  ///
+  /// If the number of elements to drop exceeds the number of elements in
+  /// the span, the result is an empty span.
+  ///
+  /// - Parameter k: The number of elements to drop from the beginning of
+  ///   the span. `k` must be greater than or equal to zero.
+  /// - Returns: A span starting after the specified number of elements.
+  ///
+  /// - Complexity: O(1)
   borrowing public func dropFirst(_ k: Int = 1) -> dependsOn(self) Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < count ? k : count
