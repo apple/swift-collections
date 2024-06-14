@@ -17,11 +17,13 @@ final class FutureInoutTests: XCTestCase {
     var x = 0
     let y = Inout(&x)
 
-    XCTAssertEqual(y[], 0)
+    var v = y[]
+    XCTAssertEqual(v, 0)
 
     y[] += 10
 
-    XCTAssertEqual(y[], 10)
+    v = y[]
+    XCTAssertEqual(v, 10)
     XCTAssertEqual(x, 10)
   }
 }
