@@ -131,7 +131,7 @@ extension RawSpan {
   public var isEmpty: Bool { count == 0 }
 
   @inlinable @inline(__always)
-  public var offsets: Range<Int> {
+  public var indices: Range<Int> {
     .init(uncheckedBounds: (0, count))
   }
 }
@@ -161,14 +161,14 @@ extension RawSpan {
   @_alwaysEmitIntoClient
   public subscript(offsets offsets: some RangeExpression<Int>) -> Self {
     borrowing get {
-      self[offsets: offsets.relative(to: 0..<count)]
+      self[offsets: offsets.relative(to: indices)]
     }
   }
 
   @_alwaysEmitIntoClient
   public subscript(uncheckedOffsets offsets: some RangeExpression<Int>) -> Self {
     borrowing get {
-      self[uncheckedOffsets: offsets.relative(to: 0..<count)]
+      self[uncheckedOffsets: offsets.relative(to: indices)]
     }
   }
 

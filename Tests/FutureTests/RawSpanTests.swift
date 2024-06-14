@@ -184,7 +184,7 @@ final class RawSpanTests: XCTestCase {
       XCTAssertTrue(span.prefix(upTo: 0).isEmpty)
       XCTAssertEqual(
         span.prefix(upTo: span.count).load(
-          fromByteOffset: span.offsets.last!, as: UInt8.self
+          fromByteOffset: span.indices.last!, as: UInt8.self
         ),
         UInt8(capacity-1)
       )
@@ -217,7 +217,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     let span = RawSpan(a.storage)
-    for o in span.offsets {
+    for o in span.indices {
       span.boundsCheckPrecondition(o)
     }
     // span.boundsCheckPrecondition(span.count)
