@@ -563,38 +563,6 @@ extension Span where Element: Copyable {
 //MARK: one-sided slicing operations
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
-  /// Returns a span from positions zero up to, but not
-  /// including, the specified position.
-  ///
-  /// The resulting span *does not include* the element at the position
-  /// `end`.
-  ///
-  /// - Parameter end: The "past the end" index of the resulting span.
-  /// - Returns: A span up to, but not including, the `end` position.
-  ///
-  /// - Complexity: O(1)
-  borrowing public func prefix(upTo offset: Int) -> dependsOn(self) Self {
-    if offset != 0 {
-      boundsCheckPrecondition(offset &- 1)
-    }
-    return Self(_unchecked: _start, count: offset, owner: self)
-  }
-
-  /// Returns a span from positions zero through the specified position.
-  ///
-  /// The resulting span includes the element at the position
-  /// `end`.
-  ///
-  /// - Parameter position: The last index of the resulting span.
-  ///   `position` must be a valid index of the collection.
-  /// - Returns: A span up to, and including, the given position.
-  ///
-  /// - Complexity: O(1)
-  borrowing public func prefix(through offset: Int) -> dependsOn(self) Self {
-    boundsCheckPrecondition(offset)
-    return Self(_unchecked: _start, count: offset &+ 1, owner: self)
-  }
-
   /// Returns a span containing the initial elements of this span,
   /// up to the specified maximum length.
   ///
@@ -606,7 +574,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
-  borrowing public func prefix(_ maxLength: Int) -> dependsOn(self) Self {
+  borrowing public func extracting(first maxLength: Int) -> dependsOn(self) Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < count ? maxLength : count
     return Self(_unchecked: _start, count: nc, owner: self)
@@ -622,31 +590,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span leaving off the specified number of elements at the end.
   ///
   /// - Complexity: O(1)
-  borrowing public func dropLast(_ k: Int = 1) -> dependsOn(self) Self {
+  borrowing public func extracting(droppingLast k: Int) -> dependsOn(self) Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < count ? count&-k : 0
     return Self(_unchecked: _start, count: nc, owner: self)
-  }
-
-  /// Returns a span from the specified position to the end of this span
-  ///
-  /// Passing the span's `count` as the `start` parameter results in
-  /// an empty subsequence.
-  ///
-  /// - Parameter start: The position at which to start the resulting span.
-  ///   `start` must be a valid index of the span.
-  /// - Returns: A span starting at the `start` position.
-  ///
-  /// - Complexity: O(1)
-  borrowing public func suffix(from offset: Int) -> dependsOn(self) Self {
-    if offset != count {
-      boundsCheckPrecondition(offset)
-    }
-    return Self(
-      _unchecked: _start.advanced(by: offset),
-      count: count &- offset,
-      owner: self
-    )
   }
 
   /// Returns a span containing the final elements of the span,
@@ -660,7 +607,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
-  borrowing public func suffix(_ maxLength: Int) -> dependsOn(self) Self {
+  borrowing public func extracting(last maxLength: Int) -> dependsOn(self) Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < count ? maxLength : count
     let newStart = _start.advanced(by: count&-nc)
@@ -677,7 +624,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span starting after the specified number of elements.
   ///
   /// - Complexity: O(1)
-  borrowing public func dropFirst(_ k: Int = 1) -> dependsOn(self) Self {
+  borrowing public func extracting(droppingFirst k: Int = 1) -> dependsOn(self) Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < count ? k : count
     let newStart = _start.advanced(by: dc)
