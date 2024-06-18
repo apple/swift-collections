@@ -7,7 +7,22 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-list(APPEND COLLECTIONS_BIT_SOURCES
+if(COLLECTIONS_SINGLE_MODULE)
+  get_property(module_name GLOBAL PROPERTY COLLECTIONS_MODULE_NAME)
+else()
+  set(module_name BitCollections)
+  add_library(BitCollections
+    ${COLLECTIONS_BIT_SOURCES})
+  target_link_libraries(BitCollections PRIVATE
+    InternalCollectionsUtilities)
+  set_target_properties(BitCollections PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+
+  _install_target(BitCollections)
+  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS BitCollections)
+endif()
+
+target_sources(${module_name} PRIVATE
   "BitArray/BitArray+BitwiseOperations.swift"
   "BitArray/BitArray+ChunkedBitsIterators.swift"
   "BitArray/BitArray+Codable.swift"
@@ -65,16 +80,3 @@ list(APPEND COLLECTIONS_BIT_SOURCES
   "Shared/UInt+Tricks.swift"
   "Shared/_Word.swift"
   )
-set_property(GLOBAL APPEND PROPERTY COLLECTIONS_BIT_SOURCES ${COLLECTIONS_BIT_SOURCES})
-
-if(NOT COLLECTIONS_SINGLE_MODULE)
-  add_library(BitCollections
-    ${COLLECTIONS_BIT_SOURCES})
-  target_link_libraries(BitCollections PRIVATE
-    InternalCollectionsUtilities)
-  set_target_properties(BitCollections PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-
-  _install_target(BitCollections)
-  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS BitCollections)
-endif()
