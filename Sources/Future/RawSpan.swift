@@ -178,7 +178,6 @@ extension RawSpan {
   }
 }
 
-//MARK: withUnsafeBytes
 extension RawSpan {
 
   //FIXME: mark closure parameter as non-escaping
@@ -190,20 +189,17 @@ extension RawSpan {
   ) throws(E) -> dependsOn(self) Result {
     try body(.init(start: (count==0) ? nil : _start, count: count))
   }
+}
 
+extension RawSpan {
   borrowing public func view<T: BitwiseCopyable>(
     as: T.Type
   ) -> dependsOn(self) Span<T> {
-    let (c, r) = count.quotientAndRemainder(dividingBy: MemoryLayout<T>.stride)
-    precondition(r == 0, "Returned span must contain whole number of T")
-    return Span(
-      unsafeRawPointer: _start, as: T.self, count: c, owner: self
-    )
+    Span(unsafeRawPointer: _start, as: T.self, byteCount: count, owner: self)
   }
 }
 
 //MARK: load
-
 extension RawSpan {
 
   public func load<T>(

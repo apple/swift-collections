@@ -157,7 +157,9 @@ extension Span where Element: BitwiseCopyable {
     let (q, r) = c.quotientAndRemainder(dividingBy: s)
     precondition(r == 0)
     self.init(
-      unsafeRawPointer: baseAddress, as: Element.self, count: q, owner: owner
+      unsafePointer: baseAddress.assumingMemoryBound(to: Element.self),
+      count: q,
+      owner: owner
     )
   }
 
@@ -175,12 +177,15 @@ extension Span where Element: BitwiseCopyable {
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeRawPointer pointer: UnsafeRawPointer,
     as type: Element.Type,
-    count: Int,
+    byteCount: Int,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
+    let stride = MemoryLayout<Element>.stride
+    let (q, r) = byteCount.quotientAndRemainder(dividingBy: stride)
+    precondition(r == 0)
     self.init(
       unsafePointer: pointer.assumingMemoryBound(to: Element.self),
-      count: count,
+      count: q,
       owner: owner
     )
   }
