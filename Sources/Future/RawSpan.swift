@@ -83,9 +83,7 @@ extension RawSpan {
   ///   - span: An existing `Span<T>`, which will define both this
   ///           `RawSpan`'s lifetime and the memory it represents.
   @inlinable @inline(__always)
-  public init<T: BitwiseCopyable>(
-    _ span: borrowing Span<T>
-  ) {
+  public init<T: BitwiseCopyable>(_ span: borrowing Span<T>) {
     self.init(
       _unchecked: UnsafeRawPointer(span._start),
       count: span.count * MemoryLayout<T>.stride,
@@ -291,6 +289,20 @@ extension RawSpan {
 //MARK: load
 extension RawSpan {
 
+  /// Returns a new instance of the given type, constructed from the raw memory
+  /// at the specified offset.
+  ///
+  /// The memory at this pointer plus `offset` must be properly aligned for
+  /// accessing `T` and initialized to `T` or another type that is layout
+  /// compatible with `T`.
+  ///
+  /// - Parameters:
+  ///   - offset: The offset from this pointer, in bytes. `offset` must be
+  ///     nonnegative. The default is zero.
+  ///   - type: The type of the instance to create.
+  /// - Returns: A new instance of type `T`, read from the raw bytes at
+  ///     `offset`. The returned instance is memory-managed and unassociated
+  ///     with the value in the memory referenced by this pointer.
   public func load<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
@@ -300,12 +312,39 @@ extension RawSpan {
     return load(fromUncheckedByteOffset: offset, as: T.self)
   }
 
+  /// Returns a new instance of the given type, constructed from the raw memory
+  /// at the specified offset.
+  ///
+  /// The memory at this pointer plus `offset` must be properly aligned for
+  /// accessing `T` and initialized to `T` or another type that is layout
+  /// compatible with `T`.
+  ///
+  /// This function does not validate the bounds of the memory access;
+  /// this is an unsafe operation.
+  ///
+  /// - Parameters:
+  ///   - offset: The offset from this pointer, in bytes. `offset` must be
+  ///     nonnegative. The default is zero.
+  ///   - type: The type of the instance to create.
+  /// - Returns: A new instance of type `T`, read from the raw bytes at
+  ///     `offset`. The returned instance is memory-managed and unassociated
+  ///     with the value in the memory referenced by this pointer.
   public func load<T>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
     _start.load(fromByteOffset: offset, as: T.self)
   }
 
+  /// Returns a new instance of the given type, constructed from the raw memory
+  /// at the specified offset.
+  ///
+  /// - Parameters:
+  ///   - offset: The offset from this pointer, in bytes. `offset` must be
+  ///     nonnegative. The default is zero.
+  ///   - type: The type of the instance to create.
+  /// - Returns: A new instance of type `T`, read from the raw bytes at
+  ///     `offset`. The returned instance isn't associated
+  ///     with the value in the range of memory referenced by this pointer.
   public func loadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
@@ -315,6 +354,19 @@ extension RawSpan {
     return loadUnaligned(fromUncheckedByteOffset: offset, as: T.self)
   }
 
+  /// Returns a new instance of the given type, constructed from the raw memory
+  /// at the specified offset.
+  ///
+  /// This function does not validate the bounds of the memory access;
+  /// this is an unsafe operation.
+  ///
+  /// - Parameters:
+  ///   - offset: The offset from this pointer, in bytes. `offset` must be
+  ///     nonnegative. The default is zero.
+  ///   - type: The type of the instance to create.
+  /// - Returns: A new instance of type `T`, read from the raw bytes at
+  ///     `offset`. The returned instance isn't associated
+  ///     with the value in the range of memory referenced by this pointer.
   public func loadUnaligned<T: BitwiseCopyable>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
