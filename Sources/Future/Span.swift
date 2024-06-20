@@ -43,6 +43,26 @@ extension UnsafePointer where Pointee: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
+  //FIXME: make failable once Optional can be non-escapable
+  /// Unsafely create a `Span` over initialized memory.
+  ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the returned `Span`.
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeElements buffer: UnsafeBufferPointer<Element>,
+    owner: borrowing Owner
+  ) -> dependsOn(owner) Self {
+    guard let baseAddress = buffer.baseAddress else {
+      fatalError("Span requires a non-nil base address")
+    }
+    self.init(unsafeStart: baseAddress, count: buffer.count, owner: owner)
+  }
+
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory representing `count` instances starting at
@@ -55,7 +75,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the returned `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafePointer start: UnsafePointer<Element>,
+    unsafeStart start: UnsafePointer<Element>,
     count: Int,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
@@ -66,6 +86,9 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     )
     self.init(_unchecked: start, count: count, owner: owner)
   }
+}
+
+extension Span where Element: BitwiseCopyable {
 
   //FIXME: make failable once Optional can be non-escapable
   /// Unsafely create a `Span` over initialized memory.
@@ -78,17 +101,14 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the returned `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafeBufferPointer buffer: UnsafeBufferPointer<Element>,
+    unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
     guard let baseAddress = buffer.baseAddress else {
       fatalError("Span requires a non-nil base address")
     }
-    self.init(unsafePointer: baseAddress, count: buffer.count, owner: owner)
+    self.init(unsafeStart: baseAddress, count: buffer.count, owner: owner)
   }
-}
-
-extension Span where Element: BitwiseCopyable {
 
   /// Unsafely create a `Span` over initialized memory.
   ///
@@ -102,32 +122,12 @@ extension Span where Element: BitwiseCopyable {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the returned `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafePointer start: UnsafePointer<Element>,
+    unsafeStart start: UnsafePointer<Element>,
     count: Int,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
     precondition(count >= 0, "Count must not be negative")
     self.init(_unchecked: start, count: count, owner: owner)
-  }
-
-  //FIXME: make failable once Optional can be non-escapable
-  /// Unsafely create a `Span` over initialized memory.
-  ///
-  /// The memory in `buffer` must be owned by the instance `owner`,
-  /// meaning that as long as `owner` is alive the memory will remain valid.
-  ///
-  /// - Parameters:
-  ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
-  ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeBufferPointer buffer: UnsafeBufferPointer<Element>,
-    owner: borrowing Owner
-  ) -> dependsOn(owner) Self {
-    guard let baseAddress = buffer.baseAddress else {
-      fatalError("Span requires a non-nil base address")
-    }
-    self.init(unsafePointer: baseAddress, count: buffer.count, owner: owner)
   }
 
   //FIXME: make failable once Optional can be non-escapable
@@ -147,7 +147,6 @@ extension Span where Element: BitwiseCopyable {
   ///            the returned `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeBytes buffer: UnsafeRawBufferPointer,
-    as type: Element.Type,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
     guard let baseAddress = buffer.baseAddress else {
@@ -157,7 +156,7 @@ extension Span where Element: BitwiseCopyable {
     let (q, r) = c.quotientAndRemainder(dividingBy: s)
     precondition(r == 0)
     self.init(
-      unsafePointer: baseAddress.assumingMemoryBound(to: Element.self),
+      unsafeStart: baseAddress.assumingMemoryBound(to: Element.self),
       count: q,
       owner: owner
     )
@@ -175,8 +174,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the returned `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafeRawPointer pointer: UnsafeRawPointer,
-    as type: Element.Type,
+    unsafeStart pointer: UnsafeRawPointer,
     byteCount: Int,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
@@ -184,7 +182,7 @@ extension Span where Element: BitwiseCopyable {
     let (q, r) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(r == 0)
     self.init(
-      unsafePointer: pointer.assumingMemoryBound(to: Element.self),
+      unsafeStart: pointer.assumingMemoryBound(to: Element.self),
       count: q,
       owner: owner
     )
@@ -579,13 +577,13 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(first maxLength: Int) -> dependsOn(self) Self {
+  borrowing public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < count ? maxLength : count
     return Self(_unchecked: _start, count: nc, owner: self)
   }
 
-  /// Returns a span over all but the given number of final elements.
+  /// Returns a span over all but the given number of trailing elements.
   ///
   /// If the number of elements to drop exceeds the number of elements in
   /// the span, the result is an empty span.
@@ -595,7 +593,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span leaving off the specified number of elements at the end.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(droppingLast k: Int) -> dependsOn(self) Self {
+  borrowing public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < count ? count&-k : 0
     return Self(_unchecked: _start, count: nc, owner: self)
@@ -612,7 +610,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(last maxLength: Int) -> dependsOn(self) Self {
+  borrowing public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < count ? maxLength : count
     let newStart = _start.advanced(by: count&-nc)
@@ -629,7 +627,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span starting after the specified number of elements.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(droppingFirst k: Int = 1) -> dependsOn(self) Self {
+  borrowing public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < count ? k : count
     let newStart = _start.advanced(by: dc)
