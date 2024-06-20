@@ -10,31 +10,27 @@
 //
 //===----------------------------------------------------------------------===//
 
-public protocol ContiguousStorage<StoredElement>: ~Copyable, ~Escapable {
-  associatedtype StoredElement/*: ~Copyable & ~Escapable*/
+public protocol ContiguousStorage<Element>: ~Copyable, ~Escapable {
+  associatedtype Element/*: ~Copyable & ~Escapable*/
 
-  var storage: Span<StoredElement> { borrowing get }
+  var storage: Span<Element> { borrowing get }
 }
 
 extension Span: ContiguousStorage /*where Element: ~Copyable & ~Escapable*/ {
-  public typealias StoredElement = Element
   public var storage: Self { self }
 }
 
 extension Array: ContiguousStorage {
-  public typealias StoredElement = Element
   public var storage: Span<Element> {
     _read {
       if let a = _baseAddressIfContiguous {
-        yield Span(
-          unsafePointer: a, count: count, owner: self
-        )
+        yield Span(unsafeStart: a, count: count, owner: self)
       }
       else {
         let a = ContiguousArray(copy self)
         #if true
         let s = Span(
-          unsafePointer: a._baseAddressIfContiguous!, count: a.count, owner: a
+          unsafeStart: a._baseAddressIfContiguous!, count: a.count, owner: a
         )
         #else
         let s = a.storage
@@ -46,18 +42,16 @@ extension Array: ContiguousStorage {
 }
 
 extension ContiguousArray: ContiguousStorage {
-  public typealias StoredElement = Element
   public var storage: Span<Element> {
     borrowing get {
       Span(
-        unsafePointer: _baseAddressIfContiguous!, count: count, owner: self
+        unsafeStart: _baseAddressIfContiguous!, count: count, owner: self
       )
     }
   }
 }
 
 extension CollectionOfOne: ContiguousStorage {
-  public typealias StoredElement = Element
   public var storage: Span<Element> {
     _read {
 /* ideally: (with strawman syntax)
@@ -69,17 +63,16 @@ extension CollectionOfOne: ContiguousStorage {
 
       let a = ContiguousArray(self)
       yield Span(
-        unsafePointer: a._baseAddressIfContiguous!, count: 1, owner: a
+        unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
       )
     }
   }
 }
 
-extension String: ContiguousStorage {
-  public typealias StoredElement = UTF8.CodeUnit
+extension String.UTF8View: ContiguousStorage {
   public var storage: Span<UTF8.CodeUnit> {
     _read {
-      if utf8.count < 16 { // Wrong way to know whether the String is smol
+      if count < 16 { // Wrong way to know whether the String is smol
 //      if _guts.isSmall {
 //        let /*@addressable*/ rawStorage = _guts.asSmall._storage
 //        let span = RawSpan(
@@ -89,24 +82,21 @@ extension String: ContiguousStorage {
 //        )
 //        yield span.view(as: UTF8.CodeUnit.self)
 
-        let a = ContiguousArray(utf8)
+        let a = ContiguousArray(self)
 //        yield a.storage
         yield Span(
-          unsafePointer: a._baseAddressIfContiguous!, count: 1, owner: a
+          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
         )
       }
-      else if let buffer = utf8.withContiguousStorageIfAvailable({ $0 }) {
+      else if let buffer = withContiguousStorageIfAvailable({ $0 }) {
         // this is totally wrong, but there is a way with stdlib-internal API
-        yield Span(
-          unsafeBufferPointer: buffer,
-          owner: self
-        )
+        yield Span(unsafeElements: buffer, owner: self)
       }
       else { // copy non-fast code units if we don't have eager bridging
-        let a = ContiguousArray(utf8)
+        let a = ContiguousArray(self)
 //        yield a.storage
         yield Span(
-          unsafePointer: a._baseAddressIfContiguous!, count: 1, owner: a
+          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
         )
       }
     }

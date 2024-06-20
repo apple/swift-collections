@@ -31,7 +31,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let s = (0..<capacity).map({ "\(#file)+\(#function)--\($0)" })
     s.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       _ = span
     }
   }
@@ -40,15 +40,15 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span.count, capacity)
     }
 
     a.withUnsafeBytes {
-      let b = Span<UInt>(unsafeBytes: $0, as: UInt.self, owner: $0)
+      let b = Span<UInt>(unsafeBytes: $0, owner: $0)
       XCTAssertEqual(b.count, capacity)
 
-      let r = Span<Int8>(unsafeBytes: $0, as: Int8.self, owner: $0)
+      let r = Span<Int8>(unsafeBytes: $0, owner: $0)
       XCTAssertEqual(r.count, capacity*MemoryLayout<Int>.stride)
     }
   }
@@ -57,11 +57,11 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertFalse(span.isEmpty)
 
       let empty = Span(
-        unsafeBufferPointer: .init(rebasing: $0.dropFirst(capacity)), owner: $0
+        unsafeElements: .init(rebasing: $0.dropFirst(capacity)), owner: $0
       )
       XCTAssertTrue(empty.isEmpty)
     }
@@ -71,7 +71,7 @@ final class SpanTests: XCTestCase {
     let count = 4
     let array = Array(0..<count)
     array.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       let raw  = span.rawSpan
       XCTAssertEqual(raw.count, span.count*MemoryLayout<Int>.stride)
     }
@@ -81,7 +81,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span.count, span.indices.count)
 
       var i = 0
@@ -101,7 +101,7 @@ final class SpanTests: XCTestCase {
       $1 = $0.count
     }
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
 
       XCTAssertEqual(span._elementsEqual(span.extracting(first: 1)), false)
       XCTAssertEqual(span.extracting(0..<0)._elementsEqual(span.extracting(last: 0)), true)
@@ -110,7 +110,7 @@ final class SpanTests: XCTestCase {
 
       let copy = span.withUnsafeBufferPointer(Array.init)
       copy.withUnsafeBufferPointer {
-        let spanOfCopy = Span(unsafeBufferPointer: $0, owner: $0)
+        let spanOfCopy = Span(unsafeElements: $0, owner: $0)
         XCTAssertTrue(span._elementsEqual(spanOfCopy))
       }
     }
@@ -120,7 +120,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
 
       XCTAssertEqual(span._elementsEqual(a), true)
       XCTAssertEqual(span.extracting(0..<0)._elementsEqual([]), true)
@@ -132,7 +132,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
 
       let s = AnySequence(a)
       XCTAssertEqual(span._elementsEqual(s), true)
@@ -145,7 +145,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = (0..<capacity).map(String.init)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertTrue(span._elementsEqual(span.extracting(0..<span.count)))
       XCTAssertTrue(span._elementsEqual(span.extracting(0...)))
       XCTAssertTrue(span._elementsEqual(span.extracting(uncheckedBounds: ..<span.count)))
@@ -157,7 +157,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let v = Span(unsafeBufferPointer: $0, owner: $0)
+      let v = Span(unsafeElements: $0, owner: $0)
       XCTAssertTrue(v._elementsEqual(v.extracting(0..<v.count)))
       XCTAssertTrue(v._elementsEqual(v.extracting(0...)))
       XCTAssertTrue(v._elementsEqual(v.extracting(uncheckedBounds: ..<v.count)))
@@ -169,7 +169,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = (0..<capacity).map(String.init)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span[3], String(3))
     }
   }
@@ -178,7 +178,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span[3], 3)
     }
   }
@@ -187,7 +187,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = (0..<capacity).map(String.init)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertTrue(span._elementsEqual(span.extracting(0..<capacity)))
       XCTAssertTrue(span._elementsEqual(span.extracting(0...)))
       XCTAssertTrue(span._elementsEqual(span.extracting(uncheckedBounds: ..<capacity)))
@@ -198,7 +198,7 @@ final class SpanTests: XCTestCase {
     let r = Int.random(in: 0..<1000)
     let a = [r]
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span.first, r)
       XCTAssertEqual(span.last, r)
 
@@ -212,7 +212,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeBufferPointer: $0, owner: $0)
+      let span = Span(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span.count, capacity)
       XCTAssertEqual(span.extracting(first: 1).last, 0)
       XCTAssertEqual(span.extracting(first: capacity).last, capacity-1)
@@ -225,7 +225,7 @@ final class SpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span<Int>(unsafeBufferPointer: $0, owner: $0)
+      let span = Span<Int>(unsafeElements: $0, owner: $0)
       XCTAssertEqual(span.count, capacity)
       XCTAssertEqual(span.extracting(last: capacity).first, 0)
       XCTAssertEqual(span.extracting(last: capacity-1).first, 1)
@@ -240,7 +240,7 @@ final class SpanTests: XCTestCase {
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
       ub in
-      let span = Span(unsafeBufferPointer: ub, owner: ub)
+      let span = Span(unsafeElements: ub, owner: ub)
 
       span.withUnsafeBytes {
         let i = Int.random(in: 0..<$0.count)
@@ -259,7 +259,7 @@ final class SpanTests: XCTestCase {
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
       ub in
-      let span = Span(unsafeBufferPointer: ub, owner: ub)
+      let span = Span(unsafeElements: ub, owner: ub)
 
       span.withUnsafeBytes {
         let i = Int.random(in: 0..<$0.count)
@@ -274,7 +274,7 @@ final class SpanTests: XCTestCase {
       let emptyBuffer = UnsafeBufferPointer(rebasing: ub[0..<0])
       XCTAssertEqual(emptyBuffer.baseAddress, ub.baseAddress)
 
-      let empty = Span(unsafeBufferPointer: emptyBuffer, owner: ub)
+      let empty = Span(unsafeElements: emptyBuffer, owner: ub)
       empty.withUnsafeBufferPointer {
         XCTAssertNil($0.baseAddress)
       }

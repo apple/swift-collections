@@ -56,7 +56,9 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let pointer = $0.baseAddress!
       let span = RawSpan(
-        unsafeRawPointer: pointer, count: capacity*MemoryLayout<Int>.stride, owner: a
+        unsafeStart: pointer,
+        byteCount: capacity*MemoryLayout<Int>.stride,
+        owner: a
       )
       XCTAssertEqual(span.count, capacity*MemoryLayout<Int>.stride)
     }
@@ -84,7 +86,7 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
 
-      let u0 = span.dropFirst(2).loadUnaligned(as: UInt64.self)
+      let u0 = span.extracting(droppingFirst: 2).loadUnaligned(as: UInt64.self)
       XCTAssertEqual(u0 & 0xff, 2)
       XCTAssertEqual(u0.byteSwapped & 0xff, 9)
       let u1 = span.loadUnaligned(fromByteOffset: 6, as: UInt64.self)
@@ -99,10 +101,10 @@ final class RawSpanTests: XCTestCase {
     let b = (0..<capacity).map(Int8.init)
     b.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
-      let sub1 = span[offsets: 0..<2]
-      let sub2 = span[offsets: ..<2]
-      let sub3 = span[offsets: ...]
-      let sub4 = span[uncheckedOffsets: 2...]
+      let sub1 = span.extracting(0..<2)
+      let sub2 = span.extracting(..<2)
+      let sub3 = span.extracting(...)
+      let sub4 = span.extracting(uncheckedBounds: 2...)
       XCTAssertTrue(
         sub1.view(as: UInt8.self)._elementsEqual(sub2.view(as: UInt8.self))
       )
@@ -120,8 +122,8 @@ final class RawSpanTests: XCTestCase {
     let b = (0..<capacity).map(UInt8.init)
     b.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
-      let prefix = span[offsets: 0..<8]
-      let beyond = prefix[uncheckedOffsets: 16..<24]
+      let prefix = span.extracting(0..<8)
+      let beyond = prefix.extracting(uncheckedBounds: 16..<24)
       XCTAssertEqual(beyond.count, 8)
       XCTAssertEqual(beyond.load(as: UInt8.self), 16)
     }
@@ -170,28 +172,19 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
       XCTAssertEqual(span.count, capacity)
-      XCTAssertEqual(span.prefix(1).load(as: UInt8.self), 0)
+      XCTAssertEqual(span.extracting(first: 1).load(as: UInt8.self), 0)
       XCTAssertEqual(
-        span.prefix(capacity).load(fromByteOffset: capacity-1, as: UInt8.self),
-        UInt8(capacity-1)
-      )
-      XCTAssertTrue(span.dropLast(capacity).isEmpty)
-      XCTAssertEqual(
-        span.dropLast(1).load(fromByteOffset: capacity-2, as: UInt8.self),
-        UInt8(capacity-2)
-      )
-
-      XCTAssertTrue(span.prefix(upTo: 0).isEmpty)
-      XCTAssertEqual(
-        span.prefix(upTo: span.count).load(
-          fromByteOffset: span.indices.last!, as: UInt8.self
+        span.extracting(first: capacity).load(
+          fromByteOffset: capacity-1, as: UInt8.self
         ),
         UInt8(capacity-1)
       )
-
-      XCTAssertFalse(span.prefix(through: 0).isEmpty)
+      XCTAssertTrue(span.extracting(droppingLast: capacity).isEmpty)
       XCTAssertEqual(
-        span.prefix(through: 2).load(fromByteOffset: 2, as: UInt8.self), 2
+        span.extracting(droppingLast: 1).load(
+          fromByteOffset: capacity-2, as: UInt8.self
+        ),
+        UInt8(capacity-2)
       )
     }
   }
@@ -202,14 +195,11 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
       XCTAssertEqual(span.count, capacity)
-      XCTAssertEqual(span.suffix(capacity).load(as: UInt8.self), 0)
-      XCTAssertEqual(span.suffix(capacity-1).load(as: UInt8.self), 1)
-      XCTAssertEqual(span.suffix(1).load(as: UInt8.self), UInt8(capacity-1))
-      XCTAssertTrue(span.dropFirst(capacity).isEmpty)
-      XCTAssertEqual(span.dropFirst(1).load(as: UInt8.self), 1)
-
-      XCTAssertEqual(span.suffix(from: 0).count, a.count)
-      XCTAssertTrue(span.suffix(from: span.count).isEmpty)
+      XCTAssertEqual(span.extracting(last: capacity).load(as: UInt8.self), 0)
+      XCTAssertEqual(span.extracting(last: capacity-1).load(as: UInt8.self), 1)
+      XCTAssertEqual(span.extracting(last: 1).load(as: UInt8.self), UInt8(capacity-1))
+      XCTAssertTrue(span.extracting(droppingFirst: capacity).isEmpty)
+      XCTAssertEqual(span.extracting(droppingFirst: 1).load(as: UInt8.self), 1)
     }
   }
 
