@@ -12,7 +12,7 @@ final class ContiguousStorageTests: XCTestCase {
     let span = a.storage
     XCTAssertEqual(span.count, capacity)
 
-    for i in span.indices {
+    for i in span._indices {
       XCTAssertEqual(span[i], a[i])
     }
 
