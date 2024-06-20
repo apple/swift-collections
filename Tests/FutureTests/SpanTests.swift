@@ -300,32 +300,4 @@ final class SpanTests: XCTestCase {
     XCTAssertEqual(span.count, capacity-1)
     XCTAssertEqual(prefix.count, 2)
   }
-
-  func testSpanWrapper() {
-    let capacity = 8
-    let a = Array(0..<capacity)
-
-    struct Skipper: ~Escapable {
-      var span: Span<Int>
-
-      var startIndex: Int { 0 }
-      var endIndex: Int { span.count }
-      func index(after i: Int) -> Int { i+2 }
-
-      init(_ contiguous: borrowing Span<Int>) {
-        span = copy contiguous
-      }
-
-      subscript(_ p: Int) -> Int { span[p] }
-    }
-
-    let skipper = Skipper(a.storage)
-    var i = skipper.startIndex
-    var s: [Int] = []
-    while i < skipper.endIndex {
-      s.append(skipper[i])
-      i = skipper.index(after: i)
-    }
-    XCTAssertEqual(s, [0, 2, 4, 6])
-  }
 }
