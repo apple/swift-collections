@@ -52,7 +52,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameters:
   ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
@@ -73,7 +73,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - pointer: a pointer to the first initialized element.
   ///   - count: the number of initialized elements in the view.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart start: UnsafePointer<Element>,
     count: Int,
@@ -99,7 +99,7 @@ extension Span where Element: BitwiseCopyable {
   /// - Parameters:
   ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
@@ -120,7 +120,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - pointer: a pointer to the first initialized element.
   ///   - count: the number of initialized elements in the view.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart start: UnsafePointer<Element>,
     count: Int,
@@ -144,7 +144,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - unsafeBytes: a buffer to initialized elements.
   ///   - type: the type to use when interpreting the bytes in memory.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeBytes buffer: UnsafeRawBufferPointer,
     owner: borrowing Owner
@@ -172,7 +172,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - pointer: a pointer to the first initialized element.
   ///   - count: the number of initialized elements in the view.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart pointer: UnsafeRawPointer,
     byteCount: Int,

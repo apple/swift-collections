@@ -44,7 +44,7 @@ extension RawSpan {
   /// - Parameters:
   ///   - buffer: an `UnsafeRawBufferPointer` to initialized memory.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `RawSpan`.
+  ///            the newly created `RawSpan`.
   @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeBytes buffer: UnsafeRawBufferPointer,
@@ -66,7 +66,7 @@ extension RawSpan {
   ///   - pointer: a pointer to the first initialized element.
   ///   - count: the number of initialized elements in the view.
   ///   - owner: a binding whose lifetime must exceed that of
-  ///            the returned `Span`.
+  ///            the newly created `RawSpan`.
   @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart pointer: UnsafeRawPointer,
