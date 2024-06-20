@@ -445,3 +445,112 @@ extension RawSpan {
     return Self(_unchecked: newStart, count: count&-dc, owner: self)
   }
 }
+
+/// An error indicating that out-of-bounds access was attempted
+@frozen
+public struct OutOfBoundsError: Error {
+  /// The number of elements expected
+  public var expected: Int
+
+  /// The number of elements found
+  public var has: Int
+
+  @inlinable
+  public init(expected: Int, has: Int) {
+    (self.expected, self.has) = (expected, has)
+  }
+}
+
+extension RawSpan {
+  /// Parse an instance of `T`, advancing `position`.
+  @inlinable
+  public func parse<T: BitwiseCopyable>(
+    _ position: inout Int, as t: T.Type = T.self
+  ) throws(OutOfBoundsError) -> T {
+    let length = MemoryLayout<T>.size
+    guard position >= 0 else {
+      throw OutOfBoundsError(expected: length, has: 0)
+    }
+    let end = position &+ length
+    guard end <= length else {
+      throw OutOfBoundsError(expected: length, has: count&-position)
+    }
+    return loadUnaligned(fromUncheckedByteOffset: position, as: T.self)
+  }
+
+  /// Parse `numBytes` of data, advancing `position`.
+  @inlinable
+  public func parse(
+    _ position: inout Int, numBytes: some FixedWidthInteger
+  ) throws (OutOfBoundsError) -> Self {
+    let length = Int(numBytes)
+    guard position >= 0 else {
+      throw OutOfBoundsError(expected: length, has: 0)
+    }
+    let end = position &+ length
+    guard end <= length else {
+      throw OutOfBoundsError(expected: length, has: count&-position)
+    }
+    return extracting(position..<end)
+  }
+}
+
+extension RawSpan {
+  @frozen
+  public struct Cursor: Copyable, ~Escapable {
+    public let base: RawSpan
+
+    /// The range within which we parse
+    public let parseRange: Range<Int>
+
+    /// The current parsing position
+    public var position: Int
+
+    @inlinable
+    public init(_ base: RawSpan, in range: Range<Int>) {
+      base.boundsCheckPrecondition(range)
+      position = 0
+      self.base = base
+      parseRange = range
+    }
+
+    @inlinable
+    public init(_ base: RawSpan) {
+      position = 0
+      self.base = base
+      parseRange = base.indices
+    }
+
+    /// Parse an instance of `T` and advance
+    @inlinable
+    public mutating func parse<T: BitwiseCopyable>(
+      _ t: T.Type = T.self
+    ) throws(OutOfBoundsError) -> T {
+      try base.parse(&position, as: T.self)
+    }
+
+    /// Parse `numBytes`and advance
+    @inlinable
+    public mutating func parse(
+      numBytes: some FixedWidthInteger
+    ) throws (OutOfBoundsError) -> RawSpan {
+      try base.parse(&position, numBytes: numBytes)
+    }
+
+    /// The bytes that we've parsed so far
+    @inlinable
+    public var parsedBytes: RawSpan { base.extracting(..<position) }
+
+    /// The number of bytes left to parse
+    @inlinable
+    public var remainingBytes: Int { base.count &- position }
+  }
+
+  @inlinable
+  public func makeCursor() -> Cursor { Cursor(self) }
+
+  @inlinable
+  public func makeCursor(in range: Range<Int>) -> Cursor {
+    Cursor(self, in: range)
+  }
+}
