@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 if(COLLECTIONS_SINGLE_MODULE)
-  get_property(module_name GLOBAL PROPERTY COLLECTIONS_MODULE_NAME)
+  set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
   set(module_name DequeModule)
   add_library(DequeModule
