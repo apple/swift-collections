@@ -24,7 +24,7 @@ public struct RawSpan: Copyable, ~Escapable {
     _unchecked start: UnsafeRawPointer,
     byteCount: Int,
     owner: borrowing Owner
-  ) -> dependsOn(owner) Self {
+  ) {
     self._start = start
     self._count = byteCount
   }
@@ -265,11 +265,9 @@ extension RawSpan {
   ///   The closure's parameter is valid only for the duration of
   ///   its execution.
   /// - Returns: The return value of the `body` closure parameter.
-  borrowing public func withUnsafeBytes<
-    E: Error, Result: ~Copyable & ~Escapable
-  >(
-    _ body: (_ buffer: borrowing UnsafeRawBufferPointer) throws(E) -> Result
-  ) throws(E) -> dependsOn(self) Result {
+  public func withUnsafeBytes<E: Error, Result: ~Copyable & ~Escapable>(
+    _ body: (_ buffer: UnsafeRawBufferPointer) throws(E) -> Result
+  ) throws(E) -> Result {
     try body(.init(start: (byteCount==0) ? nil : _start, count: byteCount))
   }
 }
@@ -279,9 +277,9 @@ extension RawSpan {
   ///
   /// - Parameter type: The type as which we should view <reword>
   /// - Returns: A typed span viewing these bytes as T
-  borrowing public func view<T: BitwiseCopyable>(
+  public func view<T: BitwiseCopyable>(
     as type: T.Type
-  ) -> dependsOn(self) Span<T> {
+  ) -> Span<T> {
     Span(unsafeStart: _start, byteCount: byteCount, owner: self)
   }
 }
@@ -388,7 +386,7 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(first maxLength: Int) -> Self {
+  public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < byteCount ? maxLength : byteCount
     return Self(_unchecked: _start, byteCount: nc, owner: self)
@@ -404,7 +402,7 @@ extension RawSpan {
   /// - Returns: A span leaving off the specified number of bytes at the end.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(droppingLast k: Int) -> Self {
+  public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < byteCount ? byteCount&-k : 0
     return Self(_unchecked: _start, byteCount: nc, owner: self)
@@ -421,7 +419,7 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(last maxLength: Int) -> Self {
+  public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < byteCount ? maxLength : byteCount
     let newStart = _start.advanced(by: byteCount&-nc)
@@ -438,7 +436,7 @@ extension RawSpan {
   /// - Returns: A span starting after the specified number of bytes.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(droppingFirst k: Int = 1) -> Self {
+  public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < byteCount ? k : byteCount
     let newStart = _start.advanced(by: dc)
