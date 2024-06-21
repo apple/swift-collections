@@ -31,7 +31,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     let span = RawSpan(a.storage)
-    XCTAssertEqual(span.count, capacity*MemoryLayout<Int>.stride)
+    XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
     XCTAssertFalse(span.isEmpty)
   }
 
@@ -46,7 +46,7 @@ final class RawSpanTests: XCTestCase {
     let a = Array(0..<capacity)
     a.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: a)
-      XCTAssertEqual(span.count, capacity*MemoryLayout<Int>.stride)
+      XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
     }
   }
 
@@ -60,7 +60,7 @@ final class RawSpanTests: XCTestCase {
         byteCount: capacity*MemoryLayout<Int>.stride,
         owner: a
       )
-      XCTAssertEqual(span.count, capacity*MemoryLayout<Int>.stride)
+      XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
     }
   }
 
@@ -124,7 +124,7 @@ final class RawSpanTests: XCTestCase {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
       let prefix = span.extracting(0..<8)
       let beyond = prefix.extracting(uncheckedBounds: 16..<24)
-      XCTAssertEqual(beyond.count, 8)
+      XCTAssertEqual(beyond.byteCount, 8)
       XCTAssertEqual(beyond.load(as: UInt8.self), 16)
     }
   }
@@ -171,7 +171,7 @@ final class RawSpanTests: XCTestCase {
     let a = Array(0..<UInt8(capacity))
     a.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
-      XCTAssertEqual(span.count, capacity)
+      XCTAssertEqual(span.byteCount, capacity)
       XCTAssertEqual(span.extracting(first: 1).load(as: UInt8.self), 0)
       XCTAssertEqual(
         span.extracting(first: capacity).load(
@@ -194,7 +194,7 @@ final class RawSpanTests: XCTestCase {
     let a = Array(0..<UInt8(capacity))
     a.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
-      XCTAssertEqual(span.count, capacity)
+      XCTAssertEqual(span.byteCount, capacity)
       XCTAssertEqual(span.extracting(last: capacity).load(as: UInt8.self), 0)
       XCTAssertEqual(span.extracting(last: capacity-1).load(as: UInt8.self), 1)
       XCTAssertEqual(span.extracting(last: 1).load(as: UInt8.self), UInt8(capacity-1))
@@ -207,7 +207,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     let span = RawSpan(a.storage)
-    for o in span.indices {
+    for o in span._byteOffsets {
       span.boundsCheckPrecondition(o)
     }
     // span.boundsCheckPrecondition(span.count)

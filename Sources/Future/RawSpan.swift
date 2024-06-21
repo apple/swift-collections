@@ -22,11 +22,11 @@ public struct RawSpan: Copyable, ~Escapable {
   @inlinable @inline(__always)
   internal init<Owner: ~Copyable & ~Escapable>(
     _unchecked start: UnsafeRawPointer,
-    count: Int,
+    byteCount: Int,
     owner: borrowing Owner
   ) -> dependsOn(owner) Self {
     self._start = start
-    self._count = count
+    self._count = byteCount
   }
 }
 
@@ -53,7 +53,7 @@ extension RawSpan {
     guard let baseAddress = buffer.baseAddress else {
       fatalError("RawSpan requires a non-nil base address")
     }
-    self.init(_unchecked: baseAddress, count: buffer.count, owner: owner)
+    self.init(_unchecked: baseAddress, byteCount: buffer.count, owner: owner)
   }
 
   /// Unsafely create a `RawSpan` over initialized memory.
@@ -74,7 +74,7 @@ extension RawSpan {
     owner: borrowing Owner
   ) {
     precondition(byteCount >= 0, "Count must not be negative")
-    self.init(_unchecked: pointer, count: byteCount, owner: owner)
+    self.init(_unchecked: pointer, byteCount: byteCount, owner: owner)
   }
 
   /// Create a `RawSpan` over the memory represented by a `Span<T>`
@@ -86,7 +86,7 @@ extension RawSpan {
   public init<T: BitwiseCopyable>(_ span: borrowing Span<T>) {
     self.init(
       _unchecked: UnsafeRawPointer(span._start),
-      count: span.count * MemoryLayout<T>.stride,
+      byteCount: span.count * MemoryLayout<T>.stride,
       owner: span
     )
   }
@@ -101,21 +101,21 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public var count: Int { _count }
+  public var byteCount: Int { _count }
 
   /// A Boolean value indicating whether the span is empty.
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public var isEmpty: Bool { count == 0 }
+  public var isEmpty: Bool { byteCount == 0 }
 
   /// The indices that are valid for subscripting the span, in ascending
   /// order.
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public var indices: Range<Int> {
-    .init(uncheckedBounds: (0, count))
+  public var _byteOffsets: Range<Int> {
+    .init(uncheckedBounds: (0, byteCount))
   }
 }
 
@@ -129,7 +129,7 @@ extension RawSpan {
   @inlinable @inline(__always)
   public func boundsCheckPrecondition(_ offset: Int) {
     precondition(
-      0 <= offset && offset < count,
+      0 <= offset && offset < byteCount,
       "Offset out of bounds"
     )
   }
@@ -141,7 +141,7 @@ extension RawSpan {
   @inlinable @inline(__always)
   public func boundsCheckPrecondition(_ offsets: Range<Int>) {
     precondition(
-      0 <= offsets.lowerBound && offsets.upperBound <= count,
+      0 <= offsets.lowerBound && offsets.upperBound <= byteCount,
       "Range of offsets out of bounds"
     )
   }
@@ -188,7 +188,7 @@ extension RawSpan {
   public func extracting(uncheckedBounds bounds: Range<Int>) -> Self {
     RawSpan(
       _unchecked: _start.advanced(by: bounds.lowerBound),
-      count: bounds.count,
+      byteCount: bounds.count,
       owner: self
     )
   }
@@ -208,7 +208,7 @@ extension RawSpan {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public func extracting(_ bounds: some RangeExpression<Int>) -> Self {
-    extracting(bounds.relative(to: indices))
+    extracting(bounds.relative(to: _byteOffsets))
   }
 
   /// Constructs a new span over the bytes within the supplied range of
@@ -230,7 +230,7 @@ extension RawSpan {
   public func extracting(
     uncheckedBounds bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(uncheckedBounds: bounds.relative(to: indices))
+    extracting(uncheckedBounds: bounds.relative(to: _byteOffsets))
   }
 
   /// Constructs a new span over all the bytes of this span.
@@ -270,7 +270,7 @@ extension RawSpan {
   >(
     _ body: (_ buffer: borrowing UnsafeRawBufferPointer) throws(E) -> Result
   ) throws(E) -> dependsOn(self) Result {
-    try body(.init(start: (count==0) ? nil : _start, count: count))
+    try body(.init(start: (byteCount==0) ? nil : _start, count: byteCount))
   }
 }
 
@@ -282,7 +282,7 @@ extension RawSpan {
   borrowing public func view<T: BitwiseCopyable>(
     as type: T.Type
   ) -> dependsOn(self) Span<T> {
-    Span(unsafeStart: _start, byteCount: count, owner: self)
+    Span(unsafeStart: _start, byteCount: byteCount, owner: self)
   }
 }
 
@@ -390,8 +390,8 @@ extension RawSpan {
   /// - Complexity: O(1)
   borrowing public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
-    let nc = maxLength < count ? maxLength : count
-    return Self(_unchecked: _start, count: nc, owner: self)
+    let nc = maxLength < byteCount ? maxLength : byteCount
+    return Self(_unchecked: _start, byteCount: nc, owner: self)
   }
 
   /// Returns a span over all but the given number of trailing bytes.
@@ -406,8 +406,8 @@ extension RawSpan {
   /// - Complexity: O(1)
   borrowing public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let nc = k < count ? count&-k : 0
-    return Self(_unchecked: _start, count: nc, owner: self)
+    let nc = k < byteCount ? byteCount&-k : 0
+    return Self(_unchecked: _start, byteCount: nc, owner: self)
   }
 
   /// Returns a span containing the trailing bytes of the span,
@@ -423,9 +423,9 @@ extension RawSpan {
   /// - Complexity: O(1)
   borrowing public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
-    let nc = maxLength < count ? maxLength : count
-    let newStart = _start.advanced(by: count&-nc)
-    return Self(_unchecked: newStart, count: nc, owner: self)
+    let nc = maxLength < byteCount ? maxLength : byteCount
+    let newStart = _start.advanced(by: byteCount&-nc)
+    return Self(_unchecked: newStart, byteCount: nc, owner: self)
   }
 
   /// Returns a span over all but the given number of initial bytes.
@@ -440,8 +440,117 @@ extension RawSpan {
   /// - Complexity: O(1)
   borrowing public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let dc = k < count ? k : count
+    let dc = k < byteCount ? k : byteCount
     let newStart = _start.advanced(by: dc)
-    return Self(_unchecked: newStart, count: count&-dc, owner: self)
+    return Self(_unchecked: newStart, byteCount: byteCount&-dc, owner: self)
+  }
+}
+
+/// An error indicating that out-of-bounds access was attempted
+@frozen
+public struct OutOfBoundsError: Error {
+  /// The number of elements expected
+  public var expected: Int
+
+  /// The number of elements found
+  public var has: Int
+
+  @inlinable
+  public init(expected: Int, has: Int) {
+    (self.expected, self.has) = (expected, has)
+  }
+}
+
+extension RawSpan {
+  /// Parse an instance of `T`, advancing `position`.
+  @inlinable
+  public func parse<T: BitwiseCopyable>(
+    _ position: inout Int, as t: T.Type = T.self
+  ) throws(OutOfBoundsError) -> T {
+    let length = MemoryLayout<T>.size
+    guard position >= 0 else {
+      throw OutOfBoundsError(expected: length, has: 0)
+    }
+    let end = position &+ length
+    guard end <= length else {
+      throw OutOfBoundsError(expected: length, has: byteCount&-position)
+    }
+    return loadUnaligned(fromUncheckedByteOffset: position, as: T.self)
+  }
+
+  /// Parse `numBytes` of data, advancing `position`.
+  @inlinable
+  public func parse(
+    _ position: inout Int, numBytes: some FixedWidthInteger
+  ) throws (OutOfBoundsError) -> Self {
+    let length = Int(numBytes)
+    guard position >= 0 else {
+      throw OutOfBoundsError(expected: length, has: 0)
+    }
+    let end = position &+ length
+    guard end <= length else {
+      throw OutOfBoundsError(expected: length, has: byteCount&-position)
+    }
+    return extracting(position..<end)
+  }
+}
+
+extension RawSpan {
+  @frozen
+  public struct Cursor: Copyable, ~Escapable {
+    public let base: RawSpan
+
+    /// The range within which we parse
+    public let parseRange: Range<Int>
+
+    /// The current parsing position
+    public var position: Int
+
+    @inlinable
+    public init(_ base: RawSpan, in range: Range<Int>) {
+      base.boundsCheckPrecondition(range)
+      position = 0
+      self.base = base
+      parseRange = range
+    }
+
+    @inlinable
+    public init(_ base: RawSpan) {
+      position = 0
+      self.base = base
+      parseRange = base._byteOffsets
+    }
+
+    /// Parse an instance of `T` and advance
+    @inlinable
+    public mutating func parse<T: BitwiseCopyable>(
+      _ t: T.Type = T.self
+    ) throws(OutOfBoundsError) -> T {
+      try base.parse(&position, as: T.self)
+    }
+
+    /// Parse `numBytes`and advance
+    @inlinable
+    public mutating func parse(
+      numBytes: some FixedWidthInteger
+    ) throws (OutOfBoundsError) -> RawSpan {
+      try base.parse(&position, numBytes: numBytes)
+    }
+
+    /// The bytes that we've parsed so far
+    @inlinable
+    public var parsedBytes: RawSpan { base.extracting(..<position) }
+
+    /// The number of bytes left to parse
+    @inlinable
+    public var remainingBytes: Int { base.byteCount &- position }
+  }
+
+  @inlinable
+  public func makeCursor() -> Cursor { Cursor(self) }
+
+  @inlinable
+  public func makeCursor(in range: Range<Int>) -> Cursor {
+    Cursor(self, in: range)
   }
 }

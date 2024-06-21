@@ -279,7 +279,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public var indices: Range<Int> {
+  public var _indices: Range<Int> {
     .init(uncheckedBounds: (0, _count))
   }
 }
@@ -447,7 +447,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public func extracting(_ bounds: some RangeExpression<Int>) -> Self {
-    extracting(bounds.relative(to: indices))
+    extracting(bounds.relative(to: _indices))
   }
 
   /// Constructs a new span over the items within the supplied range of
@@ -469,7 +469,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(
     uncheckedBounds bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(uncheckedBounds: bounds.relative(to: indices))
+    extracting(uncheckedBounds: bounds.relative(to: _indices))
   }
 
   /// Constructs a new span over all the items of this span.
