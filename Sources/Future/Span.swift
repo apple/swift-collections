@@ -503,6 +503,7 @@ extension Span where Element: ~Copyable  /*& ~Escapable*/ {
   ///   for the `withUnsafeBufferPointer(_:)` method. The closure's
   ///   parameter is valid only for the duration of its execution.
   /// - Returns: The return value of the `body` closure parameter.
+  @_alwaysEmitIntoClient
   public func withUnsafeBufferPointer<E: Error, Result: ~Copyable & ~Escapable>(
     _ body: (_ buffer: UnsafeBufferPointer<Element>) throws(E) -> Result
   ) throws(E) -> Result {
@@ -527,6 +528,7 @@ extension Span where Element: BitwiseCopyable {
   ///   The closure's parameter is valid only for the duration of
   ///   its execution.
   /// - Returns: The return value of the `body` closure parameter.
+  @_alwaysEmitIntoClient
   public func withUnsafeBytes<E: Error, Result: ~Copyable & ~Escapable>(
     _ body: (_ buffer: UnsafeRawBufferPointer) throws(E) -> Result
   ) throws(E) -> Result {
