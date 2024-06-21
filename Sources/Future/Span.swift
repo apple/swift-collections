@@ -43,7 +43,7 @@ extension UnsafePointer where Pointee: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
-  //FIXME: make failable once Optional can be non-escapable
+  //FIXME: make properly non-failable
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -90,7 +90,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: BitwiseCopyable {
 
-  //FIXME: make failable once Optional can be non-escapable
+  //FIXME: make properly non-failable
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -130,7 +130,7 @@ extension Span where Element: BitwiseCopyable {
     self.init(_unchecked: start, count: count, owner: owner)
   }
 
-  //FIXME: make failable once Optional can be non-escapable
+  //FIXME: make properly non-failable
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory in `unsafeBytes` must be owned by the instance `owner`
@@ -399,7 +399,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `Span`.
   ///
-  /// - Returns: A `Span` over the items at `bounds`
+  /// - Returns: A `Span` over the items within `bounds`
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
@@ -420,7 +420,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `Span`.
   ///
-  /// - Returns: A `Span` over the items at `bounds`
+  /// - Returns: A `Span` over the items within `bounds`
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
@@ -442,7 +442,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `Span`.
   ///
-  /// - Returns: A `Span` over the items at `bounds`
+  /// - Returns: A `Span` over the items within `bounds`
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -462,7 +462,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `Span`.
   ///
-  /// - Returns: A `Span` over the items at `bounds`
+  /// - Returns: A `Span` over the items within `bounds`
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient

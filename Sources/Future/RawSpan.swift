@@ -35,7 +35,7 @@ extension RawSpan: Sendable {}
 
 extension RawSpan {
 
-  //FIXME: make failable once Optional can be non-escapable
+  //FIXME: make properly non-failable
   /// Unsafely create a `RawSpan` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -160,7 +160,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
@@ -181,7 +181,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
@@ -203,7 +203,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -223,7 +223,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -239,7 +239,7 @@ extension RawSpan {
   /// slices, extracted spans do not generally share their indices with the
   /// span from which they are extracted.
   ///
-  /// - Returns: A `RawSpan` over all the items of this span.
+  /// - Returns: A span over all the bytes of this span.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
