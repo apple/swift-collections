@@ -24,7 +24,7 @@ public struct RawSpan: Copyable, ~Escapable {
     _unchecked start: UnsafeRawPointer,
     byteCount: Int,
     owner: borrowing Owner
-  ) -> dependsOn(owner) Self {
+  ) {
     self._start = start
     self._count = byteCount
   }
@@ -35,7 +35,7 @@ extension RawSpan: Sendable {}
 
 extension RawSpan {
 
-  //FIXME: make failable once Optional can be non-escapable
+  //FIXME: make properly non-failable
   /// Unsafely create a `RawSpan` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -122,27 +122,45 @@ extension RawSpan {
 //MARK: Bounds Checking
 extension RawSpan {
 
+  /// Return true if `offset` is a valid offset into this `RawSpan`
+  ///
+  /// - Parameters:
+  ///   - position: an index to validate
+  /// - Returns: true if `offset` is a valid index
+  @inlinable @inline(__always)
+  public func validateBounds(_ offset: Int) -> Bool {
+    0 <= offset && offset < byteCount
+  }
+
   /// Traps if `offset` is not a valid offset into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - position: an offset to validate
+  ///   - position: an index to validate
   @inlinable @inline(__always)
-  public func boundsCheckPrecondition(_ offset: Int) {
+  public func assertValidity(_ offset: Int) {
     precondition(
-      0 <= offset && offset < byteCount,
-      "Offset out of bounds"
+      validateBounds(offset), "Offset out of bounds"
     )
   }
 
-  /// Traps if `bounds` is not a valid range of offsets into this `RawSpan`
+  /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - offsets: a range of offsets to validate
+  ///   - offsets: a range of indices to validate
+  /// - Returns: true if `offsets` is a valid range of indices
   @inlinable @inline(__always)
-  public func boundsCheckPrecondition(_ offsets: Range<Int>) {
+  public func validateBounds(_ offsets: Range<Int>) -> Bool {
+    0 <= offsets.lowerBound && offsets.upperBound <= byteCount
+  }
+
+  /// Traps if `offsets` is not a valid range of offsets into this `RawSpan`
+  ///
+  /// - Parameters:
+  ///   - offsets: a range of indices to validate
+  @inlinable @inline(__always)
+  public func assertValidity(_ offsets: Range<Int>) {
     precondition(
-      0 <= offsets.lowerBound && offsets.upperBound <= byteCount,
-      "Range of offsets out of bounds"
+      validateBounds(offsets), "Range of offsets out of bounds"
     )
   }
 }
@@ -160,12 +178,12 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
-    boundsCheckPrecondition(bounds)
+    assertValidity(bounds)
     return extracting(uncheckedBounds: bounds)
   }
 
@@ -181,7 +199,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
@@ -203,7 +221,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -223,7 +241,7 @@ extension RawSpan {
   /// - Parameter bounds: A valid range of positions. Every position in
   ///     this range must be within the bounds of this `RawSpan`.
   ///
-  /// - Returns: A `Span` over the bytes within `bounds`
+  /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -239,7 +257,7 @@ extension RawSpan {
   /// slices, extracted spans do not generally share their indices with the
   /// span from which they are extracted.
   ///
-  /// - Returns: A `RawSpan` over all the items of this span.
+  /// - Returns: A span over all the bytes of this span.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -265,11 +283,10 @@ extension RawSpan {
   ///   The closure's parameter is valid only for the duration of
   ///   its execution.
   /// - Returns: The return value of the `body` closure parameter.
-  borrowing public func withUnsafeBytes<
-    E: Error, Result: ~Copyable & ~Escapable
-  >(
-    _ body: (_ buffer: borrowing UnsafeRawBufferPointer) throws(E) -> Result
-  ) throws(E) -> dependsOn(self) Result {
+  @_alwaysEmitIntoClient
+  public func withUnsafeBytes<E: Error, Result: ~Copyable & ~Escapable>(
+    _ body: (_ buffer: UnsafeRawBufferPointer) throws(E) -> Result
+  ) throws(E) -> Result {
     try body(.init(start: (byteCount==0) ? nil : _start, count: byteCount))
   }
 }
@@ -279,9 +296,9 @@ extension RawSpan {
   ///
   /// - Parameter type: The type as which we should view <reword>
   /// - Returns: A typed span viewing these bytes as T
-  borrowing public func view<T: BitwiseCopyable>(
+  public func view<T: BitwiseCopyable>(
     as type: T.Type
-  ) -> dependsOn(self) Span<T> {
+  ) -> Span<T> {
     Span(unsafeStart: _start, byteCount: byteCount, owner: self)
   }
 }
@@ -306,7 +323,7 @@ extension RawSpan {
   public func load<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    boundsCheckPrecondition(
+    assertValidity(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
     )
     return load(fromUncheckedByteOffset: offset, as: T.self)
@@ -348,7 +365,7 @@ extension RawSpan {
   public func loadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    boundsCheckPrecondition(
+    assertValidity(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
     )
     return loadUnaligned(fromUncheckedByteOffset: offset, as: T.self)
@@ -388,7 +405,7 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(first maxLength: Int) -> Self {
+  public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < byteCount ? maxLength : byteCount
     return Self(_unchecked: _start, byteCount: nc, owner: self)
@@ -404,7 +421,7 @@ extension RawSpan {
   /// - Returns: A span leaving off the specified number of bytes at the end.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(droppingLast k: Int) -> Self {
+  public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < byteCount ? byteCount&-k : 0
     return Self(_unchecked: _start, byteCount: nc, owner: self)
@@ -421,7 +438,7 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(last maxLength: Int) -> Self {
+  public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < byteCount ? maxLength : byteCount
     let newStart = _start.advanced(by: byteCount&-nc)
@@ -438,7 +455,7 @@ extension RawSpan {
   /// - Returns: A span starting after the specified number of bytes.
   ///
   /// - Complexity: O(1)
-  borrowing public func extracting(droppingFirst k: Int = 1) -> Self {
+  public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < byteCount ? k : byteCount
     let newStart = _start.advanced(by: dc)
@@ -508,7 +525,7 @@ extension RawSpan {
 
     @inlinable
     public init(_ base: RawSpan, in range: Range<Int>) {
-      base.boundsCheckPrecondition(range)
+      base.assertValidity(range)
       position = 0
       self.base = base
       parseRange = range
