@@ -287,16 +287,35 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 //MARK: Bounds Checking
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
+  /// Return true if `offset` is a valid offset into this `Span`
+  ///
+  /// - Parameters:
+  ///   - position: an index to validate
+  /// - Returns: true if `offset` is a valid index
+  @inlinable @inline(__always)
+  public func validateBounds(_ offset: Int) -> Bool {
+    0 <= offset && offset < count
+  }
+
   /// Traps if `offset` is not a valid offset into this `Span`
   ///
   /// - Parameters:
-  ///   - position: an Index to validate
+  ///   - position: an index to validate
   @inlinable @inline(__always)
-  public func boundsCheckPrecondition(_ offset: Int) {
+  public func assertValidity(_ offset: Int) {
     precondition(
-      0 <= offset && offset < count,
-      "Offset out of bounds"
+      validateBounds(offset), "Offset out of bounds"
     )
+  }
+
+  /// Return true if `offsets` is a valid range of offsets into this `Span`
+  ///
+  /// - Parameters:
+  ///   - offsets: a range of indices to validate
+  /// - Returns: true if `offsets` is a valid range of indices
+  @inlinable @inline(__always)
+  public func validateBounds(_ offsets: Range<Int>) -> Bool {
+    0 <= offsets.lowerBound && offsets.upperBound <= count
   }
 
   /// Traps if `offsets` is not a valid range of offsets into this `Span`
@@ -304,10 +323,9 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameters:
   ///   - offsets: a range of indices to validate
   @inlinable @inline(__always)
-  public func boundsCheckPrecondition(_ offsets: Range<Int>) {
+  public func assertValidity(_ offsets: Range<Int>) {
     precondition(
-      0 <= offsets.lowerBound && offsets.upperBound <= count,
-      "Range of offsets out of bounds"
+      validateBounds(offsets), "Range of offsets out of bounds"
     )
   }
 }
@@ -333,7 +351,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable @inline(__always)
   public subscript(_ position: Int) -> Element {
     _read {
-      boundsCheckPrecondition(position)
+      assertValidity(position)
       yield self[unchecked: position]
     }
   }
@@ -365,7 +383,7 @@ extension Span where Element: BitwiseCopyable {
   @inlinable @inline(__always)
   public subscript(_ position: Int) -> Element {
     get {
-      boundsCheckPrecondition(position)
+      assertValidity(position)
       return self[unchecked: position]
     }
   }
@@ -404,7 +422,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Complexity: O(1)
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
-    boundsCheckPrecondition(bounds)
+    assertValidity(bounds)
     return extracting(uncheckedBounds: bounds)
   }
 

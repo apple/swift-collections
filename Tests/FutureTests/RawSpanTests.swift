@@ -208,8 +208,8 @@ final class RawSpanTests: XCTestCase {
     let a = Array(0..<capacity)
     let span = RawSpan(a.storage)
     for o in span._byteOffsets {
-      span.boundsCheckPrecondition(o)
+      span.assertValidity(o)
     }
-    // span.boundsCheckPrecondition(span.count)
+    // span.assertValidity(span.count)
   }
 }

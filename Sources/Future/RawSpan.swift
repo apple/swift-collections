@@ -122,27 +122,45 @@ extension RawSpan {
 //MARK: Bounds Checking
 extension RawSpan {
 
+  /// Return true if `offset` is a valid offset into this `RawSpan`
+  ///
+  /// - Parameters:
+  ///   - position: an index to validate
+  /// - Returns: true if `offset` is a valid index
+  @inlinable @inline(__always)
+  public func validateBounds(_ offset: Int) -> Bool {
+    0 <= offset && offset < byteCount
+  }
+
   /// Traps if `offset` is not a valid offset into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - position: an offset to validate
+  ///   - position: an index to validate
   @inlinable @inline(__always)
-  public func boundsCheckPrecondition(_ offset: Int) {
+  public func assertValidity(_ offset: Int) {
     precondition(
-      0 <= offset && offset < byteCount,
-      "Offset out of bounds"
+      validateBounds(offset), "Offset out of bounds"
     )
   }
 
-  /// Traps if `bounds` is not a valid range of offsets into this `RawSpan`
+  /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - offsets: a range of offsets to validate
+  ///   - offsets: a range of indices to validate
+  /// - Returns: true if `offsets` is a valid range of indices
   @inlinable @inline(__always)
-  public func boundsCheckPrecondition(_ offsets: Range<Int>) {
+  public func validateBounds(_ offsets: Range<Int>) -> Bool {
+    0 <= offsets.lowerBound && offsets.upperBound <= byteCount
+  }
+
+  /// Traps if `offsets` is not a valid range of offsets into this `RawSpan`
+  ///
+  /// - Parameters:
+  ///   - offsets: a range of indices to validate
+  @inlinable @inline(__always)
+  public func assertValidity(_ offsets: Range<Int>) {
     precondition(
-      0 <= offsets.lowerBound && offsets.upperBound <= byteCount,
-      "Range of offsets out of bounds"
+      validateBounds(offsets), "Range of offsets out of bounds"
     )
   }
 }
@@ -165,7 +183,7 @@ extension RawSpan {
   /// - Complexity: O(1)
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
-    boundsCheckPrecondition(bounds)
+    assertValidity(bounds)
     return extracting(uncheckedBounds: bounds)
   }
 
@@ -305,7 +323,7 @@ extension RawSpan {
   public func load<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    boundsCheckPrecondition(
+    assertValidity(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
     )
     return load(fromUncheckedByteOffset: offset, as: T.self)
@@ -347,7 +365,7 @@ extension RawSpan {
   public func loadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    boundsCheckPrecondition(
+    assertValidity(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
     )
     return loadUnaligned(fromUncheckedByteOffset: offset, as: T.self)
@@ -507,7 +525,7 @@ extension RawSpan {
 
     @inlinable
     public init(_ base: RawSpan, in range: Range<Int>) {
-      base.boundsCheckPrecondition(range)
+      base.assertValidity(range)
       position = 0
       self.base = base
       parseRange = range
