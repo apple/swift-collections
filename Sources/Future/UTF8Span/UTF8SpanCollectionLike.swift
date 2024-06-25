@@ -145,6 +145,7 @@ extension UTF8Span {
   }
 
   /// Whether this span has the same `Character`s as `other`.
+  @_unavailableInEmbedded
   @_alwaysEmitIntoClient
   public func charactersEqual(
     to other: some Sequence<Character>
@@ -160,6 +161,7 @@ extension UTF8Span {
     return idx == count
   }
 
+  @_alwaysEmitIntoClient
   public var isEmpty: Bool {
     count == 0
   }

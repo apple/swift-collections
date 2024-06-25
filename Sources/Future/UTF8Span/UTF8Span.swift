@@ -81,6 +81,7 @@ extension UTF8Span {
 
 // MARK: Canonical comparison
 
+@_unavailableInEmbedded
 extension UTF8Span {
   // HACK: working around lack of internals
   internal var _str: String { unsafeBaseAddress._str(0..<count) }
@@ -106,6 +107,7 @@ extension UTF8Span {
 
 // MARK: String
 
+@_unavailableInEmbedded
 extension String {
   // NOTE: If `self` is lazily bridged NSString, or is in a small-string
   // form, memory may be allocated...

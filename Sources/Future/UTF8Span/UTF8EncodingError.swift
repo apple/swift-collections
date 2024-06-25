@@ -165,6 +165,7 @@ extension UTF8.EncodingError {
   }
 }
 
+@_unavailableInEmbedded
 extension UTF8.EncodingError.Kind: CustomStringConvertible {
   public var description: String {
     switch self {
@@ -184,6 +185,7 @@ extension UTF8.EncodingError.Kind: CustomStringConvertible {
   }
 }
 
+@_unavailableInEmbedded
 extension UTF8.EncodingError: CustomStringConvertible {
   public var description: String {
     "UTF8.EncodingError(\(kind), \(range))"

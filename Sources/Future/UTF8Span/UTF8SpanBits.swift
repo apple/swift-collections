@@ -9,6 +9,7 @@ extension UTF8Span {
 
   /// Returns whether the contents are known to be NFC. This is not
   /// always checked at initialization time and is set by `checkForNFC`.
+  @_unavailableInEmbedded
   @inlinable @inline(__always)
   public var isKnownNFC: Bool {
     0 != _countAndFlags & Self._nfcBit
@@ -23,6 +24,7 @@ extension UTF8Span {
   /// algorithm. However, it cannot detect all NFC contents.
   ///
   /// Updates the `isKnownNFC` bit.
+  @_unavailableInEmbedded
   public mutating func checkForNFC(
     quickCheck: Bool
   ) -> Bool {
@@ -47,6 +49,7 @@ extension UTF8Span {
   ///
   /// This is not always checked at initialization time. It is set by
   /// `checkForSingleScalarCharacters`.
+  @_unavailableInEmbedded
   @inlinable @inline(__always)
   public var isKnownSingleScalarCharacters: Bool {
     0 != _countAndFlags & Self._singleScalarCharactersBit
@@ -61,6 +64,7 @@ extension UTF8Span {
   /// However, it cannot detect all single-scalar `Character` contents.
   ///
   /// Updates the `isKnownSingleScalarCharacters` bit.
+  @_unavailableInEmbedded
   public mutating func checkForSingleScalarCharacters(
     quickCheck: Bool
   ) -> Bool {
