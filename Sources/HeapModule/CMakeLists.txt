@@ -7,16 +7,10 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-list(APPEND COLLECTIONS_HEAP_SOURCES
-  "_HeapNode.swift"
-  "Heap.swift"
-  "Heap+Descriptions.swift"
-  "Heap+ExpressibleByArrayLiteral.swift"
-  "Heap+Invariants.swift"
-  "Heap+UnsafeHandle.swift")
-set_property(GLOBAL APPEND PROPERTY COLLECTIONS_HEAP_SOURCES ${COLLECTIONS_HEAP_SOURCES})
-
-if(NOT COLLECTIONS_SINGLE_MODULE)
+if(COLLECTIONS_SINGLE_MODULE)
+  set(module_name ${COLLECTIONS_MODULE_NAME})
+else()
+  set(module_name HeapModule)
   add_library(HeapModule
     ${COLLECTIONS_HEAP_SOURCES})
   target_link_libraries(HeapModule PRIVATE
@@ -27,3 +21,11 @@ if(NOT COLLECTIONS_SINGLE_MODULE)
   _install_target(HeapModule)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS HeapModule)
 endif()
+
+target_sources(${module_name} PRIVATE
+  "_HeapNode.swift"
+  "Heap.swift"
+  "Heap+Descriptions.swift"
+  "Heap+ExpressibleByArrayLiteral.swift"
+  "Heap+Invariants.swift"
+  "Heap+UnsafeHandle.swift")
