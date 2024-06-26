@@ -391,6 +391,23 @@ extension RawSpan {
   }
 }
 
+extension RawSpan {
+
+  @inlinable @inline(__always)
+  public func contains(_ span: borrowing Self) -> Bool {
+    _start <= span._start &&
+    span._start.advanced(by: span._count) <= _start.advanced(by: _count)
+  }
+
+  @inlinable @inline(__always)
+  public func offsets(of span: borrowing Self) -> Range<Int> {
+    precondition(contains(span))
+    let s = _start.distance(to: span._start)
+    let e = s + span._count
+    return Range(uncheckedBounds: (s, e))
+  }
+}
+
 //MARK: one-sided slicing operations
 extension RawSpan {
 
