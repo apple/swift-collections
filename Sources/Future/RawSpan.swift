@@ -172,7 +172,7 @@ extension RawSpan {
   /// positions within this span.
   ///
   /// The returned span's first byte is always at offset 0; unlike buffer
-  /// slices, extracted spans do not generally share their indices with the
+  /// slices, extracted spans do not share their indices with the
   /// span from which they are extracted.
   ///
   /// - Parameter bounds: A valid range of positions. Every position in
@@ -191,7 +191,7 @@ extension RawSpan {
   /// positions within this span.
   ///
   /// The returned span's first byte is always at offset 0; unlike buffer
-  /// slices, extracted spans do not generally share their indices with the
+  /// slices, extracted spans do not share their indices with the
   /// span from which they are extracted.
   ///
   /// This function does not validate `bounds`; this is an unsafe operation.
@@ -215,7 +215,7 @@ extension RawSpan {
   /// positions within this span.
   ///
   /// The returned span's first byte is always at offset 0; unlike buffer
-  /// slices, extracted spans do not generally share their indices with the
+  /// slices, extracted spans do not share their indices with the
   /// span from which they are extracted.
   ///
   /// - Parameter bounds: A valid range of positions. Every position in
@@ -233,7 +233,7 @@ extension RawSpan {
   /// positions within this span.
   ///
   /// The returned span's first byte is always at offset 0; unlike buffer
-  /// slices, extracted spans do not generally share their indices with the
+  /// slices, extracted spans do not share their indices with the
   /// span from which they are extracted.
   ///
   /// This function does not validate `bounds`; this is an unsafe operation.
@@ -254,7 +254,7 @@ extension RawSpan {
   /// Constructs a new span over all the bytes of this span.
   ///
   /// The returned span's first byte is always at offset 0; unlike buffer
-  /// slices, extracted spans do not generally share their indices with the
+  /// slices, extracted spans do not share their indices with the
   /// span from which they are extracted.
   ///
   /// - Returns: A span over all the bytes of this span.
@@ -388,6 +388,23 @@ extension RawSpan {
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
     _start.loadUnaligned(fromByteOffset: offset, as: T.self)
+  }
+}
+
+extension RawSpan {
+
+  @inlinable @inline(__always)
+  public func contains(_ span: borrowing Self) -> Bool {
+    _start <= span._start &&
+    span._start.advanced(by: span._count) <= _start.advanced(by: _count)
+  }
+
+  @inlinable @inline(__always)
+  public func offsets(of span: borrowing Self) -> Range<Int> {
+    precondition(contains(span))
+    let s = _start.distance(to: span._start)
+    let e = s + span._count
+    return Range(uncheckedBounds: (s, e))
   }
 }
 

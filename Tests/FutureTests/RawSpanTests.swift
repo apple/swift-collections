@@ -212,4 +212,38 @@ final class RawSpanTests: XCTestCase {
     }
     // span.assertValidity(span.count)
   }
+
+  func testContainment() {
+    let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
+    defer { b.deallocate() }
+
+    let span = RawSpan(unsafeBytes: .init(b), owner: b)
+    let subSpan = span.extracting(last: 2)
+    let emptySpan = span.extracting(first: 0)
+    let fakeSpan = RawSpan(
+      unsafeStart: b.baseAddress!.advanced(by: 8), byteCount: 8, owner: b
+    )
+
+    XCTAssertTrue(span.contains(subSpan))
+    XCTAssertFalse(subSpan.contains(span))
+    XCTAssertTrue(span.contains(emptySpan))
+    XCTAssertFalse(emptySpan.contains(span))
+    XCTAssertFalse(span.contains(fakeSpan))
+    XCTAssertFalse(fakeSpan.contains(span))
+  }
+
+  func testOffsets() {
+    let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
+    defer { b.deallocate() }
+
+    let span = RawSpan(unsafeBytes: .init(b), owner: b)
+    let subSpan = span.extracting(last: 2)
+    let emptySpan = span.extracting(first: 0)
+
+    var bounds: Range<Int>
+    bounds = span.offsets(of: subSpan)
+    XCTAssertEqual(bounds, span._byteOffsets.suffix(2))
+    bounds = span.offsets(of: emptySpan)
+    XCTAssertEqual(bounds, span._byteOffsets.prefix(0))
+  }
 }
