@@ -48,11 +48,26 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   ) {
     pointer = unsafeAddress
   }
+
+  /// Unsafely initializes an instance of 'Inout' using the given
+  /// 'unsafeImmortalAddress' as the mutable reference acting as though its
+  /// lifetime is immortal.
+  ///
+  /// - Parameter unsafeImmortalAddress: The address to use to mutably reference
+  ///                                    an immortal instance of type 'T'.
+  @_alwaysEmitIntoClient
+  @_transparent
+  public init(
+    unsafeImmortalAddress: UnsafeMutablePointer<T>
+  ) -> dependsOn(immortal) Self {
+    pointer = unsafeImmortalAddress
+  }
 }
 
 extension Inout where T: ~Copyable {
   /// Dereferences the mutable reference allowing for in-place reads and writes
   /// to the underlying instance.
+  @_alwaysEmitIntoClient
   public subscript() -> T {
     @_transparent
     unsafeAddress {

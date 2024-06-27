@@ -8,10 +8,12 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(Future
-  "Inout.swift"
-  "Span.swift"
-  "RawSpan.swift"
+  "Box.swift"
+  "Cell.swift"
   "ContiguousStorage.swift"
+  "Inout.swift"
+  "RawSpan.swift"
+  "Span.swift"
 )
 
 target_link_libraries(Future PRIVATE
