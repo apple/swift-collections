@@ -56,6 +56,7 @@ let _settings: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
   .enableExperimentalFeature("BitwiseCopyable"),
+  .enableExperimentalFeature("RawLayout")
 //  .swiftLanguageVersion(.v5)
 ]
 
