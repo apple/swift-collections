@@ -64,7 +64,7 @@ extension RawSpan {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - byteCount: the number of initialized bytes in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `RawSpan`.
   @inlinable @inline(__always)

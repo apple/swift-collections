@@ -71,7 +71,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
@@ -118,7 +118,7 @@ extension Span where Element: BitwiseCopyable {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
@@ -170,7 +170,7 @@ extension Span where Element: BitwiseCopyable {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
