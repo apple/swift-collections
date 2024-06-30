@@ -184,7 +184,7 @@ extension RawSpan {
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
     assertValidity(bounds)
-    return extracting(uncheckedBounds: bounds)
+    return extracting(unchecked: bounds)
   }
 
   /// Constructs a new span over the bytes within the supplied range of
@@ -203,7 +203,7 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public func extracting(uncheckedBounds bounds: Range<Int>) -> Self {
+  public func extracting(unchecked bounds: Range<Int>) -> Self {
     RawSpan(
       _unchecked: _start.advanced(by: bounds.lowerBound),
       byteCount: bounds.count,
@@ -246,9 +246,9 @@ extension RawSpan {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public func extracting(
-    uncheckedBounds bounds: some RangeExpression<Int>
+    unchecked bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(uncheckedBounds: bounds.relative(to: _byteOffsets))
+    extracting(unchecked: bounds.relative(to: _byteOffsets))
   }
 
   /// Constructs a new span over all the bytes of this span.
