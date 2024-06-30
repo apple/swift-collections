@@ -63,7 +63,7 @@ extension RawSpan {
   /// meaning that as long as `owner` is alive the memory will remain valid.
   ///
   /// - Parameters:
-  ///   - pointer: a pointer to the first initialized element.
+  ///   - pointer: a pointer to the first initialized byte.
   ///   - byteCount: the number of initialized bytes in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `RawSpan`.
@@ -302,7 +302,7 @@ extension RawSpan {
   /// to instances of `T` must be surjective.
   ///
   /// This is an unsafe operation. Failure to meet the preconditions
-  /// above may produce an invalid value of `T`.
+  /// above may produce invalid values of `T`.
   ///
   /// - Parameters:
   ///   - type: The type as which to view the bytes of this span.
