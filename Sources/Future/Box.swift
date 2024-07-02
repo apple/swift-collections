@@ -66,3 +66,11 @@ extension Box where T: ~Copyable {
     }
   }
 }
+
+extension Box where T: Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  public borrowing func copy() -> T {
+    pointer.pointee
+  }
+}

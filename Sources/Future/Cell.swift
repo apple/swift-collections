@@ -30,8 +30,8 @@ public struct Cell<T: ~Copyable>: ~Copyable {
 extension Cell where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
-  public borrowing func asInout() -> Inout<T> {
-    Inout<T>(unsafeAddress: unsafeAddress, owner: self)
+  public mutating func asInout() -> Inout<T> {
+    Inout<T>(unsafeAddress: unsafeAddress, owner: &self)
   }
 
   @_alwaysEmitIntoClient
