@@ -87,7 +87,7 @@ extension UTF8Span {
   internal var _str: String { unsafeBaseAddress._str(0..<count) }
 
   /// Whether `self` is equivalent to `other` under Unicode Canonical
-  /// Equivalance.
+  /// Equivalence.
   public func isCanonicallyEquivalent(
     to other: UTF8Span
   ) -> Bool {
@@ -95,7 +95,7 @@ extension UTF8Span {
   }
 
   /// Whether `self` orders less than `other` under Unicode Canonical 
-  /// Equivalance using normalized code-unit order (in NFC).
+  /// Equivalence using normalized code-unit order (in NFC).
   public func isCanonicallyLessThan(
     _ other: UTF8Span
   ) -> Bool {
@@ -113,13 +113,40 @@ extension String {
   // form, memory may be allocated...
   public var utf8Span: UTF8Span {
     _read {
-      // TODO: avoid the allocation
-      let arr = Array(self.utf8)
-      let span = arr.storage
+      let span: Span<UInt8>
+      if count < 16 { // Wrong way to know whether the String is smol
+//      if _guts.isSmall {
+//        let /*@addressable*/ rawStorage = _guts.asSmall._storage
+//        let span = RawSpan(
+//          unsafeRawPointer: UnsafeRawPointer(Builtin.adressable(rawStorage)),
+//          count: MemoryLayout<_SmallString.RawBitPattern>.size,
+//          owner: self
+//        )
+//        yield span.view(as: UTF8.CodeUnit.self)
+
+        let a = ContiguousArray(self.utf8)
+//        yield a.storage
+        span = Span(
+          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
+        )
+      }
+      else if let buffer = utf8.withContiguousStorageIfAvailable({ $0 }) {
+        // this is totally wrong, but there is a way with stdlib-internal API
+        span = Span(unsafeElements: buffer, owner: self)
+      }
+      else { // copy non-fast code units if we don't have eager bridging
+        let a = ContiguousArray(self.utf8)
+//        yield a.storage
+        span = Span(
+          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
+        )
+      }
+
+//      let span = self.utf8.storage
       yield UTF8Span(
         _unsafeAssumingValidUTF8: .init(span._start),
         _countAndFlags: UInt64(span.count), // TODO: set the flags
-        owner: arr)
+        owner: span)
     }
   }
 }
@@ -168,7 +195,7 @@ extension RawSpan {
   }
 
   // TODO: Below are contingent on how we want to handle NUL-termination
-  public func parseNullTermiantedUTF8() throws -> UTF8Span {
+  public func parseNullTerminatedUTF8() throws -> UTF8Span {
     fatalError()
   }
 }
@@ -178,7 +205,7 @@ extension RawSpan.Cursor {
   public mutating func parseUTF8(length: Int) throws -> UTF8Span {
     fatalError()
   }
-  public mutating func parseNullTermiantedUTF8() throws -> UTF8Span {
+  public mutating func parseNullTerminatedUTF8() throws -> UTF8Span {
     fatalError()
   }
 }
