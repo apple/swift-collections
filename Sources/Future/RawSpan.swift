@@ -63,8 +63,8 @@ extension RawSpan {
   /// meaning that as long as `owner` is alive the memory will remain valid.
   ///
   /// - Parameters:
-  ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - pointer: a pointer to the first initialized byte.
+  ///   - byteCount: the number of initialized bytes in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `RawSpan`.
   @inlinable @inline(__always)
@@ -184,7 +184,7 @@ extension RawSpan {
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
     assertValidity(bounds)
-    return extracting(uncheckedBounds: bounds)
+    return extracting(unchecked: bounds)
   }
 
   /// Constructs a new span over the bytes within the supplied range of
@@ -203,7 +203,7 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public func extracting(uncheckedBounds bounds: Range<Int>) -> Self {
+  public func extracting(unchecked bounds: Range<Int>) -> Self {
     RawSpan(
       _unchecked: _start.advanced(by: bounds.lowerBound),
       byteCount: bounds.count,
@@ -246,9 +246,9 @@ extension RawSpan {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public func extracting(
-    uncheckedBounds bounds: some RangeExpression<Int>
+    unchecked bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(uncheckedBounds: bounds.relative(to: _byteOffsets))
+    extracting(unchecked: bounds.relative(to: _byteOffsets))
   }
 
   /// Constructs a new span over all the bytes of this span.
@@ -302,7 +302,7 @@ extension RawSpan {
   /// to instances of `T` must be surjective.
   ///
   /// This is an unsafe operation. Failure to meet the preconditions
-  /// above may produce an invalid value of `T`.
+  /// above may produce invalid values of `T`.
   ///
   /// - Parameters:
   ///   - type: The type as which to view the bytes of this span.
@@ -442,6 +442,10 @@ extension RawSpan {
   /// If the maximum length exceeds the length of this span,
   /// the result contains all the bytes.
   ///
+  /// The returned span's first byte is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
+  ///
   /// - Parameter maxLength: The maximum number of bytes to return.
   ///   `maxLength` must be greater than or equal to zero.
   /// - Returns: A span with at most `maxLength` bytes.
@@ -457,6 +461,10 @@ extension RawSpan {
   ///
   /// If the number of elements to drop exceeds the number of elements in
   /// the span, the result is an empty span.
+  ///
+  /// The returned span's first byte is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
   ///
   /// - Parameter k: The number of bytes to drop off the end of
   ///   the span. `k` must be greater than or equal to zero.
@@ -475,6 +483,10 @@ extension RawSpan {
   /// If the maximum length exceeds the length of this span,
   /// the result contains all the bytes.
   ///
+  /// The returned span's first byte is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
+  ///
   /// - Parameter maxLength: The maximum number of bytes to return.
   ///   `maxLength` must be greater than or equal to zero.
   /// - Returns: A span with at most `maxLength` bytes.
@@ -491,6 +503,10 @@ extension RawSpan {
   ///
   /// If the number of elements to drop exceeds the number of bytes in
   /// the span, the result is an empty span.
+  ///
+  /// The returned span's first byte is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
   ///
   /// - Parameter k: The number of bytes to drop from the beginning of
   ///   the span. `k` must be greater than or equal to zero.

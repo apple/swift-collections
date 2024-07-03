@@ -104,7 +104,7 @@ final class RawSpanTests: XCTestCase {
       let sub1 = span.extracting(0..<2)
       let sub2 = span.extracting(..<2)
       let sub3 = span.extracting(...)
-      let sub4 = span.extracting(uncheckedBounds: 2...)
+      let sub4 = span.extracting(unchecked: 2...)
       XCTAssertTrue(
         sub1.unsafeView(as: UInt8.self)._elementsEqual(sub2.unsafeView(as: UInt8.self))
       )
@@ -123,7 +123,7 @@ final class RawSpanTests: XCTestCase {
     b.withUnsafeBytes {
       let span = RawSpan(unsafeBytes: $0, owner: $0)
       let prefix = span.extracting(0..<8)
-      let beyond = prefix.extracting(uncheckedBounds: 16..<24)
+      let beyond = prefix.extracting(unchecked: 16..<24)
       XCTAssertEqual(beyond.byteCount, 8)
       XCTAssertEqual(beyond.unsafeLoad(as: UInt8.self), 16)
     }

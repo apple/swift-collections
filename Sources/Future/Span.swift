@@ -71,7 +71,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
@@ -118,7 +118,7 @@ extension Span where Element: BitwiseCopyable {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
@@ -170,7 +170,7 @@ extension Span where Element: BitwiseCopyable {
   ///
   /// - Parameters:
   ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the view.
+  ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   public init<Owner: ~Copyable & ~Escapable>(
@@ -423,7 +423,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
     assertValidity(bounds)
-    return extracting(uncheckedBounds: bounds)
+    return extracting(unchecked: bounds)
   }
 
   /// Constructs a new span over the items within the supplied range of
@@ -442,7 +442,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Complexity: O(1)
   @inlinable @inline(__always)
-  public func extracting(uncheckedBounds bounds: Range<Int>) -> Self {
+  public func extracting(unchecked bounds: Range<Int>) -> Self {
     Span(
       _unchecked: _start.advanced(by: bounds.lowerBound),
       count: bounds.count,
@@ -487,7 +487,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(
     uncheckedBounds bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(uncheckedBounds: bounds.relative(to: _indices))
+    extracting(unchecked: bounds.relative(to: _indices))
   }
 
   /// Constructs a new span over all the items of this span.
@@ -605,6 +605,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// If the maximum length exceeds the length of this span,
   /// the result contains all the elements.
   ///
+  /// The returned span's first item is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
+  ///
   /// - Parameter maxLength: The maximum number of elements to return.
   ///   `maxLength` must be greater than or equal to zero.
   /// - Returns: A span with at most `maxLength` elements.
@@ -620,6 +624,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// If the number of elements to drop exceeds the number of elements in
   /// the span, the result is an empty span.
+  ///
+  /// The returned span's first item is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
   ///
   /// - Parameter k: The number of elements to drop off the end of
   ///   the span. `k` must be greater than or equal to zero.
@@ -638,6 +646,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// If the maximum length exceeds the length of this span,
   /// the result contains all the elements.
   ///
+  /// The returned span's first item is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
+  ///
   /// - Parameter maxLength: The maximum number of elements to return.
   ///   `maxLength` must be greater than or equal to zero.
   /// - Returns: A span with at most `maxLength` elements.
@@ -654,6 +666,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// If the number of elements to drop exceeds the number of elements in
   /// the span, the result is an empty span.
+  ///
+  /// The returned span's first item is always at offset 0; unlike buffer
+  /// slices, extracted spans do not share their indices with the
+  /// span from which they are extracted.
   ///
   /// - Parameter k: The number of elements to drop from the beginning of
   ///   the span. `k` must be greater than or equal to zero.
