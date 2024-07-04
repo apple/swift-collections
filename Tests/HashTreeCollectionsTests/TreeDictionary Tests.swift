@@ -18,7 +18,7 @@ import HashTreeCollections
 
 extension TreeDictionary: DictionaryAPIExtras {}
 
-class TreeDictionaryTests: CollectionTestCase {
+final class TreeDictionaryTests: CollectionTestCase {
   func test_empty() {
     let d = TreeDictionary<String, Int>()
     expectEqualElements(d, [])

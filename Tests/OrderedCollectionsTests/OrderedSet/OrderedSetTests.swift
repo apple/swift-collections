@@ -19,7 +19,7 @@ import _CollectionsTestSupport
 
 extension OrderedSet: SetAPIExtras {}
 
-class OrderedSetTests: CollectionTestCase {
+final class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {
     withEvery("count", in: 0 ..< 20) { count in
       let contents = Array(0 ..< count)

@@ -19,7 +19,7 @@ import _RopeModule
 #endif
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
-class TestBigString: CollectionTestCase {
+final class TestBigString: CollectionTestCase {
   override var isAvailable: Bool { isRunningOnSwiftStdlib5_8 }
 
   override class func setUp() {

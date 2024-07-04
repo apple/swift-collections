@@ -20,7 +20,7 @@ import _CollectionsTestSupport
 // Note: This cannot really work unless `UnorderedView` becomes a Collection.
 // extension OrderedSet.UnorderedView: SetAPIChecker {}
 
-class OrderedSetUnorderedViewTests: CollectionTestCase {
+final class OrderedSetUnorderedViewTests: CollectionTestCase {
   func test_unordered_insert() {
     withEvery("count", in: 0 ..< 20) { count in
       withEvery("dupes", in: 1 ... 3) { dupes in

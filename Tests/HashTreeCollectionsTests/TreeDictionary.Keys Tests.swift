@@ -17,7 +17,7 @@ import _CollectionsTestSupport
 import HashTreeCollections
 #endif
 
-class TreeDictionaryKeysTests: CollectionTestCase {
+final class TreeDictionaryKeysTests: CollectionTestCase {
   func test_BidirectionalCollection_fixtures() {
     withEachFixture { fixture in
       withLifetimeTracking { tracker in

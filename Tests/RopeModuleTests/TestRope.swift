@@ -114,7 +114,7 @@ struct Chunk: RopeElement, Equatable, CustomStringConvertible {
   }
 }
 
-class TestRope: CollectionTestCase {
+final class TestRope: CollectionTestCase {
   override func setUp() {
     super.setUp()
     print("Global seed: \(RepeatableRandomNumberGenerator.globalSeed)")

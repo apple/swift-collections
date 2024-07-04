@@ -17,7 +17,7 @@ import XCTest
 @testable import HeapModule
 #endif
 
-class HeapNodeTests: XCTestCase {
+final class HeapNodeTests: XCTestCase {
   func test_levelCalculation() {
     // Check alternating min and max levels in the heap
     var isMin = true

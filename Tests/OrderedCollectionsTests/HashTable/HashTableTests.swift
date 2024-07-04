@@ -20,7 +20,7 @@ import _CollectionsTestSupport
 @_spi(Testing) @testable import OrderedCollections
 #endif
 
-class HashTableTests: CollectionTestCase {
+final class HashTableTests: CollectionTestCase {
   typealias Bucket = _HashTable.Bucket
 
   func test_capacity() {

@@ -17,7 +17,7 @@ import Collections
 import _CollectionsTestSupport
 #endif
 
-class OrderedDictionaryValueTests: CollectionTestCase {
+final class OrderedDictionaryValueTests: CollectionTestCase {
   func test_values_getter_equal() {
     let left: OrderedDictionary = [
       "one": 1,

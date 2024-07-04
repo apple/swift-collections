@@ -26,7 +26,7 @@
 ///          }
 ///        }
 ///      }
-public class LifetimeTracked<Payload> {
+public final class LifetimeTracked<Payload> {
   public let tracker: LifetimeTracker
   internal var serialNumber: Int = 0
   public let payload: Payload

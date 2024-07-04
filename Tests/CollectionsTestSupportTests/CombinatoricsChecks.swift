@@ -14,7 +14,7 @@ import XCTest
 import _CollectionsTestSupport
 #endif
 
-class CombinatoricsTests: CollectionTestCase {
+final class CombinatoricsTests: CollectionTestCase {
   func testEverySubset_smoke() {
     func collectSubsets(of set: [Int]) -> Set<[Int]> {
       var result: Set<[Int]> = []

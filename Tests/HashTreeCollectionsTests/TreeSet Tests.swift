@@ -18,7 +18,7 @@ import HashTreeCollections
 
 extension TreeSet: SetAPIExtras {}
 
-class TreeSetTests: CollectionTestCase {
+final class TreeSetTests: CollectionTestCase {
   func test_init_empty() {
     let set = TreeSet<Int>()
     expectEqual(set.count, 0)

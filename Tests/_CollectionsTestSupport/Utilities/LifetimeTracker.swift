@@ -17,7 +17,7 @@
 ///     instantiate or deinitialize instances belonging to the same tracker
 ///     from multiple concurrent threads (or reentrantly) will lead to
 ///     exclusivity violations and therefore undefined behavior.
-public class LifetimeTracker {
+public final class LifetimeTracker {
   public internal(set) var instances = 0
   var _nextSerialNumber = 0
 
