@@ -188,8 +188,8 @@ extension Deque._UnsafeHandle {
     assert(offsets.lowerBound >= 0 && offsets.upperBound <= count)
     let lower = slot(forOffset: offsets.lowerBound)
     let upper = slot(forOffset: offsets.upperBound)
-    if offsets.count == 0 || lower < upper {
-      return .init(start: ptr(at: lower), count: offsets.count)
+    if offsets.isEmpty || lower < upper {
+    return .init(start: ptr(at: lower), count: offsets.count)
     }
     return .init(first: ptr(at: lower), count: capacity - lower.position,
                  second: ptr(at: .zero), count: upper.position)

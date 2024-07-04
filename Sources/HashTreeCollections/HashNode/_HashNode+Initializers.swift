@@ -57,7 +57,7 @@ extension _HashNode {
       childMap: .empty,
       count: 1
     ) { children, items in
-      assert(items.count == 1 && children.count == 0)
+      assert(items.count == 1 && children.isEmpty)
       items.initializeElement(at: 0, to: item)
     }
     r.node._invariantCheck()
@@ -89,7 +89,7 @@ extension _HashNode {
       childMap: .empty,
       count: 2
     ) { children, items -> (_HashSlot, _HashSlot) in
-      assert(items.count == 2 && children.count == 0)
+      assert(items.count == 2 && children.isEmpty)
       let i1 = bucket1 < bucket2 ? 1 : 0
       let i2 = 1 &- i1
       items.initializeElement(at: i1, to: item1)
@@ -110,7 +110,7 @@ extension _HashNode {
       childMap: _Bitmap(bucket),
       count: child.count
     ) { children, items in
-      assert(items.count == 0 && children.count == 1)
+      assert(items.isEmpty && children.count == 1)
       children.initializeElement(at: 0, to: child)
     }
     r.node._invariantCheck()
@@ -163,7 +163,7 @@ extension _HashNode {
       childMap: _Bitmap(child1Bucket, child2Bucket),
       count: child1.count &+ child2.count
     ) { children, items in
-      assert(items.count == 0 && children.count == 2)
+      assert(items.isEmpty && children.count == 2)
       children.initializeElement(at: 0, to: child1)
       children.initializeElement(at: 1, to: child2)
     }

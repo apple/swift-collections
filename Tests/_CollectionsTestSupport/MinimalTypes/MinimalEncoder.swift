@@ -104,7 +104,7 @@ extension MinimalEncoder.Value: CustomStringConvertible {
     case .double(let v): return ".double(\(v))"
     case .string(let v): return ".string(\(String(reflecting: v)))"
     case .array(let value):
-      if value.count == 0 { return ".array([])" }
+      if value.isEmpty { return ".array([])" }
       var result = ".array([\n"
       for v in value {
         result += prefix
@@ -115,7 +115,7 @@ extension MinimalEncoder.Value: CustomStringConvertible {
       result += prefix + "])"
       return result
     case .dictionary(let value):
-      if value.count == 0 { return ".dictionary([:])" }
+      if value.isEmpty { return ".dictionary([:])" }
       var result = ".dictionary([\n"
       for (k, v) in value.sorted(by: { $0.key < $1.key }) {
         result += prefix
