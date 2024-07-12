@@ -537,7 +537,6 @@ public struct OutOfBoundsError: Error {
 }
 
 extension RawSpan {
-#if false // rdar://130971168
   /// Parse an instance of `T`, advancing `position`.
   @inlinable
   public func parse<T: BitwiseCopyable>(
@@ -553,7 +552,6 @@ extension RawSpan {
     }
     return unsafeLoadUnaligned(fromUncheckedByteOffset: position, as: T.self)
   }
-#endif
 
   /// Parse `numBytes` of data, advancing `position`.
   @inlinable
@@ -598,7 +596,6 @@ extension RawSpan {
       parseRange = base._byteOffsets
     }
 
-#if false // rdar://130971168
     /// Parse an instance of `T` and advance
     @inlinable
     public mutating func parse<T: BitwiseCopyable>(
@@ -614,7 +611,6 @@ extension RawSpan {
     ) throws (OutOfBoundsError) -> RawSpan {
       try base.parse(&position, numBytes: numBytes)
     }
-#endif
 
     /// The bytes that we've parsed so far
     @inlinable
