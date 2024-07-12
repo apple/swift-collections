@@ -307,6 +307,7 @@ extension RawSpan {
   /// - Parameters:
   ///   - type: The type as which to view the bytes of this span.
   /// - Returns: A typed span viewing these bytes as instances of `T`.
+  @_alwaysEmitIntoClient
   public func unsafeView<T: BitwiseCopyable>(
     as type: T.Type
   ) -> Span<T> {
@@ -334,6 +335,7 @@ extension RawSpan {
   /// - Returns: A new instance of type `T`, read from the raw bytes at
   ///     `offset`. The returned instance is memory-managed and unassociated
   ///     with the value in the memory referenced by this pointer.
+  @inlinable @inline(__always)
   public func unsafeLoad<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
@@ -361,6 +363,7 @@ extension RawSpan {
   /// - Returns: A new instance of type `T`, read from the raw bytes at
   ///     `offset`. The returned instance is memory-managed and unassociated
   ///     with the value in the memory referenced by this pointer.
+  @inlinable @inline(__always)
   public func unsafeLoad<T>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
@@ -383,6 +386,7 @@ extension RawSpan {
   /// - Returns: A new instance of type `T`, read from the raw bytes at
   ///     `offset`. The returned instance isn't associated
   ///     with the value in the range of memory referenced by this pointer.
+  @_alwaysEmitIntoClient
   public func unsafeLoadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
@@ -409,6 +413,7 @@ extension RawSpan {
   /// - Returns: A new instance of type `T`, read from the raw bytes at
   ///     `offset`. The returned instance isn't associated
   ///     with the value in the range of memory referenced by this pointer.
+  @_alwaysEmitIntoClient
   public func unsafeLoadUnaligned<T: BitwiseCopyable>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
@@ -451,6 +456,7 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < byteCount ? maxLength : byteCount
@@ -471,6 +477,7 @@ extension RawSpan {
   /// - Returns: A span leaving off the specified number of bytes at the end.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < byteCount ? byteCount&-k : 0
@@ -492,6 +499,7 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < byteCount ? maxLength : byteCount
@@ -513,6 +521,7 @@ extension RawSpan {
   /// - Returns: A span starting after the specified number of bytes.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < byteCount ? k : byteCount

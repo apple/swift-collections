@@ -35,8 +35,8 @@ extension Span: Sendable {}
 
 extension UnsafePointer where Pointee: ~Copyable /*& ~Escapable*/ {
 
-  @inline(__always)
-  fileprivate var isAligned: Bool {
+  @usableFromInline @inline(__always)
+  var isAligned: Bool {
     (Int(bitPattern: self) & (MemoryLayout<Pointee>.alignment-1)) == 0
   }
 }
@@ -53,6 +53,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
+  @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
@@ -74,6 +75,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
+  @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart start: UnsafePointer<Element>,
     count: Int,
@@ -100,6 +102,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
+  @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
@@ -121,6 +124,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
+  @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart start: UnsafePointer<Element>,
     count: Int,
@@ -145,6 +149,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - type: the type to use when interpreting the bytes in memory.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
+  @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeBytes buffer: UnsafeRawBufferPointer,
     owner: borrowing Owner
@@ -173,6 +178,7 @@ extension Span where Element: BitwiseCopyable {
   ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
+  @inlinable @inline(__always)
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeStart pointer: UnsafeRawPointer,
     byteCount: Int,
@@ -614,6 +620,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let nc = maxLength < count ? maxLength : count
@@ -634,6 +641,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span leaving off the specified number of elements at the end.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let nc = k < count ? count&-k : 0
@@ -655,6 +663,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let nc = maxLength < count ? maxLength : count
@@ -676,6 +685,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span starting after the specified number of elements.
   ///
   /// - Complexity: O(1)
+  @inlinable
   public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = k < count ? k : count
