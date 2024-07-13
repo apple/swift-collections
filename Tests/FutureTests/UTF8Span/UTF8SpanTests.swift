@@ -54,73 +54,99 @@ class UTF8SpanTests: XCTestCase {
 
   func testContentViews() throws {
     func runTest(_ input: String) throws {
-      // TODO: also try input.utf8Span after compiler bug fixes
-      
-      let array = Array(input.utf8)
-//      let span = try UTF8Span(validating: array.storage)
-
-      // TODO: put the iterator code back in as well
-
       // For convenience, we use the API defined in
       // UTF8SpanViews.swift
 
+      // TODO: also try input.utf8Span after compiler bug fixes
+
+      let array = Array(input.utf8)
+      let span = try UTF8Span(validating: array.storage)
+
+      do {
+        var strIter = input.makeIterator()
+        var spanIter = span.characters.makeIterator()
+
+        while let c = strIter.next() {
+          guard let spanC = spanIter.next() else {
+            XCTFail("Span ran out of content")
+            return
+          }
+          XCTAssertEqual(c, spanC)
+        }
+        XCTAssertNil(spanIter.next())
+      }
+
+      do {
+        var strIter = input.unicodeScalars.makeIterator()
+        var spanIter = span.unicodeScalars.makeIterator()
+
+        while let c = strIter.next() {
+          guard let spanC = spanIter.next() else {
+            XCTFail("Span ran out of content")
+            return
+          }
+          XCTAssertEqual(c, spanC)
+        }
+        XCTAssertNil(spanIter.next())
+      }
+
+      // TODO: uncomment the collection style bidi tests
+      // when compiler bug is fixes
+
+#if false
       // Scalars
       do {
 
-        try array.withUnsafeBytes {
-          let span = try UTF8Span(validatingUnsafeRaw: $0, owner: array)
+        var strIdx = input.unicodeScalars.startIndex
+        var spanIdx = span.unicodeScalars.startIndex
+        while strIdx != input.unicodeScalars.endIndex {
+          XCTAssertEqual(
+            input.utf8.distance(from: input.startIndex, to: strIdx),
+            spanIdx.position)
+          XCTAssertEqual(input.unicodeScalars[strIdx], span.unicodeScalars[spanIdx])
+          input.unicodeScalars.formIndex(after: &strIdx)
+          span.unicodeScalars.formIndex(after: &spanIdx)
+        }
+        XCTAssertEqual(spanIdx, span.unicodeScalars.endIndex)
 
-          var strIdx = input.unicodeScalars.startIndex
-          var spanIdx = span.unicodeScalars.startIndex
-          while strIdx != input.unicodeScalars.endIndex {
-            XCTAssertEqual(
-              input.utf8.distance(from: input.startIndex, to: strIdx),
-              spanIdx.position)
-            XCTAssertEqual(input.unicodeScalars[strIdx], span.unicodeScalars[spanIdx])
-            input.unicodeScalars.formIndex(after: &strIdx)
-            span.unicodeScalars.formIndex(after: &spanIdx)
-          }
-          XCTAssertEqual(spanIdx, span.unicodeScalars.endIndex)
-
-          strIdx = input.unicodeScalars.endIndex
-          spanIdx = span.unicodeScalars.endIndex
-          while strIdx != input.startIndex {
-            XCTAssertEqual(
-              input.utf8.distance(from: input.startIndex, to: strIdx),
-              spanIdx.position)
-            input.unicodeScalars.formIndex(before: &strIdx)
-            span.unicodeScalars.formIndex(before: &spanIdx)
-            XCTAssertEqual(input.unicodeScalars[strIdx], span.unicodeScalars[spanIdx])
-          }
+        strIdx = input.unicodeScalars.endIndex
+        spanIdx = span.unicodeScalars.endIndex
+        while strIdx != input.startIndex {
+          XCTAssertEqual(
+            input.utf8.distance(from: input.startIndex, to: strIdx),
+            spanIdx.position)
+          input.unicodeScalars.formIndex(before: &strIdx)
+          span.unicodeScalars.formIndex(before: &spanIdx)
+          XCTAssertEqual(input.unicodeScalars[strIdx], span.unicodeScalars[spanIdx])
         }
       }
 
       // Characters
       do {
+        var strIdx = input.startIndex
+        var spanIdx = span.characters.startIndex
+        while strIdx != input.endIndex {
+          XCTAssertEqual(
+            input.utf8.distance(from: input.startIndex, to: strIdx),
+            spanIdx.position)
+          XCTAssertEqual(input[strIdx], span.characters[spanIdx])
+          input.formIndex(after: &strIdx)
+          span.characters.formIndex(after: &spanIdx)
+        }
+        XCTAssertEqual(spanIdx, span.characters.endIndex)
 
-//        var strIdx = input.startIndex
-//        var spanIdx = span.characters.startIndex
-//        while strIdx != input.endIndex {
-//          XCTAssertEqual(
-//            input.utf8.distance(from: input.startIndex, to: strIdx),
-//            spanIdx.position)
-//          XCTAssertEqual(input[strIdx], span.characters[spanIdx])
-//          input.formIndex(after: &strIdx)
-//          span.characters.formIndex(after: &spanIdx)
-//        }
-//        XCTAssertEqual(spanIdx, span.characters.endIndex)
-
-//        strIdx = input.endIndex
-//        spanIdx = span.characters.endIndex
-//        while strIdx != input.startIndex {
-//          XCTAssertEqual(
-//            input.utf8.distance(from: input.startIndex, to: strIdx),
-//            spanIdx.position)
-//          input.formIndex(before: &strIdx)
-//          span.characters.formIndex(before: &spanIdx)
-//          XCTAssertEqual(input[strIdx], span.characters[spanIdx])
-//        }
+        strIdx = input.endIndex
+        spanIdx = span.characters.endIndex
+        while strIdx != input.startIndex {
+          XCTAssertEqual(
+            input.utf8.distance(from: input.startIndex, to: strIdx),
+            spanIdx.position)
+          input.formIndex(before: &strIdx)
+          span.characters.formIndex(before: &spanIdx)
+          XCTAssertEqual(input[strIdx], span.characters[spanIdx])
+        }
       }
+#endif
 
     }
 
