@@ -167,9 +167,19 @@ extension UTF8Span.UnicodeScalarView {
   }
 
   @inlinable
-  public subscript(position i: Index) -> Element {
+  public func formIndex(after i: inout Index) {
+    i = index(after: i)
+  }
+
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    i = index(before: i)
+  }
+
+  @inlinable
+  public subscript(position: Index) -> Element {
     borrowing _read {
-      yield span.decodeNextScalar(i.position).0
+      yield span.decodeNextScalar(position.position).0
     }
   }
 
@@ -318,6 +328,18 @@ extension UTF8Span.CharacterView {
     .init(span.previousCharacterStart(i.position))
   }
 
+  @inlinable
+  public func formIndex(after i: inout Index) {
+    i = index(after: i)
+  }
+
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    i = index(before: i)
+  }
+
+
+
 #if false
   @inlinable
   public func index(
@@ -326,15 +348,6 @@ extension UTF8Span.CharacterView {
     fatalError()
   }
 
-  @inlinable
-  public func formIndex(after i: inout Index) {
-    fatalError()
-  }
-
-  @inlinable
-  public func formIndex(before i: inout Index) {
-    fatalError()
-  }
 
   @inlinable
   public func index(_ i: Index, offsetBy distance: Int) -> Index {
@@ -356,9 +369,9 @@ extension UTF8Span.CharacterView {
 #endif
 
   @inlinable
-  public subscript(position i: Index) -> Element {
+  public subscript(position: Index) -> Element {
     borrowing _read {
-      yield span.decodeNextCharacter(i.position).0
+      yield span.decodeNextCharacter(position.position).0
     }
   }
 

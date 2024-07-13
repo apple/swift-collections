@@ -109,7 +109,10 @@ extension UnsafeRawPointer {
     _ i: Int,
     limitedBy end: Int
   ) -> Bool {
-    _internalInvariant(i >= 0)
+    _internalInvariant(i >= 0 && i <= end)
+    if i == 0 || i == end {
+      return true
+    }
 
     // TODO: call internals instead
     let str = _str(0..<end)
