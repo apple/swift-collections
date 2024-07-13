@@ -6,16 +6,22 @@ public struct UTF8Span: Copyable, ~Escapable {
   /*
    A bit-packed count and flags (such as isASCII)
 
-   ╔═══════╦═════╦═════╦══════════╦═══════╗
-   ║  b63  ║ b62 ║ b61 ║  b60:56  ║ b56:0 ║
-   ╠═══════╬═════╬═════╬══════════╬═══════╣
-   ║ ASCII ║ NFC ║ SSC ║ reserved ║ count ║
-   ╚═══════╩═════╩═════╩══════════╩═══════╝
+   ╔═══════╦═════╦═════╦═════╦══════════╦═══════╗
+   ║  b63  ║ b62 ║ b61 ║ b60 ║ b59:56   ║ b56:0 ║
+   ╠═══════╬═════╬═════╬═════╬══════════╬═══════╣
+   ║ ASCII ║ NFC ║ SSC ║ NUL ║ reserved ║ count ║
+   ╚═══════╩═════╩═════╩═════╩══════════╩═══════╝
 
    ASCII means the contents are all-ASCII (<0x7F). 
    NFC means contents are in normal form C for fast comparisons.
    SSC means single-scalar Characters (i.e. grapheme clusters): every
      `Character` holds only a single `Unicode.Scalar`.
+   NUL means the contents are a null-terminated C string (that is,
+     there is a guranteed, borrowed NULL byte after the end of `count`).
+
+   TODO: NUL means both no-interior and null-terminator, so does this
+   mean that String doesn't ever set it because we don't want to scan
+   for interior nulls? I think this is the only viable option...
 
    TODO: Contains-newline would be useful for Regex `.`
 
@@ -113,7 +119,7 @@ extension UTF8Span {
         to: CChar.self
       ),
       owner: owner)
-    // FIXME: set is null terminated
+    self._setIsNullTerminatedCString(true)
   }
 
   @_alwaysEmitIntoClient
@@ -126,7 +132,7 @@ extension UTF8Span {
       validatingUnsafeStart: UnsafeRawPointer(nullTerminatedUTF8),
       count: len,
       owner: owner)
-    // FIXME: set is null terminated
+    self._setIsNullTerminatedCString(true)
   }
 }
 
@@ -194,6 +200,8 @@ extension String {
         )
       }
 
+      // TODO: set null-terminated bit
+
 //      let span = self.utf8.storage
       yield UTF8Span(
         _unsafeAssumingValidUTF8: .init(span._start),
@@ -232,7 +240,11 @@ extension UTF8Span {
   @_alwaysEmitIntoClient @inline(__always)
   func _invariantCheck() {
 #if DEBUG
-
+    if isNullTerminatedCString {
+      _internalInvariant(
+        unsafeBaseAddress.load(fromByteOffset: count, as: UInt8.self) == 0)
+      // TODO: byte scan for no interior nulls...
+    }
 #endif
   }
 }

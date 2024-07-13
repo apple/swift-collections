@@ -96,10 +96,16 @@ extension UTF8Span {
     let ptr = unsafeBaseAddress + bounds.lowerBound
     let countAndFlags = UInt64(truncatingIfNeeded: bounds.count)
     | (_countAndFlags & Self._flagsMask)
-    return UTF8Span(
+
+    var span = UTF8Span(
       _unsafeAssumingValidUTF8: ptr,
       _countAndFlags: countAndFlags,
       owner: self)
+
+    if bounds.upperBound != self.count {
+      span._setIsNullTerminatedCString(false)
+    }
+    return span
   }
 
   /// Whether this span has the same bytes as `other`.

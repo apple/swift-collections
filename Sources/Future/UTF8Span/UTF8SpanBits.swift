@@ -15,6 +15,24 @@ extension UTF8Span {
     0 != _countAndFlags & Self._nfcBit
   }
 
+  /// Returns whether the contents are a null-terminated C string. If true, there
+  /// is a guaranteed null byte after the end of `count` and no null bytes stored
+  /// within the span
+  @_alwaysEmitIntoClient
+  public var isNullTerminatedCString: Bool {
+    0 != _countAndFlags & Self._nullTerminatedCStringBit
+  }
+
+  @_alwaysEmitIntoClient
+  internal mutating func _setIsNullTerminatedCString(_ value: Bool) {
+    if value {
+      _countAndFlags |= Self._nullTerminatedCStringBit
+    } else {
+      _countAndFlags &= ~Self._nullTerminatedCStringBit
+    }
+    _invariantCheck()
+  }
+
   /// Do a scan checking for whether the contents are in Normal Form C.
   /// When the contents are in NFC, canonical equivalence checks are much
   /// faster.
@@ -100,6 +118,11 @@ extension UTF8Span {
   @_alwaysEmitIntoClient @inline(__always)
   internal static var _singleScalarCharactersBit: UInt64 {
     0x2000_0000_0000_0000
+  }
+
+  @_alwaysEmitIntoClient @inline(__always)
+  internal static var _nullTerminatedCStringBit: UInt64 {
+    0x1000_0000_0000_0000
   }
 
   @_alwaysEmitIntoClient @inline(__always)
