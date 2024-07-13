@@ -1,7 +1,7 @@
 extension UTF8Span {
   /// Returns whether the validated contents were all-ASCII. This is checked at
   /// initialization time and remembered.
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var isASCII: Bool {
     0 != _countAndFlags & Self._asciiBit
   }
@@ -10,7 +10,7 @@ extension UTF8Span {
   /// Returns whether the contents are known to be NFC. This is not
   /// always checked at initialization time and is set by `checkForNFC`.
   @_unavailableInEmbedded
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var isKnownNFC: Bool {
     0 != _countAndFlags & Self._nfcBit
   }
@@ -50,7 +50,7 @@ extension UTF8Span {
   /// This is not always checked at initialization time. It is set by
   /// `checkForSingleScalarCharacters`.
   @_unavailableInEmbedded
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var isKnownSingleScalarCharacters: Bool {
     0 != _countAndFlags & Self._singleScalarCharactersBit
   }
@@ -112,8 +112,7 @@ extension UTF8Span {
     0xFF00_0000_0000_0000
   }
 
-  // TODO: Do we want a public count?
-  @_alwaysEmitIntoClient @inline(__always)
+  @_alwaysEmitIntoClient
   public var count: Int {
     Int(truncatingIfNeeded: _countAndFlags & Self._countMask)
   }
