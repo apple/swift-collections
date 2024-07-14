@@ -1,3 +1,5 @@
+// TODO: add the isASCII fast paths
+
 extension UTF8Span {
   /// Accesses the byte at the specified `position`.
   ///

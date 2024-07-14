@@ -23,6 +23,7 @@ extension UTF8Span {
     0 != _countAndFlags & Self._nullTerminatedCStringBit
   }
 
+  // Takes a paremeter because `extracting` may need to un-set the bit
   @_alwaysEmitIntoClient
   internal mutating func _setIsNullTerminatedCString(_ value: Bool) {
     if value {
@@ -31,6 +32,12 @@ extension UTF8Span {
       _countAndFlags &= ~Self._nullTerminatedCStringBit
     }
     _invariantCheck()
+  }
+
+  // Set the isASCII bit to true (also isNFC)
+  @_alwaysEmitIntoClient
+  internal mutating func _setIsASCII() {
+    self._countAndFlags |= Self._asciiBit | Self._nfcBit
   }
 
   /// Do a scan checking for whether the contents are in Normal Form C.
@@ -48,7 +55,20 @@ extension UTF8Span {
   ) -> Bool {
     if isKnownNFC { return true }
 
-    // TODO: quickCheck
+    if quickCheck {
+      var cur = 0
+      while cur < count {
+        let (s, next) = decodeNextScalar(cur)
+        cur = next
+        if s.value < 0x300 {
+          continue
+        }
+        // TODO: Check (internal) Unicode NFCQuickCheck=YES property
+        return false
+      }
+      self._countAndFlags |= Self._nfcBit
+      return true
+    }
 
     // TODO: use faster internal algorithm
     let normalized = _str._nfcCodeUnits

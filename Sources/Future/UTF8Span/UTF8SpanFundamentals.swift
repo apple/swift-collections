@@ -56,7 +56,7 @@ extension UTF8Span {
   public func nextScalarStart(unchecked i: Int) -> Int {
     _internalInvariant(boundsCheck(i))
     precondition(isScalarAligned(i))
-    return nextScalarStart(i)
+    return nextScalarStart(uncheckedAssumingAligned: i)
   }
 
   /// Returns the start of the next `Unicode.Scalar` after the one starting at

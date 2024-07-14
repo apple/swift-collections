@@ -56,11 +56,9 @@ extension UTF8Span {
     let count = codeUnits._count
     let isASCII = try unsafeBaseAddress._validateUTF8(limitedBy: count)
 
-    let uintCount = UInt64(truncatingIfNeeded: count)
+    self._countAndFlags = UInt64(truncatingIfNeeded: count)
     if isASCII {
-      self._countAndFlags = uintCount | Self._asciiBit
-    } else {
-      self._countAndFlags = uintCount
+      _setIsASCII()
     }
     _internalInvariant(self.count == codeUnits.count)
   }
@@ -119,7 +117,7 @@ extension UTF8Span {
         to: CChar.self
       ),
       owner: owner)
-    self._setIsNullTerminatedCString(true)
+    _internalInvariant(self.isNullTerminatedCString)
   }
 
   @_alwaysEmitIntoClient

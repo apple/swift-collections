@@ -93,7 +93,6 @@ class UTF8SpanTests: XCTestCase {
       // TODO: uncomment the collection style bidi tests
       // when compiler bug is fixes
 
-#if false
       // Scalars
       do {
 
@@ -146,16 +145,99 @@ class UTF8SpanTests: XCTestCase {
           XCTAssertEqual(input[strIdx], span.characters[spanIdx])
         }
       }
-#endif
 
     }
 
     try runTest("abc")
-//    try runTest("abcdefghiljkmnop")
-//    try runTest("abcde\0fghiljkmnop")
-//    try runTest("a🧟‍♀️bc\0\u{301}defg")
-//    try runTest("a🧟‍♀️bce\u{301}defg")
-//    try runTest("a🧟‍♀️bce\u{301}defg\r\n 🇺🇸")
+    try runTest("abcdefghiljkmnop")
+    try runTest("abcde\0fghiljkmnop")
+    try runTest("a🧟‍♀️bc\0\u{301}defg")
+    try runTest("a🧟‍♀️bce\u{301}defg")
+    try runTest("a🧟‍♀️bce\u{301}defg\r\n 🇺🇸")
 
+  }
+
+  func testCanonicalEquivalence() throws {
+    // TODO: equivalence checks
+    // TODO: canonically less than checks
+  }
+
+  func testMisc() throws {
+    // TODO: test withUnsafeBufferPointer
+
+  }
+
+  func testQueries() throws {
+    // TODO: test isASCII
+    // TODO: test knownNFC and checks for NFC
+    // TODO: test single scalar character and checks
+
+    ///
+    enum CheckLevelToPass {
+      case always // Passes upon bit inspection
+      case quick  // Passes under quick checking
+      case full   // Passes under full checking
+      case never  // Doesn't succeed under full checking
+
+      func check(
+        query: () -> Bool,
+        transform: (Bool) -> Bool
+      ) {
+        switch self {
+        case .always:
+          XCTAssert(query())
+
+        case .quick:
+          XCTAssertFalse(query())
+          let b = transform(true)
+          XCTAssert(b && query())
+
+        case .full:
+          XCTAssertFalse(query())
+          var b = transform(true)
+          XCTAssertFalse(b || query())
+
+          b = transform(false)
+          XCTAssert(b && query())
+
+        case .never:
+          XCTAssertFalse(query())
+          var b = transform(true)
+          XCTAssertFalse(b || query())
+
+          b = transform(false)
+          XCTAssertFalse(b || query())
+        }
+      }
+    }
+
+    func runTest(
+      _ input: String,
+      isASCII: Bool,
+      isNFC: CheckLevelToPass,
+      isSSC: CheckLevelToPass
+    ) throws {
+      let array = Array(input.utf8)
+      var span = try UTF8Span(validating: array.storage)
+
+      isNFC.check(
+        query: { span.isKnownNFC },
+        transform: { span.checkForNFC(quickCheck: $0) }
+      )
+
+      isSSC.check(
+        query: { span.isKnownSingleScalarCharacters },
+        transform: { span.checkForSingleScalarCharacters(quickCheck: $0) }
+      )
+
+    }
+
+    // FIXME: shouldn't be .full for SSC
+    try runTest("abc", isASCII: true, isNFC: .always, isSSC: .quick)
+    try runTest("abcde\u{301}", isASCII: true, isNFC: .never, isSSC: .never)
+
+
+    // TODO(perf): speed up grapheme breaking based on single scalar
+    // character, speed up nextScalarStart via isASCII, ...
   }
 }
