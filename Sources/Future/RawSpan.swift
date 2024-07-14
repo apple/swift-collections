@@ -16,17 +16,21 @@ import Builtin
 // of unspecified type.
 @frozen
 public struct RawSpan: Copyable, ~Escapable {
-  @usableFromInline let _start: UnsafeRawPointer
+  @usableFromInline let _pointer: UnsafeRawPointer?
+
+  @usableFromInline @inline(__always)
+  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
+
   @usableFromInline let _count: Int
 
   @inlinable @inline(__always)
   internal init<Owner: ~Copyable & ~Escapable>(
-    _unchecked start: UnsafeRawPointer,
+    _unchecked start: UnsafeRawPointer?,
     byteCount: Int,
     owner: borrowing Owner
   ) {
-    self._start = start
-    self._count = byteCount
+    _pointer = start
+    _count = byteCount
   }
 }
 
@@ -35,7 +39,6 @@ extension RawSpan: Sendable {}
 
 extension RawSpan {
 
-  //FIXME: make properly non-failable
   /// Unsafely create a `RawSpan` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -50,10 +53,9 @@ extension RawSpan {
     unsafeBytes buffer: UnsafeRawBufferPointer,
     owner: borrowing Owner
   ) {
-    guard let baseAddress = buffer.baseAddress else {
-      fatalError("RawSpan requires a non-nil base address")
-    }
-    self.init(_unchecked: baseAddress, byteCount: buffer.count, owner: owner)
+    self.init(
+      _unchecked: buffer.baseAddress, byteCount: buffer.count, owner: owner
+    )
   }
 
   /// Unsafely create a `RawSpan` over initialized memory.
@@ -205,7 +207,7 @@ extension RawSpan {
   @inlinable @inline(__always)
   public func extracting(unchecked bounds: Range<Int>) -> Self {
     RawSpan(
-      _unchecked: _start.advanced(by: bounds.lowerBound),
+      _unchecked: _pointer?.advanced(by: bounds.lowerBound),
       byteCount: bounds.count,
       owner: self
     )
@@ -425,15 +427,20 @@ extension RawSpan {
 
   @inlinable @inline(__always)
   public func contains(_ span: borrowing Self) -> Bool {
-    _start <= span._start &&
-    span._start.advanced(by: span._count) <= _start.advanced(by: _count)
+    if span._count > _count { return false }
+    if _count == 0 || span._count == 0 { return true }
+    if _start > span._start { return false }
+    return span._start.advanced(by: span._count) <= _start.advanced(by: _count)
   }
 
   @inlinable @inline(__always)
   public func offsets(of span: borrowing Self) -> Range<Int> {
     precondition(contains(span))
-    let s = _start.distance(to: span._start)
-    let e = s + span._count
+    var (s, e) = (0, 0)
+    if _pointer != nil && span._pointer != nil {
+      s = _start.distance(to: span._start)
+      e = s + span._count
+    }
     return Range(uncheckedBounds: (s, e))
   }
 }
@@ -459,8 +466,8 @@ extension RawSpan {
   @inlinable
   public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
-    let nc = maxLength < byteCount ? maxLength : byteCount
-    return Self(_unchecked: _start, byteCount: nc, owner: self)
+    let newCount = min(maxLength, byteCount)
+    return Self(_unchecked: _pointer, byteCount: newCount, owner: self)
   }
 
   /// Returns a span over all but the given number of trailing bytes.
@@ -480,8 +487,8 @@ extension RawSpan {
   @inlinable
   public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let nc = k < byteCount ? byteCount&-k : 0
-    return Self(_unchecked: _start, byteCount: nc, owner: self)
+    let dc = min(k, byteCount)
+    return Self(_unchecked: _pointer, byteCount: byteCount&-dc, owner: self)
   }
 
   /// Returns a span containing the trailing bytes of the span,
@@ -502,9 +509,9 @@ extension RawSpan {
   @inlinable
   public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
-    let nc = maxLength < byteCount ? maxLength : byteCount
-    let newStart = _start.advanced(by: byteCount&-nc)
-    return Self(_unchecked: newStart, byteCount: nc, owner: self)
+    let newCount = min(maxLength, byteCount)
+    let newStart = _pointer?.advanced(by: byteCount&-newCount)
+    return Self(_unchecked: newStart, byteCount: newCount, owner: self)
   }
 
   /// Returns a span over all but the given number of initial bytes.
@@ -524,8 +531,8 @@ extension RawSpan {
   @inlinable
   public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let dc = k < byteCount ? k : byteCount
-    let newStart = _start.advanced(by: dc)
+    let dc = min(k, byteCount)
+    let newStart = _pointer?.advanced(by: dc)
     return Self(_unchecked: newStart, byteCount: byteCount&-dc, owner: self)
   }
 }

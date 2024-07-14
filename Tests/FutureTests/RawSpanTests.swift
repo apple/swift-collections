@@ -187,6 +187,14 @@ final class RawSpanTests: XCTestCase {
         UInt8(capacity-2)
       )
     }
+
+    do {
+      let b = UnsafeRawBufferPointer(start: nil, count: 0)
+      let span = RawSpan(unsafeBytes: b, owner: b)
+      XCTAssertEqual(span.byteCount, b.count)
+      XCTAssertEqual(span.extracting(first: 1).byteCount, b.count)
+      XCTAssertEqual(span.extracting(droppingLast: 1).byteCount, b.count)
+    }
   }
 
   func testSuffix() {
@@ -200,6 +208,14 @@ final class RawSpanTests: XCTestCase {
       XCTAssertEqual(span.extracting(last: 1).unsafeLoad(as: UInt8.self), UInt8(capacity-1))
       XCTAssertTrue(span.extracting(droppingFirst: capacity).isEmpty)
       XCTAssertEqual(span.extracting(droppingFirst: 1).unsafeLoad(as: UInt8.self), 1)
+    }
+
+    do {
+      let b = UnsafeRawBufferPointer(start: nil, count: 0)
+      let span = RawSpan(unsafeBytes: b, owner: b)
+      XCTAssertEqual(span.byteCount, b.count)
+      XCTAssertEqual(span.extracting(last: 1).byteCount, b.count)
+      XCTAssertEqual(span.extracting(droppingFirst: 1).byteCount, b.count)
     }
   }
 
@@ -223,6 +239,7 @@ final class RawSpanTests: XCTestCase {
     let fakeSpan = RawSpan(
       unsafeStart: b.baseAddress!.advanced(by: 8), byteCount: 8, owner: b
     )
+    let nilSpan = RawSpan(unsafeBytes: .init(start: nil, count: 0), owner: b)
 
     XCTAssertTrue(span.contains(subSpan))
     XCTAssertFalse(subSpan.contains(span))
@@ -230,6 +247,9 @@ final class RawSpanTests: XCTestCase {
     XCTAssertFalse(emptySpan.contains(span))
     XCTAssertFalse(span.contains(fakeSpan))
     XCTAssertFalse(fakeSpan.contains(span))
+    XCTAssertTrue(span.contains(nilSpan))
+    XCTAssertTrue(fakeSpan.contains(nilSpan))
+    XCTAssertTrue(nilSpan.contains(emptySpan))
   }
 
   func testOffsets() {
@@ -239,11 +259,16 @@ final class RawSpanTests: XCTestCase {
     let span = RawSpan(unsafeBytes: .init(b), owner: b)
     let subSpan = span.extracting(last: 2)
     let emptySpan = span.extracting(first: 0)
+    let nilSpan = RawSpan(unsafeBytes: .init(start: nil, count: 0), owner: b)
 
     var bounds: Range<Int>
     bounds = span.offsets(of: subSpan)
     XCTAssertEqual(bounds, span._byteOffsets.suffix(2))
     bounds = span.offsets(of: emptySpan)
     XCTAssertEqual(bounds, span._byteOffsets.prefix(0))
+    bounds = span.offsets(of: nilSpan)
+    XCTAssertEqual(bounds, 0..<0)
+    bounds = nilSpan.offsets(of: emptySpan)
+    XCTAssertEqual(bounds, 0..<0)
   }
 }
