@@ -220,6 +220,8 @@ class UTF8SpanTests: XCTestCase {
       let array = Array(input.utf8)
       var span = try UTF8Span(validating: array.storage)
 
+      XCTAssertEqual(isASCII, span.isASCII)
+
       isNFC.check(
         query: { span.isKnownNFC },
         transform: { span.checkForNFC(quickCheck: $0) }
@@ -234,7 +236,26 @@ class UTF8SpanTests: XCTestCase {
 
     // FIXME: shouldn't be .full for SSC
     try runTest("abc", isASCII: true, isNFC: .always, isSSC: .quick)
-    try runTest("abcde\u{301}", isASCII: true, isNFC: .never, isSSC: .never)
+    try runTest("abcde\u{301}", isASCII: false, isNFC: .never, isSSC: .never)
+    try runTest("abcdè", isASCII: false, isNFC: .quick, isSSC: .quick)
+
+    try runTest(
+      "abcd日",
+      isASCII: false,
+      isNFC: .full, // FIXME: change to quick when we query QC properties
+      isSSC: .quick)
+
+    try runTest(
+      "a강c", // NOTE: Precomposed Gang U+AC15
+      isASCII: false,
+      isNFC: .full, // FIXME: change to quick when we query QC properties
+      isSSC: .quick)
+
+    try runTest(
+      "a강c", // NOTE: Decomposed Gang U+1100 U+1161 U+11BC
+      isASCII: false,
+      isNFC: .never,
+      isSSC: .never)
 
 
     // TODO(perf): speed up grapheme breaking based on single scalar

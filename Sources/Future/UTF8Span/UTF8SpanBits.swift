@@ -108,7 +108,25 @@ extension UTF8Span {
   ) -> Bool {
     if isKnownSingleScalarCharacters { return true }
 
-    // TODO: quickCheck
+    if quickCheck {
+      var idx = 0
+      var currentScalar: Unicode.Scalar? = nil
+      while idx < count {
+        let (scalar, next) = decodeNextScalar(idx)
+
+        if let cur = currentScalar {
+          guard _quickHasGraphemeBreakBetween(cur, scalar) else {
+            return false
+          }
+        }
+
+        currentScalar = scalar
+        idx = next
+      }
+
+      self._countAndFlags |= Self._singleScalarCharactersBit
+      return true
+    }
 
     var idx = 0
     while idx < count {
