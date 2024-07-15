@@ -16,17 +16,32 @@ import Builtin
 // contains initialized instances of `Element`.
 @frozen
 public struct Span<Element: ~Copyable /*& ~Escapable*/>: Copyable, ~Escapable {
-  @usableFromInline let _start: UnsafePointer<Element>
-  @usableFromInline let _count: Int
+  @usableFromInline let _buffer: UnsafeBufferPointer<Element>
+
+  @usableFromInline @inline(__always)
+  var _pointer: UnsafePointer<Element>? { _buffer.baseAddress }
+
+  @usableFromInline @inline(__always)
+  var _start: UnsafePointer<Element> { _pointer.unsafelyUnwrapped }
+
+  @usableFromInline @inline(__always)
+  var _count: Int { _buffer.count }
 
   @inlinable @inline(__always)
   internal init<Owner: ~Copyable & ~Escapable>(
-    _unchecked start: UnsafePointer<Element>,
+    _unchecked elements: UnsafeBufferPointer<Element>,
+    owner: borrowing Owner
+  ) {
+    _buffer = elements
+  }
+
+  @inlinable @inline(__always)
+  internal init<Owner: ~Copyable & ~Escapable>(
+    _unchecked start: UnsafePointer<Element>?,
     count: Int,
     owner: borrowing Owner
   ) {
-    self._start = start
-    self._count = count
+    self.init(_unchecked: .init(start: start, count: count), owner: owner)
   }
 }
 
@@ -43,7 +58,6 @@ extension UnsafePointer where Pointee: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
-  //FIXME: make properly non-failable
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -58,10 +72,11 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
   ) {
-    guard let baseAddress = buffer.baseAddress else {
-      fatalError("Span requires a non-nil base address")
-    }
-    self.init(unsafeStart: baseAddress, count: buffer.count, owner: owner)
+    precondition(
+      buffer.count == 0 || buffer.baseAddress.unsafelyUnwrapped.isAligned,
+      "baseAddress must be properly aligned for accessing \(Element.self)"
+    )
+    self.init(_unchecked: buffer, owner: owner)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -92,7 +107,6 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: BitwiseCopyable {
 
-  //FIXME: make properly non-failable
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -107,10 +121,7 @@ extension Span where Element: BitwiseCopyable {
     unsafeElements buffer: UnsafeBufferPointer<Element>,
     owner: borrowing Owner
   ) {
-    guard let baseAddress = buffer.baseAddress else {
-      fatalError("Span requires a non-nil base address")
-    }
-    self.init(unsafeStart: baseAddress, count: buffer.count, owner: owner)
+    self.init(_unchecked: buffer, owner: owner)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -134,7 +145,6 @@ extension Span where Element: BitwiseCopyable {
     self.init(_unchecked: start, count: count, owner: owner)
   }
 
-  //FIXME: make properly non-failable
   /// Unsafely create a `Span` over initialized memory.
   ///
   /// The memory in `unsafeBytes` must be owned by the instance `owner`
@@ -154,15 +164,13 @@ extension Span where Element: BitwiseCopyable {
     unsafeBytes buffer: UnsafeRawBufferPointer,
     owner: borrowing Owner
   ) {
-    guard let baseAddress = buffer.baseAddress else {
-      fatalError("Span requires a non-nil base address")
-    }
-    let (c, s) = (buffer.count, MemoryLayout<Element>.stride)
-    let (q, r) = c.quotientAndRemainder(dividingBy: s)
-    precondition(r == 0)
+    let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
+    assert(byteCount >= 0, "Count must not be negative")
+    let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
+    precondition(remainder == 0)
     self.init(
-      unsafeStart: baseAddress.assumingMemoryBound(to: Element.self),
-      count: q,
+      _unchecked: buffer.baseAddress?.assumingMemoryBound(to: Element.self),
+      count: count,
       owner: owner
     )
   }
@@ -184,12 +192,13 @@ extension Span where Element: BitwiseCopyable {
     byteCount: Int,
     owner: borrowing Owner
   ) {
+    precondition(byteCount >= 0, "Count must not be negative")
     let stride = MemoryLayout<Element>.stride
-    let (q, r) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(r == 0)
+    let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
+    precondition(remainder == 0)
     self.init(
-      unsafeStart: pointer.assumingMemoryBound(to: Element.self),
-      count: q,
+      _unchecked: pointer.assumingMemoryBound(to: Element.self),
+      count: count,
       owner: owner
     )
   }
@@ -405,7 +414,8 @@ extension Span where Element: BitwiseCopyable {
   @inlinable @inline(__always)
   public subscript(unchecked position: Int) -> Element {
     get {
-      UnsafeRawPointer(_start + position).loadUnaligned(as: Element.self)
+      let address = UnsafeRawPointer(_start.advanced(by: position))
+      return address.loadUnaligned(as: Element.self)
     }
   }
 }
@@ -450,7 +460,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable @inline(__always)
   public func extracting(unchecked bounds: Range<Int>) -> Self {
     Span(
-      _unchecked: _start.advanced(by: bounds.lowerBound),
+      _unchecked: _pointer?.advanced(by: bounds.lowerBound),
       count: bounds.count,
       owner: self
     )
@@ -589,15 +599,20 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
   @inlinable @inline(__always)
   public func contains(_ span: borrowing Self) -> Bool {
-    _start <= span._start &&
-    span._start.advanced(by: span._count) <= _start.advanced(by: _count)
+    if span._count > _count { return false }
+    if _count == 0 || span._count == 0 { return true }
+    if _start > span._start { return false }
+    return span._start.advanced(by: span._count) <= _start.advanced(by: _count)
   }
 
   @inlinable @inline(__always)
   public func offsets(of span: borrowing Self) -> Range<Int> {
     precondition(contains(span))
-    let s = _start.distance(to: span._start)
-    let e = s + span._count
+    var (s, e) = (0, 0)
+    if _pointer != nil && span._pointer != nil {
+      s = _start.distance(to: span._start)
+      e = s + span._count
+    }
     return Range(uncheckedBounds: (s, e))
   }
 }
@@ -623,8 +638,8 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable
   public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
-    let nc = maxLength < count ? maxLength : count
-    return Self(_unchecked: _start, count: nc, owner: self)
+    let newCount = min(maxLength, count)
+    return Self(_unchecked: _pointer, count: newCount, owner: self)
   }
 
   /// Returns a span over all but the given number of trailing elements.
@@ -644,8 +659,8 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable
   public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let nc = k < count ? count&-k : 0
-    return Self(_unchecked: _start, count: nc, owner: self)
+    let droppedCount = min(k, count)
+    return Self(_unchecked: _pointer, count: count&-droppedCount, owner: self)
   }
 
   /// Returns a span containing the final elements of the span,
@@ -666,9 +681,9 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable
   public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
-    let nc = maxLength < count ? maxLength : count
-    let newStart = _start.advanced(by: count&-nc)
-    return Self(_unchecked: newStart, count: nc, owner: self)
+    let newCount = min(maxLength, count)
+    let newStart = _pointer?.advanced(by: count&-newCount)
+    return Self(_unchecked: newStart, count: newCount, owner: self)
   }
 
   /// Returns a span over all but the given number of initial elements.
@@ -688,8 +703,8 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable
   public func extracting(droppingFirst k: Int = 1) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let dc = k < count ? k : count
-    let newStart = _start.advanced(by: dc)
-    return Self(_unchecked: newStart, count: count&-dc, owner: self)
+    let droppedCount = min(k, count)
+    let newStart = _pointer?.advanced(by: droppedCount)
+    return Self(_unchecked: newStart, count: count&-droppedCount, owner: self)
   }
 }
