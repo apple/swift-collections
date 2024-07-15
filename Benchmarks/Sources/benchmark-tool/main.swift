@@ -37,6 +37,7 @@ benchmark.addHeapBenchmarks()
 benchmark.addBitSetBenchmarks()
 benchmark.addTreeSetBenchmarks()
 benchmark.addCppBenchmarks()
+benchmark.addBigStringBenchmarks()
 #if os(macOS) || os(iOS) || os(watchOS) || os(tvOS)
 benchmark.addFoundationBenchmarks()
 #endif

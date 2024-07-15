@@ -39,13 +39,19 @@ extension BigString {
     var state: _CharacterRecognizer
     
     init(_ input: Substring) {
-      self.input = input
-      self.start = input.startIndex
-      self.state = _CharacterRecognizer()
+      self.init(input, startState: _CharacterRecognizer())
     }
     
     init(_ input: Substring, startState: __owned _CharacterRecognizer) {
       self.input = input
+      // Prevent accidentally quadratic operation by ensuring that we have
+      // a native UTF-8 string.
+      // FIXME: This is wasteful: if `input` happens to be a bridged
+      // FIXME: NSString instance, then it temporarily allocates a full
+      // FIXME: copy of the (transcoded) input string, only to then copy
+      // FIXME: its pieces into the tree later.
+      // FIXME: We should have a direct ingester path for native UTF-16 data.
+      self.input.makeContiguousUTF8()
       self.start = input.startIndex
       self.state = startState
     }
