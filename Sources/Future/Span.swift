@@ -81,6 +81,23 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
   /// Unsafely create a `Span` over initialized memory.
   ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeMutableBufferPointer` to initialized elements.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `Span`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeElements buffer: UnsafeMutableBufferPointer<Element>,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeElements: UnsafeBufferPointer(buffer), owner: owner)
+  }
+
+  /// Unsafely create a `Span` over initialized memory.
+  ///
   /// The memory representing `count` instances starting at
   /// `pointer` must be owned by the instance `owner`,
   /// meaning that as long as `owner` is alive the memory will remain valid.
@@ -122,6 +139,23 @@ extension Span where Element: BitwiseCopyable {
     owner: borrowing Owner
   ) {
     self.init(_unchecked: buffer, owner: owner)
+  }
+
+  /// Unsafely create a `Span` over initialized memory.
+  ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeMutableBufferPointer` to initialized elements.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `Span`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeElements buffer: UnsafeMutableBufferPointer<Element>,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeElements: UnsafeBufferPointer(buffer), owner: owner)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -173,6 +207,28 @@ extension Span where Element: BitwiseCopyable {
       count: count,
       owner: owner
     )
+  }
+
+  /// Unsafely create a `Span` over initialized memory.
+  ///
+  /// The memory in `unsafeBytes` must be owned by the instance `owner`
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// `unsafeBytes` must be correctly aligned for accessing
+  /// an element of type `Element`, and must contain a number of bytes
+  /// that is an exact multiple of `Element`'s stride.
+  ///
+  /// - Parameters:
+  ///   - unsafeBytes: a buffer to initialized elements.
+  ///   - type: the type to use when interpreting the bytes in memory.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `Span`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeBytes buffer: UnsafeMutableRawBufferPointer,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeBytes: UnsafeRawBufferPointer(buffer), owner: owner)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -293,7 +349,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// order.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var _indices: Range<Int> {
     .init(uncheckedBounds: (0, _count))
   }
@@ -597,6 +653,12 @@ extension Span where Element: Copyable {
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
+  /// Returns true if the memory represented by `span` is a subrange of
+  /// the memory represented by `self`
+  ///
+  /// Parameters:
+  /// - span: a span of the same type as `self`
+  /// Returns: whether `span` is a subrange of `self`
   @inlinable @inline(__always)
   public func contains(_ span: borrowing Self) -> Bool {
     if span._count > _count { return false }
@@ -605,6 +667,14 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     return span._start.advanced(by: span._count) <= _start.advanced(by: _count)
   }
 
+  /// Returns the offsets where the memory of `span` is located within
+  /// the memory represented by `self`
+  ///
+  /// Note: `span` must be a subrange of `self`
+  ///
+  /// Parameters:
+  /// - span: a subrange of `self`
+  /// Returns: A range of offsets within `self`
   @inlinable @inline(__always)
   public func offsets(of span: borrowing Self) -> Range<Int> {
     precondition(contains(span))
@@ -701,7 +771,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func extracting(droppingFirst k: Int = 1) -> Self {
+  public func extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
     let newStart = _pointer?.advanced(by: droppedCount)
