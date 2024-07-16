@@ -442,6 +442,12 @@ extension RawSpan {
 
 extension RawSpan {
 
+  /// Returns true if the memory represented by `span` is a subrange of
+  /// the memory represented by `self`
+  ///
+  /// Parameters:
+  /// - span: a span of the same type as `self`
+  /// Returns: whether `span` is a subrange of `self`
   @inlinable @inline(__always)
   public func contains(_ span: borrowing Self) -> Bool {
     if span._count > _count { return false }
@@ -450,6 +456,14 @@ extension RawSpan {
     return span._start.advanced(by: span._count) <= _start.advanced(by: _count)
   }
 
+  /// Returns the offsets where the memory of `span` is located within
+  /// the memory represented by `self`
+  ///
+  /// Note: `span` must be a subrange of `self`
+  ///
+  /// Parameters:
+  /// - span: a subrange of `self`
+  /// Returns: A range of offsets within `self`
   @inlinable @inline(__always)
   public func offsets(of span: borrowing Self) -> Range<Int> {
     precondition(contains(span))
