@@ -349,7 +349,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// order.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var _indices: Range<Int> {
     .init(uncheckedBounds: (0, _count))
   }

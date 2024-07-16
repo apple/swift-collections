@@ -132,7 +132,7 @@ extension RawSpan {
   /// order.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var _byteOffsets: Range<Int> {
     .init(uncheckedBounds: (0, byteCount))
   }
