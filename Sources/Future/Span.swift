@@ -81,6 +81,23 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
   /// Unsafely create a `Span` over initialized memory.
   ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeMutableBufferPointer` to initialized elements.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `Span`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeElements buffer: UnsafeMutableBufferPointer<Element>,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeElements: UnsafeBufferPointer(buffer), owner: owner)
+  }
+
+  /// Unsafely create a `Span` over initialized memory.
+  ///
   /// The memory representing `count` instances starting at
   /// `pointer` must be owned by the instance `owner`,
   /// meaning that as long as `owner` is alive the memory will remain valid.
@@ -122,6 +139,23 @@ extension Span where Element: BitwiseCopyable {
     owner: borrowing Owner
   ) {
     self.init(_unchecked: buffer, owner: owner)
+  }
+
+  /// Unsafely create a `Span` over initialized memory.
+  ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeMutableBufferPointer` to initialized elements.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `Span`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeElements buffer: UnsafeMutableBufferPointer<Element>,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeElements: UnsafeBufferPointer(buffer), owner: owner)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -173,6 +207,28 @@ extension Span where Element: BitwiseCopyable {
       count: count,
       owner: owner
     )
+  }
+
+  /// Unsafely create a `Span` over initialized memory.
+  ///
+  /// The memory in `unsafeBytes` must be owned by the instance `owner`
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// `unsafeBytes` must be correctly aligned for accessing
+  /// an element of type `Element`, and must contain a number of bytes
+  /// that is an exact multiple of `Element`'s stride.
+  ///
+  /// - Parameters:
+  ///   - unsafeBytes: a buffer to initialized elements.
+  ///   - type: the type to use when interpreting the bytes in memory.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `Span`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeBytes buffer: UnsafeMutableRawBufferPointer,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeBytes: UnsafeRawBufferPointer(buffer), owner: owner)
   }
 
   /// Unsafely create a `Span` over initialized memory.

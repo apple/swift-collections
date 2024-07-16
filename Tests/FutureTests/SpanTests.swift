@@ -29,18 +29,42 @@ final class SpanTests: XCTestCase {
 
   func testInitWithOrdinaryElement() {
     let capacity = 4
-    let s = (0..<capacity).map({ "\(#file)+\(#function)--\($0)" })
+    var s = (0..<capacity).map({ "\(#file)+\(#function)--\($0)" })
     s.withUnsafeBufferPointer {
-      let span = Span(unsafeElements: $0, owner: $0)
-      _ = span
+      var span = Span(unsafeElements: $0, owner: s)
+      XCTAssertEqual(span.count, capacity)
+
+      span = Span(unsafeStart: $0.baseAddress!, count: $0.count, owner: s)
+      XCTAssertEqual(span.count, capacity)
+    }
+
+    s.withUnsafeMutableBufferPointer {
+      var span = Span(unsafeElements: $0, owner: $0)
+      XCTAssertEqual(span.count, capacity)
+
+      let pointer: UnsafeMutablePointer = $0.baseAddress!
+      span = Span(unsafeStart: pointer, count: $0.count, owner: $0)
+      XCTAssertEqual(span.count, capacity)
     }
   }
 
   func testInitWithBitwiseCopyableElement() {
     let capacity = 4
-    let a = Array(0..<capacity)
+    var a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
-      let span = Span(unsafeElements: $0, owner: $0)
+      var span = Span(unsafeElements: $0, owner: a)
+      XCTAssertEqual(span.count, capacity)
+
+      span = Span(unsafeStart: $0.baseAddress!, count: $0.count, owner: a)
+      XCTAssertEqual(span.count, capacity)
+    }
+
+    a.withUnsafeMutableBufferPointer {
+      var span = Span(unsafeElements: $0, owner: $0)
+      XCTAssertEqual(span.count, capacity)
+
+      let pointer: UnsafeMutablePointer = $0.baseAddress!
+      span = Span(unsafeStart: pointer, count: $0.count, owner: $0)
       XCTAssertEqual(span.count, capacity)
     }
 
@@ -50,6 +74,25 @@ final class SpanTests: XCTestCase {
 
       let r = Span<Int8>(unsafeBytes: $0, owner: $0)
       XCTAssertEqual(r.count, capacity*MemoryLayout<Int>.stride)
+
+      let p = Span<Int>(
+        unsafeStart: $0.baseAddress!,
+        byteCount: capacity*MemoryLayout<Int>.stride,
+        owner: $0
+      )
+      XCTAssertEqual(p.count, capacity)
+    }
+
+    a.withUnsafeMutableBytes {
+      let b = Span<UInt>(unsafeBytes: $0, owner: $0)
+      XCTAssertEqual(b.count, capacity)
+
+      let p = Span<Int>(
+        unsafeStart: $0.baseAddress!,
+        byteCount: capacity*MemoryLayout<Int>.stride,
+        owner: $0
+      )
+      XCTAssertEqual(p.count, capacity)
     }
   }
 
@@ -328,7 +371,7 @@ final class SpanTests: XCTestCase {
       unsafeStart: b.baseAddress!.advanced(by: 8), count: 8, owner: b
     )
     let nilSpan = Span<Int>(
-      unsafeElements: .init(start: nil, count: 0), owner: b
+      unsafeElements: UnsafeBufferPointer(start: nil, count: 0), owner: b
     )
 
     XCTAssertTrue(span.contains(subSpan))
@@ -351,7 +394,7 @@ final class SpanTests: XCTestCase {
     let subSpan = span.extracting(last: 2)
     let emptySpan = span.extracting(first: 0)
     let nilSpan = Span<Int>(
-      unsafeElements: .init(start: nil, count: 0), owner: b
+      unsafeElements: UnsafeBufferPointer(start: nil, count: 0), owner: b
     )
 
     var bounds: Range<Int>
