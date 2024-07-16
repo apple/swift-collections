@@ -60,6 +60,23 @@ extension RawSpan {
 
   /// Unsafely create a `RawSpan` over initialized memory.
   ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeMutableRawBufferPointer` to initialized memory.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `RawSpan`.
+  @_alwaysEmitIntoClient
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeBytes buffer: UnsafeMutableRawBufferPointer,
+    owner: borrowing Owner
+  ) {
+    self.init(unsafeBytes: UnsafeRawBufferPointer(buffer), owner: owner)
+  }
+
+  /// Unsafely create a `RawSpan` over initialized memory.
+  ///
   /// The memory over `count` bytes starting at
   /// `pointer` must be owned by the instance `owner`,
   /// meaning that as long as `owner` is alive the memory will remain valid.
