@@ -546,7 +546,7 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public func extracting(droppingFirst k: Int = 1) -> Self {
+  public func extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = min(k, byteCount)
     let newStart = _pointer?.advanced(by: dc)
