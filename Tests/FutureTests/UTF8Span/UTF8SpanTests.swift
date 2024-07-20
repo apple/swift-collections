@@ -16,10 +16,34 @@ class UTF8SpanTests: XCTestCase {
   // TODO: basic operations tests
 
   func testFoo() {
-    let str = "abcdefg"
+    let str = "abcdefghijklnmo"
     let span = str.utf8Span
-    print(span[0])
+    print(span[0]) // prints 0
+
+    print(stableSince("abc")) // 4.1
+    print(stableSince("abc🤯")) // 10.0
+    print(stableSince("abc🤯🫥")) // 14.0
+
+
   }
+
+  // Returns the latest Unicode version from which normalization
+  // is stable, or `nil` if `s` contains any unassigned code points.
+  func stableSince(_ s: String) -> Unicode.Version? {
+    var base = (major: 4, minor: 1)
+    for s in s.unicodeScalars {
+      guard let age = s.properties.age else {
+        return nil
+      }
+      if age.major > base.major ||
+          (age.major == base.major && age.minor > base.minor)
+      {
+        base = age
+      }
+    }
+    return base
+  }
+
 
   func testInitForwarding() throws {
     // TODO: test we get same bits from various init pathways

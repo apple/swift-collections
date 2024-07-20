@@ -163,51 +163,6 @@ extension UTF8Span {
 
 // MARK: String
 
-@_unavailableInEmbedded
-extension String {
-  // NOTE: If `self` is lazily bridged NSString, or is in a small-string
-  // form, memory may be allocated...
-  public var utf8Span: UTF8Span {
-    _read {
-      let span: Span<UInt8>
-      if count < 16 { // Wrong way to know whether the String is smol
-//      if _guts.isSmall {
-//        let /*@addressable*/ rawStorage = _guts.asSmall._storage
-//        let span = RawSpan(
-//          unsafeRawPointer: UnsafeRawPointer(Builtin.adressable(rawStorage)),
-//          count: MemoryLayout<_SmallString.RawBitPattern>.size,
-//          owner: self
-//        )
-//        yield span.view(as: UTF8.CodeUnit.self)
-
-        let a = ContiguousArray(self.utf8)
-//        yield a.storage
-        span = Span(
-          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
-        )
-      }
-      else if let buffer = utf8.withContiguousStorageIfAvailable({ $0 }) {
-        // this is totally wrong, but there is a way with stdlib-internal API
-        span = Span(unsafeElements: buffer, owner: self)
-      }
-      else { // copy non-fast code units if we don't have eager bridging
-        let a = ContiguousArray(self.utf8)
-//        yield a.storage
-        span = Span(
-          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
-        )
-      }
-
-      // TODO: set null-terminated bit
-
-//      let span = self.utf8.storage
-      yield UTF8Span(
-        _unsafeAssumingValidUTF8: .init(span._start),
-        _countAndFlags: UInt64(span.count), // TODO: set the flags
-        owner: span)
-    }
-  }
-}
 
 extension UTF8Span {
   /// Calls a closure with a pointer to the viewed contiguous storage.
