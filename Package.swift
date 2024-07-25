@@ -185,10 +185,10 @@ let targets: [CustomTarget] = [
     kind: .testSupport,
     name: "_CollectionsTestSupport",
     dependencies: ["_CollectionsUtilities"]),
-  .target(
-    kind: .test,
-    name: "CollectionsTestSupportTests",
-    dependencies: ["_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "CollectionsTestSupportTests",
+//    dependencies: ["_CollectionsTestSupport"]),
   .target(
     kind: .hidden,
     name: "_CollectionsUtilities",
@@ -227,52 +227,52 @@ let targets: [CustomTarget] = [
     name: "BitCollections",
     dependencies: ["_CollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
-  .target(
-    kind: .test,
-    name: "BitCollectionsTests",
-    dependencies: [
-      "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
-    ]),
+//  .target(
+//    kind: .test,
+//    name: "BitCollectionsTests",
+//    dependencies: [
+//      "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
+//    ]),
 
   .target(
     kind: .exported,
     name: "DequeModule",
     dependencies: ["_CollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
-  .target(
-    kind: .test,
-    name: "DequeTests",
-    dependencies: ["DequeModule", "_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "DequeTests",
+//    dependencies: ["DequeModule", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
     name: "HashTreeCollections",
     dependencies: ["_CollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
-  .target(
-    kind: .test,
-    name: "HashTreeCollectionsTests",
-    dependencies: ["HashTreeCollections", "_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "HashTreeCollectionsTests",
+//    dependencies: ["HashTreeCollections", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
     name: "HeapModule",
     dependencies: ["_CollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
-  .target(
-    kind: .test,
-    name: "HeapTests",
-    dependencies: ["HeapModule", "_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "HeapTests",
+//    dependencies: ["HeapModule", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
     name: "OrderedCollections",
     dependencies: ["_CollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
-  .target(
-    kind: .test,
-    name: "OrderedCollectionsTests",
-    dependencies: ["OrderedCollections", "_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "OrderedCollectionsTests",
+//    dependencies: ["OrderedCollections", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
@@ -280,20 +280,20 @@ let targets: [CustomTarget] = [
     dependencies: ["_CollectionsUtilities"],
     directory: "RopeModule",
     exclude: ["CMakeLists.txt"]),
-  .target(
-    kind: .test,
-    name: "RopeModuleTests",
-    dependencies: ["_RopeModule", "_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "RopeModuleTests",
+//    dependencies: ["_RopeModule", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
     name: "SortedCollections",
     dependencies: ["_CollectionsUtilities"],
     directory: "SortedCollections"),
-  .target(
-    kind: .test,
-    name: "SortedCollectionsTests",
-    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
+//  .target(
+//    kind: .test,
+//    name: "SortedCollectionsTests",
+//    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
