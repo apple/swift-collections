@@ -339,6 +339,17 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
+  private var _address: String {
+    String(UInt(bitPattern: _pointer), radix: 16, uppercase: false)
+  }
+
+  public var description: String {
+    "(0x\(_address), \(_count))"
+  }
+}
+
+extension Span where Element: ~Copyable /*& ~Escapable*/ {
+
   /// The number of elements in the span.
   ///
   /// To check whether the span is empty, use its `isEmpty` property

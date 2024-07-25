@@ -122,6 +122,17 @@ extension RawSpan {
 
 extension RawSpan {
 
+  private var _address: String {
+    String(UInt(bitPattern: _pointer), radix: 16, uppercase: false)
+  }
+
+  public var description: String {
+    "(0x\(_address), \(_count))"
+  }
+}
+
+extension RawSpan {
+
   /// The number of bytes in the span.
   ///
   /// To check whether the span is empty, use its `isEmpty` property
