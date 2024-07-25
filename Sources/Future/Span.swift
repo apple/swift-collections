@@ -329,6 +329,15 @@ extension Span where Element: Equatable {
 }
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
+  /// Returns a Boolean value indicating whether two `RawSpan` instances
+  /// refer to the same region in memory.
+  @inlinable @inline(__always)
+  public static func ===(_ a: Self, _ b: Self) -> Bool {
+    (a._pointer == b._pointer) && (a._count == b._count)
+  }
+}
+
+extension Span where Element: ~Copyable /*& ~Escapable*/ {
 
   /// The number of elements in the span.
   ///
