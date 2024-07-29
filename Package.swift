@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
@@ -56,8 +56,9 @@ let _settings: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
   .enableExperimentalFeature("BitwiseCopyable"),
-  .enableExperimentalFeature("RawLayout")
-//  .swiftLanguageVersion(.v5)
+  .enableExperimentalFeature("RawLayout"),
+  .enableExperimentalFeature("SuppressedAssociatedTypes"),
+  .swiftLanguageMode(.v6)
 ]
 
 struct CustomTarget {
@@ -209,14 +210,14 @@ let targets: [CustomTarget] = [
     ]),
 
   .target(
-      kind: .exported,
-      name: "Future",
-      dependencies: ["_CollectionsUtilities"],
-      exclude: ["CMakeLists.txt"]),
+    kind: .exported,
+    name: "Future",
+    dependencies: ["_CollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
   .target(
-      kind: .test,
-      name: "FutureTests",
-      dependencies: ["Future"]),
+    kind: .test,
+    name: "FutureTests",
+    dependencies: ["Future", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
