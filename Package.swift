@@ -194,9 +194,6 @@ let targets: [CustomTarget] = [
     name: "_CollectionsUtilities",
     exclude: [
       "CMakeLists.txt",
-      "Compatibility/UnsafeMutableBufferPointer+SE-0370.swift.gyb",
-      "Compatibility/UnsafeMutablePointer+SE-0370.swift.gyb",
-      "Compatibility/UnsafeRawPointer extensions.swift.gyb",
       "Debugging.swift.gyb",
       "Descriptions.swift.gyb",
       "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift.gyb",
@@ -204,7 +201,6 @@ let targets: [CustomTarget] = [
       "IntegerTricks/UInt+first and last set bit.swift.gyb",
       "IntegerTricks/UInt+reversed.swift.gyb",
       "RandomAccessCollection+Offsets.swift.gyb",
-      "Specialize.swift.gyb",
       "UnsafeBitSet/_UnsafeBitSet+Index.swift.gyb",
       "UnsafeBitSet/_UnsafeBitSet+_Word.swift.gyb",
       "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
