@@ -22,6 +22,22 @@
 // but in regular builds we want them to be public. Unfortunately
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  internal func _extracting(first n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (0, n)))
+  }
+
+  @inlinable
+  internal func _extracting(last n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (count - n, count)))
+  }
+}
+
 extension UnsafeMutableBufferPointer {
   @inlinable
   internal func initialize(fromContentsOf source: Self) -> Index {
@@ -93,13 +109,17 @@ extension UnsafeMutableBufferPointer {
     let i = self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable @inline(__always)
   internal func moveInitializeAll(fromContentsOf source: Self) {
     let i = self.moveInitialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer {
   @inlinable @inline(__always)
   internal func moveInitializeAll(fromContentsOf source: Slice<Self>) {
     let i = self.moveInitialize(fromContentsOf: source)
@@ -149,6 +169,22 @@ extension Slice {
   }
 }
 #else // !COLLECTIONS_SINGLE_MODULE
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  public func _extracting(first n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (0, n)))
+  }
+
+  @inlinable
+  public func _extracting(last n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (count - n, count)))
+  }
+}
+
 extension UnsafeMutableBufferPointer {
   @inlinable
   public func initialize(fromContentsOf source: Self) -> Index {
@@ -220,13 +256,17 @@ extension UnsafeMutableBufferPointer {
     let i = self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable @inline(__always)
   public func moveInitializeAll(fromContentsOf source: Self) {
     let i = self.moveInitialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer {
   @inlinable @inline(__always)
   public func moveInitializeAll(fromContentsOf source: Slice<Self>) {
     let i = self.moveInitialize(fromContentsOf: source)
