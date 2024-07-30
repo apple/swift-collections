@@ -39,11 +39,22 @@ extension _DequeBuffer: CustomStringConvertible {
   }
 }
 
+#if compiler(>=5.10)
 /// The type-punned empty singleton storage instance.
 @usableFromInline
-internal let _emptyDequeStorage = _DequeBuffer<Void>.create(
-  minimumCapacity: 0,
-  makingHeaderWith: { _ in
-    _DequeBufferHeader(capacity: 0, count: 0, startSlot: .init(at: 0))
-  })
-
+nonisolated(unsafe) internal let _emptyDequeStorage
+  = _DequeBuffer<Void>.create(
+    minimumCapacity: 0,
+    makingHeaderWith: { _ in
+      _DequeBufferHeader(capacity: 0, count: 0, startSlot: .init(at: 0))
+    })
+#else
+/// The type-punned empty singleton storage instance.
+@usableFromInline
+internal let _emptyDequeStorage
+  = _DequeBuffer<Void>.create(
+    minimumCapacity: 0,
+    makingHeaderWith: { _ in
+      _DequeBufferHeader(capacity: 0, count: 0, startSlot: .init(at: 0))
+    })
+#endif
