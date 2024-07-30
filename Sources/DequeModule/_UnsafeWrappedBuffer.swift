@@ -11,11 +11,12 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import Future
 #endif
 
 @frozen
 @usableFromInline
-internal struct _UnsafeWrappedBuffer<Element> {
+internal struct _UnsafeWrappedBuffer<Element: ~Copyable> {
   @usableFromInline
   internal let first: UnsafeBufferPointer<Element>
 
@@ -54,11 +55,21 @@ internal struct _UnsafeWrappedBuffer<Element> {
 
   @inlinable
   internal var count: Int { first.count + (second?.count ?? 0) }
+
+  @inlinable
+  internal func isIdentical(to other: Self) -> Bool {
+    guard self.first === other.first else { return false }
+    switch (self.second, other.second) {
+    case (nil, nil): return true
+    case let (a?, b?): return a === b
+    default: return false
+    }
+  }
 }
 
 @frozen
 @usableFromInline
-internal struct _UnsafeMutableWrappedBuffer<Element> {
+internal struct _UnsafeMutableWrappedBuffer<Element: ~Copyable> {
   @usableFromInline
   internal let first: UnsafeMutableBufferPointer<Element>
 
@@ -74,24 +85,6 @@ internal struct _UnsafeMutableWrappedBuffer<Element> {
     self.first = first
     self.second = second?.count == 0 ? nil : second
     assert(first.count > 0 || second == nil)
-  }
-
-  @inlinable
-  @inline(__always)
-  internal init(
-    _ first: UnsafeMutableBufferPointer<Element>.SubSequence,
-    _ second: UnsafeMutableBufferPointer<Element>? = nil
-  ) {
-    self.init(UnsafeMutableBufferPointer(rebasing: first), second)
-  }
-
-  @inlinable
-  @inline(__always)
-  internal init(
-    _ first: UnsafeMutableBufferPointer<Element>,
-    _ second: UnsafeMutableBufferPointer<Element>.SubSequence
-  ) {
-    self.init(first, UnsafeMutableBufferPointer(rebasing: second))
   }
 
   @inlinable
@@ -126,6 +119,26 @@ internal struct _UnsafeMutableWrappedBuffer<Element> {
 extension _UnsafeMutableWrappedBuffer {
   @inlinable
   @inline(__always)
+  internal init(
+    _ first: UnsafeMutableBufferPointer<Element>.SubSequence,
+    _ second: UnsafeMutableBufferPointer<Element>? = nil
+  ) {
+    self.init(UnsafeMutableBufferPointer(rebasing: first), second)
+  }
+
+  @inlinable
+  @inline(__always)
+  internal init(
+    _ first: UnsafeMutableBufferPointer<Element>,
+    _ second: UnsafeMutableBufferPointer<Element>.SubSequence
+  ) {
+    self.init(first, UnsafeMutableBufferPointer(rebasing: second))
+  }
+}
+
+extension _UnsafeMutableWrappedBuffer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
   internal var count: Int { first.count + (second?.count ?? 0) }
 
   @inlinable
@@ -135,9 +148,9 @@ extension _UnsafeMutableWrappedBuffer {
       return self
     }
     if n <= first.count {
-      return Self(first.prefix(n))
+      return Self(first._extracting(first: n))
     }
-    return Self(first, second!.prefix(n - first.count))
+    return Self(first, second!._extracting(first: n - first.count))
   }
 
   @inlinable
@@ -147,22 +160,24 @@ extension _UnsafeMutableWrappedBuffer {
       return self
     }
     guard let second = second else {
-      return Self(first.suffix(n))
+      return Self(first._extracting(last: n))
     }
     if n <= second.count {
-      return Self(second.suffix(n))
+      return Self(second._extracting(last: n))
     }
-    return Self(first.suffix(n - second.count), second)
+    return Self(first._extracting(last: n - second.count), second)
   }
 }
 
-extension _UnsafeMutableWrappedBuffer {
+extension _UnsafeMutableWrappedBuffer where Element: ~Copyable {
   @inlinable
   internal func deinitialize() {
     first.deinitialize()
     second?.deinitialize()
   }
+}
 
+extension _UnsafeMutableWrappedBuffer {
   @inlinable
   @discardableResult
   internal func initialize<I: IteratorProtocol>(

@@ -761,17 +761,7 @@ extension Deque: RangeReplaceableCollection {
                  "Can't insert element at invalid index")
     _storage.ensureUnique(minimumCapacity: count + 1)
     _storage.update { target in
-      if index == 0 {
-        target.uncheckedPrepend(newElement)
-        return
-      }
-      if index == count {
-        target.uncheckedAppend(newElement)
-        return
-      }
-      let gap = target.openGap(ofSize: 1, atOffset: index)
-      assert(gap.first.count == 1)
-      gap.first.baseAddress!.initialize(to: newElement)
+      target.uncheckedInsert(newElement, at: index)
     }
   }
 

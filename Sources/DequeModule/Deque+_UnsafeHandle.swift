@@ -469,6 +469,24 @@ extension Deque._UnsafeHandle {
 // MARK: Insertion
 
 extension Deque._UnsafeHandle {
+  @inlinable
+  internal mutating func uncheckedInsert(
+    _ newElement: consuming Element, at offset: Int
+  ) {
+    assert(count < capacity)
+    if offset == 0 {
+      uncheckedPrepend(newElement)
+      return
+    }
+    if offset == count {
+      uncheckedAppend(newElement)
+      return
+    }
+    let gap = openGap(ofSize: 1, atOffset: offset)
+    assert(gap.first.count == 1)
+    gap.first.baseAddress!.initialize(to: newElement)
+  }
+
   /// Insert all elements from `newElements` into this deque, starting at
   /// `offset`.
   ///
