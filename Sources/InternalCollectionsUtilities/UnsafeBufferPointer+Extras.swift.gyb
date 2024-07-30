@@ -19,6 +19,12 @@ ${visibility_boilerplate(modifier)}
 extension UnsafeBufferPointer where Element: ~Copyable {
   @inlinable
   @inline(__always)
+  ${modifier} static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
+  @inlinable
+  @inline(__always)
   ${modifier} func _ptr(at index: Int) -> UnsafePointer<Element> {
     assert(index >= 0 && index < count)
     return baseAddress.unsafelyUnwrapped + index

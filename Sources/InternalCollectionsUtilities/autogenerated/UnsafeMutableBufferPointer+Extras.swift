@@ -24,6 +24,19 @@
 #if COLLECTIONS_SINGLE_MODULE
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable
+  @inline(__always)
+  internal static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
+  @inlinable
+  @inline(__always)
+  internal func _ptr(at index: Int) -> UnsafeMutablePointer<Element> {
+    assert(index >= 0 && index < count)
+    return baseAddress.unsafelyUnwrapped + index
+  }
+
+  @inlinable
   internal func _extracting(first n: Int) -> Self {
     assert(n >= 0)
     if n >= count { return self }
@@ -170,6 +183,19 @@ extension Slice {
 }
 #else // !COLLECTIONS_SINGLE_MODULE
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
+  public static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
+  @inlinable
+  @inline(__always)
+  public func _ptr(at index: Int) -> UnsafeMutablePointer<Element> {
+    assert(index >= 0 && index < count)
+    return baseAddress.unsafelyUnwrapped + index
+  }
+
   @inlinable
   public func _extracting(first n: Int) -> Self {
     assert(n >= 0)

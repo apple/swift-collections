@@ -25,6 +25,12 @@
 extension UnsafeBufferPointer where Element: ~Copyable {
   @inlinable
   @inline(__always)
+  internal static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
+  @inlinable
+  @inline(__always)
   internal func _ptr(at index: Int) -> UnsafePointer<Element> {
     assert(index >= 0 && index < count)
     return baseAddress.unsafelyUnwrapped + index
@@ -47,6 +53,12 @@ extension UnsafeBufferPointer where Element: ~Copyable {
 
 #else // !COLLECTIONS_SINGLE_MODULE
 extension UnsafeBufferPointer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
+  public static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
   @inlinable
   @inline(__always)
   public func _ptr(at index: Int) -> UnsafePointer<Element> {
