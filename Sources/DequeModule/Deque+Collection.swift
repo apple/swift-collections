@@ -362,7 +362,7 @@ extension Deque: RandomAccessCollection {
       _storage.ensureUnique()
       _storage.update { handle in
         let slot = handle.slot(forOffset: index)
-        handle.ptr(at: slot).pointee = newValue
+        handle.mutablePtr(at: slot).pointee = newValue
       }
     }
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
@@ -384,14 +384,14 @@ extension Deque: RandomAccessCollection {
     // the corresponding slot temporarily uninitialized.
     return _storage.update { handle in
       let slot = handle.slot(forOffset: index)
-      return (slot, handle.ptr(at: slot).move())
+      return (slot, handle.mutablePtr(at: slot).move())
     }
   }
 
   @inlinable
   internal mutating func _finalizeModify(_ slot: _Slot, _ value: Element) {
     _storage.update { handle in
-      handle.ptr(at: slot).initialize(to: value)
+      handle.mutablePtr(at: slot).initialize(to: value)
     }
   }
 
@@ -591,7 +591,8 @@ extension Deque: RangeReplaceableCollection {
     _storage.update { handle in
       assert(handle.startSlot == .zero)
       if count > 0 {
-        handle.ptr(at: .zero).initialize(repeating: repeatedValue, count: count)
+        handle.mutablePtr(at: .zero).initialize(
+          repeating: repeatedValue, count: count)
       }
       handle.count = count
     }

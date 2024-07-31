@@ -104,28 +104,40 @@ extension Deque._Storage {
   internal typealias Index = Int
 
   @usableFromInline
-  internal typealias _UnsafeHandle = Deque._UnsafeHandle
+  internal typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
 
   @inlinable
   @inline(__always)
-  internal func read<R>(_ body: (_UnsafeHandle) throws -> R) rethrows -> R {
-    try _buffer.withUnsafeMutablePointers { header, elements in
-      let handle = _UnsafeHandle(header: header,
-                                 elements: elements,
-                                 isMutable: false)
+  internal func read<E: Error, R: ~Copyable>(
+    _ body: (borrowing _UnsafeHandle) throws(E) -> R
+  ) throws(E) -> R {
+    try _buffer.withUnsafeMutablePointers { (header, elements) throws(E) in
+      let handle = _UnsafeHandle(
+        _storage: .init(start: elements, count: header.pointee.capacity),
+        count: header.pointee.count,
+        startSlot: header.pointee.startSlot)
       return try body(handle)
     }
   }
 
   @inlinable
   @inline(__always)
-  internal func update<R>(
-    _ body: (inout _UnsafeHandle) throws -> R
-  ) rethrows -> R {
-    try _buffer.withUnsafeMutablePointers { header, elements in
-      var handle = _UnsafeHandle(header: header,
-                                 elements: elements,
-                                 isMutable: true)
+  internal func update<E: Error, R: ~Copyable>(
+    _ body: (inout _UnsafeHandle) throws(E) -> R
+  ) throws(E) -> R {
+    try _buffer.withUnsafeMutablePointers { (header, elements) throws(E) in
+      var handle = _UnsafeHandle(
+        _storage: .init(start: elements, count: header.pointee.capacity),
+        count: header.pointee.count,
+        startSlot: header.pointee.startSlot)
+      defer {
+        handle._checkInvariants()
+        assert(
+          handle.capacity == header.pointee.capacity
+          && handle._storage.baseAddress == elements)
+        header.pointee.count = handle.count
+        header.pointee.startSlot = handle.startSlot
+      }
       return try body(&handle)
     }
   }
@@ -147,13 +159,105 @@ extension Deque._Storage {
   @inline(__always)
   internal mutating func ensureUnique() {
     if isUnique() { return }
-    self._makeUniqueCopy()
+    self = makeUniqueCopy()
   }
 
+  /// Copy elements into a new storage instance without changing capacity or
+  /// layout.
   @inlinable
   @inline(never)
-  internal mutating func _makeUniqueCopy() {
-    self = self.read { $0.copyElements() }
+  internal func makeUniqueCopy() -> Self {
+    self.read { source in
+      let object = _DequeBuffer<Element>.create(
+        minimumCapacity: capacity,
+        makingHeaderWith: { _ in
+            .init(
+              capacity: source.capacity,
+              count: source.count,
+              startSlot: source.startSlot)
+        })
+      let result = Deque._Storage(
+        _buffer: ManagedBufferPointer(unsafeBufferObject: object))
+      guard source.count > 0 else { return result }
+      result.update { target in
+        let src = source.segments()
+        target.initialize(at: startSlot, from: src.first)
+        if let second = src.second {
+          target.initialize(at: .zero, from: second)
+        }
+      }
+      return result
+    }
+  }
+
+  /// Copy elements into a new storage instance with the specified minimum
+  /// capacity. This operation does not preserve layout.
+  @inlinable
+  internal func makeUniqueCopy(minimumCapacity: Int) -> Self {
+    assert(minimumCapacity >= count)
+    return self.read { source in
+      let object = _DequeBuffer<Element>.create(
+        minimumCapacity: minimumCapacity,
+        makingHeaderWith: {
+#if os(OpenBSD)
+          let c = minimumCapacity
+#else
+          let c = $0.capacity
+#endif
+          return _DequeBufferHeader(
+            capacity: c,
+            count: source.count,
+            startSlot: .zero)
+        })
+      let result = Deque._Storage(
+        _buffer: ManagedBufferPointer(unsafeBufferObject: object))
+      guard source.count > 0 else { return result }
+      result.update { target in
+        assert(target.count == count && target.startSlot.position == 0)
+        let src = source.segments()
+        let next = target.initialize(at: .zero, from: src.first)
+        if let second = src.second {
+          target.initialize(at: next, from: second)
+        }
+      }
+      return result
+    }
+  }
+
+  /// Move elements into a new storage instance with the specified minimum
+  /// capacity. Existing indices in `self` won't necessarily be valid in the
+  /// result. The old `self` is left empty.
+  @inlinable
+  internal mutating func resize(to minimumCapacity: Int) -> Self {
+    self.update { source in
+      let count = source.count
+      assert(minimumCapacity >= count)
+      let object = _DequeBuffer<Element>.create(
+        minimumCapacity: minimumCapacity,
+        makingHeaderWith: {
+#if os(OpenBSD)
+          let c = minimumCapacity
+#else
+          let c = $0.capacity
+#endif
+          return _DequeBufferHeader(
+            capacity: c,
+            count: count,
+            startSlot: .zero)
+        })
+      let result = Deque<Element>._Storage(
+        _buffer: ManagedBufferPointer(unsafeBufferObject: object))
+      guard count > 0 else { return result }
+      result.update { target in
+        let src = source.mutableSegments()
+        let next = target.moveInitialize(at: .zero, from: src.first)
+        if let second = src.second {
+          target.moveInitialize(at: next, from: second)
+        }
+      }
+      source.count = 0
+      return result
+    }
   }
 
   /// The growth factor to use to increase storage size to make place for an
@@ -202,7 +306,7 @@ extension Deque._Storage {
   ) {
     if capacity >= minimumCapacity {
       assert(!isUnique)
-      self = self.read { $0.copyElements() }
+      self = self.makeUniqueCopy()
       return
     }
 
@@ -212,9 +316,7 @@ extension Deque._Storage {
         source.moveElements(minimumCapacity: minimumCapacity)
       }
     } else {
-      self = self.read { source in
-        source.copyElements(minimumCapacity: minimumCapacity)
-      }
+      self = self.makeUniqueCopy(minimumCapacity: minimumCapacity)
     }
   }
 }
