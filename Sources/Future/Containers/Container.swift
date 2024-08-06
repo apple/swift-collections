@@ -1,13 +1,13 @@
-public protocol BorrowingIteratorProtocol: ~Copyable, ~Escapable {
+public protocol BorrowingIteratorProtocol: ~Escapable {
   associatedtype Element: ~Copyable
 
-  mutating func nextChunk(maximumCount: Int) -> dependsOn(self) Span<Element>
+  mutating func nextChunk(maximumCount: Int) -> dependsOn(scoped self) Span<Element>
 }
 
 public protocol Container: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
-  associatedtype BorrowingIterator: BorrowingIteratorProtocol, ~Copyable, ~Escapable
+  associatedtype BorrowingIterator: BorrowingIteratorProtocol, ~Escapable
   where BorrowingIterator.Element == Element
 
   borrowing func startBorrowingIteration() -> BorrowingIterator
@@ -123,7 +123,7 @@ extension RandomAccessContainer where Index == Int, Self: ~Copyable {
 public protocol Muterator: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
-  mutating func nextChunk(maximumCount: Int) -> dependsOn(state) MutableSpan<Element>
+  mutating func nextChunk(maximumCount: Int) -> dependsOn(scoped state) MutableSpan<Element>
 }
 
 public protocol MutableContainer: Container, ~Copyable, ~Escapable {

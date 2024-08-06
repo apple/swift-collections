@@ -48,9 +48,7 @@ extension HypoArray where Element: ~Copyable {
 }
 
 extension HypoArray: RandomAccessContainer where Element: ~Copyable {
-  public struct BorrowingIterator:
-    BorrowingIteratorProtocol, ~Copyable, ~Escapable
-  {
+  public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
     @usableFromInline
     internal let _items: UnsafeBufferPointer<Element>
 
@@ -65,7 +63,7 @@ extension HypoArray: RandomAccessContainer where Element: ~Copyable {
 
     public mutating func nextChunk(
       maximumCount: Int
-    ) -> dependsOn(self) Span<Element> {
+    ) -> dependsOn(scoped self) Span<Element> {
       let end = _offset + Swift.min(maximumCount, _items.count - _offset)
       defer { _offset = end }
       let chunk = _items.extracting(Range(uncheckedBounds: (_offset, end)))

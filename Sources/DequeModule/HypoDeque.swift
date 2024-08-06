@@ -39,9 +39,7 @@ extension HypoDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
 extension HypoDeque: RandomAccessContainer where Element: ~Copyable {
   @frozen
-  public struct BorrowingIterator:
-    BorrowingIteratorProtocol, ~Copyable, ~Escapable
-  {
+  public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
     @usableFromInline
     internal let _segments: _UnsafeWrappedBuffer<Element>
 
@@ -57,7 +55,7 @@ extension HypoDeque: RandomAccessContainer where Element: ~Copyable {
     @inlinable
     public mutating func nextChunk(
       maximumCount: Int
-    ) -> dependsOn(self) Span<Element> {
+    ) -> dependsOn(scoped self) Span<Element> {
       precondition(maximumCount > 0)
       if _offset < _segments.first.count {
         let d = Swift.min(maximumCount, _segments.first.count - _offset)
