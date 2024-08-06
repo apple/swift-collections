@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import _CollectionsUtilities
+import InternalCollectionsUtilities
 #endif
 
 extension TreeSet: SetAlgebra {

@@ -39,9 +39,6 @@ extension Rope {
     var left = left.root
     var right = right.root
     
-    left.ensureUnique()
-    right.ensureUnique()
-    
     if left.height >= right.height {
       let r = left._graftBack(&right)
       guard let remainder = r.remainder else { return Self(root: left) }
@@ -64,6 +61,10 @@ extension Rope._Node {
     _ scion: inout Self
   ) -> (remainder: Self?, delta: Summary) {
     assert(self.height >= scion.height)
+
+    self.ensureUnique()
+    scion.ensureUnique()
+
     guard self.height > scion.height else {
       assert(self.height == scion.height)
       let d = scion.summary
@@ -99,6 +100,10 @@ extension Rope._Node {
     _ scion: inout Self
   ) -> (remainder: Self?, delta: Summary) {
     assert(self.height >= scion.height)
+
+    self.ensureUnique()
+    scion.ensureUnique()
+
     guard self.height > scion.height else {
       assert(self.height == scion.height)
       let origSum = self.summary

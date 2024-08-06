@@ -187,25 +187,29 @@ extension Deque._Storage {
   ) {
     let unique = isUnique()
     if _slowPath(capacity < minimumCapacity || !unique) {
-      _ensureUnique(minimumCapacity: minimumCapacity, linearGrowth: linearGrowth)
+      _ensureUnique(isUnique: unique, minimumCapacity: minimumCapacity, linearGrowth: linearGrowth)
     }
   }
 
   @inlinable
+  @inline(never)
   internal mutating func _ensureUnique(
+    isUnique: Bool,
     minimumCapacity: Int,
     linearGrowth: Bool
   ) {
     if capacity >= minimumCapacity {
-      assert(!self.isUnique())
+      assert(!isUnique)
       self = self.read { $0.copyElements() }
-    } else if isUnique() {
-      let minimumCapacity = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
+      return
+    }
+
+    let minimumCapacity = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
+    if isUnique {
       self = self.update { source in
         source.moveElements(minimumCapacity: minimumCapacity)
       }
     } else {
-      let minimumCapacity = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
       self = self.read { source in
         source.copyElements(minimumCapacity: minimumCapacity)
       }

@@ -30,6 +30,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
   option(BUILD_SHARED_LIBS "Build shared libraries by default" YES)
 endif()
 
+option(COLLECTIONS_SINGLE_MODULE "Build as a single module" NO)
+option(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE "Build a module for Foundation in the toolchain" NO)
+
+if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
+  set(COLLECTIONS_SINGLE_MODULE YES)
+endif()
+
 include(CTest)
 include(SwiftSupport)
 

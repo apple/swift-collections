@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(Collections
-  "Collections.swift")
+    "Collections.swift")
 target_link_libraries(Collections PRIVATE
   BitCollections
   DequeModule

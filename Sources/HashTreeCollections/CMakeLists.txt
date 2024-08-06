@@ -7,7 +7,22 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-add_library(HashTreeCollections
+if(COLLECTIONS_SINGLE_MODULE)
+  set(module_name ${COLLECTIONS_MODULE_NAME})
+else()
+  set(module_name HashTreeCollections)
+  add_library(HashTreeCollections
+    ${COLLECTIONS_HASHTREE_SOURCES})
+  target_link_libraries(HashTreeCollections PRIVATE
+    InternalCollectionsUtilities)
+  set_target_properties(HashTreeCollections PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+
+  _install_target(HashTreeCollections)
+  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS HashTreeCollections)
+endif()
+
+target_sources(${module_name} PRIVATE
   "HashNode/_AncestorHashSlots.swift"
   "HashNode/_Bitmap.swift"
   "HashNode/_Bucket.swift"
@@ -94,10 +109,3 @@ add_library(HashTreeCollections
   "TreeSet/TreeSet+SetAlgebra union.swift"
   "TreeSet/TreeSet.swift"
   )
-target_link_libraries(HashTreeCollections PRIVATE
-  _CollectionsUtilities)
-set_target_properties(HashTreeCollections PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-
-_install_target(HashTreeCollections)
-set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS HashTreeCollections)

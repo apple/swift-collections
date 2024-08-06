@@ -7,7 +7,22 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-add_library(OrderedCollections
+if(COLLECTIONS_SINGLE_MODULE)
+  set(module_name ${COLLECTIONS_MODULE_NAME})
+else()
+  set(module_name OrderedCollections)
+  add_library(OrderedCollections
+    ${COLLECTIONS_ORDERED_SOURCES})
+  target_link_libraries(OrderedCollections PRIVATE
+    InternalCollectionsUtilities)
+  set_target_properties(OrderedCollections PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+
+  _install_target(OrderedCollections)
+  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS OrderedCollections)
+endif()
+
+target_sources(${module_name} PRIVATE
   "HashTable/_HashTable.swift"
   "HashTable/_HashTable+Bucket.swift"
   "HashTable/_HashTable+BucketIterator.swift"
@@ -69,12 +84,5 @@ add_library(OrderedCollections
   "OrderedSet/OrderedSet+UnorderedView.swift"
   "OrderedSet/OrderedSet+UnstableInternals.swift"
   "OrderedSet/OrderedSet.swift"
-  "Utilities/_UnsafeBitSet.swift"
+  "Utilities/_UnsafeBitset.swift"
   )
-target_link_libraries(OrderedCollections PRIVATE
-  _CollectionsUtilities)
-set_target_properties(OrderedCollections PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-
-_install_target(OrderedCollections)
-set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS OrderedCollections)

@@ -7,7 +7,22 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-add_library(RopeModule
+if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
+  set(module_name ${COLLECTIONS_MODULE_NAME})
+else()
+  set(module_name _RopeModule)
+  add_library(_RopeModule
+    ${COLLECTIONS_ROPE_SOURCES})
+  target_link_libraries(_RopeModule PRIVATE
+    InternalCollectionsUtilities)
+  set_target_properties(_RopeModule PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
+
+  _install_target(_RopeModule)
+  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS _RopeModule)
+endif()
+
+target_sources(${module_name} PRIVATE
   "BigString/Basics/BigString+Metrics.swift"
   "BigString/Basics/BigString+Index.swift"
   "BigString/Basics/BigString+Summary.swift"
@@ -85,10 +100,3 @@ add_library(RopeModule
   "Utilities/String.Index+ABI.swift"
   "Utilities/Optional Utilities.swift"
   )
-target_link_libraries(RopeModule PRIVATE
-  _CollectionsUtilities)
-set_target_properties(RopeModule PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
-
-_install_target(RopeModule)
-set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS RopeModule)
