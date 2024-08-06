@@ -52,13 +52,20 @@ var defines: [String] = [
 //  "COLLECTIONS_SINGLE_MODULE",
 ]
 
-let _settings: [SwiftSetting] = defines.map { .define($0) } + [
+let _features: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
   .enableExperimentalFeature("BitwiseCopyable"),
   .enableExperimentalFeature("RawLayout"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
-  .swiftLanguageMode(.v6)
+]
+
+let _settings: [SwiftSetting] = _features + [
+  .swiftLanguageVersion(.v6),
+]
+
+let _testSettings: [SwiftSetting] = _features + [
+  .swiftLanguageVersion(.v5),
 ]
 
 struct CustomTarget {
@@ -121,7 +128,7 @@ extension CustomTarget {
         dependencies: dependencies,
         path: kind.path(for: directory),
         exclude: exclude,
-        swiftSettings: _settings,
+        swiftSettings: (kind == .testSupport ? _testSettings : _settings),
         linkerSettings: linkerSettings)
     case .test:
       return Target.testTarget(
@@ -129,7 +136,7 @@ extension CustomTarget {
         dependencies: dependencies,
         path: kind.path(for: directory),
         exclude: exclude,
-        swiftSettings: _settings,
+        swiftSettings: _testSettings,
         linkerSettings: linkerSettings)
     }
   }
@@ -176,7 +183,7 @@ extension Array where Element == CustomTarget {
         t.exclude.map { "\(t.name)/\($0)" }
       },
       sources: targets.map { "\($0.name)" },
-      swiftSettings: _settings,
+      swiftSettings: _testSettings,
       linkerSettings: linkerSettings)
   }
 }
