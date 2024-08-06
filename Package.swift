@@ -222,7 +222,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "Future",
-    dependencies: ["_CollectionsUtilities"],
+    dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
