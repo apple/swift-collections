@@ -52,7 +52,7 @@ var defines: [String] = [
 //  "COLLECTIONS_SINGLE_MODULE",
 ]
 
-let _features: [SwiftSetting] = defines.map { .define($0) } + [
+let _sharedSettings: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
   .enableExperimentalFeature("BitwiseCopyable"),
@@ -60,11 +60,11 @@ let _features: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
 ]
 
-let _settings: [SwiftSetting] = _features + [
+let _settings: [SwiftSetting] = _sharedSettings + [
   .swiftLanguageVersion(.v6),
 ]
 
-let _testSettings: [SwiftSetting] = _features + [
+let _testSettings: [SwiftSetting] = _sharedSettings + [
   .swiftLanguageVersion(.v5),
 ]
 
@@ -81,6 +81,7 @@ struct CustomTarget {
   var dependencies: [Target.Dependency]
   var directory: String
   var exclude: [String]
+  var settings: [SwiftSetting]
 }
 
 extension CustomTarget.Kind {
@@ -105,14 +106,16 @@ extension CustomTarget {
     name: String,
     dependencies: [Target.Dependency] = [],
     directory: String? = nil,
-    exclude: [String] = []
+    exclude: [String] = [],
+    settings: [SwiftSetting]? = nil
   ) -> CustomTarget {
     CustomTarget(
       kind: kind,
       name: name,
       dependencies: dependencies,
       directory: directory ?? name,
-      exclude: exclude)
+      exclude: exclude,
+      settings: settings ?? (kind.isTest ? _testSettings : _settings))
   }
 
   func toTarget() -> Target {
@@ -128,7 +131,7 @@ extension CustomTarget {
         dependencies: dependencies,
         path: kind.path(for: directory),
         exclude: exclude,
-        swiftSettings: (kind == .testSupport ? _testSettings : _settings),
+        swiftSettings: settings,
         linkerSettings: linkerSettings)
     case .test:
       return Target.testTarget(
@@ -136,7 +139,7 @@ extension CustomTarget {
         dependencies: dependencies,
         path: kind.path(for: directory),
         exclude: exclude,
-        swiftSettings: _testSettings,
+        swiftSettings: settings,
         linkerSettings: linkerSettings)
     }
   }
@@ -283,7 +286,9 @@ let targets: [CustomTarget] = [
     name: "_RopeModule",
     dependencies: ["_CollectionsUtilities"],
     directory: "RopeModule",
-    exclude: ["CMakeLists.txt"]),
+    exclude: ["CMakeLists.txt"],
+    // FIXME: _modify accessors in RopeModule seem to be broken in Swift 6 mode
+    settings: _sharedSettings + [.swiftLanguageVersion(.v5)]),
   .target(
     kind: .test,
     name: "RopeModuleTests",
