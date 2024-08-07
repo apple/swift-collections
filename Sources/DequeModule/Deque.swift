@@ -100,8 +100,128 @@ public struct Deque<Element> {
   ///   storage buffer.
   @inlinable
   public init(minimumCapacity: Int) {
-    self._storage = _Storage(minimumCapacity: minimumCapacity)
+    self._storage = _Storage(capacity: minimumCapacity)
   }
 }
 
 extension Deque: @unchecked Sendable where Element: Sendable {}
+
+extension Deque {
+  @usableFromInline
+  internal typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
+
+  @inlinable
+  @inline(__always)
+  internal func _read<E: Error, R: ~Copyable>(
+    _ body: (borrowing _UnsafeHandle) throws(E) -> R
+  ) throws(E) -> R {
+    try body(_storage._value._handle)
+  }
+
+  @inlinable
+  @inline(__always)
+  internal mutating func _update<E: Error, R: ~Copyable>(
+    _ body: (inout _UnsafeHandle) throws(E) -> R
+  ) throws(E) -> R {
+    defer { _fixLifetime(self) }
+    assert(_isUnique())
+    return try body(&_storage._value._handle)
+  }
+
+  /// Return a boolean indicating whether this storage instance is known to have
+  /// a single unique reference. If this method returns true, then it is safe to
+  /// perform in-place mutations on the deque.
+  @inlinable
+  internal mutating func _isUnique() -> Bool {
+    isKnownUniquelyReferenced(&_storage)
+  }
+
+  /// Ensure that this storage refers to a uniquely held buffer by copying
+  /// elements if necessary.
+  @inlinable
+  @inline(__always)
+  internal mutating func _ensureUnique() {
+    if _isUnique() { return }
+    self = _makeUniqueCopy()
+  }
+
+  /// Copy elements into a new storage instance without changing capacity or
+  /// layout.
+  @inlinable
+  @inline(never)
+  internal func _makeUniqueCopy() -> Self {
+    Deque(_storage: _Storage(_storage._value._copy()))
+  }
+
+  @inlinable
+  @inline(never)
+  internal func _makeUniqueCopy(capacity: Int) -> Self {
+    Deque(_storage: _Storage(_storage._value._copy(capacity: capacity)))
+  }
+
+  @usableFromInline
+  internal func _growCapacity(
+    to minimumCapacity: Int,
+    linearly: Bool
+  ) -> Int {
+    if linearly {
+      return Swift.max(_capacity, minimumCapacity)
+    }
+    let next = (3 * _capacity + 1) / 2
+    return Swift.max(next, minimumCapacity)
+  }
+
+  /// Ensure that we have a uniquely referenced buffer with enough space to
+  /// store at least `minimumCapacity` elements.
+  ///
+  /// - Parameter minimumCapacity: The minimum number of elements the buffer
+  ///    needs to be able to hold on return.
+  ///
+  /// - Parameter linearGrowth: If true, then don't use an exponential growth
+  ///    factor when reallocating the buffer -- just allocate space for the
+  ///    requested number of elements
+  @inlinable
+  @inline(__always)
+  internal mutating func _ensureUnique(
+    minimumCapacity: Int,
+    linearGrowth: Bool = false
+  ) {
+    let unique = _isUnique()
+    if _slowPath(_storage.capacity < minimumCapacity || !unique) {
+      __ensureUnique(
+        isUnique: unique,
+        minimumCapacity: minimumCapacity,
+        linearGrowth: linearGrowth)
+    }
+  }
+
+  @inlinable
+  @inline(never)
+  internal mutating func __ensureUnique(
+    isUnique: Bool,
+    minimumCapacity: Int,
+    linearGrowth: Bool
+  ) {
+    if _storage.capacity >= minimumCapacity {
+      assert(!isUnique)
+      self = self._makeUniqueCopy()
+      return
+    }
+
+    let c = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
+    if isUnique {
+      self._storage._value.resize(to: c)
+    } else {
+      self = self._makeUniqueCopy(capacity: c)
+    }
+  }
+}
+
+extension Deque {
+  @inlinable
+  @inline(__always)
+  internal func _isIdentical(to other: Self) -> Bool {
+    self._storage === other._storage
+  }
+}
+

@@ -26,8 +26,13 @@ public struct HypoDeque<Element: ~Copyable>: ~Copyable {
   var _handle: _Handle
 
   @inlinable
+  internal init(_handle: consuming _Handle) {
+    self._handle = _handle
+  }
+
+  @inlinable
   public init(capacity: Int) {
-    _handle = .allocate(capacity: capacity)
+    self.init(_handle: .allocate(capacity: capacity))
   }
 
   deinit {
@@ -36,6 +41,18 @@ public struct HypoDeque<Element: ~Copyable>: ~Copyable {
 }
 
 extension HypoDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
+
+extension HypoDeque where Element: ~Copyable {
+#if COLLECTIONS_INTERNAL_CHECKS
+  @usableFromInline @inline(never) @_effects(releasenone)
+  internal func _checkInvariants() {
+    _handle._checkInvariants()
+  }
+#else
+  @inlinable @inline(__always)
+  internal func _checkInvariants() {}
+#endif // COLLECTIONS_INTERNAL_CHECKS
+}
 
 extension HypoDeque: RandomAccessContainer where Element: ~Copyable {
   @frozen
@@ -140,7 +157,7 @@ extension HypoDeque where Element: ~Copyable {
     if let second = source.second {
       newHandle.moveInitialize(at: next, from: second)
     }
-    self._handle._storage.deallocate()
+    self._handle._buffer.deallocate()
     self._handle = newHandle
   }
 }
@@ -226,5 +243,17 @@ extension HypoDeque where Element: ~Copyable {
   public mutating func popLast() -> Element? {
     guard !isEmpty else { return nil }
     return _handle.uncheckedRemoveLast()
+  }
+}
+
+extension HypoDeque {
+  @inlinable
+  internal func _copy() -> Self {
+    HypoDeque(_handle: _handle.allocateCopy())
+  }
+
+  @inlinable
+  internal func _copy(capacity: Int) -> Self {
+    HypoDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }
 }

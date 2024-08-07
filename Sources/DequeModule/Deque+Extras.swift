@@ -45,8 +45,8 @@ extension Deque {
     initializingWith initializer:
       (inout UnsafeMutableBufferPointer<Element>, inout Int) throws -> Void
   ) rethrows {
-    self._storage = .init(minimumCapacity: capacity)
-    try _storage.update { handle in
+    self._storage = .init(capacity: capacity)
+    try _update { handle in
       handle.startSlot = .zero
       var count = 0
       var buffer = handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
@@ -76,8 +76,8 @@ extension Deque {
     // FIXME: Add this to the stdlib on BidirectionalCollection
     // where Self == Self.SubSequence
     guard count > 0 else { return nil }
-    _storage.ensureUnique()
-    return _storage.update {
+    _ensureUnique()
+    return _update {
       $0.uncheckedRemoveFirst()
     }
   }
@@ -111,8 +111,8 @@ extension Deque {
   /// - SeeAlso: `append(_:)`
   @inlinable
   public mutating func prepend(_ newElement: Element) {
-    _storage.ensureUnique(minimumCapacity: count + 1)
-    return _storage.update {
+    _ensureUnique(minimumCapacity: count + 1)
+    return _update {
       $0.uncheckedPrepend(newElement)
     }
   }
@@ -138,15 +138,15 @@ extension Deque {
     contentsOf newElements: some Collection<Element>
   ) {
     let done: Void? = newElements.withContiguousStorageIfAvailable { source in
-      _storage.ensureUnique(minimumCapacity: count + source.count)
-      _storage.update { $0.uncheckedPrepend(contentsOf: source) }
+      _ensureUnique(minimumCapacity: count + source.count)
+      _update { $0.uncheckedPrepend(contentsOf: source) }
     }
     guard done == nil else { return }
 
     let c = newElements.count
     guard c > 0 else { return }
-    _storage.ensureUnique(minimumCapacity: count + c)
-    _storage.update { target in
+    _ensureUnique(minimumCapacity: count + c)
+    _update { target in
       let gaps = target.availableSegments().suffix(c)
       gaps.initialize(from: newElements)
       target.count += c
@@ -173,8 +173,8 @@ extension Deque {
   @inlinable
   public mutating func prepend(contentsOf newElements: some Sequence<Element>) {
     let done: Void? = newElements.withContiguousStorageIfAvailable { source in
-      _storage.ensureUnique(minimumCapacity: count + source.count)
-      _storage.update { $0.uncheckedPrepend(contentsOf: source) }
+      _ensureUnique(minimumCapacity: count + source.count)
+      _update { $0.uncheckedPrepend(contentsOf: source) }
     }
     guard done == nil else { return }
 
@@ -182,7 +182,7 @@ extension Deque {
     self.append(contentsOf: newElements)
     let newCount = self.count
     let c = newCount - originalCount
-    _storage.update { target in
+    _update { target in
       target.startSlot = target.slot(forOffset: originalCount)
       target.count = target.capacity
       target.closeGap(offsets: c ..< c + (target.capacity - newCount))

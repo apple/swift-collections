@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 @usableFromInline
 internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal let _storage: UnsafeMutableBufferPointer<Element>
+  internal let _buffer: UnsafeMutableBufferPointer<Element>
 
   @usableFromInline
   internal var count: Int
@@ -41,7 +41,7 @@ internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
     count: Int,
     startSlot: _DequeSlot
   ) {
-    self._storage = _storage
+    self._buffer = _storage
     self.count = count
     self.startSlot = startSlot
   }
@@ -49,27 +49,27 @@ internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @inlinable
   internal consuming func dispose() {
     _checkInvariants()
-    if startSlot.position + count <= _storage.count {
-      _storage._ptr(at: startSlot.position).deinitialize(
-        count: _storage.count)
-    } else {
-      let firstRegion = _storage.count - startSlot.position
-      _storage._ptr(at: startSlot.position).deinitialize(count: firstRegion)
-      _storage._ptr(at: 0).deinitialize(count: count - firstRegion)
-    }
-    _storage.deallocate()
+    self.mutableSegments().deinitialize()
+    _buffer.deallocate()
   }
 }
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable @inline(__always)
   internal var _baseAddress: UnsafeMutablePointer<Element> {
-    _storage.baseAddress.unsafelyUnwrapped
+    _buffer.baseAddress.unsafelyUnwrapped
   }
 
   @inlinable
   internal var capacity: Int {
-    _storage.count
+    _buffer.count
+  }
+}
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @usableFromInline
+  internal var description: String {
+    "(capacity: \(capacity), count: \(count), startSlot: \(startSlot))"
   }
 }
 
@@ -108,21 +108,20 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable @inline(__always)
   internal var mutableBuffer: UnsafeMutableBufferPointer<Element> {
     mutating get {
-      _storage
+      _buffer
     }
   }
 
   @inlinable
   internal func buffer(for range: Range<Slot>) -> UnsafeBufferPointer<Element> {
     assert(range.upperBound.position <= capacity)
-    return .init(
-      start: _baseAddress + range.lowerBound.position,
-      count: range._count)
+    return .init(_buffer.extracting(range._offsets))
   }
 
   @inlinable @inline(__always)
   internal mutating func mutableBuffer(for range: Range<Slot>) -> UnsafeMutableBufferPointer<Element> {
-    return .init(mutating: buffer(for: range))
+    assert(range.upperBound.position <= capacity)
+    return _buffer.extracting(range._offsets)
   }
 }
 
@@ -191,6 +190,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
   internal func segments() -> _UnsafeWrappedBuffer<Element> {
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
     let wrap = capacity - startSlot.position
     if count <= wrap {
       return .init(start: ptr(at: startSlot), count: count)
@@ -204,6 +206,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     forOffsets offsets: Range<Int>
   ) -> _UnsafeWrappedBuffer<Element> {
     assert(offsets.lowerBound >= 0 && offsets.upperBound <= count)
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
     let lower = slot(forOffset: offsets.lowerBound)
     let upper = slot(forOffset: offsets.upperBound)
     if offsets.count == 0 || lower < upper {
@@ -231,6 +236,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
   internal mutating func availableSegments() -> _UnsafeMutableWrappedBuffer<Element> {
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
     let endSlot = self.endSlot
     guard count < capacity else { return .init(start: mutablePtr(at: endSlot), count: 0) }
     if endSlot < startSlot { return .init(mutableBuffer(for: endSlot ..< startSlot)) }
@@ -287,41 +295,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 }
 
 
-
-extension _UnsafeDequeHandle {
-  /// Move elements into a new storage instance with the specified minimum
-  /// capacity. Existing indices in `self` won't necessarily be valid in the
-  /// result. `self` is left empty.
-  @inlinable
-  internal mutating func moveElements(minimumCapacity: Int) -> Deque<Element>._Storage {
-    let count = self.count
-    assert(minimumCapacity >= count)
-    let object = _DequeBuffer<Element>.create(
-      minimumCapacity: minimumCapacity,
-      makingHeaderWith: {
-#if os(OpenBSD)
-        let capacity = minimumCapacity
-#else
-        let capacity = $0.capacity
-#endif
-        return _DequeBufferHeader(
-          capacity: capacity,
-          count: count,
-          startSlot: .zero)
-      })
-    let result = Deque<Element>._Storage(_buffer: ManagedBufferPointer(unsafeBufferObject: object))
-    guard count > 0 else { return result }
-    result.update { target in
-      let source = self.mutableSegments()
-      let next = target.moveInitialize(at: .zero, from: source.first)
-      if let second = source.second {
-        target.moveInitialize(at: next, from: second)
-      }
-    }
-    self.count = 0
-    return result
-  }
-}
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
@@ -818,5 +791,37 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       startSlot = newStart
       count -= gapSize
     }
+  }
+}
+
+extension _UnsafeDequeHandle {
+  /// Copy elements into a newly allocated handle without changing capacity or
+  /// layout.
+  @inlinable
+  func allocateCopy() -> Self {
+    var handle: Self = .allocate(capacity: self.capacity)
+    handle.count = self.count
+    handle.startSlot = self.startSlot
+    let src = self.segments()
+    handle.initialize(at: self.startSlot, from: src.first)
+    if let second = src.second {
+      handle.initialize(at: .zero, from: second)
+    }
+    return handle
+  }
+
+  /// Copy elements into a new storage instance with the specified minimum
+  /// capacity. This operation does not preserve layout.
+  @inlinable
+  func allocateCopy(capacity: Int) -> Self {
+    assert(capacity >= count)
+    var handle: Self = .allocate(capacity: capacity)
+    handle.count = self.count
+    let src = self.segments()
+    let next = handle.initialize(at: .zero, from: src.first)
+    if let second = src.second {
+      handle.initialize(at: next, from: second)
+    }
+    return handle
   }
 }

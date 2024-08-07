@@ -65,24 +65,23 @@ extension Deque {
     precondition(capacity >= 0)
     precondition(startSlot >= 0 && (startSlot < capacity || (capacity == 0 && startSlot == 0)))
     precondition(contents.count <= capacity)
+
     let startSlot = _Slot(at: startSlot)
-    let buffer = _DequeBuffer<Element>.create(minimumCapacity: capacity) { _ in
-      _DequeBufferHeader(capacity: capacity, count: contents.count, startSlot: startSlot)
-    }
-    let storage = Deque<Element>._Storage(unsafeDowncast(buffer, to: _DequeBuffer.self))
-    if contents.count > 0 {
+
+    var hd = HypoDeque<Element>(capacity: capacity)
+    hd._handle.count = contents.count
+    hd._handle.startSlot = startSlot
+    if hd._handle.count > 0 {
       contents.withUnsafeBufferPointer { source in
-        storage.update { target in
-          let segments = target.mutableSegments()
-          let c = segments.first.count
-          segments.first.initializeAll(fromContentsOf: source.prefix(c))
-          if let second = segments.second {
-            second.initializeAll(fromContentsOf: source.dropFirst(c))
-          }
+        let segments = hd._handle.mutableSegments()
+        let c = segments.first.count
+        segments.first.initializeAll(fromContentsOf: source.prefix(c))
+        if let second = segments.second {
+          second.initializeAll(fromContentsOf: source.dropFirst(c))
         }
       }
     }
-    self.init(_storage: storage)
+    self.init(_storage: _Storage(hd))
     assert(self._capacity == capacity)
     assert(self._startSlot == startSlot.position)
     assert(self.count == contents.count)
