@@ -147,18 +147,7 @@ extension HypoDeque where Element: ~Copyable {
 
   @inlinable
   public mutating func resize(to newCapacity: Int) {
-    precondition(newCapacity >= count)
-    guard newCapacity != capacity else { return }
-    var newHandle = _Handle.allocate(capacity: newCapacity)
-    newHandle.startSlot = .zero
-    newHandle.count = _handle.count
-    let source = _handle.mutableSegments()
-    let next = newHandle.moveInitialize(at: .zero, from: source.first)
-    if let second = source.second {
-      newHandle.moveInitialize(at: next, from: second)
-    }
-    self._handle._buffer.deallocate()
-    self._handle = newHandle
+    _handle.reallocate(capacity: newCapacity)
   }
 }
 

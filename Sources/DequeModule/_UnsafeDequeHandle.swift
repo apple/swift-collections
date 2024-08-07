@@ -798,7 +798,7 @@ extension _UnsafeDequeHandle {
   /// Copy elements into a newly allocated handle without changing capacity or
   /// layout.
   @inlinable
-  func allocateCopy() -> Self {
+  internal func allocateCopy() -> Self {
     var handle: Self = .allocate(capacity: self.capacity)
     handle.count = self.count
     handle.startSlot = self.startSlot
@@ -813,7 +813,7 @@ extension _UnsafeDequeHandle {
   /// Copy elements into a new storage instance with the specified minimum
   /// capacity. This operation does not preserve layout.
   @inlinable
-  func allocateCopy(capacity: Int) -> Self {
+  internal func allocateCopy(capacity: Int) -> Self {
     assert(capacity >= count)
     var handle: Self = .allocate(capacity: capacity)
     handle.count = self.count
@@ -823,5 +823,23 @@ extension _UnsafeDequeHandle {
       handle.initialize(at: next, from: second)
     }
     return handle
+  }
+}
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable
+  internal mutating func reallocate(capacity newCapacity: Int) {
+    precondition(newCapacity >= count)
+    guard newCapacity != capacity else { return }
+    var newHandle = Self.allocate(capacity: newCapacity)
+    newHandle.startSlot = .zero
+    newHandle.count = self.count
+    let source = self.mutableSegments()
+    let next = newHandle.moveInitialize(at: .zero, from: source.first)
+    if let second = source.second {
+      newHandle.moveInitialize(at: next, from: second)
+    }
+    self._buffer.deallocate()
+    self = newHandle
   }
 }
