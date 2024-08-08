@@ -69,4 +69,10 @@ extension Range where Bound == _DequeSlot {
   @inlinable
   @inline(__always)
   internal var _count: Int { upperBound.position - lowerBound.position }
+
+  @inlinable
+  @inline(__always)
+  internal var _offsets: Range<Int> {
+    Range<Int>(uncheckedBounds: (lowerBound.position, upperBound.position))
+  }
 }

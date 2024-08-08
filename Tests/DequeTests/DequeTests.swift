@@ -176,16 +176,18 @@ final class DequeTests: CollectionTestCase {
           let d1 = Deque<LifetimeTracked<Int>>(
             unsafeUninitializedCapacity: cap,
             initializingWith: { target, c in
-              expectNotNil(target.baseAddress)
               expectEqual(target.count, cap)
               expectEqual(c, 0)
-              contents.withUnsafeBufferPointer { source in
-                precondition(source.count <= target.count)
-                target.baseAddress!.initialize(
-                  from: source.baseAddress!,
-                  count: source.count)
+              if target.count > 0 {
+                expectNotNil(target.baseAddress)
+                contents.withUnsafeBufferPointer { source in
+                  precondition(source.count <= target.count)
+                  target.baseAddress!.initialize(
+                    from: source.baseAddress!,
+                    count: source.count)
+                }
+                c = count
               }
-              c = count
             })
           expectEqualElements(d1, contents)
         }
@@ -206,16 +208,18 @@ final class DequeTests: CollectionTestCase {
         try Deque<LifetimeTracked<Int>>(
           unsafeUninitializedCapacity: cap,
           initializingWith: { target, c in
-            expectNotNil(target.baseAddress)
             expectEqual(target.count, cap)
             expectEqual(c, 0)
-            contents.withUnsafeBufferPointer { source in
-              precondition(source.count <= target.count)
-              target.baseAddress!.initialize(
-                from: source.baseAddress!,
-                count: source.count)
+            if target.count > 0 {
+              expectNotNil(target.baseAddress)
+              contents.withUnsafeBufferPointer { source in
+                precondition(source.count <= target.count)
+                target.baseAddress!.initialize(
+                  from: source.baseAddress!,
+                  count: source.count)
+              }
+              c = count
             }
-            c = count
             throw TestError(count)
           })
       ) { error in

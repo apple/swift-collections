@@ -35,11 +35,12 @@ extension Deque: Decodable where Element: Decodable {
   /// - Parameter decoder: The decoder to read data from.
   @inlinable
   public init(from decoder: Decoder) throws {
-    self.init()
 
     var container = try decoder.unkeyedContainer()
     if let count = container.count {
-      self.reserveCapacity(count)
+      self.init(minimumCapacity: count)
+    } else {
+      self.init()
     }
     while !container.isAtEnd {
       let element = try container.decode(Element.self)

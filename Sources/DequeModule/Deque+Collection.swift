@@ -23,7 +23,7 @@ extension Deque: Sequence {
   @frozen
   public struct Iterator: IteratorProtocol {
     @usableFromInline
-    internal var _storage: Deque._Storage
+    internal var _base: Deque
 
     @usableFromInline
     internal var _nextSlot: _Slot
@@ -32,32 +32,32 @@ extension Deque: Sequence {
     internal var _endSlot: _Slot
 
     @inlinable
-    internal init(_storage: Deque._Storage, start: _Slot, end: _Slot) {
-      self._storage = _storage
+    internal init(_base: Deque, start: _Slot, end: _Slot) {
+      self._base = _base
       self._nextSlot = start
       self._endSlot = end
     }
 
     @inlinable
     internal init(_base: Deque) {
-      self = _base._storage.read { handle in
+      self = _base._read { handle in
         let start = handle.startSlot
         let end = Swift.min(start.advanced(by: handle.count), handle.limSlot)
-        return Self(_storage: _base._storage, start: start, end: end)
+        return Self(_base: _base, start: start, end: end)
       }
     }
 
     @inlinable
     internal init(_base: Deque, from index: Int) {
-      self = _base._storage.read { handle in
+      self = _base._read { handle in
         assert(index >= 0 && index <= handle.count)
         let start = handle.slot(forOffset: index)
         if index == handle.count {
-          return Self(_storage: _base._storage, start: start, end: start)
+          return Self(_base: _base, start: start, end: start)
         }
         var end = handle.endSlot
         if start >= end { end = handle.limSlot }
-        return Self(_storage: _base._storage, start: start, end: end)
+        return Self(_base: _base, start: start, end: end)
       }
     }
 
@@ -65,7 +65,7 @@ extension Deque: Sequence {
     @inline(never)
     internal mutating func _swapSegment() -> Bool {
       assert(_nextSlot == _endSlot)
-      return _storage.read { handle in
+      return _base._read { handle in
         let end = handle.endSlot
         if end == .zero || end == _nextSlot {
           return false
@@ -88,7 +88,7 @@ extension Deque: Sequence {
       assert(_nextSlot < _endSlot)
       let slot = _nextSlot
       _nextSlot = _nextSlot.advanced(by: 1)
-      return _storage.read { handle in
+      return _base._read { handle in
         return handle.ptr(at: slot).pointee
       }
     }
@@ -104,8 +104,8 @@ extension Deque: Sequence {
 
   @inlinable
   public __consuming func _copyToContiguousArray() -> ContiguousArray<Element> {
-    ContiguousArray(unsafeUninitializedCapacity: _storage.count) { target, count in
-      _storage.read { source in
+    ContiguousArray(unsafeUninitializedCapacity: count) { target, count in
+      _read { source in
         let segments = source.segments()
         let c = segments.first.count
         target[..<c].initializeAll(fromContentsOf: segments.first)
@@ -123,7 +123,7 @@ extension Deque: Sequence {
   public __consuming func _copyContents(
     initializing target: UnsafeMutableBufferPointer<Element>
   ) -> (Iterator, UnsafeMutableBufferPointer<Element>.Index) {
-    _storage.read { source in
+    _read { source in
       let segments = source.segments()
       let c1 = Swift.min(segments.first.count, target.count)
       target[..<c1].initializeAll(fromContentsOf: segments.first.prefix(c1))
@@ -156,7 +156,8 @@ extension Deque: Sequence {
   public func withContiguousStorageIfAvailable<R>(
     _ body: (UnsafeBufferPointer<Element>) throws -> R
   ) rethrows -> R? {
-    return try _storage.read { handle in
+    return try _read { handle in
+      guard handle.count > 0 else { return nil }
       let endSlot = handle.startSlot.advanced(by: handle.count)
       guard endSlot.position <= handle.capacity else { return nil }
       return try body(handle.buffer(for: handle.startSlot ..< endSlot))
@@ -176,7 +177,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var count: Int { _storage.count }
+  public var count: Int { _storage._value.count }
 
   /// The position of the first element in a nonempty deque.
   ///
@@ -355,14 +356,14 @@ extension Deque: RandomAccessCollection {
   public subscript(index: Int) -> Element {
     get {
       precondition(index >= 0 && index < count, "Index out of bounds")
-      return _storage.read { $0.ptr(at: $0.slot(forOffset: index)).pointee }
+      return _read { $0.ptr(at: $0.slot(forOffset: index)).pointee }
     }
     set {
       precondition(index >= 0 && index < count, "Index out of bounds")
-      _storage.ensureUnique()
-      _storage.update { handle in
+      _ensureUnique()
+      _update { handle in
         let slot = handle.slot(forOffset: index)
-        handle.ptr(at: slot).pointee = newValue
+        handle.mutablePtr(at: slot).pointee = newValue
       }
     }
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
@@ -378,20 +379,20 @@ extension Deque: RandomAccessCollection {
 
   @inlinable
   internal mutating func _prepareForModify(at index: Int) -> (_Slot, Element) {
-    _storage.ensureUnique()
+    _ensureUnique()
     // We technically aren't supposed to escape storage pointers out of a
     // managed buffer, so we escape a `(slot, value)` pair instead, leaving
     // the corresponding slot temporarily uninitialized.
-    return _storage.update { handle in
+    return _update { handle in
       let slot = handle.slot(forOffset: index)
-      return (slot, handle.ptr(at: slot).move())
+      return (slot, handle.mutablePtr(at: slot).move())
     }
   }
 
   @inlinable
   internal mutating func _finalizeModify(_ slot: _Slot, _ value: Element) {
-    _storage.update { handle in
-      handle.ptr(at: slot).initialize(to: value)
+    _update { handle in
+      handle.mutablePtr(at: slot).initialize(to: value)
     }
   }
 
@@ -434,8 +435,8 @@ extension Deque: MutableCollection {
   public mutating func swapAt(_ i: Int, _ j: Int) {
     precondition(i >= 0 && i < count, "Index out of bounds")
     precondition(j >= 0 && j < count, "Index out of bounds")
-    _storage.ensureUnique()
-    _storage.update { handle in
+    _ensureUnique()
+    _update { handle in
       let slot1 = handle.slot(forOffset: i)
       let slot2 = handle.slot(forOffset: j)
       handle.mutableBuffer.swapAt(slot1.position, slot2.position)
@@ -466,8 +467,8 @@ extension Deque: MutableCollection {
   public mutating func withContiguousMutableStorageIfAvailable<R>(
     _ body: (inout UnsafeMutableBufferPointer<Element>) throws -> R
   ) rethrows -> R? {
-    _storage.ensureUnique()
-    return try _storage.update { handle in
+    _ensureUnique()
+    return try _update { handle in
       let endSlot = handle.startSlot.advanced(by: handle.count)
       guard endSlot.position <= handle.capacity else {
         // FIXME: Rotate storage such that it becomes contiguous.
@@ -506,7 +507,8 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: O(1)
   @inlinable
   public init() {
-    _storage = _Storage()
+    // FIXME: Can we do empty singletons in this world? Should _storage become optional?
+    _storage = _Storage(capacity: 0)
   }
 
   /// Reserves enough space to store the specified number of elements.
@@ -522,7 +524,7 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: O(`count`)
   @inlinable
   public mutating func reserveCapacity(_ minimumCapacity: Int) {
-    _storage.ensureUnique(minimumCapacity: minimumCapacity, linearGrowth: true)
+    _ensureUnique(minimumCapacity: minimumCapacity, linearGrowth: true)
   }
 
   /// Replaces a range of elements with the elements in the specified
@@ -552,13 +554,13 @@ extension Deque: RangeReplaceableCollection {
     let removalCount = subrange.count
     let insertionCount = newElements.count
     let deltaCount = insertionCount - removalCount
-    _storage.ensureUnique(minimumCapacity: count + deltaCount)
 
     let replacementCount = Swift.min(removalCount, insertionCount)
     let targetCut = subrange.lowerBound + replacementCount
     let sourceCut = newElements.index(newElements.startIndex, offsetBy: replacementCount)
 
-    _storage.update { target in
+    _ensureUnique(minimumCapacity: count + deltaCount)
+    _update { target in
       target.uncheckedReplaceInPlace(
         inOffsets: subrange.lowerBound ..< targetCut,
         with: newElements[..<sourceCut])
@@ -588,10 +590,11 @@ extension Deque: RangeReplaceableCollection {
   public init(repeating repeatedValue: Element, count: Int) {
     precondition(count >= 0)
     self.init(minimumCapacity: count)
-    _storage.update { handle in
+    _update { handle in
       assert(handle.startSlot == .zero)
       if count > 0 {
-        handle.ptr(at: .zero).initialize(repeating: repeatedValue, count: count)
+        handle.mutablePtr(at: .zero).initialize(
+          repeating: repeatedValue, count: count)
       }
       handle.count = count
     }
@@ -605,7 +608,7 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
   public init(_ elements: some Sequence<Element>) {
-    self.init()
+    self.init(minimumCapacity: elements.underestimatedCount)
     self.append(contentsOf: elements)
   }
 
@@ -618,9 +621,9 @@ extension Deque: RangeReplaceableCollection {
   @inlinable
   public init(_ elements: some Collection<Element>) {
     let c = elements.count
-    guard c > 0 else { _storage = _Storage(); return }
-    self._storage = _Storage(minimumCapacity: c)
-    _storage.update { handle in
+    guard c > 0 else { self.init(); return }
+    self.init(minimumCapacity: c)
+    _update { handle in
       assert(handle.startSlot == .zero)
       let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
       let done: Void? = elements.withContiguousStorageIfAvailable { source in
@@ -658,8 +661,8 @@ extension Deque: RangeReplaceableCollection {
   /// - SeeAlso: `prepend(_:)`
   @inlinable
   public mutating func append(_ newElement: Element) {
-    _storage.ensureUnique(minimumCapacity: count + 1)
-    _storage.update {
+    _ensureUnique(minimumCapacity: count + 1)
+    _update {
       $0.uncheckedAppend(newElement)
     }
   }
@@ -681,24 +684,24 @@ extension Deque: RangeReplaceableCollection {
   @inlinable
   public mutating func append(contentsOf newElements: some Sequence<Element>) {
     let done: Void? = newElements.withContiguousStorageIfAvailable { source in
-      _storage.ensureUnique(minimumCapacity: count + source.count)
-      _storage.update { $0.uncheckedAppend(contentsOf: source) }
+      _ensureUnique(minimumCapacity: count + source.count)
+      _update { $0.uncheckedAppend(contentsOf: source) }
     }
     if done != nil {
       return
     }
 
     let underestimatedCount = newElements.underestimatedCount
-    _storage.ensureUnique(minimumCapacity: count + underestimatedCount)
-    var it = _storage.update { target in
+    _ensureUnique(minimumCapacity: count + underestimatedCount)
+    var it = _update { target in
       let gaps = target.availableSegments()
       let (it, copied) = gaps.initialize(fromSequencePrefix: newElements)
       target.count += copied
       return it
     }
     while let next = it.next() {
-      _storage.ensureUnique(minimumCapacity: count + 1)
-      _storage.update { target in
+      _ensureUnique(minimumCapacity: count + 1)
+      _update { target in
         target.uncheckedAppend(next)
         let gaps = target.availableSegments()
         target.count += gaps.initialize(fromPrefixOf: &it)
@@ -725,15 +728,15 @@ extension Deque: RangeReplaceableCollection {
     contentsOf newElements: some Collection<Element>
   ) {
     let done: Void? = newElements.withContiguousStorageIfAvailable { source in
-      _storage.ensureUnique(minimumCapacity: count + source.count)
-      _storage.update { $0.uncheckedAppend(contentsOf: source) }
+      _ensureUnique(minimumCapacity: count + source.count)
+      _update { $0.uncheckedAppend(contentsOf: source) }
     }
     guard done == nil else { return }
 
     let c = newElements.count
     guard c > 0 else { return }
-    _storage.ensureUnique(minimumCapacity: count + c)
-    _storage.update { target in
+    _ensureUnique(minimumCapacity: count + c)
+    _update { target in
       let gaps = target.availableSegments().prefix(c)
       gaps.initialize(from: newElements)
       target.count += c
@@ -759,19 +762,9 @@ extension Deque: RangeReplaceableCollection {
   public mutating func insert(_ newElement: Element, at index: Int) {
     precondition(index >= 0 && index <= count,
                  "Can't insert element at invalid index")
-    _storage.ensureUnique(minimumCapacity: count + 1)
-    _storage.update { target in
-      if index == 0 {
-        target.uncheckedPrepend(newElement)
-        return
-      }
-      if index == count {
-        target.uncheckedAppend(newElement)
-        return
-      }
-      let gap = target.openGap(ofSize: 1, atOffset: index)
-      assert(gap.first.count == 1)
-      gap.first.baseAddress!.initialize(to: newElement)
+    _ensureUnique(minimumCapacity: count + 1)
+    _update { target in
+      target.uncheckedInsert(newElement, at: index)
     }
   }
 
@@ -800,8 +793,8 @@ extension Deque: RangeReplaceableCollection {
     precondition(index >= 0 && index <= count,
                  "Can't insert elements at an invalid index")
     let newCount = newElements.count
-    _storage.ensureUnique(minimumCapacity: count + newCount)
-    _storage.update { target in
+    _ensureUnique(minimumCapacity: count + newCount)
+    _update { target in
       target.uncheckedInsert(contentsOf: newElements, count: newCount, atOffset: index)
     }
   }
@@ -826,11 +819,10 @@ extension Deque: RangeReplaceableCollection {
   public mutating func remove(at index: Int) -> Element {
     precondition(index >= 0 && index < self.count, "Index out of bounds")
     // FIXME: Implement storage shrinking
-    _storage.ensureUnique()
-    return _storage.update { target in
-      // FIXME: Add direct implementation & see if it makes a difference
-      let result = self[index]
-      target.uncheckedRemove(offsets: index ..< index + 1)
+    _ensureUnique()
+    return _update { target in
+      let result = target.mutablePtr(at: target.slot(forOffset: index)).move()
+      target.closeGap(offsets: index ..< index + 1)
       return result
     }
   }
@@ -852,23 +844,23 @@ extension Deque: RangeReplaceableCollection {
   public mutating func removeSubrange(_ bounds: Range<Int>) {
     precondition(bounds.lowerBound >= 0 && bounds.upperBound <= self.count,
                  "Index range out of bounds")
-    _storage.ensureUnique()
-    _storage.update { $0.uncheckedRemove(offsets: bounds) }
+    _ensureUnique()
+    _update { $0.uncheckedRemove(offsets: bounds) }
   }
 
   @inlinable
   public mutating func _customRemoveLast() -> Element? {
     precondition(!isEmpty, "Cannot remove last element of an empty Deque")
-    _storage.ensureUnique()
-    return _storage.update { $0.uncheckedRemoveLast() }
+    _ensureUnique()
+    return _update { $0.uncheckedRemoveLast() }
   }
 
   @inlinable
   public mutating func _customRemoveLast(_ n: Int) -> Bool {
     precondition(n >= 0, "Can't remove a negative number of elements")
     precondition(n <= count, "Can't remove more elements than there are in the Collection")
-    _storage.ensureUnique()
-    _storage.update { $0.uncheckedRemoveLast(n) }
+    _ensureUnique()
+    _update { $0.uncheckedRemoveLast(n) }
     return true
   }
 
@@ -884,8 +876,8 @@ extension Deque: RangeReplaceableCollection {
   @discardableResult
   public mutating func removeFirst() -> Element {
     precondition(!isEmpty, "Cannot remove first element of an empty Deque")
-    _storage.ensureUnique()
-    return _storage.update { $0.uncheckedRemoveFirst() }
+    _ensureUnique()
+    return _update { $0.uncheckedRemoveFirst() }
   }
 
   /// Removes the specified number of elements from the beginning of the deque.
@@ -900,8 +892,8 @@ extension Deque: RangeReplaceableCollection {
   public mutating func removeFirst(_ n: Int) {
     precondition(n >= 0, "Can't remove a negative number of elements")
     precondition(n <= count, "Can't remove more elements than there are in the Collection")
-    _storage.ensureUnique()
-    return _storage.update { $0.uncheckedRemoveFirst(n) }
+    _ensureUnique()
+    return _update { $0.uncheckedRemoveFirst(n) }
   }
 
   /// Removes all elements from the deque.
@@ -913,8 +905,8 @@ extension Deque: RangeReplaceableCollection {
   @inlinable
   public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
     if keepCapacity {
-      _storage.ensureUnique()
-      _storage.update { $0.uncheckedRemoveAll() }
+      _ensureUnique()
+      _update { $0.uncheckedRemoveAll() }
     } else {
       self = Deque()
     }

@@ -11,7 +11,7 @@
 
 SDKROOT = macosx
 
-SWIFT_VERSION = 5.5
+SWIFT_VERSION = 6.0
 ONLY_ACTIVE_ARCH[config=Debug] = YES
 
 SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) COLLECTIONS_SINGLE_MODULE
@@ -22,6 +22,13 @@ SWIFT_COMPILATION_MODE[config=Debug] = singlefile
 
 SWIFT_OPTIMIZATION_LEVEL[config=Release] = -O
 SWIFT_OPTIMIZATION_LEVEL[config=Debug] = -Onone
+
+OTHER_SWIFT_FLAGS = $(inherited) \
+  -enable-experimental-feature BuiltinModule \
+  -enable-experimental-feature NonescapableTypes \
+  -enable-experimental-feature BitwiseCopyable \
+  -enable-experimental-feature RawLayout \
+  -enable-experimental-feature SuppressedAssociatedTypes
 
 ENABLE_USER_SCRIPT_SANDBOXING = YES
 
