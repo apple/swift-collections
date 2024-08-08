@@ -74,15 +74,12 @@
 		7DE9204729CA70F3004483EB /* _HashTable+Testing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EB229CA70F3004483EB /* _HashTable+Testing.swift */; };
 		7DE9204829CA70F3004483EB /* _HashTable+CustomStringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EB329CA70F3004483EB /* _HashTable+CustomStringConvertible.swift */; };
 		7DE9204929CA70F3004483EB /* _HashTable+BucketIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EB429CA70F3004483EB /* _HashTable+BucketIterator.swift */; };
-		7DE9204B29CA70F3004483EB /* _DequeBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EB729CA70F3004483EB /* _DequeBuffer.swift */; };
 		7DE9204C29CA70F3004483EB /* Deque+Collection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EB829CA70F3004483EB /* Deque+Collection.swift */; };
 		7DE9204E29CA70F3004483EB /* Deque+CustomReflectable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EBA29CA70F3004483EB /* Deque+CustomReflectable.swift */; };
 		7DE9204F29CA70F3004483EB /* Deque.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EBB29CA70F3004483EB /* Deque.swift */; };
 		7DE9205029CA70F3004483EB /* _DequeSlot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EBC29CA70F3004483EB /* _DequeSlot.swift */; };
 		7DE9205129CA70F3004483EB /* Deque+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EBD29CA70F3004483EB /* Deque+Hashable.swift */; };
 		7DE9205229CA70F3004483EB /* _UnsafeWrappedBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EBE29CA70F3004483EB /* _UnsafeWrappedBuffer.swift */; };
-		7DE9205329CA70F3004483EB /* _DequeBufferHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EBF29CA70F3004483EB /* _DequeBufferHeader.swift */; };
-		7DE9205429CA70F3004483EB /* Deque+Sendable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EC029CA70F3004483EB /* Deque+Sendable.swift */; };
 		7DE9205529CA70F3004483EB /* Deque+Codable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EC129CA70F3004483EB /* Deque+Codable.swift */; };
 		7DE9205629CA70F3004483EB /* Deque+Testing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EC229CA70F3004483EB /* Deque+Testing.swift */; };
 		7DE9205929CA70F3004483EB /* Deque+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91EC529CA70F3004483EB /* Deque+Descriptions.swift */; };
@@ -519,7 +516,6 @@
 		7DE91EB329CA70F3004483EB /* _HashTable+CustomStringConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "_HashTable+CustomStringConvertible.swift"; sourceTree = "<group>"; };
 		7DE91EB429CA70F3004483EB /* _HashTable+BucketIterator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "_HashTable+BucketIterator.swift"; sourceTree = "<group>"; };
 		7DE91EB529CA70F3004483EB /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		7DE91EB729CA70F3004483EB /* _DequeBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _DequeBuffer.swift; sourceTree = "<group>"; };
 		7DE91EB829CA70F3004483EB /* Deque+Collection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Deque+Collection.swift"; sourceTree = "<group>"; };
 		7DE91EB929CA70F3004483EB /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7DE91EBA29CA70F3004483EB /* Deque+CustomReflectable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Deque+CustomReflectable.swift"; sourceTree = "<group>"; };
@@ -527,8 +523,6 @@
 		7DE91EBC29CA70F3004483EB /* _DequeSlot.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _DequeSlot.swift; sourceTree = "<group>"; };
 		7DE91EBD29CA70F3004483EB /* Deque+Hashable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Deque+Hashable.swift"; sourceTree = "<group>"; };
 		7DE91EBE29CA70F3004483EB /* _UnsafeWrappedBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _UnsafeWrappedBuffer.swift; sourceTree = "<group>"; };
-		7DE91EBF29CA70F3004483EB /* _DequeBufferHeader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _DequeBufferHeader.swift; sourceTree = "<group>"; };
-		7DE91EC029CA70F3004483EB /* Deque+Sendable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Deque+Sendable.swift"; sourceTree = "<group>"; };
 		7DE91EC129CA70F3004483EB /* Deque+Codable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Deque+Codable.swift"; sourceTree = "<group>"; };
 		7DE91EC229CA70F3004483EB /* Deque+Testing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Deque+Testing.swift"; sourceTree = "<group>"; };
 		7DE91EC329CA70F3004483EB /* DequeModule.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = DequeModule.docc; sourceTree = "<group>"; };
@@ -1066,8 +1060,6 @@
 		7DE91EB629CA70F3004483EB /* DequeModule */ = {
 			isa = PBXGroup;
 			children = (
-				7DE91EB729CA70F3004483EB /* _DequeBuffer.swift */,
-				7DE91EBF29CA70F3004483EB /* _DequeBufferHeader.swift */,
 				7DE91EBC29CA70F3004483EB /* _DequeSlot.swift */,
 				7DEBEC122C5AB45600A1BF15 /* _UnsafeDequeHandle.swift */,
 				7DE91EBE29CA70F3004483EB /* _UnsafeWrappedBuffer.swift */,
@@ -1082,7 +1074,6 @@
 				7DE91EC729CA70F3004483EB /* Deque+ExpressibleByArrayLiteral.swift */,
 				7DE91EC629CA70F3004483EB /* Deque+Extras.swift */,
 				7DE91EBD29CA70F3004483EB /* Deque+Hashable.swift */,
-				7DE91EC029CA70F3004483EB /* Deque+Sendable.swift */,
 				7DE91EC229CA70F3004483EB /* Deque+Testing.swift */,
 				7DE91EC329CA70F3004483EB /* DequeModule.docc */,
 				7DEBEC132C5AB45600A1BF15 /* DynoDeque.swift */,
@@ -2057,7 +2048,6 @@
 				7DEBDAF829CBEE5300ADC226 /* UnsafeMutableBufferPointer+Extras.swift in Sources */,
 				7DE9217229CA70F4004483EB /* TreeDictionary+Sendable.swift in Sources */,
 				7DE9207729CA70F4004483EB /* Range+BigString.swift in Sources */,
-				7DE9204B29CA70F3004483EB /* _DequeBuffer.swift in Sources */,
 				7DE920DF29CA70F4004483EB /* Slice+Utilities.swift in Sources */,
 				7DE9215729CA70F4004483EB /* _RawHashNode.swift in Sources */,
 				7DE9209529CA70F4004483EB /* RopeSummary.swift in Sources */,
@@ -2186,7 +2176,6 @@
 				7DE9216329CA70F4004483EB /* _HashLevel.swift in Sources */,
 				7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */,
 				7DE9216C29CA70F4004483EB /* TreeDictionary+Descriptions.swift in Sources */,
-				7DE9205429CA70F3004483EB /* Deque+Sendable.swift in Sources */,
 				7DE920A229CA70F4004483EB /* Rope+RemoveSubrange.swift in Sources */,
 				7DE920C729CA70F4004483EB /* BitSet+ExpressibleByArrayLiteral.swift in Sources */,
 				7DE9214929CA70F4004483EB /* _HashNode+Structural isEqualSet.swift in Sources */,
@@ -2202,7 +2191,6 @@
 				7DEBDB0229CBEE5300ADC226 /* _UnsafeBitSet.swift in Sources */,
 				7DE9214329CA70F4004483EB /* _HashNode+Subtree Removals.swift in Sources */,
 				7DE9207929CA70F4004483EB /* BigString+UnicodeScalarView.swift in Sources */,
-				7DE9205329CA70F3004483EB /* _DequeBufferHeader.swift in Sources */,
 				7DE9202429CA70F3004483EB /* OrderedSet+Invariants.swift in Sources */,
 				7DE920A729CA70F4004483EB /* _CharacterRecognizer.swift in Sources */,
 				7DE920A429CA70F4004483EB /* Rope+Sequence.swift in Sources */,
