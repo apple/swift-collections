@@ -13,6 +13,7 @@ extension Deque {
   @usableFromInline
   internal final class _Storage {
     @usableFromInline
+    @exclusivity(unchecked)
     internal var _value: HypoDeque<Element>
 
     @inlinable
