@@ -122,15 +122,27 @@ extension UnsafeMutableBufferPointer {
   }
 
   @inlinable @inline(__always)
+  internal func initializeAll(fromContentsOf source: UnsafeBufferPointer<Element>) {
+    assert(self.count == source.count)
+    guard source.count > 0 else { return }
+    self.baseAddress.unsafelyUnwrapped.initialize(
+      from: source.baseAddress.unsafelyUnwrapped,
+      count: source.count)
+  }
+
+  @inlinable @inline(__always)
+  internal func initializeAll(fromContentsOf source: Slice<UnsafeBufferPointer<Element>>) {
+    self.initializeAll(fromContentsOf: .init(rebasing: source))
+  }
+
+  @inlinable @inline(__always)
   internal func initializeAll(fromContentsOf source: Self) {
-    let i = self.initialize(fromContentsOf: source)
-    assert(i == self.endIndex)
+    self.initializeAll(fromContentsOf: UnsafeBufferPointer(source))
   }
 
   @inlinable @inline(__always)
   internal func initializeAll(fromContentsOf source: Slice<Self>) {
-    let i = self.initialize(fromContentsOf: source)
-    assert(i == self.endIndex)
+    self.initializeAll(fromContentsOf: UnsafeMutableBufferPointer(rebasing: source))
   }
 }
 
@@ -292,15 +304,27 @@ extension UnsafeMutableBufferPointer {
   }
 
   @inlinable @inline(__always)
+  public func initializeAll(fromContentsOf source: UnsafeBufferPointer<Element>) {
+    assert(self.count == source.count)
+    guard source.count > 0 else { return }
+    self.baseAddress.unsafelyUnwrapped.initialize(
+      from: source.baseAddress.unsafelyUnwrapped,
+      count: source.count)
+  }
+
+  @inlinable @inline(__always)
+  public func initializeAll(fromContentsOf source: Slice<UnsafeBufferPointer<Element>>) {
+    self.initializeAll(fromContentsOf: .init(rebasing: source))
+  }
+
+  @inlinable @inline(__always)
   public func initializeAll(fromContentsOf source: Self) {
-    let i = self.initialize(fromContentsOf: source)
-    assert(i == self.endIndex)
+    self.initializeAll(fromContentsOf: UnsafeBufferPointer(source))
   }
 
   @inlinable @inline(__always)
   public func initializeAll(fromContentsOf source: Slice<Self>) {
-    let i = self.initialize(fromContentsOf: source)
-    assert(i == self.endIndex)
+    self.initializeAll(fromContentsOf: UnsafeMutableBufferPointer(rebasing: source))
   }
 }
 
