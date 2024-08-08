@@ -608,7 +608,7 @@ extension Deque: RangeReplaceableCollection {
   /// - Complexity: O(*n*), where *n* is the number of elements in the sequence.
   @inlinable
   public init(_ elements: some Sequence<Element>) {
-    self.init()
+    self.init(minimumCapacity: elements.underestimatedCount)
     self.append(contentsOf: elements)
   }
 
@@ -622,7 +622,7 @@ extension Deque: RangeReplaceableCollection {
   public init(_ elements: some Collection<Element>) {
     let c = elements.count
     guard c > 0 else { self.init(); return }
-    self.init(_storage: _Storage(capacity: c))
+    self.init(minimumCapacity: c)
     _update { handle in
       assert(handle.startSlot == .zero)
       let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
