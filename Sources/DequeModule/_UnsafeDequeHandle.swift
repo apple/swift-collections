@@ -115,13 +115,13 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
   internal func buffer(for range: Range<Slot>) -> UnsafeBufferPointer<Element> {
     assert(range.upperBound.position <= capacity)
-    return .init(_buffer.extracting(range._offsets))
+    return .init(_buffer._extracting(unchecked: range._offsets))
   }
 
   @inlinable @inline(__always)
   internal mutating func mutableBuffer(for range: Range<Slot>) -> UnsafeMutableBufferPointer<Element> {
     assert(range.upperBound.position <= capacity)
-    return _buffer.extracting(range._offsets)
+    return _buffer._extracting(unchecked: range._offsets)
   }
 }
 
