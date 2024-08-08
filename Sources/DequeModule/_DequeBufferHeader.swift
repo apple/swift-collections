@@ -15,14 +15,18 @@ internal struct _DequeBufferHeader {
   var capacity: Int
 
   @usableFromInline
+  var requestedCapacity: Int
+
+  @usableFromInline
   var count: Int
 
   @usableFromInline
   var startSlot: _DequeSlot
 
   @usableFromInline
-  init(capacity: Int, count: Int, startSlot: _DequeSlot) {
+  init(capacity: Int, requestedCapacity: Int, count: Int, startSlot: _DequeSlot) {
     self.capacity = capacity
+    self.requestedCapacity = requestedCapacity
     self.count = count
     self.startSlot = startSlot
     _checkInvariants()
@@ -32,6 +36,7 @@ internal struct _DequeBufferHeader {
   @usableFromInline @inline(never) @_effects(releasenone)
   internal func _checkInvariants() {
     precondition(capacity >= 0)
+    precondition(requestedCapacity <= capacity)
     precondition(count >= 0 && count <= capacity)
     precondition(startSlot.position >= 0 && startSlot.position <= capacity)
   }
