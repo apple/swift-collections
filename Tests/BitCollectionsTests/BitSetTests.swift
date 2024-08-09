@@ -18,6 +18,19 @@ import BitCollections
 import OrderedCollections
 #endif
 
+#if compiler(>=6.0)
+extension BitSet: @retroactive SetAPIChecker {}
+
+extension BitSet: @retroactive SetAPIExtras {
+  public mutating func update(_ member: Int, at index: Index) -> Int {
+    fatalError("Not this one though")
+  }
+}
+
+extension BitSet: @retroactive SortedCollectionAPIChecker {}
+#else
+extension BitSet: SetAPIChecker {}
+
 extension BitSet: SetAPIExtras {
   public mutating func update(_ member: Int, at index: Index) -> Int {
     fatalError("Not this one though")
@@ -25,6 +38,7 @@ extension BitSet: SetAPIExtras {
 }
 
 extension BitSet: SortedCollectionAPIChecker {}
+#endif
 
 final class BitSetTest: CollectionTestCase {
   func test_empty_initializer() {
