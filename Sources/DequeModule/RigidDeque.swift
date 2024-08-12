@@ -15,7 +15,7 @@ import Future
 #endif
 
 @frozen
-public struct HypoDeque<Element: ~Copyable>: ~Copyable {
+public struct RigidDeque<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal typealias _Slot = _DequeSlot
 
@@ -40,9 +40,9 @@ public struct HypoDeque<Element: ~Copyable>: ~Copyable {
   }
 }
 
-extension HypoDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
+extension RigidDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
-extension HypoDeque where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
 #if COLLECTIONS_INTERNAL_CHECKS
   @usableFromInline @inline(never) @_effects(releasenone)
   internal func _checkInvariants() {
@@ -54,7 +54,7 @@ extension HypoDeque where Element: ~Copyable {
 #endif // COLLECTIONS_INTERNAL_CHECKS
 }
 
-extension HypoDeque: RandomAccessContainer where Element: ~Copyable {
+extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
   @frozen
   public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
     @usableFromInline
@@ -135,7 +135,7 @@ extension HypoDeque: RandomAccessContainer where Element: ~Copyable {
   }
 }
 
-extension HypoDeque where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
   @inlinable
   public var capacity: Int { _handle.capacity }
 
@@ -151,29 +151,29 @@ extension HypoDeque where Element: ~Copyable {
   }
 }
 
-extension HypoDeque where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
   @inlinable
   public mutating func append(_ newElement: consuming Element) {
-    precondition(!isFull, "HypoDeque is full")
+    precondition(!isFull, "RigidDeque is full")
     _handle.uncheckedAppend(newElement)
   }
 
   @inlinable
   public mutating func prepend(_ newElement: consuming Element) {
-    precondition(!isFull, "HypoDeque is full")
+    precondition(!isFull, "RigidDeque is full")
     _handle.uncheckedPrepend(newElement)
   }
 
   @inlinable
   public mutating func insert(_ newElement: consuming Element, at index: Int) {
-    precondition(!isFull, "HypoDeque is full")
+    precondition(!isFull, "RigidDeque is full")
     precondition(index >= 0 && index <= count,
                  "Can't insert element at invalid index")
     _handle.uncheckedInsert(newElement, at: index)
   }
 }
 
-extension HypoDeque where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {
@@ -192,28 +192,28 @@ extension HypoDeque where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func removeFirst() -> Element {
-    precondition(!isEmpty, "Cannot remove first element of an empty HypoDeque")
+    precondition(!isEmpty, "Cannot remove first element of an empty RigidDeque")
     return _handle.uncheckedRemoveFirst()
   }
 
   @inlinable
   @discardableResult
   public mutating func removeLast() -> Element {
-    precondition(!isEmpty, "Cannot remove last element of an empty HypoDeque")
+    precondition(!isEmpty, "Cannot remove last element of an empty RigidDeque")
     return _handle.uncheckedRemoveLast()
   }
 
   @inlinable
   public mutating func removeFirst(_ n: Int) {
     precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in a HypoDeque")
+    precondition(n <= count, "Can't remove more elements than there are in a RigidDeque")
     _handle.uncheckedRemoveFirst(n)
   }
 
   @inlinable
   public mutating func removeLast(_ n: Int) {
     precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in a HypoDeque")
+    precondition(n <= count, "Can't remove more elements than there are in a RigidDeque")
     _handle.uncheckedRemoveLast(n)
   }
 
@@ -235,14 +235,14 @@ extension HypoDeque where Element: ~Copyable {
   }
 }
 
-extension HypoDeque {
+extension RigidDeque {
   @inlinable
   internal func _copy() -> Self {
-    HypoDeque(_handle: _handle.allocateCopy())
+    RigidDeque(_handle: _handle.allocateCopy())
   }
 
   @inlinable
   internal func _copy(capacity: Int) -> Self {
-    HypoDeque(_handle: _handle.allocateCopy(capacity: capacity))
+    RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }
 }

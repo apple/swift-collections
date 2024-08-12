@@ -1,9 +1,9 @@
 /// A dynamically self-resizing, heap allocated, noncopyable array
 /// of potentially noncopyable elements.
 @frozen
-public struct DynoArray<Element: ~Copyable>: ~Copyable {
+public struct DynamicArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal var _storage: HypoArray<Element>
+  internal var _storage: RigidArray<Element>
 
   @inlinable
   public init() {
@@ -21,15 +21,15 @@ public struct DynoArray<Element: ~Copyable>: ~Copyable {
   }
 }
 
-extension DynoArray: Sendable where Element: Sendable & ~Copyable {}
+extension DynamicArray: Sendable where Element: Sendable & ~Copyable {}
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   public var capacity: Int { _storage.capacity }
 }
 
-extension DynoArray: RandomAccessContainer where Element: ~Copyable {
-  public typealias BorrowingIterator = HypoArray<Element>.BorrowingIterator
+extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
+  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
   public typealias Index = Int
 
   public func startBorrowingIteration() -> BorrowingIterator {
@@ -108,7 +108,7 @@ extension DynoArray: RandomAccessContainer where Element: ~Copyable {
   }
 }
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   public func borrowElement<E: Error, R: ~Copyable> (
     at index: Int,
@@ -126,7 +126,7 @@ extension DynoArray where Element: ~Copyable {
   }
 }
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {
@@ -134,14 +134,14 @@ extension DynoArray where Element: ~Copyable {
   }
 }
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   public mutating func reserveCapacity(_ n: Int) {
     _storage.reserveCapacity(n)
   }
 }
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   internal static func _grow(_ capacity: Int) -> Int {
     2 * capacity
@@ -154,7 +154,7 @@ extension DynoArray where Element: ~Copyable {
   }
 }
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   public mutating func append(_ item: consuming Element) {
     _ensureFreeCapacity(1)
@@ -162,7 +162,7 @@ extension DynoArray where Element: ~Copyable {
   }
 }
 
-extension DynoArray where Element: ~Copyable {
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   public mutating func insert(_ item: consuming Element, at index: Int) {
     precondition(index >= 0 && index <= count)
@@ -171,7 +171,7 @@ extension DynoArray where Element: ~Copyable {
   }
 }
 
-extension DynoArray {
+extension DynamicArray {
   @inlinable
   public mutating func append(contentsOf items: some Sequence<Element>) {
     for item in items {

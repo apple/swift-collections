@@ -15,8 +15,8 @@ add_library(Future
   "RawSpan.swift"
   "Span.swift"
   "Containers/Container.swift"
-  "Containers/DynoArray.swift"
-  "Containers/HypoArray.swift"
+  "Containers/DynamicArray.swift"
+  "Containers/RigidArray.swift"
 )
 
 target_link_libraries(Future PRIVATE

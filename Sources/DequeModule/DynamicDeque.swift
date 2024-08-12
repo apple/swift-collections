@@ -15,9 +15,9 @@ import Future
 #endif
 
 @frozen
-public struct DynoDeque<Element: ~Copyable>: ~Copyable {
+public struct DynamicDeque<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal var _storage: HypoDeque<Element>
+  internal var _storage: RigidDeque<Element>
 
   @inlinable
   public init() {
@@ -30,10 +30,10 @@ public struct DynoDeque<Element: ~Copyable>: ~Copyable {
   }
 }
 
-extension DynoDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
+extension DynamicDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
-extension DynoDeque: RandomAccessContainer where Element: ~Copyable {
-  public typealias BorrowingIterator = HypoDeque<Element>.BorrowingIterator
+extension DynamicDeque: RandomAccessContainer where Element: ~Copyable {
+  public typealias BorrowingIterator = RigidDeque<Element>.BorrowingIterator
   public typealias Index = Int
 
   public func startBorrowingIteration() -> BorrowingIterator {
@@ -73,7 +73,7 @@ extension DynoDeque: RandomAccessContainer where Element: ~Copyable {
   }
 }
 
-extension DynoDeque where Element: ~Copyable {
+extension DynamicDeque where Element: ~Copyable {
   @inlinable
   internal var _capacity: Int { _storage.capacity }
 
@@ -96,7 +96,7 @@ extension DynoDeque where Element: ~Copyable {
   }
 }
 
-extension DynoDeque where Element: ~Copyable {
+extension DynamicDeque where Element: ~Copyable {
   @inlinable
   public mutating func append(_ newElement: consuming Element) {
     _ensureFreeCapacity(1)
@@ -116,7 +116,7 @@ extension DynoDeque where Element: ~Copyable {
   }
 }
 
-extension DynoDeque where Element: ~Copyable {
+extension DynamicDeque where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {

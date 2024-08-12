@@ -14,17 +14,17 @@ extension Deque {
   internal final class _Storage {
     @usableFromInline
     @exclusivity(unchecked)
-    internal var _value: HypoDeque<Element>
+    internal var _value: RigidDeque<Element>
 
     @inlinable
     @inline(__always)
-    internal init(_ value: consuming HypoDeque<Element>) {
+    internal init(_ value: consuming RigidDeque<Element>) {
       self._value = value
     }
 
     @inlinable
     internal convenience init(capacity: Int) {
-      self.init(HypoDeque(capacity: capacity))
+      self.init(RigidDeque(capacity: capacity))
     }
   }
 }

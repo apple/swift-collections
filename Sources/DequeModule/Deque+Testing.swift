@@ -68,7 +68,7 @@ extension Deque {
 
     let startSlot = _Slot(at: startSlot)
 
-    var hd = HypoDeque<Element>(capacity: capacity)
+    var hd = RigidDeque<Element>(capacity: capacity)
     hd._handle.count = contents.count
     hd._handle.startSlot = startSlot
     if hd._handle.count > 0 {

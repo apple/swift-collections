@@ -1,7 +1,7 @@
 /// A manually resizable, heap allocated, noncopyable array of
 /// potentially noncopyable elements.
 @frozen
-public struct HypoArray<Element: ~Copyable>: ~Copyable {
+public struct RigidArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _storage: UnsafeMutableBufferPointer<Element>
 
@@ -34,9 +34,9 @@ public struct HypoArray<Element: ~Copyable>: ~Copyable {
   }
 }
 
-extension HypoArray: @unchecked Sendable where Element: Sendable & ~Copyable {}
+extension RigidArray: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   public var capacity: Int { _storage.count }
 
@@ -47,7 +47,7 @@ extension HypoArray where Element: ~Copyable {
   public var isFull: Bool { freeCapacity == 0 }
 }
 
-extension HypoArray: RandomAccessContainer where Element: ~Copyable {
+extension RigidArray: RandomAccessContainer where Element: ~Copyable {
   public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
     @usableFromInline
     internal let _items: UnsafeBufferPointer<Element>
@@ -56,7 +56,7 @@ extension HypoArray: RandomAccessContainer where Element: ~Copyable {
     internal var _offset: Int
 
     @inlinable
-    internal init(for array: borrowing HypoArray, startOffset: Int) {
+    internal init(for array: borrowing RigidArray, startOffset: Int) {
       self._items = UnsafeBufferPointer(array._items)
       self._offset = startOffset
     }
@@ -114,7 +114,7 @@ extension HypoArray: RandomAccessContainer where Element: ~Copyable {
   }
 }
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   internal var _items: UnsafeMutableBufferPointer<Element> {
     _storage.extracting(Range(uncheckedBounds: (0, _count)))
@@ -126,7 +126,7 @@ extension HypoArray where Element: ~Copyable {
   }
 }
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func resize(to newCapacity: Int) {
     precondition(newCapacity >= count)
@@ -146,7 +146,7 @@ extension HypoArray where Element: ~Copyable {
 }
 
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   public func borrowElement<E: Error, R: ~Copyable> (
     at index: Int,
@@ -166,7 +166,7 @@ extension HypoArray where Element: ~Copyable {
   }
 }
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {
@@ -181,7 +181,7 @@ extension HypoArray where Element: ~Copyable {
   }
 }
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func append(_ item: consuming Element) {
     precondition(!isFull)
@@ -190,7 +190,7 @@ extension HypoArray where Element: ~Copyable {
   }
 }
 
-extension HypoArray where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func insert(_ item: consuming Element, at index: Int) {
     precondition(index >= 0 && index <= count)
@@ -206,7 +206,7 @@ extension HypoArray where Element: ~Copyable {
   }
 }
 
-extension HypoArray {
+extension RigidArray {
   @inlinable
   public mutating func append(contentsOf items: some Sequence<Element>) {
     for item in items {
