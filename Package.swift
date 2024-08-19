@@ -61,11 +61,11 @@ let _sharedSettings: [SwiftSetting] = defines.map { .define($0) } + [
 ]
 
 let _settings: [SwiftSetting] = _sharedSettings + [
-  .swiftLanguageVersion(.v6),
+  .swiftLanguageMode(.v6),
 ]
 
 let _testSettings: [SwiftSetting] = _sharedSettings + [
-  .swiftLanguageVersion(.v5),
+  .swiftLanguageMode(.v5),
 ]
 
 struct CustomTarget {
