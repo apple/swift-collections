@@ -103,3 +103,5 @@ public struct Deque<Element> {
     self._storage = _Storage(minimumCapacity: minimumCapacity)
   }
 }
+
+extension Deque: @unchecked Sendable where Element: Sendable {}
