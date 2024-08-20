@@ -24,7 +24,7 @@ public struct Box<T: ~Copyable>: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ fromInout: consuming Inout<T>) {
-    pointer = fromInout.pointer
+    pointer = fromInout._pointer
   }
 
   @_alwaysEmitIntoClient

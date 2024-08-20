@@ -20,7 +20,7 @@ import Builtin
 @frozen
 public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   @usableFromInline
-  let pointer: UnsafeMutablePointer<T>
+  internal let _pointer: UnsafeMutablePointer<T>
 
   /// Initializes an instance of 'Inout' extending the exclusive access of the
   /// passed instance.
@@ -29,7 +29,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ instance: inout T) {
-    pointer = UnsafeMutablePointer<T>(Builtin.unprotectedAddressOf(&instance))
+    _pointer = UnsafeMutablePointer<T>(Builtin.unprotectedAddressOf(&instance))
   }
 
   /// Unsafely initializes an instance of 'Inout' using the given 'unsafeAddress'
@@ -46,7 +46,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
     unsafeAddress: UnsafeMutablePointer<T>,
     owner: inout Owner
   ) {
-    pointer = unsafeAddress
+    _pointer = unsafeAddress
   }
 
   /// Unsafely initializes an instance of 'Inout' using the given
@@ -60,7 +60,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   public init(
     unsafeImmortalAddress: UnsafeMutablePointer<T>
   ) -> dependsOn(immortal) Self {
-    pointer = unsafeImmortalAddress
+    _pointer = unsafeImmortalAddress
   }
 }
 
@@ -71,12 +71,12 @@ extension Inout where T: ~Copyable {
   public subscript() -> T {
     @_transparent
     unsafeAddress {
-      UnsafePointer<T>(pointer)
+      UnsafePointer<T>(_pointer)
     }
     
     @_transparent
     nonmutating unsafeMutableAddress {
-      pointer
+      _pointer
     }
   }
 }
