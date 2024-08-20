@@ -28,6 +28,12 @@ extension DynamicArray where Element: ~Copyable {
   public var capacity: Int { _storage.capacity }
 }
 
+extension DynamicArray where Element: ~Copyable {
+  public var span: Span<Element> {
+    _storage.span
+  }
+}
+
 extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
   public typealias Index = Int

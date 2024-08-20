@@ -47,6 +47,12 @@ extension RigidArray where Element: ~Copyable {
   public var isFull: Bool { freeCapacity == 0 }
 }
 
+extension RigidArray where Element: ~Copyable {
+  public var span: Span<Element> {
+    Span(unsafeElements: _items, owner: self)
+  }
+}
+
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {
   public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
     @usableFromInline
