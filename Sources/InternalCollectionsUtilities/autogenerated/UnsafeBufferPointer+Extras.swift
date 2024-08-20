@@ -22,21 +22,83 @@
 // but in regular builds we want them to be public. Unfortunately
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
-extension UnsafeBufferPointer {
+extension UnsafeBufferPointer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
+  internal static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
   @inlinable
   @inline(__always)
   internal func _ptr(at index: Int) -> UnsafePointer<Element> {
     assert(index >= 0 && index < count)
     return baseAddress.unsafelyUnwrapped + index
   }
+
+  @_alwaysEmitIntoClient
+  internal func _extracting(unchecked bounds: Range<Int>) -> Self {
+    assert(bounds.lowerBound >= 0 && bounds.upperBound <= count,
+      "Index out of range")
+    guard let start = self.baseAddress else {
+      return Self(start: nil, count: 0)
+    }
+    return Self(start: start + bounds.lowerBound, count: bounds.count)
+  }
+
+  @inlinable
+  internal func _extracting(first n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (0, n)))
+  }
+
+  @inlinable
+  internal func _extracting(last n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (count - n, count)))
+  }
 }
+
 #else // !COLLECTIONS_SINGLE_MODULE
-extension UnsafeBufferPointer {
+extension UnsafeBufferPointer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
+  public static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
+
   @inlinable
   @inline(__always)
   public func _ptr(at index: Int) -> UnsafePointer<Element> {
     assert(index >= 0 && index < count)
     return baseAddress.unsafelyUnwrapped + index
   }
+
+  @_alwaysEmitIntoClient
+  public func _extracting(unchecked bounds: Range<Int>) -> Self {
+    assert(bounds.lowerBound >= 0 && bounds.upperBound <= count,
+      "Index out of range")
+    guard let start = self.baseAddress else {
+      return Self(start: nil, count: 0)
+    }
+    return Self(start: start + bounds.lowerBound, count: bounds.count)
+  }
+
+  @inlinable
+  public func _extracting(first n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (0, n)))
+  }
+
+  @inlinable
+  public func _extracting(last n: Int) -> Self {
+    assert(n >= 0)
+    if n >= count { return self }
+    return extracting(Range(uncheckedBounds: (count - n, count)))
+  }
 }
+
 #endif // COLLECTIONS_SINGLE_MODULE

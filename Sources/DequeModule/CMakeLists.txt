@@ -14,7 +14,8 @@ else()
   add_library(DequeModule
     ${COLLECTIONS_DEQUE_SOURCES})
   target_link_libraries(DequeModule PRIVATE
-    InternalCollectionsUtilities)
+    InternalCollectionsUtilities
+    Future)
   set_target_properties(DequeModule PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
@@ -31,13 +32,12 @@ target_sources(${module_name} PRIVATE
   "Deque+ExpressibleByArrayLiteral.swift"
   "Deque+Extras.swift"
   "Deque+Hashable.swift"
-  "Deque+Sendable.swift"
   "Deque+Testing.swift"
   "Deque._Storage.swift"
-  "Deque._UnsafeHandle.swift"
   "Deque.swift"
-  "_DequeBuffer.swift"
-  "_DequeBufferHeader.swift"
+  "DynamicDeque.swift"
+  "RigidDeque.swift"
   "_DequeSlot.swift"
+  "_UnsafeDequeHandle.swift"
   "_UnsafeWrappedBuffer.swift"
   )
