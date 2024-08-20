@@ -18,6 +18,7 @@ add_library(Future
   "Containers/Bovine.swift"
   "Containers/Container.swift"
   "Containers/DynamicArray.swift"
+  "Containers/NewArray.swift"
   "Containers/RigidArray.swift"
 )
 

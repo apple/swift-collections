@@ -214,3 +214,29 @@ extension RigidArray {
     }
   }
 }
+
+extension RigidArray {
+  @inlinable
+  internal func _copy() -> Self {
+    _copy(capacity: capacity)
+  }
+
+  @inlinable
+  internal func _copy(capacity: Int) -> Self {
+    precondition(capacity >= count)
+    var result = RigidArray<Element>(capacity: capacity)
+    result._storage.initializeAll(fromContentsOf: _storage)
+    result._count = count
+    return result
+  }
+
+  @inlinable
+  internal mutating func _move(capacity: Int) -> Self {
+    precondition(capacity >= count)
+    var result = RigidArray<Element>(capacity: capacity)
+    result._storage.moveInitializeAll(fromContentsOf: _storage)
+    result._count = count
+    self._count = 0
+    return result
+  }
+}

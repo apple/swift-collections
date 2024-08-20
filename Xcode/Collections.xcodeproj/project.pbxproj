@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D380E052C6ABF6800AD8F58 /* NewArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E042C6ABF6000AD8F58 /* NewArray.swift */; };
 		7D380E072C6BFB9B00AD8F58 /* LifetimeOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E062C6BFB9500AD8F58 /* LifetimeOverride.swift */; };
 		7D380E0D2C6D565300AD8F58 /* Bovine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E0C2C6D565000AD8F58 /* Bovine.swift */; };
 		7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */; };
@@ -439,6 +440,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D380E042C6ABF6000AD8F58 /* NewArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewArray.swift; sourceTree = "<group>"; };
 		7D380E062C6BFB9500AD8F58 /* LifetimeOverride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeOverride.swift; sourceTree = "<group>"; };
 		7D380E0C2C6D565000AD8F58 /* Bovine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bovine.swift; sourceTree = "<group>"; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1804,6 +1806,7 @@
 				7D380E0C2C6D565000AD8F58 /* Bovine.swift */,
 				7DEBEC192C5AE43C00A1BF15 /* DynamicArray.swift */,
 				7DEBEC1A2C5AE43C00A1BF15 /* RigidArray.swift */,
+				7D380E042C6ABF6000AD8F58 /* NewArray.swift */,
 			);
 			path = Containers;
 			sourceTree = "<group>";
@@ -2174,6 +2177,7 @@
 				7DE9208729CA70F4004483EB /* BigString+Sequence.swift in Sources */,
 				7DE9202229CA70F3004483EB /* OrderedSet+Diffing.swift in Sources */,
 				7DE920CA29CA70F4004483EB /* BitSet+CustomStringConvertible.swift in Sources */,
+				7D380E052C6ABF6800AD8F58 /* NewArray.swift in Sources */,
 				7DE9212E29CA70F4004483EB /* TreeSet+SetAlgebra isStrictSuperset.swift in Sources */,
 				7DE920A829CA70F4004483EB /* String.Index+ABI.swift in Sources */,
 				7DE9204F29CA70F3004483EB /* Deque.swift in Sources */,
