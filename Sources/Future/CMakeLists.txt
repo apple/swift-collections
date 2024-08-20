@@ -12,6 +12,7 @@ add_library(Future
   "Cell.swift"
   "ContiguousStorage.swift"
   "Inout.swift"
+  "LifetimeOverride.swift"
   "RawSpan.swift"
   "Span.swift"
   "Containers/Container.swift"
