@@ -16,33 +16,37 @@ import Builtin
 // contains initialized instances of `Element`.
 @frozen
 public struct Span<Element: ~Copyable /*& ~Escapable*/>: Copyable, ~Escapable {
-  @usableFromInline
-  internal let _buffer: UnsafeBufferPointer<Element>
+  @usableFromInline let _buffer: UnsafeBufferPointer<Element>
 
   @usableFromInline @inline(__always)
-  internal var _pointer: UnsafePointer<Element>? { _buffer.baseAddress }
+  var _pointer: UnsafePointer<Element>? { _buffer.baseAddress }
 
   @usableFromInline @inline(__always)
-  internal var _start: UnsafePointer<Element> { _pointer.unsafelyUnwrapped }
+  var _start: UnsafePointer<Element> { _pointer.unsafelyUnwrapped }
+
+//  @usableFromInline @inline(__always)
+//  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
 
   @usableFromInline @inline(__always)
-  internal var _count: Int { _buffer.count }
+  var _count: Int { _buffer.count }
 
   @inlinable @inline(__always)
-  internal init<Owner: ~Copyable & ~Escapable>(
-    _unchecked elements: UnsafeBufferPointer<Element>,
-    owner: borrowing Owner
-  ) {
+  internal init(
+    _unchecked elements: UnsafeBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
     _buffer = elements
+//    _pointer = .init(elements.baseAddress)
+//    _count = elements.count
   }
 
-  @inlinable @inline(__always)
-  internal init<Owner: ~Copyable & ~Escapable>(
+  @_alwaysEmitIntoClient
+  internal init(
     _unchecked start: UnsafePointer<Element>?,
-    count: Int,
-    owner: borrowing Owner
-  ) {
-    self.init(_unchecked: .init(start: start, count: count), owner: owner)
+    count: Int
+  ) -> dependsOn(immortal) Self {
+    self.init(_unchecked: .init(start: start, count: count))
+//    _pointer = .init(start)
+//    _count = count
   }
 }
 
@@ -68,16 +72,15 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeElements buffer: UnsafeBufferPointer<Element>,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: UnsafeBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
     precondition(
       buffer.count == 0 || buffer.baseAddress.unsafelyUnwrapped.isAligned,
       "baseAddress must be properly aligned for accessing \(Element.self)"
     )
-    self.init(_unchecked: buffer, owner: owner)
+    self.init(_unchecked: buffer)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -90,11 +93,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   @_alwaysEmitIntoClient
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeElements buffer: UnsafeMutableBufferPointer<Element>,
-    owner: borrowing Owner
-  ) {
-    self.init(unsafeElements: UnsafeBufferPointer(buffer), owner: owner)
+  public init(
+    _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(buffer))
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -108,18 +110,17 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeStart start: UnsafePointer<Element>,
-    count: Int,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeStart start: UnsafePointer<Element>,
+    count: Int
+  ) -> dependsOn(immortal) Self {
     precondition(count >= 0, "Count must not be negative")
     precondition(
       start.isAligned,
       "baseAddress must be properly aligned for accessing \(Element.self)"
     )
-    self.init(_unchecked: start, count: count, owner: owner)
+    self.init(_unchecked: start, count: count)
   }
 }
 
@@ -134,12 +135,11 @@ extension Span where Element: BitwiseCopyable {
   ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeElements buffer: UnsafeBufferPointer<Element>,
-    owner: borrowing Owner
-  ) {
-    self.init(_unchecked: buffer, owner: owner)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: UnsafeBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unchecked: buffer)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -152,11 +152,10 @@ extension Span where Element: BitwiseCopyable {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   @_alwaysEmitIntoClient
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeElements buffer: UnsafeMutableBufferPointer<Element>,
-    owner: borrowing Owner
-  ) {
-    self.init(unsafeElements: UnsafeBufferPointer(buffer), owner: owner)
+  public init(
+    _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(buffer))
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -170,14 +169,13 @@ extension Span where Element: BitwiseCopyable {
   ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeStart start: UnsafePointer<Element>,
-    count: Int,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeStart start: UnsafePointer<Element>,
+    count: Int
+  ) -> dependsOn(immortal) Self {
     precondition(count >= 0, "Count must not be negative")
-    self.init(_unchecked: start, count: count, owner: owner)
+    self.init(_unchecked: start, count: count)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -194,19 +192,17 @@ extension Span where Element: BitwiseCopyable {
   ///   - type: the type to use when interpreting the bytes in memory.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeBytes buffer: UnsafeRawBufferPointer,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: UnsafeRawBufferPointer
+  ) -> dependsOn(immortal) Self {
     let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
-    assert(byteCount >= 0, "Count must not be negative")
+    precondition(byteCount >= 0, "Count must not be negative")
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0)
     self.init(
       _unchecked: buffer.baseAddress?.assumingMemoryBound(to: Element.self),
-      count: count,
-      owner: owner
+      count: count
     )
   }
 
@@ -225,11 +221,10 @@ extension Span where Element: BitwiseCopyable {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
   @_alwaysEmitIntoClient
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeBytes buffer: UnsafeMutableRawBufferPointer,
-    owner: borrowing Owner
-  ) {
-    self.init(unsafeBytes: UnsafeRawBufferPointer(buffer), owner: owner)
+  public init(
+    _unsafeBytes buffer: UnsafeMutableRawBufferPointer
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(buffer))
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -243,20 +238,18 @@ extension Span where Element: BitwiseCopyable {
   ///   - count: the number of initialized elements in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `Span`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeStart pointer: UnsafeRawPointer,
-    byteCount: Int,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeStart pointer: UnsafeRawPointer,
+    byteCount: Int
+  ) -> dependsOn(immortal) Self {
     precondition(byteCount >= 0, "Count must not be negative")
     let stride = MemoryLayout<Element>.stride
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0)
     self.init(
       _unchecked: pointer.assumingMemoryBound(to: Element.self),
-      count: count,
-      owner: owner
+      count: count
     )
   }
 }
@@ -459,7 +452,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable @inline(__always)
   public subscript(unchecked position: Int) -> Element {
     _read {
-      yield _start.advanced(by: position).pointee
+      let element = UnsafeRawPointer(_start).advanced(by: position&*MemoryLayout<Element>.stride)
+      let binding = Builtin.bindMemory(element._rawValue, count._builtinWordValue, Element.self)
+      defer { Builtin.rebindMemory(element._rawValue, binding) }
+      yield UnsafePointer<Element>(element._rawValue).pointee
     }
   }
 }
@@ -491,7 +487,7 @@ extension Span where Element: BitwiseCopyable {
   @inlinable @inline(__always)
   public subscript(unchecked position: Int) -> Element {
     get {
-      let address = UnsafeRawPointer(_start.advanced(by: position))
+      let address = UnsafeRawPointer(_start).advanced(by: position&*MemoryLayout<Element>.stride)
       return address.loadUnaligned(as: Element.self)
     }
   }
@@ -538,8 +534,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(unchecked bounds: Range<Int>) -> Self {
     Span(
       _unchecked: _pointer?.advanced(by: bounds.lowerBound),
-      count: bounds.count,
-      owner: self
+      count: bounds.count
     )
   }
 
@@ -730,7 +725,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let newCount = min(maxLength, count)
-    return Self(_unchecked: _pointer, count: newCount, owner: self)
+    return Self(_unchecked: _pointer, count: newCount)
   }
 
   /// Returns a span over all but the given number of trailing elements.
@@ -751,7 +746,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
-    return Self(_unchecked: _pointer, count: count&-droppedCount, owner: self)
+    return Self(_unchecked: _pointer, count: count&-droppedCount)
   }
 
   /// Returns a span containing the final elements of the span,
@@ -774,7 +769,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, count)
     let newStart = _pointer?.advanced(by: count&-newCount)
-    return Self(_unchecked: newStart, count: newCount, owner: self)
+    return Self(_unchecked: newStart, count: newCount)
   }
 
   /// Returns a span over all but the given number of initial elements.
@@ -796,6 +791,6 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
     let newStart = _pointer?.advanced(by: droppedCount)
-    return Self(_unchecked: newStart, count: count&-droppedCount, owner: self)
+    return Self(_unchecked: newStart, count: count&-droppedCount)
   }
 }

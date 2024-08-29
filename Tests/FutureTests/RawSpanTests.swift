@@ -45,12 +45,12 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     var a = Array(0..<capacity)
     a.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: a)
+      let span = RawSpan(_unsafeBytes: $0)
       XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
     }
 
     a.withUnsafeMutableBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
       XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
     }
   }
@@ -61,9 +61,8 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let pointer = $0.baseAddress!
       let span = RawSpan(
-        unsafeStart: pointer,
-        byteCount: capacity*MemoryLayout<Int>.stride,
-        owner: a
+        _unsafeStart: pointer,
+        byteCount: capacity*MemoryLayout<Int>.stride
       )
       XCTAssertEqual(span.byteCount, $0.count)
     }
@@ -71,9 +70,8 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeMutableBytes {
       let pointer = $0.baseAddress!
       let span = RawSpan(
-        unsafeStart: pointer,
-        byteCount: capacity*MemoryLayout<Int>.stride,
-        owner: $0
+        _unsafeStart: pointer,
+        byteCount: capacity*MemoryLayout<Int>.stride
       )
       XCTAssertEqual(span.byteCount, $0.count)
     }
@@ -83,7 +81,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let s = (0..<capacity).map({ "\(#file)+\(#function) #\($0)" })
     s.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
       let stride = MemoryLayout<String>.stride
 
       let s0 = span.unsafeLoad(as: String.self)
@@ -99,7 +97,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 64
     let a = Array(0..<UInt8(capacity))
     a.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
 
       let u0 = span.extracting(droppingFirst: 2).unsafeLoadUnaligned(as: UInt64.self)
       XCTAssertEqual(u0 & 0xff, 2)
@@ -115,7 +113,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let b = (0..<capacity).map(Int8.init)
     b.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
       let sub1 = span.extracting(0..<2)
       let sub2 = span.extracting(..<2)
       let sub3 = span.extracting(...)
@@ -136,7 +134,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 32
     let b = (0..<capacity).map(UInt8.init)
     b.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
       let prefix = span.extracting(0..<8)
       let beyond = prefix.extracting(unchecked: 16..<24)
       XCTAssertEqual(beyond.byteCount, 8)
@@ -154,12 +152,9 @@ final class RawSpanTests: XCTestCase {
       }
     }
 
-//FIXME: rdar://128694495 (Faulty escape diagnostic)
-// Should we be able to derive a non-escapable value from a Span via unsafe pointers?
-//    let copy = span.withUnsafeBytes {
-//      RawSpan(unsafeBytes: copy $0, owner: span)
-//    }
-//    _ = copy
+    // Should we be able to derive a non-escapable value from a Span via unsafe pointers?
+    let copy = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
+    _ = copy
   }
 
   func testStrangeBorrow() {
@@ -169,13 +164,13 @@ final class RawSpanTests: XCTestCase {
 //    let rs = RawSpan(array.storage) // Initializer 'init(_:)' requires that 'String' conform to 'BitwiseCopyable'
 
 //    let rs1 = array.storage.withUnsafeBufferPointer {
-//      RawSpan(unsafeBytes: UnsafeRawBufferPointer($0), owner: array)
+//      RawSpan(unsafeBytes: UnsafeRawBufferPointer($0))
 //    }                               // Lifetime-dependent value escapes its scope
 //    _ = rs1
 
 //    let rs2 = array.storage.withUnsafeBufferPointer {
 //      UnsafeRawBufferPointer($0).withMemoryRebound(to: UInt8.self) { // requires that `Span` conform to `Escapable`
-//        return Span(unsafeBufferPointer: $0, owner: array)
+//        return Span(unsafeBufferPointer: $0)
 //      }
 //    }
 //    _ = rs2
@@ -185,7 +180,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<UInt8(capacity))
     a.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
       XCTAssertEqual(span.byteCount, capacity)
       XCTAssertEqual(span.extracting(first: 1).unsafeLoad(as: UInt8.self), 0)
       XCTAssertEqual(
@@ -205,7 +200,7 @@ final class RawSpanTests: XCTestCase {
 
     do {
       let b = UnsafeRawBufferPointer(start: nil, count: 0)
-      let span = RawSpan(unsafeBytes: b, owner: b)
+      let span = RawSpan(_unsafeBytes: b)
       XCTAssertEqual(span.byteCount, b.count)
       XCTAssertEqual(span.extracting(first: 1).byteCount, b.count)
       XCTAssertEqual(span.extracting(droppingLast: 1).byteCount, b.count)
@@ -216,7 +211,7 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<UInt8(capacity))
     a.withUnsafeBytes {
-      let span = RawSpan(unsafeBytes: $0, owner: $0)
+      let span = RawSpan(_unsafeBytes: $0)
       XCTAssertEqual(span.byteCount, capacity)
       XCTAssertEqual(span.extracting(last: capacity).unsafeLoad(as: UInt8.self), 0)
       XCTAssertEqual(span.extracting(last: capacity-1).unsafeLoad(as: UInt8.self), 1)
@@ -227,7 +222,7 @@ final class RawSpanTests: XCTestCase {
 
     do {
       let b = UnsafeRawBufferPointer(start: nil, count: 0)
-      let span = RawSpan(unsafeBytes: b, owner: b)
+      let span = RawSpan(_unsafeBytes: b)
       XCTAssertEqual(span.byteCount, b.count)
       XCTAssertEqual(span.extracting(last: 1).byteCount, b.count)
       XCTAssertEqual(span.extracting(droppingFirst: 1).byteCount, b.count)
@@ -248,14 +243,14 @@ final class RawSpanTests: XCTestCase {
     let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
     defer { b.deallocate() }
 
-    let span = RawSpan(unsafeBytes: b, owner: b)
+    let span = RawSpan(_unsafeBytes: b)
     let subSpan = span.extracting(last: 2)
     let emptySpan = span.extracting(first: 0)
     let fakeSpan = RawSpan(
-      unsafeStart: b.baseAddress!.advanced(by: 8), byteCount: 8, owner: b
+      _unsafeStart: b.baseAddress!.advanced(by: 8), byteCount: 8
     )
     let nilSpan = RawSpan(
-      unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0), owner: b
+      _unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0)
     )
 
     XCTAssertTrue(span.contains(subSpan))
@@ -273,11 +268,11 @@ final class RawSpanTests: XCTestCase {
     let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
     defer { b.deallocate() }
 
-    let span = RawSpan(unsafeBytes: b, owner: b)
+    let span = RawSpan(_unsafeBytes: b)
     let subSpan = span.extracting(last: 2)
     let emptySpan = span.extracting(first: 0)
     let nilSpan = RawSpan(
-      unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0), owner: b
+      _unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0)
     )
 
     var bounds: Range<Int>

@@ -10,27 +10,22 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Builtin
-
 // A RawSpan represents a span of initialized memory
 // of unspecified type.
 @frozen
 public struct RawSpan: Copyable, ~Escapable {
-  @usableFromInline
-  internal let _pointer: UnsafeRawPointer?
+  @usableFromInline let _pointer: UnsafeRawPointer?
 
   @usableFromInline @inline(__always)
-  internal var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
+  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
 
-  @usableFromInline
-  internal let _count: Int
+  @usableFromInline let _count: Int
 
-  @inlinable @inline(__always)
-  internal init<Owner: ~Copyable & ~Escapable>(
+  @_alwaysEmitIntoClient
+  internal init(
     _unchecked start: UnsafeRawPointer?,
-    byteCount: Int,
-    owner: borrowing Owner
-  ) {
+    byteCount: Int
+  ) -> dependsOn(immortal) Self {
     _pointer = start
     _count = byteCount
   }
@@ -50,13 +45,12 @@ extension RawSpan {
   ///   - buffer: an `UnsafeRawBufferPointer` to initialized memory.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `RawSpan`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeBytes buffer: UnsafeRawBufferPointer,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: UnsafeRawBufferPointer
+  ) -> dependsOn(immortal) Self {
     self.init(
-      _unchecked: buffer.baseAddress, byteCount: buffer.count, owner: owner
+      _unchecked: buffer.baseAddress, byteCount: buffer.count
     )
   }
 
@@ -70,11 +64,10 @@ extension RawSpan {
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `RawSpan`.
   @_alwaysEmitIntoClient
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeBytes buffer: UnsafeMutableRawBufferPointer,
-    owner: borrowing Owner
-  ) {
-    self.init(unsafeBytes: UnsafeRawBufferPointer(buffer), owner: owner)
+  public init(
+    _unsafeBytes buffer: UnsafeMutableRawBufferPointer
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(buffer))
   }
 
   /// Unsafely create a `RawSpan` over initialized memory.
@@ -88,14 +81,67 @@ extension RawSpan {
   ///   - byteCount: the number of initialized bytes in the span.
   ///   - owner: a binding whose lifetime must exceed that of
   ///            the newly created `RawSpan`.
-  @inlinable @inline(__always)
-  public init<Owner: ~Copyable & ~Escapable>(
-    unsafeStart pointer: UnsafeRawPointer,
-    byteCount: Int,
-    owner: borrowing Owner
-  ) {
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeStart pointer: UnsafeRawPointer,
+    byteCount: Int
+  ) -> dependsOn(immortal) Self {
     precondition(byteCount >= 0, "Count must not be negative")
-    self.init(_unchecked: pointer, byteCount: byteCount, owner: owner)
+    self.init(_unchecked: pointer, byteCount: byteCount)
+  }
+
+  /// Unsafely create a `RawSpan` over initialized memory.
+  ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeRawBufferPointer` to initialized memory.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `RawSpan`.
+  @_alwaysEmitIntoClient
+  public init<T: BitwiseCopyable>(
+    _unsafeElements buffer: UnsafeBufferPointer<T>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(buffer))
+  }
+
+  /// Unsafely create a `RawSpan` over initialized memory.
+  ///
+  /// The memory in `buffer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - buffer: an `UnsafeMutableRawBufferPointer` to initialized memory.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `RawSpan`.
+  @_alwaysEmitIntoClient
+  public init<T: BitwiseCopyable>(
+    _unsafeElements buffer: UnsafeMutableBufferPointer<T>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(buffer))
+  }
+
+  /// Unsafely create a `RawSpan` over initialized memory.
+  ///
+  /// The memory over `count` bytes starting at
+  /// `pointer` must be owned by the instance `owner`,
+  /// meaning that as long as `owner` is alive the memory will remain valid.
+  ///
+  /// - Parameters:
+  ///   - pointer: a pointer to the first initialized byte.
+  ///   - byteCount: the number of initialized bytes in the span.
+  ///   - owner: a binding whose lifetime must exceed that of
+  ///            the newly created `RawSpan`.
+  @_alwaysEmitIntoClient
+  public init<T: BitwiseCopyable>(
+    _unsafeStart pointer: UnsafePointer<T>,
+    count: Int
+  ) -> dependsOn(immortal) Self {
+    precondition(count >= 0, "Count must not be negative")
+    self.init(
+      _unchecked: pointer, byteCount: count*MemoryLayout<T>.stride
+    )
   }
 
   /// Create a `RawSpan` over the memory represented by a `Span<T>`
@@ -107,8 +153,7 @@ extension RawSpan {
   public init<T: BitwiseCopyable>(_ span: borrowing Span<T>) {
     self.init(
       _unchecked: UnsafeRawPointer(span._start),
-      byteCount: span.count * MemoryLayout<T>.stride,
-      owner: span
+      byteCount: span.count * MemoryLayout<T>.stride
     )
   }
 }
@@ -247,8 +292,7 @@ extension RawSpan {
   public func extracting(unchecked bounds: Range<Int>) -> Self {
     RawSpan(
       _unchecked: _pointer?.advanced(by: bounds.lowerBound),
-      byteCount: bounds.count,
-      owner: self
+      byteCount: bounds.count
     )
   }
 
@@ -352,7 +396,7 @@ extension RawSpan {
   public func unsafeView<T: BitwiseCopyable>(
     as type: T.Type
   ) -> Span<T> {
-    Span(unsafeStart: _start, byteCount: byteCount, owner: self)
+    Span(_unsafeStart: _start, byteCount: byteCount)
   }
 }
 
@@ -520,7 +564,7 @@ extension RawSpan {
   public func extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let newCount = min(maxLength, byteCount)
-    return Self(_unchecked: _pointer, byteCount: newCount, owner: self)
+    return Self(_unchecked: _pointer, byteCount: newCount)
   }
 
   /// Returns a span over all but the given number of trailing bytes.
@@ -541,7 +585,7 @@ extension RawSpan {
   public func extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = min(k, byteCount)
-    return Self(_unchecked: _pointer, byteCount: byteCount&-dc, owner: self)
+    return Self(_unchecked: _pointer, byteCount: byteCount&-dc)
   }
 
   /// Returns a span containing the trailing bytes of the span,
@@ -564,7 +608,7 @@ extension RawSpan {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, byteCount)
     let newStart = _pointer?.advanced(by: byteCount&-newCount)
-    return Self(_unchecked: newStart, byteCount: newCount, owner: self)
+    return Self(_unchecked: newStart, byteCount: newCount)
   }
 
   /// Returns a span over all but the given number of initial bytes.
@@ -586,7 +630,7 @@ extension RawSpan {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = min(k, byteCount)
     let newStart = _pointer?.advanced(by: dc)
-    return Self(_unchecked: newStart, byteCount: byteCount&-dc, owner: self)
+    return Self(_unchecked: newStart, byteCount: byteCount&-dc)
   }
 }
 
