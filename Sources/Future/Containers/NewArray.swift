@@ -13,11 +13,11 @@
 @frozen
 public struct NewArray<Element> {
   @usableFromInline
-  internal var _storage: Bovine<RigidArray<Element>>
+  internal var _storage: Shared<RigidArray<Element>>
 
   @inlinable
   public init(minimumCapacity: Int) {
-    self._storage = Bovine(RigidArray(capacity: minimumCapacity))
+    self._storage = Shared(RigidArray(capacity: minimumCapacity))
   }
 }
 
@@ -34,9 +34,9 @@ extension NewArray {
   internal mutating func _ensureUnique(minimumCapacity: Int) {
     if !_storage.isUnique() {
       let c = Swift.max(count, minimumCapacity)
-      _storage = Bovine(_storage.read { $0._copy(capacity: c) })
+      _storage = Shared(_storage.read { $0._copy(capacity: c) })
     } else if minimumCapacity > self.capacity {
-      _storage = Bovine(_storage.update { $0._move(capacity: minimumCapacity) })
+      _storage = Shared(_storage.update { $0._move(capacity: minimumCapacity) })
     }
   }
 

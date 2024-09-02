@@ -13,8 +13,10 @@
 import Builtin
 
 @_unsafeNonescapableResult
+@inlinable @inline(__always)
 public func unsafelyOverrideLifetime<
-  T: ~Copyable & ~Escapable, U: ~Copyable & ~Escapable
+  T: ~Copyable & ~Escapable,
+  U: ~Copyable & ~Escapable
 >(
   of dependent: consuming T,
   to source: borrowing U

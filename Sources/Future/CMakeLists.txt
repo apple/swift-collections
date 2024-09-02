@@ -15,7 +15,7 @@ add_library(Future
   "LifetimeOverride.swift"
   "RawSpan.swift"
   "Span.swift"
-  "Containers/Bovine.swift"
+  "Containers/Shared.swift"
   "Containers/Container.swift"
   "Containers/DynamicArray.swift"
   "Containers/NewArray.swift"

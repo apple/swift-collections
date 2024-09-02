@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		7D380E052C6ABF6800AD8F58 /* NewArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E042C6ABF6000AD8F58 /* NewArray.swift */; };
 		7D380E072C6BFB9B00AD8F58 /* LifetimeOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E062C6BFB9500AD8F58 /* LifetimeOverride.swift */; };
-		7D380E0D2C6D565300AD8F58 /* Bovine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E0C2C6D565000AD8F58 /* Bovine.swift */; };
+		7D380E0D2C6D565300AD8F58 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D380E0C2C6D565000AD8F58 /* Shared.swift */; };
 		7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */; };
 		7D9B859829E4F74400B291CD /* BitArray+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */; };
 		7D9B859929E4F74400B291CD /* BitArray+LosslessStringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859329E4F74400B291CD /* BitArray+LosslessStringConvertible.swift */; };
@@ -442,7 +442,7 @@
 /* Begin PBXFileReference section */
 		7D380E042C6ABF6000AD8F58 /* NewArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewArray.swift; sourceTree = "<group>"; };
 		7D380E062C6BFB9500AD8F58 /* LifetimeOverride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeOverride.swift; sourceTree = "<group>"; };
-		7D380E0C2C6D565000AD8F58 /* Bovine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Bovine.swift; sourceTree = "<group>"; };
+		7D380E0C2C6D565000AD8F58 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D429CCEF1500CB2595 /* generate-sources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "generate-sources.sh"; sourceTree = "<group>"; };
@@ -1803,7 +1803,7 @@
 			isa = PBXGroup;
 			children = (
 				7DEBEC182C5AE43C00A1BF15 /* Container.swift */,
-				7D380E0C2C6D565000AD8F58 /* Bovine.swift */,
+				7D380E0C2C6D565000AD8F58 /* Shared.swift */,
 				7DEBEC192C5AE43C00A1BF15 /* DynamicArray.swift */,
 				7DEBEC1A2C5AE43C00A1BF15 /* RigidArray.swift */,
 				7D380E042C6ABF6000AD8F58 /* NewArray.swift */,
@@ -2171,7 +2171,7 @@
 				7DE9207A29CA70F4004483EB /* BigString+UTF8View.swift in Sources */,
 				7DE9201329CA70F3004483EB /* OrderedDictionary+CustomReflectable.swift in Sources */,
 				7DE9201C29CA70F3004483EB /* OrderedDictionary+Partial MutableCollection.swift in Sources */,
-				7D380E0D2C6D565300AD8F58 /* Bovine.swift in Sources */,
+				7D380E0D2C6D565300AD8F58 /* Shared.swift in Sources */,
 				7DE9202729CA70F3004483EB /* OrderedSet+Insertions.swift in Sources */,
 				7DE9205B29CA70F3004483EB /* Deque+ExpressibleByArrayLiteral.swift in Sources */,
 				7DE9208729CA70F4004483EB /* BigString+Sequence.swift in Sources */,
