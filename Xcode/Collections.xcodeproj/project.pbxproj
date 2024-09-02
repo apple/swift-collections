@@ -427,6 +427,13 @@
 		7DEBEC2D2C5AE43C00A1BF15 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBEC1D2C5AE43C00A1BF15 /* Cell.swift */; };
 		7DEBEC2E2C5AE43C00A1BF15 /* Span.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBEC222C5AE43C00A1BF15 /* Span.swift */; };
 		7DEBEC2F2C5AE43C00A1BF15 /* ContiguousStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBEC1F2C5AE43C00A1BF15 /* ContiguousStorage.swift */; };
+		BBD683962C7F857900B567A9 /* SpanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD683942C7F857900B567A9 /* SpanTests.swift */; };
+		BBD683972C7F857900B567A9 /* Inout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD683922C7F857900B567A9 /* Inout.swift */; };
+		BBD683982C7F857900B567A9 /* BoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD6838E2C7F857900B567A9 /* BoxTests.swift */; };
+		BBD683992C7F857900B567A9 /* CellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD6838F2C7F857900B567A9 /* CellTests.swift */; };
+		BBD6839A2C7F857900B567A9 /* RawSpanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD683932C7F857900B567A9 /* RawSpanTests.swift */; };
+		BBD6839B2C7F857900B567A9 /* DynamicArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD683912C7F857900B567A9 /* DynamicArrayTests.swift */; };
+		BBD6839C2C7F857900B567A9 /* ContiguousStorageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBD683902C7F857900B567A9 /* ContiguousStorageTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -895,6 +902,13 @@
 		7DEBEC212C5AE43C00A1BF15 /* RawSpan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawSpan.swift; sourceTree = "<group>"; };
 		7DEBEC222C5AE43C00A1BF15 /* Span.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Span.swift; sourceTree = "<group>"; };
 		7DEBEC232C5AE43C00A1BF15 /* UnsafeBufferPointer+Additions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeBufferPointer+Additions.swift"; sourceTree = "<group>"; };
+		BBD6838E2C7F857900B567A9 /* BoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxTests.swift; sourceTree = "<group>"; };
+		BBD6838F2C7F857900B567A9 /* CellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellTests.swift; sourceTree = "<group>"; };
+		BBD683902C7F857900B567A9 /* ContiguousStorageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContiguousStorageTests.swift; sourceTree = "<group>"; };
+		BBD683912C7F857900B567A9 /* DynamicArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArrayTests.swift; sourceTree = "<group>"; };
+		BBD683922C7F857900B567A9 /* Inout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inout.swift; sourceTree = "<group>"; };
+		BBD683932C7F857900B567A9 /* RawSpanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawSpanTests.swift; sourceTree = "<group>"; };
+		BBD683942C7F857900B567A9 /* SpanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpanTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1532,6 +1546,7 @@
 		7DE921CA29CA8575004483EB /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				BBD683952C7F857900B567A9 /* FutureTests */,
 				7DEBDB1F29CCE43600ADC226 /* _CollectionsTestSupport */,
 				7DE921DA29CA8575004483EB /* BitCollectionsTests */,
 				7DE921CB29CA8575004483EB /* CollectionsTestSupportTests */,
@@ -1826,6 +1841,20 @@
 				7DEBEC232C5AE43C00A1BF15 /* UnsafeBufferPointer+Additions.swift */,
 			);
 			path = Future;
+			sourceTree = "<group>";
+		};
+		BBD683952C7F857900B567A9 /* FutureTests */ = {
+			isa = PBXGroup;
+			children = (
+				BBD6838E2C7F857900B567A9 /* BoxTests.swift */,
+				BBD6838F2C7F857900B567A9 /* CellTests.swift */,
+				BBD683902C7F857900B567A9 /* ContiguousStorageTests.swift */,
+				BBD683912C7F857900B567A9 /* DynamicArrayTests.swift */,
+				BBD683922C7F857900B567A9 /* Inout.swift */,
+				BBD683932C7F857900B567A9 /* RawSpanTests.swift */,
+				BBD683942C7F857900B567A9 /* SpanTests.swift */,
+			);
+			path = FutureTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -2351,6 +2380,13 @@
 				7DEBDB1729CBF69F00ADC226 /* _UnsafeBitSet.swift in Sources */,
 				7DEBDB7E29CCE44A00ADC226 /* CheckComparable.swift in Sources */,
 				7DEBDB7C29CCE44A00ADC226 /* MinimalDecoder.swift in Sources */,
+				BBD683962C7F857900B567A9 /* SpanTests.swift in Sources */,
+				BBD683972C7F857900B567A9 /* Inout.swift in Sources */,
+				BBD683982C7F857900B567A9 /* BoxTests.swift in Sources */,
+				BBD683992C7F857900B567A9 /* CellTests.swift in Sources */,
+				BBD6839A2C7F857900B567A9 /* RawSpanTests.swift in Sources */,
+				BBD6839B2C7F857900B567A9 /* DynamicArrayTests.swift in Sources */,
+				BBD6839C2C7F857900B567A9 /* ContiguousStorageTests.swift in Sources */,
 				7DE9220829CA8576004483EB /* BitSetTests.swift in Sources */,
 				7DEBDB7329CCE44A00ADC226 /* _MinimalCollectionCore.swift in Sources */,
 				7DE921C829CA81DC004483EB /* _UniqueCollection.swift in Sources */,
