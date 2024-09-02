@@ -39,5 +39,5 @@ target_sources(${module_name} PRIVATE
   "RigidDeque.swift"
   "_DequeSlot.swift"
   "_UnsafeDequeHandle.swift"
-  "_UnsafeWrappedBuffer.swift"
+  "_UnsafeDequeSegments.swift"
   )

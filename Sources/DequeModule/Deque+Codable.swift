@@ -35,7 +35,6 @@ extension Deque: Decodable where Element: Decodable {
   /// - Parameter decoder: The decoder to read data from.
   @inlinable
   public init(from decoder: Decoder) throws {
-
     var container = try decoder.unkeyedContainer()
     if let count = container.count {
       self.init(minimumCapacity: count)

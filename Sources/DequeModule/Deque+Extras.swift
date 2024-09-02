@@ -45,7 +45,7 @@ extension Deque {
     initializingWith initializer:
       (inout UnsafeMutableBufferPointer<Element>, inout Int) throws -> Void
   ) rethrows {
-    self._storage = .init(capacity: capacity)
+    self.init(minimumCapacity: capacity)
     try _update { handle in
       handle.startSlot = .zero
       var count = 0

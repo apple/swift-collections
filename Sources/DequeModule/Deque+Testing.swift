@@ -37,8 +37,8 @@ extension Deque {
   /// This property isn't intended to be used outside of `Deque`'s own test
   /// target.
   @_spi(Testing)
-  public var _capacity: Int {
-    _storage.capacity
+  public var _unstableCapacity: Int {
+    _capacity
   }
 
   /// The number of the storage slot in this deque that holds the first element.
@@ -48,8 +48,8 @@ extension Deque {
   /// This property isn't intended to be used outside of `Deque`'s own test
   /// target.
   @_spi(Testing)
-  public var _startSlot: Int {
-    _storage.startSlot.position
+  public var _unstableStartSlot: Int {
+    _storage.read { $0._handle.startSlot.position }
   }
 
   /// Constructs a deque instance of the specified contents and layout. Exposed
@@ -68,12 +68,12 @@ extension Deque {
 
     let startSlot = _Slot(at: startSlot)
 
-    var hd = RigidDeque<Element>(capacity: capacity)
-    hd._handle.count = contents.count
-    hd._handle.startSlot = startSlot
-    if hd._handle.count > 0 {
+    var d = RigidDeque<Element>(capacity: capacity)
+    d._handle.count = contents.count
+    d._handle.startSlot = startSlot
+    if d._handle.count > 0 {
       contents.withUnsafeBufferPointer { source in
-        let segments = hd._handle.mutableSegments()
+        let segments = d._handle.mutableSegments()
         let c = segments.first.count
         segments.first.initializeAll(fromContentsOf: source.prefix(c))
         if let second = segments.second {
@@ -81,9 +81,9 @@ extension Deque {
         }
       }
     }
-    self.init(_storage: _Storage(hd))
-    assert(self._capacity == capacity)
-    assert(self._startSlot == startSlot.position)
+    self.init(_storage: d)
+    assert(self._unstableCapacity == capacity)
+    assert(self._unstableStartSlot == startSlot.position)
     assert(self.count == contents.count)
   }
 }

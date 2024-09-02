@@ -85,11 +85,11 @@ public struct Deque<Element> {
   internal typealias _Slot = _DequeSlot
 
   @usableFromInline
-  internal var _storage: _Storage
+  internal var _storage: Shared<RigidDeque<Element>>
 
   @inlinable
-  internal init(_storage: _Storage) {
-    self._storage = _storage
+  internal init(_storage: consuming RigidDeque<Element>) {
+    self._storage = Shared(_storage)
   }
 
   /// Creates and empty deque with preallocated space for at least the specified
@@ -100,7 +100,7 @@ public struct Deque<Element> {
   ///   storage buffer.
   @inlinable
   public init(minimumCapacity: Int) {
-    self._storage = _Storage(capacity: minimumCapacity)
+    self.init(_storage: RigidDeque(capacity: minimumCapacity))
   }
 }
 
@@ -115,7 +115,9 @@ extension Deque {
   internal func _read<E: Error, R: ~Copyable>(
     _ body: (borrowing _UnsafeHandle) throws(E) -> R
   ) throws(E) -> R {
-    try body(_storage._value._handle)
+    try _storage.read { rigid throws(E) in
+      try body(rigid._handle)
+    }
   }
 
   @inlinable
@@ -123,17 +125,20 @@ extension Deque {
   internal mutating func _update<E: Error, R: ~Copyable>(
     _ body: (inout _UnsafeHandle) throws(E) -> R
   ) throws(E) -> R {
-    defer { _fixLifetime(self) }
-    assert(_isUnique())
-    return try body(&_storage._value._handle)
+    _ensureUnique()
+    return try _storage.update { v throws(E) in
+      try body(&v._handle)
+    }
   }
+}
 
+extension Deque {
   /// Return a boolean indicating whether this storage instance is known to have
   /// a single unique reference. If this method returns true, then it is safe to
   /// perform in-place mutations on the deque.
   @inlinable
   internal mutating func _isUnique() -> Bool {
-    isKnownUniquelyReferenced(&_storage)
+    _storage.isUnique()
   }
 
   /// Ensure that this storage refers to a uniquely held buffer by copying
@@ -141,8 +146,7 @@ extension Deque {
   @inlinable
   @inline(__always)
   internal mutating func _ensureUnique() {
-    if _isUnique() { return }
-    self = _makeUniqueCopy()
+    _storage.ensureUnique(cloner: { $0._copy() })
   }
 
   /// Copy elements into a new storage instance without changing capacity or
@@ -150,13 +154,18 @@ extension Deque {
   @inlinable
   @inline(never)
   internal func _makeUniqueCopy() -> Self {
-    Deque(_storage: _Storage(_storage._value._copy()))
+    Deque(_storage: _storage.read { $0._copy() })
   }
 
   @inlinable
   @inline(never)
   internal func _makeUniqueCopy(capacity: Int) -> Self {
-    Deque(_storage: _Storage(_storage._value._copy(capacity: capacity)))
+    Deque(_storage: _storage.read { $0._copy(capacity: capacity) })
+  }
+
+  @inlinable
+  internal var _capacity: Int {
+    _storage.read { $0.capacity }
   }
 
   @usableFromInline
@@ -187,7 +196,7 @@ extension Deque {
     linearGrowth: Bool = false
   ) {
     let unique = _isUnique()
-    if _slowPath(_storage.capacity < minimumCapacity || !unique) {
+    if _slowPath(_capacity < minimumCapacity || !unique) {
       __ensureUnique(
         isUnique: unique,
         minimumCapacity: minimumCapacity,
@@ -202,7 +211,7 @@ extension Deque {
     minimumCapacity: Int,
     linearGrowth: Bool
   ) {
-    if _storage.capacity >= minimumCapacity {
+    if _capacity >= minimumCapacity {
       assert(!isUnique)
       self = self._makeUniqueCopy()
       return
@@ -210,7 +219,7 @@ extension Deque {
 
     let c = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
     if isUnique {
-      self._storage._value.resize(to: c)
+      self._storage.update { $0.resize(to: c) }
     } else {
       self = self._makeUniqueCopy(capacity: c)
     }
@@ -221,7 +230,7 @@ extension Deque {
   @inlinable
   @inline(__always)
   internal func _isIdentical(to other: Self) -> Bool {
-    self._storage === other._storage
+    self._storage.isIdentical(to: other._storage)
   }
 }
 

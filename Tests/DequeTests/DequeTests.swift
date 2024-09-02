@@ -17,6 +17,11 @@ import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
 #endif
 
+extension Deque {
+  var _capacity: Int { _unstableCapacity }
+  var _startSlot: Int { _unstableStartSlot }
+}
+
 final class DequeTests: CollectionTestCase {
   func test_testingSPIs() {
     let deque = Deque(_capacity: 5, startSlot: 2, contents: [10, 20, 30, 40])
