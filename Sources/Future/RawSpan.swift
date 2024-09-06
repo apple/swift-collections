@@ -173,7 +173,7 @@ extension RawSpan {
     String(UInt(bitPattern: _pointer), radix: 16, uppercase: false)
   }
 
-  public var description: String {
+  public var _description: String {
     "(0x\(_address), \(_count))"
   }
 }
@@ -214,7 +214,7 @@ extension RawSpan {
   ///   - position: an index to validate
   /// - Returns: true if `offset` is a valid index
   @inlinable @inline(__always)
-  public func validateBounds(_ offset: Int) -> Bool {
+  public func boundsContain(_ offset: Int) -> Bool {
     0 <= offset && offset < byteCount
   }
 
@@ -223,9 +223,9 @@ extension RawSpan {
   /// - Parameters:
   ///   - position: an index to validate
   @inlinable @inline(__always)
-  public func assertValidity(_ offset: Int) {
+  public func boundsPrecondition(_ offset: Int) {
     precondition(
-      validateBounds(offset), "Offset out of bounds"
+      boundsContain(offset), "Offset out of bounds"
     )
   }
 
@@ -235,7 +235,7 @@ extension RawSpan {
   ///   - offsets: a range of indices to validate
   /// - Returns: true if `offsets` is a valid range of indices
   @inlinable @inline(__always)
-  public func validateBounds(_ offsets: Range<Int>) -> Bool {
+  public func boundsContain(_ offsets: Range<Int>) -> Bool {
     0 <= offsets.lowerBound && offsets.upperBound <= byteCount
   }
 
@@ -244,13 +244,14 @@ extension RawSpan {
   /// - Parameters:
   ///   - offsets: a range of indices to validate
   @inlinable @inline(__always)
-  public func assertValidity(_ offsets: Range<Int>) {
+  public func boundsPrecondition(_ offsets: Range<Int>) {
     precondition(
-      validateBounds(offsets), "Range of offsets out of bounds"
+      boundsContain(offsets), "Range of offsets out of bounds"
     )
   }
 }
 
+/*
 //MARK: extracting sub-spans
 extension RawSpan {
 
@@ -269,7 +270,7 @@ extension RawSpan {
   /// - Complexity: O(1)
   @inlinable @inline(__always)
   public func extracting(_ bounds: Range<Int>) -> Self {
-    assertValidity(bounds)
+    boundsPrecondition(bounds)
     return extracting(unchecked: bounds)
   }
 
@@ -350,6 +351,33 @@ extension RawSpan {
     self
   }
 }
+*/
+
+extension RawSpan {
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(to bounds: Range<Int>) {
+    boundsPrecondition(bounds)
+    _shrink(unchecked: bounds)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(unchecked bounds: Range<Int>) {
+    self = RawSpan(
+      _unchecked: _pointer?.advanced(by: bounds.lowerBound),
+      byteCount: bounds.count
+    )
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(_ bounds: some RangeExpression<Int>) {
+    _shrink(to: bounds.relative(to: _byteOffsets))
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(unchecked bounds: some RangeExpression<Int>) {
+    _shrink(unchecked: bounds.relative(to: _byteOffsets))
+  }
+}
 
 extension RawSpan {
 
@@ -424,7 +452,7 @@ extension RawSpan {
   public func unsafeLoad<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    assertValidity(
+    boundsPrecondition(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
     )
     return unsafeLoad(fromUncheckedByteOffset: offset, as: T.self)
@@ -475,7 +503,7 @@ extension RawSpan {
   public func unsafeLoadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    assertValidity(
+    boundsPrecondition(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
     )
     return unsafeLoadUnaligned(fromUncheckedByteOffset: offset, as: T.self)
@@ -543,6 +571,7 @@ extension RawSpan {
 }
 
 //MARK: one-sided slicing operations
+/*
 extension RawSpan {
 
   /// Returns a span containing the initial bytes of this span,
@@ -633,6 +662,7 @@ extension RawSpan {
     return Self(_unchecked: newStart, byteCount: byteCount&-dc)
   }
 }
+*/
 
 /// An error indicating that out-of-bounds access was attempted
 @frozen
@@ -649,6 +679,7 @@ public struct OutOfBoundsError: Error {
   }
 }
 
+/*
 extension RawSpan {
   /// Parse an instance of `T`, advancing `position`.
   @inlinable
@@ -696,7 +727,7 @@ extension RawSpan {
 
     @inlinable
     public init(_ base: RawSpan, in range: Range<Int>) {
-      base.assertValidity(range)
+      base.boundsPrecondition(range)
       position = 0
       self.base = base
       parseRange = range
@@ -742,3 +773,4 @@ extension RawSpan {
     Cursor(self, in: range)
   }
 }
+*/
