@@ -149,7 +149,7 @@ extension RawSpan {
   /// - Parameters:
   ///   - span: An existing `Span<T>`, which will define both this
   ///           `RawSpan`'s lifetime and the memory it represents.
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public init<T: BitwiseCopyable>(_ span: borrowing Span<T>) {
     self.init(
       _unchecked: UnsafeRawPointer(span._start),
@@ -208,50 +208,37 @@ extension RawSpan {
 //MARK: Bounds Checking
 extension RawSpan {
 
-  /// Return true if `offset` is a valid offset into this `RawSpan`
+  /// Return true if `offset` is a valid byte offset into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - position: an index to validate
-  /// - Returns: true if `offset` is a valid index
+  ///   - position: a byte offset to validate
+  /// - Returns: true if `offset` is a valid byte offset
   @inlinable @inline(__always)
   public func boundsContain(_ offset: Int) -> Bool {
     0 <= offset && offset < byteCount
   }
 
-  /// Traps if `offset` is not a valid offset into this `RawSpan`
-  ///
-  /// - Parameters:
-  ///   - position: an index to validate
-  @inlinable @inline(__always)
-  public func boundsPrecondition(_ offset: Int) {
-    precondition(
-      boundsContain(offset), "Offset out of bounds"
-    )
-  }
-
   /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - offsets: a range of indices to validate
-  /// - Returns: true if `offsets` is a valid range of indices
+  ///   - offsets: a range of byte offsets to validate
+  /// - Returns: true if `offsets` is a valid range of byte offsets
   @inlinable @inline(__always)
   public func boundsContain(_ offsets: Range<Int>) -> Bool {
     0 <= offsets.lowerBound && offsets.upperBound <= byteCount
   }
 
-  /// Traps if `offsets` is not a valid range of offsets into this `RawSpan`
+  /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
   ///
   /// - Parameters:
-  ///   - offsets: a range of indices to validate
+  ///   - offsets: a range of byte offsets to validate
+  /// - Returns: true if `offsets` is a valid range of byte offsets
   @inlinable @inline(__always)
-  public func boundsPrecondition(_ offsets: Range<Int>) {
-    precondition(
-      boundsContain(offsets), "Range of offsets out of bounds"
-    )
+  public func boundsContain(_ offsets: ClosedRange<Int>) -> Bool {
+    0 <= offsets.lowerBound && offsets.upperBound < byteCount
   }
 }
 
-/*
 //MARK: extracting sub-spans
 extension RawSpan {
 
@@ -268,10 +255,15 @@ extension RawSpan {
   /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
-  public func extracting(_ bounds: Range<Int>) -> Self {
-    boundsPrecondition(bounds)
-    return extracting(unchecked: bounds)
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(_ bounds: Range<Int>) -> Self {
+    precondition(boundsContain(bounds))
+    return _extracting(unchecked: bounds)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(to bounds: Range<Int>) {
+    self = _extracting(bounds)
   }
 
   /// Constructs a new span over the bytes within the supplied range of
@@ -289,14 +281,19 @@ extension RawSpan {
   /// - Returns: A span over the bytes within `bounds`
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
-  public func extracting(unchecked bounds: Range<Int>) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(unchecked bounds: Range<Int>) -> Self {
     RawSpan(
       _unchecked: _pointer?.advanced(by: bounds.lowerBound),
       byteCount: bounds.count
     )
   }
 
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(unchecked bounds: Range<Int>) {
+    self = _extracting(unchecked: bounds)
+  }
+
   /// Constructs a new span over the bytes within the supplied range of
   /// positions within this span.
   ///
@@ -311,8 +308,13 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public func extracting(_ bounds: some RangeExpression<Int>) -> Self {
-    extracting(bounds.relative(to: _byteOffsets))
+  @usableFromInline func _extracting(_ bounds: some RangeExpression<Int>) -> Self {
+    _extracting(bounds.relative(to: _byteOffsets))
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(_ bounds: some RangeExpression<Int>) {
+    self = _extracting(bounds)
   }
 
   /// Constructs a new span over the bytes within the supplied range of
@@ -331,10 +333,15 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public func extracting(
+  @usableFromInline func _extracting(
     unchecked bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(unchecked: bounds.relative(to: _byteOffsets))
+    _extracting(unchecked: bounds.relative(to: _byteOffsets))
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(unchecked bounds: some RangeExpression<Int>) {
+    self = _extracting(unchecked: bounds)
   }
 
   /// Constructs a new span over all the bytes of this span.
@@ -347,35 +354,8 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public func extracting(_: UnboundedRange) -> Self {
+  @usableFromInline func _extracting(_: UnboundedRange) -> Self {
     self
-  }
-}
-*/
-
-extension RawSpan {
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(to bounds: Range<Int>) {
-    boundsPrecondition(bounds)
-    _shrink(unchecked: bounds)
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(unchecked bounds: Range<Int>) {
-    self = RawSpan(
-      _unchecked: _pointer?.advanced(by: bounds.lowerBound),
-      byteCount: bounds.count
-    )
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(_ bounds: some RangeExpression<Int>) {
-    _shrink(to: bounds.relative(to: _byteOffsets))
-  }
-
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(unchecked bounds: some RangeExpression<Int>) {
-    _shrink(unchecked: bounds.relative(to: _byteOffsets))
   }
 }
 
@@ -452,9 +432,9 @@ extension RawSpan {
   public func unsafeLoad<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    boundsPrecondition(
+    precondition(boundsContain(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
-    )
+    ))
     return unsafeLoad(fromUncheckedByteOffset: offset, as: T.self)
   }
 
@@ -503,9 +483,9 @@ extension RawSpan {
   public func unsafeLoadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    boundsPrecondition(
+    precondition(boundsContain(
       Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
-    )
+    ))
     return unsafeLoadUnaligned(fromUncheckedByteOffset: offset, as: T.self)
   }
 
@@ -571,7 +551,6 @@ extension RawSpan {
 }
 
 //MARK: one-sided slicing operations
-/*
 extension RawSpan {
 
   /// Returns a span containing the initial bytes of this span,
@@ -589,11 +568,16 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(first maxLength: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let newCount = min(maxLength, byteCount)
     return Self(_unchecked: _pointer, byteCount: newCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(toFirst maxLength: Int) {
+    self = _extracting(first: maxLength)
   }
 
   /// Returns a span over all but the given number of trailing bytes.
@@ -610,11 +594,16 @@ extension RawSpan {
   /// - Returns: A span leaving off the specified number of bytes at the end.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(droppingLast k: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = min(k, byteCount)
     return Self(_unchecked: _pointer, byteCount: byteCount&-dc)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(droppingLast k: Int) {
+    self = _extracting(droppingLast: k)
   }
 
   /// Returns a span containing the trailing bytes of the span,
@@ -632,12 +621,17 @@ extension RawSpan {
   /// - Returns: A span with at most `maxLength` bytes.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(last maxLength: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, byteCount)
     let newStart = _pointer?.advanced(by: byteCount&-newCount)
     return Self(_unchecked: newStart, byteCount: newCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(toLast maxLength: Int) {
+    self = _extracting(last: maxLength)
   }
 
   /// Returns a span over all but the given number of initial bytes.
@@ -654,15 +648,19 @@ extension RawSpan {
   /// - Returns: A span starting after the specified number of bytes.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(droppingFirst k: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let dc = min(k, byteCount)
     let newStart = _pointer?.advanced(by: dc)
     return Self(_unchecked: newStart, byteCount: byteCount&-dc)
   }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(droppingFirst k: Int) {
+    self = _extracting(droppingFirst: k)
+  }
 }
-*/
 
 /// An error indicating that out-of-bounds access was attempted
 @frozen
@@ -679,7 +677,6 @@ public struct OutOfBoundsError: Error {
   }
 }
 
-/*
 extension RawSpan {
   /// Parse an instance of `T`, advancing `position`.
   @inlinable
@@ -710,7 +707,7 @@ extension RawSpan {
     guard end <= length else {
       throw OutOfBoundsError(expected: length, has: byteCount&-position)
     }
-    return extracting(position..<end)
+    return _extracting(position..<end)
   }
 }
 
@@ -727,7 +724,7 @@ extension RawSpan {
 
     @inlinable
     public init(_ base: RawSpan, in range: Range<Int>) {
-      base.boundsPrecondition(range)
+      precondition(base.boundsContain(range))
       position = 0
       self.base = base
       parseRange = range
@@ -758,7 +755,7 @@ extension RawSpan {
 
     /// The bytes that we've parsed so far
     @inlinable
-    public var parsedBytes: RawSpan { base.extracting(..<position) }
+    public var parsedBytes: RawSpan { base._extracting(..<position) }
 
     /// The number of bytes left to parse
     @inlinable
@@ -773,4 +770,3 @@ extension RawSpan {
     Cursor(self, in: range)
   }
 }
-*/
