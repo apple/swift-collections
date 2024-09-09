@@ -331,6 +331,7 @@ final class SpanTests: XCTestCase {
       XCTAssertEqual(emptyBuffer.baseAddress, ub.baseAddress)
 
       let empty = Span(_unsafeElements: emptyBuffer)
+      XCTAssertEqual(empty.count, 0)
       empty.withUnsafeBufferPointer {
         XCTAssertNil($0.baseAddress)
       }

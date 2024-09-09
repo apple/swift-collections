@@ -16,37 +16,28 @@ import Builtin
 // contains initialized instances of `Element`.
 @frozen
 public struct Span<Element: ~Copyable /*& ~Escapable*/>: Copyable, ~Escapable {
-  @usableFromInline let _buffer: UnsafeBufferPointer<Element>
+  @usableFromInline let _pointer: UnsafeRawPointer?
 
   @usableFromInline @inline(__always)
-  var _pointer: UnsafePointer<Element>? { _buffer.baseAddress }
+  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
 
-  @usableFromInline @inline(__always)
-  var _start: UnsafePointer<Element> { _pointer.unsafelyUnwrapped }
-
-//  @usableFromInline @inline(__always)
-//  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
-
-  @usableFromInline @inline(__always)
-  var _count: Int { _buffer.count }
+  @usableFromInline let _count: Int
 
   @inlinable @inline(__always)
   internal init(
     _unchecked elements: UnsafeBufferPointer<Element>
   ) -> dependsOn(immortal) Self {
-    _buffer = elements
-//    _pointer = .init(elements.baseAddress)
-//    _count = elements.count
+    _pointer = .init(elements.baseAddress)
+    _count = elements.count
   }
 
   @_alwaysEmitIntoClient
   internal init(
-    _unchecked start: UnsafePointer<Element>?,
+    _unchecked start: UnsafeRawPointer?,
     count: Int
   ) -> dependsOn(immortal) Self {
-    self.init(_unchecked: .init(start: start, count: count))
-//    _pointer = .init(start)
-//    _count = count
+    _pointer = .init(start)
+    _count = count
   }
 }
 
@@ -57,7 +48,7 @@ extension UnsafePointer where Pointee: ~Copyable /*& ~Escapable*/ {
 
   @usableFromInline @inline(__always)
   var isAligned: Bool {
-    (Int(bitPattern: self) & (MemoryLayout<Pointee>.alignment-1)) == 0
+    (Int(bitPattern: self) & (MemoryLayout<Pointee>.alignment&-1)) == 0
   }
 }
 
@@ -533,7 +524,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   @inlinable @inline(__always)
   public func extracting(unchecked bounds: Range<Int>) -> Self {
     Span(
-      _unchecked: _pointer?.advanced(by: bounds.lowerBound),
+      _unchecked: _pointer?.advanced(by: bounds.lowerBound*MemoryLayout<Element>.stride),
       count: bounds.count
     )
   }
@@ -613,7 +604,12 @@ extension Span where Element: ~Copyable  /*& ~Escapable*/ {
   public func withUnsafeBufferPointer<E: Error, Result: ~Copyable & ~Escapable>(
     _ body: (_ buffer: UnsafeBufferPointer<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    try body(.init(start: (count==0) ? nil : _start, count: count))
+    guard let pointer = _pointer, count > 0 else {
+      return try body(.init(start: nil, count: 0))
+    }
+    let binding = Builtin.bindMemory(pointer._rawValue, count._builtinWordValue, Element.self)
+    defer { Builtin.rebindMemory(pointer._rawValue, binding) }
+    return try body(.init(start: .init(pointer._rawValue), count: count))
   }
 }
 
@@ -680,7 +676,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     if span._count > _count { return false }
     if _count == 0 || span._count == 0 { return true }
     if _start > span._start { return false }
-    return span._start.advanced(by: span._count) <= _start.advanced(by: _count)
+    return span._start.advanced(by: span._count*MemoryLayout<Element>.stride) <= _start.advanced(by: _count*MemoryLayout<Element>.stride)
   }
 
   /// Returns the offsets where the memory of `span` is located within
@@ -696,7 +692,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     precondition(contains(span))
     var (s, e) = (0, 0)
     if _pointer != nil && span._pointer != nil {
-      s = _start.distance(to: span._start)
+      s = _start.distance(to: span._start)/MemoryLayout<Element>.stride
       e = s + span._count
     }
     return Range(uncheckedBounds: (s, e))
@@ -768,7 +764,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, count)
-    let newStart = _pointer?.advanced(by: count&-newCount)
+    let newStart = _pointer?.advanced(by: (count&-newCount)*MemoryLayout<Element>.stride)
     return Self(_unchecked: newStart, count: newCount)
   }
 
@@ -790,7 +786,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   public func extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
-    let newStart = _pointer?.advanced(by: droppedCount)
+    let newStart = _pointer?.advanced(by: droppedCount*MemoryLayout<Element>.stride)
     return Self(_unchecked: newStart, count: count&-droppedCount)
   }
 }
