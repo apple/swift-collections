@@ -102,36 +102,46 @@ extension Slice {
 import struct Foundation.Data
 
 extension Data {
-  public func withSpan<E: Error, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements: Span<UInt8>) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E> = withUnsafeBytes {
-      do throws(E) {
-        return .success(try body(Span<UInt8>(_unsafeBytes: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBytes {
+        bytes in
+        do throws(E) {
+          let result = try body(Span<UInt8>(_unsafeBytes: bytes))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes: RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E> = withUnsafeBytes {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeBytes: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBytes {
+        bytes in
+        do throws(E) {
+          let result = try body(RawSpan(_unsafeBytes: bytes))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 }
 #endif
@@ -185,235 +195,290 @@ extension Array {
       }
       return buffer.moveElement(from: 0)
     }
-    switch consume result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 
-  public func withBytes<E: Error, Result>(
+//  public func withSpan<E: Error, Result: ~Copyable>(
+//    _ body: (_ elements:  Span<Element>) throws(E) -> Result
+//  ) throws(E) -> Result {
+//    try withUnsafeTemporaryAllocation(of: Result.self, capacity: 1) {
+//      buffer -> Result in
+//      try self.withUnsafeBufferPointer {
+//        let result = try body(Span(_unsafeElements: $0))
+//        buffer.initializeElement(at: 0, to: result)
+//      }
+//      return buffer.moveElement(from: 0)
+//    }
+//  }
+
+//  public func withSpan<E: Error, Result: ~Copyable>(
+//    _ body: (_ elements:  Span<Element>) throws(E) -> Result
+//  ) throws(E) -> Result {
+//    try self.withUnsafeBufferPointer {
+//      try body(Span(_unsafeElements: $0))
+//    }
+//  }
+
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes:  RawSpan) throws(E) -> Result
   ) throws(E) -> Result where Element: BitwiseCopyable {
-    let result: Swift.Result<Result, E> = withUnsafeBytes {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeBytes: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBytes {
+        bytes in
+        do throws(E) {
+          let result = try body(RawSpan(_unsafeBytes: bytes))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 }
 
 extension ContiguousArray {
-  public func withSpan<E: Error, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements:  Span<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E> = withUnsafeBufferPointer {
-      do throws(E) {
-        return .success(try body(Span(_unsafeElements: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBufferPointer {
+        elements in
+        do throws(E) {
+          let result = try body(Span(_unsafeElements: elements))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 }
 
 extension ContiguousArray where Element: BitwiseCopyable {
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes:  RawSpan) throws(E) -> Result
-  ) throws(E) -> Result {
-    let result: Swift.Result<Result, E> = withUnsafeBytes {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeBytes: $0)))
-      } catch {
-        return .failure(error)
+  ) throws(E) -> Result where Element: BitwiseCopyable {
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBytes {
+        bytes in
+        do throws(E) {
+          let result = try body(RawSpan(_unsafeBytes: bytes))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 }
 
 extension ArraySlice {
-  public func withSpan<E, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements:  Span<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E> = withUnsafeBufferPointer {
-      do throws(E) {
-        let span = Span(_unsafeElements: $0)
-        print(span._start, span.count)
-        return .success(try body(span))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBufferPointer {
+        elements in
+        do throws(E) {
+          let result = try body(Span(_unsafeElements: elements))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 }
 
 extension ArraySlice where Element: BitwiseCopyable {
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes:  RawSpan) throws(E) -> Result
-  ) throws(E) -> Result {
-    let result: Swift.Result<Result, E> = withUnsafeBytes {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeBytes: $0)))
-      } catch {
-        return .failure(error)
+  ) throws(E) -> Result where Element: BitwiseCopyable {
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E> in
+      self.withUnsafeBytes {
+        bytes in
+        do throws(E) {
+          let result = try body(RawSpan(_unsafeBytes: bytes))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
-    }
+    return try result.get()
   }
 }
 
 extension String.UTF8View {
-  public func withSpan<E: Error, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements:  Span<UTF8.CodeUnit>) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E>? = withContiguousStorageIfAvailable {
-      do throws(E) {
-        return .success(try body(Span(_unsafeElements: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E>? in
+      let ran: Void? = self.withContiguousStorageIfAvailable {
+        elements in
+        do throws(E) {
+          let result = try body(Span(_unsafeElements: elements))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return (ran == nil) ? nil : buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s)?: return s
-    case .failure(let e)?: throw e
-    case nil: return try ContiguousArray(self).withSpan(body)
+    if let result {
+      return try result.get()
     }
+    return try ContiguousArray(self).withSpan(body)
   }
 
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes:  RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E>? = withContiguousStorageIfAvailable {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeElements: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E>? in
+      let ran: Void? = self.withContiguousStorageIfAvailable {
+        do throws(E) {
+          let result = try body(RawSpan(_unsafeElements: $0))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return (ran == nil) ? nil : buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s)?: return s
-    case .failure(let e)?: throw e
-    case nil: return try ContiguousArray(self).withBytes(body)
+    if let result {
+      return try result.get()
     }
+    return try ContiguousArray(self).withBytes(body)
   }
 }
 
 extension Substring.UTF8View {
-  public func withSpan<E: Error, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements:  Span<UTF8.CodeUnit>) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E>? = withContiguousStorageIfAvailable {
-      do throws(E) {
-        return .success(try body(Span(_unsafeElements: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E>? in
+      let ran: Void? = self.withContiguousStorageIfAvailable {
+        elements in
+        do throws(E) {
+          let result = try body(Span(_unsafeElements: elements))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return (ran == nil) ? nil : buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s)?: return s
-    case .failure(let e)?: throw e
-    case nil: return try ContiguousArray(self).withSpan(body)
+    if let result {
+      return try result.get()
     }
+    return try ContiguousArray(self).withSpan(body)
   }
 
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes:  RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
-    let result: Swift.Result<Result, E>? = withContiguousStorageIfAvailable {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeElements: $0)))
-      } catch {
-        return .failure(error)
+    let result = withUnsafeTemporaryAllocation(
+        of: Swift.Result<Result, E>.self, capacity: 1
+    ) {
+      buffer -> Swift.Result<Result, E>? in
+      let ran: Void? = self.withContiguousStorageIfAvailable {
+        elements in
+        do throws(E) {
+          let result = try body(RawSpan(_unsafeElements: elements))
+          buffer.initializeElement(at: 0, to: .success(result))
+        } catch {
+          buffer.initializeElement(at: 0, to: .failure(error))
+        }
       }
+      return (ran == nil) ? nil : buffer.moveElement(from: 0)
     }
-    switch result {
-    case .success(let s)?: return s
-    case .failure(let e)?: throw e
-    case nil: return try ContiguousArray(self).withBytes(body)
+    if let result {
+      return try result.get()
     }
+    return try ContiguousArray(self).withBytes(body)
   }
 }
 
 extension CollectionOfOne {
-  public func withSpan<E: Error, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements:  Span<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     var collection = self
-    let result: Swift.Result<Result, E> = withUnsafePointer(to: &collection) {
-      $0.withMemoryRebound(to: Element.self, capacity: 1) {
-        do throws(E) {
-          return .success(try body(Span(_unsafeStart: $0, count: 1)))
-        } catch {
-          return .failure(error)
-        }
+    return try withUnsafePointer(to: &collection) {
+      pointer throws(E) -> Result in
+      try pointer.withMemoryRebound(to: Element.self, capacity: 1) {
+        element throws(E) -> Result in
+        try body(Span(_unsafeStart: element, count: 1))
       }
-    }
-    switch result {
-    case .success(let s): return s
-    case .failure(let e): throw e
     }
   }
 }
 
 extension CollectionOfOne where Element: BitwiseCopyable {
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes:  RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
     var collection = self
-    let r: Swift.Result<Result, E> = Swift.withUnsafeBytes(of: &collection) {
-      do throws(E) {
-        return .success(try body(RawSpan(_unsafeBytes: $0)))
-      } catch {
-        return .failure(error)
-      }
-    }
-    switch r {
-    case .success(let s): return s
-    case .failure(let e): throw e
+    return try Swift.withUnsafeBytes(of: &collection) {
+      bytes throws(E) -> Result in
+      try body(RawSpan(_unsafeBytes: bytes))
     }
   }
 }
 
 extension KeyValuePairs {
-  public func withSpan<E: Error, Result>(
+  public func withSpan<E: Error, Result: ~Copyable>(
     _ body: (
       _ elements:  Span<(key: Key, value: Value)>
     ) throws(E) -> Result
   ) throws(E) -> Result {
-    try Array(self).withSpan(body)
+    try ContiguousArray(self).withSpan(body)
   }
 }
 
 extension KeyValuePairs where Element: BitwiseCopyable {
-  public func withBytes<E: Error, Result>(
+  public func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ bytes: RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
-    try Array(self).withBytes(body)
+    try ContiguousArray(self).withBytes(body)
   }
 }
 
 extension Span where Element: ~Copyable /*& ~Escapable*/ {
-  public consuming func withSpan<E: Error, Result>(
+  public consuming func withSpan<E: Error, Result: ~Copyable>(
     _ body: (_ elements: Span<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     try body(self)
@@ -421,7 +486,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
 }
 
 extension Span where Element: BitwiseCopyable {
-  public consuming func withBytes<E: Error, Result>(
+  public consuming func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ elements: RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
     try body(RawSpan(self))

@@ -115,20 +115,19 @@ final class StdlibSpanExtensionTests: XCTestCase {
     let a = (0..<7).map(String.init(_:)).prefix(upTo: 4)
     print(a.count)
     a.withSpan {
-//      print($0.count)
       print($0._indices)
       for i in $0._indices {
         print(i)
         let v = $0[i]
         _ = v
-//        XCTAssertEqual($0[i], String(i))
+        XCTAssertEqual($0[i], String(i))
       }
     }
-//    do throws(ErrorForTesting) {
-//      try a.withSpan { _ throws(ErrorForTesting) in throw .error }
-//    } catch {
-//      XCTAssertEqual(error, .error)
-//    }
+    do throws(ErrorForTesting) {
+      try a.withSpan { _ throws(ErrorForTesting) in throw .error }
+    } catch {
+      XCTAssertEqual(error, .error)
+    }
   }
 
   func testArraySliceRawSpan() throws {
