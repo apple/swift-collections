@@ -493,4 +493,12 @@ extension Span where Element: BitwiseCopyable {
   }
 }
 
+extension RawSpan {
+  public consuming func withBytes<E: Error, Result: ~Copyable>(
+    _ body: (_ elements: RawSpan) throws(E) -> Result
+  ) throws(E) -> Result {
+    try body(self)
+  }
+}
+
 //TODO: extend SIMD vectors with `withSpan` and with `withBytes`.
