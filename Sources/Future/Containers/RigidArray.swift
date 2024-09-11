@@ -59,7 +59,7 @@ extension RigidArray where Element: ~Copyable {
 }
 
 extension RigidArray where Element: ~Copyable {
-  public var span: Span<Element> {
+  public var storage: Span<Element> {
     Span(unsafeElements: _items, owner: self)
   }
 }

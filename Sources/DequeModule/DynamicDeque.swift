@@ -86,7 +86,7 @@ extension DynamicDeque where Element: ~Copyable {
   @inlinable
   internal mutating func _grow(to minimumCapacity: Int) {
     guard minimumCapacity > _capacity else { return }
-    let c = Swift.max(minimumCapacity, 2 * _capacity)
+    let c = Swift.max(minimumCapacity, 7 * _capacity / 4)
     _storage.resize(to: c)
   }
 

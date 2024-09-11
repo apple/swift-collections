@@ -40,8 +40,8 @@ extension DynamicArray where Element: ~Copyable {
 }
 
 extension DynamicArray where Element: ~Copyable {
-  public var span: Span<Element> {
-    _storage.span
+  public var storage: Span<Element> {
+    _storage.storage
   }
 }
 

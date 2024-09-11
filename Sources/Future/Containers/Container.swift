@@ -33,6 +33,7 @@ public protocol Container: ~Copyable, ~Escapable {
   var endIndex: Index { get }
 
   // FIXME: Replace `@_borrowed` with proper `read`/`modify` accessor requirements
+  // FIXME: (Or rather, accessors with proper projection semantics.)
   @_borrowed subscript(index: Index) -> Element { get }
 
   func index(after index: Index) -> Index

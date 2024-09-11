@@ -22,6 +22,17 @@ public struct NewArray<Element> {
 }
 
 extension NewArray {
+  public var storage: Span<Element> {
+#if false
+    // FIXME: This is what I want to write; alas, lifetimes are messed up.
+    return _storage.value.storage
+#else
+    return Span(unsafeElements: _storage.value._items, owner: self)
+#endif
+  }
+}
+
+extension NewArray {
   @inlinable
   public var capacity: Int { _storage.read { $0.capacity } }
 
@@ -31,7 +42,10 @@ extension NewArray {
   }
 
   @inlinable
-  internal mutating func _ensureUnique(minimumCapacity: Int) {
+  internal mutating func _ensureUnique(
+    minimumCapacity: Int,
+    linear: Bool = false
+  ) {
     if !_storage.isUnique() {
       let c = Swift.max(count, minimumCapacity)
       _storage = Shared(_storage.read { $0._copy(capacity: c) })
@@ -88,8 +102,17 @@ extension NewArray: RandomAccessCollection, MutableCollection {
   }
 }
 
-extension NewArray {
-  public var span: Span<Element> {
-    Span(unsafeElements: _storage.value._items, owner: self)
+extension NewArray: RangeReplaceableCollection {
+  public init() {
+    // FIXME: Figure out if we can implement empty singletons in this setup.
+    self._storage = Shared(RigidArray(capacity: 0))
+  }
+
+  public func replaceSubrange(
+    _ subrange: Range<Int>,
+    with newElements: some Collection<Element>
+  ) {
+    let delta = newElements.count - subrange.count
+    _ensureUnique(minimumCapacity: capacity + delta)
   }
 }
