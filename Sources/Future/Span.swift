@@ -412,7 +412,7 @@ extension Span where Element: BitwiseCopyable {
   ///
   /// - Returns: a RawSpan over the memory represented by this span
   @inlinable @inline(__always)
-  public var rawSpan: RawSpan { RawSpan(self) }
+  public var rawSpan: RawSpan { RawSpan(_unsafeSpan: self) }
 }
 
 //MARK: integer offset subscripts
@@ -634,7 +634,7 @@ extension Span where Element: BitwiseCopyable {
   public func withUnsafeBytes<E: Error, Result: ~Copyable & ~Escapable>(
     _ body: (_ buffer: UnsafeRawBufferPointer) throws(E) -> Result
   ) throws(E) -> Result {
-    try RawSpan(self).withUnsafeBytes(body)
+    try RawSpan(_unsafeSpan: self).withUnsafeBytes(body)
   }
 }
 

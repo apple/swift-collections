@@ -489,7 +489,7 @@ extension Span where Element: BitwiseCopyable {
   public consuming func withBytes<E: Error, Result: ~Copyable>(
     _ body: (_ elements: RawSpan) throws(E) -> Result
   ) throws(E) -> Result {
-    try body(RawSpan(self))
+    try body(RawSpan(_unsafeSpan: self))
   }
 }
 

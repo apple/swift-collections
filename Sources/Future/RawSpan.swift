@@ -150,20 +150,13 @@ extension RawSpan {
   ///   - span: An existing `Span<T>`, which will define both this
   ///           `RawSpan`'s lifetime and the memory it represents.
   @_alwaysEmitIntoClient
-  public init<T: BitwiseCopyable>(_ span: borrowing Span<T>) {
+  public init<T: BitwiseCopyable>(
+    _unsafeSpan span: borrowing Span<T>
+  ) -> dependsOn(immortal) Self {
     self.init(
       _unchecked: UnsafeRawPointer(span._start),
       byteCount: span.count * MemoryLayout<T>.stride
     )
-  }
-}
-
-extension RawSpan {
-  /// Returns a Boolean value indicating whether two `RawSpan` instances
-  /// refer to the same region in memory.
-  @inlinable @inline(__always)
-  public static func ===(_ a: Self, _ b: Self) -> Bool {
-    (a._pointer == b._pointer) && (a._count == b._count)
   }
 }
 
@@ -186,13 +179,13 @@ extension RawSpan {
   /// instead of comparing `count` to zero.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var byteCount: Int { _count }
 
   /// A Boolean value indicating whether the span is empty.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var isEmpty: Bool { byteCount == 0 }
 
   /// The indices that are valid for subscripting the span, in ascending
@@ -213,7 +206,7 @@ extension RawSpan {
   /// - Parameters:
   ///   - position: a byte offset to validate
   /// - Returns: true if `offset` is a valid byte offset
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public func boundsContain(_ offset: Int) -> Bool {
     0 <= offset && offset < byteCount
   }
@@ -223,7 +216,7 @@ extension RawSpan {
   /// - Parameters:
   ///   - offsets: a range of byte offsets to validate
   /// - Returns: true if `offsets` is a valid range of byte offsets
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public func boundsContain(_ offsets: Range<Int>) -> Bool {
     0 <= offsets.lowerBound && offsets.upperBound <= byteCount
   }
@@ -233,7 +226,7 @@ extension RawSpan {
   /// - Parameters:
   ///   - offsets: a range of byte offsets to validate
   /// - Returns: true if `offsets` is a valid range of byte offsets
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public func boundsContain(_ offsets: ClosedRange<Int>) -> Bool {
     0 <= offsets.lowerBound && offsets.upperBound < byteCount
   }
@@ -290,7 +283,7 @@ extension RawSpan {
   }
 
   @_alwaysEmitIntoClient
-  public mutating func _shrink(unchecked bounds: Range<Int>) {
+  public mutating func _shrink(toUnchecked bounds: Range<Int>) {
     self = _extracting(unchecked: bounds)
   }
 
@@ -340,7 +333,7 @@ extension RawSpan {
   }
 
   @_alwaysEmitIntoClient
-  public mutating func _shrink(unchecked bounds: some RangeExpression<Int>) {
+  public mutating func _shrink(toUnchecked bounds: some RangeExpression<Int>) {
     self = _extracting(unchecked: bounds)
   }
 
@@ -428,7 +421,7 @@ extension RawSpan {
   /// - Returns: A new instance of type `T`, read from the raw bytes at
   ///     `offset`. The returned instance is memory-managed and unassociated
   ///     with the value in the memory referenced by this pointer.
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public func unsafeLoad<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
@@ -456,7 +449,7 @@ extension RawSpan {
   /// - Returns: A new instance of type `T`, read from the raw bytes at
   ///     `offset`. The returned instance is memory-managed and unassociated
   ///     with the value in the memory referenced by this pointer.
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public func unsafeLoad<T>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
@@ -515,6 +508,12 @@ extension RawSpan {
 }
 
 extension RawSpan {
+  /// Returns a Boolean value indicating whether two `RawSpan` instances
+  /// refer to the same region in memory.
+  @_alwaysEmitIntoClient
+  public func isIdentical(to other: Self) -> Bool {
+    (self._pointer == other._pointer) && (self._count == other._count)
+  }
 
   /// Returns true if the memory represented by `span` is a subrange of
   /// the memory represented by `self`
@@ -522,12 +521,13 @@ extension RawSpan {
   /// Parameters:
   /// - span: a span of the same type as `self`
   /// Returns: whether `span` is a subrange of `self`
-  @inlinable @inline(__always)
-  public func contains(_ span: borrowing Self) -> Bool {
-    if span._count > _count { return false }
-    if _count == 0 || span._count == 0 { return true }
-    if _start > span._start { return false }
-    return span._start.advanced(by: span._count) <= _start.advanced(by: _count)
+  @_alwaysEmitIntoClient
+  public func isWithin(_ span: borrowing Self) -> Bool {
+    if _count > span._count { return false }
+    if _count == 0 { return true }
+    if _start < span._start { return false }
+    let lower = span._start.distance(to: _start)
+    return lower + _count <= span._count
   }
 
   /// Returns the offsets where the memory of `span` is located within
@@ -538,15 +538,15 @@ extension RawSpan {
   /// Parameters:
   /// - span: a subrange of `self`
   /// Returns: A range of offsets within `self`
-  @inlinable @inline(__always)
-  public func offsets(of span: borrowing Self) -> Range<Int> {
-    precondition(contains(span))
-    var (s, e) = (0, 0)
-    if _pointer != nil && span._pointer != nil {
-      s = _start.distance(to: span._start)
-      e = s + span._count
-    }
-    return Range(uncheckedBounds: (s, e))
+  @_alwaysEmitIntoClient
+  public func byteOffsetsWithin(_ span: borrowing Self) -> Range<Int>? {
+    if _count > span._count { return nil }
+    if _count == 0 { return Range(uncheckedBounds: (0, 0)) }
+    if _start < span._start { return nil }
+    let lower = span._start.distance(to: _start)
+    let upper = lower + _count
+    guard upper <= span._count else { return nil }
+    return Range(uncheckedBounds: (lower, upper))
   }
 }
 
@@ -659,114 +659,5 @@ extension RawSpan {
   @_alwaysEmitIntoClient
   public mutating func _shrink(droppingFirst k: Int) {
     self = _extracting(droppingFirst: k)
-  }
-}
-
-/// An error indicating that out-of-bounds access was attempted
-@frozen
-public struct OutOfBoundsError: Error {
-  /// The number of elements expected
-  public var expected: Int
-
-  /// The number of elements found
-  public var has: Int
-
-  @inlinable
-  public init(expected: Int, has: Int) {
-    (self.expected, self.has) = (expected, has)
-  }
-}
-
-extension RawSpan {
-  /// Parse an instance of `T`, advancing `position`.
-  @inlinable
-  public func parse<T: BitwiseCopyable>(
-    _ position: inout Int, as t: T.Type = T.self
-  ) throws(OutOfBoundsError) -> T {
-    let length = MemoryLayout<T>.size
-    guard position >= 0 else {
-      throw OutOfBoundsError(expected: length, has: 0)
-    }
-    let end = position &+ length
-    guard end <= length else {
-      throw OutOfBoundsError(expected: length, has: byteCount&-position)
-    }
-    return unsafeLoadUnaligned(fromUncheckedByteOffset: position, as: T.self)
-  }
-
-  /// Parse `numBytes` of data, advancing `position`.
-  @inlinable
-  public func parse(
-    _ position: inout Int, numBytes: some FixedWidthInteger
-  ) throws (OutOfBoundsError) -> Self {
-    let length = Int(numBytes)
-    guard position >= 0 else {
-      throw OutOfBoundsError(expected: length, has: 0)
-    }
-    let end = position &+ length
-    guard end <= length else {
-      throw OutOfBoundsError(expected: length, has: byteCount&-position)
-    }
-    return _extracting(position..<end)
-  }
-}
-
-extension RawSpan {
-  @frozen
-  public struct Cursor: Copyable, ~Escapable {
-    public let base: RawSpan
-
-    /// The range within which we parse
-    public let parseRange: Range<Int>
-
-    /// The current parsing position
-    public var position: Int
-
-    @inlinable
-    public init(_ base: RawSpan, in range: Range<Int>) {
-      precondition(base.boundsContain(range))
-      position = 0
-      self.base = base
-      parseRange = range
-    }
-
-    @inlinable
-    public init(_ base: RawSpan) {
-      position = 0
-      self.base = base
-      parseRange = base._byteOffsets
-    }
-
-    /// Parse an instance of `T` and advance
-    @inlinable
-    public mutating func parse<T: BitwiseCopyable>(
-      _ t: T.Type = T.self
-    ) throws(OutOfBoundsError) -> T {
-      try base.parse(&position, as: T.self)
-    }
-
-    /// Parse `numBytes`and advance
-    @inlinable
-    public mutating func parse(
-      numBytes: some FixedWidthInteger
-    ) throws (OutOfBoundsError) -> RawSpan {
-      try base.parse(&position, numBytes: numBytes)
-    }
-
-    /// The bytes that we've parsed so far
-    @inlinable
-    public var parsedBytes: RawSpan { base._extracting(..<position) }
-
-    /// The number of bytes left to parse
-    @inlinable
-    public var remainingBytes: Int { base.byteCount &- position }
-  }
-
-  @inlinable
-  public func makeCursor() -> Cursor { Cursor(self) }
-
-  @inlinable
-  public func makeCursor(in range: Range<Int>) -> Cursor {
-    Cursor(self, in: range)
   }
 }
