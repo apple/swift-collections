@@ -406,4 +406,24 @@ final class SpanTests: XCTestCase {
     bounds = nilSpan.offsets(of: emptySpan)
     XCTAssertEqual(bounds, 0..<0)
   }
+
+  func testSpanIterator() {
+    class C {
+      let id: Int
+      init(id: Int) { self.id = id }
+    }
+
+    let b = UnsafeMutableBufferPointer<C>.allocate(capacity: 8)
+    _ = b.initialize(fromContentsOf: (0..<8).map(C.init(id:)))
+    defer {
+      b.deinitialize(count: 8)
+      b.deallocate()
+    }
+
+    let span = Span(_unsafeElements: b)
+    var iterator = Span.Iterator(span)
+    while let c = iterator.next() {
+      print(c.id)
+    }
+  }
 }
