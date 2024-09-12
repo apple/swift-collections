@@ -15,21 +15,13 @@ import Builtin
 // A Span<Element> represents a span of memory which
 // contains initialized instances of `Element`.
 @frozen
-public struct Span<Element: ~Copyable /*& ~Escapable*/>: Copyable, ~Escapable {
+public struct Span<Element: ~Copyable & ~Escapable>: Copyable, ~Escapable {
   @usableFromInline let _pointer: UnsafeRawPointer?
 
   @usableFromInline @inline(__always)
   var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
 
   @usableFromInline let _count: Int
-
-  @inlinable @inline(__always)
-  internal init(
-    _unchecked elements: UnsafeBufferPointer<Element>
-  ) -> dependsOn(immortal) Self {
-    _pointer = .init(elements.baseAddress)
-    _count = elements.count
-  }
 
   @_alwaysEmitIntoClient
   internal init(
@@ -44,15 +36,22 @@ public struct Span<Element: ~Copyable /*& ~Escapable*/>: Copyable, ~Escapable {
 @available(*, unavailable)
 extension Span: Sendable {}
 
-extension UnsafePointer where Pointee: ~Copyable /*& ~Escapable*/ {
+extension UnsafePointer where Pointee: ~Copyable {
 
-  @usableFromInline @inline(__always)
+  @_alwaysEmitIntoClient
   var isAligned: Bool {
     (Int(bitPattern: self) & (MemoryLayout<Pointee>.alignment&-1)) == 0
   }
 }
 
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  internal init(
+    _unchecked elements: UnsafeBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
+    _pointer = .init(elements.baseAddress)
+    _count = elements.count
+  }
 
   /// Unsafely create a `Span` over initialized memory.
   ///
@@ -69,7 +68,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ) -> dependsOn(immortal) Self {
     precondition(
       buffer.count == 0 || buffer.baseAddress.unsafelyUnwrapped.isAligned,
-      "baseAddress must be properly aligned for accessing \(Element.self)"
+      "baseAddress must be properly aligned to access Element"
     )
     self.init(_unchecked: buffer)
   }
@@ -109,7 +108,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
     precondition(count >= 0, "Count must not be negative")
     precondition(
       start.isAligned,
-      "baseAddress must be properly aligned for accessing \(Element.self)"
+      "baseAddress must be properly aligned to access Element"
     )
     self.init(_unchecked: start, count: count)
   }
@@ -257,6 +256,7 @@ extension Span where Element: Equatable {
   ///
   /// - Complexity: O(*m*), where *m* is the lesser of the length of the
   ///   sequence and the length of `other`.
+  @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: Self) -> Bool {
     guard count == other.count else { return false }
     if count == 0 { return true }
@@ -283,7 +283,7 @@ extension Span where Element: Equatable {
   ///
   /// - Complexity: O(*m*), where *m* is the lesser of the length of the
   ///   sequence and the length of `other`.
-  @inlinable
+  @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: some Collection<Element>) -> Bool {
     guard count == other.count else { return false }
     if count == 0 { return true }
@@ -301,7 +301,7 @@ extension Span where Element: Equatable {
   ///
   /// - Complexity: O(*m*), where *m* is the lesser of the length of the
   ///   sequence and the length of `other`.
-  @inlinable
+  @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: some Sequence<Element>) -> Bool {
     var offset = 0
     for otherElement in other {
@@ -313,27 +313,20 @@ extension Span where Element: Equatable {
   }
 }
 
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
-  /// Returns a Boolean value indicating whether two `RawSpan` instances
-  /// refer to the same region in memory.
-  @inlinable @inline(__always)
-  public static func ===(_ a: Self, _ b: Self) -> Bool {
-    (a._pointer == b._pointer) && (a._count == b._count)
-  }
-}
+extension Span where Element: ~Copyable {
 
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
-
-  private var _address: String {
+  @_alwaysEmitIntoClient
+  var _address: String {
     String(UInt(bitPattern: _pointer), radix: 16, uppercase: false)
   }
 
+  @_alwaysEmitIntoClient
   public var description: String {
     "(0x\(_address), \(_count))"
   }
 }
 
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
 
   /// The number of elements in the span.
   ///
@@ -341,13 +334,13 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// instead of comparing `count` to zero.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var count: Int { _count }
 
   /// A Boolean value indicating whether the span is empty.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public var isEmpty: Bool { _count == 0 }
 
   /// The indices that are valid for subscripting the span, in ascending
@@ -356,32 +349,21 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public var _indices: Range<Int> {
-    .init(uncheckedBounds: (0, _count))
+    Range(uncheckedBounds: (0, _count))
   }
 }
 
 //MARK: Bounds Checking
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
 
   /// Return true if `offset` is a valid offset into this `Span`
   ///
   /// - Parameters:
   ///   - position: an index to validate
   /// - Returns: true if `offset` is a valid index
-  @inlinable @inline(__always)
-  public func validateBounds(_ offset: Int) -> Bool {
+  @_alwaysEmitIntoClient
+  public func boundsContain(_ offset: Int) -> Bool {
     0 <= offset && offset < count
-  }
-
-  /// Traps if `offset` is not a valid offset into this `Span`
-  ///
-  /// - Parameters:
-  ///   - position: an index to validate
-  @inlinable @inline(__always)
-  public func assertValidity(_ offset: Int) {
-    precondition(
-      validateBounds(offset), "Offset out of bounds"
-    )
   }
 
   /// Return true if `offsets` is a valid range of offsets into this `Span`
@@ -389,34 +371,34 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Parameters:
   ///   - offsets: a range of indices to validate
   /// - Returns: true if `offsets` is a valid range of indices
-  @inlinable @inline(__always)
-  public func validateBounds(_ offsets: Range<Int>) -> Bool {
+  @_alwaysEmitIntoClient
+  public func boundsContain(_ offsets: Range<Int>) -> Bool {
     0 <= offsets.lowerBound && offsets.upperBound <= count
   }
 
-  /// Traps if `offsets` is not a valid range of offsets into this `Span`
+  /// Return true if `offsets` is a valid range of offsets into this `Span`
   ///
   /// - Parameters:
   ///   - offsets: a range of indices to validate
-  @inlinable @inline(__always)
-  public func assertValidity(_ offsets: Range<Int>) {
-    precondition(
-      validateBounds(offsets), "Range of offsets out of bounds"
-    )
+  /// - Returns: true if `offsets` is a valid range of indices
+  @_alwaysEmitIntoClient
+  public func boundsContain(_ offsets: ClosedRange<Int>) -> Bool {
+    0 <= offsets.lowerBound && offsets.upperBound < count
   }
 }
 
 extension Span where Element: BitwiseCopyable {
 
-  /// Construct a RawSpan over the memory represented by this span
-  ///
-  /// - Returns: a RawSpan over the memory represented by this span
-  @inlinable @inline(__always)
-  public var rawSpan: RawSpan { RawSpan(_unsafeSpan: self) }
+#warning("Restore this computed property once lifetime annotations exist")
+//  /// Construct a RawSpan over the memory represented by this span
+//  ///
+//  /// - Returns: a RawSpan over the memory represented by this span
+//  @_alwaysEmitIntoClient
+//  public var rawSpan: RawSpan { RawSpan(self) }
 }
 
 //MARK: integer offset subscripts
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
 
   /// Accesses the element at the specified position in the `Span`.
   ///
@@ -424,10 +406,10 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///     must be greater or equal to zero, and less than `count`.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public subscript(_ position: Int) -> Element {
     _read {
-      assertValidity(position)
+      precondition(boundsContain(position))
       yield self[unchecked: position]
     }
   }
@@ -440,7 +422,7 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///     must be greater or equal to zero, and less than `count`.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public subscript(unchecked position: Int) -> Element {
     _read {
       let element = UnsafeRawPointer(_start).advanced(by: position&*MemoryLayout<Element>.stride)
@@ -459,10 +441,10 @@ extension Span where Element: BitwiseCopyable {
   ///     must be greater or equal to zero, and less than `count`.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public subscript(_ position: Int) -> Element {
     get {
-      assertValidity(position)
+      precondition(boundsContain(position))
       return self[unchecked: position]
     }
   }
@@ -475,7 +457,7 @@ extension Span where Element: BitwiseCopyable {
   ///     must be greater or equal to zero, and less than `count`.
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
   public subscript(unchecked position: Int) -> Element {
     get {
       let address = UnsafeRawPointer(_start).advanced(by: position&*MemoryLayout<Element>.stride)
@@ -485,7 +467,7 @@ extension Span where Element: BitwiseCopyable {
 }
 
 //MARK: extracting sub-spans
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
 
   /// Constructs a new span over the items within the supplied range of
   /// positions within this span.
@@ -500,10 +482,15 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A `Span` over the items within `bounds`
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
-  public func extracting(_ bounds: Range<Int>) -> Self {
-    assertValidity(bounds)
-    return extracting(unchecked: bounds)
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(_ bounds: Range<Int>) -> Self {
+    precondition(boundsContain(bounds))
+    return _extracting(unchecked: bounds)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(to bounds: Range<Int>) {
+    self = _extracting(bounds)
   }
 
   /// Constructs a new span over the items within the supplied range of
@@ -521,14 +508,19 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A `Span` over the items within `bounds`
   ///
   /// - Complexity: O(1)
-  @inlinable @inline(__always)
-  public func extracting(unchecked bounds: Range<Int>) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(unchecked bounds: Range<Int>) -> Self {
     Span(
       _unchecked: _pointer?.advanced(by: bounds.lowerBound*MemoryLayout<Element>.stride),
       count: bounds.count
     )
   }
 
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(toUnchecked bounds: Range<Int>) {
+    self = _extracting(unchecked: bounds)
+  }
+
   /// Constructs a new span over the items within the supplied range of
   /// positions within this span.
   ///
@@ -543,8 +535,13 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public func extracting(_ bounds: some RangeExpression<Int>) -> Self {
-    extracting(bounds.relative(to: _indices))
+  @usableFromInline func _extracting(_ bounds: some RangeExpression<Int>) -> Self {
+    _extracting(bounds.relative(to: _indices))
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(to bounds: some RangeExpression<Int>) {
+    self = _extracting(bounds)
   }
 
   /// Constructs a new span over the items within the supplied range of
@@ -563,10 +560,15 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public func extracting(
+  @usableFromInline func _extracting(
     uncheckedBounds bounds: some RangeExpression<Int>
   ) -> Self {
-    extracting(unchecked: bounds.relative(to: _indices))
+    _extracting(unchecked: bounds.relative(to: _indices))
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(toUnchecked bounds: some RangeExpression<Int>) {
+    self = _extracting(uncheckedBounds: bounds)
   }
 
   /// Constructs a new span over all the items of this span.
@@ -579,13 +581,13 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public func extracting(_: UnboundedRange) -> Self {
+  @usableFromInline func _extracting(_: UnboundedRange) -> Self {
     self
   }
 }
 
 //MARK: withUnsafePointer, etc.
-extension Span where Element: ~Copyable  /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
 
   //FIXME: mark closure parameter as non-escaping
   /// Calls a closure with a pointer to the viewed contiguous storage.
@@ -647,7 +649,7 @@ extension Span where Element: Copyable {
   /// If the span is empty, the value of this property is `nil`.
   ///
   /// - Returns: The first element in the span, or `nil` if empty
-  @inlinable
+  @_alwaysEmitIntoClient
   public var first: Element? {
     isEmpty ? nil : self[unchecked: 0]
   }
@@ -657,13 +659,19 @@ extension Span where Element: Copyable {
   /// If the span is empty, the value of this property is `nil`.
   ///
   /// - Returns: The last element in the span, or `nil` if empty
-  @inlinable
+  @_alwaysEmitIntoClient
   public var last: Element? {
     isEmpty ? nil : self[unchecked: count &- 1]
   }
 }
 
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
+  /// Returns a Boolean value indicating whether two `Span` instances
+  /// refer to the same region in memory.
+  @_alwaysEmitIntoClient
+  public func isIdentical(to other: Self) -> Bool {
+    (self._pointer == other._pointer) && (self._count == other._count)
+  }
 
   /// Returns true if the memory represented by `span` is a subrange of
   /// the memory represented by `self`
@@ -671,12 +679,24 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// Parameters:
   /// - span: a span of the same type as `self`
   /// Returns: whether `span` is a subrange of `self`
-  @inlinable @inline(__always)
-  public func contains(_ span: borrowing Self) -> Bool {
-    if span._count > _count { return false }
-    if _count == 0 || span._count == 0 { return true }
-    if _start > span._start { return false }
-    return span._start.advanced(by: span._count*MemoryLayout<Element>.stride) <= _start.advanced(by: _count*MemoryLayout<Element>.stride)
+  @_alwaysEmitIntoClient
+  public func isWithin(_ span: borrowing Self) -> Bool {
+    if _count > span._count { return false }
+    if _count == 0 { return true }
+    if _start < span._start { return false }
+    let stride = MemoryLayout<Element>.stride
+#warning("use isPOD once it is generalized")
+//    if _isPOD(Element.self) {
+      let byteOffset = span._start.distance(to: _start)
+      let (lower, r) = byteOffset.quotientAndRemainder(dividingBy: stride)
+      guard r == 0 else { return false }
+      return lower + _count <= span._count
+//    } else {
+//      // we have an alignment precondition, so we can omit a stride check
+//      let selfEnd = self._start.advanced(by: self._count*stride)
+//      let spanEnd = span._start.advanced(by: span._count*stride)
+//      return selfEnd <= spanEnd
+//    }
   }
 
   /// Returns the offsets where the memory of `span` is located within
@@ -687,20 +707,23 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// Parameters:
   /// - span: a subrange of `self`
   /// Returns: A range of offsets within `self`
-  @inlinable @inline(__always)
-  public func offsets(of span: borrowing Self) -> Range<Int> {
-    precondition(contains(span))
-    var (s, e) = (0, 0)
-    if _pointer != nil && span._pointer != nil {
-      s = _start.distance(to: span._start)/MemoryLayout<Element>.stride
-      e = s + span._count
-    }
-    return Range(uncheckedBounds: (s, e))
+  @_alwaysEmitIntoClient
+  public func indicesWithin(_ span: borrowing Self) -> Range<Int>? {
+    if _count > span._count { return nil }
+    if _count == 0 { return Range(uncheckedBounds: (0, 0)) }
+    if _start < span._start { return nil }
+    let stride = MemoryLayout<Element>.stride
+    let byteOffset = span._start.distance(to: _start)
+    let (lower, r) = byteOffset.quotientAndRemainder(dividingBy: stride)
+    guard r == 0 else { return nil }
+    let upper = lower + _count
+    guard upper <= span._count else { return nil }
+    return Range(uncheckedBounds: (lower, upper))
   }
 }
 
 //MARK: one-sided slicing operations
-extension Span where Element: ~Copyable /*& ~Escapable*/ {
+extension Span where Element: ~Copyable {
 
   /// Returns a span containing the initial elements of this span,
   /// up to the specified maximum length.
@@ -717,11 +740,16 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(first maxLength: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length.")
     let newCount = min(maxLength, count)
     return Self(_unchecked: _pointer, count: newCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(toFirst maxLength: Int) {
+    self = _extracting(first: maxLength)
   }
 
   /// Returns a span over all but the given number of trailing elements.
@@ -738,11 +766,16 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span leaving off the specified number of elements at the end.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(droppingLast k: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
     return Self(_unchecked: _pointer, count: count&-droppedCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(droppingLast k: Int) {
+    self = _extracting(droppingLast: k)
   }
 
   /// Returns a span containing the final elements of the span,
@@ -760,12 +793,17 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span with at most `maxLength` elements.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(last maxLength: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, count)
     let newStart = _pointer?.advanced(by: (count&-newCount)*MemoryLayout<Element>.stride)
     return Self(_unchecked: newStart, count: newCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(toLast maxLength: Int) {
+    self = _extracting(last: maxLength)
   }
 
   /// Returns a span over all but the given number of initial elements.
@@ -782,11 +820,16 @@ extension Span where Element: ~Copyable /*& ~Escapable*/ {
   /// - Returns: A span starting after the specified number of elements.
   ///
   /// - Complexity: O(1)
-  @inlinable
-  public func extracting(droppingFirst k: Int) -> Self {
+  @_alwaysEmitIntoClient
+  @usableFromInline func _extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
     let newStart = _pointer?.advanced(by: droppedCount*MemoryLayout<Element>.stride)
     return Self(_unchecked: newStart, count: count&-droppedCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _shrink(droppingFirst k: Int) {
+    self = _extracting(droppingFirst: k)
   }
 }
