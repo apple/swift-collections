@@ -515,23 +515,6 @@ extension RawSpan {
     (self._pointer == other._pointer) && (self._count == other._count)
   }
 
-  /// Returns true if the memory represented by `span` is a subrange of
-  /// the memory represented by `self`
-  ///
-  /// Parameters:
-  /// - span: a span of the same type as `self`
-  /// Returns: whether `span` is a subrange of `self`
-  @_alwaysEmitIntoClient
-  public func isWithin(_ span: borrowing Self) -> Bool {
-    if _count > span._count { return false }
-    guard let start = _pointer, span._count > 0 else {
-      return _pointer == span._pointer
-    }
-    if start < span._start { return false }
-    let lower = span._start.distance(to: start)
-    return lower + _count <= span._count
-  }
-
   /// Returns the offsets where the memory of `span` is located within
   /// the memory represented by `self`
   ///
@@ -541,15 +524,15 @@ extension RawSpan {
   /// - span: a subrange of `self`
   /// Returns: A range of offsets within `self`
   @_alwaysEmitIntoClient
-  public func byteOffsetsWithin(_ span: borrowing Self) -> Range<Int>? {
-    if _count > span._count { return nil }
-    guard let start = _pointer, span._count > 0 else {
+  public func byteOffsets(of span: borrowing Self) -> Range<Int>? {
+    if span._count > _count { return nil }
+    guard let subspanStart = span._pointer, _count > 0 else {
       return _pointer == span._pointer ? Range(uncheckedBounds: (0, 0)) : nil
     }
-    if start < span._start { return nil }
-    let lower = span._start.distance(to: start)
-    let upper = lower + _count
-    guard upper <= span._count else { return nil }
+    if subspanStart < _start { return nil }
+    let lower = _start.distance(to: subspanStart)
+    let upper = lower + span._count
+    guard upper <= _count else { return nil }
     return Range(uncheckedBounds: (lower, upper))
   }
 }

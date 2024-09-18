@@ -243,32 +243,7 @@ final class RawSpanTests: XCTestCase {
     XCTAssertFalse(span.boundsContain(span.byteCount))
   }
 
-  func testContainment() {
-    let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
-    defer { b.deallocate() }
-
-    let span = RawSpan(_unsafeBytes: b)
-    let subSpan = span._extracting(last: 2)
-    let emptySpan = span._extracting(first: 0)
-    let fakeSpan = RawSpan(
-      _unsafeStart: b.baseAddress!.advanced(by: 8), byteCount: 8
-    )
-    let nilSpan = RawSpan(
-      _unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0)
-    )
-
-    XCTAssertFalse(span.isWithin(subSpan))
-    XCTAssertTrue(subSpan.isWithin(span))
-    XCTAssertFalse(span.isWithin(emptySpan))
-    XCTAssertTrue(emptySpan.isWithin(span))
-    XCTAssertFalse(span.isWithin(fakeSpan))
-    XCTAssertFalse(fakeSpan.isWithin(span))
-    XCTAssertFalse(span.isWithin(nilSpan))
-    XCTAssertFalse(fakeSpan.isWithin(nilSpan))
-    XCTAssertFalse(nilSpan.isWithin(emptySpan))
-  }
-
-  func testByteOffsetsWithin() {
+  func testByteOffsetsOf() {
     let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
     defer { b.deallocate() }
 
@@ -281,22 +256,21 @@ final class RawSpanTests: XCTestCase {
     )
 
     var bounds: Range<Int>?
-    bounds = subSpan1.byteOffsetsWithin(span)
+    bounds = span.byteOffsets(of: subSpan1)
     XCTAssertEqual(bounds, span._byteOffsets.prefix(6))
-    bounds = subSpan2.byteOffsetsWithin(span)
+    bounds = span.byteOffsets(of: subSpan2)
     XCTAssertEqual(bounds, span._byteOffsets.suffix(6))
-    bounds = subSpan1.byteOffsetsWithin(subSpan2)
+    bounds = subSpan2.byteOffsets(of: subSpan1)
     XCTAssertNil(bounds)
-    bounds = subSpan2.byteOffsetsWithin(subSpan1)
+    bounds = subSpan1.byteOffsets(of: subSpan2)
     XCTAssertNil(bounds)
-    bounds = span.byteOffsetsWithin(subSpan2)
+    bounds = subSpan2.byteOffsets(of: span)
     XCTAssertNil(bounds)
-    bounds = emptySpan.byteOffsetsWithin(nilSpan)
+    bounds = nilSpan.byteOffsets(of: emptySpan)
     XCTAssertNil(bounds)
-    bounds = nilSpan.byteOffsetsWithin(span)
+    bounds = span.byteOffsets(of: nilSpan)
     XCTAssertNil(bounds)
-    bounds = nilSpan.byteOffsetsWithin(nilSpan)
+    bounds = nilSpan.byteOffsets(of: nilSpan)
     XCTAssertEqual(bounds, 0..<0)
-
   }
 }
