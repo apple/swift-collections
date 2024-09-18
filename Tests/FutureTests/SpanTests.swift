@@ -416,14 +416,16 @@ final class SpanTests: XCTestCase {
     let b = UnsafeMutableBufferPointer<C>.allocate(capacity: 8)
     _ = b.initialize(fromContentsOf: (0..<8).map(C.init(id:)))
     defer {
-      b.deinitialize(count: 8)
+      b.deinitialize()
       b.deallocate()
     }
 
     let span = Span(_unsafeElements: b)
-    var iterator = Span.Iterator(span)
+    var iterator = Span.Iterator(from: span)
+    var i = 0
     while let c = iterator.next() {
-      print(c.id)
+      XCTAssertEqual(i, c.id)
+      i += 1
     }
   }
 }
