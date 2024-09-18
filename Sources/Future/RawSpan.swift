@@ -524,9 +524,11 @@ extension RawSpan {
   @_alwaysEmitIntoClient
   public func isWithin(_ span: borrowing Self) -> Bool {
     if _count > span._count { return false }
-    if _count == 0 { return true }
-    if _start < span._start { return false }
-    let lower = span._start.distance(to: _start)
+    guard let start = _pointer, span._count > 0 else {
+      return _pointer == span._pointer
+    }
+    if start < span._start { return false }
+    let lower = span._start.distance(to: start)
     return lower + _count <= span._count
   }
 
@@ -541,9 +543,11 @@ extension RawSpan {
   @_alwaysEmitIntoClient
   public func byteOffsetsWithin(_ span: borrowing Self) -> Range<Int>? {
     if _count > span._count { return nil }
-    if _count == 0 { return Range(uncheckedBounds: (0, 0)) }
-    if _start < span._start { return nil }
-    let lower = span._start.distance(to: _start)
+    guard let start = _pointer, span._count > 0 else {
+      return _pointer == span._pointer ? Range(uncheckedBounds: (0, 0)) : nil
+    }
+    if start < span._start { return nil }
+    let lower = span._start.distance(to: start)
     let upper = lower + _count
     guard upper <= span._count else { return nil }
     return Range(uncheckedBounds: (lower, upper))

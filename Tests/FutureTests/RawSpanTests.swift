@@ -261,14 +261,14 @@ final class RawSpanTests: XCTestCase {
     XCTAssertTrue(subSpan.isWithin(span))
     XCTAssertFalse(span.isWithin(emptySpan))
     XCTAssertTrue(emptySpan.isWithin(span))
-    XCTAssertTrue(span.isWithin(fakeSpan))
-    XCTAssertTrue(fakeSpan.isWithin(span))
+    XCTAssertFalse(span.isWithin(fakeSpan))
+    XCTAssertFalse(fakeSpan.isWithin(span))
     XCTAssertFalse(span.isWithin(nilSpan))
     XCTAssertFalse(fakeSpan.isWithin(nilSpan))
     XCTAssertFalse(nilSpan.isWithin(emptySpan))
   }
 
-  func testOffsets() {
+  func testByteOffsetsWithin() {
     let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
     defer { b.deallocate() }
 
@@ -292,8 +292,11 @@ final class RawSpanTests: XCTestCase {
     bounds = span.byteOffsetsWithin(subSpan2)
     XCTAssertNil(bounds)
     bounds = emptySpan.byteOffsetsWithin(nilSpan)
-    XCTAssertEqual(bounds, 0..<0)
+    XCTAssertNil(bounds)
     bounds = nilSpan.byteOffsetsWithin(span)
+    XCTAssertNil(bounds)
+    bounds = nilSpan.byteOffsetsWithin(nilSpan)
     XCTAssertEqual(bounds, 0..<0)
+
   }
 }
