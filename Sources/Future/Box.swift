@@ -12,26 +12,26 @@
 @frozen
 public struct Box<T: ~Copyable>: ~Copyable {
   @usableFromInline
-  let pointer: UnsafeMutablePointer<T>
+  internal let _pointer: UnsafeMutablePointer<T>
 
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ value: consuming T) {
-    pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
-    pointer.initialize(to: value)
+    _pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+    _pointer.initialize(to: value)
   }
 
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ fromInout: consuming Inout<T>) {
-    pointer = fromInout.pointer
+    _pointer = fromInout._pointer
   }
 
   @_alwaysEmitIntoClient
   @inlinable
   deinit {
-    pointer.deinitialize(count: 1)
-    pointer.deallocate()
+    _pointer.deinitialize(count: 1)
+    _pointer.deallocate()
   }
 }
 
@@ -39,8 +39,8 @@ extension Box where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public consuming func consume() -> T {
-    let result = pointer.move()
-    pointer.deallocate()
+    let result = _pointer.move()
+    _pointer.deallocate()
     discard self
     return result
   }
@@ -48,7 +48,7 @@ extension Box where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public consuming func leak() -> dependsOn(immortal) Inout<T> {
-    let result = Inout<T>(unsafeImmortalAddress: pointer)
+    let result = Inout<T>(unsafeImmortalAddress: _pointer)
     discard self
     return result
   }
@@ -57,12 +57,12 @@ extension Box where T: ~Copyable {
   public subscript() -> T {
     @_transparent
     unsafeAddress {
-      UnsafePointer<T>(pointer)
+      UnsafePointer<T>(_pointer)
     }
 
     @_transparent
     nonmutating unsafeMutableAddress {
-      pointer
+      _pointer
     }
   }
 }
@@ -71,6 +71,6 @@ extension Box where T: Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public borrowing func copy() -> T {
-    pointer.pointee
+    _pointer.pointee
   }
 }

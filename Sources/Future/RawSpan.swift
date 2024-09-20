@@ -16,12 +16,14 @@ import Builtin
 // of unspecified type.
 @frozen
 public struct RawSpan: Copyable, ~Escapable {
-  @usableFromInline let _pointer: UnsafeRawPointer?
+  @usableFromInline
+  internal let _pointer: UnsafeRawPointer?
 
   @usableFromInline @inline(__always)
-  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
+  internal var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
 
-  @usableFromInline let _count: Int
+  @usableFromInline
+  internal let _count: Int
 
   @inlinable @inline(__always)
   internal init<Owner: ~Copyable & ~Escapable>(

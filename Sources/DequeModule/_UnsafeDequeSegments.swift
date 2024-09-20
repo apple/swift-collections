@@ -16,7 +16,7 @@ import Future
 
 @frozen
 @usableFromInline
-internal struct _UnsafeWrappedBuffer<Element: ~Copyable> {
+internal struct _UnsafeDequeSegments<Element: ~Copyable> {
   @usableFromInline
   internal let first: UnsafeBufferPointer<Element>
 
@@ -69,7 +69,7 @@ internal struct _UnsafeWrappedBuffer<Element: ~Copyable> {
 
 @frozen
 @usableFromInline
-internal struct _UnsafeMutableWrappedBuffer<Element: ~Copyable> {
+internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
   @usableFromInline
   internal let first: UnsafeMutableBufferPointer<Element>
 
@@ -110,13 +110,13 @@ internal struct _UnsafeMutableWrappedBuffer<Element: ~Copyable> {
 
   @inlinable
   @inline(__always)
-  internal init(mutating buffer: _UnsafeWrappedBuffer<Element>) {
+  internal init(mutating buffer: _UnsafeDequeSegments<Element>) {
     self.init(.init(mutating: buffer.first),
               buffer.second.map { .init(mutating: $0) })
   }
 }
 
-extension _UnsafeMutableWrappedBuffer {
+extension _UnsafeMutableDequeSegments {
   @inlinable
   @inline(__always)
   internal init(
@@ -136,7 +136,7 @@ extension _UnsafeMutableWrappedBuffer {
   }
 }
 
-extension _UnsafeMutableWrappedBuffer where Element: ~Copyable {
+extension _UnsafeMutableDequeSegments where Element: ~Copyable {
   @inlinable
   @inline(__always)
   internal var count: Int { first.count + (second?.count ?? 0) }
@@ -169,7 +169,7 @@ extension _UnsafeMutableWrappedBuffer where Element: ~Copyable {
   }
 }
 
-extension _UnsafeMutableWrappedBuffer where Element: ~Copyable {
+extension _UnsafeMutableDequeSegments where Element: ~Copyable {
   @inlinable
   internal func deinitialize() {
     first.deinitialize()
@@ -177,7 +177,7 @@ extension _UnsafeMutableWrappedBuffer where Element: ~Copyable {
   }
 }
 
-extension _UnsafeMutableWrappedBuffer {
+extension _UnsafeMutableDequeSegments {
   @inlinable
   @discardableResult
   internal func initialize<I: IteratorProtocol>(

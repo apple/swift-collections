@@ -1,3 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
 public protocol BorrowingIteratorProtocol: ~Escapable {
   associatedtype Element: ~Copyable
 
@@ -22,6 +33,7 @@ public protocol Container: ~Copyable, ~Escapable {
   var endIndex: Index { get }
 
   // FIXME: Replace `@_borrowed` with proper `read`/`modify` accessor requirements
+  // FIXME: (Or rather, accessors with proper projection semantics.)
   @_borrowed subscript(index: Index) -> Element { get }
 
   func index(after index: Index) -> Index
@@ -54,68 +66,74 @@ public protocol RandomAccessContainer: BidirectionalContainer, ~Copyable, ~Escap
   override associatedtype Element: ~Copyable
 }
 
-
-extension RandomAccessContainer where Index == Int, Self: ~Copyable {
+extension Strideable {
   @inlinable
-  public func index(after index: Int) -> Int {
+  public mutating func advance(by distance: inout Stride, limitedBy limit: Self) {
+    if distance >= 0 {
+      guard limit >= self else {
+        self = self.advanced(by: distance)
+        distance = 0
+        return
+      }
+      let d = Swift.min(distance, self.distance(to: limit))
+      self = self.advanced(by: d)
+      distance -= d
+    } else {
+      guard limit <= self else {
+        self = self.advanced(by: distance)
+        distance = 0
+        return
+      }
+      let d = Swift.max(distance, self.distance(to: limit))
+      self = self.advanced(by: d)
+      distance -= d
+    }
+  }
+}
+
+extension RandomAccessContainer where Index: Strideable, Index.Stride == Int, Self: ~Copyable {
+  @inlinable
+  public func index(after index: Index) -> Index {
     // Note: Range checks are deferred until element access.
-    index + 1
+    index.advanced(by: 1)
   }
 
   @inlinable
-  public func index(before index: Int) -> Int {
+  public func index(before index: Index) -> Index {
     // Note: Range checks are deferred until element access.
-    index - 1
+    index.advanced(by: -1)
   }
 
   @inlinable
-  public func formIndex(after index: inout Int) {
+  public func formIndex(after index: inout Index) {
     // Note: Range checks are deferred until element access.
-    index += 1
+    index = index.advanced(by: 1)
   }
 
   @inlinable
-  public func formIndex(before index: inout Int) {
+  public func formIndex(before index: inout Index) {
     // Note: Range checks are deferred until element access.
-    index -= 1
+    index = index.advanced(by: -1)
   }
 
   @inlinable
-  public func distance(from start: Int, to end: Int) -> Int {
+  public func distance(from start: Index, to end: Index) -> Int {
     // Note: Range checks are deferred until element access.
-    end - start
+    start.distance(to: end)
   }
 
   @inlinable
-  public func index(_ index: Int, offsetBy n: Int) -> Int {
+  public func index(_ index: Index, offsetBy n: Int) -> Index {
     // Note: Range checks are deferred until element access.
-    index + n
+    index.advanced(by: n)
   }
 
   @inlinable
   public func formIndex(
-    _ index: inout Int, offsetBy distance: inout Int, limitedBy limit: Int
+    _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
   ) {
     // Note: Range checks are deferred until element access.
-    if distance >= 0 {
-      guard limit >= index else {
-        index += distance
-        distance = 0
-        return
-      }
-      let d = Swift.min(distance, limit - index)
-      index += d
-      distance -= d
-    } else {
-      guard limit <= index else {
-        index += distance
-        distance = 0
-        return
-      }
-      let d = Swift.max(distance, limit - index)
-      index += d
-      distance -= d
-    }
+    index.advance(by: &distance, limitedBy: limit)
   }
 }
 

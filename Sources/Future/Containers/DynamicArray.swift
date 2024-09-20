@@ -1,3 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
 /// A dynamically self-resizing, heap allocated, noncopyable array
 /// of potentially noncopyable elements.
 @frozen
@@ -26,6 +37,12 @@ extension DynamicArray: Sendable where Element: Sendable & ~Copyable {}
 extension DynamicArray where Element: ~Copyable {
   @inlinable
   public var capacity: Int { _storage.capacity }
+}
+
+extension DynamicArray where Element: ~Copyable {
+  public var storage: Span<Element> {
+    _storage.storage
+  }
 }
 
 extension DynamicArray: RandomAccessContainer where Element: ~Copyable {

@@ -16,16 +16,17 @@ import Builtin
 // contains initialized instances of `Element`.
 @frozen
 public struct Span<Element: ~Copyable /*& ~Escapable*/>: Copyable, ~Escapable {
-  @usableFromInline let _buffer: UnsafeBufferPointer<Element>
+  @usableFromInline
+  internal let _buffer: UnsafeBufferPointer<Element>
 
   @usableFromInline @inline(__always)
-  var _pointer: UnsafePointer<Element>? { _buffer.baseAddress }
+  internal var _pointer: UnsafePointer<Element>? { _buffer.baseAddress }
 
   @usableFromInline @inline(__always)
-  var _start: UnsafePointer<Element> { _pointer.unsafelyUnwrapped }
+  internal var _start: UnsafePointer<Element> { _pointer.unsafelyUnwrapped }
 
   @usableFromInline @inline(__always)
-  var _count: Int { _buffer.count }
+  internal var _count: Int { _buffer.count }
 
   @inlinable @inline(__always)
   internal init<Owner: ~Copyable & ~Escapable>(

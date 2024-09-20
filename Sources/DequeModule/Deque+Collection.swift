@@ -13,7 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
-extension Deque: Sequence {
+extension Deque {
   // Implementation note: we could also use the default `IndexingIterator` here.
   // This custom implementation performs direct storage access to eliminate any
   // and all index validation overhead. It also optimizes away repeated
@@ -21,7 +21,7 @@ extension Deque: Sequence {
 
   /// An iterator over the members of a deque.
   @frozen
-  public struct Iterator: IteratorProtocol {
+  public struct Iterator {
     @usableFromInline
     internal var _base: Deque
 
@@ -60,40 +60,46 @@ extension Deque: Sequence {
         return Self(_base: _base, start: start, end: end)
       }
     }
+  }
+}
 
-    @inlinable
-    @inline(never)
-    internal mutating func _swapSegment() -> Bool {
-      assert(_nextSlot == _endSlot)
-      return _base._read { handle in
-        let end = handle.endSlot
-        if end == .zero || end == _nextSlot {
-          return false
-        }
-        _endSlot = end
-        _nextSlot = .zero
-        return true
-      }
-    }
+extension Deque.Iterator: Sendable where Element: Sendable {}
 
-    /// Advances to the next element and returns it, or `nil` if no next element
-    /// exists.
-    ///
-    /// Once `nil` has been returned, all subsequent calls return `nil`.
-    @inlinable
-    public mutating func next() -> Element? {
-      if _nextSlot == _endSlot {
-        guard _swapSegment() else { return nil }
+extension Deque.Iterator: IteratorProtocol {
+  @inlinable
+  @inline(never)
+  internal mutating func _swapSegment() -> Bool {
+    assert(_nextSlot == _endSlot)
+    return _base._read { handle in
+      let end = handle.endSlot
+      if end == .zero || end == _nextSlot {
+        return false
       }
-      assert(_nextSlot < _endSlot)
-      let slot = _nextSlot
-      _nextSlot = _nextSlot.advanced(by: 1)
-      return _base._read { handle in
-        return handle.ptr(at: slot).pointee
-      }
+      _endSlot = end
+      _nextSlot = .zero
+      return true
     }
   }
 
+  /// Advances to the next element and returns it, or `nil` if no next element
+  /// exists.
+  ///
+  /// Once `nil` has been returned, all subsequent calls return `nil`.
+  @inlinable
+  public mutating func next() -> Element? {
+    if _nextSlot == _endSlot {
+      guard _swapSegment() else { return nil }
+    }
+    assert(_nextSlot < _endSlot)
+    let slot = _nextSlot
+    _nextSlot = _nextSlot.advanced(by: 1)
+    return _base._read { handle in
+      return handle.ptr(at: slot).pointee
+    }
+  }
+}
+
+extension Deque: Sequence {
   /// Returns an iterator over the elements of the deque.
   ///
   /// - Complexity: O(1)
@@ -165,8 +171,6 @@ extension Deque: Sequence {
   }
 }
 
-extension Deque.Iterator: Sendable where Element: Sendable {}
-
 extension Deque: RandomAccessCollection {
   public typealias Index = Int
   public typealias SubSequence = Slice<Self>
@@ -177,7 +181,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var count: Int { _storage._value.count }
+  public var count: Int { _storage.read { $0.count } }
 
   /// The position of the first element in a nonempty deque.
   ///
@@ -355,16 +359,10 @@ extension Deque: RandomAccessCollection {
   @inlinable
   public subscript(index: Int) -> Element {
     get {
-      precondition(index >= 0 && index < count, "Index out of bounds")
-      return _read { $0.ptr(at: $0.slot(forOffset: index)).pointee }
+      return _storage.read { $0[index] }
     }
     set {
-      precondition(index >= 0 && index < count, "Index out of bounds")
-      _ensureUnique()
-      _update { handle in
-        let slot = handle.slot(forOffset: index)
-        handle.mutablePtr(at: slot).pointee = newValue
-      }
+      _storage.update { $0[index] = newValue }
     }
     @inline(__always) // https://github.com/apple/swift-collections/issues/164
     _modify {
@@ -390,7 +388,7 @@ extension Deque: RandomAccessCollection {
   }
 
   @inlinable
-  internal mutating func _finalizeModify(_ slot: _Slot, _ value: Element) {
+  internal mutating func _finalizeModify(_ slot: _Slot, _ value: __owned Element) {
     _update { handle in
       handle.mutablePtr(at: slot).initialize(to: value)
     }
@@ -508,7 +506,7 @@ extension Deque: RangeReplaceableCollection {
   @inlinable
   public init() {
     // FIXME: Can we do empty singletons in this world? Should _storage become optional?
-    _storage = _Storage(capacity: 0)
+    self.init(minimumCapacity: 0)
   }
 
   /// Reserves enough space to store the specified number of elements.
@@ -633,6 +631,18 @@ extension Deque: RangeReplaceableCollection {
         target.initializeAll(fromContentsOf: elements)
       }
       handle.count = c
+    }
+  }
+
+  @inlinable
+  public init(_ elements: UnsafeBufferPointer<Element>) {
+    guard elements.count > 0 else { self.init(); return }
+    self.init(minimumCapacity: elements.count)
+    _update { handle in
+      assert(handle.startSlot == .zero)
+      let target = handle.mutableBuffer(for: .zero ..< _Slot(at: elements.count))
+      target.initializeAll(fromContentsOf: elements)
+      handle.count = elements.count
     }
   }
 

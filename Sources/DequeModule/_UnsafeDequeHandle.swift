@@ -17,31 +17,24 @@ import InternalCollectionsUtilities
 @usableFromInline
 internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal let _buffer: UnsafeMutableBufferPointer<Element>
+  internal typealias Slot = _DequeSlot
+
+  @usableFromInline
+  internal var _buffer: UnsafeMutableBufferPointer<Element>
 
   @usableFromInline
   internal var count: Int
 
   @usableFromInline
-  internal var startSlot: _DequeSlot
-
-  @inlinable
-  internal static func allocate(
-    capacity: Int
-  ) -> Self {
-    Self(
-      _storage: capacity > 0 ? .allocate(capacity: capacity) : ._empty,
-      count: 0,
-      startSlot: .zero)
-  }
+  internal var startSlot: Slot
 
   @inlinable
   internal init(
-    _storage: UnsafeMutableBufferPointer<Element>,
+    buffer: UnsafeMutableBufferPointer<Element>,
     count: Int,
     startSlot: _DequeSlot
   ) {
-    self._buffer = _storage
+    self._buffer = buffer
     self.count = count
     self.startSlot = startSlot
   }
@@ -55,21 +48,19 @@ internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
 }
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
-  @inlinable @inline(__always)
-  internal var _baseAddress: UnsafeMutablePointer<Element> {
-    _buffer.baseAddress.unsafelyUnwrapped
+  @inlinable
+  internal static var empty: Self {
+    Self(buffer: ._empty, count: 0, startSlot: .zero)
   }
 
   @inlinable
-  internal var capacity: Int {
-    _buffer.count
-  }
-}
-
-extension _UnsafeDequeHandle where Element: ~Copyable {
-  @usableFromInline
-  internal var description: String {
-    "(capacity: \(capacity), count: \(count), startSlot: \(startSlot))"
+  internal static func allocate(
+    capacity: Int
+  ) -> Self {
+    Self(
+      buffer: capacity > 0 ? .allocate(capacity: capacity) : ._empty,
+      count: 0,
+      startSlot: .zero)
   }
 }
 
@@ -89,41 +80,25 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @usableFromInline
-  internal typealias Slot = _DequeSlot
-
-  @inlinable @inline(__always)
-  internal func ptr(at slot: Slot) -> UnsafePointer<Element> {
-    assert(slot.position >= 0 && slot.position <= capacity)
-    return UnsafePointer(_baseAddress + slot.position)
+  internal var description: String {
+    "(capacity: \(capacity), count: \(count), start: \(startSlot))"
   }
+}
 
+extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable @inline(__always)
-  internal mutating func mutablePtr(
-    at slot: Slot
-  ) -> UnsafeMutablePointer<Element> {
-    assert(slot.position >= 0 && slot.position <= capacity)
-    return _baseAddress + slot.position
-  }
-
-  @inlinable @inline(__always)
-  internal var mutableBuffer: UnsafeMutableBufferPointer<Element> {
-    mutating get {
-      _buffer
-    }
+  internal var _baseAddress: UnsafeMutablePointer<Element> {
+    _buffer.baseAddress.unsafelyUnwrapped
   }
 
   @inlinable
-  internal func buffer(for range: Range<Slot>) -> UnsafeBufferPointer<Element> {
-    assert(range.upperBound.position <= capacity)
-    return .init(_buffer._extracting(unchecked: range._offsets))
-  }
-
-  @inlinable @inline(__always)
-  internal mutating func mutableBuffer(for range: Range<Slot>) -> UnsafeMutableBufferPointer<Element> {
-    assert(range.upperBound.position <= capacity)
-    return _buffer._extracting(unchecked: range._offsets)
+  internal var capacity: Int {
+    _buffer.count
   }
 }
+
+
+// MARK: Slots
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   /// The slot immediately following the last valid one. (`endSlot` refers to
@@ -187,63 +162,62 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+// MARK: Element Access
+
 extension _UnsafeDequeHandle where Element: ~Copyable {
-  @inlinable
-  internal func segments() -> _UnsafeWrappedBuffer<Element> {
-    guard _buffer.baseAddress != nil else {
-      return .init(._empty)
-    }
-    let wrap = capacity - startSlot.position
-    if count <= wrap {
-      return .init(start: ptr(at: startSlot), count: count)
-    }
-    return .init(first: ptr(at: startSlot), count: wrap,
-                 second: ptr(at: .zero), count: count - wrap)
+  @inlinable @inline(__always)
+  internal func ptr(at slot: Slot) -> UnsafePointer<Element> {
+    assert(slot.position >= 0 && slot.position <= capacity)
+    return UnsafePointer(_baseAddress + slot.position)
   }
 
-  @inlinable
-  internal func segments(
-    forOffsets offsets: Range<Int>
-  ) -> _UnsafeWrappedBuffer<Element> {
-    assert(offsets.lowerBound >= 0 && offsets.upperBound <= count)
-    guard _buffer.baseAddress != nil else {
-      return .init(._empty)
-    }
-    let lower = slot(forOffset: offsets.lowerBound)
-    let upper = slot(forOffset: offsets.upperBound)
-    if offsets.count == 0 || lower < upper {
-      return .init(start: ptr(at: lower), count: offsets.count)
-    }
-    return .init(first: ptr(at: lower), count: capacity - lower.position,
-                 second: ptr(at: .zero), count: upper.position)
-  }
-
-  @inlinable
-  @inline(__always)
-  internal mutating func mutableSegments() -> _UnsafeMutableWrappedBuffer<Element> {
-    .init(mutating: segments())
-  }
-
-  @inlinable
-  @inline(__always)
-  internal mutating func mutableSegments(
-    forOffsets range: Range<Int>
-  ) -> _UnsafeMutableWrappedBuffer<Element> {
-    .init(mutating: segments(forOffsets: range))
+  @inlinable @inline(__always)
+  internal mutating func mutablePtr(
+    at slot: Slot
+  ) -> UnsafeMutablePointer<Element> {
+    assert(slot.position >= 0 && slot.position <= capacity)
+    return _baseAddress + slot.position
   }
 }
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
-  internal mutating func availableSegments() -> _UnsafeMutableWrappedBuffer<Element> {
-    guard _buffer.baseAddress != nil else {
-      return .init(._empty)
+  internal subscript(offset offset: Int) -> Element {
+    @inline(__always)
+    _read {
+      precondition(offset >= 0 && offset < count, "Index out of bounds")
+      let slot = slot(forOffset: offset)
+      yield ptr(at: slot).pointee
     }
-    let endSlot = self.endSlot
-    guard count < capacity else { return .init(start: mutablePtr(at: endSlot), count: 0) }
-    if endSlot < startSlot { return .init(mutableBuffer(for: endSlot ..< startSlot)) }
-    return .init(mutableBuffer(for: endSlot ..< limSlot),
-                 mutableBuffer(for: .zero ..< startSlot))
+    @inline(__always)
+    _modify {
+      precondition(offset >= 0 && offset < count, "Index out of bounds")
+      let slot = slot(forOffset: offset)
+      yield &mutablePtr(at: slot).pointee
+    }
+  }
+}
+
+// MARK: Access to contiguous regions
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable @inline(__always)
+  internal var mutableBuffer: UnsafeMutableBufferPointer<Element> {
+    mutating get {
+      _buffer
+    }
+  }
+
+  @inlinable
+  internal func buffer(for range: Range<Slot>) -> UnsafeBufferPointer<Element> {
+    assert(range.upperBound.position <= capacity)
+    return .init(_buffer._extracting(unchecked: range._offsets))
+  }
+
+  @inlinable @inline(__always)
+  internal mutating func mutableBuffer(for range: Range<Slot>) -> UnsafeMutableBufferPointer<Element> {
+    assert(range.upperBound.position <= capacity)
+    return _buffer._extracting(unchecked: range._offsets)
   }
 }
 
@@ -275,51 +249,157 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       .moveInitialize(from: source.baseAddress!, count: source.count)
     return Slot(at: start.position + source.count)
   }
-
-  @inlinable
-  @inline(__always)
-  @discardableResult
-  internal mutating func move(
-    from source: Slot,
-    to target: Slot,
-    count: Int
-  ) -> (source: Slot, target: Slot) {
-    assert(count >= 0)
-    assert(source.position + count <= self.capacity)
-    assert(target.position + count <= self.capacity)
-    guard count > 0 else { return (source, target) }
-    mutablePtr(at: target)
-      .moveInitialize(from: mutablePtr(at: source), count: count)
-    return (slot(source, offsetBy: count), slot(target, offsetBy: count))
-  }
 }
 
-
+// MARK: Access to Segments
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
-  internal func withUnsafeSegment<R>(
-    startingAt start: Int,
-    maximumCount: Int?,
-    _ body: (UnsafeBufferPointer<Element>) throws -> R
-  ) rethrows -> (end: Int, result: R) {
-    assert(start <= count)
-    guard start < count else {
-      return try (count, body(UnsafeBufferPointer(start: nil, count: 0)))
+  internal func segments() -> _UnsafeDequeSegments<Element> {
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
+    let wrap = capacity - startSlot.position
+    if count <= wrap {
+      return .init(start: ptr(at: startSlot), count: count)
+    }
+    return .init(first: ptr(at: startSlot), count: wrap,
+                 second: ptr(at: .zero), count: count - wrap)
+  }
+
+  @inlinable
+  internal func segments(
+    forOffsets offsets: Range<Int>
+  ) -> _UnsafeDequeSegments<Element> {
+    assert(offsets.lowerBound >= 0 && offsets.upperBound <= count)
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
+    let lower = slot(forOffset: offsets.lowerBound)
+    let upper = slot(forOffset: offsets.upperBound)
+    if offsets.count == 0 || lower < upper {
+      return .init(start: ptr(at: lower), count: offsets.count)
+    }
+    return .init(first: ptr(at: lower), count: capacity - lower.position,
+                 second: ptr(at: .zero), count: upper.position)
+  }
+
+  @inlinable
+  @inline(__always)
+  internal mutating func mutableSegments() -> _UnsafeMutableDequeSegments<Element> {
+    .init(mutating: segments())
+  }
+
+  @inlinable
+  @inline(__always)
+  internal mutating func mutableSegments(
+    forOffsets range: Range<Int>
+  ) -> _UnsafeMutableDequeSegments<Element> {
+    .init(mutating: segments(forOffsets: range))
+  }
+
+  @inlinable
+  internal mutating func mutableSegments(
+    between start: Slot,
+    and end: Slot
+  ) -> _UnsafeMutableDequeSegments<Element> {
+    assert(start.position <= capacity)
+    assert(end.position <= capacity)
+    if start < end {
+      return .init(
+        start: mutablePtr(at: start),
+        count: end.position - start.position)
+    }
+    return .init(
+      first: mutablePtr(at: start), count: capacity - start.position,
+      second: mutablePtr(at: .zero), count: end.position)
+  }
+}
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable
+  internal mutating func availableSegments() -> _UnsafeMutableDequeSegments<Element> {
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
     }
     let endSlot = self.endSlot
+    guard count < capacity else { return .init(start: mutablePtr(at: endSlot), count: 0) }
+    if endSlot < startSlot { return .init(mutableBuffer(for: endSlot ..< startSlot)) }
+    return .init(mutableBuffer(for: endSlot ..< limSlot),
+                 mutableBuffer(for: .zero ..< startSlot))
+  }
+}
 
-    let segmentStart = self.slot(forOffset: start)
-    let segmentEnd = segmentStart < endSlot ? endSlot : limSlot
-    let count = Swift.min(maximumCount ?? Int.max, segmentEnd.position - segmentStart.position)
-    let result = try body(UnsafeBufferPointer(start: ptr(at: segmentStart), count: count))
-    return (start + count, result)
+// MARK: Wholesale Copying and Reallocation
+
+extension _UnsafeDequeHandle {
+  /// Copy elements in `handle` into a newly allocated handle without changing its
+  /// capacity or layout.
+  @inlinable
+  internal borrowing func allocateCopy() -> Self {
+    var result: _UnsafeDequeHandle<Element> = .allocate(capacity: self.capacity)
+    result.count = self.count
+    result.startSlot = self.startSlot
+    let src = self.segments()
+    result.initialize(at: self.startSlot, from: src.first)
+    if let second = src.second {
+      result.initialize(at: .zero, from: second)
+    }
+    return result
+  }
+
+  /// Copy elements in `handle` into a newly allocated handle with the specified
+  /// minimum capacity. This operation does not preserve layout.
+  @inlinable
+  internal borrowing func allocateCopy(capacity: Int) -> Self {
+    precondition(capacity >= self.count)
+    var result: _UnsafeDequeHandle<Element> = .allocate(capacity: capacity)
+    result.count = self.count
+    let src = self.segments()
+    let next = result.initialize(at: .zero, from: src.first)
+    if let second = src.second {
+      result.initialize(at: next, from: second)
+    }
+    return result
+  }
+}
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable
+  internal mutating func reallocate(capacity newCapacity: Int) {
+    precondition(newCapacity >= count)
+    guard newCapacity != capacity else { return }
+
+    var new = _UnsafeDequeHandle<Element>.allocate(capacity: newCapacity)
+    let source = self.mutableSegments()
+    let next = new.moveInitialize(at: .zero, from: source.first)
+    if let second = source.second {
+      new.moveInitialize(at: next, from: second)
+    }
+    _buffer.deallocate()
+    _buffer = new._buffer
+    startSlot = .zero
+  }
+}
+
+// MARK: Iteration
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable
+  internal func startBorrowingIteration() -> _DequeBorrowingIterator<Element> {
+    .init(_for: self, startOffset: 0)
+  }
+
+  @inlinable
+  internal func startBorrowingIteration(from start: Int) -> _DequeBorrowingIterator<Element> {
+    precondition(start >= 0 && start <= count)
+    return .init(_for: self, startOffset: start)
   }
 }
 
 // MARK: Replacement
 
-extension _UnsafeDequeHandle where Element: ~Copyable {
+extension _UnsafeDequeHandle {
   /// Replace the elements in `range` with `newElements`. The deque's count must
   /// not change as a result of calling this function.
   ///
@@ -399,75 +479,29 @@ extension _UnsafeDequeHandle {
     startSlot = newStart
     count += source.count
 
-    let gap = mutableWrappedBuffer(between: newStart, and: oldStart)
+    let gap = mutableSegments(between: newStart, and: oldStart)
     gap.initialize(from: source)
   }
 }
 
-// MARK: Insertion
+// MARK: Opening and Closing Gaps
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
-  internal mutating func uncheckedInsert(
-    _ newElement: consuming Element, at offset: Int
-  ) {
-    assert(count < capacity)
-    if offset == 0 {
-      uncheckedPrepend(newElement)
-      return
-    }
-    if offset == count {
-      uncheckedAppend(newElement)
-      return
-    }
-    let gap = openGap(ofSize: 1, atOffset: offset)
-    assert(gap.first.count == 1)
-    gap.first.baseAddress!.initialize(to: newElement)
-  }
-}
-
-extension _UnsafeDequeHandle {
-  /// Insert all elements from `newElements` into this deque, starting at
-  /// `offset`.
-  ///
-  /// This function does not validate its input arguments in release builds. Nor
-  /// does it ensure that the storage buffer is uniquely referenced.
-  ///
-  /// - Parameter newElements: The elements to insert.
-  /// - Parameter newCount: Must be equal to `newElements.count`. Used to
-  ///    prevent calling `count` more than once.
-  /// - Parameter offset: The desired offset from the start at which to place
-  ///    the first element.
-  @inlinable
-  internal mutating func uncheckedInsert<C: Collection>(
-    contentsOf newElements: __owned C,
-    count newCount: Int,
-    atOffset offset: Int
-  ) where C.Element == Element {
-    assert(offset <= count)
-    assert(newElements.count == newCount)
-    guard newCount > 0 else { return }
-    let gap = openGap(ofSize: newCount, atOffset: offset)
-    gap.initialize(from: newElements)
-  }
-}
-
-extension _UnsafeDequeHandle where Element: ~Copyable {
-  @inlinable
-  internal mutating func mutableWrappedBuffer(
-    between start: Slot,
-    and end: Slot
-  ) -> _UnsafeMutableWrappedBuffer<Element> {
-    assert(start.position <= capacity)
-    assert(end.position <= capacity)
-    if start < end {
-      return .init(
-        start: mutablePtr(at: start),
-        count: end.position - start.position)
-    }
-    return .init(
-      first: mutablePtr(at: start), count: capacity - start.position,
-      second: mutablePtr(at: .zero), count: end.position)
+  @inline(__always)
+  @discardableResult
+  internal mutating func move(
+    from source: Slot,
+    to target: Slot,
+    count: Int
+  ) -> (source: Slot, target: Slot) {
+    assert(count >= 0)
+    assert(source.position + count <= self.capacity)
+    assert(target.position + count <= self.capacity)
+    guard count > 0 else { return (source, target) }
+    mutablePtr(at: target)
+      .moveInitialize(from: mutablePtr(at: source), count: count)
+    return (slot(source, offsetBy: count), slot(target, offsetBy: count))
   }
 
   /// Slide elements around so that there is a gap of uninitialized slots of
@@ -484,7 +518,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func openGap(
     ofSize gapSize: Int,
     atOffset offset: Int
-  ) -> _UnsafeMutableWrappedBuffer<Element> {
+  ) -> _UnsafeMutableDequeSegments<Element> {
     assert(offset >= 0 && offset <= self.count)
     assert(self.count + gapSize <= capacity)
     assert(gapSize > 0)
@@ -546,7 +580,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         move(from: gapStart, to: gapEnd, count: tailCount - gapSize - originalEnd.position)
       }
       count += gapSize
-      return mutableWrappedBuffer(between: gapStart, and: gapEnd.orIfZero(capacity))
+      return mutableSegments(between: gapStart, and: gapEnd.orIfZero(capacity))
     }
 
     // Open the gap by sliding elements to the left.
@@ -602,83 +636,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     }
     startSlot = newStart
     count += gapSize
-    return mutableWrappedBuffer(between: gapStart, and: gapEnd.orIfZero(capacity))
-  }
-}
-
-// MARK: Removal
-
-extension _UnsafeDequeHandle where Element: ~Copyable {
-  @inlinable
-  internal mutating func uncheckedRemove(at offset: Int) -> Element {
-    let slot = self.slot(forOffset: offset)
-    let result = mutablePtr(at: slot).move()
-    closeGap(offsets: Range(uncheckedBounds: (offset, offset + 1)))
-    return result
-  }
-
-  @inlinable
-  internal mutating func uncheckedRemoveFirst() -> Element {
-    assert(count > 0)
-    let result = mutablePtr(at: startSlot).move()
-    startSlot = slot(after: startSlot)
-    count -= 1
-    return result
-  }
-
-  @inlinable
-  internal mutating func uncheckedRemoveLast() -> Element {
-    assert(count > 0)
-    let slot = self.slot(forOffset: count - 1)
-    let result = mutablePtr(at: slot).move()
-    count -= 1
-    return result
-  }
-
-  @inlinable
-  internal mutating func uncheckedRemoveFirst(_ n: Int) {
-    assert(count >= n)
-    guard n > 0 else { return }
-    let target = mutableSegments(forOffsets: 0 ..< n)
-    target.deinitialize()
-    startSlot = slot(startSlot, offsetBy: n)
-    count -= n
-  }
-
-  @inlinable
-  internal mutating func uncheckedRemoveLast(_ n: Int) {
-    assert(count >= n)
-    guard n > 0 else { return }
-    let target = mutableSegments(forOffsets: count - n ..< count)
-    target.deinitialize()
-    count -= n
-  }
-
-  /// Remove all elements stored in this instance, deinitializing their storage.
-  ///
-  /// This method does not ensure that the storage buffer is uniquely
-  /// referenced.
-  @inlinable
-  internal mutating func uncheckedRemoveAll() {
-    guard count > 0 else { return }
-    let target = mutableSegments()
-    target.deinitialize()
-    count = 0
-    startSlot = .zero
-  }
-
-  /// Remove all elements in `bounds`, deinitializing their storage and sliding
-  /// remaining elements to close the resulting gap.
-  ///
-  /// This function does not validate its input arguments in release builds. Nor
-  /// does it ensure that the storage buffer is uniquely referenced.
-  @inlinable
-  internal mutating func uncheckedRemove(offsets bounds: Range<Int>) {
-    assert(bounds.lowerBound >= 0 && bounds.upperBound <= self.count)
-
-    // Deinitialize elements in `bounds`.
-    mutableSegments(forOffsets: bounds).deinitialize()
-    closeGap(offsets: bounds)
+    return mutableSegments(between: gapStart, and: gapEnd.orIfZero(capacity))
   }
 
   /// Close the gap of already uninitialized elements in `bounds`, sliding
@@ -794,52 +752,126 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
-extension _UnsafeDequeHandle {
-  /// Copy elements into a newly allocated handle without changing capacity or
-  /// layout.
-  @inlinable
-  internal func allocateCopy() -> Self {
-    var handle: Self = .allocate(capacity: self.capacity)
-    handle.count = self.count
-    handle.startSlot = self.startSlot
-    let src = self.segments()
-    handle.initialize(at: self.startSlot, from: src.first)
-    if let second = src.second {
-      handle.initialize(at: .zero, from: second)
-    }
-    return handle
-  }
-
-  /// Copy elements into a new storage instance with the specified minimum
-  /// capacity. This operation does not preserve layout.
-  @inlinable
-  internal func allocateCopy(capacity: Int) -> Self {
-    assert(capacity >= count)
-    var handle: Self = .allocate(capacity: capacity)
-    handle.count = self.count
-    let src = self.segments()
-    let next = handle.initialize(at: .zero, from: src.first)
-    if let second = src.second {
-      handle.initialize(at: next, from: second)
-    }
-    return handle
-  }
-}
+// MARK: Insertion
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
-  internal mutating func reallocate(capacity newCapacity: Int) {
-    precondition(newCapacity >= count)
-    guard newCapacity != capacity else { return }
-    var newHandle = Self.allocate(capacity: newCapacity)
-    newHandle.startSlot = .zero
-    newHandle.count = self.count
-    let source = self.mutableSegments()
-    let next = newHandle.moveInitialize(at: .zero, from: source.first)
-    if let second = source.second {
-      newHandle.moveInitialize(at: next, from: second)
+  internal mutating func uncheckedInsert(
+    _ newElement: consuming Element, at offset: Int
+  ) {
+    assert(count < capacity)
+    if offset == 0 {
+      uncheckedPrepend(newElement)
+      return
     }
-    self._buffer.deallocate()
-    self = newHandle
+    if offset == count {
+      uncheckedAppend(newElement)
+      return
+    }
+    let gap = openGap(ofSize: 1, atOffset: offset)
+    assert(gap.first.count == 1)
+    gap.first.baseAddress!.initialize(to: newElement)
+  }
+}
+
+extension _UnsafeDequeHandle {
+  /// Insert all elements from `newElements` into this deque, starting at
+  /// `offset`.
+  ///
+  /// This function does not validate its input arguments in release builds. Nor
+  /// does it ensure that the storage buffer is uniquely referenced.
+  ///
+  /// - Parameter newElements: The elements to insert.
+  /// - Parameter newCount: Must be equal to `newElements.count`. Used to
+  ///    prevent calling `count` more than once.
+  /// - Parameter offset: The desired offset from the start at which to place
+  ///    the first element.
+  @inlinable
+  internal mutating func uncheckedInsert<C: Collection>(
+    contentsOf newElements: __owned C,
+    count newCount: Int,
+    atOffset offset: Int
+  ) where C.Element == Element {
+    assert(offset <= count)
+    assert(newElements.count == newCount)
+    guard newCount > 0 else { return }
+    let gap = openGap(ofSize: newCount, atOffset: offset)
+    gap.initialize(from: newElements)
+  }
+}
+
+// MARK: Removal
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable
+  internal mutating func uncheckedRemove(at offset: Int) -> Element {
+    let slot = self.slot(forOffset: offset)
+    let result = mutablePtr(at: slot).move()
+    closeGap(offsets: Range(uncheckedBounds: (offset, offset + 1)))
+    return result
+  }
+
+  @inlinable
+  internal mutating func uncheckedRemoveFirst() -> Element {
+    assert(count > 0)
+    let result = mutablePtr(at: startSlot).move()
+    startSlot = slot(after: startSlot)
+    count -= 1
+    return result
+  }
+
+  @inlinable
+  internal mutating func uncheckedRemoveLast() -> Element {
+    assert(count > 0)
+    let slot = self.slot(forOffset: count - 1)
+    let result = mutablePtr(at: slot).move()
+    count -= 1
+    return result
+  }
+
+  @inlinable
+  internal mutating func uncheckedRemoveFirst(_ n: Int) {
+    assert(count >= n)
+    guard n > 0 else { return }
+    let target = mutableSegments(forOffsets: 0 ..< n)
+    target.deinitialize()
+    startSlot = slot(startSlot, offsetBy: n)
+    count -= n
+  }
+
+  @inlinable
+  internal mutating func uncheckedRemoveLast(_ n: Int) {
+    assert(count >= n)
+    guard n > 0 else { return }
+    let target = mutableSegments(forOffsets: count - n ..< count)
+    target.deinitialize()
+    count -= n
+  }
+
+  /// Remove all elements stored in this instance, deinitializing their storage.
+  ///
+  /// This method does not ensure that the storage buffer is uniquely
+  /// referenced.
+  @inlinable
+  internal mutating func uncheckedRemoveAll() {
+    guard count > 0 else { return }
+    let target = mutableSegments()
+    target.deinitialize()
+    count = 0
+    startSlot = .zero
+  }
+
+  /// Remove all elements in `bounds`, deinitializing their storage and sliding
+  /// remaining elements to close the resulting gap.
+  ///
+  /// This function does not validate its input arguments in release builds. Nor
+  /// does it ensure that the storage buffer is uniquely referenced.
+  @inlinable
+  internal mutating func uncheckedRemove(offsets bounds: Range<Int>) {
+    assert(bounds.lowerBound >= 0 && bounds.upperBound <= self.count)
+
+    // Deinitialize elements in `bounds`.
+    mutableSegments(forOffsets: bounds).deinitialize()
+    closeGap(offsets: bounds)
   }
 }

@@ -17,10 +17,10 @@ struct Counted: ~Copyable {
   }
 }
 
-class DynoArrayTests: CollectionTestCase {
+class DynamicArrayTests: CollectionTestCase {
 
   func test_basics() {
-    var array = DynoArray<Counted>()
+    var array = DynamicArray<Counted>()
     expectTrue(array.isEmpty)
     expectEqual(array.count, 0)
     expectEqual(array.capacity, 0)
@@ -59,7 +59,7 @@ class DynoArrayTests: CollectionTestCase {
 
   func test_read_access() {
     let c = 100
-    let array = DynoArray<Counted>(count: c) { Counted($0) }
+    let array = DynamicArray<Counted>(count: c) { Counted($0) }
 
     for i in 0 ..< c {
       expectEqual(array.borrowElement(at: i) { $0.value }, i)
@@ -69,7 +69,7 @@ class DynoArrayTests: CollectionTestCase {
 
   func test_update_access() {
     let c = 100
-    var array = DynoArray<Counted>(count: c) { Counted($0) }
+    var array = DynamicArray<Counted>(count: c) { Counted($0) }
 
     for i in 0 ..< c {
       array.updateElement(at: i) { $0.value += 100 }
@@ -86,7 +86,7 @@ class DynoArrayTests: CollectionTestCase {
   }
 
   func test_append() {
-    var array = DynoArray<Counted>()
+    var array = DynamicArray<Counted>()
     let c = 100
     for i in 0 ..< c {
       array.append(Counted(100 + i))
@@ -105,7 +105,7 @@ class DynoArrayTests: CollectionTestCase {
   }
 
   func test_insert() {
-    var array = DynoArray<Counted>()
+    var array = DynamicArray<Counted>()
     let c = 100
     for i in 0 ..< c {
       array.insert(Counted(100 + i), at: 0)
@@ -125,7 +125,7 @@ class DynoArrayTests: CollectionTestCase {
 
   func test_remove() {
     let c = 100
-    var array = DynoArray<Counted>(count: c) { Counted(100 + $0) }
+    var array = DynamicArray<Counted>(count: c) { Counted(100 + $0) }
     expectEqual(Counted.instances, c)
     expectEqual(array.count, c)
 
@@ -141,7 +141,7 @@ class DynoArrayTests: CollectionTestCase {
 
   func test_iterate_full() {
     let c = 100
-    let array = DynoArray<Counted>(count: c) { Counted(100 + $0) }
+    let array = DynamicArray<Counted>(count: c) { Counted(100 + $0) }
 
     var state = array.startBorrowingIteration()
     do {
@@ -159,7 +159,7 @@ class DynoArrayTests: CollectionTestCase {
 
   func test_iterate_stepped() {
     let c = 100
-    let array = DynoArray<Counted>(count: c) { Counted($0) }
+    let array = DynamicArray<Counted>(count: c) { Counted($0) }
 
     withEvery("stride", in: 1 ... c) { stride in
       var state = array.startBorrowingIteration()

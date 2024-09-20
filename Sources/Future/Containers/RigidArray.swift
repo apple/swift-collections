@@ -1,3 +1,14 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+//===----------------------------------------------------------------------===//
+
 /// A manually resizable, heap allocated, noncopyable array of
 /// potentially noncopyable elements.
 @frozen
@@ -45,6 +56,12 @@ extension RigidArray where Element: ~Copyable {
 
   @inlinable
   public var isFull: Bool { freeCapacity == 0 }
+}
+
+extension RigidArray where Element: ~Copyable {
+  public var storage: Span<Element> {
+    Span(unsafeElements: _items, owner: self)
+  }
 }
 
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {
@@ -212,5 +229,31 @@ extension RigidArray {
     for item in items {
       append(item)
     }
+  }
+}
+
+extension RigidArray {
+  @inlinable
+  internal func _copy() -> Self {
+    _copy(capacity: capacity)
+  }
+
+  @inlinable
+  internal func _copy(capacity: Int) -> Self {
+    precondition(capacity >= count)
+    var result = RigidArray<Element>(capacity: capacity)
+    result._storage.initializeAll(fromContentsOf: _storage)
+    result._count = count
+    return result
+  }
+
+  @inlinable
+  internal mutating func _move(capacity: Int) -> Self {
+    precondition(capacity >= count)
+    var result = RigidArray<Element>(capacity: capacity)
+    result._storage.moveInitializeAll(fromContentsOf: _storage)
+    result._count = count
+    self._count = 0
+    return result
   }
 }

@@ -20,13 +20,13 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
   internal typealias _Slot = _DequeSlot
 
   @usableFromInline
-  internal typealias _Handle = _UnsafeDequeHandle<Element>
+  internal typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
 
   @usableFromInline
-  var _handle: _Handle
+  internal var _handle: _UnsafeHandle
 
   @inlinable
-  internal init(_handle: consuming _Handle) {
+  internal init(_handle: consuming _UnsafeHandle) {
     self._handle = _handle
   }
 
@@ -54,49 +54,69 @@ extension RigidDeque where Element: ~Copyable {
 #endif // COLLECTIONS_INTERNAL_CHECKS
 }
 
-extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
-  @frozen
-  public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
-    @usableFromInline
-    internal let _segments: _UnsafeWrappedBuffer<Element>
+extension RigidDeque where Element: ~Copyable {
+  @usableFromInline
+  internal var description: String {
+    _handle.description
+  }
+}
 
-    @usableFromInline
-    internal var _offset: Int
+public struct _DequeBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol, ~Escapable {
+  @usableFromInline
+  internal typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
 
-    @inlinable
-    internal init(_for handle: borrowing _Handle, startOffset: Int) {
-      self._segments = handle.segments()
-      self._offset = startOffset
-    }
+  @usableFromInline
+  internal let _segments: _UnsafeDequeSegments<Element>
 
-    @inlinable
-    public mutating func nextChunk(
-      maximumCount: Int
-    ) -> dependsOn(scoped self) Span<Element> {
-      precondition(maximumCount > 0)
-      if _offset < _segments.first.count {
-        let d = Swift.min(maximumCount, _segments.first.count - _offset)
-        let slice = _segments.first.extracting(_offset ..< _offset + d)
-        _offset += d
-        return Span(unsafeElements: slice, owner: self)
-      }
-      guard let second = _segments.second else {
-        return Span(unsafeElements: UnsafeBufferPointer._empty, owner: self)
-      }
-      let o = _offset - _segments.first.count
-      let d = Swift.min(maximumCount, second.count - o)
-      let slice = second.extracting(o ..< o + d)
+  @usableFromInline
+  internal var _offset: Int
+
+  @inlinable
+  internal init<T: ~Copyable>(
+    _unsafeSegments segments: _UnsafeDequeSegments<Element>,
+    startOffset: Int,
+    owner: borrowing T
+  ) {
+    self._segments = segments
+    self._offset = startOffset
+  }
+
+  @inlinable
+  internal init(_for handle: borrowing _UnsafeHandle, startOffset: Int) {
+    self.init(_unsafeSegments: handle.segments(), startOffset: startOffset, owner: handle)
+  }
+
+  @inlinable
+  public mutating func nextChunk(
+    maximumCount: Int
+  ) -> dependsOn(scoped self) Span<Element> {
+    precondition(maximumCount > 0)
+    if _offset < _segments.first.count {
+      let d = Swift.min(maximumCount, _segments.first.count - _offset)
+      let slice = _segments.first.extracting(_offset ..< _offset + d)
       _offset += d
       return Span(unsafeElements: slice, owner: self)
     }
+    guard let second = _segments.second else {
+      return Span(unsafeElements: UnsafeBufferPointer._empty, owner: self)
+    }
+    let o = _offset - _segments.first.count
+    let d = Swift.min(maximumCount, second.count - o)
+    let slice = second.extracting(o ..< o + d)
+    _offset += d
+    return Span(unsafeElements: slice, owner: self)
   }
+}
+
+extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
+  public typealias BorrowingIterator = _DequeBorrowingIterator<Element>
 
   public func startBorrowingIteration() -> BorrowingIterator {
-    BorrowingIterator(_for: _handle, startOffset: 0)
+    _handle.startBorrowingIteration()
   }
 
   public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
-    BorrowingIterator(_for: _handle, startOffset: start)
+    _handle.startBorrowingIteration(from: start)
   }
 
   public typealias Index = Int
@@ -111,21 +131,17 @@ extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
   public var startIndex: Int { 0 }
 
   @inlinable
-  public var endIndex: Int { count }
+  public var endIndex: Int { _handle.count }
 
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
     _read {
-      precondition(position >= 0 && position < count)
-      let slot = _handle.slot(forOffset: position)
-      yield _handle.ptr(at: slot).pointee
+      yield _handle[offset: position]
     }
     @inline(__always)
     _modify {
-      precondition(position >= 0 && position < count)
-      let slot = _handle.slot(forOffset: position)
-      yield &_handle.mutablePtr(at: slot).pointee
+      yield &_handle[offset: position]
     }
   }
 
