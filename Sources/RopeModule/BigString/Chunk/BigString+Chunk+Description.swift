@@ -20,13 +20,15 @@ extension BigString._Chunk: CustomStringConvertible {
   }
 
   var _identity: String {
-#if arch(arm64) || arch(x86_64)
+#if _pointerBitWidth(_64)
     // Let's use the second word of the string representation as the identity; it contains
     // the String's storage reference (if any).
     let b = unsafeBitCast(self.string, to: (UInt64, UInt64).self)
     return "@" + String(b.1, radix: 16)._rpad(to: 17)
-#else
+#elseif _pointerBitWidth(_32)
     return ""
+#else
+#error("Unexpected pointer bit width")
 #endif
   }
 
