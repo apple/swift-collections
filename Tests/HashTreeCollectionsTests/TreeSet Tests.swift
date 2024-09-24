@@ -16,7 +16,11 @@ import _CollectionsTestSupport
 import HashTreeCollections
 #endif
 
+#if compiler(>=6.0)
+extension TreeSet: @retroactive SetAPIExtras {}
+#else
 extension TreeSet: SetAPIExtras {}
+#endif
 
 class TreeSetTests: CollectionTestCase {
   func test_init_empty() {

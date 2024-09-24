@@ -17,7 +17,13 @@ import XCTest
 import _CollectionsTestSupport
 #endif
 
+#if compiler(>=6.0)
+extension OrderedSet: @retroactive SetAPIChecker {}
+extension OrderedSet: @retroactive SetAPIExtras {}
+#else
+extension OrderedSet: SetAPIChecker {}
 extension OrderedSet: SetAPIExtras {}
+#endif
 
 class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {
