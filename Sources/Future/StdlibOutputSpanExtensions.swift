@@ -20,9 +20,8 @@ extension Array {
       unsafeUninitializedCapacity: capacity,
       initializingWith: { (buffer, count) in
         var output = OutputSpan<Element>(
-          initializing: buffer.baseAddress.unsafelyUnwrapped,
-          capacity: buffer.count,
-          owner: buffer
+          _initializing: buffer.baseAddress.unsafelyUnwrapped,
+          capacity: buffer.count
         )
         try initializer(&output)
         let initialized = output.relinquishBorrowedMemory()
@@ -47,9 +46,8 @@ extension String {
       unsafeUninitializedCapacity: capacity,
       initializingUTF8With: { buffer in
         var output = OutputSpan(
-          initializing: buffer.baseAddress.unsafelyUnwrapped,
-          capacity: capacity,
-          owner: buffer
+          _initializing: buffer.baseAddress.unsafelyUnwrapped,
+          capacity: capacity
         )
         try initializer(&output)
         let initialized = output.relinquishBorrowedMemory()
@@ -73,9 +71,8 @@ extension Data {
       try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
         buffer.deinitialize()
         var output = OutputSpan(
-          initializing: buffer.baseAddress.unsafelyUnwrapped,
-          capacity: capacity,
-          owner: buffer
+          _initializing: buffer.baseAddress.unsafelyUnwrapped,
+          capacity: capacity
         )
         try initializer(&output)
         let initialized = output.relinquishBorrowedMemory()
