@@ -218,7 +218,7 @@ extension RawSpan {
   /// - Returns: true if `offsets` is a valid range of byte offsets
   @_alwaysEmitIntoClient
   public func boundsContain(_ offsets: Range<Int>) -> Bool {
-    0 <= offsets.lowerBound && offsets.upperBound <= byteCount
+    boundsContain(offsets.lowerBound) && offsets.upperBound <= byteCount
   }
 
   /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
@@ -228,7 +228,7 @@ extension RawSpan {
   /// - Returns: true if `offsets` is a valid range of byte offsets
   @_alwaysEmitIntoClient
   public func boundsContain(_ offsets: ClosedRange<Int>) -> Bool {
-    0 <= offsets.lowerBound && offsets.upperBound < byteCount
+    boundsContain(offsets.lowerBound) && offsets.upperBound < byteCount
   }
 }
 

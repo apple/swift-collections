@@ -373,7 +373,7 @@ extension Span where Element: ~Copyable {
   /// - Returns: true if `offsets` is a valid range of indices
   @_alwaysEmitIntoClient
   public func boundsContain(_ offsets: Range<Int>) -> Bool {
-    0 <= offsets.lowerBound && offsets.upperBound <= count
+    boundsContain(offsets.lowerBound) && offsets.upperBound <= count
   }
 
   /// Return true if `offsets` is a valid range of offsets into this `Span`
@@ -383,7 +383,7 @@ extension Span where Element: ~Copyable {
   /// - Returns: true if `offsets` is a valid range of indices
   @_alwaysEmitIntoClient
   public func boundsContain(_ offsets: ClosedRange<Int>) -> Bool {
-    0 <= offsets.lowerBound && offsets.upperBound < count
+    boundsContain(offsets.lowerBound) && offsets.upperBound < count
   }
 }
 
