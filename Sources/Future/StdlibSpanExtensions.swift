@@ -98,7 +98,6 @@ extension Slice {
   }
 }
 
-#if false //FIXME: rdar://134382237
 import struct Foundation.Data
 
 extension Data {
@@ -144,7 +143,6 @@ extension Data {
     return try result.get()
   }
 }
-#endif
 
 extension Array {
 
