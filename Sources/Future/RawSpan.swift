@@ -150,12 +150,12 @@ extension RawSpan {
   ///   - span: An existing `Span<T>`, which will define both this
   ///           `RawSpan`'s lifetime and the memory it represents.
   @_alwaysEmitIntoClient
-  public init<T: BitwiseCopyable>(
-    _unsafeSpan span: borrowing Span<T>
+  public init<Element: BitwiseCopyable>(
+    _unsafeSpan span: borrowing Span<Element>
   ) -> dependsOn(immortal) Self {
     self.init(
       _unchecked: UnsafeRawPointer(span._start),
-      byteCount: span.count * MemoryLayout<T>.stride
+      byteCount: span.count &* MemoryLayout<Element>.stride
     )
   }
 }
