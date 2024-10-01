@@ -130,11 +130,13 @@ let fixtures: [Fixture] = {
 
     func isAllowed() -> Bool {
       let reject: FixtureFlavor
-#if arch(i386) || arch(arm64_32)
+#if _pointerBitWidth(_32)
       reject = .large
-#else
+#elseif _pointerBitWidth(_64)
       precondition(MemoryLayout<Int>.size == 8, "Unknown platform")
       reject = .small
+#else
+#error("Unexpected pointer bit width")
 #endif
       return self != reject
     }
