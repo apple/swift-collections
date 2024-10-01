@@ -76,37 +76,54 @@ extension MutableSpan where Element: ~Copyable {
   }
 }
 
-//TODO: initializers where Element: BitwiseCopyable
+@_disallowFeatureSuppression(NonescapableTypes)
+extension MutableSpan where Element: BitwiseCopyable {
 
-//extension MutableSpan /*where Element: BitwiseCopyable*/ {
-//
-//  public init<Owner>( //FIXME: should be failable
-//    unsafeMutableRawBufferPointer buffer: UnsafeMutableRawBufferPointer,
-//    dependsOn owner: borrowing Owner
-//  ) {
-//    guard _isPOD(Element.self) else { fatalError() }
-//    guard let p = buffer.baseAddress else { /*return nil*/ fatalError() }
-//    let (q, r) = buffer.count.quotientAndRemainder(dividingBy: MemoryLayout<Element>.stride)
-//    precondition(r == 0)
-//    self.init(unsafeMutablePointer: p.assumingMemoryBound(to: Element.self), count: q, dependsOn: owner)
-//  }
-//}
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unchecked: buffer)
+  }
 
-//MARK: Sequence
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeStart start: UnsafeMutablePointer<Element>,
+    count: Int
+  ) -> dependsOn(immortal) Self {
+    precondition(count >= 0, "Count must not be negative")
+    self.init(_unchecked: start, count: count)
+  }
 
-//extension MutableSpan /*: Sequence */ {
-//
-//  public func makeIterator() -> SpanIterator<Element> {
-//    .init(from: 0, to: _count, dependsOn: /* self */ baseAddress)
-//  }
-//
-//  //FIXME: mark closure parameter as non-escaping
-//  public func withContiguousStorageIfAvailable<R>(
-//    _ body: (UnsafeBufferPointer<Element>) throws -> R
-//  ) rethrows -> R? {
-//    try Span(self).withContiguousStorageIfAvailable(body)
-//  }
-//}
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: UnsafeMutableRawBufferPointer
+  ) -> dependsOn(immortal) Self {
+    let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
+    precondition(byteCount >= 0, "Count must not be negative")
+    let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
+    precondition(remainder == 0)
+    _pointer = buffer.baseAddress?.assumingMemoryBound(to: Element.self)
+    _count = count
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeStart pointer: UnsafeMutableRawPointer,
+    byteCount: Int
+  ) -> dependsOn(immortal) Self {
+    precondition(byteCount >= 0, "Count must not be negative")
+    let stride = MemoryLayout<Element>.stride
+    let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
+    precondition(remainder == 0)
+    _pointer = pointer.assumingMemoryBound(to: Element.self)
+    _count = count
+  }
+}
 
 @_disallowFeatureSuppression(NonescapableTypes)
 extension Span where Element: ~Copyable {
