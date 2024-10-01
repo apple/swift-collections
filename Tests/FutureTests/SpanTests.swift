@@ -113,7 +113,7 @@ final class SpanTests: XCTestCase {
     let array = Array(0..<count)
     array.withUnsafeBufferPointer {
       let span = Span(_unsafeElements: $0)
-      let raw  = RawSpan(_unsafeSpan: span) // span.rawSpan
+      let raw  = span._unsafeRawSpan
       XCTAssertEqual(raw.byteCount, span.count*MemoryLayout<Int>.stride)
     }
   }
@@ -358,64 +358,25 @@ final class SpanTests: XCTestCase {
     XCTAssertEqual(prefix.count, 2)
   }
 
-//  func testContainment() {
-//    let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: 8)
-//    _ = b.initialize(fromContentsOf: 0..<8)
-//    defer { b.deallocate() }
-//
-//    let span = Span(_unsafeElements: b)
-//    let subSpan = span._extracting(last: 2)
-//    let emptySpan = span._extracting(first: 0)
-//    let fakeSpan = Span(
-//      _unsafeStart: b.baseAddress!.advanced(by: 8), count: 8
-//    )
-//    let nilSpan = Span<Int>(
-//      _unsafeElements: UnsafeBufferPointer(start: nil, count: 0)
-//    )
-//    let unalignedSpan = Span<Int>(
-//      _unsafeStart: UnsafeRawPointer(b.baseAddress!).advanced(by: 2).assumingMemoryBound(to: Int.self),
-//      count: 2
-//    )
-//
-//    XCTAssertTrue(subSpan.isWithin(span))//.contains(subSpan))
-//    XCTAssertFalse(span.isWithin(subSpan))//.contains(span))
-//    XCTAssertTrue(emptySpan.isWithin(span))//.contains(emptySpan))
-//    XCTAssertFalse(span.isWithin(emptySpan))//.contains(span))
-//    XCTAssertFalse(fakeSpan.isWithin(span))//.contains(fakeSpan))
-//    XCTAssertFalse(span.isWithin(fakeSpan))//.contains(span))
-//    XCTAssertFalse(nilSpan.isWithin(span))//.contains(nilSpan))
-//    XCTAssertFalse(nilSpan.isWithin(fakeSpan))//.contains(nilSpan))
-//    XCTAssertTrue(nilSpan.isWithin(nilSpan))
-//    XCTAssertFalse(emptySpan.isWithin(nilSpan))//.contains(emptySpan))
-//    XCTAssertFalse(unalignedSpan.isWithin(span))
-//  }
+  func testIdentity() {
+    let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: 8)
+    _ = b.initialize(fromContentsOf: 0..<8)
+    defer { b.deallocate() }
 
-//  func testIndicesWithin() {
-//    let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: 8)
-//    _ = b.initialize(fromContentsOf: 0..<8)
-//    defer { b.deallocate() }
-//
-//    let span = Span(_unsafeElements: b)
-//    let subSpan = span._extracting(last: 2)
-//    let emptySpan = span._extracting(first: 0)
-//    let nilSpan = Span<Int>(
-//      _unsafeElements: UnsafeBufferPointer(start: nil, count: 0)
-//    )
-//    let unalignedSpan = Span<Int>(
-//      _unsafeStart: UnsafeRawPointer(b.baseAddress!).advanced(by: 2).assumingMemoryBound(to: Int.self),
-//      count: 2
-//    )
-//
-//    var bounds: Range<Int>?
-//    bounds = subSpan.indicesWithin(span)
-//    XCTAssertEqual(bounds, span._indices.suffix(2))
-//    bounds = span.offsets(of: emptySpan)
-//    XCTAssertEqual(bounds, span._indices.prefix(0))
-//    bounds = span.offsets(of: nilSpan)
-//    XCTAssertEqual(bounds, 0..<0)
-//    bounds = nilSpan.offsets(of: emptySpan)
-//    XCTAssertEqual(bounds, 0..<0)
-//  }
+    let span = Span(_unsafeElements: b)
+    let pre = span._extracting(first: 6)
+    let suf = span._extracting(last: 6)
+
+    XCTAssertFalse(
+      pre.isIdentical(to: suf)
+    )
+    XCTAssertFalse(
+      pre.isIdentical(to: span)
+    )
+    XCTAssertTrue(
+      pre._extracting(last: 4).isIdentical(to: suf._extracting(first: 4))
+    )
+  }
 
   func testIndicesOf() {
     let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: 8)
