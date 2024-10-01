@@ -190,11 +190,9 @@ extension Span where Element: BitwiseCopyable {
     _unsafeBytes buffer: UnsafeRawBufferPointer
   ) -> dependsOn(immortal) Self {
     let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
-    precondition(byteCount >= 0, "Count must not be negative")
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0)
-    _pointer = buffer.baseAddress
-    _count = count
+    precondition(remainder == 0, "Span must contain a whole number of elements")
+    self.init(_unchecked: buffer.baseAddress, count: count)
   }
 
   /// Unsafely create a `Span` over initialized memory.
@@ -239,9 +237,8 @@ extension Span where Element: BitwiseCopyable {
     precondition(byteCount >= 0, "Count must not be negative")
     let stride = MemoryLayout<Element>.stride
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0)
-    _pointer = pointer
-    _count = count
+    precondition(remainder == 0, "Span must contain a whole number of elements")
+    self.init(_unchecked: pointer, count: count)
   }
 }
 
@@ -419,7 +416,7 @@ extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public subscript(_ position: Int) -> Element {
     _read {
-      precondition(boundsContain(position))
+      precondition(boundsContain(position), "index out of bounds")
       yield self[unchecked: position]
     }
   }
@@ -456,7 +453,7 @@ extension Span where Element: BitwiseCopyable {
   @_alwaysEmitIntoClient
   public subscript(_ position: Int) -> Element {
     get {
-      precondition(boundsContain(position))
+      precondition(boundsContain(position), "index out of bounds")
       return self[unchecked: position]
     }
   }
@@ -498,7 +495,7 @@ extension Span where Element: ~Copyable {
   /// - Complexity: O(1)
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline func _extracting(_ bounds: Range<Int>) -> Self {
-    precondition(boundsContain(bounds))
+    precondition(boundsContain(bounds), "index out of bounds")
     return _extracting(unchecked: bounds)
   }
 
