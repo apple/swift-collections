@@ -440,6 +440,7 @@ extension MutableSpan where Element: BitwiseCopyable {
 }
 
 //MARK: bulk-update functions
+@_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan {
 
   @_alwaysEmitIntoClient
@@ -497,11 +498,13 @@ extension MutableSpan {
     return index
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: Span<Element>) -> Int {
     source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: borrowing MutableSpan<Element>
@@ -546,6 +549,7 @@ extension MutableSpan {
   }
 }
 
+@_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan where Element: ~Copyable {
 
   public mutating func moveUpdate(
@@ -565,6 +569,7 @@ extension MutableSpan where Element: ~Copyable {
   }
 }
 
+@_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan {
 
   public mutating func moveUpdate(
@@ -575,6 +580,7 @@ extension MutableSpan {
 }
 
 
+@_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan where Element: BitwiseCopyable {
 
   @_alwaysEmitIntoClient
@@ -638,12 +644,16 @@ extension MutableSpan where Element: BitwiseCopyable {
     return index
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: Span<Element>
   ) -> Int where Element: BitwiseCopyable {
     source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
   @unsafe
   public mutating func update(
     fromContentsOf source: RawSpan
@@ -651,6 +661,8 @@ extension MutableSpan where Element: BitwiseCopyable {
     source.withUnsafeBytes { self.update(fromContentsOf: $0) }
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: borrowing MutableSpan<Element>
   ) -> Int where Element: BitwiseCopyable {
@@ -674,12 +686,14 @@ extension MutableSpan where Element: BitwiseCopyable {
     return source.count
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) -> Int where Element: BitwiseCopyable {
     self.update(fromContentsOf: .init(source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: UnsafeRawBufferPointer
   ) -> Int where Element: BitwiseCopyable {
@@ -700,30 +714,35 @@ extension MutableSpan where Element: BitwiseCopyable {
     return count
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: UnsafeMutableRawBufferPointer
   ) -> Int where Element: BitwiseCopyable {
     self.update(fromContentsOf: UnsafeRawBufferPointer(source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: Slice<UnsafeBufferPointer<Element>>
   ) -> Int where Element: BitwiseCopyable {
     self.update(fromContentsOf: .init(rebasing: source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
   ) -> Int where Element: BitwiseCopyable {
     self.update(fromContentsOf: UnsafeBufferPointer(rebasing: source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: Slice<UnsafeRawBufferPointer>
   ) -> Int where Element: BitwiseCopyable {
     self.update(fromContentsOf: UnsafeRawBufferPointer(rebasing: source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
     fromContentsOf source: Slice<UnsafeMutableRawBufferPointer>
   ) -> Int where Element: BitwiseCopyable {
@@ -733,8 +752,10 @@ extension MutableSpan where Element: BitwiseCopyable {
 
 //MARK: copyMemory
 //FIXME: move these to a MutableRawSpan
+@_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan where Element: BitwiseCopyable {
 
+  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public func copyMemory(
     from source: borrowing MutableSpan<Element>
@@ -743,6 +764,8 @@ extension MutableSpan where Element: BitwiseCopyable {
     return copyMemory(from: .init(_unsafeMutableSpan: source))
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
   public func copyMemory(from source: Span<Element>) -> Int {
     guard _isPOD(Element.self) else { fatalError() }
     precondition(
