@@ -113,6 +113,26 @@ extension Span where Element: ~Copyable {
 }
 
 @_disallowFeatureSuppression(NonescapableTypes)
+extension Span {
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: Slice<UnsafeBufferPointer<Element>>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
+  }
+}
+
+@_disallowFeatureSuppression(NonescapableTypes)
 extension Span where Element: BitwiseCopyable {
 
   /// Unsafely create a `Span` over initialized memory.
@@ -239,6 +259,38 @@ extension Span where Element: BitwiseCopyable {
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0, "Span must contain a whole number of elements")
     self.init(_unchecked: pointer, count: count)
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: Slice<UnsafeBufferPointer<Element>>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeElements buffer: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: Slice<UnsafeRawBufferPointer>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(rebasing: buffer))
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: Slice<UnsafeMutableRawBufferPointer>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(rebasing: buffer))
   }
 }
 
