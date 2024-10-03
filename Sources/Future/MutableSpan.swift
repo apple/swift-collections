@@ -439,7 +439,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   }
 }
 
-//MARK: UMBP-style update functions
+//MARK: bulk-update functions
 extension MutableSpan {
 
   @_alwaysEmitIntoClient
@@ -465,7 +465,9 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
-  public mutating func update(fromContentsOf source: some Collection<Element>) -> Int {
+  public mutating func update(
+    fromContentsOf source: some Collection<Element>
+  ) -> Int {
     let updated = source.withContiguousStorageIfAvailable {
       self.update(fromContentsOf: $0)
     }
@@ -483,9 +485,7 @@ extension MutableSpan {
 
     var iterator = source.makeIterator()
     var index = 0
-    let _count = _count
     while let value = iterator.next() {
-      print(value, index, _count)
       guard index < _count else {
         fatalError(
           "destination buffer view cannot contain every element from source."
@@ -503,12 +503,16 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
-  public mutating func update(fromContentsOf source: borrowing MutableSpan<Element>) -> Int {
+  public mutating func update(
+    fromContentsOf source: borrowing MutableSpan<Element>
+  ) -> Int {
     source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
   @_alwaysEmitIntoClient
-  public mutating func update(fromContentsOf source: UnsafeBufferPointer<Element>) -> Int {
+  public mutating func update(
+    fromContentsOf source: UnsafeBufferPointer<Element>
+  ) -> Int {
     guard let sourceAddress = source.baseAddress, source.count > 0 else { return 0 }
     precondition(
       source.count <= self.count,
@@ -521,25 +525,35 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
-  public mutating func update(fromContentsOf source: UnsafeMutableBufferPointer<Element>) -> Int {
+  public mutating func update(
+    fromContentsOf source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
     self.update(fromContentsOf: .init(source))
   }
 
   @_alwaysEmitIntoClient
-  public mutating func update(fromContentsOf source: Slice<UnsafeBufferPointer<Element>>) -> Int {
+  public mutating func update(
+    fromContentsOf source: Slice<UnsafeBufferPointer<Element>>
+  ) -> Int {
     self.update(fromContentsOf: .init(rebasing: source))
   }
 
   @_alwaysEmitIntoClient
-  public mutating func update(fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>) -> Int {
-    self.update(fromContentsOf: UnsafeMutableBufferPointer(rebasing: source))
+  public mutating func update(
+    fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> Int {
+    self.update(fromContentsOf: UnsafeBufferPointer(rebasing: source))
   }
 }
 
 extension MutableSpan where Element: ~Copyable {
 
-  public mutating func moveUpdate(fromContentsOf source: UnsafeMutableBufferPointer<Element>) -> Int {
-    guard let sourceAddress = source.baseAddress, source.count > 0 else { return 0 }
+  public mutating func moveUpdate(
+    fromContentsOf source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    guard let sourceAddress = source.baseAddress, source.count > 0 else {
+      return 0
+    }
     precondition(
       source.count <= self.count,
       "destination span cannot contain every element from source."
@@ -553,66 +567,169 @@ extension MutableSpan where Element: ~Copyable {
 
 extension MutableSpan {
 
-  public mutating func moveUpdate(fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>) -> Int {
+  public mutating func moveUpdate(
+    fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> Int {
     self.moveUpdate(fromContentsOf: .init(rebasing: source))
   }
 }
 
 
-#if false
-//TODO: overload the various `update` functions to use memcpy
 extension MutableSpan where Element: BitwiseCopyable {
 
-  public mutating func update(fromContentsOf source: some Collection<Element>) -> Int {
-    return 0
+  @_alwaysEmitIntoClient
+  public mutating func update(
+    repeating repeatedValue: Element
+  ) where Element: BitwiseCopyable {
+    guard count > 0 else { return }
+    // rebind _start manually in order to avoid assumptions about alignment.
+    let rp = _start._rawValue
+    let binding = Builtin.bindMemory(rp, count._builtinWordValue, Element.self)
+    UnsafeMutablePointer(rp).update(repeating: repeatedValue, count: count)
+    Builtin.rebindMemory(rp, binding)
   }
 
-  public mutating func update(fromContentsOf source: Span<Element>) -> Int {
-    return 0
+  @_alwaysEmitIntoClient
+  public mutating func update<S: Sequence>(
+    from source: S
+  ) -> (unwritten: S.Iterator, index: Int)
+  where S.Element == Element, Element: BitwiseCopyable {
+    var iterator = source.makeIterator()
+    guard !self.isEmpty else { return (iterator, 0) }
+    var index = 0
+    while index < _count {
+      guard let value = iterator.next() else { break }
+      self[unchecked: index] = value
+      index &+= 1
+    }
+    return (iterator, index)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func update(
+    fromContentsOf source: some Collection<Element>
+  ) -> Int where Element: BitwiseCopyable {
+    let updated = source.withContiguousStorageIfAvailable {
+      self.update(fromContentsOf: $0)
+    }
+    if let updated {
+      return 0.advanced(by: updated)
+    }
+
+    if self.isEmpty {
+      precondition(
+        source.isEmpty,
+        "destination buffer view cannot contain every element from source."
+      )
+      return 0
+    }
+
+    var iterator = source.makeIterator()
+    var index = 0
+    while let value = iterator.next() {
+      guard index < _count else {
+        fatalError(
+          "destination buffer view cannot contain every element from source."
+        )
+      }
+      self[unchecked: index] = value
+      index &+= 1
+    }
+    return index
+  }
+
+  public mutating func update(
+    fromContentsOf source: Span<Element>
+  ) -> Int where Element: BitwiseCopyable {
+    source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
   @unsafe
-  public mutating func update(fromContentsOf source: RawSpan) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: RawSpan
+  ) -> Int where Element: BitwiseCopyable {
+    source.withUnsafeBytes { self.update(fromContentsOf: $0) }
   }
 
-  public mutating func update(fromContentsOf source: borrowing MutableSpan<Element>) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: borrowing MutableSpan<Element>
+  ) -> Int where Element: BitwiseCopyable {
+    source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
-  public mutating func update(fromContentsOf source: UnsafeBufferPointer<Element>) -> Int {
-    return 0
+  @_alwaysEmitIntoClient
+  public mutating func update(
+    fromContentsOf source: UnsafeBufferPointer<Element>
+  ) -> Int where Element: BitwiseCopyable {
+    guard let sourceAddress = source.baseAddress, source.count > 0 else {
+      return 0
+    }
+    precondition(
+      source.count <= self.count,
+      "destination span cannot contain every element from source."
+    )
+    _start.copyMemory(
+      from: sourceAddress, byteCount: source.count*MemoryLayout<Element>.stride
+    )
+    return source.count
   }
 
-  public mutating func update(fromContentsOf source: UnsafeMutableBufferPointer<Element>) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: UnsafeMutableBufferPointer<Element>
+  ) -> Int where Element: BitwiseCopyable {
+    self.update(fromContentsOf: .init(source))
   }
 
-  public mutating func update(fromContentsOf source: UnsafeRawBufferPointer) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: UnsafeRawBufferPointer
+  ) -> Int where Element: BitwiseCopyable {
+    guard let sourceAddress = source.baseAddress, source.count > 0 else {
+      return 0
+    }
+    let stride = MemoryLayout<Element>.stride
+    let (count, remainder) = source.count.quotientAndRemainder(dividingBy: stride)
+    precondition(
+      remainder == 0,
+      "source buffer must be a multiple of the destination's element's stride."
+    )
+    precondition(
+      count <= self.count,
+      "destination span cannot contain every element from source."
+    )
+    _start.copyMemory(from: sourceAddress, byteCount: source.count)
+    return count
   }
 
-  public mutating func update(fromContentsOf source: UnsafeMutableRawBufferPointer) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: UnsafeMutableRawBufferPointer
+  ) -> Int where Element: BitwiseCopyable {
+    self.update(fromContentsOf: UnsafeRawBufferPointer(source))
   }
 
-  public mutating func update(fromContentsOf source: Slice<UnsafeBufferPointer<Element>>) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: Slice<UnsafeBufferPointer<Element>>
+  ) -> Int where Element: BitwiseCopyable {
+    self.update(fromContentsOf: .init(rebasing: source))
   }
 
-  public mutating func update(fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> Int where Element: BitwiseCopyable {
+    self.update(fromContentsOf: UnsafeBufferPointer(rebasing: source))
   }
 
-  public mutating func update(fromContentsOf source: Slice<UnsafeRawBufferPointer>) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: Slice<UnsafeRawBufferPointer>
+  ) -> Int where Element: BitwiseCopyable {
+    self.update(fromContentsOf: UnsafeRawBufferPointer(rebasing: source))
   }
 
-  public mutating func update(fromContentsOf source: Slice<UnsafeMutableRawBufferPointer>) -> Int {
-    return 0
+  public mutating func update(
+    fromContentsOf source: Slice<UnsafeMutableRawBufferPointer>
+  ) -> Int where Element: BitwiseCopyable {
+    self.update(fromContentsOf: UnsafeRawBufferPointer(rebasing: source))
   }
 }
-#endif
 
 //MARK: copyMemory
 //FIXME: move these to a MutableRawSpan
