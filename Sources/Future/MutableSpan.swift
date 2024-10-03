@@ -76,6 +76,18 @@ extension MutableSpan where Element: ~Copyable {
 }
 
 @_disallowFeatureSuppression(NonescapableTypes)
+extension MutableSpan {
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  internal init(
+    _unsafeElements elements: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeMutableBufferPointer(rebasing: elements))
+  }
+}
+
+@_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan where Element: BitwiseCopyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
@@ -118,6 +130,22 @@ extension MutableSpan where Element: BitwiseCopyable {
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0, "Span must contain a whole number of elements")
     self.init(_unchecked: pointer, count: count)
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  internal init(
+    _unsafeElements elements: Slice<UnsafeMutableBufferPointer<Element>>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeElements: UnsafeMutableBufferPointer(rebasing: elements))
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  internal init(
+    _unsafeBytes buffer: Slice<UnsafeMutableRawBufferPointer>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeMutableRawBufferPointer(rebasing: buffer))
   }
 }
 
