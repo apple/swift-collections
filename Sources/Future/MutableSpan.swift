@@ -17,17 +17,17 @@ import Builtin
 @_disallowFeatureSuppression(NonescapableTypes)
 @frozen
 public struct MutableSpan<Element: ~Copyable>: ~Copyable & ~Escapable {
-  @usableFromInline let _pointer: UnsafeMutablePointer<Element>?
+  @usableFromInline let _pointer: UnsafeMutableRawPointer?
 
   @usableFromInline let _count: Int
 
   @usableFromInline @inline(__always)
-  var _start: UnsafeMutablePointer<Element> { _pointer.unsafelyUnwrapped }
+  var _start: UnsafeMutableRawPointer { _pointer.unsafelyUnwrapped }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
   init(
-    _unchecked start: UnsafeMutablePointer<Element>?,
+    _unchecked start: UnsafeMutableRawPointer?,
     count: Int
   ) -> dependsOn(immortal) Self {
     _pointer = start
@@ -57,7 +57,6 @@ extension MutableSpan where Element: ~Copyable {
     _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
   ) -> dependsOn(immortal) Self {
     precondition(
-      buffer.count == 0 ||
       ((Int(bitPattern: buffer.baseAddress) &
         (MemoryLayout<Element>.alignment&-1)) == 0),
       "baseAddress must be properly aligned to access Element"
@@ -103,11 +102,9 @@ extension MutableSpan where Element: BitwiseCopyable {
     _unsafeBytes buffer: UnsafeMutableRawBufferPointer
   ) -> dependsOn(immortal) Self {
     let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
-    precondition(byteCount >= 0, "Count must not be negative")
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0)
-    _pointer = buffer.baseAddress?.assumingMemoryBound(to: Element.self)
-    _count = count
+    precondition(remainder == 0, "Span must contain a whole number of elements")
+    self.init(_unchecked: buffer.baseAddress, count: count)
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
@@ -119,9 +116,8 @@ extension MutableSpan where Element: BitwiseCopyable {
     precondition(byteCount >= 0, "Count must not be negative")
     let stride = MemoryLayout<Element>.stride
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0)
-    _pointer = pointer.assumingMemoryBound(to: Element.self)
-    _count = count
+    precondition(remainder == 0, "Span must contain a whole number of elements")
+    self.init(_unchecked: pointer, count: count)
   }
 }
 
@@ -130,7 +126,7 @@ extension Span where Element: ~Copyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  public init(_ mutableSpan: borrowing MutableSpan<Element>) {
+  public init(_unsafeMutableSpan mutableSpan: borrowing MutableSpan<Element>) {
     self.init(_unchecked: mutableSpan._start, count: mutableSpan.count)
   }
 }
@@ -156,25 +152,25 @@ extension MutableSpan where Element: Equatable {
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: borrowing Self) -> Bool {
-    _elementsEqual(Span(other))
+    _elementsEqual(Span(_unsafeMutableSpan: other))
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: Span<Element>) -> Bool {
-    Span(self)._elementsEqual(other)
+    Span(_unsafeMutableSpan: self)._elementsEqual(other)
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: some Collection<Element>) -> Bool {
-    Span(self)._elementsEqual(other)
+    Span(_unsafeMutableSpan: self)._elementsEqual(other)
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: some Sequence<Element>) -> Bool {
-    Span(self)._elementsEqual(other)
+    Span(_unsafeMutableSpan: self)._elementsEqual(other)
   }
 }
 
@@ -251,7 +247,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   @_disallowFeatureSuppression(NonescapableTypes)
   @unsafe //FIXME: remove when the lifetime inference is fixed
   @_alwaysEmitIntoClient
-  public var _unsafeRawSpan: RawSpan { Span(self)._unsafeRawSpan }
+  public var _unsafeRawSpan: RawSpan { RawSpan(_unsafeMutableSpan: self) }
 }
 
 @_disallowFeatureSuppression(NonescapableTypes)
@@ -268,11 +264,11 @@ extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public subscript(_ position: Int) -> Element {
     _read {
-      precondition(boundsContain(position))
+      precondition(boundsContain(position), "index out of bounds")
       yield self[unchecked: position]
     }
     _modify {
-      precondition(boundsContain(position))
+      precondition(boundsContain(position), "index out of bounds")
       yield &self[unchecked: position]
     }
   }
@@ -289,15 +285,15 @@ extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public subscript(unchecked position: Int) -> Element {
     _read {
-      let stride = MemoryLayout<Element>.stride
-      let p = _start.advanced(by: position&*stride)._rawValue
+      let offset = position&*MemoryLayout<Element>.stride
+      let p = UnsafeRawPointer(_start).advanced(by: offset)._rawValue
       let binding = Builtin.bindMemory(p, count._builtinWordValue, Element.self)
       defer { Builtin.rebindMemory(p, binding) }
       yield UnsafePointer(p).pointee
     }
     _modify {
-      let stride = MemoryLayout<Element>.stride
-      let p = _start.advanced(by: position&*stride)._rawValue
+      let offset = position&*MemoryLayout<Element>.stride
+      let p = UnsafeMutableRawPointer(_start).advanced(by: offset)._rawValue
       let binding = Builtin.bindMemory(p, 1._builtinWordValue, Element.self)
       defer { Builtin.rebindMemory(p, binding) }
       yield &(UnsafeMutablePointer(p).pointee)
@@ -340,12 +336,11 @@ extension MutableSpan where Element: BitwiseCopyable {
   public subscript(unchecked position: Int) -> Element {
     get {
       let offset = position&*MemoryLayout<Element>.stride
-      return UnsafeRawPointer(_start).loadUnaligned(fromByteOffset: offset, as: Element.self)
+      return _start.loadUnaligned(fromByteOffset: offset, as: Element.self)
     }
     set {
       let offset = position&*MemoryLayout<Element>.stride
-      UnsafeMutableRawPointer(_start)
-        .storeBytes(of: newValue, toByteOffset: offset, as: Element.self)
+      _start.storeBytes(of: newValue, toByteOffset: offset, as: Element.self)
     }
   }
 }
@@ -359,29 +354,33 @@ extension MutableSpan where Element: ~Copyable {
   public func withUnsafeBufferPointer<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeBufferPointer<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    try Span(self).withUnsafeBufferPointer(body)
+    try Span(_unsafeMutableSpan: self).withUnsafeBufferPointer(body)
   }
 
   //FIXME: mark closure parameter as non-escaping
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  public func withUnsafeMutableBufferPointer<E: Error, Result: ~Copyable>(
+  public mutating func withUnsafeMutableBufferPointer<E: Error, Result: ~Copyable>(
     _ body: (inout UnsafeMutableBufferPointer<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    guard let pointer = _pointer, count > 0 else {
-      var buffer = UnsafeMutableBufferPointer<Element>(start: nil, count: 0)
-      return try body(&buffer)
-    }
-    return try pointer.withMemoryRebound(to: Element.self, capacity: count) {
-      ptr throws(E) -> Result in
-      var buf = UnsafeMutableBufferPointer<Element>(start: ptr, count: count)
+    func executeBody(
+      _ start: UnsafeMutablePointer<Element>?, _ count: Int
+    ) throws(E) -> Result {
+      var buf = UnsafeMutableBufferPointer<Element>(start: start, count: count)
       defer {
         precondition(
-          (buf.baseAddress, buf.count) == (ptr, count),
+          (buf.baseAddress, buf.count) == (start, count),
           "MutableSpan.withUnsafeMutableBufferPointer: replacing the buffer is not allowed"
         )
       }
       return try body(&buf)
+    }
+    guard let pointer = _pointer, count > 0 else {
+      return try executeBody(nil, 0)
+    }
+    return try pointer.withMemoryRebound(to: Element.self, capacity: count) {
+      pointer throws(E) -> Result in
+      return try executeBody(pointer, count)
     }
   }
 }
@@ -401,11 +400,11 @@ extension MutableSpan where Element: BitwiseCopyable {
   //FIXME: mark closure parameter as non-escaping
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  public func withUnsafeMutableBytes<E: Error, Result: ~Copyable>(
+  public mutating func withUnsafeMutableBytes<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeMutableRawBufferPointer) throws(E) -> Result
   ) throws(E) -> Result {
     let bytes = UnsafeMutableRawBufferPointer(
-      start: (_count == 0) ? nil : UnsafeMutableRawPointer(_start),
+      start: (_count == 0) ? nil : _start,
       count: _count &* MemoryLayout<Element>.stride
     )
     return try body(bytes)
@@ -415,12 +414,14 @@ extension MutableSpan where Element: BitwiseCopyable {
 //MARK: UMBP-style update functions
 extension MutableSpan {
 
-  public func update(repeating repeatedValue: Element) {
+  @_alwaysEmitIntoClient
+  public mutating func update(repeating repeatedValue: Element) {
     _start.withMemoryRebound(to: Element.self, capacity: count) {
       $0.update(repeating: repeatedValue, count: count)
     }
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update<S: Sequence>(
     from source: S
   ) -> (unwritten: S.Iterator, index: Int) where S.Element == Element {
@@ -435,20 +436,10 @@ extension MutableSpan {
     return (iterator, index)
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: some Collection<Element>) -> Int {
     let updated = source.withContiguousStorageIfAvailable {
-      [ count = self.count, baseAddress = self._start ] sourceBuffer in
-      guard let sourceAddress = sourceBuffer.baseAddress else {
-        return 0
-      }
-      precondition(
-        sourceBuffer.count <= count,
-        "destination buffer view cannot contain every element from source."
-      )
-      baseAddress.withMemoryRebound(to: Element.self, capacity: sourceBuffer.count) {
-        $0.update(from: sourceAddress, count: sourceBuffer.count)
-      }
-      return sourceBuffer.count
+      self.update(fromContentsOf: $0)
     }
     if let updated {
       return 0.advanced(by: updated)
@@ -464,56 +455,85 @@ extension MutableSpan {
 
     var iterator = source.makeIterator()
     var index = 0
+    let _count = _count
     while let value = iterator.next() {
+      print(value, index, _count)
       guard index < _count else {
-        preconditionFailure(
+        fatalError(
           "destination buffer view cannot contain every element from source."
         )
-        break
       }
       self[unchecked: index] = value
       index &+= 1
     }
     return index
   }
-}
 
-extension MutableSpan where Element: Copyable {
-
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: Span<Element>) -> Int {
-    return 0
+    source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: borrowing MutableSpan<Element>) -> Int {
-    return 0
+    source.withUnsafeBufferPointer { self.update(fromContentsOf: $0) }
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: UnsafeBufferPointer<Element>) -> Int {
-    return 0
+    guard let sourceAddress = source.baseAddress, source.count > 0 else { return 0 }
+    precondition(
+      source.count <= self.count,
+      "destination span cannot contain every element from source."
+    )
+    _start.withMemoryRebound(to: Element.self, capacity: source.count) {
+      $0.update(from: sourceAddress, count: source.count)
+    }
+    return source.count
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: UnsafeMutableBufferPointer<Element>) -> Int {
-    return 0
+    self.update(fromContentsOf: .init(source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: Slice<UnsafeBufferPointer<Element>>) -> Int {
-    return 0
+    self.update(fromContentsOf: .init(rebasing: source))
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>) -> Int {
-    return 0
+    self.update(fromContentsOf: UnsafeMutableBufferPointer(rebasing: source))
   }
 }
 
 extension MutableSpan where Element: ~Copyable {
 
   public mutating func moveUpdate(fromContentsOf source: UnsafeMutableBufferPointer<Element>) -> Int {
-    return 0
+    guard let sourceAddress = source.baseAddress, source.count > 0 else { return 0 }
+    precondition(
+      source.count <= self.count,
+      "destination span cannot contain every element from source."
+    )
+    _start.withMemoryRebound(to: Element.self, capacity: source.count) {
+      $0.moveUpdate(from: sourceAddress, count: source.count)
+    }
+    return source.count
   }
 }
 
+extension MutableSpan {
+
+  public mutating func moveUpdate(fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>) -> Int {
+    self.moveUpdate(fromContentsOf: .init(rebasing: source))
+  }
+}
+
+
+#if false
+//TODO: overload the various `update` functions to use memcpy
 extension MutableSpan where Element: BitwiseCopyable {
-  //TODO: overload the various `update` functions to use memcpy
 
   public mutating func update(fromContentsOf source: some Collection<Element>) -> Int {
     return 0
@@ -523,6 +543,11 @@ extension MutableSpan where Element: BitwiseCopyable {
     return 0
   }
 
+  @unsafe
+  public mutating func update(fromContentsOf source: RawSpan) -> Int {
+    return 0
+  }
+
   public mutating func update(fromContentsOf source: borrowing MutableSpan<Element>) -> Int {
     return 0
   }
@@ -535,6 +560,14 @@ extension MutableSpan where Element: BitwiseCopyable {
     return 0
   }
 
+  public mutating func update(fromContentsOf source: UnsafeRawBufferPointer) -> Int {
+    return 0
+  }
+
+  public mutating func update(fromContentsOf source: UnsafeMutableRawBufferPointer) -> Int {
+    return 0
+  }
+
   public mutating func update(fromContentsOf source: Slice<UnsafeBufferPointer<Element>>) -> Int {
     return 0
   }
@@ -543,14 +576,15 @@ extension MutableSpan where Element: BitwiseCopyable {
     return 0
   }
 
-  public mutating func moveUpdate(fromContentsOf source: UnsafeMutableBufferPointer<Element>) -> Int {
+  public mutating func update(fromContentsOf source: Slice<UnsafeRawBufferPointer>) -> Int {
     return 0
   }
 
-  public mutating func moveUpdate(fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>) -> Int {
+  public mutating func update(fromContentsOf source: Slice<UnsafeMutableRawBufferPointer>) -> Int {
     return 0
   }
 }
+#endif
 
 //MARK: copyMemory
 //FIXME: move these to a MutableRawSpan
@@ -561,7 +595,7 @@ extension MutableSpan where Element: BitwiseCopyable {
     from source: borrowing MutableSpan<Element>
   ) -> Int {
     guard _isPOD(Element.self) else { fatalError() }
-    return copyMemory(from: .init(source))
+    return copyMemory(from: .init(_unsafeMutableSpan: source))
   }
 
   public func copyMemory(from source: Span<Element>) -> Int {
