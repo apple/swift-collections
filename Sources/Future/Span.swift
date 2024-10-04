@@ -485,7 +485,7 @@ extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public subscript(unchecked position: Int) -> Element {
     _read {
-      let element = UnsafeRawPointer(_start).advanced(by: position&*MemoryLayout<Element>.stride)
+      let element = _start.advanced(by: position&*MemoryLayout<Element>.stride)
       let binding = Builtin.bindMemory(element._rawValue, count._builtinWordValue, Element.self)
       defer { Builtin.rebindMemory(element._rawValue, binding) }
       yield UnsafePointer<Element>(element._rawValue).pointee
@@ -522,7 +522,7 @@ extension Span where Element: BitwiseCopyable {
   @_alwaysEmitIntoClient
   public subscript(unchecked position: Int) -> Element {
     get {
-      let address = UnsafeRawPointer(_start).advanced(by: position&*MemoryLayout<Element>.stride)
+      let address = _start.advanced(by: position&*MemoryLayout<Element>.stride)
       return address.loadUnaligned(as: Element.self)
     }
   }
