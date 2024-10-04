@@ -54,6 +54,13 @@ extension RawSpan {
     )
   }
 
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: Slice<UnsafeRawBufferPointer>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(rebasing: buffer))
+  }
+
   /// Unsafely create a `RawSpan` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -68,6 +75,13 @@ extension RawSpan {
     _unsafeBytes buffer: UnsafeMutableRawBufferPointer
   ) -> dependsOn(immortal) Self {
     self.init(_unsafeBytes: UnsafeRawBufferPointer(buffer))
+  }
+
+  @_alwaysEmitIntoClient
+  public init(
+    _unsafeBytes buffer: Slice<UnsafeMutableRawBufferPointer>
+  ) -> dependsOn(immortal) Self {
+    self.init(_unsafeBytes: UnsafeRawBufferPointer(rebasing: buffer))
   }
 
   /// Unsafely create a `RawSpan` over initialized memory.
