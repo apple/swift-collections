@@ -209,6 +209,11 @@ extension Span where Element: BitwiseCopyable {
   public init(
     _unsafeBytes buffer: UnsafeRawBufferPointer
   ) -> dependsOn(immortal) Self {
+    precondition(
+      ((Int(bitPattern: buffer.baseAddress) &
+        (MemoryLayout<Element>.alignment&-1)) == 0),
+      "baseAddress must be properly aligned to access Element"
+    )
     let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0, "Span must contain a whole number of elements")

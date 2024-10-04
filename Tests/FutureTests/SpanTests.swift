@@ -387,10 +387,12 @@ final class SpanTests: XCTestCase {
     let subSpan1 = span._extracting(first: 6)
     let subSpan2 = span._extracting(last: 6)
     let emptySpan = span._extracting(first: 0)
+/*  This isn't relevant until we can support unaligned spans
     let unalignedSpan = RawSpan(_unsafeSpan: span)
                           ._extracting(droppingFirst: 6)
                           ._extracting(droppingLast: 2)
                           .unsafeView(as: Int.self)
+*/
     let nilSpan = Span<Int>(
       _unsafeElements: UnsafeBufferPointer(start: nil, count: 0)
     )
@@ -409,8 +411,6 @@ final class SpanTests: XCTestCase {
     bounds = nilSpan.indices(of: emptySpan)
     XCTAssertNil(bounds)
     bounds = span.indices(of: nilSpan)
-    XCTAssertNil(bounds)
-    bounds = span.indices(of: unalignedSpan)
     XCTAssertNil(bounds)
     bounds = nilSpan.indices(of: nilSpan)
     XCTAssertEqual(bounds, 0..<0)
@@ -436,5 +436,22 @@ final class SpanTests: XCTestCase {
       XCTAssertEqual(i, c.id)
       i += 1
     }
+  }
+
+  func testTypeErasedSpanOfBitwiseCopyable() {
+    let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 64, alignment: 8)
+    defer { b.deallocate() }
+    let initialized = b.initializeMemory(as: UInt8.self, fromContentsOf: 0..<64)
+    XCTAssertEqual(initialized.count, 64)
+    defer { initialized.deinitialize() }
+
+    func test<T>(_ span: Span<T>) -> T {
+      span[0]
+    }
+
+    // let span = Span<Int32>(_unsafeBytes: b.dropFirst().dropLast(7))
+    let span = Span<Int32>(_unsafeBytes: b.dropFirst(4))
+    let first = test(span)
+    XCTAssertEqual(first, 0x07060504)
   }
 }
