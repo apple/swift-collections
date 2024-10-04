@@ -206,7 +206,7 @@ final class SpanTests: XCTestCase {
     }
   }
 
-  func testOffsetSubscript() {
+  func testElementSubscript() {
     let capacity = 4
     let a = (0..<capacity).map(String.init)
     a.withUnsafeBufferPointer {
@@ -215,7 +215,7 @@ final class SpanTests: XCTestCase {
     }
   }
 
-  func testOffsetSubscriptBitwiseCopyable() {
+  func testElementSubscriptBitwiseCopyable() {
     let capacity = 4
     let a = Array(0..<capacity)
     a.withUnsafeBufferPointer {
