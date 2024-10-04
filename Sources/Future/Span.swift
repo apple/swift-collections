@@ -137,61 +137,6 @@ extension Span where Element: BitwiseCopyable {
 
   /// Unsafely create a `Span` over initialized memory.
   ///
-  /// The memory in `buffer` must be owned by the instance `owner`,
-  /// meaning that as long as `owner` is alive the memory will remain valid.
-  ///
-  /// - Parameters:
-  ///   - buffer: an `UnsafeBufferPointer` to initialized elements.
-  ///   - owner: a binding whose lifetime must exceed that of
-  ///            the newly created `Span`.
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
-    _unsafeElements buffer: UnsafeBufferPointer<Element>
-  ) -> dependsOn(immortal) Self {
-    self.init(_unchecked: buffer)
-  }
-
-  /// Unsafely create a `Span` over initialized memory.
-  ///
-  /// The memory in `buffer` must be owned by the instance `owner`,
-  /// meaning that as long as `owner` is alive the memory will remain valid.
-  ///
-  /// - Parameters:
-  ///   - buffer: an `UnsafeMutableBufferPointer` to initialized elements.
-  ///   - owner: a binding whose lifetime must exceed that of
-  ///            the newly created `Span`.
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
-    _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
-  ) -> dependsOn(immortal) Self {
-    self.init(_unsafeElements: UnsafeBufferPointer(buffer))
-  }
-
-  /// Unsafely create a `Span` over initialized memory.
-  ///
-  /// The memory representing `count` instances starting at
-  /// `pointer` must be owned by the instance `owner`,
-  /// meaning that as long as `owner` is alive the memory will remain valid.
-  ///
-  /// - Parameters:
-  ///   - pointer: a pointer to the first initialized element.
-  ///   - count: the number of initialized elements in the span.
-  ///   - owner: a binding whose lifetime must exceed that of
-  ///            the newly created `Span`.
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
-    _unsafeStart start: UnsafePointer<Element>,
-    count: Int
-  ) -> dependsOn(immortal) Self {
-    precondition(count >= 0, "Count must not be negative")
-    self.init(_unchecked: start, count: count)
-  }
-
-  /// Unsafely create a `Span` over initialized memory.
-  ///
   /// The memory in `unsafeBytes` must be owned by the instance `owner`
   /// meaning that as long as `owner` is alive the memory will remain valid.
   ///
@@ -260,26 +205,7 @@ extension Span where Element: BitwiseCopyable {
     byteCount: Int
   ) -> dependsOn(immortal) Self {
     precondition(byteCount >= 0, "Count must not be negative")
-    let stride = MemoryLayout<Element>.stride
-    let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0, "Span must contain a whole number of elements")
-    self.init(_unchecked: pointer, count: count)
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
-    _unsafeElements buffer: Slice<UnsafeBufferPointer<Element>>
-  ) -> dependsOn(immortal) Self {
-    self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
-    _unsafeElements buffer: Slice<UnsafeMutableBufferPointer<Element>>
-  ) -> dependsOn(immortal) Self {
-    self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
+    self.init(_unsafeBytes: .init(start: pointer, count: byteCount))
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
