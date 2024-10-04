@@ -80,7 +80,7 @@ extension MutableSpan {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  internal init(
+  public init(
     _unsafeElements elements: Slice<UnsafeMutableBufferPointer<Element>>
   ) -> dependsOn(immortal) Self {
     self.init(_unsafeElements: UnsafeMutableBufferPointer(rebasing: elements))
@@ -93,26 +93,13 @@ extension MutableSpan where Element: BitwiseCopyable {
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public init(
-    _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
-  ) -> dependsOn(immortal) Self {
-    self.init(_unchecked: buffer)
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
-    _unsafeStart start: UnsafeMutablePointer<Element>,
-    count: Int
-  ) -> dependsOn(immortal) Self {
-    precondition(count >= 0, "Count must not be negative")
-    self.init(_unchecked: start, count: count)
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public init(
     _unsafeBytes buffer: UnsafeMutableRawBufferPointer
   ) -> dependsOn(immortal) Self {
+    precondition(
+      ((Int(bitPattern: buffer.baseAddress) &
+        (MemoryLayout<Element>.alignment&-1)) == 0),
+      "baseAddress must be properly aligned to access Element"
+    )
     let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0, "Span must contain a whole number of elements")
@@ -126,23 +113,12 @@ extension MutableSpan where Element: BitwiseCopyable {
     byteCount: Int
   ) -> dependsOn(immortal) Self {
     precondition(byteCount >= 0, "Count must not be negative")
-    let stride = MemoryLayout<Element>.stride
-    let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0, "Span must contain a whole number of elements")
-    self.init(_unchecked: pointer, count: count)
+    self.init(_unsafeBytes: .init(start: pointer, count: byteCount))
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  internal init(
-    _unsafeElements elements: Slice<UnsafeMutableBufferPointer<Element>>
-  ) -> dependsOn(immortal) Self {
-    self.init(_unsafeElements: UnsafeMutableBufferPointer(rebasing: elements))
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  internal init(
+  public init(
     _unsafeBytes buffer: Slice<UnsafeMutableRawBufferPointer>
   ) -> dependsOn(immortal) Self {
     self.init(_unsafeBytes: UnsafeMutableRawBufferPointer(rebasing: buffer))
