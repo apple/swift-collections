@@ -524,9 +524,28 @@ extension MutableSpan {
 @_disallowFeatureSuppression(NonescapableTypes)
 extension MutableSpan where Element: ~Copyable {
 
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  public mutating func moveUpdate(
+    fromContentsOf source: consuming OutputSpan<Element>
+  ) -> Int {
+    guard !source.isEmpty else { return 0 }
+    precondition(
+      source.count <= self.count,
+      "destination span cannot contain every element from source."
+    )
+    let buffer = source.relinquishBorrowedMemory()
+    // we must now deinitialize the returned UMBP
+    _start.moveInitializeMemory(
+      as: Element.self, from: buffer.baseAddress!, count: buffer.count
+    )
+    return buffer.count
+  }
+
   public mutating func moveUpdate(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) -> Int {
+#if false
     guard let sourceAddress = source.baseAddress, source.count > 0 else {
       return 0
     }
@@ -538,6 +557,10 @@ extension MutableSpan where Element: ~Copyable {
       $0.moveUpdate(from: sourceAddress, count: source.count)
     }
     return source.count
+#else
+    let source = OutputSpan(_initializing: source, initialized: source.count)
+    return self.moveUpdate(fromContentsOf: source)
+#endif
   }
 }
 

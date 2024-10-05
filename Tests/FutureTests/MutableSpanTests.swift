@@ -459,19 +459,22 @@ final class MutableSpanTests: XCTestCase {
     XCTAssertEqual(a.allSatisfy({ $0.id == .max }), true)
 
     var b = UnsafeMutableBufferPointer<ID>.allocate(capacity: capacity)
-    var i = b.initialize(fromContentsOf: (0..<capacity).map(ID.init(id:)))
-    XCTAssertEqual(i, capacity)
 
     a.withUnsafeMutableBufferPointer {
       var span = MutableSpan(_unsafeElements: $0)
-      let updated = span.moveUpdate(fromContentsOf: b)
+
+      var o = OutputSpan(_initializing: b)
+      o.append(fromContentsOf: (0..<capacity).map(ID.init(id:)))
+      XCTAssertEqual(o.count, capacity)
+
+      let updated = span.moveUpdate(fromContentsOf: o)
       XCTAssertEqual(updated, capacity)
     }
     XCTAssertEqual(a.map(\.id).elementsEqual(0..<capacity), true)
 
     b.deallocate()
     b = .allocate(capacity: 2*capacity)
-    i = b.initialize(fromContentsOf: (0..<2*capacity).map(ID.init(id:)))
+    let i = b.initialize(fromContentsOf: (0..<2*capacity).map(ID.init(id:)))
     XCTAssertEqual(i, 2*capacity)
 
     a.withUnsafeMutableBufferPointer {
