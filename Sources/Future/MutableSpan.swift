@@ -447,14 +447,21 @@ extension MutableSpan {
     from source: S
   ) -> (unwritten: S.Iterator, index: Int) where S.Element == Element {
     var iterator = source.makeIterator()
-    guard !self.isEmpty else { return (iterator, 0) }
+    let index = update(from: &iterator)
+    return (iterator, index)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func update(
+    from elements: inout some IteratorProtocol<Element>
+  ) -> Int {
     var index = 0
     while index < _count {
-      guard let value = iterator.next() else { break }
-      self[unchecked: index] = value
+      guard let element = elements.next() else { break }
+      self[unchecked: index] = element
       index &+= 1
     }
-    return (iterator, index)
+    return index
   }
 
   @_alwaysEmitIntoClient
@@ -566,14 +573,21 @@ extension MutableSpan where Element: BitwiseCopyable {
   ) -> (unwritten: S.Iterator, index: Int)
   where S.Element == Element, Element: BitwiseCopyable {
     var iterator = source.makeIterator()
-    guard !self.isEmpty else { return (iterator, 0) }
+    let index = update(from: &iterator)
+    return (iterator, index)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func update(
+    from elements: inout some IteratorProtocol<Element>
+  ) -> Int {
     var index = 0
     while index < _count {
-      guard let value = iterator.next() else { break }
-      self[unchecked: index] = value
+      guard let element = elements.next() else { break }
+      self[unchecked: index] = element
       index &+= 1
     }
-    return (iterator, index)
+    return index
   }
 
   @_alwaysEmitIntoClient
