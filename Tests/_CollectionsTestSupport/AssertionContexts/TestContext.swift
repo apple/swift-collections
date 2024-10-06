@@ -20,7 +20,7 @@ public final class TestContext {
   internal var _trace: [Entry] = []
 
   // FIXME: This ought to be a thread-local variable.
-  internal static var _current: TestContext?
+  nonisolated(unsafe) internal static var _current: TestContext?
 
   public init() {}
 }

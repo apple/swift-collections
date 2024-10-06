@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Future
+
 /// A collection implementing a double-ended queue. `Deque` (pronounced "deck")
 /// implements an ordered random-access collection that supports efficient
 /// insertions and removals from both ends.

@@ -53,20 +53,17 @@ var defines: [String] = [
 ]
 
 let _sharedSettings: [SwiftSetting] = defines.map { .define($0) } + [
+  .enableExperimentalFeature("AllowUnsafeAttribute"),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("NonescapableTypes"),
-  .enableExperimentalFeature("BitwiseCopyable"),
   .enableExperimentalFeature("RawLayout"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
 ]
 
-let _settings: [SwiftSetting] = _sharedSettings + [
-  .swiftLanguageVersion(.v6),
-]
 
-let _testSettings: [SwiftSetting] = _sharedSettings + [
-  .swiftLanguageVersion(.v5),
-]
+let _settings: [SwiftSetting] = _sharedSettings + []
+
+let _testSettings: [SwiftSetting] = _sharedSettings + []
 
 struct CustomTarget {
   enum Kind {

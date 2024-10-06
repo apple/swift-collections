@@ -24,13 +24,13 @@ extension Array: ContiguousStorage {
   public var storage: Span<Element> {
     _read {
       if let a = _baseAddressIfContiguous {
-        yield Span(unsafeStart: a, count: count, owner: self)
+        yield Span(_unsafeStart: a, count: count)
       }
       else {
         let a = ContiguousArray(copy self)
         #if true
         let s = Span(
-          unsafeStart: a._baseAddressIfContiguous!, count: a.count, owner: a
+          _unsafeStart: a._baseAddressIfContiguous!, count: a.count
         )
         #else
         let s = a.storage
@@ -45,7 +45,7 @@ extension ContiguousArray: ContiguousStorage {
   public var storage: Span<Element> {
     borrowing get {
       Span(
-        unsafeStart: _baseAddressIfContiguous!, count: count, owner: self
+        _unsafeStart: _baseAddressIfContiguous!, count: count
       )
     }
   }
@@ -57,13 +57,13 @@ extension CollectionOfOne: ContiguousStorage {
 /* ideally: (with strawman syntax)
       @addressable let value = self._element
       yield Span(
-        unsafePointer: Builtin.addressable(value), count: 1, owner: self
-      )
+        unsafePointer: Builtin.addressable(value), count: 1
+ )
 */
 
       let a = ContiguousArray(self)
       yield Span(
-        unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
+        _unsafeStart: a._baseAddressIfContiguous!, count: 1
       )
     }
   }
@@ -85,18 +85,18 @@ extension String.UTF8View: ContiguousStorage {
         let a = ContiguousArray(self)
 //        yield a.storage
         yield Span(
-          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
+          _unsafeStart: a._baseAddressIfContiguous!, count: 1
         )
       }
       else if let buffer = withContiguousStorageIfAvailable({ $0 }) {
         // this is totally wrong, but there is a way with stdlib-internal API
-        yield Span(unsafeElements: buffer, owner: self)
+        yield Span(_unsafeElements: buffer)
       }
       else { // copy non-fast code units if we don't have eager bridging
         let a = ContiguousArray(self)
 //        yield a.storage
         yield Span(
-          unsafeStart: a._baseAddressIfContiguous!, count: 1, owner: a
+          _unsafeStart: a._baseAddressIfContiguous!, count: 1
         )
       }
     }

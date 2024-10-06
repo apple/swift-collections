@@ -13,6 +13,8 @@
 import InternalCollectionsUtilities
 #endif
 
+import Future
+
 extension Deque {
   // Implementation note: we could also use the default `IndexingIterator` here.
   // This custom implementation performs direct storage access to eliminate any

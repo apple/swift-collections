@@ -27,7 +27,7 @@ extension NewArray {
     // FIXME: This is what I want to write; alas, lifetimes are messed up.
     return _storage.value.storage
 #else
-    return Span(unsafeElements: _storage.value._items, owner: self)
+    return Span(_unsafeElements: _storage.value._items)
 #endif
   }
 }
@@ -108,7 +108,7 @@ extension NewArray: RangeReplaceableCollection {
     self._storage = Shared(RigidArray(capacity: 0))
   }
 
-  public func replaceSubrange(
+  mutating public func replaceSubrange(
     _ subrange: Range<Int>,
     with newElements: some Collection<Element>
   ) {

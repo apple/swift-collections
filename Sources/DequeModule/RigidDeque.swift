@@ -95,16 +95,16 @@ public struct _DequeBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProt
       let d = Swift.min(maximumCount, _segments.first.count - _offset)
       let slice = _segments.first.extracting(_offset ..< _offset + d)
       _offset += d
-      return Span(unsafeElements: slice, owner: self)
+      return Span(_unsafeElements: slice)
     }
     guard let second = _segments.second else {
-      return Span(unsafeElements: UnsafeBufferPointer._empty, owner: self)
+      return Span(_unsafeElements: UnsafeBufferPointer._empty)
     }
     let o = _offset - _segments.first.count
     let d = Swift.min(maximumCount, second.count - o)
     let slice = second.extracting(o ..< o + d)
     _offset += d
-    return Span(unsafeElements: slice, owner: self)
+    return Span(_unsafeElements: slice)
   }
 }
 
