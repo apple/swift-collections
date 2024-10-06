@@ -18,13 +18,13 @@ import _CollectionsTestSupport
 #endif
 
 class MeasuringHashable: Hashable {
-  static var equalityChecks = 0
+  nonisolated(unsafe) static var equalityChecks = 0
   static func == (lhs: MeasuringHashable, rhs: MeasuringHashable) -> Bool {
     MeasuringHashable.equalityChecks += 1
     return lhs._inner == rhs._inner
   }
 
-  static var hashChecks = 0
+  nonisolated(unsafe) static var hashChecks = 0
   func hash(into hasher: inout Hasher) {
     MeasuringHashable.hashChecks += 1
     _inner.hash(into: &hasher)

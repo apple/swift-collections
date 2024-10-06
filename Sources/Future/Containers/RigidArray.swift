@@ -60,7 +60,7 @@ extension RigidArray where Element: ~Copyable {
 
 extension RigidArray where Element: ~Copyable {
   public var storage: Span<Element> {
-    Span(unsafeElements: _items, owner: self)
+    Span(_unsafeElements: _items)
   }
 }
 
@@ -84,7 +84,7 @@ extension RigidArray: RandomAccessContainer where Element: ~Copyable {
       let end = _offset + Swift.min(maximumCount, _items.count - _offset)
       defer { _offset = end }
       let chunk = _items.extracting(Range(uncheckedBounds: (_offset, end)))
-      return Span(unsafeElements: chunk, owner: self)
+      return Span(_unsafeElements: chunk)
     }
   }
 
@@ -242,7 +242,8 @@ extension RigidArray {
   internal func _copy(capacity: Int) -> Self {
     precondition(capacity >= count)
     var result = RigidArray<Element>(capacity: capacity)
-    result._storage.initializeAll(fromContentsOf: _storage)
+    let initialized = result._storage.initialize(fromContentsOf: _storage)
+    precondition(initialized == count)
     result._count = count
     return result
   }
@@ -251,7 +252,8 @@ extension RigidArray {
   internal mutating func _move(capacity: Int) -> Self {
     precondition(capacity >= count)
     var result = RigidArray<Element>(capacity: capacity)
-    result._storage.moveInitializeAll(fromContentsOf: _storage)
+    let initialized = result._storage.moveInitialize(fromContentsOf: _storage)
+    precondition(initialized == count)
     result._count = count
     self._count = 0
     return result
