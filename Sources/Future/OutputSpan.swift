@@ -35,16 +35,11 @@ public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   public var isEmpty: Bool { _initialized == 0 }
 
   deinit {
-    // `self` always borrows memory, and it shouldn't have gotten here.
-    // Failing to use `relinquishBorrowedMemory()` is an error.
     if _initialized > 0 {
-#if false
       _start.withMemoryRebound(to: Element.self, capacity: _initialized) {
-        $0.deinitialize(count: _initialized)
+        [ workaround = _initialized ] in
+        _ = $0.deinitialize(count: workaround)
       }
-#else
-      fatalError()
-#endif
     }
   }
 
