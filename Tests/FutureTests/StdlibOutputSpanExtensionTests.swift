@@ -14,7 +14,7 @@ import XCTest
 import Foundation
 import Future
 
-final class OutputBufferUsageTests: XCTestCase {
+final class StdlibOutputSpanExtensionTests: XCTestCase {
 
   func testArrayInitializationExample() {
     var array: [UInt8]
