@@ -237,10 +237,10 @@ final class RawSpanTests: XCTestCase {
     let capacity = 4
     let a = Array(0..<capacity)
     let span = RawSpan(_unsafeSpan: a.storage)
-    for o in span._byteOffsets {
-      XCTAssertTrue(span.boundsContain(o))
+    for o in span.byteOffsets {
+      XCTAssertTrue(span.byteOffsets.contains(o))
     }
-    XCTAssertFalse(span.boundsContain(span.byteCount))
+    XCTAssertFalse(span.byteOffsets.contains(span.byteCount))
   }
 
   func testByteOffsetsOf() {
@@ -257,9 +257,9 @@ final class RawSpanTests: XCTestCase {
 
     var bounds: Range<Int>?
     bounds = span.byteOffsets(of: subSpan1)
-    XCTAssertEqual(bounds, span._byteOffsets.prefix(6))
+    XCTAssertEqual(bounds, span.byteOffsets.prefix(6))
     bounds = span.byteOffsets(of: subSpan2)
-    XCTAssertEqual(bounds, span._byteOffsets.suffix(6))
+    XCTAssertEqual(bounds, span.byteOffsets.suffix(6))
     bounds = subSpan2.byteOffsets(of: subSpan1)
     XCTAssertNil(bounds)
     bounds = subSpan1.byteOffsets(of: subSpan2)

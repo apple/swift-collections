@@ -207,42 +207,8 @@ extension RawSpan {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public var _byteOffsets: Range<Int> {
+  public var byteOffsets: Range<Int> {
     .init(uncheckedBounds: (0, byteCount))
-  }
-}
-
-//MARK: Bounds Checking
-extension RawSpan {
-
-  /// Return true if `offset` is a valid byte offset into this `RawSpan`
-  ///
-  /// - Parameters:
-  ///   - position: a byte offset to validate
-  /// - Returns: true if `offset` is a valid byte offset
-  @_alwaysEmitIntoClient
-  public func boundsContain(_ offset: Int) -> Bool {
-    0 <= offset && offset < byteCount
-  }
-
-  /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
-  ///
-  /// - Parameters:
-  ///   - offsets: a range of byte offsets to validate
-  /// - Returns: true if `offsets` is a valid range of byte offsets
-  @_alwaysEmitIntoClient
-  public func boundsContain(_ offsets: Range<Int>) -> Bool {
-    boundsContain(offsets.lowerBound) && offsets.upperBound <= byteCount
-  }
-
-  /// Return true if `offsets` is a valid range of offsets into this `RawSpan`
-  ///
-  /// - Parameters:
-  ///   - offsets: a range of byte offsets to validate
-  /// - Returns: true if `offsets` is a valid range of byte offsets
-  @_alwaysEmitIntoClient
-  public func boundsContain(_ offsets: ClosedRange<Int>) -> Bool {
-    boundsContain(offsets.lowerBound) && offsets.upperBound < byteCount
   }
 }
 
@@ -264,7 +230,11 @@ extension RawSpan {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @usableFromInline func _extracting(_ bounds: Range<Int>) -> Self {
-    precondition(boundsContain(bounds))
+    precondition(
+      UInt(bitPattern: bounds.lowerBound) <  UInt(bitPattern: _count) &&
+      UInt(bitPattern: bounds.upperBound) <= UInt(bitPattern: _count),
+      "byte offset range out of bounds"
+    )
     return _extracting(unchecked: bounds)
   }
 
@@ -316,7 +286,7 @@ extension RawSpan {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @usableFromInline func _extracting(_ bounds: some RangeExpression<Int>) -> Self {
-    _extracting(bounds.relative(to: _byteOffsets))
+    _extracting(bounds.relative(to: byteOffsets))
   }
 
   @_alwaysEmitIntoClient
@@ -343,7 +313,7 @@ extension RawSpan {
   @usableFromInline func _extracting(
     unchecked bounds: some RangeExpression<Int>
   ) -> Self {
-    _extracting(unchecked: bounds.relative(to: _byteOffsets))
+    _extracting(unchecked: bounds.relative(to: byteOffsets))
   }
 
   @_alwaysEmitIntoClient
@@ -439,9 +409,11 @@ extension RawSpan {
   public func unsafeLoad<T>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    precondition(boundsContain(
-      Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
-    ))
+    precondition(
+      UInt(bitPattern: offset) <  UInt(bitPattern: _count) &&
+      UInt(bitPattern: offset&+MemoryLayout<T>.size) <= UInt(bitPattern: _count),
+      "byte offset range out of bounds"
+    )
     return unsafeLoad(fromUncheckedByteOffset: offset, as: T.self)
   }
 
@@ -490,9 +462,11 @@ extension RawSpan {
   public func unsafeLoadUnaligned<T: BitwiseCopyable>(
     fromByteOffset offset: Int = 0, as: T.Type
   ) -> T {
-    precondition(boundsContain(
-      Range(uncheckedBounds: (offset, offset+MemoryLayout<T>.size))
-    ))
+    precondition(
+      UInt(bitPattern: offset) <  UInt(bitPattern: _count) &&
+      UInt(bitPattern: offset&+MemoryLayout<T>.size) <= UInt(bitPattern: _count),
+      "byte offset range out of bounds"
+    )
     return unsafeLoadUnaligned(fromUncheckedByteOffset: offset, as: T.self)
   }
 

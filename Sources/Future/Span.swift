@@ -326,51 +326,16 @@ extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public var isEmpty: Bool { _count == 0 }
 
+  /// The representation for a position in `Span`.
+  public typealias Index = Int
+
   /// The indices that are valid for subscripting the span, in ascending
   /// order.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public var _indices: Range<Int> {
+  public var indices: Range<Index> {
     Range(uncheckedBounds: (0, _count))
-  }
-}
-
-//MARK: Bounds Checking
-@_disallowFeatureSuppression(NonescapableTypes)
-extension Span where Element: ~Copyable {
-
-  /// Return true if `index` is a valid offset into this `Span`
-  ///
-  /// - Parameters:
-  ///   - index: an index to validate
-  /// - Returns: true if `index` is valid
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public func boundsContain(_ index: Int) -> Bool {
-    0 <= index && index < _count
-  }
-
-  /// Return true if `indices` is a valid range of indices into this `Span`
-  ///
-  /// - Parameters:
-  ///   - indices: a range of indices to validate
-  /// - Returns: true if `indices` is a valid range of indices
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public func boundsContain(_ indices: Range<Int>) -> Bool {
-    boundsContain(indices.lowerBound) && indices.upperBound <= _count
-  }
-
-  /// Return true if `indices` is a valid range of indices into this `Span`
-  ///
-  /// - Parameters:
-  ///   - indices: a range of indices to validate
-  /// - Returns: true if `indices` is a valid range of indices
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public func boundsContain(_ indices: ClosedRange<Int>) -> Bool {
-    boundsContain(indices.lowerBound) && indices.upperBound < _count
   }
 }
 
@@ -397,9 +362,9 @@ extension Span where Element: ~Copyable {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public subscript(_ position: Int) -> Element {
+  public subscript(_ position: Index) -> Element {
     _read {
-      precondition(boundsContain(position), "index out of bounds")
+      precondition(indices.contains(position), "index out of bounds")
       yield self[unchecked: position]
     }
   }
@@ -414,7 +379,7 @@ extension Span where Element: ~Copyable {
   /// - Complexity: O(1)
   @unsafe
   @_alwaysEmitIntoClient
-  public subscript(unchecked position: Int) -> Element {
+  public subscript(unchecked position: Index) -> Element {
     _read {
       let element = _start.advanced(by: position&*MemoryLayout<Element>.stride)
       let binding = Builtin.bindMemory(element._rawValue, count._builtinWordValue, Element.self)
@@ -434,9 +399,9 @@ extension Span where Element: BitwiseCopyable {
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
-  public subscript(_ position: Int) -> Element {
+  public subscript(_ position: Index) -> Element {
     get {
-      precondition(boundsContain(position), "index out of bounds")
+      precondition(indices.contains(position), "index out of bounds")
       return self[unchecked: position]
     }
   }
@@ -451,7 +416,7 @@ extension Span where Element: BitwiseCopyable {
   /// - Complexity: O(1)
   @unsafe
   @_alwaysEmitIntoClient
-  public subscript(unchecked position: Int) -> Element {
+  public subscript(unchecked position: Index) -> Element {
     get {
       let address = _start.advanced(by: position&*MemoryLayout<Element>.stride)
       return address.loadUnaligned(as: Element.self)
@@ -477,14 +442,18 @@ extension Span where Element: ~Copyable {
   ///
   /// - Complexity: O(1)
   @_disallowFeatureSuppression(NonescapableTypes)
-  @usableFromInline func _extracting(_ bounds: Range<Int>) -> Self {
-    precondition(boundsContain(bounds), "index out of bounds")
+  @usableFromInline func _extracting(_ bounds: Range<Index>) -> Self {
+    precondition(
+      UInt(bitPattern: bounds.lowerBound) <  UInt(bitPattern: _count) &&
+      UInt(bitPattern: bounds.upperBound) <= UInt(bitPattern: _count),
+      "index range out of bounds"
+    )
     return _extracting(unchecked: bounds)
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  public mutating func _shrink(to bounds: Range<Int>) {
+  public mutating func _shrink(to bounds: Range<Index>) {
     self = _extracting(bounds)
   }
 
@@ -505,7 +474,7 @@ extension Span where Element: ~Copyable {
   /// - Complexity: O(1)
   @_disallowFeatureSuppression(NonescapableTypes)
   @unsafe
-  @usableFromInline func _extracting(unchecked bounds: Range<Int>) -> Self {
+  @usableFromInline func _extracting(unchecked bounds: Range<Index>) -> Self {
     Span(
       _unchecked: _pointer?.advanced(by: bounds.lowerBound&*MemoryLayout<Element>.stride),
       count: bounds.count
@@ -515,7 +484,7 @@ extension Span where Element: ~Copyable {
   @_disallowFeatureSuppression(NonescapableTypes)
   @unsafe
   @_alwaysEmitIntoClient
-  public mutating func _shrink(toUnchecked bounds: Range<Int>) {
+  public mutating func _shrink(toUnchecked bounds: Range<Index>) {
     self = _extracting(unchecked: bounds)
   }
 
@@ -534,7 +503,7 @@ extension Span where Element: ~Copyable {
   /// - Complexity: O(1)
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline func _extracting(_ bounds: some RangeExpression<Int>) -> Self {
-    _extracting(bounds.relative(to: _indices))
+    _extracting(bounds.relative(to: indices))
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
@@ -563,7 +532,7 @@ extension Span where Element: ~Copyable {
   @usableFromInline func _extracting(
     uncheckedBounds bounds: some RangeExpression<Int>
   ) -> Self {
-    _extracting(unchecked: bounds.relative(to: _indices))
+    _extracting(unchecked: bounds.relative(to: indices))
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
@@ -689,7 +658,7 @@ extension Span where Element: ~Copyable {
   /// Returns: A range of indices within `self`, or `nil`
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  public func indices(of span: borrowing Self) -> Range<Int>? {
+  public func indices(of span: borrowing Self) -> Range<Index>? {
     if span._count > _count { return nil }
     guard let subspanStart = span._pointer, _count > 0 else {
       return _pointer == span._pointer ? Range(uncheckedBounds: (0, 0)) : nil
