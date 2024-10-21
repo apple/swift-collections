@@ -513,8 +513,7 @@ extension _BTree {
       node.read({ handle in
         let slot = handle.endSlot(forKey: key) - 1
         if slot > 0 {
-          // Sanity Check
-          assert(slot < handle.elementCount, "Slot out of bounds.")
+          assert(slot < handle.elementCount, "Slot out of bounds")
           
           if handle.isLeaf {
             offset += slot

@@ -487,7 +487,7 @@ extension _BTree {
       if shouldStop { break }
     }
     
-    assert(slot != -1, "B-Tree sanity check fail.")
+    assert(slot != -1)
     
     parents.append(node)
     slots.append(UInt16(slot))
