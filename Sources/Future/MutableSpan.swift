@@ -676,7 +676,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   public mutating func update(
     fromContentsOf source: RawSpan
   ) -> Int where Element: BitwiseCopyable {
-    self.update(fromContentsOf: source.unsafeView(as: Element.self))
+    self.update(fromContentsOf: source._unsafeView(as: Element.self))
   }
 
   // We have to define the overloads for raw buffers and their slices,

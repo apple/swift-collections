@@ -321,6 +321,11 @@ extension Span where Element: Equatable {
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: some Collection<Element>) -> Bool {
+    let equal = other.withContiguousStorageIfAvailable {
+      _elementsEqual(Span(_unsafeElements: $0))
+    }
+    if let equal { return equal }
+
     guard count == other.count else { return false }
     if count == 0 { return true }
 
@@ -485,7 +490,7 @@ extension Span where Element: BitwiseCopyable {
   }
 }
 
-//MARK: extracting sub-spans
+//MARK: sub-spans
 @_disallowFeatureSuppression(NonescapableTypes)
 extension Span where Element: ~Copyable {
 
@@ -513,12 +518,6 @@ extension Span where Element: ~Copyable {
     return _extracting(unchecked: bounds)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(to bounds: Range<Index>) {
-    self = _extracting(bounds)
-  }
-
   /// Constructs a new span over the items within the supplied range of
   /// positions within this span.
   ///
@@ -542,13 +541,6 @@ extension Span where Element: ~Copyable {
     return Span(_unchecked: _pointer?.advanced(by: delta), count: bounds.count)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @unsafe
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(toUnchecked bounds: Range<Index>) {
-    self = _extracting(unchecked: bounds)
-  }
-
   /// Constructs a new span over the items within the supplied range of
   /// positions within this span.
   ///
@@ -566,12 +558,6 @@ extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public func _extracting(_ bounds: some RangeExpression<Int>) -> Self {
     _extracting(bounds.relative(to: indices))
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(to bounds: some RangeExpression<Int>) {
-    self = _extracting(bounds)
   }
 
   /// Constructs a new span over the items within the supplied range of
@@ -598,13 +584,6 @@ extension Span where Element: ~Copyable {
     _extracting(unchecked: bounds.relative(to: indices))
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @unsafe
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(toUnchecked bounds: some RangeExpression<Int>) {
-    self = _extracting(uncheckedBounds: bounds)
-  }
-
   /// Constructs a new span over all the items of this span.
   ///
   /// The returned span's first item is always at offset 0; unlike buffer
@@ -621,7 +600,7 @@ extension Span where Element: ~Copyable {
   }
 }
 
-//MARK: withUnsafePointer, etc.
+//MARK: UnsafeBufferPointer access hatch
 @_disallowFeatureSuppression(NonescapableTypes)
 extension Span where Element: ~Copyable  {
 
@@ -643,7 +622,7 @@ extension Span where Element: ~Copyable  {
   public func withUnsafeBufferPointer<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeBufferPointer<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    guard let pointer = _pointer, count > 0 else {
+    guard let pointer = _pointer else {
       return try body(.init(start: nil, count: 0))
     }
     let binding = Builtin.bindMemory(
@@ -726,17 +705,16 @@ extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public func indices(of span: borrowing Self) -> Range<Index>? {
     if span._count > _count { return nil }
-    guard let subspanStart = span._pointer, _count > 0 else {
+    guard let spanStart = span._pointer, _count > 0 else {
       return _pointer == span._pointer ? Range(uncheckedBounds: (0, 0)) : nil
     }
-    if subspanStart < _start { return nil }
-    let byteOffset = _start.distance(to: subspanStart)
     let stride = MemoryLayout<Element>.stride
+    let spanEnd = spanStart + stride&*span._count
+    if spanStart < _start || spanEnd > (_start + stride&*_count) { return nil }
+    let byteOffset = _start.distance(to: spanStart)
     let (lower, r) = byteOffset.quotientAndRemainder(dividingBy: stride)
     guard r == 0 else { return nil }
-    let upper = lower + span._count
-    guard upper <= _count else { return nil }
-    return Range(uncheckedBounds: (lower, upper))
+    return Range(uncheckedBounds: (lower, lower &+ span._count))
   }
 }
 
@@ -767,12 +745,6 @@ extension Span where Element: ~Copyable {
     return Self(_unchecked: _pointer, count: newCount)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(toFirst maxLength: Int) {
-    self = _extracting(first: maxLength)
-  }
-
   /// Returns a span over all but the given number of trailing elements.
   ///
   /// If the number of elements to drop exceeds the number of elements in
@@ -793,12 +765,6 @@ extension Span where Element: ~Copyable {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
     return Self(_unchecked: _pointer, count: count&-droppedCount)
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(droppingLast k: Int) {
-    self = _extracting(droppingLast: k)
   }
 
   /// Returns a span containing the final elements of the span,
@@ -825,12 +791,6 @@ extension Span where Element: ~Copyable {
     return Self(_unchecked: newStart, count: newCount)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(toLast maxLength: Int) {
-    self = _extracting(last: maxLength)
-  }
-
   /// Returns a span over all but the given number of initial elements.
   ///
   /// If the number of elements to drop exceeds the number of elements in
@@ -852,11 +812,5 @@ extension Span where Element: ~Copyable {
     let droppedCount = min(k, count)
     let newStart = _pointer?.advanced(by: droppedCount*MemoryLayout<Element>.stride)
     return Self(_unchecked: newStart, count: count&-droppedCount)
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func _shrink(droppingFirst k: Int) {
-    self = _extracting(droppingFirst: k)
   }
 }

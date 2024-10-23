@@ -99,9 +99,8 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let span = RawSpan(_unsafeBytes: $0)
 
-      var copy = span
-      copy._shrink(droppingFirst: 2)
-      let u0 = copy.unsafeLoadUnaligned(as: UInt64.self)
+      let suffix = span._extracting(droppingFirst: 2)
+      let u0 = suffix.unsafeLoadUnaligned(as: UInt64.self)
       XCTAssertEqual(u0 & 0xff, 2)
       XCTAssertEqual(u0.byteSwapped & 0xff, 9)
       let u1 = span.unsafeLoadUnaligned(fromByteOffset: 6, as: UInt64.self)
@@ -121,13 +120,13 @@ final class RawSpanTests: XCTestCase {
       let sub3 = span._extracting(...)
       let sub4 = span._extracting(unchecked: 2...)
       XCTAssertTrue(
-        sub1.unsafeView(as: UInt8.self)._elementsEqual(sub2.unsafeView(as: UInt8.self))
+        sub1._unsafeView(as: UInt8.self)._elementsEqual(sub2._unsafeView(as: UInt8.self))
       )
       XCTAssertTrue(
-        sub3.unsafeView(as: Int8.self)._elementsEqual(span.unsafeView(as: Int8.self))
+        sub3._unsafeView(as: Int8.self)._elementsEqual(span._unsafeView(as: Int8.self))
       )
       XCTAssertFalse(
-        sub4.unsafeView(as: Int8.self)._elementsEqual(sub3.unsafeView(as: Int8.self))
+        sub4._unsafeView(as: Int8.self)._elementsEqual(sub3._unsafeView(as: Int8.self))
       )
     }
   }
@@ -137,10 +136,8 @@ final class RawSpanTests: XCTestCase {
     let b = (0..<capacity).map(UInt8.init)
     b.withUnsafeBytes {
       let span = RawSpan(_unsafeBytes: $0)
-      var prefix = span
-      prefix._shrink(to: 0..<8)
-      var beyond = prefix
-      beyond._shrink(toUnchecked: 16..<24)
+      let prefix = span._extracting(0..<8)
+      let beyond = prefix._extracting(unchecked: 16..<24)
       XCTAssertEqual(beyond.byteCount, 8)
       XCTAssertEqual(beyond.unsafeLoad(as: UInt8.self), 16)
     }
