@@ -113,7 +113,7 @@ final class SpanTests: XCTestCase {
     let array = Array(0..<count)
     array.withUnsafeBufferPointer {
       let span = Span(_unsafeElements: $0)
-      let raw  = span._unsafeRawSpan
+      let raw  = RawSpan(_unsafeSpan: span)
       XCTAssertEqual(raw.byteCount, span.count*MemoryLayout<Int>.stride)
     }
   }
@@ -191,6 +191,9 @@ final class SpanTests: XCTestCase {
       XCTAssertTrue(span._elementsEqual(span._extracting(0...)))
       XCTAssertTrue(span._elementsEqual(span._extracting(uncheckedBounds: ..<span.count)))
       XCTAssertTrue(span._elementsEqual(span._extracting(...)))
+
+      let emptySpan = span._extracting(0..<0)
+      _ = emptySpan._extracting(0..<0)
     }
   }
 

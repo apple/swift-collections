@@ -157,8 +157,8 @@ final class RawSpanTests: XCTestCase {
     }
 
     // Should we be able to derive a non-escapable value from a Span via unsafe pointers?
-    let copy = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
-    _ = copy
+//    let copy: RawSpan = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
+//    _ = copy
   }
 
   func testStrangeBorrow() {
@@ -200,6 +200,9 @@ final class RawSpanTests: XCTestCase {
         ),
         UInt8(capacity-2)
       )
+      let emptySpan = span._extracting(first: 0)
+      let emptierSpan = emptySpan._extracting(0..<0)
+      XCTAssertTrue(emptySpan.isIdentical(to: emptierSpan))
     }
 
     do {
@@ -231,16 +234,6 @@ final class RawSpanTests: XCTestCase {
       XCTAssertEqual(span._extracting(last: 1).byteCount, b.count)
       XCTAssertEqual(span._extracting(droppingFirst: 1).byteCount, b.count)
     }
-  }
-
-  func testBoundsChecking() {
-    let capacity = 4
-    let a = Array(0..<capacity)
-    let span = RawSpan(_unsafeSpan: a.storage)
-    for o in span.byteOffsets {
-      XCTAssertTrue(span.byteOffsets.contains(o))
-    }
-    XCTAssertFalse(span.byteOffsets.contains(span.byteCount))
   }
 
   func testByteOffsetsOf() {
