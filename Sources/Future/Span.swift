@@ -18,17 +18,19 @@ import Builtin
 @frozen
 public struct Span<Element: ~Copyable & ~Escapable>
 : ~Escapable, Copyable, BitwiseCopyable {
-  @usableFromInline let _pointer: UnsafeRawPointer?
+  @usableFromInline internal let _pointer: UnsafeRawPointer?
 
-  @usableFromInline @inline(__always)
-  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
+  @_alwaysEmitIntoClient
+  internal func _start() -> UnsafeRawPointer {
+    _pointer.unsafelyUnwrapped
+  }
 
   @usableFromInline let _count: Int
 
   @_disallowFeatureSuppression(NonescapableTypes)
-  @usableFromInline @inline(__always)
+  @_alwaysEmitIntoClient
   @lifetime(immortal)
-  init(
+  internal init(
     _unchecked pointer: UnsafeRawPointer?,
     count: Int
   ) {
@@ -60,7 +62,7 @@ extension Span where Element: ~Copyable {
   ) {
     precondition(
       ((Int(bitPattern: buffer.baseAddress) &
-        (MemoryLayout<Element>.alignment&-1)) == 0),
+        (MemoryLayout<Element>.alignment &- 1)) == 0),
       "baseAddress must be properly aligned to access Element"
     )
     self.init(_unchecked: buffer.baseAddress, count: buffer.count)
@@ -172,12 +174,14 @@ extension Span where Element: BitwiseCopyable {
   ) {
     precondition(
       ((Int(bitPattern: buffer.baseAddress) &
-        (MemoryLayout<Element>.alignment&-1)) == 0),
+        (MemoryLayout<Element>.alignment &- 1)) == 0),
       "baseAddress must be properly aligned to access Element"
     )
     let (byteCount, stride) = (buffer.count, MemoryLayout<Element>.stride)
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
-    precondition(remainder == 0, "Span must contain a whole number of elements")
+    precondition(
+      remainder == 0, "Span must contain a whole number of elements"
+    )
     self.init(_unchecked: buffer.baseAddress, count: count)
   }
 
@@ -442,10 +446,13 @@ extension Span where Element: ~Copyable {
   public subscript(unchecked position: Index) -> Element {
     //FIXME: change to unsafeRawAddress or unsafeAddress when ready
     _read {
-      let element = _start.advanced(by: position&*MemoryLayout<Element>.stride)
-      let binding = Builtin.bindMemory(element._rawValue, count._builtinWordValue, Element.self)
-      defer { Builtin.rebindMemory(element._rawValue, binding) }
-      yield UnsafePointer<Element>(element._rawValue).pointee
+      let elementOffset = position &* MemoryLayout<Element>.stride
+      let address = _start().advanced(by: elementOffset)
+      let binding = Builtin.bindMemory(
+        address._rawValue, 1._builtinWordValue, Element.self
+      )
+      defer { Builtin.rebindMemory(address._rawValue, binding) }
+      yield UnsafePointer<Element>(address._rawValue).pointee
     }
   }
 }
@@ -484,7 +491,8 @@ extension Span where Element: BitwiseCopyable {
   @_alwaysEmitIntoClient
   public subscript(unchecked position: Index) -> Element {
     get {
-      let address = _start.advanced(by: position&*MemoryLayout<Element>.stride)
+      let elementOffset = position &* MemoryLayout<Element>.stride
+      let address = _start().advanced(by: elementOffset)
       return address.loadUnaligned(as: Element.self)
     }
   }
@@ -537,7 +545,7 @@ extension Span where Element: ~Copyable {
   @unsafe
   @_alwaysEmitIntoClient
   public func _extracting(unchecked bounds: Range<Index>) -> Self {
-    let delta = bounds.lowerBound&*MemoryLayout<Element>.stride
+    let delta = bounds.lowerBound &* MemoryLayout<Element>.stride
     return Span(_unchecked: _pointer?.advanced(by: delta), count: bounds.count)
   }
 
@@ -708,10 +716,11 @@ extension Span where Element: ~Copyable {
     guard let spanStart = span._pointer, _count > 0 else {
       return _pointer == span._pointer ? Range(uncheckedBounds: (0, 0)) : nil
     }
+    let start = _start()
     let stride = MemoryLayout<Element>.stride
-    let spanEnd = spanStart + stride&*span._count
-    if spanStart < _start || spanEnd > (_start + stride&*_count) { return nil }
-    let byteOffset = _start.distance(to: spanStart)
+    let spanEnd = spanStart + stride &* span._count
+    if spanStart < start || spanEnd > (start + stride &* _count) { return nil }
+    let byteOffset = start.distance(to: spanStart)
     let (lower, r) = byteOffset.quotientAndRemainder(dividingBy: stride)
     guard r == 0 else { return nil }
     return Range(uncheckedBounds: (lower, lower &+ span._count))
@@ -764,7 +773,7 @@ extension Span where Element: ~Copyable {
   public func _extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
-    return Self(_unchecked: _pointer, count: count&-droppedCount)
+    return Self(_unchecked: _pointer, count: count &- droppedCount)
   }
 
   /// Returns a span containing the final elements of the span,
@@ -787,7 +796,8 @@ extension Span where Element: ~Copyable {
   public func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, count)
-    let newStart = _pointer?.advanced(by: (count&-newCount)*MemoryLayout<Element>.stride)
+    let offset = (count &- newCount) * MemoryLayout<Element>.stride
+    let newStart = _pointer?.advanced(by: offset)
     return Self(_unchecked: newStart, count: newCount)
   }
 
@@ -810,7 +820,8 @@ extension Span where Element: ~Copyable {
   public func _extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
     let droppedCount = min(k, count)
-    let newStart = _pointer?.advanced(by: droppedCount*MemoryLayout<Element>.stride)
-    return Self(_unchecked: newStart, count: count&-droppedCount)
+    let offset = droppedCount * MemoryLayout<Element>.stride
+    let newStart = _pointer?.advanced(by: offset)
+    return Self(_unchecked: newStart, count: count &- droppedCount)
   }
 }

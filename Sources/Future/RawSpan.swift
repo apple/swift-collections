@@ -17,15 +17,17 @@
 public struct RawSpan: ~Escapable, Copyable, BitwiseCopyable {
   @usableFromInline let _pointer: UnsafeRawPointer?
 
-  @usableFromInline @inline(__always)
-  var _start: UnsafeRawPointer { _pointer.unsafelyUnwrapped }
+  @_alwaysEmitIntoClient
+  internal func _start() -> UnsafeRawPointer {
+    _pointer.unsafelyUnwrapped
+  }
 
   @usableFromInline let _count: Int
 
   @_disallowFeatureSuppression(NonescapableTypes)
-  @usableFromInline @inline(__always)
+  @_alwaysEmitIntoClient
   @lifetime(immortal)
-  init(
+  internal init(
     _unchecked pointer: UnsafeRawPointer?,
     byteCount: Int
   ) {
@@ -174,7 +176,7 @@ extension RawSpan {
   ) {
     precondition(count >= 0, "Count must not be negative")
     self.init(
-      _unchecked: pointer, byteCount: count*MemoryLayout<T>.stride
+      _unchecked: pointer, byteCount: count * MemoryLayout<T>.stride
     )
   }
 
@@ -191,7 +193,7 @@ extension RawSpan {
     _unsafeSpan span: borrowing Span<Element>
   ) {
     self.init(
-      _unchecked: UnsafeRawPointer(span._start),
+      _unchecked: span._pointer,
       byteCount: span.count &* MemoryLayout<Element>.stride
     )
   }
@@ -460,7 +462,7 @@ extension RawSpan {
   public func unsafeLoad<T>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
-    _start.load(fromByteOffset: offset, as: T.self)
+    _start().load(fromByteOffset: offset, as: T.self)
   }
 
   /// Returns a new instance of the given type, constructed from the raw memory
@@ -516,7 +518,7 @@ extension RawSpan {
   public func unsafeLoadUnaligned<T: BitwiseCopyable>(
     fromUncheckedByteOffset offset: Int, as: T.Type
   ) -> T {
-    _start.loadUnaligned(fromByteOffset: offset, as: T.self)
+    _start().loadUnaligned(fromByteOffset: offset, as: T.self)
   }
 }
 
@@ -545,9 +547,10 @@ extension RawSpan {
     guard let spanStart = span._pointer, _count > 0 else {
       return _pointer == span._pointer ? Range(uncheckedBounds: (0, 0)) : nil
     }
+    let start = _start()
     let spanEnd = spanStart + span._count
-    if spanStart < _start || (_start + _count) < spanEnd { return nil }
-    let lower = _start.distance(to: spanStart)
+    if spanStart < start || (start + _count) < spanEnd { return nil }
+    let lower = start.distance(to: spanStart)
     return Range(uncheckedBounds: (lower, lower &+ span._count))
   }
 }
@@ -597,8 +600,8 @@ extension RawSpan {
   @_alwaysEmitIntoClient
   public func _extracting(droppingLast k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let dc = min(k, byteCount)
-    return Self(_unchecked: _pointer, byteCount: byteCount&-dc)
+    let droppedCount = min(k, byteCount)
+    return Self(_unchecked: _pointer, byteCount: byteCount &- droppedCount)
   }
 
   /// Returns a span containing the trailing bytes of the span,
@@ -621,7 +624,7 @@ extension RawSpan {
   public func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length.")
     let newCount = min(maxLength, byteCount)
-    let newStart = _pointer?.advanced(by: byteCount&-newCount)
+    let newStart = _pointer?.advanced(by: byteCount &- newCount)
     return Self(_unchecked: newStart, byteCount: newCount)
   }
 
@@ -643,8 +646,8 @@ extension RawSpan {
   @_alwaysEmitIntoClient
   public func _extracting(droppingFirst k: Int) -> Self {
     precondition(k >= 0, "Can't drop a negative number of elements.")
-    let dc = min(k, byteCount)
-    let newStart = _pointer?.advanced(by: dc)
-    return Self(_unchecked: newStart, byteCount: byteCount&-dc)
+    let droppedCount = min(k, byteCount)
+    let newStart = _pointer?.advanced(by: droppedCount)
+    return Self(_unchecked: newStart, byteCount: byteCount &- droppedCount)
   }
 }

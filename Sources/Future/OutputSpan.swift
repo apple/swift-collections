@@ -291,7 +291,7 @@ extension OutputSpan {
       "destination span cannot contain every element from source."
     )
     let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
-    source._start.withMemoryRebound(to: Element.self, capacity: source.count) {
+    source._start().withMemoryRebound(to: Element.self, capacity: source.count) {
       _ = tail.initializeMemory(as: Element.self, from: $0, count: source.count)
     }
     _initialized += source.count

@@ -505,7 +505,7 @@ extension MutableSpan {
       "destination span cannot contain every element from source."
     )
     _start.withMemoryRebound(to: Element.self, capacity: source.count) { dest in
-      source._start.withMemoryRebound(to: Element.self, capacity: source.count) {
+      source._start().withMemoryRebound(to: Element.self, capacity: source.count) {
         dest.update(from: $0, count: source.count)
       }
     }
@@ -657,7 +657,7 @@ extension MutableSpan where Element: BitwiseCopyable {
       "destination span cannot contain every element from source."
     )
     _start.copyMemory(
-      from: source._start, byteCount: source.count&*MemoryLayout<Element>.stride
+      from: source._start(), byteCount: source.count&*MemoryLayout<Element>.stride
     )
     return source.count
   }
