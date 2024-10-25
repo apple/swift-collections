@@ -138,6 +138,15 @@ extension RawSpan {
     self.init(_unsafeBytes: UnsafeRawBufferPointer(buffer))
   }
 
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
+  public init<T: BitwiseCopyable>(
+    _unsafeElements buffer: borrowing Slice<UnsafeBufferPointer<T>>
+  ) {
+    self.init(_unsafeBytes: .init(UnsafeBufferPointer(rebasing: buffer)))
+  }
+
   /// Unsafely create a `RawSpan` over initialized memory.
   ///
   /// The memory in `buffer` must be owned by the instance `owner`,
@@ -154,6 +163,15 @@ extension RawSpan {
     _unsafeElements buffer: UnsafeMutableBufferPointer<T>
   ) {
     self.init(_unsafeElements: UnsafeBufferPointer(buffer))
+  }
+
+  @_disallowFeatureSuppression(NonescapableTypes)
+  @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
+  public init<T: BitwiseCopyable>(
+    _unsafeElements buffer: borrowing Slice<UnsafeMutableBufferPointer<T>>
+  ) {
+    self.init(_unsafeBytes: .init(UnsafeBufferPointer(rebasing: buffer)))
   }
 
   /// Unsafely create a `RawSpan` over initialized memory.
