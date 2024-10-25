@@ -57,8 +57,7 @@ extension _Node.UnsafeHandle {
         // not exist.
         return nil
       } else {
-        // Sanity-check
-        assert(slot < self.childCount, "Attempt to remove from invalid child.")
+        assert(slot < self.childCount, "Attempt to remove from invalid child")
         
         let removedElement = self[childAt: slot].update({
           $0.removeAnyElement(forKey: key)
