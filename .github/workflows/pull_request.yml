@@ -14,3 +14,9 @@ jobs:
     with:
       license_header_check_enabled: false
       license_header_check_project_name: "Swift.org"
+      # https://github.com/apple/swift-collections/issues/428
+      python_lint_check_enabled: false
+      # https://github.com/apple/swift-collections/issues/429
+      docs_check_enabled: false
+      # https://github.com/apple/swift-collections/issues/430
+      shell_check_enabled: false
