@@ -29,7 +29,7 @@ public struct Span<Element: ~Copyable & ~Escapable>
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow pointer)
   internal init(
     _unchecked pointer: UnsafeRawPointer?,
     count: Int
@@ -56,7 +56,7 @@ extension Span where Element: ~Copyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
     _unsafeElements buffer: UnsafeBufferPointer<Element>
   ) {
@@ -79,7 +79,7 @@ extension Span where Element: ~Copyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
     _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
   ) {
@@ -99,13 +99,13 @@ extension Span where Element: ~Copyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow pointer)
   public init(
-    _unsafeStart start: UnsafePointer<Element>,
+    _unsafeStart pointer: UnsafePointer<Element>,
     count: Int
   ) {
     precondition(count >= 0, "Count must not be negative")
-    self.init(_unsafeElements: .init(start: start, count: count))
+    self.init(_unsafeElements: .init(start: pointer, count: count))
   }
 }
 
@@ -123,9 +123,9 @@ extension Span {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
-    _unsafeElements buffer: Slice<UnsafeBufferPointer<Element>>
+    _unsafeElements buffer: borrowing Slice<UnsafeBufferPointer<Element>>
   ) {
     self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
   }
@@ -141,9 +141,9 @@ extension Span {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
-    _unsafeElements buffer: Slice<UnsafeMutableBufferPointer<Element>>
+    _unsafeElements buffer: borrowing Slice<UnsafeMutableBufferPointer<Element>>
   ) {
     self.init(_unsafeElements: UnsafeBufferPointer(rebasing: buffer))
   }
@@ -168,7 +168,7 @@ extension Span where Element: BitwiseCopyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
     _unsafeBytes buffer: UnsafeRawBufferPointer
   ) {
@@ -201,7 +201,7 @@ extension Span where Element: BitwiseCopyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
     _unsafeBytes buffer: UnsafeMutableRawBufferPointer
   ) {
@@ -225,7 +225,7 @@ extension Span where Element: BitwiseCopyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow pointer)
   public init(
     _unsafeStart pointer: UnsafeRawPointer,
     byteCount: Int
@@ -250,9 +250,9 @@ extension Span where Element: BitwiseCopyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
-    _unsafeBytes buffer: Slice<UnsafeRawBufferPointer>
+    _unsafeBytes buffer: borrowing Slice<UnsafeRawBufferPointer>
   ) {
     self.init(_unsafeBytes: UnsafeRawBufferPointer(rebasing: buffer))
   }
@@ -273,9 +273,9 @@ extension Span where Element: BitwiseCopyable {
   ///            the newly created `Span`.
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  @lifetime(immortal)
+  @lifetime(borrow buffer)
   public init(
-    _unsafeBytes buffer: Slice<UnsafeMutableRawBufferPointer>
+    _unsafeBytes buffer: borrowing Slice<UnsafeMutableRawBufferPointer>
   ) {
     self.init(_unsafeBytes: UnsafeRawBufferPointer(rebasing: buffer))
   }
