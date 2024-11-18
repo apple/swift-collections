@@ -23,3 +23,5 @@ jobs:
       format_check_enabled: false
       # https://github.com/apple/swift-collections/issues/434
       license_header_check_enabled: false
+      # https://github.com/apple/swift-collections/issues/435
+      api_breakage_check_enabled: false
