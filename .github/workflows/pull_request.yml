@@ -21,3 +21,5 @@ jobs:
       shell_check_enabled: false
       # https://github.com/apple/swift-collections/issues/431
       format_check_enabled: false
+      # https://github.com/apple/swift-collections/issues/434
+      license_header_check_enabled: false
