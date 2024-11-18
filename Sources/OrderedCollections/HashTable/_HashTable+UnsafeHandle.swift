@@ -292,21 +292,20 @@ extension _HashTable.UnsafeHandle {
 
 extension _UnsafeHashTable {
   @inlinable
-  internal func _find<Element>(
+  internal func _find<Element: Hashable>(
     _ item: Element,
     in elements: ContiguousArray<Element>
-  ) -> (index: Int?, bucket: Bucket)
-  where Element: Hashable {
+  ) -> (index: Int?, bucket: Bucket) {
     elements.withUnsafeBufferPointer { buffer in
       _find(item, in: buffer)
     }
   }
+
   @inlinable
-  internal func _find<Element>(
+  internal func _find<Element: Hashable>(
     _ item: Element,
     in elements: UnsafeBufferPointer<Element>
-  ) -> (index: Int?, bucket: Bucket)
-  where Element: Hashable {
+  ) -> (index: Int?, bucket: Bucket) {
     let start = idealBucket(for: item)
     var (iterator, value) = startFind(start)
     while let index = value {
