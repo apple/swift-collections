@@ -47,7 +47,8 @@ extension Box where T: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_transparent
-  public consuming func leak() -> dependsOn(immortal) Inout<T> {
+  @lifetime(immortal)
+  public consuming func leak() -> Inout<T> {
     let result = Inout<T>(unsafeImmortalAddress: _pointer)
     discard self
     return result

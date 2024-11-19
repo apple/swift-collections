@@ -16,7 +16,8 @@ extension Span where Element: ~Copyable {
     var curPointer: UnsafeRawPointer?
     let endPointer: UnsafeRawPointer?
 
-    public init(from span: consuming Span<Element>) -> dependsOn(immortal) Self {
+    @lifetime(span)
+    public init(from span: consuming Span<Element>) {
       curPointer = span._pointer
       endPointer = span._pointer?.advanced(
         by: span.count*MemoryLayout<Element>.stride

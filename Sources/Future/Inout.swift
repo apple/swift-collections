@@ -57,9 +57,10 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   ///                                    an immortal instance of type 'T'.
   @_alwaysEmitIntoClient
   @_transparent
+  @lifetime(immortal)
   public init(
     unsafeImmortalAddress: UnsafeMutablePointer<T>
-  ) -> dependsOn(immortal) Self {
+  ) {
     _pointer = unsafeImmortalAddress
   }
 }

@@ -26,10 +26,11 @@ public struct MutableSpan<Element: ~Copyable>: ~Copyable & ~Escapable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
+  @lifetime(borrow start)
   init(
     _unchecked start: UnsafeMutableRawPointer?,
     count: Int
-  ) -> dependsOn(immortal) Self {
+  ) {
     _pointer = start
     _count = count
   }
@@ -44,18 +45,20 @@ extension MutableSpan where Element: ~Copyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
+  @lifetime(borrow elements)
   internal init(
     _unchecked elements: UnsafeMutableBufferPointer<Element>
-  ) -> dependsOn(immortal) Self {
+  ) {
     _pointer = .init(elements.baseAddress)
     _count = elements.count
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
   public init(
     _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(
       ((Int(bitPattern: buffer.baseAddress) &
         (MemoryLayout<Element>.alignment&-1)) == 0),
@@ -66,10 +69,11 @@ extension MutableSpan where Element: ~Copyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow start)
   public init(
     _unsafeStart start: UnsafeMutablePointer<Element>,
     count: Int
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(count >= 0, "Count must not be negative")
     self.init(_unsafeElements: .init(start: start, count: count))
   }
@@ -80,9 +84,10 @@ extension MutableSpan {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow elements)
   public init(
-    _unsafeElements elements: Slice<UnsafeMutableBufferPointer<Element>>
-  ) -> dependsOn(immortal) Self {
+    _unsafeElements elements: borrowing Slice<UnsafeMutableBufferPointer<Element>>
+  ) {
     self.init(_unsafeElements: UnsafeMutableBufferPointer(rebasing: elements))
   }
 }
@@ -92,9 +97,10 @@ extension MutableSpan where Element: BitwiseCopyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
   public init(
     _unsafeBytes buffer: UnsafeMutableRawBufferPointer
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(
       ((Int(bitPattern: buffer.baseAddress) &
         (MemoryLayout<Element>.alignment&-1)) == 0),
@@ -108,19 +114,21 @@ extension MutableSpan where Element: BitwiseCopyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow pointer)
   public init(
     _unsafeStart pointer: UnsafeMutableRawPointer,
     byteCount: Int
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(byteCount >= 0, "Count must not be negative")
     self.init(_unsafeBytes: .init(start: pointer, count: byteCount))
   }
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
   public init(
-    _unsafeBytes buffer: Slice<UnsafeMutableRawBufferPointer>
-  ) -> dependsOn(immortal) Self {
+    _unsafeBytes buffer: borrowing Slice<UnsafeMutableRawBufferPointer>
+  ) {
     self.init(_unsafeBytes: UnsafeMutableRawBufferPointer(rebasing: buffer))
   }
 }

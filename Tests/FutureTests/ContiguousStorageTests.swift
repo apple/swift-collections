@@ -36,9 +36,10 @@ final class ContiguousStorageTests: XCTestCase {
   }
 
   @inline(never)
+  @lifetime(borrow array)
   private func skip(
     along array: borrowing Array<Int>
-  ) -> dependsOn(array) Skipper {
+  ) -> Skipper {
     Skipper(array.storage)
   }
 

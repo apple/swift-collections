@@ -121,7 +121,8 @@ extension Shared where Storage: ~Copyable {
 
   // FIXME: This builds, but attempts to use it don't: they fail with an unexpected exclusivity violation.
   @inlinable
-  public subscript() -> dependsOn(self) Storage {
+  @lifetime(self)
+  public subscript() -> Storage {
     //@_transparent
     unsafeAddress {
       _address
@@ -159,7 +160,8 @@ extension Shared where Storage: ~Copyable {
 extension Shared where Storage: ~Copyable {
   // This is the actual shape we want. There is currently no way to express it.
   @inlinable
-  public borrowing func read() -> dependsOn(self) Borrow<Storage> {
+  @lifetime(borrow self)
+  public borrowing func read() -> Borrow<Storage> {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that
     // lifetime(self) == lifetime(_box.storage); but we have not
