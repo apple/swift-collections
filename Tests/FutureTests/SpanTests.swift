@@ -189,7 +189,7 @@ final class SpanTests: XCTestCase {
       let span = Span(_unsafeElements: $0)
       XCTAssertTrue(span._elementsEqual(span._extracting(0..<span.count)))
       XCTAssertTrue(span._elementsEqual(span._extracting(0...)))
-      XCTAssertTrue(span._elementsEqual(span._extracting(uncheckedBounds: ..<span.count)))
+      XCTAssertTrue(span._elementsEqual(span._extracting(unchecked: ..<span.count)))
       XCTAssertTrue(span._elementsEqual(span._extracting(...)))
 
       let emptySpan = span._extracting(0..<0)
@@ -204,7 +204,7 @@ final class SpanTests: XCTestCase {
       let v = Span(_unsafeElements: $0)
       XCTAssertTrue(v._elementsEqual(v._extracting(0..<v.count)))
       XCTAssertTrue(v._elementsEqual(v._extracting(0...)))
-      XCTAssertTrue(v._elementsEqual(v._extracting(uncheckedBounds: ..<v.count)))
+      XCTAssertTrue(v._elementsEqual(v._extracting(unchecked: ..<v.count)))
       XCTAssertTrue(v._elementsEqual(v._extracting(...)))
     }
   }
@@ -234,7 +234,7 @@ final class SpanTests: XCTestCase {
       let span = Span(_unsafeElements: $0)
       XCTAssertTrue(span._elementsEqual(span._extracting(0..<capacity)))
       XCTAssertTrue(span._elementsEqual(span._extracting(0...)))
-      XCTAssertTrue(span._elementsEqual(span._extracting(uncheckedBounds: ..<capacity)))
+      XCTAssertTrue(span._elementsEqual(span._extracting(unchecked: ..<capacity)))
     }
   }
 
