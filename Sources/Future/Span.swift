@@ -410,7 +410,7 @@ extension Span where Element: BitwiseCopyable {
   @_disallowFeatureSuppression(NonescapableTypes)
   @unsafe //FIXME: remove when the lifetime inference is fixed
   @_alwaysEmitIntoClient
-  public var _unsafeRawSpan: RawSpan { RawSpan(_unsafeSpan: self) }
+  public var _unsafeRawSpan: RawSpan { RawSpan(_elements: self) }
 }
 
 @_disallowFeatureSuppression(NonescapableTypes)
@@ -664,7 +664,7 @@ extension Span where Element: BitwiseCopyable {
   public func withUnsafeBytes<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeRawBufferPointer) throws(E) -> Result
   ) throws(E) -> Result {
-    try RawSpan(_unsafeSpan: self).withUnsafeBytes(body)
+    try RawSpan(_elements: self).withUnsafeBytes(body)
   }
 }
 
