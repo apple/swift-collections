@@ -45,11 +45,12 @@ public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
+  @lifetime(borrow start)
   init(
     _unchecked start: UnsafeMutableRawPointer?,
     capacity: Int,
     initialized: Int
-  ) -> dependsOn(immortal) Self {
+  ) {
     _pointer = start
     self.capacity = capacity
     _initialized = initialized
@@ -65,10 +66,11 @@ extension OutputSpan where Element: ~Copyable  {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
+  @lifetime(borrow buffer)
   init(
     _unchecked buffer: UnsafeMutableBufferPointer<Element>,
     initialized: Int
-  ) -> dependsOn(immortal) Self {
+  ) {
     _pointer = .init(buffer.baseAddress)
     capacity = buffer.count
     _initialized = initialized
@@ -76,10 +78,11 @@ extension OutputSpan where Element: ~Copyable  {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
   public init(
     _initializing buffer: UnsafeMutableBufferPointer<Element>,
     initialized: Int = 0
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(
       ((Int(bitPattern: buffer.baseAddress) &
         (MemoryLayout<Element>.alignment&-1)) == 0),
@@ -90,11 +93,12 @@ extension OutputSpan where Element: ~Copyable  {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow pointer)
   public init(
     _initializing pointer: UnsafeMutablePointer<Element>,
     capacity: Int,
     initialized: Int = 0
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(capacity >= 0, "Capacity must be 0 or greater")
     self.init(
       _initializing: .init(start: pointer, count: capacity),
@@ -108,10 +112,11 @@ extension OutputSpan {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
   public init(
-    _initializing buffer: Slice<UnsafeMutableBufferPointer<Element>>,
+    _initializing buffer: borrowing Slice<UnsafeMutableBufferPointer<Element>>,
     initialized: Int = 0
-  ) -> dependsOn(immortal) Self {
+  ) {
     self.init(_initializing: .init(rebasing: buffer), initialized: initialized)
   }
 }
@@ -121,10 +126,11 @@ extension OutputSpan where Element: BitwiseCopyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow bytes)
   public init(
     _initializing bytes: UnsafeMutableRawBufferPointer,
     initialized: Int = 0
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(
       ((Int(bitPattern: bytes.baseAddress) &
         (MemoryLayout<Element>.alignment&-1)) == 0),
@@ -140,11 +146,12 @@ extension OutputSpan where Element: BitwiseCopyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow pointer)
   public init(
     _initializing pointer: UnsafeMutableRawPointer,
     capacity: Int,
     initialized: Int = 0
-  ) -> dependsOn(immortal) Self {
+  ) {
     precondition(capacity >= 0, "Capacity must be 0 or greater")
     self.init(
       _initializing: .init(start: pointer, count: capacity),
@@ -154,10 +161,11 @@ extension OutputSpan where Element: BitwiseCopyable {
 
   @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
+  @lifetime(borrow buffer)
   public init(
-    _initializing buffer: Slice<UnsafeMutableRawBufferPointer>,
+    _initializing buffer: borrowing Slice<UnsafeMutableRawBufferPointer>,
     initialized: Int = 0
-  ) -> dependsOn(immortal) Self {
+  ) {
     self.init(
       _initializing: UnsafeMutableRawBufferPointer(rebasing: buffer),
       initialized: initialized
@@ -291,7 +299,7 @@ extension OutputSpan {
       "destination span cannot contain every element from source."
     )
     let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
-    source._start.withMemoryRebound(to: Element.self, capacity: source.count) {
+    source._start().withMemoryRebound(to: Element.self, capacity: source.count) {
       _ = tail.initializeMemory(as: Element.self, from: $0, count: source.count)
     }
     _initialized += source.count

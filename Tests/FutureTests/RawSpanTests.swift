@@ -30,14 +30,14 @@ final class RawSpanTests: XCTestCase {
   func testInitWithSpanOfIntegers() {
     let capacity = 4
     let a = Array(0..<capacity)
-    let span = RawSpan(_unsafeSpan: a.storage)
+    let span = RawSpan(_elements: a.storage)
     XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
     XCTAssertFalse(span.isEmpty)
   }
 
   func testInitWithEmptySpanOfIntegers() {
     let a: [Int] = []
-    let span = RawSpan(_unsafeSpan: a.storage)
+    let span = RawSpan(_elements: a.storage)
     XCTAssertTrue(span.isEmpty)
   }
 
@@ -99,9 +99,8 @@ final class RawSpanTests: XCTestCase {
     a.withUnsafeBytes {
       let span = RawSpan(_unsafeBytes: $0)
 
-      var copy = span
-      copy._shrink(droppingFirst: 2)
-      let u0 = copy.unsafeLoadUnaligned(as: UInt64.self)
+      let suffix = span._extracting(droppingFirst: 2)
+      let u0 = suffix.unsafeLoadUnaligned(as: UInt64.self)
       XCTAssertEqual(u0 & 0xff, 2)
       XCTAssertEqual(u0.byteSwapped & 0xff, 9)
       let u1 = span.unsafeLoadUnaligned(fromByteOffset: 6, as: UInt64.self)
@@ -121,13 +120,13 @@ final class RawSpanTests: XCTestCase {
       let sub3 = span._extracting(...)
       let sub4 = span._extracting(unchecked: 2...)
       XCTAssertTrue(
-        sub1.unsafeView(as: UInt8.self)._elementsEqual(sub2.unsafeView(as: UInt8.self))
+        sub1._unsafeView(as: UInt8.self)._elementsEqual(sub2._unsafeView(as: UInt8.self))
       )
       XCTAssertTrue(
-        sub3.unsafeView(as: Int8.self)._elementsEqual(span.unsafeView(as: Int8.self))
+        sub3._unsafeView(as: Int8.self)._elementsEqual(span._unsafeView(as: Int8.self))
       )
       XCTAssertFalse(
-        sub4.unsafeView(as: Int8.self)._elementsEqual(sub3.unsafeView(as: Int8.self))
+        sub4._unsafeView(as: Int8.self)._elementsEqual(sub3._unsafeView(as: Int8.self))
       )
     }
   }
@@ -137,10 +136,8 @@ final class RawSpanTests: XCTestCase {
     let b = (0..<capacity).map(UInt8.init)
     b.withUnsafeBytes {
       let span = RawSpan(_unsafeBytes: $0)
-      var prefix = span
-      prefix._shrink(to: 0..<8)
-      var beyond = prefix
-      beyond._shrink(toUnchecked: 16..<24)
+      let prefix = span._extracting(0..<8)
+      let beyond = prefix._extracting(unchecked: 16..<24)
       XCTAssertEqual(beyond.byteCount, 8)
       XCTAssertEqual(beyond.unsafeLoad(as: UInt8.self), 16)
     }
@@ -149,7 +146,7 @@ final class RawSpanTests: XCTestCase {
   func testUnsafeBytes() {
     let capacity = 4
     let array = Array(0..<capacity)
-    let span = RawSpan(_unsafeSpan: array.storage)
+    let span = RawSpan(_elements: array.storage)
     array.withUnsafeBytes {  b1 in
       span.withUnsafeBytes { b2 in
         XCTAssertTrue(b1.elementsEqual(b2))
@@ -157,8 +154,8 @@ final class RawSpanTests: XCTestCase {
     }
 
     // Should we be able to derive a non-escapable value from a Span via unsafe pointers?
-    let copy = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
-    _ = copy
+//    let copy: RawSpan = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
+//    _ = copy
   }
 
   func testStrangeBorrow() {
@@ -200,6 +197,9 @@ final class RawSpanTests: XCTestCase {
         ),
         UInt8(capacity-2)
       )
+      let emptySpan = span._extracting(first: 0)
+      let emptierSpan = emptySpan._extracting(0..<0)
+      XCTAssertTrue(emptySpan.isIdentical(to: emptierSpan))
     }
 
     do {
@@ -233,16 +233,6 @@ final class RawSpanTests: XCTestCase {
     }
   }
 
-  func testBoundsChecking() {
-    let capacity = 4
-    let a = Array(0..<capacity)
-    let span = RawSpan(_unsafeSpan: a.storage)
-    for o in span._byteOffsets {
-      XCTAssertTrue(span.boundsContain(o))
-    }
-    XCTAssertFalse(span.boundsContain(span.byteCount))
-  }
-
   func testByteOffsetsOf() {
     let b = UnsafeMutableRawBufferPointer.allocate(byteCount: 8, alignment: 8)
     defer { b.deallocate() }
@@ -257,9 +247,9 @@ final class RawSpanTests: XCTestCase {
 
     var bounds: Range<Int>?
     bounds = span.byteOffsets(of: subSpan1)
-    XCTAssertEqual(bounds, span._byteOffsets.prefix(6))
+    XCTAssertEqual(bounds, span.byteOffsets.prefix(6))
     bounds = span.byteOffsets(of: subSpan2)
-    XCTAssertEqual(bounds, span._byteOffsets.suffix(6))
+    XCTAssertEqual(bounds, span.byteOffsets.suffix(6))
     bounds = subSpan2.byteOffsets(of: subSpan1)
     XCTAssertNil(bounds)
     bounds = subSpan1.byteOffsets(of: subSpan2)

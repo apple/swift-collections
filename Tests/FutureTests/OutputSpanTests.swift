@@ -24,11 +24,11 @@ struct Allocation<T>: ~Copyable {
     allocation = UnsafeMutablePointer<T>.allocate(capacity: capacity)
   }
 
-  var isInitialized: Bool { count != nil }
+  var isEmpty: Bool { (count ?? 0) == 0 }
 
-  mutating func initialize(
-    _ body: (/* mutating */ inout OutputSpan<T>) throws -> Void
-  ) rethrows {
+  mutating func initialize<E>(
+    _ body: (/* mutating */ inout OutputSpan<T>) throws(E) -> Void
+  ) throws(E) {
     if count != nil { fatalError() }
     var outputBuffer = OutputSpan<T>(
       _initializing: allocation, capacity: capacity
@@ -48,25 +48,11 @@ struct Allocation<T>: ~Copyable {
     }
   }
 
-  borrowing func examine<E, R>(
+  borrowing func withSpan<E, R: ~Copyable>(
     _ body: (borrowing Span<T>) throws(E) -> R
   ) throws(E) -> R {
-    try body(initializedPrefix)
+    try body(Span(_unsafeStart: allocation, count: count ?? 0))
   }
-
-  var initializedPrefix: Span<T> {
-    Span(_unsafeStart: allocation, count: count ?? 0)
-  }
-
-//  mutating func mutate<R>(
-//    _ body: (/* mutating */ inout MutableBufferView<T>) -> R
-//  ) -> R {
-//    guard let count else { fatalError() }
-//    var mutable = MutableBufferView<T>(
-//      baseAddress: allocation, count: count, dependsOn: /*self*/ allocation
-//    )
-//    return body(&mutable)
-//  }
 
   deinit {
     if let count {
@@ -78,7 +64,7 @@ struct Allocation<T>: ~Copyable {
 
 enum MyTestError: Error { case error }
 
-final class OutputBufferTests: XCTestCase {
+final class OutputSpanTests: XCTestCase {
 
   func testOutputBufferInitialization() {
     let c = 48
@@ -101,13 +87,10 @@ final class OutputBufferTests: XCTestCase {
       let oops = $0.deinitializeLastElement()
       XCTAssertEqual(oops, c)
     }
-    a.examine {
+    a.withSpan {
       XCTAssertEqual($0.count, c)
       XCTAssert($0._elementsEqual(0..<c))
     }
-    let span = a.initializedPrefix
-    XCTAssertEqual(span.count, c)
-    XCTAssert(span._elementsEqual(0..<c))
   }
 
   func testInitializeBufferByAppendingRepeatedElements() {
@@ -119,13 +102,10 @@ final class OutputBufferTests: XCTestCase {
       XCTAssertEqual(oops, c)
       XCTAssertEqual($0.count, c-1)
     }
-    a.examine {
-      XCTAssertEqual($0.count, c-1)
-      XCTAssert($0._elementsEqual(Array(repeating: c, count: c-1)))
+    a.withSpan { span in
+      XCTAssertEqual(span.count, c-1)
+      XCTAssert(span._elementsEqual(Array(repeating: c, count: c-1)))
     }
-    let span = a.initializedPrefix
-    XCTAssertEqual(span.count, c-1)
-    XCTAssert(span._elementsEqual(Array(repeating: c, count: c-1)))
   }
 
   func testInitializeBufferFromSequence() {
@@ -134,9 +114,10 @@ final class OutputBufferTests: XCTestCase {
       var it = $0.append(from: 0..<18)
       XCTAssertNil(it.next())
     }
-    let span = a.initializedPrefix
-    XCTAssertEqual(span.count, 18)
-    XCTAssert(span._elementsEqual(0..<18))
+    a.withSpan { span in
+      XCTAssertEqual(span.count, 18)
+      XCTAssert(span._elementsEqual(0..<18))
+    }
   }
 
   func testInitializeBufferFromCollectionNotContiguous() {
@@ -161,9 +142,10 @@ final class OutputBufferTests: XCTestCase {
       XCTAssertEqual(prefix.count, c)
       XCTAssert(prefix._elementsEqual(0..<c))
     }
-    let span = a.initializedPrefix
-    XCTAssertEqual(span.count, c)
-    XCTAssert(span._elementsEqual(0..<c))
+    a.withSpan { span in
+      XCTAssertEqual(span.count, c)
+      XCTAssert(span._elementsEqual(0..<c))
+    }
   }
 
   func testInitializeBufferFromSpan() {
@@ -181,10 +163,10 @@ final class OutputBufferTests: XCTestCase {
       $0.append(fromContentsOf: array)
       #endif
     }
-
-    let span = a.initializedPrefix
-    XCTAssertEqual(span.count, c)
-    XCTAssert(span._elementsEqual(0..<c))
+    a.withSpan { span in
+      XCTAssertEqual(span.count, c)
+      XCTAssert(span._elementsEqual(0..<c))
+    }
   }
 
   func testInitializeBufferFromEmptyContiguousCollection() {
@@ -192,8 +174,10 @@ final class OutputBufferTests: XCTestCase {
     a.initialize {
       $0.append(fromContentsOf: [])
     }
-    XCTAssertTrue(a.isInitialized)
-    XCTAssertTrue(a.initializedPrefix.isEmpty)
+    a.withSpan { span in
+      XCTAssertEqual(span.count, 0)
+    }
+    XCTAssertTrue(a.isEmpty)
   }
 
   func testMoveAppend() {
@@ -213,8 +197,10 @@ final class OutputBufferTests: XCTestCase {
       $0.moveAppend(fromContentsOf: b)
       $0.moveAppend(fromContentsOf: b[c..<c])
     }
-    XCTAssertTrue(a.isInitialized)
-    XCTAssertEqual(a.initializedPrefix.count, c)
+    XCTAssertFalse(a.isEmpty)
+    a.withSpan {
+      XCTAssertEqual($0.count, c)
+    }
   }
 
   func testDeinitializeBuffer() throws {
@@ -228,7 +214,7 @@ final class OutputBufferTests: XCTestCase {
       }
     }
     catch MyTestError.error {
-      XCTAssertEqual(a.isInitialized, false)
+      XCTAssertEqual(a.isEmpty, true)
     }
   }
 

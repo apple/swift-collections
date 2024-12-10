@@ -21,7 +21,7 @@ final class StdlibSpanExtensionTests: XCTestCase {
   func testDataSpan() throws {
     let a = Data(0..<4)
     a.withSpan {
-      for i in $0._indices {
+      for i in $0.indices {
         XCTAssertEqual($0[i], UInt8(i))
       }
     }
@@ -35,7 +35,7 @@ final class StdlibSpanExtensionTests: XCTestCase {
   func testDataRawSpan() throws {
     let a = Data(0..<4)
     a.withBytes {
-      for i in $0._byteOffsets {
+      for i in $0.byteOffsets {
         XCTAssertEqual(
           $0.unsafeLoad(fromByteOffset: i, as: UInt8.self), UInt8(i)
         )
@@ -52,7 +52,7 @@ final class StdlibSpanExtensionTests: XCTestCase {
     let a = (0..<4).map(String.init(_:))
     do throws(ErrorForTesting) {
       a.withSpan {
-        for i in $0._indices {
+        for i in $0.indices {
           XCTAssertEqual($0[i], String(i))
         }
       }
@@ -84,7 +84,7 @@ final class StdlibSpanExtensionTests: XCTestCase {
   func testContiguousArraySpan() throws {
     let a = ContiguousArray((0..<4).map(String.init(_:)))
     a.withSpan {
-      for i in $0._indices {
+      for i in $0.indices {
         XCTAssertEqual($0[i], String(i))
       }
     }
@@ -114,8 +114,7 @@ final class StdlibSpanExtensionTests: XCTestCase {
     let a = (0..<7).map(String.init(_:)).prefix(upTo: 4)
     print(a.count)
     a.withSpan {
-      print($0._indices)
-      for i in $0._indices {
+      for i in $0.indices {
         print(i)
         let v = $0[i]
         _ = v
@@ -155,7 +154,7 @@ final class StdlibSpanExtensionTests: XCTestCase {
   func testCollectionOfOneRawSpan() throws {
     let a = CollectionOfOne(Int(UInt8.random(in: 0 ..< .max)))
     a.withBytes {
-      for i in $0._byteOffsets {
+      for i in $0.byteOffsets {
         let v = $0.unsafeLoad(fromByteOffset: i, as: UInt8.self)
         if v != 0 {
           XCTAssertEqual(Int(v), a.first)

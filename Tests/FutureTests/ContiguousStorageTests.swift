@@ -12,7 +12,7 @@ final class ContiguousStorageTests: XCTestCase {
     let span = a.storage
     XCTAssertEqual(span.count, capacity)
 
-    for i in span._indices {
+    for i in span.indices {
       XCTAssertEqual(span[i], a[i])
     }
 
@@ -36,9 +36,10 @@ final class ContiguousStorageTests: XCTestCase {
   }
 
   @inline(never)
+  @lifetime(borrow array)
   private func skip(
     along array: borrowing Array<Int>
-  ) -> dependsOn(array) Skipper {
+  ) -> Skipper {
     Skipper(array.storage)
   }
 

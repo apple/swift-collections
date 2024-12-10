@@ -78,9 +78,10 @@ extension RigidArray: RandomAccessContainer where Element: ~Copyable {
       self._offset = startOffset
     }
 
+    @lifetime(self)
     public mutating func nextChunk(
       maximumCount: Int
-    ) -> dependsOn(scoped self) Span<Element> {
+    ) -> Span<Element> {
       let end = _offset + Swift.min(maximumCount, _items.count - _offset)
       defer { _offset = end }
       let chunk = _items.extracting(Range(uncheckedBounds: (_offset, end)))

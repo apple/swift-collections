@@ -12,7 +12,8 @@
 public protocol BorrowingIteratorProtocol: ~Escapable {
   associatedtype Element: ~Copyable
 
-  mutating func nextChunk(maximumCount: Int) -> dependsOn(scoped self) Span<Element>
+  @lifetime(self)
+  mutating func nextChunk(maximumCount: Int) -> Span<Element>
 }
 
 public protocol Container: ~Copyable, ~Escapable {
@@ -141,7 +142,8 @@ extension RandomAccessContainer where Index: Strideable, Index.Stride == Int, Se
 public protocol Muterator: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
-  mutating func nextChunk(maximumCount: Int) -> dependsOn(scoped state) MutableSpan<Element>
+  @lifetime(self)
+  mutating func nextChunk(maximumCount: Int) -> MutableSpan<Element>
 }
 
 public protocol MutableContainer: Container, ~Copyable, ~Escapable {
