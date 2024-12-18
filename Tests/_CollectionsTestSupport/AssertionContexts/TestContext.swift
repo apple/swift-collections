@@ -208,7 +208,7 @@ extension TestContext {
   @inline(never)
   public func debuggerBreak(
     _ message: String,
-    file: StaticString = #file,
+    file: StaticString = (#file),
     line: UInt = #line
   ) {
     XCTFail(message, file: file, line: line)

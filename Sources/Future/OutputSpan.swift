@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -12,8 +12,8 @@
 
 // OutputSpan<Element> represents a span of memory which contains
 // a variable number of `Element` instances, followed by uninitialized memory.
-@_disallowFeatureSuppression(NonescapableTypes)
 @frozen
+@available(macOS 9999, *)
 public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   @usableFromInline let _pointer: UnsafeMutableRawPointer?
 
@@ -43,7 +43,6 @@ public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
     }
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
   @lifetime(borrow start)
   init(
@@ -57,14 +56,13 @@ public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 @available(*, unavailable)
 extension OutputSpan: Sendable {}
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan where Element: ~Copyable  {
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @usableFromInline @inline(__always)
   @lifetime(borrow buffer)
   init(
@@ -76,7 +74,6 @@ extension OutputSpan where Element: ~Copyable  {
     _initialized = initialized
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   @lifetime(borrow buffer)
   public init(
@@ -91,7 +88,6 @@ extension OutputSpan where Element: ~Copyable  {
     self.init(_unchecked: buffer, initialized: initialized)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   @lifetime(borrow pointer)
   public init(
@@ -100,31 +96,30 @@ extension OutputSpan where Element: ~Copyable  {
     initialized: Int = 0
   ) {
     precondition(capacity >= 0, "Capacity must be 0 or greater")
-    self.init(
-      _initializing: .init(start: pointer, count: capacity),
-      initialized: initialized
-    )
+    let buffer = UnsafeMutableBufferPointer(start: pointer, count: capacity)
+    let os = OutputSpan(_initializing: buffer, initialized: initialized)
+    self = _overrideLifetime(os, borrowing: pointer)
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan {
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   @lifetime(borrow buffer)
   public init(
     _initializing buffer: borrowing Slice<UnsafeMutableBufferPointer<Element>>,
     initialized: Int = 0
   ) {
-    self.init(_initializing: .init(rebasing: buffer), initialized: initialized)
+    let rebased = UnsafeMutableBufferPointer(rebasing: buffer)
+    let os = OutputSpan(_initializing: rebased, initialized: 0)
+    self = _overrideLifetime(os, borrowing: buffer)
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan where Element: BitwiseCopyable {
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   @lifetime(borrow bytes)
   public init(
@@ -139,12 +134,13 @@ extension OutputSpan where Element: BitwiseCopyable {
     let (byteCount, stride) = (bytes.count, MemoryLayout<Element>.stride)
     let (count, remainder) = byteCount.quotientAndRemainder(dividingBy: stride)
     precondition(remainder == 0, "Span must contain a whole number of elements")
-    self.init(
-      _unchecked: bytes.baseAddress, capacity: count, initialized: initialized
+    let pointer = bytes.baseAddress
+    let os = OutputSpan(
+      _unchecked: pointer, capacity: count, initialized: initialized
     )
+    self = _overrideLifetime(os, borrowing: bytes)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   @lifetime(borrow pointer)
   public init(
@@ -153,31 +149,28 @@ extension OutputSpan where Element: BitwiseCopyable {
     initialized: Int = 0
   ) {
     precondition(capacity >= 0, "Capacity must be 0 or greater")
-    self.init(
-      _initializing: .init(start: pointer, count: capacity),
-      initialized: initialized
-    )
+    let buffer = UnsafeMutableRawBufferPointer(start: pointer, count: capacity)
+    let os = OutputSpan(_initializing: buffer, initialized: initialized)
+    self = _overrideLifetime(os, borrowing: pointer)
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   @lifetime(borrow buffer)
   public init(
     _initializing buffer: borrowing Slice<UnsafeMutableRawBufferPointer>,
     initialized: Int = 0
   ) {
-    self.init(
-      _initializing: UnsafeMutableRawBufferPointer(rebasing: buffer),
-      initialized: initialized
-    )
+    let rebased = UnsafeMutableRawBufferPointer(rebasing: buffer)
+    let os = OutputSpan(_initializing: rebased, initialized: initialized)
+    self = _overrideLifetime(os, borrowing: buffer)
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
-  public mutating func appendElement(_ value: consuming Element) {
+  public mutating func append(_ value: consuming Element) {
     precondition(_initialized < capacity, "Output buffer overflow")
     let p = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
     p.initializeMemory(as: Element.self, to: value)
@@ -202,7 +195,7 @@ extension OutputSpan where Element: ~Copyable {
 }
 
 //MARK: bulk-update functions
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan {
 
   @_alwaysEmitIntoClient
@@ -288,7 +281,6 @@ extension OutputSpan {
   }
 
   //FIXME: rdar://136838539 & rdar://136849171
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func append(
     fromContentsOf source: Span<Element>
@@ -299,23 +291,23 @@ extension OutputSpan {
       "destination span cannot contain every element from source."
     )
     let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
-    source._start().withMemoryRebound(to: Element.self, capacity: source.count) {
-      _ = tail.initializeMemory(as: Element.self, from: $0, count: source.count)
+    _ = source.withUnsafeBufferPointer {
+      tail.initializeMemory(
+        as: Element.self, from: $0.baseAddress!, count: $0.count
+      )
     }
     _initialized += source.count
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func append(fromContentsOf source: borrowing MutableSpan<Element>) {
     source.withUnsafeBufferPointer { append(fromContentsOf: $0) }
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan where Element: ~Copyable {
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func moveAppend(
     fromContentsOf source: consuming Self
@@ -334,7 +326,6 @@ extension OutputSpan where Element: ~Copyable {
     _initialized &+= buffer.count
   }
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func moveAppend(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
@@ -357,9 +348,9 @@ extension OutputSpan where Element: ~Copyable {
   }
 }
 
+@available(macOS 9999, *)
 extension OutputSpan {
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
   public mutating func moveAppend(
     fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
@@ -368,43 +359,38 @@ extension OutputSpan {
   }
 }
 
+@available(macOS 9999, *)
 extension OutputSpan where Element: BitwiseCopyable {
 
 }
 
+@available(macOS 9999, *)
 extension OutputSpan where Element: ~Copyable {
 
-  @_disallowFeatureSuppression(NonescapableTypes)
   @_alwaysEmitIntoClient
-  public var initializedPrefix: Span<Element> {
-    get { Span(_unchecked: _pointer, count: _initialized) }
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public func withSpan<E: Error, R: ~Copyable>(
-    _ body: (Span<Element>) throws(E) -> R
-  ) throws(E) -> R {
-    try body(initializedPrefix)
-  }
-
-  @_disallowFeatureSuppression(NonescapableTypes)
-  @_alwaysEmitIntoClient
-  public mutating func withMutableSpan<E: Error, Result: ~Copyable>(
-    _ body: (inout MutableSpan<Element>) throws(E) -> Result
-  ) throws(E) -> Result {
-    var span = MutableSpan<Element>(_unchecked: _pointer, count: _initialized)
-    defer {
-      precondition(
-        span.count == _initialized && span._pointer == _start,
-        "Substituting the MutableSpan is unsound and unsafe."
-      )
+  public var span: Span<Element> {
+    @lifetime(borrow self)
+    borrowing get {
+      let pointer = _pointer?.assumingMemoryBound(to: Element.self)
+      let buffer = UnsafeBufferPointer(start: pointer, count: _initialized)
+      let span = Span(_unsafeElements: buffer)
+      return _overrideLifetime(span, borrowing: self)
     }
-    return try body(&span)
+  }
+
+  @_alwaysEmitIntoClient
+  public var mutableSpan: MutableSpan<Element> {
+    @lifetime(borrow self)
+    mutating get {
+      let pointer = _pointer?.assumingMemoryBound(to: Element.self)
+      let buffer = UnsafeMutableBufferPointer(start: pointer, count: _initialized)
+      let span = MutableSpan(_unsafeElements: buffer)
+      return _overrideLifetime(span, mutating: &self)
+    }
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
@@ -416,7 +402,7 @@ extension OutputSpan where Element: ~Copyable {
   }
 }
 
-@_disallowFeatureSuppression(NonescapableTypes)
+@available(macOS 9999, *)
 extension OutputSpan where Element: BitwiseCopyable {
 
   @_alwaysEmitIntoClient

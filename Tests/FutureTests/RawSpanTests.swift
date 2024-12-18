@@ -13,32 +13,26 @@
 import XCTest
 @testable import Future
 
+@available(macOS 9999, *)
 final class RawSpanTests: XCTestCase {
-
-  func testOptionalStorage() {
-//    XCTAssertEqual(
-//      MemoryLayout<RawSpan>.size, MemoryLayout<RawSpan?>.size
-//    )
-//    XCTAssertEqual(
-//      MemoryLayout<RawSpan>.stride, MemoryLayout<RawSpan?>.stride
-//    )
-//    XCTAssertEqual(
-//      MemoryLayout<RawSpan>.alignment, MemoryLayout<RawSpan?>.alignment
-//    )
-  }
 
   func testInitWithSpanOfIntegers() {
     let capacity = 4
-    let a = Array(0..<capacity)
-    let span = RawSpan(_elements: a.storage)
-    XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
-    XCTAssertFalse(span.isEmpty)
+    Array(0..<capacity).withUnsafeBufferPointer {
+      let intSpan = Span(_unsafeElements: $0)
+      let span = RawSpan(_elements: intSpan)
+      XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
+      XCTAssertFalse(span.isEmpty)
+    }
   }
 
   func testInitWithEmptySpanOfIntegers() {
     let a: [Int] = []
-    let span = RawSpan(_elements: a.storage)
-    XCTAssertTrue(span.isEmpty)
+    a.withUnsafeBufferPointer {
+      let intSpan = Span(_unsafeElements: $0)
+      let span = RawSpan(_elements: intSpan)
+      XCTAssertTrue(span.isEmpty)
+    }
   }
 
   func testInitWithRawBytes() {
@@ -146,10 +140,13 @@ final class RawSpanTests: XCTestCase {
   func testUnsafeBytes() {
     let capacity = 4
     let array = Array(0..<capacity)
-    let span = RawSpan(_elements: array.storage)
-    array.withUnsafeBytes {  b1 in
-      span.withUnsafeBytes { b2 in
-        XCTAssertTrue(b1.elementsEqual(b2))
+    array.withUnsafeBufferPointer {
+      let intSpan = Span(_unsafeElements: $0)
+      let span = RawSpan(_elements: intSpan)
+      array.withUnsafeBytes {  b1 in
+        span.withUnsafeBytes { b2 in
+          XCTAssertTrue(b1.elementsEqual(b2))
+        }
       }
     }
 
@@ -241,9 +238,8 @@ final class RawSpanTests: XCTestCase {
     let subSpan1 = span._extracting(first: 6)
     let subSpan2 = span._extracting(last: 6)
     let emptySpan = span._extracting(first: 0)
-    let nilSpan = RawSpan(
-      _unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0)
-    )
+    let nilBuffer = UnsafeRawBufferPointer(start: nil, count: 0)
+    let nilSpan = RawSpan(_unsafeBytes: nilBuffer)
 
     var bounds: Range<Int>?
     bounds = span.byteOffsets(of: subSpan1)

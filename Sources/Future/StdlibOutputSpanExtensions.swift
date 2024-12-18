@@ -12,6 +12,7 @@
 
 extension Array {
 
+  @available(macOS 9999, *)
   public init(
     capacity: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws -> Void
@@ -19,9 +20,9 @@ extension Array {
     try self.init(
       unsafeUninitializedCapacity: capacity,
       initializingWith: { (buffer, count) in
+        let pointer = buffer.baseAddress.unsafelyUnwrapped
         var output = OutputSpan<Element>(
-          _initializing: buffer.baseAddress.unsafelyUnwrapped,
-          capacity: buffer.count
+          _initializing: pointer, capacity: buffer.count
         )
         try initializer(&output)
         let initialized = output.relinquishBorrowedMemory()
@@ -37,17 +38,17 @@ extension String {
   // also see https://github.com/apple/swift/pull/23050
   // and `final class __SharedStringStorage`
 
-  @available(macOS 11, *)
+  @available(macOS 9999, *)
   public init(
     utf8Capacity capacity: Int,
-    initializingWith initializer: (inout OutputSpan<UInt8>) throws -> Void
+    initializingWith initializer: (inout OutputSpan<UTF8.CodeUnit>) throws -> Void
   ) rethrows {
     try self.init(
       unsafeUninitializedCapacity: capacity,
       initializingUTF8With: { buffer in
-        var output = OutputSpan(
-          _initializing: buffer.baseAddress.unsafelyUnwrapped,
-          capacity: capacity
+        let pointer = buffer.baseAddress.unsafelyUnwrapped
+        var output = OutputSpan<UTF8.CodeUnit>(
+          _initializing: pointer, capacity: buffer.count
         )
         try initializer(&output)
         let initialized = output.relinquishBorrowedMemory()
@@ -62,6 +63,7 @@ import Foundation
 
 extension Data {
 
+  @available(macOS 9999, *)
   public init(
     capacity: Int,
     initializingWith initializer: (inout OutputSpan<UInt8>) throws -> Void
@@ -70,9 +72,9 @@ extension Data {
     let count = try self.withUnsafeMutableBytes { rawBuffer in
       try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
         buffer.deinitialize()
-        var output = OutputSpan(
-          _initializing: buffer.baseAddress.unsafelyUnwrapped,
-          capacity: capacity
+        let pointer = buffer.baseAddress.unsafelyUnwrapped
+        var output = OutputSpan<UInt8>(
+          _initializing: pointer, capacity: capacity
         )
         try initializer(&output)
         let initialized = output.relinquishBorrowedMemory()

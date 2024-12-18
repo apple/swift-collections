@@ -8,22 +8,13 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 add_library(Future
-  "Box.swift"
-  "Cell.swift"
-  "ContiguousStorage.swift"
-  "Inout.swift"
-  "OutputSpan.swift"
   "LifetimeOverride.swift"
-  "RawSpan.swift"
-  "Span.swift"
-  "Span+Iterator.swift"
+  "MutableSpan.swift"
+  "OutputSpan.swift"
+  "SpanExtensions.swift"
   "StdlibOutputSpanExtensions.swift"
   "StdlibSpanExtensions.swift"
-  "Containers/Shared.swift"
-  "Containers/Container.swift"
-  "Containers/DynamicArray.swift"
-  "Containers/NewArray.swift"
-  "Containers/RigidArray.swift"
+  "UnsafeBufferPointer+Additions.swift"
 )
 
 target_link_libraries(Future PRIVATE

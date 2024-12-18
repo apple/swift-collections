@@ -15,7 +15,7 @@ import XCTest
 public func expectFailure(
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = (#file),
   line: UInt = #line
 ) {
   let message = message()

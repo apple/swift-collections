@@ -13,6 +13,7 @@
 import XCTest
 import Future
 
+@available(macOS 9999, *)
 struct Allocation<T>: ~Copyable {
   let allocation: UnsafeMutablePointer<T>
   let capacity: Int
@@ -64,6 +65,7 @@ struct Allocation<T>: ~Copyable {
 
 enum MyTestError: Error { case error }
 
+@available(macOS 9999, *)
 final class OutputSpanTests: XCTestCase {
 
   func testOutputBufferInitialization() {
@@ -82,7 +84,7 @@ final class OutputSpanTests: XCTestCase {
     let c = 10
     a.initialize {
       for i in 0...c {
-        $0.appendElement(i)
+        $0.append(i)
       }
       let oops = $0.deinitializeLastElement()
       XCTAssertEqual(oops, c)
@@ -126,7 +128,7 @@ final class OutputSpanTests: XCTestCase {
     a.initialize {
       $0.append(fromContentsOf: 0..<c)
 
-      let span = $0.initializedPrefix
+      let span = $0.span
       XCTAssertEqual(span.count, c)
       XCTAssert(span._elementsEqual(0..<c))
     }
@@ -138,7 +140,7 @@ final class OutputSpanTests: XCTestCase {
     a.initialize {
       $0.append(fromContentsOf: Array(0..<c))
 
-      let prefix = $0.initializedPrefix
+      let prefix = $0.span
       XCTAssertEqual(prefix.count, c)
       XCTAssert(prefix._elementsEqual(0..<c))
     }
@@ -207,8 +209,8 @@ final class OutputSpanTests: XCTestCase {
     var a = Allocation(of: 48, Int.self)
     do {
       try a.initialize {
-        $0.appendElement(0)
-        $0.appendElement(1)
+        $0.append(0)
+        $0.append(1)
         XCTAssertTrue($0.count > 0)
         throw MyTestError.error
       }
@@ -224,23 +226,19 @@ final class OutputSpanTests: XCTestCase {
 
     var span = OutputSpan(_initializing: b)
     XCTAssertEqual(span.count, 0)
-    span.append(fromContentsOf: 0..<10)
-    XCTAssertEqual(span.count, 10)
+    span.append(fromContentsOf: 1...9)
+    XCTAssertEqual(span.count, 9)
 
-    span.withMutableSpan {
-#if false
-      let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: 8)
-      b.initialize(repeating: .max)
-      $0 = MutableSpan(_unsafeElements: b)
-#else
-      for i in 0..<$0.count {
-        $0[i] *= 2
-      }
-#endif
+    var mutable = span.mutableSpan
+//    span.append(20) // exclusivity violation
+    for i in 0..<mutable.count {
+      mutable[i] *= 2
     }
 
+    span.append(20)
+
     let r = span.relinquishBorrowedMemory()
-    print(Array(r))
+    XCTAssert(r.elementsEqual((0..<10).map({2*(1+$0)})))
     r.deinitialize()
   }
 }
