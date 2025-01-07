@@ -117,7 +117,7 @@
 /// Because ordered dictionaries need to maintain unique keys, neither
 /// `OrderedDictionary` nor its `elements` view can conform to the full
 /// `MutableCollection` or `RangeReplaceableCollection` protocols.
-/// However, `OrderedDictioanr` is still able to implement some of the
+/// However, `OrderedDictionary` is still able to implement some of the
 /// requirements of these protocols. In particular, it supports permutation
 /// operations from `MutableCollection`:
 ///
