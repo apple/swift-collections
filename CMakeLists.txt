@@ -49,6 +49,7 @@ if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
 endif()
 
 include(CTest)
+include(GNUInstallDirs)
 include(SwiftSupport)
 
 add_subdirectory(Sources)
