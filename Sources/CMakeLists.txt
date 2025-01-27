@@ -42,7 +42,7 @@ if(COLLECTIONS_SINGLE_MODULE)
     endif()
     get_swift_host_arch(swift_arch)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftdoc
-      DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
+      DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftdoc
       RENAME ${swift_arch}.swiftdoc)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftmodule
       DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
