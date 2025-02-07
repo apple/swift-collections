@@ -53,10 +53,11 @@ The Swift Collections package is source stable. The version numbers follow [Sema
 
 [semver]: https://semver.org
 
-The public API of version 1.1 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules.
+### Public API 
 
-Interfaces that aren't part of the public API may continue to change in any release, including patch releases. 
-If you have a use case that requires using underscored APIs, please [submit a Feature Request][enhancement] describing it! We'd like the public interface to be as useful as possible -- although preferably without compromising safety or limiting future evolution.
+The public API of version 1.2 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules. 
+
+Interfaces that aren't part of the public API may continue to change in any release, including patch releases.
 
 By "underscored declarations" we mean declarations that have a leading underscore anywhere in their fully qualified name. For instance, here are some names that wouldn't be considered part of the public API, even if they were technically marked public:
 
@@ -65,18 +66,25 @@ By "underscored declarations" we mean declarations that have a leading underscor
 - `_FooModule.Bar` (underscored module)
 - `FooModule.Bar.init(_value:)` (underscored initializer)
 
-Note that contents of the `Tests`, `Utils` and `Benchmarks` subdirectories aren't public API. We don't make any source compatibility promises about them -- they may change at whim, and code may be removed in any new release. Do not rely on anything about them. 
+If you have a use case that requires using underscored (or otherwise non-public) APIs, please [submit a Feature Request][enhancement] describing it! We'd like the public interface to be as useful as possible -- although preferably without compromising safety or limiting future evolution.
+
+This source compatibility promise only applies to swift-collection when built as a Swift package. (The repository also contains unstable configurations for building swift-collections using CMake and Xcode. These configurations are provided for internal Swift project use only -- such as for building the (private) swift-collections binaries that ship within Swift toolchains.)
+
+Note that the files in the `Tests`, `Utils`, `Documentation`, `Xcode`, `cmake` and `Benchmarks` subdirectories may change at whim; they may be added, modified or removed in any new release. Do not rely on anything about them.
 
 Future minor versions of the package may update these rules as needed.
 
+### Minimum Required Swift Toolchain Version
+
 We'd like this package to quickly embrace Swift language and toolchain improvements that are relevant to its mandate. Accordingly, from time to time, new versions of this package require clients to upgrade to a more recent Swift toolchain release. (This allows the package to make use of new language/stdlib features, build on compiler bug fixes, and adopt new package manager functionality as soon as they are available.) Patch (i.e., bugfix) releases will not increase the required toolchain version, but any minor (i.e., new feature) release may do so.
 
-The following table maps existing package releases to their minimum required Swift toolchain release:
+The following table maps package releases to their minimum required Swift toolchain release:
 
 | Package version         | Swift version   | Xcode release |
 | ----------------------- | --------------- | ------------- |
 | swift-collections 1.0.x | >= Swift 5.3.2  | >= Xcode 12.4 |
 | swift-collections 1.1.x | >= Swift 5.7.2  | >= Xcode 14.2 |
+| swift-collections 1.2.x | >= Swift 5.9.0  | >= Xcode 15.0 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
@@ -86,7 +94,7 @@ The following table maps existing package releases to their minimum required Swi
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:5.9
+// swift-tools-version:6.0
 import PackageDescription
 
 let package = Package(
@@ -120,17 +128,19 @@ If you find something that looks like a bug, please open a [Bug Report][bugrepor
 
 We maintain separate branches for each minor version of the package:
 
-| Package version         | Branch      | 
-| ----------------------- | ----------- |
-| swift-collections 1.0.x | release/1.0 |
-| swift-collections 1.1.x | release/1.1 |
-| swift-collections 1.2.x | main        |
+| Package version         | Branch      | Status   |
+| ----------------------- | ----------- | -------- |
+| swift-collections 1.0.x | release/1.0 | Critical bugfixes only |
+| swift-collections 1.1.x | release/1.1 | Critical bugfixes only | 
+| swift-collections 1.2.x | release/1.2 | Open for feature development (next feature release) |
+| swift-collections 1.3.x | main        | Open for feature development (unscheduled landing area) |
+| n.a.                    | future      | Experimental prototyping |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
 
-`release/1.0` → `release/1.1` → `main`
+`release/1.0` → `release/1.1` → `release/1.2` → `main`
 
-For example, anything landing on `release/1.0` will eventually appear on `release/1.1` and then `main` too; there is no need to file standalone PRs for each release line. (Change propagation currently requires manual work -- it is performed by project maintainers.)
+For example, anything landing on `release/1.1` will eventually appear on `release/1.2` and then `main` too; there is no need to file standalone PRs for each release line. (Change propagation currently requires manual work -- it is performed by project maintainers.)
 
 ### Working on the package
 
@@ -160,6 +170,10 @@ By submitting a pull request, you represent that you have the right to license y
 
 #### Proposing the addition of a new data structure
 
+**Note:** As of 2024, we are fully preoccupied with refactoring our existing data structures to support noncopyable and/or nonescapable element types; this includes designing new container protocols around them. I don't expect we'll have capacity to work on any major new data structure implementations until this effort is complete.
+
+<!--
+
 We intend this package to collect generally useful data structures -- the ones that ought to be within easy reach of every Swift engineer's basic toolbox. The implementations we ship need to be of the highest technical quality, polished to the same shine as anything that gets included in the Swift Standard Library. (The only real differences are that this package isn't under the formal Swift Evolution process, and its code isn't ABI stable.) 
 
 Accordingly, adding a new data structure to this package is not an easy or quick process, and not all useful data structures are going to be a good fit. 
@@ -174,6 +188,7 @@ Participate in the review discussion, and adapt code accordingly. Sometimes we m
 
 Historically, PRs adding a new data structure have typically been merged to a new feature branch rather than directly to a release branch or `main`, and there was an extended amount of time between the initial merge and the tag that shipped the new feature. Nobody likes to wait, but getting a new data structure implementation from a state that was ready to merge to a state that's ready to ship is actually quite difficult work, and it takes maintainer time and effort that needs to be scheduled in advance. The closer an implementation is to the coding conventions and performance baseline of the Standard Library, the shorter this wait is likely to become, and the fewer changes there will be between merging and shipping.
 
+-->
 
 ### Code of Conduct
 

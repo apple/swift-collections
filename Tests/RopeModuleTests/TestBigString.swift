@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
@@ -1053,4 +1052,3 @@ class TestBigString: CollectionTestCase {
     expectNotEqual(cafe1.utf16, cafe2.utf16)
   }
 }
-#endif

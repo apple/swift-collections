@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString._Chunk {
   mutating func append(_ other: __owned Self) {
@@ -170,5 +168,3 @@ extension BigString._Chunk {
     return .split(spawn: spawn, endStates: (sum - offset, old, new))
   }
 }
-
-#endif
