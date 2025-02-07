@@ -17,6 +17,14 @@ project(SwiftCollections
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
+if(NOT SWIFT_SYSTEM_NAME)
+  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(SWIFT_SYSTEM_NAME macosx)
+  else()
+    set(SWIFT_SYSTEM_NAME "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+  endif()
+endif()
+
 set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
 set(CMAKE_Swift_COMPILE_OPTIONS_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
 
@@ -38,6 +46,7 @@ if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
 endif()
 
 include(CTest)
+include(GNUInstallDirs)
 include(SwiftSupport)
 
 add_subdirectory(Sources)

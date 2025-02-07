@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   internal init(_from input: some StringProtocol) {
@@ -146,5 +144,3 @@ extension String {
     self.init(_from: big._base, in: big._bounds)
   }
 }
-
-#endif

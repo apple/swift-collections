@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public struct UTF16View: Sendable {
@@ -148,5 +146,3 @@ extension BigString.UTF16View {
     _base._utf16Index(roundingUp: i)
   }
 }
-
-#endif

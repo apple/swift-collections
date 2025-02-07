@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   /// The estimated maximum number of UTF-8 code units that `BigString` is guaranteed to be able
@@ -530,5 +528,3 @@ extension BigString {
     body(lastChunk[..<end._chunkIndex])
   }
 }
-
-#endif

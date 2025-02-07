@@ -9,10 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(<5.8) && !COLLECTIONS_SINGLE_MODULE
-import InternalCollectionsUtilities // for 5.8 polyfills
-#endif
-
 extension Rope {
   @frozen // Not really! This module isn't ABI stable.
   @usableFromInline

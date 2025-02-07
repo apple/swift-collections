@@ -124,30 +124,12 @@ extension _UnsafeBitSet {
     run body: (inout Self) throws -> Void
   ) rethrows {
     assert(wordCount >= 0)
-#if compiler(>=5.6)
     return try withUnsafeTemporaryAllocation(
       of: _Word.self, capacity: wordCount
     ) { words in
       var bitset = Self(words: words, mutable: true)
       return try body(&bitset)
     }
-#else
-    if wordCount <= 2 {
-      var buffer: (_Word, _Word) = (.empty, .empty)
-      return try withUnsafeMutablePointer(to: &buffer) { p in
-        // Homogeneous tuples are layout-compatible with their component type.
-        let start = UnsafeMutableRawPointer(p)
-          .assumingMemoryBound(to: _Word.self)
-        let words = UnsafeMutableBufferPointer(start: start, count: wordCount)
-        var bitset = Self(words: words, mutable: true)
-        return try body(&bitset)
-      }
-    }
-    let words = UnsafeMutableBufferPointer<_Word>.allocate(capacity: wordCount)
-    defer { words.deallocate() }
-    var bitset = Self(words: words, mutable: true)
-    return try body(&bitset)
-#endif
   }
 }
 
@@ -596,30 +578,12 @@ extension _UnsafeBitSet {
     run body: (inout Self) throws -> Void
   ) rethrows {
     assert(wordCount >= 0)
-#if compiler(>=5.6)
     return try withUnsafeTemporaryAllocation(
       of: _Word.self, capacity: wordCount
     ) { words in
       var bitset = Self(words: words, mutable: true)
       return try body(&bitset)
     }
-#else
-    if wordCount <= 2 {
-      var buffer: (_Word, _Word) = (.empty, .empty)
-      return try withUnsafeMutablePointer(to: &buffer) { p in
-        // Homogeneous tuples are layout-compatible with their component type.
-        let start = UnsafeMutableRawPointer(p)
-          .assumingMemoryBound(to: _Word.self)
-        let words = UnsafeMutableBufferPointer(start: start, count: wordCount)
-        var bitset = Self(words: words, mutable: true)
-        return try body(&bitset)
-      }
-    }
-    let words = UnsafeMutableBufferPointer<_Word>.allocate(capacity: wordCount)
-    defer { words.deallocate() }
-    var bitset = Self(words: words, mutable: true)
-    return try body(&bitset)
-#endif
   }
 }
 

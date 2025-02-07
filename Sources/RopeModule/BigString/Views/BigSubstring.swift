@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 public struct BigSubstring: Sendable {
   var _base: BigString
@@ -368,5 +366,3 @@ extension BigSubstring: RangeReplaceableCollection {
     assert(_bounds.isEmpty)
   }
 }
-
-#endif

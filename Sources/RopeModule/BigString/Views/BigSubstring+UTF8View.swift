@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigSubstring {
   public struct UTF8View: Sendable {
@@ -173,5 +171,3 @@ extension BigSubstring.UTF8View {
     return _base._utf8Index(roundingUp: i)
   }
 }
-
-#endif

@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString: Hashable {
   public func hash(into hasher: inout Hasher) {
@@ -58,5 +56,3 @@ extension BigString {
     hasher.combine(0xFF as UInt8)
   }
 }
-
-#endif

@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 /// The core of a B-tree based String implementation.
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 public struct BigString: Sendable {
@@ -22,12 +20,3 @@ public struct BigString: Sendable {
     self._rope = _rope
   }
 }
-
-#else
-
-// `BigString` depends on fixes and newly exposed functionality that landed in
-// version 5.8 of the Swift Standard Library.
-@available(*, unavailable, message: "BigString depends on version 5.8 of the Swift Standard Library")
-public struct BigString: Sendable {}
-
-#endif
