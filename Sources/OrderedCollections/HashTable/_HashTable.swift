@@ -177,6 +177,7 @@ extension _HashTable {
   ///    the closure call. The closure must not escape it outside the call.
   @inlinable
   @inline(__always)
+  @_effects(releasenone)
   internal func read<R>(_ body: (_UnsafeHashTable) throws -> R) rethrows -> R {
     try _storage.withUnsafeMutablePointers { header, elements in
       let handle = _UnsafeHashTable(header: header, buckets: elements, readonly: true)
