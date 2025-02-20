@@ -961,6 +961,20 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_appending_Self() {
+    withSampleRanges { r1, r2 in
+      let expected = Set(r1).union(r2).sorted()
+
+      let u1 = OrderedSet(r1)
+      let u2 = OrderedSet(r2)
+      let actual1 = u1.appending(contentsOf: u2)
+      expectEqualElements(actual1, expected)
+
+      let actual2 = actual1.appending(contentsOf: u2).appending(contentsOf: u1)
+      expectEqualElements(actual2, expected)
+    }
+  }
+
   func test_formUnion_Self() {
     withSampleRanges { r1, r2 in
       let expected = Set(r1).union(r2).sorted()
