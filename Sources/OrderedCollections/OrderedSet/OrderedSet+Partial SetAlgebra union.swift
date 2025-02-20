@@ -81,5 +81,28 @@ extension OrderedSet {
     result.formUnion(other)
     return result
   }
+
+  /// Returns a new set with the contents of a sequence appended to the end of the set, excluding
+  /// elements that are already members.
+  ///
+  ///     let a: OrderedSet = [1, 2, 3, 4]
+  ///     let b: OrderedSet = [0, 2, 4, 6]
+  ///     a.union(b) // [1, 2, 3, 4, 0, 6]
+  ///
+  /// This is functionally equivalent to `self.union(elements)`, but it's
+  /// more explicit about how the new members are ordered in the new set.
+  ///
+  /// - Parameter elements: A finite sequence of elements to append.
+  ///
+  /// - Complexity: Expected to be O(`self.count` + `elements.count`) on average,
+  ///    if `Element` implements high-quality hashing.
+  @inlinable
+  public __consuming func appending(
+    contentsOf elements: __owned some Sequence<Element>
+  ) -> Self {
+    var result = self
+    result.append(contentsOf: elements)
+    return result
+  }
 }
 
