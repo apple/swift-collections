@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-@testable import Future
+@testable import Span
 
 @available(macOS 9999, *)
 final class RawSpanTests: XCTestCase {

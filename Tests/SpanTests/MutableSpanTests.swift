@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import Future
+import Span
 
 class ID {
   let id: Int

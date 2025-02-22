@@ -13,7 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
-import Future
+import Span
 
 extension Deque {
   // Implementation note: we could also use the default `IndexingIterator` here.

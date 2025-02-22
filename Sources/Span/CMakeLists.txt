@@ -9,11 +9,12 @@ See https://swift.org/LICENSE.txt for license information
 
 add_library(Future
   "LifetimeOverride.swift"
+  "MutableRawSpan.swift"
   "MutableSpan.swift"
+  "MutableSpanSlicing.swift"
   "OutputSpan.swift"
   "SpanExtensions.swift"
   "StdlibOutputSpanExtensions.swift"
-  "StdlibSpanExtensions.swift"
   "UnsafeBufferPointer+Additions.swift"
 )
 

@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import Future
+import Span
 #endif
 
 extension Deque: RandomAccessContainer {

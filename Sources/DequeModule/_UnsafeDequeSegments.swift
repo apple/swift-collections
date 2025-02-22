@@ -11,7 +11,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import Future
+import Span
 #endif
 
 @frozen

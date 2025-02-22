@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Future
+import Span
 
 extension Deque: Equatable where Element: Equatable {
   /// Returns a Boolean value indicating whether two values are equal. Two
