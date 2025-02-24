@@ -138,14 +138,24 @@ extension MutableRawSpan {
 }
 
 @available(macOS 9999, *)
+extension RawSpan {
+
+  @_alwaysEmitIntoClient
+  @lifetime(borrow mutableSpan)
+  public init(_unsafeMutableRawSpan mutableSpan: borrowing MutableRawSpan) {
+    let start = mutableSpan._start()
+    let span = RawSpan(_unsafeStart: start, byteCount: mutableSpan.byteCount)
+    self = _overrideLifetime(span, borrowing: mutableSpan)
+  }
+}
+
+@available(macOS 9999, *)
 extension MutableRawSpan {
 
   public var bytes: RawSpan {
     @lifetime(borrow self)
     borrowing get {
-      let start = _start()
-      let span = RawSpan(_unsafeStart: start, byteCount: byteCount)
-      return _overrideLifetime(span, borrowing: self)
+      return RawSpan(_unsafeMutableRawSpan: self)
     }
   }
 

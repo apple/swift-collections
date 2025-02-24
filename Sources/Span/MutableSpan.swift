@@ -145,6 +145,7 @@ extension MutableSpan where Element: BitwiseCopyable {
 extension Span where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
+  @lifetime(borrow mutableSpan)
   public init(_unsafeMutableSpan mutableSpan: borrowing MutableSpan<Element>) {
     let pointer = mutableSpan._pointer?.assumingMemoryBound(to: Element.self)
     let buffer = UnsafeBufferPointer(start: pointer, count: mutableSpan.count)
