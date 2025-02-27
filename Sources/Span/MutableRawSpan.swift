@@ -30,10 +30,10 @@ public struct MutableRawSpan: ~Copyable & ~Escapable {
   @lifetime(borrow pointer)
   init(
     _unchecked pointer: UnsafeMutableRawPointer?,
-    count: Int
+    byteCount: Int
   ) {
     _pointer = pointer
-    _count = count
+    _count = byteCount
   }
 }
 
@@ -48,7 +48,7 @@ extension MutableRawSpan {
     _unsafeBytes bytes: UnsafeMutableRawBufferPointer
   ) {
     let baseAddress = bytes.baseAddress
-    let span = MutableRawSpan(_unchecked: baseAddress, count: bytes.count)
+    let span = MutableRawSpan(_unchecked: baseAddress, byteCount: bytes.count)
     self = _overrideLifetime(span, borrowing: bytes)
   }
 
@@ -67,7 +67,7 @@ extension MutableRawSpan {
     byteCount: Int
   ) {
     precondition(byteCount >= 0, "Count must not be negative")
-    self.init(_unchecked: pointer, count: byteCount)
+    self.init(_unchecked: pointer, byteCount: byteCount)
   }
 
   @lifetime(borrow elements)
