@@ -46,58 +46,20 @@ final class MutableSpanTests: XCTestCase {
     }
 
     a.withUnsafeMutableBytes {
-      let b = MutableSpan<UInt>(_unsafeBytes: $0)
+      let (rp, bc) = ($0.baseAddress!, $0.count)
+      let b = MutableSpan<UInt>(_unsafeStart: rp, byteCount: bc)
       XCTAssertEqual(b.count, capacity)
 
-      let r = MutableSpan<Int8>(_unsafeBytes: $0)
-      XCTAssertEqual(r.count, capacity*MemoryLayout<Int>.stride)
+      let stride = MemoryLayout<Int>.stride
+      let r = MutableSpan<Int8>(_unsafeBytes: $0.dropFirst(stride))
+      XCTAssertEqual(r.count, (capacity-1)*stride)
+      XCTAssertEqual(r.count, bc-stride)
     }
 
-//    let v = UnsafeRawBufferPointer(start: nil, count: 0)
-//    XCTAssertNil(MutableSpan<Int>(unsafeRawBufferPointer: v))
+    let v = UnsafeMutableRawBufferPointer(start: nil, count: 0)
+    let m = MutableSpan<Int>(_unsafeBytes: v)
+    XCTAssertEqual(m.count, 0)
   }
-
-//  public func testIteratorOrdinaryElement() {
-//    let capacity = 4
-//    var s = (0..<capacity).map({ "\(#file)+\(#function)--\($0)" })
-//    s.withUnsafeMutableBufferPointer {
-//      let view = MutableSpan(_unsafeElements: $0)
-//
-//      var iterator = view.makeIterator()
-//      var buffered = 0
-//      while let value = iterator.next() {
-//        XCTAssertEqual(value.isEmpty, false)
-//        buffered += 1
-//      }
-//      XCTAssertEqual(buffered, $0.count)
-//    }
-//  }
-
-//  public func testIteratorBitwiseCopyable() {
-//    let count = 4
-//    let offset = 1
-//    XCTAssertLessThan(offset, MemoryLayout<UInt64>.stride)
-//    let bytes = count*MemoryLayout<UInt64>.stride + offset
-//    let align = MemoryLayout<UInt64>.alignment
-//    let p = UnsafeMutableRawPointer.allocate(byteCount: bytes, alignment: align)
-//    defer { p.deallocate() }
-//    for i in 0..<bytes where i%8 == offset {
-//      p.storeBytes(of: 1, toByteOffset: i, as: UInt8.self)
-//    }
-//
-//    let orig = p.loadUnaligned(as: Int64.self)
-//    XCTAssertNotEqual(orig, 1)
-//
-//    // MutableSpan doesn't need to be aligned for accessing `BitwiseCopyable` types.
-//    let buffer = MutableSpan<Int64>(_unsafeStart: p+offset, byteCount: count*8)
-//
-//    var buffered = 0
-//    for value in 0..<buffer.count {
-//      XCTAssertNotEqual(value, 1)
-//      buffered += 1
-//    }
-//    XCTAssertEqual(buffered, count)
-//  }
 
   func testIsEmpty() {
     var array = [0, 1, 2]
@@ -128,7 +90,8 @@ final class MutableSpanTests: XCTestCase {
     let count = 4
     var array = Array(0..<count)
     array.withUnsafeMutableBufferPointer {
-      let span = MutableSpan(_unsafeElements: $0)
+      let (p, c) = ($0.baseAddress!, $0.count)
+      let span = MutableSpan(_unsafeStart: p, count: c)
       let bytes  = span.bytes
       XCTAssertEqual(bytes.byteCount, count*MemoryLayout<Int>.stride)
     }
@@ -162,14 +125,14 @@ final class MutableSpanTests: XCTestCase {
       XCTAssertEqual(Span(_unsafeMutableSpan: v1)._extracting(first: 3)._elementsEqual(Span(_unsafeMutableSpan: v1)._extracting(last: 3)), false)
 
       v1[0] = 0
-//
-//      let s = v1.storage
-//      var b = s.withUnsafeBufferPointer { Array($0) }
-//      b.withUnsafeMutableBufferPointer {
-//        let v2 = MutableSpan(_unsafeElements: $0)
-//        let equal = v1._elementsEqual(v2)
-//        XCTAssertEqual(equal, true)
-//      }
+
+      let s = v1.span
+      var b = s.withUnsafeBufferPointer { Array($0) }
+      b.withUnsafeMutableBufferPointer {
+        let v2 = MutableSpan(_unsafeElements: $0)
+        let equal = v1._elementsEqual(v2)
+        XCTAssertEqual(equal, true)
+      }
     }
   }
 
@@ -225,7 +188,7 @@ final class MutableSpanTests: XCTestCase {
       XCTAssertEqual(v[0], first)
 
       v[0].append("!")
-      XCTAssertEqual(v[0], first?.appending("!"))
+      XCTAssertEqual(v[0], first.map({$0+"!"}))
     }
   }
 
@@ -408,13 +371,16 @@ final class MutableSpanTests: XCTestCase {
     a.withUnsafeMutableBufferPointer {
       let emptyPrefix = $0.prefix(0)
       var span = MutableSpan(_unsafeElements: emptyPrefix)
-      var update = span.update(fromContentsOf: [])
+      let update = span.update(fromContentsOf: [])
       XCTAssertEqual(update, 0)
 
       span = MutableSpan(_unsafeElements: $0)
-      let array = Array(0..<capacity)
-      update = span.update(fromContentsOf: array)
-      XCTAssertEqual(update, capacity)
+      var array = Array(0..<capacity)
+      array.withUnsafeMutableBufferPointer {
+        let source = MutableSpan(_unsafeElements: $0)
+        let update = span.update(fromContentsOf: source)
+        XCTAssertEqual(update, capacity)
+      }
     }
     XCTAssertEqual(a.elementsEqual(0..<capacity), true)
   }
@@ -426,13 +392,18 @@ final class MutableSpanTests: XCTestCase {
     a.withUnsafeMutableBufferPointer {
       let emptyPrefix = $0.prefix(0)
       var span = MutableSpan(_unsafeElements: emptyPrefix)
-      var updated = span.update(fromContentsOf: UnsafeBufferPointer(start: nil, count: 0))
+      let updated = span.update(
+        fromContentsOf: UnsafeBufferPointer(start: nil, count: 0)
+      )
       XCTAssertEqual(updated, 0)
 
       span = MutableSpan(_unsafeElements: $0)
-      let elements = (0..<capacity).map(ID.init(id:))
-      updated = span.update(fromContentsOf: elements)
-      XCTAssertEqual(updated, capacity)
+      var elements = (0..<capacity).map(ID.init(id:))
+      elements.withUnsafeMutableBufferPointer {
+        let source = MutableSpan(_unsafeElements: $0)
+        let updated = span.update(fromContentsOf: source)
+        XCTAssertEqual(updated, capacity)
+      }
     }
     XCTAssertEqual(a.map(\.id).elementsEqual(0..<capacity), true)
   }
