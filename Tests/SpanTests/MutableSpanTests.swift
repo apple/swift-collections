@@ -481,15 +481,14 @@ final class MutableSpanTests: XCTestCase {
 
   public func testSwapAt() {
     let count = 8
-    let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: count)
-    _ = b.initialize(fromContentsOf: 0..<count)
-    defer { b.deallocate() }
-
-    var m = MutableSpan(_unsafeElements: b)
-    for i in 0..<(count/2) {
-      m.swapAt(i, count - i - 1)
+    var array = Array(0..<count)
+    array.withUnsafeMutableBufferPointer {
+      var m = MutableSpan(_unsafeElements: $0)
+      for i in 0..<(count/2) {
+        m.swapAt(i, count - i - 1)
+      }
     }
 
-    XCTAssertTrue(m._elementsEqual((0..<count).reversed()))
+    XCTAssertEqual(array, (0..<count).reversed())
   }
 }
