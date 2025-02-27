@@ -510,6 +510,7 @@ extension MutableSpan where Element: ~Copyable {
     return buffer.count
   }
 
+  @_alwaysEmitIntoClient
   public mutating func moveUpdate(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) -> Index {
@@ -521,6 +522,7 @@ extension MutableSpan where Element: ~Copyable {
 @available(macOS 9999, *)
 extension MutableSpan {
 
+  @_alwaysEmitIntoClient
   public mutating func moveUpdate(
     fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
   ) -> Index {
