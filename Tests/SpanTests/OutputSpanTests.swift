@@ -68,7 +68,7 @@ enum MyTestError: Error { case error }
 @available(macOS 9999, *)
 final class OutputSpanTests: XCTestCase {
 
-  func testOutputBufferInitialization() {
+  func testOutputBufferCreation() {
     let c = 48
     let allocation = UnsafeMutablePointer<UInt8>.allocate(capacity: c)
     defer { allocation.deallocate() }
@@ -77,6 +77,17 @@ final class OutputSpanTests: XCTestCase {
     let initialized = ob.relinquishBorrowedMemory()
     XCTAssertNotNil(initialized.baseAddress)
     XCTAssertEqual(initialized.count, 0)
+  }
+
+  func testOutputBufferDeinitWithoutRelinquishingMemory() {
+    let c = 48
+    let allocation = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: c)
+    defer { allocation.deallocate() }
+
+    var ob = OutputSpan(_initializing: Slice(base: allocation, bounds: 0..<c))
+    ob.append(repeating: 65, count: 12)
+    XCTAssertEqual(ob.count, 12)
+    _ = ob
   }
 
   func testInitializeBufferByAppendingElements() {
@@ -93,6 +104,21 @@ final class OutputSpanTests: XCTestCase {
       XCTAssertEqual($0.count, c)
       XCTAssert($0._elementsEqual(0..<c))
     }
+  }
+
+  func testInitializeBitwiseCopyableBuffer() {
+    let c = 48
+    let allocation: UnsafeMutableRawBufferPointer
+    allocation = .allocate(byteCount: c, alignment: 8)
+    defer { allocation.deallocate() }
+
+    var ob = OutputSpan<Int16>(_initializing: allocation[8...])
+    let r = Int16.max>>2
+    ob.append(r)
+    _ = ob.relinquishBorrowedBytes()
+
+    let o = allocation.load(fromByteOffset: 8, as: Int16.self)
+    XCTAssertEqual(o, r)
   }
 
   func testInitializeBufferByAppendingRepeatedElements() {
@@ -154,16 +180,12 @@ final class OutputSpanTests: XCTestCase {
     var a = Allocation(of: 48, Int.self)
     let c = 24
     a.initialize {
-      let array = Array(0..<c)
-      #if false
-      array.withUnsafeBufferPointer {
-        // let storage = Span(_unsafeElements: $0)
-        let storage = Span<Int>(_unsafeElements: .init(start: nil, count: 0))
-        $0.append(fromContentsOf: storage)
+      os in
+      var array = Array(0..<c)
+      array.withUnsafeMutableBufferPointer {
+        let span = MutableSpan(_unsafeElements: $0)
+        os.append(fromContentsOf: span)
       }
-      #else
-      $0.append(fromContentsOf: array)
-      #endif
     }
     a.withSpan { span in
       XCTAssertEqual(span.count, c)
