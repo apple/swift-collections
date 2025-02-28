@@ -15,15 +15,18 @@
 @frozen
 @available(macOS 9999, *)
 public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
-  @usableFromInline let _pointer: UnsafeMutableRawPointer?
+  @usableFromInline
+  internal let _pointer: UnsafeMutableRawPointer?
 
   public let capacity: Int
 
   @usableFromInline
-  var _initialized: Int = 0
+  internal var _initialized: Int = 0
 
-  @usableFromInline @inline(__always)
-  var _start: UnsafeMutableRawPointer { _pointer.unsafelyUnwrapped }
+  @_alwaysEmitIntoClient
+  internal func _start() -> UnsafeMutableRawPointer {
+    _pointer.unsafelyUnwrapped
+  }
 
   @_alwaysEmitIntoClient
   public var available: Int { capacity &- _initialized }
@@ -36,16 +39,16 @@ public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   deinit {
     if _initialized > 0 {
-      _start.withMemoryRebound(to: Element.self, capacity: _initialized) {
+      _start().withMemoryRebound(to: Element.self, capacity: _initialized) {
         [ workaround = _initialized ] in
         _ = $0.deinitialize(count: workaround)
       }
     }
   }
 
-  @usableFromInline @inline(__always)
   @lifetime(borrow start)
-  init(
+  @_alwaysEmitIntoClient
+  internal init(
     _unchecked start: UnsafeMutableRawPointer?,
     capacity: Int,
     initialized: Int
@@ -65,7 +68,7 @@ extension OutputSpan where Element: ~Copyable  {
 
   @usableFromInline @inline(__always)
   @lifetime(borrow buffer)
-  init(
+  internal init(
     _unchecked buffer: UnsafeMutableBufferPointer<Element>,
     initialized: Int
   ) {
@@ -172,7 +175,7 @@ extension OutputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func append(_ value: consuming Element) {
     precondition(_initialized < capacity, "Output buffer overflow")
-    let p = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
+    let p = _start().advanced(by: _initialized&*MemoryLayout<Element>.stride)
     p.initializeMemory(as: Element.self, to: value)
     _initialized &+= 1
   }
@@ -181,13 +184,13 @@ extension OutputSpan where Element: ~Copyable {
   public mutating func deinitializeLastElement() -> Element? {
     guard _initialized > 0 else { return nil }
     _initialized &-= 1
-    let p = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
+    let p = _start().advanced(by: _initialized&*MemoryLayout<Element>.stride)
     return p.withMemoryRebound(to: Element.self, capacity: 1, { $0.move() })
   }
 
   @_alwaysEmitIntoClient
   public mutating func deinitialize() {
-    _ = _start.withMemoryRebound(to: Element.self, capacity: _initialized) {
+    _ = _start().withMemoryRebound(to: Element.self, capacity: _initialized) {
       $0.deinitialize(count: _initialized)
     }
     _initialized = 0
@@ -206,7 +209,7 @@ extension OutputSpan {
       "destination span cannot contain number of elements requested."
     )
     let offset = _initialized&*MemoryLayout<Element>.stride
-    let p = _start.advanced(by: offset)
+    let p = _start().advanced(by: offset)
     p.withMemoryRebound(to: Element.self, capacity: count) {
       $0.initialize(repeating: repeatedValue, count: count)
     }
@@ -228,7 +231,7 @@ extension OutputSpan {
   ) {
     while _initialized < capacity {
       guard let element = elements.next() else { break }
-      let p = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
+      let p = _start().advanced(by: _initialized&*MemoryLayout<Element>.stride)
       p.initializeMemory(as: Element.self, to: element)
       _initialized &+= 1
     }
@@ -239,18 +242,14 @@ extension OutputSpan {
     fromContentsOf source: some Collection<Element>
   ) {
     let void: Void? = source.withContiguousStorageIfAvailable {
-#if false
       append(fromContentsOf: Span(_unsafeElements: $0))
-#else //FIXME: remove once rdar://136838539 & rdar://136849171 are fixed
-      append(fromContentsOf: $0)
-#endif
     }
     if void != nil {
       return
     }
 
     let available = capacity &- _initialized
-    let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
+    let tail = _start().advanced(by: _initialized&*MemoryLayout<Element>.stride)
     var (iterator, copied) =
     tail.withMemoryRebound(to: Element.self, capacity: available) {
       let suffix = UnsafeMutableBufferPointer(start: $0, count: available)
@@ -264,23 +263,6 @@ extension OutputSpan {
     _initialized &+= copied
   }
 
-  //FIXME: remove once rdar://136838539 & rdar://136849171 are fixed
-  public mutating func append(
-    fromContentsOf source: UnsafeBufferPointer<Element>
-  ) {
-    guard !source.isEmpty else { return }
-    precondition(
-      source.count <= available,
-      "destination span cannot contain every element from source."
-    )
-    let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
-    source.baseAddress!.withMemoryRebound(to: Element.self, capacity: source.count) {
-      _ = tail.initializeMemory(as: Element.self, from: $0, count: source.count)
-    }
-    _initialized += source.count
-  }
-
-  //FIXME: rdar://136838539 & rdar://136849171
   @_alwaysEmitIntoClient
   public mutating func append(
     fromContentsOf source: Span<Element>
@@ -290,7 +272,7 @@ extension OutputSpan {
       source.count <= available,
       "destination span cannot contain every element from source."
     )
-    let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
+    let tail = _start().advanced(by: _initialized&*MemoryLayout<Element>.stride)
     _ = source.withUnsafeBufferPointer {
       tail.initializeMemory(
         as: Element.self, from: $0.baseAddress!, count: $0.count
@@ -319,7 +301,7 @@ extension OutputSpan where Element: ~Copyable {
     )
     let buffer = source.relinquishBorrowedMemory()
     // we must now deinitialize the returned UMBP
-    let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
+    let tail = _start().advanced(by: _initialized&*MemoryLayout<Element>.stride)
     tail.moveInitializeMemory(
       as: Element.self, from: buffer.baseAddress!, count: buffer.count
     )
@@ -330,21 +312,8 @@ extension OutputSpan where Element: ~Copyable {
   public mutating func moveAppend(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) {
-#if false //FIXME: rdar://136838539 & rdar://136849171
     let source = OutputSpan(_initializing: source, initialized: source.count)
     moveAppend(fromContentsOf: source)
-#else
-    guard !source.isEmpty else { return }
-    precondition(
-      source.count <= available,
-      "buffer cannot contain every element from source."
-    )
-    let tail = _start.advanced(by: _initialized&*MemoryLayout<Element>.stride)
-    tail.moveInitializeMemory(
-      as: Element.self, from: source.baseAddress!, count: source.count
-    )
-    _initialized &+= source.count
-#endif
   }
 }
 
