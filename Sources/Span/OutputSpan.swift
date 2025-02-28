@@ -46,8 +46,8 @@ public struct OutputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
     }
   }
 
-  @lifetime(borrow start)
   @_alwaysEmitIntoClient
+  @lifetime(borrow start)
   internal init(
     _unchecked start: UnsafeMutableRawPointer?,
     capacity: Int,
@@ -66,7 +66,7 @@ extension OutputSpan: Sendable {}
 @available(macOS 9999, *)
 extension OutputSpan where Element: ~Copyable  {
 
-  @usableFromInline @inline(__always)
+  @_alwaysEmitIntoClient
   @lifetime(borrow buffer)
   internal init(
     _unchecked buffer: UnsafeMutableBufferPointer<Element>,
