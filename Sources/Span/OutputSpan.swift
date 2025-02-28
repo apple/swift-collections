@@ -330,7 +330,7 @@ extension OutputSpan {
 
 @available(macOS 9999, *)
 extension OutputSpan where Element: BitwiseCopyable {
-
+// TODO: alternative append() implementations for BitwiseCopyable elements
 }
 
 @available(macOS 9999, *)
