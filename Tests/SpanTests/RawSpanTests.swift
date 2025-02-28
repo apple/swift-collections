@@ -112,7 +112,7 @@ final class RawSpanTests: XCTestCase {
       let sub1 = span._extracting(0..<2)
       let sub2 = span._extracting(..<2)
       let sub3 = span._extracting(...)
-      let sub4 = span._extracting(unchecked: 2...)
+      let sub4 = span._extracting(2...)
       XCTAssertTrue(
         sub1._unsafeView(as: UInt8.self)._elementsEqual(sub2._unsafeView(as: UInt8.self))
       )
@@ -137,7 +137,7 @@ final class RawSpanTests: XCTestCase {
     }
   }
 
-  func testUnsafeBytes() {
+  func testWithUnsafeBytes() {
     let capacity = 4
     let array = Array(0..<capacity)
     array.withUnsafeBufferPointer {
@@ -148,30 +148,15 @@ final class RawSpanTests: XCTestCase {
           XCTAssertTrue(b1.elementsEqual(b2))
         }
       }
+
+      let emptyBuffer = UnsafeBufferPointer(rebasing: $0[0..<0])
+      XCTAssertEqual(emptyBuffer.baseAddress, $0.baseAddress)
+
+      let emptySpan = RawSpan(_unsafeElements: emptyBuffer)
+      emptySpan.withUnsafeBytes {
+        XCTAssertNil($0.baseAddress)
+      }
     }
-
-    // Should we be able to derive a non-escapable value from a Span via unsafe pointers?
-//    let copy: RawSpan = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
-//    _ = copy
-  }
-
-  func testStrangeBorrow() {
-    let array: [String] = ["0", "1", "2", "3"]
-    _ = array
-
-//    let rs = RawSpan(array.storage) // Initializer 'init(_:)' requires that 'String' conform to 'BitwiseCopyable'
-
-//    let rs1 = array.storage.withUnsafeBufferPointer {
-//      RawSpan(unsafeBytes: UnsafeRawBufferPointer($0))
-//    }                               // Lifetime-dependent value escapes its scope
-//    _ = rs1
-
-//    let rs2 = array.storage.withUnsafeBufferPointer {
-//      UnsafeRawBufferPointer($0).withMemoryRebound(to: UInt8.self) { // requires that `Span` conform to `Escapable`
-//        return Span(unsafeBufferPointer: $0)
-//      }
-//    }
-//    _ = rs2
   }
 
   func testPrefix() {
