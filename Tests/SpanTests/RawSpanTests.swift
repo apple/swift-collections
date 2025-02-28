@@ -104,7 +104,7 @@ final class RawSpanTests: XCTestCase {
     }
   }
 
-  func testSubscript() {
+  func testExtracting() {
     let capacity = 4
     let b = (0..<capacity).map(Int8.init)
     b.withUnsafeBytes {
@@ -125,13 +125,13 @@ final class RawSpanTests: XCTestCase {
     }
   }
 
-  func testUncheckedSubscript() {
+  func testExtractingUnchecked() {
     let capacity = 32
     let b = (0..<capacity).map(UInt8.init)
     b.withUnsafeBytes {
       let span = RawSpan(_unsafeBytes: $0)
       let prefix = span._extracting(0..<8)
-      let beyond = prefix._extracting(unchecked: 16..<24)
+      let beyond = prefix._extracting(unchecked: 16...23)
       XCTAssertEqual(beyond.byteCount, 8)
       XCTAssertEqual(beyond.unsafeLoad(as: UInt8.self), 16)
     }
