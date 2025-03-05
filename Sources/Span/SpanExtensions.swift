@@ -19,18 +19,18 @@ extension Span {
   public static var empty: Span {
     @lifetime(immortal)
     get {
-      let nilBasedBuffer = UnsafeBufferPointer<Element>(start: nil, count: 0)
-      let span = Span(_unsafeElements: nilBasedBuffer)
-      return _overrideLifetime(span, borrowing: immortalThing)
+      let empty = unsafe UnsafeBufferPointer<Element>(start: nil, count: 0)
+      let span = Span(_unsafeElements: empty)
+      return unsafe _overrideLifetime(span, borrowing: immortalThing)
     }
   }
 
   @available(macOS 9999, *)
   @lifetime(immortal)
   public init() {
-    let nilBasedBuffer = UnsafeBufferPointer<Element>(start: nil, count: 0)
-    let span = Span(_unsafeElements: nilBasedBuffer)
-    self = _overrideLifetime(span, borrowing: immortalThing)
+    let empty = unsafe UnsafeBufferPointer<Element>(start: nil, count: 0)
+    let span = Span(_unsafeElements: empty)
+    self = unsafe _overrideLifetime(span, borrowing: immortalThing)
   }
 }
 
@@ -59,7 +59,7 @@ extension Span where Element: Equatable {
     // return _swift_stdlib_memcmp(lhs.baseAddress, rhs.baseAddress, count) == 0
     // }
     for o in 0..<count {
-      if self[unchecked: o] != other[unchecked: o] { return false }
+      if unsafe self[unchecked: o] != other[unchecked: o] { return false }
     }
     return true
   }
@@ -102,7 +102,7 @@ extension Span where Element: Equatable {
     var offset = 0
     for otherElement in other {
       if offset >= count { return false }
-      if self[unchecked: offset] != otherElement { return false }
+      if unsafe self[unchecked: offset] != otherElement { return false }
       offset += 1
     }
     return offset == count
