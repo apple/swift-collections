@@ -295,7 +295,7 @@ extension MutableRawSpan {
   }
 
   @_alwaysEmitIntoClient
-  public func storeBytes<T: BitwiseCopyable>(
+  public mutating func storeBytes<T: BitwiseCopyable>(
     of value: T, toByteOffset offset: Int = 0, as type: T.Type
   ) {
     precondition(
@@ -308,7 +308,7 @@ extension MutableRawSpan {
 
   @unsafe
   @_alwaysEmitIntoClient
-  public func storeBytes<T: BitwiseCopyable>(
+  public mutating func storeBytes<T: BitwiseCopyable>(
     of value: T, toUncheckedByteOffset offset: Int, as type: T.Type
   ) {
     _start().storeBytes(of: value, toByteOffset: offset, as: type)
