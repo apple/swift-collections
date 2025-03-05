@@ -319,20 +319,20 @@ extension MutableRawSpan {
 @available(macOS 9999, *)
 extension MutableRawSpan {
 
+  @_alwaysEmitIntoClient
   public mutating func update<S: Sequence>(
-    startingAt byteOffset: Int = 0,
     from source: S
   ) -> (unwritten: S.Iterator, byteOffset: Int) where S.Element: BitwiseCopyable {
     var iterator = source.makeIterator()
-    let offset = update(startingAt: byteOffset, from: &iterator)
+    let offset = update(from: &iterator)
     return (iterator, offset)
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update<Element: BitwiseCopyable>(
-    startingAt byteOffset: Int = 0,
     from elements: inout some IteratorProtocol<Element>
   ) -> Int {
-    var offset = byteOffset
+    var offset = 0
     while offset + MemoryLayout<Element>.stride <= _count {
       guard let element = elements.next() else { break }
       storeBytes(of: element, toUncheckedByteOffset: offset, as: Element.self)
@@ -341,19 +341,17 @@ extension MutableRawSpan {
     return offset
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update<C: Collection>(
-    startingAt byteOffset: Int = 0,
     fromContentsOf source: C
   ) -> Int where C.Element: BitwiseCopyable {
     let newOffset = source.withContiguousStorageIfAvailable {
-      self.update(
-        startingAt: byteOffset, fromContentsOf: Span(_unsafeElements: $0)
-      )
+      self.update(fromContentsOf: RawSpan(_unsafeElements: $0))
     }
     if let newOffset { return newOffset }
 
     var elements = source.makeIterator()
-    let lastOffset = update(startingAt: byteOffset, from: &elements)
+    let lastOffset = update(from: &elements)
     precondition(
       elements.next() == nil,
       "destination span cannot contain every element from source."
@@ -361,43 +359,42 @@ extension MutableRawSpan {
     return lastOffset
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update<Element: BitwiseCopyable>(
-    startingAt byteOffset: Int = 0,
     fromContentsOf source: Span<Element>
   ) -> Int {
-//    update(startingAt: byteOffset, from: source.bytes)
+//    update(from: source.bytes)
     source.withUnsafeBytes {
-      update(startingAt: byteOffset, fromContentsOf: $0)
+      update(fromContentsOf: $0)
     }
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update<Element: BitwiseCopyable>(
-    startingAt byteOffset: Int = 0,
     fromContentsOf source: borrowing MutableSpan<Element>
   ) -> Int {
-//    update(startingAt: byteOffset, from: source.storage.bytes)
+//    update(from: source.span.bytes)
     source.withUnsafeBytes {
-      update(startingAt: byteOffset, fromContentsOf: $0)
+      update(fromContentsOf: $0)
     }
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
-    startingAt byteOffset: Int = 0,
-    from source: RawSpan
+    fromContentsOf source: RawSpan
   ) -> Int {
-    if source.byteCount == 0 { return byteOffset }
+    if source.byteCount == 0 { return 0 }
     source.withUnsafeBytes {
-      _start().advanced(by: byteOffset)
-              .copyMemory(from: $0.baseAddress!, byteCount: $0.count)
+      _start().copyMemory(from: $0.baseAddress!, byteCount: $0.count)
     }
-    return byteOffset &+ source.byteCount
+    return source.byteCount
   }
 
+  @_alwaysEmitIntoClient
   public mutating func update(
-    startingAt byteOffset: Int = 0,
-    from source: borrowing MutableRawSpan
+    fromContentsOf source: borrowing MutableRawSpan
   ) -> Int {
-    update(startingAt: byteOffset, from: source.bytes)
+    update(fromContentsOf: source.bytes)
   }
 }
 
