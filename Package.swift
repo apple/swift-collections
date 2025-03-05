@@ -219,7 +219,9 @@ let targets: [CustomTarget] = [
     kind: .exported,
     name: "Span",
     dependencies: ["InternalCollectionsUtilities"],
-    exclude: ["CMakeLists.txt"]),
+    exclude: ["CMakeLists.txt"],
+    settings: _sharedSettings + [.unsafeFlags(["-Xfrontend", "-strict-memory-safety"])],
+  ),
   .target(
     kind: .test,
     name: "SpanTests",
