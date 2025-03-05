@@ -41,7 +41,7 @@ struct Allocation<T>: ~Copyable {
       count = initialized.count
     }
     catch {
-      outputBuffer.deinitialize()
+      outputBuffer.removeAll()
       let empty = outputBuffer.relinquishBorrowedMemory()
       assert(empty.baseAddress == allocation)
       assert(empty.count == 0)
@@ -97,7 +97,7 @@ final class OutputSpanTests: XCTestCase {
       for i in 0...c {
         $0.append(i)
       }
-      let oops = $0.deinitializeLastElement()
+      let oops = $0.removeLast()
       XCTAssertEqual(oops, c)
     }
     a.withSpan {
@@ -126,7 +126,7 @@ final class OutputSpanTests: XCTestCase {
     let c = 10
     a.initialize {
       $0.append(repeating: c, count: c)
-      let oops = $0.deinitializeLastElement()
+      let oops = $0.removeLast()
       XCTAssertEqual(oops, c)
       XCTAssertEqual($0.count, c-1)
     }

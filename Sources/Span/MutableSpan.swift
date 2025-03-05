@@ -535,7 +535,7 @@ extension MutableSpan where Element: ~Copyable {
   public mutating func moveUpdate(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) -> Index {
-    let s = unsafe OutputSpan(_initializing: source, initialized: source.count)
+    let s = OutputSpan(_initializing: source, initialized: source.count)
     return self.moveUpdate(fromContentsOf: s)
   }
 }

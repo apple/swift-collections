@@ -17,16 +17,16 @@ extension Array {
     capacity: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws -> Void
   ) rethrows {
-    try self.init(
+    try unsafe self.init(
       unsafeUninitializedCapacity: capacity,
       initializingWith: { (buffer, count) in
-        let pointer = buffer.baseAddress.unsafelyUnwrapped
+        let pointer = unsafe buffer.baseAddress.unsafelyUnwrapped
         var output = OutputSpan<Element>(
           _initializing: pointer, capacity: buffer.count
         )
         try initializer(&output)
-        let initialized = output.relinquishBorrowedMemory()
-        assert(initialized.baseAddress == buffer.baseAddress)
+        let initialized = unsafe output.relinquishBorrowedMemory()
+        unsafe assert(initialized.baseAddress == buffer.baseAddress)
         count = initialized.count
       }
     )
@@ -43,16 +43,16 @@ extension String {
     utf8Capacity capacity: Int,
     initializingWith initializer: (inout OutputSpan<UTF8.CodeUnit>) throws -> Void
   ) rethrows {
-    try self.init(
+    try unsafe self.init(
       unsafeUninitializedCapacity: capacity,
       initializingUTF8With: { buffer in
-        let pointer = buffer.baseAddress.unsafelyUnwrapped
+        let pointer = unsafe buffer.baseAddress.unsafelyUnwrapped
         var output = OutputSpan<UTF8.CodeUnit>(
           _initializing: pointer, capacity: buffer.count
         )
         try initializer(&output)
-        let initialized = output.relinquishBorrowedMemory()
-        assert(initialized.baseAddress == buffer.baseAddress)
+        let initialized = unsafe output.relinquishBorrowedMemory()
+        unsafe assert(initialized.baseAddress == buffer.baseAddress)
         return initialized.count
       }
     )
@@ -69,16 +69,16 @@ extension Data {
     initializingWith initializer: (inout OutputSpan<UInt8>) throws -> Void
   ) rethrows {
     self = Data(count: capacity) // initialized with zeroed buffer
-    let count = try self.withUnsafeMutableBytes { rawBuffer in
-      try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
-        buffer.deinitialize()
-        let pointer = buffer.baseAddress.unsafelyUnwrapped
+    let count = unsafe try self.withUnsafeMutableBytes { rawBuffer in
+      unsafe try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
+        unsafe buffer.deinitialize()
+        let pointer = unsafe buffer.baseAddress.unsafelyUnwrapped
         var output = OutputSpan<UInt8>(
           _initializing: pointer, capacity: capacity
         )
         try initializer(&output)
-        let initialized = output.relinquishBorrowedMemory()
-        assert(initialized.baseAddress == buffer.baseAddress)
+        let initialized = unsafe output.relinquishBorrowedMemory()
+        unsafe assert(initialized.baseAddress == buffer.baseAddress)
         return initialized.count
       }
     }
