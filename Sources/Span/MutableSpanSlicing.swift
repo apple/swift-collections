@@ -22,7 +22,7 @@ extension MutableSpan where Element: ~Copyable {
       "Index range out of bounds"
     )
     let newSpan = MutableSpan(_unchecked: _start(), uncheckedBounds: bounds)
-    return _overrideLifetime(newSpan, mutating: &self)
+    return unsafe _overrideLifetime(newSpan, mutating: &self)
   }
 }
 
@@ -35,11 +35,11 @@ extension MutableSpan where Element: ~Copyable {
     uncheckedBounds bounds: Range<Index>
   ) {
     let delta = bounds.lowerBound &* MemoryLayout<Element>.stride
-    let newStart = pointer.advanced(by: delta)
+    let newStart = unsafe pointer.advanced(by: delta)
     let newSpan = Self(
       _unchecked: newStart, count: bounds.upperBound &- bounds.lowerBound
     )
-    self = _overrideLifetime(newSpan, borrowing: pointer)
+    self = unsafe _overrideLifetime(newSpan, borrowing: pointer)
   }
 }
 
@@ -53,7 +53,7 @@ extension Span where Element: ~Copyable {
   ) {
     let mut = MutableSpan<Element>(_unchecked: pointer, uncheckedBounds: bounds)
     let newSpan = mut.span
-    self = _overrideLifetime(newSpan, borrowing: pointer)
+    self = unsafe _overrideLifetime(newSpan, borrowing: pointer)
   }
 }
 
@@ -70,7 +70,7 @@ extension MutableSpan where Element: ~Copyable {
         "Index range out of bounds"
       )
       let newSpan = MutableSpan(_unchecked: _start(), uncheckedBounds: bounds)
-      return _overrideLifetime(newSpan, mutating: &self)
+      return unsafe _overrideLifetime(newSpan, mutating: &self)
     }
   }
 }
@@ -98,11 +98,11 @@ extension SubMutableSpan where Element: ~Copyable {
   public subscript (index: Index) -> Element {
     unsafeAddress {
       precondition(offset <= index && index < base.count)
-      return UnsafePointer(base._unsafeAddressOfElement(unchecked: index))
+      return unsafe UnsafePointer(base._unsafeAddressOfElement(unchecked: index))
     }
     unsafeMutableAddress {
       precondition(offset <= index && index < base.count)
-      return base._unsafeAddressOfElement(unchecked: index)
+      return unsafe base._unsafeAddressOfElement(unchecked: index)
     }
   }
 
@@ -112,7 +112,7 @@ extension SubMutableSpan where Element: ~Copyable {
       let newSpan = Span<Element>(
         _unchecked: base._start(), uncheckedBounds: offset..<base.count
       )
-      return _overrideLifetime(newSpan, borrowing: self)
+      return unsafe _overrideLifetime(newSpan, borrowing: self)
     }
   }
 }
@@ -139,7 +139,7 @@ extension MutableSpan where Element: ~Copyable {
         _unchecked: _start(), uncheckedBounds: 0..<bounds.upperBound
       )
       let subSpan = SubMutableSpan<Element>(bounds.lowerBound, prefix)
-      return _overrideLifetime(subSpan, mutating: &self)
+      return unsafe _overrideLifetime(subSpan, mutating: &self)
     }
   }
 }
@@ -157,9 +157,9 @@ extension MutableSpan where Element: Copyable {
       UInt(bitPattern: bounds.upperBound) <= UInt(bitPattern: _count),
       "Index range out of bounds"
     )
-    let start = _start().advanced(by: bounds.lowerBound &* MemoryLayout<Element>.stride)
-    start.withMemoryRebound(to: Element.self, capacity: bounds.count) {
-      $0.update(repeating: repeatedValue, count: bounds.count)
+    let start = unsafe _start() + bounds.lowerBound &* MemoryLayout<Element>.stride
+    unsafe start.withMemoryRebound(to: Element.self, capacity: bounds.count) {
+      unsafe $0.update(repeating: repeatedValue, count: bounds.count)
     }
   }
 }
