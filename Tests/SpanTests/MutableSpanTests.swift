@@ -491,4 +491,103 @@ final class MutableSpanTests: XCTestCase {
 
     XCTAssertEqual(array, (0..<count).reversed())
   }
+
+  func testExtracting() {
+    let capacity = 4
+    var b = (0..<capacity).map(Int8.init)
+    b.withUnsafeMutableBufferPointer {
+      var span = MutableSpan(_unsafeElements: $0)
+
+      var sub = span._extracting(0..<2)
+      XCTAssertEqual(sub.count, 2)
+      XCTAssertEqual(sub[0], 0)
+
+      sub = span._extracting(..<2)
+      XCTAssertEqual(sub.count, 2)
+      XCTAssertEqual(sub[0], 0)
+
+      sub = span._extracting(...)
+      XCTAssertEqual(sub.count, 4)
+      XCTAssertEqual(sub[0], 0)
+
+      sub = span._extracting(2...)
+      XCTAssertEqual(sub.count, 2)
+      XCTAssertEqual(sub[0], 2)
+    }
+  }
+
+  func testExtractingUnchecked() {
+    let capacity = 32
+    var b = (0..<capacity).map(UInt8.init)
+    b.withUnsafeMutableBufferPointer {
+      var span = MutableSpan(_unsafeElements: $0.prefix(8))
+      let beyond = span._extracting(unchecked: 16...23)
+      XCTAssertEqual(beyond.count, 8)
+      let fromBeyond = beyond[0]
+      XCTAssertEqual(fromBeyond, 16)
+    }
+  }
+
+  func testPrefix() {
+    let capacity = 4
+    var a = Array(0..<UInt8(capacity))
+    a.withUnsafeMutableBufferPointer {
+      var prefix: MutableSpan<UInt8>
+      var span = MutableSpan(_unsafeElements: $0)
+      XCTAssertEqual(span.count, capacity)
+
+      prefix = span._extracting(first: 1)
+      XCTAssertEqual(prefix[0], 0)
+
+      prefix = span._extracting(first: capacity)
+      XCTAssertEqual(prefix[capacity-1], UInt8(capacity-1))
+
+      prefix = span._extracting(droppingLast: capacity)
+      XCTAssertEqual(prefix.isEmpty, true)
+
+      prefix = span._extracting(droppingLast: 1)
+      XCTAssertEqual(prefix[capacity-2], UInt8(capacity-2))
+    }
+
+    do {
+      let b = UnsafeMutableBufferPointer<Int>(start: nil, count: 0)
+      var span = MutableSpan(_unsafeElements: b)
+      XCTAssertEqual(span.count, b.count)
+      XCTAssertEqual(span._extracting(first: 1).count, b.count)
+      XCTAssertEqual(span._extracting(droppingLast: 1).count, b.count)
+    }
+  }
+
+  func testSuffix() {
+    let capacity = 4
+    var a = Array(0..<UInt8(capacity))
+    a.withUnsafeMutableBufferPointer {
+      var suffix: MutableSpan<UInt8>
+      var span = MutableSpan(_unsafeElements: $0)
+      XCTAssertEqual(span.count, capacity)
+
+      suffix = span._extracting(last: capacity)
+      XCTAssertEqual(suffix[0], 0)
+
+      suffix = span._extracting(last: capacity-1)
+      XCTAssertEqual(suffix[0], 1)
+
+      suffix = span._extracting(last: 1)
+      XCTAssertEqual(suffix[0], UInt8(capacity-1))
+
+      suffix = span._extracting(droppingFirst: capacity)
+      XCTAssertTrue(suffix.isEmpty)
+
+      suffix = span._extracting(droppingFirst: 1)
+      XCTAssertEqual(suffix[0], 1)
+    }
+
+    do {
+      let b = UnsafeMutableBufferPointer<ObjectIdentifier>(start: nil, count: 0)
+      var span = MutableSpan(_unsafeElements: b)
+      XCTAssertEqual(span.count, b.count)
+      XCTAssertEqual(span._extracting(last: 1).count, b.count)
+      XCTAssertEqual(span._extracting(droppingFirst: 1).count, b.count)
+    }
+  }
 }
