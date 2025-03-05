@@ -61,7 +61,7 @@ extension MutableSpan where Element: ~Copyable {
   public init(
     _unsafeElements buffer: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe precondition(
+    precondition(
       ((Int(bitPattern: buffer.baseAddress) &
         (MemoryLayout<Element>.alignment &- 1)) == 0),
       "baseAddress must be properly aligned to access Element"
@@ -105,7 +105,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   public init(
     _unsafeBytes buffer: UnsafeMutableRawBufferPointer
   ) {
-    unsafe precondition(
+    precondition(
       ((Int(bitPattern: buffer.baseAddress) &
         (MemoryLayout<Element>.alignment &- 1)) == 0),
       "baseAddress must be properly aligned to access Element"
@@ -219,7 +219,7 @@ extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public var _description: String {
     let addr = String(
-      unsafe UInt(bitPattern: _pointer), radix: 16, uppercase: false
+      UInt(bitPattern: _pointer), radix: 16, uppercase: false
     )
     return "(0x\(addr), \(_count))"
   }
