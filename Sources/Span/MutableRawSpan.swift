@@ -469,13 +469,6 @@ extension MutableRawSpan {
     _extracting(bounds.relative(to: byteOffsets).clamped(to: byteOffsets))
   }
 
-  @_alwaysEmitIntoClient
-  @lifetime(borrow self)
-  mutating public func _extracting(_ bounds: ClosedRange<Int>) -> Self {
-    let range = Range(uncheckedBounds: (bounds.lowerBound, bounds.upperBound+1))
-    return _extracting(range)
-  }
-
   /// Constructs a new span over the items within the supplied range of
   /// positions within this span.
   ///
@@ -492,16 +485,6 @@ extension MutableRawSpan {
   ///
   /// - Complexity: O(1)
   @unsafe
-  @_alwaysEmitIntoClient
-  @lifetime(borrow self)
-  mutating public func _extracting(
-    unchecked bounds: some RangeExpression<Int>
-  ) -> Self {
-    _extracting(
-      unchecked: bounds.relative(to: byteOffsets).clamped(to: byteOffsets)
-    )
-  }
-
   @_alwaysEmitIntoClient
   @lifetime(borrow self)
   mutating public func _extracting(unchecked bounds: ClosedRange<Int>) -> Self {

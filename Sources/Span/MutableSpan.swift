@@ -689,13 +689,6 @@ extension MutableSpan where Element: ~Copyable {
     _extracting(bounds.relative(to: indices).clamped(to: indices))
   }
 
-  @_alwaysEmitIntoClient
-  @lifetime(borrow self)
-  mutating public func _extracting(_ bounds: ClosedRange<Index>) -> Self {
-    let range = Range(uncheckedBounds: (bounds.lowerBound, bounds.upperBound+1))
-    return _extracting(range)
-  }
-
   /// Constructs a new span over the items within the supplied range of
   /// positions within this span.
   ///
@@ -712,14 +705,6 @@ extension MutableSpan where Element: ~Copyable {
   ///
   /// - Complexity: O(1)
   @unsafe
-  @_alwaysEmitIntoClient
-  @lifetime(borrow self)
-  mutating public func _extracting(
-    unchecked bounds: some RangeExpression<Index>
-  ) -> Self {
-    _extracting(unchecked: bounds.relative(to: indices).clamped(to: indices))
-  }
-
   @_alwaysEmitIntoClient
   @lifetime(borrow self)
   mutating public func _extracting(
