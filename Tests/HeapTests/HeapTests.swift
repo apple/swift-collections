@@ -641,4 +641,42 @@ final class HeapTests: CollectionTestCase {
       }
     }
   }
+
+  func test_removeAll_noneRemoved() {
+    withEvery("count", in: 0 ..< 20) { count in
+      withEvery("seed", in: 0 ..< 100) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        heap.removeAll { _ in false }
+        let expected = Array(0 ..< count)
+        expectEqualElements(heap.itemsInAscendingOrder(), expected)
+      }
+    }
+  }
+    
+  func test_removeAll_allRemoved() {
+    withEvery("count", in: 0 ..< 20) { count in
+      withEvery("seed", in: 0 ..< 100) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        heap.removeAll { _ in true }
+        expectTrue(heap.isEmpty)
+      }
+    }
+  }
+    
+  func test_removeAll_removeEvenNumbers() {
+    withEvery("count", in: 0 ..< 20) { count in
+      withEvery("seed", in: 0 ..< 100) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        heap.removeAll { $0 % 2 == 0 }
+        let expected = Array(stride(from: 1, to: count, by: 2))
+        expectEqualElements(heap.itemsInAscendingOrder(), expected)
+      }
+    }
+  }
 }
