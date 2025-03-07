@@ -587,4 +587,24 @@ final class HeapTests: CollectionTestCase {
       }
     }
   }
+    
+  func test_removeAll_noneRemoved() {
+      var heap = Heap<Int>((1...10).shuffled())
+      let originalSorted = heap.unordered.sorted()
+      heap.removeAll { _ in false }
+      expectEqualElements(heap.itemsInAscendingOrder(), originalSorted)
+  }
+    
+  func test_removeAll_allRemoved() {
+      var heap = Heap<Int>((1...10).shuffled())
+      heap.removeAll { _ in true }
+      expectTrue(heap.isEmpty)
+  }
+    
+  func test_removeAll_removeEvenNumbers() {
+      var heap = Heap<Int>((1...10).shuffled())
+      heap.removeAll { $0 % 2 == 0 }
+      let expected = (1...10).filter { $0 % 2 != 0 }.sorted()
+      expectEqualElements(heap.itemsInAscendingOrder(), expected)
+  }
 }
