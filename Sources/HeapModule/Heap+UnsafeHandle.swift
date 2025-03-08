@@ -81,12 +81,12 @@ extension Heap._UnsafeHandle {
 
   @inlinable @inline(__always)
   internal func minValue(_ a: _HeapNode, _ b: _HeapNode) -> _HeapNode {
-    self[a] < self[b] ? a : b
+    self[a] <= self[b] ? a : b
   }
 
   @inlinable @inline(__always)
   internal func maxValue(_ a: _HeapNode, _ b: _HeapNode) -> _HeapNode {
-    self[a] < self[b] ? b : a
+    self[a] > self[b] ? a : b
   }
 }
 
