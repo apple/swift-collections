@@ -21,7 +21,7 @@ extension Array {
       unsafeUninitializedCapacity: capacity,
       initializingWith: { (buffer, count) in
         let pointer = unsafe buffer.baseAddress.unsafelyUnwrapped
-        var output = OutputSpan<Element>(
+        var output = unsafe OutputSpan<Element>(
           _initializing: pointer, capacity: buffer.count
         )
         try initializer(&output)
@@ -47,7 +47,7 @@ extension String {
       unsafeUninitializedCapacity: capacity,
       initializingUTF8With: { buffer in
         let pointer = unsafe buffer.baseAddress.unsafelyUnwrapped
-        var output = OutputSpan<UTF8.CodeUnit>(
+        var output = unsafe OutputSpan<UTF8.CodeUnit>(
           _initializing: pointer, capacity: buffer.count
         )
         try initializer(&output)
@@ -73,7 +73,7 @@ extension Data {
       unsafe try rawBuffer.withMemoryRebound(to: UInt8.self) { buffer in
         unsafe buffer.deinitialize()
         let pointer = unsafe buffer.baseAddress.unsafelyUnwrapped
-        var output = OutputSpan<UInt8>(
+        var output = unsafe OutputSpan<UInt8>(
           _initializing: pointer, capacity: capacity
         )
         try initializer(&output)

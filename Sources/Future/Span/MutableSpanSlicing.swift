@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // FIXME: Revive
 //MARK: Option 1 extracting() function
 @available(macOS 9999, *)
 extension MutableSpan where Element: ~Copyable {
@@ -21,7 +22,7 @@ extension MutableSpan where Element: ~Copyable {
       UInt(bitPattern: bounds.upperBound) <= UInt(bitPattern: _count),
       "Index range out of bounds"
     )
-    let newSpan = MutableSpan(_unchecked: _start(), uncheckedBounds: bounds)
+    let newSpan = unsafe MutableSpan(_unchecked: _start(), uncheckedBounds: bounds)
     return unsafe _overrideLifetime(newSpan, mutating: &self)
   }
 }
@@ -36,7 +37,7 @@ extension MutableSpan where Element: ~Copyable {
   ) {
     let delta = bounds.lowerBound &* MemoryLayout<Element>.stride
     let newStart = unsafe pointer.advanced(by: delta)
-    let newSpan = Self(
+    let newSpan = unsafe Self(
       _unchecked: newStart, count: bounds.upperBound &- bounds.lowerBound
     )
     self = unsafe _overrideLifetime(newSpan, borrowing: pointer)
@@ -51,7 +52,7 @@ extension Span where Element: ~Copyable {
     _unchecked pointer: UnsafeMutableRawPointer,
     uncheckedBounds bounds: Range<Index>
   ) {
-    let mut = MutableSpan<Element>(_unchecked: pointer, uncheckedBounds: bounds)
+    let mut = unsafe MutableSpan<Element>(_unchecked: pointer, uncheckedBounds: bounds)
     let newSpan = mut.span
     self = unsafe _overrideLifetime(newSpan, borrowing: pointer)
   }
@@ -69,7 +70,7 @@ extension MutableSpan where Element: ~Copyable {
         UInt(bitPattern: bounds.upperBound) <= UInt(bitPattern: _count),
         "Index range out of bounds"
       )
-      let newSpan = MutableSpan(_unchecked: _start(), uncheckedBounds: bounds)
+      let newSpan = unsafe MutableSpan(_unchecked: _start(), uncheckedBounds: bounds)
       return unsafe _overrideLifetime(newSpan, mutating: &self)
     }
   }
@@ -84,6 +85,7 @@ public struct SubMutableSpan<Element: ~Copyable & ~Escapable>
   public fileprivate(set) var offset: MutableSpan<Element>.Index
   public /*exclusive*/ var base: MutableSpan<Element>
 
+  @lifetime(copy _base)
   init(_ _offset: Index, _ _base: consuming MutableSpan<Element>) {
     offset = _offset
     base = _base
@@ -100,6 +102,7 @@ extension SubMutableSpan where Element: ~Copyable {
       precondition(offset <= index && index < base.count)
       return unsafe UnsafePointer(base._unsafeAddressOfElement(unchecked: index))
     }
+    @lifetime(self: copy self)
     unsafeMutableAddress {
       precondition(offset <= index && index < base.count)
       return unsafe base._unsafeAddressOfElement(unchecked: index)
@@ -109,7 +112,7 @@ extension SubMutableSpan where Element: ~Copyable {
   public var span: Span<Element> {
     @lifetime(borrow self)
     borrowing get {
-      let newSpan = Span<Element>(
+      let newSpan = unsafe Span<Element>(
         _unchecked: base._start(), uncheckedBounds: offset..<base.count
       )
       return unsafe _overrideLifetime(newSpan, borrowing: self)
@@ -119,6 +122,7 @@ extension SubMutableSpan where Element: ~Copyable {
 
 @available(macOS 9999, *)
 extension SubMutableSpan {
+  @lifetime(self: copy self)
   public mutating func update(repeating repeatedValue: consuming Element) {
     base.update(repeating: repeatedValue)
   }
@@ -135,7 +139,7 @@ extension MutableSpan where Element: ~Copyable {
         UInt(bitPattern: bounds.upperBound) <= UInt(bitPattern: _count),
         "Index range out of bounds"
       )
-      let prefix = Self(
+      let prefix = unsafe Self(
         _unchecked: _start(), uncheckedBounds: 0..<bounds.upperBound
       )
       let subSpan = SubMutableSpan<Element>(bounds.lowerBound, prefix)
@@ -148,6 +152,7 @@ extension MutableSpan where Element: ~Copyable {
 @available(macOS 9999, *)
 extension MutableSpan where Element: Copyable {
 
+  @lifetime(self: copy self)
   public mutating func update(
     in bounds: Range<Index>,
     repeating repeatedValue: consuming Element
@@ -163,3 +168,4 @@ extension MutableSpan where Element: Copyable {
     }
   }
 }
+#endif

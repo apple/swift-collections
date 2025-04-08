@@ -20,7 +20,7 @@ extension Span {
     @lifetime(immortal)
     get {
       let empty = unsafe UnsafeBufferPointer<Element>(start: nil, count: 0)
-      let span = Span(_unsafeElements: empty)
+      let span = unsafe Span(_unsafeElements: empty)
       return unsafe _overrideLifetime(span, borrowing: immortalThing)
     }
   }
@@ -29,7 +29,7 @@ extension Span {
   @lifetime(immortal)
   public init() {
     let empty = unsafe UnsafeBufferPointer<Element>(start: nil, count: 0)
-    let span = Span(_unsafeElements: empty)
+    let span = unsafe Span(_unsafeElements: empty)
     self = unsafe _overrideLifetime(span, borrowing: immortalThing)
   }
 }
@@ -77,7 +77,7 @@ extension Span where Element: Equatable {
   @_alwaysEmitIntoClient
   public func _elementsEqual(_ other: some Collection<Element>) -> Bool {
     let equal = other.withContiguousStorageIfAvailable {
-      _elementsEqual(Span(_unsafeElements: $0))
+      _elementsEqual(unsafe Span(_unsafeElements: $0))
     }
     if let equal { return equal }
 

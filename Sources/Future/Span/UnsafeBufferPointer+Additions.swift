@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -14,7 +14,7 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// instances refer to the same region in memory.
   @inlinable @inline(__always)
   public static func ===(_ a: Self, _ b: Self) -> Bool {
-    (a.baseAddress == b.baseAddress) && (a.count == b.count)
+    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
   }
 }
 
@@ -24,7 +24,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// memory.
   @inlinable @inline(__always)
   public static func ===(_ a: Self, _ b: Self) -> Bool {
-    (a.baseAddress == b.baseAddress) && (a.count == b.count)
+    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
   }
 }
 
@@ -33,7 +33,7 @@ extension UnsafeRawBufferPointer {
   /// instances refer to the same region in memory.
   @inlinable @inline(__always)
   public static func ===(_ a: Self, _ b: Self) -> Bool {
-    (a.baseAddress == b.baseAddress) && (a.count == b.count)
+    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
   }
 }
 
@@ -43,6 +43,6 @@ extension UnsafeMutableRawBufferPointer {
   /// memory.
   @inlinable @inline(__always)
   public static func ===(_ a: Self, _ b: Self) -> Bool {
-    (a.baseAddress == b.baseAddress) && (a.count == b.count)
+    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
   }
 }

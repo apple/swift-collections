@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // FIXME: Revive
 import Builtin
 
 // A MutableSpan<Element> represents a span of memory which
@@ -382,6 +383,7 @@ extension MutableSpan where Element: ~Copyable {
 
   //FIXME: mark closure parameter as non-escaping
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public func withUnsafeBufferPointer<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeBufferPointer<Element>) throws(E) -> Result
   ) throws(E) -> Result {
@@ -390,6 +392,7 @@ extension MutableSpan where Element: ~Copyable {
 
   //FIXME: mark closure parameter as non-escaping
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func withUnsafeMutableBufferPointer<
     E: Error, Result: ~Copyable
   >(
@@ -412,6 +415,7 @@ extension MutableSpan where Element: BitwiseCopyable {
 
   //FIXME: mark closure parameter as non-escaping
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public func withUnsafeBytes<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeRawBufferPointer) throws(E) -> Result
   ) throws(E) -> Result {
@@ -420,6 +424,7 @@ extension MutableSpan where Element: BitwiseCopyable {
 
   //FIXME: mark closure parameter as non-escaping
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func withUnsafeMutableBytes<E: Error, Result: ~Copyable>(
     _ body: (_ buffer: UnsafeMutableRawBufferPointer) throws(E) -> Result
   ) throws(E) -> Result {
@@ -436,6 +441,7 @@ extension MutableSpan where Element: BitwiseCopyable {
 extension MutableSpan {
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(repeating repeatedValue: consuming Element) {
     unsafe _start().withMemoryRebound(to: Element.self, capacity: count) {
       unsafe $0.update(repeating: repeatedValue, count: count)
@@ -443,6 +449,7 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update<S: Sequence>(
     from source: S
   ) -> (unwritten: S.Iterator, index: Index) where S.Element == Element {
@@ -452,6 +459,7 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     from elements: inout some IteratorProtocol<Element>
   ) -> Index {
@@ -465,6 +473,7 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     fromContentsOf source: some Collection<Element>
   ) -> Index {
@@ -487,6 +496,7 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(fromContentsOf source: Span<Element>) -> Index {
     guard !source.isEmpty else { return 0 }
     precondition(
@@ -504,6 +514,7 @@ extension MutableSpan {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     fromContentsOf source: borrowing MutableSpan<Element>
   ) -> Index {
@@ -515,6 +526,7 @@ extension MutableSpan {
 extension MutableSpan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func moveUpdate(
     fromContentsOf source: consuming OutputSpan<Element>
   ) -> Index {
@@ -532,6 +544,7 @@ extension MutableSpan where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func moveUpdate(
     fromContentsOf source: UnsafeMutableBufferPointer<Element>
   ) -> Index {
@@ -544,6 +557,7 @@ extension MutableSpan where Element: ~Copyable {
 extension MutableSpan {
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func moveUpdate(
     fromContentsOf source: Slice<UnsafeMutableBufferPointer<Element>>
   ) -> Index {
@@ -555,6 +569,7 @@ extension MutableSpan {
 extension MutableSpan where Element: BitwiseCopyable {
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     repeating repeatedValue: Element
   ) where Element: BitwiseCopyable {
@@ -568,6 +583,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update<S: Sequence>(
     from source: S
   ) -> (unwritten: S.Iterator, index: Index)
@@ -578,6 +594,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     from elements: inout some IteratorProtocol<Element>
   ) -> Index {
@@ -591,6 +608,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     fromContentsOf source: some Collection<Element>
   ) -> Index where Element: BitwiseCopyable {
@@ -613,6 +631,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     fromContentsOf source: Span<Element>
   ) -> Index where Element: BitwiseCopyable {
@@ -631,6 +650,7 @@ extension MutableSpan where Element: BitwiseCopyable {
   }
 
   @_alwaysEmitIntoClient
+  @lifetime(self: copy self)
   public mutating func update(
     fromContentsOf source: borrowing MutableSpan<Element>
   ) -> Index where Element: BitwiseCopyable {
@@ -858,3 +878,4 @@ extension MutableSpan where Element: ~Copyable {
     return unsafe _overrideLifetime(newSpan, mutating: &self)
   }
 }
+#endif

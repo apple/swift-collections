@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // FIXME: Revive
 // A MutableRawSpan represents a span of memory which
 // contains initialized `Element` instances.
 @safe
@@ -628,3 +629,4 @@ extension MutableRawSpan {
     return unsafe _overrideLifetime(newSpan, mutating: &self)
   }
 }
+#endif
