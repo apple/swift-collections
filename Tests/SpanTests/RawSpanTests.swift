@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -11,34 +11,28 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-@testable import Future
+@testable import Span
 
+@available(macOS 9999, *)
 final class RawSpanTests: XCTestCase {
-
-  func testOptionalStorage() {
-//    XCTAssertEqual(
-//      MemoryLayout<RawSpan>.size, MemoryLayout<RawSpan?>.size
-//    )
-//    XCTAssertEqual(
-//      MemoryLayout<RawSpan>.stride, MemoryLayout<RawSpan?>.stride
-//    )
-//    XCTAssertEqual(
-//      MemoryLayout<RawSpan>.alignment, MemoryLayout<RawSpan?>.alignment
-//    )
-  }
 
   func testInitWithSpanOfIntegers() {
     let capacity = 4
-    let a = Array(0..<capacity)
-    let span = RawSpan(_elements: a.storage)
-    XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
-    XCTAssertFalse(span.isEmpty)
+    Array(0..<capacity).withUnsafeBufferPointer {
+      let intSpan = Span(_unsafeElements: $0)
+      let span = RawSpan(_elements: intSpan)
+      XCTAssertEqual(span.byteCount, capacity*MemoryLayout<Int>.stride)
+      XCTAssertFalse(span.isEmpty)
+    }
   }
 
   func testInitWithEmptySpanOfIntegers() {
     let a: [Int] = []
-    let span = RawSpan(_elements: a.storage)
-    XCTAssertTrue(span.isEmpty)
+    a.withUnsafeBufferPointer {
+      let intSpan = Span(_unsafeElements: $0)
+      let span = RawSpan(_elements: intSpan)
+      XCTAssertTrue(span.isEmpty)
+    }
   }
 
   func testInitWithRawBytes() {
@@ -110,7 +104,7 @@ final class RawSpanTests: XCTestCase {
     }
   }
 
-  func testSubscript() {
+  func testExtracting() {
     let capacity = 4
     let b = (0..<capacity).map(Int8.init)
     b.withUnsafeBytes {
@@ -118,7 +112,7 @@ final class RawSpanTests: XCTestCase {
       let sub1 = span._extracting(0..<2)
       let sub2 = span._extracting(..<2)
       let sub3 = span._extracting(...)
-      let sub4 = span._extracting(unchecked: 2...)
+      let sub4 = span._extracting(2...)
       XCTAssertTrue(
         sub1._unsafeView(as: UInt8.self)._elementsEqual(sub2._unsafeView(as: UInt8.self))
       )
@@ -131,50 +125,38 @@ final class RawSpanTests: XCTestCase {
     }
   }
 
-  func testUncheckedSubscript() {
+  func testExtractingUnchecked() {
     let capacity = 32
     let b = (0..<capacity).map(UInt8.init)
     b.withUnsafeBytes {
       let span = RawSpan(_unsafeBytes: $0)
       let prefix = span._extracting(0..<8)
-      let beyond = prefix._extracting(unchecked: 16..<24)
+      let beyond = prefix._extracting(unchecked: 16...23)
       XCTAssertEqual(beyond.byteCount, 8)
       XCTAssertEqual(beyond.unsafeLoad(as: UInt8.self), 16)
     }
   }
 
-  func testUnsafeBytes() {
+  func testWithUnsafeBytes() {
     let capacity = 4
     let array = Array(0..<capacity)
-    let span = RawSpan(_elements: array.storage)
-    array.withUnsafeBytes {  b1 in
-      span.withUnsafeBytes { b2 in
-        XCTAssertTrue(b1.elementsEqual(b2))
+    array.withUnsafeBufferPointer {
+      let intSpan = Span(_unsafeElements: $0)
+      let span = RawSpan(_elements: intSpan)
+      array.withUnsafeBytes {  b1 in
+        span.withUnsafeBytes { b2 in
+          XCTAssertTrue(b1.elementsEqual(b2))
+        }
+      }
+
+      let emptyBuffer = UnsafeBufferPointer(rebasing: $0[0..<0])
+      XCTAssertEqual(emptyBuffer.baseAddress, $0.baseAddress)
+
+      let emptySpan = RawSpan(_unsafeElements: emptyBuffer)
+      emptySpan.withUnsafeBytes {
+        XCTAssertNil($0.baseAddress)
       }
     }
-
-    // Should we be able to derive a non-escapable value from a Span via unsafe pointers?
-//    let copy: RawSpan = span.withUnsafeBytes { RawSpan(_unsafeBytes: $0) }
-//    _ = copy
-  }
-
-  func testStrangeBorrow() {
-    let array: [String] = ["0", "1", "2", "3"]
-    _ = array
-
-//    let rs = RawSpan(array.storage) // Initializer 'init(_:)' requires that 'String' conform to 'BitwiseCopyable'
-
-//    let rs1 = array.storage.withUnsafeBufferPointer {
-//      RawSpan(unsafeBytes: UnsafeRawBufferPointer($0))
-//    }                               // Lifetime-dependent value escapes its scope
-//    _ = rs1
-
-//    let rs2 = array.storage.withUnsafeBufferPointer {
-//      UnsafeRawBufferPointer($0).withMemoryRebound(to: UInt8.self) { // requires that `Span` conform to `Escapable`
-//        return Span(unsafeBufferPointer: $0)
-//      }
-//    }
-//    _ = rs2
   }
 
   func testPrefix() {
@@ -241,9 +223,8 @@ final class RawSpanTests: XCTestCase {
     let subSpan1 = span._extracting(first: 6)
     let subSpan2 = span._extracting(last: 6)
     let emptySpan = span._extracting(first: 0)
-    let nilSpan = RawSpan(
-      _unsafeBytes: UnsafeRawBufferPointer(start: nil, count: 0)
-    )
+    let nilBuffer = UnsafeRawBufferPointer(start: nil, count: 0)
+    let nilSpan = RawSpan(_unsafeBytes: nilBuffer)
 
     var bounds: Range<Int>?
     bounds = span.byteOffsets(of: subSpan1)

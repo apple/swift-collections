@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -11,8 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import Future
+import Span
 
+@available(macOS 9999, *)
 struct Allocation<T>: ~Copyable {
   let allocation: UnsafeMutablePointer<T>
   let capacity: Int
@@ -40,7 +41,7 @@ struct Allocation<T>: ~Copyable {
       count = initialized.count
     }
     catch {
-      outputBuffer.deinitialize()
+      outputBuffer.removeAll()
       let empty = outputBuffer.relinquishBorrowedMemory()
       assert(empty.baseAddress == allocation)
       assert(empty.count == 0)
@@ -64,9 +65,10 @@ struct Allocation<T>: ~Copyable {
 
 enum MyTestError: Error { case error }
 
+@available(macOS 9999, *)
 final class OutputSpanTests: XCTestCase {
 
-  func testOutputBufferInitialization() {
+  func testOutputBufferCreation() {
     let c = 48
     let allocation = UnsafeMutablePointer<UInt8>.allocate(capacity: c)
     defer { allocation.deallocate() }
@@ -77,14 +79,25 @@ final class OutputSpanTests: XCTestCase {
     XCTAssertEqual(initialized.count, 0)
   }
 
+  func testOutputBufferDeinitWithoutRelinquishingMemory() {
+    let c = 48
+    let allocation = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: c)
+    defer { allocation.deallocate() }
+
+    var ob = OutputSpan(_initializing: Slice(base: allocation, bounds: 0..<c))
+    ob.append(repeating: 65, count: 12)
+    XCTAssertEqual(ob.count, 12)
+    _ = ob
+  }
+
   func testInitializeBufferByAppendingElements() {
     var a = Allocation(of: 48, Int.self)
     let c = 10
     a.initialize {
       for i in 0...c {
-        $0.appendElement(i)
+        $0.append(i)
       }
-      let oops = $0.deinitializeLastElement()
+      let oops = $0.removeLast()
       XCTAssertEqual(oops, c)
     }
     a.withSpan {
@@ -93,12 +106,27 @@ final class OutputSpanTests: XCTestCase {
     }
   }
 
+  func testInitializeBitwiseCopyableBuffer() {
+    let c = 48
+    let allocation: UnsafeMutableRawBufferPointer
+    allocation = .allocate(byteCount: c, alignment: 8)
+    defer { allocation.deallocate() }
+
+    var ob = OutputSpan<Int16>(_initializing: allocation[8...])
+    let r = Int16.max>>2
+    ob.append(r)
+    _ = ob.relinquishBorrowedBytes()
+
+    let o = allocation.load(fromByteOffset: 8, as: Int16.self)
+    XCTAssertEqual(o, r)
+  }
+
   func testInitializeBufferByAppendingRepeatedElements() {
     var a = Allocation(of: 48, Int.self)
     let c = 10
     a.initialize {
       $0.append(repeating: c, count: c)
-      let oops = $0.deinitializeLastElement()
+      let oops = $0.removeLast()
       XCTAssertEqual(oops, c)
       XCTAssertEqual($0.count, c-1)
     }
@@ -126,7 +154,7 @@ final class OutputSpanTests: XCTestCase {
     a.initialize {
       $0.append(fromContentsOf: 0..<c)
 
-      let span = $0.initializedPrefix
+      let span = $0.span
       XCTAssertEqual(span.count, c)
       XCTAssert(span._elementsEqual(0..<c))
     }
@@ -138,7 +166,7 @@ final class OutputSpanTests: XCTestCase {
     a.initialize {
       $0.append(fromContentsOf: Array(0..<c))
 
-      let prefix = $0.initializedPrefix
+      let prefix = $0.span
       XCTAssertEqual(prefix.count, c)
       XCTAssert(prefix._elementsEqual(0..<c))
     }
@@ -152,16 +180,12 @@ final class OutputSpanTests: XCTestCase {
     var a = Allocation(of: 48, Int.self)
     let c = 24
     a.initialize {
-      let array = Array(0..<c)
-      #if false
-      array.withUnsafeBufferPointer {
-        // let storage = Span(_unsafeElements: $0)
-        let storage = Span<Int>(_unsafeElements: .init(start: nil, count: 0))
-        $0.append(fromContentsOf: storage)
+      os in
+      var array = Array(0..<c)
+      array.withUnsafeMutableBufferPointer {
+        let span = MutableSpan(_unsafeElements: $0)
+        os.append(fromContentsOf: span)
       }
-      #else
-      $0.append(fromContentsOf: array)
-      #endif
     }
     a.withSpan { span in
       XCTAssertEqual(span.count, c)
@@ -207,8 +231,8 @@ final class OutputSpanTests: XCTestCase {
     var a = Allocation(of: 48, Int.self)
     do {
       try a.initialize {
-        $0.appendElement(0)
-        $0.appendElement(1)
+        $0.append(0)
+        $0.append(1)
         XCTAssertTrue($0.count > 0)
         throw MyTestError.error
       }
@@ -224,23 +248,19 @@ final class OutputSpanTests: XCTestCase {
 
     var span = OutputSpan(_initializing: b)
     XCTAssertEqual(span.count, 0)
-    span.append(fromContentsOf: 0..<10)
-    XCTAssertEqual(span.count, 10)
+    span.append(fromContentsOf: 1...9)
+    XCTAssertEqual(span.count, 9)
 
-    span.withMutableSpan {
-#if false
-      let b = UnsafeMutableBufferPointer<Int>.allocate(capacity: 8)
-      b.initialize(repeating: .max)
-      $0 = MutableSpan(_unsafeElements: b)
-#else
-      for i in 0..<$0.count {
-        $0[i] *= 2
-      }
-#endif
+    var mutable = span.mutableSpan
+//    span.append(20) // exclusivity violation
+    for i in 0..<mutable.count {
+      mutable[i] *= 2
     }
 
+    span.append(20)
+
     let r = span.relinquishBorrowedMemory()
-    print(Array(r))
+    XCTAssert(r.elementsEqual((0..<10).map({2*(1+$0)})))
     r.deinitialize()
   }
 }

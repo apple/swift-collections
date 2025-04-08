@@ -55,8 +55,7 @@ var defines: [String] = [
 let _sharedSettings: [SwiftSetting] = defines.map { .define($0) } + [
   .enableExperimentalFeature("AllowUnsafeAttribute"),
   .enableExperimentalFeature("BuiltinModule"),
-  .enableExperimentalFeature("NonescapableTypes"),
-  .enableExperimentalFeature("RawLayout"),
+  .enableExperimentalFeature("LifetimeDependence"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
 ]
 
@@ -218,13 +217,15 @@ let targets: [CustomTarget] = [
 
   .target(
     kind: .exported,
-    name: "Future",
+    name: "Span",
     dependencies: ["InternalCollectionsUtilities"],
-    exclude: ["CMakeLists.txt"]),
+    exclude: ["CMakeLists.txt"],
+    settings: _sharedSettings + [.unsafeFlags(["-Xfrontend", "-strict-memory-safety"])],
+  ),
   .target(
     kind: .test,
-    name: "FutureTests",
-    dependencies: ["Future", "_CollectionsTestSupport"]),
+    name: "SpanTests",
+    dependencies: ["Span", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
@@ -241,7 +242,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "DequeModule",
-    dependencies: ["InternalCollectionsUtilities", "Future"],
+    dependencies: ["InternalCollectionsUtilities", "Span"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
