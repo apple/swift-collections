@@ -52,12 +52,26 @@ var defines: [String] = [
 //  "COLLECTIONS_SINGLE_MODULE",
 ]
 
-let _sharedSettings: [SwiftSetting] = defines.map { .define($0) } + [
+let availabilityMacros: KeyValuePairs<String, String> = [
+  "SwiftStdlib 6.1": "macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4",
+  "SwiftStdlib 6.2": "macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999",
+]
+
+let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("AllowUnsafeAttribute"),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("LifetimeDependence"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
+  .enableUpcomingFeature("StrictMemorySafety"),
 ]
+
+let _sharedSettings: [SwiftSetting] = (
+  defines.map { .define($0) }
+  + availabilityMacros.map { name, value in
+      .enableExperimentalFeature("AvailabilityMacro=\(name): \(value)")
+  }
+  + extraSettings
+)
 
 
 let _settings: [SwiftSetting] = _sharedSettings + []
@@ -77,6 +91,7 @@ struct CustomTarget {
   var dependencies: [Target.Dependency]
   var directory: String
   var exclude: [String]
+  var sources: [String]?
   var settings: [SwiftSetting]
 }
 
@@ -103,6 +118,7 @@ extension CustomTarget {
     dependencies: [Target.Dependency] = [],
     directory: String? = nil,
     exclude: [String] = [],
+    sources: [String]? = nil,
     settings: [SwiftSetting]? = nil
   ) -> CustomTarget {
     CustomTarget(
@@ -111,6 +127,7 @@ extension CustomTarget {
       dependencies: dependencies,
       directory: directory ?? name,
       exclude: exclude,
+      sources: sources,
       settings: settings ?? (kind.isTest ? _testSettings : _settings))
   }
 
@@ -127,6 +144,7 @@ extension CustomTarget {
         dependencies: dependencies,
         path: kind.path(for: directory),
         exclude: exclude,
+        sources: sources,
         swiftSettings: settings,
         linkerSettings: linkerSettings)
     case .test:
@@ -217,15 +235,17 @@ let targets: [CustomTarget] = [
 
   .target(
     kind: .exported,
-    name: "Span",
+    name: "Future",
     dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"],
     settings: _sharedSettings + [.unsafeFlags(["-Xfrontend", "-strict-memory-safety"])],
   ),
   .target(
     kind: .test,
-    name: "SpanTests",
-    dependencies: ["Span", "_CollectionsTestSupport"]),
+    name: "FutureTests",
+    dependencies: ["Future", "_CollectionsTestSupport"],
+    sources: ["Tests/FutureTests", "Tests/SpanTests"]
+  ),
 
   .target(
     kind: .exported,
@@ -242,7 +262,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .exported,
     name: "DequeModule",
-    dependencies: ["InternalCollectionsUtilities", "Span"],
+    dependencies: ["InternalCollectionsUtilities", "Future"],
     exclude: ["CMakeLists.txt"]),
   .target(
     kind: .test,
@@ -286,7 +306,7 @@ let targets: [CustomTarget] = [
     directory: "RopeModule",
     exclude: ["CMakeLists.txt"],
     // FIXME: _modify accessors in RopeModule seem to be broken in Swift 6 mode
-    settings: _sharedSettings + [.swiftLanguageVersion(.v5)]),
+    settings: _sharedSettings + [.swiftLanguageMode(.v5)]),
   .target(
     kind: .test,
     name: "RopeModuleTests",
