@@ -76,12 +76,12 @@ extension NewArray: RandomAccessCollection, MutableCollection {
   public subscript(position: Int) -> Element {
     @inlinable
     unsafeAddress {
-      unsafe _storage.value._ptr(at: position)
+      unsafe _storage.value._unsafeAddressOfElement(at: position)
     }
     @inlinable
     unsafeMutableAddress {
       _ensureUnique()
-      return unsafe _storage.value._mutablePtr(at: position)
+      return unsafe _storage.value._unsafeMutableAddressOfElement(at: position)
     }
   }
 }

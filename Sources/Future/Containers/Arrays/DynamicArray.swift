@@ -77,11 +77,11 @@ extension DynamicArray where Element: ~Copyable {
   public subscript(position: Int) -> Element {
     @inline(__always)
     unsafeAddress {
-      unsafe _storage._ptr(at: position)
+      unsafe _storage._unsafeAddressOfElement(at: position)
     }
     @inline(__always)
     unsafeMutableAddress {
-      unsafe _storage._mutablePtr(at: position)
+      unsafe _storage._unsafeMutableAddressOfElement(at: position)
     }
   }
 

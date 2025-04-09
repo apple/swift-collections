@@ -100,98 +100,51 @@ extension RigidArray where Element: ~Copyable {
 
 extension RigidArray where Element: ~Copyable {
   public typealias Index = Int
-
-  @inlinable
-  public var isEmpty: Bool { count == 0 }
-
-  @inlinable
-  public var count: Int { _count }
-
-  @inlinable
-  public var startIndex: Int { 0 }
-
-  @inlinable
-  public var endIndex: Int { count }
-
-  @inlinable
-  @_transparent
-  internal func _uncheckedMutablePtr(at index: Int) -> UnsafeMutablePointer<Element> {
-    unsafe _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
-  }
-
-  @inlinable
-  @_transparent
-  internal func _uncheckedPtr(at index: Int) -> UnsafePointer<Element> {
-    unsafe UnsafePointer(_uncheckedMutablePtr(at: index))
-  }
   
   @inlinable
-  @_transparent
-  internal func _mutablePtr(at index: Int) -> UnsafeMutablePointer<Element> {
-    precondition(index >= 0 && index < _count)
-    return unsafe _uncheckedMutablePtr(at: index)
-  }
+  public var isEmpty: Bool { count == 0 }
+  
+  @inlinable
+  public var count: Int { _count }
+  
+  @inlinable
+  public var startIndex: Int { 0 }
+  
+  @inlinable
+  public var endIndex: Int { count }
+}
 
+extension RigidArray where Element: ~Copyable {
+  // FIXME: This is wildly unsafe. Remove it once the subscript can have proper accessors.
   @inlinable
   @_transparent
-  internal func _ptr(at index: Int) -> UnsafePointer<Element> {
-    unsafe UnsafePointer(_mutablePtr(at: index))
+  internal mutating func _unsafeMutableAddressOfElement(
+    at index: Int
+  ) -> UnsafeMutablePointer<Element> {
+    precondition(index >= 0 && index < _count)
+    return unsafe _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
+  }
+
+  // FIXME: This is wildly unsafe. Remove it once the subscript can have proper accessors.
+  @inlinable
+  @_transparent
+  public func _unsafeAddressOfElement(at index: Int) -> UnsafePointer<Element> {
+    precondition(index >= 0 && index < _count)
+    return unsafe UnsafePointer(_storage.baseAddress.unsafelyUnwrapped.advanced(by: index))
   }
 
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
     unsafeAddress {
-      unsafe _ptr(at: position)
+      unsafe _unsafeAddressOfElement(at: position)
     }
     @inline(__always)
     unsafeMutableAddress {
-      unsafe _mutablePtr(at: position)
+      unsafe _unsafeMutableAddressOfElement(at: position)
     }
   }
 }
-
-#if false
-extension RigidArray: RandomAccessContainer where Element: ~Copyable {
-  public struct BorrowingIterator: BorrowingIteratorProtocol, ~Escapable {
-    @usableFromInline
-    internal let _items: UnsafeBufferPointer<Element>
-    
-    @usableFromInline
-    internal var _offset: Int
-    
-    @inlinable
-    internal init(for array: borrowing RigidArray, startOffset: Int) {
-      self._items = UnsafeBufferPointer(array._items)
-      self._offset = startOffset
-    }
-    
-    @lifetime(self)
-    public mutating func nextChunk(
-      maximumCount: Int
-    ) -> Span<Element> {
-      let end = _offset + Swift.min(maximumCount, _items.count - _offset)
-      defer { _offset = end }
-      let chunk = _items.extracting(Range(uncheckedBounds: (_offset, end)))
-      return Span(_unsafeElements: chunk)
-    }
-  }
-  
-  public func startBorrowingIteration() -> BorrowingIterator {
-    BorrowingIterator(for: self, startOffset: 0)
-  }
-  
-  public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
-    BorrowingIterator(for: self, startOffset: start)
-  }
-  
-  @inlinable
-  public func index(at position: borrowing BorrowingIterator) -> Int {
-    precondition(position._items === UnsafeBufferPointer(self._items))
-    return position._offset
-  }
-}
-#endif
 
 extension RigidArray where Element: ~Copyable {
   @inlinable

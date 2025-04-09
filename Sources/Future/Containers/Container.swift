@@ -9,21 +9,25 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false // FIXME: Revive
+@available(SwiftStdlib 6.2, *) // For Span
 public protocol BorrowingIteratorProtocol: ~Escapable {
   associatedtype Element: ~Copyable
 
-  @lifetime(self)
+  @lifetime(copy self)
   mutating func nextChunk(maximumCount: Int) -> Span<Element>
 }
 
+@available(SwiftStdlib 6.2, *) // For Span
 public protocol Container: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
   associatedtype BorrowingIterator: BorrowingIteratorProtocol, ~Escapable
   where BorrowingIterator.Element == Element
 
+  @lifetime(copy self)
   borrowing func startBorrowingIteration() -> BorrowingIterator
+  
+  @lifetime(copy self)
   borrowing func startBorrowingIteration(from start: Index) -> BorrowingIterator
 
   associatedtype Index: Comparable
@@ -34,10 +38,15 @@ public protocol Container: ~Copyable, ~Escapable {
   var startIndex: Index { get }
   var endIndex: Index { get }
 
-  // FIXME: Replace `@_borrowed` with proper `read`/`modify` accessor requirements
-  // FIXME: (Or rather, accessors with proper projection semantics.)
-  @_borrowed subscript(index: Index) -> Element { get }
-
+  /// Return a pointer addressing the element at the given index.
+  /// This is wildly unsafe; please do not use this outside of `unsafeAddress` accessors.
+  ///
+  /// This is a temporary stand-in for the subscript requirement that we actually want:
+  ///
+  ///     subscript(index: Index) -> Element { borrow }
+  @unsafe
+  func _unsafeAddressOfElement(at index: Index) -> UnsafePointer<Element>
+  
   func index(after index: Index) -> Index
   func formIndex(after i: inout Index)
 
@@ -52,109 +61,13 @@ public protocol Container: ~Copyable, ~Escapable {
   )
 }
 
-public protocol BidirectionalContainer: Container, ~Copyable, ~Escapable {
-  override associatedtype Element: ~Copyable
-
-  func index(before i: Index) -> Index
-  func formIndex(before i: inout Index)
-
-  @_nonoverride func index(_ i: Index, offsetBy distance: Int) -> Index
-  @_nonoverride func formIndex(
-    _ i: inout Index, offsetBy distance: inout Int, limitedBy limit: Index
-  )
-}
-
-public protocol RandomAccessContainer: BidirectionalContainer, ~Copyable, ~Escapable {
-  override associatedtype Element: ~Copyable
-}
-
-extension Strideable {
+@available(SwiftStdlib 6.2, *)
+extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
-  public mutating func advance(by distance: inout Stride, limitedBy limit: Self) {
-    if distance >= 0 {
-      guard limit >= self else {
-        self = self.advanced(by: distance)
-        distance = 0
-        return
-      }
-      let d = Swift.min(distance, self.distance(to: limit))
-      self = self.advanced(by: d)
-      distance -= d
-    } else {
-      guard limit <= self else {
-        self = self.advanced(by: distance)
-        distance = 0
-        return
-      }
-      let d = Swift.max(distance, self.distance(to: limit))
-      self = self.advanced(by: d)
-      distance -= d
+  public subscript(index: Index) -> Element {
+    unsafeAddress {
+      unsafe _unsafeAddressOfElement(at: index)
     }
   }
 }
 
-extension RandomAccessContainer where Index: Strideable, Index.Stride == Int, Self: ~Copyable {
-  @inlinable
-  public func index(after index: Index) -> Index {
-    // Note: Range checks are deferred until element access.
-    index.advanced(by: 1)
-  }
-
-  @inlinable
-  public func index(before index: Index) -> Index {
-    // Note: Range checks are deferred until element access.
-    index.advanced(by: -1)
-  }
-
-  @inlinable
-  public func formIndex(after index: inout Index) {
-    // Note: Range checks are deferred until element access.
-    index = index.advanced(by: 1)
-  }
-
-  @inlinable
-  public func formIndex(before index: inout Index) {
-    // Note: Range checks are deferred until element access.
-    index = index.advanced(by: -1)
-  }
-
-  @inlinable
-  public func distance(from start: Index, to end: Index) -> Int {
-    // Note: Range checks are deferred until element access.
-    start.distance(to: end)
-  }
-
-  @inlinable
-  public func index(_ index: Index, offsetBy n: Int) -> Index {
-    // Note: Range checks are deferred until element access.
-    index.advanced(by: n)
-  }
-
-  @inlinable
-  public func formIndex(
-    _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
-  ) {
-    // Note: Range checks are deferred until element access.
-    index.advance(by: &distance, limitedBy: limit)
-  }
-}
-#endif
-
-#if false // TODO
-public protocol Muterator: ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable
-
-  @lifetime(self)
-  mutating func nextChunk(maximumCount: Int) -> MutableSpan<Element>
-}
-
-public protocol MutableContainer: Container, ~Copyable, ~Escapable {
-  associatedtype MutatingIterationState: ~Copyable, ~Escapable
-
-  mutating func startMutatingIteration() -> MutatingIterationState
-
-  // FIXME: Replace `@_borrowed` with proper `read`/`modify` accessor requirements
-  @_borrowed subscript(index: Index) -> Element { get set }
-
-}
-#endif

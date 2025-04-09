@@ -10,12 +10,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-private let immortalThing: [Void] = []
+import Builtin
 
-@available(macOS 9999, *)
-extension Span {
+@usableFromInline
+internal let immortalThing: [Void] = []
 
-  @available(macOS 9999, *)
+@available(SwiftStdlib 6.2, *)
+extension Span where Element: ~Copyable {
   public static var empty: Span {
     @lifetime(immortal)
     get {
@@ -25,7 +26,6 @@ extension Span {
     }
   }
 
-  @available(macOS 9999, *)
   @lifetime(immortal)
   public init() {
     let empty = unsafe UnsafeBufferPointer<Element>(start: nil, count: 0)
@@ -34,9 +34,54 @@ extension Span {
   }
 }
 
-@available(macOS 9999, *)
-extension Span where Element: Equatable {
+#if false // Use it or lose it
+@available(SwiftStdlib 6.2, *)
+extension Span where Element: ~Copyable {
+  @usableFromInline
+  typealias _Components = (pointer: UnsafeRawPointer?, count: Int)
+  
+  // FIXME: This is *wildly* unsafe; remove it.
+  @unsafe
+  @_alwaysEmitIntoClient
+  @_transparent
+  @lifetime(copy self)
+  internal func _unsafelyExplode() -> _Components {
+    unsafe assert(
+      MemoryLayout<Self>.size == MemoryLayout<_Components>.size,
+      "Unexpected Span layout")
+    let immortal = unsafe _overrideLifetime(self, borrowing: immortalThing)
+    return unsafe Builtin.reinterpretCast(immortal)
+  }
+  
+  // FIXME: This is *wildly* unsafe; remove it.
+  @unsafe
+  @_alwaysEmitIntoClient
+  internal func _unsafeAddressOfElement(
+    unchecked position: Index
+  ) -> UnsafePointer<Element> {
+    let (start, _) = unsafe _unsafelyExplode()
+    let elementOffset = position &* MemoryLayout<Element>.stride
+    let address = unsafe start.unsafelyUnwrapped.advanced(by: elementOffset)
+    return unsafe address.assumingMemoryBound(to: Element.self)
+  }
+  
+  // FIXME: This is *wildly* unsafe; remove it.
+  @unsafe
+  @_alwaysEmitIntoClient
+  internal func _unsafeAddressOfElement(
+    _ position: Index
+  ) -> UnsafePointer<Element> {
+    let (start, count) = unsafe _unsafelyExplode()
+    precondition(position >= 0 && position < count, "Index out of bounds")
+    let elementOffset = position &* MemoryLayout<Element>.stride
+    let address = unsafe start.unsafelyUnwrapped.advanced(by: elementOffset)
+    return unsafe address.assumingMemoryBound(to: Element.self)
+  }
+}
+#endif
 
+@available(SwiftStdlib 6.2, *)
+extension Span where Element: Equatable {
   /// Returns a Boolean value indicating whether this and another span
   /// contain equal elements in the same order.
   ///
