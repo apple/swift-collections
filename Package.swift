@@ -53,6 +53,7 @@ var defines: [String] = [
 ]
 
 let availabilityMacros: KeyValuePairs<String, String> = [
+  "SwiftStdlib 6.0": "macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0",
   "SwiftStdlib 6.1": "macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4",
   "SwiftStdlib 6.2": "macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999",
 ]

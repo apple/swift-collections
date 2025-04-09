@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false
 import Builtin // For Shared.isIdentical
 
 /// A utility adapter that wraps a noncopyable storage type in a copy-on-write
@@ -19,6 +18,7 @@ import Builtin // For Shared.isIdentical
 /// Like `ManagedBufferPointer`, this type is intended to be used within the
 /// internal implementation of public types. Instances of it aren't designed
 /// to be exposed as public.
+@safe
 @frozen
 public struct Shared<Storage: ~Copyable> {
   @usableFromInline
@@ -26,13 +26,14 @@ public struct Shared<Storage: ~Copyable> {
 
   @inlinable
   public init(_ storage: consuming Storage) {
-    self._box = _Box(storage)
+    unsafe self._box = _Box(storage)
   }
 }
 
 extension Shared: @unchecked Sendable where Storage: Sendable & ~Copyable {}
 
-#if true // FIXME: Silent error on class definition nested in noncopyable struct
+#if false // FIXME: Silent error on class definition nested in noncopyable struct
+@unsafe
 @usableFromInline
 internal final class _SharedBox<Storage: ~Copyable> {
   @exclusivity(unchecked)
@@ -41,7 +42,7 @@ internal final class _SharedBox<Storage: ~Copyable> {
 
   @inlinable
   internal init(_ storage: consuming Storage) {
-    self.storage = storage
+    unsafe self.storage = storage
   }
 }
 
@@ -51,6 +52,7 @@ extension Shared where Storage: ~Copyable {
 }
 #else
 extension Shared where Storage: ~Copyable {
+  @unsafe
   @usableFromInline
   internal final class _Box {
     @exclusivity(unchecked)
@@ -59,7 +61,7 @@ extension Shared where Storage: ~Copyable {
 
     @inlinable
     internal init(_ storage: consuming Storage) {
-      self.storage = storage
+      unsafe self.storage = storage
     }
   }
 }
@@ -69,7 +71,7 @@ extension Shared where Storage: ~Copyable {
   @inlinable
   @inline(__always)
   public mutating func isUnique() -> Bool {
-    isKnownUniquelyReferenced(&_box)
+    unsafe isKnownUniquelyReferenced(&_box)
   }
 
   @inlinable
@@ -77,7 +79,7 @@ extension Shared where Storage: ~Copyable {
     cloner: (borrowing Storage) -> Storage
   ) {
     if isUnique() { return }
-    _box = _Box(cloner(_box.storage))
+    unsafe _box = _Box(cloner(_box.storage))
   }
 }
 
@@ -88,72 +90,33 @@ extension Shared where Storage: ~Copyable {
   @inlinable
   internal var _address: UnsafePointer<Storage> {
     // Adapted from _getUnsafePointerToStoredProperties
-    let p = (
+    let p = unsafe (
       UnsafeRawPointer(Builtin.bridgeToRawPointer(_box))
       + MemoryLayout<HeapObject>.size)
-    return p.alignedUp(for: Storage.self).assumingMemoryBound(to: Storage.self)
+    return unsafe p.alignedUp(for: Storage.self).assumingMemoryBound(to: Storage.self)
   }
 
   @inlinable
   internal var _mutableAddress: UnsafeMutablePointer<Storage> {
     // Adapted from _getUnsafePointerToStoredProperties
-    let p = (
+    let p = unsafe (
       UnsafeMutableRawPointer(Builtin.bridgeToRawPointer(_box))
       + MemoryLayout<HeapObject>.size)
-    return p.alignedUp(for: Storage.self).assumingMemoryBound(to: Storage.self)
+    return unsafe p.alignedUp(for: Storage.self).assumingMemoryBound(to: Storage.self)
   }
 }
 
 extension Shared where Storage: ~Copyable {
   @inlinable
   @inline(__always)
-  public var value: /*FIXME: dependsOn(self)*/ Storage {
-    // FIXME: This implements the wrong shape.
-    // FIXME: Semantically it yields a borrow scoped to an access of this `value` variable,
-    // FIXME: not the much wider borrow of `self`, which we'd actually want.
-    _read {
-      yield _box.storage
-    }
-    _modify {
-      precondition(isUnique())
-      yield &_box.storage
-    }
-  }
-
-  // FIXME: This builds, but attempts to use it don't: they fail with an unexpected exclusivity violation.
-  @inlinable
-  @lifetime(self)
-  public subscript() -> Storage {
-    //@_transparent
+  public var value: Storage {
     unsafeAddress {
-      _address
+      unsafe _address
     }
-
-    //@_transparent
     unsafeMutableAddress {
       precondition(isUnique())
-      return _mutableAddress
+      return unsafe _mutableAddress
     }
-  }
-
-  @inlinable
-  @inline(__always)
-  public func read<E: Error, R: ~Copyable>(
-    _ body: (borrowing Storage) throws(E) -> R
-  ) throws(E) -> R {
-    // FIXME: This also implements the wrong shape.
-    // FIXME: The borrow of `Storage` isn't tied to `self` at all, and
-    // FIXME: it obviously cannot legally escape the `read` call.
-    try body(_box.storage)
-  }
-
-  @inlinable
-  @inline(__always)
-  public mutating func update<E: Error, R: ~Copyable>(
-    _ body: (inout Storage) throws(E) -> R
-  ) throws(E) -> R {
-    precondition(isUnique())
-    return try body(&_box.storage)
   }
 }
 
@@ -176,14 +139,13 @@ extension Shared where Storage: ~Copyable {
   @inlinable
   public func isIdentical(to other: Self) -> Bool {
     if #available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *) {
-      return self._box === other._box
+      return unsafe self._box === other._box
     } else {
       // To call the standard `===`, we need to do `_SharedBox` -> AnyObject conversions
       // that are only supported in the Swift 6+ runtime.
-      let a = Builtin.bridgeToRawPointer(self._box)
-      let b = Builtin.bridgeToRawPointer(other._box)
+      let a = unsafe Builtin.bridgeToRawPointer(self._box)
+      let b = unsafe Builtin.bridgeToRawPointer(other._box)
       return Bool(Builtin.cmp_eq_RawPointer(a, b))
     }
   }
 }
-#endif
