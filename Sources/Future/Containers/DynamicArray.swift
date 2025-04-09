@@ -39,11 +39,25 @@ extension DynamicArray where Element: ~Copyable {
   public var capacity: Int { _storage.capacity }
 }
 
-@available(SwiftStdlib 6.2, *)
 extension DynamicArray where Element: ~Copyable {
+  @available(SwiftStdlib 6.2, *)
   public var span: Span<Element> {
-    _storage.span
+    @lifetime(borrow self)
+    get {
+      _storage.span
+    }
   }
+  
+#if compiler(>=6.3) // FIXME: Turn this on once we have a new enough toolchain
+  @available(SwiftStdlib 6.2, *)
+  public var mutableSpan: MutableSpan<Element> {
+    @lifetime(&self)
+    @inlinable
+    mutating get {
+      _storage.mutableSpan
+    }
+  }
+#endif
 }
 
 extension DynamicArray where Element: ~Copyable {

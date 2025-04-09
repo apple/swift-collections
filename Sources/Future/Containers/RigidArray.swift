@@ -78,11 +78,24 @@ extension RigidArray where Element: ~Copyable {
   @available(SwiftStdlib 6.2, *)
   public var span: Span<Element> {
     @lifetime(borrow self)
+    @inlinable
     get {
       let result = unsafe Span(_unsafeElements: _items)
       return unsafe _overrideLifetime(result, borrowing: self)
     }
   }
+  
+  #if compiler(>=6.3) // FIXME: Turn this on once we have a new enough toolchain
+  @available(SwiftStdlib 6.2, *)
+  public var mutableSpan: MutableSpan<Element> {
+    @lifetime(&self)
+    @inlinable
+    mutating get {
+      let result = unsafe MutableSpan(_unsafeElements: _items)
+      return unsafe _overrideLifetime(result, mutating: self)
+    }
+  }
+  #endif
 }
 
 extension RigidArray where Element: ~Copyable {
