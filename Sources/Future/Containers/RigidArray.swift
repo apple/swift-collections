@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false // FIXME: Revive
 /// A manually resizable, heap allocated, noncopyable array of
 /// potentially noncopyable elements.
 @safe
@@ -20,6 +19,11 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 
   @usableFromInline
   internal var _count: Int
+
+  deinit {
+    unsafe _storage.extracting(0 ..< count).deinitialize()
+    unsafe _storage.deallocate()
+  }
 
   @inlinable
   public init(capacity: Int) {
@@ -40,23 +44,21 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
     }
     _count = count
   }
-
-  deinit {
-    unsafe _storage.extracting(0 ..< count).deinitialize()
-    unsafe _storage.deallocate()
-  }
 }
 
 extension RigidArray: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
 extension RigidArray where Element: ~Copyable {
   @inlinable
+  @inline(__always)
   public var capacity: Int { unsafe _storage.count }
 
   @inlinable
+  @inline(__always)
   public var freeCapacity: Int { capacity - count }
 
   @inlinable
+  @inline(__always)
   public var isFull: Bool { freeCapacity == 0 }
 }
 
@@ -75,8 +77,11 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   @available(SwiftStdlib 6.2, *)
   public var span: Span<Element> {
-    let result = unsafe Span(_unsafeElements: _items)
-    return _overrideLifetime(result, borrowing: self)
+    @lifetime(borrow self)
+    get {
+      let result = unsafe Span(_unsafeElements: _items)
+      return unsafe _overrideLifetime(result, borrowing: self)
+    }
   }
 }
 
@@ -96,16 +101,39 @@ extension RigidArray where Element: ~Copyable {
   public var endIndex: Int { count }
 
   @inlinable
+  @_transparent
+  internal func _uncheckedMutablePtr(at index: Int) -> UnsafeMutablePointer<Element> {
+    unsafe _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
+  }
+
+  @inlinable
+  @_transparent
+  internal func _uncheckedPtr(at index: Int) -> UnsafePointer<Element> {
+    unsafe UnsafePointer(_uncheckedMutablePtr(at: index))
+  }
+  
+  @inlinable
+  @_transparent
+  internal func _mutablePtr(at index: Int) -> UnsafeMutablePointer<Element> {
+    precondition(index >= 0 && index < _count)
+    return unsafe _uncheckedMutablePtr(at: index)
+  }
+
+  @inlinable
+  @_transparent
+  internal func _ptr(at index: Int) -> UnsafePointer<Element> {
+    unsafe UnsafePointer(_mutablePtr(at: index))
+  }
+
+  @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
-    _read {
-      precondition(position >= 0 && position < _count)
-      yield _storage[position]
+    unsafeAddress {
+      unsafe _ptr(at: position)
     }
     @inline(__always)
-    _modify {
-      precondition(position >= 0 && position < _count)
-      yield &_storage[position]
+    unsafeMutableAddress {
+      unsafe _mutablePtr(at: position)
     }
   }
 }
@@ -158,10 +186,10 @@ extension RigidArray where Element: ~Copyable {
     precondition(newCapacity >= count)
     guard newCapacity != capacity else { return }
     let newStorage: UnsafeMutableBufferPointer<Element> = .allocate(capacity: newCapacity)
-    let i = newStorage.moveInitialize(fromContentsOf: self._items)
+    let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
     assert(i == count)
-    _storage.deallocate()
-    _storage = newStorage
+    unsafe _storage.deallocate()
+    unsafe _storage = newStorage
   }
 
   @inlinable
@@ -171,36 +199,15 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-
-extension RigidArray where Element: ~Copyable {
-  @inlinable
-  public func borrowElement<E: Error, R: ~Copyable> (
-    at index: Int,
-    by body: (borrowing Element) throws(E) -> R
-  ) throws(E) -> R {
-    precondition(index >= 0 && index < _count)
-    return try body(_storage[index])
-  }
-
-  @inlinable
-  public mutating func updateElement<E: Error, R: ~Copyable> (
-    at index: Int,
-    by body: (inout Element) throws(E) -> R
-  ) throws(E) -> R {
-    precondition(index >= 0 && index < _count)
-    return try body(&_storage[index])
-  }
-}
-
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {
     precondition(index >= 0 && index < count)
-    let old = _storage.moveElement(from: index)
-    let source = _storage.extracting(index + 1 ..< count)
-    let target = _storage.extracting(index ..< count - 1)
-    let i = target.moveInitialize(fromContentsOf: source)
+    let old = unsafe _storage.moveElement(from: index)
+    let source = unsafe _storage.extracting(index + 1 ..< count)
+    let target = unsafe _storage.extracting(index ..< count - 1)
+    let i = unsafe target.moveInitialize(fromContentsOf: source)
     assert(i == target.endIndex)
     _count -= 1
     return old
@@ -211,7 +218,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func append(_ item: consuming Element) {
     precondition(!isFull)
-    _storage.initializeElement(at: _count, to: item)
+    unsafe _storage.initializeElement(at: _count, to: item)
     _count += 1
   }
 }
@@ -222,12 +229,12 @@ extension RigidArray where Element: ~Copyable {
     precondition(index >= 0 && index <= count)
     precondition(!isFull)
     if index < count {
-      let source = _storage.extracting(index ..< count)
-      let target = _storage.extracting(index + 1 ..< count + 1)
-      let last = target.moveInitialize(fromContentsOf: source)
+      let source = unsafe _storage.extracting(index ..< count)
+      let target = unsafe _storage.extracting(index + 1 ..< count + 1)
+      let last = unsafe target.moveInitialize(fromContentsOf: source)
       assert(last == target.endIndex)
     }
-    _storage.initializeElement(at: index, to: item)
+    unsafe _storage.initializeElement(at: index, to: item)
     _count += 1
   }
 }
@@ -251,7 +258,7 @@ extension RigidArray {
   internal func _copy(capacity: Int) -> Self {
     precondition(capacity >= count)
     var result = RigidArray<Element>(capacity: capacity)
-    let initialized = result._storage.initialize(fromContentsOf: _storage)
+    let initialized = unsafe result._storage.initialize(fromContentsOf: _storage)
     precondition(initialized == count)
     result._count = count
     return result
@@ -261,11 +268,10 @@ extension RigidArray {
   internal mutating func _move(capacity: Int) -> Self {
     precondition(capacity >= count)
     var result = RigidArray<Element>(capacity: capacity)
-    let initialized = result._storage.moveInitialize(fromContentsOf: _storage)
+    let initialized = unsafe result._storage.moveInitialize(fromContentsOf: _storage)
     precondition(initialized == count)
     result._count = count
     self._count = 0
     return result
   }
 }
-#endif

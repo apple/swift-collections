@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false
 /// A dynamically self-resizing, heap allocated, noncopyable array
 /// of potentially noncopyable elements.
 @frozen
@@ -40,24 +39,14 @@ extension DynamicArray where Element: ~Copyable {
   public var capacity: Int { _storage.capacity }
 }
 
+@available(SwiftStdlib 6.2, *)
 extension DynamicArray where Element: ~Copyable {
-  public var storage: Span<Element> {
-    _storage.storage
+  public var span: Span<Element> {
+    _storage.span
   }
 }
 
-extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
-  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
-  public typealias Index = Int
-
-  public func startBorrowingIteration() -> BorrowingIterator {
-    BorrowingIterator(for: _storage, startOffset: 0)
-  }
-
-  public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
-    BorrowingIterator(for: _storage, startOffset: start)
-  }
-
+extension DynamicArray where Element: ~Copyable {
   @inlinable
   public var isEmpty: Bool { _storage.isEmpty }
 
@@ -73,12 +62,12 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
-    _read {
-      yield _storage[position]
+    unsafeAddress {
+      unsafe _storage._ptr(at: position)
     }
     @inline(__always)
-    _modify {
-      yield &_storage[position]
+    unsafeMutableAddress {
+      unsafe _storage._mutablePtr(at: position)
     }
   }
 
@@ -99,13 +88,7 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
     // Note: Range checks are deferred until element access.
     index -= 1
   }
-
-  @inlinable
-  public func index(at position: borrowing BorrowingIterator) -> Int {
-    // Note: Range checks are deferred until element access.
-    position._offset
-  }
-
+  
   @inlinable
   public func distance(from start: Int, to end: Int) -> Int {
     // Note: Range checks are deferred until element access.
@@ -117,7 +100,27 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
     // Note: Range checks are deferred until element access.
     index + n
   }
+}
 
+#if false
+extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
+  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
+  public typealias Index = Int
+  
+  public func startBorrowingIteration() -> BorrowingIterator {
+    BorrowingIterator(for: _storage, startOffset: 0)
+  }
+  
+  public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
+    BorrowingIterator(for: _storage, startOffset: start)
+  }
+  
+  @inlinable
+  public func index(at position: borrowing BorrowingIterator) -> Int {
+    // Note: Range checks are deferred until element access.
+    position._offset
+  }
+  
   @inlinable
   public func formIndex(
     _ index: inout Int, offsetBy distance: inout Int, limitedBy limit: Int
@@ -125,24 +128,7 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
     _storage.formIndex(&index, offsetBy: &distance, limitedBy: limit)
   }
 }
-
-extension DynamicArray where Element: ~Copyable {
-  @inlinable
-  public func borrowElement<E: Error, R: ~Copyable> (
-    at index: Int,
-    by body: (borrowing Element) throws(E) -> R
-  ) throws(E) -> R {
-    try _storage.borrowElement(at: index, by: body)
-  }
-
-  @inlinable
-  public mutating func updateElement<E: Error, R: ~Copyable> (
-    at index: Int,
-    by body: (inout Element) throws(E) -> R
-  ) throws(E) -> R {
-    try _storage.updateElement(at: index, by: body)
-  }
-}
+#endif
 
 extension DynamicArray where Element: ~Copyable {
   @inlinable
@@ -197,4 +183,3 @@ extension DynamicArray {
     }
   }
 }
-#endif
