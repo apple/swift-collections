@@ -85,17 +85,15 @@ extension RigidArray where Element: ~Copyable {
     }
   }
   
-  #if compiler(>=6.3) // FIXME: Turn this on once we have a new enough toolchain
   @available(SwiftStdlib 6.2, *)
   public var mutableSpan: MutableSpan<Element> {
     @lifetime(&self)
     @inlinable
     mutating get {
       let result = unsafe MutableSpan(_unsafeElements: _items)
-      return unsafe _overrideLifetime(result, mutating: self)
+      return unsafe _overrideLifetime(result, mutating: &self)
     }
   }
-  #endif
 }
 
 extension RigidArray where Element: ~Copyable {
@@ -115,33 +113,35 @@ extension RigidArray where Element: ~Copyable {
 }
 
 extension RigidArray where Element: ~Copyable {
-  // FIXME: This is wildly unsafe. Remove it once the subscript can have proper accessors.
   @inlinable
-  @_transparent
-  internal mutating func _unsafeMutableAddressOfElement(
-    at index: Int
-  ) -> UnsafeMutablePointer<Element> {
+  @lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Borrow<Element> {
     precondition(index >= 0 && index < _count)
-    return unsafe _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
+    return unsafe Borrow(
+      unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
+      owner: self
+    )
   }
-
-  // FIXME: This is wildly unsafe. Remove it once the subscript can have proper accessors.
+  
   @inlinable
-  @_transparent
-  public func _unsafeAddressOfElement(at index: Int) -> UnsafePointer<Element> {
+  @lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> Inout<Element> {
     precondition(index >= 0 && index < _count)
-    return unsafe UnsafePointer(_storage.baseAddress.unsafelyUnwrapped.advanced(by: index))
+    return unsafe Inout(
+      unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
+      owner: &self
+    )
   }
-
+  
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
     unsafeAddress {
-      unsafe _unsafeAddressOfElement(at: position)
+      unsafe borrowElement(at: position)._pointer
     }
     @inline(__always)
     unsafeMutableAddress {
-      unsafe _unsafeMutableAddressOfElement(at: position)
+      unsafe mutateElement(at: position)._pointer
     }
   }
 }

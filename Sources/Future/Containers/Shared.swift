@@ -111,7 +111,7 @@ extension Shared where Storage: ~Copyable {
   @inline(__always)
   public var value: Storage {
     unsafeAddress {
-      unsafe _address
+      unsafe read()._pointer
     }
     unsafeMutableAddress {
       precondition(isUnique())
@@ -120,20 +120,25 @@ extension Shared where Storage: ~Copyable {
   }
 }
 
-#if false // FIXME: Use it or lose it
 extension Shared where Storage: ~Copyable {
-  // This is the actual shape we want. There is currently no way to express it.
   @inlinable
   @lifetime(borrow self)
   public borrowing func read() -> Borrow<Storage> {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that
-    // lifetime(self) == lifetime(_box.storage); but we have not
-    // (cannot) explain this to the compiler.
-    Borrow(unsafeAddress: _address, owner: self)
+    // lifetime(self) == lifetime(_box.storage).
+    unsafe Borrow(unsafeAddress: _address, owner: self)
+  }
+  
+  @inlinable
+  @lifetime(&self)
+  public mutating func mutate() -> Inout<Storage> {
+    // This is gloriously (and very explicitly) unsafe, as it should be.
+    // `Shared` is carefully constructed to guarantee that
+    // lifetime(self) == lifetime(_box.storage).
+    unsafe Inout(unsafeAddress: _mutableAddress, owner: &self)
   }
 }
-#endif
 
 extension Shared where Storage: ~Copyable {
   @inlinable

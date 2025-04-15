@@ -12,10 +12,10 @@
 import XCTest
 import Future
 
-final class FutureInoutTests: XCTestCase {
+final class InoutTests: XCTestCase {
   func test_basic() {
     var x = 0
-    let y = Inout(&x)
+    var y = Inout(&x)
 
     var v = y[]
     XCTAssertEqual(v, 0)

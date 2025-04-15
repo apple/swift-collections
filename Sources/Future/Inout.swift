@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false // FIXME: Revive
 import Builtin
 
 // FIXME: A better name for the generic argument.
@@ -19,6 +18,7 @@ import Builtin
 /// In order to get an instance of an `Inout<T>`, one must have exclusive access
 /// to the instance of `T`. This is achieved through the 'inout' operator, '&'.
 @frozen
+@safe
 public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   @usableFromInline
   internal let _pointer: UnsafeMutablePointer<T>
@@ -30,7 +30,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ instance: inout T) {
-    _pointer = UnsafeMutablePointer<T>(Builtin.unprotectedAddressOf(&instance))
+    unsafe _pointer = UnsafeMutablePointer<T>(Builtin.unprotectedAddressOf(&instance))
   }
 
   /// Unsafely initializes an instance of 'Inout' using the given 'unsafeAddress'
@@ -41,13 +41,15 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   ///                            instance of type 'T'.
   /// - Parameter owner: The owning instance that this 'Inout' instance's
   ///                    lifetime is based on.
+  @lifetime(&owner)
+  @unsafe
   @_alwaysEmitIntoClient
   @_transparent
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeAddress: UnsafeMutablePointer<T>,
     owner: inout Owner
   ) {
-    _pointer = unsafeAddress
+    unsafe _pointer = unsafeAddress
   }
 
   /// Unsafely initializes an instance of 'Inout' using the given
@@ -56,13 +58,14 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   ///
   /// - Parameter unsafeImmortalAddress: The address to use to mutably reference
   ///                                    an immortal instance of type 'T'.
+  @lifetime(immortal)
+  @unsafe
   @_alwaysEmitIntoClient
   @_transparent
-  @lifetime(immortal)
   public init(
     unsafeImmortalAddress: UnsafeMutablePointer<T>
   ) {
-    _pointer = unsafeImmortalAddress
+    unsafe _pointer = unsafeImmortalAddress
   }
 }
 
@@ -73,13 +76,13 @@ extension Inout where T: ~Copyable {
   public subscript() -> T {
     @_transparent
     unsafeAddress {
-      UnsafePointer<T>(_pointer)
+      unsafe UnsafePointer<T>(_pointer)
     }
     
+    @lifetime(copy self)
     @_transparent
-    nonmutating unsafeMutableAddress {
-      _pointer
+    unsafeMutableAddress {
+      unsafe _pointer
     }
   }
 }
-#endif

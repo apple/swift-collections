@@ -37,15 +37,12 @@ public protocol Container: ~Copyable, ~Escapable {
 
   var startIndex: Index { get }
   var endIndex: Index { get }
-
-  /// Return a pointer addressing the element at the given index.
-  /// This is wildly unsafe; please do not use this outside of `unsafeAddress` accessors.
-  ///
+  
   /// This is a temporary stand-in for the subscript requirement that we actually want:
   ///
   ///     subscript(index: Index) -> Element { borrow }
-  @unsafe
-  func _unsafeAddressOfElement(at index: Index) -> UnsafePointer<Element>
+  @lifetime(copy self)
+  func borrowElement(at index: Index) -> Borrow<Element>
   
   func index(after index: Index) -> Index
   func formIndex(after i: inout Index)
@@ -66,7 +63,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   public subscript(index: Index) -> Element {
     unsafeAddress {
-      unsafe _unsafeAddressOfElement(at: index)
+      unsafe borrowElement(at: index)._pointer
     }
   }
 }

@@ -21,11 +21,12 @@ add_library(Future
   "Containers/NewArray.swift"
   "Containers/RigidArray.swift"
   "Containers/Shared.swift"
+  "Borrow.swift"
   "Box.swift"
-  "Cell.swift"
   "ContiguousStorage.swift"
   "Inout.swift"
   "Span+Iterator.swift"
+  "StdlibAdditions.swift"
 )
 
 target_link_libraries(Future PRIVATE
