@@ -24,7 +24,7 @@ public struct Borrow<T: ~Copyable>: Copyable, ~Escapable {
     unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
   }
 
-  @lifetime(copy owner)
+  @lifetime(borrow owner)
   @_alwaysEmitIntoClient
   @_transparent
   public init<Owner: ~Copyable & ~Escapable>(

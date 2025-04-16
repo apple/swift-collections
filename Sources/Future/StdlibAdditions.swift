@@ -15,33 +15,28 @@ extension Optional where Wrapped: ~Copyable {
   @lifetime(borrow self)
   @_addressableSelf
   public func borrow() -> Borrow<Wrapped>? {
-    switch self {
-    case .some:
-      let pointer = unsafe UnsafePointer<Wrapped>(
-        Builtin.unprotectedAddressOfBorrow(self)
-      )
-      
-      return unsafe Borrow(unsafeAddress: pointer, owner: self)
-      
-    case .none:
+    if self == nil {
       return nil
     }
+    
+    let pointer = unsafe UnsafePointer<Wrapped>(
+      Builtin.unprotectedAddressOfBorrow(self)
+    )
+    
+    return unsafe Borrow(unsafeAddress: pointer, owner: self)
   }
   
-  #if false // Compiler bug preventing this
-  @lifetime(&self)
-  public mutating func mutate() -> Inout<Wrapped>? {
-    switch self {
-    case .some:
-      let pointer = unsafe UnsafeMutablePointer<Wrapped>(
-        Builtin.unprotectedAddressOf(&self)
-      )
-      
-      return unsafe Inout(unsafeAddress: pointer, owner: &self)
-      
-    case .none:
-      return nil
-    }
-  }
-  #endif
+//  #if false // Compiler bug preventing this
+//  @lifetime(&self)
+//  public mutating func mutate() -> Inout<Wrapped>? {
+//    if self == nil {
+//      return nil
+//    }
+//    
+//    let pointer = unsafe UnsafeMutablePointer<Wrapped>(
+//      Builtin.unprotectedAddressOf(&self)
+//    )
+//    
+//    return unsafe Inout(unsafeAddress: pointer, owner: &self)
+//  }
 }

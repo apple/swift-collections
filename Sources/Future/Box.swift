@@ -61,6 +61,20 @@ extension Box where T: ~Copyable {
       unsafe _pointer
     }
   }
+  
+  @lifetime(borrow self)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public func borrow() -> Borrow<T> {
+    unsafe Borrow(unsafeAddress: UnsafePointer(_pointer), owner: self)
+  }
+  
+  @lifetime(&self)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public mutating func mutate() -> Inout<T> {
+    unsafe Inout(unsafeAddress: _pointer, owner: &self)
+  }
 }
 
 extension Box where T: Copyable {
