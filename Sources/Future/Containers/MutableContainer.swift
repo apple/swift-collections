@@ -9,12 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) // FIXME: Turn this on once we have a new enough toolchain
 @available(SwiftStdlib 6.2, *) // for MutableSpan
 public protocol Muterator: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
-  @lifetime(copy self)
+  @lifetime(&self)
   mutating func nextChunk(maximumCount: Int) -> MutableSpan<Element>
 }
 
@@ -24,26 +23,25 @@ public protocol MutableContainer: Container, ~Copyable, ~Escapable {
 
   @lifetime(&self)
   mutating func startMutatingIteration() -> MutatingIterationState
-
-  /// Return a pointer addressing the element at the given index.
-  /// This is wildly unsafe; please do not use this outside of `unsafeAddress` accessors.
-  ///
+  
   /// This is a temporary stand-in for the subscript requirement that we actually want:
   ///
   ///     subscript(index: Index) -> Element { borrow mutate }
-  @unsafe
-  mutating func _unsafeMutableAddressOfElement(at index: Index) -> UnsafePointer<Element>
+  @lifetime(&self)
+  mutating func mutateElement(at index: Index) -> Inout<Element>
 }
 
+@available(SwiftStdlib 6.2, *) // for MutableSpan
 extension MutableContainer where Self: ~Copyable & ~Escapable {
   @inlinable
   public subscript(index: Index) -> Element {
     unsafeAddress {
-      unsafe _unsafeAddressOfElement(at: index)
+      unsafe borrowElement(at: index)._pointer
     }
+    
+    @lifetime(&self)
     unsafeMutableAddress {
-      unsafe _unsafeMutableAddressOfElement(at: index)
+      unsafe mutateElement(at: index)._pointer
     }
   }
 }
-#endif

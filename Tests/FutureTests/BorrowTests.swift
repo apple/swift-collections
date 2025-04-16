@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -11,25 +11,15 @@
 
 import XCTest
 import Future
+import Synchronization
 
-final class BoxTests: XCTestCase {
+final class BorrowTests: XCTestCase {
+  @available(SwiftStdlib 6.2, *)
   func test_basic() {
-    var intOnHeap = Box<Int>(0)
-
-    XCTAssertEqual(intOnHeap[], 0)
-
-    intOnHeap[] = 123
-
-    XCTAssertEqual(intOnHeap[], 123)
-
-    XCTAssertEqual(intOnHeap.copy(), 123)
+    let x: Atomic<Int>? = Atomic(0)
     
-    var inoutToIntOnHeap = intOnHeap.leak()
-
-    XCTAssertEqual(inoutToIntOnHeap[], 123)
-
-    inoutToIntOnHeap[] = 321
-
-    XCTAssertEqual(inoutToIntOnHeap[], 321)
+    if let y = x.borrow() {
+      XCTAssertEqual(y[].load(ordering: .relaxed), 0)
+    }
   }
 }

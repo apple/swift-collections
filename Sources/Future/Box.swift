@@ -9,8 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false // FIXME: Revive
 @frozen
+@safe
 public struct Box<T: ~Copyable>: ~Copyable {
   @usableFromInline
   internal let _pointer: UnsafeMutablePointer<T>
@@ -18,21 +18,15 @@ public struct Box<T: ~Copyable>: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ value: consuming T) {
-    _pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
-    _pointer.initialize(to: value)
-  }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  public init(_ fromInout: consuming Inout<T>) {
-    _pointer = fromInout._pointer
+    unsafe _pointer = UnsafeMutablePointer<T>.allocate(capacity: 1)
+    unsafe _pointer.initialize(to: value)
   }
 
   @_alwaysEmitIntoClient
   @inlinable
   deinit {
-    _pointer.deinitialize(count: 1)
-    _pointer.deallocate()
+    unsafe _pointer.deinitialize(count: 1)
+    unsafe _pointer.deallocate()
   }
 }
 
@@ -40,17 +34,17 @@ extension Box where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public consuming func consume() -> T {
-    let result = _pointer.move()
-    _pointer.deallocate()
+    let result = unsafe _pointer.move()
+    unsafe _pointer.deallocate()
     discard self
     return result
   }
 
+  @lifetime(immortal)
   @_alwaysEmitIntoClient
   @_transparent
-  @lifetime(immortal)
   public consuming func leak() -> Inout<T> {
-    let result = Inout<T>(unsafeImmortalAddress: _pointer)
+    let result = unsafe Inout<T>(unsafeImmortalAddress: _pointer)
     discard self
     return result
   }
@@ -59,13 +53,27 @@ extension Box where T: ~Copyable {
   public subscript() -> T {
     @_transparent
     unsafeAddress {
-      UnsafePointer<T>(_pointer)
+      unsafe UnsafePointer<T>(_pointer)
     }
 
     @_transparent
-    nonmutating unsafeMutableAddress {
-      _pointer
+    unsafeMutableAddress {
+      unsafe _pointer
     }
+  }
+  
+  @lifetime(borrow self)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public func borrow() -> Borrow<T> {
+    unsafe Borrow(unsafeAddress: UnsafePointer(_pointer), owner: self)
+  }
+  
+  @lifetime(&self)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public mutating func mutate() -> Inout<T> {
+    unsafe Inout(unsafeAddress: _pointer, owner: &self)
   }
 }
 
@@ -73,7 +81,6 @@ extension Box where T: Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public borrowing func copy() -> T {
-    _pointer.pointee
+    unsafe _pointer.pointee
   }
 }
-#endif

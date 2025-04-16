@@ -3,13 +3,14 @@ import Future
 
 final class ContiguousStorageTests: XCTestCase {
 
+  @available(SwiftStdlib 6.2, *)
   func testBorrowArrayStorage() throws {
 
     let capacity = 10
     var a: [Int] = []
     a = Array(0..<capacity)
 
-    let span = a.storage
+    let span = a.span
     XCTAssertEqual(span.count, capacity)
 
     for i in span.indices {
@@ -28,6 +29,7 @@ final class ContiguousStorageTests: XCTestCase {
     var endIndex: Int { span.count }
     func index(after i: Int) -> Int { i+2 }
 
+    @lifetime(copy contiguous)
     init(_ contiguous: borrowing Span<Int>) {
       span = copy contiguous
     }
@@ -35,14 +37,16 @@ final class ContiguousStorageTests: XCTestCase {
     subscript(_ p: Int) -> Int { span[p] }
   }
 
+  @available(SwiftStdlib 6.2, *)
   @inline(never)
   @lifetime(borrow array)
   private func skip(
     along array: borrowing Array<Int>
   ) -> Skipper {
-    Skipper(array.storage)
+    Skipper(array.span)
   }
 
+  @available(SwiftStdlib 6.2, *)
   func testSpanWrapper() {
     let capacity = 8
     let a = Array(0..<capacity)

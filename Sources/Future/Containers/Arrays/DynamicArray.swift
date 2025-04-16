@@ -48,7 +48,6 @@ extension DynamicArray where Element: ~Copyable {
     }
   }
   
-#if compiler(>=6.3) // FIXME: Turn this on once we have a new enough toolchain
   @available(SwiftStdlib 6.2, *)
   public var mutableSpan: MutableSpan<Element> {
     @lifetime(&self)
@@ -57,7 +56,6 @@ extension DynamicArray where Element: ~Copyable {
       _storage.mutableSpan
     }
   }
-#endif
 }
 
 extension DynamicArray where Element: ~Copyable {
@@ -74,14 +72,26 @@ extension DynamicArray where Element: ~Copyable {
   public var endIndex: Int { _storage.count }
 
   @inlinable
+  @lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Borrow<Element> {
+    _storage.borrowElement(at: index)
+  }
+  
+  @inlinable
+  @lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> Inout<Element> {
+    _storage.mutateElement(at: index)
+  }
+  
+  @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
     unsafeAddress {
-      unsafe _storage._unsafeAddressOfElement(at: position)
+      unsafe borrowElement(at: position)._pointer
     }
     @inline(__always)
     unsafeMutableAddress {
-      unsafe _storage._unsafeMutableAddressOfElement(at: position)
+      unsafe mutateElement(at: position)._pointer
     }
   }
 
@@ -116,7 +126,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-#if false
+@available(SwiftStdlib 6.2, *) // For Span
 extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
   public typealias Index = Int
@@ -125,6 +135,7 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
     BorrowingIterator(for: _storage, startOffset: 0)
   }
   
+  @lifetime(borrow self)
   public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
     BorrowingIterator(for: _storage, startOffset: start)
   }
@@ -142,7 +153,6 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
     _storage.formIndex(&index, offsetBy: &distance, limitedBy: limit)
   }
 }
-#endif
 
 extension DynamicArray where Element: ~Copyable {
   @inlinable

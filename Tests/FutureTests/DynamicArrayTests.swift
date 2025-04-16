@@ -62,7 +62,7 @@ class DynamicArrayTests: CollectionTestCase {
     let array = DynamicArray<Counted>(count: c) { Counted($0) }
 
     for i in 0 ..< c {
-      expectEqual(array.borrowElement(at: i) { $0.value }, i)
+      expectEqual(array.borrowElement(at: i)[].value, i)
       expectEqual(array[i].value, i)
     }
   }
@@ -72,7 +72,9 @@ class DynamicArrayTests: CollectionTestCase {
     var array = DynamicArray<Counted>(count: c) { Counted($0) }
 
     for i in 0 ..< c {
-      array.updateElement(at: i) { $0.value += 100 }
+      // FIXME: 'exclusive' or something instead of mutating subscript
+      var me = array.mutateElement(at: i)
+      me[].value += 100
       array[i].value += 100
     }
 
@@ -95,8 +97,7 @@ class DynamicArrayTests: CollectionTestCase {
     expectEqual(array.count, c)
 
     for i in 0 ..< c {
-      // FIXME: unexpected exclusivity violation (rdar://128441125)
-      //expectEqual(array.borrowElement(at: i) { $0.value }, 100 + i)
+      expectEqual(array.borrowElement(at: i)[].value, 100 + i)
       expectEqual(array[i].value, 100 + i)
     }
 
@@ -114,8 +115,7 @@ class DynamicArrayTests: CollectionTestCase {
     expectEqual(array.count, c)
 
     for i in 0 ..< c {
-      // FIXME: unexpected exclusivity violation (rdar://128441125)
-      //expectEqual(array.borrowElement(at: i) { $0.value }, c + 99 - i)
+      expectEqual(array.borrowElement(at: i)[].value, c + 99 - i)
       expectEqual(array[i].value, c + 99 - i)
     }
 
@@ -139,6 +139,7 @@ class DynamicArrayTests: CollectionTestCase {
     expectEqual(Counted.instances, 0)
   }
 
+  @available(SwiftStdlib 6.2, *) // For Span
   func test_iterate_full() {
     let c = 100
     let array = DynamicArray<Counted>(count: c) { Counted(100 + $0) }
@@ -157,6 +158,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+  @available(SwiftStdlib 6.2, *) // For Span
   func test_iterate_stepped() {
     let c = 100
     let array = DynamicArray<Counted>(count: c) { Counted($0) }

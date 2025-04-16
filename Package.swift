@@ -64,6 +64,9 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("LifetimeDependence"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
   .enableUpcomingFeature("StrictMemorySafety"),
+  .enableExperimentalFeature("InoutLifetimeDependence"),
+  .enableExperimentalFeature("AddressableParameters"),
+  .enableExperimentalFeature("AddressableTypes")
 ]
 
 let _sharedSettings: [SwiftSetting] = (
