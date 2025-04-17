@@ -11,8 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import Span
+import Future
 
+#if false
 //MARK: slicing tests and examples
 @available(macOS 9999, *)
 extension MutableSpanTests {
@@ -142,3 +143,4 @@ extension MutableSpanTests {
     XCTAssertTrue(suffix._elementsEqual(repeated))
   }
 }
+#endif

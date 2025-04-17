@@ -110,9 +110,11 @@ extension Shared where Storage: ~Copyable {
   @inlinable
   @inline(__always)
   public var value: Storage {
+    @lifetime(borrow self)
     unsafeAddress {
-      unsafe read()._pointer
+      unsafe _address
     }
+    @lifetime(&self)
     unsafeMutableAddress {
       precondition(isUnique())
       return unsafe _mutableAddress
@@ -123,11 +125,11 @@ extension Shared where Storage: ~Copyable {
 extension Shared where Storage: ~Copyable {
   @inlinable
   @lifetime(borrow self)
-  public borrowing func read() -> Borrow<Storage> {
+  public borrowing func borrow() -> Borrow<Storage> {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that
     // lifetime(self) == lifetime(_box.storage).
-    unsafe Borrow(unsafeAddress: _address, owner: self)
+    unsafe Borrow(unsafeAddress: _address, borrowing: self)
   }
   
   @inlinable
@@ -136,7 +138,7 @@ extension Shared where Storage: ~Copyable {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that
     // lifetime(self) == lifetime(_box.storage).
-    unsafe Inout(unsafeAddress: _mutableAddress, owner: &self)
+    unsafe Inout(unsafeAddress: _mutableAddress, mutating: &self)
   }
 }
 

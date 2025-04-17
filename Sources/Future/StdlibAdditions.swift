@@ -23,7 +23,7 @@ extension Optional where Wrapped: ~Copyable {
       Builtin.unprotectedAddressOfBorrow(self)
     )
     
-    return unsafe Borrow(unsafeAddress: pointer, owner: self)
+    return unsafe Borrow(unsafeAddress: pointer, borrowing: self)
   }
   
 //  #if false // Compiler bug preventing this

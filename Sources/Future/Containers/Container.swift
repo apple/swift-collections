@@ -9,26 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 6.2, *) // For Span
-public protocol BorrowingIteratorProtocol: ~Escapable {
-  associatedtype Element: ~Copyable
-
-  @lifetime(copy self)
-  mutating func nextChunk(maximumCount: Int) -> Span<Element>
-}
-
-@available(SwiftStdlib 6.2, *) // For Span
+@available(SwiftCompatibilitySpan 5.0, *)
 public protocol Container: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
-
-  associatedtype BorrowingIterator: BorrowingIteratorProtocol, ~Escapable
-  where BorrowingIterator.Element == Element
-
-  @lifetime(copy self)
-  borrowing func startBorrowingIteration() -> BorrowingIterator
-  
-  @lifetime(copy self)
-  borrowing func startBorrowingIteration(from start: Index) -> BorrowingIterator
 
   associatedtype Index: Comparable
 
@@ -37,31 +20,31 @@ public protocol Container: ~Copyable, ~Escapable {
 
   var startIndex: Index { get }
   var endIndex: Index { get }
-  
-  /// This is a temporary stand-in for the subscript requirement that we actually want:
-  ///
-  ///     subscript(index: Index) -> Element { borrow }
+
+  #if compiler(>=9999) // We want this but we can't do it yet
+  subscript(index: Index) -> Element { borrow }
+  #else
   @lifetime(copy self)
   func borrowElement(at index: Index) -> Borrow<Element>
-  
+  #endif
+
+  @lifetime(copy self)
+  func span(following index: inout Index, maximumCount: Int) -> Span<Element>
+
   func index(after index: Index) -> Index
   func formIndex(after i: inout Index)
-
-  func index(at position: borrowing BorrowingIterator) -> Index
-
   func distance(from start: Index, to end: Index) -> Int
-
   func index(_ index: Index, offsetBy n: Int) -> Index
-
   func formIndex(
     _ i: inout Index, offsetBy distance: inout Int, limitedBy limit: Index
   )
 }
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftCompatibilitySpan 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   public subscript(index: Index) -> Element {
+    @lifetime(copy self)
     unsafeAddress {
       unsafe borrowElement(at: index)._pointer
     }

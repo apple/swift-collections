@@ -56,6 +56,8 @@ let availabilityMacros: KeyValuePairs<String, String> = [
   "SwiftStdlib 6.0": "macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0",
   "SwiftStdlib 6.1": "macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4",
   "SwiftStdlib 6.2": "macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999",
+  "SwiftCompatibilitySpan 5.0": "macOS 10.14.4, iOS 12.2, watchOS 5.2, tvOS 12.2, visionOS 1.1",
+  "SwiftCompatibilitySpan 6.2": "macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0",
 ]
 
 let extraSettings: [SwiftSetting] = [
@@ -247,8 +249,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .test,
     name: "FutureTests",
-    dependencies: ["Future", "_CollectionsTestSupport"],
-    sources: ["Tests/FutureTests", "Tests/SpanTests"]
+    dependencies: ["Future", "_CollectionsTestSupport"]
   ),
 
   .target(

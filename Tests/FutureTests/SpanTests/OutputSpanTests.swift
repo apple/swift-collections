@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import Span
+import Future
 
 @available(macOS 9999, *)
 struct Allocation<T>: ~Copyable {

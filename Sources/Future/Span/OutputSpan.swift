@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // FIXME: Revive
 // OutputSpan<Element> represents a span of memory which contains
 // a variable number of `Element` instances, followed by uninitialized memory.
 @safe
@@ -403,3 +404,4 @@ extension OutputSpan where Element: BitwiseCopyable {
     return unsafe UnsafeMutableRawBufferPointer(start: start, count: byteCount)
   }
 }
+#endif

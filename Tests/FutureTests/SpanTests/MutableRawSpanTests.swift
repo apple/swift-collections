@@ -11,8 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import Span
+import Future
 
+#if false
 @available(macOS 9999, *)
 final class MutableRawSpanTests: XCTestCase {
 
@@ -354,3 +355,4 @@ final class MutableRawSpanTests: XCTestCase {
     }
   }
 }
+#endif

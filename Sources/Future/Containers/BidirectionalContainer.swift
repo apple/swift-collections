@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 6.2, *) // For Span
+@available(SwiftCompatibilitySpan 5.0, *)
 public protocol BidirectionalContainer: Container, ~Copyable, ~Escapable {
   override associatedtype Element: ~Copyable
 

@@ -9,32 +9,24 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 6.2, *) // for MutableSpan
-public protocol Muterator: ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable
-
-  @lifetime(&self)
-  mutating func nextChunk(maximumCount: Int) -> MutableSpan<Element>
-}
-
-@available(SwiftStdlib 6.2, *) // for MutableSpan
+@available(SwiftCompatibilitySpan 5.0, *)
 public protocol MutableContainer: Container, ~Copyable, ~Escapable {
-  associatedtype MutatingIterationState: ~Copyable, ~Escapable
-
-  @lifetime(&self)
-  mutating func startMutatingIteration() -> MutatingIterationState
-  
-  /// This is a temporary stand-in for the subscript requirement that we actually want:
-  ///
-  ///     subscript(index: Index) -> Element { borrow mutate }
+#if compiler(>=9999) // We want this but we can't do it yet
+  subscript(index: Index) -> Element { borrow mutate }
+#else
   @lifetime(&self)
   mutating func mutateElement(at index: Index) -> Inout<Element>
+#endif
+
+  @lifetime(&self)
+  mutating func mutableSpan(following index: inout Index, maximumCount: Int) -> MutableSpan<Element>
 }
 
-@available(SwiftStdlib 6.2, *) // for MutableSpan
+@available(SwiftCompatibilitySpan 5.0, *)
 extension MutableContainer where Self: ~Copyable & ~Escapable {
   @inlinable
   public subscript(index: Index) -> Element {
+    @lifetime(borrow self)
     unsafeAddress {
       unsafe borrowElement(at: index)._pointer
     }

@@ -11,8 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import Span
+import Future
 
+#if false
 class ID {
   let id: Int
   init(id: Int) {
@@ -591,3 +592,4 @@ final class MutableSpanTests: XCTestCase {
     }
   }
 }
+#endif

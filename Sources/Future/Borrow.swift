@@ -15,7 +15,7 @@ import Builtin
 @safe
 public struct Borrow<T: ~Copyable>: Copyable, ~Escapable {
   @usableFromInline
-  let _pointer: UnsafePointer<T>
+  package let _pointer: UnsafePointer<T>
 
   @lifetime(borrow value)
   @_alwaysEmitIntoClient
@@ -29,11 +29,21 @@ public struct Borrow<T: ~Copyable>: Copyable, ~Escapable {
   @_transparent
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeAddress: UnsafePointer<T>,
-    owner: borrowing Owner
+    borrowing owner: borrowing Owner
   ) {
     unsafe _pointer = unsafeAddress
   }
-  
+
+  @lifetime(copy owner)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public init<Owner: ~Copyable & ~Escapable>(
+    unsafeAddress: UnsafePointer<T>,
+    copying owner: borrowing Owner
+  ) {
+    unsafe _pointer = unsafeAddress
+  }
+
   @_alwaysEmitIntoClient
   public subscript() -> T {
     @_transparent

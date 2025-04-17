@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // FIXME: Revive
 extension Array {
 
   @available(macOS 9999, *)
@@ -86,3 +87,4 @@ extension Data {
     self.replaceSubrange(count..<self.count, with: EmptyCollection())
   }
 }
+#endif

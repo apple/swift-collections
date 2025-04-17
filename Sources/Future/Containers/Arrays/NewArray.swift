@@ -66,6 +66,7 @@ extension NewArray {
 
 extension NewArray: RandomAccessCollection, MutableCollection {
   public typealias Index = Int
+  public typealias Indices = Range<Int>
 
   @inlinable
   public var startIndex: Int { 0 }
@@ -85,6 +86,32 @@ extension NewArray: RandomAccessCollection, MutableCollection {
     }
   }
 }
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension NewArray: RandomAccessContainer, MutableContainer {
+  @lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Borrow<Element> {
+    _storage.value.borrowElement(at: index)
+  }
+  
+  @lifetime(borrow self)
+  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.value.span(following: &index, maximumCount: maximumCount)
+  }
+
+  @lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> Inout<Element> {
+    _storage.value.mutateElement(at: index)
+  }
+
+  @lifetime(&self)
+  public mutating func mutableSpan(
+    following index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    _storage.value.mutableSpan(following: &index, maximumCount: maximumCount)
+  }
+}
+
 
 #if false // FIXME: Implement
 extension NewArray: RangeReplaceableCollection {

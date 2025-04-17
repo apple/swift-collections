@@ -74,8 +74,10 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+//MARK: - Span creation
+
 extension RigidArray where Element: ~Copyable {
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftCompatibilitySpan 5.0, *)
   public var span: Span<Element> {
     @lifetime(borrow self)
     @inlinable
@@ -84,8 +86,8 @@ extension RigidArray where Element: ~Copyable {
       return unsafe _overrideLifetime(result, borrowing: self)
     }
   }
-  
-  @available(SwiftStdlib 6.2, *)
+
+  @available(SwiftCompatibilitySpan 5.0, *)
   public var mutableSpan: MutableSpan<Element> {
     @lifetime(&self)
     @inlinable
@@ -94,57 +96,96 @@ extension RigidArray where Element: ~Copyable {
       return unsafe _overrideLifetime(result, mutating: &self)
     }
   }
+
+  @available(SwiftCompatibilitySpan 5.0, *)
+  @inlinable
+  @lifetime(borrow self)
+  internal func _span(in range: Range<Int>) -> Span<Element> {
+    let result = unsafe Span(_unsafeElements: _items.extracting(range))
+    return unsafe _overrideLifetime(result, borrowing: self)
+  }
+
+  @available(SwiftCompatibilitySpan 5.0, *)
+  @inlinable
+  @lifetime(&self)
+  internal mutating func _mutableSpan(in range: Range<Int>) -> MutableSpan<Element> {
+    let result = unsafe MutableSpan(_unsafeElements: _items.extracting(range))
+    return unsafe _overrideLifetime(result, mutating: &self)
+  }
+}
+
+extension RigidArray where Element: ~Copyable {
+  @inlinable
+  internal func _subrange(following index: inout Int, maximumCount: Int) -> Range<Int> {
+    precondition(index >= 0 && index <= _count, "Index out of bounds")
+    let end = index + Swift.min(_count - index, maximumCount)
+    defer { index = end }
+    return unsafe Range(uncheckedBounds: (index, end))
+  }
+}
+
+//MARK: - RandomAccessContainer conformance
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension RigidArray: RandomAccessContainer where Element: ~Copyable {
+  @inlinable
+  @lifetime(borrow self)
+  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+    _span(in: _subrange(following: &index, maximumCount: maximumCount))
+  }
 }
 
 extension RigidArray where Element: ~Copyable {
   public typealias Index = Int
-  
+
   @inlinable
   public var isEmpty: Bool { count == 0 }
-  
+
   @inlinable
   public var count: Int { _count }
-  
+
   @inlinable
   public var startIndex: Int { 0 }
-  
+
   @inlinable
   public var endIndex: Int { count }
-}
 
-extension RigidArray where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
-    precondition(index >= 0 && index < _count)
+    precondition(index >= 0 && index < _count, "Index out of bounds")
     return unsafe Borrow(
       unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
-      owner: self
+      borrowing: self
     )
   }
-  
+}
+
+//MARK: - MutableContainer conformance
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension RigidArray: MutableContainer where Element: ~Copyable {
+  @lifetime(&self)
+  public mutating func mutableSpan(
+    following index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    _mutableSpan(in: _subrange(following: &index, maximumCount: maximumCount))
+  }
+}
+
+extension RigidArray where Element: ~Copyable {
   @inlinable
   @lifetime(&self)
   public mutating func mutateElement(at index: Int) -> Inout<Element> {
     precondition(index >= 0 && index < _count)
     return unsafe Inout(
       unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
-      owner: &self
+      mutating: &self
     )
   }
-  
-  @inlinable
-  public subscript(position: Int) -> Element {
-    @inline(__always)
-    unsafeAddress {
-      unsafe borrowElement(at: position)._pointer
-    }
-    @inline(__always)
-    unsafeMutableAddress {
-      unsafe mutateElement(at: position)._pointer
-    }
-  }
 }
+
+//MARK: - Resizing
 
 extension RigidArray where Element: ~Copyable {
   @inlinable
@@ -164,6 +205,8 @@ extension RigidArray where Element: ~Copyable {
     resize(to: n)
   }
 }
+
+//MARK: Range replacement operations
 
 extension RigidArray where Element: ~Copyable {
   @inlinable
@@ -213,6 +256,8 @@ extension RigidArray {
     }
   }
 }
+
+//MARK: - Copying and moving helpers
 
 extension RigidArray {
   @inlinable

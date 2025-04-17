@@ -13,8 +13,8 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   /// Returns a Boolean value indicating whether two `UnsafeBufferPointer`
   /// instances refer to the same region in memory.
   @inlinable @inline(__always)
-  public static func ===(_ a: Self, _ b: Self) -> Bool {
-    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
+  public func isIdentical(to other: Self) -> Bool {
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 }
 
@@ -23,8 +23,8 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// `UnsafeMutableBufferPointer` instances refer to the same region in
   /// memory.
   @inlinable @inline(__always)
-  public static func ===(_ a: Self, _ b: Self) -> Bool {
-    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
+  public func isIdentical(to other: Self) -> Bool {
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 }
 
@@ -32,8 +32,8 @@ extension UnsafeRawBufferPointer {
   /// Returns a Boolean value indicating whether two `UnsafeRawBufferPointer`
   /// instances refer to the same region in memory.
   @inlinable @inline(__always)
-  public static func ===(_ a: Self, _ b: Self) -> Bool {
-    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
+  public func isIdentical(to other: Self) -> Bool {
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 }
 
@@ -42,7 +42,7 @@ extension UnsafeMutableRawBufferPointer {
   /// `UnsafeMutableRawBufferPointer` instances refer to the same region in
   /// memory.
   @inlinable @inline(__always)
-  public static func ===(_ a: Self, _ b: Self) -> Bool {
-    unsafe (a.baseAddress == b.baseAddress) && (a.count == b.count)
+  public func isIdentical(to other: Self) -> Bool {
+    unsafe (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
 }

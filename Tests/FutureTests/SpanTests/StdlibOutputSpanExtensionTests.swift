@@ -12,7 +12,7 @@
 
 import XCTest
 import Foundation
-import Span
+import Future
 
 @available(macOS 9999, *)
 final class StdlibOutputSpanExtensionTests: XCTestCase {

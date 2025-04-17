@@ -21,7 +21,7 @@ import Builtin
 @safe
 public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   @usableFromInline
-  internal let _pointer: UnsafeMutablePointer<T>
+  package let _pointer: UnsafeMutablePointer<T>
 
   /// Initializes an instance of 'Inout' extending the exclusive access of the
   /// passed instance.
@@ -47,7 +47,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   @_transparent
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeAddress: UnsafeMutablePointer<T>,
-    owner: inout Owner
+    mutating owner: inout Owner
   ) {
     unsafe _pointer = unsafeAddress
   }
