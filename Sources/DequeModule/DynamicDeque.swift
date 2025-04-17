@@ -11,7 +11,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import Span
+import Future
 #endif
 
 @frozen
@@ -33,16 +33,15 @@ public struct DynamicDeque<Element: ~Copyable>: ~Copyable {
 extension DynamicDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
 extension DynamicDeque: RandomAccessContainer where Element: ~Copyable {
-  public typealias BorrowingIterator = RigidDeque<Element>.BorrowingIterator
+  @available(SwiftCompatibilitySpan 5.0, *)
+  @lifetime(borrow self)
+  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.span(following: &index, maximumCount: maximumCount)
+  }
+}
+
+extension DynamicDeque where Element: ~Copyable {
   public typealias Index = Int
-
-  public func startBorrowingIteration() -> BorrowingIterator {
-    _storage.startBorrowingIteration()
-  }
-
-  public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
-    _storage.startBorrowingIteration(from: start)
-  }
 
   @inlinable
   public var isEmpty: Bool { _storage.isEmpty }
@@ -56,20 +55,9 @@ extension DynamicDeque: RandomAccessContainer where Element: ~Copyable {
   @inlinable
   public var endIndex: Int { _storage.endIndex }
 
-  @inlinable
-  public subscript(position: Int) -> Element {
-    @inline(__always)
-    _read {
-      yield _storage[position]
-    }
-    @inline(__always)
-    _modify {
-      yield &_storage[position]
-    }
-  }
-
-  public func index(at position: borrowing BorrowingIterator) -> Int {
-    _storage.index(at: position)
+  @lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Future.Borrow<Element> {
+    _storage.borrowElement(at: index)
   }
 }
 

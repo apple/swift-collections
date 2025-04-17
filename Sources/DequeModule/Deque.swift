@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Span
+import Future
 
 /// A collection implementing a double-ended queue. `Deque` (pronounced "deck")
 /// implements an ordered random-access collection that supports efficient
@@ -117,9 +117,7 @@ extension Deque {
   internal func _read<E: Error, R: ~Copyable>(
     _ body: (borrowing _UnsafeHandle) throws(E) -> R
   ) throws(E) -> R {
-    try _storage.read { rigid throws(E) in
-      try body(rigid._handle)
-    }
+    return try body(_storage.value._handle)
   }
 
   @inlinable
@@ -128,9 +126,9 @@ extension Deque {
     _ body: (inout _UnsafeHandle) throws(E) -> R
   ) throws(E) -> R {
     _ensureUnique()
-    return try _storage.update { v throws(E) in
-      try body(&v._handle)
-    }
+    var rigid = _storage.mutate()
+    defer { extendLifetime(rigid) }
+    return try body(&rigid[]._handle)
   }
 }
 
@@ -156,18 +154,18 @@ extension Deque {
   @inlinable
   @inline(never)
   internal func _makeUniqueCopy() -> Self {
-    Deque(_storage: _storage.read { $0._copy() })
+    Deque(_storage: _storage.value._copy())
   }
 
   @inlinable
   @inline(never)
   internal func _makeUniqueCopy(capacity: Int) -> Self {
-    Deque(_storage: _storage.read { $0._copy(capacity: capacity) })
+    Deque(_storage: _storage.value._copy(capacity: capacity))
   }
 
   @inlinable
   internal var _capacity: Int {
-    _storage.read { $0.capacity }
+    _storage.value.capacity
   }
 
   @usableFromInline
@@ -221,7 +219,7 @@ extension Deque {
 
     let c = _growCapacity(to: minimumCapacity, linearly: linearGrowth)
     if isUnique {
-      self._storage.update { $0.resize(to: c) }
+      self._storage.value.resize(to: c)
     } else {
       self = self._makeUniqueCopy(capacity: c)
     }

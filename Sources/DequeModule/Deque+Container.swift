@@ -10,39 +10,18 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import Span
+import Future
 #endif
 
 extension Deque: RandomAccessContainer {
-  public typealias BorrowingIterator = RigidDeque<Element>.BorrowingIterator
-
-  @inlinable
-  public func startBorrowingIteration() -> BorrowingIterator {
-    self.startBorrowingIteration(from: 0)
+  @lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Borrow<Element> {
+    _storage.value.borrowElement(at: index)
   }
 
-  @inlinable
-  public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
-    // FIXME: This is unacceptably unsafe. We want to access `_storage.value`
-    // FIXME: as if it was a structural part of `self`, but there is no way
-    // FIXME: to express this in Swift.
-    BorrowingIterator(
-      _unsafeSegments: _storage.value._handle.segments(),
-      startOffset: start,
-      owner: self)
-  }
-
-  @inlinable
-  public func index(at position: borrowing BorrowingIterator) -> Int {
-    precondition(_read { $0.segments().isIdentical(to: position._segments) })
-    return position._offset
-  }
-
-  @inlinable
-  public func formIndex(
-    _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
-  ) {
-    // Note: Range checks are deferred until element access.
-    index.advance(by: &distance, limitedBy: limit)
+  @available(SwiftCompatibilitySpan 5.0, *)
+  @lifetime(borrow self)
+  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.value.span(following: &index, maximumCount: maximumCount)
   }
 }

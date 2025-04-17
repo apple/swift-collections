@@ -49,7 +49,7 @@ extension Deque {
   /// target.
   @_spi(Testing)
   public var _unstableStartSlot: Int {
-    _storage.read { $0._handle.startSlot.position }
+    _storage.value._handle.startSlot.position
   }
 
   /// Constructs a deque instance of the specified contents and layout. Exposed

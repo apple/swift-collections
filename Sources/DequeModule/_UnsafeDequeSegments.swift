@@ -11,7 +11,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import Span
+import Future
 #endif
 
 @frozen
@@ -58,10 +58,10 @@ internal struct _UnsafeDequeSegments<Element: ~Copyable> {
 
   @inlinable
   internal func isIdentical(to other: Self) -> Bool {
-    guard self.first === other.first else { return false }
+    guard self.first.isIdentical(to: other.first) else { return false }
     switch (self.second, other.second) {
     case (nil, nil): return true
-    case let (a?, b?): return a === b
+    case let (a?, b?): return a.isIdentical(to: b)
     default: return false
     }
   }

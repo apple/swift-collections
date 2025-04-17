@@ -11,9 +11,8 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import Future
 #endif
-
-import Span
 
 extension Deque {
   // Implementation note: we could also use the default `IndexingIterator` here.
@@ -183,7 +182,7 @@ extension Deque: RandomAccessCollection {
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
-  public var count: Int { _storage.read { $0.count } }
+  public var count: Int { _storage.value.count }
 
   /// The position of the first element in a nonempty deque.
   ///
@@ -360,39 +359,14 @@ extension Deque: RandomAccessCollection {
   ///    writing is O(`count`).
   @inlinable
   public subscript(index: Int) -> Element {
-    get {
-      return _storage.read { $0[index] }
+    @lifetime(borrow self)
+    unsafeAddress {
+      _storage.value.borrowElement(at: index)._pointer
     }
-    set {
-      _storage.update { $0[index] = newValue }
-    }
-    @inline(__always) // https://github.com/apple/swift-collections/issues/164
-    _modify {
-      precondition(index >= 0 && index < count, "Index out of bounds")
-      var (slot, value) = _prepareForModify(at: index)
-      defer {
-        _finalizeModify(slot, value)
-      }
-      yield &value
-    }
-  }
-
-  @inlinable
-  internal mutating func _prepareForModify(at index: Int) -> (_Slot, Element) {
-    _ensureUnique()
-    // We technically aren't supposed to escape storage pointers out of a
-    // managed buffer, so we escape a `(slot, value)` pair instead, leaving
-    // the corresponding slot temporarily uninitialized.
-    return _update { handle in
-      let slot = handle.slot(forOffset: index)
-      return (slot, handle.mutablePtr(at: slot).move())
-    }
-  }
-
-  @inlinable
-  internal mutating func _finalizeModify(_ slot: _Slot, _ value: __owned Element) {
-    _update { handle in
-      handle.mutablePtr(at: slot).initialize(to: value)
+    @lifetime(&self)
+    unsafeMutableAddress {
+      _ensureUnique()
+      return _storage.value.mutateElement(at: index)._pointer
     }
   }
 

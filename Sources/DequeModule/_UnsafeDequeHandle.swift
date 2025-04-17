@@ -386,14 +386,25 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
-  internal func startBorrowingIteration() -> _DequeBorrowingIterator<Element> {
-    .init(_for: self, startOffset: 0)
-  }
+  internal func slotRange(following offset: inout Int, maximumCount: Int) -> Range<Slot> {
+    precondition(offset >= 0 && offset <= count, "Invalid index")
+    precondition(maximumCount > 0, "maximumCount must be positive")
+    guard _buffer.baseAddress != nil else {
+      return Range(uncheckedBounds: (Slot.zero, Slot.zero))
+    }
+    let wrapOffset = Swift.min(capacity - startSlot.position, count)
 
-  @inlinable
-  internal func startBorrowingIteration(from start: Int) -> _DequeBorrowingIterator<Element> {
-    precondition(start >= 0 && start <= count)
-    return .init(_for: self, startOffset: start)
+    if offset < wrapOffset {
+      let endOffset = offset + Swift.min(wrapOffset - offset, maximumCount)
+      defer { offset += endOffset - offset }
+      return Range(
+        uncheckedBounds: (startSlot.advanced(by: offset), startSlot.advanced(by: endOffset)))
+    }
+    let endOffset = offset + Swift.min(count - offset, maximumCount)
+    let lowerSlot = Slot.zero.advanced(by: offset - wrapOffset)
+    let upperSlot = lowerSlot.advanced(by: endOffset - wrapOffset)
+    defer { offset += endOffset - offset }
+    return Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
   }
 }
 

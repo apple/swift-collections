@@ -11,7 +11,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-import Span
+import Future
 #endif
 
 @frozen
@@ -61,64 +61,43 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
-public struct _DequeBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol, ~Escapable {
-  @usableFromInline
-  internal typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
-
-  @usableFromInline
-  internal let _segments: _UnsafeDequeSegments<Element>
-
-  @usableFromInline
-  internal var _offset: Int
-
+@available(SwiftCompatibilitySpan 5.0, *)
+extension RigidDeque where Element: ~Copyable {
   @inlinable
-  internal init<T: ~Copyable>(
-    _unsafeSegments segments: _UnsafeDequeSegments<Element>,
-    startOffset: Int,
-    owner: borrowing T
-  ) {
-    self._segments = segments
-    self._offset = startOffset
+  @lifetime(borrow self)
+  internal func _span(over slots: Range<_DequeSlot>) -> Span<Element> {
+    let span = Span(_unsafeElements: _handle.buffer(for: slots))
+    return _overrideLifetime(span, borrowing: self)
   }
 
   @inlinable
-  internal init(_for handle: borrowing _UnsafeHandle, startOffset: Int) {
-    self.init(_unsafeSegments: handle.segments(), startOffset: startOffset, owner: handle)
-  }
-
-  @inlinable
-  public mutating func nextChunk(
-    maximumCount: Int
-  ) -> dependsOn(scoped self) Span<Element> {
-    precondition(maximumCount > 0)
-    if _offset < _segments.first.count {
-      let d = Swift.min(maximumCount, _segments.first.count - _offset)
-      let slice = _segments.first.extracting(_offset ..< _offset + d)
-      _offset += d
-      return Span(_unsafeElements: slice)
-    }
-    guard let second = _segments.second else {
-      return Span(_unsafeElements: UnsafeBufferPointer._empty)
-    }
-    let o = _offset - _segments.first.count
-    let d = Swift.min(maximumCount, second.count - o)
-    let slice = second.extracting(o ..< o + d)
-    _offset += d
-    return Span(_unsafeElements: slice)
+  @lifetime(&self)
+  internal mutating func _mutableSpan(over slots: Range<_DequeSlot>) -> MutableSpan<Element> {
+    let span = MutableSpan(_unsafeElements: _handle.mutableBuffer(for: slots))
+    return _overrideLifetime(span, mutating: &self)
   }
 }
 
-extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
-  public typealias BorrowingIterator = _DequeBorrowingIterator<Element>
-
-  public func startBorrowingIteration() -> BorrowingIterator {
-    _handle.startBorrowingIteration()
+@available(SwiftCompatibilitySpan 5.0, *)
+extension RigidDeque: RandomAccessContainer, MutableContainer where Element: ~Copyable {
+  @inlinable
+  @lifetime(borrow self)
+  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+    let slots = _handle.slotRange(following: &index, maximumCount: maximumCount)
+    return _span(over: slots)
   }
 
-  public func startBorrowingIteration(from start: Int) -> BorrowingIterator {
-    _handle.startBorrowingIteration(from: start)
+  @inlinable
+  @lifetime(&self)
+  public mutating func mutableSpan(
+    following index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    let slots = _handle.slotRange(following: &index, maximumCount: maximumCount)
+    return _mutableSpan(over: slots)
   }
+}
 
+extension RigidDeque where Element: ~Copyable {
   public typealias Index = Int
 
   @inlinable
@@ -133,6 +112,20 @@ extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
   @inlinable
   public var endIndex: Int { _handle.count }
 
+  @lifetime(borrow self)
+  public func borrowElement(at index: Int) -> Borrow<Element> {
+    precondition(index >= 0 && index < count, "Index out of bounds")
+    let slot = _handle.slot(forOffset: index)
+    return Borrow(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
+  }
+
+  @lifetime(&self)
+  public mutating func mutateElement(at index: Int) -> Inout<Element> {
+    precondition(index >= 0 && index < count, "Index out of bounds")
+    let slot = _handle.slot(forOffset: index)
+    return Inout(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
+  }
+
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
@@ -143,11 +136,6 @@ extension RigidDeque: RandomAccessContainer where Element: ~Copyable {
     _modify {
       yield &_handle[offset: position]
     }
-  }
-
-  public func index(at position: borrowing BorrowingIterator) -> Int {
-    precondition(_handle.segments().isIdentical(to: position._segments))
-    return position._offset
   }
 }
 
