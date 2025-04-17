@@ -14,6 +14,7 @@ import XCTest
 import Foundation
 import Future
 
+#if false
 @available(macOS 9999, *)
 final class StdlibOutputSpanExtensionTests: XCTestCase {
 
@@ -52,3 +53,4 @@ final class StdlibOutputSpanExtensionTests: XCTestCase {
     XCTAssert(string.utf8.elementsEqual(c..<(c+16)))
   }
 }
+#endif

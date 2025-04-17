@@ -82,15 +82,15 @@ extension RigidDeque where Element: ~Copyable {
 extension RigidDeque: RandomAccessContainer, MutableContainer where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
-  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
     let slots = _handle.slotRange(following: &index, maximumCount: maximumCount)
     return _span(over: slots)
   }
 
   @inlinable
   @lifetime(&self)
-  public mutating func mutableSpan(
-    following index: inout Int, maximumCount: Int
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
   ) -> MutableSpan<Element> {
     let slots = _handle.slotRange(following: &index, maximumCount: maximumCount)
     return _mutableSpan(over: slots)

@@ -25,7 +25,7 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
   }
 
   @lifetime(copy self)
-  public func span(following index: inout Index, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Invalid index")
     let end = index + Swift.min(count - index, maximumCount)
     defer { index = end }

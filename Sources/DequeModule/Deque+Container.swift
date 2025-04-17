@@ -21,7 +21,7 @@ extension Deque: RandomAccessContainer {
 
   @available(SwiftCompatibilitySpan 5.0, *)
   @lifetime(borrow self)
-  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
-    _storage.value.span(following: &index, maximumCount: maximumCount)
+  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.value.nextSpan(after: &index, maximumCount: maximumCount)
   }
 }

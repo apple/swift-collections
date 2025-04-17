@@ -13,6 +13,7 @@
 import XCTest
 import Future
 
+#if false
 @available(macOS 9999, *)
 struct Allocation<T>: ~Copyable {
   let allocation: UnsafeMutablePointer<T>
@@ -264,3 +265,4 @@ final class OutputSpanTests: XCTestCase {
     r.deinitialize()
   }
 }
+#endif

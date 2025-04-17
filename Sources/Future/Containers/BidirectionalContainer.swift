@@ -10,14 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 @available(SwiftCompatibilitySpan 5.0, *)
-public protocol BidirectionalContainer: Container, ~Copyable, ~Escapable {
-  override associatedtype Element: ~Copyable
-
+public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable {
   func index(before i: Index) -> Index
   func formIndex(before i: inout Index)
-
-  @_nonoverride func index(_ i: Index, offsetBy distance: Int) -> Index
-  @_nonoverride func formIndex(
-    _ i: inout Index, offsetBy distance: inout Int, limitedBy limit: Index
-  )
 }

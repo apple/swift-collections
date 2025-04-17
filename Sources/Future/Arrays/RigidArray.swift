@@ -101,8 +101,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
   internal func _span(in range: Range<Int>) -> Span<Element> {
-    let result = unsafe Span(_unsafeElements: _items.extracting(range))
-    return unsafe _overrideLifetime(result, borrowing: self)
+    span._extracting(range)
   }
 
   @available(SwiftCompatibilitySpan 5.0, *)
@@ -130,7 +129,7 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
-  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
     _span(in: _subrange(following: &index, maximumCount: maximumCount))
   }
 }
@@ -166,8 +165,8 @@ extension RigidArray where Element: ~Copyable {
 @available(SwiftCompatibilitySpan 5.0, *)
 extension RigidArray: MutableContainer where Element: ~Copyable {
   @lifetime(&self)
-  public mutating func mutableSpan(
-    following index: inout Int, maximumCount: Int
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
   ) -> MutableSpan<Element> {
     _mutableSpan(in: _subrange(following: &index, maximumCount: maximumCount))
   }
@@ -182,6 +181,18 @@ extension RigidArray where Element: ~Copyable {
       unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
       mutating: &self
     )
+  }
+}
+
+//MARK: Unsafe access
+
+extension RigidArray where Element: ~Copyable {
+  @inlinable
+  public mutating func withUnsafeMutableBufferPointer<E: Error, R: ~Copyable>(
+    _ body: (UnsafeMutableBufferPointer<Element>, inout Int) throws(E) -> R
+  ) throws(E) -> R {
+    defer { precondition(_count >= 0 && _count <= capacity) }
+    return unsafe try body(_items, &_count)
   }
 }
 
@@ -209,6 +220,15 @@ extension RigidArray where Element: ~Copyable {
 //MARK: Range replacement operations
 
 extension RigidArray where Element: ~Copyable {
+  @inlinable
+  @discardableResult
+  public mutating func removeLast() -> Element {
+    precondition(!isEmpty)
+    let old = unsafe _storage.moveElement(from: _count - 1)
+    _count -= 1
+    return old
+  }
+
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {
@@ -253,6 +273,15 @@ extension RigidArray {
   public mutating func append(contentsOf items: some Sequence<Element>) {
     for item in items {
       append(item)
+    }
+  }
+
+  @available(SwiftCompatibilitySpan 5.0, *)
+  @inlinable
+  public mutating func append(contentsOf items: Span<Element>) {
+    precondition(items.count <= freeCapacity)
+    unsafe items.withUnsafeBufferPointer {
+      _ = unsafe _freeSpace.initialize(fromContentsOf: $0)
     }
   }
 }

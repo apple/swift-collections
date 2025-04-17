@@ -63,8 +63,8 @@ extension DynamicArray where Element: ~Copyable {
 @available(SwiftCompatibilitySpan 5.0, *)
 extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
   @lifetime(borrow self)
-  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
-    _storage.span(following: &index, maximumCount: maximumCount)
+  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.nextSpan(after: &index, maximumCount: maximumCount)
   }
 }
 
@@ -101,10 +101,10 @@ extension DynamicArray: MutableContainer where Element: ~Copyable {
 
   @available(SwiftCompatibilitySpan 5.0, *)
   @lifetime(&self)
-  public mutating func mutableSpan(
-    following index: inout Int, maximumCount: Int
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
   ) -> MutableSpan<Element> {
-    _storage.mutableSpan(following: &index, maximumCount: maximumCount)
+    _storage.nextMutableSpan(after: &index, maximumCount: maximumCount)
   }
 }
 

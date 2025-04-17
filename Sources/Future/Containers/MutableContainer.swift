@@ -10,8 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 @available(SwiftCompatibilitySpan 5.0, *)
-public protocol MutableContainer: Container, ~Copyable, ~Escapable {
-#if compiler(>=9999) // We want this but we can't do it yet
+public protocol MutableContainer<Element>: Container, ~Copyable, ~Escapable {
+#if compiler(>=9999) // FIXME: We can't do this yet
   subscript(index: Index) -> Element { borrow mutate }
 #else
   @lifetime(&self)
@@ -19,7 +19,7 @@ public protocol MutableContainer: Container, ~Copyable, ~Escapable {
 #endif
 
   @lifetime(&self)
-  mutating func mutableSpan(following index: inout Index, maximumCount: Int) -> MutableSpan<Element>
+  mutating func nextMutableSpan(after index: inout Index, maximumCount: Int) -> MutableSpan<Element>
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)

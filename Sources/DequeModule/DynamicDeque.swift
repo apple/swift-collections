@@ -35,8 +35,8 @@ extension DynamicDeque: @unchecked Sendable where Element: Sendable & ~Copyable 
 extension DynamicDeque: RandomAccessContainer where Element: ~Copyable {
   @available(SwiftCompatibilitySpan 5.0, *)
   @lifetime(borrow self)
-  public func span(following index: inout Int, maximumCount: Int) -> Span<Element> {
-    _storage.span(following: &index, maximumCount: maximumCount)
+  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.nextSpan(after: &index, maximumCount: maximumCount)
   }
 }
 

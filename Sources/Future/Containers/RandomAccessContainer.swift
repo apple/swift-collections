@@ -10,9 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 @available(SwiftCompatibilitySpan 5.0, *)
-public protocol RandomAccessContainer: BidirectionalContainer, ~Copyable, ~Escapable {
-  override associatedtype Element: ~Copyable
-}
+public protocol RandomAccessContainer<Element>
+: BidirectionalContainer, ~Copyable, ~Escapable {}
 
 @available(SwiftCompatibilitySpan 5.0, *)
 extension RandomAccessContainer

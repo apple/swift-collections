@@ -10,9 +10,8 @@
 //===----------------------------------------------------------------------===//
 
 @available(SwiftCompatibilitySpan 5.0, *)
-public protocol Container: ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable
-
+public protocol Container<Element>: ~Copyable, ~Escapable {
+  associatedtype Element: ~Copyable/* & ~Escapable*/
   associatedtype Index: Comparable
 
   var isEmpty: Bool { get }
@@ -21,7 +20,17 @@ public protocol Container: ~Copyable, ~Escapable {
   var startIndex: Index { get }
   var endIndex: Index { get }
 
-  #if compiler(>=9999) // We want this but we can't do it yet
+  func index(after index: Index) -> Index
+  func formIndex(after i: inout Index)
+  func distance(from start: Index, to end: Index) -> Int
+  func index(_ index: Index, offsetBy n: Int) -> Index
+  func formIndex(
+    _ i: inout Index,
+    offsetBy distance: inout Int,
+    limitedBy limit: Index
+  )
+
+  #if compiler(>=9999) // FIXME: We can't do this yet
   subscript(index: Index) -> Element { borrow }
   #else
   @lifetime(copy self)
@@ -29,15 +38,7 @@ public protocol Container: ~Copyable, ~Escapable {
   #endif
 
   @lifetime(copy self)
-  func span(following index: inout Index, maximumCount: Int) -> Span<Element>
-
-  func index(after index: Index) -> Index
-  func formIndex(after i: inout Index)
-  func distance(from start: Index, to end: Index) -> Int
-  func index(_ index: Index, offsetBy n: Int) -> Index
-  func formIndex(
-    _ i: inout Index, offsetBy distance: inout Int, limitedBy limit: Index
-  )
+  func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)

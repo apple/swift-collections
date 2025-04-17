@@ -146,14 +146,14 @@ class DynamicArrayTests: CollectionTestCase {
 
     var index = 0
     do {
-      let span = array.span(following: &index, maximumCount: Int.max)
+      let span = array.nextSpan(after: &index, maximumCount: Int.max)
       expectEqual(span.count, c)
       for i in 0 ..< span.count {
         expectEqual(span[i].value, 100 + i)
       }
     }
     do {
-      let span2 = array.span(following: &index, maximumCount: Int.max)
+      let span2 = array.nextSpan(after: &index, maximumCount: Int.max)
       expectEqual(span2.count, 0)
     }
   }
@@ -168,7 +168,7 @@ class DynamicArrayTests: CollectionTestCase {
       var i = 0
       while true {
         expectEqual(index, i)
-        let span = array.span(following: &index, maximumCount: stride)
+        let span = array.nextSpan(after: &index, maximumCount: stride)
         expectEqual(index, i + span.count)
         if span.isEmpty { break }
         expectEqual(span.count, i + stride <= c ? stride : c % stride)
@@ -178,7 +178,7 @@ class DynamicArrayTests: CollectionTestCase {
         }
       }
       expectEqual(i, c)
-      expectEqual(array.span(following: &index, maximumCount: Int.max).count, 0)
+      expectEqual(array.nextSpan(after: &index, maximumCount: Int.max).count, 0)
       expectEqual(index, i)
     }
   }

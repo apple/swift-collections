@@ -32,25 +32,6 @@ public struct Shared<Storage: ~Copyable> {
 
 extension Shared: @unchecked Sendable where Storage: Sendable & ~Copyable {}
 
-#if false // FIXME: Silent error on class definition nested in noncopyable struct
-@unsafe
-@usableFromInline
-internal final class _SharedBox<Storage: ~Copyable> {
-  @exclusivity(unchecked)
-  @usableFromInline
-  internal var storage: Storage
-
-  @inlinable
-  internal init(_ storage: consuming Storage) {
-    unsafe self.storage = storage
-  }
-}
-
-extension Shared where Storage: ~Copyable {
-  @usableFromInline
-  internal typealias _Box = _SharedBox<Storage>
-}
-#else
 extension Shared where Storage: ~Copyable {
   @unsafe
   @usableFromInline
@@ -65,7 +46,6 @@ extension Shared where Storage: ~Copyable {
     }
   }
 }
-#endif
 
 extension Shared where Storage: ~Copyable {
   @inlinable
@@ -74,12 +54,34 @@ extension Shared where Storage: ~Copyable {
     unsafe isKnownUniquelyReferenced(&_box)
   }
 
+  /// - Returns true if this instance was already uniquely referenced.
+  @discardableResult
   @inlinable
   public mutating func ensureUnique(
     cloner: (borrowing Storage) -> Storage
+  ) -> Bool {
+    if isUnique() { return true }
+    replace(using: cloner)
+    return false
+  }
+
+  @inlinable
+  public mutating func replace(
+    using body: (borrowing Storage) -> Storage
   ) {
-    if isUnique() { return }
-    unsafe _box = _Box(cloner(_box.storage))
+    unsafe _box = _Box(body(_box.storage))
+  }
+
+  @inlinable
+  public mutating func edit(
+    shared cloner: (borrowing Storage) -> Storage,
+    unique updater: (inout Storage) -> Void
+  ) {
+    if isUnique() {
+      unsafe updater(&_box.storage)
+    } else {
+      unsafe _box = _Box(cloner(_box.storage))
+    }
   }
 }
 
@@ -143,16 +145,9 @@ extension Shared where Storage: ~Copyable {
 }
 
 extension Shared where Storage: ~Copyable {
+  @available(SwiftStdlib 6.0, *) // for ===
   @inlinable
   public func isIdentical(to other: Self) -> Bool {
-    if #available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *) {
-      return unsafe self._box === other._box
-    } else {
-      // To call the standard `===`, we need to do `_SharedBox` -> AnyObject conversions
-      // that are only supported in the Swift 6+ runtime.
-      let a = unsafe Builtin.bridgeToRawPointer(self._box)
-      let b = unsafe Builtin.bridgeToRawPointer(other._box)
-      return Bool(Builtin.cmp_eq_RawPointer(a, b))
-    }
+    unsafe self._box === other._box
   }
 }
