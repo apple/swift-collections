@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 @available(SwiftCompatibilitySpan 5.0, *)
-public protocol ContiguousContainer<Element>: ~Copyable, ~Escapable {
+public protocol ContiguousContainer<Element>: /*RandomAccessContainer*/ ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable/* & ~Escapable*/
 
   var span: Span<Element> { @lifetime(copy self) get }

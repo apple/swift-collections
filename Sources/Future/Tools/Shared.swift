@@ -145,9 +145,16 @@ extension Shared where Storage: ~Copyable {
 }
 
 extension Shared where Storage: ~Copyable {
-  @available(SwiftStdlib 6.0, *) // for ===
   @inlinable
   public func isIdentical(to other: Self) -> Bool {
-    unsafe self._box === other._box
+    if #available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *) {
+      return unsafe self._box === other._box
+    } else {
+      // To call the standard `===`, we need to do `_SharedBox` -> AnyObject conversions
+      // that are only supported in the Swift 6+ runtime.
+      let a = unsafe Builtin.bridgeToRawPointer(self._box)
+      let b = unsafe Builtin.bridgeToRawPointer(other._box)
+      return Bool(Builtin.cmp_eq_RawPointer(a, b))
+    }
   }
 }

@@ -65,10 +65,15 @@ extension NewArray: RandomAccessContainer, MutableContainer {
   public func borrowElement(at index: Int) -> Borrow<Element> {
     _storage.value.borrowElement(at: index)
   }
-  
+
   @lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
-    _storage.value.nextSpan(after: &index, maximumCount: maximumCount)
+  public func nextSpan(after index: inout Int) -> Span<Element> {
+    _storage.value.nextSpan(after: &index)
+  }
+
+  @lifetime(borrow self)
+  public func previousSpan(before index: inout Int) -> Span<Element> {
+    return _storage.value.previousSpan(before: &index)
   }
 
   @lifetime(&self)
@@ -78,11 +83,9 @@ extension NewArray: RandomAccessContainer, MutableContainer {
   }
 
   @lifetime(&self)
-  public mutating func nextMutableSpan(
-    after index: inout Int, maximumCount: Int
-  ) -> MutableSpan<Element> {
+  public mutating func nextMutableSpan(after index: inout Int) -> MutableSpan<Element> {
     _ensureUnique()
-    return _storage.value.nextMutableSpan(after: &index, maximumCount: maximumCount)
+    return _storage.value.nextMutableSpan(after: &index)
   }
 }
 

@@ -115,11 +115,17 @@ extension RigidArray where Element: ~Copyable {
 
 extension RigidArray where Element: ~Copyable {
   @inlinable
-  internal func _subrange(following index: inout Int, maximumCount: Int) -> Range<Int> {
+  internal func _contiguousSubrange(following index: inout Int) -> Range<Int> {
     precondition(index >= 0 && index <= _count, "Index out of bounds")
-    let end = index + Swift.min(_count - index, maximumCount)
-    defer { index = end }
-    return unsafe Range(uncheckedBounds: (index, end))
+    defer { index = _count }
+    return unsafe Range(uncheckedBounds: (index, _count))
+  }
+
+  @inlinable
+  internal func _contiguousSubrange(preceding index: inout Int) -> Range<Int> {
+    precondition(index >= 0 && index <= _count, "Index out of bounds")
+    defer { index = 0 }
+    return unsafe Range(uncheckedBounds: (0, index))
   }
 }
 
@@ -129,8 +135,14 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
-    _span(in: _subrange(following: &index, maximumCount: maximumCount))
+  public func nextSpan(after index: inout Int) -> Span<Element> {
+    _span(in: _contiguousSubrange(following: &index))
+  }
+
+  @inlinable
+  @lifetime(borrow self)
+  public func previousSpan(before index: inout Int) -> Span<Element> {
+    _span(in: _contiguousSubrange(preceding: &index))
   }
 }
 
@@ -165,10 +177,8 @@ extension RigidArray where Element: ~Copyable {
 @available(SwiftCompatibilitySpan 5.0, *)
 extension RigidArray: MutableContainer where Element: ~Copyable {
   @lifetime(&self)
-  public mutating func nextMutableSpan(
-    after index: inout Int, maximumCount: Int
-  ) -> MutableSpan<Element> {
-    _mutableSpan(in: _subrange(following: &index, maximumCount: maximumCount))
+  public mutating func nextMutableSpan(after index: inout Int) -> MutableSpan<Element> {
+    _mutableSpan(in: _contiguousSubrange(following: &index))
   }
 }
 
