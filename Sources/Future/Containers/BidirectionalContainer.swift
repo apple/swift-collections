@@ -13,4 +13,22 @@
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable {
   func index(before i: Index) -> Index
   func formIndex(before i: inout Index)
+
+  @lifetime(borrow self)
+  func previousSpan(before index: inout Index) -> Span<Element>
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension BidirectionalContainer where Self: ~Copyable & ~Escapable {
+  @inlinable
+  @lifetime(borrow self)
+  public func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element> {
+    var span = previousSpan(before: &index)
+    if span.count > maximumCount {
+      // Index remains within the same span, so offseting it is expected to be quick
+      index = self.index(index, offsetBy: span.count - maximumCount)
+      span = span._extracting(last: maximumCount)
+    }
+    return span
+  }
 }

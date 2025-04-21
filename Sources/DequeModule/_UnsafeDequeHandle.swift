@@ -386,24 +386,40 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @inlinable
-  internal func slotRange(following offset: inout Int, maximumCount: Int) -> Range<Slot> {
-    precondition(offset >= 0 && offset <= count, "Invalid index")
-    precondition(maximumCount > 0, "maximumCount must be positive")
+  internal func slotRange(following offset: inout Int) -> Range<Slot> {
+    precondition(offset >= 0 && offset <= count, "Index out of bounds")
     guard _buffer.baseAddress != nil else {
       return Range(uncheckedBounds: (Slot.zero, Slot.zero))
     }
     let wrapOffset = Swift.min(capacity - startSlot.position, count)
 
     if offset < wrapOffset {
-      let endOffset = offset + Swift.min(wrapOffset - offset, maximumCount)
-      defer { offset += endOffset - offset }
+      defer { offset += wrapOffset - offset }
       return Range(
-        uncheckedBounds: (startSlot.advanced(by: offset), startSlot.advanced(by: endOffset)))
+        uncheckedBounds: (startSlot.advanced(by: offset), startSlot.advanced(by: wrapOffset)))
     }
-    let endOffset = offset + Swift.min(count - offset, maximumCount)
     let lowerSlot = Slot.zero.advanced(by: offset - wrapOffset)
-    let upperSlot = lowerSlot.advanced(by: endOffset - wrapOffset)
-    defer { offset += endOffset - offset }
+    let upperSlot = lowerSlot.advanced(by: count - wrapOffset)
+    defer { offset += count - offset }
+    return Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
+  }
+
+  @inlinable
+  internal func slotRange(preceding offset: inout Int) -> Range<Slot> {
+    precondition(offset >= 0 && offset <= count, "Index out of bounds")
+    guard _buffer.baseAddress != nil else {
+      return Range(uncheckedBounds: (Slot.zero, Slot.zero))
+    }
+    let wrapOffset = Swift.min(capacity - startSlot.position, count)
+
+    if offset <= wrapOffset {
+      defer { offset = 0 }
+      return Range(
+        uncheckedBounds: (startSlot, startSlot.advanced(by: offset)))
+    }
+    let lowerSlot = Slot.zero
+    let upperSlot = lowerSlot.advanced(by: offset - wrapOffset)
+    defer { offset = wrapOffset }
     return Range(uncheckedBounds: (lower: lowerSlot, upper: upperSlot))
   }
 }

@@ -25,11 +25,17 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
   }
 
   @lifetime(copy self)
-  public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
-    precondition(index >= 0 && index <= count, "Invalid index")
-    let end = index + Swift.min(count - index, maximumCount)
-    defer { index = end }
-    return _extracting(unsafe Range(uncheckedBounds: (index, end)))
+  public func nextSpan(after index: inout Index) -> Span<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    defer { index = count }
+    return _extracting(unsafe Range(uncheckedBounds: (index, count)))
+  }
+
+  @lifetime(copy self)
+  public func previousSpan(before index: inout Int) -> Span<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    defer { index = 0 }
+    return _extracting(unsafe Range(uncheckedBounds: (0, index)))
   }
 }
 
