@@ -42,7 +42,6 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
   #endif
 
   // See if index rounding results need to get returned somewhere
-  // maximumCount: see if it has any real reason to exist yet
   @lifetime(borrow self)
   func nextSpan(after index: inout Index) -> Span<Element>
 

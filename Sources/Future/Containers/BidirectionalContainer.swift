@@ -20,8 +20,9 @@ public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapabl
 
 @available(SwiftCompatibilitySpan 5.0, *)
 extension BidirectionalContainer where Self: ~Copyable & ~Escapable {
+  @inlinable
   @lifetime(borrow self)
-  func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element> {
+  public func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element> {
     var span = previousSpan(before: &index)
     if span.count > maximumCount {
       // Index remains within the same span, so offseting it is expected to be quick
