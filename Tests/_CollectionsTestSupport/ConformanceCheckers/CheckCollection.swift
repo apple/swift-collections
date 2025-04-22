@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -19,7 +19,8 @@ import XCTest
 // FIXME: Port the collection validation tests from the Swift compiler codebase.
 
 extension Sequence {
-  func _contentsByIterator() -> [Element] {
+  @inlinable
+  internal func _contentsByIterator() -> [Element] {
     var result: [Element] = []
     var it = makeIterator()
     while let item = it.next() {
@@ -28,7 +29,8 @@ extension Sequence {
     return result
   }
 
-  func _contentsByCopyContents(_ count: Int? = nil) -> [Element] {
+  @inlinable
+  internal func _contentsByCopyContents(_ count: Int? = nil) -> [Element] {
     var it: Iterator?
     var result = Array(
       unsafeUninitializedCapacity: count ?? self.underestimatedCount
@@ -43,7 +45,8 @@ extension Sequence {
 }
 
 extension Collection {
-  func _indicesByIndexAfter() -> [Index] {
+  @inlinable
+  internal func _indicesByIndexAfter() -> [Index] {
     var result: [Index] = []
     var i = startIndex
     while i != endIndex {
@@ -53,7 +56,8 @@ extension Collection {
     return result
   }
 
-  func _indicesByFormIndexAfter() -> [Index] {
+  @inlinable
+  internal func _indicesByFormIndexAfter() -> [Index] {
     var result: [Index] = []
     var i = startIndex
     while i != endIndex {
@@ -64,6 +68,7 @@ extension Collection {
   }
 }
 
+@inlinable
 public func checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,
@@ -99,6 +104,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
   }
 }
 
+@inlinable
 public func checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,
@@ -120,6 +126,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
     file: file, line: line)
 }
 
+@inlinable
 public func _checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,

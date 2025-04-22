@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -17,6 +17,7 @@
 import XCTest
 
 extension BidirectionalCollection {
+  @inlinable
   func _indicesByIndexBefore() -> [Index] {
     var result: [Index] = []
     var i = endIndex
@@ -28,6 +29,7 @@ extension BidirectionalCollection {
     return result
   }
 
+  @inlinable
   func _indicesByFormIndexBefore() -> [Index] {
     var result: [Index] = []
     var i = endIndex
@@ -40,7 +42,11 @@ extension BidirectionalCollection {
   }
 }
 
-public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence>(
+@inlinable
+public func checkBidirectionalCollection<
+  C: BidirectionalCollection,
+  S: Sequence<C.Element>
+>(
   _ collection: C,
   expectedContents: S,
   maxSamples: Int? = nil,
@@ -56,6 +62,7 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
     line: line)
 }
 
+@inlinable
 public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence>(
   _ collection: C,
   expectedContents: S,
@@ -80,6 +87,7 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
     file: file, line: line)
 }
 
+@inlinable
 public func _checkBidirectionalCollection_indexOffsetBy<
   C: Collection
 >(
@@ -135,6 +143,7 @@ public func _checkBidirectionalCollection_indexOffsetBy<
   }
 }
 
+@inlinable
 public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence>(
   _ collection: C,
   expectedContents: S,

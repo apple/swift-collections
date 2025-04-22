@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -12,9 +12,11 @@
 
 // Loosely adapted from https://github.com/apple/swift/tree/main/stdlib/private/StdlibUnittest
 
+@frozen
 public enum ExpectedComparisonResult: Hashable {
   case lt, eq, gt
 
+  @inlinable
   public func flip() -> ExpectedComparisonResult {
     switch self {
     case .lt:
@@ -26,6 +28,7 @@ public enum ExpectedComparisonResult: Hashable {
     }
   }
 
+  @inlinable
   public static func comparing<C: Comparable>(_ left: C, _ right: C) -> Self {
     left < right ? .lt
       : left > right ? .gt
@@ -46,6 +49,7 @@ extension ExpectedComparisonResult: CustomStringConvertible {
   }
 }
 
+@inlinable
 public func checkComparable<Instance: Comparable>(
   sortedEquivalenceClasses: [[Instance]],
   maxSamples: Int? = nil,
@@ -68,6 +72,7 @@ public func checkComparable<Instance: Comparable>(
 /// Test that the elements of `instances` satisfy the semantic
 /// requirements of `Comparable`, using `oracle` to generate comparison
 /// expectations from pairs of positions in `instances`.
+@inlinable
 public func checkComparable<Instances: Collection>(
   _ instances: Instances,
   oracle: (Instances.Index, Instances.Index) -> ExpectedComparisonResult,
@@ -86,6 +91,7 @@ public func checkComparable<Instances: Collection>(
     file: file, line: line)
 }
 
+@inlinable
 public func checkComparable<T : Comparable>(
   expected: ExpectedComparisonResult,
   _ lhs: T, _ rhs: T,
@@ -99,6 +105,7 @@ public func checkComparable<T : Comparable>(
 
 /// Same as `checkComparable(_:oracle:file:line:)` but doesn't check
 /// `Equatable` conformance. Useful for preventing duplicate testing.
+@inlinable
 public func _checkComparable<Instances: Collection>(
   _ instances: Instances,
   oracle: (Instances.Index, Instances.Index) -> ExpectedComparisonResult,

@@ -37,6 +37,12 @@ public class LifetimeTracker {
     LifetimeTracked(payload, for: self)
   }
 
+  public func structInstance<Payload: ~Copyable>(
+    for payload: consuming Payload
+  ) -> LifetimeTrackedStruct<Payload> {
+    LifetimeTrackedStruct(payload, for: self)
+  }
+
   public func instances<S: Sequence>(for items: S) -> [LifetimeTracked<S.Element>] {
     return items.map { LifetimeTracked($0, for: self) }
   }

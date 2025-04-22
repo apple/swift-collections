@@ -52,6 +52,18 @@ extension Deque {
   }
 }
 
+extension RigidDeque {
+  init<C: Collection<Element>>(layout: DequeLayout, contents: C) {
+    precondition(contents.count == layout.count)
+    let contents = ContiguousArray(contents)
+    self.init(
+      _capacity: layout.capacity, startSlot: layout.startSlot, count: contents.count
+    ) {
+      contents[$0]
+    }
+  }
+}
+
 extension LifetimeTracker {
   func deque(
     with layout: DequeLayout
@@ -60,15 +72,20 @@ extension LifetimeTracker {
     let deque = Deque(layout: layout, contents: contents)
     return (deque, contents)
   }
+
+  func rigidDeque(with layout: DequeLayout) -> RigidDeque<LifetimeTracked<Int>> {
+    let contents = self.instances(for: layout.valueRange)
+    return RigidDeque(layout: layout, contents: contents)
+  }
 }
 
-func withEveryDeque<C: Collection>(
+func withEveryDeque(
   _ label: String,
-  ofCapacities capacities: C,
+  ofCapacities capacities: some Collection<Int>,
   startValue: Int = 0,
   file: StaticString = #file, line: UInt = #line,
   _ body: (DequeLayout) throws -> Void
-) rethrows -> Void where C.Element == Int {
+) rethrows -> Void {
   // Exhaustive tests for all deque layouts of various capacities
   for capacity in capacities {
     for startSlot in 0 ..< capacity {

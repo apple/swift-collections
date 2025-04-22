@@ -13,7 +13,7 @@
 @usableFromInline
 internal let immortalThing: [Void] = []
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftCompatibilitySpan 5.0, *)
 extension Span where Element: ~Copyable {
   public static var empty: Span {
     @lifetime(immortal)
@@ -32,7 +32,7 @@ extension Span where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftCompatibilitySpan 5.0, *)
 extension Span where Element: Equatable {
   /// Returns a Boolean value indicating whether this and another span
   /// contain equal elements in the same order.

@@ -18,6 +18,12 @@ extension RandomAccessContainer
 where Self: ~Copyable & ~Escapable, Index: Strideable, Index.Stride == Int
 {
   @inlinable
+  public var isEmpty: Bool { startIndex == endIndex }
+
+  @inlinable
+  public var count: Int { startIndex.distance(to: endIndex) }
+
+  @inlinable
   public func index(after index: Index) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: 1)
@@ -72,6 +78,12 @@ where
   Index.Stride == Int,
   Indices == Range<Int>
 {
+  @inlinable
+  public var isEmpty: Bool { startIndex == endIndex }
+
+  @inlinable
+  public var count: Int { endIndex - startIndex }
+
   @inlinable
   public func index(after index: Index) -> Index {
     // Note: Range checks are deferred until element access.

@@ -97,6 +97,39 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+// MARK: Test initializer
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  internal static func allocate(
+    capacity: Int,
+    startSlot: Slot,
+    count: Int,
+    generator: (Int) -> Element
+  ) -> Self {
+    precondition(capacity >= 0)
+    precondition(
+      startSlot.position >= 0 &&
+      (startSlot.position < capacity || (capacity == 0 && startSlot.position == 0)))
+    precondition(count <= capacity)
+
+    var h = Self.allocate(capacity: capacity)
+    h.count = count
+    h.startSlot = startSlot
+    if h.count > 0 {
+      let segments = h.mutableSegments()
+      let c = segments.first.count
+      for i in 0 ..< c {
+        segments.first.initializeElement(at: i, to: generator(i))
+      }
+      if let second = segments.second {
+        for i in c ..< h.count {
+          second.initializeElement(at: i - c, to: generator(i))
+        }
+      }
+    }
+    return h
+  }
+}
 
 // MARK: Slots
 

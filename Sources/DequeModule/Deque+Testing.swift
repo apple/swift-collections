@@ -62,28 +62,14 @@ extension Deque {
     contents: some Sequence<Element>
   ) {
     let contents = ContiguousArray(contents)
-    precondition(capacity >= 0)
-    precondition(startSlot >= 0 && (startSlot < capacity || (capacity == 0 && startSlot == 0)))
-    precondition(contents.count <= capacity)
-
-    let startSlot = _Slot(at: startSlot)
-
-    var d = RigidDeque<Element>(capacity: capacity)
-    d._handle.count = contents.count
-    d._handle.startSlot = startSlot
-    if d._handle.count > 0 {
-      contents.withUnsafeBufferPointer { source in
-        let segments = d._handle.mutableSegments()
-        let c = segments.first.count
-        segments.first.initializeAll(fromContentsOf: source.prefix(c))
-        if let second = segments.second {
-          second.initializeAll(fromContentsOf: source.dropFirst(c))
-        }
-      }
-    }
+    let d = RigidDeque<Element>(
+      _capacity: capacity,
+      startSlot: startSlot,
+      count: contents.count
+    ) { contents[$0] }
     self.init(_storage: d)
     assert(self._unstableCapacity == capacity)
-    assert(self._unstableStartSlot == startSlot.position)
+    assert(self._unstableStartSlot == startSlot)
     assert(self.count == contents.count)
   }
 }

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -12,6 +12,7 @@
 
 // Loosely adapted from https://github.com/apple/swift/tree/main/stdlib/private/StdlibUnittest
 
+@inlinable
 public func checkEquatable<Instance: Equatable>(
   equivalenceClasses: [[Instance]],
   maxSamples: Int? = nil,
@@ -23,6 +24,7 @@ public func checkEquatable<Instance: Equatable>(
   checkEquatable(instances, oracle: { oracle[$0] == oracle[$1] }, file: file, line: line)
 }
 
+@inlinable
 public func checkEquatable<C: Collection>(
   _ instances: C,
   oracle: (C.Index, C.Index) -> Bool,
@@ -37,6 +39,7 @@ public func checkEquatable<C: Collection>(
     file: file, line: line)
 }
 
+@inlinable
 public func checkEquatable<T : Equatable>(
   expectedEqual: Bool, _ lhs: T, _ rhs: T,
   file: StaticString = #file, line: UInt = #line
@@ -47,6 +50,7 @@ public func checkEquatable<T : Equatable>(
     file: file, line: line)
 }
 
+@inlinable
 public func checkEquatable<Instance: Equatable>(
   _ instances: [Instance],
   oracle: (Int, Int) -> Bool,
