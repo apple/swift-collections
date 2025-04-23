@@ -13,7 +13,7 @@
 import Future
 #endif
 
-#if false
+#if false // FIXME: Follow up on compiler crash when deserializing this conformance
 extension Deque: RandomAccessContainer {
   @lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
