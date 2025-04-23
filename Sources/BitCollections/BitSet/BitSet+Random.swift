@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import InternalCollectionsUtilities
+
 extension BitSet {
   public static func random(upTo limit: Int) -> BitSet {
     var rng = SystemRandomNumberGenerator()

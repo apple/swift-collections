@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -18,6 +18,7 @@ import XCTest
 
 // FIXME: Port the collection validation tests from the Swift compiler codebase.
 
+@inlinable
 public func checkSequence<S: Sequence, Expected: Sequence>(
   _ sequenceGenerator: () -> S,
   expectedContents: Expected,
@@ -32,6 +33,7 @@ public func checkSequence<S: Sequence, Expected: Sequence>(
     line: line)
 }
 
+@inlinable
 public func checkSequence<S: Sequence, Expected: Sequence>(
   _ sequenceGenerator: () -> S,
   expectedContents: Expected,

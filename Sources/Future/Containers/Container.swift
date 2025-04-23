@@ -30,7 +30,7 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
     limitedBy limit: Index
   )
 
-  // FIXME: Do we want these as standard requirements?
+  // FIXME: Do we want these as standard requirements this time?
   func index(alignedDown index: Index) -> Index
   func index(alignedUp index: Index) -> Index
 
@@ -41,13 +41,41 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
   func borrowElement(at index: Index) -> Borrow<Element>
   #endif
 
-  // See if index rounding results need to get returned somewhere
+  /// Return a span over the container's storage that begins with the element at the given index,
+  /// and extends to the end of the contiguous storage chunk that contains it. On return, the index
+  /// is updated to address the next item following the end of the returned span.
+  ///
+  /// This method can be used to efficiently process the items of a container in bulk, by
+  /// directly iterating over its piecewise contiguous pieces of storage:
+  ///
+  ///     var index = items.startIndex
+  ///     while true {
+  ///       let span = items.nextSpan(after: &index)
+  ///       if span.isEmpty { break }
+  ///       // Process items in `span`
+  ///     }
+  ///
+  /// Note: The spans returned by this method are not guaranteed to be disjunct. Some containers
+  /// may use the same storage chunk (or parts of a storage chunk) multiple times, to repeat their
+  /// contents.
+  ///
+  /// Note: Repeated invocations of `nextSpan` on the same container and index are not guaranteed
+  /// to return identical results. (This is particularly the case with containers that can store
+  /// contents in their "inline" representation. Such containers may not always have
+  /// a unique address in memory; the locations of the spans exposed by this method may vary
+  /// between different borrows of the same container.)
+  ///
+  /// - Parameter index: A valid index in the container, including the end index. On return, this
+  ///     index is advanced by the count of the resulting span, to simplify iteration.
+  /// - Returns: A span over contiguous storage that starts at the given index. If the input index
+  ///     is the end index, then this returns an empty span. Otherwise the result is non-empty,
+  ///     with its first element matching the element at the input index.
   @lifetime(borrow self)
   func nextSpan(after index: inout Index) -> Span<Element>
 
-  // Try a version where nextSpan takes an index range
+  // FIXME: Try a version where nextSpan takes an index range
 
-  // See if it makes sense to have a ~Escapable ValidatedIndex type, as a sort of non-self-driving iterator substitute
+  // FIXME: See if it makes sense to have a ~Escapable ValidatedIndex type, as a sort of non-self-driving iterator substitute
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)

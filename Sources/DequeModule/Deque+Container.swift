@@ -13,6 +13,7 @@
 import Future
 #endif
 
+#if false // FIXME: Follow up on compiler crash when deserializing this conformance
 extension Deque: RandomAccessContainer {
   @lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
@@ -30,5 +31,5 @@ extension Deque: RandomAccessContainer {
   public func previousSpan(before index: inout Int) -> Span<Element> {
     _storage.value.previousSpan(before: &index)
   }
-
 }
+#endif

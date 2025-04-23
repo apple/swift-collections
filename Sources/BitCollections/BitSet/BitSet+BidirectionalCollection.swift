@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import InternalCollectionsUtilities
+
 extension BitSet: Sequence {
   /// The type representing the bit set's elements.
   /// Bit sets are collections of nonnegative integers.

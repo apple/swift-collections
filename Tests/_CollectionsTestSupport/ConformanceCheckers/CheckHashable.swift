@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -16,7 +16,8 @@
 /// `Hasher`. This is always done by calling the `hash(into:)` method.
 /// If a non-nil `seed` is given, it is used to perturb the hasher state;
 /// this is useful for resolving accidental hash collisions.
-private func _hash<H: Hashable>(_ value: H, seed: Int? = nil) -> Int {
+@inlinable
+internal func _hash<H: Hashable>(_ value: H, seed: Int? = nil) -> Int {
   var hasher = Hasher()
   if let seed = seed {
     hasher.combine(seed)
@@ -28,6 +29,7 @@ private func _hash<H: Hashable>(_ value: H, seed: Int? = nil) -> Int {
 /// Test that the elements of `equivalenceClasses` consist of instances that
 /// satisfy the semantic requirements of `Hashable`, with each group defining
 /// a distinct equivalence class under `==`.
+@inlinable
 public func checkHashable<Instance: Hashable>(
   equivalenceClasses: [[Instance]],
   file: StaticString = #file, line: UInt = #line
@@ -41,6 +43,7 @@ public func checkHashable<Instance: Hashable>(
     file: file, line: line)
 }
 
+@inlinable
 public func checkHashable<T : Hashable>(
   expectedEqual: Bool, _ lhs: T, _ rhs: T,
   file: StaticString = #file, line: UInt = #line
@@ -52,6 +55,7 @@ public func checkHashable<T : Hashable>(
 /// Test that the elements of `instances` satisfy the semantic requirements of
 /// `Hashable`, using `equalityOracle` to generate equality and hashing
 /// expectations from pairs of positions in `instances`.
+@inlinable
 public func checkHashable<Instances: Collection>(
   _ instances: Instances,
   equalityOracle: (Instances.Index, Instances.Index) -> Bool,
@@ -63,6 +67,7 @@ public func checkHashable<Instances: Collection>(
 
 /// Same as `checkHashable(_:equalityOracle:file:line:)` but doesn't check
 /// `Equatable` conformance. Useful for preventing duplicate testing.
+@inlinable
 public func _checkHashable<Instances: Collection>(
   _ instances: Instances,
   equalityOracle: (Instances.Index, Instances.Index) -> Bool,

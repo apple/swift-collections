@@ -84,3 +84,23 @@ extension Box where T: Copyable {
     unsafe _pointer.pointee
   }
 }
+
+extension Box where T: ~Copyable {
+  @available(SwiftCompatibilitySpan 5.0, *)
+  public var span: Span<T> {
+    @_alwaysEmitIntoClient
+    @lifetime(borrow self)
+    get {
+      unsafe Span(_unsafeStart: _pointer, count: 1)
+    }
+  }
+
+  @available(SwiftCompatibilitySpan 5.0, *)
+  public var mutableSpan: MutableSpan<T> {
+    @_alwaysEmitIntoClient
+    @lifetime(&self)
+    mutating get {
+      unsafe MutableSpan(_unsafeStart: _pointer, count: 1)
+    }
+  }
+}

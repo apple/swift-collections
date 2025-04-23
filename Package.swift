@@ -68,7 +68,9 @@ let extraSettings: [SwiftSetting] = [
   .enableUpcomingFeature("StrictMemorySafety"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
   .enableExperimentalFeature("AddressableParameters"),
-  .enableExperimentalFeature("AddressableTypes")
+  .enableExperimentalFeature("AddressableTypes"),
+  .enableUpcomingFeature("MemberImportVisibility"),
+  //.unsafeFlags(["-Xfrontend", "-strict-memory-safety"]),
 ]
 
 let _sharedSettings: [SwiftSetting] = (
@@ -215,7 +217,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["InternalCollectionsUtilities"]),
+    dependencies: ["InternalCollectionsUtilities", "Future"]),
   .target(
     kind: .test,
     name: "CollectionsTestSupportTests",
@@ -244,7 +246,7 @@ let targets: [CustomTarget] = [
     name: "Future",
     dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"],
-    settings: _sharedSettings + [.unsafeFlags(["-Xfrontend", "-strict-memory-safety"])],
+    settings: _sharedSettings,
   ),
   .target(
     kind: .test,
@@ -339,7 +341,7 @@ let targets: [CustomTarget] = [
       "_RopeModule",
       "SortedCollections",
     ],
-    exclude: ["CMakeLists.txt"])
+    exclude: ["CMakeLists.txt"]),
 ]
 
 var _products: [Product] = []

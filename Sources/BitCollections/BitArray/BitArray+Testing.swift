@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import InternalCollectionsUtilities
+
 extension BitArray {
   @_spi(Testing)
   public var _capacity: Int {
