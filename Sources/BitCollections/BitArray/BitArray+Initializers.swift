@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import InternalCollectionsUtilities
+
 extension BitArray {
   /// Initialize a bit array from a bit set.
   ///

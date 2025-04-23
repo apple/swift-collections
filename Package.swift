@@ -69,6 +69,7 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("InoutLifetimeDependence"),
   .enableExperimentalFeature("AddressableParameters"),
   .enableExperimentalFeature("AddressableTypes"),
+  .enableUpcomingFeature("MemberImportVisibility"),
   //.unsafeFlags(["-Xfrontend", "-strict-memory-safety"]),
 ]
 

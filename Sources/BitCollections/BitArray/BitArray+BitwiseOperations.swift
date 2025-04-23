@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import InternalCollectionsUtilities
+
 #if false
 // FIXME: Bitwise operators disabled for now. I have two concerns:
 // 1. We need to support bitwise operations over slices of bit arrays, not just
