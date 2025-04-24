@@ -15,13 +15,18 @@ public protocol MutableContainer<Element>: Container, ~Copyable, ~Escapable {
   subscript(index: Index) -> Element { borrow mutate }
 #else
   @lifetime(&self)
+  @lifetime(self: copy self)
   mutating func mutateElement(at index: Index) -> Inout<Element>
 #endif
 
   @lifetime(&self)
+  @lifetime(self: copy self)
   mutating func nextMutableSpan(after index: inout Index) -> MutableSpan<Element>
 
   // FIXME: What about previousMutableSpan?
+
+  @lifetime(self: copy self)
+  mutating func swapAt(_ i: Index, _ j: Index)
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)
@@ -53,5 +58,31 @@ extension MutableContainer where Self: ~Copyable & ~Escapable {
     unsafeMutableAddress {
       unsafe mutateElement(at: index)._pointer
     }
+  }
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension MutableContainer where Self: ~Copyable & ~Escapable {
+  /// Moves all elements satisfying `isSuffixElement` into a suffix of the
+  /// container, returning the start position of the resulting suffix.
+  ///
+  /// - Complexity: O(*n*) where n is the count of the container.
+  @inlinable
+  @lifetime(self: copy self)
+  internal mutating func _halfStablePartition<E: Error>(
+    isSuffixElement: (borrowing Element) throws(E) -> Bool
+  ) throws(E) -> Index {
+    guard var i = try firstIndex(where: isSuffixElement)
+    else { return endIndex }
+
+    var j = index(after: i)
+    while j != endIndex {
+      if try !isSuffixElement(self[j]) {
+        swapAt(i, j)
+        formIndex(after: &i)
+      }
+      formIndex(after: &j)
+    }
+    return i
   }
 }

@@ -86,14 +86,14 @@ extension RigidDeque: RandomAccessContainer, MutableContainer where Element: ~Co
     let slots = _handle.slotRange(following: &index)
     return _span(over: slots)
   }
-
+  
   @inlinable
   @lifetime(borrow self)
   public func previousSpan(before index: inout Int) -> Span<Element> {
     let slots = _handle.slotRange(preceding: &index)
     return _span(over: slots)
   }
-
+  
   @inlinable
   @lifetime(&self)
   public mutating func nextMutableSpan(
@@ -101,6 +101,14 @@ extension RigidDeque: RandomAccessContainer, MutableContainer where Element: ~Co
   ) -> MutableSpan<Element> {
     let slots = _handle.slotRange(following: &index)
     return _mutableSpan(over: slots)
+  }
+  
+  public mutating func swapAt(_ i: Int, _ j: Int) {
+    precondition(i >= 0 && i < count, "Index out of bounds")
+    precondition(j >= 0 && j < count, "Index out of bounds")
+    let slot1 = _handle.slot(forOffset: i)
+    let slot2 = _handle.slot(forOffset: j)
+    unsafe _handle.mutableBuffer.swapAt(slot1.position, slot2.position)
   }
 }
 

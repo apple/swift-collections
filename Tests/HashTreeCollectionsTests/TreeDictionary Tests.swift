@@ -386,7 +386,7 @@ class TreeDictionaryTests: CollectionTestCase {
     let v5: MinimalEncoder.Value = .dictionary([
       "This is not a number": .string("bus"),
       "42": .string("train")])
-    expectThrows(try MinimalDecoder.decode(v5, as: PD<Int, String>.self)) {
+    expectThrows({ try MinimalDecoder.decode(v5, as: PD<Int, String>.self) }) {
       expectTrue($0 is DecodingError)
     }
 
@@ -394,10 +394,10 @@ class TreeDictionaryTests: CollectionTestCase {
       let v6: MinimalEncoder.Value = .dictionary([
         "This is not a number": .string("bus"),
         "42": .string("train")])
-      expectThrows(
+      expectThrows({
         try MinimalDecoder.decode(
           v6, as: PD<FancyDictionaryKey, String>.self)
-      ) {
+      }) {
         expectTrue($0 is DecodingError)
       }
 
@@ -416,7 +416,7 @@ class TreeDictionaryTests: CollectionTestCase {
     let v8: MinimalEncoder.Value = .array([
       .int32(1), .string("bike"), .int32(2),
     ])
-    expectThrows(try MinimalDecoder.decode(v8, as: PD<Int32, String>.self))
+    expectThrows({ try MinimalDecoder.decode(v8, as: PD<Int32, String>.self) })
   }
 
   func test_CustomReflectable() {

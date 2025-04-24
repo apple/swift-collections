@@ -9,9 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false
-
-#if false // FIXME: This is what we'll want
+#if false // FIXME: This is what we'd want
 import Builtin
 
 @frozen
@@ -52,7 +50,7 @@ extension RepeatingContainer where Element: ~Copyable {
   public var endIndex: Int { _count }
 }
 
-#if false // FIXME: This is what we'll want
+#if false // FIXME: This is what we'd want
 @available(SwiftCompatibilitySpan 5.0, *)
 extension RepeatingContainer: RandomAccessContainer where Element: ~Copyable {
   @lifetime(borrow self)
@@ -110,6 +108,4 @@ extension RepeatingContainer: RandomAccessContainer where Element: ~Copyable {
     return _contents.span
   }
 }
-#endif
-
 #endif

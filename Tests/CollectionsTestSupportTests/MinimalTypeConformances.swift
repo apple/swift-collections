@@ -12,6 +12,7 @@
 import XCTest
 #if !COLLECTIONS_SINGLE_MODULE
 import _CollectionsTestSupport
+import Future
 #endif
 
 final class MinimalTypeTests: CollectionTestCase {
@@ -43,4 +44,14 @@ final class MinimalTypeTests: CollectionTestCase {
   func testMinimalBidirectionalCollection() {
     checkBidirectionalCollection(MinimalBidirectionalCollection(0 ..< 50), expectedContents: 0 ..< 50)
   }
+
+  #if false // FIXME: Track down compiler crash
+  func testTestContainer() {
+    guard #available(SwiftCompatibilitySpan 5.0, *) else { return }
+    let a = TestContainer(
+      contents: RigidArray(count: 100, initializedWith: { $0 }),
+      spanCounts: [3, 1, 7])
+    checkContainer(a, expectedContents: 0 ..< 100)
+  }
+  #endif
 }

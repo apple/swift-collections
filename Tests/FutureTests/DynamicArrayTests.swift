@@ -9,7 +9,7 @@ class DynamicArrayTests: CollectionTestCase {
 
     withLifetimeTracking { tracker in
       let expected = (0 ..< c).map { tracker.instance(for: $0) }
-      let items = DynamicArray(count: c, initializedBy: { expected[$0] })
+      let items = DynamicArray(count: c, initializedWith: { expected[$0] })
       checkContainer(items, expectedContents: expected)
     }
   }

@@ -485,13 +485,13 @@ final class BitArrayTests: CollectionTestCase {
     expectEqual(try MinimalDecoder.decode(v4, as: BitArray.self), b4)
 
     let v5: MinimalEncoder.Value = .uint64(42)
-    expectThrows(try MinimalDecoder.decode(v5, as: BitArray.self))
+    expectThrows { try MinimalDecoder.decode(v5, as: BitArray.self) }
 
     let v6: MinimalEncoder.Value = .array([])
-    expectThrows(try MinimalDecoder.decode(v6, as: BitArray.self))
+    expectThrows { try MinimalDecoder.decode(v6, as: BitArray.self) }
 
     let v7: MinimalEncoder.Value = .array([.uint64(1)])
-    expectThrows(try MinimalDecoder.decode(v7, as: BitArray.self))
+    expectThrows { try MinimalDecoder.decode(v7, as: BitArray.self) }
 
     let v8: MinimalEncoder.Value = .array([
       .uint64(1),
@@ -499,13 +499,13 @@ final class BitArrayTests: CollectionTestCase {
       .uint64(0),
       .uint64(0)
     ])
-    expectThrows(try MinimalDecoder.decode(v8, as: BitArray.self))
+    expectThrows { try MinimalDecoder.decode(v8, as: BitArray.self) }
 
     let v9: MinimalEncoder.Value = .array([.uint64(100), .uint64(0)])
-    expectThrows(try MinimalDecoder.decode(v9, as: BitArray.self))
+    expectThrows { try MinimalDecoder.decode(v9, as: BitArray.self) }
 
     let v10: MinimalEncoder.Value = .array([.uint64(16), .uint64(UInt64.max)])
-    expectThrows(try MinimalDecoder.decode(v10, as: BitArray.self))
+    expectThrows { try MinimalDecoder.decode(v10, as: BitArray.self) }
   }
 
   func test_replaceSubrange_Array() {

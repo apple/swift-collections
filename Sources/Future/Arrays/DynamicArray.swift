@@ -27,8 +27,8 @@ public struct DynamicArray<Element: ~Copyable>: ~Copyable {
   }
 
   @inlinable
-  public init(count: Int, initializedBy generator: (Int) -> Element) {
-    _storage = .init(count: count, initializedBy: generator)
+  public init(count: Int, initializedWith generator: (Int) -> Element) {
+    _storage = .init(count: count, initializedWith: generator)
   }
 }
 
@@ -108,6 +108,12 @@ extension DynamicArray: MutableContainer where Element: ~Copyable {
   @lifetime(&self)
   public mutating func nextMutableSpan(after index: inout Int) -> MutableSpan<Element> {
     _storage.nextMutableSpan(after: &index)
+  }
+
+  @inlinable
+  @lifetime(&self)
+  public mutating func swapAt(_ i: Int, _ j: Int) {
+    _storage.swapAt(i, j)
   }
 }
 

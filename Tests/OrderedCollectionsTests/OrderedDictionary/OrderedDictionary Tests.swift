@@ -952,7 +952,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     expectEqual(try MinimalDecoder.decode(v4, as: OD.self), d4)
 
     let v5: MinimalEncoder.Value = .array([.int(0), .int(1), .int(2)])
-    expectThrows(try MinimalDecoder.decode(v5, as: OD.self)) { error in
+    expectThrows({ try MinimalDecoder.decode(v5, as: OD.self) }) { error in
       guard case DecodingError.dataCorrupted(let context) = error else {
         expectFailure("Unexpected error \(error)")
         return
@@ -963,7 +963,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
 
     let v6: MinimalEncoder.Value = .array([.int(0), .int(1), .int(0), .int(2)])
-    expectThrows(try MinimalDecoder.decode(v6, as: OD.self)) { error in
+    expectThrows({ try MinimalDecoder.decode(v6, as: OD.self) }) { error in
       guard case DecodingError.dataCorrupted(let context) = error else {
         expectFailure("Unexpected error \(error)")
         return
