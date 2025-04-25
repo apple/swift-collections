@@ -752,9 +752,9 @@ class TreeSetTests: CollectionTestCase {
     expectEqual(try MinimalDecoder.decode(v4, as: TreeSet<Int>.self), s4)
 
     let v5: MinimalEncoder.Value = .array([.int(0), .int(1), .int(0)])
-    expectThrows(
+    expectThrows({
       try MinimalDecoder.decode(v5, as: TreeSet<Int>.self)
-    ) { error in
+    }) { error in
       expectNotNil(error as? DecodingError) { error in
         guard case .dataCorrupted(let context) = error else {
           expectFailure("Unexpected error \(error)")
@@ -766,9 +766,9 @@ class TreeSetTests: CollectionTestCase {
     }
 
     let v6: MinimalEncoder.Value = .array([.int16(42)])
-    expectThrows(
+    expectThrows({
       try MinimalDecoder.decode(v6, as: TreeSet<Int>.self)
-    ) { error in
+    }) { error in
       expectNotNil(error as? DecodingError) { error in
         guard case .typeMismatch(_, _) = error else {
           expectFailure("Unexpected error \(error)")

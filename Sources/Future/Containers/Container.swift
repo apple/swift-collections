@@ -30,10 +30,6 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
     limitedBy limit: Index
   )
 
-  // FIXME: Do we want these as standard requirements this time?
-  func index(alignedDown index: Index) -> Index
-  func index(alignedUp index: Index) -> Index
-
   #if compiler(>=9999) // FIXME: We can't do this yet
   subscript(index: Index) -> Element { borrow }
   #else
@@ -76,6 +72,15 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
   // FIXME: Try a version where nextSpan takes an index range
 
   // FIXME: See if it makes sense to have a ~Escapable ValidatedIndex type, as a sort of non-self-driving iterator substitute
+
+  // *** Requirements with default implementations ***
+
+  // FIXME: Do we want these as standard requirements this time?
+  func index(alignedDown index: Index) -> Index
+  func index(alignedUp index: Index) -> Index
+
+  func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
+  func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)
@@ -87,6 +92,37 @@ extension Container where Self: ~Copyable & ~Escapable {
   public func index(alignedUp index: Index) -> Index { index }
 
   @inlinable
+  public func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
+
+  @inlinable
+  public func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension Container where Self: Collection {
+  @inlinable
+  public func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
+
+  @inlinable
+  public func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @inlinable
+  public subscript(index: Index) -> Element {
+    // This stopgap definition is standing in for the eventual subscript requirement with a
+    // borrowing accessor.
+    @lifetime(copy self)
+    unsafeAddress {
+      unsafe borrowElement(at: index)._pointer
+    }
+  }
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @inlinable
   @lifetime(borrow self)
   public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
     let original = index
@@ -97,14 +133,6 @@ extension Container where Self: ~Copyable & ~Escapable {
       index = self.index(original, offsetBy: maximumCount)
     }
     return span
-  }
-
-  @inlinable
-  public subscript(index: Index) -> Element {
-    @lifetime(copy self)
-    unsafeAddress {
-      unsafe borrowElement(at: index)._pointer
-    }
   }
 }
 

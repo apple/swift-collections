@@ -185,10 +185,10 @@ class SortedSetTests: CollectionTestCase {
     let v3: MinimalEncoder.Value = .array((0 ..< 100).map { .int($0) })
     expectEqual(try MinimalDecoder.decode(v3, as: SortedSet<Int>.self), s3)
 
-    expectThrows(try MinimalDecoder.decode(.int(0), as: SortedSet<Int>.self))
+    expectThrows({ try MinimalDecoder.decode(.int(0), as: SortedSet<Int>.self) })
 
     let v4: MinimalEncoder.Value = .array([.int(0), .int(1), .int(0)])
-    expectThrows(try MinimalDecoder.decode(v4, as: SortedSet<Int>.self)) { error in
+    expectThrows({ try MinimalDecoder.decode(v4, as: SortedSet<Int>.self) }) { error in
       expectNotNil(error as? DecodingError) { error in
         guard case .dataCorrupted(let context) = error else {
           expectFailure("Unexpected error \(error)")

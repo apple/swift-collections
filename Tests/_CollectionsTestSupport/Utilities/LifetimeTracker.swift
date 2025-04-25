@@ -55,11 +55,11 @@ public class LifetimeTracker {
 }
 
 @inlinable
-public func withLifetimeTracking<R>(
+public func withLifetimeTracking<E: Error, R>(
   file: StaticString = #file,
   line: UInt = #line,
-  _ body: (LifetimeTracker) throws -> R
-) rethrows -> R {
+  _ body: (LifetimeTracker) throws(E) -> R
+) throws(E) -> R {
   let tracker = LifetimeTracker()
   defer { tracker.check(file: file, line: line) }
   return try body(tracker)

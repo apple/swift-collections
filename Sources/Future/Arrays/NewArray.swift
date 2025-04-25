@@ -181,9 +181,9 @@ extension NewArray {
       ensuringMinimumCapacity: count + 1,
       shared: { src, capacity in
         var new = RigidArray<Element>(capacity: capacity)
-        new.append(contentsOf: src._span(in: 0 ..< index))
+        new.append(copying: src._span(in: 0 ..< index))
         new.append(item.take()!)
-        new.append(contentsOf: src._span(in: index ..< src.count))
+        new.append(copying: src._span(in: index ..< src.count))
         return new
       },
       resize: { src, capacity in
@@ -199,9 +199,9 @@ extension NewArray {
             srcCount = 0
           }
         }
-        dst.append(contentsOf: src._span(in: 0 ..< index))
+        dst.append(copying: src._span(in: 0 ..< index))
         dst.append(item.take()!)
-        dst.append(contentsOf: src._span(in: index ..< src.count))
+        dst.append(copying: src._span(in: index ..< src.count))
         return dst
       },
       direct: { target in
@@ -221,7 +221,7 @@ extension NewArray {
       let old = self[count - 1]
       _storage.replace {
         var new = RigidArray<Element>(capacity: $0.capacity)
-        new.append(contentsOf: $0.span._extracting(droppingLast: 1))
+        new.append(copying: $0.span._extracting(droppingLast: 1))
         return new
       }
       return old

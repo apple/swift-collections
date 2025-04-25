@@ -384,18 +384,18 @@ public func expectStrictlyMonotonicallyIncreasing<S: Sequence>(
   }
 }
 
-public func expectThrows<T>(
-  _ expression: @autoclosure () throws -> T,
+public func expectThrows<E: Error, T>(
+  _ expression: () throws(E) -> T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #file,
   line: UInt = #line,
-  _ errorHandler: (Error) -> Void = { _ in }
+  handler errorHandler: (E) -> Void = { _ in }
 ) {
   do {
     let result = try expression()
     expectFailure("Expression did not throw"
-                    + (T.self == Void.self ? "" : " (returned '\(result)' instead)"),
+                  + (T.self == Void.self ? "" : " (returned '\(result)' instead)"),
                   trapping: trapping,
                   file: file, line: line)
   } catch {

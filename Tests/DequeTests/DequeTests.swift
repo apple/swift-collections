@@ -209,7 +209,7 @@ final class DequeTests: CollectionTestCase {
     func workaroundSR14134(cap: Int, count: Int, tracker: LifetimeTracker) {
       // This function works around https://bugs.swift.org/browse/SR-14134
       let contents = tracker.instances(for: 0 ..< count)
-      expectThrows(
+      expectThrows({
         try Deque<LifetimeTracked<Int>>(
           unsafeUninitializedCapacity: cap,
           initializingWith: { target, c in
@@ -227,7 +227,7 @@ final class DequeTests: CollectionTestCase {
             }
             throw TestError(count)
           })
-      ) { error in
+      }) { error in
         expectEqual(error as? TestError, TestError(count))
       }
     }
