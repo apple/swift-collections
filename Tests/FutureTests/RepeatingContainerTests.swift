@@ -9,6 +9,7 @@ import XCTest
 import _CollectionsTestSupport
 import Future
 
+#if false
 @available(SwiftStdlib 6.0, *)
 class RepeatingContainerTests: CollectionTestCase {
   func test_10() {
@@ -21,3 +22,4 @@ class RepeatingContainerTests: CollectionTestCase {
     }
   }
 }
+#endif

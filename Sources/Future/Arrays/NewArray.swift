@@ -95,7 +95,7 @@ extension NewArray {
     if _storage.isUnique() {
       _storage.value.reserveCapacity(n)
     } else {
-      _storage.replace { $0._copy(capacity: Swift.max($0.capacity, n)) }
+      _storage.replace { $0.copy(capacity: Swift.max($0.capacity, n)) }
     }
   }
 
@@ -113,7 +113,7 @@ extension NewArray {
 
   @inlinable
   internal mutating func _ensureUnique() {
-    _storage.ensureUnique { $0._copy() }
+    _storage.ensureUnique { $0.copy() }
   }
 
   @inlinable
@@ -127,8 +127,8 @@ extension NewArray {
     }
     let c = Swift.max(minimumCapacity, Self._grow(capacity))
     _storage.edit(
-      shared: { $0._copy(capacity: c) },
-      unique: { $0 = $0._move(capacity: c) }
+      shared: { $0.copy(capacity: c) },
+      unique: { $0.reserveCapacity(c) }
     )
   }
 

@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import Future
+#endif
 
 /// A collection implementing a double-ended queue. `Deque` (pronounced "deck")
 /// implements an ordered random-access collection that supports efficient

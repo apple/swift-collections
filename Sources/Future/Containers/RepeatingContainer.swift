@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // FIXME: Disabled until I have time to track down a flaky compiler crash
+
 #if false // FIXME: This is what we'd want
 import Builtin
 
@@ -108,4 +110,6 @@ extension RepeatingContainer: RandomAccessContainer where Element: ~Copyable {
     return _contents.span
   }
 }
+#endif
+
 #endif
