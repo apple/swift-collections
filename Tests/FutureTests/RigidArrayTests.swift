@@ -144,6 +144,47 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
+  func test_init_copying_Collection() {
+    withEvery("c", in: [0, 10, 100]) { c in
+      withLifetimeTracking { tracker in
+        let a = RigidArray(copying: (0 ..< c).map { tracker.instance(for: $0) })
+        expectEqual(tracker.instances, c)
+        expectEqual(a.capacity, c)
+        expectEqual(a.count, c)
+        expectEqual(a.freeCapacity, 0)
+        expectEqual(a.isEmpty, c == 0)
+        expectTrue(a.isFull)
+        for i in 0 ..< c {
+          expectEqual(a[i].payload, i)
+        }
+      }
+    }
+  }
+
+  func test_init_copying_Container() {
+    withEvery("c", in: [0, 10, 100]) { c in
+      withEvery("spanCounts", in: [
+        [1],
+        [3, 5, 7],
+        [10, 3],
+      ] as [[Int]]) { spanCounts in
+        withLifetimeTracking { tracker in
+          let additions = StaccatoContainer(
+            contents: RigidArray(copying: (0 ..< c).map { tracker.instance(for: $0) }),
+            spanCounts: spanCounts)
+
+          let array = RigidArray(copying: additions)
+          expectEqual(tracker.instances, c)
+          expectEqual(array.capacity, c)
+          expectEqual(array.count, c)
+          for i in 0 ..< c {
+            expectEqual(array[i].payload, i)
+          }
+        }
+      }
+    }
+  }
+
   func test_span() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -325,7 +366,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-  func test_resize_to() {
+  func test_setCapacity() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery(
         "newCapacity",
@@ -333,7 +374,7 @@ class RigidArrayTests: CollectionTestCase {
       ) { newCapacity in
         withLifetimeTracking { tracker in
           var a = tracker.rigidArray(layout: layout)
-          a.resize(to: newCapacity)
+          a.setCapacity(newCapacity)
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, newCapacity)
           expectEqual(tracker.instances, layout.count)
@@ -347,7 +388,9 @@ class RigidArrayTests: CollectionTestCase {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery(
         "newCapacity",
-        in: [layout.capacity, layout.count, layout.count + 1, layout.capacity + 1] as Set
+        in: [
+          0, layout.count - 1, layout.count, layout.count + 1, layout.capacity, layout.capacity + 1
+        ] as Set
       ) { newCapacity in
         withLifetimeTracking { tracker in
           var a = tracker.rigidArray(layout: layout)
@@ -356,6 +399,39 @@ class RigidArrayTests: CollectionTestCase {
           expectEqual(a.capacity, Swift.max(layout.capacity, newCapacity))
           expectEqual(tracker.instances, layout.count)
           expectContainerContents(a, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
+        }
+      }
+    }
+  }
+
+  func test_copy() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        let b = a.copy()
+        expectEqual(b.count, layout.count)
+        expectEqual(b.capacity, layout.capacity)
+        expectEqual(tracker.instances, layout.count)
+        expectContainerContents(a, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
+        expectContainerContents(b, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
+      }
+    }
+  }
+
+  func test_copy_capacity() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery(
+        "newCapacity",
+        in: [layout.count, layout.count + 1, layout.capacity, layout.capacity + 1] as Set
+      ) { newCapacity in
+        withLifetimeTracking { tracker in
+          let a = tracker.rigidArray(layout: layout)
+          let b = a.copy(capacity: newCapacity)
+          expectEqual(b.count, layout.count)
+          expectEqual(b.capacity, newCapacity)
+          expectEqual(tracker.instances, layout.count)
+          expectContainerContents(a, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
+          expectContainerContents(b, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
         }
       }
     }
@@ -510,17 +586,19 @@ class RigidArrayTests: CollectionTestCase {
 
   func test_append_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
-      withLifetimeTracking { tracker in
-        var a = tracker.rigidArray(layout: layout)
-        let b = tracker.rigidArray( // FIXME: Use TestContainer with various span counts
-          layout: ArrayLayout(
-            capacity: layout.capacity - layout.count,
-            count: layout.capacity - layout.count),
-          using: { layout.count + $0 })
-        a.append(copying: b)
-        expectTrue(a.isFull)
-        expectContainerContents(a, equivalentTo: 0 ..< layout.capacity, by: { $0.payload == $1 })
-        expectEqual(tracker.instances, layout.capacity)
+      withEvery("spanCount", in: 1 ... Swift.max(1, layout.capacity - layout.count)) { spanCount in
+        withLifetimeTracking { tracker in
+          var a = tracker.rigidArray(layout: layout)
+
+          let addition = (layout.count ..< layout.capacity).map { tracker.instance(for: $0) }
+          let b = StaccatoContainer(
+            contents: RigidArray(copying: addition),
+            spanCounts: [spanCount])
+          a.append(copying: b)
+          expectTrue(a.isFull)
+          expectContainerContents(a, equivalentTo: 0 ..< layout.capacity, by: { $0.payload == $1 })
+          expectEqual(tracker.instances, layout.capacity)
+        }
       }
     }
   }
@@ -587,21 +665,24 @@ class RigidArrayTests: CollectionTestCase {
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
-        withLifetimeTracking { tracker in
+        withEvery("spanCount", in: 1 ... Swift.max(1, layout.capacity - layout.count)) { spanCount in
+          withLifetimeTracking { tracker in
 
-          var expected = Array(0 ..< layout.count)
-          let addition = Array(layout.count ..< layout.capacity)
-          expected.insert(contentsOf: addition, at: i)
+            var expected = Array(0 ..< layout.count)
+            let addition = Array(layout.count ..< layout.capacity)
+            expected.insert(contentsOf: addition, at: i)
 
-          var a = tracker.rigidArray(layout: layout)
-          let rigidAddition = RigidArray(count: addition.count) {
-            tracker.instance(for: addition[$0])
+            var a = tracker.rigidArray(layout: layout)
+            let rigidAddition = StaccatoContainer(
+              contents: RigidArray(count: addition.count) {
+                tracker.instance(for: addition[$0])
+              },
+              spanCounts: [Swift.max(spanCount, 1)])
+            a.insert(copying: rigidAddition, at: i)
+
+            expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
+            expectEqual(tracker.instances, layout.capacity)
           }
-          // FIXME: Use TestContainer with various span counts
-          a.insert(copying: rigidAddition, at: i)
-
-          expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
-          expectEqual(tracker.instances, layout.capacity)
         }
       }
     }
@@ -618,11 +699,56 @@ class RigidArrayTests: CollectionTestCase {
 
             var a = tracker.rigidArray(layout: layout)
             let trackedAddition = addition.map { tracker.instance(for: $0) }
-            // FIXME: Use TestContainer with various span counts
             a.replaceSubrange(range, with: trackedAddition)
 
             expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
             expectEqual(tracker.instances, layout.count - range.count + c)
+          }
+        }
+      }
+    }
+  }
+
+  func test_replaceSubrange_Span() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("range", in: 0 ..< layout.count) { range in
+        withEvery("c", in: 0 ..< layout.capacity - layout.count + range.count) { c in
+          withLifetimeTracking { tracker in
+            var expected = Array(0 ..< layout.count)
+            let addition = (0 ..< c).map { -100 - $0 }
+            expected.replaceSubrange(range, with: addition)
+
+            var a = tracker.rigidArray(layout: layout)
+            let trackedAddition = RigidArray(copying: addition.map { tracker.instance(for: $0) })
+            a.replaceSubrange(range, copying: trackedAddition.span)
+
+            expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
+            expectEqual(tracker.instances, layout.count - range.count + c)
+          }
+        }
+      }
+    }
+  }
+
+  func test_replaceSubrange_Container() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("range", in: 0 ..< layout.count) { range in
+        withEvery("c", in: 0 ..< layout.capacity - layout.count + range.count) { c in
+          withEvery("spanCount", in: 1 ... Swift.max(1, layout.capacity - layout.count)) { spanCount in
+            withLifetimeTracking { tracker in
+              var expected = Array(0 ..< layout.count)
+              let addition = (0 ..< c).map { -100 - $0 }
+              expected.replaceSubrange(range, with: addition)
+
+              var a = tracker.rigidArray(layout: layout)
+              let trackedAddition = StaccatoContainer(
+                contents: RigidArray(copying: addition.map { tracker.instance(for: $0) }),
+                spanCounts: [spanCount])
+              a.replaceSubrange(range, copying: trackedAddition)
+
+              expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
+              expectEqual(tracker.instances, layout.count - range.count + c)
+            }
           }
         }
       }

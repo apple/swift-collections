@@ -38,6 +38,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)
+@inlinable
 public func checkContainer<
   C: Container & ~Copyable & ~Escapable,
   Expected: Sequence<C.Element>
@@ -55,6 +56,7 @@ public func checkContainer<
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)
+@inlinable
 public func checkContainer<
   C: Container & ~Copyable & ~Escapable,
   Expected: Sequence<C.Element>
@@ -116,7 +118,7 @@ public func checkContainer<
     checkComparable(allIndices, oracle: { .comparing($0, $1) })
   }
 
-  withEveryRange("range", in: 0 ..< allIndices.count - 1) { range in
+  withEveryRange("range", in: 0 ..< expectedContents.count) { range in
     let i = range.lowerBound
     let j = range.upperBound
 
@@ -133,9 +135,7 @@ public func checkContainer<
   }
 
   // Check `formIndex(_,offsetBy:limitedBy:)`
-  let limits =
-  Set([0, allIndices.count - 1, allIndices.count / 2])
-    .sorted()
+  let limits = Set([0, allIndices.count - 1, allIndices.count / 2]).sorted()
   withEvery("limit", in: limits) { limit in
     withEvery("i", in: 0 ..< allIndices.count) { i in
       let max = allIndices.count - i + (limit >= i ? 2 : 0)
@@ -170,13 +170,13 @@ public func checkContainer<
       pos += span.count
       if span.isEmpty {
         expectEqual(origIndex, container.endIndex)
-        expectEqual(index, origIndex, "nextCount is not expected to move the end index")
+        expectEqual(index, origIndex, "nextSpan is not expected to move the end index")
         break
       }
       expectGreaterThan(
-        index, origIndex, "nextCount does not monotonically increase the index")
+        index, origIndex, "nextSpan does not monotonically increase the index")
       expectEqual(
-        index, allIndices[pos], "nextCount does not increase the index by the size of the span")
+        index, allIndices[pos], "nextSpan does not advance the index by the size of the returned span")
       r.append((origPos ..< pos, origIndex ..< index))
     }
     return r
