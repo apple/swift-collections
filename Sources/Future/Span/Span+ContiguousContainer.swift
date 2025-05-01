@@ -40,6 +40,14 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 6.2, *)
+extension Span: ContiguousContainer where Element: ~Copyable {
+  public var span: Self {
+    @lifetime(copy self)
+    get { self }
+  }
+}
+
+@available(SwiftStdlib 6.2, *)
 extension Span where Element: ~Copyable {
   @usableFromInline
   typealias _Components = (pointer: UnsafeRawPointer?, count: Int)

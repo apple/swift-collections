@@ -66,6 +66,19 @@ where Self: ~Copyable & ~Escapable, Index: Strideable, Index.Stride == Int
     // Note: Range checks are deferred until element access.
     index.advance(by: &distance, limitedBy: limit)
   }
+
+
+  @lifetime(borrow self)
+  @inlinable
+  public func nextSpan(
+    after index: inout Index, maximumCount: Int
+  ) -> Span<Element> {
+    precondition(maximumCount >= 0, "Maximum count must be non-negative")
+    let span = self.nextSpan(after: &index)
+    if span.count <= maximumCount { return span }
+    index = index.advanced(by: maximumCount - span.count)
+    return span._extracting(first: maximumCount)
+  }
 }
 
 // Disambiguate parallel extensions on RandomAccessContainer and RandomAccessCollection

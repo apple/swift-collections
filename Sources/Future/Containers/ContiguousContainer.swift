@@ -10,18 +10,38 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftCompatibilitySpan 5.0, *)
-public protocol ContiguousContainer<Element>: /*RandomAccessContainer*/ ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable/* & ~Escapable*/
-
-  var span: Span<Element> { @lifetime(copy self) get }
+@available(SwiftStdlib 6.2, *)
+public protocol ContiguousContainer<Element>
+  : RandomAccessContainer, ~Copyable, ~Escapable
+{
+  var span: Span<Element> { @lifetime(borrow self) get }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
-extension Span: ContiguousContainer where Element: ~Copyable {
-  public var span: Self {
-    @lifetime(copy self)
-    get { self }
+@available(SwiftStdlib 6.2, *)
+extension ContiguousContainer
+where Self: ~Copyable & ~Escapable, Index == Int {
+  @inlinable
+  @lifetime(borrow self)
+  public func borrowElement(at index: Index) -> Borrow<Element> {
+    span.borrowElement(at: index - startIndex)
+  }
+
+  @inlinable
+  @lifetime(borrow self)
+  public func nextSpan(after index: inout Index) -> Span<Element> {
+    var i = index - startIndex
+    let result = span.nextSpan(after: &i)
+    index = i + startIndex
+    return result
+  }
+
+  @inlinable
+  @lifetime(borrow self)
+  public func previousSpan(before index: inout Index) -> Span<Element> {
+    var i = index - startIndex
+    let result = span.previousSpan(before: &i)
+    index = i + startIndex
+    return result
   }
 }
 
@@ -33,6 +53,3 @@ extension ContiguousArray: ContiguousContainer {}
 
 @available(SwiftStdlib 6.2, *)
 extension CollectionOfOne: ContiguousContainer {}
-
-@available(SwiftStdlib 6.2, *)
-extension String.UTF8View: ContiguousContainer {}
