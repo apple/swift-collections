@@ -48,6 +48,19 @@ extension UnsafeMutableRawBufferPointer {
 }
 
 
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  internal func _moveInitializePrefix(
+    from source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    if source.isEmpty { return 0 }
+    precondition(source.count <= self.count)
+    unsafe self.baseAddress.unsafelyUnwrapped.moveInitialize(
+      from: source.baseAddress.unsafelyUnwrapped, count: source.count)
+    return source.count
+  }
+}
+
 extension UnsafeMutableBufferPointer {
   /// Initialize slots at the start of this buffer by copying data from `source`.
   ///
@@ -58,12 +71,21 @@ extension UnsafeMutableBufferPointer {
   ///
   /// - Returns: The index after the last item that was initialized in this buffer.
   @inlinable
-  internal func _initializePrefix(copying source: UnsafeBufferPointer<Element>) -> Int {
+  internal func _initializePrefix(
+    copying source: UnsafeBufferPointer<Element>
+  ) -> Int {
     if source.isEmpty { return 0 }
     precondition(source.count <= self.count)
     unsafe self.baseAddress.unsafelyUnwrapped.initialize(
       from: source.baseAddress.unsafelyUnwrapped, count: source.count)
     return source.count
+  }
+
+  @inlinable
+  internal func _initializePrefix(
+    copying source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    unsafe _initializePrefix(copying: UnsafeBufferPointer(source))
   }
 
   /// Initialize slots at the start of this buffer by copying data from `source`.
