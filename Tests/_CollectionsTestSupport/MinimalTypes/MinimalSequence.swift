@@ -44,17 +44,17 @@ public enum UnderestimatedCountBehavior {
 /// narrow way possible.
 ///
 /// This sequence is consumed when its iterator is advanced.
-public struct MinimalSequence<T>: Sequence, CustomDebugStringConvertible {
+public struct MinimalSequence<Element>: Sequence, CustomDebugStringConvertible {
   public let timesMakeIteratorCalled = ResettableValue(0)
 
-  internal let _sharedState: _MinimalIteratorSharedState<T>
+  internal let _sharedState: _MinimalIteratorSharedState<Element>
   internal let _isContiguous: Bool
 
   public init<S: Sequence>(
     elements: S,
     underestimatedCount: UnderestimatedCountBehavior = .value(0),
     isContiguous: Bool = false
-  ) where S.Element == T {
+  ) where S.Element == Element {
     let data = Array(elements)
     self._sharedState = _MinimalIteratorSharedState(data)
     self._isContiguous = isContiguous
@@ -73,7 +73,7 @@ public struct MinimalSequence<T>: Sequence, CustomDebugStringConvertible {
     }
   }
 
-  public func makeIterator() -> MinimalIterator<T> {
+  public func makeIterator() -> MinimalIterator<Element> {
     timesMakeIteratorCalled.value += 1
     return MinimalIterator(_sharedState)
   }
@@ -87,10 +87,10 @@ public struct MinimalSequence<T>: Sequence, CustomDebugStringConvertible {
   }
 
   public func withContiguousStorageIfAvailable<R>(
-    _ body: (UnsafeBufferPointer<T>) throws -> R
+    _ body: (UnsafeBufferPointer<Element>) throws -> R
   ) rethrows -> R? {
     guard _isContiguous else { return nil }
-    return try _sharedState.data[_sharedState.i...]
+    return unsafe try _sharedState.data[_sharedState.i...]
       .withContiguousStorageIfAvailable(body)
   }
 }

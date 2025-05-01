@@ -49,37 +49,35 @@ extension UnsafeMutableRawBufferPointer {
 
 
 extension UnsafeMutableBufferPointer {
-  /// Initialize slots at the start of this buffer by copying data from `buffer`, then
-  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
-  /// uninitialized remainder.
+  /// Initialize slots at the start of this buffer by copying data from `source`.
   ///
   /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
-  /// entirely uninitialized, while `buffer` must be fully initialized.
+  /// entirely uninitialized, while `source` must be fully initialized.
   ///
-  /// The count of `buffer` must not be greater than `self.count`.
+  /// The `source` buffer must fit entirely in `self`.
+  ///
+  /// - Returns: The index after the last item that was initialized in this buffer.
   @inlinable
-  internal mutating func _initializeAndDropPrefix(copying buffer: UnsafeBufferPointer<Element>) {
-    if buffer.isEmpty { return }
-    precondition(buffer.count <= self.count)
+  internal func _initializePrefix(copying source: UnsafeBufferPointer<Element>) -> Int {
+    if source.isEmpty { return 0 }
+    precondition(source.count <= self.count)
     unsafe self.baseAddress.unsafelyUnwrapped.initialize(
-      from: buffer.baseAddress.unsafelyUnwrapped, count: buffer.count)
-    unsafe self = self.extracting(buffer.count...)
+      from: source.baseAddress.unsafelyUnwrapped, count: source.count)
+    return source.count
   }
 
-  /// Initialize slots at the start of this buffer by copying data from `span`, then
-  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
-  /// uninitialized remainder.
+  /// Initialize slots at the start of this buffer by copying data from `source`.
   ///
   /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
   /// entirely uninitialized.
   ///
-  /// The count of `span` must not be greater than `self.count`.
+  /// The `source` span must fit entirely in `self`.
+  ///
+  /// - Returns: The index after the last item that was initialized in this buffer.
   @available(SwiftCompatibilitySpan 5.0, *)
   @inlinable
-  internal mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
-    unsafe span.withUnsafeBufferPointer { buffer in
-      unsafe self._initializeAndDropPrefix(copying: buffer)
-    }
+  internal func _initializePrefix(copying source: Span<Element>) -> Int {
+    unsafe source.withUnsafeBufferPointer { unsafe self._initializePrefix(copying: $0) }
   }
 
   /// Initialize all slots in this buffer by copying data from `items`, which must fit entirely
@@ -113,5 +111,35 @@ extension UnsafeMutableBufferPointer {
       unsafe target._initializeAndDropPrefix(copying: span)
     }
     return (self.count - target.count, i)
+  }
+
+  /// Initialize slots at the start of this buffer by copying data from `buffer`, then
+  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
+  /// uninitialized remainder.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized, while `buffer` must be fully initialized.
+  ///
+  /// The count of `buffer` must not be greater than `self.count`.
+  @inlinable
+  internal mutating func _initializeAndDropPrefix(copying source: UnsafeBufferPointer<Element>) {
+    let i = unsafe _initializePrefix(copying: source)
+    unsafe self = self.extracting(i...)
+  }
+
+  /// Initialize slots at the start of this buffer by copying data from `span`, then
+  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
+  /// uninitialized remainder.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized.
+  ///
+  /// The count of `span` must not be greater than `self.count`.
+  @available(SwiftCompatibilitySpan 5.0, *)
+  @inlinable
+  internal mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
+    unsafe span.withUnsafeBufferPointer { buffer in
+      unsafe self._initializeAndDropPrefix(copying: buffer)
+    }
   }
 }

@@ -86,6 +86,123 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
 @available(SwiftCompatibilitySpan 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
+  public func _defaultIndex(_ i: Index, advancedBy distance: Int) -> Index {
+    precondition(
+      distance >= 0,
+      "Only BidirectionalContainers can be advanced by a negative amount")
+
+    var i = index(alignedDown: i)
+    var distance = distance
+
+    // FIXME: This implementation can be wasteful for contiguous containers,
+    // as iterating over spans will overshoot the target immediately.
+    // Reintroducing `nextSpan(after:maximumCount:)` would help avoid
+    // having to use a second loop to refine the result, but it would
+    // complicate conformances.
+
+    // Skip forward until we find the span that contains our target.
+    while distance > 0 {
+      var j = i
+      let span = self.nextSpan(after: &j)
+      precondition(
+        !span.isEmpty,
+        "Can't advance index beyond the end of the container")
+      guard span.count <= distance else { break }
+      i = j
+      distance &-= span.count
+    }
+    // Step through to find the precise target.
+    while distance > 0 {
+      self.formIndex(after: &i)
+      distance &-= 1
+    }
+    return i
+  }
+
+  @inlinable
+  public func _defaultDistance(from start: Index, to end: Index) -> Int {
+    var start = index(alignedDown: start)
+    let end = index(alignedDown: end)
+    if start > end {
+      return -_defaultDistance(from: end, to: start)
+    }
+    var count = 0
+    while start != end {
+      count = count + 1
+      formIndex(after: &start)
+    }
+    return count
+  }
+
+  @inlinable
+  public func _defaultFormIndex(
+    _ i: inout Index,
+    advancedBy distance: inout Int,
+    limitedBy limit: Index
+  ) {
+    precondition(
+      distance >= 0,
+      "Only BidirectionalContainers can be advanced by a negative amount")
+
+    i = index(alignedDown: i)
+    let limit = index(alignedDown: limit)
+
+    // Skip forward until we find the span that contains our target.
+    while distance > 0 {
+      var j = i
+      let span = self.nextSpan(after: &j)
+      precondition(
+        !span.isEmpty,
+        "Can't advance index beyond the end of the container")
+      guard span.count <= distance, j < limit else {
+        break
+      }
+      i = j
+      distance &-= span.count
+    }
+    // Step through to find the precise target.
+    while distance != 0 {
+      if i == limit {
+        return
+      }
+      formIndex(after: &i)
+      distance &-= 1
+    }
+  }
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @inlinable
+  public var isEmpty: Bool {
+    return startIndex == endIndex
+  }
+
+  @inlinable
+  public func formIndex(after i: inout Index) {
+    i = self.index(after: i)
+  }
+
+  @inlinable
+  public func distance(from start: Index, to end: Index) -> Int {
+    _defaultDistance(from: start, to: end)
+  }
+
+  @inlinable
+  public func index(_ index: Index, offsetBy n: Int) -> Index {
+    _defaultIndex(index, advancedBy: n)
+  }
+
+  @inlinable
+  public func formIndex(
+    _ i: inout Index,
+    offsetBy distance: inout Int,
+    limitedBy limit: Index
+  ) {
+    _defaultFormIndex(&i, advancedBy: &distance, limitedBy: limit)
+  }
+
+  @inlinable
   public func index(alignedDown index: Index) -> Index { index }
 
   @inlinable
@@ -99,7 +216,39 @@ extension Container where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftCompatibilitySpan 5.0, *)
+extension Container where Self: Sequence {
+  @inlinable
+  public var underestimatedCount: Int { count }
+}
+
+@available(SwiftCompatibilitySpan 5.0, *)
 extension Container where Self: Collection {
+  // Resolve ambiguities between default implementations between Collection
+  // and Container.
+
+  @inlinable
+  public var underestimatedCount: Int { count }
+
+  @inlinable
+  public var isEmpty: Bool {
+    return startIndex == endIndex
+  }
+
+  @inlinable
+  public func formIndex(after i: inout Index) {
+    i = self.index(after: i)
+  }
+
+  @inlinable
+  public func distance(from start: Index, to end: Index) -> Int {
+    _defaultDistance(from: start, to: end)
+  }
+
+  @inlinable
+  public func index(_ index: Index, offsetBy n: Int) -> Index {
+    _defaultIndex(index, advancedBy: n)
+  }
+
   @inlinable
   public func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
 
