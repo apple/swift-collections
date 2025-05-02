@@ -553,6 +553,50 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+extension RigidArray where Element: ~Copyable {
+  /// Moves the elements of a buffer to the end of this array, leaving the
+  /// buffer uninitialized.
+  ///
+  /// If the array does not have sufficient capacity to hold all items in the
+  /// buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A fully initialized buffer whose contents to move into
+  ///        the array.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    moving items: UnsafeMutableBufferPointer<Element>
+  ) {
+    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
+    guard items.count > 0 else { return }
+    let c = unsafe _freeSpace._moveInitializePrefix(from: items)
+    assert(c == items.count)
+    _count &+= items.count
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    moving items: inout RigidArray<Element>
+  ) {
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer.extracting(..<count)
+      unsafe self.append(moving: source)
+      self._count &+= count
+      count = 0
+    }
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    consuming items: consuming RigidArray<Element>
+  ) {
+    var items = items
+    self.append(moving: &items)
+  }
+}
+
 extension RigidArray {
   /// Copies the elements of a buffer to the end of this array.
   ///
@@ -725,8 +769,59 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+extension RigidArray where Element: ~Copyable {
+  /// Moves the elements of a fully initialized buffer into this array,
+  /// starting at the specified position, and leaving the buffer
+  /// uninitialized.
+  ///
+  /// If the array does not have sufficient capacity to hold all items in the
+  /// buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A fully initialized buffer whose contents to move into
+  ///        the array.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func insert(
+    moving items: UnsafeMutableBufferPointer<Element>,
+    at index: Int
+  ) {
+    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
+    guard items.count > 0 else { return }
+    let target = unsafe _openGap(at: index, count: items.count)
+    let c = unsafe target._moveInitializePrefix(from: items)
+    assert(c == items.count)
+    _count &+= items.count
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func insert(
+    moving items: inout RigidArray<Element>,
+    at index: Int
+  ) {
+    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
+    guard items.count > 0 else { return }
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer.extracting(..<count)
+      unsafe self.insert(moving: source, at: index)
+      count = 0
+    }
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func insert(
+    consuming items: consuming RigidArray<Element>,
+    at index: Int
+  ) {
+    var items = items
+    self.insert(moving: &items, at: index)
+  }
+
+}
+
 extension RigidArray {
-  /// Copyies the elements of a fully initialized buffer pointer into this
+  /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
@@ -761,7 +856,7 @@ extension RigidArray {
     _count += newElements.count
   }
 
-  /// Copyies the elements of a fully initialized buffer pointer into this
+  /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
@@ -994,6 +1089,38 @@ extension RigidArray where Element: ~Copyable {
     let gapRange = unsafe Range(
       uncheckedBounds: (subrange.lowerBound, subrange.lowerBound + newCount))
     return unsafe _storage.extracting(gapRange)
+  }
+}
+
+extension RigidArray where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
+    moving items: UnsafeMutableBufferPointer<Element>,
+  ) {
+    let gap = unsafe _gapForReplacement(
+      of: subrange, withNewCount: items.count)
+    let c = unsafe gap._moveInitializePrefix(from: items)
+    assert(c == items.count)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
+    moving items: inout RigidArray<Element>,
+  ) {
+    unsafe items.withUnsafeMutableBufferPointer { buffer, count in
+      unsafe self.replaceSubrange(subrange, moving: buffer)
+      count = 0
+    }
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func replaceSubrange(
+    _ subrange: Range<Int>,
+    consuming items: consuming RigidArray<Element>,
+  ) {
+    replaceSubrange(subrange, moving: &items)
   }
 }
 
