@@ -64,6 +64,7 @@ extension MutableContainer where Self: ~Copyable & ~Escapable {
   }
 #endif
 
+#if compiler(>=6.2) && $InoutLifetimeDependence // FIXME: Crashes older 6.2 compilers.
   @lifetime(self: copy self)
   public mutating func withNextMutableSpan<
     E: Error, R: ~Copyable
@@ -87,6 +88,7 @@ extension MutableContainer where Self: ~Copyable & ~Escapable {
     var extract = span.extracting(first: maximumCount)
     return try body(&extract)
   }
+#endif
 
 #if compiler(>=6.2) && $InoutLifetimeDependence
   @inlinable
