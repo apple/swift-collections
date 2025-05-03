@@ -53,7 +53,7 @@ extension RepeatingContainer where Element: ~Copyable {
 }
 
 #if false // FIXME: This is what we'd want
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RepeatingContainer: RandomAccessContainer where Element: ~Copyable {
   @lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
@@ -85,7 +85,7 @@ extension RepeatingContainer: RandomAccessContainer where Element: ~Copyable {
   }
 }
 #else
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RepeatingContainer: RandomAccessContainer where Element: ~Copyable {
   @lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {

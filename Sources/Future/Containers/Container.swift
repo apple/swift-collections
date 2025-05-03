@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public protocol Container<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable/* & ~Escapable*/
   associatedtype Index: Comparable
@@ -30,7 +30,7 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
     limitedBy limit: Index
   )
 
-  #if compiler(>=9999) // FIXME: We can't do this yet
+  #if compiler(>=9999) // FIXME: Needs borrow accessors
   subscript(index: Index) -> Element { borrow }
   #else
   @lifetime(borrow self)
@@ -83,7 +83,7 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
   func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   public func _defaultIndex(_ i: Index, advancedBy distance: Int) -> Index {
@@ -171,7 +171,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   public var isEmpty: Bool {
@@ -215,13 +215,13 @@ extension Container where Self: ~Copyable & ~Escapable {
   public func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: Sequence {
   @inlinable
   public var underestimatedCount: Int { count }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: Collection {
   // Resolve ambiguities between default implementations between Collection
   // and Container.
@@ -256,7 +256,7 @@ extension Container where Self: Collection {
   public func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index?? { nil }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   public subscript(index: Index) -> Element {
@@ -269,7 +269,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   @lifetime(borrow self)
@@ -287,7 +287,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 
 
 #if false // DEMO
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   // This is just to demo the bulk iteration model
   func forEachSpan<E: Error>(_ body: (Span<Element>) throws(E) -> Void) throws(E) {

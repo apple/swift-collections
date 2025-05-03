@@ -13,7 +13,7 @@ import XCTest
 import _CollectionsTestSupport
 import Future
 
-@available(SwiftStdlib 6.0, *)
+@available(SwiftStdlib 6.2, *)
 class RigidArrayTests: CollectionTestCase {
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in

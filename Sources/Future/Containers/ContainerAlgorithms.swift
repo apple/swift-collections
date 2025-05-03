@@ -11,7 +11,7 @@
 
 //MARK: - firstIndex(where:)
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   internal func _containerFirstIndex<E: Error>(
@@ -55,7 +55,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: Collection {
   /// Returns the first index that addresses an element of the container that
   /// satisfies the given predicate.
@@ -83,7 +83,7 @@ extension Container where Self: Collection {
 
 //MARK: - firstIndex(of:)
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Element: Equatable {
   @inlinable
   internal func _containerFirstIndex(of element: Element) -> Index? {
@@ -110,7 +110,7 @@ extension Container where Element: Equatable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: Collection, Element: Equatable {
   /// Returns the first index where the specified value appears in the container.
   ///
@@ -131,7 +131,7 @@ extension Container where Self: Collection, Element: Equatable {
 
 //MARK: - lastIndex(where:)
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension BidirectionalContainer where Self: ~Copyable & ~Escapable {
   @inlinable
   internal func _containerLastIndex<E: Error>(
@@ -175,7 +175,7 @@ extension BidirectionalContainer where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension BidirectionalContainer where Self: BidirectionalCollection {
   /// Returns the first index that addresses an element of the container that
   /// satisfies the given predicate.
@@ -203,7 +203,7 @@ extension BidirectionalContainer where Self: BidirectionalCollection {
 
 //MARK: - lastIndex(of:)
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension BidirectionalContainer where Element: Equatable {
   @inlinable
   internal func _containerLastIndex(of element: Element) -> Index? {
@@ -230,7 +230,7 @@ extension BidirectionalContainer where Element: Equatable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension BidirectionalContainer where Self: BidirectionalCollection, Element: Equatable {
   /// Returns the first index where the specified value appears in the container.
   ///
@@ -251,7 +251,7 @@ extension BidirectionalContainer where Self: BidirectionalCollection, Element: E
 
 //MARK: - elementsEqual(_:,by:)
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   internal func _spanwiseZip<Other: Container & ~Copyable & ~Escapable, State: ~Copyable, E: Error>(
@@ -345,7 +345,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: Sequence {
   /// Returns a Boolean value indicating whether this container and another
   /// container contain equivalent elements in the same order, using the given
@@ -379,7 +379,7 @@ extension Container where Self: Sequence {
 //MARK: - elementsEqual(_:)
 
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: Equatable {
   /// Returns a Boolean value indicating whether this container and another
   /// container contain the same elements in the same order.
@@ -398,7 +398,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: Equatable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: Sequence, Element: Equatable {
   /// Returns a Boolean value indicating whether this container and another
   /// container contain the same elements in the same order.

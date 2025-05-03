@@ -12,7 +12,7 @@
 import XCTest
 import Future
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   internal func _indicesByIndexAfter() -> [Index] {
@@ -37,7 +37,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 @inlinable
 public func checkContainer<
   C: Container & ~Copyable & ~Escapable,
@@ -55,7 +55,7 @@ public func checkContainer<
     file: file, line: line)
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 @inlinable
 public func checkContainer<
   C: Container & ~Copyable & ~Escapable,

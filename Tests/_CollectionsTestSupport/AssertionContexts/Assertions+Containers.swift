@@ -12,7 +12,7 @@
 
 import Future
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public func expectContainersWithEquivalentElements<
   C1: Container & ~Copyable & ~Escapable,
   C2: Container & ~Copyable & ~Escapable
@@ -32,7 +32,7 @@ public func expectContainersWithEquivalentElements<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public func expectContainersWithEqualElements<
   Element: Equatable,
   C1: Container<Element> & ~Copyable & ~Escapable,
@@ -52,7 +52,7 @@ public func expectContainersWithEqualElements<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public func expectContainerContents<
   Element: Equatable,
   C1: Container<Element> & ~Copyable & ~Escapable,
@@ -92,7 +92,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public func expectContainerContents<
   C1: Container & ~Copyable & ~Escapable,
   C2: Collection,

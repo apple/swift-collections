@@ -59,7 +59,7 @@ extension NewArray: RandomAccessCollection, MutableCollection {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension NewArray: RandomAccessContainer, MutableContainer {
   @lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
@@ -76,13 +76,21 @@ extension NewArray: RandomAccessContainer, MutableContainer {
     return _storage.value.previousSpan(before: &index)
   }
 
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   public mutating func mutateElement(at index: Int) -> Inout<Element> {
     _ensureUnique()
     return _storage.value.mutateElement(at: index)
   }
 
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   public mutating func nextMutableSpan(after index: inout Int) -> MutableSpan<Element> {
     _ensureUnique()
     return _storage.value.nextMutableSpan(after: &index)
@@ -172,7 +180,7 @@ extension NewArray {
     self._storage.value.append(newElement)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   public mutating func insert(_ item: consuming Element, at index: Int) {
     precondition(index >= 0 && index <= count)
@@ -211,7 +219,7 @@ extension NewArray {
   }
 
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   public mutating func removeLast() -> Element {
     precondition(count > 0, "Cannot remove last element from empty array")

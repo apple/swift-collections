@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable {
   func index(before i: Index) -> Index
   func formIndex(before i: inout Index)
@@ -18,7 +18,7 @@ public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapabl
   func previousSpan(before index: inout Index) -> Span<Element>
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension BidirectionalContainer where Self: ~Copyable & ~Escapable {
   @inlinable
   @lifetime(borrow self)

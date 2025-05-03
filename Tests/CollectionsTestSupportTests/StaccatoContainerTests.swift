@@ -13,6 +13,7 @@ import XCTest
 import _CollectionsTestSupport
 import Future
 
+@available(SwiftStdlib 6.2, *)
 class StaccatoContainerTests: CollectionTestCase {
   func checkStriding<C: Container & ~Copyable & ~Escapable>(
     _ container: borrowing C,

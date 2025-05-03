@@ -14,6 +14,7 @@ import _CollectionsTestSupport
 import Future
 import Synchronization
 
+@available(SwiftStdlib 6.2, *)
 class DynamicArrayTests: CollectionTestCase {
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in

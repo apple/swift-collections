@@ -53,7 +53,11 @@ public func _overrideLifetime<
 @_unsafeNonescapableResult
 @_alwaysEmitIntoClient
 @_transparent
+#if compiler(>=6.2) && $InoutLifetimeDependence
 @lifetime(&source)
+#else
+@lifetime(borrow source)
+#endif
 public func _overrideLifetime<
   T: ~Copyable & ~Escapable,
   U: ~Copyable & ~Escapable

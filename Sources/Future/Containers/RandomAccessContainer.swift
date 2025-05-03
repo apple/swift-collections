@@ -9,11 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable {}
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RandomAccessContainer
 where Self: ~Copyable & ~Escapable, Index: Strideable, Index.Stride == Int
 {
@@ -83,7 +83,7 @@ where Self: ~Copyable & ~Escapable, Index: Strideable, Index.Stride == Int
 
 // Disambiguate parallel extensions on RandomAccessContainer and RandomAccessCollection
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RandomAccessCollection
 where
   Self: RandomAccessContainer,

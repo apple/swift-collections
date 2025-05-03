@@ -20,13 +20,13 @@ extension Deque: RandomAccessContainer {
     _storage.value.borrowElement(at: index)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @lifetime(borrow self)
   public func nextSpan(after index: inout Int) -> Span<Element> {
     _storage.value.nextSpan(after: &index)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @lifetime(borrow self)
   public func previousSpan(before index: inout Int) -> Span<Element> {
     _storage.value.previousSpan(before: &index)
