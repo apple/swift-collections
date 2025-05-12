@@ -33,13 +33,13 @@ public struct DynamicDeque<Element: ~Copyable>: ~Copyable {
 extension DynamicDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
 extension DynamicDeque: RandomAccessContainer where Element: ~Copyable {
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @lifetime(borrow self)
   public func nextSpan(after index: inout Int) -> Span<Element> {
     _storage.nextSpan(after: &index)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @lifetime(borrow self)
   public func previousSpan(before index: inout Int) -> Span<Element> {
     _storage.previousSpan(before: &index)

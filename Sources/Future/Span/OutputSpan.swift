@@ -363,6 +363,7 @@ extension OutputSpan where Element: ~Copyable {
     }
   }
 
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @_alwaysEmitIntoClient
   public var mutableSpan: MutableSpan<Element> {
     @lifetime(&self)
@@ -375,6 +376,20 @@ extension OutputSpan where Element: ~Copyable {
       return unsafe _overrideLifetime(span, mutating: &self)
     }
   }
+#else
+  @_alwaysEmitIntoClient
+  public var mutableSpan: MutableSpan<Element> {
+    @lifetime(borrow self)
+    mutating get {
+      let pointer = unsafe _pointer?.assumingMemoryBound(to: Element.self)
+      let buffer = unsafe UnsafeMutableBufferPointer(
+        start: pointer, count: _initialized
+      )
+      let span = unsafe MutableSpan(_unsafeElements: buffer)
+      return unsafe _overrideLifetime(span, mutating: &self)
+    }
+  }
+#endif
 }
 
 @available(macOS 9999, *)

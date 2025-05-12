@@ -41,10 +41,14 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   ///                            instance of type 'T'.
   /// - Parameter owner: The owning instance that this 'Inout' instance's
   ///                    lifetime is based on.
-  @lifetime(&owner)
   @unsafe
   @_alwaysEmitIntoClient
   @_transparent
+#if compiler(>=6.2) && $InoutLifetimeDependence
+  @lifetime(&owner)
+#else
+  @lifetime(borrow owner)
+#endif
   public init<Owner: ~Copyable & ~Escapable>(
     unsafeAddress: UnsafeMutablePointer<T>,
     mutating owner: inout Owner

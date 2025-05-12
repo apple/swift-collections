@@ -47,7 +47,7 @@ final class MinimalTypeTests: CollectionTestCase {
 
   #if false // FIXME: Track down compiler crash
   func testTestContainer() {
-    guard #available(SwiftCompatibilitySpan 5.0, *) else { return }
+    guard #available(SwiftStdlib 6.2, *) else { return }
     let a = TestContainer(
       contents: RigidArray(count: 100, initializedWith: { $0 }),
       spanCounts: [3, 1, 7])

@@ -80,7 +80,7 @@ extension StaccatoContainer where Element: ~Copyable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension StaccatoContainer: Container where Element: ~Copyable {
   public func formIndex(_ i: inout Index, offsetBy distance: inout Int, limitedBy limit: Index) {
     precondition(i >= startIndex && i <= endIndex)

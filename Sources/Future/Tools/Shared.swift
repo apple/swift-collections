@@ -109,6 +109,7 @@ extension Shared where Storage: ~Copyable {
 }
 
 extension Shared where Storage: ~Copyable {
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @inlinable
   @inline(__always)
   public var value: Storage {
@@ -122,6 +123,21 @@ extension Shared where Storage: ~Copyable {
       return unsafe _mutableAddress
     }
   }
+#else
+  @inlinable
+  @inline(__always)
+  public var value: Storage {
+    @lifetime(borrow self)
+    unsafeAddress {
+      unsafe _address
+    }
+    @lifetime(borrow self)
+    unsafeMutableAddress {
+      precondition(isUnique())
+      return unsafe _mutableAddress
+    }
+  }
+#endif
 }
 
 extension Shared where Storage: ~Copyable {
@@ -133,9 +149,14 @@ extension Shared where Storage: ~Copyable {
     // lifetime(self) == lifetime(_box.storage).
     unsafe Borrow(unsafeAddress: _address, borrowing: self)
   }
-  
+
+
   @inlinable
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   public mutating func mutate() -> Inout<Storage> {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that

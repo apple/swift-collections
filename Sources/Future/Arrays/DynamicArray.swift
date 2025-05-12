@@ -74,7 +74,7 @@ extension DynamicArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<C: Container<Element> & ~Copyable & ~Escapable>(
@@ -84,7 +84,7 @@ extension DynamicArray /*where Element: Copyable*/ {
     self.init(consuming: RigidArray(capacity: capacity, copying: contents))
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<C: Container<Element> & Sequence<Element>>(
@@ -110,7 +110,7 @@ extension DynamicArray where Element: ~Copyable {
 //MARK: - Span creation
 
 extension DynamicArray where Element: ~Copyable {
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   public var span: Span<Element> {
     @lifetime(borrow self)
     @inlinable
@@ -118,8 +118,9 @@ extension DynamicArray where Element: ~Copyable {
       _storage.span
     }
   }
-  
-  @available(SwiftCompatibilitySpan 5.0, *)
+
+#if compiler(>=6.2) && $InoutLifetimeDependence
+  @available(SwiftStdlib 6.2, *)
   public var mutableSpan: MutableSpan<Element> {
     @lifetime(&self)
     @inlinable
@@ -127,6 +128,16 @@ extension DynamicArray where Element: ~Copyable {
       _storage.mutableSpan
     }
   }
+#else
+  @available(SwiftStdlib 6.2, *)
+  public var mutableSpan: MutableSpan<Element> {
+    @lifetime(borrow self)
+    @inlinable
+    mutating get {
+      _storage.mutableSpan
+    }
+  }
+#endif
 }
 
 //MARK: RandomAccessContainer conformance
@@ -162,7 +173,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
@@ -181,21 +192,28 @@ extension DynamicArray: RandomAccessContainer where Element: ~Copyable {
 
 extension DynamicArray where Element: ~Copyable {
   @inlinable
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   public mutating func mutateElement(at index: Int) -> Inout<Element> {
     _storage.mutateElement(at: index)
   }
 
   @inlinable
-  @lifetime(&self)
   public mutating func swapAt(_ i: Int, _ j: Int) {
     _storage.swapAt(i, j)
   }
 }
 
 extension DynamicArray: MutableContainer where Element: ~Copyable {
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   public mutating func nextMutableSpan(after index: inout Int) -> MutableSpan<Element> {
     _storage.nextMutableSpan(after: &index)
   }
@@ -348,7 +366,7 @@ extension DynamicArray where Element: ~Copyable {
   ///   whether the element should be removed from the array.
   ///
   /// - Complexity: O(`count`)
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   public mutating func removeAll<E: Error>(
     where shouldBeRemoved: (borrowing Element) throws(E) -> Bool
@@ -440,7 +458,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(`newElements.count`) when amortized over many
   ///     invocations on the same array.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   public mutating func append(copying newElements: Span<Element>) {
     _ensureFreeCapacity(newElements.count)
@@ -475,7 +493,7 @@ extension DynamicArray {
     }
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   public mutating func _appendContainer<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
@@ -499,7 +517,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(`newElements.count`), when amortized over many invocations
   ///    over the same array.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   public mutating func append<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -519,7 +537,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(`newElements.count`), when amortized over many invocations
   ///    over the same array.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   public mutating func append<
     C: Container<Element> & Sequence<Element>
@@ -636,7 +654,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///     *m* is the count of `newElements`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   public mutating func insert(
     copying newElements: Span<Element>, at index: Int
@@ -677,7 +695,7 @@ extension DynamicArray {
       at: index, copying: newElements, newCount: newCount)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -711,7 +729,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///    *m* is the count of `newElements`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -742,7 +760,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///    *m* is the count of `newElements`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -850,7 +868,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
@@ -898,7 +916,7 @@ extension DynamicArray {
       subrange, copyingCollection: newElements, newCount: c)
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   public mutating func _replaceSubrange<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -937,7 +955,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   @inline(__always)
   public mutating func replaceSubrange<
@@ -973,7 +991,7 @@ extension DynamicArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   @inline(__always)
   public mutating func replaceSubrange<

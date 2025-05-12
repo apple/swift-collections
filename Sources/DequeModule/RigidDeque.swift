@@ -61,7 +61,7 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RigidDeque where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)
@@ -78,7 +78,7 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RigidDeque: RandomAccessContainer, MutableContainer where Element: ~Copyable {
   @inlinable
   @lifetime(borrow self)

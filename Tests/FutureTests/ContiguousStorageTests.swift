@@ -12,6 +12,7 @@
 import XCTest
 import Future
 
+@available(SwiftStdlib 6.2, *)
 final class ContiguousStorageTests: XCTestCase {
 
   @available(SwiftStdlib 6.2, *)

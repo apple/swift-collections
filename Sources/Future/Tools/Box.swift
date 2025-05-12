@@ -40,9 +40,9 @@ extension Box where T: ~Copyable {
     return result
   }
 
-  @lifetime(immortal)
   @_alwaysEmitIntoClient
   @_transparent
+  @lifetime(immortal)
   public consuming func leak() -> Inout<T> {
     let result = unsafe Inout<T>(unsafeImmortalAddress: _pointer)
     discard self
@@ -62,16 +62,20 @@ extension Box where T: ~Copyable {
     }
   }
   
-  @lifetime(borrow self)
   @_alwaysEmitIntoClient
   @_transparent
+  @lifetime(borrow self)
   public func borrow() -> Borrow<T> {
     unsafe Borrow(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
   }
   
-  @lifetime(&self)
   @_alwaysEmitIntoClient
   @_transparent
+#if compiler(>=6.2) && $InoutLifetimeDependence
+  @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   public mutating func mutate() -> Inout<T> {
     unsafe Inout(unsafeAddress: _pointer, mutating: &self)
   }
@@ -86,7 +90,7 @@ extension Box where T: Copyable {
 }
 
 extension Box where T: ~Copyable {
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   public var span: Span<T> {
     @_alwaysEmitIntoClient
     @lifetime(borrow self)
@@ -95,7 +99,8 @@ extension Box where T: ~Copyable {
     }
   }
 
-  @available(SwiftCompatibilitySpan 5.0, *)
+#if compiler(>=6.2) && $InoutLifetimeDependence
+  @available(SwiftStdlib 6.2, *)
   public var mutableSpan: MutableSpan<T> {
     @_alwaysEmitIntoClient
     @lifetime(&self)
@@ -103,4 +108,14 @@ extension Box where T: ~Copyable {
       unsafe MutableSpan(_unsafeStart: _pointer, count: 1)
     }
   }
+#else
+  @available(SwiftStdlib 6.2, *)
+  public var mutableSpan: MutableSpan<T> {
+    @_alwaysEmitIntoClient
+    @lifetime(borrow self)
+    mutating get {
+      unsafe MutableSpan(_unsafeStart: _pointer, count: 1)
+    }
+  }
+#endif
 }

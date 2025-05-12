@@ -9,17 +9,26 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 public protocol MutableContainer<Element>: Container, ~Copyable, ~Escapable {
-#if compiler(>=9999) // FIXME: We can't do this yet
+#if compiler(>=9999) // FIXME: Needs borrow accessors
   subscript(index: Index) -> Element { borrow mutate }
 #else
+
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   @lifetime(self: copy self)
   mutating func mutateElement(at index: Index) -> Inout<Element>
 #endif
 
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
+#else
+  @lifetime(borrow self)
+#endif
   @lifetime(self: copy self)
   mutating func nextMutableSpan(after index: inout Index) -> MutableSpan<Element>
 
@@ -29,39 +38,88 @@ public protocol MutableContainer<Element>: Container, ~Copyable, ~Escapable {
   mutating func swapAt(_ i: Index, _ j: Index)
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension MutableContainer where Self: ~Copyable & ~Escapable {
-  #if false // Hm...
+#if false  // FIXME: This has flagrant exclusivity violations.
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @lifetime(&self)
-  mutating func nextMutableSpan(
+#else
+  @lifetime(borrow self)
+#endif
+  public mutating func nextMutableSpan(
     after index: inout Index, maximumCount: Int
   ) -> MutableSpan<Element> {
-    let original = index
-    var span = self.nextMutableSpan(after: &index)
-    if span.count > maximumCount {
-      span = span.extracting(first: maximumCount)
-      // Index remains within the same span, so offseting it is expected to be quick
-      index = self.index(original, offsetBy: maximumCount)
+    let start = index
+    do {
+      let span = self.nextMutableSpan(after: &index)
+      guard span.count > maximumCount else { return span }
     }
-    return span
+    // Index remains within the same span, so offseting it is expected to be quick
+    let end = self.index(start, offsetBy: maximumCount)
+    index = start
+    var span = self.nextMutableSpan(after: &index)
+    let extract = span.extracting(first: maximumCount) // FIXME: Oops
+    index = end
+    return extract
   }
-  #endif
+#endif
 
+#if compiler(>=6.2) && $InoutLifetimeDependence // FIXME: Crashes older 6.2 compilers.
+  @lifetime(self: copy self)
+  public mutating func withNextMutableSpan<
+    E: Error, R: ~Copyable
+  >(
+    after index: inout Index, maximumCount: Int,
+    body: (inout MutableSpan<Element>) throws(E) -> R
+  ) throws(E) -> R {
+    // FIXME: We don't want this to be closure-based, but MutableSpan cannot be sliced "in place".
+    let start = index
+    do {
+      var span = self.nextMutableSpan(after: &index)
+      if span.count <= maximumCount {
+        return try body(&span)
+      }
+    }
+    // Try again, but figure out what our target index is first.
+    // Index remains within the same span, so offseting it is expected to be quick
+    index = self.index(start, offsetBy: maximumCount)
+    var i = start
+    var span = self.nextMutableSpan(after: &i)
+    var extract = span.extracting(first: maximumCount)
+    return try body(&extract)
+  }
+#endif
+
+#if compiler(>=6.2) && $InoutLifetimeDependence
   @inlinable
   public subscript(index: Index) -> Element {
     @lifetime(borrow self)
     unsafeAddress {
       unsafe borrowElement(at: index)._pointer
     }
-    
+
     @lifetime(&self)
     unsafeMutableAddress {
       unsafe mutateElement(at: index)._pointer
     }
   }
+#else
+  @inlinable
+  public subscript(index: Index) -> Element {
+    @lifetime(borrow self)
+    unsafeAddress {
+      unsafe borrowElement(at: index)._pointer
+    }
+
+    @lifetime(borrow self)
+    unsafeMutableAddress {
+      unsafe mutateElement(at: index)._pointer
+    }
+  }
+#endif
 }
 
-@available(SwiftCompatibilitySpan 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension MutableContainer where Self: ~Copyable & ~Escapable {
   /// Moves all elements satisfying `isSuffixElement` into a suffix of the
   /// container, returning the start position of the resulting suffix.

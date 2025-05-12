@@ -48,8 +48,10 @@ where Self: ~Copyable & ~Escapable, Index == Int {
 @available(SwiftStdlib 6.2, *)
 extension Array: ContiguousContainer {}
 
+#if compiler(>=6.2) && $InoutLifetimeDependence // FIXME: Crashes older 6.2 compilers.
 @available(SwiftStdlib 6.2, *)
 extension ContiguousArray: ContiguousContainer {}
+#endif
 
 @available(SwiftStdlib 6.2, *)
 extension CollectionOfOne: ContiguousContainer {}

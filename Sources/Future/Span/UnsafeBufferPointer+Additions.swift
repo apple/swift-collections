@@ -96,7 +96,7 @@ extension UnsafeMutableBufferPointer {
   /// The `source` span must fit entirely in `self`.
   ///
   /// - Returns: The index after the last item that was initialized in this buffer.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   internal func _initializePrefix(copying source: Span<Element>) -> Int {
     unsafe source.withUnsafeBufferPointer { unsafe self._initializePrefix(copying: $0) }
@@ -114,7 +114,7 @@ extension UnsafeMutableBufferPointer {
   ///
   /// - Returns: A pair of values `(count, end)`, where `count` is the number of items that were
   ///    successfully initialized, and `end` is the index into `items` after the last copied item.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   internal func _initializePrefix<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -157,7 +157,7 @@ extension UnsafeMutableBufferPointer {
   /// entirely uninitialized.
   ///
   /// The count of `span` must not be greater than `self.count`.
-  @available(SwiftCompatibilitySpan 5.0, *)
+  @available(SwiftStdlib 6.2, *)
   @inlinable
   internal mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
     unsafe span.withUnsafeBufferPointer { buffer in
