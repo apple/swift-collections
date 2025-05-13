@@ -40,13 +40,12 @@ if(COLLECTIONS_SINGLE_MODULE)
           LIBRARY DESTINATION lib/swift_static/${swift_os}
           RUNTIME DESTINATION bin)
     endif()
-    get_swift_host_arch(swift_arch)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftdoc
       DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${swift_arch}.swiftdoc)
+      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftmodule
       DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${swift_arch}.swiftmodule)
+      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
   else()
     _install_target(${COLLECTIONS_MODULE_NAME})
   endif()
