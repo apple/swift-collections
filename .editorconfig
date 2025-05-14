@@ -1,0 +1,38 @@
+root = true
+
+[*]
+charset = utf-8
+insert_final_newline = true
+end_of_line = lf
+tab_width = 4
+
+[*.{swift,swift.gyb,cpp,h}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.{sh,py}]
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[CMakeLists.txt]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.{md,txt}]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.xcconfig]
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.pbxproj]
+indent_style = tab
+tab_width = 4
+indent_size = 4
+trim_trailing_whitespace = true
