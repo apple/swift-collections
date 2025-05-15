@@ -5,34 +5,37 @@ charset = utf-8
 insert_final_newline = true
 end_of_line = lf
 tab_width = 4
+trim_trailing_whitespace = true
 
-[*.{swift,swift.gyb,cpp,h}]
+[*.{swift,swift.gyb,cpp,h,yml}]
 indent_style = space
 indent_size = 2
-trim_trailing_whitespace = true
 
 [*.{sh,py}]
 indent_style = space
 indent_size = 4
-trim_trailing_whitespace = true
+
+[.swiftci/*}]
+indent_style = space
+indent_size = 4
 
 [CMakeLists.txt]
 indent_style = space
 indent_size = 2
-trim_trailing_whitespace = true
+
+[*.cmake{,.in}]
+indent_style = space
+indent_size = 2
 
 [*.{md,txt}]
 indent_style = space
 indent_size = 2
-trim_trailing_whitespace = true
 
 [*.xcconfig]
 indent_style = space
 indent_size = 2
-trim_trailing_whitespace = true
 
 [*.pbxproj]
 indent_style = tab
 tab_width = 4
 indent_size = 4
-trim_trailing_whitespace = true
