@@ -31,11 +31,6 @@ The package currently provides the following implementations:
 [TreeSet]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/hashtreecollections/treeset
 [TreeDictionary]: https://swiftpackageindex.com/apple/swift-collections/1.1.0/documentation/hashtreecollections/treedictionary
 
-The following additional data structures are currently under development but they aren't stable enough to preview yet.
-
-- [`SortedSet` and `SortedDictionary`](https://github.com/apple/swift-collections/pull/65), sorted collections backed by in-memory persistent b-trees.
-- [`SparseSet`](https://github.com/apple/swift-collections/pull/80), a constant time set construct, trading off memory for speed.
-
 Swift Collections uses the same modularization approach as [**Swift Numerics**](https://github.com/apple/swift-numerics): it provides a standalone module for each thematic group of data structures it implements. For instance, if you only need a double-ended queue type, you can pull in only that by importing `DequeModule`. `OrderedSet` and `OrderedDictionary` share much of the same underlying implementation, so they are provided by a single module, called `OrderedCollections`. However, there is also a top-level `Collections` module that gives you every collection type with a single import statement:
 
 ``` swift
@@ -84,17 +79,16 @@ The following table maps package releases to their minimum required Swift toolch
 | ----------------------- | --------------- | ------------- |
 | swift-collections 1.0.x | >= Swift 5.3.2  | >= Xcode 12.4 |
 | swift-collections 1.1.x | >= Swift 5.7.2  | >= Xcode 14.2 |
-| swift-collections 1.2.x | >= Swift 5.9.0  | >= Xcode 15.0 |
+| swift-collections 1.2.x | >= Swift 5.10.0 | >= Xcode 15.3 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
-
 
 ## Using **Swift Collections** in your project
 
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:6.0
+// swift-tools-version:6.1
 import PackageDescription
 
 let package = Package(
@@ -102,7 +96,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-collections.git", 
-      .upToNextMinor(from: "1.1.0") // or `.upToNextMajor
+      .upToNextMinor(from: "1.2.0") // or `.upToNextMajor
     )
   ],
   targets: [
@@ -130,17 +124,17 @@ We maintain separate branches for each minor version of the package:
 
 | Package version         | Branch      | Status   |
 | ----------------------- | ----------- | -------- |
-| swift-collections 1.0.x | release/1.0 | Critical bugfixes only |
+| swift-collections 1.0.x | release/1.0 | Obsolete |
 | swift-collections 1.1.x | release/1.1 | Critical bugfixes only | 
-| swift-collections 1.2.x | release/1.2 | Open for feature development (next feature release) |
-| swift-collections 1.3.x | main        | Open for feature development (unscheduled landing area) |
+| swift-collections 1.2.x | release/1.2 | Critical bugfixes only |
+| swift-collections 1.3.x | main        | Feature work towards next minor release |
 | n.a.                    | future      | Experimental prototyping |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
 
 `release/1.0` → `release/1.1` → `release/1.2` → `main`
 
-For example, anything landing on `release/1.1` will eventually appear on `release/1.2` and then `main` too; there is no need to file standalone PRs for each release line. (Change propagation currently requires manual work -- it is performed by project maintainers.)
+For example, anything landing on `release/1.1` will eventually appear on `release/1.2` and then `main` too; there is no need to file standalone PRs for each release line. Change propagation is not instantaneous, as it currently requires manual work -- it is performed by project maintainers.
 
 ### Working on the package
 
