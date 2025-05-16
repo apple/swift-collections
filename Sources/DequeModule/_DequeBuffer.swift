@@ -44,6 +44,6 @@ extension _DequeBuffer: CustomStringConvertible {
 internal let _emptyDequeStorage = _DequeBuffer<Void>.create(
   minimumCapacity: 0,
   makingHeaderWith: { _ in
-    _DequeBufferHeader(capacity: 0, count: 0, startSlot: .init(at: 0))
+    _DequeBufferHeader(capacity: 0, requestedCapacity: 0, count: 0, startSlot: .init(at: 0))
   })
 
