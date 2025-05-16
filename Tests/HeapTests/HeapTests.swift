@@ -587,4 +587,121 @@ final class HeapTests: CollectionTestCase {
       }
     }
   }
+
+  struct Distinguishable: Comparable, CustomStringConvertible {
+    var value: Int
+    var id: Int
+
+    static func ==(left: Self, right: Self) -> Bool {
+      left.value == right.value
+    }
+    static func <(left: Self, right: Self) -> Bool {
+      left.value < right.value
+    }
+    var description: String { "\(value)/\(id)" }
+  }
+
+  func test_tieBreaks_min() {
+    var heap: Heap = [
+      Distinguishable(value: 1, id: 1),
+      Distinguishable(value: 1, id: 2),
+      Distinguishable(value: 1, id: 3),
+      Distinguishable(value: 1, id: 4),
+      Distinguishable(value: 1, id: 5),
+    ]
+    while !heap.isEmpty {
+      let oldID = heap.min!.id
+      let newID = 10 * oldID
+      let old = heap.replaceMin(with: Distinguishable(value: 1, id: newID))
+      expectEqual(old.id, oldID)
+      expectEqual(heap.min?.id, 10 * oldID)
+      expectNotNil(heap.removeMin()) { min in
+        expectEqual(min.id, newID)
+      }
+    }
+  }
+
+  func test_tieBreaks_max() {
+    var heap: Heap = [
+      Distinguishable(value: 1, id: 1),
+      Distinguishable(value: 1, id: 2),
+      Distinguishable(value: 1, id: 3),
+      Distinguishable(value: 1, id: 4),
+      Distinguishable(value: 1, id: 5),
+    ]
+    while !heap.isEmpty {
+      let oldID = heap.max!.id
+      let newID = 10 * oldID
+      print(heap.unordered)
+      let old = heap.replaceMax(with: Distinguishable(value: 1, id: newID))
+      expectEqual(old.id, oldID)
+      expectEqual(heap.max?.id, 10 * oldID)
+      expectNotNil(heap.removeMax()) { max in
+        expectEqual(max.id, newID)
+      }
+    }
+  }
+
+  func test_removeAll_noneRemoved() {
+    withEvery("count", in: 0 ..< 20) { count in
+      withEvery("seed", in: 0 ..< 10) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        heap.removeAll { _ in false }
+        let expected = Array(0 ..< count)
+        expectEqualElements(heap.itemsInAscendingOrder(), expected)
+      }
+    }
+  }
+    
+  func test_removeAll_allRemoved() {
+    withEvery("count", in: 0 ..< 20) { count in
+      withEvery("seed", in: 0 ..< 10) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        heap.removeAll { _ in true }
+        expectTrue(heap.isEmpty)
+      }
+    }
+  }
+    
+  func test_removeAll_removeEvenNumbers() {
+    withEvery("count", in: 0 ..< 20) { count in
+      withEvery("seed", in: 0 ..< 10) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        heap.removeAll { $0 % 2 == 0 }
+        let expected = Array(stride(from: 1, to: count, by: 2))
+        expectEqualElements(heap.itemsInAscendingOrder(), expected)
+      }
+    }
+  }
+
+  func test_removeAll_throw() throws {
+    struct DummyError: Error {}
+
+    try withEvery("count", in: 1 ..< 20) { count in
+      try withEvery("seed", in: 0 ..< 10) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        expectThrows(
+          try heap.removeAll { v in
+            if v == count / 2 {
+              throw DummyError()
+            }
+            return v % 2 == 0
+          }
+        ) { error in
+          expectTrue(error is DummyError)
+        }
+        // Throwing halfway through `removeAll` is expected to reorder items,
+        // but not remove any.
+        expectEqualElements(heap.itemsInAscendingOrder(), 0 ..< count)
+      }
+    }
+  }
 }

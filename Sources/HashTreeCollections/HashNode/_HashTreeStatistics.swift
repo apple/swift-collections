@@ -118,8 +118,7 @@ extension _HashNode {
       // Note: for simplicity, we assume that there is no padding between
       // the object header and the storage header.
       let start = _getUnsafePointerToStoredProperties(self.raw.storage)
-      let capacity = self.raw.storage.capacity
-      let end = $0._memory + capacity * MemoryLayout<_RawHashNode>.stride
+      let end = $0._memory + $0.byteCapacity
       stats.grossBytes += objectHeaderSize + (end - start)
 
       for child in $0.children {

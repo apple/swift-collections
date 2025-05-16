@@ -42,10 +42,10 @@ if(COLLECTIONS_SINGLE_MODULE)
     endif()
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftdoc
       DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${Swift_MODULE_TRIPLE}.swiftdoc)
+      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftmodule
       DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${Swift_MODULE_TRIPLE}.swiftmodule)
+      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
   else()
     _install_target(${COLLECTIONS_MODULE_NAME})
   endif()

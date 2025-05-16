@@ -92,10 +92,15 @@ extension _HashNode.Storage {
       bytes += itemAlignment - childAlignment
     }
 
+    let mincap = (bytes &+ childStride &- 1) / childStride
     let object = _HashNode.Storage.create(
-      minimumCapacity: (bytes &+ childStride &- 1) / childStride
+      minimumCapacity: mincap
     ) { buffer in
+#if os(OpenBSD)
+      _HashNodeHeader(byteCapacity: mincap * childStride)
+#else
       _HashNodeHeader(byteCapacity: buffer.capacity * childStride)
+#endif
     }
 
     object.withUnsafeMutablePointers { header, elements in
