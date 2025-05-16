@@ -18,7 +18,6 @@ import InternalCollectionsUtilities
 @usableFromInline
 internal typealias _RawHashStorage = ManagedBuffer<_HashNodeHeader, _RawHashNode>
 
-#if compiler(>=5.10)
 /// Type-punned storage for the singleton root node used in empty hash trees
 /// (of all `Key` and `Value` types).
 ///
@@ -31,19 +30,6 @@ nonisolated(unsafe)
 internal let _emptySingleton: _RawHashStorage = _RawHashStorage.create(
   minimumCapacity: 0,
   makingHeaderWith: { _ in _HashNodeHeader(byteCapacity: 0) })
-#else
-/// Type-punned storage for the singleton root node used in empty hash trees
-/// (of all `Key` and `Value` types).
-///
-/// `_HashNode` is carefully defined to use a `_RawHashStorage` reference as its
-/// storage variable, so that this can work. (The only reason we need the
-/// `_HashNode.Storage` subclass is to allow storage instances to properly
-/// clean up after themselves in their `deinit` method.)
-@usableFromInline
-internal let _emptySingleton: _RawHashStorage = _RawHashStorage.create(
-  minimumCapacity: 0,
-  makingHeaderWith: { _ in _HashNodeHeader(byteCapacity: 0) })
-#endif
 
 extension _HashNode {
   /// Instances of this class hold (tail-allocated) storage for individual
