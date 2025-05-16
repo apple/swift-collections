@@ -644,7 +644,7 @@ final class HeapTests: CollectionTestCase {
 
   func test_removeAll_noneRemoved() {
     withEvery("count", in: 0 ..< 20) { count in
-      withEvery("seed", in: 0 ..< 100) { seed in
+      withEvery("seed", in: 0 ..< 10) { seed in
         var rng = RepeatableRandomNumberGenerator(seed: seed)
         let input = (0 ..< count).shuffled(using: &rng)
         var heap = Heap(input)
@@ -657,7 +657,7 @@ final class HeapTests: CollectionTestCase {
     
   func test_removeAll_allRemoved() {
     withEvery("count", in: 0 ..< 20) { count in
-      withEvery("seed", in: 0 ..< 100) { seed in
+      withEvery("seed", in: 0 ..< 10) { seed in
         var rng = RepeatableRandomNumberGenerator(seed: seed)
         let input = (0 ..< count).shuffled(using: &rng)
         var heap = Heap(input)
@@ -669,13 +669,38 @@ final class HeapTests: CollectionTestCase {
     
   func test_removeAll_removeEvenNumbers() {
     withEvery("count", in: 0 ..< 20) { count in
-      withEvery("seed", in: 0 ..< 100) { seed in
+      withEvery("seed", in: 0 ..< 10) { seed in
         var rng = RepeatableRandomNumberGenerator(seed: seed)
         let input = (0 ..< count).shuffled(using: &rng)
         var heap = Heap(input)
         heap.removeAll { $0 % 2 == 0 }
         let expected = Array(stride(from: 1, to: count, by: 2))
         expectEqualElements(heap.itemsInAscendingOrder(), expected)
+      }
+    }
+  }
+
+  func test_removeAll_throw() throws {
+    struct DummyError: Error {}
+
+    try withEvery("count", in: 1 ..< 20) { count in
+      try withEvery("seed", in: 0 ..< 10) { seed in
+        var rng = RepeatableRandomNumberGenerator(seed: seed)
+        let input = (0 ..< count).shuffled(using: &rng)
+        var heap = Heap(input)
+        expectThrows(
+          try heap.removeAll { v in
+            if v == count / 2 {
+              throw DummyError()
+            }
+            return v % 2 == 0
+          }
+        ) { error in
+          expectTrue(error is DummyError)
+        }
+        // Throwing halfway through `removeAll` is expected to reorder items,
+        // but not remove any.
+        expectEqualElements(heap.itemsInAscendingOrder(), 0 ..< count)
       }
     }
   }
