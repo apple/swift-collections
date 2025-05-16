@@ -81,12 +81,17 @@ extension Heap._UnsafeHandle {
 
   @inlinable @inline(__always)
   internal func minValue(_ a: _HeapNode, _ b: _HeapNode) -> _HeapNode {
-    self[a] <= self[b] ? a : b
+    // The expression used here matches the implementation of the
+    // standard `Swift.min(_:_:)` function. This attempts to
+    // preserve any pre-existing order in case `T` has identity.
+    // `(min(x, y), max(x, y))` should return `(x, y)` in case `x == y`.
+    self[b] < self[a] ? b : a
   }
 
   @inlinable @inline(__always)
   internal func maxValue(_ a: _HeapNode, _ b: _HeapNode) -> _HeapNode {
-    self[a] > self[b] ? a : b
+    //  In case `a` and `b` match, we need to pick `b`. See `minValue(_:_:)`.
+    self[b] >= self[a] ? b : a
   }
 }
 
