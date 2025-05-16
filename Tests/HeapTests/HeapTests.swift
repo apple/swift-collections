@@ -587,4 +587,58 @@ final class HeapTests: CollectionTestCase {
       }
     }
   }
+
+  struct Distinguishable: Comparable, CustomStringConvertible {
+    var value: Int
+    var id: Int
+
+    static func ==(left: Self, right: Self) -> Bool {
+      left.value == right.value
+    }
+    static func <(left: Self, right: Self) -> Bool {
+      left.value < right.value
+    }
+    var description: String { "\(value)/\(id)" }
+  }
+
+  func test_tieBreaks_min() {
+    var heap: Heap = [
+      Distinguishable(value: 1, id: 1),
+      Distinguishable(value: 1, id: 2),
+      Distinguishable(value: 1, id: 3),
+      Distinguishable(value: 1, id: 4),
+      Distinguishable(value: 1, id: 5),
+    ]
+    while !heap.isEmpty {
+      let oldID = heap.min!.id
+      let newID = 10 * oldID
+      let old = heap.replaceMin(with: Distinguishable(value: 1, id: newID))
+      expectEqual(old.id, oldID)
+      expectEqual(heap.min?.id, 10 * oldID)
+      expectNotNil(heap.removeMin()) { min in
+        expectEqual(min.id, newID)
+      }
+    }
+  }
+
+  func test_tieBreaks_max() {
+    var heap: Heap = [
+      Distinguishable(value: 1, id: 1),
+      Distinguishable(value: 1, id: 2),
+      Distinguishable(value: 1, id: 3),
+      Distinguishable(value: 1, id: 4),
+      Distinguishable(value: 1, id: 5),
+    ]
+    while !heap.isEmpty {
+      let oldID = heap.max!.id
+      let newID = 10 * oldID
+      print(heap.unordered)
+      let old = heap.replaceMax(with: Distinguishable(value: 1, id: newID))
+      expectEqual(old.id, oldID)
+      expectEqual(heap.max?.id, 10 * oldID)
+      expectNotNil(heap.removeMax()) { max in
+        expectEqual(max.id, newID)
+      }
+    }
+  }
 }
