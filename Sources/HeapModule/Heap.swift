@@ -280,13 +280,15 @@ extension Heap {
   public mutating func removeAll(
     where shouldBeRemoved: (Element) throws -> Bool
   ) rethrows {
-    defer { _checkInvariants() }
-    try _storage.removeAll(where: shouldBeRemoved)
-    if _storage.count > 1 {
-      _update { handle in
-        handle.heapify()
+    defer {
+      if _storage.count > 1 {
+        _update { handle in
+          handle.heapify()
+        }
       }
+      _checkInvariants()
     }
+    try _storage.removeAll(where: shouldBeRemoved)
   }
 
   /// Replaces the maximum value in the heap with the given replacement,
