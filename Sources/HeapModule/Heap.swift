@@ -212,7 +212,7 @@ extension Heap {
           handle.swapAt(.leftMax, with: &removed)
         }
       } else {
-        let maxNode = handle.maxValue(.rightMax, .leftMax)
+        let maxNode = handle.maxValue(.leftMax, .rightMax)
         handle.swapAt(maxNode, with: &removed)
         handle.trickleDownMax(maxNode)
       }
