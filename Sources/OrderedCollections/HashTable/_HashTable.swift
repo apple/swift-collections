@@ -99,14 +99,31 @@ extension _HashTable {
     let minScale = Self.scale(forCapacity: elements.count)
     let scale = Swift.max(Swift.max(scale ?? 0, minScale),
                           reservedScale)
+
     if scale < Self.minimumScale {
       // Don't hash anything.
       if elements.count < 2 { return (nil, elements.endIndex) }
-      var temp: [C.Element] = []
+      // fast path that doesn't allocate per element if _read accessor can't
+      // be inlined because this function doesn't get specialized e.g.
+      // if `Element` isn't known at compile time.
+      let firstDuplicateIndexFastPath: Int? = elements.withContiguousStorageIfAvailable { elements in
+        var temp: ContiguousArray<C.Element> = []
+        temp.reserveCapacity(elements.count)
+        for i in elements.indices {
+          let item = elements[i]
+          guard !temp._contains(item) else { return i }
+          temp.append(item)
+        }
+        return elements.endIndex
+      }
+      if let firstDuplicateIndexFastPath {
+        return (nil, elements.index(elements.startIndex, offsetBy: firstDuplicateIndexFastPath))
+      }
+      var temp: ContiguousArray<C.Element> = []
       temp.reserveCapacity(elements.count)
       for i in elements.indices {
         let item = elements[i]
-        guard !temp.contains(item) else { return (nil, i) }
+        guard !temp._contains(item) else { return (nil, i) }
         temp.append(item)
       }
       return (nil, elements.endIndex)
@@ -133,6 +150,21 @@ extension _HashTable {
       }
       return Self(unsafeDowncast(new, to: Storage.self))
     }
+  }
+}
+
+/// copy of the standard library implementation of `Sequence.contains(_:)`
+/// to allow partial specialization if `Element` is not known at compile time.
+/// also some modification to remove some more generic overhead.
+extension ContiguousArray where Element: Equatable {
+  @inlinable
+  func _contains(_ element: Element) -> Bool {
+    for index in 0..<count {
+      if element == self[index] {
+        return true
+      }
+    }
+    return false
   }
 }
 

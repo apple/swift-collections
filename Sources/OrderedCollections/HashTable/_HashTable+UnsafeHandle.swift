@@ -292,11 +292,20 @@ extension _HashTable.UnsafeHandle {
 
 extension _UnsafeHashTable {
   @inlinable
-  internal func _find<Base: RandomAccessCollection>(
-    _ item: Base.Element,
-    in elements: Base
-  ) -> (index: Int?, bucket: Bucket)
-  where Base.Element: Hashable {
+  internal func _find<Element: Hashable>(
+    _ item: Element,
+    in elements: ContiguousArray<Element>
+  ) -> (index: Int?, bucket: Bucket) {
+    elements.withUnsafeBufferPointer { buffer in
+      _find(item, in: buffer)
+    }
+  }
+
+  @inlinable
+  internal func _find<Element: Hashable>(
+    _ item: Element,
+    in elements: UnsafeBufferPointer<Element>
+  ) -> (index: Int?, bucket: Bucket) {
     let start = idealBucket(for: item)
     var (iterator, value) = startFind(start)
     while let index = value {
@@ -502,6 +511,24 @@ extension _UnsafeHashTable {
   ) where C.Element: Hashable {
     assertMutable()
     assert(elements.count <= capacity)
+    // fast path that doesn't allocate per element if _read accessor can't
+    // be inlined because this function doesn't get specialized e.g.
+    // if `Element` isn't known at compile time.
+    let fastPath: Void? = elements.withContiguousStorageIfAvailable { elements in
+      // Iterate over elements and insert their offset into the hash table.
+      var offset = 0
+      for index in elements.indices {
+        // Find the insertion position. We know that we're inserting a new item,
+        // so there is no need to compare it with any of the existing ones.
+        var it = bucketIterator(for: elements[index])
+        it.advanceToNextUnoccupiedBucket()
+        it.currentValue = offset
+        offset += 1
+      }
+    }
+    if fastPath != nil {
+      return
+    }
     // Iterate over elements and insert their offset into the hash table.
     var offset = 0
     for index in elements.indices {
@@ -527,6 +554,30 @@ extension _UnsafeHashTable {
     assertMutable()
     assert(elements.count <= capacity)
     // Iterate over elements and insert their offset into the hash table.
+    
+    // fast path that doesn't allocate per element if _read accessor can't
+    // be inlined because this function doesn't get specialized e.g.
+    // if `Element` isn't known at compile time.
+    let fastPath: (success: Bool, end: Int)? = elements.withContiguousStorageIfAvailable { elements in
+      var offset = 0
+      for index in elements.indices {
+        // Find the insertion position. We know that we're inserting a new item,
+        // so there is no need to compare it with any of the existing ones.
+        var it = bucketIterator(for: elements[index])
+        while let offset = it.currentValue {
+          guard elements[_offset: offset] != elements[index] else {
+            return (false, index)
+          }
+          it.advance()
+        }
+        it.currentValue = offset
+        offset += 1
+      }
+      return (true, elements.endIndex)
+    }
+    if let fastPath {
+      return (fastPath.success, elements.index(elements.startIndex, offsetBy: fastPath.end))
+    }
     var offset = 0
     for index in elements.indices {
       // Find the insertion position. We know that we're inserting a new item,

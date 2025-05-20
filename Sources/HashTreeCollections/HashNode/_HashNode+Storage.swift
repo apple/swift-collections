@@ -26,6 +26,7 @@ internal typealias _RawHashStorage = ManagedBuffer<_HashNodeHeader, _RawHashNode
 /// `_HashNode.Storage` subclass is to allow storage instances to properly
 /// clean up after themselves in their `deinit` method.)
 @usableFromInline
+nonisolated(unsafe)
 internal let _emptySingleton: _RawHashStorage = _RawHashStorage.create(
   minimumCapacity: 0,
   makingHeaderWith: { _ in _HashNodeHeader(byteCapacity: 0) })

@@ -14,7 +14,7 @@
 @usableFromInline
 @frozen
 internal struct _HashStack<Element> {
-#if arch(x86_64) || arch(arm64)
+#if _pointerBitWidth(_64)
   @inlinable
   @inline(__always)
   internal static var capacity: Int { 13 }
@@ -27,7 +27,7 @@ internal struct _HashStack<Element> {
     Element, Element, Element, Element,
     Element
   )
-#else
+#elseif _pointerBitWidth(_32)
   @inlinable
   @inline(__always)
   internal static var capacity: Int { 7 }
@@ -38,6 +38,8 @@ internal struct _HashStack<Element> {
     Element, Element, Element, Element,
     Element, Element, Element
   )
+#else
+#error("Unexpected pointer bit width")
 #endif
 
   @usableFromInline
@@ -46,18 +48,20 @@ internal struct _HashStack<Element> {
   @inlinable
   internal init(filledWith value: Element) {
     assert(Self.capacity == _HashLevel.limit)
-#if arch(x86_64) || arch(arm64)
+#if _pointerBitWidth(_64)
     _contents = (
       value, value, value, value,
       value, value, value, value,
       value, value, value, value,
       value
     )
-#else
+#elseif _pointerBitWidth(_32)
     _contents = (
       value, value, value, value,
       value, value, value
     )
+#else
+#error("Unexpected pointer bit width")
 #endif
     self._count = 0
   }

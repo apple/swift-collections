@@ -15,19 +15,3 @@ var isRunningOnSwiftStdlib5_8: Bool {
   }
   return false
 }
-
-
-#if swift(<5.8)
-extension String.Index {
-  var _description: String {
-    let raw = unsafeBitCast(self, to: UInt64.self)
-    let encodedOffset = Int(truncatingIfNeeded: raw &>> 16)
-    let transcodedOffset = Int(truncatingIfNeeded: (raw &>> 14) & 0x3)
-    var d = "\(encodedOffset)[unknown]"
-    if transcodedOffset > 0 {
-      d += "+\(transcodedOffset)"
-    }
-    return d
-  }
-}
-#endif
