@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false // SortedCollections is not a thing yet
 import CollectionsBenchmark
 import SortedCollections
 
@@ -301,3 +302,4 @@ extension Benchmark {
     }
   }
 }
+#endif
