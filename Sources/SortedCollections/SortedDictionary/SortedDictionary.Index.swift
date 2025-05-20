@@ -34,10 +34,8 @@ extension SortedDictionary {
   }
 }
 
-#if swift(>=5.5)
 extension SortedDictionary.Index: @unchecked Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 // MARK: Equatable
 extension SortedDictionary.Index: Equatable {

@@ -9,6 +9,4 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.5)
 extension SortedSet: @unchecked Sendable where Element: Sendable {}
-#endif

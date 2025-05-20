@@ -34,10 +34,8 @@ extension SortedSet {
   }
 }
 
-#if swift(>=5.5)
 extension SortedSet.Index: @unchecked Sendable
 where Element: Sendable {}
-#endif
 
 // MARK: Equatable
 extension SortedSet.Index: Equatable {
