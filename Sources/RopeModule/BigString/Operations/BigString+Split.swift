@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   mutating func split(
@@ -38,5 +36,3 @@ extension BigString {
     return _rope.builder(splittingAt: index.utf8Offset, in: _UTF8Metric())
   }
 }
-
-#endif

@@ -16,13 +16,30 @@ See https://swift.org/LICENSE.txt for license information
 # Sets ${result_var_name} with the converted OS name derived from
 # CMAKE_SYSTEM_NAME.
 function(get_swift_host_os result_var_name)
-  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
-    set(${result_var_name} macosx PARENT_SCOPE)
-  else()
-    string(TOLOWER ${CMAKE_SYSTEM_NAME} cmake_system_name_lc)
-    set(${result_var_name} ${cmake_system_name_lc} PARENT_SCOPE)
-  endif()
+  set(${result_var_name} ${SWIFT_SYSTEM_NAME} PARENT_SCOPE)
 endfunction()
+
+if(NOT Swift_MODULE_TRIPLE)
+  # Attempt to get the module triple from the Swift compiler.
+  set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
+  if(CMAKE_Swift_COMPILER_TARGET)
+    list(APPEND module_triple_command -target ${CMAKE_Swift_COMPILER_TARGET})
+  endif()
+  execute_process(COMMAND ${module_triple_command}
+    OUTPUT_VARIABLE target_info_json)
+  string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
+
+  # Exit now if we failed to infer the triple.
+  if(NOT module_triple)
+    message(FATAL_ERROR
+      "Failed to get module triple from Swift compiler. "
+      "Compiler output: ${target_info_json}")
+  endif()
+
+  # Cache the module triple for future use.
+  set(Swift_MODULE_TRIPLE "${module_triple}" CACHE STRING "swift module triple used for installed swiftmodule and swiftinterface files")
+  mark_as_advanced(Swift_MODULE_TRIPLE)
+endif()
 
 function(_install_target module)
   get_swift_host_os(swift_os)
@@ -34,10 +51,7 @@ function(_install_target module)
     set(swift swift)
   endif()
 
-  install(TARGETS ${module}
-    ARCHIVE DESTINATION lib/${swift}/${swift_os}
-    LIBRARY DESTINATION lib/${swift}/${swift_os}
-    RUNTIME DESTINATION bin)
+  install(TARGETS ${module})
   if(type STREQUAL EXECUTABLE)
     return()
   endif()

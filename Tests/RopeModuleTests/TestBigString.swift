@@ -9,7 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
@@ -172,7 +171,7 @@ class TestBigString: CollectionTestCase {
       guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
       let c1 = flat[i1]
       let c2 = big[i2]
-      expectEqual(c1, c2, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(c1, c2, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< c {
@@ -180,7 +179,7 @@ class TestBigString: CollectionTestCase {
       let i2 = indices2[i]
       let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
       let d2 = big.utf8.distance(from: big.startIndex, to: i2)
-      expectEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(d2, d1, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
     return (indices1, indices2)
   }
@@ -222,7 +221,7 @@ class TestBigString: CollectionTestCase {
       guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
       let c1 = flat.unicodeScalars[i1]
       let c2 = big.unicodeScalars[i2]
-      expectEqual(c1, c2, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(c1, c2, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< c {
@@ -230,7 +229,7 @@ class TestBigString: CollectionTestCase {
       let i2 = indices2[i]
       let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
       let d2 = big.utf8.distance(from: big.startIndex, to: i2)
-      expectEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(d2, d1, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
     return (indices1, indices2)
   }
@@ -272,7 +271,7 @@ class TestBigString: CollectionTestCase {
       guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
       let c1 = flat.utf8[i1]
       let c2 = big.utf8[i2]
-      expectEqual(c1, c2, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(c1, c2, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< c {
@@ -280,7 +279,7 @@ class TestBigString: CollectionTestCase {
       let i2 = indices2[i]
       let d1 = flat.utf8.distance(from: flat.startIndex, to: i1)
       let d2 = big.utf8.distance(from: big.startIndex, to: i2)
-      expectEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(d2, d1, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
     return (indices1, indices2)
   }
@@ -322,7 +321,7 @@ class TestBigString: CollectionTestCase {
       guard i1 < flat.endIndex, i2 < big.endIndex else { continue }
       let c1 = flat.utf16[i1]
       let c2 = big.utf16[i2]
-      expectEqual(c1, c2, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(c1, c2, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
 
     for i in 0 ..< c {
@@ -330,7 +329,7 @@ class TestBigString: CollectionTestCase {
       let i2 = indices2[i]
       let d1 = flat.utf16.distance(from: flat.startIndex, to: i1)
       let d2 = big.utf16.distance(from: big.startIndex, to: i2)
-      expectEqual(d2, d1, "i: \(i), i1: \(i1._description), i2: \(i2)", file: file, line: line)
+      expectEqual(d2, d1, "i: \(i), i1: \(i1), i2: \(i2)", file: file, line: line)
     }
     return (indices1, indices2)
   }
@@ -1053,4 +1052,3 @@ class TestBigString: CollectionTestCase {
     expectNotEqual(cafe1.utf16, cafe2.utf16)
   }
 }
-#endif

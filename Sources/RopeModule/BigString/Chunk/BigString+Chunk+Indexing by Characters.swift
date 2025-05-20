@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension UInt8 {
   /// Returns true if this is a leading code unit in the UTF-8 encoding of a Unicode scalar that
@@ -108,5 +106,3 @@ extension BigString._Chunk {
     return (false, false)
   }
 }
-
-#endif

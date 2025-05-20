@@ -433,7 +433,7 @@ extension OrderedSet {
   internal func _find_inlined(_ item: Element) -> (index: Int?, bucket: _Bucket) {
     _elements.withUnsafeBufferPointer { elements in
       guard let table = _table else {
-        return (elements.firstIndex(of: item), _Bucket(offset: 0))
+        return (elements._firstIndex(of: item), _Bucket(offset: 0))
       }
       return table.read { hashTable in
         hashTable._find(item, in: elements)
@@ -478,6 +478,22 @@ extension OrderedSet {
   @inline(__always)
   public func lastIndex(of element: Element) -> Int? {
     _find(element).index
+  }
+}
+
+/// copy of the standard library implementation of `Collection.firstIndex(of:)`
+/// to allow partial specialization if `Element` is not known at compile time
+extension UnsafeBufferPointer where Element: Equatable {
+  @inlinable
+  func _firstIndex(of element: Element) -> Index? {
+    var i = self.startIndex
+    while i != self.endIndex {
+      if self[i] == element {
+        return i
+      }
+      self.formIndex(after: &i)
+    }
+    return nil
   }
 }
 

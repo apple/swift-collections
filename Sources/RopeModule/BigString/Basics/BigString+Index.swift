@@ -9,8 +9,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
-
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   public  struct Index: Sendable {
@@ -247,4 +245,3 @@ extension BigString {
     return Index(baseUTF8Offset: i.utf8Offset - ci._utf8Offset, _rope: ri, chunk: ci)
   }
 }
-#endif
