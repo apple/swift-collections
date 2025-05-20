@@ -23,10 +23,8 @@ extension SortedDictionary {
   }
 }
 
-#if swift(>=5.5)
 extension SortedDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 extension SortedDictionary.Values: Sequence {
   /// The element type of the collection.
@@ -57,10 +55,8 @@ extension SortedDictionary.Values: Sequence {
   }
 }
 
-#if swift(>=5.5)
 extension SortedDictionary.Values.Iterator: Sendable
 where Key: Sendable, Value: Sendable {}
-#endif
 
 extension SortedDictionary.Values: BidirectionalCollection {
   /// The index type for a dictionary's values view.

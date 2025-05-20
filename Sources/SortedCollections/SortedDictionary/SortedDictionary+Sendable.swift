@@ -9,7 +9,5 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.5)
 extension SortedDictionary: @unchecked Sendable
 where Key: Sendable, Value: Sendable {}
-#endif

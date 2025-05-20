@@ -50,7 +50,5 @@ extension SortedSet: Sequence {
   }
 }
 
-#if swift(>=5.5)
 extension SortedSet.Iterator: @unchecked Sendable
 where Element: Sendable {}
-#endif

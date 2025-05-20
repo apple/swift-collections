@@ -265,15 +265,16 @@ let targets: [CustomTarget] = [
     name: "RopeModuleTests",
     dependencies: ["_RopeModule", "_CollectionsTestSupport"]),
 
-  .target(
-    kind: .exported,
-    name: "SortedCollections",
-    dependencies: ["InternalCollectionsUtilities"],
-    directory: "SortedCollections"),
-  .target(
-    kind: .test,
-    name: "SortedCollectionsTests",
-    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
+  // These aren't ready for production use yet.
+//  .target(
+//    kind: .exported,
+//    name: "SortedCollections",
+//    dependencies: ["InternalCollectionsUtilities"],
+//    directory: "SortedCollections"),
+//  .target(
+//    kind: .test,
+//    name: "SortedCollectionsTests",
+//    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
@@ -285,7 +286,7 @@ let targets: [CustomTarget] = [
       "HeapModule",
       "OrderedCollections",
       "_RopeModule",
-      "SortedCollections",
+      //"SortedCollections",
     ],
     exclude: ["CMakeLists.txt"])
 ]

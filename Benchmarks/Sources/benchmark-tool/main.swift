@@ -33,8 +33,10 @@ benchmark.addTreeDictionaryBenchmarks()
 benchmark.addDequeBenchmarks()
 benchmark.addOrderedSetBenchmarks()
 benchmark.addOrderedDictionaryBenchmarks()
+#if false
 benchmark.addSortedSetBenchmarks()
 benchmark.addSortedDictionaryBenchmarks()
+#endif
 benchmark.addHeapBenchmarks()
 benchmark.addBitSetBenchmarks()
 benchmark.addTreeSetBenchmarks()
