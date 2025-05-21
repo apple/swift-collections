@@ -87,7 +87,7 @@ extension OrderedSet {
   ///
   ///     let a: OrderedSet = [1, 2, 3, 4]
   ///     let b: OrderedSet = [0, 2, 4, 6]
-  ///     a.union(b) // [1, 2, 3, 4, 0, 6]
+  ///     a.appending(contentsOf: b) // [1, 2, 3, 4, 0, 6]
   ///
   /// This is functionally equivalent to `self.union(elements)`, but it's
   /// more explicit about how the new members are ordered in the new set.
