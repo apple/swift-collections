@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 set(target_info_cmd "${CMAKE_Swift_COMPILER}" -print-target-info)
-if(CMAKE_Swfit_COMPILER_TARGET)
+if(CMAKE_Swift_COMPILER_TARGET)
   list(APPEND target_info_cmd -target ${CMAKE_Swift_COMPILER_TARGET})
 endif()
 execute_process(COMMAND ${target_info_cmd} OUTPUT_VARIABLE target_info_json)
