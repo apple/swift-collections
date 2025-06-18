@@ -41,7 +41,17 @@ extension BigString._Chunk {
     let wholeCharacters = self.wholeCharacters
     let s = Swift.max(start, firstBreak)
     let e = Swift.min(end, lastBreak)
-    var result = wholeCharacters.distance(from: s, to: e)
+    var result: Int
+    // Run the actual grapheme breaking algorithm, making sure we measure
+    // as little data as possible, by making best use of the known character
+    // count for the whole chunk.
+    if e._utf8Offset - s._utf8Offset <= (lastBreak._utf8Offset - firstBreak._utf8Offset) / 2 {
+      result = wholeCharacters.distance(from: s, to: e)
+    } else {
+      result = characterCount - 1 // The last break is handled below
+      result -= wholeCharacters.distance(from: firstBreak, to: s)
+      result -= wholeCharacters.distance(from: e, to: lastBreak)
+    }
 
     if end > lastBreak {
       /// We know `end` is rounded, so it can only ever be after the last break
@@ -75,6 +85,7 @@ extension BigString._Chunk {
   func formCharacterIndex(
     _ i: inout String.Index, offsetBy distance: inout Int
   ) -> (found: Bool, forward: Bool) {
+    // FIXME: Make use of the chunk's known character count to reduce work
     if distance == 0 {
       if i < firstBreak {
         i = string.startIndex

@@ -110,11 +110,24 @@ extension BigString {
       in chunk: BigString._Chunk
     ) -> Int {
       assert(start <= end)
-      return chunk.string.unicodeScalars[start ..< end].count
+
+      // Make use of the chunk's known scalar count to reduce the amount of data we need to look at.
+      if end._utf8Offset - start._utf8Offset < chunk.utf8Count / 2 {
+        return chunk.string.unicodeScalars[start ..< end].count
+      }
+      var result: Int
+      result = chunk.unicodeScalarCount
+      result -= chunk.string.unicodeScalars[..<start].count
+      result -= chunk.string.unicodeScalars[end...].count
+      return result
     }
 
     func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int {
-      return chunk.string.unicodeScalars[..<end].count
+      // Make use of the chunk's known scalar count to reduce the amount of data we need to look at.
+      if end._utf8Offset < chunk.utf8Count / 2 {
+        return chunk.string.unicodeScalars[..<end].count
+      }
+      return chunk.unicodeScalarCount - chunk.string.unicodeScalars[end...].count
     }
 
     func formIndex(
@@ -122,6 +135,7 @@ extension BigString {
       offsetBy distance: inout Int,
       in chunk: BigString._Chunk
     ) -> (found: Bool, forward: Bool) {
+      // FIXME: Make use of the chunk's known scalar count to reduce work
       guard distance != 0 else {
         i = chunk.string.unicodeScalars._index(roundingDown: i)
         return (true, false)
@@ -214,11 +228,23 @@ extension BigString {
       in chunk: BigString._Chunk
     ) -> Int {
       assert(start <= end)
-      return chunk.string.utf16[start ..< end].count
+
+      // Make use of the chunk's known UTF-16 count to reduce the amount of data we need to look at.
+      if end._utf8Offset - start._utf8Offset < chunk.utf8Count / 2 {
+        return chunk.string.utf16[start ..< end].count
+      }
+      var result = chunk.utf16Count
+      result -= chunk.string.utf16[..<start].count
+      result -= chunk.string.utf16[end...].count
+      return result
     }
     
     func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int {
-      return chunk.string.utf16[..<end].count
+      // Make use of the chunk's known UTF-16 count to reduce the amount of data we need to look at.
+      if end._utf8Offset < chunk.utf8Count / 2 {
+        return chunk.string.utf16[..<end].count
+      }
+      return chunk.utf16Count - chunk.string.utf16[end...].count
     }
 
     func formIndex(
@@ -226,6 +252,7 @@ extension BigString {
       offsetBy distance: inout Int,
       in chunk: BigString._Chunk
     ) -> (found: Bool, forward: Bool) {
+      // FIXME: Make use of the chunk's known UTF-16 count to reduce work
       if distance >= 0 {
         if
           distance <= chunk.utf16Count,
