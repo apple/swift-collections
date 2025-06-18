@@ -18,12 +18,49 @@ extension UInt8 {
 
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString._Chunk {
-  func characterDistance(from start: String.Index, to end: String.Index) -> Int {
+  func characterDistance(
+    from start: String.Index,
+    to end: String.Index
+  ) -> Int {
+    // Note: both indices must already have been rounded to a character
+    // boundary.
+    if start == end { return 0 }
+    // Character rounding never ends up in a chunk with no breaks, unless both
+    // indices are at the very end of an overlong character. (Handled above.)
+    assert(hasBreaks)
     let firstBreak = self.firstBreak
-    let (start, a) = start < firstBreak ? (firstBreak, 1) : (start, 0)
-    let (end, b) = end < firstBreak ? (firstBreak, 1) : (end, 0)
-    let d = wholeCharacters.distance(from: start, to: end)
-    return d + a - b
+    let lastBreak = self.lastBreak
+
+    assert(start <= end)
+
+    assert(start >= firstBreak && (start <= lastBreak || start._utf8Offset == self.utf8Count),
+           "start is not Character aligned")
+    assert(end >= firstBreak && (end <= lastBreak || end._utf8Offset == self.utf8Count),
+           "end is not Character aligned")
+
+    let wholeCharacters = self.wholeCharacters
+    let s = Swift.max(start, firstBreak)
+    let e = Swift.min(end, lastBreak)
+    var result: Int
+    // Run the actual grapheme breaking algorithm, making sure we measure
+    // as little data as possible, by making best use of the known character
+    // count for the whole chunk.
+    if e._utf8Offset - s._utf8Offset <= (lastBreak._utf8Offset - firstBreak._utf8Offset) / 2 {
+      result = wholeCharacters.distance(from: s, to: e)
+    } else {
+      result = characterCount - 1 // The last break is handled below
+      result -= wholeCharacters.distance(from: firstBreak, to: s)
+      result -= wholeCharacters.distance(from: e, to: lastBreak)
+    }
+
+    if end > lastBreak {
+      /// We know `end` is rounded, so it can only ever be after the last break
+      /// if the final partial character actually ends with this chunk.
+      /// In that case, we need to include that extra character here.
+      assert(end._utf8Offset == self.utf8Count)
+      result += 1
+    }
+    return result
   }
 
   /// If this returns false, the next position is on the first grapheme break following this
@@ -48,6 +85,7 @@ extension BigString._Chunk {
   func formCharacterIndex(
     _ i: inout String.Index, offsetBy distance: inout Int
   ) -> (found: Bool, forward: Bool) {
+    // FIXME: Make use of the chunk's known character count to reduce work
     if distance == 0 {
       if i < firstBreak {
         i = string.startIndex

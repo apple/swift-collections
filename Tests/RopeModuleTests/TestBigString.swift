@@ -1051,4 +1051,86 @@ class TestBigString: CollectionTestCase {
     expectNotEqual(cafe1.utf8, cafe2.utf8)
     expectNotEqual(cafe1.utf16, cafe2.utf16)
   }
+
+  func test_single_overlong_character() {
+    withEvery("x", in: 0 ..< 300) { x in
+      let str = "a" + String(repeating: "\u{301}", count: x)
+      let big = BigString(str)
+      expectEqual(big.count, 1)
+      expectEqual(big.distance(from: big.startIndex, to: big.endIndex), 1)
+      expectEqual(big.index(after: big.startIndex), big.endIndex)
+      checkBidirectionalCollection(big, expectedContents: str)
+    }
+  }
+
+  func test_characters_on_chunk_boundaries() {
+    withEvery("x", in: 0 ..< 5) { x in
+      let str = String(repeating: "a\u{301}\u{302}", count: 64) + String(repeating: "x", count: x)
+      let c = str.count
+      let big = BigString(str)
+      big._dump()
+      expectEqual(big.count, c)
+      expectEqual(big.distance(from: big.startIndex, to: big.endIndex), c)
+      checkBidirectionalCollection(big, expectedContents: str)
+    }
+  }
+
+  func test_character_calculations_between_unaligned_utf8_indices() {
+    withEvery("x", in: 0 ..< 5) { x in
+      let str = String(repeating: "a\u{301}\u{302}", count: 64) + String(repeating: "x", count: x)
+      let flat = str // sampleString
+      let big = BigString(flat)
+      big._dump()
+
+      let indices1 = Array(flat.utf8.indices) + [flat.endIndex]
+      let indices2 = Array(big.utf8.indices) + [big.endIndex]
+
+      expectEqual(indices2.count, indices1.count)
+      let c = min(indices1.count, indices2.count)
+      withEvery("a", in: 0 ..< c) { a in
+        let i1 = indices1[a]
+        let i2 = indices2[a]
+        withEvery("b", in: a ..< c) { b in
+          let j1 = indices1[b]
+          let j2 = indices2[b]
+
+          let d1 = flat.distance(from: i1, to: j1)
+          let d2 = big.distance(from: i2, to: j2)
+          expectEqual(d2, d1)
+
+          let k2 = big.index(i2, offsetBy: d2)
+          expectEqual(k2, big.index(roundingDown: j2))
+        }
+      }
+    }
+  }
+
+  func test_character_calculations_between_unaligned_utf16_indices() {
+    withEvery("x", in: 0 ..< 5) { x in
+      let str = String(repeating: "🇨🇦🇺🇸", count: 16) + String(repeating: "x", count: x)
+      let flat = str // sampleString
+      let big = BigString(flat)
+      big._dump()
+
+      let indices1 = Array(flat.utf16.indices) + [flat.endIndex]
+      let indices2 = Array(big.utf16.indices) + [big.endIndex]
+      expectEqual(indices2.count, indices1.count)
+      let c = min(indices1.count, indices2.count)
+      withEvery("a", in: 0 ..< c) { a in
+        let i1 = indices1[a]
+        let i2 = indices2[a]
+        withEvery("b", in: a ..< c) { b in
+          let j1 = indices1[b]
+          let j2 = indices2[b]
+
+          let d1 = flat.distance(from: i1, to: j1)
+          let d2 = big.distance(from: i2, to: j2)
+          expectEqual(d2, d1)
+
+          let k2 = big.index(i2, offsetBy: d2)
+          expectEqual(k2, big.index(roundingDown: j2))
+        }
+      }
+    }
+  }
 }
