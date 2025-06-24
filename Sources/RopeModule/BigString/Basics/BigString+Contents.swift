@@ -51,28 +51,31 @@ extension BigString {
     assert(!isEmpty)
     let (lesser, greater) = (start <= end ? (start, end) : (end, start))
     let a = resolve(lesser, preferEnd: false)
-    let b = resolve(greater, preferEnd: true)
-    var d = 0
+    let b = resolve(greater, preferEnd: false)
 
     let ropeIndexA = a._rope!
     let ropeIndexB = b._rope!
     let chunkIndexA = a._chunkIndex
     let chunkIndexB = b._chunkIndex
+    assert(ropeIndexA != _rope.endIndex) // Handled above
 
+    var d = 0
     if ropeIndexA == ropeIndexB {
       d = metric.distance(from: chunkIndexA, to: chunkIndexB, in: _rope[ropeIndexA])
     } else {
-      let chunkA = _rope[ropeIndexA]
-      let chunkB = _rope[ropeIndexB]
-      d += _rope.distance(from: ropeIndexA, to: ropeIndexB, in: metric)
-      d -= metric.distance(from: chunkA.string.startIndex, to: chunkIndexA, in: chunkA)
-      d += metric.distance(from: chunkB.string.startIndex, to: chunkIndexB, in: chunkB)
+      d = _rope.distance(from: ropeIndexA, to: ropeIndexB, in: metric)
+      d -= metric.prefixSize(to: chunkIndexA, in: _rope[ropeIndexA])
+      if ropeIndexB != _rope.endIndex {
+        d += metric.prefixSize(to: chunkIndexB, in: _rope[ropeIndexB])
+      }
     }
     return start <= end ? d : -d
   }
   
   func _characterDistance(from start: Index, to end: Index) -> Int {
-    _distance(from: start, to: end, in: _CharacterMetric())
+    let start = _characterIndex(roundingDown: start)
+    let end = _characterIndex(roundingDown: end)
+    return _distance(from: start, to: end, in: _CharacterMetric())
   }
   
   func _unicodeScalarDistance(from start: Index, to end: Index) -> Int {
@@ -93,7 +96,8 @@ extension BigString {
   // FIXME: See if we need direct implementations for these.
 
   func _characterOffset(of index: Index) -> Int {
-    _characterDistance(from: startIndex, to: index)
+    let index = _characterIndex(roundingDown: index)
+    return _characterDistance(from: startIndex, to: index)
   }
   
   func _unicodeScalarOffset(of index: Index) -> Int {
@@ -179,7 +183,9 @@ extension BigString {
   }
   
   func _characterIndex(_ i: Index, offsetBy distance: Int) -> Index {
-    _index(i, offsetBy: distance, in: _CharacterMetric())._knownCharacterAligned()
+    let i = _characterIndex(roundingDown: i)
+    let result = _index(i, offsetBy: distance, in: _CharacterMetric())
+    return result._knownCharacterAligned()
   }
   
   func _unicodeScalarIndex(_ i: Index, offsetBy distance: Int) -> Index {
@@ -219,6 +225,8 @@ extension BigString {
   }
 
   func _characterIndex(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+    let i = _characterIndex(roundingDown: i)
+    let limit = _characterIndex(roundingDown: limit)
     guard let j = _index(i, offsetBy: distance, limitedBy: limit, in: _CharacterMetric()) else {
       return nil
     }
@@ -244,7 +252,8 @@ extension BigString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   func _characterIndex(after i: Index) -> Index {
-    _index(i, offsetBy: 1, in: _CharacterMetric())._knownCharacterAligned()
+    let i = _characterIndex(roundingDown: i)
+    return _index(i, offsetBy: 1, in: _CharacterMetric())._knownCharacterAligned()
   }
   
   func _unicodeScalarIndex(after i: Index) -> Index {
@@ -275,7 +284,8 @@ extension BigString {
 @available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
 extension BigString {
   func _characterIndex(before i: Index) -> Index {
-    _index(i, offsetBy: -1, in: _CharacterMetric())._knownCharacterAligned()
+    let i = _characterIndex(roundingDown: i)
+    return _index(i, offsetBy: -1, in: _CharacterMetric())._knownCharacterAligned()
   }
   
   func _unicodeScalarIndex(before i: Index) -> Index {
@@ -315,7 +325,7 @@ extension BigString {
     guard offset < _utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let i = resolve(i, preferEnd: false)
-    guard !i._isKnownCharacterAligned else { return resolve(i, preferEnd: false) }
+    guard !i._isKnownCharacterAligned else { return i }
 
     var ri = i._rope!
     let ci = i._chunkIndex
@@ -323,7 +333,7 @@ extension BigString {
     if chunk.hasBreaks {
       let first = chunk.firstBreak
       let last = chunk.lastBreak
-      if ci == first || ci == last { return i }
+      if ci == first || ci == last { return i._knownCharacterAligned() }
       if ci > last {
         return Index(
           baseUTF8Offset: i._utf8BaseOffset, _rope: ri, chunk: last
