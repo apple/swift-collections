@@ -9,18 +9,22 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString: TextOutputStream {
   public mutating func write(_ string: String) {
     append(contentsOf: string)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString: TextOutputStreamable {
   public func write(to target: inout some TextOutputStream) {
     for chunk in _rope {
-      chunk.string.write(to: &target)
+      let str = String(unsafeUninitializedCapacity: chunk.utf8Count) {
+        $0.initialize(fromContentsOf: chunk._bytes)
+      }
+
+      str.write(to: &target)
     }
   }
 }

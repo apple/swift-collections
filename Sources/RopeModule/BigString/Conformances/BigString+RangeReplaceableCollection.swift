@@ -13,7 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString: RangeReplaceableCollection {
   public init() {
     self.init(_rope: _Rope())

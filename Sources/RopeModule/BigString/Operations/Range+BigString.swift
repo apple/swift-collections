@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension Range<BigString.Index> {
   internal var _isEmptyUTF8: Bool {
     lowerBound.utf8Offset == upperBound.utf8Offset

@@ -9,31 +9,31 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
-  func splitCounts(at i: String.Index) -> (left: Counts, right: Counts) {
-    precondition(i <= string.endIndex)
-    guard i < string.endIndex else {
+  func splitCounts(at i: Index) -> (left: Counts, right: Counts) {
+    precondition(i <= endIndex)
+    guard i < endIndex else {
       return (self.counts, Counts())
     }
-    guard i > string.startIndex else {
+    guard i > startIndex else {
       return (Counts(), self.counts)
     }
-    let i = string.unicodeScalars._index(roundingDown: i)
+    let i = scalarIndex(roundingDown: i)
 
     let leftUTF16: Int
     let leftScalars: Int
     let rightUTF16: Int
     let rightScalars: Int
-    if string._utf8Offset(of: i) <= utf8Count / 2 {
-      leftUTF16 = string.utf16.distance(from: string.startIndex, to: i)
+    if i.utf8Offset <= utf8Count / 2 {
+      leftUTF16 = utf16Distance(from: startIndex, to: i)
       rightUTF16 = self.utf16Count - leftUTF16
-      leftScalars = string.unicodeScalars.distance(from: string.startIndex, to: i)
+      leftScalars = scalarDistance(from: startIndex, to: i)
       rightScalars = self.unicodeScalarCount - leftScalars
     } else {
-      rightUTF16 = string.utf16.distance(from: i, to: string.endIndex)
+      rightUTF16 = utf16Distance(from: i, to: endIndex)
       leftUTF16 = self.utf16Count - rightUTF16
-      rightScalars = string.unicodeScalars.distance(from: i, to: string.endIndex)
+      rightScalars = scalarDistance(from: i, to: endIndex)
       leftScalars = self.unicodeScalarCount - rightScalars
     }
 
@@ -47,23 +47,22 @@ extension BigString._Chunk {
     return (left, right)
   }
 
-  func counts(upTo i: String.Index) -> Counts {
-    precondition(i <= string.endIndex)
-    let i = string.unicodeScalars._index(roundingDown: i)
-    guard i > string.startIndex else { return Counts() }
-    guard i < string.endIndex else { return self.counts }
+  func counts(upTo i: Index) -> Counts {
+    precondition(i <= endIndex)
+    let i = scalarIndex(roundingDown: i)
+    guard i > startIndex else { return Counts() }
+    guard i < endIndex else { return self.counts }
 
-    let utf16 = string.utf16.distance(from: string.startIndex, to: i)
-    let scalars = string.unicodeScalars.distance(from: string.startIndex, to: i)
+    let utf16 = utf16Distance(from: startIndex, to: i)
+    let scalars = scalarDistance(from: startIndex, to: i)
     return _counts(from: i, utf16: utf16, scalars: scalars)
   }
 
-  func _counts(upTo i: String.Index, utf16: Int, scalars: Int) -> Counts {
-    assert(i > string.startIndex && i < string.endIndex)
-    let s = string[..<i]
+  func _counts(upTo i: Index, utf16: Int, scalars: Int) -> Counts {
+    assert(i > startIndex && i < endIndex)
 
     var result = Counts(
-      utf8: s.utf8.count,
+      utf8: utf8Distance(from: startIndex, to: i),
       utf16: utf16,
       unicodeScalars: scalars,
       characters: 0,
@@ -83,33 +82,30 @@ extension BigString._Chunk {
       result._suffix = self.counts._suffix - (self.counts.utf8 - result.utf8)
     } else { // i > firstBreak, i <= lastBreak
       result._prefix = self.counts._prefix
-      let wholeChars = string[firstBreak ..< i]
-      assert(!wholeChars.isEmpty)
+      assert(!(firstBreak..<i).isEmpty)
       var state = _CharacterRecognizer()
-      let (characters, _, last) = state.consume(wholeChars)!
+      let (characters, _, last) = state.consume(self, firstBreak..<i)!
       result.characters = characters
-      result.suffix = string.utf8.distance(from: last, to: i)
+      result.suffix = utf8Distance(from: last, to: i)
     }
     return result
   }
 
-  func counts(from i: String.Index) -> Counts {
-    precondition(i <= string.endIndex)
-    let i = string.unicodeScalars._index(roundingDown: i)
-    guard i > string.startIndex else { return self.counts }
-    guard i < string.endIndex else { return Counts() }
+  func counts(from i: Index) -> Counts {
+    precondition(i <= endIndex)
+    let i = scalarIndex(roundingDown: i)
+    guard i > startIndex else { return self.counts }
+    guard i < endIndex else { return Counts() }
 
-    let utf16 = string.utf16.distance(from: i, to: string.endIndex)
-    let scalars = string.unicodeScalars.distance(from: i, to: string.endIndex)
+    let utf16 = utf16Distance(from: i, to: endIndex)
+    let scalars = scalarDistance(from: i, to: endIndex)
     return _counts(from: i, utf16: utf16, scalars: scalars)
   }
 
-  func _counts(from i: String.Index, utf16: Int, scalars: Int) -> Counts {
-    assert(i > string.startIndex && i < string.endIndex)
-    let s = string[i...]
-
+  func _counts(from i: Index, utf16: Int, scalars: Int) -> Counts {
+    assert(i > startIndex && i < endIndex)
     var result = Counts(
-      utf8: s.utf8.count,
+      utf8: utf8Distance(from: i, to: endIndex),
       utf16: utf16,
       unicodeScalars: scalars,
       characters: 0,
@@ -125,19 +121,19 @@ extension BigString._Chunk {
       result._suffix = result.utf8
     } else if i <= firstBreak {
       result._characters = self.counts._characters
-      result.prefix = self.counts.prefix - self.string._utf8Offset(of: i)
+      result.prefix = self.counts.prefix - i.utf8Offset
       result._suffix = self.counts._suffix
     } else { // i > firstBreak, i <= lastBreak
       result._suffix = self.counts._suffix
-      let prevBreak = string[firstBreak..<lastBreak]._index(roundingDown: i)
-      var state = _CharacterRecognizer(partialCharacter: string[prevBreak ..< i])
-      if let (characters, first, _) = state.consume(string[i ..< lastBreak]) {
+      let prevBreak = characterIndex(roundingDown: i, in: firstBreak..<lastBreak)
+      var state = _CharacterRecognizer(partialCharacter: utf8Span(from: prevBreak, to: i))
+      if let (characters, first, _) = state.consume(self, i..<lastBreak) {
         assert(first >= i)
         result.characters = characters + 1
-        result.prefix = string.utf8.distance(from: i, to: first)
+        result.prefix = utf8Distance(from: i, to: first)
       } else {
         result.characters = 1
-        result.prefix = string.utf8.distance(from: i, to: lastBreak)
+        result.prefix = utf8Distance(from: i, to: lastBreak)
       }
     }
     return result

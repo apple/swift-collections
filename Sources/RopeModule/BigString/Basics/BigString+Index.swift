@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public  struct Index: Sendable {
     typealias _Rope = BigString._Rope
@@ -38,7 +38,7 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Index {
   @inline(__always)
   internal static func _bitsForUTF8Offset(_ utf8Offset: Int) -> UInt64 {
@@ -48,19 +48,31 @@ extension BigString.Index {
   }
 
   @inline(__always)
+  internal static var _chunkIndexMask: UInt64 { 0x7FF }
+
+  @inline(__always)
   internal static var _flagsMask: UInt64 { 0x700 }
-
-  @inline(__always)
-  internal static var _utf16TrailingSurrogateBits: UInt64 { 0x400 }
-
-  @inline(__always)
-  internal static var _characterAlignmentBit: UInt64 { 0x200 }
-
-  @inline(__always)
-  internal static var _scalarAlignmentBit: UInt64 { 0x100 }
-
   public var utf8Offset: Int {
     Int(truncatingIfNeeded: _rawBits &>> 11)
+  }
+
+  /// The specific index for the chunk. UTF-8 offset is only valid if `_rope`
+  /// is not nil.
+  internal var _chunkIndex: BigString._Chunk.Index {
+    get {
+      return BigString._Chunk.Index(
+        UInt16(truncatingIfNeeded: _rawBits & Self._chunkIndexMask)
+      )
+    }
+
+    set {
+      // If the UTF-16 trailing surrogate bit is set, then the scalar and
+      // character alignment bits can never be set.
+      assert(newValue.flags <= 0x4)
+      _rawBits &= ~Self._chunkIndexMask
+      _rawBits |= UInt64(newValue.utf8Offset)
+      _rawBits |= UInt64(newValue.flags) &<< 8
+    }
   }
 
   @inline(__always)
@@ -68,15 +80,9 @@ extension BigString.Index {
     _rawBits &>> 10
   }
 
-  /// The offset within the addressed chunk. Only valid if `_rope` is not nil.
-  internal var _utf8ChunkOffset: Int {
-    assert(_rope != nil)
-    return Int(truncatingIfNeeded: _rawBits & 0xFF)
-  }
-
   /// The base offset of the addressed chunk. Only valid if `_rope` is not nil.
   internal var _utf8BaseOffset: Int {
-    utf8Offset - _utf8ChunkOffset
+    utf8Offset - Int(_chunkIndex.utf8Offset)
   }
 
   @inline(__always)
@@ -92,53 +98,22 @@ extension BigString.Index {
   }
 }
 
-extension String.Index {
-  @available(SwiftStdlib 5.8, *)
-  func _copyingAlignmentBits(from i: BigString.Index) -> String.Index {
-    var bits = _abi_rawBits & ~3
-    bits |= (i._flags &>> 8) & 3
-    return String.Index(_rawBits: bits)
-  }
-}
-
-@available(SwiftStdlib 5.8, *)
-extension BigString.Index {
-  internal var _chunkIndex: String.Index {
-    assert(_rope != nil)
-    return String.Index(
-      _utf8Offset: _utf8ChunkOffset, utf16TrailingSurrogate: _isUTF16TrailingSurrogate
-    )._copyingAlignmentBits(from: self)
-  }
-}
-
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Index {
   internal mutating func _clearUTF16TrailingSurrogate() {
     _flags = 0
   }
 
-  public var _isUTF16TrailingSurrogate: Bool {
-    _orderingValue & 1 != 0
-  }
-
   internal func _knownScalarAligned() -> Self {
     var copy = self
-    copy._flags = Self._scalarAlignmentBit
+    copy._chunkIndex = _chunkIndex.scalarAligned
     return copy
   }
 
   internal func _knownCharacterAligned() -> Self {
     var copy = self
-    copy._flags = Self._characterAlignmentBit | Self._scalarAlignmentBit
+    copy._chunkIndex = _chunkIndex.characterAligned
     return copy
-  }
-
-  public var _isKnownScalarAligned: Bool {
-    _rawBits & Self._scalarAlignmentBit != 0
-  }
-
-  public var _isKnownCharacterAligned: Bool {
-    _rawBits & Self._characterAlignmentBit != 0
   }
 
   public init(_utf8Offset: Int) {
@@ -147,84 +122,90 @@ extension BigString.Index {
   }
 
   public init(_utf8Offset: Int, utf16TrailingSurrogate: Bool) {
-    _rawBits = Self._bitsForUTF8Offset(_utf8Offset)
+    self.init(_utf8Offset: _utf8Offset)
+
     if utf16TrailingSurrogate {
-      _rawBits |= Self._utf16TrailingSurrogateBits
+      _chunkIndex = _chunkIndex.nextUTF16Trailing
     }
-    _rope = nil
   }
 
   internal init(
-    _utf8Offset: Int, utf16TrailingSurrogate: Bool = false, _rope: _Rope.Index, chunkOffset: Int
+    _utf8Offset: Int,
+    utf16TrailingSurrogate: Bool = false,
+    _rope: _Rope.Index,
+    chunkOffset: Int
   ) {
-    _rawBits = Self._bitsForUTF8Offset(_utf8Offset)
-    if utf16TrailingSurrogate {
-      _rawBits |= Self._utf16TrailingSurrogateBits
-    }
-    assert(chunkOffset >= 0 && chunkOffset <= 0xFF)
-    _rawBits |= UInt64(truncatingIfNeeded: chunkOffset) & 0xFF
+    self.init(_utf8Offset: _utf8Offset, utf16TrailingSurrogate: utf16TrailingSurrogate)
+    _chunkIndex.utf8Offset = chunkOffset
     self._rope = _rope
   }
 
-  internal init(baseUTF8Offset: Int, _rope: _Rope.Index, chunk: String.Index) {
-    let chunkUTF8Offset = chunk._utf8Offset
+  internal init(
+    baseUTF8Offset: Int,
+    _rope: _Rope.Index,
+    chunk: BigString._Chunk.Index
+  ) {
     self.init(
-      _utf8Offset: baseUTF8Offset + chunkUTF8Offset,
-      utf16TrailingSurrogate: chunk._isUTF16TrailingSurrogate,
+      _utf8Offset: baseUTF8Offset + Int(chunk.utf8Offset),
+      utf16TrailingSurrogate: chunk.isUTF16TrailingSurrogate,
       _rope: _rope,
-      chunkOffset: chunkUTF8Offset)
+      chunkOffset: Int(chunk.utf8Offset))
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Index: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     left._orderingValue == right._orderingValue
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Index: Comparable {
   public static func <(left: Self, right: Self) -> Bool {
     left._orderingValue < right._orderingValue
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Index: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(_orderingValue)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Index: CustomStringConvertible {
   public var description: String {
-    let utf16Offset = _isUTF16TrailingSurrogate ? "+1" : ""
-    return "\(utf8Offset)[utf8]\(utf16Offset)"
+    let utf16Offset = _chunkIndex.isUTF16TrailingSurrogate ? "+1" : ""
+    let alignment = _chunkIndex.isKnownCharacterAligned ? "C" : _chunkIndex.isKnownScalarAligned ? "S" : ""
+    return "\(utf8Offset)[utf8]\(alignment)\(utf16Offset)"
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func resolve(_ i: Index, preferEnd: Bool) -> Index {
     if var ri = i._rope, _rope.isValid(ri) {
       if preferEnd {
-        guard i.utf8Offset > 0, i._utf8ChunkOffset == 0, !i._isUTF16TrailingSurrogate else {
+        guard i.utf8Offset > 0,
+              i._chunkIndex.utf8Offset == 0,
+              !i._chunkIndex.isUTF16TrailingSurrogate else {
           return i
         }
         _rope.formIndex(before: &ri)
         let length = _rope[ri].utf8Count
-        let ci = String.Index(_utf8Offset: length)
+        let ci = _Chunk.Index(utf8Offset: length)
         var j = Index(baseUTF8Offset: i.utf8Offset - length, _rope: ri, chunk: ci)
         j._flags = i._flags
         return j
       }
-      guard i.utf8Offset < _utf8Count, i._utf8ChunkOffset == _rope[ri].utf8Count else {
+      guard i.utf8Offset < _utf8Count,
+            i._chunkIndex.utf8Offset == _rope[ri].utf8Count else {
         return i
       }
       _rope.formIndex(after: &ri)
-      let ci = String.Index(_utf8Offset: 0)
+      let ci = _Chunk.Index(utf8Offset: 0)
       var j = Index(baseUTF8Offset: i.utf8Offset, _rope: ri, chunk: ci)
       j._flags = i._flags
       return j
@@ -232,16 +213,19 @@ extension BigString {
 
     // Indices addressing trailing surrogates must never be resolved at the end of chunk,
     // because the +1 doesn't make sense on any endIndex.
-    let trailingSurrogate = i._isUTF16TrailingSurrogate
+    let trailingSurrogate = i._chunkIndex.isUTF16TrailingSurrogate
 
     let (ri, chunkOffset) = _rope.find(
       at: i.utf8Offset,
       in: _UTF8Metric(),
       preferEnd: preferEnd && !trailingSurrogate)
 
-    let ci = String.Index(
-      _utf8Offset: chunkOffset,
-      utf16TrailingSurrogate: trailingSurrogate)
-    return Index(baseUTF8Offset: i.utf8Offset - ci._utf8Offset, _rope: ri, chunk: ci)
+    let ci = _Chunk.Index(
+      utf8Offset: chunkOffset,
+      isUTF16TrailingSurrogate: trailingSurrogate)
+    return Index(
+      baseUTF8Offset: i.utf8Offset - ci.utf8Offset,
+      _rope: ri,
+      chunk: ci)
   }
 }

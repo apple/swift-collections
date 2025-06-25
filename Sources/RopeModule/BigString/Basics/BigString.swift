@@ -10,12 +10,13 @@
 //===----------------------------------------------------------------------===//
 
 /// The core of a B-tree based String implementation.
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 public struct BigString: Sendable {
   typealias _Rope = Rope<_Chunk>
 
+  nonisolated(unsafe)
   var _rope: _Rope
-  
+
   internal init(_rope: _Rope) {
     self._rope = _rope
   }

@@ -9,10 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _replaceSubrange(
-    _ range: Range<Index>, 
+    _ range: Range<Index>,
     with newElements: some StringProtocol
   ) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")

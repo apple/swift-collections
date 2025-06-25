@@ -9,59 +9,67 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   @inline(__always)
   var hasBreaks: Bool { counts.hasBreaks }
 
-  var firstBreak: String.Index {
+  var firstBreak: Index {
     get {
-      string._utf8Index(at: prefixCount)
+      Index(utf8Offset: prefixCount).characterAligned
     }
+
     set {
-      counts.prefix = string._utf8Offset(of: newValue)
+      counts.prefix = newValue.utf8Offset
     }
   }
 
-  var lastBreak: String.Index {
+  var lastBreak: Index {
     get {
-      string._utf8Index(at: utf8Count - suffixCount)
+      Index(utf8Offset: utf8Count - suffixCount).characterAligned
     }
+
     set {
-      counts.suffix = utf8Count - string._utf8Offset(of: newValue)
+      counts.suffix = utf8Count - newValue.utf8Offset
     }
   }
 
-  var prefix: Substring { string[..<firstBreak] }
-  var suffix: Substring { string[lastBreak...] }
+  var prefix: UTF8Span {
+    utf8Span(from: startIndex, to: firstBreak)
+  }
 
-  var wholeCharacters: Substring { string[firstBreak...] }
+  var suffix: UTF8Span {
+    utf8Span(from: lastBreak)
+  }
+
+  var wholeCharacters: UTF8Span {
+    utf8Span(from: firstBreak)
+  }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   var immediateLastBreakState: _CharacterRecognizer? {
     guard hasBreaks else { return nil }
-    return _CharacterRecognizer(partialCharacter: string[lastBreak...])
+    return _CharacterRecognizer(partialCharacter: suffix)
   }
 
-  func nearestBreak(before index: String.Index) -> String.Index? {
-    let index = string.unicodeScalars._index(roundingDown: index)
+  func nearestBreak(before index: Index) -> Index? {
+    let index = scalarIndex(roundingDown: index)
     let first = firstBreak
     guard index > first else { return nil }
     let last = lastBreak
     guard index <= last else { return last }
-    let w = string[first...]
-    let rounded = w._index(roundingDown: index)
+    let rounded = characterIndex(roundingDown: index)
     guard rounded == index else { return rounded }
-    return w.index(before: rounded)
+    return characterIndex(before: rounded)
   }
 
   func immediateBreakState(
-    upTo index: String.Index
-  ) -> (prevBreak: String.Index, state: _CharacterRecognizer)? {
+    upTo index: Index
+  ) -> (prevBreak: Index, state: _CharacterRecognizer)? {
     guard let prev = nearestBreak(before: index) else { return nil }
-    let state = _CharacterRecognizer(partialCharacter: string[prev..<index])
+    let state = _CharacterRecognizer(partialCharacter: utf8Span(from: prev, to: index))
     return (prev, state)
   }
 }

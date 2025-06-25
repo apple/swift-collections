@@ -9,21 +9,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension _CharacterRecognizer {
   internal func _isKnownEqual(to other: Self) -> Bool {
-    if #available(macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0, *) { // SwiftStdlib 5.9
-      return self == other
-    }
-    return false
+    return self == other
   }
 }
 
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
@@ -52,44 +49,54 @@ extension _CharacterRecognizer {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension _CharacterRecognizer {
-  init(partialCharacter: Substring.UnicodeScalarView) {
+  mutating func firstBreak(
+    in c: BigString._Chunk,
+    from range: Range<BigString._Chunk.Index>
+  ) -> Range<BigString._Chunk.Index>? {
+    let bias = range.lowerBound.utf8Offset
+    let r = c.utf8Span(from: range.lowerBound, to: range.upperBound).span.withUnsafeBufferPointer {
+      _firstBreak(inUncheckedUnsafeUTF8Buffer: $0)
+    }
+
+    guard let r else {
+      return nil
+    }
+
+    let lower = BigString._Chunk.Index(utf8Offset: r.lowerBound + bias)
+    let upper = BigString._Chunk.Index(utf8Offset: r.upperBound + bias)
+    return lower ..< upper
+  }
+}
+
+@available(SwiftStdlib 6.2, *)
+extension _CharacterRecognizer {
+  init(partialCharacter: UTF8Span) {
     self.init()
-    var it = partialCharacter.makeIterator()
-    guard let first = it.next() else { return }
+
+    var iter = partialCharacter.makeUnicodeScalarIterator()
+
+    guard let first = iter.next() else {
+      return
+    }
     _ = hasBreak(before: first)
-    while let next = it.next() {
-      let b = hasBreak(before: next)
-      assert(!b)
-    }
-  }
-  
-  init(partialCharacter: Substring) {
-    self.init(partialCharacter: partialCharacter.unicodeScalars)
-  }
 
-  mutating func consumePartialCharacter(_ s: String) {
-    for scalar in s.unicodeScalars {
-      let b = hasBreak(before: scalar)
+    while let s = iter.next() {
+      let b = hasBreak(before: s)
       assert(!b)
     }
   }
 
-  mutating func consumePartialCharacter(_ s: Substring) {
-    for scalar in s.unicodeScalars {
-      let b = hasBreak(before: scalar)
+  mutating func consumePartialCharacter(_ span: UTF8Span) {
+    var iter = span.makeUnicodeScalarIterator()
+
+    while let s = iter.next() {
+      let b = hasBreak(before: s)
       assert(!b)
     }
   }
-  
-  mutating func consumePartialCharacter(_ s: Substring.UnicodeScalarView) {
-    for scalar in s {
-      let b = hasBreak(before: scalar)
-      assert(!b)
-    }
-  }
-  
+
   mutating func consumeUntilFirstBreak(
     in s: Substring.UnicodeScalarView,
     from i: inout String.Index
@@ -102,24 +109,24 @@ extension _CharacterRecognizer {
     }
     return nil
   }
-  
+
   init(consuming str: some StringProtocol) {
     self.init()
     _ = self.consume(str)
   }
-  
+
   mutating func consume(
     _ s: some StringProtocol
   ) -> (characters: Int, firstBreak: String.Index, lastBreak: String.Index)? {
     consume(Substring(s))
   }
-  
+
   mutating func consume(
     _ s: Substring
   ) -> (characters: Int, firstBreak: String.Index, lastBreak: String.Index)? {
     consume(s.unicodeScalars)
   }
-  
+
   mutating func consume(
     _ s: Substring.UnicodeScalarView
   ) -> (characters: Int, firstBreak: String.Index, lastBreak: String.Index)? {
@@ -135,31 +142,53 @@ extension _CharacterRecognizer {
     }
     return (characters, first, last)
   }
-  
+
+  mutating func consumeUntilFirstBreak(
+    _ c: BigString._Chunk,
+    in range: Range<BigString._Chunk.Index>,
+    from i: inout BigString._Chunk.Index
+  ) -> BigString._Chunk.Index? {
+    while i < range.upperBound {
+      defer {
+        i = c.scalarIndex(after: i)
+      }
+      if hasBreak(before: c[scalar: i]) {
+        return i
+      }
+    }
+    return nil
+  }
+
   mutating func consume(
-    _ chunk: BigString._Chunk, upTo index: String.Index
-  ) -> (firstBreak: String.Index, prevBreak: String.Index)? {
-    let index = chunk.string.unicodeScalars._index(roundingDown: index)
-    let first = chunk.firstBreak
-    guard index > first else {
-      consumePartialCharacter(chunk.string[..<index])
+    _ chunk: BigString._Chunk,
+    _ range: Range<BigString._Chunk.Index>
+  ) -> (characters: Int, firstBreak: BigString._Chunk.Index, lastBreak: BigString._Chunk.Index)? {
+    var i = range.lowerBound
+
+    guard let first = consumeUntilFirstBreak(chunk, in: range, from: &i) else {
       return nil
     }
-    let last = chunk.lastBreak
-    let prev = index <= last ? chunk.string[first...].index(before: index) : last
-    consumePartialCharacter(chunk.string[prev..<index])
-    return (first, prev)
-  }
-  
-  mutating func edgeCounts(
-    consuming s: String
-  ) -> (characters: Int, prefixCount: Int, suffixCount: Int) {
-    let c = s.utf8.count
-    guard let (chars, first, last) = consume(s[...]) else {
-      return (0, c, c)
+
+    var characters = 1
+    var last = first
+
+    while let next = consumeUntilFirstBreak(chunk, in: range, from: &i) {
+      characters += 1
+      last = next
     }
-    let prefix = s._utf8Offset(of: first)
-    let suffix = c - s._utf8Offset(of: last)
+
+    return (characters, first, last)
+  }
+
+  mutating func edgeCounts(
+    consuming c: BigString._Chunk
+  ) -> (characters: Int, prefixCount: Int, suffixCount: Int) {
+    let count = c.utf8Count
+    guard let (chars, first, last) = consume(c, c.startIndex..<c.endIndex) else {
+      return (0, count, count)
+    }
+    let prefix = first.utf8Offset
+    let suffix = count - last.utf8Offset
     return (chars, prefix, suffix)
   }
 }

@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public struct UnicodeScalarView: Sendable {
     internal var _base: BigString
@@ -52,40 +52,40 @@ extension BigSubstring {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public init(_ unicodeScalars: BigSubstring.UnicodeScalarView) {
     self.init(_from: unicodeScalars._base, in: unicodeScalars._bounds)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView {
   public var base: BigString.UnicodeScalarView { _base.unicodeScalars }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value.unicodeScalars)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
     String(_from: _base, in: _bounds)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
@@ -97,14 +97,14 @@ extension BigSubstring.UnicodeScalarView: Equatable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher, from: _bounds.lowerBound, to: _bounds.upperBound)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: Sequence {
   public typealias Element = UnicodeScalar
 
@@ -128,7 +128,7 @@ extension BigSubstring.UnicodeScalarView: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -191,7 +191,7 @@ extension BigSubstring.UnicodeScalarView: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
@@ -204,7 +204,7 @@ extension BigSubstring.UnicodeScalarView {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView {
   /// Run the closure `body` to mutate the contents of this view within `range`, then update
   /// the bounds of this view to maintain their logical position in the resulting string.
@@ -237,18 +237,18 @@ extension BigSubstring.UnicodeScalarView {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
   public init() {
     self.init(_substring: BigSubstring())
   }
-  
+
   public mutating func reserveCapacity(_ n: Int) {
     // Do nothing.
   }
-  
+
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, 
+    _ subrange: Range<Index>,
     with newElements: __owned some Sequence<UnicodeScalar> // Note: Sequence, not Collection
   ) {
     _mutateBasePreservingBounds(in: subrange) { $0.replaceSubrange(subrange, with: newElements) }

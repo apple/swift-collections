@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public struct UTF8View: Sendable {
     var _base: BigString
@@ -30,7 +30,7 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UTF8View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, to: right._base)
@@ -41,14 +41,14 @@ extension BigString.UTF8View: Equatable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UTF8View: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UTF8View: Sequence {
   public typealias Element = UInt8
 
@@ -67,7 +67,7 @@ extension BigString.UTF8View: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UTF8View.Iterator: IteratorProtocol {
   public typealias Element = UInt8
 
@@ -77,16 +77,16 @@ extension BigString.UTF8View.Iterator: IteratorProtocol {
     let ri = _index._rope!
     var ci = _index._chunkIndex
     let chunk = _base._rope[ri]
-    let result = chunk.string.utf8[ci]
+    let result = chunk[utf8: ci]
 
-    chunk.string.utf8.formIndex(after: &ci)
-    if ci < chunk.string.endIndex {
+    ci.utf8Offset += 1
+    if ci < chunk.endIndex {
       _index = BigString.Index(baseUTF8Offset: _index._utf8BaseOffset, _rope: ri, chunk: ci)
     } else {
       _index = BigString.Index(
         baseUTF8Offset: _index._utf8BaseOffset + chunk.utf8Count,
         _rope: _base._rope.index(after: ri),
-        chunk: String.Index(_utf8Offset: 0))
+        chunk: BigString._Chunk.Index(utf8Offset: 0))
     }
     return result
   }
@@ -101,25 +101,25 @@ extension BigString.UTF8View.Iterator: IteratorProtocol {
       return r.result
     }
     let ri = _index._rope!
-    var ci = _index._utf8ChunkOffset
+    var ci = _index._chunkIndex.utf8Offset
     var utf8Offset = _index.utf8Offset
-    var string = _base._rope[ri].string
-    let (haveMore, result) = string.withUTF8 { buffer in
-      let slice = buffer[ci...].prefix(maximumCount)
-      assert(!slice.isEmpty)
-      let (consumed, result) = body(UnsafeBufferPointer(rebasing: slice))
-      precondition(consumed >= 0 && consumed <= slice.count)
-      utf8Offset += consumed
-      ci += consumed
-      return (ci < buffer.count, result)
-    }
+
+    let chunk = _base._rope[ri]
+    let slice = chunk._bytes[ci...].prefix(maximumCount)
+    assert(!slice.isEmpty)
+    let (consumed, result) = body(UnsafeBufferPointer(rebasing: slice))
+    precondition(consumed >= 0 && consumed <= slice.count)
+    utf8Offset += consumed
+    ci += consumed
+    let haveMore = ci < chunk._bytes.count
+
     if haveMore {
       _index = BigString.Index(_utf8Offset: utf8Offset, _rope: ri, chunkOffset: ci)
     } else {
       _index = BigString.Index(
-        baseUTF8Offset: _index._utf8BaseOffset + string.utf8.count,
+        baseUTF8Offset: _index._utf8BaseOffset + chunk.span.count,
         _rope: _base._rope.index(after: ri),
-        chunk: String.Index(_utf8Offset: 0))
+        chunk: BigString._Chunk.Index(utf8Offset: 0))
     }
     return result
   }
@@ -127,7 +127,7 @@ extension BigString.UTF8View.Iterator: IteratorProtocol {
 
 
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UTF8View: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = BigSubstring.UTF8View
@@ -172,7 +172,7 @@ extension BigString.UTF8View: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UTF8View {
   public func index(roundingDown i: Index) -> Index {
     _base._utf8Index(roundingDown: i)

@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   /// Measure the distance between the given start and end positions within
   /// the specified chunk.
@@ -23,8 +23,8 @@ internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   /// distances without looking at data in more than one chunk, both indices
   /// are expected to address a known character boundary.
   func distance(
-    from start: String.Index,
-    to end: String.Index,
+    from start: BigString._Chunk.Index,
+    to end: BigString._Chunk.Index,
     in chunk: BigString._Chunk
   ) -> Int
 
@@ -38,36 +38,39 @@ internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   /// which considerably complicates distance measurement. To allow measuring
   /// distances without looking at data in more than one chunk, the given end
   /// index is expected to address a known character boundary.
-  func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int
+  func prefixSize(
+    to end: BigString._Chunk.Index,
+    in chunk: BigString._Chunk
+  ) -> Int
 
   func formIndex(
-    _ i: inout String.Index,
+    _ i: inout BigString._Chunk.Index,
     offsetBy distance: inout Int,
     in chunk: BigString._Chunk
   ) -> (found: Bool, forward: Bool)
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   internal struct _CharacterMetric: _StringMetric {
-    typealias Element = BigString._Chunk
+    typealias Element = _Chunk
     typealias Summary = BigString.Summary
-    
+
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.characters
     }
 
     func distance(
-      from start: String.Index,
-      to end: String.Index,
-      in chunk: BigString._Chunk
+      from start: _Chunk.Index,
+      to end: _Chunk.Index,
+      in chunk: _Chunk
     ) -> Int {
       assert(start <= end)
       return chunk.characterDistance(from: start, to: end)
     }
-    
-    func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int {
+
+    func prefixSize(to end: _Chunk.Index, in chunk: _Chunk) -> Int {
       // The prefix must not count the initial partial character that
       // ends in the chunk (any scalar before the first break) -- that character
       // logically belongs to (and counted in) a prior chunk: the one that
@@ -85,205 +88,206 @@ extension BigString {
 
     @inline(__always)
     func formIndex(
-      _ i: inout String.Index,
+      _ i: inout _Chunk.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString._Chunk
+      in chunk: _Chunk
     ) -> (found: Bool, forward: Bool) {
       chunk.formCharacterIndex(&i, offsetBy: &distance)
     }
-    
-    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
+
+    func index(at offset: Int, in chunk: _Chunk) -> _Chunk.Index {
       precondition(offset < chunk.characterCount)
-      return chunk.wholeCharacters._index(at: offset)
+      return chunk.characterIndex(chunk.firstBreak, offsetBy: offset)
     }
   }
-  
+
   internal struct _UnicodeScalarMetric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.unicodeScalars
     }
-    
+
     func distance(
-      from start: String.Index,
-      to end: String.Index,
-      in chunk: BigString._Chunk
+      from start: _Chunk.Index,
+      to end: _Chunk.Index,
+      in chunk: _Chunk
     ) -> Int {
       assert(start <= end)
 
       // Make use of the chunk's known scalar count to reduce the amount of data we need to look at.
       if end._utf8Offset - start._utf8Offset < chunk.utf8Count / 2 {
-        return chunk.string.unicodeScalars[start ..< end].count
+        return chunk.scalarDistance(from: start, to: end)
       }
       var result: Int
       result = chunk.unicodeScalarCount
-      result -= chunk.string.unicodeScalars[..<start].count
-      result -= chunk.string.unicodeScalars[end...].count
+      result -= chunk.scalarDistance(from: chunk.startIndex, to: start)
+      result -= chunk.scalarDistance(from: end, to: chunk.endIndex)
       return result
     }
 
-    func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int {
+    func prefixSize(to end: _Chunk.Index, in chunk: _Chunk) -> Int {
       // Make use of the chunk's known scalar count to reduce the amount of data we need to look at.
-      if end._utf8Offset < chunk.utf8Count / 2 {
-        return chunk.string.unicodeScalars[..<end].count
+      if end.utf8Offset < chunk.utf8Count / 2 {
+        return chunk.scalarDistance(from: chunk.startIndex, to: end)
       }
-      return chunk.unicodeScalarCount - chunk.string.unicodeScalars[end...].count
+
+      return chunk.unicodeScalarCount - chunk.scalarDistance(from: end, to: chunk.endIndex)
     }
 
     func formIndex(
-      _ i: inout String.Index,
+      _ i: inout _Chunk.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString._Chunk
+      in chunk: _Chunk
     ) -> (found: Bool, forward: Bool) {
       // FIXME: Make use of the chunk's known scalar count to reduce work
       guard distance != 0 else {
-        i = chunk.string.unicodeScalars._index(roundingDown: i)
+        i = chunk.scalarIndex(roundingDown: i)
         return (true, false)
       }
       if distance > 0 {
-        let end = chunk.string.endIndex
+        let end = chunk.endIndex
         while distance > 0, i < end {
-          chunk.string.unicodeScalars.formIndex(after: &i)
+          i = chunk.scalarIndex(after: i)
           distance &-= 1
         }
         return (distance == 0, true)
       }
-      let start = chunk.string.startIndex
+      let start = chunk.startIndex
       while distance < 0, i > start {
-        chunk.string.unicodeScalars.formIndex(before: &i)
+        i = chunk.scalarIndex(before: i)
         distance &+= 1
       }
       return (distance == 0, false)
     }
-    
-    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
-      chunk.string.unicodeScalars.index(chunk.string.startIndex, offsetBy: offset)
+
+    func index(at offset: Int, in chunk: _Chunk) -> _Chunk.Index {
+      chunk.scalarIndex(chunk.startIndex, offsetBy: offset)
     }
   }
-  
+
   internal struct _UTF8Metric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.utf8
     }
-    
+
     @inline(__always)
     func distance(
-      from start: String.Index,
-      to end: String.Index,
-      in chunk: BigString._Chunk
+      from start: _Chunk.Index,
+      to end: _Chunk.Index,
+      in chunk: _Chunk
     ) -> Int {
-      chunk.string.utf8.distance(from: start, to: end)
+      chunk.utf8Distance(from: start, to: end)
     }
 
     @inline(__always)
-    func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int {
-      end._utf8Offset
+    func prefixSize(to end: _Chunk.Index, in chunk: _Chunk) -> Int {
+      end.utf8Offset
     }
 
     func formIndex(
-      _ i: inout String.Index,
+      _ i: inout _Chunk.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString._Chunk
+      in chunk: _Chunk
     ) -> (found: Bool, forward: Bool) {
-      // Here we make use of the fact that the UTF-8 view of native Swift strings
-      // have O(1) index distance & offset calculations.
-      let offset = chunk.string.utf8.distance(from: chunk.string.startIndex, to: i)
+      // Here we make use of the fact that the UTF-8 view of BigString._Chunk
+      // has O(1) index distance & offset calculations.
+      let offset = i.utf8Offset
       if distance >= 0 {
         let rest = chunk.utf8Count - offset
         if distance > rest {
-          i = chunk.string.endIndex
+          i = chunk.endIndex
           distance -= rest
           return (false, true)
         }
-        i = chunk.string.utf8.index(i, offsetBy: distance)
+        i.utf8Offset += distance
         distance = 0
         return (true, true)
       }
-      
+
       if offset + distance < 0 {
-        i = chunk.string.startIndex
+        i = chunk.startIndex
         distance += offset
         return (false, false)
       }
-      i = chunk.string.utf8.index(i, offsetBy: distance)
+      i.utf8Offset += distance
       distance = 0
       return (true, false)
     }
-    
-    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
-      chunk.string.utf8.index(chunk.string.startIndex, offsetBy: offset)
+
+    func index(at offset: Int, in chunk: _Chunk) -> _Chunk.Index {
+      chunk.startIndex.offset(by: offset)
     }
   }
-  
+
   internal struct _UTF16Metric: _StringMetric {
     @inline(__always)
     func size(of summary: Summary) -> Int {
       summary.utf16
     }
-    
+
     func distance(
-      from start: String.Index,
-      to end: String.Index,
-      in chunk: BigString._Chunk
+      from start: _Chunk.Index,
+      to end: _Chunk.Index,
+      in chunk: _Chunk
     ) -> Int {
       assert(start <= end)
 
       // Make use of the chunk's known UTF-16 count to reduce the amount of data we need to look at.
       if end._utf8Offset - start._utf8Offset < chunk.utf8Count / 2 {
-        return chunk.string.utf16[start ..< end].count
+        return chunk.utf16Distance(from: start, to: end)
       }
       var result = chunk.utf16Count
-      result -= chunk.string.utf16[..<start].count
-      result -= chunk.string.utf16[end...].count
+      result -= chunk.utf16Distance(from: chunk.startIndex, to: start)
+      result -= chunk.utf16Distance(from: end, to: chunk.endIndex)
       return result
     }
-    
-    func prefixSize(to end: String.Index, in chunk: BigString._Chunk) -> Int {
+
+    func prefixSize(to end: _Chunk.Index, in chunk: _Chunk) -> Int {
       // Make use of the chunk's known UTF-16 count to reduce the amount of data we need to look at.
       if end._utf8Offset < chunk.utf8Count / 2 {
-        return chunk.string.utf16[..<end].count
+        return chunk.utf16Distance(from: chunk.startIndex, to: end)
       }
-      return chunk.utf16Count - chunk.string.utf16[end...].count
+      return chunk.utf16Count - chunk.utf16Distance(from: end, to: chunk.endIndex)
     }
 
     func formIndex(
-      _ i: inout String.Index,
+      _ i: inout _Chunk.Index,
       offsetBy distance: inout Int,
-      in chunk: BigString._Chunk
+      in chunk: _Chunk
     ) -> (found: Bool, forward: Bool) {
       // FIXME: Make use of the chunk's known UTF-16 count to reduce work
       if distance >= 0 {
         if
           distance <= chunk.utf16Count,
-          let r = chunk.string.utf16.index(
-            i, offsetBy: distance, limitedBy: chunk.string.endIndex
+          let r = chunk.utf16Index(
+            i, offsetBy: distance, limitedBy: chunk.endIndex
           ) {
           i = r
           distance = 0
           return (true, true)
         }
-        distance -= chunk.string.utf16.distance(from: i, to: chunk.string.endIndex)
-        i = chunk.string.endIndex
+        distance -= chunk.utf16Distance(from: i, to: chunk.endIndex)
+        i = chunk.endIndex
         return (false, true)
       }
-      
+
       if
         distance.magnitude <= chunk.utf16Count,
-        let r = chunk.string.utf16.index(
-          i, offsetBy: distance, limitedBy: chunk.string.endIndex
+        let r = chunk.utf16Index(
+          i, offsetBy: distance, limitedBy: chunk.endIndex
         ) {
         i = r
         distance = 0
         return (true, true)
       }
-      distance += chunk.string.utf16.distance(from: chunk.string.startIndex, to: i)
-      i = chunk.string.startIndex
+      distance += chunk.utf16Distance(from: chunk.startIndex, to: i)
+      i = chunk.startIndex
       return (false, false)
     }
-    
-    func index(at offset: Int, in chunk: BigString._Chunk) -> String.Index {
-      chunk.string.utf16.index(chunk.string.startIndex, offsetBy: offset)
+
+    func index(at offset: Int, in chunk: _Chunk) -> _Chunk.Index {
+      chunk.utf16Index(chunk.startIndex, offsetBy: offset)
     }
   }
 }

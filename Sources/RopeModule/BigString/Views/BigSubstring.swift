@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 public struct BigSubstring: Sendable {
   var _base: BigString
   var _bounds: Range<Index>
@@ -32,47 +32,38 @@ public struct BigSubstring: Sendable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public var base: BigString { _base }
 }
 
-@available(SwiftStdlib 5.8, *)
-extension BigSubstring {
-  func _foreachChunk(
-    _ body: (Substring) -> Void
-  ) {
-    self._base._foreachChunk(from: _bounds.lowerBound, to: _bounds.upperBound, body)
-  }
-}
-
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: CustomStringConvertible {
   public var description: String {
     String(_from: _base, in: _bounds)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: LosslessStringConvertible {
   // init?(_: String) is implemented by RangeReplaceableCollection.init(_:)
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
@@ -103,7 +94,7 @@ extension BigSubstring: Equatable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: Hashable {
   public func hash(into hasher: inout Hasher) {
     var it = self.makeIterator()
@@ -115,7 +106,7 @@ extension BigSubstring: Hashable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: Comparable {
   public static func < (left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
@@ -140,7 +131,7 @@ extension BigSubstring: Comparable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: Sequence {
   public typealias Element = Character
 
@@ -164,7 +155,7 @@ extension BigSubstring: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -225,7 +216,7 @@ extension BigSubstring: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
@@ -238,7 +229,7 @@ extension BigSubstring {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   /// Run the closure `body` to mutate the contents of this view within `range`, then update
   /// the bounds of this view to maintain an approximation of their logical position in the
@@ -273,7 +264,7 @@ extension BigSubstring {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring: RangeReplaceableCollection {
   public init() {
     let str = BigString()

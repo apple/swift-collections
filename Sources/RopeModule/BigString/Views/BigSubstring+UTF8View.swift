@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public struct UTF8View: Sendable {
     internal var _base: BigString
@@ -37,7 +37,7 @@ extension BigSubstring {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public init?(_ utf8: BigSubstring.UTF8View) {
     guard
@@ -50,12 +50,12 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF8View {
   public var base: BigString.UTF8View { _base.utf8 }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF8View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, in: left._bounds, to: right._base, in: right._bounds)
@@ -67,14 +67,14 @@ extension BigSubstring.UTF8View: Equatable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF8View: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher, from: _bounds.lowerBound, to: _bounds.upperBound)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF8View: Sequence {
   public typealias Element = UInt8
 
@@ -98,7 +98,7 @@ extension BigSubstring.UTF8View: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF8View: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -159,7 +159,7 @@ extension BigSubstring.UTF8View: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF8View {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
