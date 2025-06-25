@@ -17,7 +17,7 @@ import _CollectionsTestSupport
 import _RopeModule
 #endif
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 class TestBigString: CollectionTestCase {
   override var isAvailable: Bool { isRunningOnSwiftStdlib5_8 }
 
@@ -487,33 +487,39 @@ class TestBigString: CollectionTestCase {
   func test_append_string() {
     let flat = sampleString
     let ref = BigString(flat)
-    for stride in [1, 2, 4, 8, 16, 32, 64, 128, 250, 1000, 10000, 20000] {
+    
+    withEvery("stride", in: [1, 2, 4, 8, 16, 32, 64, 128, 250, 1000, 10_000, 20_000]) {
       var big: BigString = ""
       var i = flat.startIndex
+      
       while i < flat.endIndex {
-        let j = flat.unicodeScalars.index(i, offsetBy: stride, limitedBy: flat.endIndex) ?? flat.endIndex
+        let j = flat.unicodeScalars.index(i, offsetBy: $0, limitedBy: flat.endIndex) ?? flat.endIndex
         let next = String(flat[i ..< j])
         big.append(contentsOf: next)
         //big.invariantCheck()
         //expectEqual(String(big)[...], s[..<j])
         i = j
       }
+      
       checkUTF8Indices(flat, big)
-      checkUTF8Indices(flat, big)
+      checkUTF16Indices(flat, big)
       checkScalarIndices(flat, big)
       checkCharacterIndices(flat, big)
-      expectTrue(big.utf8 == ref.utf8)
+      
+      expectTrue(ref.utf8 == big.utf8)
     }
   }
   
   func test_append_big() {
     let flat = sampleString
     let ref = BigString(flat)
-    for stride in [16, 32, 64, 128, 250, 1000, 10000, 20000] {
+    
+    withEvery("stride", in: [16, 32, 64, 128, 250, 1000, 10000, 20000]) {
       var big: BigString = ""
       var i = flat.startIndex
+      
       while i < flat.endIndex {
-        let j = flat.unicodeScalars.index(i, offsetBy: stride, limitedBy: flat.endIndex) ?? flat.endIndex
+        let j = flat.unicodeScalars.index(i, offsetBy: $0, limitedBy: flat.endIndex) ?? flat.endIndex
         let s = flat[i ..< j]
         let piece = BigString(s)
         piece._invariantCheck()
@@ -522,10 +528,12 @@ class TestBigString: CollectionTestCase {
         big._invariantCheck()
         i = j
       }
+      
       checkUTF8Indices(flat, big)
       checkUTF8Indices(flat, big)
       checkScalarIndices(flat, big)
       checkCharacterIndices(flat, big)
+      
       expectTrue(big.utf8 == ref.utf8)
     }
   }
@@ -612,9 +620,9 @@ class TestBigString: CollectionTestCase {
   func test_insert_big() {
     let flat = sampleString
     let ref = BigString(flat)
-    for stride in [64, 128, 250, 256, 257, 500, 512, 513, 1000, 2000, 10000, 20000] {
-      print("Stride: \(stride)")
-      var pieces = pieces(of: flat, by: stride)
+    
+    withEvery("stride", in: [64, 128, 250, 256, 257, 500, 512, 513, 1000, 2000, 10000, 20000]) {
+      var pieces = pieces(of: flat, by: $0)
       var rng = RepeatableRandomNumberGenerator(seed: 0)
       pieces.shuffle(using: &rng)
       
@@ -636,6 +644,8 @@ class TestBigString: CollectionTestCase {
         let p = BigString(piece.str)
         big.insert(contentsOf: p, at: index)
         
+        expectEqual(smol.count, big.count)
+        
         if i % 20 == 0 {
           big._invariantCheck()
           expectEqual(String(big), smol)
@@ -645,6 +655,7 @@ class TestBigString: CollectionTestCase {
           checkCharacterIndices(smol, big)
         }
       }
+      
       big._invariantCheck()
       expectTrue(big.utf8 == ref.utf8)
       checkUTF8Indices(flat, big)
@@ -1125,10 +1136,11 @@ class TestBigString: CollectionTestCase {
 
           let d1 = flat.distance(from: i1, to: j1)
           let d2 = big.distance(from: i2, to: j2)
-          expectEqual(d2, d1)
+          expectEqual(d2, d1, "distance from \(i2) to \(j2)")
 
           let k2 = big.index(i2, offsetBy: d2)
-          expectEqual(k2, big.index(roundingDown: j2))
+          let r2 = big.index(roundingDown: j2)
+          expectEqual(k2, r2, "distance: \(d2), index: \(k2), rounded: \(r2)")
         }
       }
     }

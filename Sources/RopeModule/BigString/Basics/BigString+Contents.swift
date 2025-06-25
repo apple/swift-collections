@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   /// The estimated maximum number of UTF-8 code units that `BigString` is guaranteed to be able
   /// to hold without encountering an overflow in its operations. This corresponds to the capacity
@@ -31,7 +31,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   var _characterCount: Int { _rope.summary.characters }
   var _unicodeScalarCount: Int { _rope.summary.unicodeScalars }
@@ -39,7 +39,7 @@ extension BigString {
   var _utf8Count: Int { _rope.summary.utf8 }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _distance(
     from start: Index,
@@ -91,7 +91,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   // FIXME: See if we need direct implementations for these.
 
@@ -113,7 +113,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   // FIXME: See if we need direct implementations for these.
 
@@ -134,7 +134,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _index(
     _ i: Index,
@@ -159,7 +159,7 @@ extension BigString {
 
     if r.forward {
       assert(distance >= 0)
-      assert(ci == chunk.string.endIndex)
+      assert(ci == chunk.endIndex)
       d += metric._nonnegativeSize(of: chunk.summary)
       let start = ri
       _rope.formIndex(&ri, offsetBy: &d, in: metric, preferEnd: false)
@@ -173,7 +173,7 @@ extension BigString {
     }
 
     assert(distance <= 0)
-    assert(ci == chunk.string.startIndex)
+    assert(ci == chunk.startIndex)
     let start = ri
     _rope.formIndex(&ri, offsetBy: &d, in: metric, preferEnd: false)
     chunk = _rope[ri]
@@ -201,7 +201,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _index(
     _ i: Index,
@@ -249,7 +249,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _characterIndex(after i: Index) -> Index {
     let i = _characterIndex(roundingDown: i)
@@ -270,18 +270,18 @@ extension BigString {
     let ri = i._rope!
     var ci = i._chunkIndex
     let chunk = _rope[ri]
-    chunk.string.utf8.formIndex(after: &ci)
-    if ci == chunk.string.endIndex {
+    ci.utf8Offset += 1
+    if ci == chunk.endIndex {
       return Index(
         baseUTF8Offset: i._utf8BaseOffset + chunk.utf8Count,
         _rope: _rope.index(after: ri),
-        chunk: String.Index(_utf8Offset: 0))
+        chunk: BigString._Chunk.Index(utf8Offset: 0))
     }
-    return Index(_utf8Offset: i.utf8Offset + 1, _rope: ri, chunkOffset: ci._utf8Offset)
+    return Index(_utf8Offset: i.utf8Offset + 1, _rope: ri, chunkOffset: ci.utf8Offset)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _characterIndex(before i: Index) -> Index {
     let i = _characterIndex(roundingDown: i)
@@ -301,22 +301,22 @@ extension BigString {
     let i = resolve(i, preferEnd: true)
     var ri = i._rope!
     let ci = i._chunkIndex
-    if ci._utf8Offset > 0 {
+    if ci.utf8Offset > 0 {
       return Index(
         _utf8Offset: i.utf8Offset &- 1,
         _rope: ri,
-        chunkOffset: ci._utf8Offset &- 1)
+        chunkOffset: ci.utf8Offset &- 1)
     }
     _rope.formIndex(before: &ri)
     let chunk = _rope[ri]
     return Index(
       baseUTF8Offset: i._utf8BaseOffset - chunk.utf8Count,
       _rope: ri,
-      chunk: String.Index(_utf8Offset: chunk.utf8Count - 1))
+      chunk: BigString._Chunk.Index(utf8Offset: chunk.utf8Count - 1))
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _characterIndex(roundingDown i: Index) -> Index {
     let offset = i.utf8Offset
@@ -325,7 +325,9 @@ extension BigString {
     guard offset < _utf8Count else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let i = resolve(i, preferEnd: false)
-    guard !i._isKnownCharacterAligned else { return i }
+    guard !i._chunkIndex.isKnownCharacterAligned else {
+      return i
+    }
 
     var ri = i._rope!
     let ci = i._chunkIndex
@@ -340,7 +342,7 @@ extension BigString {
         )._knownCharacterAligned()
       }
       if ci > first {
-        let j = chunk.wholeCharacters._index(roundingDown: ci)
+        let j = chunk.characterIndex(roundingDown: ci)
         return Index(baseUTF8Offset: i._utf8BaseOffset, _rope: ri, chunk: j)._knownCharacterAligned()
       }
     }
@@ -363,10 +365,10 @@ extension BigString {
     guard i < endIndex else { return resolve(i, preferEnd: true)._knownCharacterAligned() }
 
     let start = self.resolve(i, preferEnd: false)
-    guard !i._isKnownScalarAligned else { return resolve(i, preferEnd: false) }
+    guard !i._chunkIndex.isKnownScalarAligned else { return resolve(i, preferEnd: false) }
     let ri = start._rope!
     let chunk = self._rope[ri]
-    let ci = chunk.string.unicodeScalars._index(roundingDown: start._chunkIndex)
+    let ci = chunk.scalarIndex(roundingDown: start._chunkIndex)
     return Index(baseUTF8Offset: start._utf8BaseOffset, _rope: ri, chunk: ci)._knownScalarAligned()
   }
 
@@ -374,14 +376,14 @@ extension BigString {
     precondition(i <= endIndex, "Index out of bounds")
     guard i < endIndex else { return endIndex }
     var r = i
-    if i._isUTF16TrailingSurrogate {
+    if i._chunkIndex.isUTF16TrailingSurrogate {
       r._clearUTF16TrailingSurrogate()
     }
     return resolve(r, preferEnd: false)
   }
 
   func _utf16Index(roundingDown i: Index) -> Index {
-    if i._isUTF16TrailingSurrogate {
+    if i._chunkIndex.isUTF16TrailingSurrogate {
       precondition(i < endIndex, "Index out of bounds")
       // (We know i can't be the endIndex -- it addresses a trailing surrogate.)
       return self.resolve(i, preferEnd: false)
@@ -390,7 +392,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _characterIndex(roundingUp i: Index) -> Index {
     let j = _characterIndex(roundingDown: i)
@@ -421,7 +423,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _character(at start: Index) -> (character: Character, end: Index) {
     let start = _characterIndex(roundingDown: start)
@@ -430,38 +432,55 @@ extension BigString {
     var ri = start._rope!
     var ci = start._chunkIndex
     var chunk = _rope[ri]
-    let char = chunk.wholeCharacters[ci]
-    let endOffset = start._utf8ChunkOffset + char.utf8.count
-    if endOffset < chunk.utf8Count {
-      let endStringIndex = chunk.string._utf8Index(at: endOffset)
+    
+    // Fast path: The entire character lives within the chunk
+    if chunk.hasBreaks, (chunk.firstBreak..<chunk.lastBreak).contains(ci) {
+      let endCi = chunk.characterIndex(after: ci)
+      let offset = endCi.utf8Offset - ci.utf8Offset
       let endIndex = Index(
-        baseUTF8Offset: start._utf8BaseOffset, _rope: ri, chunk: endStringIndex
+        _utf8Offset: start.utf8Offset + offset,
+        utf16TrailingSurrogate: endCi.isUTF16TrailingSurrogate,
+        _rope: ri,
+        chunkOffset: endCi.utf8Offset
       )._knownCharacterAligned()
-      return (char, endIndex)
+      return (chunk[character: ci], endIndex)
     }
-    var s = String(char)
-    var base = start._utf8BaseOffset + chunk.utf8Count
+    
+    var s = String(copying: chunk.suffix)
+    var base = start.utf8Offset + chunk.suffix.count
+    
     while true {
       _rope.formIndex(after: &ri)
       guard ri < _rope.endIndex else {
-        ci = "".endIndex
+        ci = _Chunk.Index(utf8Offset: 0)
         break
       }
       chunk = _rope[ri]
-      s.append(contentsOf: chunk.prefix)
+      
+      s.append(copying: chunk.prefix)
+      base += chunk.prefix.count
+      
       if chunk.hasBreaks {
         ci = chunk.firstBreak
         break
       }
-      base += chunk.utf8Count
     }
-    return (Character(s), Index(baseUTF8Offset: base, _rope: ri, chunk: ci)._knownCharacterAligned())
+    
+    return (
+      Character(s),
+      Index(
+        _utf8Offset: base,
+        utf16TrailingSurrogate: ci.isUTF16TrailingSurrogate,
+        _rope: ri,
+        chunkOffset: ci.utf8Offset
+      )._knownCharacterAligned()
+    )
   }
 
   subscript(_utf8 index: Index) -> UInt8 {
     precondition(index < endIndex, "Index out of bounds")
     let index = resolve(index, preferEnd: false)
-    return _rope[index._rope!].string.utf8[index._chunkIndex]
+    return _rope[index._rope!][utf8: index._chunkIndex]
   }
 
   subscript(_utf8 offset: Int) -> UInt8 {
@@ -473,7 +492,7 @@ extension BigString {
   subscript(_utf16 index: Index) -> UInt16 {
     precondition(index < endIndex, "Index out of bounds")
     let index = resolve(index, preferEnd: false)
-    return _rope[index._rope!].string.utf16[index._chunkIndex]
+    return _rope[index._rope!][utf16: index._chunkIndex]
   }
 
   subscript(_utf16 offset: Int) -> UInt16 {
@@ -494,7 +513,7 @@ extension BigString {
   subscript(_unicodeScalar index: Index) -> Unicode.Scalar {
     precondition(index < endIndex, "Index out of bounds")
     let index = resolve(index, preferEnd: false)
-    return _rope[index._rope!].string.unicodeScalars[index._chunkIndex]
+    return _rope[index._rope!][scalar: index._chunkIndex]
   }
 
   subscript(_unicodeScalar offset: Int) -> Unicode.Scalar {
@@ -504,12 +523,12 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _foreachChunk(
     from start: Index,
     to end: Index,
-    _ body: (Substring) -> Void
+    _ body: (UnsafeBufferPointer<UInt8>) -> Void
   ) {
     precondition(start <= end)
     guard start < end else { return }
@@ -520,21 +539,18 @@ extension BigString {
     let endRopeIndex = end._rope!
 
     if ri == endRopeIndex {
-      let str = self._rope[ri].string
-      body(str[start._chunkIndex ..< end._chunkIndex])
+      let buffer = _rope[ri]._bytes.extracting(start._chunkIndex.utf8Offset ..< end._chunkIndex.utf8Offset)
+      body(buffer)
       return
     }
 
-    let firstChunk = self._rope[ri].string
-    body(firstChunk[start._chunkIndex...])
+    body(_rope[ri]._bytes.extracting(start._chunkIndex.utf8Offset...))
 
     _rope.formIndex(after: &ri)
     while ri < endRopeIndex {
-      let string = _rope[ri].string
-      body(string[...])
+      body(_rope[ri]._bytes)
     }
 
-    let lastChunk = self._rope[ri].string
-    body(lastChunk[..<end._chunkIndex])
+    body(_rope[ri]._bytes.extracting(..<end._chunkIndex.utf8Offset))
   }
 }

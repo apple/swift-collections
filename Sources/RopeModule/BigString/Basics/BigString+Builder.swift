@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   struct Builder {
     typealias _Chunk = BigString._Chunk
@@ -38,7 +38,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension Rope<BigString._Chunk>.Builder {
   internal func _breakState() -> _CharacterRecognizer {
     let chars = self.prefixSummary.characters
@@ -47,9 +47,9 @@ extension Rope<BigString._Chunk>.Builder {
     var state = _CharacterRecognizer()
     _ = self.forEachElementInPrefix(from: chars - 1, in: metric) { chunk, i in
       if let i {
-        state = .init(partialCharacter: chunk.string[i...])
+        state = .init(partialCharacter: chunk.utf8Span(from: i))
       } else {
-        state.consumePartialCharacter(chunk.string[...])
+        state.consumePartialCharacter(chunk.utf8Span)
       }
       return true
     }
@@ -57,7 +57,7 @@ extension Rope<BigString._Chunk>.Builder {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Builder {
   mutating func append(_ str: __owned some StringProtocol) {
     append(Substring(str))
@@ -129,7 +129,7 @@ extension BigString.Builder {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Builder {
   mutating func finalize() -> BigString {
     // Resync breaks in suffix.
