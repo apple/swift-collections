@@ -39,8 +39,8 @@ import InternalCollectionsUtilities
 /// *in the same order*. This matches the concept of equality of an `Array`, and
 /// it is different from the unordered `Set`.
 ///
-///     let a: OrderedSet = [1, 2, 3, 4]
-///     let b: OrderedSet = [4, 3, 2, 1]
+///     var a: OrderedSet = [1, 2, 3, 4]
+///     var b: OrderedSet = [4, 3, 2, 1]
 ///     a == b // false
 ///     b.sort() // `b` now has value [1, 2, 3, 4]
 ///     a == b // true
