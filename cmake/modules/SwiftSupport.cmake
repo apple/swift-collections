@@ -7,54 +7,18 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-# Returns the architecture name in a variable
-#
-# Usage:
-#   get_swift_host_arch(result_var_name)
-#
-# Sets ${result_var_name} with the converted architecture name derived from
-# CMAKE_SYSTEM_PROCESSOR.
-function(get_swift_host_arch result_var_name)
-  if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-    set("${result_var_name}" "x86_64" PARENT_SCOPE)
-  elseif ("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "AArch64|aarch64|arm64|ARM64")
-    if(CMAKE_SYSTEM_NAME MATCHES Darwin)
-      set("${result_var_name}" "arm64" PARENT_SCOPE)
-    else()
-      set("${result_var_name}" "aarch64" PARENT_SCOPE)
-    endif()
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64")
-    set("${result_var_name}" "powerpc64" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ppc64le")
-    set("${result_var_name}" "powerpc64le" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "s390x")
-    set("${result_var_name}" "s390x" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv6l")
-    set("${result_var_name}" "armv6" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-    set("${result_var_name}" "armv7" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a")
-    set("${result_var_name}" "armv7" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "amd64")
-    set("${result_var_name}" "amd64" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
-    set("${result_var_name}" "x86_64" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "IA64")
-    set("${result_var_name}" "itanium" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86")
-    set("${result_var_name}" "i686" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
-    set("${result_var_name}" "i686" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "wasm32")
-    set("${result_var_name}" "wasm32" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "wasm64")
-    set("${result_var_name}" "wasm64" PARENT_SCOPE)
-  elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "riscv64")
-    set("${result_var_name}" "riscv64" PARENT_SCOPE)
-  else()
-    message(FATAL_ERROR "Unrecognized architecture on host system: ${CMAKE_SYSTEM_PROCESSOR}")
+
+if(NOT SwiftCollections_MODULE_TRIPLE)
+  set(target_info_cmd "${CMAKE_Swift_COMPILER}" -print-target-info)
+  if(CMAKE_Swift_COMPILER_TARGET)
+    list(APPEND target_info_cmd -target ${CMAKE_Swift_COMPILER_TARGET})
   endif()
-endfunction()
+  execute_process(COMMAND ${target_info_cmd} OUTPUT_VARIABLE target_info_json)
+
+  string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
+  set(SwiftCollections_MODULE_TRIPLE "${module_triple}" CACHE STRING "Triple used for installed swift{doc,module, interface} files")
+  mark_as_advanced(SwiftCollections_MODULE_TRIPLE)
+endif()
 
 # Returns the os name in a variable
 #
@@ -86,7 +50,6 @@ function(_install_target module)
     return()
   endif()
 
-  get_swift_host_arch(swift_arch)
   get_target_property(module_name ${module} Swift_MODULE_NAME)
   if(NOT module_name)
     set(module_name ${module})
@@ -94,8 +57,8 @@ function(_install_target module)
 
   install(FILES $<TARGET_PROPERTY:${module},Swift_MODULE_DIRECTORY>/${module_name}.swiftdoc
     DESTINATION lib/${swift}/${swift_os}/${module_name}.swiftmodule
-    RENAME ${swift_arch}.swiftdoc)
+    RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
   install(FILES $<TARGET_PROPERTY:${module},Swift_MODULE_DIRECTORY>/${module_name}.swiftmodule
     DESTINATION lib/${swift}/${swift_os}/${module_name}.swiftmodule
-    RENAME ${swift_arch}.swiftmodule)
+    RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
 endfunction()
