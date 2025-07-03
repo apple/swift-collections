@@ -26,8 +26,9 @@ extension _HashNode.UnsafeHandle {
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> (descend: Bool, slot: _HashSlot)? {
     guard !isCollisionNode else {
-      let r = _findInCollision(level, key, hash)
-      guard r.code == 0 else { return nil }
+      guard hash == collisionHash else { return nil }
+      let r = _findInCollision(key)
+      guard r.found else { return nil }
       return (false, r.slot)
     }
     let bucket = hash[level]
@@ -44,17 +45,12 @@ extension _HashNode.UnsafeHandle {
   }
 
   @inlinable @inline(never)
-  internal func _findInCollision(
-    _ level: _HashLevel, _ key: Key, _ hash: _Hash
-  ) -> (code: Int, slot: _HashSlot) {
+  internal func _findInCollision(_ key: Key) -> (found: Bool, slot: _HashSlot) {
     assert(isCollisionNode)
-    if !level.isAtBottom {
-      if hash != self.collisionHash { return (2, .zero) }
-    }
     // Note: this searches the items in reverse insertion order.
     guard let slot = reverseItems.firstIndex(where: { $0.key == key })
-    else { return (1, self.itemsEndSlot) }
-    return (0, _HashSlot(itemCount &- 1 &- slot))
+    else { return (false, self.itemsEndSlot) }
+    return (true, _HashSlot(itemCount &- 1 &- slot))
   }
 }
 
@@ -143,15 +139,15 @@ extension _HashNode.UnsafeHandle {
     _ level: _HashLevel, _ key: Key, _ hash: _Hash
   ) -> _FindResult {
     guard !isCollisionNode else {
-      let r = _findInCollision(level, key, hash)
-      if r.code == 0 {
-        return .found(.invalid, r.slot)
+      if hash != self.collisionHash {
+        assert(!level.isAtBottom)
+        return .expansion
       }
-      if r.code == 1 {
+      let r = _findInCollision(key)
+      guard r.found else {
         return .appendCollision
       }
-      assert(r.code == 2)
-      return .expansion
+      return .found(.invalid, r.slot)
     }
     let bucket = hash[level]
     if itemMap.contains(bucket) {
