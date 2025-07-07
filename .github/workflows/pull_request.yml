@@ -11,6 +11,7 @@ jobs:
     with:
       linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "16.0"}, {"xcode_version": "16.1"}]'
       enable_macos_checks: true
   soundness:
     name: Soundness
