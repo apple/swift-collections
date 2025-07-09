@@ -40,7 +40,7 @@ import InternalCollectionsUtilities
 /// it is different from the unordered `Set`.
 ///
 ///     let a: OrderedSet = [1, 2, 3, 4]
-///     let b: OrderedSet = [4, 3, 2, 1]
+///     var b: OrderedSet = [4, 3, 2, 1]
 ///     a == b // false
 ///     b.sort() // `b` now has value [1, 2, 3, 4]
 ///     a == b // true
@@ -90,7 +90,7 @@ import InternalCollectionsUtilities
 /// it implements the same concept of equality as the standard `Set`, ignoring
 /// element ordering.
 ///
-///     var a: OrderedSet = [0, 1, 2, 3]
+///     let a: OrderedSet = [0, 1, 2, 3]
 ///     let b: OrderedSet = [3, 2, 1, 0]
 ///     a == b // false
 ///     a.unordered == b.unordered // true
@@ -174,7 +174,7 @@ import InternalCollectionsUtilities
 ///
 ///     func pickyFunction(_ items: Array<Int>)
 ///
-///     var set: OrderedSet = [0, 1, 2, 3]
+///     let set: OrderedSet = [0, 1, 2, 3]
 ///     pickyFunction(set) // error
 ///     pickyFunction(set.elements) // OK
 ///
