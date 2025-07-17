@@ -46,6 +46,7 @@ extension TreeDictionary {
 extension TreeDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
 
+#if !$Embedded
 extension TreeDictionary.Values: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -59,6 +60,7 @@ extension TreeDictionary.Values: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension TreeDictionary.Values: Sequence {
   public typealias Element = Value

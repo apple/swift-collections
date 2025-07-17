@@ -11,6 +11,7 @@
 
 import InternalCollectionsUtilities
 
+#if !$Embedded
 extension BitArray: Codable {
   /// Encodes this bit array into the given encoder.
   ///
@@ -73,3 +74,4 @@ extension BitArray: Codable {
     self.init(_storage: words, count: count)
   }
 }
+#endif

@@ -68,6 +68,7 @@ extension OrderedSet {
 
 extension OrderedSet.UnorderedView: Sendable where Element: Sendable {}
 
+#if !$Embedded
 extension OrderedSet.UnorderedView: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
@@ -81,13 +82,16 @@ extension OrderedSet.UnorderedView: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
+#if !$Embedded
 extension OrderedSet.UnorderedView: CustomReflectable {
   /// The custom mirror for this instance.
   public var customMirror: Mirror {
     Mirror(self, unlabeledChildren: _base._elements, displayStyle: .collection)
   }
 }
+#endif
 
 extension OrderedSet.UnorderedView: Equatable {
   /// Returns a Boolean value indicating whether two values are equal.

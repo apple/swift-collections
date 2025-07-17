@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension _BTree: CustomReflectable {
   /// The custom mirror for this instance.
   @inlinable
@@ -16,3 +17,4 @@ extension _BTree: CustomReflectable {
     Mirror(self, unlabeledChildren: self, displayStyle: .dictionary)
   }
 }
+#endif

@@ -333,6 +333,7 @@ extension OrderedDictionary.Elements: RandomAccessCollection {
   }
 }
 
+#if !$Embedded
 extension OrderedDictionary.Elements: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -346,12 +347,15 @@ extension OrderedDictionary.Elements: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
+#if !$Embedded
 extension OrderedDictionary.Elements: CustomReflectable {
   public var customMirror: Mirror {
     Mirror(self, unlabeledChildren: self, displayStyle: .collection)
   }
 }
+#endif
 
 extension OrderedDictionary.Elements: Equatable where Value: Equatable {
   @inlinable

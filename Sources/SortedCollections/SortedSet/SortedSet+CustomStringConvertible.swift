@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension SortedSet: CustomStringConvertible, CustomDebugStringConvertible {
   @inlinable
   public var description: String {
@@ -43,3 +44,4 @@ extension SortedSet: CustomStringConvertible, CustomDebugStringConvertible {
     return result
   }
 }
+#endif

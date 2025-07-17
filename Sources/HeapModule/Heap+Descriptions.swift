@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension Heap: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
@@ -32,4 +33,4 @@ extension Heap: CustomDebugStringConvertible {
     description
   }
 }
-
+#endif

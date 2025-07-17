@@ -13,9 +13,11 @@
 import InternalCollectionsUtilities
 #endif
 
+#if !$Embedded
 extension BitSet: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
     _arrayDescription(for: self)
   }
 }
+#endif

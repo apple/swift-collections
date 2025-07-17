@@ -175,6 +175,7 @@ extension BitSet.Counted: BidirectionalCollection {
 }
 
 
+#if !$Embedded
 extension BitSet.Counted: Codable {
   public func encode(to encoder: Encoder) throws {
     try _bits.encode(to: encoder)
@@ -184,7 +185,9 @@ extension BitSet.Counted: Codable {
     self.init(try BitSet(from: decoder))
   }
 }
+#endif
 
+#if !$Embedded
 extension BitSet.Counted: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -198,12 +201,15 @@ extension BitSet.Counted: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
+#if !$Embedded
 extension BitSet.Counted: CustomReflectable {
   public var customMirror: Mirror {
     _bits.customMirror
   }
 }
+#endif
 
 extension BitSet.Counted: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {

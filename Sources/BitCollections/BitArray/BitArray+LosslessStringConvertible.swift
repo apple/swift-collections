@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension BitArray: LosslessStringConvertible {
   /// Initializes a new bit array from a string representation.
   ///
@@ -62,3 +63,4 @@ extension BitArray: LosslessStringConvertible {
     guard success else { return nil }
   }
 }
+#endif

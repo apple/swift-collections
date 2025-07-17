@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension SortedDictionary: Encodable where Key: Codable, Value: Codable {
   /// Encodes the contents of this dictionary into the given encoder.
   ///
@@ -73,3 +74,4 @@ extension SortedDictionary: Decodable where Key: Decodable, Value: Decodable {
     self.init(_rootedAt: builder.finish())
   }
 }
+#endif

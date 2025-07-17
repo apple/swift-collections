@@ -84,6 +84,7 @@ extension TreeDictionary.Index: Hashable {
   }
 }
 
+#if !$Embedded
 extension TreeDictionary.Index: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -97,6 +98,7 @@ extension TreeDictionary.Index: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension TreeDictionary: Collection {
   /// A Boolean value indicating whether the collection is empty.

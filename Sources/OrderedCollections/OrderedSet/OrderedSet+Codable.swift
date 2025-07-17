@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension OrderedSet: Encodable where Element: Encodable {
   /// Encodes the elements of this ordered set into the given encoder.
   ///
@@ -44,3 +45,4 @@ extension OrderedSet: Decodable where Element: Decodable {
       elements.count > _HashTable.maximumUnhashedCount ? table : nil)
   }
 }
+#endif

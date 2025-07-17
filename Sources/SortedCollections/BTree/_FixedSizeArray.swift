@@ -113,6 +113,7 @@ internal struct _FixedSizeArray<Element> {
   }
 }
 
+#if !$Embedded
 #if DEBUG
 extension _FixedSizeArray: CustomDebugStringConvertible {
   @inlinable
@@ -130,4 +131,5 @@ extension _FixedSizeArray: CustomDebugStringConvertible {
     return result
   }
 }
+#endif
 #endif

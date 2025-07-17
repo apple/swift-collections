@@ -31,6 +31,7 @@ extension OrderedDictionary {
 extension OrderedDictionary.Values: Sendable
 where Key: Sendable, Value: Sendable {}
 
+#if !$Embedded
 extension OrderedDictionary.Values: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -44,6 +45,7 @@ extension OrderedDictionary.Values: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension OrderedDictionary.Values {
   /// A read-only view of the contents of this collection as an array value.

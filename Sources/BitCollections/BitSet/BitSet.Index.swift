@@ -45,6 +45,7 @@ extension BitSet {
 
 extension BitSet.Index: Sendable {}
 
+#if !$Embedded
 extension BitSet.Index: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -58,6 +59,7 @@ extension BitSet.Index: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension BitSet.Index: Equatable {
   /// Returns a Boolean value indicating whether two values are equal.

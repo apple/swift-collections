@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension OrderedDictionary: Encodable where Key: Encodable, Value: Encodable {
   /// Encodes the contents of this dictionary into the given encoder.
   ///
@@ -85,3 +86,4 @@ extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
     _checkInvariants()
   }
 }
+#endif
