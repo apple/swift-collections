@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   func utf16AlignIndex(_ i: Index) -> Index {
@@ -173,3 +175,5 @@ extension BigString._Chunk {
     }
   }
 }
+
+#endif // compiler(>=6.2)

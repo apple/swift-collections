@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   func _breakState(
@@ -270,3 +272,5 @@ extension BigString._Chunk {
     return
   }
 }
+
+#endif // compiler(>=6.2)

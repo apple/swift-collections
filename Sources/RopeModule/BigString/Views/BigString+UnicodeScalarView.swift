@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
@@ -392,3 +394,5 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     self._base = BigString()
   }
 }
+
+#endif // compiler(>=6.2)

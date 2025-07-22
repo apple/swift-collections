@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public struct UTF8View: Sendable {
@@ -171,3 +173,5 @@ extension BigSubstring.UTF8View {
     return _base._utf8Index(roundingUp: i)
   }
 }
+
+#endif // compiler(>=6.2)

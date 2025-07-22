@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   /// Measure the distance between the given start and end positions within
@@ -291,3 +293,5 @@ extension BigString {
     }
   }
 }
+
+#endif // compiler(>=6.2)

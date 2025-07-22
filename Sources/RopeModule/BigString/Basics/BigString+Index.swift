@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   public  struct Index: Sendable {
@@ -229,3 +231,5 @@ extension BigString {
       chunk: ci)
   }
 }
+
+#endif // compiler(>=6.2)

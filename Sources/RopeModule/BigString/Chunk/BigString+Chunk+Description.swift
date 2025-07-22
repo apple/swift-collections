@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk: CustomStringConvertible {
   var description: String {
@@ -61,3 +63,5 @@ extension BigString._Chunk: CustomStringConvertible {
     return result
   }
 }
+
+#endif // compiler(>=6.2)

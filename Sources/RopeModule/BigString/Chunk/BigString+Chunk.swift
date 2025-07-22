@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   internal struct _Chunk {
@@ -190,3 +192,5 @@ extension BigString._Chunk {
     utf8Count + other.utf8Count <= Self.maxUTF8Count
   }
 }
+
+#endif // compiler(>=6.2)

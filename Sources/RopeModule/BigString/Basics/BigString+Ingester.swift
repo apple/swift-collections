@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   func _ingester(
@@ -167,3 +169,5 @@ extension BigString._Chunk {
     assert(ingester.isAtEnd)
   }
 }
+
+#endif // compiler(>=6.2)

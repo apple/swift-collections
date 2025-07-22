@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _removeSubrange(_ bounds: Range<Index>) {
@@ -42,3 +44,5 @@ extension BigString {
     return scalar
   }
 }
+
+#endif // compiler(>=6.2)

@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _insert(
@@ -94,3 +96,5 @@ extension BigString {
     self = builder.finalize()
   }
 }
+
+#endif // compiler(>=6.2)

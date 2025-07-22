@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 
@@ -192,3 +194,5 @@ extension _CharacterRecognizer {
     return (chars, prefix, suffix)
   }
 }
+
+#endif // compiler(>=6.2)

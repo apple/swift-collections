@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if swift(>=5.8)
+#if compiler(>=6.2)
 
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
@@ -140,4 +140,4 @@ extension BigString._Chunk.Index: CustomStringConvertible {
   }
 }
 
-#endif
+#endif // compiler(>=6.2)

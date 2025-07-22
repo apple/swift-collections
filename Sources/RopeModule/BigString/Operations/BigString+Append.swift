@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _append(contentsOf other: __owned Substring) {
@@ -192,3 +194,5 @@ extension BigString {
     self._rope = _Rope.join(other, self._rope)
   }
 }
+
+#endif // compiler(>=6.2)

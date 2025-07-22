@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
 @preconcurrency import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
@@ -1146,3 +1147,5 @@ class TestBigString: CollectionTestCase {
     }
   }
 }
+
+#endif // compiler(>=6.2)

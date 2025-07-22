@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   struct Builder {
@@ -143,3 +145,5 @@ extension BigString.Builder {
     return string
   }
 }
+
+#endif // compiler(>=6.2)
