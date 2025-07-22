@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   public func _invariantCheck() {
@@ -33,3 +35,5 @@ extension BigString {
 #endif
   }
 }
+
+#endif // compiler(>=6.2)

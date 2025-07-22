@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension StringProtocol {
   @inline(__always)
@@ -144,3 +146,5 @@ extension String {
     }
   }
 }
+
+#endif // compiler(>=6.2)

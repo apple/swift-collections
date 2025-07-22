@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString: BidirectionalCollection {
   public typealias SubSequence = BigSubstring
@@ -69,3 +71,5 @@ extension BigString {
     _characterIndex(roundingUp: i)
   }
 }
+
+#endif // compiler(>=6.2)

@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   struct Summary {
@@ -76,3 +78,5 @@ extension BigString.Summary: RopeSummary {
     utf8 -= other.utf8
   }
 }
+
+#endif // compiler(>=6.2)

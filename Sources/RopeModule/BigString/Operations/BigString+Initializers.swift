@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   internal init(_from input: some StringProtocol) {
@@ -158,3 +160,5 @@ extension String {
     self.init(_from: big._base, in: big._bounds)
   }
 }
+
+#endif // compiler(>=6.2)

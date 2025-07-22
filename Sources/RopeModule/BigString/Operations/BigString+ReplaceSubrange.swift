@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _replaceSubrange(
@@ -82,3 +84,5 @@ extension BigString {
     return Builder(base: b, prefixEndState: startState, suffixStartState: endState)
   }
 }
+
+#endif // compiler(>=6.2)

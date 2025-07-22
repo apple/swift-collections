@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public struct UnicodeScalarView: Sendable {
@@ -318,3 +320,5 @@ extension BigSubstring.UnicodeScalarView: RangeReplaceableCollection {
     assert(_bounds.isEmpty)
   }
 }
+
+#endif // compiler(>=6.2)

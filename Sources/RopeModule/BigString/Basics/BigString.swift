@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 /// The core of a B-tree based String implementation.
 @available(SwiftStdlib 6.2, *)
 public struct BigString: Sendable {
@@ -21,3 +23,5 @@ public struct BigString: Sendable {
     self._rope = _rope
   }
 }
+
+#endif // compiler(>=6.2)

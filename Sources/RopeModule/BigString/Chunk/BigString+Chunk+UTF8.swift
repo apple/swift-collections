@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {  
   func utf8Distance(from i: Index, to j: Index) -> Int {
@@ -20,3 +22,5 @@ extension BigString._Chunk {
     return span[i.utf8Offset]
   }
 }
+
+#endif // compiler(>=6.2)

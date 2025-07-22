@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString {
   /// The estimated maximum number of UTF-8 code units that `BigString` is guaranteed to be able
@@ -554,3 +556,5 @@ extension BigString {
     body(_rope[ri]._bytes.extracting(..<end._chunkIndex.utf8Offset))
   }
 }
+
+#endif // compiler(>=6.2)

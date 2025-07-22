@@ -9,6 +9,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString: TextOutputStream {
   public mutating func write(_ string: String) {
@@ -28,3 +30,5 @@ extension BigString: TextOutputStreamable {
     }
   }
 }
+
+#endif // compiler(>=6.2)

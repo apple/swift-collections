@@ -9,9 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 @available(SwiftStdlib 6.2, *)
 extension BigString: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
+
+#endif // compiler(>=6.2)
