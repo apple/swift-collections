@@ -33,6 +33,7 @@ ${modifier} func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> Strin
   _addressString(for: object.toOpaque())
 }
 
+#if !$Embedded
 @inlinable
 ${modifier} func _arrayDescription<C: Collection>(
   for elements: C
@@ -71,5 +72,6 @@ ${modifier} func _dictionaryDescription<Key, Value, C: Collection>(
   result += "]"
   return result
 }
+#endif
 % end
 ${visibility_boilerplate("end")}

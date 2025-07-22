@@ -85,6 +85,7 @@ extension TreeSet.Index: Hashable {
   }
 }
 
+#if !$Embedded
 extension TreeSet.Index: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -98,6 +99,7 @@ extension TreeSet.Index: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension TreeSet: Collection {
   /// A Boolean value indicating whether the collection is empty.

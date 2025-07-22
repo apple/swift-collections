@@ -43,6 +43,7 @@ where Key: Sendable, Value: Sendable {}
 
 extension TreeDictionary.Keys: _UniqueCollection {}
 
+#if !$Embedded
 extension TreeDictionary.Keys: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -56,6 +57,7 @@ extension TreeDictionary.Keys: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension TreeDictionary.Keys: Sequence {
   /// The element type of the collection.

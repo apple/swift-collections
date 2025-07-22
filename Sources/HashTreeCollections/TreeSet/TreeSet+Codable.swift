@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension TreeSet: Encodable where Element: Encodable {
   /// Encodes the elements of this set into the given encoder.
   ///
@@ -44,3 +45,4 @@ extension TreeSet: Decodable where Element: Decodable {
     }
   }
 }
+#endif

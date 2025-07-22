@@ -13,6 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
+#if !$Embedded
 extension Deque: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
@@ -26,3 +27,4 @@ extension Deque: CustomDebugStringConvertible {
     description
   }
 }
+#endif

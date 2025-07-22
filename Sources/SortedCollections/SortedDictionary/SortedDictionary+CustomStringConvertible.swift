@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension SortedDictionary: CustomStringConvertible, CustomDebugStringConvertible {
   @inlinable
   public var description: String {
@@ -50,3 +51,4 @@ extension SortedDictionary: CustomStringConvertible, CustomDebugStringConvertibl
     return result
   }
 }
+#endif

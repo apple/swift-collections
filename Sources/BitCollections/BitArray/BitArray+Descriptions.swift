@@ -23,6 +23,7 @@ extension UInt8 {
   internal static var _asciiGT: Self { 62 }
 }
 
+#if !$Embedded
 extension BitArray: CustomStringConvertible {
   /// A textual representation of this instance.
   /// Bit arrays print themselves as a string of binary bits, with the
@@ -55,6 +56,7 @@ extension BitArray: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension BitArray {
   internal var _bitString: String {

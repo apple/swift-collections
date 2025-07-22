@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 // Code in this file is a slightly adapted variant of `Dictionary`'s `Codable`
 // implementation in the Standard Library as of Swift 5.7.
 // `TreeDictionary` therefore encodes/decodes itself exactly the same as
@@ -184,3 +185,4 @@ where Key: Decodable, Value: Decodable
   }
 }
 
+#endif

@@ -37,6 +37,7 @@ extension OrderedDictionary.Elements {
 extension OrderedDictionary.Elements.SubSequence: Sendable
 where Key: Sendable, Value: Sendable {}
 
+#if !$Embedded
 extension OrderedDictionary.Elements.SubSequence: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -50,6 +51,7 @@ extension OrderedDictionary.Elements.SubSequence: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension OrderedDictionary.Elements.SubSequence {
   /// A read-only collection view containing the keys in this slice.

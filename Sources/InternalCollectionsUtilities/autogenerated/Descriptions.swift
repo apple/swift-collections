@@ -39,6 +39,7 @@ internal func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
   _addressString(for: object.toOpaque())
 }
 
+#if !$Embedded
 @inlinable
 internal func _arrayDescription<C: Collection>(
   for elements: C
@@ -77,6 +78,7 @@ internal func _dictionaryDescription<Key, Value, C: Collection>(
   result += "]"
   return result
 }
+#endif
 #else // !COLLECTIONS_SINGLE_MODULE
 
 //@usableFromInline
@@ -95,6 +97,7 @@ public func _addressString<T: AnyObject>(for object: Unmanaged<T>) -> String {
   _addressString(for: object.toOpaque())
 }
 
+#if !$Embedded
 @inlinable
 public func _arrayDescription<C: Collection>(
   for elements: C
@@ -133,4 +136,5 @@ public func _dictionaryDescription<Key, Value, C: Collection>(
   result += "]"
   return result
 }
+#endif
 #endif // COLLECTIONS_SINGLE_MODULE

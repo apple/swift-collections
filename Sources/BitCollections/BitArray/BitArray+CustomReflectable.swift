@@ -9,9 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension BitArray: CustomReflectable {
   /// The custom mirror for this instance.
   public var customMirror: Mirror {
     Mirror(self, unlabeledChildren: self, displayStyle: .collection)
   }
 }
+#endif

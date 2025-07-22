@@ -53,6 +53,7 @@ extension OrderedSet.SubSequence {
   }
 }
 
+#if !$Embedded
 extension OrderedSet.SubSequence: CustomStringConvertible {
   // A textual representation of this instance.
   public var description: String {
@@ -66,6 +67,7 @@ extension OrderedSet.SubSequence: CustomDebugStringConvertible {
     description
   }
 }
+#endif
 
 extension OrderedSet.SubSequence: Sequence {
   // A type representing the collection’s elements.

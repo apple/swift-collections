@@ -16,6 +16,7 @@ import InternalCollectionsUtilities
 @usableFromInline
 internal typealias _Word = _UnsafeBitSet._Word
 
+#if !$Embedded
 extension Array where Element == _Word {
   internal func _encodeAsUInt64(
     to container: inout UnkeyedEncodingContainer
@@ -70,3 +71,4 @@ extension Array where Element == _Word {
     }
   }
 }
+#endif

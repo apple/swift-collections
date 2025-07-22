@@ -13,6 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
+#if !$Embedded
 extension OrderedSet: CustomStringConvertible {
   /// A textual representation of this instance.
   public var description: String {
@@ -26,3 +27,4 @@ extension OrderedSet: CustomDebugStringConvertible {
     description
   }
 }
+#endif

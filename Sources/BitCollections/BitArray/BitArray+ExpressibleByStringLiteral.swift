@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension BitArray: ExpressibleByStringLiteral {
   /// Creates an instance initialized with the given elements.
   @inlinable
@@ -19,3 +20,4 @@ extension BitArray: ExpressibleByStringLiteral {
     self = bits
   }
 }
+#endif

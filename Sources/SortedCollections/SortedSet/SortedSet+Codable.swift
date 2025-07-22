@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension SortedSet: Encodable where Element: Encodable {
   /// Encodes the elements of this ordered set into the given encoder.
   ///
@@ -50,3 +51,4 @@ extension SortedSet: Decodable where Element: Decodable {
     self.init(_rootedAt: builder.finish())
   }
 }
+#endif

@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 extension BitSet: Codable {
   /// Encodes this bit set into the given encoder.
   ///
@@ -34,3 +35,4 @@ extension BitSet: Codable {
     self.init(_words: words)
   }
 }
+#endif

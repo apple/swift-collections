@@ -9,6 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !$Embedded
 // MARK: CustomDebugStringConvertible
 extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   #if DEBUG
@@ -147,3 +148,4 @@ extension _Node.UnsafeHandle: CustomDebugStringConvertible {
   }
   #endif // DEBUG
 }
+#endif
