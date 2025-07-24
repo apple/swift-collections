@@ -9,9 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+#if compiler(>=6.2)
+
+@available(SwiftStdlib 6.2, *)
 extension BigString: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value)
   }
 }
+
+#endif // compiler(>=6.2)

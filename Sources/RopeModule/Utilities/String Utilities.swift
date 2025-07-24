@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+#if compiler(>=6.2)
+
+@available(SwiftStdlib 6.2, *)
 extension StringProtocol {
   @inline(__always)
   var _indexOfLastCharacter: Index {
@@ -45,7 +47,7 @@ extension StringProtocol {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension String {
   internal func _lpad(to width: Int, with pad: Character = " ") -> String {
     let c = self.count
@@ -60,7 +62,7 @@ extension String {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension String {
   @discardableResult
   mutating func _appendQuotedProtectingLeft(
@@ -123,3 +125,26 @@ extension String {
     return result
   }
 }
+
+extension String {
+  @available(SwiftStdlib 6.2, *)
+  mutating func append(copying utf8Span: UTF8Span) {
+    self = String(unsafeUninitializedCapacity: utf8.count + utf8Span.count) {
+      var buffer = $0
+      
+      let stringInitialized = withUTF8 {
+        buffer.initialize(fromContentsOf: $0)
+      }
+
+      buffer = buffer.extracting(stringInitialized...)
+      
+      let spanInitialized = utf8Span.span.withUnsafeBufferPointer {
+        buffer.initialize(fromContentsOf: $0)
+      }
+      
+      return stringInitialized + spanInitialized
+    }
+  }
+}
+
+#endif // compiler(>=6.2)

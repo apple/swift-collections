@@ -9,14 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2)
+
 /// The core of a B-tree based String implementation.
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 public struct BigString: Sendable {
   typealias _Rope = Rope<_Chunk>
 
+  nonisolated(unsafe)
   var _rope: _Rope
   
   internal init(_rope: _Rope) {
     self._rope = _rope
   }
 }
+
+#endif // compiler(>=6.2)

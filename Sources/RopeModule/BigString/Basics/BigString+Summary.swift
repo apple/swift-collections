@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+#if compiler(>=6.2)
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   struct Summary {
     // FIXME: We only need 48 * 3 = 192 bits to represent a nonnegative value; pack these better
@@ -35,14 +37,14 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Summary: CustomStringConvertible {
   var description: String {
     "❨\(utf8)⋅\(utf16)⋅\(unicodeScalars)⋅\(characters)❩"
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Summary: RopeSummary {
   @inline(__always)
   static var maxNodeSize: Int {
@@ -76,3 +78,5 @@ extension BigString.Summary: RopeSummary {
     utf8 -= other.utf8
   }
 }
+
+#endif // compiler(>=6.2)

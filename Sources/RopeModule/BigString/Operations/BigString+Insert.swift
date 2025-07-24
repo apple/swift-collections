@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+#if compiler(>=6.2)
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _insert(
     contentsOf other: __owned Substring,
@@ -34,7 +36,7 @@ extension BigString {
     case let .inline(r):
       assert(ingester.isAtEnd)
       guard var r = r else { break }
-      ci = String.Index(_utf8Offset: ci._utf8Offset + r.increment)
+      ci = _Chunk.Index(utf8Offset: ci.utf8Offset + r.increment)
       let i = Index(baseUTF8Offset: index._utf8BaseOffset, _rope: ri, chunk: ci)
       resyncBreaks(startingAt: i, old: &r.old, new: &r.new)
     case let .split(spawn: spawn, endStates: r):
@@ -52,7 +54,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _insert(contentsOf other: __owned Self, at index: Index) {
     guard index < endIndex else {
@@ -66,8 +68,7 @@ extension BigString {
     }
     if other._rope.isSingleton {
       // Fast path when `other` is tiny.
-      let chunk = other._rope.first!
-      insert(contentsOf: chunk.string, at: index)
+      insert(contentsOf: other[...], at: index)
       return
     }
     var builder = self.split(at: index)
@@ -76,7 +77,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _insert(contentsOf other: __owned Self, in range: Range<Index>, at index: Index) {
     guard index < endIndex else {
@@ -95,3 +96,5 @@ extension BigString {
     self = builder.finalize()
   }
 }
+
+#endif // compiler(>=6.2)
