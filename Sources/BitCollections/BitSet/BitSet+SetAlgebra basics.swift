@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+#endif
 
 extension BitSet {
   /// Returns a Boolean value that indicates whether the given element exists
