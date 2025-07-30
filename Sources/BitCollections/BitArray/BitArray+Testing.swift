@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+#endif
 
 extension BitArray {
   @_spi(Testing)

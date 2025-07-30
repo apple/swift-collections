@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+#endif
 
 extension BitSet {
   public static func random(upTo limit: Int) -> BitSet {

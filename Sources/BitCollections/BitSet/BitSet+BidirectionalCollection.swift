@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+#endif
 
 extension BitSet: Sequence {
   /// The type representing the bit set's elements.
