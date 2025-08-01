@@ -106,9 +106,14 @@ extension _Node.UnsafeHandle {
         startIndex + self[childAt: childSlot].read { $0.subtreeCount }
       
       if offset < endIndex {
-        return self[childAt: childSlot].update {
+        let element = self[childAt: childSlot].update {
           $0.remove(at: offset - startIndex)
         }
+        
+        // Reduce the subtree count.
+        self.subtreeCount -= 1
+        
+        return element
       } else if offset == endIndex {
         let predecessor = self[childAt: childSlot].update {
           $0.popLastElement()
