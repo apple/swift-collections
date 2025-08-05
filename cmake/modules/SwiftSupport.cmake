@@ -7,42 +7,56 @@ Licensed under Apache License v2.0 with Runtime Library Exception
 See https://swift.org/LICENSE.txt for license information
 #]]
 
-# Returns the os name in a variable
-#
-# Usage:
-#   get_swift_host_os(result_var_name)
-#
-#
-# Sets ${result_var_name} with the converted OS name derived from
-# CMAKE_SYSTEM_NAME.
-function(get_swift_host_os result_var_name)
-  set(${result_var_name} ${SWIFT_SYSTEM_NAME} PARENT_SCOPE)
-endfunction()
 
-if(NOT Swift_MODULE_TRIPLE)
-  # Attempt to get the module triple from the Swift compiler.
+if(NOT SwiftCollections_MODULE_TRIPLE OR NOT SwiftCollections_ARCH OR NOT SwiftCollections_PLATFORM)
+  # Get the target information from the Swift compiler.
   set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
   if(CMAKE_Swift_COMPILER_TARGET)
     list(APPEND module_triple_command -target ${CMAKE_Swift_COMPILER_TARGET})
   endif()
-  execute_process(COMMAND ${module_triple_command}
-    OUTPUT_VARIABLE target_info_json)
-  string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
+  execute_process(COMMAND ${module_triple_command} OUTPUT_VARIABLE target_info_json)
+endif()
 
-  # Exit now if we failed to infer the triple.
-  if(NOT module_triple)
-    message(FATAL_ERROR
-      "Failed to get module triple from Swift compiler. "
-      "Compiler output: ${target_info_json}")
+if(NOT SwiftCollections_MODULE_TRIPLE)
+  string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
+  set(SwiftCollections_MODULE_TRIPLE "${module_triple}" CACHE STRING "Triple used to install swiftmodule files")
+  mark_as_advanced(SwiftCollections_MODULE_TRIPLE)
+  message(CONFIGURE_LOG "Swift module triple: ${module_triple}")
+endif()
+
+if(NOT SwiftCollections_ARCH)
+  if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
+    # For newer compilers, we can use the -print-target-info command to get the architecture.
+    string(JSON module_arch GET "${target_info_json}" "target" "arch")
+  else()
+    # For older compilers, extract the value from `SwiftCollections_MODULE_TRIPLE`.
+    string(REGEX MATCH "^[^-]+" module_arch "${SwiftCollections_MODULE_TRIPLE}")
   endif()
 
-  # Cache the module triple for future use.
-  set(Swift_MODULE_TRIPLE "${module_triple}" CACHE STRING "swift module triple used for installed swiftmodule and swiftinterface files")
-  mark_as_advanced(Swift_MODULE_TRIPLE)
+  set(SwiftCollections_ARCH "${module_arch}" CACHE STRING "Arch folder name used to install libraries")
+  mark_as_advanced(SwiftCollections_ARCH)
+  message(CONFIGURE_LOG "Swift arch: ${SwiftCollections_ARCH}")
+endif()
+
+if(NOT SwiftCollections_PLATFORM)
+  if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
+    # For newer compilers, we can use the -print-target-info command to get the platform.
+    string(JSON swift_platform GET "${target_info_json}" "target" "platform")
+  else()
+    # For older compilers, compile the value from `CMAKE_SYSTEM_NAME`.
+    if(APPLE)
+      set(swift_platform macosx)
+    else()
+      set(swift_platform "$<LOWER_CASE:${CMAKE_SYSTEM_NAME}>")
+    endif()
+  endif()
+
+  set(SwiftCollections_PLATFORM "${swift_platform}" CACHE STRING "Platform folder name used to install libraries")
+  mark_as_advanced(SwiftCollections_PLATFORM)
+  message(CONFIGURE_LOG "Swift platform: ${SwiftCollections_PLATFORM}")
 endif()
 
 function(_install_target module)
-  get_swift_host_os(swift_os)
   get_target_property(type ${module} TYPE)
 
   if(type STREQUAL STATIC_LIBRARY)
@@ -51,7 +65,10 @@ function(_install_target module)
     set(swift swift)
   endif()
 
-  install(TARGETS ${module})
+  install(TARGETS ${module}
+    ARCHIVE DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${SwiftCollections_ARCH}
+    LIBRARY DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${SwiftCollections_ARCH}
+    RUNTIME DESTINATION bin)
   if(type STREQUAL EXECUTABLE)
     return()
   endif()
@@ -62,10 +79,10 @@ function(_install_target module)
   endif()
 
   install(FILES $<TARGET_PROPERTY:${module},Swift_MODULE_DIRECTORY>/${module_name}.swiftdoc
-    DESTINATION lib/${swift}/${swift_os}/${module_name}.swiftmodule
+    DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${module_name}.swiftmodule
     RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
 
   install(FILES $<TARGET_PROPERTY:${module},Swift_MODULE_DIRECTORY>/${module_name}.swiftmodule
-    DESTINATION lib/${swift}/${swift_os}/${module_name}.swiftmodule
+    DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${module_name}.swiftmodule
     RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
 endfunction()
