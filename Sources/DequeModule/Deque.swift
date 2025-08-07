@@ -92,7 +92,7 @@ public struct Deque<Element> {
     self._storage = _storage
   }
 
-  /// Creates and empty deque with preallocated space for at least the specified
+  /// Creates an empty deque with preallocated space for at least the specified
   /// number of elements.
   ///
   /// - Parameter minimumCapacity: The minimum number of elements that the
