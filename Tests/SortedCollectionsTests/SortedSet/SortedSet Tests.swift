@@ -79,6 +79,22 @@ class SortedSetTests: CollectionTestCase {
       }
     }
   }
+  
+  func test_removeAtIndex() {
+    withEvery("count", in: 0 ..< 40) { count in
+      withEvery("index", in: 0..<count) { index in
+        var sorted = SortedSet(0 ..< count)
+        let removed = sorted.remove(at: sorted.index(sorted.startIndex, offsetBy: index))
+        
+        var comparisonKeys = Array(0 ..< count)
+        comparisonKeys.remove(at: index)
+        
+        expectEqual(removed, index)
+        expectEqual(sorted.count, count - 1)
+        expectEqualElements(sorted, comparisonKeys)
+      }
+    }
+  }
 
   func test_CustomStringConvertible() {
     let a: SortedSet<Int> = []
