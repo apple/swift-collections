@@ -80,6 +80,20 @@ class SortedSetTests: CollectionTestCase {
     }
   }
   
+  func test_indexOf() {
+    withEvery("count", in: 0 ..< 40) { count in
+      let set = SortedSet(0 ..< count)
+      withEvery("item", in: 0 ..< count) { item in
+        expectNotNil(set.index(of: item)) { index in
+          expectEqual(set[index], item)
+          let offset = set.distance(from: set.startIndex, to: index)
+          expectEqual(offset, item)
+        }
+      }
+      expectNil(set.index(of: count))
+    }
+  }
+  
   func test_removeAtIndex() {
     withEvery("count", in: 0 ..< 40) { count in
       withEvery("index", in: 0..<count) { index in
