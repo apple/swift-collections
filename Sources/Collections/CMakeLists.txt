@@ -14,10 +14,15 @@ target_link_libraries(Collections PRIVATE
   DequeModule
   HeapModule
   OrderedCollections
-  HashTreeCollections
+  HashTreeCollections # maybe _RopeModule is missing?
   )
-set_target_properties(Collections PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
 _install_target(Collections)
 set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS Collections)
+
+# All the .exported targets from Package.swift
+swift_module_re_exports(Collections BitCollections)
+swift_module_re_exports(Collections DequeModule)
+swift_module_re_exports(Collections HeapModule)
+swift_module_re_exports(Collections OrderedCollections)
+swift_module_re_exports(Collections HashTreeCollections) # maybe _RopeModule is missing?

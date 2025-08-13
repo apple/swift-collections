@@ -15,11 +15,12 @@ else()
     ${COLLECTIONS_BIT_SOURCES})
   target_link_libraries(BitCollections PRIVATE
     InternalCollectionsUtilities)
-  set_target_properties(BitCollections PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
   _install_target(BitCollections)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS BitCollections)
+  
+  # Re-export InternalCollectionsUtilities so dependents can access it
+  swift_module_re_exports(BitCollections InternalCollectionsUtilities)
 endif()
 
 target_sources(${module_name} PRIVATE
