@@ -344,6 +344,12 @@ extension _BTree {
           offset += keySlot
           
           if keySlot < handle.elementCount && handle[keyAt: keySlot] == key {
+            if !handle.isLeaf {
+              for i in 0...keySlot {
+                offset += handle[childAt: i].storage.header.subtreeCount
+              }
+            }
+            
             return Index(
               node: .passUnretained(storage),
               slot: keySlot,
