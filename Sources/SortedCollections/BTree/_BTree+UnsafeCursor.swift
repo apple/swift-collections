@@ -351,8 +351,12 @@ extension _BTree {
         }
         
         if depth == 0 && newNode.read({ $0.elementCount == 0 && !$0.isLeaf }) {
-          // If the root has no elements, we won't
-          newNode.update(isUnique: true) { $0.drop() }
+          // If the root has no elements, we drop it and promote the child.
+          node = newNode.update(isUnique: true) { handle in
+            let newRoot = handle.moveChild(atSlot: 0)
+            handle.drop()
+            return newRoot
+          }
         } else {
           node = newNode
         }
