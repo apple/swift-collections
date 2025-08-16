@@ -71,6 +71,16 @@ extension _HashNode.Builder {
   }
 
   @inlinable @inline(__always)
+  internal static func anyNode(
+    _ level: _HashLevel, _ node: __owned _HashNode
+  ) -> Self {
+    if node.isCollisionNode {
+      return self.collisionNode(level, node)
+    }
+    return self.node(level, node)
+  }
+
+  @inlinable @inline(__always)
   internal static func node(
     _ level: _HashLevel, _ node: __owned _HashNode
   ) -> Self {
@@ -126,8 +136,32 @@ extension _HashNode.Builder {
   }
 
   @inlinable
+  internal init(
+    _ level: _HashLevel,
+    collisions1: __owned Self,
+    _ hash1: _Hash,
+    collisions2: __owned Self,
+    _ hash2: _Hash
+  ) {
+    assert(hash1 != hash2)
+    let b1 = hash1[level]
+    let b2 = hash2[level]
+    self = .empty(level)
+    if b1 == b2 {
+      let b = Self(
+        level.descend(),
+        collisions1: collisions1, hash1,
+        collisions2: collisions2, hash2)
+      self.addNewChildBranch(level, b, at: b1)
+    } else {
+      self.addNewChildBranch(level, collisions1, at: b1)
+      self.addNewChildBranch(level, collisions2, at: b2)
+    }
+  }
+
+  @inlinable
   internal __consuming func finalize(_ level: _HashLevel) -> _HashNode {
-    assert(level.isAtRoot && self.level.isAtRoot)
+    //assert(level.isAtRoot && self.level.isAtRoot)
     switch kind {
     case .empty:
       return ._emptyNode()
@@ -193,10 +227,12 @@ extension _HashNode.Builder {
     _ level: _HashLevel, _ newItem: __owned Element, at newBucket: _Bucket
   ) {
     assert(level == self.level)
+    assert(!newBucket.isInvalid)
     switch kind {
     case .empty:
       kind = .item(newItem, at: newBucket)
     case .item(let oldItem, let oldBucket):
+      assert(!oldBucket.isInvalid)
       assert(oldBucket != newBucket)
       let node = _HashNode._regularNode(oldItem, oldBucket, newItem, newBucket)
       kind = .node(node)
@@ -213,6 +249,17 @@ extension _HashNode.Builder {
         newItem, newBucket, node, node.collisionHash[level])
       kind = .node(node)
     }
+  }
+
+  @inlinable
+  internal mutating func addNewItem(
+    _ level: _HashLevel,
+    _ key: Key,
+    _ value: __owned Value?,
+    at newBucket: _Bucket
+  ) {
+    guard let value = value else { return }
+    addNewItem(level, (key, value), at: newBucket)
   }
 
   @inlinable
@@ -356,5 +403,92 @@ extension _HashNode.Builder {
       return unsafeBitCast(self, to: _HashNode<Key, Void>.Builder.self)
     }
     return mapValues { _ in () }
+  }
+}
+
+extension _HashNode.Builder {
+  @inlinable
+  internal static func conflictingItems(
+    _ level: _HashLevel,
+    _ item1: Element?,
+    _ item2: Element?,
+    at bucket: _Bucket
+  ) -> Self {
+    switch (item1, item2) {
+    case (nil, nil):
+      return .empty(level)
+    case let (item1?, nil):
+      return .item(level, item1, at: bucket)
+    case let (nil, item2?):
+      return .item(level, item2, at: bucket)
+    case let (item1?, item2?):
+      let h1 = _Hash(item1.key)
+      let h2 = _Hash(item2.key)
+      guard h1 != h2 else {
+        return .collisionNode(level, _HashNode._collisionNode(h1, item1, item2))
+      }
+      let n = _HashNode._build(
+        level: level.descend(),
+        item1: item1, h1,
+        item2: { $0.initialize(to: item2) }, h2)
+      return .node(level, n.top)
+    }
+  }
+
+  @inlinable
+  internal static func mergedUniqueBranch(
+    _ level: _HashLevel,
+    _ node: _HashNode,
+    by merge: (Element) throws -> Value?
+  ) rethrows -> Self {
+    try node.read { l in
+      var result = Self.empty(level)
+      if l.isCollisionNode {
+        let hash = l.collisionHash
+        for lslot: _HashSlot in .zero ..< l.itemsEndSlot {
+          let lp = l.itemPtr(at: lslot)
+          if let v = try merge(lp.pointee) {
+            result.addNewCollision(level, (lp.pointee.key, v), hash)
+          }
+        }
+        return result
+      }
+      for (bucket, lslot) in l.itemMap {
+        let lp = l.itemPtr(at: lslot)
+        let v = try merge(lp.pointee)
+        if let v = v {
+          result.addNewItem(level, (lp.pointee.key, v), at: bucket)
+        }
+      }
+      for (bucket, lslot) in l.childMap {
+        let b = try Self.mergedUniqueBranch(
+          level.descend(), l[child: lslot], by: merge)
+        result.addNewChildBranch(level, b, at: bucket)
+      }
+      return result
+    }
+  }
+
+  @inlinable
+  internal mutating func addNewItems(
+    _ level: _HashLevel,
+    at bucket: _Bucket,
+    item1: Element?,
+    item2: Element?
+  ) {
+    switch (item1, item2) {
+    case (nil, nil):
+      break
+    case let (item1?, nil):
+      self.addNewItem(level, item1, at: bucket)
+    case let (nil, item2?):
+      self.addNewItem(level, item2, at: bucket)
+    case let (item1?, item2?):
+      let n = _HashNode._build(
+        level: level,
+        item1: item1, _Hash(item1.key),
+        item2: { $0.initialize(to: item2) }, _Hash(item2.key))
+      self.addNewChildNode(level, n.top, at: bucket)
+    }
   }
 }

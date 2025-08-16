@@ -124,7 +124,7 @@ extension _HashNode {
           var removing = false
 
           let ritems = r.reverseItems
-          for lslot: _HashSlot in stride(from: .zero, to: l.itemsEndSlot, by: 1) {
+          for lslot: _HashSlot in .zero ..< l.itemsEndSlot {
             let lp = l.itemPtr(at: lslot)
             let include = !ritems.contains { $0.key == lp.pointee.key }
             if include, removing {

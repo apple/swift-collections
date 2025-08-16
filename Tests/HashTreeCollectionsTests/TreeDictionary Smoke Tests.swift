@@ -625,4 +625,60 @@ final class TreeDictionarySmokeTests: CollectionTestCase {
 
     expectTrue(expectedPositions.isEmpty)
   }
+
+  func test_combine() {
+    var d1 = TreeDictionary<Int, String>(uniqueKeysWithValues: (0 ..< 10000).map { ($0, "1") })
+    d1[1] = "1"
+    var d2 = d1
+//    for i in 10 ..< 20 {
+//      d1[i] = nil
+//    }
+//    for i in 20 ..< 30 {
+//      d2[i] = nil
+//    }
+    for i in 40 ..< 50 {
+      d2[i] = "2"
+    }
+
+    class TestStrategy: TreeDictionaryCombiningStrategy {
+      typealias Key = Int
+      typealias Value = String
+
+      var _equalCounter = 0
+      var _mergeCounter = 0
+
+      var valuesOnlyInFirst: CombiningBehavior { .merge }
+      var valuesOnlyInSecond: CombiningBehavior { .merge }
+      var equalValuesInBoth: CombiningBehavior { .discard }
+      var unequalValuesInBoth: CombiningBehavior { .merge }
+
+      func areEquivalentValues(_ a: Value, _ b: Value) -> Bool {
+        _equalCounter += 1
+        return a == b
+      }
+
+      func merge(
+        _ key: Key, _ value1: Value?, _ value2: Value?
+      ) throws -> Value? {
+        _mergeCounter += 1
+
+        let s1 = value1 ?? "nil"
+        let s2 = value2 ?? "nil"
+        print("key: \(key), value1: \(s1), value2: \(s2)")
+
+        switch (value1, value2) {
+        case (nil, nil): return "00"
+        case (_?, nil): return "10"
+        case (nil, _?): return "01"
+        case (_?, _?): return "11"
+        }
+      }
+    }
+
+    let strategy = TestStrategy()
+    let d = try! d1.combining(d2, by: strategy)
+    print(d.map { ($0.key, $0.value) }.sorted(by: { $0.0 < $1.0 }))
+    print("Merge count: \(strategy._mergeCounter)")
+    print("isEqual count: \(strategy._equalCounter)")
+  }
 }

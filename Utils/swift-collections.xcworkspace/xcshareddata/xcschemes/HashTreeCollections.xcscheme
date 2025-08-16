@@ -20,6 +20,20 @@
                ReferencedContainer = "container:..">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "HashTreeCollectionsTests"
+               BuildableName = "HashTreeCollectionsTests"
+               BlueprintName = "HashTreeCollectionsTests"
+               ReferencedContainer = "container:..">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

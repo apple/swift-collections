@@ -66,6 +66,34 @@ extension _HashNode {
 
 extension _HashNode {
   @inlinable
+  internal func removing(
+    _ level: _HashLevel, _ bucket: _Bucket
+  ) -> (removed: Builder, replacement: Builder) {
+    read { handle in
+      assert(!handle.isCollisionNode)
+      if handle.itemMap.contains(bucket) {
+        let slot = handle.itemMap.slot(of: bucket)
+        let p = handle.itemPtr(at: slot)
+        let hash = _Hash(p.pointee.key)
+        let r = self.removing(level, p.pointee.key, hash)!
+        return (.item(level, r.removed, at: bucket), r.replacement)
+      } else if handle.childMap.contains(bucket) {
+        let slot = handle.childMap.slot(of: bucket)
+        if hasSingletonChild {
+          return (.anyNode(level.descend(), handle[child: slot]), .empty(level))
+        }
+        var remainder = self.copy()
+        let removed = remainder.removeChild(at: bucket, slot)
+        return (.anyNode(level.descend(), removed), .node(level, remainder))
+      } else {
+        return (.empty(level), .node(level, self))
+      }
+    }
+  }
+}
+
+extension _HashNode {
+  @inlinable
   internal mutating func remove(
     _ level: _HashLevel, at path: _UnsafePath
   ) -> (removed: Element, remainder: Element?) {
