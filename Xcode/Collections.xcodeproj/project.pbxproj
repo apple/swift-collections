@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
+		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
+		7D48BD002E5182CE00D7F6F7 /* LifetimeOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCFA2E5182CE00D7F6F7 /* LifetimeOverride.swift */; };
 		7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */; };
 		7D9B859829E4F74400B291CD /* BitArray+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */; };
 		7D9B859929E4F74400B291CD /* BitArray+LosslessStringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859329E4F74400B291CD /* BitArray+LosslessStringConvertible.swift */; };
@@ -426,6 +429,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
+		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
 		7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Package@swift-6.0.swift"; path = "../Package@swift-6.0.swift"; sourceTree = SOURCE_ROOT; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1710,13 +1715,14 @@
 			isa = PBXGroup;
 			children = (
 				7DEBDB2629CCE43600ADC226 /* RandomStableSample.swift */,
-				7DEBDB2729CCE43600ADC226 /* LifetimeTracked.swift */,
+				7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */,
 				7DEBDB2829CCE43600ADC226 /* IndexRangeCollection.swift */,
 				7DEBDB2929CCE43600ADC226 /* Integer Square Root.swift */,
 				7DEBDB2A29CCE43600ADC226 /* DictionaryAPIChecker.swift */,
 				7DEBDB2B29CCE43600ADC226 /* StringConvertibleValue.swift */,
 				7DEBDB2C29CCE43600ADC226 /* AllOnesRandomNumberGenerator.swift */,
-				7DEBDB2D29CCE43600ADC226 /* Box.swift */,
+				7DEBDB2729CCE43600ADC226 /* LifetimeTracked.swift */,
+				7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */,
 				7DEBDB2E29CCE43600ADC226 /* LifetimeTracker.swift */,
 				7DEBDB2F29CCE43600ADC226 /* RepeatableRandomNumberGenerator.swift */,
 				7DEBDB3029CCE43600ADC226 /* SortedCollectionAPIChecker.swift */,
@@ -2291,6 +2297,7 @@
 				7DEBDB0E29CBF68900ADC226 /* Integer rank.swift in Sources */,
 				7DE9220729CA8576004483EB /* BitSet.Counted Tests.swift in Sources */,
 				7DE9220F29CA8576004483EB /* OrderedDictionary Tests.swift in Sources */,
+				7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */,
 				7DE9221029CA8576004483EB /* OrderedDictionary Utils.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
