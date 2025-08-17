@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
+@preconcurrency import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
