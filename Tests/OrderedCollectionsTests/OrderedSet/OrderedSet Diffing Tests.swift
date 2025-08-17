@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -18,13 +18,13 @@ import _CollectionsTestSupport
 #endif
 
 class MeasuringHashable: Hashable {
-  static var equalityChecks = 0
+  nonisolated(unsafe) static var equalityChecks = 0
   static func == (lhs: MeasuringHashable, rhs: MeasuringHashable) -> Bool {
     MeasuringHashable.equalityChecks += 1
     return lhs._inner == rhs._inner
   }
 
-  static var hashChecks = 0
+  nonisolated(unsafe) static var hashChecks = 0
   func hash(into hasher: inout Hasher) {
     MeasuringHashable.hashChecks += 1
     _inner.hash(into: &hasher)
