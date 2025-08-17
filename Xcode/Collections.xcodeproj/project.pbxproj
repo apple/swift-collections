@@ -426,6 +426,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Package@swift-6.0.swift"; path = "../Package@swift-6.0.swift"; sourceTree = SOURCE_ROOT; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D429CCEF1500CB2595 /* generate-sources.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "generate-sources.sh"; sourceTree = "<group>"; };
@@ -892,6 +893,7 @@
 			isa = PBXGroup;
 			children = (
 				7DE921A929CA782F004483EB /* Package.swift */,
+				7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */,
 				7DE921AB29CA782F004483EB /* CMakeLists.txt */,
 				7DE921A829CA782F004483EB /* CODE_OF_CONDUCT.md */,
 				7DE921A729CA782F004483EB /* CODEOWNERS */,
@@ -1827,7 +1829,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1430;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2600;
 				TargetAttributes = {
 					7DE91B2529CA6721004483EB = {
 						CreatedOnToolsVersion = 14.3;
@@ -2336,7 +2338,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */;
 			buildSettings = {
-				DEAD_CODE_STRIPPING = YES;
 			};
 			name = Debug;
 		};
@@ -2344,7 +2345,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */;
 			buildSettings = {
-				DEAD_CODE_STRIPPING = YES;
 			};
 			name = Release;
 		};

@@ -1,4 +1,4 @@
-// swift-tools-version:6.2
+// swift-tools-version:6.0
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the Swift Collections open source project
@@ -12,29 +12,12 @@
 
 import PackageDescription
 
-let _traits: Set<Trait> = [
-  .default(
-    enabledTraits: [
-      //"UnstableContainersPreview"
-    ]),
-  .trait(
-    name: "UnstableContainersPreview",
-    description: """
-      Enables source-unstable components of the ContainersPreview module in
-      swift-collections. This allows experimental use of the Container
-      protocols and associated algorithms.
-      """),
-]
-
 // This package recognizes the conditional compilation flags listed below.
 // To use enable them, uncomment the corresponding lines or define them
 // from the package manager command line:
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
-var defines: [SwiftSetting] = [
-  .define(
-    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
-    .when(traits: ["UnstableContainersPreview"])),
+var defines: [String] = [
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -43,7 +26,7 @@ var defines: [SwiftSetting] = [
   // This is mostly useful while debugging an issue with the implementation of
   // the hash table itself. This setting should never be enabled in production
   // code.
-//  .define("COLLECTIONS_INTERNAL_CHECKS"),
+//  "COLLECTIONS_INTERNAL_CHECKS",
 
   // Hashing collections provided by this package usually seed their hash
   // function with the address of the memory location of their storage,
@@ -57,10 +40,10 @@ var defines: [SwiftSetting] = [
   // This is mostly useful while debugging an issue with the implementation of
   // the hash table itself. This setting should never be enabled in production
   // code.
-//  .define("COLLECTIONS_DETERMINISTIC_HASHING"),
+//  "COLLECTIONS_DETERMINISTIC_HASHING",
 
   // Enables randomized testing of some data structure implementations.
-  .define("COLLECTIONS_RANDOMIZED_TESTING"),
+  "COLLECTIONS_RANDOMIZED_TESTING",
 
   // Enable this to build the sources as a single, large module.
   // This removes the distinct modules for each data structure, instead
@@ -85,20 +68,11 @@ let availabilityMacros: KeyValuePairs<String, String> = [
 
 let extraSettings: [SwiftSetting] = [
   .enableUpcomingFeature("MemberImportVisibility"),
-//  .strictMemorySafety(),
   .enableExperimentalFeature("BuiltinModule"),
-  .enableExperimentalFeature("Lifetimes"),
-  .enableExperimentalFeature("InoutLifetimeDependence"),
-//  .enableExperimentalFeature("SuppressedAssociatedTypes"),
-//  .enableExperimentalFeature("AddressableParameters"),
-//  .enableExperimentalFeature("AddressableTypes"),
-
-  // Note: if you touch these, please make sure to also update the similar lists in
-  // CMakeLists.txt and Xcode/Shared.xcconfig.
 ]
 
 let _sharedSettings: [SwiftSetting] = (
-  defines
+  defines.map { .define($0) }
   + availabilityMacros.map { name, value in
       .enableExperimentalFeature("AvailabilityMacro=\(name): \(value)")
   }
@@ -189,6 +163,53 @@ extension CustomTarget {
   }
 }
 
+extension Array where Element == CustomTarget {
+  func toMonolithicTarget(
+    name: String,
+    linkerSettings: [LinkerSetting] = []
+  ) -> Target {
+    let targets = self.filter { !$0.kind.isTest }
+    return Target.target(
+      name: name,
+      path: "Sources",
+      exclude: [
+        "CMakeLists.txt",
+        "BitCollections/BitCollections.docc",
+        "Collections/Collections.docc",
+        "DequeModule/DequeModule.docc",
+        "HashTreeCollections/HashTreeCollections.docc",
+        "HeapModule/HeapModule.docc",
+        "OrderedCollections/OrderedCollections.docc",
+      ] + targets.flatMap { t in
+        t.exclude.map { "\(t.name)/\($0)" }
+      },
+      sources: targets.map { "\($0.directory)" },
+      swiftSettings: _settings,
+      linkerSettings: linkerSettings)
+  }
+
+  @MainActor
+  func toMonolithicTestTarget(
+    name: String,
+    dependencies: [Target.Dependency] = [],
+    linkerSettings: [LinkerSetting] = []
+  ) -> Target {
+    let targets = self.filter { $0.kind.isTest }
+    return Target.testTarget(
+      name: name,
+      dependencies: dependencies,
+      path: "Tests",
+      exclude: [
+        "README.md",
+      ] + targets.flatMap { t in
+        t.exclude.map { "\(t.name)/\($0)" }
+      },
+      sources: targets.map { "\($0.name)" },
+      swiftSettings: _testSettings,
+      linkerSettings: linkerSettings)
+  }
+}
+
 let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
@@ -215,6 +236,24 @@ let targets: [CustomTarget] = [
       "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
       "UnsafeBufferPointer+Extras.swift.gyb",
       "UnsafeMutableBufferPointer+Extras.swift.gyb",
+      "UnsafeRawBufferPointer+Extras.swift.gyb",
+      "UnsafeMutableRawBufferPointer+Extras.swift.gyb",
+      "LifetimeOverride.swift.gyb",
+    ]),
+
+  .target(
+    kind: .exported,
+    name: "ArrayModule",
+    dependencies: [
+      "InternalCollectionsUtilities",
+    ],
+    exclude: ["CMakeLists.txt"]
+  ),
+  .target(
+    kind: .test,
+    name: "ArrayTests",
+    dependencies: [
+        "ArrayModule", "_CollectionsTestSupport"
     ]),
 
   .target(
@@ -227,6 +266,18 @@ let targets: [CustomTarget] = [
     name: "BitCollectionsTests",
     dependencies: [
       "BitCollections", "_CollectionsTestSupport", "OrderedCollections"
+    ]),
+
+  .target(
+    kind: .exported,
+    name: "ContainersPreview",
+    dependencies: ["InternalCollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "ContainersTests",
+    dependencies: [
+      "ContainersPreview", "_CollectionsTestSupport"
     ]),
 
   .target(
@@ -308,15 +359,28 @@ let targets: [CustomTarget] = [
     exclude: ["CMakeLists.txt"])
 ]
 
-let _products: [Product] = targets.compactMap { t in
-  guard t.kind == .exported else { return nil }
-  return .library(name: t.name, targets: [t.name])
+var _products: [Product] = []
+var _targets: [Target] = []
+if defines.contains("COLLECTIONS_SINGLE_MODULE") {
+  _products = [
+    .library(name: "Collections", targets: ["Collections"]),
+  ]
+  _targets = [
+    targets.toMonolithicTarget(name: "Collections"),
+    targets.toMonolithicTestTarget(
+      name: "CollectionsTests",
+    dependencies: ["Collections"]),
+  ]
+} else {
+  _products = targets.compactMap { t in
+    guard t.kind == .exported else { return nil }
+    return .library(name: t.name, targets: [t.name])
+  }
+  _targets = targets.map { $0.toTarget() }
 }
-let _targets: [Target] = targets.map { $0.toTarget() }
 
 let package = Package(
   name: "swift-collections",
   products: _products,
-  traits: _traits,
   targets: _targets
 )
