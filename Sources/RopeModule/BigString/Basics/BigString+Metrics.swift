@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   /// Measure the distance between the given start and end positions within
   /// the specified chunk.
@@ -47,7 +47,7 @@ internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
   ) -> (found: Bool, forward: Bool)
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   internal struct _CharacterMetric: _StringMetric {
     typealias Element = BigString._Chunk

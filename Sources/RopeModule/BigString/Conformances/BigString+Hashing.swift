@@ -9,14 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString: Hashable {
   public func hash(into hasher: inout Hasher) {
     hashCharacters(into: &hasher)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   internal func hashCharacters(into hasher: inout Hasher) {
     // FIXME: Implement properly normalized comparisons & hashing.

@@ -9,14 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   public func isIdentical(to other: Self) -> Bool {
     self._rope.isIdentical(to: other._rope)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
@@ -40,7 +40,7 @@ extension BigString: Equatable {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   /// Lexicographically compare the UTF-8 representations of `left` to `right`, returning a Boolean
   /// value indicating whether `left` is equal to `right`.

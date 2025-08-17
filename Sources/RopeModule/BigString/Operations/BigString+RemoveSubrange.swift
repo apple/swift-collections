@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   mutating func _removeSubrange(_ bounds: Range<Index>) {
     precondition(bounds.upperBound <= endIndex, "Index out of bounds")
@@ -20,7 +20,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   mutating func removeCharacter(at i: Index) -> Character {
     let start = self.resolve(i, preferEnd: false)
