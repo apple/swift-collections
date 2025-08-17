@@ -215,6 +215,7 @@ let targets: [CustomTarget] = [
       "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
       "UnsafeBufferPointer+Extras.swift.gyb",
       "UnsafeMutableBufferPointer+Extras.swift.gyb",
+      "LifetimeOverride.swift.gyb",
     ]),
 
   .target(
