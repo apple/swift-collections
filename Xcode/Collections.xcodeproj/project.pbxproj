@@ -406,7 +406,6 @@
 		7DEBDB8729CCE44A00ADC226 /* MinimalMutableRandomAccessCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB3D29CCE43600ADC226 /* MinimalMutableRandomAccessCollection.swift */; };
 		7DEBDB8829CCE44A00ADC226 /* MinimalSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB3E29CCE43600ADC226 /* MinimalSequence.swift */; };
 		7DEBDB8929CCE44A00ADC226 /* Combinatorics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2129CCE43600ADC226 /* Combinatorics.swift */; };
-		7DEBDB8A29CCE44A00ADC226 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2D29CCE43600ADC226 /* Box.swift */; };
 		7DEBDB8B29CCE44A00ADC226 /* _CollectionState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB3B29CCE43600ADC226 /* _CollectionState.swift */; };
 		7DEBDB8C29CCE44A00ADC226 /* MinimalIterator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB4529CCE43600ADC226 /* MinimalIterator.swift */; };
 		7DEBDB8D29CCE44A00ADC226 /* RandomStableSample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2629CCE43600ADC226 /* RandomStableSample.swift */; };
@@ -844,7 +843,6 @@
 		7DEBDB2A29CCE43600ADC226 /* DictionaryAPIChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DictionaryAPIChecker.swift; sourceTree = "<group>"; };
 		7DEBDB2B29CCE43600ADC226 /* StringConvertibleValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringConvertibleValue.swift; sourceTree = "<group>"; };
 		7DEBDB2C29CCE43600ADC226 /* AllOnesRandomNumberGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AllOnesRandomNumberGenerator.swift; sourceTree = "<group>"; };
-		7DEBDB2D29CCE43600ADC226 /* Box.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7DEBDB2E29CCE43600ADC226 /* LifetimeTracker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LifetimeTracker.swift; sourceTree = "<group>"; };
 		7DEBDB2F29CCE43600ADC226 /* RepeatableRandomNumberGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RepeatableRandomNumberGenerator.swift; sourceTree = "<group>"; };
 		7DEBDB3029CCE43600ADC226 /* SortedCollectionAPIChecker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SortedCollectionAPIChecker.swift; sourceTree = "<group>"; };
@@ -2262,7 +2260,7 @@
 				7DE9220529CA8576004483EB /* TreeDictionary.Values Tests.swift in Sources */,
 				7DEBDB8D29CCE44A00ADC226 /* RandomStableSample.swift in Sources */,
 				7DEBDB7429CCE44A00ADC226 /* DictionaryAPIChecker.swift in Sources */,
-				7DEBDB8A29CCE44A00ADC226 /* Box.swift in Sources */,
+				7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */,
 				7DEBDB8629CCE44A00ADC226 /* LifetimeTracker.swift in Sources */,
 				7DEBDB8229CCE44A00ADC226 /* RepeatableRandomNumberGenerator.swift in Sources */,
 				7DEBDB7129CCE44A00ADC226 /* MinimalEncoder.swift in Sources */,

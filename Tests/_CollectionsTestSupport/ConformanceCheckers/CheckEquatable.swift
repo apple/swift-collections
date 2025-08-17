@@ -58,7 +58,9 @@ public func checkEquatable<Instance: Equatable>(
   defer { TestContext.current.pop(entry) }
   // For each index (which corresponds to an instance being tested) track the
   // set of equal instances.
-  var transitivityScoreboard: [Box<Set<Int>>] = instances.map { _ in Box([]) }
+  var transitivityScoreboard: [ClassBox<Set<Int>>] = instances.map { _ in
+    ClassBox([])
+  }
 
   withSomeRanges(
     "range", in: 0 ..< instances.count - 1, maxSamples: maxSamples
