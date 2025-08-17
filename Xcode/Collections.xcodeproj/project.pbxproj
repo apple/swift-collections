@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D48BCD12E51524200D7F6F7 /* InputSpan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCB2E51524200D7F6F7 /* InputSpan.swift */; };
 		7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */; };
 		7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC82E51524200D7F6F7 /* Box.swift */; };
 		7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC42E51524200D7F6F7 /* RigidArray.swift */; };
@@ -450,6 +451,7 @@
 		7D48BCC82E51524200D7F6F7 /* Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7D48BCCA2E51524200D7F6F7 /* Inout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inout.swift; sourceTree = "<group>"; };
+		7D48BCCB2E51524200D7F6F7 /* InputSpan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSpan.swift; sourceTree = "<group>"; };
 		7D48BCCD2E51524200D7F6F7 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
@@ -945,6 +947,7 @@
 				7D48BCC82E51524200D7F6F7 /* Box.swift */,
 				7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */,
 				7D48BCCA2E51524200D7F6F7 /* Inout.swift */,
+				7D48BCCB2E51524200D7F6F7 /* InputSpan.swift */,
 				7D48BCCD2E51524200D7F6F7 /* Shared.swift */,
 			);
 			path = ContainersPreview;
@@ -2045,6 +2048,7 @@
 				7DE9212A29CA70F4004483EB /* TreeSet+Extras.swift in Sources */,
 				7DE9209A29CA70F4004483EB /* Rope+Append.swift in Sources */,
 				7DE9203F29CA70F3004483EB /* OrderedSet+Partial SetAlgebra isDisjoint.swift in Sources */,
+				7D48BCD12E51524200D7F6F7 /* InputSpan.swift in Sources */,
 				7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */,
 				7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */,
 				7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */,

@@ -26,5 +26,6 @@ target_sources(${module_name} PRIVATE
   "Borrow.swift"
   "Box.swift"
   "Inout.swift"
+  "InputSpan.swift"
   "Shared.swift"
 )
