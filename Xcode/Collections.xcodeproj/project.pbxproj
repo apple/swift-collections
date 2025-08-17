@@ -10,8 +10,10 @@
 		7D48BCD12E51524200D7F6F7 /* InputSpan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCB2E51524200D7F6F7 /* InputSpan.swift */; };
 		7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */; };
 		7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC82E51524200D7F6F7 /* Box.swift */; };
+		7D48BCD42E51524200D7F6F7 /* DynamicArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC32E51524200D7F6F7 /* DynamicArray+Experimental.swift */; };
 		7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC42E51524200D7F6F7 /* RigidArray.swift */; };
 		7D48BCD62E51524200D7F6F7 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCD2E51524200D7F6F7 /* Shared.swift */; };
+		7D48BCD72E51524200D7F6F7 /* RigidArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC52E51524200D7F6F7 /* RigidArray+Experimental.swift */; };
 		7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC72E51524200D7F6F7 /* Borrow.swift */; };
 		7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCA2E51524200D7F6F7 /* Inout.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
@@ -446,7 +448,9 @@
 /* Begin PBXFileReference section */
 		7D48BCC12E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArray.swift; sourceTree = "<group>"; };
+		7D48BCC32E51524200D7F6F7 /* DynamicArray+Experimental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DynamicArray+Experimental.swift"; sourceTree = "<group>"; };
 		7D48BCC42E51524200D7F6F7 /* RigidArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArray.swift; sourceTree = "<group>"; };
+		7D48BCC52E51524200D7F6F7 /* RigidArray+Experimental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+Experimental.swift"; sourceTree = "<group>"; };
 		7D48BCC72E51524200D7F6F7 /* Borrow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Borrow.swift; sourceTree = "<group>"; };
 		7D48BCC82E51524200D7F6F7 /* Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
@@ -935,7 +939,9 @@
 			children = (
 				7D48BCC12E51524200D7F6F7 /* CMakeLists.txt */,
 				7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */,
+				7D48BCC32E51524200D7F6F7 /* DynamicArray+Experimental.swift */,
 				7D48BCC42E51524200D7F6F7 /* RigidArray.swift */,
+				7D48BCC52E51524200D7F6F7 /* RigidArray+Experimental.swift */,
 			);
 			path = ArrayModule;
 			sourceTree = "<group>";
@@ -2051,8 +2057,10 @@
 				7D48BCD12E51524200D7F6F7 /* InputSpan.swift in Sources */,
 				7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */,
 				7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */,
+				7D48BCD42E51524200D7F6F7 /* DynamicArray+Experimental.swift in Sources */,
 				7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */,
 				7D48BCD62E51524200D7F6F7 /* Shared.swift in Sources */,
+				7D48BCD72E51524200D7F6F7 /* RigidArray+Experimental.swift in Sources */,
 				7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */,
 				7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */,
 				7DE9208629CA70F4004483EB /* BigString+LosslessStringConvertible.swift in Sources */,

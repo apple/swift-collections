@@ -24,5 +24,7 @@ endif()
 
 target_sources(${module_name} PRIVATE
   "DynamicArray.swift"
+  "DynamicArray+Experimental.swift"
   "RigidArray.swift"
+  "RigidArray+Experimental.swift"
 )
