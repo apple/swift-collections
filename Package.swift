@@ -193,7 +193,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["InternalCollectionsUtilities"]),
+    dependencies: ["InternalCollectionsUtilities", "ContainersPreview"]),
   .target(
     kind: .test,
     name: "CollectionsTestSupportTests",
@@ -215,7 +215,25 @@ let targets: [CustomTarget] = [
       "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
       "UnsafeBufferPointer+Extras.swift.gyb",
       "UnsafeMutableBufferPointer+Extras.swift.gyb",
+      "UnsafeRawBufferPointer+Extras.swift.gyb",
+      "UnsafeMutableRawBufferPointer+Extras.swift.gyb",
       "LifetimeOverride.swift.gyb",
+    ]),
+
+  .target(
+    kind: .exported,
+    name: "ArrayModule",
+    dependencies: [
+      "InternalCollectionsUtilities",
+      "ContainersPreview",
+    ],
+    exclude: ["CMakeLists.txt"]
+  ),
+  .target(
+    kind: .test,
+    name: "ArrayTests",
+    dependencies: [
+        "ArrayModule", "_CollectionsTestSupport"
     ]),
 
   .target(
