@@ -25,6 +25,8 @@
 		7D48BCED2E5158A100D7F6F7 /* BorrowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE52E5158A100D7F6F7 /* BorrowTests.swift */; };
 		7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */; };
 		7D48BCF02E51597200D7F6F7 /* Assertions+Containers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCEF2E51597200D7F6F7 /* Assertions+Containers.swift */; };
+		7D48BCF22E51599200D7F6F7 /* CheckContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCF12E51599200D7F6F7 /* CheckContainer.swift */; };
+		7D48BCF42E5159A300D7F6F7 /* StaccatoContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCF32E5159A300D7F6F7 /* StaccatoContainer.swift */; };
 		7D48BCFE2E5182CE00D7F6F7 /* UnsafeRawBufferPointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCFD2E5182CE00D7F6F7 /* UnsafeRawBufferPointer+Extras.swift */; };
 		7D48BCFF2E5182CE00D7F6F7 /* UnsafeMutableRawBufferPointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCFC2E5182CE00D7F6F7 /* UnsafeMutableRawBufferPointer+Extras.swift */; };
 		7D48BD002E5182CE00D7F6F7 /* LifetimeOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCFA2E5182CE00D7F6F7 /* LifetimeOverride.swift */; };
@@ -466,6 +468,8 @@
 		7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxTests.swift; sourceTree = "<group>"; };
 		7D48BCE72E5158A100D7F6F7 /* InoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InoutTests.swift; sourceTree = "<group>"; };
 		7D48BCEF2E51597200D7F6F7 /* Assertions+Containers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Assertions+Containers.swift"; sourceTree = "<group>"; };
+		7D48BCF12E51599200D7F6F7 /* CheckContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckContainer.swift; sourceTree = "<group>"; };
+		7D48BCF32E5159A300D7F6F7 /* StaccatoContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaccatoContainer.swift; sourceTree = "<group>"; };
 		7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Package@swift-6.0.swift"; path = "../Package@swift-6.0.swift"; sourceTree = SOURCE_ROOT; };
 		7D48BCF62E5172CF00D7F6F7 /* LifetimeOverride.swift.gyb */ = {isa = PBXFileReference; lastKnownFileType = text; path = LifetimeOverride.swift.gyb; sourceTree = "<group>"; };
 		7D48BCF82E5172CF00D7F6F7 /* UnsafeMutableRawBufferPointer+Extras.swift.gyb */ = {isa = PBXFileReference; lastKnownFileType = text; path = "UnsafeMutableRawBufferPointer+Extras.swift.gyb"; sourceTree = "<group>"; };
@@ -1834,6 +1838,7 @@
 				7DEBDB3929CCE43600ADC226 /* CheckBidirectionalCollection.swift */,
 				7DEBDB3429CCE43600ADC226 /* CheckCollection.swift */,
 				7DEBDB3629CCE43600ADC226 /* CheckComparable.swift */,
+				7D48BCF12E51599200D7F6F7 /* CheckContainer.swift */,
 				7DEBDB3729CCE43600ADC226 /* CheckEquatable.swift */,
 				7DEBDB3529CCE43600ADC226 /* CheckHashable.swift */,
 				7DEBDB3829CCE43600ADC226 /* CheckSequence.swift */,
@@ -1858,6 +1863,7 @@
 				7DEBDB4329CCE43600ADC226 /* MinimalRangeReplaceableRandomAccessCollection.swift */,
 				7DEBDB3E29CCE43600ADC226 /* MinimalSequence.swift */,
 				7DEBDB4229CCE43600ADC226 /* ResettableValue.swift */,
+				7D48BCF32E5159A300D7F6F7 /* StaccatoContainer.swift */,
 			);
 			path = MinimalTypes;
 			sourceTree = "<group>";
@@ -2325,6 +2331,7 @@
 				7DE9220C29CA8576004483EB /* Availability.swift in Sources */,
 				7DE9220029CA8576004483EB /* TreeDictionary Smoke Tests.swift in Sources */,
 				7DEBDB9029CCE44A00ADC226 /* TestContext.swift in Sources */,
+				7D48BCF22E51599200D7F6F7 /* CheckContainer.swift in Sources */,
 				7DE9221429CA8576004483EB /* OrderedSet Diffing Tests.swift in Sources */,
 				7DEBDB1D29CBF6B200ADC226 /* RandomAccessCollection+Offsets.swift in Sources */,
 				7DEBDB8529CCE44A00ADC226 /* AllOnesRandomNumberGenerator.swift in Sources */,
@@ -2405,6 +2412,7 @@
 				7DE9220829CA8576004483EB /* BitSetTests.swift in Sources */,
 				7DEBDB7329CCE44A00ADC226 /* _MinimalCollectionCore.swift in Sources */,
 				7DE921C829CA81DC004483EB /* _UniqueCollection.swift in Sources */,
+				7D48BCF42E5159A300D7F6F7 /* StaccatoContainer.swift in Sources */,
 				7DE9220629CA8576004483EB /* TreeSet Tests.swift in Sources */,
 				7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */,
 				7DEBDB6F29CCE44A00ADC226 /* MinimalMutableRangeReplaceableRandomAccessCollection.swift in Sources */,
