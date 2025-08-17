@@ -14,7 +14,7 @@
 public func withEvery<Element>(
   _ label: String,
   by generator: () -> Element?,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   run body: (Element) throws -> Void
 ) rethrows {
@@ -38,7 +38,7 @@ public func withEvery<Element>(
 public func withEvery<S: Sequence>(
   _ label: String,
   in items: S,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   run body: (S.Element) throws -> Void
 ) rethrows {
@@ -60,7 +60,7 @@ public func withEvery<S: Sequence>(
 public func withEveryRange<T: Strideable>(
   _ label: String,
   in bounds: Range<T>,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   run body: (Range<T>) throws -> Void
 ) rethrows where T.Stride == Int {
@@ -104,7 +104,7 @@ public func withSome<C: Collection>(
   _ label: String,
   in items: C,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   run body: (C.Element) throws -> Void
 ) rethrows {
@@ -143,7 +143,7 @@ public func withSomeRanges<T: Strideable>(
   _ label: String,
   in bounds: Range<T>,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   run body: (Range<T>) throws -> Void
 ) rethrows where T.Stride == Int {
@@ -169,7 +169,7 @@ public func withHiddenCopies<S: Sequence, R>(
   if enabled: Bool,
   of value: inout S,
   checker: (S) -> Void = { _ in },
-  file: StaticString = #file, line: UInt = #line,
+  file: StaticString = #filePath, line: UInt = #line,
   _ body: (inout S) throws -> R
 ) rethrows -> R where S.Element: Equatable {
   guard enabled else { return try body(&value) }
@@ -201,7 +201,7 @@ public func withHiddenCopies<
   if enabled: Bool,
   of value: inout S,
   checker: (S) -> Void = { _ in },
-  file: StaticString = #file, line: UInt = #line,
+  file: StaticString = #filePath, line: UInt = #line,
   _ body: (inout S) throws -> R
 ) rethrows -> R where S.Element == (key: Key, value: Value) {
   guard enabled else { return try body(&value) }

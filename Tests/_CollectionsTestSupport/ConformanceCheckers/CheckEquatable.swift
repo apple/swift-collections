@@ -15,7 +15,7 @@
 public func checkEquatable<Instance: Equatable>(
   equivalenceClasses: [[Instance]],
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   let instances = equivalenceClasses.flatMap { $0 }
@@ -27,7 +27,7 @@ public func checkEquatable<C: Collection>(
   _ instances: C,
   oracle: (C.Index, C.Index) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where C.Element: Equatable {
   let indices = Array(instances.indices)
@@ -39,7 +39,7 @@ public func checkEquatable<C: Collection>(
 
 public func checkEquatable<T : Equatable>(
   expectedEqual: Bool, _ lhs: T, _ rhs: T,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) {
   checkEquatable(
     [lhs, rhs],
@@ -51,7 +51,7 @@ public func checkEquatable<Instance: Equatable>(
   _ instances: [Instance],
   oracle: (Int, Int) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   let entry = TestContext.current.push("checkEquatable", file: file, line: line)

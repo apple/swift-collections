@@ -68,7 +68,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
   _ collection: C,
   expectedContents: Expected,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where C.Element: Equatable, Expected.Element == C.Element {
   let expectedContents = Array(expectedContents)
@@ -104,7 +104,7 @@ public func checkCollection<C: Collection, Expected: Sequence>(
   expectedContents: Expected,
   by areEquivalent: (C.Element, C.Element) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where Expected.Element == C.Element {
   checkSequence(
@@ -125,7 +125,7 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
   expectedContents: Expected,
   by areEquivalent: (C.Element, C.Element) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where Expected.Element == C.Element {
   let entry = TestContext.current.push("checkCollection", file: file, line: line)

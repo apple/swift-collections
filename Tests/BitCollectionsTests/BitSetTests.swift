@@ -129,7 +129,7 @@ final class BitSetTest: CollectionTestCase {
   func withInterestingSets(
     _ label: String,
     maximum: Int,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     run body: (Set<Int>) -> Void
   ) {

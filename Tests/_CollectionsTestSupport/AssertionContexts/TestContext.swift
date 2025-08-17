@@ -59,7 +59,7 @@ extension TestContext {
 
     public init(
       label: String,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       self.label = label
@@ -121,7 +121,7 @@ extension TestContext {
   @discardableResult
   public func push(
     _ label: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) -> Entry {
     return push(Entry(label: label, file: file, line: line))
@@ -157,7 +157,7 @@ extension TestContext {
   /// Assertion failure messages within the closure will include the specified information to aid with debugging.
   public func withTrace<R>(
     _ label: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     _ body: () throws -> R
   ) rethrows -> R {
@@ -208,7 +208,7 @@ extension TestContext {
   @inline(never)
   public func debuggerBreak(
     _ message: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     XCTFail(message, file: file, line: line)
@@ -241,7 +241,7 @@ extension TestContext {
   ///
   public func failIfTraceMatches(
     _ expectedTrace: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     // Filter for lines that match the regex " *- "

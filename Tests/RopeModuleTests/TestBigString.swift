@@ -138,7 +138,7 @@ class TestBigString: CollectionTestCase {
   func checkCharacterIndices(
     _ flat: String,
     _ big: BigString,
-    file: StaticString = #file, line: UInt = #line
+    file: StaticString = #filePath, line: UInt = #line
   ) -> (flat: [String.Index], big: [BigString.Index]) {
     // Check iterators
     var it1 = flat.makeIterator()
@@ -188,7 +188,7 @@ class TestBigString: CollectionTestCase {
   func checkScalarIndices(
     _ flat: String,
     _ big: BigString,
-    file: StaticString = #file, line: UInt = #line
+    file: StaticString = #filePath, line: UInt = #line
   ) -> (flat: [String.Index], big: [BigString.Index]) {
     // Check iterators
     var it1 = flat.unicodeScalars.makeIterator()
@@ -238,7 +238,7 @@ class TestBigString: CollectionTestCase {
   func checkUTF8Indices(
     _ flat: String,
     _ big: BigString,
-    file: StaticString = #file, line: UInt = #line
+    file: StaticString = #filePath, line: UInt = #line
   ) -> (flat: [String.Index], big: [BigString.Index]) {
     // Check iterators
     var it1 = flat.utf8.makeIterator()
@@ -288,7 +288,7 @@ class TestBigString: CollectionTestCase {
   func checkUTF16Indices(
     _ flat: String,
     _ big: BigString,
-    file: StaticString = #file, line: UInt = #line
+    file: StaticString = #filePath, line: UInt = #line
   ) -> (flat: [String.Index], big: [BigString.Index]) {
     // Check iterators
     var it1 = flat.utf16.makeIterator()
@@ -758,7 +758,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -789,7 +789,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -817,7 +817,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -846,7 +846,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -872,7 +872,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -901,7 +901,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -927,7 +927,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex
@@ -964,7 +964,7 @@ class TestBigString: CollectionTestCase {
 
     func check(
       _ indices: some Sequence<BigString.Index>,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var current = str.startIndex

@@ -123,7 +123,7 @@ func expectEqualSets<Element: Hashable>(
   _ ref: [Element],
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   expectEqualSets(
@@ -138,7 +138,7 @@ func expectEqualSets<C: Collection>(
   _ ref: Set<C.Element>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var ref = ref
@@ -176,7 +176,7 @@ func expectEqualDictionaries<Key: Hashable, Value: Equatable>(
   _ ref: [(key: Key, value: Value)],
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   expectEqualDictionaries(
@@ -191,7 +191,7 @@ func expectEqualDictionaries<Key: Hashable, Value: Equatable>(
   _ dict: Dictionary<Key, Value>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   expectEqual(map.count, dict.count, "Mismatching count", file: file, line: line)

@@ -27,7 +27,7 @@ public class LifetimeTracker {
     check()
   }
 
-  public func check(file: StaticString = #file, line: UInt = #line) {
+  public func check(file: StaticString = #filePath, line: UInt = #line) {
     expectEqual(instances, 0,
                 "Potential leak of \(instances) objects",
                 file: file, line: line)
@@ -50,7 +50,7 @@ public class LifetimeTracker {
 
 @inlinable
 public func withLifetimeTracking<R>(
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   _ body: (LifetimeTracker) throws -> R
 ) rethrows -> R {

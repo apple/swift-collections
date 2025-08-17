@@ -76,7 +76,7 @@ extension _MinimalCollectionCore {
   func assertValidIndex(
     _ index: MinimalIndex,
     _ message: @autoclosure () -> String = "Invalid index",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     expectTrue(isValidIndex(index),
@@ -87,7 +87,7 @@ extension _MinimalCollectionCore {
   func assertValidIndexBeforeEnd(
     _ index: MinimalIndex,
     _ message: @autoclosure () -> String = "Invalid index",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     expectTrue(isValidIndex(index),
