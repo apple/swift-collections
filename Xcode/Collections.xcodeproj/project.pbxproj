@@ -17,6 +17,7 @@
 		7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC72E51524200D7F6F7 /* Borrow.swift */; };
 		7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCA2E51524200D7F6F7 /* Inout.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
+		7D48BCDF2E51558700D7F6F7 /* TestPrintable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */; };
 		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
 		7D48BCE92E5158A100D7F6F7 /* DynamicArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */; };
 		7D48BCEA2E5158A100D7F6F7 /* ArrayLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */; };
@@ -460,6 +461,7 @@
 		7D48BCCB2E51524200D7F6F7 /* InputSpan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSpan.swift; sourceTree = "<group>"; };
 		7D48BCCD2E51524200D7F6F7 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
+		7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPrintable.swift; sourceTree = "<group>"; };
 		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
 		7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayLayout.swift; sourceTree = "<group>"; };
 		7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArrayTests.swift; sourceTree = "<group>"; };
@@ -1816,6 +1818,7 @@
 			children = (
 				7DEBDB2C29CCE43600ADC226 /* AllOnesRandomNumberGenerator.swift */,
 				7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */,
+				7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */,
 				7DEBDB2A29CCE43600ADC226 /* DictionaryAPIChecker.swift */,
 				7DEBDB3129CCE43600ADC226 /* HashableBox.swift */,
 				7DEBDB2829CCE43600ADC226 /* IndexRangeCollection.swift */,
@@ -2420,6 +2423,7 @@
 				7DEBDB0E29CBF68900ADC226 /* Integer rank.swift in Sources */,
 				7DE9220729CA8576004483EB /* BitSet.Counted Tests.swift in Sources */,
 				7DE9220F29CA8576004483EB /* OrderedDictionary Tests.swift in Sources */,
+				7D48BCDF2E51558700D7F6F7 /* TestPrintable.swift in Sources */,
 				7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */,
 				7DE9221029CA8576004483EB /* OrderedDictionary Utils.swift in Sources */,
 			);
