@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC82E51524200D7F6F7 /* Box.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
 		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
+		7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */; };
 		7D48BD002E5182CE00D7F6F7 /* LifetimeOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCFA2E5182CE00D7F6F7 /* LifetimeOverride.swift */; };
 		7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */; };
 		7D9B859829E4F74400B291CD /* BitArray+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */; };
@@ -428,8 +430,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D48BCC82E51524200D7F6F7 /* Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
+		7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxTests.swift; sourceTree = "<group>"; };
 		7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Package@swift-6.0.swift"; path = "../Package@swift-6.0.swift"; sourceTree = SOURCE_ROOT; };
 		7D48BCF62E5172CF00D7F6F7 /* LifetimeOverride.swift.gyb */ = {isa = PBXFileReference; lastKnownFileType = text; path = LifetimeOverride.swift.gyb; sourceTree = "<group>"; };
 		7D48BCFA2E5182CE00D7F6F7 /* LifetimeOverride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeOverride.swift; sourceTree = "<group>"; };
@@ -894,6 +898,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7D48BCCE2E51524200D7F6F7 /* ContainersPreview */ = {
+			isa = PBXGroup;
+			children = (
+				7D48BCC82E51524200D7F6F7 /* Box.swift */,
+			);
+			path = ContainersPreview;
+			sourceTree = "<group>";
+		};
+		7D48BCE82E5158A100D7F6F7 /* ContainersTests */ = {
+			isa = PBXGroup;
+			children = (
+				7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */,
+			);
+			path = ContainersTests;
+			sourceTree = "<group>";
+		};
 		7DE91B1C29CA6721004483EB = {
 			isa = PBXGroup;
 			children = (
@@ -926,6 +946,7 @@
 			isa = PBXGroup;
 			children = (
 				7DE91F2229CA70F3004483EB /* InternalCollectionsUtilities */,
+				7D48BCCE2E51524200D7F6F7 /* ContainersPreview */,
 				7DE91F3929CA70F3004483EB /* BitCollections */,
 				7DE91F7929CA70F3004483EB /* Collections */,
 				7DE91EB629CA70F3004483EB /* DequeModule */,
@@ -1514,6 +1535,7 @@
 				7DEBDB1F29CCE43600ADC226 /* _CollectionsTestSupport */,
 				7DE921DA29CA8575004483EB /* BitCollectionsTests */,
 				7DE921CB29CA8575004483EB /* CollectionsTestSupportTests */,
+				7D48BCE82E5158A100D7F6F7 /* ContainersTests */,
 				7DE921F529CA8575004483EB /* DequeTests */,
 				7DE921D029CA8575004483EB /* HashTreeCollectionsTests */,
 				7DE921F229CA8575004483EB /* HeapTests */,
@@ -1960,6 +1982,7 @@
 				7DE9212A29CA70F4004483EB /* TreeSet+Extras.swift in Sources */,
 				7DE9209A29CA70F4004483EB /* Rope+Append.swift in Sources */,
 				7DE9203F29CA70F3004483EB /* OrderedSet+Partial SetAlgebra isDisjoint.swift in Sources */,
+				7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */,
 				7DE9208629CA70F4004483EB /* BigString+LosslessStringConvertible.swift in Sources */,
 				7DE9204329CA70F3004483EB /* _HashTable+Bucket.swift in Sources */,
 				7DE9216A29CA70F4004483EB /* TreeDictionary.swift in Sources */,
@@ -2281,6 +2304,7 @@
 				7DEBDB8F29CCE44A00ADC226 /* CheckEquatable.swift in Sources */,
 				7DEBDB7729CCE44A00ADC226 /* HashableBox.swift in Sources */,
 				7DE9220E29CA8576004483EB /* SampleStrings.swift in Sources */,
+				7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */,
 				7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */,
 				7DEBDB1829CBF69F00ADC226 /* _UnsafeBitSet+_Word.swift in Sources */,
 				7DE921B929CA81DC004483EB /* _SortedCollection.swift in Sources */,

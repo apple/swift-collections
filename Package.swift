@@ -232,6 +232,18 @@ let targets: [CustomTarget] = [
 
   .target(
     kind: .exported,
+    name: "ContainersPreview",
+    dependencies: ["InternalCollectionsUtilities"],
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "ContainersTests",
+    dependencies: [
+      "ContainersPreview", "_CollectionsTestSupport"
+    ]),
+
+  .target(
+    kind: .exported,
     name: "DequeModule",
     dependencies: ["InternalCollectionsUtilities"],
     exclude: ["CMakeLists.txt"]),
