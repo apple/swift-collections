@@ -10,11 +10,16 @@
 		7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */; };
 		7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC82E51524200D7F6F7 /* Box.swift */; };
 		7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC42E51524200D7F6F7 /* RigidArray.swift */; };
+		7D48BCD62E51524200D7F6F7 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCD2E51524200D7F6F7 /* Shared.swift */; };
+		7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC72E51524200D7F6F7 /* Borrow.swift */; };
+		7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCA2E51524200D7F6F7 /* Inout.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
 		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
 		7D48BCE92E5158A100D7F6F7 /* DynamicArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */; };
 		7D48BCEA2E5158A100D7F6F7 /* ArrayLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */; };
 		7D48BCEB2E5158A100D7F6F7 /* RigidArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE32E5158A100D7F6F7 /* RigidArrayTests.swift */; };
+		7D48BCEC2E5158A100D7F6F7 /* InoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE72E5158A100D7F6F7 /* InoutTests.swift */; };
+		7D48BCED2E5158A100D7F6F7 /* BorrowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE52E5158A100D7F6F7 /* BorrowTests.swift */; };
 		7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */; };
 		7D48BCF02E51597200D7F6F7 /* Assertions+Containers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCEF2E51597200D7F6F7 /* Assertions+Containers.swift */; };
 		7D48BCFE2E5182CE00D7F6F7 /* UnsafeRawBufferPointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCFD2E5182CE00D7F6F7 /* UnsafeRawBufferPointer+Extras.swift */; };
@@ -441,14 +446,19 @@
 		7D48BCC12E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArray.swift; sourceTree = "<group>"; };
 		7D48BCC42E51524200D7F6F7 /* RigidArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArray.swift; sourceTree = "<group>"; };
+		7D48BCC72E51524200D7F6F7 /* Borrow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Borrow.swift; sourceTree = "<group>"; };
 		7D48BCC82E51524200D7F6F7 /* Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		7D48BCCA2E51524200D7F6F7 /* Inout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Inout.swift; sourceTree = "<group>"; };
+		7D48BCCD2E51524200D7F6F7 /* Shared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared.swift; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
 		7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayLayout.swift; sourceTree = "<group>"; };
 		7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArrayTests.swift; sourceTree = "<group>"; };
 		7D48BCE32E5158A100D7F6F7 /* RigidArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArrayTests.swift; sourceTree = "<group>"; };
+		7D48BCE52E5158A100D7F6F7 /* BorrowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorrowTests.swift; sourceTree = "<group>"; };
 		7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxTests.swift; sourceTree = "<group>"; };
+		7D48BCE72E5158A100D7F6F7 /* InoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InoutTests.swift; sourceTree = "<group>"; };
 		7D48BCEF2E51597200D7F6F7 /* Assertions+Containers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Assertions+Containers.swift"; sourceTree = "<group>"; };
 		7D48BCF52E51651900D7F6F7 /* Package@swift-6.0.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "Package@swift-6.0.swift"; path = "../Package@swift-6.0.swift"; sourceTree = SOURCE_ROOT; };
 		7D48BCF62E5172CF00D7F6F7 /* LifetimeOverride.swift.gyb */ = {isa = PBXFileReference; lastKnownFileType = text; path = LifetimeOverride.swift.gyb; sourceTree = "<group>"; };
@@ -931,8 +941,11 @@
 		7D48BCCE2E51524200D7F6F7 /* ContainersPreview */ = {
 			isa = PBXGroup;
 			children = (
+				7D48BCC72E51524200D7F6F7 /* Borrow.swift */,
 				7D48BCC82E51524200D7F6F7 /* Box.swift */,
 				7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */,
+				7D48BCCA2E51524200D7F6F7 /* Inout.swift */,
+				7D48BCCD2E51524200D7F6F7 /* Shared.swift */,
 			);
 			path = ContainersPreview;
 			sourceTree = "<group>";
@@ -950,7 +963,9 @@
 		7D48BCE82E5158A100D7F6F7 /* ContainersTests */ = {
 			isa = PBXGroup;
 			children = (
+				7D48BCE52E5158A100D7F6F7 /* BorrowTests.swift */,
 				7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */,
+				7D48BCE72E5158A100D7F6F7 /* InoutTests.swift */,
 			);
 			path = ContainersTests;
 			sourceTree = "<group>";
@@ -2033,6 +2048,9 @@
 				7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */,
 				7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */,
 				7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */,
+				7D48BCD62E51524200D7F6F7 /* Shared.swift in Sources */,
+				7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */,
+				7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */,
 				7DE9208629CA70F4004483EB /* BigString+LosslessStringConvertible.swift in Sources */,
 				7DE9204329CA70F3004483EB /* _HashTable+Bucket.swift in Sources */,
 				7DE9216A29CA70F4004483EB /* TreeDictionary.swift in Sources */,
@@ -2360,6 +2378,8 @@
 				7D48BCE92E5158A100D7F6F7 /* DynamicArrayTests.swift in Sources */,
 				7D48BCEA2E5158A100D7F6F7 /* ArrayLayout.swift in Sources */,
 				7D48BCEB2E5158A100D7F6F7 /* RigidArrayTests.swift in Sources */,
+				7D48BCEC2E5158A100D7F6F7 /* InoutTests.swift in Sources */,
+				7D48BCED2E5158A100D7F6F7 /* BorrowTests.swift in Sources */,
 				7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */,
 				7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */,
 				7DEBDB1829CBF69F00ADC226 /* _UnsafeBitSet+_Word.swift in Sources */,

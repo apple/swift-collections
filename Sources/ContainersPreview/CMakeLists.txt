@@ -23,5 +23,8 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
+  "Borrow.swift"
   "Box.swift"
+  "Inout.swift"
+  "Shared.swift"
 )
