@@ -214,7 +214,7 @@ let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["InternalCollectionsUtilities"]),
+    dependencies: ["InternalCollectionsUtilities", "ContainersPreview"]),
   .target(
     kind: .test,
     name: "CollectionsTestSupportTests",
@@ -246,6 +246,7 @@ let targets: [CustomTarget] = [
     name: "ArrayModule",
     dependencies: [
       "InternalCollectionsUtilities",
+      "ContainersPreview",
     ],
     exclude: ["CMakeLists.txt"]
   ),
