@@ -18,6 +18,50 @@ import ArrayModule
 #endif
 
 #if compiler(>=6.2) && (compiler(>=6.3) || !os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+
+#if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+/// Check if `left` and `right` contain equal elements in the same order.
+@available(SwiftStdlib 5.0, *)
+public func expectContainerContents<
+  Element: Equatable,
+  C2: Collection<Element>,
+>(
+  _ left: borrowing DynamicArray<Element>,
+  equalTo right: C2,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  expectContainerContents(
+    left.span,
+    equalTo: right,
+    message(), trapping: trapping, file: file, line: line)
+}
+
+/// Check if `left` and `right` contain equal elements in the same order.
+@available(SwiftStdlib 5.0, *)
+public func expectContainerContents<
+  E1: ~Copyable,
+  C2: Collection,
+>(
+  _ left: borrowing DynamicArray<E1>,
+  equivalentTo right: C2,
+  by areEquivalent: (borrowing E1, C2.Element) -> Bool,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  expectContainerContents(
+    left.span,
+    equivalentTo: right,
+    by: areEquivalent,
+    message(), trapping: trapping, file: file, line: line)
+}
+#endif
+
+
 @available(SwiftStdlib 6.2, *)
 class DynamicArrayTests: CollectionTestCase {
   func test_validate_Container() {
@@ -26,7 +70,10 @@ class DynamicArrayTests: CollectionTestCase {
         let items = DynamicArray(consuming: tracker.rigidArray(layout: layout))
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
+        expectContainerContents(items, equalTo: expected)
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
         checkContainer(items, expectedContents: expected)
+#endif
       }
     }
   }
@@ -141,6 +188,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_init_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("spanCounts", in: [
@@ -166,6 +214,7 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_span() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -240,10 +289,10 @@ class DynamicArrayTests: CollectionTestCase {
       withLifetimeTracking { tracker in
         var a = tracker.dynamicArray(layout: layout)
         var i = 0
-        var span = a.nextMutableSpan(after: &i)
+        var span = a.mutableSpan(after: &i)
         expectEqual(i, layout.count)
         expectEqual(span.count, layout.count)
-        span = a.nextMutableSpan(after: &i)
+        span = a.mutableSpan(after: &i)
         expectEqual(i, layout.count)
         expectTrue(span.isEmpty)
       }
@@ -274,6 +323,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_borrowElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -285,7 +335,9 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_mutateElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -299,6 +351,7 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_edit() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -324,7 +377,7 @@ class DynamicArrayTests: CollectionTestCase {
 
         struct TestError: Error {}
 
-        expectThrows({
+        expectThrows {
           try a.edit { span in
             expectEqual(tracker.instances, layout.capacity)
             while !span.isEmpty {
@@ -334,12 +387,13 @@ class DynamicArrayTests: CollectionTestCase {
             }
             throw TestError()
           }
-        }) { error in
+        }
+        errorHandler: { error in
           expectTrue(error is TestError)
         }
-        expectEquivalentElements(
-          a.span,
-          (0 ..< layout.count).map { -$0 },
+        expectContainerContents(
+          a,
+          equivalentTo: (0 ..< layout.count).map { -$0 },
           by: { $0.payload == $1 })
         expectEqual(tracker.instances, layout.count)
       }
@@ -481,6 +535,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_removeAll_where() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -494,6 +549,7 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_popLast() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -547,17 +603,18 @@ class DynamicArrayTests: CollectionTestCase {
       expectEqual(array.count, 100)
       expectEqual(array.capacity, 128)
 
-      let additions = RigidArray(capacity: 300) { span in
-        for i in 0 ..< 300 {
-          span.append(tracker.instance(for: 100 + i))
+      do {
+        let additions = RigidArray(capacity: 300) { span in
+          for i in 0 ..< 300 {
+            span.append(tracker.instance(for: 100 + i))
+          }
         }
+        array.append(copying: additions.span)
       }
-      array.append(copying: additions.span)
       expectEqual(array.capacity, 400)
 
       expectEqual(tracker.instances, 400)
       for i in 0 ..< 400 {
-        expectEqual(array.borrowElement(at: i)[].payload, i)
         expectEqual(array[i].payload, i)
       }
 
@@ -604,8 +661,10 @@ class DynamicArrayTests: CollectionTestCase {
       withEvery("additions", in: [0, 1, 10, 100]) { additions in
         withLifetimeTracking { tracker in
           var a = tracker.dynamicArray(layout: layout)
-          let b = RigidArray(count: additions) {
-            tracker.instance(for: layout.count + $0)
+          let b = RigidArray(capacity: additions) { span in
+            for i in 0 ..< additions {
+              span.append(tracker.instance(for: layout.count + i))
+            }
           }
           a.append(copying: b.span)
           let c = layout.count + additions
@@ -617,6 +676,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("additions", in: [0, 1, 10, 100]) { additions in
@@ -640,6 +700,7 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_insert_at() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -692,9 +753,9 @@ class DynamicArrayTests: CollectionTestCase {
             var expected = Array(0 ..< layout.count)
             expected.insert(contentsOf: addition, at: i)
 
-            let rigidAddition = RigidArray(count: addition.count) {
-              tracker.instance(for: addition[$0])
-            }
+            let rigidAddition = RigidArray(
+              copying: (0 ..< addition.count).lazy.map { tracker.instance(for: addition[$0]) }
+            )
             var a = tracker.dynamicArray(layout: layout)
             a.insert(copying: rigidAddition.span, at: i)
 
@@ -707,6 +768,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -735,6 +797,7 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_replaceSubrange_copying_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
@@ -781,6 +844,7 @@ class DynamicArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_replaceSubrange_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -807,5 +871,6 @@ class DynamicArrayTests: CollectionTestCase {
       }
     }
   }
+#endif
 }
 #endif

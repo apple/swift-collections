@@ -133,7 +133,7 @@ extension DynamicArray where Element: ~Copyable {
 //MARK: - Span creation
 
 extension DynamicArray where Element: ~Copyable {
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftStdlib 5.0, *)
   public var span: Span<Element> {
     @_lifetime(borrow self)
     @inlinable
@@ -142,7 +142,7 @@ extension DynamicArray where Element: ~Copyable {
     }
   }
 
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftStdlib 5.0, *)
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
     @inlinable
