@@ -17,7 +17,7 @@ import _CollectionsTestSupport
 import ArrayModule
 #endif
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && (compiler(>=6.3) || !os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
 
 #if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
@@ -76,7 +76,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_empty() {
     let a = RigidArray<Int>()
     expectEqual(a.capacity, 0)
@@ -655,7 +655,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_insert_at() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       guard layout.count < layout.capacity else { return }

@@ -9,12 +9,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && FIXME
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import _CollectionsTestSupport
 import ArrayModule
-//import Synchronization
+#endif
 
+#if compiler(>=6.2) && (compiler(>=6.3) || !os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
 @available(SwiftStdlib 6.2, *)
 class DynamicArrayTests: CollectionTestCase {
   func test_validate_Container() {

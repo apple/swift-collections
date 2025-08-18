@@ -9,14 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import ContainersPreview
 #endif
-#endif
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2) && (compiler(>=6.3) || !os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 #if FIXME
 extension DynamicArray /*where Element: Copyable*/ {
@@ -361,4 +361,5 @@ extension DynamicArray {
 }
 #endif
 
+#endif
 #endif
