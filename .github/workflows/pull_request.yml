@@ -21,6 +21,7 @@ jobs:
     with:
       enable_linux_checks: false
       enable_macos_checks: false
+      enable_windows_checks: false
       enable_wasm_sdk_build: false
       enable_embedded_wasm_sdk_build: true
       swift_flags: --target Collections
