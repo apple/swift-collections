@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -20,7 +20,7 @@ public final class TestContext {
   internal var _trace: [Entry] = []
 
   // FIXME: This ought to be a thread-local variable.
-  internal static var _current: TestContext?
+  nonisolated(unsafe) internal static var _current: TestContext?
 
   public init() {}
 }
@@ -59,7 +59,7 @@ extension TestContext {
 
     public init(
       label: String,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       self.label = label
@@ -121,7 +121,7 @@ extension TestContext {
   @discardableResult
   public func push(
     _ label: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) -> Entry {
     return push(Entry(label: label, file: file, line: line))
@@ -157,7 +157,7 @@ extension TestContext {
   /// Assertion failure messages within the closure will include the specified information to aid with debugging.
   public func withTrace<R>(
     _ label: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     _ body: () throws -> R
   ) rethrows -> R {
@@ -208,7 +208,7 @@ extension TestContext {
   @inline(never)
   public func debuggerBreak(
     _ message: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     XCTFail(message, file: file, line: line)
@@ -241,7 +241,7 @@ extension TestContext {
   ///
   public func failIfTraceMatches(
     _ expectedTrace: String,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     // Filter for lines that match the regex " *- "

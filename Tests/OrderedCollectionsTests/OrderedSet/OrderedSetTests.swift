@@ -913,7 +913,7 @@ class OrderedSetTests: CollectionTestCase {
   }
 
   func withSampleRanges(
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line,
     _ body: (Range<Int>, Range<Int>) throws -> Void
   ) rethrows {

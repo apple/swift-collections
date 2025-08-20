@@ -15,7 +15,7 @@ import XCTest
 public func expectFailure(
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   let message = message()
@@ -23,7 +23,7 @@ public func expectFailure(
     TestContext.currentTrace(message),
     file: file, line: line)
   if trapping {
-    fatalError(message, file: file, line: line)
+    fatalError(message, file: (file), line: line)
   }
 }
 
@@ -51,7 +51,7 @@ public func expectTrue(
   _ value: Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if value { return }
@@ -64,7 +64,7 @@ public func expectFalse(
   _ value: Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if !value { return }
@@ -77,7 +77,7 @@ public func expectNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if value == nil { return }
@@ -90,7 +90,7 @@ public func expectNotNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if value != nil { return }
@@ -103,7 +103,7 @@ public func expectNotNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   _ handler: (T) throws -> Void = { _ in }
 ) rethrows {
@@ -120,7 +120,7 @@ public func expectIdentical<T: AnyObject>(
   _ left: T?, _ right: T?,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left === right { return }
@@ -135,7 +135,7 @@ public func expectNotIdentical<T: AnyObject>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left !== right { return }
@@ -149,7 +149,7 @@ public func expectEquivalent<A, B>(
   by areEquivalent: (A, B) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if areEquivalent(left, right) { return }
@@ -163,7 +163,7 @@ public func expectEquivalent<A, B>(
   by areEquivalent: (A, B) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if let left = left, let right = right, areEquivalent(left, right) { return }
@@ -179,7 +179,7 @@ public func expectEqual<T: Equatable>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left == right { return }
@@ -192,7 +192,7 @@ public func expectEqual<Key: Equatable, Value: Equatable>(
   _ left: (key: Key, value: Value), _ right: (key: Key, value: Value),
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left == right { return }
@@ -206,7 +206,7 @@ public func expectEqual<T: Equatable>(
   _ left: T?, _ right: T?,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left == right { return }
@@ -221,7 +221,7 @@ public func expectNotEqual<T: Equatable>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left != right { return }
@@ -234,7 +234,7 @@ public func expectLessThan<T: Comparable>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left < right { return }
@@ -247,7 +247,7 @@ public func expectLessThanOrEqual<T: Comparable>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left <= right { return }
@@ -260,7 +260,7 @@ public func expectGreaterThan<T: Comparable>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left > right { return }
@@ -273,7 +273,7 @@ public func expectGreaterThanOrEqual<T: Comparable>(
   _ left: T, _ right: T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left >= right { return }
@@ -289,7 +289,7 @@ public func expectEqualElements<S1: Sequence, S2: Sequence>(
   _ right: S2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S1.Element == S2.Element, S1.Element: Equatable {
   let left = Array(left)
@@ -306,7 +306,7 @@ public func expectEquivalentElements<S1: Sequence, S2: Sequence>(
   by areEquivalent: (S1.Element, S2.Element) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   let left = Array(left)
@@ -327,7 +327,7 @@ public func expectEqualElements<
   _ right: S2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S1.Element == (key: A, value: B), S2.Element == (key: A, value: B) {
   let left = Array(left)
@@ -346,7 +346,7 @@ public func expectMonotonicallyIncreasing<S: Sequence>(
   _ items: S,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S.Element: Comparable {
   let items = Array(items)
@@ -367,7 +367,7 @@ public func expectStrictlyMonotonicallyIncreasing<S: Sequence>(
   _ items: S,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S.Element: Comparable {
   let items = Array(items)
@@ -384,16 +384,36 @@ public func expectStrictlyMonotonicallyIncreasing<S: Sequence>(
   }
 }
 
+// FIXME: Remove this in favor of the better one below
 public func expectThrows<T>(
   _ expression: @autoclosure () throws -> T,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   _ errorHandler: (Error) -> Void = { _ in }
 ) {
   do {
     let result = try expression()
+    expectFailure("Expression did not throw"
+                    + (T.self == Void.self ? "" : " (returned '\(result)' instead)"),
+                  trapping: trapping,
+                  file: file, line: line)
+  } catch {
+    errorHandler(error)
+  }
+}
+
+public func expectThrows<T>(
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  body: () throws -> T,
+  errorHandler: (Error) -> Void = { _ in }
+) {
+  do {
+    let result = try body()
     expectFailure("Expression did not throw"
                     + (T.self == Void.self ? "" : " (returned '\(result)' instead)"),
                   trapping: trapping,

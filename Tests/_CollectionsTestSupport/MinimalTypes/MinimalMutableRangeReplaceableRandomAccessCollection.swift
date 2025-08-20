@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -30,9 +30,14 @@ public struct MinimalMutableRangeReplaceableRandomAccessCollection<Element> {
   public init<S: Sequence>(
     _ elements: S,
     context: TestContext = TestContext.current,
+    isContiguous: Bool = false,
     underestimatedCount: UnderestimatedCountBehavior = .value(0)
   ) where S.Element == Element {
-    self._core = _MinimalCollectionCore(context: context, elements: elements, underestimatedCount: underestimatedCount)
+    self._core = _MinimalCollectionCore(
+      context: context,
+      elements: elements,
+      isContiguous: isContiguous,
+      underestimatedCount: underestimatedCount)
   }
 
   var _context: TestContext {
@@ -51,6 +56,13 @@ extension MinimalMutableRangeReplaceableRandomAccessCollection: Sequence {
   public var underestimatedCount: Int {
     timesUnderestimatedCountCalled.increment()
     return _core.underestimatedCount
+  }
+
+  public func withContiguousStorageIfAvailable<R>(
+    _ body: (UnsafeBufferPointer<Element>) throws -> R
+  ) rethrows -> R? {
+    guard _core.isContiguous else { return nil }
+    return try _core.elements.withUnsafeBufferPointer(body)
   }
 }
 

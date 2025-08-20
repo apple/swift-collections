@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   struct Counts: Equatable {
     /// The number of UTF-8 code units within this chunk.
@@ -97,7 +97,7 @@ extension BigString._Chunk {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk.Counts {
   var characters: Int {
     get { Int(_characters) }
@@ -123,7 +123,7 @@ extension BigString._Chunk.Counts {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk.Counts {
   mutating func append(_ other: Self) {
     assert(hasSpaceToMerge(other))

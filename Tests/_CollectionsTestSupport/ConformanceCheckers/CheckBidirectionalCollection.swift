@@ -44,7 +44,7 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
   _ collection: C,
   expectedContents: S,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where C.Element: Equatable, S.Element == C.Element {
   checkBidirectionalCollection(
@@ -61,7 +61,7 @@ public func checkBidirectionalCollection<C: BidirectionalCollection, S: Sequence
   expectedContents: S,
   by areEquivalent: (S.Element, S.Element) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S.Element == C.Element {
   checkSequence(
@@ -87,7 +87,7 @@ public func _checkBidirectionalCollection_indexOffsetBy<
   expectedContents: [C.Element],
   by areEquivalent: (C.Element, C.Element) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var allIndices = collection._indicesByIndexAfter()
@@ -140,7 +140,7 @@ public func _checkBidirectionalCollection<C: BidirectionalCollection, S: Sequenc
   expectedContents: S,
   by areEquivalent: (S.Element, S.Element) -> Bool,
   maxSamples: Int? = nil,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S.Element == C.Element {
   let entry = TestContext.current.push("checkBidirectionalCollection", file: file, line: line)

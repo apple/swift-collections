@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk: RopeElement {
   typealias Summary = BigString.Summary
   typealias Index = String.Index
@@ -114,7 +114,7 @@ extension BigString._Chunk: RopeElement {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   static func _redistributeData(
     _ left: inout Self,

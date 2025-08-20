@@ -47,7 +47,7 @@ final class MutableCollectiontests: CollectionTestCase {
       _ item: inout LifetimeTracked<Int>,
       tracker: LifetimeTracker,
       delta: Int,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       expectTrue(isKnownUniquelyReferenced(&item))

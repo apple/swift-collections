@@ -505,7 +505,7 @@ class TestRope: CollectionTestCase {
   func checkEqual(
     _ x: Rope<Chunk>,
     _ y: [Int],
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     checkEqual(x, chunkify(y), file: file, line: line)
@@ -514,7 +514,7 @@ class TestRope: CollectionTestCase {
   func checkEqual(
     _ x: Rope<Chunk>,
     _ y: [Chunk],
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     let u = Array(x)
@@ -525,7 +525,7 @@ class TestRope: CollectionTestCase {
     _ a: Rope<Chunk>,
     _ b: [Int],
     range: Range<Int>,
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     var x = a

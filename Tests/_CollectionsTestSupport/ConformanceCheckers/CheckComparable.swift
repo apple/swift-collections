@@ -49,7 +49,7 @@ extension ExpectedComparisonResult: CustomStringConvertible {
 public func checkComparable<Instance: Comparable>(
   sortedEquivalenceClasses: [[Instance]],
   maxSamples: Int? = nil,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) {
   let instances = sortedEquivalenceClasses.flatMap { $0 }
   // oracle[i] is the index of the equivalence class that contains instances[i].
@@ -72,7 +72,7 @@ public func checkComparable<Instances: Collection>(
   _ instances: Instances,
   oracle: (Instances.Index, Instances.Index) -> ExpectedComparisonResult,
   maxSamples: Int? = nil,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) where Instances.Element: Comparable, Instances.Index == Int {
   checkEquatable(
     instances,
@@ -89,7 +89,7 @@ public func checkComparable<Instances: Collection>(
 public func checkComparable<T : Comparable>(
   expected: ExpectedComparisonResult,
   _ lhs: T, _ rhs: T,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) {
   checkComparable(
     [lhs, rhs],
@@ -103,7 +103,7 @@ public func _checkComparable<Instances: Collection>(
   _ instances: Instances,
   oracle: (Instances.Index, Instances.Index) -> ExpectedComparisonResult,
   maxSamples: Int? = nil,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) where Instances.Element: Comparable, Instances.Index == Int {
   let entry = TestContext.current.push("checkComparable", file: file, line: line)
   defer { TestContext.current.pop(entry) }

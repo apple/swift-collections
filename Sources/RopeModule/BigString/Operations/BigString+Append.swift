@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   mutating func _append(contentsOf other: __owned Substring) {
     if other.isEmpty { return }
@@ -39,7 +39,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   var _firstUnicodeScalar: Unicode.Scalar {
     assert(!isEmpty)
@@ -104,14 +104,14 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   var isUndersized: Bool {
     _utf8Count < _Chunk.minUTF8Count
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   /// Note: This assumes `other` already has the correct break positions.
   mutating func _append(_ other: __owned _Chunk) {

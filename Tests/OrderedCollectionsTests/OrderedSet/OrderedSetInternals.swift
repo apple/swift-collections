@@ -28,7 +28,7 @@ struct OrderedSetLayout: Hashable, CustomStringConvertible {
 
 func withOrderedSetLayouts(
   scales: [Int],
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line,
   run body: (OrderedSetLayout) throws -> Void
 ) rethrows {

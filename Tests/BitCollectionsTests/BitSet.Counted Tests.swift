@@ -75,7 +75,7 @@ final class BitSetCountedTests: CollectionTestCase {
     func check<S: Sequence>(
       _ expected: S,
       _ body: (inout BitSet.Counted) -> Void,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) where S.Element == Int {
       var a: BitSet.Counted = [1, 2, 3, 4]
@@ -96,7 +96,7 @@ final class BitSetCountedTests: CollectionTestCase {
     func check<S: Sequence>(
       _ expected: S,
       _ body: (inout BitSet.Counted) -> Void,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) where S.Element == Int {
       var a: BitSet.Counted = [1, 2, 3, 4]
@@ -117,7 +117,7 @@ final class BitSetCountedTests: CollectionTestCase {
     func check<S: Sequence>(
       _ expected: S,
       _ body: (inout BitSet.Counted) -> Void,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) where S.Element == Int {
       var a: BitSet.Counted = [1, 2, 3, 4]
@@ -138,7 +138,7 @@ final class BitSetCountedTests: CollectionTestCase {
     func check<S: Sequence>(
       _ expected: S,
       _ body: (inout BitSet.Counted) -> Void,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) where S.Element == Int {
       var a: BitSet.Counted = [1, 2, 3, 4]

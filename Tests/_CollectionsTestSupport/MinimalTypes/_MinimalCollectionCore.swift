@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -13,23 +13,31 @@
 struct _MinimalCollectionCore<Element> {
   var state: _CollectionState
   var elements: [Element]
+  let isContiguous: Bool
   var underestimatedCount: Int
 
   public init<S: Sequence>(
     context: TestContext,
     elements: S,
+    isContiguous: Bool,
     underestimatedCount: UnderestimatedCountBehavior? = nil
   ) where S.Element == Element {
-    self.init(context: context, elements: Array(elements), underestimatedCount: underestimatedCount)
+    self.init(
+      context: context,
+      elements: Array(elements),
+      isContiguous: isContiguous,
+      underestimatedCount: underestimatedCount)
   }
 
   public init(
     context: TestContext,
     elements: [Element],
+    isContiguous: Bool,
     underestimatedCount: UnderestimatedCountBehavior? = nil
   ) {
     self.state = _CollectionState(context: context, parent: nil, count: elements.count)
     self.elements = elements
+    self.isContiguous = isContiguous
     self.underestimatedCount = underestimatedCount?.value(forCount: elements.count) ?? elements.count
   }
 
@@ -76,7 +84,7 @@ extension _MinimalCollectionCore {
   func assertValidIndex(
     _ index: MinimalIndex,
     _ message: @autoclosure () -> String = "Invalid index",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     expectTrue(isValidIndex(index),
@@ -87,7 +95,7 @@ extension _MinimalCollectionCore {
   func assertValidIndexBeforeEnd(
     _ index: MinimalIndex,
     _ message: @autoclosure () -> String = "Invalid index",
-    file: StaticString = #file,
+    file: StaticString = #filePath,
     line: UInt = #line
   ) {
     expectTrue(isValidIndex(index),
