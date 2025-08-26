@@ -258,7 +258,7 @@ extension DynamicArray where Element: ~Copyable {
 
 //MARK: - Resizing
 
-@inlinable
+@_alwaysEmitIntoClient
 @_transparent
 internal func _growDynamicArrayCapacity(_ capacity: Int) -> Int {
   2 * capacity
@@ -275,14 +275,14 @@ extension DynamicArray where Element: ~Copyable {
     _storage.reserveCapacity(n)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_transparent
-  public mutating func _ensureFreeCapacity(_ freeCapacity: Int) {
+  internal mutating func _ensureFreeCapacity(_ freeCapacity: Int) {
     guard _storage.freeCapacity < freeCapacity else { return }
     _ensureFreeCapacitySlow(freeCapacity)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_transparent
   internal func _grow(freeCapacity: Int) -> Int {
     Swift.max(

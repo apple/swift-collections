@@ -69,7 +69,7 @@ extension DynamicArray where Element: ~Copyable {
 
 extension DynamicArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
-  @inlinable
+  @_alwaysEmitIntoClient
   @_transparent
   internal mutating func _edit<R: ~Copyable>(
     freeCapacity: Int,
