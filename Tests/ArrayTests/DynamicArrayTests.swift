@@ -360,7 +360,10 @@ class DynamicArrayTests: CollectionTestCase {
         a.edit { span in
           expectEqual(span.capacity, layout.capacity)
           expectEqual(span.count, layout.count)
-          span.removeAll()
+          if layout.capacity > 0 {
+            // FIXME: OutputSpan.removeAll crashes when empty in some 6.2 snapshots (rdar://158440246)
+            span.removeAll()
+          }
           expectEqual(tracker.instances, 0)
         }
         expectEqual(a.count, 0)
@@ -582,11 +585,11 @@ class DynamicArrayTests: CollectionTestCase {
       array.append(tracker.instance(for: 1))
       expectEqual(array.capacity, 2)
       array.append(tracker.instance(for: 2))
-      expectEqual(array.capacity, 4)
+      expectEqual(array.capacity, 3)
       array.append(tracker.instance(for: 3))
-      expectEqual(array.capacity, 4)
+      expectEqual(array.capacity, 5)
       array.append(tracker.instance(for: 4))
-      expectEqual(array.capacity, 8)
+      expectEqual(array.capacity, 5)
       array.append(tracker.instance(for: 5))
       expectEqual(array.capacity, 8)
       array.append(tracker.instance(for: 6))
@@ -594,14 +597,14 @@ class DynamicArrayTests: CollectionTestCase {
       array.append(tracker.instance(for: 7))
       expectEqual(array.capacity, 8)
       array.append(tracker.instance(for: 8))
-      expectEqual(array.capacity, 16)
+      expectEqual(array.capacity, 12)
 
       for i in 9 ..< 100 {
         array.append(tracker.instance(for: i))
       }
       expectEqual(tracker.instances, 100)
       expectEqual(array.count, 100)
-      expectEqual(array.capacity, 128)
+      expectEqual(array.capacity, 140)
 
       do {
         let additions = RigidArray(capacity: 300) { span in

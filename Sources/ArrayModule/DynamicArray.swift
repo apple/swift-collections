@@ -261,7 +261,10 @@ extension DynamicArray where Element: ~Copyable {
 @_alwaysEmitIntoClient
 @_transparent
 internal func _growDynamicArrayCapacity(_ capacity: Int) -> Int {
-  2 * capacity
+  // A growth factor of 1.5 seems like a reasonable compromise between
+  // over-allocating memory and wasting cycles on repeatedly resizing storage.
+  let c = (3 &* UInt(bitPattern: capacity) &+ 1) / 2
+  return Int(bitPattern: c)
 }
 
 extension DynamicArray where Element: ~Copyable {
