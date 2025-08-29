@@ -35,16 +35,16 @@ if(COLLECTIONS_SINGLE_MODULE)
       # Install both the swift module and the binary
       set(swift swift_static)
       install(TARGETS ${COLLECTIONS_MODULE_NAME}
-          ARCHIVE DESTINATION lib/swift_static/${SwiftCollections_PLATFORM}/${SwiftCollections_ARCH}
-          LIBRARY DESTINATION lib/swift_static/${SwiftCollections_PLATFORM}/${SwiftCollections_ARCH}
+          ARCHIVE DESTINATION lib/swift_static/${COLLECTIONS_PLATFORM}$<$<BOOL:${COLLECTIONS_INSTALL_ARCH_SUBDIR}>:/${COLLECTIONS_ARCH}>
+          LIBRARY DESTINATION lib/swift_static/${COLLECTIONS_PLATFORM}$<$<BOOL:${COLLECTIONS_INSTALL_ARCH_SUBDIR}>:/${COLLECTIONS_ARCH}>
           RUNTIME DESTINATION bin)
     endif()
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftdoc
-      DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
+      DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${COLLECTIONS_MODULE_NAME}.swiftmodule
+      RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftdoc)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
+      DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${COLLECTIONS_MODULE_NAME}.swiftmodule
+      RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftmodule)
   else()
     _install_target(${COLLECTIONS_MODULE_NAME})
   endif()

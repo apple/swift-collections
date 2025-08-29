@@ -8,7 +8,7 @@ See https://swift.org/LICENSE.txt for license information
 #]]
 
 
-if(NOT SwiftCollections_MODULE_TRIPLE OR NOT SwiftCollections_ARCH OR NOT SwiftCollections_PLATFORM)
+if(NOT COLLECTIONS_MODULE_TRIPLE OR NOT COLLECTIONS_ARCH OR NOT COLLECTIONS_PLATFORM)
   # Get the target information from the Swift compiler.
   set(module_triple_command "${CMAKE_Swift_COMPILER}" -print-target-info)
   if(CMAKE_Swift_COMPILER_TARGET)
@@ -17,28 +17,28 @@ if(NOT SwiftCollections_MODULE_TRIPLE OR NOT SwiftCollections_ARCH OR NOT SwiftC
   execute_process(COMMAND ${module_triple_command} OUTPUT_VARIABLE target_info_json)
 endif()
 
-if(NOT SwiftCollections_MODULE_TRIPLE)
+if(NOT COLLECTIONS_MODULE_TRIPLE)
   string(JSON module_triple GET "${target_info_json}" "target" "moduleTriple")
-  set(SwiftCollections_MODULE_TRIPLE "${module_triple}" CACHE STRING "Triple used to install swiftmodule files")
-  mark_as_advanced(SwiftCollections_MODULE_TRIPLE)
+  set(COLLECTIONS_MODULE_TRIPLE "${module_triple}" CACHE STRING "Triple used to install swiftmodule files")
+  mark_as_advanced(COLLECTIONS_MODULE_TRIPLE)
   message(CONFIGURE_LOG "Swift module triple: ${module_triple}")
 endif()
 
-if(NOT SwiftCollections_ARCH)
+if(NOT COLLECTIONS_ARCH)
   if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
     # For newer compilers, we can use the -print-target-info command to get the architecture.
     string(JSON module_arch GET "${target_info_json}" "target" "arch")
   else()
-    # For older compilers, extract the value from `SwiftCollections_MODULE_TRIPLE`.
-    string(REGEX MATCH "^[^-]+" module_arch "${SwiftCollections_MODULE_TRIPLE}")
+    # For older compilers, extract the value from `COLLECTIONS_MODULE_TRIPLE`.
+    string(REGEX MATCH "^[^-]+" module_arch "${COLLECTIONS_MODULE_TRIPLE}")
   endif()
 
-  set(SwiftCollections_ARCH "${module_arch}" CACHE STRING "Arch folder name used to install libraries")
-  mark_as_advanced(SwiftCollections_ARCH)
-  message(CONFIGURE_LOG "Swift arch: ${SwiftCollections_ARCH}")
+  set(COLLECTIONS_ARCH "${module_arch}" CACHE STRING "Arch folder name used to install libraries")
+  mark_as_advanced(COLLECTIONS_ARCH)
+  message(CONFIGURE_LOG "Swift arch: ${COLLECTIONS_ARCH}")
 endif()
 
-if(NOT SwiftCollections_PLATFORM)
+if(NOT COLLECTIONS_PLATFORM)
   if(CMAKE_Swift_COMPILER_VERSION VERSION_EQUAL 0.0.0 OR CMAKE_Swift_COMPILER_VERSION VERSION_GREATER_EQUAL 6.2)
     # For newer compilers, we can use the -print-target-info command to get the platform.
     string(JSON swift_platform GET "${target_info_json}" "target" "platform")
@@ -51,9 +51,9 @@ if(NOT SwiftCollections_PLATFORM)
     endif()
   endif()
 
-  set(SwiftCollections_PLATFORM "${swift_platform}" CACHE STRING "Platform folder name used to install libraries")
-  mark_as_advanced(SwiftCollections_PLATFORM)
-  message(CONFIGURE_LOG "Swift platform: ${SwiftCollections_PLATFORM}")
+  set(COLLECTIONS_PLATFORM "${swift_platform}" CACHE STRING "Platform folder name used to install libraries")
+  mark_as_advanced(COLLECTIONS_PLATFORM)
+  message(CONFIGURE_LOG "Swift platform: ${COLLECTIONS_PLATFORM}")
 endif()
 
 function(_install_target module)
@@ -66,8 +66,8 @@ function(_install_target module)
   endif()
 
   install(TARGETS ${module}
-    ARCHIVE DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${SwiftCollections_ARCH}
-    LIBRARY DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${SwiftCollections_ARCH}
+    ARCHIVE DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}$<$<BOOL:${COLLECTIONS_INSTALL_ARCH_SUBDIR}>:/${COLLECTIONS_ARCH}>
+    LIBRARY DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}$<$<BOOL:${COLLECTIONS_INSTALL_ARCH_SUBDIR}>:/${COLLECTIONS_ARCH}>
     RUNTIME DESTINATION bin)
   if(type STREQUAL EXECUTABLE)
     return()
@@ -79,10 +79,10 @@ function(_install_target module)
   endif()
 
   install(FILES $<TARGET_PROPERTY:${module},Swift_MODULE_DIRECTORY>/${module_name}.swiftdoc
-    DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${module_name}.swiftmodule
-    RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
+    DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${module_name}.swiftmodule
+    RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftdoc)
 
   install(FILES $<TARGET_PROPERTY:${module},Swift_MODULE_DIRECTORY>/${module_name}.swiftmodule
-    DESTINATION lib/${swift}/${SwiftCollections_PLATFORM}/${module_name}.swiftmodule
-    RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
+    DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${module_name}.swiftmodule
+    RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftmodule)
 endfunction()
