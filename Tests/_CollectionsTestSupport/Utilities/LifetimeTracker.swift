@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -27,7 +27,7 @@ public class LifetimeTracker {
     check()
   }
 
-  public func check(file: StaticString = #file, line: UInt = #line) {
+  public func check(file: StaticString = #filePath, line: UInt = #line) {
     expectEqual(instances, 0,
                 "Potential leak of \(instances) objects",
                 file: file, line: line)
@@ -35,6 +35,12 @@ public class LifetimeTracker {
 
   public func instance<Payload>(for payload: Payload) -> LifetimeTracked<Payload> {
     LifetimeTracked(payload, for: self)
+  }
+
+  public func structInstance<Payload: ~Copyable>(
+    for payload: consuming Payload
+  ) -> LifetimeTrackedStruct<Payload> {
+    LifetimeTrackedStruct(payload, for: self)
   }
 
   public func instances<S: Sequence>(for items: S) -> [LifetimeTracked<S.Element>] {
@@ -49,11 +55,11 @@ public class LifetimeTracker {
 }
 
 @inlinable
-public func withLifetimeTracking<R>(
-  file: StaticString = #file,
+public func withLifetimeTracking<E: Error, R>(
+  file: StaticString = #filePath,
   line: UInt = #line,
-  _ body: (LifetimeTracker) throws -> R
-) rethrows -> R {
+  _ body: (LifetimeTracker) throws(E) -> R
+) throws(E) -> R {
   let tracker = LifetimeTracker()
   defer { tracker.check(file: file, line: line) }
   return try body(tracker)

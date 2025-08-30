@@ -9,10 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 internal typealias _CharacterRecognizer = Unicode._CharacterRecognizer
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension _CharacterRecognizer {
   internal func _isKnownEqual(to other: Self) -> Bool {
     if #available(macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0, *) { // SwiftStdlib 5.9
@@ -23,7 +23,7 @@ extension _CharacterRecognizer {
 }
 
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension _CharacterRecognizer {
   mutating func firstBreak(
     in str: Substring
@@ -52,7 +52,7 @@ extension _CharacterRecognizer {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension _CharacterRecognizer {
   init(partialCharacter: Substring.UnicodeScalarView) {
     self.init()

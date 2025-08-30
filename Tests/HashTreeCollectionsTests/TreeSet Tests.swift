@@ -601,7 +601,7 @@ class TreeSetTests: CollectionTestCase {
     func check(
       _ reference: Set<Int>,
       _ body: (inout TreeSet<Int>) -> Void,
-      file: StaticString = #file,
+      file: StaticString = #filePath,
       line: UInt = #line
     ) {
       var set = x

@@ -66,7 +66,7 @@ func withEveryDeque<C: Collection>(
   _ label: String,
   ofCapacities capacities: C,
   startValue: Int = 0,
-  file: StaticString = #file, line: UInt = #line,
+  file: StaticString = #filePath, line: UInt = #line,
   _ body: (DequeLayout) throws -> Void
 ) rethrows -> Void where C.Element == Int {
   // Exhaustive tests for all deque layouts of various capacities

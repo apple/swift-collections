@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   func splitCounts(at i: String.Index) -> (left: Counts, right: Counts) {
     precondition(i <= string.endIndex)

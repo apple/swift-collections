@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring {
   public struct UTF16View: Sendable {
     internal var _base: BigString
@@ -37,7 +37,7 @@ extension BigSubstring {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   public init?(_ utf16: BigSubstring.UTF16View) {
     guard
@@ -50,12 +50,12 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring.UTF16View {
   public var base: BigString.UTF16View { _base.utf16 }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring.UTF16View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     var i1 = left._bounds.lowerBound
@@ -90,7 +90,7 @@ extension BigSubstring.UTF16View: Equatable {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring.UTF16View: Hashable {
   public func hash(into hasher: inout Hasher) {
     for codeUnit in self {
@@ -100,7 +100,7 @@ extension BigSubstring.UTF16View: Hashable {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring.UTF16View: Sequence {
   public typealias Element = UInt16
 
@@ -124,7 +124,7 @@ extension BigSubstring.UTF16View: Sequence {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring.UTF16View: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -185,7 +185,7 @@ extension BigSubstring.UTF16View: BidirectionalCollection {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigSubstring.UTF16View {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")

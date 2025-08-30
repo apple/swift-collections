@@ -134,15 +134,19 @@ extension Rope._Node {
 }
 
 extension Rope._Node {
-  @inlinable @inline(__always)
+  @inlinable
+  @_transparent
   internal mutating func isUnique() -> Bool {
     isKnownUniquelyReferenced(&object)
   }
 
   @inlinable
   internal mutating func ensureUnique() {
-    guard !isKnownUniquelyReferenced(&object) else { return }
+    guard !isKnownUniquelyReferenced(&object) else {
+      return
+    }
     self = copy()
+    assert(isUnique())
   }
 
   @inlinable @inline(never)

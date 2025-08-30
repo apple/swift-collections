@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   internal struct _Chunk {
     typealias Slice = (string: Substring, characters: Int, prefix: Int, suffix: Int)
@@ -44,7 +44,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   @inline(__always)
   static var maxUTF8Count: Int { 255 }
@@ -56,7 +56,7 @@ extension BigString._Chunk {
   static var maxSlicingError: Int { 3 }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   @inline(__always)
   mutating func take() -> Self {
@@ -73,7 +73,7 @@ extension BigString._Chunk {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   @inline(__always)
   var characterCount: Int { counts.characters }
@@ -97,7 +97,7 @@ extension BigString._Chunk {
   var lastScalar: UnicodeScalar { string.unicodeScalars.last! }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   var availableSpace: Int { Swift.max(0, Self.maxUTF8Count - utf8Count) }
   
@@ -107,7 +107,7 @@ extension BigString._Chunk {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString._Chunk {
   func hasSpaceToMerge(_ other: some StringProtocol) -> Bool {
     utf8Count + other.utf8.count <= Self.maxUTF8Count

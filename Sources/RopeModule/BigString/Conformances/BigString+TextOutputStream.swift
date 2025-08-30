@@ -9,14 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString: TextOutputStream {
   public mutating func write(_ string: String) {
     append(contentsOf: string)
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString: TextOutputStreamable {
   public func write(to target: inout some TextOutputStream) {
     for chunk in _rope {

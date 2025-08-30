@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString: Sequence {
   public typealias Element = Character
 
@@ -18,7 +18,7 @@ extension BigString: Sequence {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString {
   public struct Iterator {
     internal let _base: BigString
@@ -66,7 +66,7 @@ extension BigString {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString.Iterator: IteratorProtocol {
   public typealias Element = Character
 
@@ -158,7 +158,7 @@ extension BigString.Iterator: IteratorProtocol {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 5.8, *)
 extension BigString.Iterator {
   // The UTF-8 offset of the current position, from the start of the string.
   var utf8Offset: Int {

@@ -30,7 +30,7 @@ private func _hash<H: Hashable>(_ value: H, seed: Int? = nil) -> Int {
 /// a distinct equivalence class under `==`.
 public func checkHashable<Instance: Hashable>(
   equivalenceClasses: [[Instance]],
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) {
   let instances = equivalenceClasses.flatMap { $0 }
   // oracle[i] is the index of the equivalence class that contains instances[i].
@@ -43,7 +43,7 @@ public func checkHashable<Instance: Hashable>(
 
 public func checkHashable<T : Hashable>(
   expectedEqual: Bool, _ lhs: T, _ rhs: T,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) {
   checkHashable(
     [lhs, rhs], equalityOracle: { expectedEqual || $0 == $1 }, file: file, line: line)
@@ -55,7 +55,7 @@ public func checkHashable<T : Hashable>(
 public func checkHashable<Instances: Collection>(
   _ instances: Instances,
   equalityOracle: (Instances.Index, Instances.Index) -> Bool,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) where Instances.Element: Hashable {
   checkEquatable(instances, oracle: equalityOracle, file: file, line: line)
   _checkHashable(instances, equalityOracle: equalityOracle, file: file, line: line)
@@ -66,7 +66,7 @@ public func checkHashable<Instances: Collection>(
 public func _checkHashable<Instances: Collection>(
   _ instances: Instances,
   equalityOracle: (Instances.Index, Instances.Index) -> Bool,
-  file: StaticString = #file, line: UInt = #line
+  file: StaticString = #filePath, line: UInt = #line
 ) where Instances.Element: Hashable {
   let entry = TestContext.current.push("checkHashable", file: file, line: line)
   defer { TestContext.current.pop(entry) }

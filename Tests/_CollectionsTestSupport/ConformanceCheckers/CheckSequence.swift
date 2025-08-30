@@ -21,7 +21,7 @@ import XCTest
 public func checkSequence<S: Sequence, Expected: Sequence>(
   _ sequenceGenerator: () -> S,
   expectedContents: Expected,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S.Element == Expected.Element, S.Element: Equatable {
   checkSequence(
@@ -36,7 +36,7 @@ public func checkSequence<S: Sequence, Expected: Sequence>(
   _ sequenceGenerator: () -> S,
   expectedContents: Expected,
   by areEquivalent: (S.Element, S.Element) -> Bool,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) where S.Element == Expected.Element {
   let entry = TestContext.current.push("checkSequence", file: file, line: line)

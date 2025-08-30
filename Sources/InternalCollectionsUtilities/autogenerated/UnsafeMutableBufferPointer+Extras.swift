@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -22,6 +22,188 @@
 // but in regular builds we want them to be public. Unfortunately
 // the current best way to do this is to duplicate all definitions.
 #if COLLECTIONS_SINGLE_MODULE
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  /// Returns a Boolean value indicating whether two
+  /// `UnsafeMutableBufferPointer` instances refer to the same region in
+  /// memory.
+  @inlinable @inline(__always)
+  internal func _isIdentical(to other: Self) -> Bool {
+    (self.baseAddress == other.baseAddress) && (self.count == other.count)
+  }
+}
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  /// Returns a buffer pointer containing the initial elements of this buffer,
+  /// up to the specified maximum length.
+  ///
+  /// If the maximum length exceeds the length of this buffer pointer,
+  /// then the result contains all the elements.
+  ///
+  /// The returned buffer's first item is always at offset 0; unlike buffer
+  /// slices, extracted buffers do not share their indices with the
+  /// buffer from which they are extracted.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to return.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A buffer pointer with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(first maxLength: Int) -> Self {
+    precondition(maxLength >= 0, "Can't have a prefix of negative length")
+    let newCount = Swift.min(maxLength, count)
+    return Self(start: baseAddress, count: newCount)
+  }
+
+  /// Returns a buffer pointer containing the final elements of this buffer,
+  /// up to the given maximum length.
+  ///
+  /// If the maximum length exceeds the length of this buffer pointer,
+  /// the result contains all the elements.
+  ///
+  /// The returned buffer's first item is always at offset 0; unlike buffer
+  /// slices, extracted buffers do not share their indices with the
+  /// buffer from which they are extracted.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to return.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A buffer pointer with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(last maxLength: Int) -> Self {
+    precondition(maxLength >= 0, "Can't have a suffix of negative length")
+    let newCount = Swift.min(maxLength, count)
+    return extracting(Range(uncheckedBounds: (count - newCount, count)))
+  }
+}
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  internal func _moveInitializePrefix(
+    from source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    if source.isEmpty { return 0 }
+    precondition(source.count <= self.count)
+    self.baseAddress.unsafelyUnwrapped.moveInitialize(
+      from: source.baseAddress.unsafelyUnwrapped, count: source.count)
+    return source.count
+  }
+}
+
+extension UnsafeMutableBufferPointer {
+  /// Initialize slots at the start of this buffer by copying data from `source`.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized, while `source` must be fully initialized.
+  ///
+  /// The `source` buffer must fit entirely in `self`.
+  ///
+  /// - Returns: The index after the last item that was initialized in this buffer.
+  @inlinable
+  internal func _initializePrefix(
+    copying source: UnsafeBufferPointer<Element>
+  ) -> Int {
+    if source.isEmpty { return 0 }
+    precondition(source.count <= self.count)
+    self.baseAddress.unsafelyUnwrapped.initialize(
+      from: source.baseAddress.unsafelyUnwrapped, count: source.count)
+    return source.count
+  }
+
+  @inlinable
+  internal func _initializePrefix(
+    copying source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    _initializePrefix(copying: UnsafeBufferPointer(source))
+  }
+
+#if compiler(>=6.2)
+  /// Initialize slots at the start of this buffer by copying data from `source`.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized.
+  ///
+  /// The `source` span must fit entirely in `self`.
+  ///
+  /// - Returns: The index after the last item that was initialized in this buffer.
+  @available(SwiftStdlib 6.2, *)
+  @inlinable
+  internal func _initializePrefix(copying source: Span<Element>) -> Int {
+    source.withUnsafeBufferPointer { self._initializePrefix(copying: $0) }
+  }
+#endif
+
+#if compiler(>=6.2) && FIXME
+  /// Initialize all slots in this buffer by copying data from `items`, which must fit entirely
+  /// in this buffer.
+  ///
+  /// If `items` contains more elements than can fit into this buffer, then this function
+  /// will return an index other than `items.endIndex`. In that case, `self` may not be fully
+  /// populated.
+  ///
+  /// If `Element` is not bitwise copyable, then this function must be called on an
+  /// entirely uninitialized buffer.
+  ///
+  /// - Returns: A pair of values `(count, end)`, where `count` is the number of items that were
+  ///    successfully initialized, and `end` is the index into `items` after the last copied item.
+  @available(SwiftStdlib 6.2, *)
+  @inlinable
+  internal func _initializePrefix<
+    C: Container<Element> & ~Copyable & ~Escapable
+  >(
+    copying items: borrowing C
+  ) -> (copied: Int, end: C.Index) {
+    var target = self
+    var i = items.startIndex
+    while true {
+      let start = i
+      let span = items.span(after: &i)
+      if span.isEmpty { break }
+      guard span.count <= target.count else {
+        return (self.count - target.count, start)
+      }
+      target._initializeAndDropPrefix(copying: span)
+    }
+    return (self.count - target.count, i)
+  }
+#endif
+
+  /// Initialize slots at the start of this buffer by copying data from `buffer`, then
+  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
+  /// uninitialized remainder.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized, while `buffer` must be fully initialized.
+  ///
+  /// The count of `buffer` must not be greater than `self.count`.
+  @inlinable
+  internal mutating func _initializeAndDropPrefix(copying source: UnsafeBufferPointer<Element>) {
+    let i = _initializePrefix(copying: source)
+    self = self.extracting(i...)
+  }
+
+#if compiler(>=6.2)
+  /// Initialize slots at the start of this buffer by copying data from `span`, then
+  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
+  /// uninitialized remainder.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized.
+  ///
+  /// The count of `span` must not be greater than `self.count`.
+  @available(SwiftStdlib 5.0, *)
+  @inlinable
+  internal mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
+    span.withUnsafeBufferPointer { buffer in
+      self._initializeAndDropPrefix(copying: buffer)
+    }
+  }
+#endif
+}
+
 extension UnsafeMutableBufferPointer {
   @inlinable
   internal func initialize(fromContentsOf source: Self) -> Index {
@@ -149,6 +331,188 @@ extension Slice {
   }
 }
 #else // !COLLECTIONS_SINGLE_MODULE
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  /// Returns a Boolean value indicating whether two
+  /// `UnsafeMutableBufferPointer` instances refer to the same region in
+  /// memory.
+  @inlinable @inline(__always)
+  public func _isIdentical(to other: Self) -> Bool {
+    (self.baseAddress == other.baseAddress) && (self.count == other.count)
+  }
+}
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  /// Returns a buffer pointer containing the initial elements of this buffer,
+  /// up to the specified maximum length.
+  ///
+  /// If the maximum length exceeds the length of this buffer pointer,
+  /// then the result contains all the elements.
+  ///
+  /// The returned buffer's first item is always at offset 0; unlike buffer
+  /// slices, extracted buffers do not share their indices with the
+  /// buffer from which they are extracted.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to return.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A buffer pointer with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(first maxLength: Int) -> Self {
+    precondition(maxLength >= 0, "Can't have a prefix of negative length")
+    let newCount = Swift.min(maxLength, count)
+    return Self(start: baseAddress, count: newCount)
+  }
+
+  /// Returns a buffer pointer containing the final elements of this buffer,
+  /// up to the given maximum length.
+  ///
+  /// If the maximum length exceeds the length of this buffer pointer,
+  /// the result contains all the elements.
+  ///
+  /// The returned buffer's first item is always at offset 0; unlike buffer
+  /// slices, extracted buffers do not share their indices with the
+  /// buffer from which they are extracted.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to return.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A buffer pointer with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(last maxLength: Int) -> Self {
+    precondition(maxLength >= 0, "Can't have a suffix of negative length")
+    let newCount = Swift.min(maxLength, count)
+    return extracting(Range(uncheckedBounds: (count - newCount, count)))
+  }
+}
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  public func _moveInitializePrefix(
+    from source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    if source.isEmpty { return 0 }
+    precondition(source.count <= self.count)
+    self.baseAddress.unsafelyUnwrapped.moveInitialize(
+      from: source.baseAddress.unsafelyUnwrapped, count: source.count)
+    return source.count
+  }
+}
+
+extension UnsafeMutableBufferPointer {
+  /// Initialize slots at the start of this buffer by copying data from `source`.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized, while `source` must be fully initialized.
+  ///
+  /// The `source` buffer must fit entirely in `self`.
+  ///
+  /// - Returns: The index after the last item that was initialized in this buffer.
+  @inlinable
+  public func _initializePrefix(
+    copying source: UnsafeBufferPointer<Element>
+  ) -> Int {
+    if source.isEmpty { return 0 }
+    precondition(source.count <= self.count)
+    self.baseAddress.unsafelyUnwrapped.initialize(
+      from: source.baseAddress.unsafelyUnwrapped, count: source.count)
+    return source.count
+  }
+
+  @inlinable
+  public func _initializePrefix(
+    copying source: UnsafeMutableBufferPointer<Element>
+  ) -> Int {
+    _initializePrefix(copying: UnsafeBufferPointer(source))
+  }
+
+#if compiler(>=6.2)
+  /// Initialize slots at the start of this buffer by copying data from `source`.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized.
+  ///
+  /// The `source` span must fit entirely in `self`.
+  ///
+  /// - Returns: The index after the last item that was initialized in this buffer.
+  @available(SwiftStdlib 6.2, *)
+  @inlinable
+  public func _initializePrefix(copying source: Span<Element>) -> Int {
+    source.withUnsafeBufferPointer { self._initializePrefix(copying: $0) }
+  }
+#endif
+
+#if compiler(>=6.2) && FIXME
+  /// Initialize all slots in this buffer by copying data from `items`, which must fit entirely
+  /// in this buffer.
+  ///
+  /// If `items` contains more elements than can fit into this buffer, then this function
+  /// will return an index other than `items.endIndex`. In that case, `self` may not be fully
+  /// populated.
+  ///
+  /// If `Element` is not bitwise copyable, then this function must be called on an
+  /// entirely uninitialized buffer.
+  ///
+  /// - Returns: A pair of values `(count, end)`, where `count` is the number of items that were
+  ///    successfully initialized, and `end` is the index into `items` after the last copied item.
+  @available(SwiftStdlib 6.2, *)
+  @inlinable
+  public func _initializePrefix<
+    C: Container<Element> & ~Copyable & ~Escapable
+  >(
+    copying items: borrowing C
+  ) -> (copied: Int, end: C.Index) {
+    var target = self
+    var i = items.startIndex
+    while true {
+      let start = i
+      let span = items.span(after: &i)
+      if span.isEmpty { break }
+      guard span.count <= target.count else {
+        return (self.count - target.count, start)
+      }
+      target._initializeAndDropPrefix(copying: span)
+    }
+    return (self.count - target.count, i)
+  }
+#endif
+
+  /// Initialize slots at the start of this buffer by copying data from `buffer`, then
+  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
+  /// uninitialized remainder.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized, while `buffer` must be fully initialized.
+  ///
+  /// The count of `buffer` must not be greater than `self.count`.
+  @inlinable
+  public mutating func _initializeAndDropPrefix(copying source: UnsafeBufferPointer<Element>) {
+    let i = _initializePrefix(copying: source)
+    self = self.extracting(i...)
+  }
+
+#if compiler(>=6.2)
+  /// Initialize slots at the start of this buffer by copying data from `span`, then
+  /// shrink `self` to drop all initialized items from its front, leaving it addressing the
+  /// uninitialized remainder.
+  ///
+  /// If `Element` is not bitwise copyable, then the memory region addressed by `self` must be
+  /// entirely uninitialized.
+  ///
+  /// The count of `span` must not be greater than `self.count`.
+  @available(SwiftStdlib 5.0, *)
+  @inlinable
+  public mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
+    span.withUnsafeBufferPointer { buffer in
+      self._initializeAndDropPrefix(copying: buffer)
+    }
+  }
+#endif
+}
+
 extension UnsafeMutableBufferPointer {
   @inlinable
   public func initialize(fromContentsOf source: Self) -> Index {
