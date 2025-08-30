@@ -166,12 +166,14 @@ extension RigidArray /*where Element: Copyable*/ {
 
 extension RigidArray where Element: ~Copyable {
   @inlinable
-  @inline(__always)
-  public var capacity: Int { unsafe _storage.count }
+  @_transparent
+  public var capacity: Int { _assumeNonNegative(unsafe _storage.count) }
 
   @inlinable
-  @inline(__always)
-  public var freeCapacity: Int { capacity - count }
+  @_transparent
+  public var freeCapacity: Int {
+    _assumeNonNegative(capacity &- count)
+  }
 
   @inlinable
   @inline(__always)

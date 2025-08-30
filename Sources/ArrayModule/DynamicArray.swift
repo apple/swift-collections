@@ -123,11 +123,13 @@ extension DynamicArray /*where Element: Copyable*/ {
 extension DynamicArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
-  public var capacity: Int { _storage.capacity }
+  public var capacity: Int { _assumeNonNegative(_storage.capacity) }
 
   @inlinable
   @inline(__always)
-  public var freeCapacity: Int { _storage.capacity - _storage.count }
+  public var freeCapacity: Int {
+    _assumeNonNegative(_storage.capacity &- _storage.count)
+  }
 }
 
 //MARK: - Span creation
