@@ -73,7 +73,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// spikes due to a reallocation getting triggered at an inopportune moment.
 ///
 /// For use cases outside of these narrow domains, we generally recommmend
-/// the use of ``DynamicArray`` rather than `RigidArray`.
+/// the use of ``UniqueArray`` rather than `RigidArray`.
 @safe
 @frozen
 public struct RigidArray<Element: ~Copyable>: ~Copyable {

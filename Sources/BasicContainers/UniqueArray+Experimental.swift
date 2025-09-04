@@ -19,7 +19,7 @@ import ContainersPreview
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 #if FIXME
-extension DynamicArray /*where Element: Copyable*/ {
+extension UniqueArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.2, *)
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -43,7 +43,7 @@ extension DynamicArray /*where Element: Copyable*/ {
 #endif
 
 #if FIXME
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
   @_lifetime(borrow self)
@@ -54,11 +54,11 @@ extension DynamicArray where Element: ~Copyable {
 #endif
 
 #if FIXME
-extension DynamicArray: RandomAccessContainer where Element: ~Copyable {}
+extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
 #endif
 
 #if FIXME
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   public mutating func mutateElement(at index: Int) -> Inout<Element> {
@@ -67,7 +67,7 @@ extension DynamicArray where Element: ~Copyable {
 }
 #endif
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
   @_transparent
@@ -85,7 +85,7 @@ extension DynamicArray where Element: ~Copyable {
 }
 
 #if FIXME
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Removes all the elements that satisfy the given predicate.
   ///
   /// Use this method to remove every element in a container that meets
@@ -108,7 +108,7 @@ extension DynamicArray where Element: ~Copyable {
 }
 #endif
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
   public mutating func append(
@@ -128,7 +128,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray {
+extension UniqueArray {
 #if FIXME
   public mutating func _appendContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -190,7 +190,7 @@ extension DynamicArray {
 }
 
 #if FIXME
-extension DynamicArray {
+extension UniqueArray {
   @available(SwiftStdlib 6.2, *)
   @inlinable
   internal mutating func _insertContainer<
@@ -271,7 +271,7 @@ extension DynamicArray {
 #endif
 
 #if FIXME
-extension DynamicArray {
+extension UniqueArray {
   @available(SwiftStdlib 6.2, *)
   @inlinable
   public mutating func _replaceSubrange<

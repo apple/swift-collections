@@ -14,7 +14,7 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
-import ArrayModule
+import BasicContainers
 #endif
 
 struct ArrayLayout {
@@ -77,7 +77,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   init(layout: ArrayLayout, using generator: (Int) -> Element) {
     self.init(consuming: RigidArray(layout: layout, using: generator))
   }
@@ -91,14 +91,14 @@ extension LifetimeTracker {
     RigidArray(layout: layout, using: { self.instance(for: generator($0)) })
   }
 
-  func dynamicArray<Element>(
+  func uniqueArray<Element>(
     layout: ArrayLayout,
     using generator: (Int) -> Element = { $0 }
-  ) -> DynamicArray<LifetimeTracked<Element>> {
+  ) -> UniqueArray<LifetimeTracked<Element>> {
     let contents = RigidArray(layout: layout) {
       self.instance(for: generator($0))
     }
-    return DynamicArray(consuming: contents)
+    return UniqueArray(consuming: contents)
   }
 }
 #endif
