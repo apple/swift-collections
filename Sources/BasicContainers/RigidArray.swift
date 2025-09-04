@@ -13,7 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2) || (compiler(<6.3) && os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+#if compiler(<6.2)
 
 /// A fixed capacity, heap allocated, noncopyable array of potentially
 /// noncopyable elements.

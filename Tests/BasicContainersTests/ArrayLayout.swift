@@ -66,7 +66,7 @@ func withSomeArrayLayouts<E: Error>(
   }
 }
 
-#if compiler(>=6.2) && (compiler(>=6.3) || !os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+#if compiler(>=6.2)
 extension RigidArray where Element: ~Copyable {
   init(layout: ArrayLayout, using generator: (Int) -> Element) {
     self.init(capacity: layout.capacity) { span in
