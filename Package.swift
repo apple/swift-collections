@@ -313,6 +313,15 @@ let targets: [CustomTarget] = [
     name: "RopeModuleTests",
     dependencies: ["_RopeModule", "_CollectionsTestSupport"]),
 
+  .target(
+    kind: .exported,
+    name: "TrailingElementsModule",
+    exclude: ["CMakeLists.txt"]),
+  .target(
+    kind: .test,
+    name: "TrailingElementsTests",
+    dependencies: ["TrailingElementsModule"]),
+
   // These aren't ready for production use yet.
 //  .target(
 //    kind: .exported,
@@ -334,6 +343,7 @@ let targets: [CustomTarget] = [
       "HeapModule",
       "OrderedCollections",
       "_RopeModule",
+      "TrailingElementsModule",
       //"SortedCollections",
     ],
     exclude: ["CMakeLists.txt"])
