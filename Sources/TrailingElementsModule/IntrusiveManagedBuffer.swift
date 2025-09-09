@@ -12,7 +12,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
 {
     /// The underlying storage.
     @usableFromInline
-    var pointer: UnsafeMutablePointer<Header>
+    var _pointer: UnsafeMutablePointer<Header>
 
     /// The element type stored within the buffer.
     public typealias Element = Header.Element
@@ -22,14 +22,14 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     /// memory safety.
     @_alwaysEmitIntoClient
     private init(_headerOnly header: consuming Header) {
-        pointer = UnsafeMutableRawPointer.allocate(
+        _pointer = UnsafeMutableRawPointer.allocate(
             byteCount: Self.allocationSize(
                 header: header
             ),
             alignment: MemoryLayout<Header>.alignment
         ).assumingMemoryBound(to: Header.self)
 
-        pointer.initialize(to: header)
+        _pointer.initialize(to: header)
     }
 
     @available(SwiftStdlib 5.1, *)
@@ -68,8 +68,8 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     @_alwaysEmitIntoClient
     deinit {
         rawElements.deinitialize()
-        pointer.deinitialize(count: 1)
-        pointer.deallocate()
+        _pointer.deinitialize(count: 1)
+        _pointer.deallocate()
     }
 
     /// Take ownership over a pointer to memory containing the header followed
@@ -79,7 +79,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     /// be freed.
     @_alwaysEmitIntoClient
     public init(consuming pointer: UnsafeMutablePointer<Header>) {
-        self.pointer = pointer
+        self._pointer = pointer
     }
 
     /// Return the pointer to the underlying memory, including ownership over
@@ -87,7 +87,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     /// it is the responsibility of the caller.
     @_alwaysEmitIntoClient
     public consuming func takePointer() -> UnsafeMutablePointer<Header> {
-        let pointer = self.pointer
+        let pointer = self._pointer
         discard self
         return pointer
     }
@@ -96,11 +96,11 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     @_alwaysEmitIntoClient
     public var header: Header {
         unsafeAddress {
-            UnsafePointer(pointer)
+            UnsafePointer(_pointer)
         }
 
         unsafeMutableAddress {
-            pointer
+            _pointer
         }
     }
 
@@ -138,7 +138,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     @_alwaysEmitIntoClient
     var rawElements: UnsafeMutableBufferPointer<Element> {
         UnsafeMutableBufferPointer(
-            start: UnsafeMutableRawPointer(pointer.advanced(by: 1))
+            start: UnsafeMutableRawPointer(_pointer.advanced(by: 1))
                      .assumingMemoryBound(to: Element.self),
             count: header.trailingCount
         )
@@ -170,7 +170,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     /// referencing the header.
     @_alwaysEmitIntoClient
     public mutating func withUnsafeMutablePointerToHeader<E, R: ~Copyable>(_ body: (UnsafeMutablePointer<Header>) throws(E) -> R) throws(E) -> R {
-        return try body(pointer)
+        return try body(_pointer)
     }
 
     /// Execute the given closure, providing it with an unsafe buffer pointer
@@ -186,7 +186,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     public mutating func withUnsafeMutablePointers<E, R: ~Copyable>(
         _ body: (UnsafeMutablePointer<Header>, UnsafeMutableBufferPointer<Element>) throws(E) -> R
     ) throws(E) -> R {
-        return try body(pointer, rawElements)
+        return try body(_pointer, rawElements)
     }
 
     /// Determine the allocation size needed for the given header value.
@@ -223,7 +223,7 @@ extension IntrusiveManagedBuffer where Header: Copyable {
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
             /// Create a managed buffer over that temporary storage.
-            var managedBuffer = IntrusiveManagedBuffer(consuming: storage.pointer)
+            var managedBuffer = IntrusiveManagedBuffer(consuming: storage._pointer)
             managedBuffer.rawElements.initialize(repeating: element)
 
             do throws(E) {
@@ -231,13 +231,13 @@ extension IntrusiveManagedBuffer where Header: Copyable {
 
                 // Tell the managed buffer not to free the storage.
                 let finalPointer = managedBuffer.takePointer()
-                precondition(finalPointer == storage.pointer)
+                precondition(finalPointer == storage._pointer)
 
                 return result
             } catch {
                 // Tell the managed buffer not to free the storage.
                 let finalPointer = managedBuffer.takePointer()
-                precondition(finalPointer == storage.pointer)
+                precondition(finalPointer == storage._pointer)
 
                 throw error
             }
@@ -261,7 +261,7 @@ extension IntrusiveManagedBuffer where Header: Copyable {
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
             /// Create a managed buffer over that temporary storage.
-            var managedBuffer = IntrusiveManagedBuffer(consuming: storage.pointer)
+            var managedBuffer = IntrusiveManagedBuffer(consuming: storage._pointer)
             try managedBuffer._initializeTrailingElements(initializer: initializer)
 
             do throws(E) {
@@ -269,13 +269,13 @@ extension IntrusiveManagedBuffer where Header: Copyable {
 
                 // Tell the managed buffer not to free the storage.
                 let finalPointer = managedBuffer.takePointer()
-                precondition(finalPointer == storage.pointer)
+                precondition(finalPointer == storage._pointer)
 
                 return result
             } catch {
                 // Tell the managed buffer not to free the storage.
                 let finalPointer = managedBuffer.takePointer()
-                precondition(finalPointer == storage.pointer)
+                precondition(finalPointer == storage._pointer)
 
                 throw error
             }
@@ -301,20 +301,20 @@ extension IntrusiveManagedBuffer where Header.Element: BitwiseCopyable {
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
             /// Create a managed buffer over that temporary storage.
-            var managedBuffer = IntrusiveManagedBuffer(consuming: storage.pointer)
+            var managedBuffer = IntrusiveManagedBuffer(consuming: storage._pointer)
 
             do throws(E) {
                 let result = try body(&managedBuffer)
 
                 // Tell the managed buffer not to free the storage.
                 let finalPointer = managedBuffer.takePointer()
-                precondition(finalPointer == storage.pointer)
+                precondition(finalPointer == storage._pointer)
 
                 return result
             } catch {
                 // Tell the managed buffer not to free the storage.
                 let finalPointer = managedBuffer.takePointer()
-                precondition(finalPointer == storage.pointer)
+                precondition(finalPointer == storage._pointer)
 
                 throw error
             }

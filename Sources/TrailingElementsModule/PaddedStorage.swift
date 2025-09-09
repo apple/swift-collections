@@ -17,7 +17,7 @@
 public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     /// Pointer to the header, followed by the padding.
     @usableFromInline
-    let pointer: UnsafeMutablePointer<Header>
+    let _pointer: UnsafeMutablePointer<Header>
 
     /// Create a new instance with the given header and total size. The total
     /// size includes the storage for the header itself, so it must be at least
@@ -26,9 +26,9 @@ public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     public init(header: consuming Header, totalSize size: Int) {
         precondition(size >= MemoryLayout<Header>.size,
                      "must allocate enough storage for the underlying stored type")
-        pointer = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: MemoryLayout<Header>.alignment)
+        _pointer = UnsafeMutableRawPointer.allocate(byteCount: size, alignment: MemoryLayout<Header>.alignment)
             .assumingMemoryBound(to: Header.self)
-        pointer.initialize(to: header)
+        _pointer.initialize(to: header)
     }
 
     /// Take ownership over a pointer to memory containing the header followed
@@ -38,32 +38,32 @@ public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     /// deinitialized and freed.
     @_alwaysEmitIntoClient
     public init(consuming pointer: UnsafeMutablePointer<Header>) {
-        self.pointer = pointer
+        self._pointer = pointer
     }
 
     /// Deinitializes the header, then deallocates the underlying memory.
     @_alwaysEmitIntoClient
     deinit {
-        pointer.deinitialize(count: 1)
-        pointer.deallocate()
+        _pointer.deinitialize(count: 1)
+        _pointer.deallocate()
     }
 
     /// Access the header portion of the value.
     @_alwaysEmitIntoClient
     public var header: Header {
         unsafeAddress {
-            UnsafePointer(pointer)
+            UnsafePointer(_pointer)
         }
 
         unsafeMutableAddress {
-            pointer
+            _pointer
         }
     }
 
     /// Executes the given closure with the pointer to the header itself.
     @_alwaysEmitIntoClient
     public func withUnsafeMutablePointerToHeader<R: ~Copyable, E>(_ body: (UnsafeMutablePointer<Header>) throws(E) -> R) throws(E) -> R {
-        return try body(pointer)
+        return try body(_pointer)
     }
 
     /// Take ownership over the stored memory, returning its pointer. The
@@ -71,7 +71,7 @@ public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     /// as it is the responsibility of the caller.
     @_alwaysEmitIntoClient
     public consuming func takePointer() -> UnsafeMutablePointer<Header> {
-        let pointer = self.pointer
+        let pointer = self._pointer
         discard self
         return pointer
     }
