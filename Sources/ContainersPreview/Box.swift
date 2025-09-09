@@ -9,7 +9,28 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(<6.2)
+
+@available(*, unavailable, message: "struct Box requires a Swift 6.2 toolchain")
+@frozen
+public struct Box<T: ~Copyable>: ~Copyable {
+  @usableFromInline
+  internal let _pointer: UnsafeMutablePointer<T>
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  public init(_ value: consuming T) {
+    fatalError()
+  }
+
+  @_alwaysEmitIntoClient
+  @inlinable
+  deinit {
+    fatalError()
+  }
+}
+
+#else
 @frozen
 @safe
 public struct Box<T: ~Copyable>: ~Copyable {
