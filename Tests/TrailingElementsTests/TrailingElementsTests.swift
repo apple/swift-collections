@@ -18,7 +18,7 @@ extension Coordinates: TrailingElements {
 @Suite("Trailing elements tests")
 struct TrailingElementsTests {
     @Test func simpleCoordinates() async throws {
-        var coords = IntrusiveManagedBuffer(header: Coordinates(numCoordinates: 3)) { outputSpan in
+        var coords = TrailingArray(header: Coordinates(numCoordinates: 3)) { outputSpan in
             outputSpan.append(Point(x: 1, y: 2))
             outputSpan.append(Point(x: 2, y: 3))
             outputSpan.append(Point(x: 3, y: 4))
@@ -33,7 +33,7 @@ struct TrailingElementsTests {
     }
 
     @Test func repeatingInit() async throws {
-        var coords = IntrusiveManagedBuffer(header: Coordinates(numCoordinates: 3), repeating: Point(x: 1, y: 1))
+        var coords = TrailingArray(header: Coordinates(numCoordinates: 3), repeating: Point(x: 1, y: 1))
 
         #expect(coords[0].x == 1)
         #expect(coords[1].x == 1)
@@ -46,7 +46,7 @@ struct TrailingElementsTests {
     }
 
     @Test func temporaryCoordinates() async throws {
-        IntrusiveManagedBuffer.withTemporaryValue(header: Coordinates(numCoordinates: 3)) { outputSpan in
+        TrailingArray.withTemporaryValue(header: Coordinates(numCoordinates: 3)) { outputSpan in
             outputSpan.append(Point(x: 1, y: 2))
             outputSpan.append(Point(x: 2, y: 3))
             outputSpan.append(Point(x: 3, y: 4))

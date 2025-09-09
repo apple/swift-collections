@@ -20,6 +20,6 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "IntrusiveManagedBuffer.swift"
+  "TrailingArray.swift"
   "PaddedStorage.swift"
   "TrailingElements.swift")

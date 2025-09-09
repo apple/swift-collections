@@ -7,7 +7,7 @@
 /// the information in the header (via the `trailingCount` property), so that
 /// it is not stored separately.
 @frozen
-public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
+public struct TrailingArray<Header: TrailingElements>: ~Copyable
     where Header: ~Copyable
 {
     /// The underlying storage.
@@ -40,7 +40,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
         var output = unsafe OutputSpan(buffer: rawElements, initializedCount: 0)
         try initializer(&output)
         let initialized = unsafe output.finalize(for: rawElements)
-        precondition(count == initialized, "IntrusiveManagedBuffer initialization underflow")
+        precondition(count == initialized, "TrailingArray initialization underflow")
     }
 
     /// Allocate an intrusive managed buffer with the given header and calling
@@ -196,7 +196,7 @@ public struct IntrusiveManagedBuffer<Header: TrailingElements>: ~Copyable
     }
 }
 
-extension IntrusiveManagedBuffer where Header: ~Copyable, Header.Element: BitwiseCopyable {
+extension TrailingArray where Header: ~Copyable, Header.Element: BitwiseCopyable {
     /// Allocate an intrusive managed buffer with the given header, but leaving the
     /// trailing elements uninitialized.
     @_alwaysEmitIntoClient
@@ -206,7 +206,7 @@ extension IntrusiveManagedBuffer where Header: ~Copyable, Header.Element: Bitwis
     }
 }
 
-extension IntrusiveManagedBuffer where Header: Copyable {
+extension TrailingArray where Header: Copyable {
     /// Create a temporary intrusive managed buffer for the given header, whose
     /// trailing elements are initialized to copies of `element`. That instance
     /// is provided to the given `body` to operate on for the duration of the
@@ -216,14 +216,14 @@ extension IntrusiveManagedBuffer where Header: Copyable {
     public static func withTemporaryValue<R: ~Copyable, E>(
         header: consuming Header,
         repeating element: Element,
-        body: (inout IntrusiveManagedBuffer<Header>) throws(E) -> R
+        body: (inout TrailingArray<Header>) throws(E) -> R
     ) throws(E) -> R {
         return try PaddedStorage<Header>.withTemporaryValue(
             header: header,
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
             /// Create a managed buffer over that temporary storage.
-            var managedBuffer = IntrusiveManagedBuffer(consuming: storage._pointer)
+            var managedBuffer = TrailingArray(consuming: storage._pointer)
             managedBuffer.rawElements.initialize(repeating: element)
 
             do throws(E) {
@@ -254,14 +254,14 @@ extension IntrusiveManagedBuffer where Header: Copyable {
     public static func withTemporaryValue<R: ~Copyable, E>(
         header: consuming Header,
         initializingTrailingElementsWith initializer: (inout OutputSpan<Element>) throws(E) -> Void,
-        body: (inout IntrusiveManagedBuffer<Header>) throws(E) -> R
+        body: (inout TrailingArray<Header>) throws(E) -> R
     ) throws(E) -> R {
         return try PaddedStorage<Header>.withTemporaryValue(
             header: header,
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
             /// Create a managed buffer over that temporary storage.
-            var managedBuffer = IntrusiveManagedBuffer(consuming: storage._pointer)
+            var managedBuffer = TrailingArray(consuming: storage._pointer)
             try managedBuffer._initializeTrailingElements(initializer: initializer)
 
             do throws(E) {
@@ -283,7 +283,7 @@ extension IntrusiveManagedBuffer where Header: Copyable {
     }
 }
 
-extension IntrusiveManagedBuffer where Header.Element: BitwiseCopyable {
+extension TrailingArray where Header.Element: BitwiseCopyable {
     /// Create a temporary intrusive managed buffer for the given header, whose
     /// trailing elements are left uninitialized. That instance is provided to
     /// the given `body` to operate on for the duration of the
@@ -294,14 +294,14 @@ extension IntrusiveManagedBuffer where Header.Element: BitwiseCopyable {
     public static func withTemporaryValue<R: ~Copyable, E>(
         header: consuming Header,
         uninitializedTrailingElements: (),
-        body: (inout IntrusiveManagedBuffer<Header>) throws(E) -> R
+        body: (inout TrailingArray<Header>) throws(E) -> R
     ) throws(E) -> R {
         return try PaddedStorage<Header>.withTemporaryValue(
             header: header,
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
             /// Create a managed buffer over that temporary storage.
-            var managedBuffer = IntrusiveManagedBuffer(consuming: storage._pointer)
+            var managedBuffer = TrailingArray(consuming: storage._pointer)
 
             do throws(E) {
                 let result = try body(&managedBuffer)
