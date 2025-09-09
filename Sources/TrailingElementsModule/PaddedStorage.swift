@@ -70,7 +70,7 @@ public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     /// underlying storage will not be freed by the `PaddedStorage` instance,
     /// as it is the responsibility of the caller.
     @_alwaysEmitIntoClient
-    public consuming func takePointer() -> UnsafeMutablePointer<Header> {
+    public consuming func leakStorage() -> UnsafeMutablePointer<Header> {
         let pointer = self._pointer
         discard self
         return pointer
@@ -108,13 +108,13 @@ extension PaddedStorage where Header: Copyable {
                 let result = try body(&tailAllocated)
 
                 // Tell the tail-allocated buffer not to free the storage.
-                let finalPointer = tailAllocated.takePointer()
+                let finalPointer = tailAllocated.leakStorage()
                 precondition(finalPointer == pointer)
 
                 return .success(result)
             } catch {
                 // Tell the tail-allocated buffer not to free the storage.
-                let finalPointer = tailAllocated.takePointer()
+                let finalPointer = tailAllocated.leakStorage()
                 precondition(finalPointer == pointer)
 
                 return .failure(error)

@@ -86,7 +86,7 @@ public struct TrailingArray<Header: TrailingElements>: ~Copyable
     /// that memory. The underlying storage will not be freed by this buffer;
     /// it is the responsibility of the caller.
     @_alwaysEmitIntoClient
-    public consuming func takePointer() -> UnsafeMutablePointer<Header> {
+    public consuming func leakStorage() -> UnsafeMutablePointer<Header> {
         let pointer = self._pointer
         discard self
         return pointer
@@ -230,13 +230,13 @@ extension TrailingArray where Header: Copyable {
                 let result = try body(&managedBuffer)
 
                 // Tell the managed buffer not to free the storage.
-                let finalPointer = managedBuffer.takePointer()
+                let finalPointer = managedBuffer.leakStorage()
                 precondition(finalPointer == storage._pointer)
 
                 return result
             } catch {
                 // Tell the managed buffer not to free the storage.
-                let finalPointer = managedBuffer.takePointer()
+                let finalPointer = managedBuffer.leakStorage()
                 precondition(finalPointer == storage._pointer)
 
                 throw error
@@ -268,13 +268,13 @@ extension TrailingArray where Header: Copyable {
                 let result = try body(&managedBuffer)
 
                 // Tell the managed buffer not to free the storage.
-                let finalPointer = managedBuffer.takePointer()
+                let finalPointer = managedBuffer.leakStorage()
                 precondition(finalPointer == storage._pointer)
 
                 return result
             } catch {
                 // Tell the managed buffer not to free the storage.
-                let finalPointer = managedBuffer.takePointer()
+                let finalPointer = managedBuffer.leakStorage()
                 precondition(finalPointer == storage._pointer)
 
                 throw error
@@ -307,13 +307,13 @@ extension TrailingArray where Header.Element: BitwiseCopyable {
                 let result = try body(&managedBuffer)
 
                 // Tell the managed buffer not to free the storage.
-                let finalPointer = managedBuffer.takePointer()
+                let finalPointer = managedBuffer.leakStorage()
                 precondition(finalPointer == storage._pointer)
 
                 return result
             } catch {
                 // Tell the managed buffer not to free the storage.
-                let finalPointer = managedBuffer.takePointer()
+                let finalPointer = managedBuffer.leakStorage()
                 precondition(finalPointer == storage._pointer)
 
                 throw error

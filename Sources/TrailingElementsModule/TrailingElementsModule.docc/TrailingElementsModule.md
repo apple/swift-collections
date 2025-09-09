@@ -67,10 +67,10 @@ TrailingArray.withTemporaryValue(header: Coordinates(numPoints: 3), repeating: P
 init(consuming pointer: UnsafeMutablePointer<Header>)
 ```
 
-or give up its pointer to hand off to C with `takePointer`:
+or give up its pointer to hand off to C with `leakStorage`:
 
 ```swift
-consuming func takePointer() -> UnsafeMutablePointer<Header>
+consuming func leakStorage() -> UnsafeMutablePointer<Header>
 ```
 
 Unsafe pointers can be accessed via the `withUnsafeMutablePointer*` family of methods to access a pointer to the header, the trailing elements, or both.
