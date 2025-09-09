@@ -96,12 +96,12 @@ extension coordinates_t: TrailingElements {
 
 This provides safer access patterns for C flexible array members, introducing safe memory ownership and bounds-safety checking.
 
-### ``PaddedStorage``
+### ``TrailingPadding``
 
-This module also provides a lower-level primitive called ``PaddedStorage`` that references heap- or stack-allocated data with a particular type (also called the `Header` type) but whose allocation is larger than the size of the header itself. The API is roughly similar to that of ``TrailingArray``, but it has no notion of what data might follow the `Header` instance. Instead, its initializer takes a "total size" for the allocation size, leaving the size calculation to the user:
+This module also provides a lower-level primitive called ``TrailingPadding`` that references heap- or stack-allocated data with a particular type (also called the `Header` type) but whose allocation is larger than the size of the header itself. The API is roughly similar to that of ``TrailingArray``, but it has no notion of what data might follow the `Header` instance. Instead, its initializer takes a "total size" for the allocation size, leaving the size calculation to the user:
 
 ```swift
-var padded = PaddedStorage(header: SomeType(), totalSize: getSizeOfSomeTypeWithPadding())
+var padded = TrailingPadding(header: SomeType(), totalSize: getSizeOfSomeTypeWithPadding())
 ```
 
 ## Topics
@@ -109,7 +109,7 @@ var padded = PaddedStorage(header: SomeType(), totalSize: getSizeOfSomeTypeWithP
 ### Structures
 
 - ``TrailingArray``
-- ``PaddedStorage``
+- ``TrailingPadding``
 
 ### Protocols
 - ``TrailingElements`

@@ -14,7 +14,7 @@
 /// type, whose count is computable from the header, use
 /// `IntrusiveManagedPointer` instead.
 @frozen
-public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
+public struct TrailingPadding<Header: ~Copyable>: ~Copyable {
     /// Pointer to the header, followed by the padding.
     @usableFromInline
     let _pointer: UnsafeMutablePointer<Header>
@@ -67,7 +67,7 @@ public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     }
 
     /// Take ownership over the stored memory, returning its pointer. The
-    /// underlying storage will not be freed by the `PaddedStorage` instance,
+    /// underlying storage will not be freed by the `TrailingPadding` instance,
     /// as it is the responsibility of the caller.
     @_alwaysEmitIntoClient
     public consuming func leakStorage() -> UnsafeMutablePointer<Header> {
@@ -77,9 +77,9 @@ public struct PaddedStorage<Header: ~Copyable>: ~Copyable {
     }
 }
 
-extension PaddedStorage: @unchecked Sendable where Header: Sendable, Header: ~Copyable { }
+extension TrailingPadding: @unchecked Sendable where Header: Sendable, Header: ~Copyable { }
 
-extension PaddedStorage where Header: Copyable {
+extension TrailingPadding where Header: Copyable {
     /// Create a temporary for the given header with additional storage,
     /// providing that instance to the given `body` to operate on for the
     /// duration. The temporary is allocated on the stack (unless it is very
@@ -89,7 +89,7 @@ extension PaddedStorage where Header: Copyable {
     public static func withTemporaryValue<R: ~Copyable, E>(
         header: Header,
         totalSize size: Int,
-        body: (inout PaddedStorage<Header>) throws(E) -> R
+        body: (inout TrailingPadding<Header>) throws(E) -> R
     ) throws(E) -> R {
         precondition(size >= MemoryLayout<Header>.size,
                      "must allocate enough storage for the underlying stored type")
@@ -102,7 +102,7 @@ extension PaddedStorage where Header: Copyable {
             /// Create a tail-allocated storage over that temporary storage.
             let pointer = buffer.baseAddress!.assumingMemoryBound(to: Header.self)
             pointer.initialize(to: header)
-            var tailAllocated = PaddedStorage(consuming: pointer)
+            var tailAllocated = TrailingPadding(consuming: pointer)
 
             do throws(E) {
                 let result = try body(&tailAllocated)

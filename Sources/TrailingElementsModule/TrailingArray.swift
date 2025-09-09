@@ -218,7 +218,7 @@ extension TrailingArray where Header: Copyable {
         repeating element: Element,
         body: (inout TrailingArray<Header>) throws(E) -> R
     ) throws(E) -> R {
-        return try PaddedStorage<Header>.withTemporaryValue(
+        return try TrailingPadding<Header>.withTemporaryValue(
             header: header,
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
@@ -256,7 +256,7 @@ extension TrailingArray where Header: Copyable {
         initializingTrailingElementsWith initializer: (inout OutputSpan<Element>) throws(E) -> Void,
         body: (inout TrailingArray<Header>) throws(E) -> R
     ) throws(E) -> R {
-        return try PaddedStorage<Header>.withTemporaryValue(
+        return try TrailingPadding<Header>.withTemporaryValue(
             header: header,
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in
@@ -296,7 +296,7 @@ extension TrailingArray where Header.Element: BitwiseCopyable {
         uninitializedTrailingElements: (),
         body: (inout TrailingArray<Header>) throws(E) -> R
     ) throws(E) -> R {
-        return try PaddedStorage<Header>.withTemporaryValue(
+        return try TrailingPadding<Header>.withTemporaryValue(
             header: header,
             totalSize: allocationSize(header: header)
         ) { (storage) throws(E) in

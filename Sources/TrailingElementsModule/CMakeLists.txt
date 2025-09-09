@@ -21,5 +21,5 @@ endif()
 
 target_sources(${module_name} PRIVATE
   "TrailingArray.swift"
-  "PaddedStorage.swift"
-  "TrailingElements.swift")
+  "TrailingElements.swift"
+  "TrailingPadding.swift")
