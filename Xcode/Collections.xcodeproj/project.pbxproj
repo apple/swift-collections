@@ -436,6 +436,10 @@
 		7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2429CCE43600ADC226 /* CollectionTestCase.swift */; };
 		7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2B29CCE43600ADC226 /* StringConvertibleValue.swift */; };
 		7DEBDB9D29CCE73D00ADC226 /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91F7B29CA70F3004483EB /* Collections.swift */; };
+		C13E810C2E78F317008DFC5C /* TrailingArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81062E78F317008DFC5C /* TrailingArray.swift */; };
+		C13E810D2E78F317008DFC5C /* TrailingElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81072E78F317008DFC5C /* TrailingElements.swift */; };
+		C13E810E2E78F317008DFC5C /* TrailingPadding.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81092E78F317008DFC5C /* TrailingPadding.swift */; };
+		C13E81122E78F3D0008DFC5C /* TrailingElementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81102E78F3D0008DFC5C /* TrailingElementsTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -919,6 +923,11 @@
 		7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = CollectionsTests.xcconfig; sourceTree = "<group>"; };
 		7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Collections.xcconfig; sourceTree = "<group>"; };
+		C13E81062E78F317008DFC5C /* TrailingArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailingArray.swift; sourceTree = "<group>"; };
+		C13E81072E78F317008DFC5C /* TrailingElements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailingElements.swift; sourceTree = "<group>"; };
+		C13E81082E78F317008DFC5C /* TrailingElementsModule.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = TrailingElementsModule.docc; sourceTree = "<group>"; };
+		C13E81092E78F317008DFC5C /* TrailingPadding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailingPadding.swift; sourceTree = "<group>"; };
+		C13E81102E78F3D0008DFC5C /* TrailingElementsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailingElementsTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1026,6 +1035,7 @@
 				7DE9200229CA70F3004483EB /* HeapModule */,
 				7DE91E7129CA70F3004483EB /* OrderedCollections */,
 				7DE91ECA29CA70F3004483EB /* RopeModule */,
+				C13E810A2E78F317008DFC5C /* TrailingElementsModule */,
 				7DE91EB529CA70F3004483EB /* CMakeLists.txt */,
 			);
 			name = Sources;
@@ -1616,6 +1626,7 @@
 				7DE921F229CA8575004483EB /* HeapTests */,
 				7DE921E429CA8575004483EB /* OrderedCollectionsTests */,
 				7DE921DE29CA8575004483EB /* RopeModuleTests */,
+				C13E81112E78F3D0008DFC5C /* TrailingElementsTests */,
 				7D5A64D829CCF0FE00CB2595 /* README.md */,
 			);
 			name = Tests;
@@ -1883,6 +1894,25 @@
 			name = Xcode;
 			sourceTree = "<group>";
 		};
+		C13E810A2E78F317008DFC5C /* TrailingElementsModule */ = {
+			isa = PBXGroup;
+			children = (
+				C13E81062E78F317008DFC5C /* TrailingArray.swift */,
+				C13E81072E78F317008DFC5C /* TrailingElements.swift */,
+				C13E81082E78F317008DFC5C /* TrailingElementsModule.docc */,
+				C13E81092E78F317008DFC5C /* TrailingPadding.swift */,
+			);
+			path = TrailingElementsModule;
+			sourceTree = "<group>";
+		};
+		C13E81112E78F3D0008DFC5C /* TrailingElementsTests */ = {
+			isa = PBXGroup;
+			children = (
+				C13E81102E78F3D0008DFC5C /* TrailingElementsTests.swift */,
+			);
+			path = TrailingElementsTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2139,6 +2169,9 @@
 				7D9B859B29E4F74400B291CD /* BitArray+ExpressibleByStringLiteral.swift in Sources */,
 				7DE9216529CA70F4004483EB /* _HashNode+Structural intersection.swift in Sources */,
 				7DE920A629CA70F4004483EB /* String Utilities.swift in Sources */,
+				C13E810C2E78F317008DFC5C /* TrailingArray.swift in Sources */,
+				C13E810D2E78F317008DFC5C /* TrailingElements.swift in Sources */,
+				C13E810E2E78F317008DFC5C /* TrailingPadding.swift in Sources */,
 				7DE920E129CA70F4004483EB /* UInt+Tricks.swift in Sources */,
 				7DE920EB29CA70F4004483EB /* BitArray+Fill.swift in Sources */,
 				7DE9201929CA70F3004483EB /* OrderedDictionary+Values.swift in Sources */,
@@ -2381,6 +2414,7 @@
 				7DE9220529CA8576004483EB /* TreeDictionary.Values Tests.swift in Sources */,
 				7DEBDB8D29CCE44A00ADC226 /* RandomStableSample.swift in Sources */,
 				7DEBDB7429CCE44A00ADC226 /* DictionaryAPIChecker.swift in Sources */,
+				C13E81122E78F3D0008DFC5C /* TrailingElementsTests.swift in Sources */,
 				7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */,
 				7DEBDB8629CCE44A00ADC226 /* LifetimeTracker.swift in Sources */,
 				7DEBDB8229CCE44A00ADC226 /* RepeatableRandomNumberGenerator.swift in Sources */,
