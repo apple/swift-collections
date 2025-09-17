@@ -13,7 +13,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2) || (compiler(<6.3) && os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+#if compiler(<6.2)
 
 /// A fixed capacity, heap allocated, noncopyable array of potentially
 /// noncopyable elements.
@@ -73,7 +73,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// spikes due to a reallocation getting triggered at an inopportune moment.
 ///
 /// For use cases outside of these narrow domains, we generally recommmend
-/// the use of ``DynamicArray`` rather than `RigidArray`.
+/// the use of ``UniqueArray`` rather than `RigidArray`.
 @safe
 @frozen
 public struct RigidArray<Element: ~Copyable>: ~Copyable {

@@ -222,7 +222,7 @@ let targets: [CustomTarget] = [
 
   .target(
     kind: .exported,
-    name: "ArrayModule",
+    name: "BasicContainers",
     dependencies: [
       "InternalCollectionsUtilities",
       "ContainersPreview",
@@ -231,9 +231,9 @@ let targets: [CustomTarget] = [
   ),
   .target(
     kind: .test,
-    name: "ArrayTests",
+    name: "BasicContainersTests",
     dependencies: [
-        "ArrayModule", "_CollectionsTestSupport"
+        "BasicContainers", "_CollectionsTestSupport"
     ]),
 
   .target(

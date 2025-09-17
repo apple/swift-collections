@@ -10,21 +10,21 @@ See https://swift.org/LICENSE.txt for license information
 if(COLLECTIONS_SINGLE_MODULE)
   set(module_name ${COLLECTIONS_MODULE_NAME})
 else()
-  set(module_name ArrayModule)
-  add_library(ArrayModule
+  set(module_name BasicContainers)
+  add_library(BasicContainers
     ${COLLECTIONS_ARRAY_SOURCES})
-  target_link_libraries(ArrayModule PRIVATE
+  target_link_libraries(BasicContainers PRIVATE
     InternalCollectionsUtilities ContainersPreview)
-  set_target_properties(ArrayModule PROPERTIES
+  set_target_properties(BasicContainers PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
-  _install_target(ArrayModule)
-  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS ArrayModule)
+  _install_target(BasicContainers)
+  set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS BasicContainers)
 endif()
 
 target_sources(${module_name} PRIVATE
-  "DynamicArray.swift"
-  "DynamicArray+Experimental.swift"
+  "UniqueArray.swift"
+  "UniqueArray+Experimental.swift"
   "RigidArray.swift"
   "RigidArray+Experimental.swift"
 )

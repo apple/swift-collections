@@ -13,13 +13,13 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(<6.2) || (compiler(<6.3) && os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+#if compiler(<6.2)
 
 /// A dynamically self-resizing, heap allocated, noncopyable array
 /// of potentially noncopyable elements.
 @frozen
-@available(*, unavailable, message: "DynamicArray requires a Swift 6.2 toolchain")
-public struct DynamicArray<Element: ~Copyable>: ~Copyable {
+@available(*, unavailable, message: "UniqueArray requires a Swift 6.2 toolchain")
+public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _storage: RigidArray<Element>
 
@@ -34,9 +34,9 @@ public struct DynamicArray<Element: ~Copyable>: ~Copyable {
 /// A dynamically self-resizing, heap allocated, noncopyable array of
 /// potentially noncopyable elements.
 ///
-/// `DynamicArray` instances automatically resize their underlying storage as
+/// `UniqueArray` instances automatically resize their underlying storage as
 /// needed to accommodate newly inserted items, using a geometric growth curve.
-/// This frees code using `DynamicArray` from having to allocate enough
+/// This frees code using `UniqueArray` from having to allocate enough
 /// capacity in advance; on the other hand, it makes it difficult to tell
 /// when and where such reallocations may happen.
 ///
@@ -57,7 +57,7 @@ public struct DynamicArray<Element: ~Copyable>: ~Copyable {
 /// a fixed-capacity array variant that caters specifically for these use cases,
 /// trading ease-of-use for more consistent/predictable execution.
 @frozen
-public struct DynamicArray<Element: ~Copyable>: ~Copyable {
+public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _storage: RigidArray<Element>
 
@@ -66,18 +66,18 @@ public struct DynamicArray<Element: ~Copyable>: ~Copyable {
     _storage = .init(capacity: 0)
   }
 }
-extension DynamicArray: Sendable where Element: Sendable & ~Copyable {}
+extension UniqueArray: Sendable where Element: Sendable & ~Copyable {}
 
 //MARK: - Initializers
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable
   public init(capacity: Int) {
     _storage = .init(capacity: capacity)
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   @inlinable
   public init<E: Error>(
@@ -89,14 +89,14 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable
   public init(consuming storage: consuming RigidArray<Element>) {
     self._storage = storage
   }
 }
 
-extension DynamicArray /*where Element: Copyable*/ {
+extension UniqueArray /*where Element: Copyable*/ {
   /// Creates a new array containing the specified number of a single,
   /// repeated value.
   ///
@@ -109,7 +109,7 @@ extension DynamicArray /*where Element: Copyable*/ {
   }
 }
 
-extension DynamicArray /*where Element: Copyable*/ {
+extension UniqueArray /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init(capacity: Int? = nil, copying contents: some Sequence<Element>) {
@@ -120,7 +120,7 @@ extension DynamicArray /*where Element: Copyable*/ {
 
 //MARK: - Basics
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
   public var capacity: Int { _assumeNonNegative(_storage.capacity) }
@@ -134,7 +134,7 @@ extension DynamicArray where Element: ~Copyable {
 
 //MARK: - Span creation
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   public var span: Span<Element> {
     @_lifetime(borrow self)
@@ -154,7 +154,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
   /// This method calls its function argument precisely once, allowing it to
@@ -183,7 +183,7 @@ extension DynamicArray where Element: ~Copyable {
 
 //MARK: - Random-access & mutable container primitives
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   public typealias Index = Int
 
   @inlinable
@@ -217,14 +217,14 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable
   public mutating func swapAt(_ i: Int, _ j: Int) {
     _storage.swapAt(i, j)
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   @inlinable
   @_lifetime(borrow self)
@@ -240,7 +240,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @available(SwiftStdlib 5.0, *)
   @_lifetime(&self)
   public mutating func mutableSpan(
@@ -269,7 +269,7 @@ internal func _growDynamicArrayCapacity(_ capacity: Int) -> Int {
   return Int(bitPattern: c)
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   @inlinable @inline(never)
   public mutating func reallocate(capacity: Int) {
     _storage.reallocate(capacity: capacity)
@@ -304,7 +304,7 @@ extension DynamicArray where Element: ~Copyable {
 
 //MARK: - Removal operations
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Removes all elements from the array, optionally preserving its
   /// allocated capacity.
   ///
@@ -393,7 +393,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Removes and returns the last element of the array, if there is one.
   ///
   /// - Returns: The last element of the array if the array is not empty;
@@ -409,7 +409,7 @@ extension DynamicArray where Element: ~Copyable {
 
 //MARK: - Append operations
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Adds an element to the end of the array.
   ///
   /// If the array does not have sufficient capacity to hold any more elements,
@@ -425,7 +425,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Moves the elements of a buffer to the end of this array, leaving the
   /// buffer uninitialized.
   ///
@@ -469,7 +469,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Appends the elements of a given container to the end of this array by
   /// consuming the source container.
   ///
@@ -490,7 +490,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray {
+extension UniqueArray {
   /// Copies the elements of a buffer to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
@@ -576,7 +576,7 @@ extension DynamicArray {
 
 //MARK: - Insert operations
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
   ///
   /// If the array does not have sufficient capacity to hold any more elements,
@@ -603,7 +603,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Moves the elements of a fully initialized buffer into this array,
   /// starting at the specified position, and leaving the buffer
   /// uninitialized.
@@ -649,7 +649,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Inserts the elements of a given array into the given position in this
   /// array by consuming the source container.
   ///
@@ -672,7 +672,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray {
+extension UniqueArray {
   /// Copyies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
   ///
@@ -791,7 +791,7 @@ extension DynamicArray {
 
 //MARK: - Range replacement
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Replaces the specified range of elements by moving the elements of a
   /// fully initialized buffer into their place. On return, the buffer is left
   /// in an uninitialized state.
@@ -869,7 +869,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Replaces the specified range of elements by moving the elements of a
   /// given array into their place, consuming it in the process.
   ///
@@ -905,7 +905,7 @@ extension DynamicArray where Element: ~Copyable {
   }
 }
 
-extension DynamicArray {
+extension UniqueArray {
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given buffer pointer, which must be fully initialized.
   ///

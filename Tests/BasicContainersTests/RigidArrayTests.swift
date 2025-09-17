@@ -14,10 +14,10 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
-import ArrayModule
+import BasicContainers
 #endif
 
-#if compiler(>=6.2) && (compiler(>=6.3) || !os(Windows)) // FIXME: [2025-08-17] Windows has no 6.2 snapshot with OutputSpan
+#if compiler(>=6.2)
 
 #if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
