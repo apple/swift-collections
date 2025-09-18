@@ -8,20 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		7D48BCD12E51524200D7F6F7 /* InputSpan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCB2E51524200D7F6F7 /* InputSpan.swift */; };
-		7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */; };
 		7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC82E51524200D7F6F7 /* Box.swift */; };
-		7D48BCD42E51524200D7F6F7 /* DynamicArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC32E51524200D7F6F7 /* DynamicArray+Experimental.swift */; };
-		7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC42E51524200D7F6F7 /* RigidArray.swift */; };
 		7D48BCD62E51524200D7F6F7 /* Shared.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCD2E51524200D7F6F7 /* Shared.swift */; };
-		7D48BCD72E51524200D7F6F7 /* RigidArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC52E51524200D7F6F7 /* RigidArray+Experimental.swift */; };
 		7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCC72E51524200D7F6F7 /* Borrow.swift */; };
 		7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCCA2E51524200D7F6F7 /* Inout.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
 		7D48BCDF2E51558700D7F6F7 /* TestPrintable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */; };
 		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
-		7D48BCE92E5158A100D7F6F7 /* DynamicArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */; };
-		7D48BCEA2E5158A100D7F6F7 /* ArrayLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */; };
-		7D48BCEB2E5158A100D7F6F7 /* RigidArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE32E5158A100D7F6F7 /* RigidArrayTests.swift */; };
 		7D48BCEC2E5158A100D7F6F7 /* InoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE72E5158A100D7F6F7 /* InoutTests.swift */; };
 		7D48BCED2E5158A100D7F6F7 /* BorrowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE52E5158A100D7F6F7 /* BorrowTests.swift */; };
 		7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */; };
@@ -436,6 +429,13 @@
 		7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2429CCE43600ADC226 /* CollectionTestCase.swift */; };
 		7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2B29CCE43600ADC226 /* StringConvertibleValue.swift */; };
 		7DEBDB9D29CCE73D00ADC226 /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91F7B29CA70F3004483EB /* Collections.swift */; };
+		A93AC2152E7C841700A824DF /* RigidArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2102E7C841700A824DF /* RigidArray.swift */; };
+		A93AC2162E7C841700A824DF /* UniqueArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2122E7C841700A824DF /* UniqueArray.swift */; };
+		A93AC2172E7C841700A824DF /* RigidArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2112E7C841700A824DF /* RigidArray+Experimental.swift */; };
+		A93AC2182E7C841700A824DF /* UniqueArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2132E7C841700A824DF /* UniqueArray+Experimental.swift */; };
+		A93AC21E2E7C845300A824DF /* UniqueArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC21C2E7C845300A824DF /* UniqueArrayTests.swift */; };
+		A93AC21F2E7C845300A824DF /* ArrayLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC21A2E7C845300A824DF /* ArrayLayout.swift */; };
+		A93AC2202E7C845300A824DF /* RigidArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */; };
 		C13E810C2E78F317008DFC5C /* TrailingArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81062E78F317008DFC5C /* TrailingArray.swift */; };
 		C13E810D2E78F317008DFC5C /* TrailingElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81072E78F317008DFC5C /* TrailingElements.swift */; };
 		C13E810E2E78F317008DFC5C /* TrailingPadding.swift in Sources */ = {isa = PBXBuildFile; fileRef = C13E81092E78F317008DFC5C /* TrailingPadding.swift */; };
@@ -453,11 +453,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		7D48BCC12E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArray.swift; sourceTree = "<group>"; };
-		7D48BCC32E51524200D7F6F7 /* DynamicArray+Experimental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DynamicArray+Experimental.swift"; sourceTree = "<group>"; };
-		7D48BCC42E51524200D7F6F7 /* RigidArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArray.swift; sourceTree = "<group>"; };
-		7D48BCC52E51524200D7F6F7 /* RigidArray+Experimental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+Experimental.swift"; sourceTree = "<group>"; };
 		7D48BCC72E51524200D7F6F7 /* Borrow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Borrow.swift; sourceTree = "<group>"; };
 		7D48BCC82E51524200D7F6F7 /* Box.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Box.swift; sourceTree = "<group>"; };
 		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
@@ -467,9 +462,6 @@
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPrintable.swift; sourceTree = "<group>"; };
 		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
-		7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayLayout.swift; sourceTree = "<group>"; };
-		7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicArrayTests.swift; sourceTree = "<group>"; };
-		7D48BCE32E5158A100D7F6F7 /* RigidArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArrayTests.swift; sourceTree = "<group>"; };
 		7D48BCE52E5158A100D7F6F7 /* BorrowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorrowTests.swift; sourceTree = "<group>"; };
 		7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoxTests.swift; sourceTree = "<group>"; };
 		7D48BCE72E5158A100D7F6F7 /* InoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InoutTests.swift; sourceTree = "<group>"; };
@@ -923,6 +915,14 @@
 		7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = CollectionsTests.xcconfig; sourceTree = "<group>"; };
 		7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Collections.xcconfig; sourceTree = "<group>"; };
+		A93AC20F2E7C841700A824DF /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		A93AC2102E7C841700A824DF /* RigidArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArray.swift; sourceTree = "<group>"; };
+		A93AC2112E7C841700A824DF /* RigidArray+Experimental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+Experimental.swift"; sourceTree = "<group>"; };
+		A93AC2122E7C841700A824DF /* UniqueArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueArray.swift; sourceTree = "<group>"; };
+		A93AC2132E7C841700A824DF /* UniqueArray+Experimental.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+Experimental.swift"; sourceTree = "<group>"; };
+		A93AC21A2E7C845300A824DF /* ArrayLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayLayout.swift; sourceTree = "<group>"; };
+		A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArrayTests.swift; sourceTree = "<group>"; };
+		A93AC21C2E7C845300A824DF /* UniqueArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueArrayTests.swift; sourceTree = "<group>"; };
 		C13E81062E78F317008DFC5C /* TrailingArray.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailingArray.swift; sourceTree = "<group>"; };
 		C13E81072E78F317008DFC5C /* TrailingElements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrailingElements.swift; sourceTree = "<group>"; };
 		C13E81082E78F317008DFC5C /* TrailingElementsModule.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = TrailingElementsModule.docc; sourceTree = "<group>"; };
@@ -949,18 +949,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		7D48BCC62E51524200D7F6F7 /* ArrayModule */ = {
-			isa = PBXGroup;
-			children = (
-				7D48BCC12E51524200D7F6F7 /* CMakeLists.txt */,
-				7D48BCC22E51524200D7F6F7 /* DynamicArray.swift */,
-				7D48BCC32E51524200D7F6F7 /* DynamicArray+Experimental.swift */,
-				7D48BCC42E51524200D7F6F7 /* RigidArray.swift */,
-				7D48BCC52E51524200D7F6F7 /* RigidArray+Experimental.swift */,
-			);
-			path = ArrayModule;
-			sourceTree = "<group>";
-		};
 		7D48BCCE2E51524200D7F6F7 /* ContainersPreview */ = {
 			isa = PBXGroup;
 			children = (
@@ -972,16 +960,6 @@
 				7D48BCCD2E51524200D7F6F7 /* Shared.swift */,
 			);
 			path = ContainersPreview;
-			sourceTree = "<group>";
-		};
-		7D48BCE42E5158A100D7F6F7 /* ArrayTests */ = {
-			isa = PBXGroup;
-			children = (
-				7D48BCE12E5158A100D7F6F7 /* ArrayLayout.swift */,
-				7D48BCE22E5158A100D7F6F7 /* DynamicArrayTests.swift */,
-				7D48BCE32E5158A100D7F6F7 /* RigidArrayTests.swift */,
-			);
-			path = ArrayTests;
 			sourceTree = "<group>";
 		};
 		7D48BCE82E5158A100D7F6F7 /* ContainersTests */ = {
@@ -1025,9 +1003,9 @@
 		7DE91E7029CA70F3004483EB /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				A93AC2142E7C841700A824DF /* BasicContainers */,
 				7DE91F2229CA70F3004483EB /* InternalCollectionsUtilities */,
 				7D48BCCE2E51524200D7F6F7 /* ContainersPreview */,
-				7D48BCC62E51524200D7F6F7 /* ArrayModule */,
 				7DE91F3929CA70F3004483EB /* BitCollections */,
 				7DE91F7929CA70F3004483EB /* Collections */,
 				7DE91EB629CA70F3004483EB /* DequeModule */,
@@ -1616,8 +1594,8 @@
 		7DE921CA29CA8575004483EB /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				A93AC21D2E7C845300A824DF /* BasicContainersTests */,
 				7DEBDB1F29CCE43600ADC226 /* _CollectionsTestSupport */,
-				7D48BCE42E5158A100D7F6F7 /* ArrayTests */,
 				7DE921DA29CA8575004483EB /* BitCollectionsTests */,
 				7DE921CB29CA8575004483EB /* CollectionsTestSupportTests */,
 				7D48BCE82E5158A100D7F6F7 /* ContainersTests */,
@@ -1894,6 +1872,28 @@
 			name = Xcode;
 			sourceTree = "<group>";
 		};
+		A93AC2142E7C841700A824DF /* BasicContainers */ = {
+			isa = PBXGroup;
+			children = (
+				A93AC20F2E7C841700A824DF /* CMakeLists.txt */,
+				A93AC2102E7C841700A824DF /* RigidArray.swift */,
+				A93AC2112E7C841700A824DF /* RigidArray+Experimental.swift */,
+				A93AC2122E7C841700A824DF /* UniqueArray.swift */,
+				A93AC2132E7C841700A824DF /* UniqueArray+Experimental.swift */,
+			);
+			path = BasicContainers;
+			sourceTree = "<group>";
+		};
+		A93AC21D2E7C845300A824DF /* BasicContainersTests */ = {
+			isa = PBXGroup;
+			children = (
+				A93AC21A2E7C845300A824DF /* ArrayLayout.swift */,
+				A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */,
+				A93AC21C2E7C845300A824DF /* UniqueArrayTests.swift */,
+			);
+			path = BasicContainersTests;
+			sourceTree = "<group>";
+		};
 		C13E810A2E78F317008DFC5C /* TrailingElementsModule */ = {
 			isa = PBXGroup;
 			children = (
@@ -2093,13 +2093,13 @@
 				7DE9212A29CA70F4004483EB /* TreeSet+Extras.swift in Sources */,
 				7DE9209A29CA70F4004483EB /* Rope+Append.swift in Sources */,
 				7DE9203F29CA70F3004483EB /* OrderedSet+Partial SetAlgebra isDisjoint.swift in Sources */,
+				A93AC2152E7C841700A824DF /* RigidArray.swift in Sources */,
+				A93AC2162E7C841700A824DF /* UniqueArray.swift in Sources */,
+				A93AC2172E7C841700A824DF /* RigidArray+Experimental.swift in Sources */,
+				A93AC2182E7C841700A824DF /* UniqueArray+Experimental.swift in Sources */,
 				7D48BCD12E51524200D7F6F7 /* InputSpan.swift in Sources */,
-				7D48BCD22E51524200D7F6F7 /* DynamicArray.swift in Sources */,
 				7D48BCD32E51524200D7F6F7 /* Box.swift in Sources */,
-				7D48BCD42E51524200D7F6F7 /* DynamicArray+Experimental.swift in Sources */,
-				7D48BCD52E51524200D7F6F7 /* RigidArray.swift in Sources */,
 				7D48BCD62E51524200D7F6F7 /* Shared.swift in Sources */,
-				7D48BCD72E51524200D7F6F7 /* RigidArray+Experimental.swift in Sources */,
 				7D48BCD82E51524200D7F6F7 /* Borrow.swift in Sources */,
 				7D48BCD92E51524200D7F6F7 /* Inout.swift in Sources */,
 				7DE9208629CA70F4004483EB /* BigString+LosslessStringConvertible.swift in Sources */,
@@ -2396,6 +2396,9 @@
 				7DE9221A29CA8576004483EB /* HeapNodeTests.swift in Sources */,
 				7DEBDB7029CCE44A00ADC226 /* ResettableValue.swift in Sources */,
 				7DE9221129CA8576004483EB /* OrderedDictionary+Values Tests.swift in Sources */,
+				A93AC21E2E7C845300A824DF /* UniqueArrayTests.swift in Sources */,
+				A93AC21F2E7C845300A824DF /* ArrayLayout.swift in Sources */,
+				A93AC2202E7C845300A824DF /* RigidArrayTests.swift in Sources */,
 				7DEBDB7D29CCE44A00ADC226 /* MinimalRangeReplaceableRandomAccessCollection.swift in Sources */,
 				7DEBDB8E29CCE44A00ADC226 /* Integer Square Root.swift in Sources */,
 				7DE9221E29CA8576004483EB /* MutableCollectionTests.swift in Sources */,
@@ -2431,9 +2434,6 @@
 				7DEBDB8F29CCE44A00ADC226 /* CheckEquatable.swift in Sources */,
 				7DEBDB7729CCE44A00ADC226 /* HashableBox.swift in Sources */,
 				7DE9220E29CA8576004483EB /* SampleStrings.swift in Sources */,
-				7D48BCE92E5158A100D7F6F7 /* DynamicArrayTests.swift in Sources */,
-				7D48BCEA2E5158A100D7F6F7 /* ArrayLayout.swift in Sources */,
-				7D48BCEB2E5158A100D7F6F7 /* RigidArrayTests.swift in Sources */,
 				7D48BCEC2E5158A100D7F6F7 /* InoutTests.swift in Sources */,
 				7D48BCED2E5158A100D7F6F7 /* BorrowTests.swift in Sources */,
 				7D48BCEE2E5158A100D7F6F7 /* BoxTests.swift in Sources */,
