@@ -10,6 +10,10 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
+- [`RigidArray`][RigidArray], a fixed capacity and no implicit resizing dynamic non-copyable array capable of storing non-copyable elements.
+
+- [`UniqueArray`][UniqueArray], an implicitly resizable dynamic non-copyable array capable of storing non-copyable elements.
+
 - [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
 
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
@@ -22,6 +26,8 @@ The package currently provides the following implementations:
 
 - [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
 
+[RigidArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/rigidarray
+[UniqueArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/uniquearray
 [BitSet]: https://swiftpackageindex.com/apple/swift-collections/documentation/bitcollections/bitset
 [BitArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/bitcollections/bitarray
 [Deque]: https://swiftpackageindex.com/apple/swift-collections/documentation/dequemodule/deque
