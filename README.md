@@ -10,9 +10,9 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
-- [`RigidArray`][RigidArray], a fixed capacity and no implicit resizing dynamic non-copyable array capable of storing non-copyable elements.
+- [`UniqueArray`][UniqueArray], a dynamically self-resizing, heap allocated, noncopyable array of potentially noncopyable elements.
 
-- [`UniqueArray`][UniqueArray], an implicitly resizable dynamic non-copyable array capable of storing non-copyable elements.
+- [`RigidArray`][RigidArray], a fixed capacity, heap allocated, noncopyable array of potentially noncopyable elements.
 
 - [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
 
@@ -24,7 +24,7 @@ The package currently provides the following implementations:
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
-- [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.  
+- [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.
 
 [RigidArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/rigidarray
 [UniqueArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/uniquearray
@@ -54,9 +54,9 @@ The Swift Collections package is source stable. The version numbers follow [Sema
 
 [semver]: https://semver.org
 
-### Public API 
+### Public API
 
-The public API of version 1.2 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules. 
+The public API of version 1.3 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules.
 
 Interfaces that aren't part of the public API may continue to change in any release, including patch releases.
 
@@ -86,6 +86,7 @@ The following table maps package releases to their minimum required Swift toolch
 | swift-collections 1.0.x | >= Swift 5.3.2  | >= Xcode 12.4 |
 | swift-collections 1.1.x | >= Swift 5.7.2  | >= Xcode 14.2 |
 | swift-collections 1.2.x | >= Swift 5.10.0 | >= Xcode 15.3 |
+| swift-collections 1.3.x | >= Swift 6.0.3  | >= Xcode 16.2 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
@@ -101,8 +102,8 @@ let package = Package(
   name: "MyPackage",
   dependencies: [
     .package(
-      url: "https://github.com/apple/swift-collections.git", 
-      .upToNextMinor(from: "1.2.0") // or `.upToNextMajor
+      url: "https://github.com/apple/swift-collections.git",
+      .upToNextMinor(from: "1.3.0") // or `.upToNextMajor
     )
   ],
   targets: [
@@ -131,16 +132,16 @@ We maintain separate branches for each minor version of the package:
 | Package version         | Branch      | Status   |
 | ----------------------- | ----------- | -------- |
 | swift-collections 1.0.x | release/1.0 | Obsolete |
-| swift-collections 1.1.x | release/1.1 | Critical bugfixes only | 
+| swift-collections 1.1.x | release/1.1 | Critical bugfixes only |
 | swift-collections 1.2.x | release/1.2 | Critical bugfixes only |
-| swift-collections 1.3.x | main        | Feature work towards next minor release |
-| n.a.                    | future      | Experimental prototyping |
+| swift-collections 1.3.x | release/1.3 | Bugfixes only |
+| n.a.                    | main        | Feature work towards next minor release |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
 
-`release/1.0` → `release/1.1` → `release/1.2` → `main`
+`release/1.0` → `release/1.1` → `release/1.2` → `release/1.3` → `main`
 
-For example, anything landing on `release/1.1` will eventually appear on `release/1.2` and then `main` too; there is no need to file standalone PRs for each release line. Change propagation is not instantaneous, as it currently requires manual work -- it is performed by project maintainers.
+For example, anything landing on `release/1.2` will eventually appear on `release/1.3` and then `main` too; there is no need to file standalone PRs for each release line. Change propagation is not instantaneous, as it currently requires manual work -- it is performed by project maintainers.
 
 ### Working on the package
 
@@ -163,32 +164,14 @@ By submitting a pull request, you represent that you have the right to license y
 
 1. Raise a [Feature Request][enhancement]. Discuss why it would be important to implement it.
 2. Submit a PR with your implementation, participate in the review discussion.
-3. When there is a consensus that the feature is desirable, and the implementation works well, it is fully tested and documented, then it will be merged. 
+3. When there is a consensus that the feature is desirable, and the implementation works well, it is fully tested and documented, then it will be merged.
 4. Rejoice!
 
 [enhancement]: https://github.com/apple/swift-collections/issues/new?assignees=&labels=enhancement&template=FEATURE_REQUEST.md
 
 #### Proposing the addition of a new data structure
 
-**Note:** As of 2024, we are fully preoccupied with refactoring our existing data structures to support noncopyable and/or nonescapable element types; this includes designing new container protocols around them. I don't expect we'll have capacity to work on any major new data structure implementations until this effort is complete.
-
-<!--
-
-We intend this package to collect generally useful data structures -- the ones that ought to be within easy reach of every Swift engineer's basic toolbox. The implementations we ship need to be of the highest technical quality, polished to the same shine as anything that gets included in the Swift Standard Library. (The only real differences are that this package isn't under the formal Swift Evolution process, and its code isn't ABI stable.) 
-
-Accordingly, adding a new data structure to this package is not an easy or quick process, and not all useful data structures are going to be a good fit. 
-
-If you have an idea for a data structure that might make a good addition to this package, please start a topic on the [forum], explaining why you believe it would be important to implement it. This way we can figure out if it would be right for the package, discuss implementation strategies, and plan to allocate capacity to help.
-
-Not all data structures will reach a high enough level of usefulness to ship in this package -- those that have a more limited audience might work better as a standalone package. Of course, reasonable people might disagree on the importance of including any particular data structure; but at the end of the day, the decision whether to take an implementation is up to the maintainers of this package.
-
-If maintainers have agreed that your implementation would likely make a good addition, then it's time to start work on it. Submit a PR with your implementation as soon as you have something that's ready to show! We'd love to get involved as early as you like. Historically, the best additions resulted from close work between the contributor and a package maintainer.
-
-Participate in the review discussion, and adapt code accordingly. Sometimes we may need to go through several revisions over multiple months! This is fine -- it makes the end result that much better. When there is a consensus that the feature is ready, and the implementation is fully tested and documented, the PR will be merged by a maintainer. This is good time for a small celebration -- merging is a good indicator that the addition will ship at some point.
-
-Historically, PRs adding a new data structure have typically been merged to a new feature branch rather than directly to a release branch or `main`, and there was an extended amount of time between the initial merge and the tag that shipped the new feature. Nobody likes to wait, but getting a new data structure implementation from a state that was ready to merge to a state that's ready to ship is actually quite difficult work, and it takes maintainer time and effort that needs to be scheduled in advance. The closer an implementation is to the coding conventions and performance baseline of the Standard Library, the shorter this wait is likely to become, and the fewer changes there will be between merging and shipping.
-
--->
+**Note:** As of 2025, we are fully preoccupied with refactoring our existing data structures to support noncopyable and/or nonescapable element types; this includes designing new container protocols around them. I don't expect we'll have capacity to work on any major new data structure implementations until this effort is complete.
 
 ### Code of Conduct
 
