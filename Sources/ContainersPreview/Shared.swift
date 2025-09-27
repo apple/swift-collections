@@ -11,6 +11,7 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+#if false // TODO
 import Builtin // For Shared.isIdentical
 
 /// A utility adapter that wraps a noncopyable storage type in a copy-on-write
@@ -114,11 +115,9 @@ extension Shared where Storage: ~Copyable {
   @inlinable
   @inline(__always)
   public var value: Storage {
-    @_lifetime(borrow self)
     unsafeAddress {
       unsafe _address
     }
-    @_lifetime(&self)
     unsafeMutableAddress {
       precondition(isUnique())
       return unsafe _mutableAddress
@@ -129,11 +128,11 @@ extension Shared where Storage: ~Copyable {
 extension Shared where Storage: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func borrow() -> Borrow<Storage> {
+  public borrowing func borrow() -> Ref<Storage> {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that
     // lifetime(self) == lifetime(_box.storage).
-    unsafe Borrow(unsafeAddress: _address, borrowing: self)
+    unsafe Ref(unsafeAddress: _address, borrowing: self)
   }
 
 
@@ -161,4 +160,5 @@ extension Shared where Storage: ~Copyable {
     }
   }
 }
+#endif
 #endif
