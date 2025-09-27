@@ -18,7 +18,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   Element: Equatable,
   C2: Collection<Element>,
@@ -57,7 +57,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   E1: ~Copyable,
   C2: Collection,
@@ -96,7 +96,7 @@ public func expectContainerContents<
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 6.2, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainersWithEquivalentElements<
   C1: Container & ~Copyable & ~Escapable,
   C2: Container & ~Copyable & ~Escapable
@@ -109,14 +109,14 @@ public func expectContainersWithEquivalentElements<
   file: StaticString = #file,
   line: UInt = #line
 ) {
-  if left.elementsEqual(right, by: areEquivalent) { return }
+  if left.borrowingElementsEqual(right, by: areEquivalent) { return }
   _expectFailure(
     "Containers do not have equivalent elements",
     message, trapping: trapping, file: file, line: line)
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 6.2, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainersWithEqualElements<
   Element: Equatable,
   C1: Container<Element> & ~Copyable & ~Escapable,
@@ -129,14 +129,14 @@ public func expectContainersWithEqualElements<
   file: StaticString = #file,
   line: UInt = #line
 ) {
-  if left.elementsEqual(right) { return }
+  if left.borrowingElementsEqual(right) { return }
   _expectFailure(
     "Containers do not have equal elements",
     message, trapping: trapping, file: file, line: line)
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 6.2, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   Element: Equatable,
   C1: Container<Element> & ~Copyable & ~Escapable,
@@ -149,25 +149,27 @@ public func expectContainerContents<
   file: StaticString = #file,
   line: UInt = #line
 ) {
-  var i = left.startIndex
-  var it = right.makeIterator()
-  while i < left.endIndex {
-    let a = left[i]
-    guard let b = it.next() else {
-      _expectFailure(
-        "Container is longer than expected",
-        message, trapping: trapping, file: file, line: line)
-      return
+  var it1 = left.startBorrowIteration()
+  var it2 = right.makeIterator()
+  while true {
+    let span = it1.nextSpan()
+    if span.isEmpty { break }
+    for i in 0 ..< span.count {
+      guard let b = it2.next() else {
+        _expectFailure(
+          "Container is longer than expected",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
+      guard span[i] == b else {
+        _expectFailure(
+          "'\(span[i])' is not equal to '\(b)'",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
     }
-    guard a == b else {
-      _expectFailure(
-        "'\(a)' at index \(i) is not equal to '\(b)'",
-        message, trapping: trapping, file: file, line: line)
-      return
-    }
-    left.formIndex(after: &i)
   }
-  guard it.next() == nil else {
+  guard it2.next() == nil else {
     _expectFailure(
       "Container is shorter than expected",
       message, trapping: trapping, file: file, line: line)
@@ -176,7 +178,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 6.2, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   C1: Container & ~Copyable & ~Escapable,
   C2: Collection,
@@ -189,24 +191,29 @@ public func expectContainerContents<
   file: StaticString = #file,
   line: UInt = #line
 ) {
-  var i = left.startIndex
-  var it = right.makeIterator()
-  while i < left.endIndex {
-    guard let b = it.next() else {
-      _expectFailure(
-        "Container is longer than expected",
-        message, trapping: trapping, file: file, line: line)
-      return
+  var it1 = left.startBorrowIteration()
+  var it2 = right.makeIterator()
+  var offset = 0
+  while true {
+    let span = it1.nextSpan()
+    if span.isEmpty { break }
+    for i in 0 ..< span.count {
+      guard let b = it2.next() else {
+        _expectFailure(
+          "Container is longer than expected",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
+      guard areEquivalent(span[i], b) else {
+        _expectFailure(
+          "Element at offset \(offset + i) is not equivalent to '\(b)'",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
     }
-    guard areEquivalent(left[i], b) else {
-      _expectFailure(
-        "Element at index \(i) is not equal to '\(b)'",
-        message, trapping: trapping, file: file, line: line)
-      return
-    }
-    left.formIndex(after: &i)
+    offset += span.count
   }
-  guard it.next() == nil else {
+  guard it2.next() == nil else {
     _expectFailure(
       "Container is shorter than expected",
       message, trapping: trapping, file: file, line: line)

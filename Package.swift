@@ -12,6 +12,7 @@
 
 import PackageDescription
 
+#if false // FIXME: Disabled while we're debugging a runtime crash (rdar://150240032)
 let _traits: Set<Trait> = [
   .default(
     enabledTraits: [
@@ -25,6 +26,7 @@ let _traits: Set<Trait> = [
       protocols and associated algorithms.
       """),
 ]
+#endif
 
 // This package recognizes the conditional compilation flags listed below.
 // To use enable them, uncomment the corresponding lines or define them
@@ -32,9 +34,9 @@ let _traits: Set<Trait> = [
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
 var defines: [SwiftSetting] = [
-  .define(
-    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
-    .when(traits: ["UnstableContainersPreview"])),
+//  .define(
+//    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
+//    .when(traits: ["UnstableContainersPreview"])),
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -79,6 +81,8 @@ let availabilityMacros: KeyValuePairs<String, String> = [
   "SwiftStdlib 6.0":  "macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0",
   "SwiftStdlib 6.1":  "macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4",
   "SwiftStdlib 6.2":  "macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0",
+  // FIXME: This should be the same as SwiftStdlib 5.0, except Span deployment doesn't work in SwiftPM (rdar://161459068)
+  "SpanAvailability 1.0":  "macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0",
   // Note: if you touch these, please make sure to also update the similar lists in
   // CMakeLists.txt and Xcode/Shared.xcconfig.
 ]
@@ -89,7 +93,7 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
-//  .enableExperimentalFeature("SuppressedAssociatedTypes"),
+  .enableExperimentalFeature("SuppressedAssociatedTypes"),
 //  .enableExperimentalFeature("AddressableParameters"),
 //  .enableExperimentalFeature("AddressableTypes"),
 
@@ -193,7 +197,11 @@ let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["InternalCollectionsUtilities", "ContainersPreview"]),
+    dependencies: [
+      "InternalCollectionsUtilities",
+      "ContainersPreview",
+      "BasicContainers",
+    ]),
   .target(
     kind: .test,
     name: "CollectionsTestSupportTests",
@@ -343,8 +351,6 @@ let targets: [CustomTarget] = [
       "HeapModule",
       "OrderedCollections",
       "_RopeModule",
-      "TrailingElementsModule",
-      //"SortedCollections",
     ],
     exclude: ["CMakeLists.txt"])
 ]
@@ -358,6 +364,6 @@ let _targets: [Target] = targets.map { $0.toTarget() }
 let package = Package(
   name: "swift-collections",
   products: _products,
-  traits: _traits,
+  traits: [], //_traits,
   targets: _targets
 )

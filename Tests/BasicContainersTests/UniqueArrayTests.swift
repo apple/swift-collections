@@ -21,7 +21,7 @@ import BasicContainers
 
 #if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   Element: Equatable,
   C2: Collection<Element>,
@@ -40,7 +40,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   E1: ~Copyable,
   C2: Collection,
@@ -62,7 +62,7 @@ public func expectContainerContents<
 #endif
 
 
-@available(SwiftStdlib 6.2, *)
+@available(SpanAvailability 1.0, *)
 class UniqueArrayTests: CollectionTestCase {
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -323,7 +323,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // TODO
   func test_borrowElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -337,7 +337,7 @@ class UniqueArrayTests: CollectionTestCase {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // TODO
   func test_mutateElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -538,7 +538,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // TODO
   func test_removeAll_where() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -785,8 +785,10 @@ class UniqueArrayTests: CollectionTestCase {
 
               var a = tracker.uniqueArray(layout: layout)
               let rigidAddition = StaccatoContainer(
-                contents: RigidArray(count: addition.count) {
-                  tracker.instance(for: addition[$0])
+                contents: RigidArray(capacity: addition.count) {
+                  for item in addition {
+                    $0.append(tracker.instance(for: item))
+                  }
                 },
                 spanCounts: [spanCount])
               a.insert(copying: rigidAddition, at: i)

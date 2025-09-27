@@ -14,7 +14,7 @@ import Builtin
 
 @frozen
 @safe
-public struct Borrow<T: ~Copyable>: Copyable, ~Escapable {
+public struct Ref<T: ~Copyable>: Copyable, ~Escapable {
   @usableFromInline
   package let _pointer: UnsafePointer<T>
 

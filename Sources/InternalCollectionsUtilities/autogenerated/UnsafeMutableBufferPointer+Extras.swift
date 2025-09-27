@@ -129,45 +129,10 @@ extension UnsafeMutableBufferPointer {
   /// The `source` span must fit entirely in `self`.
   ///
   /// - Returns: The index after the last item that was initialized in this buffer.
-  @available(SwiftStdlib 6.2, *)
+  @available(SpanAvailability 1.0, *)
   @inlinable
   internal func _initializePrefix(copying source: Span<Element>) -> Int {
     source.withUnsafeBufferPointer { self._initializePrefix(copying: $0) }
-  }
-#endif
-
-#if compiler(>=6.2) && FIXME
-  /// Initialize all slots in this buffer by copying data from `items`, which must fit entirely
-  /// in this buffer.
-  ///
-  /// If `items` contains more elements than can fit into this buffer, then this function
-  /// will return an index other than `items.endIndex`. In that case, `self` may not be fully
-  /// populated.
-  ///
-  /// If `Element` is not bitwise copyable, then this function must be called on an
-  /// entirely uninitialized buffer.
-  ///
-  /// - Returns: A pair of values `(count, end)`, where `count` is the number of items that were
-  ///    successfully initialized, and `end` is the index into `items` after the last copied item.
-  @available(SwiftStdlib 6.2, *)
-  @inlinable
-  internal func _initializePrefix<
-    C: Container<Element> & ~Copyable & ~Escapable
-  >(
-    copying items: borrowing C
-  ) -> (copied: Int, end: C.Index) {
-    var target = self
-    var i = items.startIndex
-    while true {
-      let start = i
-      let span = items.span(after: &i)
-      if span.isEmpty { break }
-      guard span.count <= target.count else {
-        return (self.count - target.count, start)
-      }
-      target._initializeAndDropPrefix(copying: span)
-    }
-    return (self.count - target.count, i)
   }
 #endif
 
@@ -194,7 +159,7 @@ extension UnsafeMutableBufferPointer {
   /// entirely uninitialized.
   ///
   /// The count of `span` must not be greater than `self.count`.
-  @available(SwiftStdlib 5.0, *)
+  @available(SpanAvailability 1.0, *)
   @inlinable
   internal mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
     span.withUnsafeBufferPointer { buffer in
@@ -275,13 +240,17 @@ extension UnsafeMutableBufferPointer {
     let i = self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable @inline(__always)
   internal func moveInitializeAll(fromContentsOf source: Self) {
     let i = self.moveInitialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer {
   @inlinable @inline(__always)
   internal func moveInitializeAll(fromContentsOf source: Slice<Self>) {
     let i = self.moveInitialize(fromContentsOf: source)
@@ -438,45 +407,10 @@ extension UnsafeMutableBufferPointer {
   /// The `source` span must fit entirely in `self`.
   ///
   /// - Returns: The index after the last item that was initialized in this buffer.
-  @available(SwiftStdlib 6.2, *)
+  @available(SpanAvailability 1.0, *)
   @inlinable
   public func _initializePrefix(copying source: Span<Element>) -> Int {
     source.withUnsafeBufferPointer { self._initializePrefix(copying: $0) }
-  }
-#endif
-
-#if compiler(>=6.2) && FIXME
-  /// Initialize all slots in this buffer by copying data from `items`, which must fit entirely
-  /// in this buffer.
-  ///
-  /// If `items` contains more elements than can fit into this buffer, then this function
-  /// will return an index other than `items.endIndex`. In that case, `self` may not be fully
-  /// populated.
-  ///
-  /// If `Element` is not bitwise copyable, then this function must be called on an
-  /// entirely uninitialized buffer.
-  ///
-  /// - Returns: A pair of values `(count, end)`, where `count` is the number of items that were
-  ///    successfully initialized, and `end` is the index into `items` after the last copied item.
-  @available(SwiftStdlib 6.2, *)
-  @inlinable
-  public func _initializePrefix<
-    C: Container<Element> & ~Copyable & ~Escapable
-  >(
-    copying items: borrowing C
-  ) -> (copied: Int, end: C.Index) {
-    var target = self
-    var i = items.startIndex
-    while true {
-      let start = i
-      let span = items.span(after: &i)
-      if span.isEmpty { break }
-      guard span.count <= target.count else {
-        return (self.count - target.count, start)
-      }
-      target._initializeAndDropPrefix(copying: span)
-    }
-    return (self.count - target.count, i)
   }
 #endif
 
@@ -503,7 +437,7 @@ extension UnsafeMutableBufferPointer {
   /// entirely uninitialized.
   ///
   /// The count of `span` must not be greater than `self.count`.
-  @available(SwiftStdlib 5.0, *)
+  @available(SpanAvailability 1.0, *)
   @inlinable
   public mutating func _initializeAndDropPrefix(copying span: Span<Element>) {
     span.withUnsafeBufferPointer { buffer in
@@ -584,13 +518,17 @@ extension UnsafeMutableBufferPointer {
     let i = self.initialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @inlinable @inline(__always)
   public func moveInitializeAll(fromContentsOf source: Self) {
     let i = self.moveInitialize(fromContentsOf: source)
     assert(i == self.endIndex)
   }
+}
 
+extension UnsafeMutableBufferPointer {
   @inlinable @inline(__always)
   public func moveInitializeAll(fromContentsOf source: Slice<Self>) {
     let i = self.moveInitialize(fromContentsOf: source)

@@ -16,15 +16,15 @@ import Builtin
 
 /// A safe mutable reference allowing in-place mutation to an exclusive value.
 ///
-/// In order to get an instance of an `Inout<T>`, one must have exclusive access
+/// In order to get an instance of a `Mut<T>`, one must have exclusive access
 /// to the instance of `T`. This is achieved through the 'inout' operator, '&'.
 @frozen
 @safe
-public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
+public struct Mut<T: ~Copyable>: ~Copyable, ~Escapable {
   @usableFromInline
   package let _pointer: UnsafeMutablePointer<T>
 
-  /// Initializes an instance of 'Inout' extending the exclusive access of the
+  /// Initializes an instance of 'Mut' extending the exclusive access of the
   /// passed instance.
   ///
   /// - Parameter instance: The desired instance to get a mutable reference to.
@@ -34,13 +34,13 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
     unsafe _pointer = UnsafeMutablePointer<T>(Builtin.unprotectedAddressOf(&instance))
   }
 
-  /// Unsafely initializes an instance of 'Inout' using the given 'unsafeAddress'
+  /// Unsafely initializes an instance of 'Mut' using the given 'unsafeAddress'
   /// as the mutable reference based on the lifetime of the given 'owner'
   /// argument.
   ///
   /// - Parameter unsafeAddress: The address to use to mutably reference an
   ///                            instance of type 'T'.
-  /// - Parameter owner: The owning instance that this 'Inout' instance's
+  /// - Parameter owner: The owning instance that this 'Mut' instance's
   ///                    lifetime is based on.
   @unsafe
   @_alwaysEmitIntoClient
@@ -53,7 +53,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
     unsafe _pointer = unsafeAddress
   }
 
-  /// Unsafely initializes an instance of 'Inout' using the given
+  /// Unsafely initializes an instance of 'Mut' using the given
   /// 'unsafeImmortalAddress' as the mutable reference acting as though its
   /// lifetime is immortal.
   ///
@@ -70,7 +70,7 @@ public struct Inout<T: ~Copyable>: ~Copyable, ~Escapable {
   }
 }
 
-extension Inout where T: ~Copyable {
+extension Mut where T: ~Copyable {
   /// Dereferences the mutable reference allowing for in-place reads and writes
   /// to the underlying instance.
   @_alwaysEmitIntoClient
@@ -80,8 +80,8 @@ extension Inout where T: ~Copyable {
       unsafe UnsafePointer<T>(_pointer)
     }
     
-    @_lifetime(copy self)
     @_transparent
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       unsafe _pointer
     }
