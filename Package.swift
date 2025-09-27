@@ -351,8 +351,6 @@ let targets: [CustomTarget] = [
       "HeapModule",
       "OrderedCollections",
       "_RopeModule",
-      "TrailingElementsModule",
-      //"SortedCollections",
     ],
     exclude: ["CMakeLists.txt"])
 ]
