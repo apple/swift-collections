@@ -12,6 +12,7 @@
 
 import PackageDescription
 
+#if false // FIXME: Disabled while we're debugging a runtime crash (rdar://150240032)
 let _traits: Set<Trait> = [
   .default(
     enabledTraits: [
@@ -25,6 +26,7 @@ let _traits: Set<Trait> = [
       protocols and associated algorithms.
       """),
 ]
+#endif
 
 // This package recognizes the conditional compilation flags listed below.
 // To use enable them, uncomment the corresponding lines or define them
@@ -32,9 +34,9 @@ let _traits: Set<Trait> = [
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
 var defines: [SwiftSetting] = [
-  .define(
-    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
-    .when(traits: ["UnstableContainersPreview"])),
+//  .define(
+//    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
+//    .when(traits: ["UnstableContainersPreview"])),
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -362,6 +364,6 @@ let _targets: [Target] = targets.map { $0.toTarget() }
 let package = Package(
   name: "swift-collections",
   products: _products,
-  traits: _traits,
+  traits: [], //_traits,
   targets: _targets
 )
