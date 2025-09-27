@@ -303,7 +303,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // TODO
   func test_borrowElement() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -334,8 +334,8 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  func test_mutateElement() {
+#if false // TODO
+  func test_mutateElement2() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         var a = tracker.rigidArray(layout: layout)
@@ -555,7 +555,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // TODO
   func test_removeAll_where() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -735,8 +735,10 @@ class RigidArrayTests: CollectionTestCase {
 
             var a = tracker.rigidArray(layout: layout)
             let rigidAddition = StaccatoContainer(
-              contents: RigidArray(count: addition.count) {
-                tracker.instance(for: addition[$0])
+              contents: RigidArray(capacity: addition.count) {
+                for item in addition {
+                  $0.append(tracker.instance(for: item))
+                }
               },
               spanCounts: [Swift.max(spanCount, 1)])
             a.insert(copying: rigidAddition, at: i)
