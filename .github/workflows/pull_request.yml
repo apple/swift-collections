@@ -12,7 +12,8 @@ jobs:
       linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}]'
       macos_exclude_xcode_versions: '[{"xcode_version": "16.2"}, {"xcode_version": "26.0"}]'
-      enable_macos_checks: false
+      macos_xcode_versions: "[\"16.2\", \"16.3\", \"26.0\"]"
+      enable_macos_checks: true
       enable_wasm_sdk_build: true
 
   embedded-swift:
