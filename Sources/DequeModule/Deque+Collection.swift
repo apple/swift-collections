@@ -492,22 +492,27 @@ extension Deque: MutableCollection {
 }
 
 extension Deque: RangeReplaceableCollection {
-  /// Creates a new, empty deque.
-  ///
-  /// This is equivalent to initializing with an empty array literal.
-  /// For example:
-  ///
-  ///     let deque1 = Deque<Int>()
-  ///     print(deque1.isEmpty) // true
-  ///
-  ///     let deque2: Deque<Int> = []
-  ///     print(deque2.isEmpty) // true
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public init() {
-    _storage = _Storage()
-  }
+    
+    /// Creates an empty deque instance.
+    ///
+    /// This initializer is equivalent to creating a deque using an empty
+    /// array literal (`[]`).
+    ///
+    /// Example:
+    ///
+    ///     let deque1 = Deque<Int>()
+    ///     print(deque1.isEmpty) // true
+    ///
+    ///     let deque2: Deque<Int> = []
+    ///     print(deque2.isEmpty) // true
+    ///
+    /// - Complexity: O(1)
+    @inlinable
+    public init() {
+      _storage = _Storage()
+      _maxCapacity = nil
+    }
+
 
   /// Reserves enough space to store the specified number of elements.
   ///
@@ -609,60 +614,83 @@ extension Deque: RangeReplaceableCollection {
     self.append(contentsOf: elements)
   }
 
-  /// Creates a deque containing the elements of a collection.
-  ///
-  /// - Parameters:
-  ///   - elements: The collection of elements to turn into a deque.
-  ///
-  /// - Complexity: O(`elements.count`)
-  @inlinable
-  public init(_ elements: some Collection<Element>) {
-    let c = elements.count
-    guard c > 0 else { _storage = _Storage(); return }
-    self._storage = _Storage(minimumCapacity: c)
-    _storage.update { handle in
-      assert(handle.startSlot == .zero)
-      let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
-      let done: Void? = elements.withContiguousStorageIfAvailable { source in
-        target.initializeAll(fromContentsOf: source)
-      }
-      if done == nil {
-        target.initializeAll(fromContentsOf: elements)
-      }
-      handle.count = c
+    /// Creates a new deque containing the elements of the given collection.
+    ///
+    /// The elements are stored in the order they appear in the collection.
+    /// If the collection is empty, this initializer creates an empty deque.
+    ///
+    /// - Parameter elements: The collection of elements to turn into a deque.
+    ///
+    /// ### Example
+    ///
+    ///     let array = [10, 20, 30]
+    ///     let deque = Deque(array)
+    ///     print(deque) // [10, 20, 30]
+    ///
+    ///     let empty = Deque([Int]())
+    ///     print(empty.isEmpty) // true
+    ///
+    /// - Complexity: O(`elements.count`) — each element is copied once.
+    @inlinable
+    public init(_ elements: some Collection<Element>) {
+        let c = elements.count
+        guard c > 0 else {
+            _storage = _Storage()
+            self._maxCapacity = nil
+            return
+        }
+        self._storage = _Storage(minimumCapacity: c)
+        self._maxCapacity = nil
+        _storage.update { handle in
+            assert(handle.startSlot == .zero)
+            let target = handle.mutableBuffer(for: .zero ..< _Slot(at: c))
+            let done: Void? = elements.withContiguousStorageIfAvailable { source in
+                target.initializeAll(fromContentsOf: source)
+            }
+            if done == nil {
+                target.initializeAll(fromContentsOf: elements)
+            }
+            handle.count = c
+        }
     }
-  }
 
-  /// Adds a new element at the end of the deque.
-  ///
-  /// Use this method to append a single element to the end of a deque.
-  ///
-  ///     var numbers: Deque = [1, 2, 3, 4, 5]
-  ///     numbers.append(100)
-  ///     print(numbers)
-  ///     // Prints "[1, 2, 3, 4, 5, 100]"
-  ///
-  /// Because deques increase their allocated capacity using an exponential
-  /// strategy, appending a single element to a deque is an O(1) operation when
-  /// averaged over many calls to the `append(_:)` method. When a deque has
-  /// additional capacity and is not sharing its storage with another instance,
-  /// appending an element is O(1). When a deque needs to reallocate storage
-  /// before prepending or its storage is shared with another copy, appending is
-  /// O(`count`).
-  ///
-  /// - Parameters:
-  ///   - newElement: The element to append to the deque.
-  ///
-  /// - Complexity: Amortized O(1)
-  ///
-  /// - SeeAlso: `prepend(_:)`
-  @inlinable
-  public mutating func append(_ newElement: Element) {
-    _storage.ensureUnique(minimumCapacity: count + 1)
-    _storage.update {
-      $0.uncheckedAppend(newElement)
+
+    /// Adds a new element to the end of the deque.
+    ///
+    /// If the deque was created with a fixed capacity and is already full,
+    /// the oldest element at the front is automatically removed to make space
+    /// for the new element.
+    ///
+    /// - Parameter newElement: The element to append to the deque.
+    ///
+    /// ### Example
+    ///
+    ///     var numbers: Deque = [1, 2, 3, 4, 5]
+    ///     numbers.append(100)
+    ///     print(numbers)
+    ///     // Prints "[1, 2, 3, 4, 5, 100]"
+    ///
+    ///     var buffer = Deque<Int>(fixedCapacity: 3)
+    ///     buffer.append(1)   // [1]
+    ///     buffer.append(2)   // [1, 2]
+    ///     buffer.append(3)   // [1, 2, 3]
+    ///     buffer.append(4)   // [2, 3, 4] — 1 was removed
+    ///
+    /// - Complexity: Amortized O(1).
+    ///   Appending is O(1) on average, but may be O(`count`) if storage must
+    ///   be reallocated or copied due to sharing.
+    ///
+    /// - SeeAlso: `prepend(_:)`
+    @inlinable
+    public mutating func append(_ newElement: Element) {
+        if let maxCap = _maxCapacity, count >= maxCap {
+            _ = removeFirst()
+        }
+        _storage.ensureUnique(minimumCapacity: count + 1)
+        _storage.update {
+            $0.uncheckedAppend(newElement)
+        }
     }
-  }
 
   /// Adds the elements of a sequence to the end of the deque.
   ///
