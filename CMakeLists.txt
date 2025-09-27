@@ -13,8 +13,6 @@ project(SwiftCollections
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
-include(PlatformInfo)
-
 if(NOT SWIFT_SYSTEM_NAME)
   if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
     set(SWIFT_SYSTEM_NAME macosx)
@@ -38,6 +36,7 @@ endif()
 
 option(COLLECTIONS_SINGLE_MODULE "Build as a single module" NO)
 option(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE "Build a module for Foundation in the toolchain" NO)
+option(COLLECTIONS_INSTALL_ARCH_SUBDIR "Install libraries under an architecture subdirectory" NO)
 
 if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
   set(COLLECTIONS_SINGLE_MODULE YES)
