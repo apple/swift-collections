@@ -23,9 +23,12 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "Borrow.swift"
+  "BorrowIteratorProtocol.swift"
   "Box.swift"
-  "Inout.swift"
+  "Container.swift"
+  "Container+Utilities.swift"
   "InputSpan.swift"
+  "Mut.swift"
+  "Ref.swift"
   "Shared.swift"
 )
