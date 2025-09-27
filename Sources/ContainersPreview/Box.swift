@@ -90,8 +90,8 @@ extension Box where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func borrow() -> Borrow<T> {
-    unsafe Borrow(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
+  public func borrow() -> Ref<T> {
+    unsafe Ref(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
   }
 #endif
 

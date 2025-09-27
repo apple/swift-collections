@@ -14,8 +14,8 @@ import XCTest
 import ContainersPreview
 import Synchronization
 
-final class BorrowTests: XCTestCase {
-  @available(SwiftStdlib 6.2, *)
+final class RefTests: XCTestCase {
+  @available(SwiftStdlib 5.0, *)
   func test_basic() {
     let x: Atomic<Int>? = Atomic(0)
     
