@@ -19,7 +19,7 @@ import ContainersPreview
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// A container type with user-defined contents and storage chunks.
 /// Useful for testing.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public struct StaccatoContainer<Element: ~Copyable>: ~Copyable {
   internal let _contents: RigidArray<Element>
   internal let _spanCounts: [Int]
@@ -34,7 +34,7 @@ public struct StaccatoContainer<Element: ~Copyable>: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public struct _StaccatoBorrowIterator<Element: ~Copyable>: BorrowIteratorProtocol, ~Escapable {
   internal let _contents: Span<Element>
   internal let _spanCounts: [Int]
@@ -75,7 +75,7 @@ public struct _StaccatoBorrowIterator<Element: ~Copyable>: BorrowIteratorProtoco
 }
 
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension StaccatoContainer: Container where Element: ~Copyable {
   public typealias BorrowIterator = _StaccatoBorrowIterator<Element> // FIXME rdar://150240032
   public var isEmpty: Bool { _contents.isEmpty }

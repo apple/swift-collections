@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Adds an element to the end of the array.
   ///
@@ -52,7 +52,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func append<E: Error, Result: ~Copyable>(
@@ -71,7 +71,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Moves the elements of a buffer to the end of this array, leaving the
   /// buffer uninitialized.
@@ -144,7 +144,7 @@ extension RigidArray where Element: ~Copyable {
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Appends the elements of a given container to the end of this array by
   /// consuming the source container.
@@ -168,7 +168,7 @@ extension RigidArray where Element: ~Copyable {
 }
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray {
   /// Copies the elements of a buffer to the end of this array.
   ///

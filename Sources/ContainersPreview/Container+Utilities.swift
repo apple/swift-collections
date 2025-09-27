@@ -15,7 +15,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: Copyable {
   @inlinable
   package func _copyContents(
@@ -36,7 +36,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   @discardableResult
@@ -120,7 +120,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: Equatable {
   @inlinable
   public func borrowingElementsEqual<

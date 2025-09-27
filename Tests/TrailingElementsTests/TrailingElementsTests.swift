@@ -59,6 +59,7 @@ struct ManyBytesWithPointers: TrailingElements {
 
 @Suite("Trailing elements tests")
 struct TrailingElementsTests {
+  @available(SpanAvailability 1.0, *)
   @Test func simpleCoordinates() {
     var coords = TrailingArray(
       header: Coordinates(numCoordinates: 3)
@@ -90,6 +91,7 @@ struct TrailingElementsTests {
     #expect(coords[2].x == 1)
   }
   
+  @available(SpanAvailability 1.0, *)
   @Test func temporaryCoordinates() {
     TrailingArray.withTemporaryValue(
       header: Coordinates(numCoordinates: 3)
@@ -104,6 +106,7 @@ struct TrailingElementsTests {
     }
   }
   
+  @available(SpanAvailability 1.0, *)
   @Test(arguments: 0 ... 10)
   func underalignedByteOnHeap(count: Int) {
     var pointers = TrailingArray(
@@ -125,6 +128,7 @@ struct TrailingElementsTests {
     }
   }
   
+  @available(SpanAvailability 1.0, *)
   @Test(arguments: 0 ... 10)
   func underalignedByteOnStack(count: Int) {
     TrailingArray.withTemporaryValue(header: OneByteWithPointers(count: count)) { outputSpan in
@@ -144,6 +148,7 @@ struct TrailingElementsTests {
     }
   }
   
+  @available(SpanAvailability 1.0, *)
   @Test(arguments: 0 ... 10)
   func underalignedBytesOnHeap(count: Int) {
     var pointers = TrailingArray(header: ManyBytesWithPointers(count: count)) { outputSpan in
@@ -163,6 +168,7 @@ struct TrailingElementsTests {
     }
   }
   
+  @available(SpanAvailability 1.0, *)
   @Test(arguments: 0 ... 10)
   func underalignedBytesOnStack(count: Int) {
     TrailingArray.withTemporaryValue(header: ManyBytesWithPointers(count: count)) { outputSpan in

@@ -76,7 +76,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// For use cases outside of these narrow domains, we generally recommmend
 /// the use of ``UniqueArray`` rather than `RigidArray`. (For copyable elements,
 /// the standard `Array` is an even more convenient choice.)
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 @safe
 @frozen
 public struct RigidArray<Element: ~Copyable>: ~Copyable {
@@ -111,13 +111,13 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
 
 //MARK: - Basics
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @_transparent
@@ -134,7 +134,7 @@ extension RigidArray where Element: ~Copyable {
   public var isFull: Bool { freeCapacity == 0 }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal var _items: UnsafeMutableBufferPointer<Element> {
@@ -149,7 +149,7 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Span creation
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   public var span: Span<Element> {
     @_lifetime(borrow self)
@@ -185,7 +185,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
@@ -227,7 +227,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal func _contiguousSubrange(following index: inout Int) -> Range<Int> {
@@ -246,7 +246,7 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Container primitives
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
@@ -258,7 +258,7 @@ extension RigidArray where Element: ~Copyable {
 }
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray: Container where Element: ~Copyable {
   public typealias BorrowIterator = Span<Element>
 
@@ -270,7 +270,7 @@ extension RigidArray: Container where Element: ~Copyable {
 }
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   public typealias Index = Int
 
@@ -287,7 +287,7 @@ extension RigidArray where Element: ~Copyable {
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable @inline(__always)
   internal func _ptr(to index: Int) -> UnsafePointer<Element> {
@@ -315,7 +315,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func swapAt(_ i: Int, _ j: Int) {
@@ -326,7 +326,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
@@ -341,7 +341,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @_lifetime(&self)
   public mutating func mutableSpan(
@@ -360,7 +360,7 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Resizing
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func reallocate(capacity newCapacity: Int) {
@@ -383,7 +383,7 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Copying helpers
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray {
   @inlinable
   public func copy() -> Self {
@@ -404,7 +404,7 @@ extension RigidArray {
 
 //MARK: - Opening and closing gaps
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal mutating func _closeGap(

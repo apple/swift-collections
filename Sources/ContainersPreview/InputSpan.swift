@@ -16,7 +16,7 @@ import InternalCollectionsUtilities
 #endif
 import Builtin
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 @safe
 @frozen
 public struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
@@ -47,10 +47,10 @@ public struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
@@ -89,7 +89,7 @@ extension InputSpan where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   /// Consume the input span and return the number of initialized elements
   /// remaining at the end of the underlying memory region.
@@ -122,7 +122,7 @@ extension InputSpan where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan {
   /// Consume the input span and return the number of initialized elements
   /// remaining at the end of the underlying memory region.
@@ -149,7 +149,7 @@ extension InputSpan {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   /// The number of initialized elements in this span.
   @_alwaysEmitIntoClient
@@ -168,7 +168,7 @@ extension InputSpan where Element: ~Copyable {
   public var isFull: Bool { _count == capacity }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   @unsafe
   @_alwaysEmitIntoClient
@@ -202,7 +202,7 @@ extension InputSpan where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan {
   /// Unsafely create an input span over partially initialized memory.
   ///
@@ -230,7 +230,7 @@ extension InputSpan {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   /// The type that represents an initialized position in an `InputSpan`.
   public typealias Index = Int
@@ -310,7 +310,7 @@ extension InputSpan where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   /// Prepend a single element to this span.
   @_alwaysEmitIntoClient
@@ -365,7 +365,7 @@ extension InputSpan where Element: ~Copyable {
 
 //MARK: Bulk append functions
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan {
   /// Repeatedly append an element to this span.
   @_alwaysEmitIntoClient
@@ -379,10 +379,10 @@ extension InputSpan {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   /// Borrow the underlying initialized memory for read-only access.
-  @available(SwiftStdlib 5.0, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   public var span: Span<Element> {
     @_lifetime(borrow self)
@@ -397,7 +397,7 @@ extension InputSpan where Element: ~Copyable {
   }
 
   /// Exclusively borrow the underlying initialized memory for mutation.
-  @available(SwiftStdlib 5.0, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
@@ -413,7 +413,7 @@ extension InputSpan where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension InputSpan where Element: ~Copyable {
   /// Call the given closure with the unsafe buffer pointer addressed by this
   /// InputSpan and a mutable reference to its count of initialized elements.

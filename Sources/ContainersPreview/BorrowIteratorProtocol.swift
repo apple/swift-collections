@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable /*& ~Escapable*/
 
@@ -65,7 +65,7 @@ public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   mutating func skip(by offset: Int) -> Int
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
   @_lifetime(self: copy self)
   @inlinable
@@ -80,7 +80,7 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
   @_lifetime(copy self)
   @_lifetime(self: copy self)
@@ -90,7 +90,7 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension Span: BorrowIteratorProtocol where Element: ~Copyable {
   @_lifetime(copy self)
   @_lifetime(self: copy self)

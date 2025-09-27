@@ -50,7 +50,7 @@ where Header: ~Copyable
     _pointer.initialize(to: header)
   }
   
-  @available(SwiftStdlib 5.1, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   mutating func _initializeTrailingElements<E>(
     initializer: (inout OutputSpan<Element>) throws(E) -> Void
@@ -63,7 +63,7 @@ where Header: ~Copyable
   
   /// Allocate an intrusive managed buffer with the given header and calling
   /// the initializer to fill in the trailing elements.
-  @available(SwiftStdlib 5.1, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   public init<E>(
     header: consuming Header,
@@ -183,7 +183,7 @@ where Header: ~Copyable
   }
   
   /// Accesses the trailing elements following the header.
-  @available(SwiftStdlib 5.1, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   public var elements: Span<Element> {
     @_lifetime(self)
@@ -194,7 +194,7 @@ where Header: ~Copyable
   
   /// Accesses the trailing elements following the header, allowing mutation
   /// of those elements.
-  @available(SwiftStdlib 5.1, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   public var mutableElements: MutableSpan<Element> {
     @_lifetime(self)
@@ -317,7 +317,7 @@ extension TrailingArray where Header: Copyable {
   /// That instance is provided to the given `body` to operate on for the
   /// duration of the call. The temporary is allocated on the stack, unless
   /// it is very large according to `withUnsafeTemporaryAllocation`.
-  @available(SwiftStdlib 5.1, *)
+  @available(SpanAvailability 1.0, *)
   @_alwaysEmitIntoClient
   public static func withTemporaryValue<R: ~Copyable, E>(
     header: consuming Header,

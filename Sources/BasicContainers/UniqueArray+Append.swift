@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Adds an element to the end of the array.
   ///
@@ -33,7 +33,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func append<E: Error, Result: ~Copyable>(
@@ -45,7 +45,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Moves the elements of a buffer to the end of this array, leaving the
   /// buffer uninitialized.
@@ -109,7 +109,7 @@ extension UniqueArray where Element: ~Copyable {
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Appends the elements of a given container to the end of this array by
   /// consuming the source container.
@@ -132,7 +132,7 @@ extension UniqueArray where Element: ~Copyable {
 }
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray {
   /// Copies the elements of a buffer to the end of this array.
   ///

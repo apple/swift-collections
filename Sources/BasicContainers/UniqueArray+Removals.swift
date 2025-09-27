@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Removes all elements from the array, optionally preserving its
   /// allocated capacity.
@@ -106,7 +106,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Removes and returns the last element of the array, if there is one.
   ///
@@ -122,7 +122,7 @@ extension UniqueArray where Element: ~Copyable {
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   @_lifetime(&self)
   @_alwaysEmitIntoClient

@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
   ///
@@ -44,7 +44,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   @inlinable
   public mutating func insert<Result: ~Copyable>(
@@ -58,7 +58,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Moves the elements of a fully initialized buffer into this array,
   /// starting at the specified position, and leaving the buffer
@@ -125,7 +125,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Inserts the elements of a given array into the given position in this
   /// array by consuming the source container.
@@ -149,7 +149,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension UniqueArray {
   /// Copyies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.

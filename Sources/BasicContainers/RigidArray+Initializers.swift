@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   public init<E: Error>(
@@ -28,7 +28,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray /*where Element: Copyable*/ {
   /// Creates a new array containing the specified number of a single,
   /// repeated value.
@@ -44,7 +44,7 @@ extension RigidArray /*where Element: Copyable*/ {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)

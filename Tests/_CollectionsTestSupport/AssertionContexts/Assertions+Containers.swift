@@ -18,7 +18,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   Element: Equatable,
   C2: Collection<Element>,
@@ -57,7 +57,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   E1: ~Copyable,
   C2: Collection,
@@ -96,7 +96,7 @@ public func expectContainerContents<
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainersWithEquivalentElements<
   C1: Container & ~Copyable & ~Escapable,
   C2: Container & ~Copyable & ~Escapable
@@ -116,7 +116,7 @@ public func expectContainersWithEquivalentElements<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainersWithEqualElements<
   Element: Equatable,
   C1: Container<Element> & ~Copyable & ~Escapable,
@@ -136,7 +136,7 @@ public func expectContainersWithEqualElements<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   Element: Equatable,
   C1: Container<Element> & ~Copyable & ~Escapable,
@@ -178,7 +178,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 public func expectContainerContents<
   C1: Container & ~Copyable & ~Escapable,
   C2: Collection,

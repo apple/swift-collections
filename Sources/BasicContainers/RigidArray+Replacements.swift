@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func replaceSubrange<Result: ~Copyable>(
@@ -38,7 +38,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Replaces the specified range of elements by moving the elements of a
   /// fully initialized buffer into their place. On return, the buffer is left
@@ -147,7 +147,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Replaces the specified range of elements by moving the elements of a
   /// given array into their place, consuming it in the process.
@@ -184,7 +184,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray {
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given buffer pointer, which must be fully initialized.

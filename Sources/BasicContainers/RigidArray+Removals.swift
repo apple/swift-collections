@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Removes all elements from the array, preserving its allocated capacity.
   ///
@@ -120,7 +120,7 @@ extension RigidArray where Element: ~Copyable {
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   @_lifetime(&self)
   @_alwaysEmitIntoClient
@@ -168,7 +168,7 @@ extension RigidArray where Element: ~Copyable {
 }
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Removes and returns the last element of the array, if there is one.
   ///
