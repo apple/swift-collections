@@ -61,7 +61,7 @@ extension UniqueArray where Element: ~Copyable {
 #endif
 
 #if false // TODO
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
@@ -80,7 +80,7 @@ extension UniqueArray where Element: ~Copyable {
 #endif
 
 #if false // TODO
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Removes all the elements that satisfy the given predicate.
   ///

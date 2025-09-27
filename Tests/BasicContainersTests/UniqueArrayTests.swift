@@ -21,7 +21,7 @@ import BasicContainers
 
 #if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 public func expectContainerContents<
   Element: Equatable,
   C2: Collection<Element>,
@@ -40,7 +40,7 @@ public func expectContainerContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 public func expectContainerContents<
   E1: ~Copyable,
   C2: Collection,
@@ -62,7 +62,7 @@ public func expectContainerContents<
 #endif
 
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 6.2, *)
 class UniqueArrayTests: CollectionTestCase {
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in

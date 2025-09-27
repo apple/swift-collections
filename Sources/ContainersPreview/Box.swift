@@ -114,7 +114,7 @@ extension Box where T: Copyable {
 }
 
 extension Box where T: ~Copyable {
-  @available(SpanAvailability 1.0, *)
+  @available(SwiftStdlib 5.0, *)
   public var span: Span<T> {
     @_alwaysEmitIntoClient
     @_lifetime(borrow self)
@@ -123,7 +123,7 @@ extension Box where T: ~Copyable {
     }
   }
 
-  @available(SpanAvailability 1.0, *)
+  @available(SwiftStdlib 5.0, *)
   public var mutableSpan: MutableSpan<T> {
     @_alwaysEmitIntoClient
     @_lifetime(&self)
