@@ -214,7 +214,11 @@ let targets: [CustomTarget] = [
   .target(
     kind: .testSupport,
     name: "_CollectionsTestSupport",
-    dependencies: ["InternalCollectionsUtilities", "ContainersPreview"]),
+    dependencies: [
+      "InternalCollectionsUtilities",
+      "ContainersPreview",
+      "BasicContainers",
+    ]),
   .target(
     kind: .test,
     name: "CollectionsTestSupportTests",
