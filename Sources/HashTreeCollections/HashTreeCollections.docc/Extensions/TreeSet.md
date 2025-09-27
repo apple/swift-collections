@@ -71,9 +71,9 @@ average -- typically they will need to compare against just one member.
 ### Creating a Set
 
 - ``init()``
-- ``init(_:)-2uun3``
-- ``init(_:)-714nu``
-- ``init(_:)-6lt4a``
+- ``init(_:)-(Self)``
+- ``init(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``init(_:)-(Sequence<Element>)``
 
 ### Finding Elements
 
@@ -103,37 +103,37 @@ but `TreeSet` follows the tradition established by `Set` in providing
 additional overloads to each operation that allow combining a set with
 additional types, including arbitrary sequences.
 
-- ``intersection(_:)-8ltpr``
-- ``intersection(_:)-9kwc0``
-- ``intersection(_:)-4u7ew``
+- ``intersection(_:)-(Self)`
+- ``intersection(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``intersection(_:)-(Sequence<Element>)``
 
-- ``union(_:)-89jj2``
-- ``union(_:)-9yvze``
-- ``union(_:)-7p0m2``
+- ``union(_:)-(Self)``
+- ``union(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``union(_:)-(Sequence<Element>)``
 
-- ``subtracting(_:)-cnsi``
-- ``subtracting(_:)-3yfac``
-- ``subtracting(_:)-90wrb``
+- ``subtracting(_:)-(Self)``
+- ``subtracting(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``subtracting(_:)-(Sequence<Element>)``
 
-- ``symmetricDifference(_:)-5bz4f``
-- ``symmetricDifference(_:)-6p8n5``
-- ``symmetricDifference(_:)-3qk9w``
+- ``symmetricDifference(_:)-(Self)``
+- ``symmetricDifference(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``symmetricDifference(_:)-(Sequence<Element>)``
 
-- ``formIntersection(_:)-1zcar``
-- ``formIntersection(_:)-4xkf0``
-- ``formIntersection(_:)-6jb2z``
+- ``formIntersection(_:)-(Self)``
+- ``formIntersection(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``formIntersection(_:)-(Sequence<Element>)``
 
-- ``formUnion(_:)-420zl``
-- ``formUnion(_:)-8zu6q``
-- ``formUnion(_:)-423id``
+- ``formUnion(_:)-(Self)``
+- ``formUnion(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``formUnion(_:)-(Sequence<Element>)``
 
-- ``subtract(_:)-49o9``
-- ``subtract(_:)-3ebkc``
-- ``subtract(_:)-87rhs``
+- ``subtract(_:)-(Self)``
+- ``subtract(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``subtract(_:)-(Sequence<Element>)``
 
-- ``formSymmetricDifference(_:)-94f6x``
-- ``formSymmetricDifference(_:)-4x7vw``
-- ``formSymmetricDifference(_:)-6ypuy``
+- ``formSymmetricDifference(_:)-(Self)``
+- ``formSymmetricDifference(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``formSymmetricDifference(_:)-(Sequence<Element>)``
 
 ### Comparing Sets
 
@@ -146,26 +146,26 @@ Like `==`, the `isEqualSet` functions ignore element ordering and duplicates (if
 any).
 
 - ``==(_:_:)`` 
-- ``isEqualSet(to:)-4bc1i`` 
-- ``isEqualSet(to:)-7x4yi`` 
-- ``isEqualSet(to:)-44fkf`` 
+- ``isEqualSet(to:)-(Self)`` 
+- ``isEqualSet(to:)-(TreeDictionary<Element,Value>.Keys)`` 
+- ``isEqualSet(to:)-(Sequence<Element>)`` 
 
-- ``isSubset(of:)-2ktpu`` 
-- ``isSubset(of:)-5oufi`` 
-- ``isSubset(of:)-9tq5c`` 
+- ``isSubset(of:)-(Self)`` 
+- ``isSubset(of:)-(TreeDictionary<Element,Value>.Keys)`` 
+- ``isSubset(of:)-(Sequence<Element>)`` 
 
-- ``isSuperset(of:)-3zd41`` 
-- ``isSuperset(of:)-6xa75`` 
-- ``isSuperset(of:)-6vw4t`` 
+- ``isSuperset(of:)-(Self)`` 
+- ``isSuperset(of:)-(TreeDictionary<Element,Value>.Keys)`` 
+- ``isSuperset(of:)-(Sequence<Element>)`` 
 
-- ``isStrictSubset(of:)-6xuil`` 
-- ``isStrictSubset(of:)-22f80`` 
-- ``isStrictSubset(of:)-5f78e`` 
+- ``isStrictSubset(of:)-(Self)`` 
+- ``isStrictSubset(of:)-(TreeDictionary<Element,Value>.Keys)`` 
+- ``isStrictSubset(of:)-(Sequence<Element>)`` 
 
-- ``isStrictSuperset(of:)-4ryjr`` 
-- ``isStrictSuperset(of:)-3ephc``
-- ``isStrictSuperset(of:)-9ftlc`` 
+- ``isStrictSuperset(of:)-(Self)`` 
+- ``isStrictSuperset(of:)-(TreeDictionary<Element,Value>.Keys)``
+- ``isStrictSuperset(of:)-(Sequence<Element>)`` 
 
-- ``isDisjoint(with:)-4a9xa``
-- ``isDisjoint(with:)-12a64``
-- ``isDisjoint(with:)-5lvdr``
+- ``isDisjoint(with:)-(Self)``
+- ``isDisjoint(with:)-(TreeDictionary<Element,Value>.Keys)``
+- ``isDisjoint(with:)-(Sequence<Element>)``

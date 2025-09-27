@@ -508,6 +508,8 @@
 		7D6FEE222E8778F3007C1B86 /* UniqueArray+Insertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+Insertions.swift"; sourceTree = "<group>"; };
 		7D6FEE232E8778F3007C1B86 /* UniqueArray+Removals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+Removals.swift"; sourceTree = "<group>"; };
 		7D6FEE242E8778F3007C1B86 /* UniqueArray+Replacements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+Replacements.swift"; sourceTree = "<group>"; };
+		7D6FEE2F2E8880F6007C1B86 /* BasicContainers.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = BasicContainers.docc; sourceTree = "<group>"; };
+		7D6FEE312E88A4B9007C1B86 /* ContainersPreview.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = ContainersPreview.docc; sourceTree = "<group>"; };
 		7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Shifts.swift"; sourceTree = "<group>"; };
 		7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Descriptions.swift"; sourceTree = "<group>"; };
 		7D9B859329E4F74400B291CD /* BitArray+LosslessStringConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+LosslessStringConvertible.swift"; sourceTree = "<group>"; };
@@ -987,6 +989,7 @@
 				7D6FEE142E8778CF007C1B86 /* Mut.swift */,
 				7D6FEE152E8778CF007C1B86 /* Ref.swift */,
 				7D48BCCD2E51524200D7F6F7 /* Shared.swift */,
+				7D6FEE312E88A4B9007C1B86 /* ContainersPreview.docc */,
 			);
 			path = ContainersPreview;
 			sourceTree = "<group>";
@@ -1919,6 +1922,7 @@
 				7D6FEE222E8778F3007C1B86 /* UniqueArray+Insertions.swift */,
 				7D6FEE232E8778F3007C1B86 /* UniqueArray+Removals.swift */,
 				7D6FEE242E8778F3007C1B86 /* UniqueArray+Replacements.swift */,
+				7D6FEE2F2E8880F6007C1B86 /* BasicContainers.docc */,
 			);
 			path = BasicContainers;
 			sourceTree = "<group>";
@@ -1938,8 +1942,8 @@
 			children = (
 				C13E81062E78F317008DFC5C /* TrailingArray.swift */,
 				C13E81072E78F317008DFC5C /* TrailingElements.swift */,
-				C13E81082E78F317008DFC5C /* TrailingElementsModule.docc */,
 				C13E81092E78F317008DFC5C /* TrailingPadding.swift */,
+				C13E81082E78F317008DFC5C /* TrailingElementsModule.docc */,
 			);
 			path = TrailingElementsModule;
 			sourceTree = "<group>";
