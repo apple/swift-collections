@@ -79,8 +79,8 @@ extension Box where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(immortal)
-  public consuming func leak() -> Inout<T> {
-    let result = unsafe Inout<T>(unsafeImmortalAddress: _pointer)
+  public consuming func leak() -> Mut<T> {
+    let result = unsafe Mut<T>(unsafeImmortalAddress: _pointer)
     discard self
     return result
   }
@@ -99,8 +99,8 @@ extension Box where T: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(&self)
-  public mutating func mutate() -> Inout<T> {
-    unsafe Inout(unsafeAddress: _pointer, mutating: &self)
+  public mutating func mutate() -> Mut<T> {
+    unsafe Mut(unsafeAddress: _pointer, mutating: &self)
   }
 #endif
 }

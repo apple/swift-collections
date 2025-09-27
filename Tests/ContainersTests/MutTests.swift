@@ -18,10 +18,10 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-final class InoutTests: XCTestCase {
+final class MutTests: XCTestCase {
   func test_basic() {
     var x = 0
-    var y = Inout(&x)
+    var y = Mut(&x)
 
     var v = y[]
     XCTAssertEqual(v, 0)

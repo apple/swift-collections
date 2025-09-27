@@ -139,11 +139,11 @@ extension Shared where Storage: ~Copyable {
 
   @inlinable
   @_lifetime(&self)
-  public mutating func mutate() -> Inout<Storage> {
+  public mutating func mutate() -> Mut<Storage> {
     // This is gloriously (and very explicitly) unsafe, as it should be.
     // `Shared` is carefully constructed to guarantee that
     // lifetime(self) == lifetime(_box.storage).
-    unsafe Inout(unsafeAddress: _mutableAddress, mutating: &self)
+    unsafe Mut(unsafeAddress: _mutableAddress, mutating: &self)
   }
 }
 
