@@ -8,8 +8,14 @@
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
 import Testing
+
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import TrailingElementsModule
+#endif
 
 struct Point {
   var x: Int
