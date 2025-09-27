@@ -74,7 +74,7 @@ where Element: ~Copyable
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension Span: TestPrintable where Element: ~Copyable {
   public var testDescription: String {
     self.withUnsafeBufferPointer { buffer in
@@ -82,7 +82,7 @@ extension Span: TestPrintable where Element: ~Copyable {
     }
   }
 }
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension MutableSpan: TestPrintable where Element: ~Copyable  {
   public var testDescription: String {
     self.withUnsafeBufferPointer { buffer in
@@ -91,7 +91,7 @@ extension MutableSpan: TestPrintable where Element: ~Copyable  {
   }
 }
 #if compiler(>=6.2)
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension OutputSpan: TestPrintable where Element: ~Copyable  {
   public var testDescription: String {
     let capacity = self.capacity
@@ -108,7 +108,7 @@ extension OutputSpan: TestPrintable where Element: ~Copyable  {
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension InputSpan: TestPrintable where Element: ~Copyable  {
   public var testDescription: String {
     let capacity = self.capacity

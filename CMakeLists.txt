@@ -68,8 +68,6 @@ set(availability_defs
   "SwiftStdlib 6.0: macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0"
   "SwiftStdlib 6.1: macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4"
   "SwiftStdlib 6.2: macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0"
-  // FIXME: This should be the same as SwiftStdlib 5.0, except Span deployment doesn't work in SwiftPM (rdar://161459068)
-  "SpanAvailability 1.0: macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0"
   )
 foreach(def ${availability_defs})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-enable-experimental-feature \"AvailabilityMacro=${def}\">")

@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
   ///
@@ -50,7 +50,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func insert<Result: ~Copyable>(
@@ -73,7 +73,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Moves the elements of a fully initialized buffer into this array,
   /// starting at the specified position, and leaving the buffer
@@ -157,7 +157,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Inserts the elements of a given array into the given position in this
   /// array by consuming the source container.
@@ -180,7 +180,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray {
   /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.

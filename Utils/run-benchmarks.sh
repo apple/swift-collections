@@ -8,11 +8,17 @@ results="batch.results"
 command="${1:-help}"
 shift || :
 
+if [ "$(uname)" = "Darwin" ]; then
+    swift="xcrun swift"
+else
+    swift="swift"
+fi
+
 run() {
   local flags
   flags="-c release"
   flags="$flags -Xswiftc -Xllvm -Xswiftc -align-module-to-page-size"
-  swift run --package-path "$srcroot" $flags benchmark "$@"
+  $swift run --package-path "$srcroot" $flags benchmark "$@"
 }
 
 case "$command" in

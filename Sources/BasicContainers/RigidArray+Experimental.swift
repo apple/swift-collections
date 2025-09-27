@@ -17,7 +17,7 @@ import ContainersPreview
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 #if false // FIXME
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
@@ -32,7 +32,7 @@ extension RigidArray where Element: ~Copyable {
 #endif
 
 #if false // FIXME
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
@@ -47,7 +47,7 @@ extension RigidArray where Element: ~Copyable {
 #endif
 
 #if false // FIXME
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func reallocate<E: Error, R: ~Copyable>(
@@ -75,7 +75,7 @@ extension RigidArray where Element: ~Copyable {
 #endif
 
 #if false // FIXME
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Removes all the elements that satisfy the given predicate.
   ///

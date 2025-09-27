@@ -11,7 +11,7 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 public protocol Container<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable /*& ~Escapable*/
   associatedtype BorrowIterator: BorrowIteratorProtocol<Element> & ~Copyable & ~Escapable
@@ -23,7 +23,7 @@ public protocol Container<Element>: ~Copyable, ~Escapable {
   borrowing func startBorrowIteration() -> BorrowIterator
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
@@ -43,7 +43,7 @@ extension Container where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @inlinable
   public func borrowingReduce<Result: ~Copyable, E: Error>(

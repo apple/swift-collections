@@ -57,7 +57,7 @@ public struct UniqueArray<Element: ~Copyable>: ~Copyable {
 /// resizing array types as a matter of policy. The type `RigidArray` provides
 /// a fixed-capacity array variant that caters specifically for these use cases,
 /// trading ease-of-use for more consistent/predictable execution.
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 @frozen
 public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
@@ -74,12 +74,12 @@ public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray: Sendable where Element: Sendable & ~Copyable {}
 
 //MARK: - Basics
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
@@ -94,7 +94,7 @@ extension UniqueArray where Element: ~Copyable {
 
 //MARK: - Span creation
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   public var span: Span<Element> {
     @_lifetime(borrow self)
@@ -104,7 +104,7 @@ extension UniqueArray where Element: ~Copyable {
     }
   }
 
-  @available(SpanAvailability 1.0, *)
+  @available(SwiftStdlib 5.0, *)
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
     @inlinable
@@ -114,7 +114,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
@@ -143,7 +143,7 @@ extension UniqueArray where Element: ~Copyable {
 
 //MARK: - Container primitives
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
@@ -155,7 +155,7 @@ extension UniqueArray where Element: ~Copyable {
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray: Container where Element: ~Copyable {
   public typealias BorrowIterator = RigidArray<Element>.BorrowIterator
   
@@ -167,7 +167,7 @@ extension UniqueArray: Container where Element: ~Copyable {
 }
 #endif
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   public typealias Index = Int
 
@@ -194,7 +194,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @inlinable
   public mutating func swapAt(_ i: Int, _ j: Int) {
@@ -202,7 +202,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
@@ -217,7 +217,7 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @_lifetime(&self)
   public mutating func mutableSpan(
@@ -245,7 +245,7 @@ internal func _growDynamicArrayCapacity(_ capacity: Int) -> Int {
   return Int(bitPattern: c)
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @inlinable @inline(never)
   public mutating func reallocate(capacity: Int) {
