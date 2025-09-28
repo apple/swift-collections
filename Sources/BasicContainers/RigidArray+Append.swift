@@ -54,6 +54,21 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Append a given number of items to the end of this array by populating
+  /// an output span.
+  ///
+  /// If the array does not have sufficient capacity to store the new items in
+  /// the buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `count` items. The array is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public mutating func append<E: Error, Result: ~Copyable>(
     count: Int,
@@ -96,6 +111,16 @@ extension RigidArray where Element: ~Copyable {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Moves the elements of a input span to the end of this array, leaving the
+  /// span empty.
+  ///
+  /// If the array does not have sufficient capacity to hold all items in its
+  /// storage, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An input span whose contents need to be appended to this array.
+  ///
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
     moving items: inout InputSpan<Element>
@@ -108,6 +133,16 @@ extension RigidArray where Element: ~Copyable {
   }
 #endif
 
+  /// Moves the elements of an output span to the end of this array, leaving the
+  /// span empty.
+  ///
+  /// If the array does not have sufficient capacity to hold all items in its
+  /// storage, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An output span whose contents need to be appended to this array.
+  ///
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
     moving items: inout OutputSpan<Element>

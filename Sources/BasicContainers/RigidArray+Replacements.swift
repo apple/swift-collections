@@ -18,6 +18,36 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Replaces the specified range of elements by a given count of new items,
+  /// using a callback to directly initialize array storage by populating
+  /// an output span.
+  ///
+  /// This method has the effect of removing the specified range of elements
+  /// from the array and inserting room for the new elements starting at the
+  /// same location. The number of new elements need not match the number
+  /// of elements being removed.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// If you pass a zero-length range as the `subrange` parameter, then
+  /// this method is equivalent to calling
+  /// `insert(count: newCount, initializingWith: body)`.
+  ///
+  /// Likewise, if you pass a zero for `newCount`, then this method
+  /// removes the elements in the given subrange without any replacement.
+  /// Calling `removeSubrange(subrange)` is preferred in this case.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///      the range must be valid indices in the array.
+  ///   - newCount: the number of items to replace the old subrange.
+  ///   - body: A callback that gets called precisely once to directly
+  ///      populate newly reserved storage within the array. The function
+  ///      is called with an empty output span of capacity `newCount`,
+  ///      and it must fully populate it before returning.
+  ///
+  /// - Complexity: O(`self.count` + `newCount`)
   @inlinable
   public mutating func replaceSubrange<Result: ~Copyable>(
     _ subrange: Range<Int>,
@@ -54,7 +84,7 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
   /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// the `insert(moving:at:)` method instead is preferred in this case.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
@@ -81,6 +111,32 @@ extension RigidArray where Element: ~Copyable {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Replaces the specified range of elements by moving the contents of an
+  /// input span into their place. On return, the span is left empty.
+  ///
+  /// This method has the effect of removing the specified range of elements
+  /// from the array and inserting the new elements starting at the same
+  /// location. The number of new elements need not match the number of elements
+  /// being removed.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// If you pass a zero-length range as the `subrange` parameter, this method
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
+  /// the `insert(moving:at:)` method instead is preferred in this case.
+  ///
+  /// Likewise, if you pass a zero-length buffer as the `newElements`
+  /// parameter, this method removes the elements in the given subrange
+  /// without replacement. Calling the `removeSubrange(_:)` method instead is
+  /// preferred in this case.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///     the range must be valid indices in the array.
+  ///   - items: An input span whose contents are to be moved into the array.
+  ///
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
@@ -94,6 +150,32 @@ extension RigidArray where Element: ~Copyable {
   }
 #endif
 
+  /// Replaces the specified range of elements by moving the contents of an
+  /// output span into their place. On return, the span is left empty.
+  ///
+  /// This method has the effect of removing the specified range of elements
+  /// from the array and inserting the new elements starting at the same
+  /// location. The number of new elements need not match the number of elements
+  /// being removed.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// If you pass a zero-length range as the `subrange` parameter, this method
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
+  /// the `insert(moving:at:)` method instead is preferred in this case.
+  ///
+  /// Likewise, if you pass a zero-length buffer as the `newElements`
+  /// parameter, this method removes the elements in the given subrange
+  /// without replacement. Calling the `removeSubrange(_:)` method instead is
+  /// preferred in this case.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///     the range must be valid indices in the array.
+  ///   - items: An output span whose contents are to be moved into the array.
+  ///
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
