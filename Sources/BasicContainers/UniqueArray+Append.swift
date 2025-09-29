@@ -21,11 +21,12 @@ extension UniqueArray where Element: ~Copyable {
   /// Adds an element to the end of the array.
   ///
   /// If the array does not have sufficient capacity to hold any more elements,
-  /// then this reallocates the array's storage to grow its capacity.
+  /// then this reallocates the array's storage to grow its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameter item: The element to append to the collection.
   ///
-  /// - Complexity: O(1) when amortized over many invocations on the same array
+  /// - Complexity: O(1) as amortized over many invocations on the same array.
   @inlinable
   public mutating func append(_ item: consuming Element) {
     _ensureFreeCapacity(1)
@@ -35,6 +36,22 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  /// Append a given number of items to the end of this array by populating
+  /// an output span.
+  ///
+  /// If the array does not have sufficient capacity to hold the requested
+  /// number of new elements, then this reallocates the array's storage to
+  /// grow its capacity, using a geometric growth rate.
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `count` items. The array is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public mutating func append<E: Error, Result: ~Copyable>(
     count: Int,
@@ -51,14 +68,14 @@ extension UniqueArray where Element: ~Copyable {
   /// buffer uninitialized.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
-  /// buffer, then this reallocates the array's storage to grow its capacity.
+  /// buffer, then this reallocates the array's storage to grow its capacity,
+  /// using a geometric growth rate.
   ///
   /// - Parameters
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///
-  /// - Complexity: O(`items.count`) when amortized over many invocations on
-  ///     the same array
+  /// - Complexity: O(`count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
     moving items: UnsafeMutableBufferPointer<Element>
@@ -68,6 +85,17 @@ extension UniqueArray where Element: ~Copyable {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Moves the elements of a input span to the end of this array, leaving the
+  /// span empty.
+  ///
+  /// If the array does not have sufficient capacity to hold all new items,
+  /// then this reallocates the array's storage to grow its capacity,
+  /// using a geometric growth rate.
+  ///
+  /// - Parameters
+  ///    - items: An input span whose contents need to be appended to this array.
+  ///
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
     moving items: inout InputSpan<Element>
@@ -77,6 +105,17 @@ extension UniqueArray where Element: ~Copyable {
   }
 #endif
 
+  /// Moves the elements of a output span to the end of this array, leaving the
+  /// span empty.
+  ///
+  /// If the array does not have sufficient capacity to hold all new items,
+  /// then this reallocates the array's storage to grow its capacity,
+  /// using a geometric growth rate.
+  ///
+  /// - Parameters
+  ///    - items: An output span whose contents need to be appended to this array.
+  ///
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
     moving items: inout OutputSpan<Element>
@@ -91,7 +130,7 @@ extension UniqueArray where Element: ~Copyable {
   ///
   /// If the target array does not have sufficient capacity to hold all items
   /// in the source array, then this automatically grows the target array's
-  /// capacity.
+  /// capacity, using a geometric growth rate.
   ///
   /// - Parameters
   ///    - items: An array whose items to move to the end of this array.
@@ -108,14 +147,15 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Appends the elements of a given container to the end of this array by
   /// consuming the source container.
   ///
   /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
+  /// in the source array, then this automatically grows the target array's
+  /// capacity, using a geometric growth rate.
   ///
   /// - Parameters
   ///    - items: An array whose items to move to the end of this array.
@@ -129,15 +169,16 @@ extension UniqueArray where Element: ~Copyable {
     var items = items
     self.append(moving: &items)
   }
-}
 #endif
+}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray {
   /// Copies the elements of a buffer to the end of this array.
   ///
-  /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// If the array does not have sufficient capacity to hold all items
+  /// in the source buffer, then this automatically grows the array's
+  /// capacity, using a geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: A fully initialized buffer whose contents to copy into
@@ -156,7 +197,8 @@ extension UniqueArray {
   /// Copies the elements of a buffer to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using
+  /// a geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: A fully initialized buffer whose contents to copy into
@@ -174,7 +216,8 @@ extension UniqueArray {
   /// Copies the elements of a span to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: A span whose contents to copy into the array.
@@ -191,7 +234,8 @@ extension UniqueArray {
   /// Copies the elements of a container to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using
+  /// a geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: A container whose contents to copy into the array.
@@ -214,8 +258,10 @@ extension UniqueArray {
   /// Copies the elements of a sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity. This
-  /// reallocation can happen multiple times.
+  /// then this reallocates the array's storage to extend its capacity, using
+  /// a geometric growth rate. If the input sequence does not provide a correct
+  /// estimate of its count, then the array's storage may need to be resized
+  /// more than once.
   ///
   /// - Parameters
   ///    - newElements: The new elements to copy into the array.
@@ -243,7 +289,8 @@ extension UniqueArray {
   /// Copies the elements of a container to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: A container whose contents to copy into the array.
@@ -259,7 +306,6 @@ extension UniqueArray {
     _storage._append(copyingContainer: newElements)
   }
 #endif
-
 }
 
 #endif

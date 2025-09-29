@@ -23,7 +23,7 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new array.
-  ///    - body: A callback that gets called precisely once to directly
+  ///   - body: A callback that gets called precisely once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to add fewer than `capacity` items. The array is
   ///       initialized with however many items the callback adds to the
@@ -47,10 +47,24 @@ extension RigidArray /*where Element: Copyable*/ {
   ///   - repeatedValue: The element to repeat.
   ///   - count: The number of times to repeat the value passed in the
   ///     `repeating` parameter. `count` must be zero or greater.
+  ///
+  /// - Complexity: O(`count`)
   public init(repeating repeatedValue: Element, count: Int) {
     self.init(capacity: count)
     unsafe _freeSpace.initialize(repeating: repeatedValue)
     _count = count
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+  /// Creates a new rigid array taking over the storage of the specified
+  /// unique array instance, consuming it in the process.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public init(consuming array: consuming UniqueArray<Element>) {
+    self = array._storage
   }
 }
 

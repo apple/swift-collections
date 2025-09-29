@@ -178,9 +178,9 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Appends the elements of a given container to the end of this array by
   /// consuming the source container.
   ///
@@ -200,8 +200,8 @@ extension RigidArray where Element: ~Copyable {
     var items = items
     self.append(moving: &items)
   }
-}
 #endif
+}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray {

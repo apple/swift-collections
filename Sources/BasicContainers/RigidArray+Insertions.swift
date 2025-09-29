@@ -62,7 +62,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - count: The number of items to insert into the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
@@ -221,6 +221,7 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Inserts the elements of a given array into the given position in this
   /// array by consuming the source container.
   ///
@@ -242,9 +243,11 @@ extension RigidArray where Element: ~Copyable {
     consuming items: consuming RigidArray<Element>,
     at index: Int
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
     var items = items
     self.insert(moving: &items, at: index)
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

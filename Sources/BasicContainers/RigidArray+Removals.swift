@@ -119,6 +119,22 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+  /// Removes and returns the last element of the array, if there is one.
+  ///
+  /// - Returns: The last element of the array if the array is not empty;
+  ///     otherwise, `nil`.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  public mutating func popLast() -> Element? {
+    // FIXME: Remove this in favor of a standard algorithm.
+    if isEmpty { return nil }
+    return removeLast()
+  }
+}
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
@@ -126,8 +142,7 @@ extension RigidArray where Element: ~Copyable {
   /// allow them to be consumed in place.
   /// The input span extends the exclusive mutating access initiated by this
   /// operation to cover the span's lifetime. Once the span is destroyed,
-  /// the array becomes empty, but it still holds its original storage capacity,
-  /// and it will be ready to use it to hold new items.
+  /// the array becomes empty, but it preserves its original storage capacity.
   ///
   /// - Complexity: O(*n*), where *n* is the original count of the array.
   @_lifetime(&self)
@@ -197,21 +212,5 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 #endif
-
-@available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
-  /// Removes and returns the last element of the array, if there is one.
-  ///
-  /// - Returns: The last element of the array if the array is not empty;
-  ///     otherwise, `nil`.
-  ///
-  /// - Complexity: O(1)
-  @_alwaysEmitIntoClient
-  public mutating func popLast() -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
-    if isEmpty { return nil }
-    return removeLast()
-  }
-}
 
 #endif

@@ -21,7 +21,8 @@ extension UniqueArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
   ///
   /// If the array does not have sufficient capacity to hold any more elements,
-  /// then this reallocates storage to extend its capacity.
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
   ///
   /// The new element is inserted before the element currently at the specified
   /// index. If you pass the array's `endIndex` as the `index` parameter, then
@@ -46,6 +47,27 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  /// Inserts a given number of new items into this array at the specified
+  /// position, using a callback to directly initialize array storage by
+  /// populating an output span.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the array does not have sufficient capacity to hold the new elements,
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
+  ///
+  /// - Parameters:
+  ///    - count: The number of items to insert into the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is called with an empty output span of capacity matching the
+  ///       supplied count, and it must fully populate it before returning.
+  ///
+  /// - Complexity: O(`self.count` + `count`)
   @inlinable
   public mutating func insert<Result: ~Copyable>(
     count: Int,
@@ -65,7 +87,8 @@ extension UniqueArray where Element: ~Copyable {
   /// uninitialized.
   ///
   /// If the array does not have sufficient capacity to hold all elements,
-  /// then this reallocates storage to extend its capacity.
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
   ///
   /// - Parameters
   ///    - items: A fully initialized buffer whose contents to move into
@@ -83,6 +106,23 @@ extension UniqueArray where Element: ~Copyable {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Moves the elements of an input span into this array,
+  /// starting at the specified position, and leaving the span empty.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the array does not have sufficient capacity to hold the new elements,
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
+  ///
+  /// - Parameters
+  ///    - items: An input span whose contents to move into
+  ///        the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func insert(
     moving items: inout InputSpan<Element>,
@@ -93,6 +133,23 @@ extension UniqueArray where Element: ~Copyable {
   }
 #endif
 
+  /// Moves the elements of an output span into this array,
+  /// starting at the specified position, and leaving the span empty.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the array does not have sufficient capacity to hold the new elements,
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
+  ///
+  /// - Parameters
+  ///    - items: An output span whose contents to move into
+  ///        the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func insert(
     moving items: inout OutputSpan<Element>,
@@ -108,7 +165,8 @@ extension UniqueArray where Element: ~Copyable {
   /// storage capacity.
   ///
   /// If the array does not have sufficient capacity to hold all elements,
-  /// then this reallocates storage to extend its capacity.
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
   ///
   /// - Parameters
   ///    - items: An array whose contents to move into `self`.
@@ -127,11 +185,13 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Inserts the elements of a given array into the given position in this
   /// array by consuming the source container.
   ///
   /// If the array does not have sufficient capacity to hold all elements,
-  /// then this reallocates storage to extend its capacity.
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
   ///
   /// - Parameters
   ///    - items: A fully initialized buffer whose contents to move into
@@ -143,10 +203,12 @@ extension UniqueArray where Element: ~Copyable {
     consuming items: consuming RigidArray<Element>,
     at index: Int
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
     // FIXME: Avoid moving the subsequent elements twice.
     _ensureFreeCapacity(items.count)
     _storage.insert(consuming: items, at: index)
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -162,7 +224,8 @@ extension UniqueArray {
   /// make room for the new item.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: The new elements to insert into the array. The buffer
@@ -191,7 +254,8 @@ extension UniqueArray {
   /// make room for the new item.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: The new elements to insert into the array. The buffer
@@ -218,7 +282,8 @@ extension UniqueArray {
   /// make room for the new item.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: The new elements to insert into the array.
@@ -247,7 +312,8 @@ extension UniqueArray {
   /// make room for the new item.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: The new elements to insert into the array.
@@ -281,7 +347,8 @@ extension UniqueArray {
   /// to make room for the new item.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: The new elements to insert into the array.
@@ -312,7 +379,8 @@ extension UniqueArray {
   /// make room for the new item.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
-  /// then this reallocates the array's storage to extend its capacity.
+  /// then this reallocates the array's storage to extend its capacity, using a
+  /// geometric growth rate.
   ///
   /// - Parameters
   ///    - newElements: The new elements to insert into the array.

@@ -231,6 +231,7 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Replaces the specified range of elements by moving the elements of a
   /// given array into their place, consuming it in the process.
   ///
@@ -262,8 +263,10 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     consuming newElements: consuming RigidArray<Element>,
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
     replaceSubrange(subrange, moving: &newElements)
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

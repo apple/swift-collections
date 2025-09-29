@@ -8,6 +8,7 @@
 - ``init(capacity:)``
 - ``init(capacity:initializingWith:)``
 - ``init(repeating:count:)``
+- ``init(consuming:)``
 - ``init(capacity:copying:)-(_,Sequence<Element>)``
 - ``init(capacity:copying:)-(_,Collection<Element>)``
 
@@ -21,6 +22,7 @@
 
 ### Indices
 
+- ``Index``
 - ``startIndex``
 - ``endIndex``
 - ``indices``
