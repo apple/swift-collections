@@ -73,6 +73,8 @@ foreach(def ${availability_defs})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-enable-experimental-feature \"AvailabilityMacro=${def}\">")
 endforeach()
 
+add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-package-name swift-collections>")
+
 add_subdirectory(Sources)
 # if(BUILD_TESTING)
 #   add_subdirectory(Tests)
