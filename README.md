@@ -10,10 +10,6 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
-- [`UniqueArray`][UniqueArray], a dynamically self-resizing, heap allocated, noncopyable array of potentially noncopyable elements.
-
-- [`RigidArray`][RigidArray], a fixed capacity, heap allocated, noncopyable array of potentially noncopyable elements.
-
 - [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
 
 - [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
@@ -26,8 +22,10 @@ The package currently provides the following implementations:
 
 - [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.
 
-[RigidArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/rigidarray
-[UniqueArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/uniquearray
+- [`UniqueArray`][UniqueArray] and [`RigidArray`][RigidArray], noncopyable array variants trading some of `Array`'s flexibility for more predictable performance.
+
+- [`TrailingArray`][TrailingArray], a low-level, ownership-aware variant of `ManagedBuffer`, for interoperability with C constructs that consist of a fixed-size header directly followed by variable-size storage buffer.
+
 [BitSet]: https://swiftpackageindex.com/apple/swift-collections/documentation/bitcollections/bitset
 [BitArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/bitcollections/bitarray
 [Deque]: https://swiftpackageindex.com/apple/swift-collections/documentation/dequemodule/deque
@@ -36,8 +34,11 @@ The package currently provides the following implementations:
 [OrderedDictionary]: https://swiftpackageindex.com/apple/swift-collections/documentation/orderedcollections/ordereddictionary
 [TreeSet]: https://swiftpackageindex.com/apple/swift-collections/documentation/hashtreecollections/treeset
 [TreeDictionary]: https://swiftpackageindex.com/apple/swift-collections/documentation/hashtreecollections/treedictionary
+[RigidArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/rigidarray
+[UniqueArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/basiccontainers/uniquearray
+[TrailingArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/trailingelementsmodule/trailingarray
 
-Swift Collections uses the same modularization approach as [**Swift Numerics**](https://github.com/apple/swift-numerics): it provides a standalone module for each thematic group of data structures it implements. For instance, if you only need a double-ended queue type, you can pull in only that by importing `DequeModule`. `OrderedSet` and `OrderedDictionary` share much of the same underlying implementation, so they are provided by a single module, called `OrderedCollections`. However, there is also a top-level `Collections` module that gives you every collection type with a single import statement:
+Swift Collections uses the same modularization approach as [**Swift Numerics**](https://github.com/apple/swift-numerics): it provides a standalone module for each thematic group of data structures it implements. For instance, if you only need a double-ended queue type, you can pull in only that by importing `DequeModule`. `OrderedSet` and `OrderedDictionary` share much of the same underlying implementation, so they are provided by a single module, called `OrderedCollections`. However, there is also a top-level `Collections` module that gives you the most commonly used collection types with a single import statement:
 
 ``` swift
 import Collections
@@ -95,7 +96,7 @@ The following table maps package releases to their minimum required Swift toolch
 To use this package in a SwiftPM project, you need to set it up as a package dependency:
 
 ```swift
-// swift-tools-version:6.1
+// swift-tools-version:6.2
 import PackageDescription
 
 let package = Package(
@@ -132,14 +133,14 @@ We maintain separate branches for each minor version of the package:
 | Package version         | Branch      | Status   |
 | ----------------------- | ----------- | -------- |
 | swift-collections 1.0.x | release/1.0 | Obsolete |
-| swift-collections 1.1.x | release/1.1 | Critical bugfixes only |
-| swift-collections 1.2.x | release/1.2 | Critical bugfixes only |
+| swift-collections 1.1.x | release/1.1 | Obsolete |
+| swift-collections 1.2.x | release/1.2 | Bugfixes only |
 | swift-collections 1.3.x | release/1.3 | Bugfixes only |
 | n.a.                    | main        | Feature work towards next minor release |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
 
-`release/1.0` → `release/1.1` → `release/1.2` → `release/1.3` → `main`
+`release/1.1` → `release/1.2` → `release/1.3` → `main`
 
 For example, anything landing on `release/1.2` will eventually appear on `release/1.3` and then `main` too; there is no need to file standalone PRs for each release line. Change propagation is not instantaneous, as it currently requires manual work -- it is performed by project maintainers.
 
