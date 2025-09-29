@@ -67,7 +67,6 @@ func withSomeArrayLayouts<E: Error>(
 }
 
 #if compiler(>=6.2)
-@available(SpanAvailability 1.0, *)
 extension RigidArray where Element: ~Copyable {
   init(layout: ArrayLayout, using generator: (Int) -> Element) {
     self.init(capacity: layout.capacity) { span in
@@ -78,14 +77,12 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
 extension UniqueArray where Element: ~Copyable {
   init(layout: ArrayLayout, using generator: (Int) -> Element) {
     self.init(consuming: RigidArray(layout: layout, using: generator))
   }
 }
 
-@available(SpanAvailability 1.0, *)
 extension LifetimeTracker {
   func rigidArray<Element>(
     layout: ArrayLayout,

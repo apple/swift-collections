@@ -13,7 +13,7 @@
 import XCTest
 import ContainersPreview
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkContainer<
   C: Container & ~Copyable & ~Escapable,
@@ -31,7 +31,7 @@ public func checkContainer<
     file: file, line: line)
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkContainer<
   C: Container & ~Copyable & ~Escapable,

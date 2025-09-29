@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Inserts a new element into the array at the specified position.
   ///
@@ -31,10 +31,10 @@ extension RigidArray where Element: ~Copyable {
   /// make room for the new item.
   ///
   /// - Parameter item: The new element to insert into the array.
-  /// - Parameter i: The position at which to insert the new element.
+  /// - Parameter index: The position at which to insert the new element.
   ///   `index` must be a valid index in the array.
   ///
-  /// - Complexity: O(`count`)
+  /// - Complexity: O(`self.count`)
   @inlinable
   public mutating func insert(_ item: consuming Element, at index: Int) {
     precondition(index >= 0 && index <= count, "Index out of bounds")
@@ -50,8 +50,28 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Inserts a given number of new items into this array at the specified
+  /// position, using a callback to directly initialize array storage by
+  /// populating an output span.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// - Parameters:
+  ///    - count: The number of items to insert into the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is called with an empty output span of capacity matching the
+  ///       supplied count, and it must fully populate it before returning.
+  ///
+  /// - Complexity: O(`self.count` + `count`)
   @inlinable
   public mutating func insert<Result: ~Copyable>(
     count: Int,
@@ -73,20 +93,25 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Moves the elements of a fully initialized buffer into this array,
   /// starting at the specified position, and leaving the buffer
   /// uninitialized.
   ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// buffer, then this triggers a runtime error.
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// - Parameters
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
   ///
-  /// - Complexity: O(`count` + `items.count`)
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func insert(
     moving items: UnsafeMutableBufferPointer<Element>,
@@ -101,6 +126,22 @@ extension RigidArray where Element: ~Copyable {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Moves the elements of an input span into this array,
+  /// starting at the specified position, and leaving the span empty.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An input span whose contents to move into
+  ///        the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func insert(
     moving items: inout InputSpan<Element>,
@@ -114,6 +155,22 @@ extension RigidArray where Element: ~Copyable {
   }
 #endif
 
+  /// Moves the elements of an output span into this array,
+  /// starting at the specified position, and leaving the span empty.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An output span whose contents to move into
+  ///        the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///
+  /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
   public mutating func insert(
     moving items: inout OutputSpan<Element>,
@@ -131,11 +188,16 @@ extension RigidArray where Element: ~Copyable {
   /// becomes empty, but it is not destroyed, and it preserves its original
   /// storage capacity.
   ///
-  /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// - Parameters
   ///    - items: An array whose contents to move into `self`.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
   ///
   /// - Complexity: O(`count` + `items.count`)
   @_alwaysEmitIntoClient
@@ -157,17 +219,23 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Inserts the elements of a given array into the given position in this
   /// array by consuming the source container.
   ///
-  /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
   ///
   /// - Parameters
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
   ///
   /// - Complexity: O(`count` + `items.count`)
   @_alwaysEmitIntoClient
@@ -175,12 +243,14 @@ extension RigidArray where Element: ~Copyable {
     consuming items: consuming RigidArray<Element>,
     at index: Int
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
     var items = items
     self.insert(moving: &items, at: index)
   }
+#endif
 }
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray {
   /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
@@ -190,7 +260,7 @@ extension RigidArray {
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved to
-  /// make room for the new item.
+  /// make room for the new items.
   ///
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -336,8 +406,7 @@ extension RigidArray {
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
   ///
-  /// - Complexity: O(*n* + *m*), where *n* is count of this array and
-  ///    *m* is the count of `newElements`.
+  /// - Complexity: O(`self.count` + `newElements.count`).
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -397,8 +466,7 @@ extension RigidArray {
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
   ///
-  /// - Complexity: O(*n* + *m*), where *n* is count of this array and
-  ///    *m* is the count of `newElements`.
+  /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

@@ -16,7 +16,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Removes all elements from the array, preserving its allocated capacity.
   ///
@@ -119,9 +119,32 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SpanAvailability 1.0, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Removes and returns the last element of the array, if there is one.
+  ///
+  /// - Returns: The last element of the array if the array is not empty;
+  ///     otherwise, `nil`.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  public mutating func popLast() -> Element? {
+    // FIXME: Remove this in favor of a standard algorithm.
+    if isEmpty { return nil }
+    return removeLast()
+  }
+}
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+  /// Remove all items currently in this array, returning an input span to
+  /// allow them to be consumed in place.
+  /// The input span extends the exclusive mutating access initiated by this
+  /// operation to cover the span's lifetime. Once the span is destroyed,
+  /// the array becomes empty, but it preserves its original storage capacity.
+  ///
+  /// - Complexity: O(*n*), where *n* is the original count of the array.
   @_lifetime(&self)
   @_alwaysEmitIntoClient
   public mutating func consumeAll() -> InputSpan<Element> {
@@ -130,18 +153,40 @@ extension RigidArray where Element: ~Copyable {
     return _overrideLifetime(span, mutating: &self)
   }
 
+  /// Remove the specified number of items from the end of this array,
+  /// returning an input span to allow them to be consumed in place.
+  /// The input span extends the exclusive mutating access initiated by this
+  /// operation to cover the span's lifetime.
+  ///
+  /// - Parameter n: The number of items to consume from the end of the array.
+  ///   `n` must be greater than or equal to zero and must not exceed
+  ///   the count of the array.
+  ///
+  /// - Complexity: O(`n`)
   @_lifetime(&self)
   @_alwaysEmitIntoClient
-  public mutating func consumeLast(_ count: Int) -> InputSpan<Element> {
-    precondition(count >= 0, "Cannot consume a negative number of items")
-    let c = Swift.min(count, self.count)
-    self._count &-= c
+  public mutating func consumeLast(_ n: Int) -> InputSpan<Element> {
+    precondition(
+      n >= 0 && n <= _count,
+      "Count of elements to consume is out of bounds")
+    self._count &-= n
     let span = InputSpan(
-      buffer: self._storage._extracting(first: c),
-      initializedCount: c)
+      buffer: self._storage._extracting(first: n),
+      initializedCount: n)
     return _overrideLifetime(span, mutating: &self)
   }
 
+  /// Remove the specified subrange of items from this array,
+  /// passing an input span to the given function to consume them in place.
+  ///
+  /// - Parameter bounds: The subrange of items to consume from this array.
+  /// - Parameter body: A function taking an input span of the removed items,
+  ///    allowing them to be consumed straight out of the array's storage.
+  ///    The function is not required to consume all items in the span;
+  ///    however, the span's remaining items will still be removed from
+  ///    the array.
+  ///
+  /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
   public mutating func consumeSubrange<E: Error, Result: ~Copyable>(
     _ bounds: Range<Int>,
@@ -167,21 +212,5 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 #endif
-
-@available(SpanAvailability 1.0, *)
-extension RigidArray where Element: ~Copyable {
-  /// Removes and returns the last element of the array, if there is one.
-  ///
-  /// - Returns: The last element of the array if the array is not empty;
-  ///     otherwise, `nil`.
-  ///
-  /// - Complexity: O(1)
-  @_alwaysEmitIntoClient
-  public mutating func popLast() -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
-    if isEmpty { return nil }
-    return removeLast()
-  }
-}
 
 #endif
