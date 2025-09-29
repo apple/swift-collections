@@ -209,21 +209,6 @@ let targets: [CustomTarget] = [
     name: "InternalCollectionsUtilities",
     exclude: [
       "CMakeLists.txt",
-      "Debugging.swift.gyb",
-      "Descriptions.swift.gyb",
-      "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift.gyb",
-      "IntegerTricks/Integer rank.swift.gyb",
-      "IntegerTricks/UInt+first and last set bit.swift.gyb",
-      "IntegerTricks/UInt+reversed.swift.gyb",
-      "RandomAccessCollection+Offsets.swift.gyb",
-      "UnsafeBitSet/_UnsafeBitSet+Index.swift.gyb",
-      "UnsafeBitSet/_UnsafeBitSet+_Word.swift.gyb",
-      "UnsafeBitSet/_UnsafeBitSet.swift.gyb",
-      "UnsafeBufferPointer+Extras.swift.gyb",
-      "UnsafeMutableBufferPointer+Extras.swift.gyb",
-      "UnsafeRawBufferPointer+Extras.swift.gyb",
-      "UnsafeMutableRawBufferPointer+Extras.swift.gyb",
-      "LifetimeOverride.swift.gyb",
     ]),
 
   .target(

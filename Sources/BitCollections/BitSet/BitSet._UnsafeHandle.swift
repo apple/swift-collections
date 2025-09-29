@@ -37,7 +37,7 @@ extension _UnsafeBitSet {
 
 extension _UnsafeBitSet {
   @inlinable
-  public mutating func combineSharedPrefix(
+  internal mutating func combineSharedPrefix(
     with other: Self,
     using function: (inout _Word, _Word) -> Void
   ) {
@@ -51,7 +51,7 @@ extension _UnsafeBitSet {
 
 extension _UnsafeBitSet {
   @_effects(releasenone)
-  public mutating func formUnion(_ range: Range<UInt>) {
+  internal mutating func formUnion(_ range: Range<UInt>) {
     ensureMutable()
     let l = Index(range.lowerBound)
     let u = Index(range.upperBound)
@@ -73,7 +73,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public mutating func formIntersection(_ range: Range<UInt>) {
+  internal mutating func formIntersection(_ range: Range<UInt>) {
     ensureMutable()
     let l = Index(Swift.min(range.lowerBound, capacity))
     let u = Index(Swift.min(range.upperBound, capacity))
@@ -98,7 +98,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public mutating func formSymmetricDifference(_ range: Range<UInt>) {
+  internal mutating func formSymmetricDifference(_ range: Range<UInt>) {
     ensureMutable()
     let l = Index(range.lowerBound)
     let u = Index(range.upperBound)
@@ -121,7 +121,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public mutating func subtract(_ range: Range<UInt>) {
+  internal mutating func subtract(_ range: Range<UInt>) {
     ensureMutable()
     let l = Index(Swift.min(range.lowerBound, capacity))
     let u = Index(Swift.min(range.upperBound, capacity))
@@ -141,7 +141,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public func isDisjoint(with range: Range<UInt>) -> Bool {
+  internal func isDisjoint(with range: Range<UInt>) -> Bool {
     if self.isEmpty { return true }
     let lower = Index(Swift.min(range.lowerBound, capacity))
     let upper = Index(Swift.min(range.upperBound, capacity))
@@ -167,7 +167,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public func isSubset(of range: Range<UInt>) -> Bool {
+  internal func isSubset(of range: Range<UInt>) -> Bool {
     guard !range.isEmpty else { return isEmpty }
     guard !_words.isEmpty else { return true }
     let r = range.clamped(to: 0 ..< UInt(capacity))
@@ -193,7 +193,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public func isSuperset(of range: Range<UInt>) -> Bool {
+  internal func isSuperset(of range: Range<UInt>) -> Bool {
     guard !range.isEmpty else { return true }
     let r = range.clamped(to: 0 ..< UInt(capacity))
     guard r == range else { return false }
@@ -218,7 +218,7 @@ extension _UnsafeBitSet {
   }
 
   @_effects(releasenone)
-  public func isEqualSet(to range: Range<UInt>) -> Bool {
+  internal func isEqualSet(to range: Range<UInt>) -> Bool {
     if range.isEmpty { return self.isEmpty }
     let r = range.clamped(to: 0 ..< UInt(capacity))
     guard r == range else { return false }
