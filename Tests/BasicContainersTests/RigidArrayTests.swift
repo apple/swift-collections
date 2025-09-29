@@ -452,7 +452,7 @@ class RigidArrayTests: CollectionTestCase {
         let a = tracker.rigidArray(layout: layout)
         let b = a.copy()
         expectEqual(b.count, layout.count)
-        expectEqual(b.capacity, layout.capacity)
+        expectEqual(b.capacity, layout.count)
         expectEqual(tracker.instances, layout.count)
         expectContainerContents(a, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
         expectContainerContents(b, equivalentTo: 0 ..< layout.count, by: { $0.payload == $1 })
