@@ -15,10 +15,7 @@ cmake_minimum_required(VERSION 3.16)
 project(SwiftCollections
   LANGUAGES C Swift)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules)
-
-set(CMAKE_Swift_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/swift)
-set(CMAKE_Swift_COMPILE_OPTIONS_MSVC_RUNTIME_LIBRARY MultiThreadedDLL)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 if(NOT SWIFT_SYSTEM_NAME)
   if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
@@ -43,6 +40,7 @@ endif()
 
 option(COLLECTIONS_SINGLE_MODULE "Build as a single module" NO)
 option(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE "Build a module for Foundation in the toolchain" NO)
+option(COLLECTIONS_INSTALL_ARCH_SUBDIR "Install libraries under an architecture subdirectory" NO)
 
 if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
   set(COLLECTIONS_SINGLE_MODULE YES)

@@ -28,7 +28,6 @@ if(COLLECTIONS_SINGLE_MODULE)
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
   if(COLLECTIONS_FOUNDATION_TOOLCHAIN_MODULE)
-    get_swift_host_os(swift_os)
     if(BUILD_SHARED_LIBS)
       # Install only the swift module and not the library
       set(swift swift)
@@ -36,16 +35,16 @@ if(COLLECTIONS_SINGLE_MODULE)
       # Install both the swift module and the binary
       set(swift swift_static)
       install(TARGETS ${COLLECTIONS_MODULE_NAME}
-          ARCHIVE DESTINATION lib/swift_static/${swift_os}
-          LIBRARY DESTINATION lib/swift_static/${swift_os}
+          ARCHIVE DESTINATION lib/swift_static/${COLLECTIONS_PLATFORM}$<$<BOOL:${COLLECTIONS_INSTALL_ARCH_SUBDIR}>:/${COLLECTIONS_ARCH}>
+          LIBRARY DESTINATION lib/swift_static/${COLLECTIONS_PLATFORM}$<$<BOOL:${COLLECTIONS_INSTALL_ARCH_SUBDIR}>:/${COLLECTIONS_ARCH}>
           RUNTIME DESTINATION bin)
     endif()
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftdoc
-      DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftdoc)
+      DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${COLLECTIONS_MODULE_NAME}.swiftmodule
+      RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftdoc)
     install(FILES $<TARGET_PROPERTY:${COLLECTIONS_MODULE_NAME},Swift_MODULE_DIRECTORY>/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      DESTINATION lib/${swift}/${swift_os}/${COLLECTIONS_MODULE_NAME}.swiftmodule
-      RENAME ${SwiftCollections_MODULE_TRIPLE}.swiftmodule)
+      DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${COLLECTIONS_MODULE_NAME}.swiftmodule
+      RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftmodule)
   else()
     _install_target(${COLLECTIONS_MODULE_NAME})
   endif()
