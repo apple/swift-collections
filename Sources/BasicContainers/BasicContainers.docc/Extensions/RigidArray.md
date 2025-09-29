@@ -79,7 +79,7 @@
 
 - ``replaceSubrange(_:newCount:initializingWith:)``
 - ``replaceSubrange(_:moving:)-(_,OutputSpan<Element>)``
-- ``replaceSubrange(_:moving:)-(_,RigidArray<Element>))``
+- ``replaceSubrange(_:moving:)-(_,RigidArray<Element>)``
 - ``replaceSubrange(_:moving:)-(_,UnsafeMutableBufferPointer<Element>)``
 - ``replaceSubrange(_:consuming:)``
 - ``replaceSubrange(_:copying:)-(_,Collection<Element>)``

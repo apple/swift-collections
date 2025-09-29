@@ -8,7 +8,7 @@ This currently consists of two noncopyable variants of the standard `Array` type
 
 Unlike `Array`, these new types do not support copy-on-write value semantics -- indeed, they aren't (implicitly) copyable at all, even if their element type happens to be copyable.
 
-### `struct UniqueArray`
+### struct UniqueArray
 
 ``UniqueArray`` is a dynamically self-resizing array type that automatically grows its storage as needed to accommodate inserted items. Its name highlights that unlike `Array`, instances of this type are always uniquely owned, never shared. Mutations of a `UniqueArray` therefore never need to copy their storage. 
 
@@ -41,7 +41,7 @@ Note how preserving a copy of the array at the start of the loop forces the subs
 
 Taking away the freedom to make implicit copies forces you to think a lot more about ownership concerns when using this type -- it can feel a lot more constrained and nitpicky. In exchange though, it gets much easier to reason about the runtime performance of your code; the subscript mutation looks the same as before, but now it is guaranteed to _always_ have constant complexity.
 
-### `struct RigidArray`
+### struct RigidArray
 
 ``RigidArray`` goes a step even further than ``UniqueArray`` by also disabling automatic storage reallocations: it is a fixed-capacity array type. Rigid array instances get created with a specific capacity, and they never resize themselves. If they run out of room, they report a runtime error!
 
@@ -62,7 +62,7 @@ This allows ``RigidArray`` to still provide _explicit_ resizing operations: it h
 
 ## Topics
 
-### Structures
+### Types
 
 - ``UniqueArray``
 - ``RigidArray``

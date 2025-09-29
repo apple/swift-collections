@@ -2,7 +2,7 @@
 
 ## Topics
 
-### Creating a rigid array
+### Creating a Unique Array
 
 - ``init()``
 - ``init(capacity:)``
@@ -12,7 +12,7 @@
 - ``init(capacity:copying:)-(_,Sequence<Element>)``
 - ``init(capacity:copying:)-(_,Collection<Element>)``
 
-### Inspecting a rigid array
+### Inspecting a Unique Array
 
 - ``isEmpty``
 - ``isFull``
@@ -27,13 +27,13 @@
 - ``endIndex``
 - ``indices``
 
-### Accessing elements
+### Accessing Elements
 
 - ``subscript(position:)``
 - ``swapAt(_:_:)``
 - ``edit(_:)``
 
-### Memory management
+### Memory Management
 
 - ``reallocate(capacity:)``
 - ``reserveCapacity(_:)``
@@ -49,7 +49,7 @@
 - ``mutableSpan(after:)``
 - ``mutableSpan(before:)``
 
-### Appending items
+### Appending Items
 
 - ``append(_:)``
 - ``pushLast(_:)``
@@ -62,7 +62,7 @@
 - ``append(copying:)-(UnsafeBufferPointer<Element>)``
 - ``append(copying:)-(UnsafeMutableBufferPointer<Element>)``
 
-### Inserting items
+### Inserting Items
 
 - ``insert(_:at:)``
 - ``insert(count:at:initializingWith:)``
@@ -75,11 +75,11 @@
 - ``insert(copying:at:)-(UnsafeBufferPointer<Element>,_)``
 - ``insert(copying:at:)-(UnsafeMutableBufferPointer<Element>,_)``
 
-### Replacing items
+### Replacing Items
 
 - ``replaceSubrange(_:newCount:initializingWith:)``
 - ``replaceSubrange(_:moving:)-(_,OutputSpan<Element>)``
-- ``replaceSubrange(_:moving:)-(_,RigidArray<Element>))``
+- ``replaceSubrange(_:moving:)-(_,RigidArray<Element>)``
 - ``replaceSubrange(_:moving:)-(_,UnsafeMutableBufferPointer<Element>)``
 - ``replaceSubrange(_:consuming:)``
 - ``replaceSubrange(_:copying:)-(_,Collection<Element>)``
@@ -87,7 +87,7 @@
 - ``replaceSubrange(_:copying:)-(_,UnsafeBufferPointer<Element>)``
 - ``replaceSubrange(_:copying:)-(_,UnsafeMutableBufferPointer<Element>)``
 
-### Removing items
+### Removing Items
 
 - ``removeAll()``
 - ``removeLast()``
