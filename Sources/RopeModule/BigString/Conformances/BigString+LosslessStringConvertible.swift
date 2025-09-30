@@ -9,11 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigString: LosslessStringConvertible {
   // init?(_: String) is implemented by RangeReplaceableCollection.init(_:)
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded

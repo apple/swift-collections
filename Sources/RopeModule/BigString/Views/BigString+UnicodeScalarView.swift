@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
@@ -395,4 +395,4 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   }
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded

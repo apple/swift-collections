@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
@@ -34,7 +34,7 @@ extension BigString._Chunk {
     init(utf8Offset: Int, isUTF16TrailingSurrogate: Bool = false) {
       assert((UInt8.min...UInt8.max).contains(UInt8(utf8Offset)))
       _utf8Offset = UInt8(truncatingIfNeeded: utf8Offset)
-      
+
       if isUTF16TrailingSurrogate {
         flags |= Self.utf16TrailingSurrogateBit
       }
@@ -76,26 +76,26 @@ extension BigString._Chunk.Index {
     copy.flags = Self.scalarAlignmentBit
     return copy
   }
-  
+
   var utf8Offset: Int {
     get {
       Int(_utf8Offset)
     }
-    
+
     set {
       assert((UInt8.min...UInt8.max).contains(UInt8(newValue)))
       _utf8Offset = UInt8(truncatingIfNeeded: newValue)
     }
   }
-  
+
   var nextUTF16Trailing: Self {
     Self(utf8Offset: utf8Offset, isUTF16TrailingSurrogate: true)
   }
-  
+
   var stripUTF16Trailing: Self {
     Self(utf8Offset: utf8Offset)
   }
-  
+
   func offset(by len: Int) -> Self {
     Self(utf8Offset: utf8Offset + len)
   }
@@ -140,4 +140,4 @@ extension BigString._Chunk.Index: CustomStringConvertible {
   }
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded

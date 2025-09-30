@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 public struct BigSubstring: Sendable {
@@ -360,4 +360,4 @@ extension BigSubstring: RangeReplaceableCollection {
   }
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded

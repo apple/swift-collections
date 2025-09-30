@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
@@ -149,4 +149,4 @@ extension BigString._Chunk.Counts {
   }
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded

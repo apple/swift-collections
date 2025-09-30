@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
 internal protocol _StringMetric: RopeMetric where Element == BigString._Chunk {
@@ -294,4 +294,4 @@ extension BigString {
   }
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded

@@ -9,18 +9,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
-extension BigString._Chunk {  
+extension BigString._Chunk {
   func utf8Distance(from i: Index, to j: Index) -> Int {
     j.utf8Offset - i.utf8Offset
   }
-  
+
   subscript(utf8 i: Index) -> UInt8 {
     precondition((startIndex ..< endIndex).contains(i), "Index out of bounds")
     return span[i.utf8Offset]
   }
 }
 
-#endif // compiler(>=6.2)
+#endif // compiler(>=6.2) && !$Embedded
