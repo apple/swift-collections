@@ -89,7 +89,7 @@ extension BigString._Chunk {
   }
 
   var span: Span<UInt8> {
-    @lifetime(borrow self)
+    @_lifetime(borrow self)
     get {
       let span = Span(_unsafeElements: _bytes)
       return _overrideLifetime(span, borrowing: self)
@@ -97,13 +97,13 @@ extension BigString._Chunk {
   }
 
   var utf8Span: UTF8Span {
-    @lifetime(borrow self)
+    @_lifetime(borrow self)
     get {
       return _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
     }
   }
 
-  @lifetime(borrow self)
+  @_lifetime(borrow self)
   func utf8Span(from i: Index, to j: Index? = nil) -> UTF8Span {
     guard j == nil else {
       let span = span._extracting(i.utf8Offset..<j!.utf8Offset)
