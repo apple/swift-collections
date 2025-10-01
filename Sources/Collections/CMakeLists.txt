@@ -21,8 +21,12 @@ _install_target(Collections)
 set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS Collections)
 
 # All the .exported targets from Package.swift
+swift_module_re_exports(Collections BasicContainers)
 swift_module_re_exports(Collections BitCollections)
+swift_module_re_exports(Collections ContainersPreview)
 swift_module_re_exports(Collections DequeModule)
 swift_module_re_exports(Collections HeapModule)
 swift_module_re_exports(Collections OrderedCollections)
-swift_module_re_exports(Collections HashTreeCollections) # maybe _RopeModule is missing?
+swift_module_re_exports(Collections TrailingElementsModule)
+swift_module_re_exports(Collections _RopeModule)
+swift_module_re_exports(Collections HashTreeCollections)
