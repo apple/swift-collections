@@ -13,7 +13,7 @@ else()
   set(module_name HashTreeCollections)
   add_library(HashTreeCollections
     ${COLLECTIONS_HASHTREE_SOURCES})
-  target_link_libraries(HashTreeCollections PRIVATE
+  target_link_libraries(HashTreeCollections PUBLIC
     InternalCollectionsUtilities)
 
   _install_target(HashTreeCollections)

@@ -13,7 +13,7 @@ else()
   set(module_name BitCollections)
   add_library(BitCollections
     ${COLLECTIONS_BIT_SOURCES})
-  target_link_libraries(BitCollections PRIVATE
+  target_link_libraries(BitCollections PUBLIC
     InternalCollectionsUtilities)
 
   _install_target(BitCollections)

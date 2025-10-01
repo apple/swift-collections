@@ -13,7 +13,7 @@ else()
   set(module_name HeapModule)
   add_library(HeapModule
     ${COLLECTIONS_HEAP_SOURCES})
-  target_link_libraries(HeapModule PRIVATE
+  target_link_libraries(HeapModule PUBLIC
     InternalCollectionsUtilities)
 
   _install_target(HeapModule)

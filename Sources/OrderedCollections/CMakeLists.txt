@@ -13,7 +13,7 @@ else()
   set(module_name OrderedCollections)
   add_library(OrderedCollections
     ${COLLECTIONS_ORDERED_SOURCES})
-  target_link_libraries(OrderedCollections PRIVATE
+  target_link_libraries(OrderedCollections PUBLIC
     InternalCollectionsUtilities)
 
   _install_target(OrderedCollections)

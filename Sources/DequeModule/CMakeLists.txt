@@ -13,7 +13,7 @@ else()
   set(module_name DequeModule)
   add_library(DequeModule
     ${COLLECTIONS_DEQUE_SOURCES})
-  target_link_libraries(DequeModule PRIVATE
+  target_link_libraries(DequeModule PUBLIC
     InternalCollectionsUtilities)
 
   _install_target(DequeModule)

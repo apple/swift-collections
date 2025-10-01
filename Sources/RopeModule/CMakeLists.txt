@@ -13,7 +13,7 @@ else()
   set(module_name _RopeModule)
   add_library(_RopeModule
     ${COLLECTIONS_ROPE_SOURCES})
-  target_link_libraries(_RopeModule PRIVATE
+  target_link_libraries(_RopeModule PUBLIC
     InternalCollectionsUtilities)
 
   _install_target(_RopeModule)
