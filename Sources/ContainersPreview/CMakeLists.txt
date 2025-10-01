@@ -18,6 +18,9 @@ else()
 
   _install_target(ContainersPreview)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS ContainersPreview)
+
+  # Re-export InternalCollectionsUtilities so dependents can access it
+  swift_module_re_exports(ContainersPreview InternalCollectionsUtilities)
 endif()
 
 target_sources(${module_name} PRIVATE
