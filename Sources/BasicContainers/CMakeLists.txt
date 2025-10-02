@@ -23,8 +23,18 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "UniqueArray.swift"
-  "UniqueArray+Experimental.swift"
   "RigidArray.swift"
+  "RigidArray+Append.swift"
   "RigidArray+Experimental.swift"
+  "RigidArray+Initializers.swift"
+  "RigidArray+Insertions.swift"
+  "RigidArray+Removals.swift"
+  "RigidArray+Replacements.swift"
+  "UniqueArray.swift"
+  "UniqueArray+Append.swift"
+  "UniqueArray+Experimental.swift"
+  "UniqueArray+Initializers.swift"
+  "UniqueArray+Insertions.swift"
+  "UniqueArray+Removals.swift"
+  "UniqueArray+Replacements.swift"
 )

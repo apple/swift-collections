@@ -17,20 +17,20 @@ detection of inserted and removed items between two snapshots of the same
 dictionary. Because `TreeDictionary` needs to invalidate indices on every
 mutation, its `Values` view is not a `MutableCollection`.
 
-- ``Keys-swift.struct``
-- ``Values-swift.struct``
-- ``keys-swift.property``
-- ``values-swift.property``
+- ``Keys``
+- ``Values``
+- ``keys``
+- ``values``
 
 ### Creating a Dictionary
 
 - ``init()``
-- ``init(_:)-111p1``
-- ``init(_:)-9atjh``
-- ``init(uniqueKeysWithValues:)-2hosl``
-- ``init(uniqueKeysWithValues:)-92276``
-- ``init(_:uniquingKeysWith:)-6nofo``
-- ``init(_:uniquingKeysWith:)-99403``
+- ``init(_:)-(TreeDictionary<Key,Value>)``
+- ``init(_:)-(Dictionary<Key,Value>)``
+- ``init(uniqueKeysWithValues:)-(Sequence<Element>)``
+- ``init(uniqueKeysWithValues:)-(Sequence<(Key,Value)>)``
+- ``init(_:uniquingKeysWith:)-(Sequence<Element>,_)``
+- ``init(_:uniquingKeysWith:)-(Sequence<(Key,Value)>,_)``
 - ``init(grouping:by:)-a4ma``
 - ``init(grouping:by:)-4he86``
 - ``init(keys:valueGenerator:)``
@@ -38,13 +38,14 @@ mutation, its `Values` view is not a `MutableCollection`.
 
 ### Inspecting a Dictionary
 
-- ``isEmpty-6icj0``
-- ``count-ibl8``
+- ``isEmpty``
+- ``count``
 
 ### Accessing Keys and Values
 
-- ``subscript(_:)-8gx3j``
-- ``subscript(_:default:)``
+- ``subscript(i:)``
+- ``subscript(key:default:)``
+- ``subscript(key:)``
 - ``index(forKey:)``
 
 ### Adding or Updating Keys and Values
@@ -59,12 +60,12 @@ operation.) `TreeDictionary` also provides the standard `merge` and
 - ``updateValue(_:forKey:)``
 - ``updateValue(forKey:with:)``
 - ``updateValue(forKey:default:with:)``
-- ``merge(_:uniquingKeysWith:)-59cm5``
-- ``merge(_:uniquingKeysWith:)-38axt``
-- ``merge(_:uniquingKeysWith:)-3s4cw``
-- ``merging(_:uniquingKeysWith:)-3khxe``
-- ``merging(_:uniquingKeysWith:)-1k63w``
-- ``merging(_:uniquingKeysWith:)-87wp7``
+- ``merge(_:uniquingKeysWith:)-(Self,_)``
+- ``merge(_:uniquingKeysWith:)-(Sequence<Element>,_)``
+- ``merge(_:uniquingKeysWith:)-(Sequence<(Key,Value)>,_)``
+- ``merging(_:uniquingKeysWith:)-(Self,_)``
+- ``merging(_:uniquingKeysWith:)-(Sequence<Element>,_)``
+- ``merging(_:uniquingKeysWith:)-(Sequence<(Key,Value)>,_)``
 
 ### Removing Keys and Values
 

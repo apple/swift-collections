@@ -11,6 +11,11 @@
 
 #if compiler(<6.2)
 
+/// A wrapper type that forms a noncopyable, heap allocated box around an
+/// arbitrary value.
+///
+/// This can be used to form a noncopyable, uniquely referenced box around any
+/// Swift value.
 @available(*, unavailable, message: "struct Box requires a Swift 6.2 toolchain")
 @frozen
 public struct Box<T: ~Copyable>: ~Copyable {
@@ -31,6 +36,11 @@ public struct Box<T: ~Copyable>: ~Copyable {
 }
 
 #else
+/// A wrapper type that forms a noncopyable, heap allocated box around an
+/// arbitrary value.
+///
+/// This can be used to form a noncopyable, uniquely referenced box around any
+/// Swift value.
 @frozen
 @safe
 public struct Box<T: ~Copyable>: ~Copyable {
@@ -53,6 +63,8 @@ public struct Box<T: ~Copyable>: ~Copyable {
 }
 
 extension Box where T: ~Copyable {
+  /// Dereference this box, accessing its contents in a borrowing or
+  /// mutating way.
   @_alwaysEmitIntoClient
   public subscript() -> T {
     @_transparent
@@ -66,6 +78,7 @@ extension Box where T: ~Copyable {
     }
   }
 
+  /// Open and destroy this box, returning its contents.
   @_alwaysEmitIntoClient
   @_transparent
   public consuming func consume() -> T {
@@ -76,36 +89,41 @@ extension Box where T: ~Copyable {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Leak the heap allocation behind this box, converting it into an
+  /// immortal mutating reference.
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(immortal)
-  public consuming func leak() -> Inout<T> {
-    let result = unsafe Inout<T>(unsafeImmortalAddress: _pointer)
+  public consuming func leak() -> Mut<T> {
+    let result = unsafe Mut<T>(unsafeImmortalAddress: _pointer)
     discard self
     return result
   }
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Return a borrowing reference to the contents of this box.
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func borrow() -> Borrow<T> {
-    unsafe Borrow(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
+  public func borrow() -> Ref<T> {
+    unsafe Ref(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
   }
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Return a mutating reference to the contents of this box.
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(&self)
-  public mutating func mutate() -> Inout<T> {
-    unsafe Inout(unsafeAddress: _pointer, mutating: &self)
+  public mutating func mutate() -> Mut<T> {
+    unsafe Mut(unsafeAddress: _pointer, mutating: &self)
   }
 #endif
 }
 
 extension Box where T: Copyable {
+  /// Copy the contents of this box, returning it.
   @_alwaysEmitIntoClient
   @_transparent
   public borrowing func copy() -> T {
@@ -114,6 +132,7 @@ extension Box where T: Copyable {
 }
 
 extension Box where T: ~Copyable {
+  /// Return a single-item span over the contents of this box.
   @available(SwiftStdlib 5.0, *)
   public var span: Span<T> {
     @_alwaysEmitIntoClient
@@ -123,6 +142,7 @@ extension Box where T: ~Copyable {
     }
   }
 
+  /// Return a single-item mutable span over the contents of this box.
   @available(SwiftStdlib 5.0, *)
   public var mutableSpan: MutableSpan<T> {
     @_alwaysEmitIntoClient

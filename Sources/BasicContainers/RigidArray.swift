@@ -11,6 +11,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import ContainersPreview
 #endif
 
 #if compiler(<6.2)
@@ -41,7 +42,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// A fixed capacity, heap allocated, noncopyable array of potentially
 /// noncopyable elements.
 ///
-/// `RigidArray` instances are created with a certain maximum capacity. Elements
+/// `RigidArray` instances are created with a specific maximum capacity. Elements
 /// can be added to the array up to that capacity, but no more: trying to add an
 /// item to a full array results in a runtime trap.
 ///
@@ -73,7 +74,9 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 /// spikes due to a reallocation getting triggered at an inopportune moment.
 ///
 /// For use cases outside of these narrow domains, we generally recommmend
-/// the use of ``UniqueArray`` rather than `RigidArray`.
+/// the use of ``UniqueArray`` rather than `RigidArray`. (For copyable elements,
+/// the standard `Array` is an even more convenient choice.)
+@available(SwiftStdlib 5.0, *)
 @safe
 @frozen
 public struct RigidArray<Element: ~Copyable>: ~Copyable {
@@ -101,85 +104,51 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
   }
 
   /// Initializes a new rigid array with zero capacity and no elements.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public init() {
     unsafe _storage = .init(start: nil, count: 0)
     _count = 0
   }
 }
+
+@available(SwiftStdlib 5.0, *)
 extension RigidArray: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
-//MARK: - Initializers
-
-extension RigidArray where Element: ~Copyable {
-  @available(SwiftStdlib 5.0, *)
-  @inlinable
-  public init<E: Error>(
-    capacity: Int,
-    initializedWith body: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) {
-    self.init(capacity: capacity)
-    try edit(body)
-  }
-}
-
-extension RigidArray /*where Element: Copyable*/ {
-  /// Creates a new array containing the specified number of a single,
-  /// repeated value.
-  ///
-  /// - Parameters:
-  ///   - repeatedValue: The element to repeat.
-  ///   - count: The number of times to repeat the value passed in the
-  ///     `repeating` parameter. `count` must be zero or greater.
-  public init(repeating repeatedValue: Element, count: Int) {
-    self.init(capacity: count)
-    unsafe _freeSpace.initialize(repeating: repeatedValue)
-    _count = count
-  }
-}
-
-extension RigidArray /*where Element: Copyable*/ {
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public init(
-    capacity: Int,
-    copying contents: some Sequence<Element>
-  ) {
-    self.init(capacity: capacity)
-    self.append(copying: contents)
-  }
-
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public init(
-    capacity: Int? = nil,
-    copying contents: some Collection<Element>
-  ) {
-    self.init(capacity: capacity ?? contents.count)
-    self.append(copying: contents)
-  }
-}
-
-// FIXME: init(moving:), init(consuming:)
 
 //MARK: - Basics
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// The maximum number of elements this rigid array can hold.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @_transparent
   public var capacity: Int { _assumeNonNegative(unsafe _storage.count) }
 
+  /// The number of additional elements that can be added to this array without
+  /// exceeding its storage capacity.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @_transparent
   public var freeCapacity: Int {
     _assumeNonNegative(capacity &- count)
   }
 
+  /// A Boolean value indicating whether this rigid array is fully populated.
+  /// If this property returns true, then the array's storage is at capacity,
+  /// and it cannot accommodate any additional elements.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var isFull: Bool { freeCapacity == 0 }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal var _items: UnsafeMutableBufferPointer<Element> {
@@ -194,8 +163,11 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Span creation
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  @available(SwiftStdlib 5.0, *)
+  /// A span over the elements of this array, providing direct read-only access.
+  ///
+  /// - Complexity: O(1)
   public var span: Span<Element> {
     @_lifetime(borrow self)
     @inlinable
@@ -205,7 +177,10 @@ extension RigidArray where Element: ~Copyable {
     }
   }
 
-  @available(SwiftStdlib 5.0, *)
+  /// A mutable span over the elements of this array, providing direct
+  /// mutating access.
+  ///
+  /// - Complexity: O(1)
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
     @inlinable
@@ -215,14 +190,12 @@ extension RigidArray where Element: ~Copyable {
     }
   }
 
-  @available(SwiftStdlib 5.0, *)
   @inlinable
   @_lifetime(borrow self)
   internal func _span(in range: Range<Int>) -> Span<Element> {
     span.extracting(range)
   }
 
-  @available(SwiftStdlib 5.0, *)
   @inlinable
   @_lifetime(&self)
   internal mutating func _mutableSpan(
@@ -233,6 +206,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
@@ -251,7 +225,6 @@ extension RigidArray where Element: ~Copyable {
   /// - Returns: This method returns the result of its function argument.
   /// - Complexity: Adds O(1) overhead to the complexity of the function
   ///    argument.
-  @available(SwiftStdlib 5.0, *)
   @inlinable
   public mutating func edit<E: Error, R: ~Copyable>(
     _ body: (inout OutputSpan<Element>) throws(E) -> R
@@ -275,6 +248,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal func _contiguousSubrange(following index: inout Int) -> Range<Int> {
@@ -291,32 +265,71 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-//MARK: - Random-access & mutable container primitives
+//MARK: - Container primitives
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  public typealias Index = Int
-
+  /// A Boolean value indicating whether this array contains no elements.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var isEmpty: Bool { count == 0 }
 
+  /// The number of elements in this array.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var count: Int { _count }
+}
 
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: Container where Element: ~Copyable {
+  public typealias BorrowIterator = Span<Element>
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func startBorrowIteration() -> Span<Element> {
+    self.span
+  }
+}
+#endif
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+  /// A type that represents a position in the array: an integer offset from the
+  /// start.
+  ///
+  /// Valid indices consist of the position of every element and a "past the
+  /// end” position that’s not valid for use as a subscript argument.
+  public typealias Index = Int
+
+  /// The position of the first element in a nonempty array. This is always zero.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var startIndex: Int { 0 }
 
+  /// The array’s "past the end” position—that is, the position one greater than
+  /// the last valid subscript argument. This is always equal to array's count.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var endIndex: Int { count }
 
+  /// The range of indices that are valid for subscripting the array.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable @inline(__always)
   internal func _ptr(to index: Int) -> UnsafePointer<Element> {
@@ -333,18 +346,37 @@ extension RigidArray where Element: ~Copyable {
     return _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
   }
 
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///     The position must be a valid index of the array that is not equal
+  ///     to the `endIndex` property.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public subscript(position: Int) -> Element {
+    @inline(__always)
     unsafeAddress {
       _ptr(to: position)
     }
+    @inline(__always)
     unsafeMutableAddress {
       _mutablePtr(to: position)
     }
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Exchanges the values at the specified indices of the array.
+  ///
+  /// Both parameters must be valid indices of the array and not equal to
+  /// endIndex. Passing the same index as both `i` and `j` has no effect.
+  ///
+  /// - Parameter i: The index of the first value to swap.
+  /// - Parameter j: The index of the second valud to swap.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   public mutating func swapAt(_ i: Int, _ j: Int) {
     precondition(
@@ -354,15 +386,28 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  @available(SwiftStdlib 5.0, *)
+  /// Return a borrowing span over the maximal storage chunk following the
+  /// specified position in the array. The span provides direct read-only access
+  /// to all array elements in the range `index ..< count`.
+  ///
+  /// - Parameter index: A valid index in the array, including the end index.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @_lifetime(borrow self)
   public func span(after index: inout Int) -> Span<Element> {
     _span(in: _contiguousSubrange(following: &index))
   }
 
-  @available(SwiftStdlib 5.0, *)
+  /// Return a borrowing span over the maximal storage chunk preceding the
+  /// specified position in the array. The span provides direct read-only access
+  /// to all array elements in the range `0 ..< index`.
+  ///
+  /// - Parameter index: A valid index in the array, including the end index.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @_lifetime(borrow self)
   public func span(before index: inout Int) -> Span<Element> {
@@ -370,8 +415,15 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  @available(SwiftStdlib 5.0, *)
+  /// Return a mutable span over the maximal storage chunk following the
+  /// specified position in the array. The span provides direct mutating access
+  /// to all array elements in the range `index ..< count`.
+  ///
+  /// - Parameter index: A valid index in the array, including the end index.
+  ///
+  /// - Complexity: O(1)
   @_lifetime(&self)
   public mutating func mutableSpan(
     after index: inout Int
@@ -379,7 +431,13 @@ extension RigidArray where Element: ~Copyable {
     _mutableSpan(in: _contiguousSubrange(following: &index))
   }
 
-  @available(SwiftStdlib 5.0, *)
+  /// Return a mutable span over the maximal storage chunk preceding the specified
+  /// position in the array. The span provides direct mutating access to all
+  /// array elements in the range `0 ..< index`.
+  ///
+  /// - Parameter index: A valid index in the array, including the end index.
+  ///
+  /// - Complexity: O(1)
   @_lifetime(&self)
   public mutating func mutableSpan(
     before index: inout Int
@@ -390,7 +448,19 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Resizing
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Grow or shrink the capacity of a rigid array instance without discarding
+  /// its contents.
+  ///
+  /// This operation replaces the array's storage buffer with a newly allocated
+  /// buffer of the specified capacity, moving all existing elements
+  /// to its new storage. The old storage is then deallocated.
+  ///
+  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
+  ///    greater than or equal to the current count.
+  ///
+  /// - Complexity: O(`count`)
   @inlinable
   public mutating func reallocate(capacity newCapacity: Int) {
     precondition(newCapacity >= count, "RigidArray capacity overflow")
@@ -403,6 +473,14 @@ extension RigidArray where Element: ~Copyable {
     unsafe _storage = newStorage
   }
 
+  /// Ensure that the array has capacity to store the specified number of
+  /// elements, by growing its storage buffer if necessary.
+  ///
+  /// If `capacity < n`, then this operation reallocates the rigid array's
+  /// storage to grow it; on return, the array's capacity becomes `n`.
+  /// Otherwise the array is left as is.
+  ///
+  /// - Complexity: O(`count`)
   @inlinable
   public mutating func reserveCapacity(_ n: Int) {
     guard capacity < n else { return }
@@ -412,12 +490,24 @@ extension RigidArray where Element: ~Copyable {
 
 //MARK: - Copying helpers
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray {
+  /// Copy the contents of this array into a newly allocated rigid array
+  /// instance with just enough capacity to hold all its elements.
+  ///
+  /// - Complexity: O(`count`)
   @inlinable
   public func copy() -> Self {
-    copy(capacity: capacity)
+    copy(capacity: count)
   }
 
+  /// Copy the contents of this array into a newly allocated rigid array
+  /// instance with the specified capacity.
+  ///
+  /// - Parameter capacity: The desired capacity of the resulting rigid array.
+  ///    `capacity` must be greater than or equal to `count`.
+  ///
+  /// - Complexity: O(`count`)
   @inlinable
   public func copy(capacity: Int) -> Self {
     precondition(capacity >= count, "RigidArray capacity overflow")
@@ -432,6 +522,7 @@ extension RigidArray {
 
 //MARK: - Opening and closing gaps
 
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   internal mutating func _closeGap(
@@ -463,583 +554,7 @@ extension RigidArray where Element: ~Copyable {
     return unsafe _storage.extracting(
       Range(uncheckedBounds: (index, index + count)))
   }
-}
-
-//MARK: - Removal operations
-
-extension RigidArray where Element: ~Copyable {
-  /// Removes all elements from the array, preserving its allocated capacity.
-  ///
-  /// - Complexity: O(*n*), where *n* is the original count of the array.
-  @inlinable
-  public mutating func removeAll() {
-    unsafe _items.deinitialize()
-    _count = 0
-  }
-
-  /// Removes and returns the last element of the array.
-  ///
-  /// The array must not be empty.
-  ///
-  /// - Returns: The last element of the original array.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @discardableResult
-  public mutating func removeLast() -> Element {
-    precondition(!isEmpty, "Cannot remove last element from an empty array")
-    let old = unsafe _storage.moveElement(from: _count - 1)
-    _count -= 1
-    return old
-  }
-
-  /// Removes and discards the specified number of elements from the end of the
-  /// array.
-  ///
-  /// Attempting to remove more elements than exist in the array
-  /// triggers a runtime error.
-  ///
-  /// - Parameter k: The number of elements to remove from the array.
-  ///   `k` must be greater than or equal to zero and must not exceed
-  ///   the count of the array.
-  ///
-  /// - Complexity: O(`k`)
-  @inlinable
-  public mutating func removeLast(_ k: Int) {
-    if k == 0 { return }
-    precondition(
-      k >= 0 && k <= _count,
-      "Count of elements to remove is out of bounds")
-    unsafe _storage.extracting(
-      Range(uncheckedBounds: (_count - k, _count))
-    ).deinitialize()
-    _count &-= k
-  }
-
-  /// Removes and returns the element at the specified position.
-  ///
-  /// All the elements following the specified position are moved to close the
-  /// gap.
-  ///
-  /// - Parameter i: The position of the element to remove. `index` must be
-  ///   a valid index of the array that is not equal to the end index.
-  /// - Returns: The removed element.
-  ///
-  /// - Complexity: O(`count`)
-  @inlinable
-  @discardableResult
-  public mutating func remove(at index: Int) -> Element {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
-    let old = unsafe _storage.moveElement(from: index)
-    _closeGap(at: index, count: 1)
-    _count -= 1
-    return old
-  }
-
-  /// Removes the specified subrange of elements from the array.
-  ///
-  /// All the elements following the specified subrange are moved to close the
-  /// resulting gap.
-  ///
-  /// - Parameter bounds: The subrange of the array to remove. The bounds
-  ///   of the range must be valid indices of the array.
-  ///
-  /// - Complexity: O(`count`)
-  @inlinable
-  public mutating func removeSubrange(_  bounds: Range<Int>) {
-    precondition(
-      bounds.lowerBound >= 0 && bounds.upperBound <= _count,
-      "Subrange out of bounds")
-    guard !bounds.isEmpty else { return }
-    unsafe _storage.extracting(bounds).deinitialize()
-    _closeGap(at: bounds.lowerBound, count: bounds.count)
-    _count -= bounds.count
-  }
-
-  /// Removes the specified subrange of elements from the array.
-  ///
-  /// - Parameter bounds: The subrange of the array to remove. The bounds of the
-  ///   range must be valid indices of the array.
-  ///
-  /// - Complexity: O(`count`)
-  @_alwaysEmitIntoClient
-  public mutating func removeSubrange(_  bounds: some RangeExpression<Int>) {
-    // FIXME: Remove this in favor of a standard algorithm.
-    removeSubrange(bounds.relative(to: indices))
-  }
-}
-
-extension RigidArray where Element: ~Copyable {
-  /// Removes and returns the last element of the array, if there is one.
-  ///
-  /// - Returns: The last element of the array if the array is not empty;
-  ///     otherwise, `nil`.
-  ///
-  /// - Complexity: O(1)
-  @_alwaysEmitIntoClient
-  public mutating func popLast() -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
-    if isEmpty { return nil }
-    return removeLast()
-  }
-}
-
-//MARK: - Append operations
-
-extension RigidArray where Element: ~Copyable {
-  /// Adds an element to the end of the array.
-  ///
-  /// If the array does not have sufficient capacity to hold any more elements,
-  /// then this triggers a runtime error.
-  ///
-  /// - Parameter item: The element to append to the collection.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public mutating func append(_ item: consuming Element) {
-    precondition(!isFull, "RigidArray capacity overflow")
-    unsafe _storage.initializeElement(at: _count, to: item)
-    _count &+= 1
-  }
-
-  /// Adds an element to the end of the array, if possible.
-  ///
-  /// If the array does not have sufficient capacity to hold any more elements,
-  /// then this returns the given item without appending it; otherwise it
-  /// returns nil.
-  ///
-  /// - Parameter item: The element to append to the collection.
-  /// - Returns: `item` if the array is full; otherwise nil.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public mutating func pushLast(_ item: consuming Element) -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
-    if isFull { return item }
-    append(item)
-    return nil
-  }
-}
-
-extension RigidArray where Element: ~Copyable {
-  /// Moves the elements of a buffer to the end of this array, leaving the
-  /// buffer uninitialized.
-  ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// buffer, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
-  ///
-  /// - Complexity: O(`items.count`)
-  @_alwaysEmitIntoClient
-  public mutating func append(
-    moving items: UnsafeMutableBufferPointer<Element>
-  ) {
-    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    guard items.count > 0 else { return }
-    let c = unsafe _freeSpace._moveInitializePrefix(from: items)
-    assert(c == items.count)
-    _count &+= items.count
-  }
-
-  /// Appends the elements of a given array to the end of this array by moving
-  /// them between the containers. On return, the input array becomes empty, but
-  /// it is not destroyed, and it preserves its original storage capacity.
-  ///
-  /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - items: An array whose items to move to the end of this array.
-  ///
-  /// - Complexity: O(`items.count`)
-  @_alwaysEmitIntoClient
-  public mutating func append(
-    moving items: inout RigidArray<Element>
-  ) {
-    // FIXME: Remove this in favor of a generic algorithm over range-replaceable containers
-    unsafe items._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe self.append(moving: source)
-      count = 0
-    }
-  }
-}
-
-extension RigidArray where Element: ~Copyable {
-  /// Appends the elements of a given container to the end of this array by
-  /// consuming the source container.
-  ///
-  /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
-  ///
-  /// - Complexity: O(`items.count`)
-  @_alwaysEmitIntoClient
-  public mutating func append(
-    consuming items: consuming RigidArray<Element>
-  ) {
-    // FIXME: Remove this in favor of a generic algorithm over consumable containers
-    var items = items
-    self.append(moving: &items)
-  }
-}
-
-extension RigidArray {
-  /// Copies the elements of a buffer to the end of this array.
-  ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// buffer, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: A fully initialized buffer whose contents to copy into
-  ///       the array.
-  ///
-  /// - Complexity: O(`newElements.count`)
-  @_alwaysEmitIntoClient
-  public mutating func append(
-    copying newElements: UnsafeBufferPointer<Element>
-  ) {
-    precondition(
-      newElements.count <= freeCapacity,
-      "RigidArray capacity overflow")
-    guard newElements.count > 0 else { return }
-    unsafe _freeSpace.baseAddress.unsafelyUnwrapped.initialize(
-      from: newElements.baseAddress.unsafelyUnwrapped, count: newElements.count)
-    _count &+= newElements.count
-  }
-
-  /// Copies the elements of a buffer to the end of this array.
-  ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// buffer, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: A fully initialized buffer whose contents to copy into
-  ///        the array.
-  ///
-  /// - Complexity: O(`newElements.count`)
-  @_alwaysEmitIntoClient
-  public mutating func append(
-    copying items: UnsafeMutableBufferPointer<Element>
-  ) {
-    unsafe self.append(copying: UnsafeBufferPointer(items))
-  }
-
-  /// Copies the elements of a span to the end of this array.
-  ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// span, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: A span whose contents to copy into the array.
-  ///
-  /// - Complexity: O(`newElements.count`)
-  @available(SwiftStdlib 5.0, *)
-  @_alwaysEmitIntoClient
-  public mutating func append(copying items: Span<Element>) {
-    unsafe items.withUnsafeBufferPointer { source in
-      unsafe self.append(copying: source)
-    }
-  }
-
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  internal mutating func _append<S: Sequence<Element>>(
-    prefixOf items: S
-  ) -> S.Iterator {
-    let (it, c) = unsafe items._copyContents(initializing: _freeSpace)
-    _count += c
-    return it
-  }
-
-  /// Copies the elements of a sequence to the end of this array.
-  ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// sequence, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: The new elements to copy into the array.
-  ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
-  @_alwaysEmitIntoClient
-  public mutating func append(copying newElements: some Sequence<Element>) {
-    let done: Void? = newElements.withContiguousStorageIfAvailable { buffer in
-      unsafe self.append(copying: buffer)
-      return
-    }
-    if done != nil { return }
-
-    var it = self._append(prefixOf: newElements)
-    precondition(it.next() == nil, "RigidArray capacity overflow")
-  }
-}
-
-//MARK: - Insert operations
-
-
-extension RigidArray where Element: ~Copyable {
-  /// Inserts a new element into the array at the specified position.
-  ///
-  /// If the array does not have sufficient capacity to hold any more elements,
-  /// then this triggers a runtime error.
-  ///
-  /// The new element is inserted before the element currently at the specified
-  /// index. If you pass the array's `endIndex` as the `index` parameter, then
-  /// the new element is appended to the container.
-  ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new item.
-  ///
-  /// - Parameter item: The new element to insert into the array.
-  /// - Parameter i: The position at which to insert the new element.
-  ///   `index` must be a valid index in the array.
-  ///
-  /// - Complexity: O(`count`)
-  @inlinable
-  public mutating func insert(_ item: consuming Element, at index: Int) {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(!isFull, "RigidArray capacity overflow")
-    if index < count {
-      let source = unsafe _storage.extracting(index ..< count)
-      let target = unsafe _storage.extracting(index + 1 ..< count + 1)
-      let last = unsafe target.moveInitialize(fromContentsOf: source)
-      assert(last == target.endIndex)
-    }
-    unsafe _storage.initializeElement(at: index, to: item)
-    _count += 1
-  }
-}
-
-extension RigidArray where Element: ~Copyable {
-  /// Moves the elements of a fully initialized buffer into this array,
-  /// starting at the specified position, and leaving the buffer
-  /// uninitialized.
-  ///
-  /// If the array does not have sufficient capacity to hold all items in the
-  /// buffer, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
-  ///
-  /// - Complexity: O(`count` + `items.count`)
-  @_alwaysEmitIntoClient
-  public mutating func insert(
-    moving items: UnsafeMutableBufferPointer<Element>,
-    at index: Int
-  ) {
-    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    guard items.count > 0 else { return }
-    let target = unsafe _openGap(at: index, count: items.count)
-    let c = unsafe target._moveInitializePrefix(from: items)
-    assert(c == items.count)
-    _count &+= items.count
-  }
-
-  /// Inserts the elements of a given array into the given position in this
-  /// array by moving them between the containers. On return, the input array
-  /// becomes empty, but it is not destroyed, and it preserves its original
-  /// storage capacity.
-  ///
-  /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - items: An array whose contents to move into `self`.
-  ///
-  /// - Complexity: O(`count` + `items.count`)
-  @_alwaysEmitIntoClient
-  public mutating func insert(
-    moving items: inout RigidArray<Element>,
-    at index: Int
-  ) {
-    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    guard items.count > 0 else { return }
-    unsafe items._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe self.insert(moving: source, at: index)
-      count = 0
-    }
-  }
-}
-
-extension RigidArray where Element: ~Copyable {
-  /// Inserts the elements of a given array into the given position in this
-  /// array by consuming the source container.
-  ///
-  /// If the target array does not have sufficient capacity to hold all items
-  /// in the source array, then this triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
-  ///
-  /// - Complexity: O(`count` + `items.count`)
-  @_alwaysEmitIntoClient
-  public mutating func insert(
-    consuming items: consuming RigidArray<Element>,
-    at index: Int
-  ) {
-    var items = items
-    self.insert(moving: &items, at: index)
-  }
-}
-
-extension RigidArray {
-  /// Copies the elements of a fully initialized buffer pointer into this
-  /// array at the specified position.
-  ///
-  /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
-  /// parameter, then the new elements are appended to the end of the array.
-  ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new item.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: The new elements to insert into the array. The buffer
-  ///       must be fully initialized.
-  ///    - index: The position at which to insert the new elements. It must be
-  ///       a valid index of the array.
-  ///
-  /// - Complexity: O(`count` + `newElements.count`)
-  @inlinable
-  public mutating func insert(
-    copying newElements: UnsafeBufferPointer<Element>, at index: Int
-  ) {
-    guard newElements.count > 0 else { return }
-    precondition(
-      newElements.count <= freeCapacity,
-      "RigidArray capacity overflow")
-    let gap = unsafe _openGap(at: index, count: newElements.count)
-    unsafe gap.baseAddress.unsafelyUnwrapped.initialize(
-      from: newElements.baseAddress.unsafelyUnwrapped, count: newElements.count)
-    _count += newElements.count
-  }
-
-  /// Copies the elements of a fully initialized buffer pointer into this
-  /// array at the specified position.
-  ///
-  /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
-  /// parameter, then the new elements are appended to the end of the array.
-  ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new item.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: The new elements to insert into the array. The buffer
-  ///       must be fully initialized.
-  ///    - index: The position at which to insert the new elements. It must be
-  ///       a valid index of the array.
-  ///
-  /// - Complexity: O(`count` + `newElements.count`)
-  @inlinable
-  public mutating func insert(
-    copying newElements: UnsafeMutableBufferPointer<Element>,
-    at index: Int
-  ) {
-    unsafe self.insert(copying: UnsafeBufferPointer(newElements), at: index)
-  }
-
-  /// Copies the elements of a span into this array at the specified position.
-  ///
-  /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
-  /// parameter, then the new elements are appended to the end of the array.
-  ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new item.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: The new elements to insert into the array.
-  ///    - index: The position at which to insert the new elements. It must be
-  ///        a valid index of the array.
-  ///
-  /// - Complexity: O(`count` + `newElements.count`)
-  @available(SwiftStdlib 5.0, *)
-  @inlinable
-  public mutating func insert(
-    copying newElements: Span<Element>, at index: Int
-  ) {
-    unsafe newElements.withUnsafeBufferPointer {
-      unsafe self.insert(copying: $0, at: index)
-    }
-  }
-
-  @inlinable
-  internal mutating func _insertCollection(
-    at index: Int,
-    copying items: some Collection<Element>,
-    newCount: Int
-  ) {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
-    precondition(newCount <= freeCapacity, "RigidArray capacity overflow")
-    let gap = unsafe _openGap(at: index, count: newCount)
-
-    let done: Void? = items.withContiguousStorageIfAvailable { buffer in
-      let i = unsafe gap._initializePrefix(copying: buffer)
-      precondition(
-        i == newCount,
-        "Broken Collection: count doesn't match contents")
-      _count += newCount
-    }
-    if done != nil { return }
-
-    var (it, copied) = unsafe items._copyContents(initializing: gap)
-    precondition(
-      it.next() == nil && copied == newCount,
-      "Broken Collection: count doesn't match contents")
-    _count += newCount
-  }
-
-  /// Copies the elements of a collection into this array at the specified
-  /// position.
-  ///
-  /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
-  /// parameter, then the new elements are appended to the end of the array.
-  ///
-  /// All existing elements at or following the specified position are moved
-  /// to make room for the new item.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// - Parameters
-  ///    - newElements: The new elements to insert into the array.
-  ///    - index: The position at which to insert the new elements. It must be
-  ///        a valid index of the array.
-  ///
-  /// - Complexity: O(`count` + `newElements.count`)
-  @inlinable
-  @inline(__always)
-  public mutating func insert(
-    copying newElements: some Collection<Element>, at index: Int
-  ) {
-    _insertCollection(
-      at: index, copying: newElements, newCount: newElements.count)
-  }
-}
-
-//MARK: - Range replacement
-
-extension RigidArray where Element: ~Copyable {
+  
   /// Perform a range replacement up to populating the newly opened gap. This
   /// deinitializes existing elements in the specified subrange, rearranges
   /// following elements to be at their final location, and sets the container's
@@ -1052,7 +567,6 @@ extension RigidArray where Element: ~Copyable {
   internal mutating func _gapForReplacement(
     of subrange: Range<Int>, withNewCount newCount: Int
   ) -> UnsafeMutableBufferPointer<Element> {
-    // FIXME: Replace this with a public variant based on OutputSpan.
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= _count,
       "Index range out of bounds")
@@ -1074,290 +588,4 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-extension RigidArray where Element: ~Copyable {
-  /// Replaces the specified range of elements by moving the elements of a
-  /// fully initialized buffer into their place. On return, the buffer is left
-  /// in an uninitialized state.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: A fully initialized buffer whose contents to move into
-  ///     the array.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    moving newElements: UnsafeMutableBufferPointer<Element>,
-  ) {
-    let gap = unsafe _gapForReplacement(
-      of: subrange, withNewCount: newElements.count)
-    let c = unsafe gap._moveInitializePrefix(from: newElements)
-    assert(c == newElements.count)
-  }
-
-  /// Replaces the specified range of elements by moving the elements of a
-  /// another array into their place.  On return, the source array
-  /// becomes empty, but it is not destroyed, and it preserves its original
-  /// storage capacity.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: An array whose contents to move into `self`.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    moving newElements: inout RigidArray<Element>,
-  ) {
-    unsafe newElements._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
-      count = 0
-    }
-  }
-}
-
-extension RigidArray where Element: ~Copyable {
-  /// Replaces the specified range of elements by moving the elements of a
-  /// given array into their place, consuming it in the process.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: An array whose contents to move into `self`.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    consuming newElements: consuming RigidArray<Element>,
-  ) {
-    replaceSubrange(subrange, moving: &newElements)
-  }
-}
-
-extension RigidArray {
-  /// Replaces the specified subrange of elements by copying the elements of
-  /// the given buffer pointer, which must be fully initialized.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: The new elements to copy into the collection.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    copying newElements: UnsafeBufferPointer<Element>
-  ) {
-    let gap = unsafe _gapForReplacement(
-      of: subrange, withNewCount: newElements.count)
-    let i = unsafe gap._initializePrefix(copying: newElements)
-    assert(i == gap.count)
-  }
-
-  /// Replaces the specified subrange of elements by copying the elements of
-  /// the given buffer pointer, which must be fully initialized.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: The new elements to copy into the collection.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    copying newElements: UnsafeMutableBufferPointer<Element>
-  ) {
-    unsafe self.replaceSubrange(
-      subrange,
-      copying: UnsafeBufferPointer(newElements))
-  }
-
-  /// Replaces the specified subrange of elements by copying the elements of
-  /// the given span.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length span as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: The new elements to copy into the collection.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @available(SwiftStdlib 5.0, *)
-  @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    copying newElements: Span<Element>
-  ) {
-    unsafe newElements.withUnsafeBufferPointer { buffer in
-      unsafe self.replaceSubrange(subrange, copying: buffer)
-    }
-  }
-
-  @inlinable
-  internal mutating func _replaceSubrange(
-    _ subrange: Range<Int>,
-    copyingCollection newElements: __owned some Collection<Element>,
-    newCount: Int
-  ) {
-    let gap = unsafe _gapForReplacement(of: subrange, withNewCount: newCount)
-
-    let done: Void? = newElements.withContiguousStorageIfAvailable { buffer in
-      let i = unsafe gap._initializePrefix(copying: buffer)
-      precondition(
-        i == newCount,
-        "Broken Collection: count doesn't match contents")
-    }
-    if done != nil { return }
-
-    var (it, copied) = unsafe newElements._copyContents(initializing: gap)
-    precondition(
-      it.next() == nil && copied == newCount,
-      "Broken Collection: count doesn't match contents")
-  }
-
-  /// Replaces the specified subrange of elements by copying the elements of
-  /// the given collection.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
-  ///
-  /// Likewise, if you pass a zero-length collection as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
-  ///
-  /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: The new elements to copy into the collection.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @inlinable
-  @inline(__always)
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    copying newElements: __owned some Collection<Element>
-  ) {
-    _replaceSubrange(
-      subrange, copyingCollection: newElements, newCount: newElements.count)
-  }
-}
 #endif
