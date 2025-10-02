@@ -2,12 +2,14 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
 
 // This contains `_BTree`'s general implementation of BidirectionalCollection.
 // These operations are bounds in contrast to most other methods on _BTree as
@@ -203,3 +205,5 @@ extension _BTree: BidirectionalCollection {
     return SubSequence(base: self, bounds: bounds)
   }
 }
+
+#endif

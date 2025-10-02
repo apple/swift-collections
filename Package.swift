@@ -25,6 +25,15 @@ let _traits: Set<Trait> = [
       swift-collections. This allows experimental use of the Container
       protocols and associated algorithms.
       """),
+  .trait(
+    name: "UnstableSortedCollections",
+    description: """
+      Enables source-unstable prototypes of `SortedSet` and `SortedDictionary`,
+      two potential new collection types implementing in-memory B-trees.
+      These are early developer drafts, and they not ready for use in 
+      production. We will make significant, source breaking API changes to these
+      types before they ship. 
+      """),
 ]
 #endif
 
@@ -37,6 +46,9 @@ var defines: [SwiftSetting] = [
 //  .define(
 //    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
 //    .when(traits: ["UnstableContainersPreview"])),
+  .define(
+    "COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS",
+    .when(traits: ["UnstableSortedCollections"])),
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -314,15 +326,15 @@ let targets: [CustomTarget] = [
     dependencies: ["TrailingElementsModule"]),
 
   // These aren't ready for production use yet.
-//  .target(
-//    kind: .exported,
-//    name: "SortedCollections",
-//    dependencies: ["InternalCollectionsUtilities"],
-//    directory: "SortedCollections"),
-//  .target(
-//    kind: .test,
-//    name: "SortedCollectionsTests",
-//    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
+  .target(
+    kind: .exported,
+    name: "SortedCollections",
+    dependencies: ["InternalCollectionsUtilities"],
+    directory: "SortedCollections"),
+  .target(
+    kind: .test,
+    name: "SortedCollectionsTests",
+    dependencies: ["SortedCollections", "_CollectionsTestSupport"]),
 
   .target(
     kind: .exported,
