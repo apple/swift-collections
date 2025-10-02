@@ -9,11 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2) && !$Embedded
+
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public struct UnicodeScalarView: Sendable {
     var _base: BigString
@@ -47,28 +49,28 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: ExpressibleByStringLiteral {
   public init(stringLiteral value: String) {
     self.init(value.unicodeScalars)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: CustomStringConvertible {
   public var description: String {
     String(_base)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     BigString.utf8IsEqual(left._base, to: right._base)
@@ -79,14 +81,14 @@ extension BigString.UnicodeScalarView: Equatable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: Hashable {
   public func hash(into hasher: inout Hasher) {
     _base.hashUTF8(into: &hasher)
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: Sequence {
   public typealias Element = UnicodeScalar
 
@@ -105,7 +107,7 @@ extension BigString.UnicodeScalarView: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView.Iterator: IteratorProtocol {
   public typealias Element = UnicodeScalar
 
@@ -114,22 +116,22 @@ extension BigString.UnicodeScalarView.Iterator: IteratorProtocol {
     let ri = _index._rope!
     var ci = _index._chunkIndex
     let chunk = _base._rope[ri]
-    let result = chunk.string.unicodeScalars[ci]
+    let result = chunk[scalar: ci]
 
-    chunk.string.unicodeScalars.formIndex(after: &ci)
-    if ci < chunk.string.endIndex {
+    ci = chunk.scalarIndex(after: ci)
+    if ci < chunk.endIndex {
       _index = BigString.Index(baseUTF8Offset: _index._utf8BaseOffset, _rope: ri, chunk: ci)
     } else {
       _index = BigString.Index(
         baseUTF8Offset: _index._utf8BaseOffset + chunk.utf8Count,
         _rope: _base._rope.index(after: ri),
-        chunk: String.Index(_utf8Offset: 0))
+        chunk: BigString._Chunk.Index(utf8Offset: 0))
     }
     return result
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = BigSubstring.UnicodeScalarView
@@ -174,7 +176,7 @@ extension BigString.UnicodeScalarView: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView {
   public func index(roundingDown i: Index) -> Index {
     _base._unicodeScalarIndex(roundingDown: i)
@@ -185,7 +187,7 @@ extension BigString.UnicodeScalarView {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   public init() {
     self._base = BigString()
@@ -196,7 +198,7 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, 
+    _ subrange: Range<Index>,
     with newElements: __owned some Sequence<UnicodeScalar> // Note: Sequence, not Collection
   ) {
     if let newElements = _specialize(
@@ -222,7 +224,7 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, 
+    _ subrange: Range<Index>,
     with newElements: __owned String.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: String(newElements))
@@ -236,14 +238,14 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, 
+    _ subrange: Range<Index>,
     with newElements: __owned BigString.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: newElements._base)
   }
 
   public mutating func replaceSubrange(
-    _ subrange: Range<Index>, 
+    _ subrange: Range<Index>,
     with newElements: __owned BigSubstring.UnicodeScalarView
   ) {
     _base._replaceSubrange(subrange, with: newElements._base, in: newElements._bounds)
@@ -392,3 +394,5 @@ extension BigString.UnicodeScalarView: RangeReplaceableCollection {
     self._base = BigString()
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

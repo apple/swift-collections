@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString: Comparable {
   public static func < (left: Self, right: Self) -> Bool {
     // FIXME: Implement properly normalized comparisons & hashing.
@@ -34,51 +36,4 @@ extension BigString: Comparable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
-extension BigString {
-  /// Lexicographically compare the UTF-8 representations of `left` to `right`, returning a Boolean
-  /// value indicating whether `left` is ordered before `right`.
-  internal func utf8IsLess(than other: Self) -> Bool {
-    if self.isIdentical(to: other) { return false }
-
-    // FIXME: Implement a structural comparison that ignores shared subtrees when possible.
-    // This is somewhat tricky as this is only possible to do when the shared subtrees start
-    // at the same logical position in both trees. Additionally, the two input trees may not
-    // have the same height, even if they are equal.
-
-    var it1 = self.makeChunkIterator()
-    var it2 = other.makeChunkIterator()
-    var s1: Substring = ""
-    var s2: Substring = ""
-    while true {
-      if s1.isEmpty {
-        s1 = it1.next()?[...] ?? ""
-      }
-      if s2.isEmpty {
-        s2 = it2.next()?[...] ?? ""
-      }
-      if s1.isEmpty {
-        return !s2.isEmpty
-      }
-      if s2.isEmpty {
-        return false
-      }
-      let c = Swift.min(s1.utf8.count, s2.utf8.count)
-      assert(c > 0)
-      let r: Bool? = s1.withUTF8 { b1 in
-        s2.withUTF8 { b2 in
-          for i in 0 ..< c {
-            let u1 = b1[i]
-            let u2 = b2[i]
-            if u1 < u2 { return true }
-            if u1 > u2 { return false }
-          }
-          return nil
-        }
-      }
-      if let r = r { return r }
-      s1 = s1.suffix(from: s1._utf8Index(at: c))
-      s2 = s2.suffix(from: s2._utf8Index(at: c))
-    }
-  }
-}
+#endif // compiler(>=6.2) && !$Embedded

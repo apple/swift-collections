@@ -9,10 +9,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func _replaceSubrange(
-    _ range: Range<Index>, 
+    _ range: Range<Index>,
     with newElements: some StringProtocol
   ) {
     precondition(range.upperBound <= endIndex, "Index out of bounds")
@@ -82,3 +84,5 @@ extension BigString {
     return Builder(base: b, prefixEndState: startState, suffixStartState: endState)
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

@@ -9,11 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6.2) && !$Embedded
+
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString: RangeReplaceableCollection {
   public init() {
     self.init(_rope: _Rope())
@@ -216,3 +218,5 @@ extension BigString: RangeReplaceableCollection {
     self = BigString()
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

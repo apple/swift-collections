@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   mutating func split(
     at index: Index
@@ -36,3 +38,5 @@ extension BigString {
     return _rope.builder(splittingAt: index.utf8Offset, in: _UTF8Metric())
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

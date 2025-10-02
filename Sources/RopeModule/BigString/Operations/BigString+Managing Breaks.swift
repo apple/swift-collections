@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _breakState(
     upTo index: Index,
@@ -24,13 +26,13 @@ extension BigString {
     let chunkIndex = index._chunkIndex
     let chunk = _rope[ropeIndex]
 
-    guard ropeIndex > _rope.startIndex || chunkIndex > chunk.string.startIndex else {
+    guard ropeIndex > _rope.startIndex || chunkIndex > chunk.startIndex else {
       return _CharacterRecognizer()
     }
 
-    if let next = nextScalarHint, chunkIndex > chunk.string.startIndex {
-      let i = chunk.string.unicodeScalars.index(before: chunkIndex)
-      let prev = chunk.string.unicodeScalars[i]
+    if let next = nextScalarHint, chunkIndex > chunk.startIndex {
+      let i = chunk.scalarIndex(before: chunkIndex)
+      let prev = chunk[scalar: i]
       if _CharacterRecognizer.quickBreak(between: prev, and: next) == true {
         return _CharacterRecognizer()
       }
@@ -48,18 +50,20 @@ extension BigString {
     precondition(ri < ropeIndex)
 
     // Collect grapheme breaking state.
-    var state = _CharacterRecognizer(partialCharacter: _rope[ri].suffix)
+    let startOfCharChunk = _rope[ri]
+    var state = _CharacterRecognizer(partialCharacter: startOfCharChunk.suffix)
     _rope.formIndex(after: &ri)
     while ri < ropeIndex {
-      state.consumePartialCharacter(_rope[ri].string[...])
+      let nextChunk = _rope[ri]
+      state.consumePartialCharacter(nextChunk.utf8Span)
       _rope.formIndex(after: &ri)
     }
-    state.consumePartialCharacter(chunk.string[..<chunkIndex])
+    state.consumePartialCharacter(chunk.utf8Span(from: chunk.startIndex, to: chunkIndex))
     return state
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   /// - Returns: the position at which the grapheme breaks finally sync up with the originals.
   ///  (or nil if they never did).
@@ -68,14 +72,14 @@ extension BigString {
     startingAt index: Index,
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> (ropeIndex: _Rope.Index, chunkIndex: String.Index)? {
+  ) -> (ropeIndex: _Rope.Index, chunkIndex: BigString._Chunk.Index)? {
     guard index < endIndex else { return nil }
     let i = resolve(index, preferEnd: false)
     var ropeIndex = i._rope!
     var chunkIndex = i._chunkIndex
     let end = _rope.mutatingForEach(from: &ropeIndex) { chunk in
       let start = chunkIndex
-      chunkIndex = String.Index(_utf8Offset: 0)
+      chunkIndex = BigString._Chunk.Index(utf8Offset: 0)
       if let i = chunk.resyncBreaks(startingAt: start, old: &old, new: &new) {
         return i
       }
@@ -97,7 +101,7 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString._Rope {
   mutating func resyncBreaks(
     old: inout _CharacterRecognizer,
@@ -109,7 +113,7 @@ extension BigString._Rope {
   mutating func _resyncBreaks(
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> (ropeIndex: Index, chunkIndex: String.Index)? {
+  ) -> (ropeIndex: Index, chunkIndex: BigString._Chunk.Index)? {
     var ropeIndex = startIndex
     let chunkIndex = self.mutatingForEach(from: &ropeIndex) {
       $0.resyncBreaksFromStart(old: &old, new: &new)
@@ -135,7 +139,8 @@ extension BigString._Rope {
         new = self[i].immediateLastBreakState!
         formIndex(after: &i)
         while i < endIndex {
-          new.consumePartialCharacter(self[i].string[...])
+          let chunk = self[i]
+          new.consumePartialCharacter(chunk.utf8Span)
           formIndex(after: &i)
         }
         old = new
@@ -144,18 +149,21 @@ extension BigString._Rope {
     }
 
     var ri = ropeIndex
-    let suffix = self[ri].string.unicodeScalars[chunkIndex...].dropFirst()
+    let chunk = self[ri]
+    let after = chunk.scalarIndex(after: chunkIndex)
+    let suffix = chunk.utf8Span(from: after, to: chunk.endIndex)
     new.consumePartialCharacter(suffix)
     formIndex(after: &ri)
     while ri < endIndex {
-      new.consumePartialCharacter(self[ri].string[...])
+      let chunk = self[ri]
+      new.consumePartialCharacter(chunk.utf8Span)
       formIndex(after: &ri)
     }
     old = new
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   /// Resyncronize chunk metadata with the (possibly) reshuffled grapheme
   /// breaks after an insertion that ended at `index`.
@@ -167,20 +175,19 @@ extension BigString._Chunk {
   /// the correct scalar. Similarly, the suffix count may be updated to
   /// reflect the new position of the last grapheme break, if necessary.
   mutating func resyncBreaks(
-    startingAt index: String.Index,
+    startingAt index: Index,
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> String.Index? {
+  ) -> Index? {
     var i = index
-    let u = string.unicodeScalars
-    assert(u._index(roundingDown: i) == i)
+    assert(scalarIndex(roundingDown: i) == i)
 
     // FIXME: Rewrite in terms of `firstBreak(in:)`.
-    var first: String.Index? = nil
-    var last: String.Index? = nil
+    var first: Index? = nil
+    var last: Index? = nil
   loop:
-    while i < u.endIndex {
-      let scalar = u[i]
+    while i < endIndex {
+      let scalar = self[scalar: i]
       let a = old.hasBreak(before: scalar)
       let b = new.hasBreak(before: scalar)
       if b {
@@ -197,7 +204,8 @@ extension BigString._Chunk {
       case (true, false):
         counts._characters -= 1
       }
-      u.formIndex(after: &i)
+
+      i = scalarIndex(after: i)
     }
 
     // Grapheme breaks in `index...i` may have changed. Update `firstBreak` and `lastBreak`
@@ -212,12 +220,12 @@ extension BigString._Chunk {
         // The old firstBreak is no longer a break.
         if i < lastBreak {
           // The old lastBreak is still valid. Find the first break in i+1...endIndex.
-          let j = u.index(after: i)
+          let j = scalarIndex(after: i)
           var tmp = new
-          firstBreak = tmp.firstBreak(in: string[j...])!.lowerBound
+          firstBreak = tmp.firstBreak(in: self, from: j..<endIndex)!.lowerBound
         } else {
           // No breaks anywhere in the string.
-          firstBreak = u.endIndex
+          firstBreak = endIndex
         }
       }
     }
@@ -226,42 +234,43 @@ extension BigString._Chunk {
       if let last {
         // We have seen the new last break.
         lastBreak = last
-      } else if firstBreak == u.endIndex {
+      } else if firstBreak == endIndex {
         // We already know there are no breaks anywhere in the string.
-        lastBreak = u.startIndex
+        lastBreak = startIndex
       } else {
         // We have a `firstBreak`, but no break in `index...i`.
         // Find last break in `firstBreak...<index`.
-        let wholeChars = self.string[firstBreak..<index]
-        lastBreak = wholeChars.index(before: wholeChars.endIndex)
+        lastBreak = characterIndex(before: index, in: firstBreak..<index)
       }
     }
 
-    return i < u.endIndex ? i : nil
+    return i < endIndex ? i : nil
   }
 
   mutating func resyncBreaksFromStart(
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
-  ) -> String.Index? {
-    resyncBreaks(startingAt: string.startIndex, old: &old, new: &new)
+  ) -> Index? {
+    resyncBreaks(startingAt: startIndex, old: &old, new: &new)
   }
 
   mutating func resyncBreaksFromStartToEnd(
     old: inout _CharacterRecognizer,
     new: inout _CharacterRecognizer
   ) {
-    guard let i = resyncBreaks(startingAt: string.startIndex, old: &old, new: &new) else {
+    guard let i = resyncBreaks(startingAt: startIndex, old: &old, new: &new) else {
       return
     }
     if i < lastBreak {
-      new = _CharacterRecognizer(partialCharacter: string[lastBreak...])
+      new = _CharacterRecognizer(partialCharacter: suffix)
     } else {
       //assert(old == new)
-      let j = string.unicodeScalars.index(after: i)
-      new.consumePartialCharacter(string[j...])
+      let j = scalarIndex(after: i)
+      new.consumePartialCharacter(utf8Span(from: j, to: endIndex))
     }
     old = new
     return
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   func _ingester(
     forInserting input: __owned Substring,
@@ -22,24 +24,24 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   internal struct _Ingester {
     typealias _Chunk = BigString._Chunk
     typealias Counts = BigString._Chunk.Counts
-    
+
     var input: Substring
-    
+
     /// The index of the beginning of the next chunk.
     var start: String.Index
-    
+
     /// Grapheme breaking state at the start of the next chunk.
     var state: _CharacterRecognizer
-    
+
     init(_ input: Substring) {
       self.init(input, startState: _CharacterRecognizer())
     }
-    
+
     init(_ input: Substring, startState: __owned _CharacterRecognizer) {
       self.input = input
       // Prevent accidentally quadratic operation by ensuring that we have
@@ -53,23 +55,23 @@ extension BigString {
       self.start = input.startIndex
       self.state = startState
     }
-    
+
     init(_ input: String) {
       self.init(input[...])
     }
-    
+
     init<S: StringProtocol>(_ input: S) {
       self.init(Substring(input))
     }
-    
+
     var isAtEnd: Bool {
       start == input.endIndex
     }
-    
+
     var remainingUTF8: Int {
       input.utf8.distance(from: start, to: input.endIndex)
     }
-    
+
     mutating func nextSlice(
       maxUTF8Count: Int = _Chunk.maxUTF8Count
     ) -> _Chunk.Slice? {
@@ -84,7 +86,7 @@ extension BigString {
       }
       assert(range.lowerBound == start && range.upperBound <= input.endIndex)
       start = range.upperBound
-      
+
       var s = input[range]
       let c8 = s.utf8.count
       guard let r = state.firstBreak(in: s) else {
@@ -97,7 +99,7 @@ extension BigString {
       }
       let first = r.lowerBound
       s = s.suffix(from: r.upperBound)
-      
+
       var characterCount = 1
       var last = first
       while let r = state.firstBreak(in: s) {
@@ -113,12 +115,12 @@ extension BigString {
         prefix: prefixCount,
         suffix: suffixCount)
     }
-    
+
     mutating func nextChunk(maxUTF8Count: Int = _Chunk.maxUTF8Count) -> _Chunk? {
       guard let slice = nextSlice(maxUTF8Count: maxUTF8Count) else { return nil }
       return _Chunk(slice)
     }
-    
+
     static func desiredNextChunkSize(remaining: Int) -> Int {
       if remaining <= _Chunk.maxUTF8Count {
         return remaining
@@ -128,12 +130,12 @@ extension BigString {
       }
       return remaining - _Chunk.minUTF8Count
     }
-    
+
     mutating func nextWellSizedSlice(suffix: Int = 0) -> _Chunk.Slice? {
       let desired = Self.desiredNextChunkSize(remaining: remainingUTF8 + suffix)
       return nextSlice(maxUTF8Count: desired)
     }
-    
+
     mutating func nextWellSizedChunk(suffix: Int = 0) -> _Chunk? {
       guard let slice = nextWellSizedSlice(suffix: suffix) else { return nil }
       return _Chunk(slice)
@@ -141,7 +143,7 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension String {
   func _nextSlice(
     after i: Index,
@@ -157,7 +159,7 @@ extension String {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString._Chunk {
   init(_ string: String) {
     guard !string.isEmpty else { self.init(); return }
@@ -167,3 +169,5 @@ extension BigString._Chunk {
     assert(ingester.isAtEnd)
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

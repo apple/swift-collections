@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString: Sequence {
   public typealias Element = Character
 
@@ -18,14 +20,14 @@ extension BigString: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public struct Iterator {
     internal let _base: BigString
     internal var _utf8BaseOffset: Int
     internal var _ropeIndex: _Rope.Index
-    internal var _chunkIndex: String.Index
-    internal var _next: String.Index
+    internal var _chunkIndex: _Chunk.Index
+    internal var _next: _Chunk.Index
 
     internal init(_ string: BigString) {
       self._base = string
@@ -34,14 +36,14 @@ extension BigString {
 
       self._utf8BaseOffset = 0
       guard _ropeIndex < string._rope.endIndex else {
-        _chunkIndex = "".startIndex
-        _next = "".endIndex
+        _chunkIndex = _Chunk.Index(utf8Offset: 0)
+        _next = _Chunk.Index(utf8Offset: 0)
         return
       }
       let chunk = _base._rope[_ropeIndex]
-      assert(chunk.firstBreak == chunk.string.startIndex)
+      assert(chunk.firstBreak == chunk.startIndex)
       self._chunkIndex = chunk.firstBreak
-      self._next = chunk.string[_chunkIndex...].index(after: _chunkIndex)
+      self._next = chunk.characterIndex(after: _chunkIndex, in: _chunkIndex..<chunk.endIndex)
     }
 
     internal init(
@@ -53,20 +55,20 @@ extension BigString {
 
       if start == string.endIndex {
         self._ropeIndex = string._rope.endIndex
-        self._chunkIndex = "".startIndex
-        self._next = "".endIndex
+        self._chunkIndex = _Chunk.Index(utf8Offset: 0)
+        self._next = _Chunk.Index(utf8Offset: 0)
         return
       }
       let i = string.resolve(start, preferEnd: false)
       self._ropeIndex = i._rope!
       self._utf8BaseOffset = i._utf8BaseOffset
       self._chunkIndex = i._chunkIndex
-      self._next = _base._rope[_ropeIndex].wholeCharacters.index(after: _chunkIndex)
+      self._next = _base._rope[_ropeIndex].characterIndex(after: _chunkIndex)
     }
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Iterator: IteratorProtocol {
   public typealias Element = Character
 
@@ -75,21 +77,20 @@ extension BigString.Iterator: IteratorProtocol {
   }
 
   internal var isAtStart: Bool {
-    _ropeIndex == _base._rope.startIndex && _chunkIndex._utf8Offset == 0
+    _ropeIndex == _base._rope.startIndex && _chunkIndex.utf8Offset == 0
   }
 
   internal var current: Element {
     assert(!isAtEnd)
     let chunk = _base._rope[_ropeIndex]
-    var str = String(chunk.string[_chunkIndex ..< _next])
-    if _next < chunk.string.endIndex { return Character(str) }
+    var str = String(copying: chunk.utf8Span(from: _chunkIndex, to: _next))
+    if _next < chunk.endIndex { return Character(str) }
 
     var i = _base._rope.index(after: _ropeIndex)
     while i < _base._rope.endIndex {
       let chunk = _base._rope[i]
-      let b = chunk.firstBreak
-      str += chunk.string[..<b]
-      if b < chunk.string.endIndex { break }
+      str.append(copying: chunk.prefix)
+      if chunk.firstBreak < chunk.endIndex { break }
       _base._rope.formIndex(after: &i)
     }
     return Character(str)
@@ -98,9 +99,9 @@ extension BigString.Iterator: IteratorProtocol {
   mutating func stepForward() -> Bool {
     guard !isAtEnd else { return false }
     let chunk = _base._rope[_ropeIndex]
-    if _next < chunk.string.endIndex {
+    if _next < chunk.endIndex {
       _chunkIndex = _next
-      _next = chunk.wholeCharacters.index(after: _next)
+      _next = chunk.characterIndex(after: _next)
       return true
     }
     var baseOffset = _utf8BaseOffset + chunk.utf8Count
@@ -108,11 +109,11 @@ extension BigString.Iterator: IteratorProtocol {
     while i < _base._rope.endIndex {
       let chunk = _base._rope[i]
       let b = chunk.firstBreak
-      if b < chunk.string.endIndex {
+      if b < chunk.endIndex {
         _ropeIndex = i
         _utf8BaseOffset = baseOffset
         _chunkIndex = b
-        _next = chunk.string[b...].index(after: b)
+        _next = chunk.characterIndex(after: b, in: b..<chunk.endIndex)
         return true
       }
       baseOffset += chunk.utf8Count
@@ -125,9 +126,9 @@ extension BigString.Iterator: IteratorProtocol {
     if !isAtEnd {
       let chunk = _base._rope[_ropeIndex]
       let i = chunk.firstBreak
-      if _chunkIndex > i {
+      if _chunkIndex > chunk.firstBreak {
         _next = _chunkIndex
-        _chunkIndex = chunk.string[i...].index(before: _chunkIndex)
+        _chunkIndex = chunk.characterIndex(before: _chunkIndex, in: i..<chunk.endIndex)
         return true
       }
     }
@@ -140,7 +141,7 @@ extension BigString.Iterator: IteratorProtocol {
       if chunk.hasBreaks {
         _ropeIndex = i
         _utf8BaseOffset = baseOffset
-        _next = chunk.string.endIndex
+        _next = chunk.endIndex
         _chunkIndex = chunk.lastBreak
         return true
       }
@@ -158,29 +159,37 @@ extension BigString.Iterator: IteratorProtocol {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString.Iterator {
   // The UTF-8 offset of the current position, from the start of the string.
   var utf8Offset: Int {
-    _utf8BaseOffset + _chunkIndex._utf8Offset
+    _utf8BaseOffset + _chunkIndex.utf8Offset
   }
 
   var index: BigString.Index {
-    BigString.Index(baseUTF8Offset: _utf8BaseOffset, _rope: _ropeIndex, chunk: _chunkIndex)
+    BigString.Index(
+      baseUTF8Offset: _utf8BaseOffset,
+      _rope: _ropeIndex,
+      chunk: _chunkIndex
+    )
   }
 
   internal var nextIndex: BigString.Index {
     assert(!isAtEnd)
     let chunk = _base._rope[_ropeIndex]
-    if _next < chunk.string.endIndex {
-      return BigString.Index(baseUTF8Offset: _utf8BaseOffset, _rope: _ropeIndex, chunk: _next)
+    if _next < chunk.endIndex {
+      return BigString.Index(
+        baseUTF8Offset: _utf8BaseOffset,
+        _rope: _ropeIndex,
+        chunk: _next
+      )
     }
     var i = _base._rope.index(after: _ropeIndex)
     var base = _utf8BaseOffset
     while i < _base._rope.endIndex {
       let chunk = _base._rope[i]
       let b = chunk.firstBreak
-      if b < chunk.string.endIndex {
+      if b < chunk.endIndex {
         return BigString.Index(baseUTF8Offset: base, _rope: i, chunk: b)
       }
       base += chunk.utf8Count
@@ -195,8 +204,8 @@ extension BigString.Iterator {
     let start = utf8Offset
     var end = _utf8BaseOffset
     var chunk = _base._rope[_ropeIndex]
-    if _next < chunk.string.endIndex {
-      end += _next._utf8Offset
+    if _next < chunk.endIndex {
+      end += _next.utf8Offset
       return Range(uncheckedBounds: (start, end))
     }
     end += chunk.utf8Count
@@ -204,8 +213,8 @@ extension BigString.Iterator {
     while i < _base._rope.endIndex {
       chunk = _base._rope[i]
       let b = chunk.firstBreak
-      if b < chunk.string.endIndex {
-        end += b._utf8Offset
+      if b < chunk.endIndex {
+        end += b.utf8Offset
         break
       }
       end += chunk.utf8Count
@@ -222,3 +231,5 @@ extension BigString.Iterator {
     self.utf8Offset < index.utf8Offset
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

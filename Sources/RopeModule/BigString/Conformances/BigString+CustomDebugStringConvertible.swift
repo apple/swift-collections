@@ -9,9 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString: CustomDebugStringConvertible {
   public var debugDescription: String {
     description.debugDescription
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

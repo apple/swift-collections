@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString: BidirectionalCollection {
   public typealias SubSequence = BigSubstring
 
@@ -59,7 +61,7 @@ extension BigString: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public func index(roundingDown i: Index) -> Index {
     _characterIndex(roundingDown: i)
@@ -69,3 +71,5 @@ extension BigString {
     _characterIndex(roundingUp: i)
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

@@ -9,17 +9,19 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public func _invariantCheck() {
 #if COLLECTIONS_INTERNAL_CHECKS
     _rope._invariantCheck()
     let allowUndersize = _rope.isSingleton
-    
+
     var state = _CharacterRecognizer()
     for chunk in _rope {
       precondition(allowUndersize || !chunk.isUndersized, "Undersized chunk")
-      let (characters, prefix, suffix) = state.edgeCounts(consuming: chunk.string)
+      let (characters, prefix, suffix) = state.edgeCounts(consuming: chunk)
       precondition(
         chunk.prefixCount == prefix,
         "Inconsistent position of first grapheme break in chunk")
@@ -33,3 +35,5 @@ extension BigString {
 #endif
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded

@@ -9,7 +9,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-@available(SwiftStdlib 5.8, *)
+#if compiler(>=6.2) && !$Embedded
+
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring {
   public struct UTF16View: Sendable {
     internal var _base: BigString
@@ -37,12 +39,12 @@ extension BigSubstring {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigString {
   public init?(_ utf16: BigSubstring.UTF16View) {
     guard
-      !utf16.startIndex._isUTF16TrailingSurrogate,
-      !utf16.endIndex._isUTF16TrailingSurrogate
+      !utf16.startIndex._chunkIndex.isUTF16TrailingSurrogate,
+      !utf16.endIndex._chunkIndex.isUTF16TrailingSurrogate
     else {
       return nil
     }
@@ -50,12 +52,12 @@ extension BigString {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF16View {
   public var base: BigString.UTF16View { _base.utf16 }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF16View: Equatable {
   public static func ==(left: Self, right: Self) -> Bool {
     var i1 = left._bounds.lowerBound
@@ -65,8 +67,9 @@ extension BigSubstring.UTF16View: Equatable {
     var j2 = right._bounds.upperBound
 
     // Compare first code units, if they're trailing surrogates.
-    guard i1._isUTF16TrailingSurrogate == i2._isUTF16TrailingSurrogate else { return false }
-    if i1._isUTF16TrailingSurrogate {
+    guard i1._chunkIndex.isUTF16TrailingSurrogate ==
+            i2._chunkIndex.isUTF16TrailingSurrogate else { return false }
+    if i1._chunkIndex.isUTF16TrailingSurrogate {
       guard left[i1] == right[i2] else { return false }
       left.formIndex(after: &i1)
       left.formIndex(after: &i2)
@@ -74,8 +77,9 @@ extension BigSubstring.UTF16View: Equatable {
     guard i1 < j1, i2 < j2 else { return i1 == j1 && i2 == j2 }
 
     // Compare last code units, if they're trailing surrogates.
-    guard j1._isUTF16TrailingSurrogate == j2._isUTF16TrailingSurrogate else { return false }
-    if j1._isUTF16TrailingSurrogate {
+    guard j1._chunkIndex.isUTF16TrailingSurrogate ==
+            j2._chunkIndex.isUTF16TrailingSurrogate else { return false }
+    if j1._chunkIndex.isUTF16TrailingSurrogate {
       left.formIndex(before: &j1)
       right.formIndex(before: &j2)
       guard left[j1] == right[j2] else { return false}
@@ -90,7 +94,7 @@ extension BigSubstring.UTF16View: Equatable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF16View: Hashable {
   public func hash(into hasher: inout Hasher) {
     for codeUnit in self {
@@ -100,7 +104,7 @@ extension BigSubstring.UTF16View: Hashable {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF16View: Sequence {
   public typealias Element = UInt16
 
@@ -124,7 +128,7 @@ extension BigSubstring.UTF16View: Sequence {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF16View: BidirectionalCollection {
   public typealias Index = BigString.Index
   public typealias SubSequence = Self
@@ -185,7 +189,7 @@ extension BigSubstring.UTF16View: BidirectionalCollection {
   }
 }
 
-@available(SwiftStdlib 5.8, *)
+@available(SwiftStdlib 6.2, *)
 extension BigSubstring.UTF16View {
   public func index(roundingDown i: Index) -> Index {
     precondition(i >= startIndex && i <= endIndex, "Index out of bounds")
@@ -197,3 +201,5 @@ extension BigSubstring.UTF16View {
     return _base._utf16Index(roundingUp: i)
   }
 }
+
+#endif // compiler(>=6.2) && !$Embedded
