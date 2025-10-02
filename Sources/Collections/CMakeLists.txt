@@ -14,7 +14,8 @@ target_link_libraries(Collections PUBLIC
   DequeModule
   HeapModule
   OrderedCollections
-  HashTreeCollections # maybe _RopeModule is missing?
+  HashTreeCollections
+  _RopeModule
   )
 
 _install_target(Collections)
