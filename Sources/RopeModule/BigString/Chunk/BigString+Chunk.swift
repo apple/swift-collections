@@ -106,11 +106,11 @@ extension BigString._Chunk {
   @_lifetime(borrow self)
   func utf8Span(from i: Index, to j: Index? = nil) -> UTF8Span {
     guard j == nil else {
-      let span = span._extracting(i.utf8Offset..<j!.utf8Offset)
+      let span = span.extracting(i.utf8Offset..<j!.utf8Offset)
       return _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
     }
 
-    let span = span._extracting(i.utf8Offset...)
+    let span = span.extracting(i.utf8Offset...)
     return _overrideLifetime(UTF8Span(unchecked: span), borrowing: self)
   }
 }
