@@ -2,12 +2,14 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
+
+#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
 
 #if !$Embedded
 extension SortedDictionary: Encodable where Key: Codable, Value: Codable {
@@ -74,4 +76,6 @@ extension SortedDictionary: Decodable where Key: Decodable, Value: Decodable {
     self.init(_rootedAt: builder.finish())
   }
 }
+#endif
+
 #endif
