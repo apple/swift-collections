@@ -9,15 +9,25 @@ See https://swift.org/LICENSE.txt for license information
 
 add_library(Collections
     "Collections.swift")
-target_link_libraries(Collections PRIVATE
+target_link_libraries(Collections PUBLIC
   BitCollections
   DequeModule
   HeapModule
   OrderedCollections
   HashTreeCollections
+  _RopeModule
   )
-set_target_properties(Collections PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
 _install_target(Collections)
 set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS Collections)
+
+# All the .exported targets from Package.swift
+swift_module_re_exports(Collections BasicContainers)
+swift_module_re_exports(Collections BitCollections)
+swift_module_re_exports(Collections ContainersPreview)
+swift_module_re_exports(Collections DequeModule)
+swift_module_re_exports(Collections HeapModule)
+swift_module_re_exports(Collections OrderedCollections)
+swift_module_re_exports(Collections TrailingElementsModule)
+swift_module_re_exports(Collections _RopeModule)
+swift_module_re_exports(Collections HashTreeCollections)

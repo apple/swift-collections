@@ -13,13 +13,14 @@ else()
   set(module_name BasicContainers)
   add_library(BasicContainers
     ${COLLECTIONS_ARRAY_SOURCES})
-  target_link_libraries(BasicContainers PRIVATE
+  target_link_libraries(BasicContainers PUBLIC
     InternalCollectionsUtilities ContainersPreview)
-  set_target_properties(BasicContainers PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
   _install_target(BasicContainers)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS BasicContainers)
+
+  # Re-export InternalCollectionsUtilities so dependents can access it
+  swift_module_re_exports(BasicContainers InternalCollectionsUtilities)
 endif()
 
 target_sources(${module_name} PRIVATE
