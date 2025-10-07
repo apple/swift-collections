@@ -10,12 +10,12 @@ labels: bug
     Before you submit your issue, please replace each paragraph
     below with the relevant details for your bug, and complete
     the steps in the checklist by placing an 'x' in each box:
-    
+
     - [x] I've completed this task
     - [ ] This task isn't completed
 -->
 
-Replace this paragraph with a short description of the incorrect behavior. 
+Replace this paragraph with a short description of the incorrect behavior.
 (If this is a regression, please note the last version of the package that exhibited the correct behavior in addition to your current version.)
 
 ### Information
