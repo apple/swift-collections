@@ -14,6 +14,7 @@ SDKROOT = macosx
 SWIFT_VERSION = 5.10 // FIXME: _modify accessors in RopeModule seem to be broken in Swift 6 mode
 
 OTHER_SWIFT_FLAGS = $(inherited) \
+  -package-name CollectionsInternal \
   -enable-upcoming-feature MemberImportVisibility \
   -enable-experimental-feature BuiltinModule \
   -enable-experimental-feature Lifetimes \
