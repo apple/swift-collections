@@ -15,9 +15,6 @@ PRODUCT_BUNDLE_IDENTIFIER = org.swift.Collections
 SUPPORTED_PLATFORMS = macosx iphoneos iphonesimulator watchos watchsimulator appletvos appletvsimulator
 ARCHS = $(ARCHS_STANDARD)
 
-OTHER_SWIFT_FLAGS = $(inherited) \
-  -package-name CollectionsInternal
-
 MACOSX_DEPLOYMENT_TARGET = 12.0
 IPHONEOS_DEPLOYMENT_TARGET = 15.0
 WATCHOS_DEPLOYMENT_TARGET = 8.0

@@ -2,35 +2,20 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import InternalCollectionsUtilities
 #endif
 
 extension RandomAccessCollection {
-  #if SWIFT_PACKAGE
-  @inline(__always)
-  internal func _index(at offset: Int) -> Index {
-    index(startIndex, offsetBy: offset)
-  }
-
-  @inline(__always)
-  internal func _offset(of index: Index) -> Int {
-    distance(from: startIndex, to: index)
-  }
-
-  @inline(__always)
-  internal subscript(_offset offset: Int) -> Element {
-    self[_index(at: offset)]
-  }
-  #endif
-
   @inline(__always)
   internal func _indexRange(at offsets: Range<Int>) -> Range<Index> {
     _index(at: offsets.lowerBound) ..< _index(at: offsets.upperBound)

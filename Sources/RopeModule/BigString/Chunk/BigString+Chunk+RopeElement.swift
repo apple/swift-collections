@@ -25,7 +25,6 @@ extension BigString._Chunk: RopeElement {
 
   func invariantCheck() {
 #if COLLECTIONS_INTERNAL_CHECKS
-    precondition(string.endIndex._canBeUTF8)
     let c = utf8Count
     if c == 0 {
       precondition(counts == Counts(), "Non-empty counts")
