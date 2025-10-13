@@ -36,6 +36,25 @@ extension UniqueArray where Element: ~Copyable {
     self.init(capacity: capacity)
     try edit(body)
   }
+
+  /// Creates a new array with the specified capacity, directly initializing
+  /// its storage using an async closure that populates an output span.
+  ///
+  /// - Parameters:
+  ///   - capacity: The storage capacity of the new array.
+  ///   - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to add fewer than `capacity` items. The array is
+  ///       initialized with however many items the callback adds to the
+  ///       output span before it returns (or before it throws an error).
+  @inlinable
+  public nonisolated(nonsending) init<E: Error>(
+    capacity: Int,
+    initializingWith body: nonisolated(nonsending) (inout OutputSpan<Element>) async throws(E) -> Void
+  ) async throws(E) {
+    self.init(capacity: capacity)
+    try await edit(body)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
