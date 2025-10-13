@@ -91,6 +91,46 @@ extension RigidArray where Element: ~Copyable {
     }
     return body(&span)
   }
+
+  /// Inserts a given number of new items into this array at the specified
+  /// position, using an async callback to directly initialize array storage by
+  /// populating an output span.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// - Parameters:
+  ///    - count: The number of items to insert into the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is called with an empty output span of capacity matching the
+  ///       supplied count, and it must fully populate it before returning.
+  ///
+  /// - Complexity: O(`self.count` + `count`)
+  @inlinable
+  public nonisolated(nonsending) mutating func insert<Result: ~Copyable>(
+    count: Int,
+    at index: Int,
+    initializingWith body: nonisolated(nonsending) (inout OutputSpan<Element>) async -> Result
+  ) async -> Result {
+    // FIXME: This does not allow `body` to throw, to prevent having to move the tail twice. Is that okay?
+    precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    precondition(count <= freeCapacity, "RigidArray capacity overflow")
+    let target = unsafe _openGap(at: index, count: count)
+    var span = OutputSpan(buffer: target, initializedCount: 0)
+    defer {
+      let c = span.finalize(for: target)
+      precondition(c == count, "Inserted fewer items than promised")
+      _count &+= c
+      span = OutputSpan()
+    }
+    return await body(&span)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

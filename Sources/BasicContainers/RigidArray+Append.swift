@@ -84,6 +84,37 @@ extension RigidArray where Element: ~Copyable {
     }
     return try body(&span)
   }
+
+  /// Append a given number of items to the end of this array by populating
+  /// an output span.
+  ///
+  /// If the array does not have sufficient capacity to store the new items in
+  /// the buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `count` items. The array is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  public nonisolated(nonsending) mutating func append<E: Error, Result: ~Copyable>(
+      count: Int,
+      initializingWith body: nonisolated(nonsending) (inout OutputSpan<Element>) async throws(E) -> Result
+  ) async throws(E) -> Result {
+    // FIXME: This is extremely similar to `edit()`, except it provides a narrower span.
+    precondition(freeCapacity >= count, "RigidArray capacity overflow")
+    let buffer = _freeSpace._extracting(first: count)
+    var span = OutputSpan(buffer: buffer, initializedCount: 0)
+    defer {
+        _count &+= span.finalize(for: buffer)
+        span = OutputSpan()
+    }
+    return try await body(&span)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

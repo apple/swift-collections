@@ -60,6 +60,31 @@ extension UniqueArray where Element: ~Copyable {
     _ensureFreeCapacity(count)
     return try _storage.append(count: count, initializingWith: body)
   }
+
+  /// Append a given number of items to the end of this array by populating
+  /// an output span with an async closure.
+  ///
+  /// If the array does not have sufficient capacity to hold the requested
+  /// number of new elements, then this reallocates the array's storage to
+  /// grow its capacity, using a geometric growth rate.
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `count` items. The array is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  public nonisolated(nonsending) mutating func append<E: Error, Result: ~Copyable>(
+    count: Int,
+    initializingWith body: nonisolated(nonsending) (inout OutputSpan<Element>) async throws(E) -> Result
+  ) async throws(E) -> Result {
+    _ensureFreeCapacity(count)
+    return try await _storage.append(count: count, initializingWith: body)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
