@@ -104,7 +104,7 @@ extension BitSet {
   ///     O(max(`newMember`, *max*)).
   @discardableResult
   public mutating func update(with newMember: Int) -> Int? {
-    insert(newMember).inserted ? newMember : nil
+    insert(newMember).inserted ? nil : newMember
   }
 }
 
