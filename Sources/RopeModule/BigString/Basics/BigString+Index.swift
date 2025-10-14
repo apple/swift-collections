@@ -106,6 +106,10 @@ extension BigString.Index {
     _flags = 0
   }
 
+  public var _isUTF16TrailingSurrogate: Bool {
+    _orderingValue & 1 != 0
+  }
+
   internal func _knownScalarAligned() -> Self {
     var copy = self
     copy._chunkIndex = _chunkIndex.scalarAligned
