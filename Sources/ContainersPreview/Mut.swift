@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2)
 import Builtin
 
 // FIXME: A better name for the generic argument.
@@ -79,7 +79,7 @@ extension Mut where T: ~Copyable {
     unsafeAddress {
       unsafe UnsafePointer<T>(_pointer)
     }
-    
+
     @_transparent
     @_lifetime(self: copy self)
     unsafeMutableAddress {

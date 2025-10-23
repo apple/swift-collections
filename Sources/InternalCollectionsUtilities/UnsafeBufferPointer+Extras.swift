@@ -25,6 +25,12 @@ extension UnsafeBufferPointer where Element: ~Copyable {
   package func _isIdentical(to other: Self) -> Bool {
     (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
+
+  @inlinable
+  @inline(__always)
+  package static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
 }
 
 extension UnsafeBufferPointer where Element: ~Copyable {
@@ -74,4 +80,3 @@ extension UnsafeBufferPointer where Element: ~Copyable {
     return extracting(Range(uncheckedBounds: (count - newCount, count)))
   }
 }
-

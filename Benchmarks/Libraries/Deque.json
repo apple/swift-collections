@@ -209,14 +209,15 @@
     },
     {
       "kind": "group",
-      "title": "Deque vs std::deque",
-      "directory": "versus STL deque",
+      "title": "Deque vs std::deque vs VecDeque vs RigidDeque vs UniqueDeque",
+      "directory": "versus other deques",
       "contents": [
         {
           "kind": "chart",
           "title": "init from buffer of integers",
           "tasks": [
             "std::deque<intptr_t> constructor from buffer",
+            "VecDeque<isize> constructor from buffer",
             "Deque<Int> init from unsafe buffer"
           ]
         },
@@ -225,10 +226,12 @@
           "title": "sequential iteration",
           "tasks": [
             "std::deque<intptr_t> sequential iteration",
+            "VecDeque<isize> sequential iteration",
             "Deque<Int> sequential iteration (contiguous, iterator)",
             "Deque<Int> sequential iteration (contiguous, indices)",
             "Deque<Int> sequential iteration (discontiguous, iterator)",
-            "Deque<Int> sequential iteration (discontiguous, indices)"
+            "Deque<Int> sequential iteration (discontiguous, indices)",
+            "UniqueDeque<Int> sequential iteration"
           ]
         },
         {
@@ -246,8 +249,19 @@
           "title": "append individual integers",
           "tasks": [
             "std::deque<intptr_t> push_back",
+            "VecDeque<isize> push_back",
             "Deque<Int> append",
-            "Deque<Int> append, reserving capacity"
+            "UniqueDeque<Int> append"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "append individual integers, reserving capacity",
+          "tasks": [
+            "VecDeque<isize> push_back, reserving capacity",
+            "Deque<Int> append, reserving capacity",
+            "RigidDeque<Int> append, reserving capacity",
+            "UniqueDeque<Int> append, reserving capacity"
           ]
         },
         {
@@ -255,8 +269,19 @@
           "title": "prepend individual integers",
           "tasks": [
             "std::deque<intptr_t> push_front",
+            "VecDeque<isize> push_front",
             "Deque<Int> prepend",
-            "Deque<Int> prepend, reserving capacity"
+            "UniqueDeque<Int> prepend"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "prepend individual integers, reserving capacity",
+          "tasks": [
+            "VecDeque<isize> push_front, reserving capacity",
+            "Deque<Int> prepend, reserving capacity",
+            "RigidDeque<Int> prepend, reserving capacity",
+            "UniqueDeque<Int> prepend, reserving capacity"
           ]
         },
         {
@@ -264,7 +289,9 @@
           "title": "random insertions",
           "tasks": [
             "std::deque<intptr_t> random insertions",
-            "Deque<Int> random insertions"
+            "VecDeque<isize> random insertions",
+            "Deque<Int> random insertions",
+            "UniqueDeque<Int> random insertions"
           ]
         },
         {

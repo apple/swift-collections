@@ -172,7 +172,7 @@ extension Deque._UnsafeHandle {
 
 extension Deque._UnsafeHandle {
   @inlinable
-  internal func segments() -> _UnsafeWrappedBuffer<Element> {
+  internal func segments() -> _UnsafeDequeSegments<Element> {
     let wrap = capacity - startSlot.position
     if count <= wrap {
       return .init(start: ptr(at: startSlot), count: count)
@@ -184,7 +184,7 @@ extension Deque._UnsafeHandle {
   @inlinable
   internal func segments(
     forOffsets offsets: Range<Int>
-  ) -> _UnsafeWrappedBuffer<Element> {
+  ) -> _UnsafeDequeSegments<Element> {
     assert(offsets.lowerBound >= 0 && offsets.upperBound <= count)
     let lower = slot(forOffset: offsets.lowerBound)
     let upper = slot(forOffset: offsets.upperBound)
@@ -197,7 +197,7 @@ extension Deque._UnsafeHandle {
 
   @inlinable
   @inline(__always)
-  internal func mutableSegments() -> _UnsafeMutableWrappedBuffer<Element> {
+  internal func mutableSegments() -> _UnsafeMutableDequeSegments<Element> {
     assertMutable()
     return .init(mutating: segments())
   }
@@ -206,7 +206,7 @@ extension Deque._UnsafeHandle {
   @inline(__always)
   internal func mutableSegments(
     forOffsets range: Range<Int>
-  ) -> _UnsafeMutableWrappedBuffer<Element> {
+  ) -> _UnsafeMutableDequeSegments<Element> {
     assertMutable()
     return .init(mutating: segments(forOffsets: range))
   }
@@ -214,7 +214,7 @@ extension Deque._UnsafeHandle {
 
 extension Deque._UnsafeHandle {
   @inlinable
-  internal func availableSegments() -> _UnsafeMutableWrappedBuffer<Element> {
+  internal func availableSegments() -> _UnsafeMutableDequeSegments<Element> {
     assertMutable()
     let endSlot = self.endSlot
     guard count < capacity else { return .init(start: ptr(at: endSlot), count: 0) }
@@ -223,8 +223,6 @@ extension Deque._UnsafeHandle {
                  mutableBuffer(for: .zero ..< startSlot))
   }
 }
-
-
 
 extension Deque._UnsafeHandle {
   @inlinable
@@ -268,8 +266,6 @@ extension Deque._UnsafeHandle {
     return (slot(source, offsetBy: count), slot(target, offsetBy: count))
   }
 }
-
-
 
 extension Deque._UnsafeHandle {
   /// Copy elements into a new storage instance without changing capacity or
@@ -498,7 +494,7 @@ extension Deque._UnsafeHandle {
   internal func mutableWrappedBuffer(
     between start: Slot,
     and end: Slot
-  ) -> _UnsafeMutableWrappedBuffer<Element> {
+  ) -> _UnsafeMutableDequeSegments<Element> {
     assert(start.position <= capacity)
     assert(end.position <= capacity)
     if start < end {
@@ -523,7 +519,7 @@ extension Deque._UnsafeHandle {
   internal func openGap(
     ofSize gapSize: Int,
     atOffset offset: Int
-  ) -> _UnsafeMutableWrappedBuffer<Element> {
+  ) -> _UnsafeMutableDequeSegments<Element> {
     assertMutable()
     assert(offset >= 0 && offset <= self.count)
     assert(self.count + gapSize <= capacity)

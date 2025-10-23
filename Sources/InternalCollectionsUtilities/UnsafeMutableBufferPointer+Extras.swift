@@ -17,9 +17,27 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   package func _isIdentical(to other: Self) -> Bool {
     (self.baseAddress == other.baseAddress) && (self.count == other.count)
   }
+
+  @inlinable
+  @inline(__always)
+  package static var _empty: Self {
+    .init(start: nil, count: 0)
+  }
 }
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  /// Returns a buffer pointer within the
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(unchecked bounds: Range<Int>) -> Self {
+    assert(bounds.lowerBound >= 0 && bounds.upperBound <= count,
+      "Index out of range")
+    guard let start = self.baseAddress else {
+      return Self(start: nil, count: 0)
+    }
+    return Self(start: start + bounds.lowerBound, count: bounds.count)
+  }
+
   /// Returns a buffer pointer containing the initial elements of this buffer,
   /// up to the specified maximum length.
   ///
