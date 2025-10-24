@@ -18,7 +18,7 @@ extension SortedDictionary {
   /// the dictionary, or nil if the key is not found.
   ///
   /// When you assign a value for a key and that key already exists, the dictionary overwrites
-  /// the existing value. If the dictionary doesn’t contain the key, the key and value are added
+  /// the existing value. If the dictionary doesn't contain the key, the key and value are added
   /// as a new key-value pair.
   ///
   /// - Parameter key: The key to find in the dictionary.
@@ -72,7 +72,7 @@ extension SortedDictionary {
     }
   }
   
-  /// Accesses the value with the given key. If the dictionary doesn’t contain the given
+  /// Accesses the value with the given key. If the dictionary doesn't contain the given
   /// key, accesses the provided default value as if the key and default value existed
   /// in the dictionary.
   ///
@@ -81,7 +81,7 @@ extension SortedDictionary {
   ///
   /// - Parameters:
   ///   - key: The key the look up in the dictionary.
-  ///   - defaultValue: The default value to use if key doesn’t exist in the dictionary.
+  ///   - defaultValue: The default value to use if key doesn't exist in the dictionary.
   /// - Returns: The value associated with key in the dictionary; otherwise, defaultValue.
   /// - Complexity: O(`log n`)
   @inlinable

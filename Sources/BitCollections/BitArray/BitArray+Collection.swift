@@ -45,7 +45,7 @@ extension BitArray: RandomAccessCollection, MutableCollection {
   @inlinable @inline(__always)
   public var startIndex: Int { 0 }
 
-  /// The collection’s “past the end” position--that is, the position one step
+  /// The collection's "past the end" position--that is, the position one step
   /// after the last valid subscript argument.
   ///
   /// - Complexity: O(1)

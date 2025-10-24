@@ -120,7 +120,7 @@ extension BitSet: Collection, BidirectionalCollection {
     Index(_position: _read { $0.startIndex })
   }
 
-  /// The collection’s “past the end” position--that is, the position one step
+  /// The collection's "past the end" position--that is, the position one step
   /// after the last valid subscript argument.
   ///
   /// - Complexity: O(1)

@@ -130,7 +130,7 @@ extension SortedSet {
   ///
   /// - Parameter index: The position of the key-value pair to remove. `index`
   ///     must be a valid index of the sorted dictionary, and must not equal the sorted
-  ///     dictionary’s end index.
+  ///     dictionary's end index.
   /// - Returns: The key-value pair that correspond to `index`.
   /// - Complexity: O(`log n`) where `n` is the number of members in the
   ///   sorted set.

@@ -21,7 +21,7 @@ extension TreeSet {
   /// Calling this method invalidates all existing indices of the collection.
   ///
   /// - Parameter position: The index of the member to remove. `position` must
-  ///    be a valid index of the set, and it must not be equal to the set’s
+  ///    be a valid index of the set, and it must not be equal to the set's
   ///    end index.
   /// - Returns: The element that was removed from the set.
   /// - Complexity: O(log(`count`)) if set storage might be shared; O(1)

@@ -139,6 +139,7 @@ extension RigidArray where Element: ~Copyable {
   }
 
   /// A Boolean value indicating whether this rigid array is fully populated.
+  ///
   /// If this property returns true, then the array's storage is at capacity,
   /// and it cannot accommodate any additional elements.
   ///
@@ -210,6 +211,7 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
+  ///
   /// This method calls its function argument precisely once, allowing it to
   /// arbitrarily modify the contents of the output span it is given.
   /// The argument is free to add, remove or reorder any items; however,
@@ -303,18 +305,22 @@ extension RigidArray where Element: ~Copyable {
   /// start.
   ///
   /// Valid indices consist of the position of every element and a "past the
-  /// end” position that’s not valid for use as a subscript argument.
+  /// end" position that's not valid for use as a subscript argument.
   public typealias Index = Int
 
-  /// The position of the first element in a nonempty array. This is always zero.
+  /// The position of the first element in a nonempty array.
+  ///
+  /// `startIndex` is always zero.
   ///
   /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var startIndex: Int { 0 }
 
-  /// The array’s "past the end” position—that is, the position one greater than
-  /// the last valid subscript argument. This is always equal to array's count.
+  /// The array's "past the end" position—that is, the position one greater than
+  /// the last valid subscript argument.
+  ///
+  /// `endIndex` is always equal to the array's count.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -389,10 +395,14 @@ extension RigidArray where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Return a borrowing span over the maximal storage chunk following the
-  /// specified position in the array. The span provides direct read-only access
-  /// to all array elements in the range `index ..< count`.
+  /// specified position in the array.
+  ///
+  /// The returned span provides direct read-only access to all array elements
+  /// in the range `index ..< count`.
   ///
   /// - Parameter index: A valid index in the array, including the end index.
+  ///   When `span(after:)` returns, `index` is equal to the array's
+  ///   `endIndex`.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -402,10 +412,14 @@ extension RigidArray where Element: ~Copyable {
   }
 
   /// Return a borrowing span over the maximal storage chunk preceding the
-  /// specified position in the array. The span provides direct read-only access
-  /// to all array elements in the range `0 ..< index`.
+  /// specified position in the array.
+  ///
+  /// The returned span provides direct read-only access to all array elements
+  /// in the range `0 ..< index`.
   ///
   /// - Parameter index: A valid index in the array, including the end index.
+  ///   When `span(before:)` returns, `index` is equal to the array's
+  ///   `startIndex`.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -418,10 +432,14 @@ extension RigidArray where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// Return a mutable span over the maximal storage chunk following the
-  /// specified position in the array. The span provides direct mutating access
-  /// to all array elements in the range `index ..< count`.
+  /// specified position in the array.
+  ///
+  /// The returned span provides direct mutating access to all array elements
+  /// in the range `index ..< count`.
   ///
   /// - Parameter index: A valid index in the array, including the end index.
+  ///   When `mutableSpan(after:)` returns, `index` is equal to the array's
+  ///   `endIndex`.
   ///
   /// - Complexity: O(1)
   @_lifetime(&self)
@@ -432,10 +450,14 @@ extension RigidArray where Element: ~Copyable {
   }
 
   /// Return a mutable span over the maximal storage chunk preceding the specified
-  /// position in the array. The span provides direct mutating access to all
-  /// array elements in the range `0 ..< index`.
+  /// position in the array.
+  ///
+  /// The returned span provides direct mutating access to all array elements
+  /// in the range `0 ..< index`.
   ///
   /// - Parameter index: A valid index in the array, including the end index.
+  ///   When `mutableSpan(before:)` returns, `index` is equal to the array's
+  ///   `startIndex`.
   ///
   /// - Complexity: O(1)
   @_lifetime(&self)

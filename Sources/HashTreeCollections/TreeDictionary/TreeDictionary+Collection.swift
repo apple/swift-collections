@@ -128,7 +128,7 @@ extension TreeDictionary: Collection {
     return Index(_root: _root.unmanaged, version: _version, path: path)
   }
 
-  /// The collection’s “past the end” position—that is, the position one greater
+  /// The collection's "past the end" position—that is, the position one greater
   /// than the last valid subscript argument.
   ///
   /// - Complexity: O(1)
