@@ -273,7 +273,7 @@ extension OrderedDictionary.Values: RandomAccessCollection {
     end - start
   }
 
-  /// Call `body(p)`, where `p` is a buffer pointer to the collection’s
+  /// Call `body(p)`, where `p` is a buffer pointer to the collection's
   /// contiguous storage. `OrderedDictionary.Values` values always have
   /// contiguous storage.
   ///

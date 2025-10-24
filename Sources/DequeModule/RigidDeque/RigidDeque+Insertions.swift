@@ -142,7 +142,7 @@ extension RigidDeque where Element: ~Copyable {
     }
     assert(remainder.isEmpty)
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Moves the elements of an input span into this deque,
   /// starting at the specified position, and leaving the span empty.
@@ -173,7 +173,7 @@ extension RigidDeque where Element: ~Copyable {
     }
   }
 #endif
-  
+
   /// Moves the elements of an output span into this deque,
   /// starting at the specified position, and leaving the span empty.
   ///
@@ -259,7 +259,7 @@ extension RigidDeque /* where Element: Copyable */ {
   /// deque at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the deque’s `endIndex` as the `index`
+  /// specified index. If you pass the deque's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// Existing elements in the deque's storage are moved as needed to make room
@@ -297,7 +297,7 @@ extension RigidDeque /* where Element: Copyable */ {
   /// deque at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the deque’s `endIndex` as the `index`
+  /// specified index. If you pass the deque's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
   /// Existing elements in the deque's storage are moved as needed to make room
@@ -325,7 +325,7 @@ extension RigidDeque /* where Element: Copyable */ {
   /// Copies the elements of a span into this deque at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the deque’s `endIndex` as the `index`
+  /// specified index. If you pass the deque's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
   /// Existing elements in the deque's storage are moved as needed to make room
@@ -391,13 +391,13 @@ extension RigidDeque /* where Element: Copyable */ {
     precondition(i == items.endIndex,
                  "Broken Collection: count doesn't match contents")
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Copies the elements of a container into this deque at the specified
   /// position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the deque’s `endIndex` as the `index`
+  /// specified index. If you pass the deque's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
   /// Existing elements in the deque's storage are moved as needed to make room
@@ -429,7 +429,7 @@ extension RigidDeque /* where Element: Copyable */ {
   /// position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the deque’s `endIndex` as the `index`
+  /// specified index. If you pass the deque's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
   /// Existing elements in the deque's storage are moved as needed to make room
@@ -453,7 +453,7 @@ extension RigidDeque /* where Element: Copyable */ {
     _insertCollection(
       at: index, copying: items, newCount: items.count)
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Copies the elements of a container into this deque at the specified
   /// position.
