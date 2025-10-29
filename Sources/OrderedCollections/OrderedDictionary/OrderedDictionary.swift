@@ -996,62 +996,115 @@ extension OrderedDictionary {
 }
 
 extension OrderedDictionary {
-  /// Returns a new dictionary containing the keys of this dictionary with the
-  /// values transformed by the given closure.
-  ///
-  /// - Parameter transform: A closure that transforms a value. `transform`
-  ///   accepts each value of the dictionary as its parameter and returns a
-  ///   transformed value of the same or of a different type.
-  /// - Returns: A dictionary containing the keys and transformed values of
-  ///   this dictionary, in the same order.
-  ///
-  /// - Complexity: O(`count`)
-  @inlinable
-  public func mapValues<T>(
-    _ transform: (Value) throws -> T
-  ) rethrows -> OrderedDictionary<Key, T> {
-    OrderedDictionary<Key, T>(
-      _uniqueKeys: _keys,
-      values: ContiguousArray(try _values.map(transform)))
-  }
-
-  /// Returns a new dictionary containing only the key-value pairs that have
-  /// non-`nil` values as the result of transformation by the given closure.
-  ///
-  /// Use this method to receive a dictionary with non-optional values when
-  /// your transformation produces optional values.
-  ///
-  /// In this example, note the difference in the result of using `mapValues`
-  /// and `compactMapValues` with a transformation that returns an optional
-  /// `Int` value.
-  ///
-  ///     let data: OrderedDictionary = ["a": "1", "b": "three", "c": "///4///"]
-  ///
-  ///     let m: [String: Int?] = data.mapValues { str in Int(str) }
-  ///     // ["a": Optional(1), "b": nil, "c": nil]
-  ///
-  ///     let c: [String: Int] = data.compactMapValues { str in Int(str) }
-  ///     // ["a": 1]
-  ///
-  /// - Parameter transform: A closure that transforms a value. `transform`
-  ///   accepts each value of the dictionary as its parameter and returns an
-  ///   optional transformed value of the same or of a different type.
-  ///
-  /// - Returns: A dictionary containing the keys and non-`nil` transformed
-  ///   values of this dictionary, in the same order.
-  ///
-  /// - Complexity: O(`count`)
-  @inlinable
-  public func compactMapValues<T>(
-    _ transform: (Value) throws -> T?
-  ) rethrows -> OrderedDictionary<Key, T> {
-    var result: OrderedDictionary<Key, T> = [:]
-    for (key, value) in self {
-      if let value = try transform(value) {
-        result._keys._appendNew(key)
-        result._values.append(value)
-      }
+    /// Returns a new dictionary containing the keys of this dictionary with the
+    /// values transformed by the given closure.
+    ///
+    /// - Parameter transform: A closure that transforms a value. `transform`
+    ///   accepts each value of the dictionary as its parameter and returns a
+    ///   transformed value of the same or of a different type.
+    /// - Returns: A dictionary containing the keys and transformed values of
+    ///   this dictionary, in the same order.
+    ///
+    /// - Complexity: O(`count`)
+    @inlinable
+    public func mapValues<T>(
+        _ transform: (Value) throws -> T
+    ) rethrows -> OrderedDictionary<Key, T> {
+        OrderedDictionary<Key, T>(
+            _uniqueKeys: _keys,
+            values: ContiguousArray(try _values.map(transform)))
     }
-    return result
-  }
+    
+    /// Returns a new dictionary containing only the key-value pairs that have
+    /// non-`nil` values as the result of transformation by the given closure.
+    ///
+    /// Use this method to receive a dictionary with non-optional values when
+    /// your transformation produces optional values.
+    ///
+    /// In this example, note the difference in the result of using `mapValues`
+    /// and `compactMapValues` with a transformation that returns an optional
+    /// `Int` value.
+    ///
+    ///     let data: OrderedDictionary = ["a": "1", "b": "three", "c": "///4///"]
+    ///
+    ///     let m: [String: Int?] = data.mapValues { str in Int(str) }
+    ///     // ["a": Optional(1), "b": nil, "c": nil]
+    ///
+    ///     let c: [String: Int] = data.compactMapValues { str in Int(str) }
+    ///     // ["a": 1]
+    ///
+    /// - Parameter transform: A closure that transforms a value. `transform`
+    ///   accepts each value of the dictionary as its parameter and returns an
+    ///   optional transformed value of the same or of a different type.
+    ///
+    /// - Returns: A dictionary containing the keys and non-`nil` transformed
+    ///   values of this dictionary, in the same order.
+    ///
+    /// - Complexity: O(`count`)
+    @inlinable
+    public func compactMapValues<T>(
+        _ transform: (Value) throws -> T?
+    ) rethrows -> OrderedDictionary<Key, T> {
+        var result: OrderedDictionary<Key, T> = [:]
+        for (key, value) in self {
+            if let value = try transform(value) {
+                result._keys._appendNew(key)
+                result._values.append(value)
+            }
+        }
+        return result
+    }
+    /// Optimized update: avoids write if the new value is equal to the old one.
+    @discardableResult
+    public mutating func optimizedUpdateValue(_ value: Value, forKey key: Key) -> Value? {
+      let (idx, bucket) = _keys._find(key)
+
+      // Existing key path
+      if let index = idx {
+        let old = _values[index]
+
+        // Skip write when Value is Equatable and identical by value & type
+        if let oldEq = old as? any Equatable,
+           let newEq = value as? any Equatable,
+           type(of: oldEq) == type(of: newEq),
+           oldEq._isEqual(to: newEq) {
+          return old
+        }
+
+        _values[index] = value
+        return old
+      }
+
+      // Insert new pair
+      _keys._appendNew(key, in: bucket)
+      _values.append(value)
+      return nil
+    }
+
+
+    // MARK: - Runtime Equatable helper
+    
+    
+    
 }
+
+// MARK: - Runtime Equatable helper (file-scope only)
+
+internal protocol _AnyEquatable {
+    func _isEqual(to other: any Equatable) -> Bool
+}
+
+extension _AnyEquatable where Self: Equatable {
+    internal func _isEqual(to other: any Equatable) -> Bool {
+        guard let o = other as? Self else { return false }
+        return self == o
+    }
+}
+
+extension Equatable {
+    internal func _isEqual(to other: any Equatable) -> Bool {
+        guard let o = other as? Self else { return false }
+        return self == o
+    }
+}
+
