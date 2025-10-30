@@ -378,6 +378,7 @@ extension UniqueArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -420,6 +421,7 @@ extension UniqueArray {
     _storage._replaceSubrange(
       subrange, copyingContainer: newElements, newCount: c)
   }
+#endif
 #endif
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -464,6 +466,7 @@ extension UniqueArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -506,6 +509,7 @@ extension UniqueArray {
     _storage._replaceSubrange(
       subrange, copyingContainer: newElements, newCount: c)
   }
+#endif
 #endif
 }
 #endif

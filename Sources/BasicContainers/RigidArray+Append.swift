@@ -274,9 +274,9 @@ extension RigidArray {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   internal mutating func _append<
-    Source: Container<Element> & ~Copyable & ~Escapable
+    Source: Iterable<Element> & ~Copyable & ~Escapable
   >(
-    copyingContainer newElements: borrowing Source
+    copyingIterable newElements: borrowing Source
   ) {
     let target = _freeSpace
     _count += newElements._copyContents(intoPrefixOf: target)
@@ -296,11 +296,11 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Container<Element> & ~Copyable & ~Escapable
+    Source: Iterable<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
-    _append(copyingContainer: newElements)
+    _append(copyingIterable: newElements)
   }
 #endif
 
@@ -338,9 +338,9 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Container<Element> & Sequence<Element>
+    Source: Iterable<Element> & Sequence<Element>
   >(copying newElements: Source) {
-    _append(copyingContainer: newElements)
+    _append(copyingIterable: newElements)
   }
 #endif
 }
