@@ -12,17 +12,31 @@
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable /*& ~Escapable*/
+  associatedtype Element: ~Copyable
 
-  /// Advance the iterator to the next storage chunk, returning a span over it.
+  // FIXME: This ought to be a core requirement, but `Ref` is not a thing yet.
+//  @_lifetime(&self)
+//  @_lifetime(self: copy self)
+//  mutating func next() -> Ref<Element>?
+
+  /// Advance the iterator, returning an ephemeral span over the elements
+  /// that are ready to be visited.
   ///
-  /// If the iterator has not yet reached the end of the underlying container,
-  /// then this method returns a non-empty span over the container's storage
-  /// that begins with the element at the iterator's current position and
-  /// extends to the end of the contiguous storage chunk that contains that
-  /// item, but at most `maximumCount` items. On return, the iterator's current
-  /// position is updated to the slot following the last item in the returned
-  /// span.
+  /// If the underlying iterable is a container type, then the returned span
+  /// typically directly addresses one of its storage buffers. On the other
+  /// hand, if the underlying iterable materializes its elements on demand,
+  /// then the returned span addresses some temporary buffer associated with
+  /// the iterator itself. Consequently, the returned span is tied to this
+  /// particular invocation of `nextSpan`, and it cannot survive until the next
+  /// invocation of it.
+  ///
+  /// If the iterator has not yet reached the end of the underlying iterable,
+  /// then this method returns a non-empty span of at most `maximumCount`
+  /// elements, and updates the iterator's current position to the element
+  /// following the last item in the returned span (or the end, if there is
+  /// none). The `maximumCount` argument allows callers to avoid getting more
+  /// items that they are able to process in one go, simplifying usage, and
+  /// avoiding materializing more elements than needed.
   ///
   /// If the iterator's current position is at the end of the container, then
   /// this method returns an empty span without updating the position.
@@ -39,30 +53,50 @@ public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   ///     }
   ///
   /// Note: The spans returned by this method are not guaranteed to be disjunct.
-  /// Some containers may use the same storage chunk (or parts of a storage
-  /// chunk) multiple times, for example to repeat their contents.
+  /// Iterators that materialize elements on demand typically reuse the same
+  /// buffer over and over again; and even some proper containers may link to a
+  /// single storage chunk (or parts of a storage chunk) multiple times, for
+  /// example to repeat their contents.
   ///
   /// Note: Repeatedly iterating over the same container is expected to return
   /// the same items (collected in similarly sized span instances), but the
-  /// returned spans are not guaranteed to be identical. (For example, this is
-  /// the case with containers that can store contents within their direct
-  /// representation. Such containers may not always have a unique address in
-  /// memory, and so the locations of the spans exposed by this method may vary
-  /// between different borrows of the same container.)
+  /// returned spans are not guaranteed to be identical. For example, this is
+  /// the case with containers that store some of their contents within their
+  /// direct representation. Such containers may not always have a unique
+  /// address in memory, and so the locations of the spans exposed by this
+  /// method may vary between different borrows of the same container.)
+  @_lifetime(&self)
+  @_lifetime(self: copy self)
+  mutating func nextSpan(maximumCount: Int) -> Span<Element>
+
+  /// Advance the position of this iterator by the specified offset, or until
+  /// the end of the underlying iterable.
   ///
-  /// - Parameter maximumCount: The maximum count of items the caller is ready
-  ///    to process, or nil if the caller is prepared to accept an arbitrarily
-  ///    large span. If non-nil, the maximum must be greater than zero.
-  /// - Returns: A span over a piece of contiguous storage in the underlying
-  ///     container. It the iterator is at the end of the container, then
-  ///     this returns an empty span. Otherwise the result will contain at least
-  ///     one element.
-  @_lifetime(copy self)
+  /// Returns the number of items that were skipped. If this is less than
+  /// `maximumOffset`, then the iterable did not have enough elements left to
+  /// skip the requested number of items. In this case, the iterator's current
+  /// position is set to the end of the iterable.
+  ///
+  /// `maximumOffset` must be nonnegative, unless this is a bidirectional
+  /// or random-access iterator.
   @_lifetime(self: copy self)
-  mutating func nextSpan(maximumCount: Int?) -> Span<Element>
+  mutating func skip(by maximumOffset: Int) -> Int
   
+  // FIXME: Add BidirectionalBorrowIteratorProtocol and RandomAccessBorrowIteratorProtocol.
+  // BidirectionalBorrowIteratorProtocol would need to have a `previousSpan`
+  // method, which considerably complicates implementation.
+  // Perhaps these would be better left to as variants of protocol Container,
+  // which do not need a separate iterator concept.
+}
+
+@available(SwiftStdlib 5.0, *)
+extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
+  @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func skip(by offset: Int) -> Int
+  @_transparent
+  public mutating func nextSpan() -> Span<Element> {
+    nextSpan(maximumCount: Int.max)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -82,24 +116,60 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
 
 @available(SwiftStdlib 5.0, *)
 extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
-  @_lifetime(copy self)
+#if false // FIXME: This doesn't work, but it should?
+  @_lifetime(&self)
   @_lifetime(self: copy self)
-  @_transparent
-  public mutating func nextSpan() -> Span<Element> {
-    nextSpan(maximumCount: nil)
+  public mutating func next() -> Ref<Element>? {
+    let span = nextSpan(maximumCount: 1)
+    guard !span.isEmpty else { return nil }
+    return Ref(_borrowing: span[unchecked: 0])
   }
+#endif
+
+  //  @_lifetime(&self)
+  //  @_lifetime(self: copy self)
+  //  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+  //    guard let ref = next() else { return Span() }
+  //    return ref.span // FIXME
+  //  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension Span: BorrowIteratorProtocol where Element: ~Copyable {
   @_lifetime(copy self)
   @_lifetime(self: copy self)
-  public mutating func nextSpan(maximumCount: Int?) -> Span<Element> {
-    let c = maximumCount ?? self.count
-    let result = self.extracting(first: c)
-    self = self.extracting(droppingFirst: c)
+  @inlinable
+  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+    let result = self.extracting(first: maximumCount)
+    self = self.extracting(droppingFirst: maximumCount)
     return result
   }
 }
+
+// FIXME: Decide if we want UnsafeBufferPointer types to be borrow iterators
+
+#if false // FIXME: Implement this
+@available(SwiftStdlib 5.0, *)
+extension MutableSpan: BorrowIteratorProtocol where Element: ~Copyable {
+  @_lifetime(copy self)
+  @_lifetime(self: copy self)
+  @inlinable
+  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+    //???
+  }
+}
+#endif
+
+#if false // FIXME: Implement this
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan: BorrowIteratorProtocol where Element: ~Copyable {
+  @_lifetime(copy self)
+  @_lifetime(self: copy self)
+  @inlinable
+  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+    //???
+  }
+}
+#endif
 
 #endif

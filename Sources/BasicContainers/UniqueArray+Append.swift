@@ -231,11 +231,32 @@ extension UniqueArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a container to the end of this array.
+  @inlinable
+  internal mutating func _append<
+    Source: Iterable<Element> & ~Copyable & ~Escapable
+  >(
+    copyingIterable newElements: borrowing Source
+  ) {
+    _ensureFreeCapacity(newElements.underestimatedCount)
+    var it = newElements.startBorrowIteration()
+    while true {
+      let span = it.nextSpan()
+      if span.isEmpty { break }
+      _ensureFreeCapacity(span.count)
+      _storage.append(copying: span)
+    }
+  }
+  // FIXME: Add _append(copyingContainer:), forwarding to the same method on RigidArray
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Copies the elements of an iterable to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
   /// then this reallocates the array's storage to extend its capacity, using
-  /// a geometric growth rate.
+  /// a geometric growth rate. If the input sequence does not provide a precise
+  /// estimate of its count, then the array's storage may need to be resized
+  /// more than once.
   ///
   /// - Parameters
   ///    - newElements: A container whose contents to copy into the array.
@@ -245,12 +266,11 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Container<Element> & ~Copyable & ~Escapable
+    Source: Iterable<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
-    _ensureFreeCapacity(newElements.count)
-    _storage._append(copyingContainer: newElements)
+    self._append(copyingIterable: newElements)
   }
 
 #endif
@@ -259,7 +279,7 @@ extension UniqueArray {
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
   /// then this reallocates the array's storage to extend its capacity, using
-  /// a geometric growth rate. If the input sequence does not provide a correct
+  /// a geometric growth rate. If the input sequence does not provide a precise
   /// estimate of its count, then the array's storage may need to be resized
   /// more than once.
   ///
@@ -300,10 +320,9 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Container<Element> & Sequence<Element>
+    Source: Iterable<Element> & Sequence<Element>
   >(copying newElements: Source) {
-    _ensureFreeCapacity(newElements.count)
-    _storage._append(copyingContainer: newElements)
+    self._append(copyingIterable: newElements)
   }
 #endif
 }

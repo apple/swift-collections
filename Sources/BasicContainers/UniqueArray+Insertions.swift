@@ -301,6 +301,7 @@ extension UniqueArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -335,6 +336,7 @@ extension UniqueArray {
     _storage._insertContainer(at: index, copying: newElements, newCount: c)
   }
 #endif
+#endif
 
   /// Copies the elements of a collection into this array at the specified
   /// position.
@@ -368,6 +370,7 @@ extension UniqueArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -401,6 +404,7 @@ extension UniqueArray {
     _ensureFreeCapacity(c)
     _storage._insertContainer(at: index, copying: newElements, newCount: c)
   }
+#endif
 #endif
 }
 

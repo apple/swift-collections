@@ -177,12 +177,16 @@ extension UniqueArray where Element: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension UniqueArray: Container where Element: ~Copyable {
+extension UniqueArray: Iterable where Element: ~Copyable {
   public typealias BorrowIterator = RigidArray<Element>.BorrowIterator
   
+  public var estimatedCount: ContainersPreview.EstimatedCount {
+    .exactly(count)
+  }
+
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func startBorrowIteration() -> Span<Element> {
+  public func startBorrowIteration() -> BorrowIterator {
     self._storage.startBorrowIteration()
   }
 }

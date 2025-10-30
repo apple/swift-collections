@@ -15,17 +15,17 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 @inlinable
-public func checkContainer<
-  C: Container & ~Copyable & ~Escapable,
-  Expected: Sequence<C.Element>
+public func checkIterable<
+  I: Iterable & ~Copyable & ~Escapable,
+  Expected: Sequence<I.Element>
 >(
-  _ container: borrowing C,
+  _ iterable: borrowing I,
   expectedContents: Expected,
   file: StaticString = #filePath,
   line: UInt = #line
-) where C.Element: Equatable {
-  checkContainer(
-    container,
+) where I.Element: Equatable {
+  checkIterable(
+    iterable,
     expectedContents: expectedContents,
     by: ==,
     file: file, line: line)
@@ -33,32 +33,41 @@ public func checkContainer<
 
 @available(SwiftStdlib 5.0, *)
 @inlinable
-public func checkContainer<
-  C: Container & ~Copyable & ~Escapable,
-  Expected: Sequence<C.Element>
+public func checkIterable<
+  I: Iterable & ~Copyable & ~Escapable,
+  Expected: Sequence<I.Element>
 >(
-  _ container: borrowing C,
+  _ iterable: borrowing I,
   expectedContents: Expected,
-  by areEquivalent: (C.Element, C.Element) -> Bool,
+  by areEquivalent: (I.Element, I.Element) -> Bool,
   file: StaticString = #filePath,
   line: UInt = #line
-) where C.Element: Equatable {
-  let entry = TestContext.current.push("checkContainer", file: file, line: line)
+) where I.Element: Equatable {
+  let entry = TestContext.current.push("checkIterable", file: file, line: line)
   defer { TestContext.current.pop(entry) }
 
   let expectedContents = Array(expectedContents)
-  expectEqual(container.isEmpty, expectedContents.isEmpty)
-  let actualCount = container.count
-  expectEqual(actualCount, expectedContents.count)
+
+  expectEqual(iterable.isEmpty, expectedContents.isEmpty)
+
+  let estimatedCount = iterable.estimatedCount
+  switch estimatedCount {
+  case .exactly(let c):
+    expectEqual(c, expectedContents.count)
+  case .infinite:
+    expectFailure()
+  case .unknown:
+    break
+  }
 
   // Check that the spans seem plausibly sized and that the indices are monotonic.
   let spanShapes: [Range<Int>] = {
     var r: [Range<Int>] = []
     var pos = 0
-    var it = container.startBorrowIteration()
+    var it = iterable.startBorrowIteration()
     while true {
       let origPos = pos
-      let span = it.nextSpan(maximumCount: nil)
+      let span = it.nextSpan()
       pos += span.count
       if span.isEmpty {
         break
@@ -68,16 +77,16 @@ public func checkContainer<
     return r
   }()
   expectEqual(
-    spanShapes.reduce(into: 0, { $0 += $1.count }), actualCount,
+    spanShapes.reduce(into: 0, { $0 += $1.count }), expectedContents.count,
     "Container's count does not match the sum of its spans")
 
   // Check that the spans have stable sizes and the expected contents.
   do {
     var pos = 0
-    var it = container.startBorrowIteration()
+    var it = iterable.startBorrowIteration()
     var spanIndex = 0
     while true {
-      let span = it.nextSpan(maximumCount: nil)
+      let span = it.nextSpan()
       if span.isEmpty { break }
       expectEqual(
         span.count, spanShapes[spanIndex].count,
@@ -95,7 +104,7 @@ public func checkContainer<
   // Check that we can iterate one by one.
   do {
     var pos = 0
-    var it = container.startBorrowIteration()
+    var it = iterable.startBorrowIteration()
     while true {
       let span = it.nextSpan(maximumCount: 1)
       if span.isEmpty { break }
@@ -111,7 +120,7 @@ public func checkContainer<
   // Check that we can iterate with huge maximum counts
   do {
     var pos = 0
-    var it = container.startBorrowIteration()
+    var it = iterable.startBorrowIteration()
     var spanIndex = 0
     while true {
       let span = it.nextSpan(maximumCount: Int.max)
