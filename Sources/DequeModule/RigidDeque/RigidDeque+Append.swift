@@ -94,9 +94,9 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(`newElements.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
-    copying items: UnsafeMutableBufferPointer<Element>
+    copying newElements: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe self.append(copying: UnsafeBufferPointer(items))
+    unsafe self.append(copying: UnsafeBufferPointer(newElements))
   }
 
   /// Copies the elements of a span to the end of this deque.
@@ -109,8 +109,8 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(`newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func append(copying items: Span<Element>) {
-    unsafe items.withUnsafeBufferPointer { source in
+  public mutating func append(copying newElements: Span<Element>) {
+    unsafe newElements.withUnsafeBufferPointer { source in
       unsafe self.append(copying: source)
     }
   }

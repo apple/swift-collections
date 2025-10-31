@@ -555,7 +555,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
-extension _UnsafeDequeHandle {
+extension _UnsafeDequeHandle /*where Element: Copyable*/ {
   /// Prepend the contents of `source` to this buffer. The buffer must have
   /// enough free capacity to insert the new elements.
   ///
@@ -570,6 +570,28 @@ extension _UnsafeDequeHandle {
     let newStart = self.slot(startSlot, offsetBy: -source.count)
     startSlot = newStart
     count += source.count
+    
+    let gap = mutableSegments(between: newStart, and: oldStart)
+    gap.initialize(from: source)
+  }
+  
+  /// Prepend the contents of `source` to this buffer. The buffer must have
+  /// enough free capacity to insert the new elements.
+  ///
+  /// This function does not validate its input arguments in release builds. Nor
+  /// does it ensure that the storage buffer is uniquely referenced.
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal mutating func uncheckedPrepend(
+    contentsOf source: some Collection<Element>,
+    count sourceCount: Int
+  ) {
+    assert(count + sourceCount <= capacity)
+    guard sourceCount > 0 else { return }
+    let oldStart = startSlot
+    let newStart = self.slot(startSlot, offsetBy: -sourceCount)
+    startSlot = newStart
+    count += sourceCount
 
     let gap = mutableSegments(between: newStart, and: oldStart)
     gap.initialize(from: source)
@@ -843,6 +865,29 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       startSlot = newStart
       count -= gapSize
     }
+  }
+}
+
+// MARK: Rotating elements
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal mutating func rotate(
+    toStartAt newStart: Slot
+  ) {
+    let currentCount = count
+
+    // Open a gap at `newStart` that's the size of the free capacity, pushing
+    // all elements to the right of `newStart` until they wrap around and close
+    // the gap with the current start of the collection.
+    // FIXME: If the elements to the left of `newStart` are fewer in number,
+    // it would be more efficient to move those to the end.
+    _ = openGap(ofSize: capacity - count, atOffset: newStart.position)
+    // With the latter elements now shifted to the front, update the starting
+    // slot and restore the count.
+    startSlot = newStart
+    count = currentCount
   }
 }
 

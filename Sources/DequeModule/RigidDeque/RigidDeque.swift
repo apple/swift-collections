@@ -26,6 +26,7 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
 
 #else
 
+/// A fixed-capacity container implementing a double-ended queue.
 @available(SwiftStdlib 5.0, *)
 @frozen
 @safe
