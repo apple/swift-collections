@@ -40,7 +40,6 @@ extension RigidDeque where Element: ~Copyable {
     initializingWith initializer: (inout OutputSpan<Element>) throws -> Void
   ) rethrows {
     self.init(_handle: .allocate(capacity: capacity))
-    var newCount = 0
     let buffer = _handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
     var span = OutputSpan(buffer: buffer, initializedCount: 0)
     defer {

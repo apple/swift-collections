@@ -16,7 +16,7 @@ import ContainersPreview
 
 @frozen
 @usableFromInline
-internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
+internal struct _UnsafeDequeHandle<Element: ~Copyable> {
   @usableFromInline
   internal typealias Slot = _DequeSlot
 
@@ -202,6 +202,20 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     let position = startSlot.position &+ offset
     guard position < capacity else { return Slot(at: position &- capacity) }
     return Slot(at: position)
+  }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal func distance(from start: Slot, to end: Slot) -> Int {
+    assert(start.position >= 0 && start.position <= capacity)
+    assert(end.position >= 0 && end.position <= capacity)
+    
+    if end.position >= start.position {
+      return end.position - start.position
+    } else {
+      // Handle wrap-around case
+      return capacity - start.position + end.position
+    }
   }
 }
 
@@ -408,7 +422,7 @@ extension _UnsafeDequeHandle {
   /// minimum capacity. This operation does not preserve layout.
   @_alwaysEmitIntoClient
   @_transparent
-  internal borrowing func allocateCopy(capacity: Int) -> Self {
+  internal func allocateCopy(capacity: Int) -> Self {
     precondition(capacity >= self.count)
     var result: _UnsafeDequeHandle<Element> = .allocate(capacity: capacity)
     result.count = self.count
@@ -873,21 +887,35 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
+  @discardableResult
   internal mutating func rotate(
     toStartAt newStart: Slot
-  ) {
+  ) -> Slot {
     let currentCount = count
+    let suffixCount = distance(from: newStart, to: endSlot)
+    
+    // Open a gap at `newStart` that's the size of the free capacity, swapping
+    // the positions of the prefix (`startSlot..<newStart`) and suffix
+    // (newStart..<endSlot`). The `openGap` method decides whether to move the
+    // prefix or suffix.
 
-    // Open a gap at `newStart` that's the size of the free capacity, pushing
-    // all elements to the right of `newStart` until they wrap around and close
-    // the gap with the current start of the collection.
-    // FIXME: If the elements to the left of `newStart` are fewer in number,
-    // it would be more efficient to move those to the end.
-    _ = openGap(ofSize: capacity - count, atOffset: newStart.position)
-    // With the latter elements now shifted to the front, update the starting
-    // slot and restore the count.
-    startSlot = newStart
+    // Illustrated steps: (underscores mark suffix)
+    //
+    //   0) ....ABCDE̲F̲G̲....      ....ABC̲D̲E̲F̲G̲....
+    //   1) .E̲F̲G̲ABCD.......      ......C̲D̲E̲F̲G̲AB..
+
+    let gapSize = capacity - count
+    let gapOffset = distance(from: startSlot, to: newStart)
+    if gapSize > 0 {
+      _ = openGap(ofSize: gapSize, atOffset: gapOffset)
+    }
+    
+    // With the prefix and suffix swapped, update the starting slot and
+    // restore the count.
+    let oldStart = startSlot
+    startSlot = slot(startSlot, offsetBy: -suffixCount)
     count = currentCount
+    return oldStart
   }
 }
 

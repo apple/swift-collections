@@ -16,7 +16,17 @@ import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
 #endif
 
-internal struct DequeLayout: CustomStringConvertible {
+internal struct RigidTestData<Element>: ~Copyable {
+  var deque: RigidDeque<Element>
+  var contents: [Element]
+  
+  init(_ deque: consuming RigidDeque<Element>, _ contents: [Element]) {
+    self.deque = deque
+    self.contents = contents
+  }
+}
+
+internal struct DequeLayout: Hashable, CustomStringConvertible {
   let capacity: Int
   let startSlot: Int
   let count: Int
@@ -52,6 +62,13 @@ extension Deque {
   }
 }
 
+extension RigidDeque {
+  init<C: Collection>(layout: DequeLayout, contents: C) where C.Element == Element {
+    precondition(contents.count == layout.count)
+    self.init(_capacity: layout.capacity, startSlot: layout.startSlot, copying: contents)
+  }
+}
+
 extension LifetimeTracker {
   func deque(
     with layout: DequeLayout
@@ -59,6 +76,14 @@ extension LifetimeTracker {
     let contents = self.instances(for: layout.valueRange)
     let deque = Deque(layout: layout, contents: contents)
     return (deque, contents)
+  }
+    
+  func rigidDeque(
+    with layout: DequeLayout
+  ) -> RigidTestData<LifetimeTracked<Int>> {
+    let contents = self.instances(for: layout.valueRange)
+    let deque = RigidDeque(layout: layout, contents: contents)
+    return RigidTestData(deque, contents)
   }
 }
 

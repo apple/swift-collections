@@ -19,9 +19,8 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 @Suite("RigidDeque Tests")
-struct RigidDequeTests {
-  
-  // MARK: - Basic Initializers
+struct RigidDequeTests_Testing {
+  // MARK: - Initializers
   
   @Test("Init with capacity")
   func initWithCapacity() {
