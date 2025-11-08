@@ -103,6 +103,7 @@ extension Box where T: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Return a borrowing reference to the contents of this box.
+  @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
