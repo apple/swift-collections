@@ -373,5 +373,62 @@ final class DequeTests: CollectionTestCase {
     }
   }
 
+    func test_fixedCapacity() {
+      let fixedDeque = Deque<Int>(fixedCapacity: 3)
+      expectEqual(fixedDeque.maxCapacity, 3)
+      expectTrue(fixedDeque.isFixedCapacity)
+      expectFalse(fixedDeque.isFull)
+      expectEqual(fixedDeque.remainingCapacity, 3)
+      
+      let unlimitedDeque = Deque<Int>(minimumCapacity: 3)
+      expectNil(unlimitedDeque.maxCapacity)
+      expectFalse(unlimitedDeque.isFixedCapacity)
+      expectFalse(unlimitedDeque.isFull)
+      expectEqual(unlimitedDeque.remainingCapacity, Int.max)
+    }
+
+    func test_fixedCapacity_append() {
+        var deque = Deque<Int>(fixedCapacity: 3)
+        deque.append(1)
+        deque.append(2)
+        deque.append(3)
+        expectEqualElements(deque, [1, 2, 3])
+        expectTrue(deque.isFull)
+        
+        deque.append(4)
+        expectEqualElements(deque, [2, 3, 4])
+        expectTrue(deque.isFull)
+        expectEqual(deque.count, 3)
+        
+        deque.append(5)
+        expectEqualElements(deque, [3, 4, 5])
+        expectTrue(deque.isFull)
+    }
+    
+    func test_fixedCapacity_prepend() {
+        var deque = Deque<Int>(fixedCapacity: 3)
+        
+        deque.append(1)
+        deque.append(2)
+        deque.append(3)
+        expectEqualElements(deque, [1, 2, 3])
+        expectTrue(deque.isFull)
+        
+        deque.prepend(0)
+        expectEqualElements(deque, [0, 1, 2])
+        expectTrue(deque.isFull)
+        expectEqual(deque.count, 3)
+        
+        deque.prepend(-1)
+        expectEqualElements(deque, [-1, 0, 1])
+        expectTrue(deque.isFull)
+    }
+    
+    func test_fixedCapacity_precondition() {
+      let validDeque = Deque<Int>(fixedCapacity: 1)
+      expectEqual(validDeque.maxCapacity, 1)
+    }
+    
+
 }
 
