@@ -17,6 +17,7 @@ jobs:
       macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}]'
       enable_macos_checks: true
       enable_wasm_sdk_build: true
+      wasm_sdk_build_command: 'swift test'
 
   embedded-swift:
     name: Build with Embedded Swift
