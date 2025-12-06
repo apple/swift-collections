@@ -172,6 +172,7 @@ extension _UnsafeBitSet {
   package mutating func update(_ member: UInt, to newValue: Bool) -> Bool {
     ensureMutable()
     let (w, b) = Index(member).split
+    if w >= _words.count { return false }
     _mutableWords[w].update(b, to: newValue)
     return w == _words.count &- 1
   }
