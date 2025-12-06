@@ -88,7 +88,7 @@ extension _Hash {
     if level.isAtBottom { return self == other }
     let s = UInt(UInt.bitWidth) - level.shift
     let v1 = self.value &<< s
-    let v2 = self.value &<< s
+    let v2 = other.value &<< s
     return v1 == v2
   }
 }
