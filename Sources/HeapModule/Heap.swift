@@ -363,7 +363,7 @@ extension Heap {
 
     guard newCount > origCount, newCount > 1 else {
       // If we didn't append, or the result is too small to violate heapness,
-      // then we have nothing else to dp.
+      // then we have nothing else to do.
       return
     }
 
@@ -381,7 +381,7 @@ extension Heap {
     //
     // FIXME: Write a benchmark to verify this heuristic.
     let heuristicLimit = 2 * newCount / newCount._binaryLogarithm()
-    let useFloyd = (newCount - origCount) < heuristicLimit
+    let useFloyd = (newCount - origCount) > heuristicLimit
     _update { handle in
       if useFloyd {
         handle.heapify()
