@@ -64,9 +64,8 @@ extension InputSpan where Element: ~Copyable {
   @unsafe
   internal func _first() -> UnsafeMutableRawPointer {
     // NOTE: `_pointer` must be known to be not-nil.
-    // Initialized elements live at the end of the buffer; skip the uninitialized prefix.
     let offset = (capacity &- _count) &* MemoryLayout<Element>.stride
-    unsafe _start().advanced(by: offset)
+    return unsafe _start().advanced(by: offset)
   }
   
   @unsafe
