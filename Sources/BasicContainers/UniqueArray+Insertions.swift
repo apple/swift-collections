@@ -78,6 +78,38 @@ extension UniqueArray where Element: ~Copyable {
     _ensureFreeCapacity(count)
     return _storage.insert(count: count, at: index, initializingWith: body)
   }
+
+  /// Inserts a given number of new items into this array at the specified
+  /// position, using an async callback to directly initialize array storage by
+  /// populating an output span.
+  ///
+  /// All existing elements at or following the specified position are moved to
+  /// make room for the new items.
+  ///
+  /// If the array does not have sufficient capacity to hold the new elements,
+  /// then this reallocates storage to extend its capacity, using a geometric
+  /// growth rate.
+  ///
+  /// - Parameters:
+  ///    - count: The number of items to insert into the array.
+  ///    - index: The position at which to insert the new items.
+  ///       `index` must be a valid index in the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is called with an empty output span of capacity matching the
+  ///       supplied count, and it must fully populate it before returning.
+  ///
+  /// - Complexity: O(`self.count` + `count`)
+  @inlinable
+  public nonisolated(nonsending) mutating func insert<Result: ~Copyable>(
+    count: Int,
+    at index: Int,
+    initializingWith body: nonisolated(nonsending) (inout OutputSpan<Element>) async -> Result
+  ) async -> Result {
+    // FIXME: This does not allow `body` to throw, to prevent having to move the tail twice. Is that okay?
+    _ensureFreeCapacity(count)
+    return await _storage.insert(count: count, at: index, initializingWith: body)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

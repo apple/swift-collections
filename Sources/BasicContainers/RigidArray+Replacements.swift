@@ -66,6 +66,50 @@ extension RigidArray where Element: ~Copyable {
     }
     return body(&span)
   }
+
+  /// Replace the specified subrange of elements with new items populated by an
+  /// async callback function directly into the newly allocated storage.
+  ///
+  /// This method first removes any existing items from the target subrange.
+  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// If you pass a zero-length range as the `subrange` parameter, then
+  /// this method is equivalent to calling
+  /// `insert(count: newCount, initializingWith: body)`.
+  ///
+  /// Likewise, if you pass a zero for `newCount`, then this method
+  /// removes the elements in the given subrange without any replacement.
+  /// Calling `removeSubrange(subrange)` is preferred in this case.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///      the range must be valid indices in the array.
+  ///   - newCount: the number of items to replace the old subrange.
+  ///   - body: A callback that gets called precisely once to directly
+  ///      populate newly reserved storage within the array. The function
+  ///      is called with an empty output span of capacity `newCount`,
+  ///      and it must fully populate it before returning.
+  ///
+  /// - Complexity: O(`self.count` + `newCount`)
+  @inlinable
+  public nonisolated(nonsending) mutating func replaceSubrange<Result: ~Copyable>(
+    _ subrange: Range<Int>,
+    newCount: Int,
+    initializingWith body: nonisolated(nonsending) (inout OutputSpan<Element>) async -> Result
+  ) async -> Result {
+    // FIXME: Should we allow throwing (and a partially filled output span)?
+    // FIXME: Should we have a version of this with two closures, to allow custom-consuming the old items?
+    // replaceSubrange(5..<10, newCount: 3, consumingWith: {...}, initializingWith: {...})
+    let target = _gapForReplacement(of: subrange, withNewCount: newCount)
+    var span = OutputSpan(buffer: target, initializedCount: 0)
+    defer {
+      let c = span.finalize(for: target)
+      precondition(c == newCount, "Inserted fewer items than promised")
+      span = OutputSpan()
+    }
+    return await body(&span)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

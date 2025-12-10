@@ -66,6 +66,44 @@ func withSomeArrayLayouts<E: Error>(
   }
 }
 
+func withSomeArrayLayouts<E: Error>(
+    _ label: String,
+    ofCapacities capacities: some Sequence<Int>,
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    run body: (ArrayLayout) async throws(E) -> Void
+) async throws(E) {
+    let context = TestContext.current
+    for capacity in capacities {
+        var counts: Set<Int> = []
+        counts.insert(0)
+        counts.insert(capacity)
+        counts.insert(capacity / 2)
+        if capacity >= 1 {
+            counts.insert(1)
+            counts.insert(capacity - 1)
+        }
+        if capacity >= 2 {
+            counts.insert(2)
+            counts.insert(capacity - 2)
+        }
+        for count in counts {
+            let layout = ArrayLayout(capacity: capacity, count: count)
+            let entry = context.push("\(label): \(layout)", file: file, line: line)
+            
+            var done = false
+            defer {
+                context.pop(entry)
+                if !done {
+                    print(context.currentTrace(title: "Throwing trace"))
+                }
+            }
+            try await body(layout)
+            done = true
+        }
+    }
+}
+
 #if compiler(>=6.2)
 extension RigidArray where Element: ~Copyable {
   init(layout: ArrayLayout, using generator: (Int) -> Element) {

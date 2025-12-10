@@ -57,6 +57,28 @@ public func withEvery<S: Sequence>(
   }
 }
 
+public func withEvery<S: Sequence>(
+    _ label: String,
+    in items: S,
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    run body: (S.Element) async throws -> Void
+) async rethrows {
+    let context = TestContext.current
+    for item in items {
+        let entry = context.push("\(label): \(item)", file: file, line: line)
+        var done = false
+        defer {
+            context.pop(entry)
+            if !done {
+                print(context.currentTrace(title: "Throwing trace"))
+            }
+        }
+        try await body(item)
+        done = true
+    }
+}
+
 public func withEveryRange<T: Strideable>(
   _ label: String,
   in bounds: Range<T>,
@@ -80,6 +102,31 @@ public func withEveryRange<T: Strideable>(
       done = true
     }
   }
+}
+
+public func withEveryRange<T: Strideable>(
+    _ label: String,
+    in bounds: Range<T>,
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    run body: (Range<T>) async throws -> Void
+) async rethrows where T.Stride == Int {
+    let context = TestContext.current
+    for lowerBound in bounds.lowerBound ... bounds.upperBound {
+        for upperBound in lowerBound ... bounds.upperBound {
+            let range = lowerBound ..< upperBound
+            let entry = context.push("\(label): \(range)", file: file, line: line)
+            var done = false
+            defer {
+                context.pop(entry)
+                if !done {
+                    print(context.currentTrace(title: "Throwing trace"))
+                }
+            }
+            try await body(range)
+            done = true
+        }
+    }
 }
 
 internal func _samples<C: Collection>(from items: C) -> [C.Element] {

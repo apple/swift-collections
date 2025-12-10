@@ -823,5 +823,118 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
+
+  // MARK: - Async OutputSpan Tests
+
+  func test_append_async_initializingWith() async {
+    await withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+        await withLifetimeTracking { tracker in
+        var a = tracker.rigidArray(layout: layout)
+        let itemsToAdd = layout.capacity - layout.count
+        await a.append(count: itemsToAdd, initializingWith: { span in
+          // Mimic async work
+          try! await Task.sleep(for: .seconds(0.01))
+          for i in 0 ..< itemsToAdd {
+            span.append(tracker.instance(for: layout.count + i))
+          }
+        })
+        expectTrue(a.isFull)
+        expectContainerContents(a, equivalentTo: 0 ..< layout.capacity, by: { $0.payload == $1 })
+        expectEqual(tracker.instances, layout.capacity)
+      }
+    }
+  }
+
+  func test_edit_async() async {
+      await withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+          await withLifetimeTracking { tracker in
+        var a = tracker.rigidArray(layout: layout)
+        await a.edit { span in
+          // Mimic async work
+          try! await Task.sleep(for: .seconds(0.01))
+          // Remove all items
+          span.removeAll()
+          // Add them back in reverse order
+          for i in (0 ..< layout.count).reversed() {
+            span.append(tracker.instance(for: i))
+          }
+        }
+        expectEqual(a.count, layout.count)
+        expectContainerContents(a, equivalentTo: (0 ..< layout.count).reversed(), by: { $0.payload == $1 })
+      }
+    }
+  }
+
+  func test_replaceSubrange_async_initializingWith() async {
+    await withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      await withEveryRange("range", in: 0 ..< layout.count) { range in
+        await withEvery("c", in: 0 ..< layout.capacity - layout.count + range.count) { c in
+            await withLifetimeTracking { tracker in
+            var expected = Array(0 ..< layout.count)
+            let addition = (0 ..< c).map { -100 - $0 }
+            expected.replaceSubrange(range, with: addition)
+
+            var a = tracker.rigidArray(layout: layout)
+            await a.replaceSubrange(range, newCount: c, initializingWith: { span in
+              // Mimic async work
+              try! await Task.sleep(for: .seconds(0.01))
+              for item in addition {
+                span.append(tracker.instance(for: item))
+              }
+            })
+
+            expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
+            expectEqual(tracker.instances, layout.count - range.count + c)
+          }
+        }
+      }
+    }
+  }
+
+  func test_insert_async_initializingWith() async {
+    await withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      await withEvery("index", in: 0 ... layout.count) { index in
+        await withEvery("c", in: 0 ..< layout.capacity - layout.count) { c in
+          await withLifetimeTracking { tracker in
+            var expected = Array(0 ..< layout.count)
+            let insertion = (0 ..< c).map { -100 - $0 }
+            expected.insert(contentsOf: insertion, at: index)
+
+            var a = tracker.rigidArray(layout: layout)
+            await a.insert(count: c, at: index, initializingWith: { span in
+              // Mimic async work
+              try! await Task.sleep(for: .seconds(0.01))
+              for item in insertion {
+                span.append(tracker.instance(for: item))
+              }
+            })
+
+            expectContainerContents(a, equivalentTo: expected, by: { $0.payload == $1 })
+            expectEqual(tracker.instances, layout.count + c)
+          }
+        }
+      }
+    }
+  }
+
+  func test_init_async_initializingWith() async {
+    await withEvery("capacity", in: [0, 10, 100]) { capacity in
+      await withEvery("count", in: 0 ... capacity) { count in
+        await withLifetimeTracking { tracker in
+          let a = await RigidArray<LifetimeTracked>(capacity: capacity, initializingWith: { span in
+            // Mimic async work
+            try! await Task.sleep(for: .seconds(0.01))
+            for i in 0 ..< count {
+              span.append(tracker.instance(for: i))
+            }
+          })
+          expectEqual(a.count, count)
+          expectEqual(a.capacity, capacity)
+          expectContainerContents(a, equivalentTo: 0 ..< count, by: { $0.payload == $1 })
+          expectEqual(tracker.instances, count)
+        }
+      }
+    }
+  }
 }
 #endif
