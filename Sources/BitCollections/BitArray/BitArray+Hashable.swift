@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 extension BitArray: Hashable {
   /// Hashes the essential components of this value by feeding them into the
   /// given hasher.
