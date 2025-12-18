@@ -588,6 +588,13 @@ class TreeSetTests: CollectionTestCase {
     }
   }
 
+  func test_symmetricDifference_bitmapRegression() {
+    let left: TreeSet<Int> = [1, 3]
+    let right: TreeSet<Int> = [2, 3]
+    let result = left.symmetricDifference(right)
+    expectEqualSets(result, [1, 2])
+  }
+
   func test_mutating_binary_set_operations() {
     let a = [1, 2, 3, 4]
     let b = [0, 2, 4, 6]
