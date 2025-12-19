@@ -86,3 +86,14 @@ function(_install_target module)
     DESTINATION lib/${swift}/${COLLECTIONS_PLATFORM}/${module_name}.swiftmodule
     RENAME ${COLLECTIONS_MODULE_TRIPLE}.swiftmodule)
 endfunction()
+
+# Makes <exported> importable by any target listing <exporter> in its
+# target_link_libraries.
+function(swift_module_re_exports exporter exported)
+  set(swift_module_directory "$<TARGET_PROPERTY:${exported},Swift_MODULE_DIRECTORY>")
+  set(binary_directory "$<TARGET_PROPERTY:${exported},BINARY_DIR>")
+  set_property(TARGET ${exporter}
+    APPEND
+    PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+  "$<IF:$<STREQUAL:${swift_module_directory},>,${binary_directory},${swift_module_directory}>")
+endfunction()
