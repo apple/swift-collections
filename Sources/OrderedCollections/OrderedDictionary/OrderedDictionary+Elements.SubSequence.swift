@@ -103,7 +103,7 @@ extension OrderedDictionary.Elements.SubSequence {
 }
 
 extension OrderedDictionary.Elements.SubSequence: Sequence {
-  // A type representing the collection’s elements.
+  // A type representing the collection's elements.
   public typealias Element = OrderedDictionary.Element
 
   /// The type that allows iteration over the collection's elements.

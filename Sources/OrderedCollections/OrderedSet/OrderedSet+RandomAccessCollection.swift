@@ -43,7 +43,7 @@ extension OrderedSet: Sequence {
     return (Iterator(_elements: self, _position: copied), copied)
   }
 
-  /// Call `body(p)`, where `p` is a buffer pointer to the collection’s
+  /// Call `body(p)`, where `p` is a buffer pointer to the collection's
   /// contiguous storage. Ordered sets always have contiguous storage.
   ///
   /// - Parameter body: A function to call. The function must not escape its

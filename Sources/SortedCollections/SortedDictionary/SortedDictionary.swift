@@ -141,7 +141,7 @@ extension SortedDictionary {
   ///   - value: The new value to add to the dictionary.
   ///   - key: The key to associate with value. If key already exists in the
   ///       dictionary, value replaces the existing associated value. If key
-  ///       isn’t already a key of the dictionary, the `(key, value)` pair
+  ///       isn't already a key of the dictionary, the `(key, value)` pair
   ///       is added.
   /// - Returns: The value that was replaced, or nil if a new key-value
   ///     pair was added.

@@ -80,7 +80,7 @@ extension BitSet {
     }
   }
 
-  /// Accesses the contiguous subrange of the collection’s elements that are
+  /// Accesses the contiguous subrange of the collection's elements that are
   /// contained within a specific integer range.
   ///
   ///     let bits: BitSet = [2, 5, 6, 8, 9]
@@ -122,7 +122,7 @@ extension BitSet {
     return Slice(base: self, bounds: bounds)
   }
 
-  /// Accesses the contiguous subrange of the collection’s elements that are
+  /// Accesses the contiguous subrange of the collection's elements that are
   /// contained within a specific integer range expression.
   ///
   ///     let bits: BitSet = [2, 5, 6, 8, 9]
