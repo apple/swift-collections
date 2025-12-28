@@ -154,6 +154,30 @@ extension UniqueArray where Element: ~Copyable {
   ) throws(E) -> R {
     try _storage.edit(body)
   }
+
+  /// Arbitrarily edit the storage underlying this array by invoking a
+  /// user-supplied async closure with a mutable `OutputSpan` view over it.
+  /// This method calls its function argument precisely once, allowing it to
+  /// arbitrarily modify the contents of the output span it is given.
+  /// The argument is free to add, remove or reorder any items; however,
+  /// it is not allowed to replace the span or change its capacity.
+  ///
+  /// When the function argument finishes (whether by returning or throwing an
+  /// error) the rigid array instance is updated to match the final contents of
+  /// the output span.
+  ///
+  /// - Parameter body: A function that edits the contents of this array through
+  ///    an `OutputSpan` argument. This method invokes this function
+  ///    precisely once.
+  /// - Returns: This method returns the result of its function argument.
+  /// - Complexity: Adds O(1) overhead to the complexity of the function
+  ///    argument.
+  @inlinable @inline(__always)
+  public nonisolated(nonsending) mutating func edit<E: Error, R: ~Copyable>(
+    _ body: nonisolated(nonsending) (inout OutputSpan<Element>) async throws(E) -> R
+  ) async throws(E) -> R {
+    try await _storage.edit(body)
+  }
 }
 
 //MARK: - Container primitives

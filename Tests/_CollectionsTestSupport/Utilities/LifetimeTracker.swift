@@ -64,3 +64,14 @@ public func withLifetimeTracking<E: Error, R>(
   defer { tracker.check(file: file, line: line) }
   return try body(tracker)
 }
+
+@inlinable
+public func withLifetimeTracking<E: Error, R>(
+    file: StaticString = #filePath,
+    line: UInt = #line,
+    _ body: (LifetimeTracker) async throws(E) -> R
+) async throws(E) -> R {
+    let tracker = LifetimeTracker()
+    defer { tracker.check(file: file, line: line) }
+    return try await body(tracker)
+}
