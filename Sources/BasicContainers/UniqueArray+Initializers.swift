@@ -70,16 +70,16 @@ extension UniqueArray where Element: ~Copyable {
 extension UniqueArray /*where Element: Copyable*/ {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified initial capacity, holding a copy
-  /// of the contents of a given container.
+  /// of the contents of a given iterable.
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new array, or nil to allocate
   ///      just enough capacity to store the contents.
-  ///   - contents: The container whose contents to copy into the new array.
-  ///      The container must not contain more than `capacity` elements.
+  ///   - contents: An iterable whose contents to copy into the new array.
+  ///      The iterable must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Container<Element> & ~Copyable & ~Escapable>(
+  public init<Source: Iterable<Element> & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing Source
   ) {
@@ -115,7 +115,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///   - contents: The container whose contents to copy into the new array.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Container<Element> & Sequence<Element>>(
+  public init<Source: Iterable<Element> & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: Source
   ) {

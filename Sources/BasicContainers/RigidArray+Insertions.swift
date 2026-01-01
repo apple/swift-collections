@@ -341,6 +341,7 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   @inlinable
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -359,6 +360,7 @@ extension RigidArray {
       }
     }
   }
+#endif
 #endif
 
   @inlinable
@@ -388,6 +390,7 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -417,6 +420,7 @@ extension RigidArray {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
+#endif
 #endif
 
   /// Copies the elements of a collection into this array at the specified
@@ -448,6 +452,7 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -477,6 +482,7 @@ extension RigidArray {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
+#endif
 #endif
 }
 

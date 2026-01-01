@@ -12,17 +12,25 @@
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import Builtin
 
+@available(SwiftStdlib 5.0, *)
 @frozen
 @safe
-public struct Ref<T: ~Copyable>: Copyable, ~Escapable {
+public struct Ref<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Escapable {
   @usableFromInline
-  package let _pointer: UnsafePointer<T>
+  package let _pointer: UnsafePointer<Target>
 
-#if compiler(>=6.2) && FIXME
   @_lifetime(borrow value)
   @_alwaysEmitIntoClient
   @_transparent
-  public init(_ value: borrowing @_addressable T) {
+  internal init(_borrowing value: borrowing @_addressable Target) {
+    unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
+  }
+
+#if compiler(>=6.3) // rdar://161844406 (https://github.com/swiftlang/swift/pull/84748)
+  @_lifetime(borrow value)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public init(_ value: borrowing @_addressable Target) {
     unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
   }
 #endif
@@ -31,7 +39,7 @@ public struct Ref<T: ~Copyable>: Copyable, ~Escapable {
   @_alwaysEmitIntoClient
   @_transparent
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafeAddress: UnsafePointer<T>,
+    unsafeAddress: UnsafePointer<Target>,
     borrowing owner: borrowing Owner
   ) {
     unsafe _pointer = unsafeAddress
@@ -41,18 +49,35 @@ public struct Ref<T: ~Copyable>: Copyable, ~Escapable {
   @_alwaysEmitIntoClient
   @_transparent
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafeAddress: UnsafePointer<T>,
+    unsafeAddress: UnsafePointer<Target>,
     copying owner: borrowing Owner
   ) {
     unsafe _pointer = unsafeAddress
   }
 
   @_alwaysEmitIntoClient
-  public subscript() -> T {
+  public subscript() -> Target {
     @_transparent
     unsafeAddress {
       unsafe _pointer
     }
+  }
+}
+
+extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */  {
+  @available(SwiftStdlib 5.0, *)
+  @_lifetime(borrow self)
+  @_addressableSelf
+  public func borrow() -> Ref<Wrapped>? {
+    if self == nil {
+      return nil
+    }
+    
+    let pointer = unsafe UnsafePointer<Wrapped>(
+      Builtin.unprotectedAddressOfBorrow(self)
+    )
+    
+    return unsafe Ref(unsafeAddress: pointer, borrowing: self)
   }
 }
 #endif

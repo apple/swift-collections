@@ -98,15 +98,38 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Container<Element> & ~Copyable & ~Escapable>(
-    capacity: Int? = nil,
+  public init<Source: Iterable<Element> & ~Copyable & ~Escapable>(
+    capacity: Int,
     copying contents: borrowing Source
   ) {
-    self.init(capacity: capacity ?? contents.count)
+    self.init(capacity: capacity)
+    self.append(copying: contents)
+  }
+  
+#endif
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Creates a new array with the specified capacity, holding a copy
+  /// of the contents of a given container.
+  ///
+  /// - Parameters:
+  ///   - capacity: The storage capacity of the new array, or nil to allocate
+  ///      just enough capacity to store the contents.
+  ///   - contents: The container whose contents to copy into the new array.
+  ///      The container must not contain more than `capacity` elements.
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public init<Source: Iterable<Element> & Sequence<Element>>(
+    capacity: Int,
+    copying contents: Source
+  ) {
+    self.init(capacity: capacity)
     self.append(copying: contents)
   }
 #endif
-
+  
+  // FIXME: Add a version that's generic over `Container`, with an optional capacity
+  
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given collection.
   ///
@@ -124,26 +147,6 @@ extension RigidArray /*where Element: Copyable*/ {
     self.init(capacity: capacity ?? contents.count)
     self.append(copying: contents)
   }
-  
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Creates a new array with the specified capacity, holding a copy
-  /// of the contents of a given container.
-  ///
-  /// - Parameters:
-  ///   - capacity: The storage capacity of the new array, or nil to allocate
-  ///      just enough capacity to store the contents.
-  ///   - contents: The container whose contents to copy into the new array.
-  ///      The container must not contain more than `capacity` elements.
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public init<Source: Container<Element> & Sequence<Element>>(
-    capacity: Int? = nil,
-    copying contents: Source
-  ) {
-    self.init(capacity: capacity ?? contents.count)
-    self.append(copying: contents)
-  }
-#endif
 }
 
 // FIXME: Add init(moving:), init(consuming:)
