@@ -14,53 +14,60 @@ import InternalCollectionsUtilities
 #endif
 
 extension Deque {
-  /// Creates a deque with the specified capacity, then calls the given
-  /// closure with a buffer covering the array's uninitialized memory.
-  ///
-  /// Inside the closure, set the `initializedCount` parameter to the number of
-  /// elements that are initialized by the closure. The memory in the range
-  /// `buffer[0..<initializedCount]` must be initialized at the end of the
-  /// closure's execution, and the memory in the range
-  /// `buffer[initializedCount...]` must be uninitialized. This postcondition
-  /// must hold even if the `initializer` closure throws an error.
-  ///
-  /// - Note: While the resulting deque may have a capacity larger than the
-  ///   requested amount, the buffer passed to the closure will cover exactly
-  ///   the requested number of elements.
-  ///
-  /// - Parameters:
-  ///   - unsafeUninitializedCapacity: The number of elements to allocate
-  ///     space for in the new deque.
-  ///   - initializer: A closure that initializes elements and sets the count
-  ///     of the new deque.
-  ///     - Parameters:
-  ///       - buffer: A buffer covering uninitialized memory with room for the
-  ///         specified number of elements.
-  ///       - initializedCount: The count of initialized elements in the deque,
-  ///         which begins as zero. Set `initializedCount` to the number of
-  ///         elements you initialize.
-  @inlinable
-  public init(
-    unsafeUninitializedCapacity capacity: Int,
-    initializingWith initializer:
-      (inout UnsafeMutableBufferPointer<Element>, inout Int) throws -> Void
-  ) rethrows {
-    self._storage = .init(minimumCapacity: capacity)
-    try _storage.update { handle in
-      handle.startSlot = .zero
-      var count = 0
-      var buffer = handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
-      defer {
-        precondition(count <= capacity,
-          "Initialized count set to greater than specified capacity")
-        let b = handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
-        precondition(buffer.baseAddress == b.baseAddress && buffer.count == b.count,
-          "Initializer relocated Deque storage")
-        handle.count = count
+    
+    /// Creates a deque with the specified capacity, then executes the given
+    /// closure with access to the deque’s uninitialized memory.
+    ///
+    /// Inside the closure, you are responsible for initializing elements
+    /// within the provided buffer and setting the `initializedCount` to the
+    /// number of elements that were written. At the end of the closure’s
+    /// execution:
+    ///
+    /// - The memory in the range `buffer[0..<initializedCount]` must be
+    ///   initialized.
+    /// - The memory in the range `buffer[initializedCount...]` must remain
+    ///   uninitialized.
+    ///
+    /// These conditions must hold even if the closure throws an error.
+    ///
+    /// - Note: The resulting deque may allocate more capacity than requested,
+    ///   but the buffer passed into the closure will always have exactly the
+    ///   requested size.
+    ///
+    /// - Parameters:
+    ///   - capacity: The number of elements to allocate space for.
+    ///   - initializer: A closure that initializes elements in the buffer and
+    ///     updates the deque’s count.
+    ///     - Parameters:
+    ///       - buffer: A buffer covering uninitialized memory with room for
+    ///         exactly `capacity` elements.
+    ///       - initializedCount: The number of elements you have initialized.
+    ///         This value begins at zero and must be updated by the closure.
+    ///
+    /// - Complexity: O(`capacity`)
+    @inlinable
+    public init(
+      unsafeUninitializedCapacity capacity: Int,
+      initializingWith initializer:
+        (inout UnsafeMutableBufferPointer<Element>, inout Int) throws -> Void
+    ) rethrows {
+      self._storage = .init(minimumCapacity: capacity)
+      self._maxCapacity = nil
+      try _storage.update { handle in
+        handle.startSlot = .zero
+        var count = 0
+        var buffer = handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
+        defer {
+          precondition(count <= capacity,
+            "Initialized count set to greater than specified capacity")
+          let b = handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
+          precondition(buffer.baseAddress == b.baseAddress && buffer.count == b.count,
+            "Initializer relocated Deque storage")
+          handle.count = count
+        }
+        try initializer(&buffer, &count)
       }
-      try initializer(&buffer, &count)
     }
-  }
 }
 
 extension Deque {
@@ -82,40 +89,43 @@ extension Deque {
     }
   }
 
-  // Note: `popLast` is implemented by the stdlib as a
-  // `RangeReplaceableCollection` extension, defined in terms of
-  // `_customRemoveLast`.
-
-
-  /// Adds a new element at the front of the deque.
-  ///
-  /// Use this method to append a single element to the front of a deque.
-  ///
-  ///     var numbers: Deque = [1, 2, 3, 4, 5]
-  ///     numbers.prepend(100)
-  ///     print(numbers)
-  ///     // Prints "[100, 1, 2, 3, 4, 5]"
-  ///
-  /// Because deques increase their allocated capacity using an exponential
-  /// strategy, prepending a single element to a deque is an O(1) operation when
-  /// averaged over many calls to the `prepend(_:)` method. When a deque has
-  /// additional capacity and is not sharing its storage with another instance,
-  /// prepending an element is O(1). When a deque needs to reallocate storage
-  /// before prepending or its storage is shared with another copy, prepending
-  /// is O(`count`).
-  ///
-  /// - Parameter newElement: The element to prepend to the deque.
-  ///
-  /// - Complexity: Amortized O(1).
-  ///
-  /// - SeeAlso: `append(_:)`
-  @inlinable
-  public mutating func prepend(_ newElement: Element) {
-    _storage.ensureUnique(minimumCapacity: count + 1)
-    return _storage.update {
-      $0.uncheckedPrepend(newElement)
+    /// Inserts a new element at the front of the deque.
+    ///
+    /// Use this method to add a single element to the beginning of a deque:
+    ///
+    ///     var numbers: Deque = [1, 2, 3, 4, 5]
+    ///     numbers.prepend(100)
+    ///     print(numbers)
+    ///     // Prints "[100, 1, 2, 3, 4, 5]"
+    ///
+    /// A deque grows its capacity using an exponential strategy. This means that
+    /// prepending is typically a constant-time operation when averaged over many
+    /// calls to `prepend(_:)`. Specifically:
+    ///
+    /// - If the deque has available capacity and its storage is uniquely held,
+    ///   prepending is O(1).
+    /// - If the deque needs to reallocate storage or is sharing storage with
+    ///   another deque, prepending is O(*count*).
+    ///
+    /// If the deque has a fixed maximum capacity and is already full, calling
+    /// `prepend(_:)` removes the last element before inserting the new one.
+    ///
+    /// - Parameter newElement: The element to insert at the front of the deque.
+    ///
+    /// - Complexity: Amortized O(1).
+    ///
+    /// - SeeAlso: `append(_:)`
+    @inlinable
+    public mutating func prepend(_ newElement: Element) {
+        if let maxCap = _maxCapacity, count >= maxCap {
+            _ = removeLast()
+        }
+        _storage.ensureUnique(minimumCapacity: count + 1)
+        return _storage.update {
+            $0.uncheckedPrepend(newElement)
+        }
     }
-  }
+
 
   /// Adds the elements of a collection to the front of the deque.
   ///
