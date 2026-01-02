@@ -834,6 +834,24 @@ class OrderedDictionaryTests: CollectionTestCase {
     })
   }
 
+  func test_mapValuesWithKeys() {
+    let items = (0 ..< 100).map { ($0, 100 * $0) }
+    let d = OrderedDictionary(uniqueKeysWithValues: items)
+
+    var c = 0
+    let d2 = d.mapValues { (key, value) -> String in
+      c += 1
+      expectTrue(value.isMultiple(of: 100))
+      return "\(key): \(value)"
+    }
+    expectEqual(c, 100)
+    expectEqualElements(d, items)
+
+    expectEqualElements(d2, (0 ..< 100).compactMap { key in
+      (key: key, value: "\(key): \(100 * key)")
+    })
+  }
+
   func test_compactMapValue() {
     let items = (0 ..< 100).map { ($0, 100 * $0) }
     let d = OrderedDictionary(uniqueKeysWithValues: items)
