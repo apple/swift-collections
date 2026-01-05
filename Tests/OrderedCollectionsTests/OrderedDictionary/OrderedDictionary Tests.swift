@@ -839,7 +839,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     let d = OrderedDictionary(uniqueKeysWithValues: items)
 
     var c = 0
-    let d2 = d.mapValues { (key, value) -> String in
+    let d2 = d.mapValuesWithKeys { (key, value) -> String in
       c += 1
       expectTrue(value.isMultiple(of: 100))
       return "\(key): \(value)"
