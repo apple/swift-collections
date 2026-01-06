@@ -288,7 +288,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle {
   @discardableResult
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func initialize(
     at start: Slot,
     from source: UnsafeBufferPointer<Element>
@@ -303,7 +302,6 @@ extension _UnsafeDequeHandle {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @discardableResult
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func moveInitialize(
     at start: Slot,
     from source: UnsafeMutableBufferPointer<Element>
@@ -320,7 +318,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @_transparent
   internal func segments() -> _UnsafeDequeSegments<Element> {
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
@@ -334,7 +331,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  @_transparent
   internal func segments(
     forOffsets offsets: Range<Int>
   ) -> _UnsafeDequeSegments<Element> {
@@ -368,7 +364,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func mutableSegments(
     between start: Slot,
     and end: Slot
@@ -388,7 +383,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func availableSegments() -> _UnsafeMutableDequeSegments<Element> {
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
@@ -407,7 +401,6 @@ extension _UnsafeDequeHandle {
   /// Copy elements in `handle` into a newly allocated handle without changing its
   /// capacity or layout.
   @_alwaysEmitIntoClient
-  @_transparent
   internal borrowing func allocateCopy() -> Self {
     var result: _UnsafeDequeHandle<Element> = .allocate(capacity: self.capacity)
     result.count = self.count
@@ -423,7 +416,6 @@ extension _UnsafeDequeHandle {
   /// Copy elements in `handle` into a newly allocated handle with the specified
   /// minimum capacity. This operation does not preserve layout.
   @_alwaysEmitIntoClient
-  @_transparent
   internal func allocateCopy(capacity: Int) -> Self {
     precondition(capacity >= self.count)
     var result: _UnsafeDequeHandle<Element> = .allocate(capacity: capacity)
@@ -439,7 +431,6 @@ extension _UnsafeDequeHandle {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func reallocate(capacity newCapacity: Int) {
     precondition(newCapacity >= count, "Capacity overflow")
     guard newCapacity != capacity else { return }
@@ -460,7 +451,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @_transparent
   internal func slotRange(following offset: inout Int) -> Range<Slot> {
     precondition(offset >= 0 && offset <= count, "Index out of bounds")
     guard _buffer.baseAddress != nil else {
@@ -480,7 +470,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  @_transparent
   internal func slotRange(preceding offset: inout Int) -> Range<Slot> {
     precondition(offset >= 0 && offset <= count, "Index out of bounds")
     guard _buffer.baseAddress != nil else {
@@ -521,7 +510,6 @@ extension _UnsafeDequeHandle {
   /// This function does not validate its input arguments in release builds. Nor
   /// does it ensure that the storage buffer is uniquely referenced.
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func uncheckedReplaceInPlace<C: Collection>(
     inOffsets range: Range<Int>,
     with newElements: C
@@ -551,11 +539,11 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
-// MARK: Appending
+// MARK: Appending and prepending
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
-  /// Append `element` to this buffer. The buffer must have enough free capacity
-  /// to insert one new element.
+  /// Append `element` to the end of this buffer. The buffer must have enough
+  /// free capacity to insert one new element.
   ///
   /// This function does not validate its input arguments in release builds. Nor
   /// does it ensure that the storage buffer is uniquely referenced.
@@ -566,26 +554,70 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     mutablePtr(at: endSlot).initialize(to: element)
     count += 1
   }
+  
+  /// Prepend `element` to the front of this buffer. The buffer must have enough
+  /// free capacity to insert one new element.
+  ///
+  /// This function does not validate its input arguments in release builds. Nor
+  /// does it ensure that the storage buffer is uniquely referenced.
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal mutating func uncheckedPrepend(_ element: consuming Element) {
+    assert(count < capacity)
+    let slot = self.slot(before: startSlot)
+    mutablePtr(at: slot).initialize(to: element)
+    startSlot = slot
+    count += 1
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal func _initialize<E: Error, R: ~Copyable>(
+    initializedCount: inout Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> R
+  ) throws(E) -> R {
+    var span = OutputSpan(buffer: self, initializedCount: 0)
+    defer {
+      initializedCount &+= span.finalize(for: self)
+      span = OutputSpan()
+    }
+    return try body(&span)
+  }
+}
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  internal mutating func _append(
+    count: Int
+  ) -> _UnsafeMutableDequeSegments<Element>? {
+    guard count > 0 else { return nil }
+    let origCount = self.count
+    self.count &+= count
+    return self.mutableSegments(forOffsets: origCount ..< origCount + count)
+  }
+
+  @_alwaysEmitIntoClient
+  internal mutating func _prepend(
+    count: Int
+  ) -> _UnsafeMutableDequeSegments<Element>? {
+    assert(self.count + count <= capacity)
+    guard count > 0 else { return .init() }
+    let oldStart = self.startSlot
+    self.startSlot = self.slot(startSlot, offsetBy: -count)
+    self.count &+= count
+    
+    return self.mutableSegments(between: self.startSlot, and: oldStart)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
-  @inlinable
-  internal mutating func _insertSegment<E: Error>(
-    _ buffer: UnsafeMutableBufferPointer<Element>,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) {
-    var span = OutputSpan(buffer: buffer, initializedCount: 0)
-    defer {
-      self.count &+= span.finalize(for: buffer)
-      span = OutputSpan()
-    }
-    try body(&span)
-  }
-  
   /// Append a given number of items to the end of this deque by populating
-  /// a series of storage regions by successive calls of the specified callback
-  /// function.
+  /// a series of storage regions through successive calls of the specified
+  /// callback function.
   ///
   /// This unchecked routine does not verify that the deque has sufficient
   /// capacity to store the new items.
@@ -607,20 +639,89 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
+  @_transparent
   internal mutating func uncheckedAppend<E: Error>(
     count: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     let origCount = self.count
     let gap = self.mutableSegments(forOffsets: origCount ..< origCount + count)
-    
-    try _insertSegment(gap.first, initializingWith: body)
+    try gap.first._initialize(
+      initializedCount: &self.count, initializingWith: body)
     if self.count == origCount + gap.first.count, let second = gap.second {
-      try _insertSegment(second, initializingWith: body)
+      try second._initialize(
+        initializedCount: &self.count, initializingWith: body)
     }
   }
   
-  /// Moves the elements of a buffer to the end of this deque, leaving the
+  /// Prepend a given number of items to the end of this deque by populating
+  /// a series of storage regions through successive calls of the specified
+  /// callback function.
+  ///
+  /// This unchecked routine does not verify that the deque has sufficient
+  /// capacity to store the new items.
+  ///
+  ///     var buffer = RigidDeque<Int>(capacity: 20)
+  ///     buffer.append(10)
+  ///     var i = 0
+  ///     buffer.prepend(count: 10) { target in
+  ///       while !target.isFull {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+  ///
+  /// The newly prepended items are not guaranteed to form a single contiguous
+  /// storage region. Therefore, the supplied callback may be invoked multiple
+  /// times to initialize each successive chunk of storage. However, invocations
+  /// cease when the callback fails to fully populate its output span or when if
+  /// it throws an error. In such cases, the deque keeps all items that were
+  /// successfully initialized before the callback terminated.
+  ///
+  ///     var buffer = RigidDeque<Int>(capacity: 20)
+  ///     buffer.append(10)
+  ///     var i = 0
+  ///     buffer.prepend(count: 10) { target in
+  ///       while !target.isFull, i <= 5 {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 10]
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the deque.
+  ///    - body: A callback that gets called at most twice to directly
+  ///       populate newly reserved storage within the deque. The function
+  ///       is allowed to initialize fewer than `count` items. The deque is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedPrepend<E: Error>(
+    count: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    guard let gap = self._prepend(count: count) else { return }
+    
+    var c = 0
+    defer {
+      if c < count {
+        closeGap(offsets: c ..< count)
+      }
+    }
+    try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    if c == gap.first.count, let second = gap.second {
+      try second._initialize(initializedCount: &c, initializingWith: body)
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  /// Appends the elements of a buffer to the end of this deque, leaving the
   /// buffer uninitialized.
   ///
   /// This unchecked routine does not verify that the deque has sufficient
@@ -635,10 +736,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedAppend(
     moving items: UnsafeMutableBufferPointer<Element>
   ) {
-    guard items.count > 0 else { return }
-
-    let gap = self.mutableSegments(
-      forOffsets: self.count ..< self.count + items.count)
+    guard let gap = _append(count: items.count) else { return }
     
     gap.first.moveInitializeAll(
       fromContentsOf: items._extracting(first: gap.first.count))
@@ -648,17 +746,33 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       second.moveInitializeAll(
         fromContentsOf: items._extracting(last: second.count))
     }
-    self.count &+= items.count
   }
   
+  /// Prepends the elements of a buffer to the front of this deque, leaving the
+  /// buffer uninitialized.
+  ///
+  /// This unchecked routine does not verify that the deque has sufficient
+  /// capacity to store the new items.
+  ///
+  /// - Parameters
+  ///    - items: A fully initialized buffer whose contents to move into
+  ///        the deque.
+  ///
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
-  @inline(__always)
-  internal mutating func uncheckedAppend<S: Sequence<Element>>(
-    copyingPrefixOf items: S
-  ) -> S.Iterator {
-    let (it, c) = self.availableSegments().initialize(fromSequencePrefix: items)
-    self.count += c
-    return it
+  internal mutating func uncheckedPrepend(
+    moving items: UnsafeMutableBufferPointer<Element>
+  ) {
+    guard let gap = _prepend(count: items.count) else { return }
+    
+    gap.first.moveInitializeAll(
+      fromContentsOf: items._extracting(first: gap.first.count))
+    
+    if let second = gap.second {
+      assert(gap.first.count + second.count == items.count)
+      second.moveInitializeAll(
+        fromContentsOf: items._extracting(last: second.count))
+    }
   }
 }
 
@@ -671,46 +785,7 @@ extension _UnsafeDequeHandle {
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func uncheckedAppend(copying source: UnsafeBufferPointer<Element>) {
-    assert(count + source.count <= capacity)
-    guard source.count > 0 else { return }
-    let c = self.count
-    count += source.count
-    let gap = mutableSegments(forOffsets: c ..< count)
-    gap.initialize(copying: source)
-  }
-}
-
-// MARK: Prepending
-
-extension _UnsafeDequeHandle where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_transparent
-  internal mutating func uncheckedPrepend(_ element: consuming Element) {
-    assert(count < capacity)
-    let slot = self.slot(before: startSlot)
-    mutablePtr(at: slot).initialize(to: element)
-    startSlot = slot
-    count += 1
-  }
-}
-
-extension _UnsafeDequeHandle /*where Element: Copyable*/ {
-  /// Prepend the contents of `source` to this buffer. The buffer must have
-  /// enough free capacity to insert the new elements.
-  ///
-  /// This function does not validate its input arguments in release builds. Nor
-  /// does it ensure that the storage buffer is uniquely referenced.
-  @_alwaysEmitIntoClient
-  @_transparent
-  internal mutating func uncheckedPrepend(contentsOf source: UnsafeBufferPointer<Element>) {
-    assert(count + source.count <= capacity)
-    guard source.count > 0 else { return }
-    let oldStart = startSlot
-    let newStart = self.slot(startSlot, offsetBy: -source.count)
-    startSlot = newStart
-    count += source.count
-    
-    let gap = mutableSegments(between: newStart, and: oldStart)
+    guard let gap = _append(count: source.count) else { return }
     gap.initialize(copying: source)
   }
   
@@ -721,19 +796,36 @@ extension _UnsafeDequeHandle /*where Element: Copyable*/ {
   /// does it ensure that the storage buffer is uniquely referenced.
   @_alwaysEmitIntoClient
   @_transparent
-  internal mutating func uncheckedPrepend(
-    contentsOf source: some Collection<Element>,
-    count sourceCount: Int
-  ) {
-    assert(count + sourceCount <= capacity)
-    guard sourceCount > 0 else { return }
-    let oldStart = startSlot
-    let newStart = self.slot(startSlot, offsetBy: -sourceCount)
-    startSlot = newStart
-    count += sourceCount
-
-    let gap = mutableSegments(between: newStart, and: oldStart)
+  internal mutating func uncheckedPrepend(copying source: UnsafeBufferPointer<Element>) {
+    guard let gap = _prepend(count: source.count) else { return }
     gap.initialize(copying: source)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension _UnsafeDequeHandle {
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  internal mutating func uncheckedAppend<S: Sequence<Element>>(
+    copyingPrefixOf items: S
+  ) -> S.Iterator {
+    // Note: You're supposed to handle contiguous sequences before calling
+    // this function. You do this by invoking `withContiguousStorageIfAvailable`.
+    let (it, c) = self.availableSegments().initialize(fromSequencePrefix: items)
+    self.count += c
+    return it
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  internal mutating func uncheckedPrepend<C: Collection<Element>>(
+    copying items: C,
+    exactCount: Int
+  ) {
+    // Note: You're supposed to handle contiguous sequences before calling
+    // this function. You do this by invoking `withContiguousStorageIfAvailable`.
+    guard let gap = self._prepend(count: exactCount) else { return }
+    gap.initialize(copying: items)
   }
 }
 

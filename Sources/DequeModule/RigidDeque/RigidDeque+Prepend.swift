@@ -18,19 +18,216 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_transparent
-  internal mutating func uncheckedPrepend(_ newElement: consuming Element) {
-    _handle.uncheckedPrepend(newElement)
-  }
-
+  /// Adds an element to the front of the deque.
+  ///
+  /// If the deque does not have sufficient capacity to hold any more elements,
+  /// then this triggers a runtime error.
+  ///
+  /// - Parameter item: The element to prepend to the deque.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public mutating func prepend(_ newElement: consuming Element) {
-    precondition(!isFull, "RigidDeque is full")
-    uncheckedPrepend(newElement)
+    precondition(!isFull, "RigidDeque capacity overflow")
+    _handle.uncheckedPrepend(newElement)
+  }
+  
+  /// Adds an element to the front of the deque, if possible.
+  ///
+  /// If the deque does not have sufficient capacity to hold any more elements,
+  /// then this returns the given item without prepending it; otherwise it
+  /// returns nil.
+  ///
+  /// - Parameter item: The element to prepend to the deque.
+  /// - Returns: `item` if the deque is full; otherwise nil.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public mutating func pushFirst(_ item: consuming Element) -> Element? {
+    // FIXME: Remove this in favor of a standard algorithm.
+    if isFull { return item }
+    prepend(item)
+    return nil
   }
 }
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+  /// Efficiently prepend a given number of items to the front of this deque by
+  /// populating a series of storage regions through successive calls of the
+  /// specified callback function.
+  ///
+  /// If the deque does not have sufficient capacity to store the new items,
+  /// then this triggers a runtime error.
+  ///
+  ///     var buffer = RigidDeque<Int>(capacity: 20)
+  ///     buffer.append(999)
+  ///     var i = 0
+  ///     buffer.prepend(count: 6) { target in
+  ///       while !target.isFull {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 6, 999]
+  ///
+  /// The newly prepended items are not guaranteed to form a single contiguous
+  /// storage region. Therefore, the supplied callback may be invoked multiple
+  /// times to initialize each successive chunk of storage. However, invocations
+  /// cease when the callback fails to fully populate its output span or when if
+  /// it throws an error. In such cases, the deque keeps all items that were
+  /// successfully initialized before the callback terminated the prepend.
+  /// (Partial prepends create a gap in ring buffer storage that needs to be
+  /// closed by moving newly prepended items to their correct positions given
+  /// the adjusted count. This adds some overhead compared to adding exactly as
+  /// many items as promised.)
+  ///
+  ///     var buffer = RigidDeque<Int>(capacity: 20)
+  ///     buffer.append(999)
+  ///     var i = 0
+  ///     buffer.prepend(count: 6) { target in
+  ///       while !target.isFull, i <= 3 {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [0, 1, 2, 3, 999]
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the deque.
+  ///    - body: A callback that gets called at most twice to directly
+  ///       populate newly reserved storage within the deque. The function
+  ///       is allowed to initialize fewer than `count` items. The deque is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  public mutating func prepend<E: Error>(
+    count: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    precondition(count >= 0, "Negative count")
+    precondition(freeCapacity >= count, "RigidDeque capacity overflow")
+    try _handle.uncheckedPrepend(count: count, initializingWith: body)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+  /// Moves the elements of a buffer to the end of this deque, leaving the
+  /// buffer uninitialized.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in the
+  /// buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A fully initialized buffer whose contents to move into
+  ///        the deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public mutating func prepend(
+    moving items: UnsafeMutableBufferPointer<Element>
+  ) {
+    precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
+    _handle.uncheckedPrepend(moving: items)
+  }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Moves the elements of a input span to the end of this deque, leaving the
+  /// span empty.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in its
+  /// storage, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An input span whose contents need to be appended to this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func prepend(
+    moving items: inout InputSpan<Element>
+  ) {
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(last: count)
+      unsafe self.prepend(moving: source)
+      count = 0
+    }
+  }
+#endif
+
+  /// Moves the elements of an output span to the end of this deque, leaving the
+  /// span empty.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in its
+  /// storage, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An output span whose contents need to be appended to this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func prepend(
+    moving items: inout OutputSpan<Element>
+  ) {
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(first: count)
+      unsafe self.prepend(moving: source)
+      count = 0
+    }
+  }
+
+  /// Appends the elements of a given deque to the end of this array by moving
+  /// them between the containers. On return, the input deque becomes empty, but
+  /// it is not destroyed, and it preserves its original storage capacity.
+  ///
+  /// If the target deque does not have sufficient capacity to hold all items
+  /// in the source deque, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A deque whose items to move to the end of this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func prepend(
+    moving items: inout RigidDeque<Element>
+  ) {
+    // FIXME: Remove this in favor of a generic algorithm over range-replaceable containers
+    precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
+    items._handle.unsafeConsumeElements { source in
+      self._handle.uncheckedAppend(moving: source)
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Appends the elements of a given container to the end of this deque by
+  /// consuming the source container.
+  ///
+  /// If the target deque does not have sufficient capacity to hold all items,
+  /// then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A container whose contents to move into this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func prepend(
+    consuming items: consuming RigidDeque<Element>
+  ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
+    var items = items
+    self.append(moving: &items)
+  }
+#endif
+}
+
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque /*where Element: Copyable*/ {
@@ -52,8 +249,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     precondition(
       newElements.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    guard newElements.count > 0 else { return }
-    _handle.uncheckedPrepend(contentsOf: newElements)
+    _handle.uncheckedPrepend(copying: newElements)
   }
   
   /// Copies the elements of a buffer to the front of this rigid deque.
@@ -100,8 +296,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///     var numbers = RigidDeque<Int>(capacity: 10)
   ///     numbers.append(contentsOf: [1, 2, 3, 4, 5])
   ///     numbers.prepend(contentsOf: 10...15)
-  ///     print(numbers)
-  ///     // Prints "[10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]"
+  ///     // `numbers` now contains [10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]
   ///
   /// - Parameter newElements: The elements to prepend to the deque.
   ///
@@ -119,7 +314,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     let c = newElements.count
     guard c > 0 else { return }
     precondition(c <= freeCapacity, "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(contentsOf: newElements, count: c)
+    _handle.uncheckedPrepend(copying: newElements, exactCount: c)
   }
   
   /// Copies the elements of a sequence to the front of the rigid deque.
@@ -146,12 +341,13 @@ extension RigidDeque /*where Element: Copyable*/ {
     }
     guard done == nil else { return }
 
-    // Add new elements as suffix and check that all elements were copied.
+    // We don't know the exact count of new elements, so we cannot initialize
+    // them in place. Append them to the end of the deque first, then rotate
+    // them to their correct location.
     let oldEndSlot = _handle.endSlot
     var it = _handle.uncheckedAppend(copyingPrefixOf: newElements)
     precondition(it.next() == nil, "RigidDeque capacity overflow")
     _handle.rotate(toStartAt: oldEndSlot)
-    
   }
 }
 

@@ -75,6 +75,7 @@ extension RigidArray where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     // FIXME: This is extremely similar to `edit()`, except it provides a narrower span.
+    precondition(count >= 0, "Negative count")
     precondition(freeCapacity >= count, "RigidArray capacity overflow")
     let buffer = _freeSpace._extracting(first: count)
     var span = OutputSpan(buffer: buffer, initializedCount: 0)

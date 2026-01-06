@@ -82,6 +82,13 @@ internal struct _UnsafeMutableDequeSegments<Element: ~Copyable> {
 
   @_alwaysEmitIntoClient
   @_transparent
+  internal init() {
+    self.first = .init(start: nil, count: 0)
+    self.second = nil
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
   internal init(
     _ first: UnsafeMutableBufferPointer<Element>,
     _ second: UnsafeMutableBufferPointer<Element>? = nil
@@ -241,16 +248,24 @@ extension _UnsafeMutableDequeSegments {
   @_alwaysEmitIntoClient
   @_transparent
   internal func initialize(
-    copying elements: UnsafeMutableBufferPointer<Element>
+    copying elements: UnsafeBufferPointer<Element>
   ) {
     assert(self.count == elements.count)
     if let second = second {
       let wrap = first.count
       first.initializeAll(fromContentsOf: elements._extracting(first: wrap))
-      second.initializeAll(fromContentsOf: elements.extracting(wrap...))
+      second.initializeAll(fromContentsOf: elements._extracting(last: second.count))
     } else {
       first.initializeAll(fromContentsOf: elements)
     }
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal func initialize(
+    copying elements: UnsafeMutableBufferPointer<Element>
+  ) {
+    self.initialize(copying: UnsafeBufferPointer(elements))
   }
 
   @_alwaysEmitIntoClient

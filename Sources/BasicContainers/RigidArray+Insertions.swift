@@ -80,6 +80,7 @@ extension RigidArray where Element: ~Copyable {
   ) -> Result {
     // FIXME: This does not allow `body` to throw, to prevent having to move the tail twice. Is that okay?
     precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    precondition(count >= 0, "Negative count")
     precondition(count <= freeCapacity, "RigidArray capacity overflow")
     let target = unsafe _openGap(at: index, count: count)
     var span = OutputSpan(buffer: target, initializedCount: 0)

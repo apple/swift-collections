@@ -22,7 +22,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_transparent
   public mutating func prepend(_ newElement: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage.uncheckedPrepend(newElement)
+    _storage._handle.uncheckedPrepend(newElement)
   }
 }
 

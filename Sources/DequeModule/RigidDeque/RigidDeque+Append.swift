@@ -23,7 +23,7 @@ extension RigidDeque where Element: ~Copyable {
   /// If the deque does not have sufficient capacity to hold any more elements,
   /// then this triggers a runtime error.
   ///
-  /// - Parameter item: The element to append to the collection.
+  /// - Parameter item: The element to append to the deque.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
@@ -55,19 +55,41 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  /// Append a given number of items to the end of this deque by populating
-  /// a series of storage regions by successive calls of the specified callback
-  /// function.
+  /// Efficiently append a given number of items to the back of this deque by
+  /// populating a series of storage regions through successive calls of the
+  /// specified callback function.
   ///
   /// If the deque does not have sufficient capacity to store the new items,
   /// then this triggers a runtime error.
+  ///
+  ///     var buffer = RigidDeque<Int>(capacity: 20)
+  ///     buffer.append(999)
+  ///     var i = 0
+  ///     buffer.append(count: 6) { target in
+  ///       while !target.isFull {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [999, 0, 1, 2, 3, 4, 5, 6]
   ///
   /// The newly appended items are not guaranteed to form a single contiguous
   /// storage region. Therefore, the supplied callback may be invoked multiple
   /// times to initialize each successive chunk of storage. However, invocations
   /// cease when the callback fails to fully populate its output span or when if
   /// it throws an error. In such cases, the deque keeps all items that were
-  /// successfully initialized before the callback terminated.
+  /// successfully initialized before the callback terminated the append.
+  ///
+  ///     var buffer = RigidDeque<Int>(capacity: 20)
+  ///     buffer.append(999)
+  ///     var i = 0
+  ///     buffer.append(count: 6) { target in
+  ///       while !target.isFull, i <= 3 {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [999, 0, 1, 2, 3]
   ///
   /// - Parameters
   ///    - count: The number of items to append to the deque.
@@ -83,6 +105,7 @@ extension RigidDeque where Element: ~Copyable {
     count: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
+    precondition(count >= 0, "Negative count")
     precondition(freeCapacity >= count, "RigidDeque capacity overflow")
     try _handle.uncheckedAppend(count: count, initializingWith: body)
   }
@@ -219,7 +242,6 @@ extension RigidDeque /*where Element: Copyable*/ {
     precondition(
       newElements.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    guard newElements.count > 0 else { return }
     _handle.uncheckedAppend(copying: newElements)
   }
 
