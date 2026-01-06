@@ -25,6 +25,14 @@ extension RigidDeque where Element: ~Copyable {
     self.init(_handle: .allocate(capacity: capacity))
   }
   
+  /// Initializes a new rigid deque with zero capacity and no elements.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public init() {
+    self.init(_handle: .allocate(capacity: 0))
+  }
+
   /// Creates a rigid deque with the specified capacity, then calls the given
   /// closure with an output span covering the deque's uninitialized memory.
   ///
@@ -40,55 +48,7 @@ extension RigidDeque where Element: ~Copyable {
     initializingWith initializer: (inout OutputSpan<Element>) throws -> Void
   ) rethrows {
     self.init(_handle: .allocate(capacity: capacity))
-    let buffer = _handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
-    var span = OutputSpan(buffer: buffer, initializedCount: 0)
-    defer {
-      _handle.count = span.finalize(for: buffer)
-      span = OutputSpan()
-    }
-    try initializer(&span)
-  }
-
-  /// Creates a rigid deque with the specified capacity, then calls the given
-  /// closure with a buffer covering the deque's uninitialized memory.
-  ///
-  /// Inside the closure, set the `initializedCount` parameter to the number of
-  /// elements that are initialized by the closure. The memory in the range
-  /// `buffer[0..<initializedCount]` must be initialized at the end of the
-  /// closure's execution, and the memory in the range
-  /// `buffer[initializedCount...]` must be uninitialized. This postcondition
-  /// must hold even if the `initializer` closure throws an error.
-  ///
-  /// - Parameters:
-  ///   - unsafeUninitializedCapacity: The number of elements to allocate
-  ///     space for in the new rigid deque.
-  ///   - initializer: A closure that initializes elements and sets the count
-  ///     of the new deque.
-  ///     - Parameters:
-  ///       - buffer: A buffer covering uninitialized memory with room for the
-  ///         specified number of elements.
-  ///       - initializedCount: The count of initialized elements in the deque,
-  ///         which begins as zero. Set `initializedCount` to the number of
-  ///         elements you initialize.
-  @inlinable
-  public init(
-    unsafeUninitializedCapacity capacity: Int,
-    initializingWith initializer:
-      (inout UnsafeMutableBufferPointer<Element>, inout Int) throws -> Void
-  ) rethrows {
-    self.init(_handle: .allocate(capacity: capacity))
-    var newCount = 0
-    var buffer = _handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
-    
-    defer {
-      precondition(newCount <= capacity,
-        "Initialized count set to greater than specified capacity")
-      let b = _handle.mutableBuffer(for: .zero ..< _Slot(at: capacity))
-      precondition(buffer.baseAddress == b.baseAddress && buffer.count == b.count,
-        "Initializer relocated Deque storage")
-      _handle.count = newCount
-    }
-    try initializer(&buffer, &newCount)
+    try self.append(count: capacity, initializingWith: initializer)
   }
 }
 
@@ -108,7 +68,22 @@ extension RigidDeque /*where Element: Copyable*/ {
     _handle.mutableBuffer.initialize(repeating: repeatedValue)
     _handle.count = count
   }
+}
 
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+  /// Creates a new rigid deque taking over the storage of the specified
+  /// unique deque instance, consuming it in the process.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public init(consuming array: consuming UniqueDeque<Element>) {
+    self = array._storage
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque /*where Element: Copyable*/ {
   /// Creates a new deque with the specified capacity, holding a copy
   /// of the contents of a given sequence.
   ///
@@ -134,9 +109,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init(
+    capacity: Int? = nil,
     copying contents: some Collection<Element>
   ) {
-    self.init(capacity: contents.count)
+    self.init(capacity: capacity ?? contents.count)
     self.append(copying: contents)
   }
 }

@@ -16,7 +16,7 @@ import ContainersPreview
 
 @frozen
 @usableFromInline
-internal struct _UnsafeDequeHandle<Element: ~Copyable> {
+internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal typealias Slot = _DequeSlot
 
