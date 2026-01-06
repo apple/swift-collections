@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -338,7 +338,9 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal func segments(
     forOffsets offsets: Range<Int>
   ) -> _UnsafeDequeSegments<Element> {
-    assert(offsets.lowerBound >= 0 && offsets.upperBound <= count)
+    // Note: no asserts for bounds checks, as this is used to implement
+    // appends/prepends
+    assert(offsets.count <= capacity)
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
     }
@@ -439,7 +441,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func reallocate(capacity newCapacity: Int) {
-    precondition(newCapacity >= count)
+    precondition(newCapacity >= count, "Capacity overflow")
     guard newCapacity != capacity else { return }
 
     var new = _UnsafeDequeHandle<Element>.allocate(capacity: newCapacity)
@@ -498,6 +500,18 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+// MARK: Swap
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal mutating func uncheckedSwapAt(_ i: Int, _ j: Int) {
+    let slot1 = self.slot(forOffset: i)
+    let slot2 = self.slot(forOffset: j)
+    self.mutableBuffer.swapAt(slot1.position, slot2.position)
+  }
+}
+
 // MARK: Replacement
 
 extension _UnsafeDequeHandle {
@@ -516,7 +530,24 @@ extension _UnsafeDequeHandle {
     assert(newElements.count == range.count)
     guard !range.isEmpty else { return }
     let target = mutableSegments(forOffsets: range)
-    target.assign(from: newElements)
+    target.reassign(copying: newElements)
+  }
+}
+
+// MARK: Consumption
+
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal mutating func unsafeConsumeElements(
+    with body: (UnsafeMutableBufferPointer<Element>) -> Void
+  ) {
+    let segments = mutableSegments()
+    body(segments.first)
+    if let second = segments.second {
+      body(second)
+    }
+    self.count = 0
   }
 }
 
@@ -537,6 +568,100 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @inlinable
+  internal mutating func _insertSegment<E: Error>(
+    _ buffer: UnsafeMutableBufferPointer<Element>,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    var span = OutputSpan(buffer: buffer, initializedCount: 0)
+    defer {
+      self.count &+= span.finalize(for: buffer)
+      span = OutputSpan()
+    }
+    try body(&span)
+  }
+  
+  /// Append a given number of items to the end of this deque by populating
+  /// a series of storage regions by successive calls of the specified callback
+  /// function.
+  ///
+  /// This unchecked routine does not verify that the deque has sufficient
+  /// capacity to store the new items.
+  ///
+  /// The newly appended items are not guaranteed to form a single contiguous
+  /// storage region. Therefore, the supplied callback may be invoked multiple
+  /// times to initialize each successive chunk of storage. However, invocations
+  /// cease when the callback fails to fully populate its output span or when if
+  /// it throws an error. In such cases, the deque keeps all items that were
+  /// successfully initialized before the callback terminated.
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the deque.
+  ///    - body: A callback that gets called at most twice to directly
+  ///       populate newly reserved storage within the deque. The function
+  ///       is allowed to initialize fewer than `count` items. The deque is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedAppend<E: Error>(
+    count: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    let origCount = self.count
+    let gap = self.mutableSegments(forOffsets: origCount ..< origCount + count)
+    
+    try _insertSegment(gap.first, initializingWith: body)
+    if self.count == origCount + gap.first.count, let second = gap.second {
+      try _insertSegment(second, initializingWith: body)
+    }
+  }
+  
+  /// Moves the elements of a buffer to the end of this deque, leaving the
+  /// buffer uninitialized.
+  ///
+  /// This unchecked routine does not verify that the deque has sufficient
+  /// capacity to store the new items.
+  ///
+  /// - Parameters
+  ///    - items: A fully initialized buffer whose contents to move into
+  ///        the deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedAppend(
+    moving items: UnsafeMutableBufferPointer<Element>
+  ) {
+    guard items.count > 0 else { return }
+
+    let gap = self.mutableSegments(
+      forOffsets: self.count ..< self.count + items.count)
+    
+    gap.first.moveInitializeAll(
+      fromContentsOf: items._extracting(first: gap.first.count))
+    
+    if let second = gap.second {
+      assert(gap.first.count + second.count == items.count)
+      second.moveInitializeAll(
+        fromContentsOf: items._extracting(last: second.count))
+    }
+    self.count &+= items.count
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  internal mutating func uncheckedAppend<S: Sequence<Element>>(
+    copyingPrefixOf items: S
+  ) -> S.Iterator {
+    let (it, c) = self.availableSegments().initialize(fromSequencePrefix: items)
+    self.count += c
+    return it
+  }
+}
+
 extension _UnsafeDequeHandle {
   /// Append the contents of `source` to this buffer. The buffer must have
   /// enough free capacity to insert the new elements.
@@ -545,13 +670,13 @@ extension _UnsafeDequeHandle {
   /// does it ensure that the storage buffer is uniquely referenced.
   @_alwaysEmitIntoClient
   @_transparent
-  internal mutating func uncheckedAppend(contentsOf source: UnsafeBufferPointer<Element>) {
+  internal mutating func uncheckedAppend(copying source: UnsafeBufferPointer<Element>) {
     assert(count + source.count <= capacity)
     guard source.count > 0 else { return }
     let c = self.count
     count += source.count
     let gap = mutableSegments(forOffsets: c ..< count)
-    gap.initialize(from: source)
+    gap.initialize(copying: source)
   }
 }
 
@@ -586,7 +711,7 @@ extension _UnsafeDequeHandle /*where Element: Copyable*/ {
     count += source.count
     
     let gap = mutableSegments(between: newStart, and: oldStart)
-    gap.initialize(from: source)
+    gap.initialize(copying: source)
   }
   
   /// Prepend the contents of `source` to this buffer. The buffer must have
@@ -608,7 +733,7 @@ extension _UnsafeDequeHandle /*where Element: Copyable*/ {
     count += sourceCount
 
     let gap = mutableSegments(between: newStart, and: oldStart)
-    gap.initialize(from: source)
+    gap.initialize(copying: source)
   }
 }
 
@@ -965,7 +1090,7 @@ extension _UnsafeDequeHandle {
     assert(newElements.count == newCount)
     guard newCount > 0 else { return }
     let gap = openGap(ofSize: newCount, atOffset: offset)
-    gap.initialize(from: newElements)
+    gap.initialize(copying: newElements)
   }
 }
 

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -148,7 +148,7 @@ extension Deque {
     _storage.ensureUnique(minimumCapacity: count + c)
     _storage.update { target in
       let gaps = target.availableSegments().suffix(c)
-      gaps.initialize(from: newElements)
+      gaps.initialize(copying: newElements)
       target.count += c
       target.startSlot = target.slot(target.startSlot, offsetBy: -c)
     }

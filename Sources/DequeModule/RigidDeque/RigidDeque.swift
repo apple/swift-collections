@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -16,6 +16,8 @@ import ContainersPreview
 
 #if compiler(<6.2)
 
+/// A fixed capacity, heap allocated, noncopyable double-ended queue of
+/// potentially noncopyable elements.
 @frozen
 @available(*, unavailable, message: "RigidDeque requires a Swift 6.2 toolchain")
 public struct RigidDeque<Element: ~Copyable>: ~Copyable {
@@ -26,7 +28,8 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
 
 #else
 
-/// A fixed-capacity container implementing a double-ended queue.
+/// A fixed capacity, heap allocated, noncopyable double-ended queue of
+/// potentially noncopyable elements.
 @available(SwiftStdlib 5.0, *)
 @frozen
 @safe
@@ -69,13 +72,25 @@ extension RigidDeque where Element: ~Copyable {
 #endif // COLLECTIONS_INTERNAL_CHECKS
 }
 
+
+//MARK: - Basics
+
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @usableFromInline
-  internal var description: String {
-    _handle.description
-  }
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var capacity: Int { _assumeNonNegative(_handle.capacity) }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var freeCapacity: Int { _assumeNonNegative(capacity - count) }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var isFull: Bool { count == capacity }
 }
+
+//MARK: - Span creation
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
@@ -96,43 +111,53 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
+//MARK: - Container primitives
+
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
+  /// A type that represents a position in the deque: an integer offset from its
+  /// logical start position.
+  ///
+  /// Valid indices consist of the position of every element and a "past the
+  /// end” position that’s not valid for use as a subscript argument.
   public typealias Index = Int
-
+  
+  /// A Boolean value indicating whether this deque contains no elements.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var isEmpty: Bool { _handle.count == 0 }
-
+  
+  /// The number of elements in this deque.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var count: Int { _handle.count }
-
+  
+  /// The position of the first element in a nonempty deque. This is always zero.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var startIndex: Int { 0 }
-
+  
+  /// The deque’s "past the end” position—that is, the position one greater than
+  /// the last valid subscript argument. This is always equal to the deque's
+  /// count.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var endIndex: Int { _handle.count }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Ref<Element> {
-    precondition(index >= 0 && index < count, "Index out of bounds")
-    let slot = _handle.slot(forOffset: index)
-    return Ref(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
-  }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  @_lifetime(&self)
-  public mutating func mutateElement(at index: Int) -> Mut<Element> {
-    precondition(index >= 0 && index < count, "Index out of bounds")
-    let slot = _handle.slot(forOffset: index)
-    return Mut(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
-  }
+  
+  /// The range of indices that are valid for subscripting this deque.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 
   @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
@@ -155,36 +180,84 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_transparent
-  public var capacity: Int { _handle.capacity }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  public var freeCapacity: Int { capacity - count }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  public var isFull: Bool { count == capacity }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  public mutating func resize(to newCapacity: Int) {
-    _handle.reallocate(capacity: newCapacity)
+  /// Exchanges the values at the specified indices of the array.
+  ///
+  /// Both parameters must be valid indices of the array and not equal to
+  /// endIndex. Passing the same index as both `i` and `j` has no effect.
+  ///
+  /// - Parameter i: The index of the first value to swap.
+  /// - Parameter j: The index of the second valud to swap.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public mutating func swapAt(_ i: Int, _ j: Int) {
+    precondition(
+      i >= 0 && i < count && j >= 0 && j < count,
+      "Index out of bounds")
+    _handle.uncheckedSwapAt(i, j)
   }
 }
 
+//MARK: - Resizing
+
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque {
+extension RigidDeque where Element: ~Copyable {
+  /// Grow or shrink the capacity of a rigid deque instance without discarding
+  /// its contents.
+  ///
+  /// This operation replaces the deque's storage buffer with a newly allocated
+  /// buffer of the specified capacity, moving all existing elements
+  /// to its new storage. The old storage is then deallocated.
+  ///
+  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
+  ///    greater than or equal to the current count.
+  ///
+  /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   @_transparent
-  internal func _copy() -> Self {
+  public mutating func reallocate(capacity newCapacity: Int) {
+    _handle.reallocate(capacity: newCapacity)
+  }
+  
+  /// Ensure that the deque has capacity to store the specified number of
+  /// elements, by growing its storage buffer if necessary.
+  ///
+  /// If `capacity < n`, then this operation reallocates the rigid deque's
+  /// storage to grow it; on return, the deque's capacity becomes `n`.
+  /// Otherwise the deque is left as is.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public mutating func reserveCapacity(_ n: Int) {
+    guard capacity < n else { return }
+    reallocate(capacity: n)
+  }
+}
+
+//MARK: - Copying helpers
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque {
+  /// Copy the contents of this array into a newly allocated rigid deque
+  /// instance with just enough capacity to hold all its elements.
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public func _clone() -> Self {
     RigidDeque(_handle: _handle.allocateCopy())
   }
 
+  /// Copy the contents of this deque into a newly allocated rigid deque
+  /// instance with the specified capacity.
+  ///
+  /// - Parameter capacity: The desired capacity of the resulting rigid deque.
+  ///    `capacity` must be greater than or equal to `count`.
+  ///
+  /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   @_transparent
-  internal func _copy(capacity: Int) -> Self {
+  public func _clone(capacity: Int) -> Self {
     RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }
 }

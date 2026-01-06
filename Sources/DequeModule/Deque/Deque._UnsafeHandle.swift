@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -392,7 +392,7 @@ extension Deque._UnsafeHandle {
     assert(newElements.count == range.count)
     guard !range.isEmpty else { return }
     let target = mutableSegments(forOffsets: range)
-    target.assign(from: newElements)
+    target.reassign(copying: newElements)
   }
 }
 
@@ -425,7 +425,7 @@ extension Deque._UnsafeHandle {
     let c = self.count
     count += source.count
     let gap = mutableSegments(forOffsets: c ..< count)
-    gap.initialize(from: source)
+    gap.initialize(copying: source)
   }
 }
 
@@ -458,7 +458,7 @@ extension Deque._UnsafeHandle {
     count += source.count
 
     let gap = mutableWrappedBuffer(between: newStart, and: oldStart)
-    gap.initialize(from: source)
+    gap.initialize(copying: source)
   }
 }
 
@@ -487,7 +487,7 @@ extension Deque._UnsafeHandle {
     assert(newElements.count == newCount)
     guard newCount > 0 else { return }
     let gap = openGap(ofSize: newCount, atOffset: offset)
-    gap.initialize(from: newElements)
+    gap.initialize(copying: newElements)
   }
 
   @inlinable

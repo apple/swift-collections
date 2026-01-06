@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -189,7 +189,7 @@ extension _UnsafeMutableDequeSegments {
   @_alwaysEmitIntoClient
   @_transparent
   internal func initialize<I: IteratorProtocol>(
-    fromPrefixOf iterator: inout I
+    copyingPrefixOf iterator: inout I
   ) -> Int
   where I.Element == Element {
     var copied = 0
@@ -217,7 +217,7 @@ extension _UnsafeMutableDequeSegments {
   where S.Element == Element {
     guard second == nil || first.count >= elements.underestimatedCount else {
       var it = elements.makeIterator()
-      let copied = initialize(fromPrefixOf: &it)
+      let copied = initialize(copyingPrefixOf: &it)
       return (it, copied)
     }
     // Note: Array._copyContents traps when not given enough space, so we
@@ -240,9 +240,24 @@ extension _UnsafeMutableDequeSegments {
 
   @_alwaysEmitIntoClient
   @_transparent
-  internal func initialize<C: Collection>(
-    from elements: __owned C
-  ) where C.Element == Element {
+  internal func initialize(
+    copying elements: UnsafeMutableBufferPointer<Element>
+  ) {
+    assert(self.count == elements.count)
+    if let second = second {
+      let wrap = first.count
+      first.initializeAll(fromContentsOf: elements._extracting(first: wrap))
+      second.initializeAll(fromContentsOf: elements.extracting(wrap...))
+    } else {
+      first.initializeAll(fromContentsOf: elements)
+    }
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal func initialize(
+    copying elements: __owned some Collection<Element>
+  ) {
     assert(self.count == elements.count)
     if let second = second {
       let wrap = elements.index(elements.startIndex, offsetBy: first.count)
@@ -255,11 +270,11 @@ extension _UnsafeMutableDequeSegments {
 
   @_alwaysEmitIntoClient
   @_transparent
-  internal func assign<C: Collection>(
-    from elements: C
+  internal func reassign<C: Collection>(
+    copying elements: C
   ) where C.Element == Element {
     assert(elements.count == self.count)
     deinitialize()
-    initialize(from: elements)
+    initialize(copying: elements)
   }
 }

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -31,7 +31,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_transparent
   public mutating func append(_ newElement: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage.uncheckedAppend(newElement)
+    _storage._handle.uncheckedAppend(newElement)
   }
 }
 
@@ -116,7 +116,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
     if done != nil { return }
 
     _ensureFreeCapacity(newElements.underestimatedCount)
-    var it = _storage._append(prefixOf: newElements)
+    var it = _storage._handle.uncheckedAppend(copyingPrefixOf: newElements)
     while let item = it.next() {
       _ensureFreeCapacity(1)
       _storage.append(item)

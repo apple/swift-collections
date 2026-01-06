@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -18,12 +18,6 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_transparent
-  internal mutating func uncheckedAppend(_ newElement: consuming Element) {
-    _handle.uncheckedAppend(newElement)
-  }
-
   /// Adds an element to the end of the deque.
   ///
   /// If the deque does not have sufficient capacity to hold any more elements,
@@ -35,8 +29,8 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public mutating func append(_ newElement: consuming Element) {
-    precondition(!isFull, "RigidDeque is full")
-    uncheckedAppend(newElement)
+    precondition(!isFull, "RigidDeque capacity overflow")
+    _handle.uncheckedAppend(newElement)
   }
 
   /// Adds an element to the end of the deque, if possible.
@@ -45,7 +39,7 @@ extension RigidDeque where Element: ~Copyable {
   /// then this returns the given item without appending it; otherwise it
   /// returns nil.
   ///
-  /// - Parameter item: The element to append to the collection.
+  /// - Parameter item: The element to append to the deque.
   /// - Returns: `item` if the deque is full; otherwise nil.
   ///
   /// - Complexity: O(1)
@@ -57,6 +51,153 @@ extension RigidDeque where Element: ~Copyable {
     append(item)
     return nil
   }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+  /// Append a given number of items to the end of this deque by populating
+  /// a series of storage regions by successive calls of the specified callback
+  /// function.
+  ///
+  /// If the deque does not have sufficient capacity to store the new items,
+  /// then this triggers a runtime error.
+  ///
+  /// The newly appended items are not guaranteed to form a single contiguous
+  /// storage region. Therefore, the supplied callback may be invoked multiple
+  /// times to initialize each successive chunk of storage. However, invocations
+  /// cease when the callback fails to fully populate its output span or when if
+  /// it throws an error. In such cases, the deque keeps all items that were
+  /// successfully initialized before the callback terminated.
+  ///
+  /// - Parameters
+  ///    - count: The number of items to append to the deque.
+  ///    - body: A callback that gets called at most twice to directly
+  ///       populate newly reserved storage within the deque. The function
+  ///       is allowed to initialize fewer than `count` items. The deque is
+  ///       appended however many items the callback adds to the output span
+  ///       before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`count`)
+  @_alwaysEmitIntoClient
+  public mutating func append<E: Error>(
+    count: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    precondition(freeCapacity >= count, "RigidDeque capacity overflow")
+    try _handle.uncheckedAppend(count: count, initializingWith: body)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+  /// Moves the elements of a buffer to the end of this deque, leaving the
+  /// buffer uninitialized.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in the
+  /// buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A fully initialized buffer whose contents to move into
+  ///        the deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    moving items: UnsafeMutableBufferPointer<Element>
+  ) {
+    precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
+    _handle.uncheckedAppend(moving: items)
+  }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Moves the elements of a input span to the end of this deque, leaving the
+  /// span empty.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in its
+  /// storage, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An input span whose contents need to be appended to this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    moving items: inout InputSpan<Element>
+  ) {
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(last: count)
+      unsafe self.append(moving: source)
+      count = 0
+    }
+  }
+#endif
+
+  /// Moves the elements of an output span to the end of this deque, leaving the
+  /// span empty.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in its
+  /// storage, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: An output span whose contents need to be appended to this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    moving items: inout OutputSpan<Element>
+  ) {
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(first: count)
+      unsafe self.append(moving: source)
+      count = 0
+    }
+  }
+
+  /// Appends the elements of a given deque to the end of this array by moving
+  /// them between the containers. On return, the input deque becomes empty, but
+  /// it is not destroyed, and it preserves its original storage capacity.
+  ///
+  /// If the target deque does not have sufficient capacity to hold all items
+  /// in the source deque, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A deque whose items to move to the end of this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    moving items: inout RigidDeque<Element>
+  ) {
+    // FIXME: Remove this in favor of a generic algorithm over range-replaceable containers
+    precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
+    items._handle.unsafeConsumeElements { source in
+      self._handle.uncheckedAppend(moving: source)
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Appends the elements of a given container to the end of this deque by
+  /// consuming the source container.
+  ///
+  /// If the target deque does not have sufficient capacity to hold all items,
+  /// then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - items: A container whose contents to move into this deque.
+  ///
+  /// - Complexity: O(`items.count`)
+  @_alwaysEmitIntoClient
+  public mutating func append(
+    consuming items: consuming RigidDeque<Element>
+  ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
+    var items = items
+    self.append(moving: &items)
+  }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -79,7 +220,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       newElements.count <= freeCapacity,
       "RigidDeque capacity overflow")
     guard newElements.count > 0 else { return }
-    _handle.uncheckedAppend(contentsOf: newElements)
+    _handle.uncheckedAppend(copying: newElements)
   }
 
   /// Copies the elements of a buffer to the end of this deque.
@@ -115,16 +256,6 @@ extension RigidDeque /*where Element: Copyable*/ {
     }
   }
 
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  internal mutating func _append<S: Sequence<Element>>(
-    prefixOf items: S
-  ) -> S.Iterator {
-    let (it, c) = _handle.availableSegments().initialize(fromSequencePrefix: items)
-    _handle.count += c
-    return it
-  }
-
   /// Copies the elements of a sequence to the end of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -142,7 +273,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     }
     if done != nil { return }
 
-    var it = self._append(prefixOf: newElements)
+    var it = _handle.uncheckedAppend(copyingPrefixOf: newElements)
     precondition(it.next() == nil, "RigidDeque capacity overflow")
   }
 }

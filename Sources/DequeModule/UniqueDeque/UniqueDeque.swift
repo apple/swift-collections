@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -78,20 +78,6 @@ extension UniqueDeque where Element: ~Copyable {
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 
   @_alwaysEmitIntoClient
-  @_transparent
-  @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Ref<Element> {
-    _storage.borrowElement(at: index)
-  }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  @_lifetime(&self)
-  public mutating func mutateElement(at index: Int) -> Mut<Element> {
-    _storage.mutateElement(at: index)
-  }
-
-  @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
     @inline(__always)
     @_transparent
@@ -131,7 +117,7 @@ extension UniqueDeque where Element: ~Copyable {
     }
 
     let c = Swift.max(minimumCapacity, 7 * _capacity / 4)
-    _storage.resize(to: c)
+    _storage.reallocate(capacity: c)
   }
 
   @inlinable
