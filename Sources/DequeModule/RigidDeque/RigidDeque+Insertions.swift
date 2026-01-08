@@ -27,8 +27,9 @@ extension RigidDeque where Element: ~Copyable {
   /// index. If you pass the deque's `endIndex` as the `index` parameter, then
   /// the new element is appended to the container.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new item.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new item. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// - Parameter item: The new element to insert into the array.
   /// - Parameter index: The position at which to insert the new element.
@@ -50,8 +51,9 @@ extension RigidDeque where Element: ~Copyable {
   /// position, using a callback to directly initialize deque storage by
   /// populating an output span.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -106,8 +108,9 @@ extension RigidDeque where Element: ~Copyable {
   /// this deque, starting at the specified position. After this operation,
   /// the supplied buffer becomes uninitialized.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -140,8 +143,9 @@ extension RigidDeque where Element: ~Copyable {
   /// Moves the elements of an input span into this deque,
   /// starting at the specified position, and leaving the span empty.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -169,8 +173,9 @@ extension RigidDeque where Element: ~Copyable {
   /// Moves the elements of an output span into this deque,
   /// starting at the specified position, and leaving the span empty.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -199,8 +204,9 @@ extension RigidDeque where Element: ~Copyable {
   /// becomes empty, but it is not destroyed, and it preserves its original
   /// storage capacity.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -237,8 +243,9 @@ extension RigidDeque where Element: ~Copyable {
   /// Inserts the elements of a given deque into the given position in this
   /// deque by consuming the source container.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -270,8 +277,9 @@ extension RigidDeque /* where Element: Copyable */ {
   /// specified index. If you pass the deque’s `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -303,8 +311,9 @@ extension RigidDeque /* where Element: Copyable */ {
   /// specified index. If you pass the deque’s `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -330,8 +339,9 @@ extension RigidDeque /* where Element: Copyable */ {
   /// specified index. If you pass the deque’s `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -402,8 +412,9 @@ extension RigidDeque /* where Element: Copyable */ {
   /// specified index. If you pass the deque’s `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -433,8 +444,9 @@ extension RigidDeque /* where Element: Copyable */ {
   /// specified index. If you pass the deque’s `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
@@ -462,8 +474,9 @@ extension RigidDeque /* where Element: Copyable */ {
   /// specified index. If you pass the deque's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the deque.
   ///
-  /// Existing elements preceding or succeeding the specified position are
-  /// moved to make room for the new items.
+  /// Existing elements in the deque's storage are moved as needed to make room
+  /// for the new items. (The direction of the move depends on the location of
+  /// the insertion, minimizing the cost.)
   ///
   /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
