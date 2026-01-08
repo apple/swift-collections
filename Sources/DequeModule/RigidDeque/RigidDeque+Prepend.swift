@@ -56,7 +56,7 @@ extension RigidDeque where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   /// Efficiently prepend a given number of items to the front of this deque by
-  /// populating a series of storage regions through successive calls of the
+  /// populating a series of storage regions through repeated calls of the
   /// specified callback function.
   ///
   /// If the deque does not have sufficient capacity to store the new items,
@@ -76,7 +76,7 @@ extension RigidDeque where Element: ~Copyable {
   /// The newly prepended items are not guaranteed to form a single contiguous
   /// storage region. Therefore, the supplied callback may be invoked multiple
   /// times to initialize each successive chunk of storage. However, invocations
-  /// cease when the callback fails to fully populate its output span or when if
+  /// cease if the callback fails to fully populate its output span or if
   /// it throws an error. In such cases, the deque keeps all items that were
   /// successfully initialized before the callback terminated the prepend.
   /// (Partial prepends create a gap in ring buffer storage that needs to be
@@ -98,10 +98,7 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameters
   ///    - count: The number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
-  ///       populate newly reserved storage within the deque. The function
-  ///       is allowed to initialize fewer than `count` items. The deque is
-  ///       appended however many items the callback adds to the output span
-  ///       before it returns (or before it throws an error).
+  ///       populate newly reserved storage within the deque.
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
@@ -198,7 +195,7 @@ extension RigidDeque where Element: ~Copyable {
   ) {
     // FIXME: Remove this in favor of a generic algorithm over range-replaceable containers
     precondition(items.count <= freeCapacity, "RigidDeque capacity overflow")
-    items._handle.unsafeConsumeElements { source in
+    items._handle.unsafeConsumeAll { source in
       self._handle.uncheckedAppend(moving: source)
     }
   }

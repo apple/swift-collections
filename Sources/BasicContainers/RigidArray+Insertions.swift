@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -206,6 +206,7 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout RigidArray<Element>,
     at index: Int
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
     insert(count: items.count, at: index) { target in
       target.withUnsafeMutableBufferPointer { dst, dstCount in
         items.edit { source in
@@ -233,8 +234,7 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
+  ///    - items: The array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
   ///

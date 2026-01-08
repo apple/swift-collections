@@ -16,6 +16,7 @@ import ContainersPreview
 
 @frozen
 @usableFromInline
+@unsafe
 internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal typealias Slot = _DequeSlot
@@ -527,7 +528,7 @@ extension _UnsafeDequeHandle {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
-  internal mutating func unsafeConsumeElements(
+  internal mutating func unsafeConsumeAll(
     with body: (UnsafeMutableBufferPointer<Element>) -> Void
   ) {
     let segments = mutableSegments()
@@ -536,6 +537,22 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       body(second)
     }
     self.count = 0
+  }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal mutating func unsafeConsumePrefix(
+    upTo offset: Int,
+    with body: (UnsafeMutableBufferPointer<Element>) -> Void
+  ) {
+    assert(offset >= 0 && offset <= count)
+    let segments = mutableSegments(forOffsets: Range(uncheckedBounds: (0, offset)))
+    body(segments.first)
+    if let second = segments.second {
+      body(second)
+    }
+    self.startSlot = self.slot(forOffset: offset)
+    self.count &-= offset
   }
 }
 
@@ -616,7 +633,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
   /// Append a given number of items to the end of this deque by populating
-  /// a series of storage regions through successive calls of the specified
+  /// a series of storage regions through repeated calls of the specified
   /// callback function.
   ///
   /// This unchecked routine does not verify that the deque has sufficient
@@ -655,7 +672,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
   
   /// Prepend a given number of items to the end of this deque by populating
-  /// a series of storage regions through successive calls of the specified
+  /// a series of storage regions through repeated calls of the specified
   /// callback function.
   ///
   /// This unchecked routine does not verify that the deque has sufficient
@@ -695,7 +712,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
   ///       is allowed to initialize fewer than `count` items. The deque is
-  ///       appended however many items the callback adds to the output span
+  ///       prepended however many items the callback adds to output span
   ///       before it returns (or before it throws an error).
   ///
   /// - Complexity: O(`count`)
@@ -710,6 +727,27 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     defer {
       if c < count {
         closeGap(offsets: c ..< count)
+      }
+    }
+    try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    if c == gap.first.count, let second = gap.second {
+      try second._initialize(initializedCount: &c, initializingWith: body)
+    }
+  }
+  
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedInsert<E: Error>(
+    count: Int,
+    at offset: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    guard count > 0 else { return }
+    let gap = self.openGap(ofSize: count, atOffset: offset)
+    
+    var c = 0
+    defer {
+      if c < count {
+        closeGap(offsets: offset + c ..< offset + count)
       }
     }
     try gap.first._initialize(initializedCount: &c, initializingWith: body)
