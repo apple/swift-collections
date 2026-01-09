@@ -57,6 +57,29 @@ extension UnsafeBufferPointer where Element: ~Copyable {
     return Self(start: baseAddress, count: newCount)
   }
 
+  /// Returns a buffer pointer containing all but the given number of initial
+  /// elements.
+  ///
+  /// If the number of elements to drop exceeds the number of elements in the
+  /// buffer, the result is an empty buffer.
+  ///
+  /// The returned buffer's first item is always at offset 0; unlike buffer
+  /// slices, extracted buffers do not share their indices with the
+  /// buffer from which they are extracted.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to drop.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A buffer pointer with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(droppingFirst maxLength: Int) -> Self {
+    precondition(maxLength >= 0, "Can't have a prefix of negative length")
+    let cut = Swift.min(maxLength, count)
+    return Self(start: baseAddress?.advanced(by: cut), count: count &- cut)
+  }
+
   /// Returns a buffer pointer containing the final elements of this buffer,
   /// up to the given maximum length.
   ///
@@ -79,4 +102,28 @@ extension UnsafeBufferPointer where Element: ~Copyable {
     let newCount = Swift.min(maxLength, count)
     return extracting(Range(uncheckedBounds: (count - newCount, count)))
   }
+  
+  /// Returns a buffer pointer containing all but the given number of trailing
+  /// elements.
+  ///
+  /// If the number of elements to drop exceeds the number of elements in the
+  /// buffer, the result is an empty buffer.
+  ///
+  /// The returned buffer's first item is always at offset 0; unlike buffer
+  /// slices, extracted buffers do not share their indices with the
+  /// buffer from which they are extracted.
+  ///
+  /// - Parameter maxLength: The maximum number of elements to drop.
+  ///   `maxLength` must be greater than or equal to zero.
+  /// - Returns: A buffer pointer with at most `maxLength` elements.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func _extracting(droppingLast maxLength: Int) -> Self {
+    precondition(maxLength >= 0, "Can't have a prefix of negative length")
+    let newCount = count &- Swift.min(maxLength, count)
+    return Self(start: baseAddress, count: newCount)
+  }
+
 }

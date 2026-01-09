@@ -49,7 +49,7 @@ extension RigidDeque where Element: ~Copyable {
 extension RigidDeque where Element: ~Copyable {
   /// Inserts a given number of new items into this deque at the specified
   /// position, using a callback to directly initialize deque storage by
-  /// populating an output span.
+  /// populating a series of output spans.
   ///
   /// Existing elements in the deque's storage are moved as needed to make room
   /// for the new items. (The direction of the move depends on the location of
@@ -75,8 +75,8 @@ extension RigidDeque where Element: ~Copyable {
   /// cease if the callback fails to fully populate its output span or if
   /// it throws an error. In such cases, the deque keeps all items that were
   /// successfully initialized before the callback terminated the prepend.
-  /// (Partial prepends create a gap in ring buffer storage that needs to be
-  /// closed by moving newly prepended items to their correct positions given
+  /// (Partial insertions create a gap in ring buffer storage that needs to be
+  /// closed by moving already inserted items to their correct positions given
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.)
   ///
@@ -85,7 +85,8 @@ extension RigidDeque where Element: ~Copyable {
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the deque.
   ///    - body: A callback that gets called at most twice to directly
-  ///       populate newly reserved storage within the deque.
+  ///       populate newly reserved storage within the deque. The function
+  ///      is always called with an empty output span.
   ///
   /// - Complexity: O(`self.count` + `count`)
   @inlinable
@@ -127,6 +128,7 @@ extension RigidDeque where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
   ) {
+    guard !items.isEmpty else { return }
     var remainder = items
     insert(count: items.count, at: index) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
@@ -296,12 +298,16 @@ extension RigidDeque /* where Element: Copyable */ {
     copying newElements: UnsafeBufferPointer<Element>, at index: Int
   ) {
     guard newElements.count > 0 else { return }
-    self.insert(count: newElements.count, at: index) { target in
+    var remainder = newElements
+    insert(count: remainder.count, at: index) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.initializeAll(fromContentsOf: newElements)
-        count = newElements.count
+        buffer.initializeAll(
+          fromContentsOf: remainder._extracting(first: buffer.count))
+        remainder = remainder._extracting(droppingFirst: buffer.count)
+        count = buffer.count
       }
     }
+    assert(remainder.isEmpty)
   }
 
   /// Copies the elements of a fully initialized buffer pointer into this
@@ -370,15 +376,14 @@ extension RigidDeque /* where Element: Copyable */ {
     copying items: borrowing C,
     newCount: Int
   ) {
+    let expectedCount = self.count - subrange.count + newCount
+    var it = newElements.startBorrowIteration()
     insert(count: newCount, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        let copied = items._copyContents(intoPrefixOf: buffer)
-        precondition(
-          copied == newCount,
-          "Broken Container: count doesn't match contents")
-        count = newCount
-      }
+      it.copyContents(into: &target)
     }
+    precondition(
+      it.nextSpan().isEmpty && count == expectedCount,
+      "Broken Container: count doesn't match contents")
   }
 #endif
 
@@ -388,8 +393,8 @@ extension RigidDeque /* where Element: Copyable */ {
     copying items: some Collection<Element>,
     newCount: Int
   ) {
-    let done: Void? = items.withContiguousStorageIfAvailable { buffer in
-      self.insert(copying: buffer, at: index)
+    let done: Void? = items.withContiguousStorageIfAvailable { src in
+      self.insert(copying: src, at: index)
     }
     if done != nil { return }
 
@@ -397,8 +402,10 @@ extension RigidDeque /* where Element: Copyable */ {
     precondition(newCount <= freeCapacity, "RigidDeque capacity overflow")
     var i = items.startIndex
     self._handle.uncheckedInsert(count: newCount, at: index) { target in
-      target.append(items[i])
-      items.formIndex(after: &i)
+      while !target.isFull {
+        target.append(items[i])
+        items.formIndex(after: &i)
+      }
     }
     precondition(i == items.endIndex,
                  "Broken Collection: count doesn't match contents")

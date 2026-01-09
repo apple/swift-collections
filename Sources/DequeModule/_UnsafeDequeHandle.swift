@@ -734,27 +734,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       try second._initialize(initializedCount: &c, initializingWith: body)
     }
   }
-  
-  @_alwaysEmitIntoClient
-  internal mutating func uncheckedInsert<E: Error>(
-    count: Int,
-    at offset: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
-  ) throws(E) {
-    guard count > 0 else { return }
-    let gap = self.openGap(ofSize: count, atOffset: offset)
-    
-    var c = 0
-    defer {
-      if c < count {
-        closeGap(offsets: offset + c ..< offset + count)
-      }
-    }
-    try gap.first._initialize(initializedCount: &c, initializingWith: body)
-    if c == gap.first.count, let second = gap.second {
-      try second._initialize(initializedCount: &c, initializingWith: body)
-    }
-  }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -885,6 +864,18 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     mutablePtr(at: target)
       .moveInitialize(from: mutablePtr(at: source), count: count)
     return (slot(source, offsetBy: count), slot(target, offsetBy: count))
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  func isLeftLeaning(_ offset: Int) -> Bool {
+    offset < count - offset
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  func isLeftLeaning(_ subrange: Range<Int>) -> Bool {
+    subrange.lowerBound < count - subrange.upperBound
   }
 
   /// Slide elements around so that there is a gap of uninitialized slots of
@@ -1197,6 +1188,30 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedInsert<E: Error>(
+    count: Int,
+    at offset: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    guard count > 0 else { return }
+    let gap = self.openGap(ofSize: count, atOffset: offset)
+    
+    var c = 0
+    defer {
+      if c < count {
+        closeGap(offsets: offset + c ..< offset + count)
+      }
+    }
+    try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    if c == gap.first.count, let second = gap.second {
+      try second._initialize(initializedCount: &c, initializingWith: body)
+    }
+  }
+}
+
 extension _UnsafeDequeHandle {
   /// Insert all elements from `newElements` into this deque, starting at
   /// `offset`.
@@ -1235,7 +1250,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     closeGap(offsets: Range(uncheckedBounds: (offset, offset + 1)))
     return result
   }
-
+  
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func uncheckedRemoveFirst() -> Element {
@@ -1245,7 +1260,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     count -= 1
     return result
   }
-
+  
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func uncheckedRemoveLast() -> Element {
@@ -1255,7 +1270,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     count -= 1
     return result
   }
-
+  
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func uncheckedRemoveFirst(_ n: Int) {
@@ -1266,7 +1281,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     startSlot = slot(startSlot, offsetBy: n)
     count -= n
   }
-
+  
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func uncheckedRemoveLast(_ n: Int) {
@@ -1276,7 +1291,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     target.deinitialize()
     count -= n
   }
-
+  
   /// Remove all elements stored in this instance, deinitializing their storage.
   ///
   /// This method does not ensure that the storage buffer is uniquely
@@ -1290,7 +1305,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     count = 0
     startSlot = .zero
   }
-
+  
   /// Remove all elements in `bounds`, deinitializing their storage and sliding
   /// remaining elements to close the resulting gap.
   ///
@@ -1300,9 +1315,53 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   @_transparent
   internal mutating func uncheckedRemove(offsets bounds: Range<Int>) {
     assert(bounds.lowerBound >= 0 && bounds.upperBound <= self.count)
-
+    
     // Deinitialize elements in `bounds`.
     mutableSegments(forOffsets: bounds).deinitialize()
     closeGap(offsets: bounds)
+  }
+}
+
+// MARK: Replacement
+
+@available(SwiftStdlib 5.0, *)
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedReplaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    newCount: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    assert(
+      subrange.lowerBound >= 0 && subrange.upperBound <= count,
+      "Subrange out of bounds")
+    assert(newCount >= 0, "Negative count")
+    let delta = newCount - subrange.count
+    assert(count + delta <= capacity, "RigidDeque capacity overflow")
+    self.mutableSegments(forOffsets: subrange).deinitialize()
+    // Note: we're careful to open/close the gap in a direction that does not
+    // lead to trying to move slots we deinitialized above.
+    let left = isLeftLeaning(subrange)
+    if delta > 0 {
+      _ = self.openGap(
+        ofSize: delta,
+        atOffset: (left ? subrange.lowerBound : subrange.upperBound))
+    } else {
+      self.closeGap(
+        offsets: (left ? subrange.prefix(-delta) : subrange.suffix(-delta)))
+    }
+    let newRange = Range(uncheckedBounds: (subrange.lowerBound, newCount))
+    let gap = self.mutableSegments(forOffsets: newRange)
+    
+    var c = 0
+    defer {
+      if c < newCount {
+        closeGap(offsets: newRange.dropFirst(c))
+      }
+    }
+    try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    if c == gap.first.count, let second = gap.second {
+      try second._initialize(initializedCount: &c, initializingWith: body)
+    }
   }
 }

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
+// Copyright (c) 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -17,69 +17,80 @@ import ContainersPreview
 #if compiler(>=6.2)
 
 @available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
   /// Replaces the specified range of elements by a given count of new items,
-  /// using a callback to directly initialize array storage by populating
-  /// an output span.
+  /// using a callback to directly initialize deque storage by populating
+  /// a series of output spans.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting room for the new elements starting at the
+  /// from the deque and inserting room for the new elements starting at the
   /// same location. The number of new elements need not match the number
   /// of elements being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, then
   /// this method is equivalent to calling
-  /// `insert(count: newCount, at: subrange.lowerbound, initializingWith: body)`.
+  /// `insert(count: newCount, at: subrange.lowerBound, initializingWith: body)`.
   ///
   /// Likewise, if you pass a zero for `newCount`, then this method
   /// removes the elements in the given subrange without any replacement.
   /// This case is more directly expressed by `removeSubrange(subrange)`.
   ///
+  /// The newly prepended items are not guaranteed to form a single contiguous
+  /// storage region. Therefore, the supplied callback may be invoked multiple
+  /// times to initialize each successive chunk of storage. However, invocations
+  /// cease if the callback fails to fully populate its output span or if
+  /// it throws an error. In such cases, the deque keeps all items that were
+  /// successfully initialized before the callback terminated the prepend.
+  /// (Partial insertions create a gap in ring buffer storage that needs to be
+  /// closed by moving newly inserted items to their correct positions given
+  /// the adjusted count. This adds some overhead compared to adding exactly as
+  /// many items as promised.)
+  ///
   /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///      the range must be valid indices in the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///      the range must be valid indices in the deque.
   ///   - newCount: the number of items to replace the old subrange.
-  ///   - body: A callback that gets called precisely once to directly
-  ///      populate newly reserved storage within the array. The function
-  ///      is called with an empty output span of capacity `newCount`,
-  ///      and it must fully populate it before returning.
+  ///   - body: A callback that gets called at most twice to directly
+  ///      populate newly reserved storage within the deque. The function
+  ///      is always called with an empty output span.
   ///
   /// - Complexity: O(`self.count` + `newCount`)
   @inlinable
-  public mutating func replaceSubrange<Result: ~Copyable>(
+  public mutating func replaceSubrange<E: Error>(
     _ subrange: Range<Int>,
     newCount: Int,
-    initializingWith body: (inout OutputSpan<Element>) -> Result
-  ) -> Result {
-    // FIXME: Should we allow throwing (and a partially filled output span)?
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
     // FIXME: Should we have a version of this with two closures, to allow custom-consuming the old items?
-    // replaceSubrange(5..<10, newCount: 3, consumingWith: {...}, initializingWith: {...})
-    let target = _gapForReplacement(of: subrange, withNewCount: newCount)
-    var span = OutputSpan(buffer: target, initializedCount: 0)
-    defer {
-      let c = span.finalize(for: target)
-      precondition(c == newCount, "Inserted fewer items than promised")
-      span = OutputSpan()
-    }
-    return body(&span)
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= count,
+      "Subrange out of bounds")
+    precondition(newCount >= 0, "Negative count")
+    precondition(
+      count - subrange.count + newCount <= capacity,
+      "RigidDeque capacity overflow")
+    try _handle.uncheckedReplaceSubrange(
+      subrange,
+      newCount: newCount,
+      initializingWith: body)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
   /// Replaces the specified range of elements by moving the elements of a
   /// fully initialized buffer into their place. On return, the buffer is left
   /// in an uninitialized state.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -92,10 +103,10 @@ extension RigidArray where Element: ~Copyable {
   /// `removeSubrange`.
   ///
   /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
   ///   - newElements: A fully initialized buffer whose contents to move into
-  ///     the array.
+  ///     the deque.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
@@ -103,11 +114,16 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, newCount: newElements.count) { target in
+    var remainder = newElements
+    replaceSubrange(subrange, newCount: remainder.count) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
-        count = unsafe buffer._moveInitializePrefix(from: newElements)
+        buffer.moveInitializeAll(
+          fromContentsOf: remainder._extracting(first: buffer.count))
+        remainder = remainder._extracting(droppingFirst: buffer.count)
+        count = buffer.count
       }
     }
+    assert(remainder.isEmpty)
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -115,11 +131,11 @@ extension RigidArray where Element: ~Copyable {
   /// input span into their place. On return, the span is left empty.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -132,9 +148,9 @@ extension RigidArray where Element: ~Copyable {
   /// `removeSubrange`.
   ///
   /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - items: An input span whose contents are to be moved into the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
+  ///   - items: An input span whose contents are to be moved into the deque.
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
@@ -154,11 +170,11 @@ extension RigidArray where Element: ~Copyable {
   /// output span into their place. On return, the span is left empty.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -172,8 +188,8 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - items: An output span whose contents are to be moved into the array.
+  ///     the range must be valid indices in the deque.
+  ///   - items: An output span whose contents are to be moved into the deque.
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
@@ -189,16 +205,16 @@ extension RigidArray where Element: ~Copyable {
   }
 
   /// Replaces the specified range of elements by moving the elements of a
-  /// another array into their place.  On return, the source array
+  /// another deque into their place.  On return, the source deque
   /// becomes empty, but it is not destroyed, and it preserves its original
   /// storage capacity.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -211,37 +227,44 @@ extension RigidArray where Element: ~Copyable {
   /// `removeSubrange`.
   ///
   /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: An array whose contents to move into `self`.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
+  ///   - newElements: A deque whose contents to move into `self`.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
-    moving newElements: inout RigidArray<Element>,
+    moving newElements: inout RigidDeque<Element>,
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
-    unsafe newElements._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
-      count = 0
+    replaceSubrange(subrange, newCount: newElements.count) { target in
+      target.withUnsafeMutableBufferPointer { dst, dstCount in
+        var remainder = dst
+        newElements._handle.unsafeConsumePrefix(upTo: remainder.count) { src in
+          let c = remainder._moveInitializePrefix(from: src)
+          dstCount += c
+          remainder = remainder._extracting(last: c)
+        }
+        assert(remainder.isEmpty)
+      }
     }
   }
 }
 
+
 @available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
+extension RigidDeque where Element: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Replaces the specified range of elements by moving the elements of a
-  /// given array into their place, consuming it in the process.
+  /// given deque into their place, consuming it in the process.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -254,15 +277,15 @@ extension RigidArray where Element: ~Copyable {
   /// `removeSubrange`.
   ///
   /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
-  ///   - newElements: An array whose contents to move into `self`.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
+  ///   - newElements: A deque whose contents to move into `self`.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
   public mutating func replaceSubrange(
     _ subrange: Range<Int>,
-    consuming newElements: consuming RigidArray<Element>,
+    consuming newElements: consuming RigidDeque<Element>,
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
     replaceSubrange(subrange, moving: &newElements)
@@ -271,16 +294,16 @@ extension RigidArray where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidArray {
+extension RigidDeque /* where Element: Copyable */ {
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given buffer pointer, which must be fully initialized.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -293,8 +316,8 @@ extension RigidArray {
   /// `removeSubrange`.
   ///
   /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
   ///   - newElements: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
@@ -303,22 +326,26 @@ extension RigidArray {
     _ subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, newCount: newElements.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        count = unsafe buffer._initializePrefix(copying: newElements)
+    var remainder = newElements
+    replaceSubrange(subrange, newCount: remainder.count) { target in
+      target.withUnsafeMutableBufferPointer { dst, dstCount in
+        dst.initializeAll(fromContentsOf: remainder._extracting(first: dst.count))
+        dstCount += dst.count
+        remainder = remainder._extracting(droppingFirst: dst.count)
       }
     }
+    assert(remainder.isEmpty)
   }
 
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given buffer pointer, which must be fully initialized.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -331,8 +358,8 @@ extension RigidArray {
   /// `removeSubrange`.
   ///
   /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
   ///   - newElements: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
@@ -350,11 +377,11 @@ extension RigidArray {
   /// the given span.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -367,8 +394,8 @@ extension RigidArray {
   /// `removeSubrange`.
   ///
   /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
   ///   - newElements: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
@@ -391,14 +418,15 @@ extension RigidArray {
     copyingContainer newElements: borrowing C,
     newCount: Int
   ) {
+
+    let expectedCount = self.count - subrange.count + newCount
+    var it = newElements.startBorrowIteration()
     self.replaceSubrange(subrange, newCount: newCount) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        count = newElements._copyContents(intoPrefixOf: buffer)
-        precondition(
-          count == newCount,
-          "Broken Container: count doesn't match contents")
-      }
+      it.copyContents(into: &target)
     }
+    precondition(
+      it.nextSpan().isEmpty && count == expectedCount,
+      "Broken Container: count doesn't match contents")
   }
 #endif
 
@@ -408,25 +436,21 @@ extension RigidArray {
     copyingCollection newElements: __owned some Collection<Element>,
     newCount: Int
   ) {
-    self.replaceSubrange(subrange, newCount: newCount) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
-        let done: Void? = newElements.withContiguousStorageIfAvailable { src in
-          let i = unsafe dst._initializePrefix(copying: src)
-          precondition(
-            i == newCount,
-            "Broken Collection: count doesn't match contents")
-          dstCount = i
-        }
-        if done != nil { return }
+    let done: Void? = newElements.withContiguousStorageIfAvailable { src in
+      precondition(
+        src.count == newCount,
+        "Broken Collection: count doesn't match contents")
+      self.replaceSubrange(subrange, copying: src)
+    }
+    if done != nil { return }
 
-        var (it, copied) = unsafe newElements._copyContents(initializing: dst)
-        dstCount = copied
-        precondition(
-          it.next() == nil && copied == newCount,
-          "Broken Collection: count doesn't match contents")
+    var i = newElements.startIndex
+    self.replaceSubrange(subrange, newCount: newCount) { target in
+      while !target.isFull {
+        target.append(newElements[i])
+        newElements.formIndex(after: &i)
       }
     }
-
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -434,11 +458,11 @@ extension RigidArray {
   /// the given container.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -451,7 +475,7 @@ extension RigidArray {
   /// `removeSubrange`.
   ///
   /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///   - subrange: The subrange of the deque to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: The new elements to copy into the collection.
   ///
@@ -477,7 +501,7 @@ extension RigidArray {
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -490,8 +514,8 @@ extension RigidArray {
   /// `removeSubrange`.
   ///
   /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///     the range must be valid indices in the array.
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///     the range must be valid indices in the deque.
   ///   - newElements: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
@@ -510,11 +534,11 @@ extension RigidArray {
   /// the given container.
   ///
   /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting the new elements starting at the same
+  /// from the deque and inserting the new elements starting at the same
   /// location. The number of new elements need not match the number of elements
   /// being removed.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
+  /// If the capacity of the deque isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
@@ -527,11 +551,11 @@ extension RigidArray {
   /// `removeSubrange`.
   ///
   /// - Parameters:
-  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///   - subrange: The subrange of the deque to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: The new elements to copy into the collection.
   ///
-  /// - Complexity: O(*n* + *m*), where *n* is count of this array and
+  /// - Complexity: O(*n* + *m*), where *n* is count of this deque and
   ///   *m* is the count of `newElements`.
   @inlinable
   @inline(__always)

@@ -25,7 +25,7 @@ extension RigidDeque where Element: ~Copyable {
   /// (Or would hold it after an insertion in case the deque is currently
   /// empty.)
   ///
-  /// This property isn't intended to be used outside of `Deque`'s own test
+  /// This property isn't intended to be used outside of `DequeModule`'s own test
   /// target.
   @_spi(Testing)
   public var _startSlot: Int {
@@ -36,8 +36,10 @@ extension RigidDeque where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque {
   /// Constructs a deque instance of the specified contents and layout. Exposed
-  /// as public to allow exhaustive input/output tests for `Deque`'s members.
-  /// This isn't intended to be used outside of `Deque`'s own test target.
+  /// as public to allow exhaustive input/output tests for `RigidDeque` members.
+  ///
+  /// This initializer isn't intended to be used outside of `DequeModule`'s
+  /// own test target.
   @_spi(Testing)
   public init(
     _capacity capacity: Int,
