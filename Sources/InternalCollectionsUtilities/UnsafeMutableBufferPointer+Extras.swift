@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -26,10 +26,9 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
 }
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
-  /// Returns a buffer pointer within the
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(unchecked bounds: Range<Int>) -> Self {
+  package func _extracting(unchecked bounds: Range<Int>) -> Self {
     assert(bounds.lowerBound >= 0 && bounds.upperBound <= count,
            "Index out of range")
     guard let start = self.baseAddress else {
@@ -37,7 +36,15 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
     }
     return Self(start: start + bounds.lowerBound, count: bounds.count)
   }
-  
+
+  @_alwaysEmitIntoClient
+  package func _extracting(uncheckedFrom start: Int, to end: Int) -> Self {
+    guard let base = self.baseAddress else {
+      return Self(_empty: ())
+    }
+    return Self(start: base + start, count: end - start)
+  }
+
   /// Returns a buffer pointer containing the initial elements of this buffer,
   /// up to the specified maximum length.
   ///
@@ -55,12 +62,12 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(first maxLength: Int) -> Self {
+  package func _extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length")
     let newCount = Swift.min(maxLength, count)
     return Self(start: baseAddress, count: newCount)
   }
-  
+
   /// Returns a buffer pointer containing all but the given number of initial
   /// elements.
   ///
@@ -78,12 +85,12 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(droppingFirst maxLength: Int) -> Self {
+  package func _extracting(droppingFirst maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length")
     let cut = Swift.min(maxLength, count)
     return Self(start: baseAddress?.advanced(by: cut), count: count &- cut)
   }
-  
+
   /// Returns a buffer pointer containing the final elements of this buffer,
   /// up to the given maximum length.
   ///
@@ -101,12 +108,12 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(last maxLength: Int) -> Self {
+  package func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length")
     let newCount = Swift.min(maxLength, count)
     return extracting(Range(uncheckedBounds: (count - newCount, count)))
   }
-  
+
   /// Returns a buffer pointer containing all but the given number of trailing
   /// elements.
   ///
@@ -124,7 +131,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(droppingLast maxLength: Int) -> Self {
+  package func _extracting(droppingLast maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length")
     let newCount = count &- Swift.min(maxLength, count)
     return Self(start: baseAddress, count: newCount)

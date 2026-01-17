@@ -19,7 +19,7 @@ import ContainersPreview
 #if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectContainerContents<
+public func expectIteratorContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -58,7 +58,7 @@ public func expectContainerContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectContainerContents<
+public func expectIteratorContents<
   E1: ~Copyable,
   C2: Collection,
 >(
@@ -97,19 +97,19 @@ public func expectContainerContents<
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-public func expectContainersWithEquivalentElements<
-  C1: Container & ~Copyable & ~Escapable,
-  C2: Container & ~Copyable & ~Escapable
+public func expectIterablesWithEquivalentElements<
+  I1: Iterable & ~Copyable & ~Escapable,
+  I2: Iterable & ~Copyable & ~Escapable
 >(
-  _ left: borrowing C1,
-  _ right: borrowing C2,
-  by areEquivalent: (borrowing C1.Element, borrowing C2.Element) -> Bool,
+  _ left: borrowing I1,
+  _ right: borrowing I2,
+  by areEquivalent: (borrowing I1.Element, borrowing I2.Element) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #file,
   line: UInt = #line
 ) {
-  if left.borrowingElementsEqual(right, by: areEquivalent) { return }
+  if left.elementsEqual(right, by: areEquivalent) { return }
   _expectFailure(
     "Containers do not have equivalent elements",
     message, trapping: trapping, file: file, line: line)
@@ -117,19 +117,19 @@ public func expectContainersWithEquivalentElements<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectContainersWithEqualElements<
+public func expectIterablesWithEqualElements<
   Element: Equatable,
-  C1: Container<Element> & ~Copyable & ~Escapable,
-  C2: Container<Element> & ~Copyable & ~Escapable,
+  I1: Iterable<Element> & ~Copyable & ~Escapable,
+  I2: Iterable<Element> & ~Copyable & ~Escapable,
 >(
-  _ left: borrowing C1,
-  _ right: borrowing C2,
+  _ left: borrowing I1,
+  _ right: borrowing I2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #file,
   line: UInt = #line
 ) {
-  if left.borrowingElementsEqual(right) { return }
+  if left.elementsEqual(right) { return }
   _expectFailure(
     "Containers do not have equal elements",
     message, trapping: trapping, file: file, line: line)
@@ -137,12 +137,12 @@ public func expectContainersWithEqualElements<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectContainerContents<
+public func expectIteratorContents<
   Element: Equatable,
-  C1: Container<Element> & ~Copyable & ~Escapable,
+  I1: Iterable<Element> & ~Copyable & ~Escapable,
   C2: Collection<Element>,
 >(
-  _ left: borrowing C1,
+  _ left: borrowing I1,
   equalTo right: C2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
@@ -179,13 +179,13 @@ public func expectContainerContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectContainerContents<
-  C1: Container & ~Copyable & ~Escapable,
+public func expectIteratorContents<
+  I1: Iterable & ~Copyable & ~Escapable,
   C2: Collection,
 >(
-  _ left: borrowing C1,
+  _ left: borrowing I1,
   equivalentTo right: C2,
-  by areEquivalent: (borrowing C1.Element, C2.Element) -> Bool,
+  by areEquivalent: (borrowing I1.Element, C2.Element) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #file,

@@ -383,6 +383,7 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   @inlinable
   internal mutating func _replaceSubrange<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -400,6 +401,7 @@ extension RigidArray {
       }
     }
   }
+#endif
 #endif
 
   @inlinable
@@ -430,6 +432,7 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -467,6 +470,7 @@ extension RigidArray {
     _replaceSubrange(
       subrange, copyingContainer: newElements, newCount: newElements.count)
   }
+#endif
 #endif
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -506,6 +510,7 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -544,6 +549,7 @@ extension RigidArray {
     _replaceSubrange(
       subrange, copyingContainer: newElements, newCount: newElements.count)
   }
+#endif
 #endif
 }
 

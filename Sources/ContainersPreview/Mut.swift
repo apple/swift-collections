@@ -12,17 +12,15 @@
 #if compiler(>=6.2)
 import Builtin
 
-// FIXME: A better name for the generic argument.
-
 /// A safe mutable reference allowing in-place mutation to an exclusive value.
 ///
-/// In order to get an instance of a `Mut<T>`, one must have exclusive access
-/// to the instance of `T`. This is achieved through the 'inout' operator, '&'.
+/// In order to get an instance of a `Mut<Target>`, one must have exclusive access
+/// to the instance of `Target`. This is achieved through the 'inout' operator, '&'.
 @frozen
 @safe
-public struct Mut<T: ~Copyable>: ~Copyable, ~Escapable {
+public struct Mut<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapable {
   @usableFromInline
-  package let _pointer: UnsafeMutablePointer<T>
+  package let _pointer: UnsafeMutablePointer<Target>
 
   /// Initializes an instance of 'Mut' extending the exclusive access of the
   /// passed instance.
@@ -30,8 +28,8 @@ public struct Mut<T: ~Copyable>: ~Copyable, ~Escapable {
   /// - Parameter instance: The desired instance to get a mutable reference to.
   @_alwaysEmitIntoClient
   @_transparent
-  public init(_ instance: inout T) {
-    unsafe _pointer = UnsafeMutablePointer<T>(Builtin.unprotectedAddressOf(&instance))
+  public init(_ instance: inout Target) {
+    unsafe _pointer = UnsafeMutablePointer<Target>(Builtin.unprotectedAddressOf(&instance))
   }
 
   /// Unsafely initializes an instance of 'Mut' using the given 'unsafeAddress'
@@ -39,7 +37,7 @@ public struct Mut<T: ~Copyable>: ~Copyable, ~Escapable {
   /// argument.
   ///
   /// - Parameter unsafeAddress: The address to use to mutably reference an
-  ///                            instance of type 'T'.
+  ///                            instance of type 'Target'.
   /// - Parameter owner: The owning instance that this 'Mut' instance's
   ///                    lifetime is based on.
   @unsafe
@@ -47,7 +45,7 @@ public struct Mut<T: ~Copyable>: ~Copyable, ~Escapable {
   @_transparent
   @_lifetime(&owner)
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafeAddress: UnsafeMutablePointer<T>,
+    unsafeAddress: UnsafeMutablePointer<Target>,
     mutating owner: inout Owner
   ) {
     unsafe _pointer = unsafeAddress
@@ -58,26 +56,26 @@ public struct Mut<T: ~Copyable>: ~Copyable, ~Escapable {
   /// lifetime is immortal.
   ///
   /// - Parameter unsafeImmortalAddress: The address to use to mutably reference
-  ///                                    an immortal instance of type 'T'.
+  ///                                    an immortal instance of type 'Target'.
   @_lifetime(immortal)
   @unsafe
   @_alwaysEmitIntoClient
   @_transparent
   public init(
-    unsafeImmortalAddress: UnsafeMutablePointer<T>
+    unsafeImmortalAddress: UnsafeMutablePointer<Target>
   ) {
     unsafe _pointer = unsafeImmortalAddress
   }
 }
 
-extension Mut where T: ~Copyable {
+extension Mut where Target: ~Copyable {
   /// Dereferences the mutable reference allowing for in-place reads and writes
   /// to the underlying instance.
   @_alwaysEmitIntoClient
-  public subscript() -> T {
+  public subscript() -> Target {
     @_transparent
     unsafeAddress {
-      unsafe UnsafePointer<T>(_pointer)
+      unsafe UnsafePointer<Target>(_pointer)
     }
 
     @_transparent
@@ -86,5 +84,26 @@ extension Mut where T: ~Copyable {
       unsafe _pointer
     }
   }
+}
+
+extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */ {
+  @_lifetime(&self)
+  public mutating func mutate() -> Mut<Wrapped>? {
+    if self == nil {
+      return nil
+    }
+    let pointer = unsafe UnsafeMutablePointer<Wrapped>(
+      Builtin.unprotectedAddressOf(&self))
+    return unsafe Mut(unsafeAddress: pointer, mutating: &self)
+  }
+  
+  @_lifetime(&self)
+  @_alwaysEmitIntoClient
+  @_transparent
+  public mutating func insert(_ value: consuming Wrapped) -> Mut<Wrapped> {
+    self = .some(value)
+    return mutate()._consumingUnsafelyUnwrap()
+  }
+
 }
 #endif

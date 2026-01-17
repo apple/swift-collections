@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 extension BitArray: Equatable {
   /// Returns a Boolean value indicating whether two values are equal.
   ///

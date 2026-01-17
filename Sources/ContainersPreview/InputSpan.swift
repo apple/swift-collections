@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -33,7 +33,9 @@ public struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   deinit {
     if _count > 0 {
       let c = _count
-      unsafe _first().withMemoryRebound(to: Element.self, capacity: _count) {
+      unsafe _unsafeRawAddressOfSlot(uncheckedOffset: 0).withMemoryRebound(
+        to: Element.self, capacity: _count
+      ) {
         _ = unsafe $0.deinitialize(count: c)
       }
     }
@@ -57,14 +59,6 @@ extension InputSpan where Element: ~Copyable {
   @unsafe
   internal func _start() -> UnsafeMutableRawPointer {
     unsafe _pointer.unsafelyUnwrapped
-  }
-  
-  @_alwaysEmitIntoClient
-  @_transparent
-  @unsafe
-  internal func _first() -> UnsafeMutableRawPointer {
-    // NOTE: `_pointer` must be known to be not-nil.
-    unsafe _start().advanced(by: _count &* MemoryLayout<Element>.stride)
   }
   
   @unsafe
@@ -329,7 +323,7 @@ extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
   public mutating func removeFirst() -> Element {
-    precondition(!isEmpty, "InputSpan underflow")
+    precondition(_count > 0, "InputSpan underflow")
     defer { _count &-= 1 }
     return _unsafeAddressOfElement(unchecked: 0).move()
   }
@@ -350,6 +344,21 @@ extension InputSpan where Element: ~Copyable {
     }
     _count &-= k
   }
+  
+  /// Removes and returns the first element of this input span, if it exists.
+  ///
+  /// - Returns: The first element of the original span if it wasn't empty;
+  ///    otherwise, `nil`.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public mutating func popFirst() -> Element? {
+    guard _count > 0 else { return nil }
+    let result = unsafe _unsafeAddressOfElement(unchecked: 0).move()
+    _count &-= 1
+    return result
+  }
+
 
   /// Remove all this span's elements and return its memory
   /// to the uninitialized state.
@@ -469,6 +478,20 @@ extension InputSpan where Element: ~Copyable {
       self._count = initializedCount
     }
     return unsafe try body(buffer, &initializedCount)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
+  of type: Element.Type,
+  capacity: Int,
+  _ body: (inout InputSpan<Element>) throws(E) -> R
+) throws(E) -> R {
+  try withUnsafeTemporaryAllocation(
+    of: Element.self, capacity: capacity
+  ) { buffer throws(E) in
+    var span = InputSpan(buffer: buffer, initializedCount: 0)
+    return try body(&span)
   }
 }
 

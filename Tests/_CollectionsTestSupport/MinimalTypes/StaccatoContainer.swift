@@ -17,6 +17,7 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: Update
 /// A container type with user-defined contents and storage chunks.
 /// Useful for testing.
 @available(SwiftStdlib 5.0, *)
@@ -85,4 +86,5 @@ extension StaccatoContainer: Container where Element: ~Copyable {
     BorrowIterator(contents: _contents.span, spanCounts: _spanCounts)
   }
 }
+#endif
 #endif

@@ -173,7 +173,7 @@ extension _Bitmap {
 
   @inlinable @inline(__always)
   internal func symmetricDifference(_ other: Self) -> Self {
-    Self(_value: _value & other._value)
+    Self(_value: _value ^ other._value)
   }
 
   @inlinable @inline(__always)
