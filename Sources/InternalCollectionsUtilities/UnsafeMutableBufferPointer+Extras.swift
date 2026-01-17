@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -20,6 +20,14 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
 }
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  package func _extracting(uncheckedFrom start: Int, to end: Int) -> Self {
+    guard let base = self.baseAddress else {
+      return Self(_empty: ())
+    }
+    return Self(start: base + start, count: end - start)
+  }
+
   /// Returns a buffer pointer containing the initial elements of this buffer,
   /// up to the specified maximum length.
   ///
@@ -37,7 +45,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(first maxLength: Int) -> Self {
+  package func _extracting(first maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a prefix of negative length")
     let newCount = Swift.min(maxLength, count)
     return Self(start: baseAddress, count: newCount)
@@ -60,7 +68,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func _extracting(last maxLength: Int) -> Self {
+  package func _extracting(last maxLength: Int) -> Self {
     precondition(maxLength >= 0, "Can't have a suffix of negative length")
     let newCount = Swift.min(maxLength, count)
     return extracting(Range(uncheckedBounds: (count - newCount, count)))

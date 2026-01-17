@@ -286,13 +286,49 @@ extension RigidArray where Element: ~Copyable {
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {
-  public typealias BorrowIterator = Span<Element>
-
+extension RigidArray: Iterable where Element: ~Copyable {
+  @frozen
+  public struct BorrowIterator: ~Copyable, ~Escapable, BorrowIteratorProtocol {
+    @usableFromInline
+    internal let _span: Span<Element>
+    
+    @usableFromInline
+    internal var _offset: Int
+    
+    @inlinable
+    @_lifetime(copy span)
+    internal init(_span span: Span<Element>, offset: Int) {
+      self._span = span
+      self._offset = offset
+    }
+    
+    @_lifetime(&self)
+    @_lifetime(self: copy self)
+    public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+      let c = Swift.min(maximumCount, _span.count - _offset)
+      let end = _offset &+ c
+      let result = _span.extracting(Range(uncheckedBounds: (_offset, end)))
+      _offset = end
+      return result
+    }
+    
+    @_lifetime(self: copy self)
+    public mutating func skip(by offset: Int) -> Int {
+      let c = Swift.min(offset, _span.count &- _offset)
+      _offset += offset
+      return c
+    }
+  }
+  
+  @inlinable
+  public var estimatedCount: EstimatedCount {
+    .exactly(count)
+  }
+  
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func startBorrowIteration() -> Span<Element> {
-    self.span
+  public func startBorrowIteration() -> BorrowIterator {
+    .init(_span: self.span, offset: 0)
   }
 }
 #endif

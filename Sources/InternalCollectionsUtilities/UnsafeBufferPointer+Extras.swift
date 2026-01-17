@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -28,6 +28,14 @@ extension UnsafeBufferPointer where Element: ~Copyable {
 }
 
 extension UnsafeBufferPointer where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  package func _extracting(uncheckedFrom start: Int, to end: Int) -> Self {
+    guard let base = self.baseAddress else {
+      return Self(_empty: ())
+    }
+    return Self(start: base + start, count: end - start)
+  }
+
   /// Returns a buffer pointer containing the initial elements of this buffer,
   /// up to the specified maximum length.
   ///
