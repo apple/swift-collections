@@ -10,6 +10,11 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 @available(SwiftStdlib 5.0, *)
 public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
@@ -132,6 +137,26 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
   //    guard let ref = next() else { return Span() }
   //    return ref.span // FIXME
   //  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension BorrowIteratorProtocol
+where Self: ~Copyable & ~Escapable, Element: Copyable
+{
+  @_lifetime(copy self)
+  @_lifetime(self: copy self)
+  @_transparent
+  public mutating func copyContents(into target: inout OutputSpan<Element>) {
+    target.withUnsafeMutableBufferPointer { dst, dstCount in
+      var tail = dst._extracting(droppingFirst: dstCount)
+      while !tail.isEmpty {
+        let src = nextSpan(maximumCount: tail.count)
+        if src.isEmpty { break }
+        tail._initializeAndDropPrefix(copying: src)
+        dstCount += src.count
+      }
+    }
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

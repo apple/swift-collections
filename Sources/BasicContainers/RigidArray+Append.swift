@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -39,7 +39,7 @@ extension RigidArray where Element: ~Copyable {
   /// then this returns the given item without appending it; otherwise it
   /// returns nil.
   ///
-  /// - Parameter item: The element to append to the collection.
+  /// - Parameter item: The element to append to the array.
   /// - Returns: `item` if the array is full; otherwise nil.
   ///
   /// - Complexity: O(1)
@@ -75,6 +75,7 @@ extension RigidArray where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     // FIXME: This is extremely similar to `edit()`, except it provides a narrower span.
+    precondition(count >= 0, "Negative count")
     precondition(freeCapacity >= count, "RigidArray capacity overflow")
     let buffer = _freeSpace._extracting(first: count)
     var span = OutputSpan(buffer: buffer, initializedCount: 0)
@@ -188,8 +189,7 @@ extension RigidArray where Element: ~Copyable {
   /// in the source array, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
+  ///    - items: A container whose contents to move into this array.
   ///
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -350,7 +350,8 @@ extension RigidArray where Element: ~Copyable {
   public var startIndex: Int { 0 }
 
   /// The array’s "past the end” position—that is, the position one greater than
-  /// the last valid subscript argument. This is always equal to array's count.
+  /// the last valid subscript argument. This is always equal to the array's
+  /// count.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -606,6 +607,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= _count,
       "Index range out of bounds")
+    precondition(newCount >= 0, "Negative count")
     precondition(
       newCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")

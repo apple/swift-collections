@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2)
 import Builtin
 
 /// A safe mutable reference allowing in-place mutation to an exclusive value.
@@ -77,7 +77,7 @@ extension Mut where Target: ~Copyable {
     unsafeAddress {
       unsafe UnsafePointer<Target>(_pointer)
     }
-    
+
     @_transparent
     @_lifetime(self: copy self)
     unsafeMutableAddress {
