@@ -21,12 +21,11 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @unsafe
   package func _extracting(uncheckedFrom start: Int, to end: Int) -> Self {
     guard let base = self.baseAddress else {
       return Self(_empty: ())
     }
-    return unsafe Self(start: base + start, count: end - start)
+    return Self(start: base + start, count: end - start)
   }
 
   /// Returns a buffer pointer containing the initial elements of this buffer,
