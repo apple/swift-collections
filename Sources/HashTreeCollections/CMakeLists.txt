@@ -13,13 +13,14 @@ else()
   set(module_name HashTreeCollections)
   add_library(HashTreeCollections
     ${COLLECTIONS_HASHTREE_SOURCES})
-  target_link_libraries(HashTreeCollections PRIVATE
+  target_link_libraries(HashTreeCollections PUBLIC
     InternalCollectionsUtilities)
-  set_target_properties(HashTreeCollections PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
   _install_target(HashTreeCollections)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS HashTreeCollections)
+  
+  # Re-export InternalCollectionsUtilities so dependents can access it
+  swift_module_re_exports(HashTreeCollections InternalCollectionsUtilities)
 endif()
 
 target_sources(${module_name} PRIVATE

@@ -12,11 +12,12 @@ if(COLLECTIONS_SINGLE_MODULE)
 else()
   set(module_name TrailingElementsModule)
   add_library(TrailingElementsModule)
-  set_target_properties(TrailingElementsModule PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
   _install_target(TrailingElementsModule)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS TrailingElementsModule)
+
+  # Re-export InternalCollectionsUtilities so dependents can access it
+  swift_module_re_exports(TrailingElementsModule InternalCollectionsUtilities)
 endif()
 
 target_sources(${module_name} PRIVATE

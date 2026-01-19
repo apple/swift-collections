@@ -13,8 +13,6 @@ else()
   set(module_name InternalCollectionsUtilities)
   add_library(InternalCollectionsUtilities
     ${COLLECTIONS_UTILITIES_SOURCES})
-  set_target_properties(InternalCollectionsUtilities PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
   _install_target(InternalCollectionsUtilities)
   set_property(GLOBAL APPEND PROPERTY SWIFT_COLLECTIONS_EXPORTS InternalCollectionsUtilities)
