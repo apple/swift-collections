@@ -22,7 +22,7 @@ internal func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable
   capacity: Int,
   _ body: (inout OutputSpan<Element>) throws(E) -> R
 ) throws(E) -> R {
-  try withUnsafeTemporaryAllocation(
+  try _withUnsafeTemporaryAllocation(
     of: Element.self, capacity: capacity
   ) { buffer throws(E) in
     var span = OutputSpan(buffer: buffer, initializedCount: 0)

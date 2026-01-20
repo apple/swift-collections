@@ -487,7 +487,7 @@ internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   capacity: Int,
   _ body: (inout InputSpan<Element>) throws(E) -> R
 ) throws(E) -> R {
-  try withUnsafeTemporaryAllocation(
+  try _withUnsafeTemporaryAllocation(
     of: Element.self, capacity: capacity
   ) { buffer throws(E) in
     var span = InputSpan(buffer: buffer, initializedCount: 0)
