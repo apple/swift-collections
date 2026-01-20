@@ -11,13 +11,257 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-#if false // Unfortunately this does not work well with Iterable yet.
+@available(SwiftStdlib 5.0, *)
+public protocol Container<Element>: Iterable, ~Copyable, ~Escapable {
+  associatedtype Index: Comparable
+  
+  var count: Int { get }
+
+  var startIndex: Index { get }
+  var endIndex: Index { get }
+  func index(after index: Index) -> Index
+  func formIndex(after index: inout Index)
+  func index(_ index: Index, offsetBy n: Int) -> Index
+  func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  )
+  func distance(from start: Index, to end: Index) -> Int
+
+  /// Return a span over the container's storage that begins with the element at the given index,
+  /// and extends to the end of the contiguous storage chunk that contains it. On return, the index
+  /// is updated to address the next item following the end of the returned span.
+  ///
+  /// This method can be used to efficiently process the items of a container in bulk, by
+  /// directly iterating over its piecewise contiguous pieces of storage:
+  ///
+  ///     var index = items.startIndex
+  ///     while true {
+  ///       let span = items.nextSpan(after: &index)
+  ///       if span.isEmpty { break }
+  ///       // Process items in `span`
+  ///     }
+  ///
+  /// Note: The spans returned by this method are not guaranteed to be disjunct. Some containers
+  /// may use the same storage chunk (or parts of a storage chunk) multiple times, to repeat their
+  /// contents.
+  ///
+  /// Note: Repeated invocations of `nextSpan` on the same container and index are not guaranteed
+  /// to return identical results. (This is particularly the case with containers that can store
+  /// contents in their "inline" representation. Such containers may not always have
+  /// a unique address in memory; the locations of the spans exposed by this method may vary
+  /// between different borrows of the same container.)
+  ///
+  /// - Parameter index: A valid index in the container, including the end index. On return, this
+  ///     index is advanced by the count of the resulting span, to simplify iteration.
+  /// - Returns: A span over contiguous storage that starts at the given index. If the input index
+  ///     is the end index, then this returns an empty span. Otherwise the result is non-empty,
+  ///     with its first element matching the element at the input index.
+  @_lifetime(borrow self)
+  func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
+
+  //  subscript(index: Index) -> Element { borrow }
+  
+  // FIXME: Do we want these as standard requirements this time?
+  func index(alignedDown index: Index) -> Index
+  func index(alignedUp index: Index) -> Index
+}
+
+@available(SwiftStdlib 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(after index: inout Index) -> Span<Element> {
+    nextSpan(after: &index, maximumCount: Int.max)
+  }
+
+//  @inlinable
+//  @_lifetime(borrow self)
+//  public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
+//    let original = index
+//    var span = nextSpan(after: &index)
+//    if span.count > maximumCount {
+//      span = span.extracting(first: maximumCount)
+//      // Index remains within the same span, so offseting it is expected to be quick
+//      index = self.index(original, offsetBy: maximumCount)
+//    }
+//    return span
+//  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @inlinable
+  public func formIndex(after index: inout Index) {
+    index = self.index(after: index)
+  }
+
+  @inlinable
+  public func index(_ index: Index, offsetBy n: Int) -> Index {
+    _defaultIndex(index, advancedBy: n)
+  }
+  
+  @inlinable
+  public func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  ) {
+    _defaultFormIndex(&index, advancedBy: &n, limitedBy: limit)
+  }
+
+  @inlinable
+  public func distance(from start: Index, to end: Index) -> Int {
+    _defaultDistance(from: start, to: end)
+  }
+
+  @inlinable
+  public func index(alignedDown index: Index) -> Index { index }
+
+  @inlinable
+  public func index(alignedUp index: Index) -> Index { index }
+}
+
+
+@available(SwiftStdlib 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @inlinable
+  public func _defaultDistance(from start: Index, to end: Index) -> Int {
+    // FIXME: Use binary search here (with nextSpan(after:maximumCount:))
+    var start = index(alignedDown: start)
+    let end = index(alignedDown: end)
+    if start > end {
+      return -_defaultDistance(from: end, to: start)
+    }
+    var count = 0
+    while start != end {
+      count = count + 1
+      formIndex(after: &start)
+    }
+    return count
+  }
+
+  @inlinable
+  public func _defaultIndex(_ i: Index, advancedBy distance: Int) -> Index {
+    precondition(
+      distance >= 0,
+      "Only BidirectionalContainers can be advanced by a negative amount")
+
+    var i = index(alignedDown: i)
+    var distance = distance
+
+    #if true // with nextSpan(after:maximumCount:)
+    while distance > 0 {
+      let span = self.nextSpan(after: &i, maximumCount: distance)
+      precondition(
+        !span.isEmpty,
+        "Can't advance index beyond the end of the container")
+      distance &-= span.count
+    }
+    return i
+    #else // without nextSpan(after:maximumCount:)
+    // FIXME: This implementation can be wasteful for contiguous containers,
+    // as iterating over spans will overshoot the target immediately.
+    // Reintroducing `nextSpan(after:maximumCount:)` would help avoid
+    // having to use a second loop to refine the result, but it would
+    // complicate conformances.
+
+    // Skip forward until we find the span that contains our target.
+    while distance > 0 {
+      var j = i
+      let span = self.nextSpan(after: &j)
+      precondition(
+        !span.isEmpty,
+        "Can't advance index beyond the end of the container")
+      guard span.count <= distance else { break }
+      i = j
+      distance &-= span.count
+    }
+    // Step through to find the precise target.
+    while distance > 0 {
+      self.formIndex(after: &i)
+      distance &-= 1
+    }
+    return i
+    #endif
+  }
+
+  @inlinable
+  public func _defaultFormIndex(
+    _ i: inout Index,
+    advancedBy distance: inout Int,
+    limitedBy limit: Index
+  ) {
+    precondition(
+      distance >= 0,
+      "Only BidirectionalContainers can be advanced by a negative amount")
+
+    i = index(alignedDown: i)
+    let limit = index(alignedDown: limit)
+    if i > limit {
+      i = self.index(i, offsetBy: distance)
+      distance = 0
+      return
+    }
+
+#if true // with nextSpan(after:maximumCount:)
+    // Skip forward until find our target or overshoot the limit.
+    while distance > 0, i < limit {
+      var j = i
+      let span = self.nextSpan(after: &j, maximumCount: distance)
+      precondition(
+        !span.isEmpty,
+        "Can't advance index beyond the end of the container")
+      if j > limit {
+        break
+      }
+      i = j
+      distance &-= span.count
+    }
+    // Step through to find the precise target.
+    // FIXME: Use binary search here
+    while distance != 0 {
+      if i == limit {
+        return
+      }
+      formIndex(after: &i)
+      distance &-= 1
+    }
+#else // without nextSpan(after:maximumCount:)
+    // Skip forward until we find the span that contains our target.
+    while distance > 0 {
+      var j = i
+      let span = self.nextSpan(after: &j)
+      precondition(
+        !span.isEmpty,
+        "Can't advance index beyond the end of the container")
+      guard span.count <= distance, j < limit else {
+        break
+      }
+      i = j
+      distance &-= span.count
+    }
+    // Step through to find the precise target.
+    while distance != 0 {
+      if i == limit {
+        return
+      }
+      formIndex(after: &i)
+      distance &-= 1
+    }
+#endif
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  @_transparent
+  public var estimatedCount: EstimatedCount { .exactly(count) }
+}
+
 
 @available(SwiftStdlib 5.0, *)
 public struct ContainerIterator<
-  Base: Container & ~Copyable /*& ~Escapable*/
+  Base: Container & ~Copyable /*FIXME: & ~Escapable*/
 >: ~Copyable, ~Escapable {
-  let _base: Ref<Base>
+  let _base: Ref<Base> // FIXME: This doesn't support nonescapable Bases
   var _position: Base.Index
   
   @_lifetime(borrow base)
@@ -28,44 +272,22 @@ public struct ContainerIterator<
 }
 
 @available(SwiftStdlib 5.0, *)
-extension ContainerIterator: BorrowIteratorProtocol where Base: ~Copyable {
+extension ContainerIterator: BorrowIteratorProtocol
+where Base: ~Copyable /*FIXME: & ~Escapable*/
+{
   public typealias Element = Base.Element
 
+  @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence!
   @_lifetime(&self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
-    let r = _base[].nextSpan(after: &self._position, maximumCount: maximumCount)
-    return r
+    _base[].nextSpan(after: &self._position, maximumCount: maximumCount)
   }
-}
-
-@available(SwiftStdlib 5.0, *)
-public protocol Container<Element>: Iterable, ~Copyable, ~Escapable {
-  associatedtype Index
-  
-  var count: Int { get }
-  
-  var startIndex: Index { get }
-  var endIndex: Index { get }
-  func index(after index: Index) -> Index
-  func index(_ index: Index, offsetBy delta: Int) -> Index
-  // ...
-  
-//  subscript(index: Index) -> Element { borrow }
-  
-  @_lifetime(borrow self)
-  func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
-}
-
-@available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable {
-  @_transparent
-  public var estimatedCount: EstimatedCount { .exactly(count) }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension Container
 where
-  Self: ~Copyable /*& ~Escapable*/,
+  Self: ~Copyable /*FIXME: & ~Escapable*/,
   BorrowIterator == ContainerIterator<Self>
 {
   @_lifetime(borrow self)
@@ -76,4 +298,39 @@ where
 
 #endif
 
+extension Strideable {
+  @inlinable
+  package mutating func _advance(
+    by distance: inout Stride, limitedBy limit: Self
+  ) {
+    if distance >= 0 {
+      guard limit >= self else {
+        self = self.advanced(by: distance)
+        distance = 0
+        return
+      }
+      let d = Swift.min(distance, self.distance(to: limit))
+      self = self.advanced(by: d)
+      distance -= d
+    } else {
+      guard limit <= self else {
+        self = self.advanced(by: distance)
+        distance = 0
+        return
+      }
+      let d = Swift.max(distance, self.distance(to: limit))
+      self = self.advanced(by: d)
+      distance -= d
+    }
+  }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @inlinable
+  public mutating func advance(
+    by distance: inout Stride, limitedBy limit: Self
+  ) {
+    _advance(by: &distance, limitedBy: limit)
+  }
 #endif
+}
+

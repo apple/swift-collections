@@ -241,7 +241,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       "RigidDeque capacity overflow")
     _handle.uncheckedAppend(copying: newElements)
   }
-
+  
   /// Copies the elements of a buffer to the end of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -258,7 +258,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ) {
     unsafe self.append(copying: UnsafeBufferPointer(newElements))
   }
-
+  
   /// Copies the elements of a span to the end of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -274,7 +274,37 @@ extension RigidDeque /*where Element: Copyable*/ {
       unsafe self.append(copying: source)
     }
   }
-
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @inlinable
+  internal mutating func _appendIterable<
+    I: Iterable<Element> & ~Copyable & ~Escapable
+  >(copying items: borrowing I) {
+    var it = items.startBorrowIteration()
+    while true {
+      let span = it.nextSpan()
+      if span.isEmpty { break }
+      append(copying: span)
+    }
+  }
+  
+  /// Copies the elements of an iterable to the end of this deque.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in the
+  /// sequence, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - newElements: The new elements to copy into the deque.
+  ///
+  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  @_alwaysEmitIntoClient
+  public mutating func append<I: Iterable<Element> & ~Copyable & ~Escapable>(
+    copying newElements: borrowing I
+  ) {
+    self._appendIterable(copying: newElements)
+  }
+#endif
+  
   /// Copies the elements of a sequence to the end of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
@@ -291,10 +321,30 @@ extension RigidDeque /*where Element: Copyable*/ {
       return
     }
     if done != nil { return }
-
+    
     var it = _handle.uncheckedAppend(copyingPrefixOf: newElements)
     precondition(it.next() == nil, "RigidDeque capacity overflow")
   }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Copies the elements of an iterable to the end of this deque.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in the
+  /// sequence, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - newElements: The new elements to copy into the deque.
+  ///
+  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  @_alwaysEmitIntoClient
+  public mutating func append<
+    I: Iterable<Element> & Sequence<Element>
+   >(
+    copying newElements: I
+   ) {
+    self._appendIterable(copying: newElements)
+  }
+#endif
 }
 
 #endif

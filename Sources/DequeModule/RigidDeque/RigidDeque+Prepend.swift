@@ -314,6 +314,41 @@ extension RigidDeque /*where Element: Copyable*/ {
     _handle.uncheckedPrepend(copying: newElements, exactCount: c)
   }
   
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @inlinable
+  internal mutating func _prependIterable<
+    I: Iterable<Element> & ~Copyable & ~Escapable
+  >(copying items: borrowing I) {
+    // We don't know the exact count of new elements, so we cannot initialize
+    // them in place. Append them to the end of the deque first, then rotate
+    // them to their correct location.
+    let oldEndSlot = _handle.endSlot
+    var it = items.startBorrowIteration()
+    while true {
+      let span = it.nextSpan()
+      if span.isEmpty { break }
+      prepend(copying: span)
+    }
+    _handle.rotate(toStartAt: oldEndSlot)
+  }
+  
+  /// Copies the elements of an iterable to the end of this deque.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in the
+  /// sequence, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - newElements: The new elements to copy into the deque.
+  ///
+  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  @_alwaysEmitIntoClient
+  public mutating func prepend<I: Iterable<Element> & ~Copyable & ~Escapable>(
+    copying newElements: borrowing I
+  ) {
+    self._prependIterable(copying: newElements)
+  }
+#endif
+  
   /// Copies the elements of a sequence to the front of the rigid deque.
   ///
   /// Use this method to prepend the elements of a sequence to the front of this
@@ -337,7 +372,7 @@ extension RigidDeque /*where Element: Copyable*/ {
       return
     }
     guard done == nil else { return }
-
+    
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
     // them to their correct location.
@@ -346,6 +381,23 @@ extension RigidDeque /*where Element: Copyable*/ {
     precondition(it.next() == nil, "RigidDeque capacity overflow")
     _handle.rotate(toStartAt: oldEndSlot)
   }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Copies the elements of an iterable to the end of this deque.
+  ///
+  /// If the deque does not have sufficient capacity to hold all items in the
+  /// sequence, then this triggers a runtime error.
+  ///
+  /// - Parameters
+  ///    - newElements: The new elements to copy into the deque.
+  ///
+  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  @_alwaysEmitIntoClient
+  public mutating func prepend<I: Iterable<Element> & Sequence<Element>>(
+    copying newElements: borrowing I
+  ) {
+    self._prependIterable(copying: newElements)
+  }
+#endif
 }
-
 #endif

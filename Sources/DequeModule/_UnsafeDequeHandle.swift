@@ -319,6 +319,26 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  internal func nextSegment(
+    from startOffset: Int
+  ) -> UnsafeBufferPointer<Element> {
+    assert(startOffset >= 0 && startOffset <= count)
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
+    let position = startSlot.position &+ startOffset
+    if position < capacity {
+      return UnsafeBufferPointer(
+        start: ptr(at: Slot(at: position)),
+        count: Swift.min(count &- startOffset, capacity &- position))
+    }
+    // We're after the wrap
+    return UnsafeBufferPointer(
+      start: ptr(at: Slot(at: position &- capacity)),
+      count: startSlot.position &+ count &- position)
+  }
+
+  @_alwaysEmitIntoClient
   internal func segments() -> _UnsafeDequeSegments<Element> {
     guard _buffer.baseAddress != nil else {
       return .init(._empty)

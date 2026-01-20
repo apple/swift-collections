@@ -19,7 +19,7 @@ import ContainersPreview
 #if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
+public func expectIterableContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -58,7 +58,7 @@ public func expectIteratorContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
+public func expectIterableContents<
   E1: ~Copyable,
   C2: Collection,
 >(
@@ -137,7 +137,7 @@ public func expectIterablesWithEqualElements<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
+public func expectIterableContents<
   Element: Equatable,
   I1: Iterable<Element> & ~Copyable & ~Escapable,
   C2: Collection<Element>,
@@ -179,7 +179,7 @@ public func expectIteratorContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
+public func expectIterableContents<
   I1: Iterable & ~Copyable & ~Escapable,
   C2: Collection,
 >(

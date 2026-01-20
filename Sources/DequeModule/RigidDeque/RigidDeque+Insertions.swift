@@ -376,8 +376,8 @@ extension RigidDeque /* where Element: Copyable */ {
     copying items: borrowing C,
     newCount: Int
   ) {
-    let expectedCount = self.count - subrange.count + newCount
-    var it = newElements.startBorrowIteration()
+    let expectedCount = self.count + newCount
+    var it = items.startBorrowIteration()
     insert(count: newCount, at: index) { target in
       it.copyContents(into: &target)
     }

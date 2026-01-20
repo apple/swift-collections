@@ -16,11 +16,11 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-// MARK: Borrowing
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  public struct BorrowIterator: ~Escapable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  public struct BorrowIterator: ~Escapable, BorrowIteratorProtocol {
     var currentSegment: Span<Element>
     var nextSegment: Span<Element>
     
@@ -38,8 +38,8 @@ extension RigidDeque where Element: ~Copyable {
     
     @_lifetime(copy self)
     @_lifetime(self: copy self)
-    public mutating func nextSpan(maximumCount: Int? = nil) -> Span<Element> {
-      let max = maximumCount ?? Int.max
+    public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+      let max = maximumCount
       let c = Swift.min(currentSegment.count, max)
       let result = currentSegment.extracting(first: c)
       if c == currentSegment.count {
@@ -55,6 +55,43 @@ extension RigidDeque where Element: ~Copyable {
   @_lifetime(borrow self)
   public borrowing func startBorrowIteration() -> BorrowIterator {
     BorrowIterator(deque: self)
+  }
+#endif
+}
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque: Container where Element: ~Copyable {}
+#endif
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: ~Copyable {
+  @inlinable @inline(__always)
+  public func index(after index: Int) -> Int { index + 1 }
+
+  @inlinable @inline(__always)
+  public func formIndex(after index: inout Int) { index += 1 }
+
+  @inlinable @inline(__always)
+  public func index(_ index: Int, offsetBy n: Int) -> Int {
+    index + n
+  }
+
+  @inlinable
+  public func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  ) {
+    index._advance(by: &n, limitedBy: limit)
+  }
+
+  @_lifetime(borrow self)
+  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    let segment = self._handle
+      .nextSegment(from: index)
+      ._extracting(first: maximumCount)
+    index &+= segment.count
+    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 }
 

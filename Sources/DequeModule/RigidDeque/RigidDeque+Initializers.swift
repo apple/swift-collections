@@ -84,6 +84,27 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque /*where Element: Copyable*/ {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Creates a new deque with the specified capacity, holding a copy
+  /// of the contents of a given iterable.
+  ///
+  /// - Parameters:
+  ///   - capacity: The storage capacity of the new deque.
+  ///   - contents: An iterable whose contents to copy into the new deque.
+  ///      The iterable must not contain more than `capacity` elements.
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public init<
+    I: Iterable<Element> & ~Copyable & ~Escapable
+  >(
+    capacity: Int,
+    copying contents: borrowing I
+  ) {
+    self.init(capacity: capacity)
+    self.append(copying: contents)
+  }
+#endif
+
   /// Creates a new deque with the specified capacity, holding a copy
   /// of the contents of a given sequence.
   ///
@@ -115,6 +136,28 @@ extension RigidDeque /*where Element: Copyable*/ {
     self.init(capacity: capacity ?? contents.count)
     self.append(copying: contents)
   }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Creates a new deque with the specified capacity, holding a copy
+  /// of the contents of a given iterable.
+  ///
+  /// - Parameters:
+  ///   - capacity: The storage capacity of the new deque.
+  ///   - contents: An iterable whose contents to copy into the new deque.
+  ///      The iterable must not contain more than `capacity` elements.
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public init<
+    I: Iterable<Element> & Sequence<Element>
+  >(
+    capacity: Int,
+    copying contents: borrowing I
+  ) {
+    self.init(capacity: capacity)
+    self.append(copying: contents)
+  }
+#endif
+
 }
 
 #endif

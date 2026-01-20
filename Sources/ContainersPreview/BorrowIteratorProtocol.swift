@@ -143,7 +143,6 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
 extension BorrowIteratorProtocol
 where Self: ~Copyable & ~Escapable, Element: Copyable
 {
-  @_lifetime(copy self)
   @_lifetime(self: copy self)
   @_transparent
   public mutating func copyContents(into target: inout OutputSpan<Element>) {

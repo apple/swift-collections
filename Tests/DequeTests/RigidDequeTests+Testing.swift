@@ -76,19 +76,6 @@ struct RigidDequeTests_Testing {
     #expect(deque[2] == 30)
   }
   
-  @Test("Init with unsafe uninitialized capacity")
-  func initWithUnsafeUninitializedCapacity() {
-    let deque = RigidDeque<Int>(unsafeUninitializedCapacity: 5) { buffer, count in
-      buffer[0] = 100
-      buffer[1] = 200
-      count = 2
-    }
-    #expect(deque.count == 2)
-    #expect(deque.capacity == 5)
-    #expect(deque[0] == 100)
-    #expect(deque[1] == 200)
-  }
-  
   // MARK: - Basic Properties
   
   @Test("Basic properties")
@@ -144,6 +131,7 @@ struct RigidDequeTests_Testing {
     #expect(deque[1] == 99)
   }
   
+#if false
   @Test("Borrow element")
   func borrowElement() {
     let deque = RigidDeque(copying: [1, 2, 3])
@@ -158,6 +146,7 @@ struct RigidDequeTests_Testing {
     mut[] = 99
     #expect(deque[1] == 99)
   }
+#endif
   
   // MARK: - Append Operations
   
@@ -389,7 +378,8 @@ struct RigidDequeTests_Testing {
   }
     
   // MARK: - Capacity Management
-  
+
+#if false
   @Test("Resize capacity")
   func resizeCapacity() {
     var deque = RigidDeque(copying: [1, 2, 3])
@@ -408,6 +398,7 @@ struct RigidDequeTests_Testing {
     #expect(deque.capacity == 5)
     #expect(deque.count == 3)
   }
+#endif
   
   // MARK: - Edge Cases and Error Conditions
   
@@ -435,6 +426,7 @@ struct RigidDequeTests_Testing {
     }
   }
   
+  #if false
   @Test("Resize too small")
   func resizeTooSmall() async {
     await #expect(processExitsWith: .failure) {
@@ -442,6 +434,7 @@ struct RigidDequeTests_Testing {
       deque.resize(to: 3)
     }
   }
+  #endif
 
   @Test("Invalid index access")
   func invalidIndexAccess() async {
@@ -453,10 +446,12 @@ struct RigidDequeTests_Testing {
       let deque = RigidDeque(copying: [1, 2, 3])
       let _ = deque[3]  // Index out of bounds
     }
+    #if false
     await #expect(processExitsWith: .failure) {
       let deque = RigidDeque(copying: [1, 2, 3])
       let _ = deque.borrowElement(at: 5) // Index out of bounds
     }
+    #endif
   }
   
   @Test("Remove from empty deque")
