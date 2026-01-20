@@ -50,6 +50,9 @@ var defines: [String] = [
   // putting them all directly into the `Collections` module.
   // Note: This is a source-incompatible variation of the default configuration.
 //  "COLLECTIONS_SINGLE_MODULE",
+  
+  // Enables longer, more exhaustive tests.
+//  "COLLECTIONS_LONG_TESTS",
 ]
 
 let availabilityMacros: KeyValuePairs<String, String> = [
