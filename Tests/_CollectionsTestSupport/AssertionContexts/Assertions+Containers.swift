@@ -27,7 +27,7 @@ public func expectIterableContents<
   equalTo right: C2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var i = 0
@@ -59,7 +59,7 @@ public func expectIterableContents<
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 public func expectIterableContents<
-  E1: ~Copyable,
+  E1,
   C2: Collection,
 >(
   _ left: borrowing Span<E1>,
@@ -67,7 +67,32 @@ public func expectIterableContents<
   by areEquivalent: (borrowing E1, C2.Element) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  expectIterableContents(
+    left,
+    equivalentTo: right,
+    by: areEquivalent,
+    printer: { "\($0)" },
+    message(),
+    trapping: trapping,
+    file: file, line: line)
+}
+
+/// Check if `left` and `right` contain equal elements in the same order.
+@available(SwiftStdlib 5.0, *)
+public func expectIterableContents<
+  E1: ~Copyable,
+  C2: Collection,
+>(
+  _ left: borrowing Span<E1>,
+  equivalentTo right: C2,
+  by areEquivalent: (borrowing E1, C2.Element) -> Bool,
+  printer: (borrowing E1) -> String,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var i = 0
@@ -106,7 +131,7 @@ public func expectIterablesWithEquivalentElements<
   by areEquivalent: (borrowing I1.Element, borrowing I2.Element) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left.elementsEqual(right, by: areEquivalent) { return }
@@ -126,7 +151,7 @@ public func expectIterablesWithEqualElements<
   _ right: borrowing I2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left.elementsEqual(right) { return }
@@ -146,7 +171,7 @@ public func expectIterableContents<
   equalTo right: C2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var it1 = left.startBorrowIteration()
@@ -186,9 +211,10 @@ public func expectIterableContents<
   _ left: borrowing I1,
   equivalentTo right: C2,
   by areEquivalent: (borrowing I1.Element, C2.Element) -> Bool,
+  printer: (borrowing I1.Element) -> String,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var it1 = left.startBorrowIteration()

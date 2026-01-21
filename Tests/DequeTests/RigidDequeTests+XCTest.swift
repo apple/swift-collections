@@ -35,8 +35,31 @@ internal func expectIterableContents<
     left,
     equivalentTo: right,
     by: ==,
-    printer: { "\($0)" },
     message(), trapping: trapping, file: file, line: line)
+}
+
+/// Check if `left` and `right` contain equal elements in the same order.
+@available(SwiftStdlib 5.0, *)
+internal func expectIterableContents<
+  E1,
+  C2: Collection,
+>(
+  _ left: borrowing RigidDeque<E1>,
+  equivalentTo right: C2,
+  by areEquivalent: (borrowing E1, C2.Element) -> Bool,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  expectIterableContents(
+    left,
+    equivalentTo: right,
+    by: areEquivalent,
+    printer: { "\($0)" },
+    message(),
+    file: file,
+    line: line)
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
@@ -69,6 +92,7 @@ internal func expectIterableContents<
     c += 1
   }
 }
+
 #endif
 
 final class RigidDequeTests: CollectionTestCase {
@@ -221,7 +245,11 @@ final class RigidDequeTests: CollectionTestCase {
         guard extra.count <= deque.freeCapacity else { return }
         contents.insert(contentsOf: extra, at: 0)
         deque.prepend(copying: extra)
-        expectIterableContents(deque, equivalentTo: contents, by: ==)
+        expectIterableContents(
+          deque,
+          equivalentTo: contents,
+          by: ==,
+          printer: { "\($0)" })
       }
     }
   }
@@ -316,7 +344,11 @@ final class RigidDequeTests: CollectionTestCase {
         guard extra.count <= deque.freeCapacity else { return }
         contents.append(contentsOf: extra)
         deque.append(copying: extra)
-        expectIterableContents(deque, equivalentTo: contents, by: ==)
+        expectIterableContents(
+          deque,
+          equivalentTo: contents,
+          by: ==,
+          printer: { "\($0)" })
       }
     }
   }
