@@ -114,7 +114,7 @@ extension SortedDictionary {
   /// by the given closure and whose values are arrays of the elements that
   /// returned each key.
   ///
-  /// The arrays in the “values” position of the new sorted dictionary each contain at least
+  /// The arrays in the "values" position of the new sorted dictionary each contain at least
   /// one element, with the elements in the same order as the source sequence.
   /// The following example declares an array of names, and then creates a sorted dictionary
   /// from that array by grouping the names by first letter:
@@ -123,7 +123,7 @@ extension SortedDictionary {
   ///     let studentsByLetter = SortedDictionary(grouping: students, by: { $0.first! })
   ///     // ["A": ["Abena", "Akosua"], "E": ["Efua"], "K": ["Kofi", "Kweku"]]
   ///
-  /// The new `studentsByLetter` sorted dictionary has three entries, with students’ names
+  /// The new `studentsByLetter` sorted dictionary has three entries, with students' names
   /// grouped by the keys `"A"`, `"E"`, and `"K"`
   ///
   ///

@@ -188,7 +188,7 @@ extension Deque: RandomAccessCollection {
   @inline(__always)
   public var startIndex: Int { 0 }
 
-  /// The deque’s “past the end” position—that is, the position one greater than
+  /// The deque's "past the end" position—that is, the position one greater than
   /// the last valid subscript argument.
   ///
   /// For an instance of `Deque`, `endIndex` is always equal to its `count`. If
@@ -349,7 +349,7 @@ extension Deque: RandomAccessCollection {
   ///      than or equal to `startIndex` and less than `endIndex`.
   ///
   /// - Complexity: Reading an element from a deque is O(1). Writing is O(1)
-  ///    unless the deque’s storage is shared with another deque, in which case
+  ///    unless the deque's storage is shared with another deque, in which case
   ///    writing is O(`count`).
   @inlinable
   public subscript(index: Int) -> Element {
@@ -743,7 +743,7 @@ extension Deque: RangeReplaceableCollection {
   /// Inserts a new element at the specified position.
   ///
   /// The new element is inserted before the element currently at the specified
-  /// index. If you pass the deque’s `endIndex` as the `index` parameter, the
+  /// index. If you pass the deque's `endIndex` as the `index` parameter, the
   /// new element is appended to the deque.
   ///
   /// - Parameters:

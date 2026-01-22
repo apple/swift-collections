@@ -70,7 +70,7 @@ extension OrderedSet.SubSequence: CustomDebugStringConvertible {
 #endif
 
 extension OrderedSet.SubSequence: Sequence {
-  // A type representing the collection’s elements.
+  // A type representing the collection's elements.
   public typealias Element = OrderedSet.Element
   /// The type that allows iteration over the collection's elements.
   public typealias Iterator = IndexingIterator<Self>
@@ -104,7 +104,7 @@ extension OrderedSet.SubSequence: Sequence {
             copied)
   }
 
-  /// Call `body(p)`, where `p` is a buffer pointer to the collection’s
+  /// Call `body(p)`, where `p` is a buffer pointer to the collection's
   /// contiguous storage. Ordered sets always have contiguous storage.
   ///
   /// - Parameter body: A function to call. The function must not escape its

@@ -14,7 +14,7 @@ import InternalCollectionsUtilities
 #endif
 
 extension TreeDictionary {
-  /// A view of a dictionary’s values.
+  /// A view of a dictionary's values.
   @frozen
   public struct Values {
     @usableFromInline

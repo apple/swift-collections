@@ -256,7 +256,7 @@ extension RigidArray {
   /// array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
+  /// specified index. If you pass the array's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved to
@@ -289,7 +289,7 @@ extension RigidArray {
   /// array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
+  /// specified index. If you pass the array's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved to
@@ -316,7 +316,7 @@ extension RigidArray {
   /// Copies the elements of a span into this array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
+  /// specified index. If you pass the array's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved to
@@ -395,7 +395,7 @@ extension RigidArray {
   /// position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
+  /// specified index. If you pass the array's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved to
@@ -427,7 +427,7 @@ extension RigidArray {
   /// position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
+  /// specified index. If you pass the array's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved
@@ -457,7 +457,7 @@ extension RigidArray {
   /// position.
   ///
   /// The new elements are inserted before the element currently at the
-  /// specified index. If you pass the array’s `endIndex` as the `index`
+  /// specified index. If you pass the array's `endIndex` as the `index`
   /// parameter, then the new elements are appended to the end of the array.
   ///
   /// All existing elements at or following the specified position are moved to
