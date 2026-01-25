@@ -25,6 +25,13 @@ public protocol Producer<Element>: ~Copyable, ~Escapable {
   /// always succeeds.
   associatedtype ProducerError: Error = Never
   
+  /// A value less than or equal to the number of remaining items that this
+  /// producer is able to generate until it reaches its end.
+  ///
+  /// The default implementation returns 0. If you provide your own
+  /// implementation, make sure to compute the value nondestructively.
+  var underestimatedCount: Int { get }
+  
   /// Generate the next batch of items into the supplied output span instance,
   /// which must have room for at least one new element.
   ///
@@ -43,6 +50,11 @@ public protocol Producer<Element>: ~Copyable, ~Escapable {
   /// The returned Boolean value can be used to easily determine if the
   /// method was able to make progress towards filling `target` without hitting
   /// the end of the underlying sequence.
+  ///
+  /// If `target` is a full span, this method is allowed to unconditionally
+  /// return true. Passing an empty span is not a reliable way to test if the
+  /// producer has reached its end. (Some producers may only be able to detect
+  /// that they are finished while trying to generate the next item.)
   ///
   /// ### Error handling
   ///
@@ -73,6 +85,7 @@ public protocol Producer<Element>: ~Copyable, ~Escapable {
   ///    the end of the underlying sequence.
   @_lifetime(target: copy target)
   @_lifetime(self: copy self)
+  @discardableResult
   mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(ProducerError) -> Bool
@@ -146,6 +159,14 @@ public protocol Producer<Element>: ~Copyable, ~Escapable {
 
 @available(SwiftStdlib 5.0, *)
 extension Producer where Self: ~Copyable & ~Escapable {
+  /// A value less than or equal to the number of remaining items that this
+  /// producer is able to generate until it reaches its end.
+  ///
+  /// The default implementation returns 0. If you provide your own
+  /// implementation, make sure to compute the value nondestructively.
+  @inline(__always)
+  public var underestimatedCount: Int { 0 }
+
   /// Skip at most the given number items in the underlying generative sequence,
   /// decreasing it by the number of items successfully skipped.
   ///
@@ -228,6 +249,19 @@ extension Producer where Self: ~Copyable & ~Escapable {
       guard try self.generate(into: &span) else { return nil }
       return span.removeLast()
     }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension Producer where Self: ~Copyable & ~Escapable {
+  /// Returns true if the producer has no more elements, consuming it in
+  /// the process. This is implemented by checking if it is possible to
+  /// skip one item.
+  ///
+  /// This is useful in preconditions.
+  public consuming func _isAtEnd() throws(ProducerError) -> Bool {
+    var c = 1
+    return try !skip(upTo: &c)
   }
 }
 

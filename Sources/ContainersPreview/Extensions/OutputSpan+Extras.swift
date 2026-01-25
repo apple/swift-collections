@@ -53,7 +53,7 @@ extension OutputSpan where Element: ~Copyable {
 extension OutputSpan where Element: ~Copyable {
   @_lifetime(source: copy source)
   @inlinable
-  internal mutating func _append(moving source: inout InputSpan<Element>) {
+  package mutating func _append(moving source: inout InputSpan<Element>) {
     // FIXME: This needs to be in the stdlib.
     self.withUnsafeMutableBufferPointer { dst, dstCount in
       source.withUnsafeMutableBufferPointer { src, srcCount in
@@ -66,6 +66,42 @@ extension OutputSpan where Element: ~Copyable {
           .moveInitializeAll(fromContentsOf: srcItems)
         dstCount &+= srcCount
         srcCount = 0
+      }
+    }
+  }
+  
+  @_lifetime(source: copy source)
+  @inlinable
+  package mutating func _append(moving source: inout OutputSpan<Element>) {
+    // FIXME: This needs to be in the stdlib.
+    self.withUnsafeMutableBufferPointer { dst, dstCount in
+      source.withUnsafeMutableBufferPointer { src, srcCount in
+        let dstEnd = dstCount + srcCount
+        precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
+        let srcItems = src._extracting(uncheckedFrom: 0, to: srcCount)
+        dst
+          ._extracting(uncheckedFrom: dstCount, to: dstEnd)
+          .moveInitializeAll(fromContentsOf: srcItems)
+        dstCount &+= srcCount
+        srcCount = 0
+      }
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan /* where Element: Copyable */ {
+  @inlinable
+  package mutating func _append(copying source: borrowing Span<Element>) {
+    // FIXME: This needs to be in the stdlib.
+    self.withUnsafeMutableBufferPointer { dst, dstCount in
+      source.withUnsafeBufferPointer { src in
+        let dstEnd = dstCount + src.count
+        precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
+        dst
+          ._extracting(uncheckedFrom: dstCount, to: dstEnd)
+          .initializeAll(fromContentsOf: src)
+        dstCount &+= src.count
       }
     }
   }

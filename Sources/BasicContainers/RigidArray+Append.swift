@@ -274,9 +274,9 @@ extension RigidArray {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   internal mutating func _append<
-    Source: Iterable<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
-    copyingIterable newElements: borrowing Source
+    copying newElements: borrowing Source
   ) {
     let target = _freeSpace
     _count += newElements._copyContents(intoPrefixOf: target)
@@ -284,10 +284,10 @@ extension RigidArray {
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a container to the end of this array.
+  /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
-  /// source iterable, then this triggers a runtime error.
+  /// source sequence, then this triggers a runtime error.
   ///
   /// - Parameters
   ///    - newElements: A container whose contents to copy into the array.
@@ -296,11 +296,11 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
-    _append(copyingIterable: newElements)
+    _append(copying: newElements)
   }
 #endif
 
@@ -326,10 +326,10 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a container to the end of this array.
+  /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
-  /// source iterable, then this triggers a runtime error.
+  /// source sequence, then this triggers a runtime error.
   ///
   /// - Parameters
   ///    - newElements: The new elements to copy into the array.
@@ -338,9 +338,9 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable<Element> & Sequence<Element>
+    Source: BorrowingSequence<Element> & Sequence<Element>
   >(copying newElements: Source) {
-    _append(copyingIterable: newElements)
+    _append(copying: newElements)
   }
 #endif
 }

@@ -286,9 +286,9 @@ extension RigidArray where Element: ~Copyable {
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: Iterable where Element: ~Copyable {
+extension RigidArray: BorrowingSequence where Element: ~Copyable {
   @frozen
-  public struct BorrowIterator: ~Copyable, ~Escapable, BorrowIteratorProtocol {
+  public struct BorrowingIterator: ~Copyable, ~Escapable, BorrowingIteratorProtocol {
     @usableFromInline
     internal let _span: Span<Element>
     
@@ -327,7 +327,7 @@ extension RigidArray: Iterable where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func startBorrowIteration() -> BorrowIterator {
+  public func makeBorrowingIterator() -> BorrowingIterator {
     .init(_span: self.span, offset: 0)
   }
 }

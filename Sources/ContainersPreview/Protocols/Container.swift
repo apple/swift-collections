@@ -12,7 +12,7 @@
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol Container<Element>: Iterable, ~Copyable, ~Escapable {
+public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
   associatedtype Index: Comparable
   
   var count: Int { get }
@@ -261,18 +261,18 @@ extension Container where Self: ~Copyable & ~Escapable {
 public struct ContainerIterator<
   Base: Container & ~Copyable /*FIXME: & ~Escapable*/
 >: ~Copyable, ~Escapable {
-  let _base: Ref<Base> // FIXME: This doesn't support nonescapable Bases
+  let _base: Borrow<Base> // FIXME: This doesn't support nonescapable Bases
   var _position: Base.Index
   
   @_lifetime(borrow base)
   init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
-    self._base = Ref(_borrowing: base)
+    self._base = Borrow(_borrowing: base)
     self._position = position
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension ContainerIterator: BorrowIteratorProtocol
+extension ContainerIterator: BorrowingIteratorProtocol
 where Base: ~Copyable /*FIXME: & ~Escapable*/
 {
   public typealias Element = Base.Element
@@ -288,10 +288,10 @@ where Base: ~Copyable /*FIXME: & ~Escapable*/
 extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
-  BorrowIterator == ContainerIterator<Self>
+  BorrowingIterator == ContainerIterator<Self>
 {
   @_lifetime(borrow self)
-  public func startBorrowIteration() -> BorrowIterator {
+  public func makeBorrowingIterator() -> BorrowingIterator {
     ContainerIterator(_borrowing: self, from: self.startIndex)
   }
 }

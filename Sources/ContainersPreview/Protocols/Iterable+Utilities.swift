@@ -16,13 +16,13 @@ import InternalCollectionsUtilities
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable, Element: Copyable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Copyable {
   @inlinable
   package func _copyContents(
     intoPrefixOf buffer: UnsafeMutableBufferPointer<Element>
   ) -> Int {
     var target = buffer
-    var it = self.startBorrowIteration()
+    var it = self.makeBorrowingIterator()
     while target.count != 0 {
       let span = it.nextSpan(maximumCount: target.count)
       if span.isEmpty {
@@ -38,10 +38,10 @@ extension Iterable where Self: ~Copyable & ~Escapable, Element: Copyable {
 
 #if true
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
   public func elementsEqual<
-    Other: Iterable<Element> & ~Copyable & ~Escapable
+    Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
   ) -> Bool where Element: Equatable {
@@ -51,8 +51,8 @@ extension Iterable where Self: ~Copyable & ~Escapable {
     default:
       break
     }
-    var it1 = self.startBorrowIteration()
-    var it2 = other.startBorrowIteration()
+    var it1 = self.makeBorrowingIterator()
+    var it2 = other.makeBorrowingIterator()
     while true {
       let a = it1.nextSpan()
       var i = 0
@@ -78,10 +78,10 @@ extension Iterable where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
-  /// Returns a Boolean value indicating whether this Iterable and another
-  /// Iterable contain equivalent elements in the same order, using the given
-  /// predicate as the equivalence test.
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
+  /// Returns a Boolean value indicating whether two borrowing sequences contain
+  /// equivalent elements in the same order, using the given predicate as the
+  /// equivalence test.
   ///
   /// The predicate must form an *equivalence relation* over the elements. That
   /// is, for any elements `a`, `b`, and `c`, the following conditions must
@@ -93,17 +93,17 @@ extension Iterable where Self: ~Copyable & ~Escapable {
   ///   `areEquivalent(a, c)` is also `true`. (Transitivity)
   ///
   /// - Parameters:
-  ///   - other: A Iterable to compare to this Iterable.
+  ///   - other: A BorrowingSequence to compare to this BorrowingSequence.
   ///   - areEquivalent: A predicate that returns `true` if its two arguments
   ///     are equivalent; otherwise, `false`.
-  /// - Returns: `true` if this Iterable and `other` contain equivalent items,
+  /// - Returns: `true` if this BorrowingSequence and `other` contain equivalent items,
   ///   using `areEquivalent` as the equivalence test; otherwise, `false.`
   ///
-  /// - Complexity: O(*m*), where *m* is the count of the longer of the input Iterables.
+  /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
   @inlinable
   public func elementsEqual<
     E: Error,
-    Other: Iterable & ~Copyable & ~Escapable
+    Other: BorrowingSequence & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
     by areEquivalent: (borrowing Element, borrowing Other.Element) throws(E) -> Bool
@@ -114,8 +114,8 @@ extension Iterable where Self: ~Copyable & ~Escapable {
     default:
       break
     }
-    var it1 = self.startBorrowIteration()
-    var it2 = other.startBorrowIteration()
+    var it1 = self.makeBorrowingIterator()
+    var it2 = other.makeBorrowingIterator()
     while true {
       let a = it1.nextSpan()
       var i = 0
@@ -144,15 +144,15 @@ extension Iterable where Self: ~Copyable & ~Escapable {
 
 #else // rdar://150228920
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
   public func elementsEqual<
-    Other: Iterable<Element> & ~Copyable & ~Escapable
+    Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
   ) -> Bool where Element: Equatable {
-    var it1 = self.startBorrowIteration()
-    var it2 = other.startBorrowIteration()
+    var it1 = self.makeBorrowingIterator()
+    var it2 = other.makeBorrowingIterator()
     var a = Span<Element>()
     var b = Span<Element>()
   loop:
@@ -180,19 +180,19 @@ extension Iterable where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
   @discardableResult
   internal func _spanwiseZip<
-    Other: Iterable & ~Copyable & ~Escapable,
+    Other: BorrowingSequence & ~Copyable & ~Escapable,
     State: ~Copyable, E: Error
   >(
     state: inout State,
     with other: borrowing Other,
     by process: (inout State, Span<Element>, Span<Other.Element>) throws(E) -> Bool
   ) throws(E) -> Int {
-    var it1 = self.startBorrowIteration()
-    var it2 = other.startBorrowIteration()
+    var it1 = self.makeBorrowingIterator()
+    var it2 = other.makeBorrowingIterator()
     var a = Span<Element>()
     var b = Span<Other.Element>()
     var offset = 0 // Offset of the start of the current spans
@@ -218,8 +218,8 @@ extension Iterable where Self: ~Copyable & ~Escapable {
     }
   }
   
-  /// Returns a Boolean value indicating whether this Iterable and another
-  /// Iterable contain equivalent elements in the same order, using the given
+  /// Returns a Boolean value indicating whether this BorrowingSequence and another
+  /// BorrowingSequence contain equivalent elements in the same order, using the given
   /// predicate as the equivalence test.
   ///
   /// The predicate must form an *equivalence relation* over the elements. That
@@ -232,17 +232,17 @@ extension Iterable where Self: ~Copyable & ~Escapable {
   ///   `areEquivalent(a, c)` is also `true`. (Transitivity)
   ///
   /// - Parameters:
-  ///   - other: A Iterable to compare to this Iterable.
+  ///   - other: A BorrowingSequence to compare to this BorrowingSequence.
   ///   - areEquivalent: A predicate that returns `true` if its two arguments
   ///     are equivalent; otherwise, `false`.
-  /// - Returns: `true` if this Iterable and `other` contain equivalent items,
+  /// - Returns: `true` if this BorrowingSequence and `other` contain equivalent items,
   ///   using `areEquivalent` as the equivalence test; otherwise, `false.`
   ///
-  /// - Complexity: O(*m*), where *m* is the count of the longer of the input Iterables.
+  /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
   @inlinable
   public func elementsEqual<
     E: Error,
-    Other: Iterable & ~Copyable & ~Escapable
+    Other: BorrowingSequence & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
     by areEquivalent: (borrowing Element, borrowing Other.Element) throws(E) -> Bool
@@ -264,10 +264,10 @@ extension Iterable where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable, Element: Equatable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Equatable {
   @inlinable
   public func elementsEqual<
-    Other: Iterable<Element> & ~Copyable & ~Escapable
+    Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
   ) -> Bool {

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -177,8 +177,8 @@ extension UniqueArray where Element: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension UniqueArray: Iterable where Element: ~Copyable {
-  public typealias BorrowIterator = RigidArray<Element>.BorrowIterator
+extension UniqueArray: BorrowingSequence where Element: ~Copyable {
+  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
   
   public var estimatedCount: ContainersPreview.EstimatedCount {
     .exactly(count)
@@ -186,8 +186,8 @@ extension UniqueArray: Iterable where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func startBorrowIteration() -> BorrowIterator {
-    self._storage.startBorrowIteration()
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    self._storage.makeBorrowingIterator()
   }
 }
 #endif

@@ -75,10 +75,10 @@ extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal func _unsafeAddressOfElement(
-    unchecked index: Index
+    uncheckedOffset offset: Index
   ) -> UnsafeMutablePointer<Element> {
     _unsafeRawAddressOfSlot(
-      uncheckedOffset: index
+      uncheckedOffset: offset
     ).assumingMemoryBound(to: Element.self)
   }
 }
@@ -244,13 +244,13 @@ extension InputSpan where Element: ~Copyable {
   public subscript(_ index: Index) -> Element {
     unsafeAddress {
       precondition(indices.contains(index), "Index out of bounds")
-      return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
+      return unsafe UnsafePointer(_unsafeAddressOfElement(uncheckedOffset: index))
     }
 
     @_lifetime(self: copy self)
     unsafeMutableAddress {
       precondition(indices.contains(index), "Index out of bounds")
-      return unsafe _unsafeAddressOfElement(unchecked: index)
+      return unsafe _unsafeAddressOfElement(uncheckedOffset: index)
     }
   }
 
@@ -265,11 +265,11 @@ extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public subscript(unchecked index: Index) -> Element {
     unsafeAddress {
-      unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
+      unsafe UnsafePointer(_unsafeAddressOfElement(uncheckedOffset: index))
     }
     @_lifetime(self: copy self)
     unsafeMutableAddress {
-      unsafe _unsafeAddressOfElement(unchecked: index)
+      unsafe _unsafeAddressOfElement(uncheckedOffset: index)
     }
   }
 
@@ -296,8 +296,8 @@ extension InputSpan where Element: ~Copyable {
   @_lifetime(self: copy self)
   public mutating func swapAt(unchecked i: Index, unchecked j: Index) {
     guard i != j else { return }
-    let pi = unsafe _unsafeAddressOfElement(unchecked: i)
-    let pj = unsafe _unsafeAddressOfElement(unchecked: j)
+    let pi = unsafe _unsafeAddressOfElement(uncheckedOffset: i)
+    let pj = unsafe _unsafeAddressOfElement(uncheckedOffset: j)
     let temporary = unsafe pi.move()
     unsafe pi.initialize(to: pj.move())
     unsafe pj.initialize(to: consume temporary)
@@ -325,7 +325,7 @@ extension InputSpan where Element: ~Copyable {
   public mutating func removeFirst() -> Element {
     precondition(_count > 0, "InputSpan underflow")
     defer { _count &-= 1 }
-    return _unsafeAddressOfElement(unchecked: 0).move()
+    return _unsafeAddressOfElement(uncheckedOffset: 0).move()
   }
 
   /// Remove the last N elements of this span, returning the memory they occupy
@@ -354,7 +354,7 @@ extension InputSpan where Element: ~Copyable {
   @inlinable
   public mutating func popFirst() -> Element? {
     guard _count > 0 else { return nil }
-    let result = unsafe _unsafeAddressOfElement(unchecked: 0).move()
+    let result = unsafe _unsafeAddressOfElement(uncheckedOffset: 0).move()
     _count &-= 1
     return result
   }
@@ -478,6 +478,26 @@ extension InputSpan where Element: ~Copyable {
       self._count = initializedCount
     }
     return unsafe try body(buffer, &initializedCount)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension InputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func consumePrefix(upTo n: Int) -> InputSpan<Element> {
+    precondition(n >= 0, "Cannot consume a negative number of elements")
+    let c = Swift.min(n, self.count)
+    
+    let buffer = unsafe _unsafeRawAddressOfSlot(
+      uncheckedOffset: 0
+    ).withMemoryRebound(to: Element.self, capacity: c) { start in
+      UnsafeMutableBufferPointer(start: start, count: c)
+    }
+    _count -= c
+    return _overrideLifetime(
+      InputSpan(buffer: buffer, initializedCount: c),
+      mutating: &self)
   }
 }
 

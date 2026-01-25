@@ -55,7 +55,7 @@ where ProducerError == Never
   ///       the end of the sequence.
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func drainNext(maximumCount: Int?) -> InputSpan<Element>
+  mutating func drainNext(maximumCount: Int) -> InputSpan<Element>
   // TODO: The primary use case does not need this to throw; do we need to allow that?
   // Note: making this failable is not entirely straightforward, as there is no
   // easy way to signal partial success -- conforming implementations
@@ -109,7 +109,7 @@ extension Drain where Self: ~Copyable & ~Escapable {
   @_lifetime(self: copy self)
   @_transparent
   mutating func drainNext() -> InputSpan<Element> {
-    drainNext(maximumCount: nil)
+    drainNext(maximumCount: Int.max)
   }
 
   /// Generate the next batch of items into the supplied output span instance,
@@ -158,8 +158,9 @@ extension Drain where Self: ~Copyable & ~Escapable {
   /// - Returns: A boolean value indicating whether the operation was able to
   ///    append at least one item to the supplied output span without hitting
   ///    the end of the underlying sequence.
+  @inlinable
   @_lifetime(target: copy target)
-  mutating func generate(
+  public mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Never) -> Bool {
     var source = self.drainNext(maximumCount: target.freeCapacity)
@@ -200,16 +201,15 @@ extension Drain where Self: ~Copyable & ~Escapable {
   @inlinable
   @_lifetime(self: copy self)
   public mutating func skip(
-    remainder: inout Int
+    upTo n: inout Int
   ) throws(ProducerError) -> Bool {
-    precondition(remainder >= 0, "Can't skip a negative number of elements")
-    guard remainder > 0 else { return true }
-    let span = drainNext(maximumCount: remainder)
+    precondition(n >= 0, "Can't skip a negative number of elements")
+    guard n > 0 else { return true }
+    let span = drainNext(maximumCount: n)
     let success = span.count > 0
-    remainder &-= span.count
+    n &-= span.count
     return success
   }
-
 }
 
 #endif

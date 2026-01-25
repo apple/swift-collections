@@ -16,7 +16,7 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
+public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
 
   // FIXME: This ought to be a core requirement, but `Ref` is not a thing yet.
@@ -27,15 +27,15 @@ public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   /// Advance the iterator, returning an ephemeral span over the elements
   /// that are ready to be visited.
   ///
-  /// If the underlying iterable is a container type, then the returned span
+  /// If the underlying sequence is a container type, then the returned span
   /// typically directly addresses one of its storage buffers. On the other
-  /// hand, if the underlying iterable materializes its elements on demand,
+  /// hand, if the underlying sequence materializes its elements on demand,
   /// then the returned span addresses some temporary buffer associated with
   /// the iterator itself. Consequently, the returned span is tied to this
   /// particular invocation of `nextSpan`, and it cannot survive until the next
   /// invocation of it.
   ///
-  /// If the iterator has not yet reached the end of the underlying iterable,
+  /// If the iterator has not yet reached the end of the underlying sequence,
   /// then this method returns a non-empty span of at most `maximumCount`
   /// elements, and updates the iterator's current position to the element
   /// following the last item in the returned span (or the end, if there is
@@ -50,7 +50,7 @@ public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   /// in bulk, by directly iterating over its piecewise contiguous pieces of
   /// storage:
   ///
-  ///     var it = items.startBorrowIteration()
+  ///     var it = items.makeBorrowingIterator()
   ///     while true {
   ///       let span = it.nextSpan(after: &index)
   ///       if span.isEmpty { break }
@@ -75,27 +75,27 @@ public protocol BorrowIteratorProtocol<Element>: ~Copyable, ~Escapable {
   mutating func nextSpan(maximumCount: Int) -> Span<Element>
 
   /// Advance the position of this iterator by the specified offset, or until
-  /// the end of the underlying iterable.
+  /// the end of the underlying sequence.
   ///
   /// Returns the number of items that were skipped. If this is less than
-  /// `maximumOffset`, then the iterable did not have enough elements left to
+  /// `maximumOffset`, then the sequence did not have enough elements left to
   /// skip the requested number of items. In this case, the iterator's current
-  /// position is set to the end of the iterable.
+  /// position is set to the end of the sequence.
   ///
   /// `maximumOffset` must be nonnegative, unless this is a bidirectional
   /// or random-access iterator.
   @_lifetime(self: copy self)
   mutating func skip(by maximumOffset: Int) -> Int
   
-  // FIXME: Add BidirectionalBorrowIteratorProtocol and RandomAccessBorrowIteratorProtocol.
-  // BidirectionalBorrowIteratorProtocol would need to have a `previousSpan`
+  // FIXME: Add BidirectionalBorrowingIteratorProtocol and RandomAccessBorrowingIteratorProtocol.
+  // BidirectionalBorrowingIteratorProtocol would need to have a `previousSpan`
   // method, which considerably complicates implementation.
   // Perhaps these would be better left to as variants of protocol Container,
   // which do not need a separate iterator concept.
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
@@ -105,7 +105,7 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
   @_lifetime(self: copy self)
   @inlinable
   public mutating func skip(by offset: Int) -> Int {
@@ -120,7 +120,7 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
 #if false // FIXME: This doesn't work, but it should?
   @_lifetime(&self)
   @_lifetime(self: copy self)
@@ -140,7 +140,7 @@ extension BorrowIteratorProtocol where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowIteratorProtocol
+extension BorrowingIteratorProtocol
 where Self: ~Copyable & ~Escapable, Element: Copyable
 {
   @_lifetime(self: copy self)
@@ -159,7 +159,7 @@ where Self: ~Copyable & ~Escapable, Element: Copyable
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Span: BorrowIteratorProtocol where Element: ~Copyable {
+extension Span: BorrowingIteratorProtocol where Element: ~Copyable {
   @_lifetime(copy self)
   @_lifetime(self: copy self)
   @inlinable
@@ -174,7 +174,7 @@ extension Span: BorrowIteratorProtocol where Element: ~Copyable {
 
 #if false // FIXME: Implement this
 @available(SwiftStdlib 5.0, *)
-extension MutableSpan: BorrowIteratorProtocol where Element: ~Copyable {
+extension MutableSpan: BorrowingIteratorProtocol where Element: ~Copyable {
   @_lifetime(copy self)
   @_lifetime(self: copy self)
   @inlinable
@@ -186,7 +186,7 @@ extension MutableSpan: BorrowIteratorProtocol where Element: ~Copyable {
 
 #if false // FIXME: Implement this
 @available(SwiftStdlib 5.0, *)
-extension OutputSpan: BorrowIteratorProtocol where Element: ~Copyable {
+extension OutputSpan: BorrowingIteratorProtocol where Element: ~Copyable {
   @_lifetime(copy self)
   @_lifetime(self: copy self)
   @inlinable

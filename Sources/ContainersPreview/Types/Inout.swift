@@ -2,23 +2,23 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import Builtin
 
 /// A safe mutable reference allowing in-place mutation to an exclusive value.
 ///
-/// In order to get an instance of a `Mut<Target>`, one must have exclusive access
+/// In order to get an instance of a `Inout<Target>`, one must have exclusive access
 /// to the instance of `Target`. This is achieved through the 'inout' operator, '&'.
 @frozen
 @safe
-public struct Mut<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapable {
+public struct Inout<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapable {
   @usableFromInline
   package let _pointer: UnsafeMutablePointer<Target>
 
@@ -68,7 +68,7 @@ public struct Mut<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapa
   }
 }
 
-extension Mut where Target: ~Copyable {
+extension Inout where Target: ~Copyable {
   /// Dereferences the mutable reference allowing for in-place reads and writes
   /// to the underlying instance.
   @_alwaysEmitIntoClient
@@ -79,28 +79,38 @@ extension Mut where Target: ~Copyable {
     }
 
     @_transparent
-    @_lifetime(self: copy self)
     unsafeMutableAddress {
       unsafe _pointer
     }
   }
 }
 
+
+extension Inout where Target: ~Copyable {
+  package func _withUnsafeTarget<E: Error, R: ~Copyable>(
+    _ body: (inout Target) throws(E) -> R
+  ) throws(E) -> R {
+    try body(&_pointer.pointee)
+  }
+}
+
+
 extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */ {
   @_lifetime(&self)
-  public mutating func mutate() -> Mut<Wrapped>? {
+  @_alwaysEmitIntoClient
+  public mutating func mutate() -> Inout<Wrapped>? {
     if self == nil {
       return nil
     }
     let pointer = unsafe UnsafeMutablePointer<Wrapped>(
       Builtin.unprotectedAddressOf(&self))
-    return unsafe Mut(unsafeAddress: pointer, mutating: &self)
+    return unsafe Inout(unsafeAddress: pointer, mutating: &self)
   }
   
   @_lifetime(&self)
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func insert(_ value: consuming Wrapped) -> Mut<Wrapped> {
+  public mutating func insert(_ value: consuming Wrapped) -> Inout<Wrapped> {
     self = .some(value)
     return mutate()._consumingUnsafelyUnwrap()
   }

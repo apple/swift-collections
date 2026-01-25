@@ -16,10 +16,10 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkIterable<
-  I: Iterable & ~Copyable & ~Escapable,
+  S: BorrowingSequence & ~Copyable & ~Escapable,
   Expected: Sequence<I.Element>
 >(
-  _ iterable: borrowing I,
+  _ iterable: borrowing S,
   expectedContents: Expected,
   file: StaticString = #filePath,
   line: UInt = #line
@@ -34,10 +34,10 @@ public func checkIterable<
 @available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkIterable<
-  I: Iterable & ~Copyable & ~Escapable,
+  S: BorrowingSequence & ~Copyable & ~Escapable,
   Expected: Sequence<I.Element>
 >(
-  _ iterable: borrowing I,
+  _ iterable: borrowing S,
   expectedContents: Expected,
   by areEquivalent: (I.Element, I.Element) -> Bool,
   file: StaticString = #filePath,
@@ -64,7 +64,7 @@ public func checkIterable<
   let spanShapes: [Range<Int>] = {
     var r: [Range<Int>] = []
     var pos = 0
-    var it = iterable.startBorrowIteration()
+    var it = iterable.makeBorrowingIterator()
     while true {
       let origPos = pos
       let span = it.nextSpan()
@@ -83,7 +83,7 @@ public func checkIterable<
   // Check that the spans have stable sizes and the expected contents.
   do {
     var pos = 0
-    var it = iterable.startBorrowIteration()
+    var it = iterable.makeBorrowingIterator()
     var spanIndex = 0
     while true {
       let span = it.nextSpan()
@@ -104,7 +104,7 @@ public func checkIterable<
   // Check that we can iterate one by one.
   do {
     var pos = 0
-    var it = iterable.startBorrowIteration()
+    var it = iterable.makeBorrowingIterator()
     while true {
       let span = it.nextSpan(maximumCount: 1)
       if span.isEmpty { break }
@@ -120,7 +120,7 @@ public func checkIterable<
   // Check that we can iterate with huge maximum counts
   do {
     var pos = 0
-    var it = iterable.startBorrowIteration()
+    var it = iterable.makeBorrowingIterator()
     var spanIndex = 0
     while true {
       let span = it.nextSpan(maximumCount: Int.max)

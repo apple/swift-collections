@@ -18,16 +18,16 @@ public enum EstimatedCount {
 }
 
 @available(SwiftStdlib 5.0, *)
-public protocol Iterable<Element>: ~Copyable, ~Escapable {
+public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
-  associatedtype BorrowIterator: BorrowIteratorProtocol<Element> & ~Copyable & ~Escapable
+  associatedtype BorrowingIterator: BorrowingIteratorProtocol<Element> & ~Copyable & ~Escapable
   
   var isEmpty: Bool { get }
 
   var estimatedCount: EstimatedCount { get }
 
   @_lifetime(borrow self)
-  borrowing func startBorrowIteration() -> BorrowIterator
+  borrowing func makeBorrowingIterator() -> BorrowingIterator
   
   func _customContainsEquatableElement(
     _ element: borrowing Element
@@ -35,7 +35,7 @@ public protocol Iterable<Element>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
   public var underestimatedCount: Int {
     switch estimatedCount {
@@ -55,7 +55,7 @@ extension Iterable where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: Sequence {
+extension BorrowingSequence where Self: Sequence {
   @inlinable
   public func _customContainsEquatableElement(_ element: borrowing Element) -> Bool? {
     nil
@@ -63,10 +63,10 @@ extension Iterable where Self: Sequence {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Element: Copyable {
+extension BorrowingSequence where Element: Copyable {
   // FIXME: How do we expect this to work for ~Copyable elements?
   public var first: Element? {
-    var it = startBorrowIteration()
+    var it = makeBorrowingIterator()
     let span = it.nextSpan(maximumCount: 1)
     guard !span.isEmpty else { return nil }
     return span[0]
@@ -76,13 +76,13 @@ extension Iterable where Element: Copyable {
 
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
   public func _borrowingForEach<E: Error>(
     _ body: (borrowing Element) throws(E) -> Void
   ) throws(E) -> Void {
-    var it = startBorrowIteration()
+    var it = makeBorrowingIterator()
     while true {
       let span = it.nextSpan()
       if span.isEmpty { break }
@@ -96,7 +96,7 @@ extension Iterable where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Iterable where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
   public func borrowingReduce<Result: ~Copyable, E: Error>(
     into initial: consuming Result,
@@ -120,7 +120,7 @@ extension Iterable where Self: ~Copyable & ~Escapable {
       result = try next(result, item)
     }
 #else
-    var it = startBorrowIteration()
+    var it = makeBorrowingIterator()
     while true {
       let span = it.nextSpan()
       if span.isEmpty { break }

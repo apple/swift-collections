@@ -9,13 +9,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import Builtin
 
 @available(SwiftStdlib 5.0, *)
 @frozen
 @safe
-public struct Ref<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Escapable {
+public struct Borrow<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Escapable {
   @usableFromInline
   package let _pointer: UnsafePointer<Target>
 
@@ -68,7 +68,7 @@ extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */  {
   @available(SwiftStdlib 5.0, *)
   @_lifetime(borrow self)
   @_addressableSelf
-  public func borrow() -> Ref<Wrapped>? {
+  public func borrow() -> Borrow<Wrapped>? {
     if self == nil {
       return nil
     }
@@ -77,7 +77,7 @@ extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */  {
       Builtin.unprotectedAddressOfBorrow(self)
     )
     
-    return unsafe Ref(unsafeAddress: pointer, borrowing: self)
+    return unsafe Borrow(unsafeAddress: pointer, borrowing: self)
   }
 }
 #endif
