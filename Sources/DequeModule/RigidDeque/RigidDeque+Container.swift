@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -20,41 +20,48 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  public struct BorrowIterator: ~Escapable, BorrowIteratorProtocol {
-    var currentSegment: Span<Element>
-    var nextSegment: Span<Element>
+  @frozen
+  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol {
+    @usableFromInline
+    internal var _currentSegment: Span<Element>
     
+    @usableFromInline
+    internal var _nextSegment: Span<Element>
+    
+    @_alwaysEmitIntoClient
     @_lifetime(borrow deque)
     internal init(deque: borrowing RigidDeque<Element>, iteratedCount: Int = 0) {
       let segments = deque._handle.segments()
-      self.currentSegment = _overrideLifetime(
+      self._currentSegment = _overrideLifetime(
         Span(_unsafeElements: segments.first),
         borrowing: deque)
-      self.nextSegment = _overrideLifetime(
+      self._nextSegment = _overrideLifetime(
         Span(
           _unsafeElements: segments.second ?? UnsafeBufferPointer(start: nil, count: 0)),
         borrowing: deque)
     }
     
+    @_alwaysEmitIntoClient
     @_lifetime(copy self)
     @_lifetime(self: copy self)
     public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
-      let max = maximumCount
-      let c = Swift.min(currentSegment.count, max)
-      let result = currentSegment.extracting(first: c)
-      if c == currentSegment.count {
-        currentSegment = nextSegment
-        nextSegment = Span()
+      let c = Swift.min(_currentSegment.count, maximumCount)
+      // FIXME: Define and use Span._trim(first:)
+      let result = _currentSegment.extracting(first: c)
+      if c == _currentSegment.count {
+        _currentSegment = _nextSegment
+        _nextSegment = Span()
       } else {
-        currentSegment = currentSegment.extracting(droppingFirst: c)
+        _currentSegment = _currentSegment.extracting(droppingFirst: c)
       }
       return result
     }
   }
   
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func startBorrowIteration() -> BorrowIterator {
-    BorrowIterator(deque: self)
+  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(deque: self)
   }
 #endif
 }
@@ -66,24 +73,28 @@ extension RigidDeque: Container where Element: ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
+  @inline(__always)
   public func index(after index: Int) -> Int { index + 1 }
 
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
+  @inline(__always)
   public func formIndex(after index: inout Int) { index += 1 }
 
-  @inlinable @inline(__always)
+  @_alwaysEmitIntoClient
+  @inline(__always)
   public func index(_ index: Int, offsetBy n: Int) -> Int {
     index + n
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
     index._advance(by: &n, limitedBy: limit)
   }
 
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")

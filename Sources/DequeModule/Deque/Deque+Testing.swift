@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -36,8 +36,8 @@ extension Deque {
   ///
   /// This property isn't intended to be used outside of `Deque`'s own test
   /// target.
-  @_spi(Testing)
-  public var _capacity: Int {
+  @usableFromInline
+  package var _capacity: Int {
     _storage.capacity
   }
 
@@ -47,16 +47,16 @@ extension Deque {
   ///
   /// This property isn't intended to be used outside of `Deque`'s own test
   /// target.
-  @_spi(Testing)
-  public var _startSlot: Int {
+  @usableFromInline
+  package var _startSlot: Int {
     _storage.startSlot.position
   }
 
   /// Constructs a deque instance of the specified contents and layout. Exposed
   /// as public to allow exhaustive input/output tests for `Deque`'s members.
   /// This isn't intended to be used outside of `Deque`'s own test target.
-  @_spi(Testing)
-  public init(
+  @usableFromInline
+  package init(
     _capacity capacity: Int,
     startSlot: Int,
     contents: some Sequence<Element>

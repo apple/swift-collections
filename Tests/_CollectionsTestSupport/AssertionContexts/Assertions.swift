@@ -424,13 +424,13 @@ public func expectThrows<T>(
   }
 }
 
-public func expectThrows<T>(
+public func expectThrows<E: Error, T>(
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line,
-  body: () throws -> T,
-  errorHandler: (Error) -> Void = { _ in }
+  body: () throws(E) -> T,
+  errorHandler: (E) -> Void = { _ in }
 ) {
   do {
     let result = try body()

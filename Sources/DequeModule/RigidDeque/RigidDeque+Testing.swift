@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -27,8 +27,8 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// This property isn't intended to be used outside of `DequeModule`'s own test
   /// target.
-  @_spi(Testing)
-  public var _startSlot: Int {
+  @usableFromInline
+  package var _startSlot: Int {
     _handle.startSlot.position
   }
 }
@@ -40,8 +40,8 @@ extension RigidDeque {
   ///
   /// This initializer isn't intended to be used outside of `DequeModule`'s
   /// own test target.
-  @_spi(Testing)
-  public init(
+  @usableFromInline
+  package init(
     _capacity capacity: Int,
     startSlot: Int,
     copying contents: some Sequence<Element>

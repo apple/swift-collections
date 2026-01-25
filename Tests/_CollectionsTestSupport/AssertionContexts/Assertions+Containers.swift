@@ -123,8 +123,8 @@ public func expectIterableContents<
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 public func expectIterablesWithEquivalentElements<
-  I1: BorrowingSequence & ~Copyable & ~Escapable,
-  I2: BorrowingSequence & ~Copyable & ~Escapable
+  S1: BorrowingSequence & ~Copyable & ~Escapable,
+  S2: BorrowingSequence & ~Copyable & ~Escapable
 >(
   _ left: borrowing S1,
   _ right: borrowing S2,
@@ -144,8 +144,8 @@ public func expectIterablesWithEquivalentElements<
 @available(SwiftStdlib 5.0, *)
 public func expectIterablesWithEqualElements<
   Element: Equatable,
-  I1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
-  I2: BorrowingSequence<Element> & ~Copyable & ~Escapable,
+  S1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
+  S2: BorrowingSequence<Element> & ~Copyable & ~Escapable,
 >(
   _ left: borrowing S1,
   _ right: borrowing S2,
@@ -164,7 +164,7 @@ public func expectIterablesWithEqualElements<
 @available(SwiftStdlib 5.0, *)
 public func expectIterableContents<
   Element: Equatable,
-  I1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
+  S1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
   C2: Collection<Element>,
 >(
   _ left: borrowing S1,
@@ -205,7 +205,7 @@ public func expectIterableContents<
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 public func expectIterableContents<
-  I1: BorrowingSequence & ~Copyable & ~Escapable,
+  S1: BorrowingSequence & ~Copyable & ~Escapable,
   C2: Collection,
 >(
   _ left: borrowing S1,

@@ -32,7 +32,7 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// If you pass a zero-length range as the `subrange` parameter, then
   /// this method is equivalent to calling
-  /// `insert(count: newCount, at: subrange.lowerBound, initializingWith: body)`.
+  /// `insert(maximumCount: newCount, at: subrange.lowerBound, initializingWith: body)`.
   ///
   /// Likewise, if you pass a zero for `newCount`, then this method
   /// removes the elements in the given subrange without any replacement.
@@ -44,16 +44,17 @@ extension RigidDeque where Element: ~Copyable {
   /// cease if the callback fails to fully populate its output span or if
   /// it throws an error. In such cases, the deque keeps all items that were
   /// successfully initialized before the callback terminated the prepend.
-  /// (Partial insertions create a gap in ring buffer storage that needs to be
+  ///
+  /// Partial insertions create a gap in ring buffer storage that needs to be
   /// closed by moving newly inserted items to their correct positions given
   /// the adjusted count. This adds some overhead compared to adding exactly as
-  /// many items as promised.)
+  /// many items as promised.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///      the range must be valid indices in the deque.
-  ///   - newCount: the number of items to replace the old subrange.
-  ///   - body: A callback that gets called at most twice to directly
+  ///   - maximumCount: the maximum number of items to replace the old subrange.
+  ///   - initializer: A callback that gets called at most twice to directly
   ///      populate newly reserved storage within the deque. The function
   ///      is always called with an empty output span.
   ///
@@ -61,22 +62,91 @@ extension RigidDeque where Element: ~Copyable {
   @inlinable
   public mutating func replaceSubrange<E: Error>(
     _ subrange: Range<Int>,
-    newCount: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+    maximumCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    // FIXME: Should we have a version of this with two closures, to allow custom-consuming the old items?
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Subrange out of bounds")
-    precondition(newCount >= 0, "Negative count")
+    precondition(maximumCount >= 0, "Can't insert a negative number of items")
     precondition(
-      count - subrange.count + newCount <= capacity,
+      count - subrange.count + maximumCount <= capacity,
       "RigidDeque capacity overflow")
     try _handle.uncheckedReplaceSubrange(
       subrange,
-      newCount: newCount,
-      initializingWith: body)
+      newCount: capacity,
+      initializingWith: initializer)
   }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Replaces the specified range of elements by a given count of new items,
+  /// using callbacks to consume old items, and to then insert new ones.
+  ///
+  /// The number of new elements need not match the number of elements being
+  /// removed.
+  ///
+  /// This method has the same overall effect as calling
+  ///
+  ///     try deque.consume(subrange, consumingWith: consumer)
+  ///     try deque.insert(maximumCount: maximumCount, at: subrange.lowerBound, initializingWith: initializer)
+  ///
+  /// Except it performs faster (by a constant factor), by avoiding moving
+  /// some items in the deque twice.
+  ///
+  /// If the capacity of the deque isn't sufficient to accommodate the specified
+  /// number of new elements, then this method triggers a runtime error.
+  ///
+  /// The removed and newly inserted items are not guaranteed to form a single
+  /// contiguous storage region. Therefore, the supplied callbacks may be
+  /// invoked multiple times to consume, then initialize successive chunks of
+  /// storage. Calls to `consumer` do not get interleaved with calls to
+  /// `initializer`: no new item is inserted until every replaced item has been
+  /// consumed.
+  ///
+  /// The `initializer` callback is not required to fully populate its
+  /// output span, and it is allowed to throw an error. In such cases, the
+  /// deque keeps all items that were successfully initialized before the
+  /// callback terminated.
+  ///
+  /// Partial insertions create a gap in ring buffer storage that needs to be
+  /// closed by moving newly inserted items to their correct positions given
+  /// the adjusted count. This adds some overhead compared to adding exactly as
+  /// many items as promised.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///      the range must be valid indices in the deque.
+  ///   - maximumCount: the maximum number of items to replace the old subrange.
+  ///   - consumer: A callback that gets called at most twice to consume
+  ///      the elements to be removed directly from the deque's storage. The
+  ///      function is always called with a non-empty input span.
+  ///   - initializer: A callback that gets called at most twice to directly
+  ///      populate newly reserved storage within the deque. The function
+  ///      is always called with an empty output span.
+  ///
+  /// - Complexity: O(`self.count` + `maximumCount`) in addition to the complexity
+  ///    of the callback invocations.
+  @inlinable
+  public mutating func replaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    maximumCount: Int,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= count,
+      "Subrange out of bounds")
+    precondition(maximumCount >= 0, "Can't insert a negative number of items")
+    precondition(
+      count - subrange.count + maximumCount <= capacity,
+      "RigidDeque capacity overflow")
+    try _handle.uncheckedReplaceSubrange(
+      subrange,
+      newCount: capacity,
+      consumingWith: consumer,
+      initializingWith: initializer)
+  }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -115,11 +185,10 @@ extension RigidDeque where Element: ~Copyable {
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
     var remainder = newElements
-    replaceSubrange(subrange, newCount: remainder.count) { target in
+    replaceSubrange(subrange, maximumCount: remainder.count) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
         buffer.moveInitializeAll(
-          fromContentsOf: remainder._extracting(first: buffer.count))
-        remainder = remainder._extracting(droppingFirst: buffer.count)
+          fromContentsOf: remainder._trim(first: buffer.count))
         count = buffer.count
       }
     }
@@ -204,60 +273,9 @@ extension RigidDeque where Element: ~Copyable {
     }
   }
 
-  /// Replaces the specified range of elements by moving the elements of a
-  /// another deque into their place.  On return, the source deque
-  /// becomes empty, but it is not destroyed, and it preserves its original
-  /// storage capacity.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the deque and inserting the new elements starting at the same
-  /// location. The number of new elements need not match the number of elements
-  /// being removed.
-  ///
-  /// If the capacity of the deque isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
-  /// is more directly expressed by calling `insert(moving:at:)`.
-  ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. This case is more directly expressed by calling
-  /// `removeSubrange`.
-  ///
-  /// - Parameters
-  ///   - subrange: The subrange of the deque to replace. The bounds of
-  ///     the range must be valid indices in the deque.
-  ///   - newElements: A deque whose contents to move into `self`.
-  ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
-  @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    moving newElements: inout RigidDeque<Element>,
-  ) {
-    // FIXME: Remove this in favor of a generic algorithm over consumable containers
-    replaceSubrange(subrange, newCount: newElements.count) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
-        var remainder = dst
-        newElements._handle.unsafeConsumePrefix(upTo: remainder.count) { src in
-          let c = remainder._moveInitializePrefix(from: src)
-          dstCount += c
-          remainder = remainder._extracting(last: c)
-        }
-        assert(remainder.isEmpty)
-      }
-    }
-  }
-}
-
-
-@available(SwiftStdlib 5.0, *)
-extension RigidDeque where Element: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Replaces the specified range of elements by moving the elements of a
-  /// given deque into their place, consuming it in the process.
+  /// Replaces the specified range of elements by at most `capacity` items
+  /// generated by a producer.
   ///
   /// This method has the effect of removing the specified range of elements
   /// from the deque and inserting the new elements starting at the same
@@ -268,27 +286,42 @@ extension RigidDeque where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
-  /// is more directly expressed by calling `insert(consuming:at:)`.
+  /// inserts the items generated by `producer` at `subrange.lowerBound`. This
+  /// case is more directly expressed by calling `insert(moving:at:)`.
   ///
-  /// Likewise, if you pass a zero-length buffer as the `newElements`
-  /// parameter, this method removes the elements in the given subrange
-  /// without replacement. This case is more directly expressed by calling
-  /// `removeSubrange`.
+  /// Likewise, if the given producer is empty, then this method removes the
+  /// elements in the given subrange without replacement. This case is more
+  /// directly expressed by calling `removeSubrange`.
+  ///
+  /// This operation inserts as many items as the producer can generate before
+  /// either reaching `capacity`, or the producer hitting its end, or
+  /// throwing an error. If the producer has more than `capacity` items left in
+  /// its underlying sequence, then extra items remain available after this
+  /// method returns.
+  ///
+  /// If the operation inserts fewer than `capacity` items, then it results in
+  /// a gap in ring buffer storage that needs to be closed by moving some
+  /// items to their correct positions given the adjusted count. This adds some
+  /// overhead compared to adding exactly as many items as promised.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///     the range must be valid indices in the deque.
-  ///   - newElements: A deque whose contents to move into `self`.
+  ///   - capacity: The maximum number of items to insert into the deque.
+  ///   - producer: A producer that generates the items to append.
   ///
-  /// - Complexity: O(`self.count` + `newElements.count`)
+  /// - Complexity: O(`self.count` + `capacity`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
+  public mutating func replaceSubrange<
+    P: Producer<Element> & ~Copyable & ~Escapable
+  >(
     _ subrange: Range<Int>,
-    consuming newElements: consuming RigidDeque<Element>,
-  ) {
-    // FIXME: Remove this in favor of a generic algorithm over consumable containers
-    replaceSubrange(subrange, moving: &newElements)
+    maximumCount: Int,
+    from producer: inout P
+  ) throws(P.ProducerError) {
+    try replaceSubrange(subrange, maximumCount: maximumCount) { target throws(P.ProducerError) in
+      try producer.generate(into: &target)
+    }
   }
 #endif
 }
@@ -327,11 +360,10 @@ extension RigidDeque /* where Element: Copyable */ {
     copying newElements: UnsafeBufferPointer<Element>
   ) {
     var remainder = newElements
-    replaceSubrange(subrange, newCount: remainder.count) { target in
+    replaceSubrange(subrange, maximumCount: remainder.count) { target in
       target.withUnsafeMutableBufferPointer { dst, dstCount in
-        dst.initializeAll(fromContentsOf: remainder._extracting(first: dst.count))
+        dst.initializeAll(fromContentsOf: remainder._trim(first: dst.count))
         dstCount += dst.count
-        remainder = remainder._extracting(droppingFirst: dst.count)
       }
     }
     assert(remainder.isEmpty)
@@ -420,8 +452,8 @@ extension RigidDeque /* where Element: Copyable */ {
   ) {
 
     let expectedCount = self.count - subrange.count + newCount
-    var it = newElements.startBorrowIteration()
-    self.replaceSubrange(subrange, newCount: newCount) { target in
+    var it = newElements.makeBorrowingIterator()
+    self.replaceSubrange(subrange, maximumCount: newCount) { target in
       it.copyContents(into: &target)
     }
     precondition(
@@ -445,7 +477,7 @@ extension RigidDeque /* where Element: Copyable */ {
     if done != nil { return }
 
     var i = newElements.startIndex
-    self.replaceSubrange(subrange, newCount: newCount) { target in
+    self.replaceSubrange(subrange, maximumCount: newCount) { target in
       while !target.isFull {
         target.append(newElements[i])
         newElements.formIndex(after: &i)

@@ -17,18 +17,18 @@ import ContainersPreview
 @frozen
 @usableFromInline
 @unsafe
-internal struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
+package struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal typealias Slot = _DequeSlot
+  package typealias Slot = _DequeSlot
 
   @usableFromInline
-  internal var _buffer: UnsafeMutableBufferPointer<Element>
+  package var _buffer: UnsafeMutableBufferPointer<Element>
 
   @usableFromInline
-  internal var count: Int
+  package var count: Int
 
   @usableFromInline
-  internal var startSlot: Slot
+  package var startSlot: Slot
 
   @_alwaysEmitIntoClient
   @_transparent
@@ -667,22 +667,21 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// successfully initialized before the callback terminated.
   ///
   /// - Parameters
-  ///    - count: The number of items to append to the deque.
+  ///    - capacity: The maximum number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
   ///       is allowed to initialize fewer than `count` items. The deque is
   ///       appended however many items the callback adds to the output span
   ///       before it returns (or before it throws an error).
   ///
-  /// - Complexity: O(`count`)
+  /// - Complexity: O(`capacity`)
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func uncheckedAppend<E: Error>(
-    count: Int,
+    capacity: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     let origCount = self.count
-    let gap = self.mutableSegments(forOffsets: origCount ..< origCount + count)
+    let gap = self.mutableSegments(forOffsets: origCount ..< origCount + capacity)
     try gap.first._initialize(
       initializedCount: &self.count, initializingWith: body)
     if self.count == origCount + gap.first.count, let second = gap.second {
@@ -1212,17 +1211,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal mutating func uncheckedInsert<E: Error>(
-    count: Int,
+    capacity: Int,
     at offset: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    guard count > 0 else { return }
-    let gap = self.openGap(ofSize: count, atOffset: offset)
+    guard capacity > 0 else { return }
+    let gap = self.openGap(ofSize: capacity, atOffset: offset)
     
     var c = 0
     defer {
-      if c < count {
-        closeGap(offsets: offset + c ..< offset + count)
+      if c < capacity {
+        closeGap(offsets: offset + c ..< offset + capacity)
       }
     }
     try gap.first._initialize(initializedCount: &c, initializingWith: body)
@@ -1347,20 +1346,14 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  internal mutating func uncheckedReplaceSubrange<E: Error>(
+  internal mutating func _insertAfterReplace<E: Error>(
     _ subrange: Range<Int>,
     newCount: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    assert(
-      subrange.lowerBound >= 0 && subrange.upperBound <= count,
-      "Subrange out of bounds")
-    assert(newCount >= 0, "Negative count")
-    let delta = newCount - subrange.count
-    assert(count + delta <= capacity, "RigidDeque capacity overflow")
-    self.mutableSegments(forOffsets: subrange).deinitialize()
     // Note: we're careful to open/close the gap in a direction that does not
     // lead to trying to move slots we deinitialized above.
+    let delta = newCount - subrange.count
     let left = isLeftLeaning(subrange)
     if delta > 0 {
       _ = self.openGap(
@@ -1379,9 +1372,52 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
         closeGap(offsets: newRange.dropFirst(c))
       }
     }
-    try gap.first._initialize(initializedCount: &c, initializingWith: body)
+    try gap.first._initialize(initializedCount: &c, initializingWith: initializer)
     if c == gap.first.count, let second = gap.second {
-      try second._initialize(initializedCount: &c, initializingWith: body)
+      try second._initialize(initializedCount: &c, initializingWith: initializer)
     }
   }
+
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedReplaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    newCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    assert(
+      subrange.lowerBound >= 0 && subrange.upperBound <= count,
+      "Subrange out of bounds")
+    assert(newCount >= 0, "Negative count")
+    assert(count + newCount - subrange.count <= capacity, "RigidDeque capacity overflow")
+    self.mutableSegments(forOffsets: subrange).deinitialize()
+    try _insertAfterReplace(subrange, newCount: newCount, initializingWith: initializer)
+  }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @_alwaysEmitIntoClient
+  internal mutating func uncheckedReplaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    newCount: Int,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    assert(
+      subrange.lowerBound >= 0 && subrange.upperBound <= count,
+      "Subrange out of bounds")
+    assert(newCount >= 0, "Negative count")
+    assert(count + newCount - subrange.count <= capacity, "RigidDeque capacity overflow")
+    do {
+      let removed = self.mutableSegments(forOffsets: subrange)
+      var span = InputSpan(
+        buffer: removed.first,
+        initializedCount: removed.first.count)
+      consumer(&span)
+      if let second = removed.second {
+        span = InputSpan(buffer: second, initializedCount: second.count)
+        consumer(&span)
+      }
+    }
+    try _insertAfterReplace(subrange, newCount: newCount, initializingWith: initializer)
+  }
+#endif
 }

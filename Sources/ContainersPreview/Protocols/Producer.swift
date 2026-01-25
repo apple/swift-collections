@@ -164,6 +164,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
   ///
   /// The default implementation returns 0. If you provide your own
   /// implementation, make sure to compute the value nondestructively.
+  @inlinable
   @inline(__always)
   public var underestimatedCount: Int { 0 }
 
@@ -196,8 +197,9 @@ extension Producer where Self: ~Copyable & ~Escapable {
   /// - Returns: A boolean value indicating whether the operation was able to
   ///    skip at least one item without hitting the end of the underlying
   ///    sequence.
+  @inlinable
   @_lifetime(self: copy self)
-  mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool {
+  public mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool {
     precondition(n > 0, "Can't skip less than 1 item")
     let maxBufferSize = 8
     return try withTemporaryOutputSpan(
@@ -259,6 +261,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
   /// skip one item.
   ///
   /// This is useful in preconditions.
+  @inlinable
   public consuming func _isAtEnd() throws(ProducerError) -> Bool {
     var c = 1
     return try !skip(upTo: &c)

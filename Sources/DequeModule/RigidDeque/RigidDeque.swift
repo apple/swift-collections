@@ -38,21 +38,26 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
   internal typealias _Slot = _DequeSlot
 
   @usableFromInline
-  internal typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
+  package typealias _UnsafeHandle = _UnsafeDequeHandle<Element>
 
   @usableFromInline
-  internal var _handle: _UnsafeHandle
+  package var _handle: _UnsafeHandle
 
   @_alwaysEmitIntoClient
-  @_transparent
-  internal init(_handle: consuming _UnsafeHandle) {
+  @inline(__always)
+  package init(_handle: consuming _UnsafeHandle) {
     self._handle = _handle
   }
 
-  @_alwaysEmitIntoClient
-  @_transparent
+  @inlinable
+  @inline(__always)
   deinit {
     _handle.dispose()
+  }
+  
+  @inlinable @inline(__always)
+  internal mutating func _takeHandle() -> _UnsafeHandle {
+    exchange(&_handle, with: .allocate(capacity: 0))
   }
 }
 
@@ -83,7 +88,7 @@ extension RigidDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_transparent
-  public var freeCapacity: Int { _assumeNonNegative(capacity - count) }
+  public var freeCapacity: Int { _assumeNonNegative(capacity &- count) }
   
   @_alwaysEmitIntoClient
   @_transparent
@@ -119,7 +124,7 @@ extension RigidDeque where Element: ~Copyable {
   /// logical start position.
   ///
   /// Valid indices consist of the position of every element and a "past the
-  /// end” position that’s not valid for use as a subscript argument.
+  /// end" position that’s not valid for use as a subscript argument.
   public typealias Index = Int
   
   /// A Boolean value indicating whether this deque contains no elements.
@@ -161,6 +166,7 @@ extension RigidDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
+    // FIXME: Replace with borrow/mutate accessors
     @inline(__always)
     @_transparent
     unsafeAddress {
@@ -214,7 +220,6 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  @_transparent
   public mutating func reallocate(capacity newCapacity: Int) {
     _handle.reallocate(capacity: newCapacity)
   }
@@ -238,12 +243,11 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque {
-  /// Copy the contents of this array into a newly allocated rigid deque
+  /// Copy the contents of this deque into a newly allocated rigid deque
   /// instance with just enough capacity to hold all its elements.
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  @_transparent
   public func _clone() -> Self {
     RigidDeque(_handle: _handle.allocateCopy())
   }
@@ -256,7 +260,6 @@ extension RigidDeque {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  @_transparent
   public func _clone(capacity: Int) -> Self {
     RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }

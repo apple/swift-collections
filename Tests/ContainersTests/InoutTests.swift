@@ -2,26 +2,35 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_CONTAINERS_PREVIEW
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import _CollectionsTestSupport
 import ContainersPreview
-import Synchronization
+#endif
 
-final class RefTests: XCTestCase {
-  @available(SwiftStdlib 5.0, *)
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+final class InoutTests: XCTestCase {
   func test_basic() {
-    let x: Atomic<Int>? = Atomic(0)
-    
-    if let y = x.borrow() {
-      XCTAssertEqual(y[].load(ordering: .relaxed), 0)
-    }
+    var x = 0
+    var y = Inout(&x)
+
+    var v = y[]
+    XCTAssertEqual(v, 0)
+
+    y[] += 10
+
+    v = y[]
+    XCTAssertEqual(v, 10)
+    XCTAssertEqual(x, 10)
   }
 }
 #endif

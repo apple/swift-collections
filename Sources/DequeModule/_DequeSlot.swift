@@ -11,7 +11,7 @@
 
 @usableFromInline
 @frozen
-internal struct _DequeSlot {
+package struct _DequeSlot {
   @usableFromInline
   internal var position: Int
 
@@ -44,7 +44,7 @@ extension _DequeSlot {
 
 extension _DequeSlot: CustomStringConvertible {
   @usableFromInline
-  internal var description: String {
+  package var description: String {
     "@\(position)"
   }
 }
@@ -52,7 +52,7 @@ extension _DequeSlot: CustomStringConvertible {
 extension _DequeSlot: Equatable {
   @_alwaysEmitIntoClient
   @_transparent
-  static func ==(left: Self, right: Self) -> Bool {
+  package static func ==(left: Self, right: Self) -> Bool {
     left.position == right.position
   }
 }
@@ -60,7 +60,7 @@ extension _DequeSlot: Equatable {
 extension _DequeSlot: Comparable {
   @_alwaysEmitIntoClient
   @_transparent
-  static func <(left: Self, right: Self) -> Bool {
+  package static func <(left: Self, right: Self) -> Bool {
     left.position < right.position
   }
 }

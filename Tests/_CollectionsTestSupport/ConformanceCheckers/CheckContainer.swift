@@ -17,13 +17,13 @@ import ContainersPreview
 @inlinable
 public func checkIterable<
   S: BorrowingSequence & ~Copyable & ~Escapable,
-  Expected: Sequence<I.Element>
+  Expected: Sequence<S.Element>
 >(
   _ iterable: borrowing S,
   expectedContents: Expected,
   file: StaticString = #filePath,
   line: UInt = #line
-) where I.Element: Equatable {
+) where S.Element: Equatable {
   checkIterable(
     iterable,
     expectedContents: expectedContents,
@@ -35,14 +35,14 @@ public func checkIterable<
 @inlinable
 public func checkIterable<
   S: BorrowingSequence & ~Copyable & ~Escapable,
-  Expected: Sequence<I.Element>
+  Expected: Sequence<S.Element>
 >(
   _ iterable: borrowing S,
   expectedContents: Expected,
-  by areEquivalent: (I.Element, I.Element) -> Bool,
+  by areEquivalent: (S.Element, S.Element) -> Bool,
   file: StaticString = #filePath,
   line: UInt = #line
-) where I.Element: Equatable {
+) where S.Element: Equatable {
   let entry = TestContext.current.push("checkIterable", file: file, line: line)
   defer { TestContext.current.pop(entry) }
 

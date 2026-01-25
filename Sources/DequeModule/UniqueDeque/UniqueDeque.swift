@@ -31,7 +31,7 @@ public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
 @safe
 public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
   @usableFromInline
-  internal var _storage: RigidDeque<Element>
+  package var _storage: RigidDeque<Element>
 }
 
 @available(SwiftStdlib 5.0, *)
