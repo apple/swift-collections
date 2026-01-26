@@ -99,7 +99,7 @@ extension Range: BorrowingSequence
 where Bound: Strideable, Bound.Stride: SignedInteger
 {
   public typealias Element = Bound
-
+  
   @frozen
   public struct BorrowingIterator: BorrowingIteratorProtocol, ~Copyable {
     @usableFromInline
@@ -107,29 +107,31 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     
     @usableFromInline
     internal var _end: Bound
-
+    
     @usableFromInline
-    internal var _first: Bool
-
+    internal var _progress: Bool
+    
     @inlinable
     internal init(_ base: Range<Bound>) {
       self._current = .init(repeating: base.lowerBound)
       self._end = base.upperBound
-      self._first = true
+      self._progress = false
     }
     @inlinable
     @_lifetime(&self)
     public mutating func nextSpan(maximumCount: Int) -> Span<Bound> {
-      guard _current[0] < _end else { return .init() }
-      if _first {
-        _first = false
-      } else {
+      if _progress {
         _current[0] = _current[0].advanced(by: 1)
       }
+      guard _current[0] < _end else {
+        _progress = false
+        return .init()
+      }
+      _progress = true
       return _current.span
     }
   }
-
+  
   @inlinable
   public var estimatedCount: EstimatedCount {
     if let count = Int(exactly: lowerBound.distance(to: upperBound)) {
@@ -137,13 +139,64 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     }
     return .unknown
   }
-
+  
+  @inlinable
   public func makeBorrowingIterator() -> BorrowingIterator {
     BorrowingIterator(self)
   }
+}
 
-
+@available(SwiftStdlib 6.2, *)
+extension ClosedRange: BorrowingSequence
+where Bound: Strideable, Bound.Stride: SignedInteger
+{
+  public typealias Element = Bound
   
+  @frozen
+  public struct BorrowingIterator: BorrowingIteratorProtocol, ~Copyable {
+    @usableFromInline
+    internal var _current: InlineArray<1, Bound>
+    
+    @usableFromInline
+    internal var _last: Bound
+    
+    @usableFromInline
+    internal var _progress: Bool
+    
+    @inlinable
+    internal init(_ base: ClosedRange<Bound>) {
+      self._current = .init(repeating: base.lowerBound)
+      self._last = base.upperBound
+      self._progress = false
+    }
+    @inlinable
+    @_lifetime(&self)
+    public mutating func nextSpan(maximumCount: Int) -> Span<Bound> {
+      if _progress {
+        _current[0] = _current[0].advanced(by: 1)
+      }
+      guard _current[0] <= _last else {
+        _progress = false
+        return .init()
+      }
+      _progress = true
+      return _current.span
+    }
+  }
+  
+  @inlinable
+  public var estimatedCount: EstimatedCount {
+    guard let distance = Int(exactly: lowerBound.distance(to: upperBound))
+    else { return .unknown }
+    let advanced = distance.addingReportingOverflow(1)
+    guard !advanced.overflow else { return .unknown }
+    return .exactly(advanced.partialValue)
+  }
+  
+  @inlinable
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(self)
+  }
 }
 
 #endif

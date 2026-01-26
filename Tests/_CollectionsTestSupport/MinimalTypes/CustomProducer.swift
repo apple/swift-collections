@@ -14,7 +14,7 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
 package struct CustomProducer<Element: ~Copyable, ProducerError: Error>: ~Copyable {

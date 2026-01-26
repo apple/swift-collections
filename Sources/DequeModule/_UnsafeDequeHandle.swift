@@ -343,12 +343,12 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
     }
-    let wrap = capacity - startSlot.position
+    let wrap = capacity &- startSlot.position
     if count <= wrap {
       return .init(start: ptr(at: startSlot), count: count)
     }
     return .init(first: ptr(at: startSlot), count: wrap,
-                 second: ptr(at: .zero), count: count - wrap)
+                 second: ptr(at: .zero), count: count &- wrap)
   }
 
   @_alwaysEmitIntoClient
@@ -361,13 +361,14 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
     }
-    let lower = slot(forOffset: offsets.lowerBound)
-    let upper = slot(forOffset: offsets.upperBound)
-    if offsets.count == 0 || lower < upper {
-      return .init(start: ptr(at: lower), count: offsets.count)
+    let start = slot(forOffset: offsets.lowerBound)
+    let wrap = capacity &- start.position
+    if offsets.count <= wrap {
+      return .init(start: ptr(at: start), count: offsets.count)
     }
-    return .init(first: ptr(at: lower), count: capacity - lower.position,
-                 second: ptr(at: .zero), count: upper.position)
+    return .init(
+      first: ptr(at: start), count: capacity &- start.position,
+      second: ptr(at: .zero), count: offsets.count &- wrap)
   }
 
   @_alwaysEmitIntoClient
@@ -677,14 +678,14 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// - Complexity: O(`capacity`)
   @_alwaysEmitIntoClient
   internal mutating func uncheckedAppend<E: Error>(
-    capacity: Int,
+    maximumCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    let origCount = self.count
-    let gap = self.mutableSegments(forOffsets: origCount ..< origCount + capacity)
+    let gap = self.mutableSegments(forOffsets: count ..< count + maximumCount)
+    let c = self.count &+ gap.first.count
     try gap.first._initialize(
       initializedCount: &self.count, initializingWith: body)
-    if self.count == origCount + gap.first.count, let second = gap.second {
+    if self.count == c, let second = gap.second {
       try second._initialize(
         initializedCount: &self.count, initializingWith: body)
     }
@@ -737,15 +738,15 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   internal mutating func uncheckedPrepend<E: Error>(
-    count: Int,
+    maximumCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    guard let gap = self._prepend(count: count) else { return }
+    guard let gap = self._prepend(count: maximumCount) else { return }
     
     var c = 0
     defer {
-      if c < count {
-        closeGap(offsets: c ..< count)
+      if c < maximumCount {
+        closeGap(offsets: c ..< maximumCount)
       }
     }
     try gap.first._initialize(initializedCount: &c, initializingWith: body)

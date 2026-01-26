@@ -131,7 +131,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     copying contents: borrowing S
   ) {
     self.init(capacity: capacity)
-    self.append(copying: contents)
+    self._append(copying: contents)
   }
 #endif
 
@@ -184,7 +184,26 @@ extension RigidDeque /*where Element: Copyable*/ {
     copying contents: borrowing S
   ) {
     self.init(capacity: capacity)
-    self.append(copying: contents)
+    self._append(copying: contents)
+  }
+
+  /// Creates a new deque with the specified capacity, holding a copy
+  /// of the contents of a given sequence.
+  ///
+  /// - Parameters:
+  ///   - capacity: The storage capacity of the new deque.
+  ///   - contents: A sequence whose contents to copy into the new deque.
+  ///      The sequence must not contain more than `capacity` elements.
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public init<
+    S: BorrowingSequence<Element> & Collection<Element>
+  >(
+    capacity: Int,
+    copying contents: borrowing S
+  ) {
+    self.init(capacity: capacity)
+    self._append(copying: contents)
   }
 #endif
 

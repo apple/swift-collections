@@ -121,6 +121,102 @@ public func expectIterableContents<
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+/// Check if `left` contains lifetime tracked instances whose payloads equal
+/// the elements in `right`.
+@available(SwiftStdlib 5.0, *)
+public func expectIterablePayloads<
+  Payload: Equatable,
+  E1: BorrowingSequence<LifetimeTrackedStruct<Payload>> & ~Copyable & ~Escapable,
+  C2: Collection<Payload>,
+>(
+  _ left: borrowing E1,
+  equalTo right: C2,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  var it1 = left.makeBorrowingIterator()
+  var it2 = right.makeIterator()
+  var i = 0
+  while true {
+    let next1 = it1.nextSpan(maximumCount: 1)
+    let next2 = it2.next()
+    switch (next1.isEmpty, next2) {
+    case (true, nil):
+      return
+    case (true, _?):
+      _expectFailure(
+        "Borrowing sequence is shorter than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, nil):
+      _expectFailure(
+        "Borrowing sequence is longer than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, let b?):
+      let a = next1[0].payload
+      guard a == b else {
+        _expectFailure(
+          "Element at offset \(i) '\(a)' is not equal to '\(b)'",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
+    }
+    i += 1
+  }
+}
+
+/// Check if `left` contains lifetime tracked instances whose payloads equal
+/// the elements in `right`.
+@available(SwiftStdlib 5.0, *)
+public func expectIterablePayloads<
+  Payload: Equatable,
+  E1: BorrowingSequence<LifetimeTracked<Payload>> & ~Copyable & ~Escapable,
+  C2: Collection<Payload>,
+>(
+  _ left: borrowing E1,
+  equalTo right: C2,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  var it1 = left.makeBorrowingIterator()
+  var it2 = right.makeIterator()
+  var i = 0
+  while true {
+    let next1 = it1.nextSpan(maximumCount: 1)
+    let next2 = it2.next()
+    switch (next1.isEmpty, next2) {
+    case (true, nil):
+      return
+    case (true, _?):
+      _expectFailure(
+        "Borrowing sequence is shorter than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, nil):
+      _expectFailure(
+        "Borrowing sequence is longer than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, let b?):
+      let a = next1[0].payload
+      guard a == b else {
+        _expectFailure(
+          "Element at offset \(i) '\(a)' is not equal to '\(b)'",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
+    }
+    i += 1
+  }
+}
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 public func expectIterablesWithEquivalentElements<
   S1: BorrowingSequence & ~Copyable & ~Escapable,

@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -36,9 +36,53 @@ public struct LifetimeTrackedStruct<Payload: ~Copyable>: ~Copyable {
     self.payload = payload
   }
 
+  public init(copying payload: Payload, for tracker: LifetimeTracker)
+  where Payload: Copyable
+  {
+    tracker.instances += 1
+    tracker._nextSerialNumber += 1
+    self.tracker = tracker
+    self.serialNumber = tracker._nextSerialNumber
+    self.payload = payload
+  }
+
   deinit {
     precondition(serialNumber != 0, "Double deinit")
     tracker.instances -= 1
+    // Can't mutate in deinit yet
+    // serialNumber = -serialNumber
+  }
+}
+
+extension LifetimeTrackedStruct: TestPrintable where Payload: TestPrintable & ~Copyable {
+  public var testDescription: String {
+    return "\(payload.testDescription)"
+  }
+}
+
+extension LifetimeTrackedStruct/*: Equatable*/ where Payload: Equatable /*& ~Copyable*/ {
+  public static func == (left: borrowing Self, right: borrowing Self) -> Bool {
+    return left.payload == right.payload
+  }
+}
+
+extension LifetimeTrackedStruct/*: Hashable*/ where Payload: Hashable /*& ~Copyable*/ {
+  public func _rawHashValue(seed: Int) -> Int {
+    payload._rawHashValue(seed: seed)
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(payload)
+  }
+
+  public var hashValue: Int {
+    payload.hashValue
+  }
+}
+
+extension LifetimeTrackedStruct/*: Comparable*/ where Payload: Comparable /*& ~Copyable*/ {
+  public static func < (left: borrowing Self, right: borrowing Self) -> Bool {
+    return left.payload < right.payload
   }
 }
 

@@ -56,7 +56,7 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
   }
   
   @inlinable @inline(__always)
-  internal mutating func _takeHandle() -> _UnsafeHandle {
+  package mutating func _takeHandle() -> _UnsafeHandle {
     exchange(&_handle, with: .allocate(capacity: 0))
   }
 }
@@ -68,12 +68,12 @@ extension RigidDeque: @unchecked Sendable where Element: Sendable & ~Copyable {}
 extension RigidDeque where Element: ~Copyable {
 #if COLLECTIONS_INTERNAL_CHECKS
   @usableFromInline @inline(never) @_effects(releasenone)
-  internal func _checkInvariants() {
+  package func _checkInvariants() {
     _handle._checkInvariants()
   }
 #else
-  @inlinable @inline(__always)
-  internal func _checkInvariants() {}
+  @_transparent
+  package func _checkInvariants() {}
 #endif // COLLECTIONS_INTERNAL_CHECKS
 }
 
@@ -93,27 +93,6 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var isFull: Bool { count == capacity }
-}
-
-//MARK: - Span creation
-
-@available(SwiftStdlib 5.0, *)
-extension RigidDeque where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_transparent
-  @_lifetime(borrow self)
-  internal func _span(over slots: Range<_DequeSlot>) -> Span<Element> {
-    let span = Span(_unsafeElements: _handle.buffer(for: slots))
-    return _overrideLifetime(span, borrowing: self)
-  }
-
-  @_alwaysEmitIntoClient
-  @_transparent
-  @_lifetime(&self)
-  internal mutating func _mutableSpan(over slots: Range<_DequeSlot>) -> MutableSpan<Element> {
-    let span = MutableSpan(_unsafeElements: _handle.mutableBuffer(for: slots))
-    return _overrideLifetime(span, mutating: &self)
-  }
 }
 
 //MARK: - Container primitives

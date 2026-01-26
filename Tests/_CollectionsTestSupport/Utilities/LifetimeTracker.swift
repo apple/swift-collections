@@ -10,6 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+import ContainersPreview
+import BasicContainers
+#endif
+
 /// Tracks the life times of `LifetimeTracked` instances, providing a method
 /// to validate checkpoints where no instances should exist.
 ///
@@ -45,6 +51,20 @@ public class LifetimeTracker {
 
   public func instances<S: Sequence>(for items: S) -> [LifetimeTracked<S.Element>] {
     return items.map { LifetimeTracked($0, for: self) }
+  }
+
+  @available(SwiftStdlib 5.0, *)
+  public func structInstances<Element>(
+    count: Int,
+    generator: (Int) -> Element
+  ) -> RigidArray<LifetimeTrackedStruct<Element>> {
+    var i = 0
+    return RigidArray<LifetimeTrackedStruct<Element>>(capacity: count) { span in
+      while i < count, !span.isFull {
+        span.append(LifetimeTrackedStruct(copying: generator(i), for: self))
+        i += 1
+      }
+    }
   }
 
   public func instances<S: Sequence, T>(
