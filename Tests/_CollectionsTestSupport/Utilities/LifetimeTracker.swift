@@ -39,7 +39,7 @@ public class LifetimeTracker {
   }
   
   @inlinable
-  var instances: Int { _instances }
+  public var instances: Int { _instances }
 
   public func check(file: StaticString = #filePath, line: UInt = #line) {
     expectEqual(instances, 0,
