@@ -42,6 +42,7 @@ extension _HashNode {
     @usableFromInline
     internal typealias UnsafeHandle = _HashNode<Key, Value>.UnsafeHandle
 
+    @inlinable
     deinit {
       UnsafeHandle.update(self) { handle in
         handle.children.deinitialize()
