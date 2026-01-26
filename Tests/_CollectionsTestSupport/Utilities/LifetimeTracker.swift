@@ -59,6 +59,7 @@ public class LifetimeTracker {
     return items.map { LifetimeTracked($0, for: self) }
   }
 
+#if compiler(>=6.2)
   @available(SwiftStdlib 5.0, *)
   public func structInstances<Element>(
     count: Int,
@@ -72,6 +73,7 @@ public class LifetimeTracker {
       }
     }
   }
+#endif
 
   public func instances<S: Sequence, T>(
     for items: S, by transform: (S.Element) -> T

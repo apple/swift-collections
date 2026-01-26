@@ -60,11 +60,13 @@ public struct LifetimeTrackedStruct<Payload: ~Copyable>: ~Copyable {
   }
 }
 
+#if compiler(>=6.2)
 extension LifetimeTrackedStruct: TestPrintable where Payload: TestPrintable & ~Copyable {
   public var testDescription: String {
     return "\(payload.testDescription)"
   }
 }
+#endif
 
 extension LifetimeTrackedStruct/*: Equatable*/ where Payload: Equatable /*& ~Copyable*/ {
   public static func == (left: borrowing Self, right: borrowing Self) -> Bool {

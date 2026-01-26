@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -158,6 +158,7 @@ public func expectEquivalent<A, B>(
     message, trapping: trapping, file: file, line: line)
 }
 
+#if compiler(>=6.2)
 // FIXME: Remove when CustomStringConvertible starts supporting
 // noncopyable/nonescapable types.
 public func expectEquivalent<
@@ -177,6 +178,7 @@ public func expectEquivalent<
     "'\(printer(left))' is not equivalent to '\(right)'",
     message, trapping: trapping, file: file, line: line)
 }
+#endif
 
 public func expectEquivalent<A, B>(
   _ left: A?, _ right: B?,

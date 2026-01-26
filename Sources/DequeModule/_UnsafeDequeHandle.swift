@@ -16,7 +16,6 @@ import ContainersPreview
 
 @frozen
 @usableFromInline
-@unsafe
 package struct _UnsafeDequeHandle<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   package typealias Slot = _DequeSlot
@@ -609,6 +608,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -625,6 +625,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
     return try body(&span)
   }
 }
+#endif
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -651,6 +652,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
   /// Append a given number of items to the end of this deque by populating
@@ -755,6 +757,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     }
   }
 }
+#endif
 
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
@@ -1200,6 +1203,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -1223,6 +1227,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     }
   }
 }
+#endif
 
 extension _UnsafeDequeHandle {
   /// Insert all elements from `newElements` into this deque, starting at
@@ -1335,6 +1340,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 // MARK: Replacement
 
+#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -1413,3 +1419,4 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 #endif
 }
+#endif

@@ -16,6 +16,8 @@ import _CollectionsTestSupport
 @_spi(Testing) import DequeModule
 #endif
 
+#if compiler(>=6.2)
+@available(SwiftStdlib 5.0, *)
 internal struct RigidTestData<Element>: ~Copyable {
   var deque: RigidDeque<Element>
   var contents: [Element]
@@ -26,6 +28,7 @@ internal struct RigidTestData<Element>: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 internal struct UniqueTestData<Element>: ~Copyable {
   var deque: UniqueDeque<Element>
   var contents: [Element]
@@ -39,6 +42,7 @@ internal struct UniqueTestData<Element>: ~Copyable {
     self.contents = contents
   }
 }
+#endif
 
 internal struct DequeLayout: Hashable, CustomStringConvertible {
   let capacity: Int
@@ -77,12 +81,15 @@ extension Deque {
   }
 }
 
+#if compiler(>=6.2)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque {
   init<C: Collection>(layout: DequeLayout, contents: C) where C.Element == Element {
     precondition(contents.count == layout.count)
     self.init(_capacity: layout.capacity, startSlot: layout.startSlot, copying: contents)
   }
 }
+#endif
 
 extension LifetimeTracker {
   func deque(
@@ -93,6 +100,8 @@ extension LifetimeTracker {
     return (deque, contents)
   }
   
+#if compiler(>=6.2)
+  @available(SwiftStdlib 5.0, *)
   func rigidDeque(
     with layout: DequeLayout
   ) -> RigidTestData<LifetimeTracked<Int>> {
@@ -101,6 +110,7 @@ extension LifetimeTracker {
     return RigidTestData(deque, contents)
   }
   
+  @available(SwiftStdlib 5.0, *)
   func uniqueDeque(
     with layout: DequeLayout
   ) -> UniqueTestData<LifetimeTracked<Int>> {
@@ -108,6 +118,7 @@ extension LifetimeTracker {
     let deque = RigidDeque(layout: layout, contents: contents)
     return UniqueTestData(deque, contents)
   }
+#endif
 }
 
 func withEveryDeque<C: Collection>(
