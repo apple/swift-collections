@@ -86,6 +86,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _count: Int
 
+  @_alwaysEmitIntoClient
   deinit {
     unsafe _storage.extracting(0 ..< _count).deinitialize()
     unsafe _storage.deallocate()
