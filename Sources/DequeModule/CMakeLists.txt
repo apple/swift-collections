@@ -14,7 +14,8 @@ else()
   add_library(DequeModule
     ${COLLECTIONS_DEQUE_SOURCES})
   target_link_libraries(DequeModule PRIVATE
-    InternalCollectionsUtilities)
+    InternalCollectionsUtilities
+    ContainersPreview)
   set_target_properties(DequeModule PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
@@ -26,21 +27,27 @@ target_sources(${module_name} PRIVATE
   "_UnsafeDequeSegments.swift"
   "_UnsafeDequeHandle.swift"
   "_DequeSlot.swift"
-  "RigidDeque/RigidDeque+Append.swift"
-  "RigidDeque/RigidDeque+Container.swift"
   "RigidDeque/RigidDeque.swift"
+  "RigidDeque/RigidDeque+Append.swift"
+  "RigidDeque/RigidDeque+Consumption.swift"
+  "RigidDeque/RigidDeque+Container.swift"
+  "RigidDeque/RigidDeque+Experimental.swift"
   "RigidDeque/RigidDeque+Initializers.swift"
-  "RigidDeque/RigidDeque+Testing.swift"
   "RigidDeque/RigidDeque+Insertions.swift"
-  "RigidDeque/RigidDeque+Collection.swift"
   "RigidDeque/RigidDeque+Prepend.swift"
   "RigidDeque/RigidDeque+Removals.swift"
+  "RigidDeque/RigidDeque+Replacements.swift"
+  "RigidDeque/RigidDeque+Testing.swift"
+  "UniqueDeque/UniqueDeque.swift"
+  "UniqueDeque/UniqueDeque+Append.swift"
+  "UniqueDeque/UniqueDeque+Consumption.swift"
+  "UniqueDeque/UniqueDeque+Container.swift"
+  "UniqueDeque/UniqueDeque+Experimental.swift"
   "UniqueDeque/UniqueDeque+Initializers.swift"
   "UniqueDeque/UniqueDeque+Insertions.swift"
-  "UniqueDeque/UniqueDeque.swift"
   "UniqueDeque/UniqueDeque+Prepend.swift"
-  "UniqueDeque/UniqueDeque+Append.swift"
   "UniqueDeque/UniqueDeque+Removals.swift"
+  "UniqueDeque/UniqueDeque+Replacements.swift"
   "Deque/_DequeBuffer.swift"
   "Deque/Deque+Collection.swift"
   "Deque/Deque+CustomReflectable.swift"
