@@ -372,10 +372,27 @@ extension InputSpan where Element: ~Copyable {
   }
 }
 
-//MARK: Bulk append functions
+//MARK: Bulk prepend functions
 
 @available(SwiftStdlib 5.0, *)
-extension InputSpan {
+extension InputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
+  public mutating func prepend(moving source: UnsafeMutableBufferPointer<Element>) {
+    self.withUnsafeMutableBufferPointer { dst, dstCount in
+      let dstEnd = dst.count &- dstCount
+      let dstStart = dstEnd - source.count
+      precondition(dstStart >= 0, "InputSpan capacity overflow")
+      dst
+        ._extracting(uncheckedFrom: dstStart, to: dstEnd)
+        .moveInitializeAll(fromContentsOf: source)
+      dstCount &+= source.count
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension InputSpan /* where Element: Copyable */ {
   /// Repeatedly append an element to this span.
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
@@ -387,6 +404,30 @@ extension InputSpan {
     _count &+= count
   }
 }
+
+@available(SwiftStdlib 5.0, *)
+extension InputSpan /* where Element: Copyable */ {
+  @inlinable
+  package mutating func prepend(copying source: UnsafeBufferPointer<Element>) {
+    self.withUnsafeMutableBufferPointer { dst, dstCount in
+      let dstEnd = dst.count &- dstCount
+      let dstStart = dstEnd - source.count
+      precondition(dstStart >= 0, "InputSpan capacity overflow")
+      dst
+        ._extracting(uncheckedFrom: dstStart, to: dstEnd)
+        .initializeAll(fromContentsOf: source)
+      dstCount &+= source.count
+    }
+  }
+
+  @inlinable
+  package mutating func prepend(copying source: borrowing Span<Element>) {
+    source.withUnsafeBufferPointer { src in
+      self.prepend(copying: src)
+    }
+  }
+}
+
 
 @available(SwiftStdlib 5.0, *)
 extension InputSpan where Element: ~Copyable {

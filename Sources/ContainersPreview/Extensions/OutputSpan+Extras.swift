@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2)
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
@@ -51,40 +51,48 @@ extension OutputSpan where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
-  @_lifetime(source: copy source)
   @inlinable
-  package mutating func _append(moving source: inout InputSpan<Element>) {
+  @inline(__always)
+  package mutating func _append(
+    moving source: UnsafeMutableBufferPointer<Element>
+  ) {
     // FIXME: This needs to be in the stdlib.
+    guard source.count > 0 else { return }
     self.withUnsafeMutableBufferPointer { dst, dstCount in
-      source.withUnsafeMutableBufferPointer { src, srcCount in
-        let dstEnd = dstCount + srcCount
-        let srcStart = src.count - srcCount
-        precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
-        let srcItems = src._extracting(uncheckedFrom: srcStart, to: src.count)
-        dst
-          ._extracting(uncheckedFrom: dstCount, to: dstEnd)
-          .moveInitializeAll(fromContentsOf: srcItems)
-        dstCount &+= srcCount
-        srcCount = 0
-      }
+      let dstEnd = dstCount + source.count
+      precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
+      dst
+        ._extracting(uncheckedFrom: dstCount, to: dstEnd)
+        .moveInitializeAll(fromContentsOf: source)
+      dstCount &+= source.count
     }
   }
-  
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_lifetime(source: copy source)
   @inlinable
+  @inline(__always)
+  package mutating func _append(moving source: inout InputSpan<Element>) {
+    // FIXME: This needs to be in the stdlib.
+    source.withUnsafeMutableBufferPointer { src, srcCount in
+      let srcItems = src._extracting(
+        uncheckedFrom: src.count &- srcCount,
+        to: src.count)
+      self._append(moving: srcItems)
+      srcCount = 0
+    }
+  }
+#endif
+
+  @_lifetime(source: copy source)
+  @inlinable
+  @inline(__always)
   package mutating func _append(moving source: inout OutputSpan<Element>) {
     // FIXME: This needs to be in the stdlib.
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
-      source.withUnsafeMutableBufferPointer { src, srcCount in
-        let dstEnd = dstCount + srcCount
-        precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
-        let srcItems = src._extracting(uncheckedFrom: 0, to: srcCount)
-        dst
-          ._extracting(uncheckedFrom: dstCount, to: dstEnd)
-          .moveInitializeAll(fromContentsOf: srcItems)
-        dstCount &+= srcCount
-        srcCount = 0
-      }
+    source.withUnsafeMutableBufferPointer { src, srcCount in
+      let items = src._extracting(uncheckedFrom: 0, to: srcCount)
+      self._append(moving: items)
+      srcCount = 0
     }
   }
 }
@@ -92,17 +100,23 @@ extension OutputSpan where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan /* where Element: Copyable */ {
   @inlinable
-  package mutating func _append(copying source: borrowing Span<Element>) {
+  package mutating func _append(copying source: UnsafeBufferPointer<Element>) {
     // FIXME: This needs to be in the stdlib.
     self.withUnsafeMutableBufferPointer { dst, dstCount in
-      source.withUnsafeBufferPointer { src in
-        let dstEnd = dstCount + src.count
-        precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
-        dst
-          ._extracting(uncheckedFrom: dstCount, to: dstEnd)
-          .initializeAll(fromContentsOf: src)
-        dstCount &+= src.count
-      }
+      let dstEnd = dstCount + source.count
+      precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
+      dst
+        ._extracting(uncheckedFrom: dstCount, to: dstEnd)
+        .initializeAll(fromContentsOf: source)
+      dstCount &+= source.count
+    }
+  }
+
+  @inlinable
+  package mutating func _append(copying source: borrowing Span<Element>) {
+    // FIXME: This needs to be in the stdlib.
+    source.withUnsafeBufferPointer { src in
+      self._append(copying: src)
     }
   }
 }

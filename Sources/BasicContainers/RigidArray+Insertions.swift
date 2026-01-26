@@ -119,10 +119,7 @@ extension RigidArray where Element: ~Copyable {
     at index: Int
   ) {
     insert(count: items.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.moveInitializeAll(fromContentsOf: items)
-        count = items.count
-      }
+      target._append(moving: items)
     }
   }
   
@@ -207,15 +204,10 @@ extension RigidArray where Element: ~Copyable {
     at index: Int
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
+    guard !items.isEmpty else { return }
     insert(count: items.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
-        items.edit { source in
-          source.withUnsafeMutableBufferPointer { src, srcCount in
-            dst.moveInitializeAll(fromContentsOf: src)
-            dstCount = src.count
-            srcCount = 0
-          }
-        }
+      items.edit { source in
+        target._append(moving: &source)
       }
     }
   }
@@ -279,10 +271,7 @@ extension RigidArray {
   ) {
     guard newElements.count > 0 else { return }
     self.insert(count: newElements.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.initializeAll(fromContentsOf: newElements)
-        count = newElements.count
-      }
+      target._append(copying: newElements)
     }
   }
 
@@ -307,6 +296,7 @@ extension RigidArray {
   ///
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
+  @inline(__always)
   public mutating func insert(
     copying newElements: UnsafeMutableBufferPointer<Element>,
     at index: Int
@@ -333,11 +323,13 @@ extension RigidArray {
   ///
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
+  @inline(__always)
   public mutating func insert(
     copying newElements: Span<Element>, at index: Int
   ) {
-    unsafe newElements.withUnsafeBufferPointer {
-      unsafe self.insert(copying: $0, at: index)
+    guard newElements.count > 0 else { return }
+    self.insert(count: newElements.count, at: index) { target in
+      target._append(copying: newElements)
     }
   }
 

@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2)
 
 /// A polyfill of the typed-throws supporting `withUnsafeTemporaryAllocation` in the 6.3 stdlib.
 @_alwaysEmitIntoClient @_transparent
