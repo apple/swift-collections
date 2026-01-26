@@ -48,7 +48,7 @@ extension UniqueDeque where Element: ~Copyable {
 #if COLLECTIONS_INTERNAL_CHECKS
   @usableFromInline @inline(never) @_effects(releasenone)
   package func _checkInvariants() {
-    _handle._checkInvariants()
+    _storage._handle._checkInvariants()
   }
 #else
   @_transparent
