@@ -231,19 +231,19 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// buffer, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: A fully initialized buffer whose contents to copy into
+  ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
   public mutating func prepend(
-    copying newElements: UnsafeBufferPointer<Element>
+    copying items: UnsafeBufferPointer<Element>
   ) {
     precondition(
-      newElements.count <= freeCapacity,
+      items.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(copying: newElements)
+    _handle.uncheckedPrepend(copying: items)
   }
   
   /// Copies the elements of a buffer and prepend them to the front of this
@@ -253,16 +253,16 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// buffer, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: A fully initialized buffer whose contents to copy into
+  ///    - items: A fully initialized buffer whose contents to copy into
   ///        the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
   public mutating func prepend(
-    copying newElements: UnsafeMutableBufferPointer<Element>
+    copying items: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe self.prepend(copying: UnsafeBufferPointer(newElements))
+    unsafe self.prepend(copying: UnsafeBufferPointer(items))
   }
   
   /// Copy the elements of a span and prepend them to the front of this deque.
@@ -271,13 +271,13 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// span, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: A span whose contents to copy into the deque.
+  ///    - items: A span whose contents to copy into the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
-  public mutating func prepend(copying newElements: Span<Element>) {
-    unsafe newElements.withUnsafeBufferPointer { source in
+  public mutating func prepend(copying items: Span<Element>) {
+    unsafe items.withUnsafeBufferPointer { source in
       unsafe self.prepend(copying: source)
     }
   }
@@ -294,9 +294,9 @@ extension RigidDeque /*where Element: Copyable*/ {
     // FIXME: If we get a BorrowingSequence.estimatedCount with an exact case,
     // then we should use that when possible to copy items to their final
     // location in a single pass.
-    let oldEndSlot = _handle.endSlot
+    let oldCount = self.count
     self._append(copying: items) // Not a typo!
-    _handle.rotate(toStartAt: oldEndSlot)
+    _handle.rotate(toStartAtOffset: oldCount)
   }
 
   @inlinable
@@ -324,14 +324,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// prepend by rotating them in place as a postprocessing step.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
   public mutating func prepend<S: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
-    copying newElements: borrowing S
+    copying items: borrowing S
   ) {
-    self._prepend(copying: newElements)
+    self._prepend(copying: items)
   }
 
   /// Copies the elements of a container and prepends them to the front
@@ -341,14 +341,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// container, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & ~Copyable & ~Escapable>(
-    copying newElements: borrowing C
+    copying items: borrowing C
   ) {
-    self._prepend(copying: newElements, exactCount: newElements.count)
+    self._prepend(copying: items, exactCount: items.count)
   }
 #endif
 
@@ -370,22 +370,22 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// operation works by first appending the items, then finalizing the
   /// prepend by rotating them in place as a postprocessing step.
   ///
-  /// - Parameter newElements: The elements to prepend to the deque.
+  /// - Parameter items: The elements to prepend to the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
   public mutating func prepend(
-    copying newElements: some Sequence<Element>
+    copying items: some Sequence<Element>
   ) {
-    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
+    let done: Void? = items.withContiguousStorageIfAvailable { source in
       unsafe self.prepend(copying: source)
       return
     }
     guard done == nil else { return }
-    let oldEndSlot = _handle.endSlot
-    self.append(copying: newElements) // Not a typo!
-    _handle.rotate(toStartAt: oldEndSlot)
+    let oldCount = self.count
+    self.append(copying: items) // Not a typo!
+    _handle.rotate(toStartAtOffset: oldCount)
   }
 
   /// Prepend the elements of a collection to the front of this deque by copying
@@ -402,23 +402,23 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///     numbers.prepend(copying: 10...15)
   ///     // `numbers` now contains [10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]
   ///
-  /// - Parameter newElements: The elements to prepend to the deque.
+  /// - Parameter items: The elements to prepend to the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @inlinable
   @_alwaysEmitIntoClient
   public mutating func prepend(
-    copying newElements: some Collection<Element>
+    copying items: some Collection<Element>
   ) {
-    let done: Void? = newElements.withContiguousStorageIfAvailable { source in
+    let done: Void? = items.withContiguousStorageIfAvailable { source in
       unsafe self.prepend(copying: source)
       return
     }
     guard done == nil else { return }
-    let c = newElements.count
+    let c = items.count
     guard c > 0 else { return }
     precondition(c <= freeCapacity, "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(copying: newElements, exactCount: c)
+    _handle.uncheckedPrepend(copying: items, exactCount: c)
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -428,14 +428,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// sequence, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
   public mutating func prepend<S: BorrowingSequence<Element> & Sequence<Element>>(
-    copying newElements: borrowing S
+    copying items: borrowing S
   ) {
-    self._prepend(copying: newElements)
+    self._prepend(copying: items)
   }
 
   /// Copies the elements of a borrowing sequence to the end of this deque.
@@ -444,14 +444,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// sequence, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
   public mutating func prepend<S: BorrowingSequence<Element> & Collection<Element>>(
-    copying newElements: borrowing S
+    copying items: borrowing S
   ) {
-    self._prepend(copying: newElements, exactCount: newElements.count)
+    self._prepend(copying: items, exactCount: items.count)
   }
 
   /// Copies the elements of a container to the end of this deque.
@@ -460,14 +460,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// sequence, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Sequence<Element>>(
-    copying newElements: borrowing C
+    copying items: borrowing C
   ) {
-    self._prepend(copying: newElements, exactCount: newElements.count)
+    self._prepend(copying: items, exactCount: items.count)
   }
 
   /// Copies the elements of a container to the end of this deque.
@@ -476,14 +476,14 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// sequence, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Collection<Element>>(
-    copying newElements: borrowing C
+    copying items: borrowing C
   ) {
-    self._prepend(copying: newElements, exactCount: newElements.count)
+    self._prepend(copying: items, exactCount: items.count)
   }
 #endif
 }

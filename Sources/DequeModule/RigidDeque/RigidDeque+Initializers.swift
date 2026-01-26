@@ -18,12 +18,6 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  /// Creates an empty rigid deque with the specified capacity.
-  @_alwaysEmitIntoClient
-  public init(capacity: Int) {
-    self.init(_handle: .allocate(capacity: capacity))
-  }
-  
   /// Initializes a new rigid deque with zero capacity and no elements.
   ///
   /// - Complexity: O(1)
@@ -32,6 +26,12 @@ extension RigidDeque where Element: ~Copyable {
     self.init(_handle: .allocate(capacity: 0))
   }
 
+  /// Creates an empty rigid deque with the specified capacity.
+  @_alwaysEmitIntoClient
+  public init(capacity: Int) {
+    self.init(_handle: .allocate(capacity: capacity))
+  }
+  
   /// Creates a rigid deque with the specified capacity, then calls the given
   /// closure with an output span covering the deque's uninitialized memory.
   ///
@@ -188,21 +188,23 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
 
   /// Creates a new deque with the specified capacity, holding a copy
-  /// of the contents of a given sequence.
+  /// of the contents of a given collection.
   ///
   /// - Parameters:
-  ///   - capacity: The storage capacity of the new deque.
-  ///   - contents: A sequence whose contents to copy into the new deque.
+  ///   - capacity: The storage capacity of the new deque, or nil to copy all
+  ///      items. If specified, the capacity must be greater
+  ///      than or equal to the count of the collection.
+  ///   - contents: A collection whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
     S: BorrowingSequence<Element> & Collection<Element>
   >(
-    capacity: Int,
-    copying contents: borrowing S
+    capacity: Int? = nil,
+    copying contents: S
   ) {
-    self.init(capacity: capacity)
+    self.init(capacity: capacity ?? contents.count)
     self._append(copying: contents)
   }
 #endif

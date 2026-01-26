@@ -26,6 +26,20 @@ internal struct RigidTestData<Element>: ~Copyable {
   }
 }
 
+internal struct UniqueTestData<Element>: ~Copyable {
+  var deque: UniqueDeque<Element>
+  var contents: [Element]
+  
+  init(_ deque: consuming RigidDeque<Element>, _ contents: [Element]) {
+    self.init(UniqueDeque(consuming: deque), contents)
+  }
+
+  init(_ deque: consuming UniqueDeque<Element>, _ contents: [Element]) {
+    self.deque = deque
+    self.contents = contents
+  }
+}
+
 internal struct DequeLayout: Hashable, CustomStringConvertible {
   let capacity: Int
   let startSlot: Int
@@ -78,13 +92,21 @@ extension LifetimeTracker {
     let deque = Deque(layout: layout, contents: contents)
     return (deque, contents)
   }
-    
+  
   func rigidDeque(
     with layout: DequeLayout
   ) -> RigidTestData<LifetimeTracked<Int>> {
     let contents = self.instances(for: layout.valueRange)
     let deque = RigidDeque(layout: layout, contents: contents)
     return RigidTestData(deque, contents)
+  }
+  
+  func uniqueDeque(
+    with layout: DequeLayout
+  ) -> UniqueTestData<LifetimeTracked<Int>> {
+    let contents = self.instances(for: layout.valueRange)
+    let deque = RigidDeque(layout: layout, contents: contents)
+    return UniqueTestData(deque, contents)
   }
 }
 

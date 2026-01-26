@@ -22,19 +22,19 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Ref<Element> {
+  public func borrowElement(at index: Int) -> Borrow<Element> {
     precondition(index >= 0 && index < count, "Index out of bounds")
     let slot = _handle.slot(forOffset: index)
-    return Ref(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
+    return Borrow(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
   }
   
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(&self)
-  public mutating func mutateElement(at index: Int) -> Mut<Element> {
+  public mutating func mutateElement(at index: Int) -> Inout<Element> {
     precondition(index >= 0 && index < count, "Index out of bounds")
     let slot = _handle.slot(forOffset: index)
-    return Mut(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
+    return Inout(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
   }
 }
 #endif

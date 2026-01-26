@@ -32,7 +32,7 @@ public class LifetimeTracked<Payload> {
   public let payload: Payload
 
   public init(_ payload: Payload, for tracker: LifetimeTracker) {
-    tracker.instances += 1
+    tracker._instances += 1
     tracker._nextSerialNumber += 1
     self.tracker = tracker
     self.serialNumber = tracker._nextSerialNumber
@@ -41,7 +41,7 @@ public class LifetimeTracked<Payload> {
 
   deinit {
     precondition(serialNumber != 0, "Double deinit")
-    tracker.instances -= 1
+    tracker._instances -= 1
     serialNumber = -serialNumber
   }
 }

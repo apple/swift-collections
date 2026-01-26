@@ -590,7 +590,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   internal mutating func uncheckedAppend(_ element: consuming Element) {
     assert(count < capacity)
     mutablePtr(at: endSlot).initialize(to: element)
-    count += 1
+    count &+= 1
   }
   
   /// Prepend `element` to the front of this buffer. The buffer must have enough
@@ -605,7 +605,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     let slot = self.slot(before: startSlot)
     mutablePtr(at: slot).initialize(to: element)
     startSlot = slot
-    count += 1
+    count &+= 1
   }
 }
 
@@ -909,7 +909,6 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// - Parameter offset: The offset from the start at which the uninitialized
   ///    slots should start.
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func openGap(
     ofSize gapSize: Int,
     atOffset offset: Int
@@ -1152,14 +1151,10 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @_transparent
-  @discardableResult
   internal mutating func rotate(
-    toStartAt newStart: Slot
-  ) -> Slot {
-    let currentCount = count
-    let suffixCount = distance(from: newStart, to: endSlot)
-    
+    toStartAtOffset newStart: Int
+  ) {
+    let oldCount = count
     // Open a gap at `newStart` that's the size of the free capacity, swapping
     // the positions of the prefix (`startSlot..<newStart`) and suffix
     // (newStart..<endSlot`). The `openGap` method decides whether to move the
@@ -1171,17 +1166,14 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     //   1) .E̲F̲G̲ABCD.......      ......C̲D̲E̲F̲G̲AB..
 
     let gapSize = capacity - count
-    let gapOffset = distance(from: startSlot, to: newStart)
     if gapSize > 0 {
-      _ = openGap(ofSize: gapSize, atOffset: gapOffset)
+      _ = openGap(ofSize: gapSize, atOffset: newStart)
     }
     
     // With the prefix and suffix swapped, update the starting slot and
     // restore the count.
-    let oldStart = startSlot
-    startSlot = slot(startSlot, offsetBy: -suffixCount)
-    count = currentCount
-    return oldStart
+    startSlot = slot(startSlot, offsetBy: newStart - oldCount)
+    count = oldCount
   }
 }
 
@@ -1212,17 +1204,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal mutating func uncheckedInsert<E: Error>(
-    capacity: Int,
+    maximumCount: Int,
     at offset: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    guard capacity > 0 else { return }
-    let gap = self.openGap(ofSize: capacity, atOffset: offset)
+    guard maximumCount > 0 else { return }
+    let gap = self.openGap(ofSize: maximumCount, atOffset: offset)
     
     var c = 0
     defer {
-      if c < capacity {
-        closeGap(offsets: offset + c ..< offset + capacity)
+      if c < maximumCount {
+        closeGap(offsets: offset + c ..< offset + maximumCount)
       }
     }
     try gap.first._initialize(initializedCount: &c, initializingWith: body)
@@ -1245,7 +1237,6 @@ extension _UnsafeDequeHandle {
   /// - Parameter offset: The desired offset from the start at which to place
   ///    the first element.
   @_alwaysEmitIntoClient
-  @_transparent
   internal mutating func uncheckedInsert<C: Collection>(
     contentsOf newElements: __owned C,
     count newCount: Int,

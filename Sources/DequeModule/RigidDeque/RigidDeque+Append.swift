@@ -220,18 +220,18 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// buffer, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: A fully initialized buffer whose contents to copy into
+  ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
-    copying newElements: UnsafeBufferPointer<Element>
+    copying items: UnsafeBufferPointer<Element>
   ) {
     precondition(
-      newElements.count <= freeCapacity,
+      items.count <= freeCapacity,
       "RigidDeque capacity overflow")
-    _handle.uncheckedAppend(copying: newElements)
+    _handle.uncheckedAppend(copying: items)
   }
   
   /// Copies the elements of a buffer and append them to the end of this
@@ -241,15 +241,15 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// buffer, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: A fully initialized buffer whose contents to copy into
+  ///    - items: A fully initialized buffer whose contents to copy into
   ///        the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(
-    copying newElements: UnsafeMutableBufferPointer<Element>
+    copying items: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe self.append(copying: UnsafeBufferPointer(newElements))
+    unsafe self.append(copying: UnsafeBufferPointer(items))
   }
   
   /// Copies the elements of a span and append them to the end of this deque.
@@ -258,12 +258,12 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// span, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: A span whose contents to copy into the deque.
+  ///    - items: A span whose contents to copy into the deque.
   ///
-  /// - Complexity: O(`newElements.count`)
+  /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
-  public mutating func append(copying newElements: Span<Element>) {
-    unsafe newElements.withUnsafeBufferPointer { source in
+  public mutating func append(copying items: Span<Element>) {
+    unsafe items.withUnsafeBufferPointer { source in
       unsafe self.append(copying: source)
     }
   }
@@ -328,16 +328,16 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// sequence, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
-  /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
   public mutating func append<
     S: BorrowingSequence<Element> & Sequence<Element>
    >(
-    copying newElements: S
+    copying items: S
    ) {
-    self._append(copying: newElements)
+    self._append(copying: items)
   }
 #endif
 }

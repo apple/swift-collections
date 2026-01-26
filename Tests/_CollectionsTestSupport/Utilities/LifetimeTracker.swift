@@ -24,14 +24,20 @@ import BasicContainers
 ///     from multiple concurrent threads (or reentrantly) will lead to
 ///     exclusivity violations and therefore undefined behavior.
 public class LifetimeTracker {
-  public internal(set) var instances = 0
-  var _nextSerialNumber = 0
+  @usableFromInline
+  package var _instances = 0
+  
+  @usableFromInline
+  package var _nextSerialNumber = 0
 
   public init() {}
 
   deinit {
     check()
   }
+  
+  @inlinable
+  var instances: Int { _instances }
 
   public func check(file: StaticString = #filePath, line: UInt = #line) {
     expectEqual(instances, 0,

@@ -82,14 +82,26 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
+  /// The maximum number of elements this rigid deque can hold.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var capacity: Int { _assumeNonNegative(_handle.capacity) }
   
+  /// The number of additional elements that can be added to this deque without
+  /// exceeding its storage capacity.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var freeCapacity: Int { _assumeNonNegative(capacity &- count) }
   
+  /// A Boolean value indicating whether this rigid deque is fully populated.
+  /// If this property returns true, then the array's storage is at capacity,
+  /// and it cannot accommodate any additional elements.
+  ///
+  /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var isFull: Bool { count == capacity }
@@ -165,10 +177,10 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  /// Exchanges the values at the specified indices of the array.
+  /// Exchanges the values at the specified indices of the deque.
   ///
-  /// Both parameters must be valid indices of the array and not equal to
-  /// endIndex. Passing the same index as both `i` and `j` has no effect.
+  /// Both parameters must be valid indices of the deque and not equal to
+  /// `endIndex`. Passing the same index as both `i` and `j` has no effect.
   ///
   /// - Parameter i: The index of the first value to swap.
   /// - Parameter j: The index of the second valud to swap.
@@ -228,7 +240,7 @@ extension RigidDeque {
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public func _clone() -> Self {
-    RigidDeque(_handle: _handle.allocateCopy())
+    RigidDeque(_handle: _handle.allocateCopy(capacity: count))
   }
 
   /// Copy the contents of this deque into a newly allocated rigid deque

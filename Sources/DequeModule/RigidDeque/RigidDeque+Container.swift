@@ -29,30 +29,26 @@ extension RigidDeque where Element: ~Copyable {
     internal var _nextSegment: Span<Element>
     
     @_alwaysEmitIntoClient
-    @_lifetime(borrow deque)
-    internal init(deque: borrowing RigidDeque<Element>, iteratedCount: Int = 0) {
-      let segments = deque._handle.segments()
+    @_lifetime(borrow _deque)
+    internal init(_deque: borrowing RigidDeque<Element>) {
+      let segments = _deque._handle.segments()
       self._currentSegment = _overrideLifetime(
         Span(_unsafeElements: segments.first),
-        borrowing: deque)
+        borrowing: _deque)
       self._nextSegment = _overrideLifetime(
         Span(
-          _unsafeElements: segments.second ?? UnsafeBufferPointer(start: nil, count: 0)),
-        borrowing: deque)
+          _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
+        borrowing: _deque)
     }
     
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
     @_lifetime(self: copy self)
     public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
-      let c = Swift.min(_currentSegment.count, maximumCount)
-      // FIXME: Define and use Span._trim(first:)
-      let result = _currentSegment.extracting(first: c)
-      if c == _currentSegment.count {
+      let result = _currentSegment._trim(first: maximumCount)
+      if _currentSegment.isEmpty {
         _currentSegment = _nextSegment
         _nextSegment = Span()
-      } else {
-        _currentSegment = _currentSegment.extracting(droppingFirst: c)
       }
       return result
     }
@@ -61,7 +57,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public borrowing func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(deque: self)
+    BorrowingIterator(_deque: self)
   }
 #endif
 }

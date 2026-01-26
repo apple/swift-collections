@@ -23,13 +23,18 @@
 ///          }
 ///        }
 ///      }
+@frozen
 public struct LifetimeTrackedStruct<Payload: ~Copyable>: ~Copyable {
   public let tracker: LifetimeTracker
+
+  @usableFromInline
   internal var serialNumber: Int = 0
+
   public var payload: Payload
 
+  @inlinable
   public init(_ payload: consuming Payload, for tracker: LifetimeTracker) {
-    tracker.instances += 1
+    tracker._instances += 1
     tracker._nextSerialNumber += 1
     self.tracker = tracker
     self.serialNumber = tracker._nextSerialNumber
@@ -39,16 +44,17 @@ public struct LifetimeTrackedStruct<Payload: ~Copyable>: ~Copyable {
   public init(copying payload: Payload, for tracker: LifetimeTracker)
   where Payload: Copyable
   {
-    tracker.instances += 1
+    tracker._instances += 1
     tracker._nextSerialNumber += 1
     self.tracker = tracker
     self.serialNumber = tracker._nextSerialNumber
     self.payload = payload
   }
 
+  @inlinable
   deinit {
     precondition(serialNumber != 0, "Double deinit")
-    tracker.instances -= 1
+    tracker._instances -= 1
     // Can't mutate in deinit yet
     // serialNumber = -serialNumber
   }

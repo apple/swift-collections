@@ -164,9 +164,7 @@ extension Span: BorrowingIteratorProtocol where Element: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
   public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
-    let result = self.extracting(first: maximumCount)
-    self = self.extracting(droppingFirst: maximumCount)
-    return result
+    _trim(first: maximumCount)
   }
 }
 
