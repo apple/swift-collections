@@ -21,14 +21,14 @@ import ContainersPreview
 @_alwaysEmitIntoClient
 @_transparent
 @_lifetime(borrow self)
-public func borrowElement(at index: Int) -> Ref<Element> {
+public func borrowElement(at index: Int) -> Borrow<Element> {
   _storage.borrowElement(at: index)
 }
 
 @_alwaysEmitIntoClient
 @_transparent
 @_lifetime(&self)
-public mutating func mutateElement(at index: Int) -> Mut<Element> {
+public mutating func mutateElement(at index: Int) -> Inout<Element> {
   _storage.mutateElement(at: index)
 }
 

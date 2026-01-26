@@ -284,55 +284,6 @@ extension RigidArray where Element: ~Copyable {
   public var count: Int { _count }
 }
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
-extension RigidArray: BorrowingSequence where Element: ~Copyable {
-  @frozen
-  public struct BorrowingIterator: ~Copyable, ~Escapable, BorrowingIteratorProtocol {
-    @usableFromInline
-    internal let _span: Span<Element>
-    
-    @usableFromInline
-    internal var _offset: Int
-    
-    @inlinable
-    @_lifetime(copy span)
-    internal init(_span span: Span<Element>, offset: Int) {
-      self._span = span
-      self._offset = offset
-    }
-    
-    @_lifetime(&self)
-    @_lifetime(self: copy self)
-    public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
-      let c = Swift.min(maximumCount, _span.count - _offset)
-      let end = _offset &+ c
-      let result = _span.extracting(Range(uncheckedBounds: (_offset, end)))
-      _offset = end
-      return result
-    }
-    
-    @_lifetime(self: copy self)
-    public mutating func skip(by offset: Int) -> Int {
-      let c = Swift.min(offset, _span.count &- _offset)
-      _offset += offset
-      return c
-    }
-  }
-  
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public func makeBorrowingIterator() -> BorrowingIterator {
-    .init(_span: self.span, offset: 0)
-  }
-}
-#endif
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// A type that represents a position in the array: an integer offset from the

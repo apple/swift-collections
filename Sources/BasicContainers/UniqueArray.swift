@@ -85,6 +85,8 @@ extension UniqueArray: Sendable where Element: Sendable & ~Copyable {}
 extension UniqueArray where Element: ~Copyable {
   /// The maximum number of elements this array can hold without reallocating
   /// its storage.
+  ///
+  /// - Complexity: O(1)
   @inlinable
   @inline(__always)
   public var capacity: Int { _assumeNonNegative(_storage.capacity) }
@@ -324,7 +326,7 @@ extension UniqueArray where Element: ~Copyable {
 
 @_alwaysEmitIntoClient
 @_transparent
-internal func _growDynamicArrayCapacity(_ capacity: Int) -> Int {
+internal func _growUniqueArrayCapacity(_ capacity: Int) -> Int {
   // A growth factor of 1.5 seems like a reasonable compromise between
   // over-allocating memory and wasting cycles on repeatedly resizing storage.
   let c = (3 &* UInt(bitPattern: capacity) &+ 1) / 2
@@ -344,7 +346,7 @@ extension UniqueArray where Element: ~Copyable {
   ///    greater than or equal to the current count.
   ///
   /// - Complexity: O(`count`)
-  @inlinable @inline(never)
+  @inlinable
   public mutating func reallocate(capacity: Int) {
     _storage.reallocate(capacity: capacity)
   }
@@ -357,7 +359,7 @@ extension UniqueArray where Element: ~Copyable {
   /// Otherwise the array is left as is.
   ///
   /// - Complexity: O(`count`)
-  @inlinable @inline(never)
+  @inlinable
   public mutating func reserveCapacity(_ n: Int) {
     _storage.reserveCapacity(n)
   }
@@ -374,7 +376,7 @@ extension UniqueArray where Element: ~Copyable {
   internal func _grow(freeCapacity: Int) -> Int {
     Swift.max(
       count + freeCapacity,
-      _growDynamicArrayCapacity(capacity))
+      _growUniqueArrayCapacity(capacity))
   }
 
   @inlinable
