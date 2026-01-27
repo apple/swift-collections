@@ -17,7 +17,7 @@ import _CollectionsTestSupport
 import BasicContainers
 #endif
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && (compiler(>=6.4) || compiler(<6.3) || !os(Linux)) // FIXME https://github.com/apple/swift-collections/issues/561
 
 #if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
