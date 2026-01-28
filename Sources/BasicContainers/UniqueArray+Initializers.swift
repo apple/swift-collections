@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -70,16 +70,16 @@ extension UniqueArray where Element: ~Copyable {
 extension UniqueArray /*where Element: Copyable*/ {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified initial capacity, holding a copy
-  /// of the contents of a given iterable.
+  /// of the contents of a given borrowing sequence.
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new array, or nil to allocate
   ///      just enough capacity to store the contents.
-  ///   - contents: An iterable whose contents to copy into the new array.
-  ///      The iterable must not contain more than `capacity` elements.
+  ///   - contents: A sequence whose contents to copy into the new array.
+  ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing Source
   ) {
@@ -115,7 +115,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///   - contents: The container whose contents to copy into the new array.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence<Element> & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: Source
   ) {

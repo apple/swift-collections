@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -98,7 +98,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
     capacity: Int,
     copying contents: borrowing Source
   ) {
@@ -119,7 +119,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence<Element> & Sequence<Element>>(
     capacity: Int,
     copying contents: Source
   ) {

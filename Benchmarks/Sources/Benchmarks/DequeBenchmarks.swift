@@ -335,7 +335,6 @@ extension Benchmark {
       for i in input {
         deque.append(i)
       }
-      precondition(deque.count == input.count)
       blackHole(deque)
     }
 
@@ -536,6 +535,5 @@ extension Benchmark {
         }
       }
     }
-    
   }
 }

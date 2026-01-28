@@ -19,7 +19,7 @@ import ContainersPreview
 #if compiler(>=6.2)
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
+public func expectIterableContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -27,7 +27,7 @@ public func expectIteratorContents<
   equalTo right: C2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var i = 0
@@ -58,8 +58,8 @@ public func expectIteratorContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
-  E1: ~Copyable,
+public func expectIterableContents<
+  E1,
   C2: Collection,
 >(
   _ left: borrowing Span<E1>,
@@ -67,7 +67,32 @@ public func expectIteratorContents<
   by areEquivalent: (borrowing E1, C2.Element) -> Bool,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  expectIterableContents(
+    left,
+    equivalentTo: right,
+    by: areEquivalent,
+    printer: { "\($0)" },
+    message(),
+    trapping: trapping,
+    file: file, line: line)
+}
+
+/// Check if `left` and `right` contain equal elements in the same order.
+@available(SwiftStdlib 5.0, *)
+public func expectIterableContents<
+  E1: ~Copyable,
+  C2: Collection,
+>(
+  _ left: borrowing Span<E1>,
+  equivalentTo right: C2,
+  by areEquivalent: (borrowing E1, C2.Element) -> Bool,
+  printer: (borrowing E1) -> String,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   var i = 0
@@ -96,17 +121,113 @@ public func expectIteratorContents<
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+/// Check if `left` contains lifetime tracked instances whose payloads equal
+/// the elements in `right`.
 @available(SwiftStdlib 5.0, *)
-public func expectIterablesWithEquivalentElements<
-  I1: Iterable & ~Copyable & ~Escapable,
-  I2: Iterable & ~Copyable & ~Escapable
+public func expectIterablePayloads<
+  Payload: Equatable,
+  E1: BorrowingSequence<LifetimeTrackedStruct<Payload>> & ~Copyable & ~Escapable,
+  C2: Collection<Payload>,
 >(
-  _ left: borrowing I1,
-  _ right: borrowing I2,
-  by areEquivalent: (borrowing I1.Element, borrowing I2.Element) -> Bool,
+  _ left: borrowing E1,
+  equalTo right: C2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  var it1 = left.makeBorrowingIterator()
+  var it2 = right.makeIterator()
+  var i = 0
+  while true {
+    let next1 = it1.nextSpan(maximumCount: 1)
+    let next2 = it2.next()
+    switch (next1.isEmpty, next2) {
+    case (true, nil):
+      return
+    case (true, _?):
+      _expectFailure(
+        "Borrowing sequence is shorter than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, nil):
+      _expectFailure(
+        "Borrowing sequence is longer than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, let b?):
+      let a = next1[0].payload
+      guard a == b else {
+        _expectFailure(
+          "Element at offset \(i) '\(a)' is not equal to '\(b)'",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
+    }
+    i += 1
+  }
+}
+
+/// Check if `left` contains lifetime tracked instances whose payloads equal
+/// the elements in `right`.
+@available(SwiftStdlib 5.0, *)
+public func expectIterablePayloads<
+  Payload: Equatable,
+  E1: BorrowingSequence<LifetimeTracked<Payload>> & ~Copyable & ~Escapable,
+  C2: Collection<Payload>,
+>(
+  _ left: borrowing E1,
+  equalTo right: C2,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  var it1 = left.makeBorrowingIterator()
+  var it2 = right.makeIterator()
+  var i = 0
+  while true {
+    let next1 = it1.nextSpan(maximumCount: 1)
+    let next2 = it2.next()
+    switch (next1.isEmpty, next2) {
+    case (true, nil):
+      return
+    case (true, _?):
+      _expectFailure(
+        "Borrowing sequence is shorter than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, nil):
+      _expectFailure(
+        "Borrowing sequence is longer than expected",
+        message, trapping: trapping, file: file, line: line)
+      return
+    case (false, let b?):
+      let a = next1[0].payload
+      guard a == b else {
+        _expectFailure(
+          "Element at offset \(i) '\(a)' is not equal to '\(b)'",
+          message, trapping: trapping, file: file, line: line)
+        return
+      }
+    }
+    i += 1
+  }
+}
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+public func expectIterablesWithEquivalentElements<
+  S1: BorrowingSequence & ~Copyable & ~Escapable,
+  S2: BorrowingSequence & ~Copyable & ~Escapable
+>(
+  _ left: borrowing S1,
+  _ right: borrowing S2,
+  by areEquivalent: (borrowing S1.Element, borrowing S2.Element) -> Bool,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left.elementsEqual(right, by: areEquivalent) { return }
@@ -119,14 +240,14 @@ public func expectIterablesWithEquivalentElements<
 @available(SwiftStdlib 5.0, *)
 public func expectIterablesWithEqualElements<
   Element: Equatable,
-  I1: Iterable<Element> & ~Copyable & ~Escapable,
-  I2: Iterable<Element> & ~Copyable & ~Escapable,
+  S1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
+  S2: BorrowingSequence<Element> & ~Copyable & ~Escapable,
 >(
-  _ left: borrowing I1,
-  _ right: borrowing I2,
+  _ left: borrowing S1,
+  _ right: borrowing S2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
   if left.elementsEqual(right) { return }
@@ -137,19 +258,19 @@ public func expectIterablesWithEqualElements<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
+public func expectIterableContents<
   Element: Equatable,
-  I1: Iterable<Element> & ~Copyable & ~Escapable,
+  S1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
   C2: Collection<Element>,
 >(
-  _ left: borrowing I1,
+  _ left: borrowing S1,
   equalTo right: C2,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  var it1 = left.startBorrowIteration()
+  var it1 = left.makeBorrowingIterator()
   var it2 = right.makeIterator()
   while true {
     let span = it1.nextSpan()
@@ -179,19 +300,20 @@ public func expectIteratorContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIteratorContents<
-  I1: Iterable & ~Copyable & ~Escapable,
+public func expectIterableContents<
+  S1: BorrowingSequence & ~Copyable & ~Escapable,
   C2: Collection,
 >(
-  _ left: borrowing I1,
+  _ left: borrowing S1,
   equivalentTo right: C2,
-  by areEquivalent: (borrowing I1.Element, C2.Element) -> Bool,
+  by areEquivalent: (borrowing S1.Element, C2.Element) -> Bool,
+  printer: (borrowing S1.Element) -> String,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
-  file: StaticString = #file,
+  file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  var it1 = left.startBorrowIteration()
+  var it1 = left.makeBorrowingIterator()
   var it2 = right.makeIterator()
   var offset = 0
   while true {

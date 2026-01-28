@@ -10,6 +10,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import InternalCollectionsUtilities
+import ContainersPreview
+import BasicContainers
+#endif
+
 /// Tracks the life times of `LifetimeTracked` instances, providing a method
 /// to validate checkpoints where no instances should exist.
 ///
@@ -18,14 +26,20 @@
 ///     from multiple concurrent threads (or reentrantly) will lead to
 ///     exclusivity violations and therefore undefined behavior.
 public class LifetimeTracker {
-  public internal(set) var instances = 0
-  var _nextSerialNumber = 0
+  @usableFromInline
+  package var _instances = 0
+  
+  @usableFromInline
+  package var _nextSerialNumber = 0
 
   public init() {}
 
   deinit {
     check()
   }
+  
+  @inlinable
+  public var instances: Int { _instances }
 
   public func check(file: StaticString = #filePath, line: UInt = #line) {
     expectEqual(instances, 0,
@@ -46,6 +60,22 @@ public class LifetimeTracker {
   public func instances<S: Sequence>(for items: S) -> [LifetimeTracked<S.Element>] {
     return items.map { LifetimeTracked($0, for: self) }
   }
+
+#if compiler(>=6.2)
+  @available(SwiftStdlib 5.0, *)
+  public func structInstances<Element>(
+    count: Int,
+    generator: (Int) -> Element
+  ) -> RigidArray<LifetimeTrackedStruct<Element>> {
+    var i = 0
+    return RigidArray<LifetimeTrackedStruct<Element>>(capacity: count) { span in
+      while i < count, !span.isFull {
+        span.append(LifetimeTrackedStruct(copying: generator(i), for: self))
+        i += 1
+      }
+    }
+  }
+#endif
 
   public func instances<S: Sequence, T>(
     for items: S, by transform: (S.Element) -> T
