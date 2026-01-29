@@ -122,7 +122,7 @@ extension RigidArray where Element: ~Copyable {
       target._append(moving: items)
     }
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Moves the elements of an input span into this array,
   /// starting at the specified position, and leaving the span empty.
@@ -381,7 +381,7 @@ extension RigidArray {
       "Broken Collection: count doesn't match contents")
     _count += newCount
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 #if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
@@ -443,7 +443,7 @@ extension RigidArray {
     _insertCollection(
       at: index, copying: newElements, newCount: newElements.count)
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 #if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified

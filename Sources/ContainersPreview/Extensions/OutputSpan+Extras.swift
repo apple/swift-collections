@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 @available(SwiftStdlib 5.0, *)
 @_alwaysEmitIntoClient
-internal func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
+package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
   of type: Element.Type,
   capacity: Int,
   _ body: (inout OutputSpan<Element>) throws(E) -> R
@@ -39,9 +39,9 @@ extension OutputSpan where Element: ~Copyable {
   ///
   /// - Complexity: O(1)
   @inlinable
-  internal mutating func _popLast() -> Element? {
+  package mutating func _popLast() -> Element? {
     // FIXME: This needs to be in the stdlib.
-    withUnsafeMutableBufferPointer { buffer, count in
+    _withUnsafeMutableBufferPointer { buffer, count in
       guard count > 0 else { return nil }
       count &-= 1
       return buffer.moveElement(from: count)
@@ -85,43 +85,39 @@ extension OutputSpan where Element: ~Copyable {
     }
   }
 #endif
-
-  @_lifetime(source: copy source)
-  @inlinable
-  @inline(__always)
-  @_lifetime(self: copy self)
-  package mutating func _append(moving source: inout OutputSpan<Element>) {
-    // FIXME: This needs to be in the stdlib.
-    source.withUnsafeMutableBufferPointer { src, srcCount in
-      let items = src._extracting(uncheckedFrom: 0, to: srcCount)
-      self._append(moving: items)
-      srcCount = 0
-    }
-  }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension OutputSpan /* where Element: Copyable */ {
-  @inlinable
+extension OutputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @inlinable // FIXME: This should be implied by @_aeic
   @_lifetime(self: copy self)
-  package mutating func _append(copying source: UnsafeBufferPointer<Element>) {
-    // FIXME: This needs to be in the stdlib.
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
-      let dstEnd = dstCount + source.count
-      precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
-      dst
-        ._extracting(uncheckedFrom: dstCount, to: dstEnd)
-        .initializeAll(fromContentsOf: source)
-      dstCount &+= source.count
+  package mutating func _withUnsafeMutableBufferPointer<E: Error, R: ~Copyable>(
+    _ body: (
+      UnsafeMutableBufferPointer<Element>,
+      _ initializedCount: inout Int
+    ) throws(E) -> R
+  ) throws(E) -> R {
+    // FIXME: Work around https://github.com/apple/swift-collections/issues/561 / rdar://169036911
+    let capacity = self.capacity
+    let r = try self.withUnsafeMutableBufferPointer { buffer, initializedCount throws(E) -> R? in
+      if buffer.count == capacity {
+        return try body(buffer, &initializedCount)
+      }
+      return nil
     }
-  }
+    if let r { return r }
 
-  @inlinable
-  @_lifetime(self: copy self)
-  package mutating func _append(copying source: borrowing Span<Element>) {
-    // FIXME: This needs to be in the stdlib.
-    source.withUnsafeBufferPointer { src in
-      self._append(copying: src)
+    let start = self.span.withUnsafeBufferPointer { $0.baseAddress } // Wow.
+    let correctedBuffer = UnsafeMutableRawBufferPointer(
+      start: .init(mutating: start), // Wow, wow.
+      count: self.capacity &* MemoryLayout<Element>.stride)
+    return try correctedBuffer.withMemoryRebound(to: Element.self) { correctBuffer throws(E) in
+      precondition(correctBuffer.count == self.capacity)
+      return try self.withUnsafeMutableBufferPointer { badBuffer, count throws(E) in
+        precondition(badBuffer.baseAddress == correctBuffer.baseAddress)
+        return try body(correctBuffer,  &count)
+      }
     }
   }
 }
