@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -285,55 +285,6 @@ extension RigidArray where Element: ~Copyable {
   public var count: Int { _count }
 }
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
-extension RigidArray: Iterable where Element: ~Copyable {
-  @frozen
-  public struct BorrowIterator: ~Copyable, ~Escapable, BorrowIteratorProtocol {
-    @usableFromInline
-    internal let _span: Span<Element>
-    
-    @usableFromInline
-    internal var _offset: Int
-    
-    @inlinable
-    @_lifetime(copy span)
-    internal init(_span span: Span<Element>, offset: Int) {
-      self._span = span
-      self._offset = offset
-    }
-    
-    @_lifetime(&self)
-    @_lifetime(self: copy self)
-    public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
-      let c = Swift.min(maximumCount, _span.count - _offset)
-      let end = _offset &+ c
-      let result = _span.extracting(Range(uncheckedBounds: (_offset, end)))
-      _offset = end
-      return result
-    }
-    
-    @_lifetime(self: copy self)
-    public mutating func skip(by offset: Int) -> Int {
-      let c = Swift.min(offset, _span.count &- _offset)
-      _offset += offset
-      return c
-    }
-  }
-  
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public func startBorrowIteration() -> BorrowIterator {
-    .init(_span: self.span, offset: 0)
-  }
-}
-#endif
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// A type that represents a position in the array: an integer offset from the
@@ -351,7 +302,8 @@ extension RigidArray where Element: ~Copyable {
   public var startIndex: Int { 0 }
 
   /// The array’s "past the end” position—that is, the position one greater than
-  /// the last valid subscript argument. This is always equal to array's count.
+  /// the last valid subscript argument. This is always equal to the array's
+  /// count.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -607,6 +559,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= _count,
       "Index range out of bounds")
+    precondition(newCount >= 0, "Negative count")
     precondition(
       newCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")

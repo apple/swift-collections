@@ -74,7 +74,7 @@ struct BridgedStringInput {
   }
 }
 
-@available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *)
+@available(SwiftStdlib 6.2, *)
 struct BigStringInput {
   let flat: String
   let big: BigString
@@ -85,10 +85,9 @@ struct BigStringInput {
   }
 }
 
-
 extension Benchmark {
   public mutating func addBigStringBenchmarks() {
-    guard #available(macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4, *) else {
+    guard #available(macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0, *) else {
       return
     }
 

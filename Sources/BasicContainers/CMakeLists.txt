@@ -25,6 +25,7 @@ endif()
 target_sources(${module_name} PRIVATE
   "RigidArray.swift"
   "RigidArray+Append.swift"
+  "RigidArray+Container.swift"
   "RigidArray+Experimental.swift"
   "RigidArray+Initializers.swift"
   "RigidArray+Insertions.swift"

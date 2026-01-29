@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -233,12 +233,12 @@ extension UniqueArray {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   internal mutating func _append<
-    Source: Iterable<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
-    copyingIterable newElements: borrowing Source
+    copying newElements: borrowing Source
   ) {
     _ensureFreeCapacity(newElements.underestimatedCount)
-    var it = newElements.startBorrowIteration()
+    var it = newElements.makeBorrowingIterator()
     while true {
       let span = it.nextSpan()
       if span.isEmpty { break }
@@ -250,7 +250,7 @@ extension UniqueArray {
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of an iterable to the end of this array.
+  /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold enough elements,
   /// then this reallocates the array's storage to extend its capacity, using
@@ -266,11 +266,11 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
-    self._append(copyingIterable: newElements)
+    self._append(copying: newElements)
   }
 
 #endif
@@ -320,9 +320,9 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable<Element> & Sequence<Element>
+    Source: BorrowingSequence<Element> & Sequence<Element>
   >(copying newElements: Source) {
-    self._append(copyingIterable: newElements)
+    self._append(copying: newElements)
   }
 #endif
 }

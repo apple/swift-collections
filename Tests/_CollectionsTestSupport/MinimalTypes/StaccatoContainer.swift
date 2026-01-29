@@ -36,7 +36,7 @@ public struct StaccatoContainer<Element: ~Copyable>: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoBorrowIterator<Element: ~Copyable>: BorrowIteratorProtocol, ~Escapable {
+public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol, ~Escapable {
   internal let _contents: Span<Element>
   internal let _spanCounts: [Int]
   internal let _modulus: Int
@@ -78,12 +78,12 @@ public struct _StaccatoBorrowIterator<Element: ~Copyable>: BorrowIteratorProtoco
 
 @available(SwiftStdlib 5.0, *)
 extension StaccatoContainer: Container where Element: ~Copyable {
-  public typealias BorrowIterator = _StaccatoBorrowIterator<Element> // FIXME rdar://150240032
+  public typealias BorrowingIterator = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   public var isEmpty: Bool { _contents.isEmpty }
   public var count: Int { _contents.count }
 
-  public func startBorrowIteration() -> BorrowIterator {
-    BorrowIterator(contents: _contents.span, spanCounts: _spanCounts)
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(contents: _contents.span, spanCounts: _spanCounts)
   }
 }
 #endif

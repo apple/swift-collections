@@ -61,6 +61,7 @@ let sampleString: String = {
     
     🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦🇺🇸🇨🇦
     """#
+  #if COLLECTIONS_LONG_TESTS
   if MemoryLayout<Int>.size == 8 {
     /// Add even more flags and extra long combining sequences. This considerably increases test
     /// workload. (Not necessarily due to grapheme cluster length, but because test performance is
@@ -78,6 +79,7 @@ let sampleString: String = {
     T̸h̴e̶ ̵p̷o̷w̶e̵r̷f̸u̷l̷ ̵p̴r̷o̷g̶r̷a̸m̸m̶i̸n̴g̴ ̷l̶a̴n̸g̵u̵a̶g̸e̶ ̸t̶h̴a̵t̵ ̶i̷s̶ ̵a̷l̴s̸o̷ ̵e̵a̷s̷y̴ ̵t̵o̷ ̷l̷e̶a̵r̴n̸.̵
     """#
   }
+  #endif
   return str
 }()
 
