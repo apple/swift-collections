@@ -59,7 +59,7 @@ extension OutputSpan where Element: ~Copyable {
   ) {
     // FIXME: This needs to be in the stdlib.
     guard source.count > 0 else { return }
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
+    self._withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dstCount + source.count
       precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
       dst
@@ -92,7 +92,7 @@ extension OutputSpan where Element: ~Copyable {
   @_lifetime(self: copy self)
   package mutating func _append(moving source: inout OutputSpan<Element>) {
     // FIXME: This needs to be in the stdlib.
-    source.withUnsafeMutableBufferPointer { src, srcCount in
+    source._withUnsafeMutableBufferPointer { src, srcCount in
       let items = src._extracting(uncheckedFrom: 0, to: srcCount)
       self._append(moving: items)
       srcCount = 0
@@ -106,7 +106,7 @@ extension OutputSpan /*where Element: Copyable*/ {
   @_lifetime(self: copy self)
   package mutating func _append(copying source: UnsafeBufferPointer<Element>) {
     // FIXME: This needs to be in the stdlib.
-    self.withUnsafeMutableBufferPointer { dst, dstCount in
+    self._withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dstCount + source.count
       precondition(dstEnd <= dst.count, "OutputSpan capacity overflow")
       dst
