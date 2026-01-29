@@ -77,7 +77,7 @@ extension OutputSpan where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @inlinable
+  @inlinable // FIXME: This should be implied by @_aeic
   @_lifetime(self: copy self)
   package mutating func _withUnsafeMutableBufferPointer<E: Error, R: ~Copyable>(
     _ body: (
@@ -85,10 +85,14 @@ extension OutputSpan where Element: ~Copyable {
       _ initializedCount: inout Int
     ) throws(E) -> R
   ) throws(E) -> R {
+#if compiler(<6.3)
+    return try self.withUnsafeMutableBufferPointer(body)
+#else
     // FIXME: Work around https://github.com/apple/swift-collections/issues/561 / rdar://169036911
+    let start = self.span.withUnsafeBufferPointer { $0.baseAddress } // Wow.
     let correctedBuffer = UnsafeMutableRawBufferPointer(
-      start: .init(mutating: span.withUnsafeBufferPointer { $0.baseAddress }), // Wow, wow.
-      count: capacity &* MemoryLayout<Element>.stride)
+      start: .init(mutating: start), // Wow, wow.
+      count: self.capacity &* MemoryLayout<Element>.stride)
     return try correctedBuffer.withMemoryRebound(to: Element.self) { correctBuffer throws(E) in
       precondition(correctBuffer.count == self.capacity)
       return try self.withUnsafeMutableBufferPointer { badBuffer, count throws(E) in
@@ -96,9 +100,8 @@ extension OutputSpan where Element: ~Copyable {
         return try body(correctBuffer,  &count)
       }
     }
+#endif
   }
 }
-
-
 
 #endif
