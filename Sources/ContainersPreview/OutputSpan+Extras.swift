@@ -85,7 +85,7 @@ extension OutputSpan where Element: ~Copyable {
       _ initializedCount: inout Int
     ) throws(E) -> R
   ) throws(E) -> R {
-#if compiler(<6.3)
+#if compiler(<6.3) || compiler(>=6.4)
     return try self.withUnsafeMutableBufferPointer(body)
 #else
     // FIXME: Work around https://github.com/apple/swift-collections/issues/561 / rdar://169036911
