@@ -303,7 +303,7 @@ extension RigidArray {
   ) {
     guard newElements.count > 0 else { return }
     self.insert(count: newElements.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      target._withUnsafeMutableBufferPointer { buffer, count in
         buffer.initializeAll(fromContentsOf: newElements)
         count = newElements.count
       }
