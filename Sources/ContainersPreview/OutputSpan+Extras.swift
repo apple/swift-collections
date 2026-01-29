@@ -9,12 +9,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
 
+#if compiler(>=6.3)
 @available(SwiftStdlib 5.0, *)
 @_alwaysEmitIntoClient
 package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
@@ -29,7 +28,9 @@ package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
     return try body(&span)
   }
 }
+#endif
 
+#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   /// Removes and returns the last element of this output span, if it exists.
