@@ -185,7 +185,7 @@ extension UniqueDeque where Element: ~Copyable {
   ) {
     var remainder = items
     replaceSubrange(subrange, maximumCount: remainder.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      target._withUnsafeMutableBufferPointer { buffer, count in
         buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
         count = buffer.count
@@ -267,7 +267,7 @@ extension UniqueDeque where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.replaceSubrange(subrange, moving: source)
       count = 0
@@ -366,7 +366,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   ) {
     var remainder = items
     replaceSubrange(subrange, maximumCount: remainder.count) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
+      target._withUnsafeMutableBufferPointer { dst, dstCount in
         dst.initializeAll(fromContentsOf: remainder._trim(first: dst.count))
         dstCount += dst.count
       }

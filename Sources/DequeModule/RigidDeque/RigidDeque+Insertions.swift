@@ -134,7 +134,7 @@ extension RigidDeque where Element: ~Copyable {
     guard !items.isEmpty else { return }
     var remainder = items
     insert(maximumCount: items.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      target._withUnsafeMutableBufferPointer { buffer, count in
         buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
         count = buffer.count
@@ -196,7 +196,7 @@ extension RigidDeque where Element: ~Copyable {
     moving items: inout OutputSpan<Element>,
     at index: Int
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.insert(moving: source, at: index)
       count = 0
@@ -282,7 +282,7 @@ extension RigidDeque /* where Element: Copyable */ {
     guard items.count > 0 else { return }
     var remainder = items
     insert(maximumCount: remainder.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      target._withUnsafeMutableBufferPointer { buffer, count in
         buffer.initializeAll(
           fromContentsOf: remainder._extracting(first: buffer.count))
         remainder = remainder._extracting(droppingFirst: buffer.count)

@@ -174,7 +174,7 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout OutputSpan<Element>,
     at index: Int
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.insert(moving: source, at: index)
       count = 0

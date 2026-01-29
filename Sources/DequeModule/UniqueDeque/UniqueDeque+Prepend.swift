@@ -164,7 +164,7 @@ extension UniqueDeque where Element: ~Copyable {
   public mutating func prepend(
     moving items: inout OutputSpan<Element>
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.prepend(moving: source)
       count = 0
