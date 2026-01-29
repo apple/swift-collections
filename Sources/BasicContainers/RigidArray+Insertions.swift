@@ -251,30 +251,6 @@ extension RigidArray where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension OutputSpan where Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_lifetime(self: copy self)
-  mutating func _withUnsafeMutableBufferPointer<E: Error, R: ~Copyable>(
-    _ body: (
-      UnsafeMutableBufferPointer<Element>,
-      _ initializedCount: inout Int
-    ) throws(E) -> R
-  ) throws(E) -> R {
-    // FIXME: Work around rdar://169036911
-    let correctedBuffer = UnsafeMutableRawBufferPointer(
-      start: .init(mutating: span.withUnsafeBufferPointer { $0.baseAddress }), // Wow, wow.
-      count: capacity &* MemoryLayout<Element>.stride)
-    return try correctedBuffer.withMemoryRebound(to: Element.self) { correctBuffer throws(E) in
-      precondition(correctBuffer.count == self.capacity)
-      return try self.withUnsafeMutableBufferPointer { badBuffer, count throws(E) in
-        precondition(badBuffer.baseAddress == correctBuffer.baseAddress)
-        return try body(correctBuffer,  &count)
-      }
-    }
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
 extension RigidArray {
   /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
