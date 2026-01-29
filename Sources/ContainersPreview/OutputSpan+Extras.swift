@@ -85,10 +85,16 @@ extension OutputSpan where Element: ~Copyable {
       _ initializedCount: inout Int
     ) throws(E) -> R
   ) throws(E) -> R {
-#if compiler(<6.3) || compiler(>=6.4)
-    return try self.withUnsafeMutableBufferPointer(body)
-#else
     // FIXME: Work around https://github.com/apple/swift-collections/issues/561 / rdar://169036911
+    let capacity = self.capacity
+    let r = try self.withUnsafeMutableBufferPointer { buffer, initializedCount throws(E) -> R? in
+      if buffer.count == capacity {
+        return try body(buffer, &initializedCount)
+      }
+      return nil
+    }
+    if let r { return r }
+
     let start = self.span.withUnsafeBufferPointer { $0.baseAddress } // Wow.
     let correctedBuffer = UnsafeMutableRawBufferPointer(
       start: .init(mutating: start), // Wow, wow.
@@ -100,7 +106,6 @@ extension OutputSpan where Element: ~Copyable {
         return try body(correctBuffer,  &count)
       }
     }
-#endif
   }
 }
 
