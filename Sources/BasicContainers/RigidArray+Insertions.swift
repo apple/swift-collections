@@ -261,15 +261,14 @@ extension OutputSpan where Element: ~Copyable {
     ) throws(E) -> R
   ) throws(E) -> R {
     // FIXME: Work around rdar://169036911
-    let capacity = self.capacity
-    let baseAddress = self.span.withUnsafeBufferPointer { $0.baseAddress } // Wow.
-    return try withUnsafeMutableBufferPointer { buffer, count throws(E) in
-      let correctedBuffer = UnsafeMutableRawBufferPointer(
-        start: .init(mutating: baseAddress), // Wow, wow.
-        count: capacity &* MemoryLayout<Element>.stride)
-      return try correctedBuffer.withMemoryRebound(to: Element.self) {
-        correctBuffer throws(E) in
-        try body(correctBuffer, &count)
+    let correctedBuffer = UnsafeMutableRawBufferPointer(
+      start: .init(mutating: span.withUnsafeBufferPointer { $0.baseAddress }), // Wow, wow.
+      count: capacity &* MemoryLayout<Element>.stride)
+    return try correctedBuffer.withMemoryRebound(to: Element.self) { correctBuffer throws(E) in
+      precondition(correctBuffer.count == self.capacity)
+      return try self.withUnsafeMutableBufferPointer { badBuffer, count throws(E) in
+        precondition(badBuffer.baseAddress == correctBuffer.baseAddress)
+        return try body(correctBuffer,  &count)
       }
     }
   }
