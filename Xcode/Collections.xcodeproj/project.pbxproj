@@ -108,6 +108,7 @@
 		7DAD89B52E8B09EC00DD5786 /* Debugging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DAD89A82E8B09EC00DD5786 /* Debugging.swift */; };
 		7DAD89B62E8B09EC00DD5786 /* UnsafeMutableRawBufferPointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DAD89AE2E8B09EC00DD5786 /* UnsafeMutableRawBufferPointer+Extras.swift */; };
 		7DAD89B72E8B09EC00DD5786 /* UnsafeRawBufferPointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DAD89AF2E8B09EC00DD5786 /* UnsafeRawBufferPointer+Extras.swift */; };
+		7DE448452F2D3705005853A7 /* BinaryInteger extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE448442F2D36F9005853A7 /* BinaryInteger extensions.swift */; };
 		7DE91B2F29CA6721004483EB /* Collections.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DE91B2629CA6721004483EB /* Collections.framework */; };
 		7DE9200D29CA70F3004483EB /* OrderedDictionary+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91E7529CA70F3004483EB /* OrderedDictionary+Equatable.swift */; };
 		7DE9200E29CA70F3004483EB /* OrderedDictionary+ExpressibleByDictionaryLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91E7629CA70F3004483EB /* OrderedDictionary+ExpressibleByDictionaryLiteral.swift */; };
@@ -465,7 +466,6 @@
 		7DEBDB9029CCE44A00ADC226 /* TestContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2229CCE43600ADC226 /* TestContext.swift */; };
 		7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2429CCE43600ADC226 /* CollectionTestCase.swift */; };
 		7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2B29CCE43600ADC226 /* StringConvertibleValue.swift */; };
-		7DEBDB9D29CCE73D00ADC226 /* Collections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE91F7B29CA70F3004483EB /* Collections.swift */; };
 		A93AC2152E7C841700A824DF /* RigidArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2102E7C841700A824DF /* RigidArray.swift */; };
 		A93AC2162E7C841700A824DF /* UniqueArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2122E7C841700A824DF /* UniqueArray.swift */; };
 		A93AC2172E7C841700A824DF /* RigidArray+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC2112E7C841700A824DF /* RigidArray+Experimental.swift */; };
@@ -599,6 +599,12 @@
 		7DAD89AD2E8B09EC00DD5786 /* UnsafeMutableBufferPointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeMutableBufferPointer+Extras.swift"; sourceTree = "<group>"; };
 		7DAD89AE2E8B09EC00DD5786 /* UnsafeMutableRawBufferPointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeMutableRawBufferPointer+Extras.swift"; sourceTree = "<group>"; };
 		7DAD89AF2E8B09EC00DD5786 /* UnsafeRawBufferPointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeRawBufferPointer+Extras.swift"; sourceTree = "<group>"; };
+		7DE448442F2D36F9005853A7 /* BinaryInteger extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BinaryInteger extensions.swift"; sourceTree = "<group>"; };
+		7DE448462F2D3940005853A7 /* BitCollections reexports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BitCollections reexports.swift"; sourceTree = "<group>"; };
+		7DE448472F2D3984005853A7 /* DequeModule reexports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DequeModule reexports.swift"; sourceTree = "<group>"; };
+		7DE448482F2D39E9005853A7 /* HashTreeCollections reexports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HashTreeCollections reexports.swift"; sourceTree = "<group>"; };
+		7DE448492F2D3B48005853A7 /* HeapModule reexports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HeapModule reexports.swift"; sourceTree = "<group>"; };
+		7DE4484A2F2D3B74005853A7 /* OrderedCollections reexports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrderedCollections reexports.swift"; sourceTree = "<group>"; };
 		7DE91B2629CA6721004483EB /* Collections.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Collections.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DE91B2E29CA6721004483EB /* CollectionsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CollectionsTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7DE91E7229CA70F3004483EB /* OrderedCollections.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = OrderedCollections.docc; sourceTree = "<group>"; };
@@ -801,7 +807,6 @@
 		7DE91F7629CA70F3004483EB /* BitArray+Equatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Equatable.swift"; sourceTree = "<group>"; };
 		7DE91F7829CA70F3004483EB /* BitArray+Testing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Testing.swift"; sourceTree = "<group>"; };
 		7DE91F7A29CA70F3004483EB /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		7DE91F7B29CA70F3004483EB /* Collections.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Collections.swift; sourceTree = "<group>"; };
 		7DE91F7C29CA70F3004483EB /* Collections.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = Collections.docc; sourceTree = "<group>"; };
 		7DE91FA829CA70F3004483EB /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7DE91FA929CA70F3004483EB /* HashTreeCollections.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = HashTreeCollections.docc; sourceTree = "<group>"; };
@@ -1162,11 +1167,11 @@
 		7DE91E7029CA70F3004483EB /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				7DE91F7929CA70F3004483EB /* Collections */,
 				A93AC2142E7C841700A824DF /* BasicContainers */,
 				7DE91F2229CA70F3004483EB /* InternalCollectionsUtilities */,
 				7D48BCCE2E51524200D7F6F7 /* ContainersPreview */,
 				7DE91F3929CA70F3004483EB /* BitCollections */,
-				7DE91F7929CA70F3004483EB /* Collections */,
 				7DE91EB629CA70F3004483EB /* DequeModule */,
 				7DE91FA729CA70F3004483EB /* HashTreeCollections */,
 				7DE9200229CA70F3004483EB /* HeapModule */,
@@ -1578,6 +1583,7 @@
 				7DE91F7029CA70F3004483EB /* BitArray+RangeReplaceableCollection.swift */,
 				7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */,
 				7DE91F7829CA70F3004483EB /* BitArray+Testing.swift */,
+				7DE448442F2D36F9005853A7 /* BinaryInteger extensions.swift */,
 			);
 			path = BitArray;
 			sourceTree = "<group>";
@@ -1585,9 +1591,13 @@
 		7DE91F7929CA70F3004483EB /* Collections */ = {
 			isa = PBXGroup;
 			children = (
-				7DE91F7B29CA70F3004483EB /* Collections.swift */,
-				7DE91F7C29CA70F3004483EB /* Collections.docc */,
+				7DE448462F2D3940005853A7 /* BitCollections reexports.swift */,
+				7DE448472F2D3984005853A7 /* DequeModule reexports.swift */,
+				7DE448482F2D39E9005853A7 /* HashTreeCollections reexports.swift */,
+				7DE448492F2D3B48005853A7 /* HeapModule reexports.swift */,
+				7DE4484A2F2D3B74005853A7 /* OrderedCollections reexports.swift */,
 				7DE91F7A29CA70F3004483EB /* CMakeLists.txt */,
+				7DE91F7C29CA70F3004483EB /* Collections.docc */,
 			);
 			path = Collections;
 			sourceTree = "<group>";
@@ -2259,7 +2269,6 @@
 				7DE9208629CA70F4004483EB /* BigString+LosslessStringConvertible.swift in Sources */,
 				7DE9204329CA70F3004483EB /* _HashTable+Bucket.swift in Sources */,
 				7DE9216A29CA70F4004483EB /* TreeDictionary.swift in Sources */,
-				7DEBDB9D29CCE73D00ADC226 /* Collections.swift in Sources */,
 				7DE9215C29CA70F4004483EB /* _Bitmap.swift in Sources */,
 				7DE9207029CA70F4004483EB /* BigString+Chunk+RopeElement.swift in Sources */,
 				7DE9213729CA70F4004483EB /* TreeSet+Sequence.swift in Sources */,
@@ -2487,6 +2496,7 @@
 				7DE9206129CA70F4004483EB /* BigString.swift in Sources */,
 				7DE9215A29CA70F4004483EB /* _HashNode+Structural subtracting.swift in Sources */,
 				7DE9217E29CA70F4004483EB /* Heap+ExpressibleByArrayLiteral.swift in Sources */,
+				7DE448452F2D3705005853A7 /* BinaryInteger extensions.swift in Sources */,
 				7DE9204029CA70F3004483EB /* OrderedSet+Partial SetAlgebra isStrictSuperset.swift in Sources */,
 				7DE920BF29CA70F4004483EB /* BitSet+Codable.swift in Sources */,
 				7DE9203329CA70F3004483EB /* OrderedSet+Testing.swift in Sources */,
