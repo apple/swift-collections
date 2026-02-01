@@ -1026,9 +1026,9 @@ extension OrderedDictionary {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public func mapValuesWithKeys<T>(
-    _ transform: (Key, Value) throws -> T
-  ) rethrows -> OrderedDictionary<Key, T> {
+  public func mapValuesWithKeys<T, E>(
+    _ transform: (Key, Value) throws(E) -> T
+  ) throws(E) -> OrderedDictionary<Key, T> {
     let values = ContiguousArray(try elements.map(transform))
     return OrderedDictionary<Key, T>(_uniqueKeys: _keys, values: values)
   }
