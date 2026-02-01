@@ -30,6 +30,7 @@ let testItems: [RawCollider] = {
     RawCollider(5, "ACAD"),
     RawCollider(6, "ACAD"),
   ]
+#if COLLECTIONS_LONG_TESTS
   if MemoryLayout<Int>.size == 8 {
     // Cut testing workload down a bit on 32-bit systems. In practice a 32-bit Int
     // usually means we're running on a watchOS device (arm64_32), and those are relatively slow
@@ -47,6 +48,7 @@ let testItems: [RawCollider] = {
     RawCollider(12, "ACC"),
   ]
   #endif
+#endif
   return testItems
 }()
 

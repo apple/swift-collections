@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -80,6 +80,7 @@ extension RigidArray where Element: ~Copyable {
   ) -> Result {
     // FIXME: This does not allow `body` to throw, to prevent having to move the tail twice. Is that okay?
     precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    precondition(count >= 0, "Negative count")
     precondition(count <= freeCapacity, "RigidArray capacity overflow")
     let target = unsafe _openGap(at: index, count: count)
     var span = OutputSpan(buffer: target, initializedCount: 0)
@@ -118,13 +119,10 @@ extension RigidArray where Element: ~Copyable {
     at index: Int
   ) {
     insert(count: items.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.moveInitializeAll(fromContentsOf: items)
-        count = items.count
-      }
+      target._append(moving: items)
     }
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Moves the elements of an input span into this array,
   /// starting at the specified position, and leaving the span empty.
@@ -176,7 +174,7 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout OutputSpan<Element>,
     at index: Int
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.insert(moving: source, at: index)
       count = 0
@@ -205,15 +203,11 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout RigidArray<Element>,
     at index: Int
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
+    guard !items.isEmpty else { return }
     insert(count: items.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
-        items.edit { source in
-          source.withUnsafeMutableBufferPointer { src, srcCount in
-            dst.moveInitializeAll(fromContentsOf: src)
-            dstCount = src.count
-            srcCount = 0
-          }
-        }
+      items.edit { source in
+        target._append(moving: &source)
       }
     }
   }
@@ -232,8 +226,7 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
+  ///    - items: The array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
   ///
@@ -278,10 +271,7 @@ extension RigidArray {
   ) {
     guard newElements.count > 0 else { return }
     self.insert(count: newElements.count, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        buffer.initializeAll(fromContentsOf: newElements)
-        count = newElements.count
-      }
+      target._append(copying: newElements)
     }
   }
 
@@ -306,6 +296,7 @@ extension RigidArray {
   ///
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
+  @inline(__always)
   public mutating func insert(
     copying newElements: UnsafeMutableBufferPointer<Element>,
     at index: Int
@@ -332,15 +323,18 @@ extension RigidArray {
   ///
   /// - Complexity: O(`count` + `newElements.count`)
   @inlinable
+  @inline(__always)
   public mutating func insert(
     copying newElements: Span<Element>, at index: Int
   ) {
-    unsafe newElements.withUnsafeBufferPointer {
-      unsafe self.insert(copying: $0, at: index)
+    guard newElements.count > 0 else { return }
+    self.insert(count: newElements.count, at: index) { target in
+      target._append(copying: newElements)
     }
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   @inlinable
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -359,6 +353,7 @@ extension RigidArray {
       }
     }
   }
+#endif
 #endif
 
   @inlinable
@@ -386,8 +381,9 @@ extension RigidArray {
       "Broken Collection: count doesn't match contents")
     _count += newCount
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -418,6 +414,7 @@ extension RigidArray {
       at: index, copying: newElements, newCount: newElements.count)
   }
 #endif
+#endif
 
   /// Copies the elements of a collection into this array at the specified
   /// position.
@@ -446,8 +443,9 @@ extension RigidArray {
     _insertCollection(
       at: index, copying: newElements, newCount: newElements.count)
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -477,6 +475,7 @@ extension RigidArray {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
+#endif
 #endif
 }
 

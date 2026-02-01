@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -86,6 +86,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _count: Int
 
+  @_alwaysEmitIntoClient
   deinit {
     unsafe _storage.extracting(0 ..< _count).deinitialize()
     unsafe _storage.deallocate()
@@ -284,19 +285,6 @@ extension RigidArray where Element: ~Copyable {
   public var count: Int { _count }
 }
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {
-  public typealias BorrowIterator = Span<Element>
-
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public func startBorrowIteration() -> Span<Element> {
-    self.span
-  }
-}
-#endif
-
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   /// A type that represents a position in the array: an integer offset from the
@@ -314,7 +302,8 @@ extension RigidArray where Element: ~Copyable {
   public var startIndex: Int { 0 }
 
   /// The array’s "past the end” position—that is, the position one greater than
-  /// the last valid subscript argument. This is always equal to array's count.
+  /// the last valid subscript argument. This is always equal to the array's
+  /// count.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -570,6 +559,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= _count,
       "Index range out of bounds")
+    precondition(newCount >= 0, "Negative count")
     precondition(
       newCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")

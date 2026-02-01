@@ -1,7 +1,7 @@
 #[[
 This source file is part of the Swift Collections Open Source Project
 
-Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 Licensed under Apache License v2.0 with Runtime Library Exception
 
 See https://swift.org/LICENSE.txt for license information
@@ -23,6 +23,7 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
+  "BitArray/BinaryInteger extensions.swift"
   "BitArray/BitArray+BitwiseOperations.swift"
   "BitArray/BitArray+ChunkedBitsIterators.swift"
   "BitArray/BitArray+Codable.swift"

@@ -14,7 +14,8 @@ else()
   add_library(DequeModule
     ${COLLECTIONS_DEQUE_SOURCES})
   target_link_libraries(DequeModule PRIVATE
-    InternalCollectionsUtilities)
+    InternalCollectionsUtilities
+    ContainersPreview)
   set_target_properties(DequeModule PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_Swift_MODULE_DIRECTORY})
 
@@ -23,20 +24,42 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "Deque+Codable.swift"
-  "Deque+Collection.swift"
-  "Deque+CustomReflectable.swift"
-  "Deque+Descriptions.swift"
-  "Deque+Equatable.swift"
-  "Deque+ExpressibleByArrayLiteral.swift"
-  "Deque+Extras.swift"
-  "Deque+Hashable.swift"
-  "Deque+Testing.swift"
-  "Deque._Storage.swift"
-  "Deque._UnsafeHandle.swift"
-  "Deque.swift"
-  "_DequeBuffer.swift"
-  "_DequeBufferHeader.swift"
+  "_UnsafeDequeSegments.swift"
+  "_UnsafeDequeHandle.swift"
   "_DequeSlot.swift"
-  "_UnsafeWrappedBuffer.swift"
+  "RigidDeque/RigidDeque.swift"
+  "RigidDeque/RigidDeque+Append.swift"
+  "RigidDeque/RigidDeque+Consumption.swift"
+  "RigidDeque/RigidDeque+Container.swift"
+  "RigidDeque/RigidDeque+Experimental.swift"
+  "RigidDeque/RigidDeque+Initializers.swift"
+  "RigidDeque/RigidDeque+Insertions.swift"
+  "RigidDeque/RigidDeque+Prepend.swift"
+  "RigidDeque/RigidDeque+Removals.swift"
+  "RigidDeque/RigidDeque+Replacements.swift"
+  "RigidDeque/RigidDeque+Testing.swift"
+  "UniqueDeque/UniqueDeque.swift"
+  "UniqueDeque/UniqueDeque+Append.swift"
+  "UniqueDeque/UniqueDeque+Consumption.swift"
+  "UniqueDeque/UniqueDeque+Container.swift"
+  "UniqueDeque/UniqueDeque+Experimental.swift"
+  "UniqueDeque/UniqueDeque+Initializers.swift"
+  "UniqueDeque/UniqueDeque+Insertions.swift"
+  "UniqueDeque/UniqueDeque+Prepend.swift"
+  "UniqueDeque/UniqueDeque+Removals.swift"
+  "UniqueDeque/UniqueDeque+Replacements.swift"
+  "Deque/_DequeBuffer.swift"
+  "Deque/Deque+Collection.swift"
+  "Deque/Deque+CustomReflectable.swift"
+  "Deque/Deque.swift"
+  "Deque/Deque+Hashable.swift"
+  "Deque/_DequeBufferHeader.swift"
+  "Deque/Deque+Codable.swift"
+  "Deque/Deque+Testing.swift"
+  "Deque/Deque._UnsafeHandle.swift"
+  "Deque/Deque+Descriptions.swift"
+  "Deque/Deque+Extras.swift"
+  "Deque/Deque+ExpressibleByArrayLiteral.swift"
+  "Deque/Deque+Equatable.swift"
+  "Deque/Deque._Storage.swift"
   )

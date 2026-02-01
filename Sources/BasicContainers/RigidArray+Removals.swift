@@ -18,6 +18,26 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Removes and returns the element at the specified position.
+  ///
+  /// All the elements following the specified position are moved to close the
+  /// gap.
+  ///
+  /// - Parameter i: The position of the element to remove. `index` must be
+  ///   a valid index of the array that is not equal to the end index.
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  @discardableResult
+  public mutating func remove(at index: Int) -> Element {
+    precondition(index >= 0 && index < _count, "Index out of bounds")
+    let old = unsafe _storage.moveElement(from: index)
+    _closeGap(at: index, count: 1)
+    _count -= 1
+    return old
+  }
+
   /// Removes all elements from the array, preserving its allocated capacity.
   ///
   /// - Complexity: O(*n*), where *n* is the original count of the array.
@@ -64,26 +84,6 @@ extension RigidArray where Element: ~Copyable {
       Range(uncheckedBounds: (_count - k, _count))
     ).deinitialize()
     _count &-= k
-  }
-
-  /// Removes and returns the element at the specified position.
-  ///
-  /// All the elements following the specified position are moved to close the
-  /// gap.
-  ///
-  /// - Parameter i: The position of the element to remove. `index` must be
-  ///   a valid index of the array that is not equal to the end index.
-  /// - Returns: The removed element.
-  ///
-  /// - Complexity: O(`count`)
-  @inlinable
-  @discardableResult
-  public mutating func remove(at index: Int) -> Element {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
-    let old = unsafe _storage.moveElement(from: index)
-    _closeGap(at: index, count: 1)
-    _count -= 1
-    return old
   }
 
   /// Removes the specified subrange of elements from the array.
@@ -140,6 +140,7 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   /// Remove all items currently in this array, returning an input span to
   /// allow them to be consumed in place.
+  ///
   /// The input span extends the exclusive mutating access initiated by this
   /// operation to cover the span's lifetime. Once the span is destroyed,
   /// the array becomes empty, but it preserves its original storage capacity.

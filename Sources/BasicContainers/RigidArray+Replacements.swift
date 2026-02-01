@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -32,11 +32,11 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// If you pass a zero-length range as the `subrange` parameter, then
   /// this method is equivalent to calling
-  /// `insert(count: newCount, initializingWith: body)`.
+  /// `insert(count: newCount, at: subrange.lowerbound, initializingWith: body)`.
   ///
   /// Likewise, if you pass a zero for `newCount`, then this method
   /// removes the elements in the given subrange without any replacement.
-  /// Calling `removeSubrange(subrange)` is preferred in this case.
+  /// This case is more directly expressed by `removeSubrange(subrange)`.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -83,13 +83,13 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(moving:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(moving:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -104,7 +104,7 @@ extension RigidArray where Element: ~Copyable {
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
     replaceSubrange(subrange, newCount: newElements.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      target._withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._moveInitializePrefix(from: newElements)
       }
     }
@@ -123,13 +123,13 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(moving:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(moving:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -162,13 +162,13 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(moving:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(moving:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -181,7 +181,7 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.replaceSubrange(subrange, moving: source)
       count = 0
@@ -202,13 +202,13 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(moving:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -221,6 +221,7 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving newElements: inout RigidArray<Element>,
   ) {
+    // FIXME: Remove this in favor of a generic algorithm over consumable containers
     unsafe newElements._unsafeEdit { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.replaceSubrange(subrange, moving: source)
@@ -244,13 +245,13 @@ extension RigidArray where Element: ~Copyable {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(consuming:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -283,13 +284,13 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(copying:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -303,7 +304,7 @@ extension RigidArray {
     copying newElements: UnsafeBufferPointer<Element>
   ) {
     replaceSubrange(subrange, newCount: newElements.count) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
+      target._withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._initializePrefix(copying: newElements)
       }
     }
@@ -321,13 +322,13 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(copying:at:)`.
   ///
   /// Likewise, if you pass a zero-length buffer as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -357,13 +358,13 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(copying:at:)`.
   ///
   /// Likewise, if you pass a zero-length span as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -382,6 +383,7 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   @inlinable
   internal mutating func _replaceSubrange<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -400,6 +402,7 @@ extension RigidArray {
     }
   }
 #endif
+#endif
 
   @inlinable
   internal mutating func _replaceSubrange(
@@ -408,7 +411,7 @@ extension RigidArray {
     newCount: Int
   ) {
     self.replaceSubrange(subrange, newCount: newCount) { target in
-      target.withUnsafeMutableBufferPointer { dst, dstCount in
+      target._withUnsafeMutableBufferPointer { dst, dstCount in
         let done: Void? = newElements.withContiguousStorageIfAvailable { src in
           let i = unsafe dst._initializePrefix(copying: src)
           precondition(
@@ -429,6 +432,7 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false // FIXME: This needs a container with an exact count.
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -441,13 +445,13 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(copying:at:)`.
   ///
   /// Likewise, if you pass a zero-length container as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -467,6 +471,7 @@ extension RigidArray {
       subrange, copyingContainer: newElements, newCount: newElements.count)
   }
 #endif
+#endif
 
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given collection.
@@ -480,13 +485,13 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(copying:at:)`.
   ///
   /// Likewise, if you pass a zero-length collection as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -505,6 +510,7 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if false
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -517,13 +523,13 @@ extension RigidArray {
   /// elements, then this method triggers a runtime error.
   ///
   /// If you pass a zero-length range as the `subrange` parameter, this method
-  /// inserts the elements of `newElements` at `subrange.lowerBound`. Calling
-  /// the `insert(copying:at:)` method instead is preferred in this case.
+  /// inserts the elements of `newElements` at `subrange.lowerBound`. This case
+  /// is more directly expressed by calling `insert(copying:at:)`.
   ///
   /// Likewise, if you pass a zero-length container as the `newElements`
   /// parameter, this method removes the elements in the given subrange
-  /// without replacement. Calling the `removeSubrange(_:)` method instead is
-  /// preferred in this case.
+  /// without replacement. This case is more directly expressed by calling
+  /// `removeSubrange`.
   ///
   /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
@@ -543,6 +549,7 @@ extension RigidArray {
     _replaceSubrange(
       subrange, copyingContainer: newElements, newCount: newElements.count)
   }
+#endif
 #endif
 }
 

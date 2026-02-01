@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -39,7 +39,7 @@ extension RigidArray where Element: ~Copyable {
   /// then this returns the given item without appending it; otherwise it
   /// returns nil.
   ///
-  /// - Parameter item: The element to append to the collection.
+  /// - Parameter item: The element to append to the array.
   /// - Returns: `item` if the array is full; otherwise nil.
   ///
   /// - Complexity: O(1)
@@ -75,6 +75,7 @@ extension RigidArray where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     // FIXME: This is extremely similar to `edit()`, except it provides a narrower span.
+    precondition(count >= 0, "Negative count")
     precondition(freeCapacity >= count, "RigidArray capacity overflow")
     let buffer = _freeSpace._extracting(first: count)
     var span = OutputSpan(buffer: buffer, initializedCount: 0)
@@ -147,7 +148,7 @@ extension RigidArray where Element: ~Copyable {
   public mutating func append(
     moving items: inout OutputSpan<Element>
   ) {
-    items.withUnsafeMutableBufferPointer { buffer, count in
+    items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.append(moving: source)
       count = 0
@@ -188,8 +189,7 @@ extension RigidArray where Element: ~Copyable {
   /// in the source array, then this triggers a runtime error.
   ///
   /// - Parameters
-  ///    - items: A fully initialized buffer whose contents to move into
-  ///        the array.
+  ///    - items: A container whose contents to move into this array.
   ///
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
@@ -274,9 +274,9 @@ extension RigidArray {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   internal mutating func _append<
-    Source: Container<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
-    copyingContainer newElements: borrowing Source
+    copying newElements: borrowing Source
   ) {
     let target = _freeSpace
     _count += newElements._copyContents(intoPrefixOf: target)
@@ -284,10 +284,10 @@ extension RigidArray {
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a container to the end of this array.
+  /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
-  /// source iterable, then this triggers a runtime error.
+  /// source sequence, then this triggers a runtime error.
   ///
   /// - Parameters
   ///    - newElements: A container whose contents to copy into the array.
@@ -296,11 +296,11 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Container<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
-    _append(copyingContainer: newElements)
+    _append(copying: newElements)
   }
 #endif
 
@@ -326,10 +326,10 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a container to the end of this array.
+  /// Copies the elements of a borrowing sequence to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
-  /// source iterable, then this triggers a runtime error.
+  /// source sequence, then this triggers a runtime error.
   ///
   /// - Parameters
   ///    - newElements: The new elements to copy into the array.
@@ -338,9 +338,9 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Container<Element> & Sequence<Element>
+    Source: BorrowingSequence<Element> & Sequence<Element>
   >(copying newElements: Source) {
-    _append(copyingContainer: newElements)
+    _append(copying: newElements)
   }
 #endif
 }
