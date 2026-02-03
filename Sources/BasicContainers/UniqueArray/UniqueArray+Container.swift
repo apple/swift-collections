@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
+// Copyright (c) 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -21,27 +21,28 @@ import ContainersPreview
 extension RigidArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
   
-  @inlinable
+  @_alwaysEmitIntoClient
+  @inline(__always)
   public var estimatedCount: EstimatedCount {
-    .exactly(count)
+    self._storage.estimatedCount
   }
   
   @_alwaysEmitIntoClient
   @inline(__always)
   public func makeBorrowingIterator() -> BorrowingIterator {
-    self.span.makeBorrowingIterator()
+    self._storage.makeBorrowingIterator()
   }
 }
 #endif
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {
+extension UniqueArray: Container where Element: ~Copyable {
 }
 #endif
 
 @available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
+extension UniqueArray where Element: ~Copyable {
   /// Returns the position immediately after the given index.
   ///
   /// - Note: To improve performance, this method does not validate that the
@@ -162,7 +163,7 @@ extension RigidArray where Element: ~Copyable {
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
-    index._advance(by: &n, limitedBy: limit)
+    _storage.formIndex(&index, offsetBy: &n, limitedBy: limit)
   }
 
   /// Return a span over the array's storage that begins with the element at the given index,
@@ -190,12 +191,8 @@ extension RigidArray where Element: ~Copyable {
   public func nextSpan(
     after index: inout Int, maximumCount: Int
   ) -> Span<Element> {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
-    let start = index
-    index = start &+ Swift.min(maximumCount, _count &- start)
-    return _span(in: Range(uncheckedBounds: (start, index)))
+    _storage.nextSpan(after: &index, maximumCount: maximumCount)
   }
 }
 
 #endif
-

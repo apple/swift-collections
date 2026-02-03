@@ -33,6 +33,7 @@ target_sources(${module_name} PRIVATE
   "RigidArray/RigidArray+Replacements.swift"
   "UniqueArray/UniqueArray.swift"
   "UniqueArray/UniqueArray+Append.swift"
+  "UniqueArray/UniqueArray+Container.swift"
   "UniqueArray/UniqueArray+Experimental.swift"
   "UniqueArray/UniqueArray+Initializers.swift"
   "UniqueArray/UniqueArray+Insertions.swift"

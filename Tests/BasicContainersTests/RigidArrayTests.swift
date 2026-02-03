@@ -466,7 +466,7 @@ class RigidArrayTests: CollectionTestCase {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
         let a = tracker.rigidArray(layout: layout)
-        let b = a.copy()
+        let b = a.clone()
         expectEqual(b.count, layout.count)
         expectEqual(b.capacity, layout.count)
         expectEqual(tracker.instances, layout.count)
@@ -492,7 +492,7 @@ class RigidArrayTests: CollectionTestCase {
       ) { newCapacity in
         withLifetimeTracking { tracker in
           let a = tracker.rigidArray(layout: layout)
-          let b = a.copy(capacity: newCapacity)
+          let b = a.clone(capacity: newCapacity)
           expectEqual(b.count, layout.count)
           expectEqual(b.capacity, newCapacity)
           expectEqual(tracker.instances, layout.count)
