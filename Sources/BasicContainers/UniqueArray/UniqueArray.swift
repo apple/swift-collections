@@ -63,16 +63,9 @@ public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _storage: RigidArray<Element>
 
-  /// Initializes a new unique array with the specified capacity and no elements.
-  @inlinable
-  public init(capacity: Int) {
-    _storage = .init(capacity: capacity)
-  }
-
-  /// Initializes a new unique array with no elements.
-  @inlinable
-  public init() {
-    _storage = .init(capacity: 0)
+  @_alwaysEmitIntoClient
+  package init(_storage: consuming RigidArray<Element>) {
+    self._storage = _storage
   }
 }
 

@@ -18,6 +18,30 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Initializes a new rigid array with zero capacity and no elements.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public init() {
+    unsafe _storage = .init(start: nil, count: 0)
+    _count = 0
+  }
+  
+  /// Initializes a new rigid array with the specified capacity and no elements.
+  @inlinable
+  public init(capacity: Int) {
+    precondition(capacity >= 0, "Array capacity must be nonnegative")
+    if capacity > 0 {
+      unsafe _storage = .allocate(capacity: capacity)
+    } else {
+      unsafe _storage = .init(start: nil, count: 0)
+    }
+    _count = 0
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
   /// Creates a new array with the specified capacity, directly initializing
   /// its storage using an output span.
   ///

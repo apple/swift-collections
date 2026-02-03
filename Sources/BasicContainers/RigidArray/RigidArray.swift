@@ -91,26 +91,11 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
     unsafe _storage.extracting(0 ..< _count).deinitialize()
     unsafe _storage.deallocate()
   }
-
-  /// Initializes a new rigid array with the specified capacity and no elements.
-  @inlinable
-  public init(capacity: Int) {
-    precondition(capacity >= 0, "Array capacity must be nonnegative")
-    if capacity > 0 {
-      unsafe _storage = .allocate(capacity: capacity)
-    } else {
-      unsafe _storage = .init(start: nil, count: 0)
-    }
-    _count = 0
-  }
-
-  /// Initializes a new rigid array with zero capacity and no elements.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public init() {
-    unsafe _storage = .init(start: nil, count: 0)
-    _count = 0
+  
+  @_alwaysEmitIntoClient
+  package init(_storage: UnsafeMutableBufferPointer<Element>, count: Int) {
+    self._storage = _storage
+    self._count = count
   }
 }
 
