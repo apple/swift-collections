@@ -231,8 +231,8 @@ extension UniqueDeque {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  public func _clone() -> Self {
-    UniqueDeque(_storage: _storage._clone())
+  public func clone() -> Self {
+    UniqueDeque(_storage: _storage.clone())
   }
 
   /// Copy the contents of this deque into a newly allocated rigid deque
@@ -243,8 +243,8 @@ extension UniqueDeque {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  public func _clone(capacity: Int) -> Self {
-    UniqueDeque(_storage: _storage._clone(capacity: capacity))
+  public func clone(capacity: Int) -> Self {
+    UniqueDeque(_storage: _storage.clone(capacity: capacity))
   }
 }
 

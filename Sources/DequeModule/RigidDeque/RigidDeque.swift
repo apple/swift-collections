@@ -239,7 +239,7 @@ extension RigidDeque {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  public func _clone() -> Self {
+  public func clone() -> Self {
     RigidDeque(_handle: _handle.allocateCopy(capacity: count))
   }
 
@@ -251,7 +251,7 @@ extension RigidDeque {
   ///
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
-  public func _clone(capacity: Int) -> Self {
+  public func clone(capacity: Int) -> Self {
     RigidDeque(_handle: _handle.allocateCopy(capacity: capacity))
   }
 }
