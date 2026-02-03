@@ -76,8 +76,8 @@ extension UniqueArray: Sendable where Element: Sendable & ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
-  /// The maximum number of elements this array can hold without reallocating
-  /// its storage.
+  /// The maximum number of elements this array can hold without having to
+  /// reallocate its storage.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -387,12 +387,11 @@ extension UniqueArray {
   /// instance with just enough capacity to hold all its elements.
   ///
   /// - Complexity: O(`count`)
-  @inlinable
-  @inline(__always)
-  public func copy() -> Self {
-    UniqueArray(consuming: _storage.copy())
+  @_alwaysEmitIntoClient
+  public func clone() -> Self {
+    UniqueArray(consuming: _storage.clone())
   }
-
+  
   /// Copy the contents of this array into a newly allocated unique array
   /// instance with the specified capacity.
   ///
@@ -402,8 +401,31 @@ extension UniqueArray {
   /// - Complexity: O(`count`)
   @inlinable
   @inline(__always)
+  public func clone(capacity: Int) -> Self {
+    UniqueArray(consuming: _storage.clone(capacity: capacity))
+  }
+  
+  /// Copy the contents of this array into a newly allocated unique array
+  /// instance with just enough capacity to hold all its elements.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "clone()")
+  @inlinable
+  public func copy() -> Self {
+    self.clone()
+  }
+  
+  /// Copy the contents of this array into a newly allocated unique array
+  /// instance with the specified capacity.
+  ///
+  /// - Parameter capacity: The desired capacity of the resulting unique array.
+  ///    `capacity` must be greater than or equal to `count`.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "clone(capacity:)")
+  @inlinable
   public func copy(capacity: Int) -> Self {
-    UniqueArray(consuming: _storage.copy(capacity: capacity))
+    clone(capacity: capacity)
   }
 }
 

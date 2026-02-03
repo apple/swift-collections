@@ -470,11 +470,11 @@ extension RigidArray {
   /// instance with just enough capacity to hold all its elements.
   ///
   /// - Complexity: O(`count`)
-  @inlinable
-  public func copy() -> Self {
-    copy(capacity: count)
+  @_alwaysEmitIntoClient
+  public func clone() -> Self {
+    clone(capacity: self.count)
   }
-
+  
   /// Copy the contents of this array into a newly allocated rigid array
   /// instance with the specified capacity.
   ///
@@ -483,13 +483,36 @@ extension RigidArray {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public func copy(capacity: Int) -> Self {
+  public func clone(capacity: Int) -> Self {
     precondition(capacity >= count, "RigidArray capacity overflow")
     var result = RigidArray<Element>(capacity: capacity)
     let initialized = unsafe result._storage.initialize(fromContentsOf: _items)
     precondition(initialized == count)
     result._count = count
     return result
+  }
+  
+  /// Copy the contents of this array into a newly allocated rigid array
+  /// instance with just enough capacity to hold all its elements.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "clone()")
+  @inlinable
+  public func copy() -> Self {
+    clone()
+  }
+  
+  /// Copy the contents of this array into a newly allocated rigid array
+  /// instance with the specified capacity.
+  ///
+  /// - Parameter capacity: The desired capacity of the resulting rigid array.
+  ///    `capacity` must be greater than or equal to `count`.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "clone(capacity:)")
+  @inlinable
+  public func copy(capacity: Int) -> Self {
+    clone(capacity: capacity)
   }
 }
 
