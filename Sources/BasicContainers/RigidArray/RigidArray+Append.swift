@@ -61,6 +61,37 @@ extension RigidArray where Element: ~Copyable {
   /// the buffer, then this triggers a runtime error.
   ///
   /// - Parameters
+  ///    - uninitializedCount: The number of items to append to the array.
+  ///    - body: A callback that gets called precisely once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `uninitializedCount` items.
+  ///       The array is appended however many items the callback adds to
+  ///       the output span before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`uninitializedCount`)
+  @_alwaysEmitIntoClient
+  public mutating func append<E: Error>(
+    addingCapacity uninitializedCount: Int,
+    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    precondition(uninitializedCount >= 0, "Negative count")
+    precondition(freeCapacity >= uninitializedCount, "RigidArray capacity overflow")
+    let buffer = _freeSpace._extracting(first: uninitializedCount)
+    var span = OutputSpan(buffer: buffer, initializedCount: 0)
+    defer {
+      _count &+= span.finalize(for: buffer)
+      span = OutputSpan()
+    }
+    return try body(&span)
+  }
+  
+  /// Append a given number of items to the end of this array by populating
+  /// an output span.
+  ///
+  /// If the array does not have sufficient capacity to store the new items in
+  /// the buffer, then this triggers a runtime error.
+  ///
+  /// - Parameters
   ///    - count: The number of items to append to the array.
   ///    - body: A callback that gets called precisely once to directly
   ///       populate newly reserved storage within the array. The function
@@ -69,21 +100,18 @@ extension RigidArray where Element: ~Copyable {
   ///       before it returns (or before it throws an error).
   ///
   /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "append(addingCapacity:initializingWith:)")
   @_alwaysEmitIntoClient
+  @inline(__always)
   public mutating func append<E: Error, Result: ~Copyable>(
     count: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
   ) throws(E) -> Result {
-    // FIXME: This is extremely similar to `edit()`, except it provides a narrower span.
-    precondition(count >= 0, "Negative count")
-    precondition(freeCapacity >= count, "RigidArray capacity overflow")
-    let buffer = _freeSpace._extracting(first: count)
-    var span = OutputSpan(buffer: buffer, initializedCount: 0)
-    defer {
-      _count &+= span.finalize(for: buffer)
-      span = OutputSpan()
+    var result: Result? = nil
+    try append(addingCapacity: count) { target throws(E) in
+      result = try body(&target)
     }
-    return try body(&span)
+    return result.take()!
   }
 }
 

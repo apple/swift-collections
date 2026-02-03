@@ -18,15 +18,13 @@ import ContainersPreview
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: BorrowingSequence where Element: ~Copyable {
-  public typealias BorrowingIterator = Span<Element>.BorrowingIterator
+extension UniqueArray: BorrowingSequence where Element: ~Copyable {
+  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
   
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public var estimatedCount: EstimatedCount {
-    self._storage.estimatedCount
+  public var estimatedCount: ContainersPreview.EstimatedCount {
+    .exactly(count)
   }
-  
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public func makeBorrowingIterator() -> BorrowingIterator {
@@ -40,6 +38,92 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
 extension UniqueArray: Container where Element: ~Copyable {
 }
 #endif
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: ~Copyable {
+  /// A Boolean value indicating whether this array contains no elements.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var isEmpty: Bool { _storage.isEmpty }
+
+  /// The number of elements in this array.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var count: Int { _storage.count }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: ~Copyable {
+  /// A type that represents a position in the array: an integer offset from the
+  /// start.
+  ///
+  /// Valid indices consist of the position of every element and a "past the
+  /// end” position that’s not valid for use as a subscript argument.
+  public typealias Index = Int
+
+  /// The position of the first element in a nonempty array. This is always zero.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var startIndex: Int { _storage.startIndex }
+
+  /// The array’s "past the end” position—that is, the position one greater than
+  /// the last valid subscript argument. This is always equal to array's count.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var endIndex: Int { _storage.count }
+
+  /// The range of indices that are valid for subscripting the array.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  @inline(__always)
+  public var indices: Range<Int> { _storage.indices }
+
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///     The position must be a valid index of the array that is not equal
+  ///     to the `endIndex` property.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    unsafeAddress {
+      _storage._ptr(to: position)
+    }
+    @inline(__always)
+    unsafeMutableAddress {
+      _storage._mutablePtr(to: position)
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: ~Copyable {
+  /// Exchanges the values at the specified indices of the array.
+  ///
+  /// Both parameters must be valid indices of the array and not equal to
+  /// endIndex. Passing the same index as both `i` and `j` has no effect.
+  ///
+  /// - Parameter i: The index of the first value to swap.
+  /// - Parameter j: The index of the second valud to swap.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public mutating func swapAt(_ i: Int, _ j: Int) {
+    _storage.swapAt(i, j)
+  }
+}
+
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
@@ -86,6 +170,20 @@ extension UniqueArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   public func formIndex(after index: inout Int) { index += 1 }
+
+  /// Replaces the given index with its predecessor.
+  ///
+  /// - Note: To improve performance, this method does not validate that the
+  ///    given index is valid before decrementing it. Index validation is
+  ///    deferred until the resulting index is used to access an element.
+  ///    This optimization may be removed in future versions; do not rely on it.
+  ///
+  /// - Parameter index: A valid index of the array. `i` must be greater than
+  ///     `startIndex`.
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(before index: inout Int) { index -= 1 }
 
   /// Returns an index that is the specified distance from the given index.
   ///
