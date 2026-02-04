@@ -196,7 +196,7 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
-  /// This method calls its function argument precisely once, allowing it to
+  /// This method calls its function argument at most once, allowing it to
   /// arbitrarily modify the contents of the output span it is given.
   /// The argument is free to add, remove or reorder any items; however,
   /// it is not allowed to replace the span or change its capacity.
@@ -207,7 +207,7 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Parameter body: A function that edits the contents of this array through
   ///    an `OutputSpan` argument. This method invokes this function
-  ///    precisely once.
+  ///    at most once.
   /// - Returns: This method returns the result of its function argument.
   /// - Complexity: Adds O(1) overhead to the complexity of the function
   ///    argument.

@@ -38,7 +38,7 @@ extension UniqueArray where Element: ~Copyable {
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new array.
-  ///   - body: A callback that gets called precisely once to directly
+  ///   - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to add fewer than `capacity` items. The array is
   ///       initialized with however many items the callback adds to the

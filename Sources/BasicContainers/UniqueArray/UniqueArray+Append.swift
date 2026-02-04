@@ -45,7 +45,7 @@ extension UniqueArray where Element: ~Copyable {
   ///
   /// - Parameters
   ///    - count: The number of items to append to the array.
-  ///    - body: A callback that gets called precisely once to directly
+  ///    - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to initialize fewer than `count` items. The array is
   ///       appended however many items the callback adds to the output span

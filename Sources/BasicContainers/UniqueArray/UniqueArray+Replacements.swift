@@ -43,7 +43,7 @@ extension UniqueArray where Element: ~Copyable {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///      the range must be valid indices in the array.
   ///   - newCount: the number of items to replace the old subrange.
-  ///   - body: A callback that gets called precisely once to directly
+  ///   - body: A callback that gets called at most once to directly
   ///      populate newly reserved storage within the array. The function
   ///      is called with an empty output span of capacity `newCount`,
   ///      and it must fully populate it before returning.

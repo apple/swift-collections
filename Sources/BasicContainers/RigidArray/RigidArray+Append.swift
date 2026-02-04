@@ -62,7 +62,7 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Parameters
   ///    - uninitializedCount: The number of items to append to the array.
-  ///    - body: A callback that gets called precisely once to directly
+  ///    - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to initialize fewer than `uninitializedCount` items.
   ///       The array is appended however many items the callback adds to
@@ -91,9 +91,13 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to store the new items in
   /// the buffer, then this triggers a runtime error.
   ///
+  /// If the callback fails to fully populate its output span or if
+  /// it throws an error, then the items that were successfully initialized
+  /// still get appended to the end of the array.
+  ///
   /// - Parameters
   ///    - count: The number of items to append to the array.
-  ///    - body: A callback that gets called precisely once to directly
+  ///    - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to initialize fewer than `count` items. The array is
   ///       appended however many items the callback adds to the output span
