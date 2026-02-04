@@ -69,7 +69,7 @@ extension UniqueDeque where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Subrange out of bounds")
-    precondition(maximumCount >= 0, "Can't insert a negative number of items")
+    precondition(maximumCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(maximumCount - subrange.count)
     try _storage._handle.uncheckedReplaceSubrange(
       subrange,
@@ -136,7 +136,7 @@ extension UniqueDeque where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Subrange out of bounds")
-    precondition(maximumCount >= 0, "Can't insert a negative number of items")
+    precondition(maximumCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(maximumCount - subrange.count)
     try _storage._handle.uncheckedReplaceSubrange(
       subrange,

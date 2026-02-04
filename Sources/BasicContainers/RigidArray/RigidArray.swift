@@ -460,7 +460,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= _count,
       "Index range out of bounds")
-    precondition(newCount >= 0, "Negative count")
+    precondition(newCount >= 0, "Cannot add a negative number of items")
     precondition(
       newCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")

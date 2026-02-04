@@ -1385,7 +1385,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(
       subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Subrange out of bounds")
-    assert(newCount >= 0, "Negative count")
+    assert(newCount >= 0, "Cannot add a negative number of items")
     assert(count + newCount - subrange.count <= capacity, "RigidDeque capacity overflow")
     self.mutableSegments(forOffsets: subrange).deinitialize()
     try _insertAfterReplace(subrange, newCount: newCount, initializingWith: initializer)
@@ -1402,7 +1402,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     assert(
       subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Subrange out of bounds")
-    assert(newCount >= 0, "Negative count")
+    assert(newCount >= 0, "Cannot add a negative number of items")
     assert(count + newCount - subrange.count <= capacity, "RigidDeque capacity overflow")
     do {
       let removed = self.mutableSegments(forOffsets: subrange)

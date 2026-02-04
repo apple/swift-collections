@@ -40,12 +40,12 @@ extension TestContext {
   }
 
   public static func push(_ context: TestContext) {
-    precondition(_current == nil, "Can't nest test contexts")
+    precondition(_current == nil, "Cannot nest test contexts")
     _current = context
   }
 
   public static func pop(_ context: TestContext) {
-    precondition(_current === context, "Can't pop mismatching context")
+    precondition(_current === context, "Cannot pop mismatching context")
     _current = nil
   }
 }

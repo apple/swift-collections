@@ -103,7 +103,7 @@ extension UniqueDeque where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     precondition(index >= 0 && index <= self.count, "Index out of bounds")
-    precondition(maximumCount >= 0, "Cannot insert a negative number of items")
+    precondition(maximumCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(maximumCount)
     try _storage._handle.uncheckedInsert(
       maximumCount: maximumCount, at: index, initializingWith: body)

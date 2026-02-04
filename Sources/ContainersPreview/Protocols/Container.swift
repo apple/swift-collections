@@ -205,7 +205,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &i, maximumCount: distance)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       distance &-= span.count
     }
     return i
@@ -222,7 +222,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &j)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       guard span.count <= distance else { break }
       i = j
       distance &-= span.count
@@ -261,7 +261,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &j, maximumCount: distance)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       if j > limit {
         break
       }
@@ -284,7 +284,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &j)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       guard span.count <= distance, j < limit else {
         break
       }

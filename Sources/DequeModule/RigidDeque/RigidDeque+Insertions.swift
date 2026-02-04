@@ -99,7 +99,7 @@ extension RigidDeque where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     precondition(index >= 0 && index <= self.count, "Index out of bounds")
-    precondition(maximumCount >= 0, "Cannot insert a negative number of items")
+    precondition(maximumCount >= 0, "Cannot add a negative number of items")
     precondition(maximumCount <= freeCapacity, "RigidDeque capacity overflow")
     try _handle.uncheckedInsert(
       maximumCount: maximumCount, at: index, initializingWith: body)

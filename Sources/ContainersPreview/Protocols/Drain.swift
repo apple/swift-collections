@@ -203,7 +203,7 @@ extension Drain where Self: ~Copyable & ~Escapable {
   public mutating func skip(
     upTo n: inout Int
   ) throws(ProducerError) -> Bool {
-    precondition(n >= 0, "Can't skip a negative number of elements")
+    precondition(n >= 0, "Cannot skip a negative number of elements")
     guard n > 0 else { return true }
     let span = drainNext(maximumCount: n)
     let success = span.count > 0

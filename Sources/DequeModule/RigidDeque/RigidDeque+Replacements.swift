@@ -136,7 +136,7 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= count,
       "Subrange out of bounds")
-    precondition(maximumCount >= 0, "Can't insert a negative number of items")
+    precondition(maximumCount >= 0, "Cannot add a negative number of items")
     precondition(
       count - subrange.count + maximumCount <= capacity,
       "RigidDeque capacity overflow")

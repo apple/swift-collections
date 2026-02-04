@@ -335,7 +335,7 @@ extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
   public mutating func removeFirst(_ k: Int) {
-    precondition(k >= 0, "Can't remove a negative number of elements")
+    precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= _count, "InputSpan underflow")
     unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: 0

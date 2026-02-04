@@ -124,7 +124,7 @@ extension _MinimalCollectionCore {
   func index(after index: MinimalIndex) -> MinimalIndex {
     assertValidIndex(index)
     expectTrue(index._offset < count,
-               "Can't advance beyond endIndex",
+               "Cannot advance beyond endIndex",
                trapping: true)
     return self.index(at: index._offset + 1)
   }
@@ -132,7 +132,7 @@ extension _MinimalCollectionCore {
   func index(before index: MinimalIndex) -> MinimalIndex {
     assertValidIndex(index)
     expectTrue(index._offset > 0,
-               "Can't advance before startIndex",
+               "Cannot advance before startIndex",
                trapping: true)
     return self.index(at: index._offset - 1)
   }
@@ -140,7 +140,7 @@ extension _MinimalCollectionCore {
   func formIndex(after index: inout MinimalIndex) {
     assertValidIndex(index)
     expectTrue(index._offset < count,
-               "Can't advance beyond endIndex",
+               "Cannot advance beyond endIndex",
                trapping: true)
     index._offset += 1
   }
@@ -148,7 +148,7 @@ extension _MinimalCollectionCore {
   func formIndex(before index: inout MinimalIndex) {
     assertValidIndex(index)
     expectTrue(index._offset > 0,
-               "Can't advance before startIndex",
+               "Cannot advance before startIndex",
                trapping: true)
     index._offset -= 1
   }
@@ -165,10 +165,10 @@ extension _MinimalCollectionCore {
   ) -> MinimalIndex {
     assertValidIndex(index)
     expectTrue(index._offset + n >= 0,
-               "Can't advance before startIndex",
+               "Cannot advance before startIndex",
                trapping: true)
     expectTrue(index._offset + n <= count,
-               "Can't advance after endIndex",
+               "Cannot advance after endIndex",
                trapping: true)
     return self.index(at: index._offset + n)
   }
@@ -291,7 +291,7 @@ extension _MinimalCollectionCore {
   mutating func removeFirst() -> Element {
     expectTrue(
       count > 0,
-      "Can't remove first element of an empty collection",
+      "Cannot remove first element of an empty collection",
       trapping: true)
     ensureUniqueState()
     state.remove(count: 1, at: 0)
@@ -301,11 +301,11 @@ extension _MinimalCollectionCore {
   mutating func removeFirst(_ n: Int) {
     expectTrue(
       n >= 0,
-      "Can't remove a negative number of elements",
+      "Cannot remove a negative number of elements",
       trapping: true)
     expectTrue(
       n <= count,
-      "Can't remove more elements than there are in the collection",
+      "Cannot remove more elements than there are in the collection",
       trapping: true)
     ensureUniqueState()
     state.remove(count: n, at: 0)
@@ -315,7 +315,7 @@ extension _MinimalCollectionCore {
   public mutating func _customRemoveLast() -> Element? {
     expectTrue(
       !isEmpty,
-      "Can't remove last element of an empty collection",
+      "Cannot remove last element of an empty collection",
       trapping: true)
     ensureUniqueState()
     state.remove(count: 1, at: state.count)
@@ -325,11 +325,11 @@ extension _MinimalCollectionCore {
   public mutating func _customRemoveLast(_ n: Int) -> Bool {
     expectTrue(
       n >= 0,
-      "Can't remove a negative number of elements",
+      "Cannot remove a negative number of elements",
       trapping: true)
     expectTrue(
       count >= n,
-      "Can't remove more elements than there are in the collection",
+      "Cannot remove more elements than there are in the collection",
       trapping: true)
     elements.removeLast(n)
     ensureUniqueState()

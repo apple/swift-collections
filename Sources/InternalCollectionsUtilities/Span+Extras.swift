@@ -16,7 +16,7 @@ extension Span where Element: ~Copyable {
   @_lifetime(copy self)
   @_alwaysEmitIntoClient
   package mutating func _trim(first maxLength: Int) -> Self {
-    precondition(maxLength >= 0, "Can't have a prefix of negative length")
+    precondition(maxLength >= 0, "Cannot have a prefix of negative length")
     let cut = Swift.min(maxLength, count)
     guard cut > 0 else { return .init() }
     let result = self.extracting(first: cut)
@@ -27,7 +27,7 @@ extension Span where Element: ~Copyable {
   @_lifetime(copy self)
   @_alwaysEmitIntoClient
   package mutating func _trim(last maxLength: Int) -> Self {
-    precondition(maxLength >= 0, "Can't have a suffix of negative length")
+    precondition(maxLength >= 0, "Cannot have a suffix of negative length")
     let cut = Swift.min(maxLength, count)
     guard cut > 0 else { return .init() }
     let result = self.extracting(last: cut)
