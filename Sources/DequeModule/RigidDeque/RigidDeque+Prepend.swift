@@ -97,20 +97,20 @@ extension RigidDeque where Element: ~Copyable {
   ///     // `buffer` now contains [0, 1, 2, 3, 999]
   ///
   /// - Parameters
-  ///    - maximumCount: The maximum number of items to prepend to the deque.
+  ///    - newItemCount: The maximum number of items to prepend to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque.
   ///
-  /// - Complexity: O(`maximumCount`) in addition to the complexity of the callback
+  /// - Complexity: O(`newItemCount`) in addition to the complexity of the callback
   ///    invocations.
   @_alwaysEmitIntoClient
   public mutating func prepend<E: Error>(
-    maximumCount: Int,
+    addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(maximumCount >= 0, "Cannot prepend a negative number of items")
-    precondition(freeCapacity >= maximumCount, "RigidDeque capacity overflow")
-    try _handle.uncheckedPrepend(maximumCount: maximumCount, initializingWith: body)
+    precondition(newItemCount >= 0, "Cannot prepend a negative number of items")
+    precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
+    try _handle.uncheckedPrepend(addingCount: newItemCount, initializingWith: body)
   }
 }
 
@@ -214,7 +214,7 @@ extension RigidDeque where Element: ~Copyable {
     from producer: inout P
   ) throws(P.ProducerError) {
     try self.prepend(
-      maximumCount: maximumCount ?? freeCapacity
+      addingCount: maximumCount ?? freeCapacity
     ) { target throws(P.ProducerError) in
       try producer.generate(into: &target)
     }
@@ -307,7 +307,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     exactCount: Int
   ) {
     var it = items.makeBorrowingIterator()
-    self.prepend(maximumCount: exactCount) { target in
+    self.prepend(addingCount: exactCount) { target in
       let span = it.nextSpan(maximumCount: target.freeCapacity)
       target._append(copying: span)
     }

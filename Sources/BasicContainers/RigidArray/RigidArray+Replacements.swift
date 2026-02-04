@@ -22,6 +22,87 @@ extension RigidArray where Element: ~Copyable {
   /// using a callback to directly initialize array storage by populating
   /// an output span.
   ///
+  /// The number of new items need not match the number of elements being
+  /// removed.
+  ///
+  /// This method has the same overall effect as calling
+  ///
+  ///     try array.removeSubrange(subrange)
+  ///     try array.insert(
+  ///       addingCount: newItemCount,
+  ///       at: subrange.lowerBound,
+  ///       initializingWith: initializer)
+  ///
+  /// Except it performs faster (by a constant factor), by avoiding moving
+  /// some items in the array twice.
+  ///
+  /// If the array does not have sufficient capacity to accommodate the new
+  /// elements, then this method triggers a runtime error.
+  ///
+  /// If the callback fails to fully populate its output span or if
+  /// it throws an error, then the array keeps all items that were
+  /// successfully initialized before the callback terminated the prepend.
+  ///
+  /// Partial insertions create a gap in array storage that needs to be
+  /// closed by moving newly inserted items to their correct positions given
+  /// the adjusted count. This adds some overhead compared to adding exactly as
+  /// many items as promised.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the array to replace. The bounds of
+  ///      the range must be valid indices in the array.
+  ///   - newItemCount: the maximum number of items to replace the old subrange.
+  ///   - initializer: A callback that gets called at most once to directly
+  ///      populate newly reserved storage within the array. The function
+  ///      is always called with an empty output span.
+  ///
+  /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
+  ///    of the callback invocations.
+  @inlinable
+  public mutating func replaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
+      "Index range out of bounds")
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(
+      newItemCount - subrange.count <= freeCapacity,
+      "RigidArray capacity overflow")
+    try _uncheckedReplaceSubrange(
+      subrange,
+      addingCount: newItemCount,
+      initializingWith: initializer)
+  }
+
+  @_alwaysEmitIntoClient
+  internal mutating func _uncheckedReplaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    // Destroy removed items
+    unsafe _items.extracting(subrange).deinitialize()
+    let target = _resizeGap(in: subrange, to: newItemCount)
+    var span = OutputSpan(buffer: target, initializedCount: 0)
+    defer {
+      let c = span.finalize(for: target)
+      if c < newItemCount {
+        self._closeGap(
+          at: subrange.lowerBound &+ c,
+          count: capacity &- c)
+      }
+      span = OutputSpan()
+    }
+    try initializer(&span)
+  }
+
+  /// Replaces the specified range of elements by a given count of new items,
+  /// using a callback to directly initialize array storage by populating
+  /// an output span.
+  ///
   /// This method has the effect of removing the specified range of elements
   /// from the array and inserting room for the new elements starting at the
   /// same location. The number of new elements need not match the number
@@ -42,31 +123,131 @@ extension RigidArray where Element: ~Copyable {
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///      the range must be valid indices in the array.
   ///   - newCount: the number of items to replace the old subrange.
-  ///   - body: A callback that gets called at most once to directly
+  ///   - body: A callback that gets called exactly once to directly
   ///      populate newly reserved storage within the array. The function
   ///      is called with an empty output span of capacity `newCount`,
   ///      and it must fully populate it before returning.
   ///
   /// - Complexity: O(`self.count` + `newCount`)
+  @available(*, deprecated, renamed: "replaceSubrange(_:addingCapacity:initializingWith:)")
   @inlinable
   public mutating func replaceSubrange<Result: ~Copyable>(
     _ subrange: Range<Int>,
     newCount: Int,
     initializingWith body: (inout OutputSpan<Element>) -> Result
   ) -> Result {
-    // FIXME: Should we allow throwing (and a partially filled output span)?
-    // FIXME: Should we have a version of this with two closures, to allow custom-consuming the old items?
-    // replaceSubrange(5..<10, newCount: 3, consumingWith: {...}, initializingWith: {...})
-    let target = _gapForReplacement(of: subrange, withNewCount: newCount)
-    var span = OutputSpan(buffer: target, initializedCount: 0)
-    defer {
-      let c = span.finalize(for: target)
-      precondition(c == newCount, "Inserted fewer items than promised")
-      span = OutputSpan()
+    var result: Result? = nil
+    self.replaceSubrange(subrange, addingCount: newCount) { target in
+      result = body(&target)
     }
-    return body(&span)
+    return result!
   }
 }
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  /// Replaces the specified range of elements by a given count of new items,
+  /// using callbacks to consume old items, and to then insert new ones.
+  ///
+  /// The number of new items need not match the number of elements being
+  /// removed.
+  ///
+  /// This method has the same overall effect as calling
+  ///
+  ///     try array.consume(subrange, consumingWith: consumer)
+  ///     try array.insert(
+  ///       addingCount: newItemCount,
+  ///       at: subrange.lowerBound,
+  ///       initializingWith: initializer)
+  ///
+  /// Except it performs faster (by a constant factor), by avoiding moving
+  /// some items in the deque twice.
+  ///
+  /// If the capacity of the array isn't sufficient to accommodate the specified
+  /// number of new elements, then this method triggers a runtime error.
+  ///
+  /// The `consumer` callback is not required to fully depopulate its input
+  /// span. Any items the callback leaves in the span still get removed and
+  /// discarded from the array before insertions begin.
+  ///
+  /// The `initializer` callback is not required to fully populate its
+  /// output span, and it is allowed to throw an error. In such cases, the
+  /// deque keeps all items that were successfully initialized before the
+  /// callback terminated.
+  ///
+  /// Partial insertions create a gap in array storage that needs to be
+  /// closed by moving newly inserted items to their correct positions given
+  /// the adjusted count. This adds some overhead compared to adding exactly as
+  /// many items as promised.
+  ///
+  /// - Parameters
+  ///   - subrange: The subrange of the deque to replace. The bounds of
+  ///      the range must be valid indices in the deque.
+  ///   - newItemCount: the maximum number of items to replace the old subrange.
+  ///   - consumer: A callback that gets called at most once to consume
+  ///      the elements to be removed directly from the deque's storage. The
+  ///      function is always called with a non-empty input span.
+  ///   - initializer: A callback that gets called at most once to directly
+  ///      populate newly reserved storage within the deque. The function
+  ///      is always called with an empty output span.
+  ///
+  /// - Complexity: O(`self.count` + `newItemCount`) in addition to the
+  ///    complexity of the callback invocations.
+  @inlinable
+  public mutating func replaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    addingCount newItemCount: Int,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
+      "Index range out of bounds")
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(
+      newItemCount - subrange.count <= freeCapacity,
+      "RigidArray capacity overflow")
+    try _uncheckedReplaceSubrange(
+      subrange,
+      addingCount: newItemCount,
+      consumingWith: consumer,
+      initializingWith: initializer)
+  }
+
+  @_alwaysEmitIntoClient
+  internal mutating func _uncheckedReplaceSubrange<E: Error>(
+    _ subrange: Range<Int>,
+    addingCount newItemCount: Int,
+    consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) -> Void {
+    do {
+      // Consume items to be removed
+      let buffer = unsafe _storage.extracting(subrange)
+      var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
+      consumer(&span)
+      _ = consume span
+    }
+    do {
+      // Insert new items
+      let target = _resizeGap(in: subrange, to: newItemCount)
+      var span = OutputSpan(buffer: target, initializedCount: 0)
+      defer {
+        let c = span.finalize(for: target)
+        if c < newItemCount {
+          self._closeGap(
+            at: subrange.lowerBound &+ c,
+            count: capacity &- c)
+        }
+        span = OutputSpan()
+      }
+      try initializer(&span)
+    }
+  }
+#endif
+}
+
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
@@ -103,7 +284,7 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, newCount: newElements.count) { target in
+    replaceSubrange(subrange, addingCount: newElements.count) { target in
       target._withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._moveInitializePrefix(from: newElements)
       }
@@ -303,7 +484,7 @@ extension RigidArray {
     _ subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, newCount: newElements.count) { target in
+    replaceSubrange(subrange, addingCount: newElements.count) { target in
       target._withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._initializePrefix(copying: newElements)
       }
@@ -392,7 +573,7 @@ extension RigidArray {
     copyingContainer newElements: borrowing C,
     newCount: Int
   ) {
-    self.replaceSubrange(subrange, newCount: newCount) { target in
+    self.replaceSubrange(subrange, addingCapacity: newCount) { target in
       target.withUnsafeMutableBufferPointer { buffer, count in
         count = newElements._copyContents(intoPrefixOf: buffer)
         precondition(
@@ -410,7 +591,7 @@ extension RigidArray {
     copyingCollection newElements: __owned some Collection<Element>,
     newCount: Int
   ) {
-    self.replaceSubrange(subrange, newCount: newCount) { target in
+    self.replaceSubrange(subrange, addingCount: newCount) { target in
       target._withUnsafeMutableBufferPointer { dst, dstCount in
         let done: Void? = newElements.withContiguousStorageIfAvailable { src in
           let i = unsafe dst._initializePrefix(copying: src)

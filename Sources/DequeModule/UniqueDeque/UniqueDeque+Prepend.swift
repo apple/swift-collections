@@ -95,7 +95,7 @@ extension UniqueDeque where Element: ~Copyable {
     guard maximumCount > 0 else { return }
     _ensureFreeCapacity(maximumCount)
     try _storage._handle.uncheckedPrepend(
-      maximumCount: maximumCount, initializingWith: body)
+      addingCount: maximumCount, initializingWith: body)
   }
 }
 
@@ -209,7 +209,7 @@ extension UniqueDeque where Element: ~Copyable {
     if let maximumCount {
       _ensureFreeCapacity(maximumCount)
       try _storage._handle.uncheckedPrepend(
-        maximumCount: maximumCount
+        addingCount: maximumCount
       ) { target throws(P.ProducerError) in
         while !target.isFull, try producer.generate(into: &target) {
           // Do nothing

@@ -55,10 +55,10 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public init<E: Error>(
     capacity: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     self.init(capacity: capacity)
-    try edit(body)
+    try edit(initializer)
   }
 }
 

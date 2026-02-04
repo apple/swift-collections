@@ -445,6 +445,32 @@ extension RigidArray where Element: ~Copyable {
       Range(uncheckedBounds: (index, index + count)))
   }
   
+  /// Resize the gap in the given subrange to have the specified count.
+  /// This operation moves elements following the gap to be at their expected
+  /// new location, and it adjusts the container's count to reflect the change.
+  ///
+  /// - Returns: A buffer pointer addressing the newly opened gap, to be
+  ///     initialized by the caller.
+  @inlinable
+  @unsafe
+  internal mutating func _resizeGap(
+    in subrange: Range<Int>, to newItemCount: Int
+  ) -> UnsafeMutableBufferPointer<Element> {
+    assert(subrange.lowerBound >= 0 && subrange.upperBound <= _count)
+    assert(newItemCount >= 0 && newItemCount - subrange.count <= freeCapacity)
+    if newItemCount > subrange.count {
+      _ = unsafe _openGap(
+        at: subrange.upperBound, count: newItemCount - subrange.count)
+    } else if newItemCount < subrange.count {
+      _closeGap(
+        at: subrange.lowerBound + newItemCount, count: subrange.count - newItemCount)
+    }
+    _count += newItemCount - subrange.count
+    let gapRange = unsafe Range(
+      uncheckedBounds: (subrange.lowerBound, subrange.lowerBound + newItemCount))
+    return unsafe _storage.extracting(gapRange)
+  }
+  
   /// Perform a range replacement up to populating the newly opened gap. This
   /// deinitializes existing elements in the specified subrange, rearranges
   /// following elements to be at their final location, and sets the container's
@@ -452,30 +478,21 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Returns: A buffer pointer addressing the newly opened gap, to be
   ///     initialized by the caller.
-  @inlinable
+  @available(*, deprecated) // FIXME: Obsolete, remove this
+  @usableFromInline
   @unsafe
   internal mutating func _gapForReplacement(
-    of subrange: Range<Int>, withNewCount newCount: Int
+    of subrange: Range<Int>, newItemCount: Int
   ) -> UnsafeMutableBufferPointer<Element> {
     precondition(
       subrange.lowerBound >= 0 && subrange.upperBound <= _count,
       "Index range out of bounds")
-    precondition(newCount >= 0, "Cannot add a negative number of items")
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(
-      newCount - subrange.count <= freeCapacity,
+      newItemCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")
     unsafe _items.extracting(subrange).deinitialize()
-    if newCount > subrange.count {
-      _ = unsafe _openGap(
-        at: subrange.upperBound, count: newCount - subrange.count)
-    } else if newCount < subrange.count {
-      _closeGap(
-        at: subrange.lowerBound + newCount, count: subrange.count - newCount)
-    }
-    _count += newCount - subrange.count
-    let gapRange = unsafe Range(
-      uncheckedBounds: (subrange.lowerBound, subrange.lowerBound + newCount))
-    return unsafe _storage.extracting(gapRange)
+    return _resizeGap(in: subrange, to: newItemCount)
   }
 }
 

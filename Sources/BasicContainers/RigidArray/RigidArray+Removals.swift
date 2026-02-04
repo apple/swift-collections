@@ -181,7 +181,7 @@ extension RigidArray where Element: ~Copyable {
   /// passing an input span to the given function to consume them in place.
   ///
   /// - Parameter bounds: The subrange of items to consume from this array.
-  /// - Parameter body: A function taking an input span of the removed items,
+  /// - Parameter consumer: A function taking an input span of the removed items,
   ///    allowing them to be consumed straight out of the array's storage.
   ///    The function is not required to consume all items in the span;
   ///    however, the span's remaining items will still be removed from
@@ -191,14 +191,14 @@ extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func consumeSubrange<E: Error, Result: ~Copyable>(
     _ bounds: Range<Int>,
-    consumingWith body: (inout InputSpan<Element>) throws(E) -> Result
+    consumingWith consumer: (inout InputSpan<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     precondition(
       bounds.lowerBound >= 0 && bounds.upperBound <= _count,
       "Subrange out of bounds")
     guard !bounds.isEmpty else {
       var span = InputSpan<Element>()
-      return try body(&span)
+      return try consumer(&span)
     }
     let buffer = unsafe _storage.extracting(bounds)
     var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
@@ -209,7 +209,7 @@ extension RigidArray where Element: ~Copyable {
       _count -= bounds.count
       span = InputSpan()
     }
-    return try body(&span)
+    return try consumer(&span)
   }
 }
 #endif

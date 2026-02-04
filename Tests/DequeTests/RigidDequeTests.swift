@@ -612,7 +612,7 @@ final class RigidDequeTests: CollectionTestCase {
           data.contents.insert(contentsOf: extras, at: 0)
           
           var i = 0
-          data.deque.prepend(maximumCount: prependCount) { target in
+          data.deque.prepend(addingCount: prependCount) { target in
             while !target.isFull {
               target.append(extras[i])
               i += 1
@@ -660,7 +660,7 @@ final class RigidDequeTests: CollectionTestCase {
           data.contents.insert(contentsOf: extras, at: 0)
           
           var i = 0
-          data.deque.prepend(maximumCount: layout.freeCapacity) { target in
+          data.deque.prepend(addingCount: layout.freeCapacity) { target in
             while !target.isFull, i < prependCount {
               target.append(extras[i])
               i += 1
@@ -711,7 +711,7 @@ final class RigidDequeTests: CollectionTestCase {
           expectThrows { () throws(TestError) in
             var i = 0
             try data.deque.prepend(
-              maximumCount: layout.freeCapacity
+              addingCount: layout.freeCapacity
             ) { target throws(TestError) in
               while !target.isFull, i < prependCount {
                 target.append(extras[i])
@@ -1093,7 +1093,7 @@ final class RigidDequeTests: CollectionTestCase {
             data.contents.insert(contentsOf: extras, at: i)
             
             var j = 0
-            data.deque.insert(maximumCount: c, at: i) { target in
+            data.deque.insert(addingCount: c, at: i) { target in
               expectLessThanOrEqual(target.count, extras.count - j)
               while !target.isFull {
                 target.append(extras[j])
@@ -1122,7 +1122,7 @@ final class RigidDequeTests: CollectionTestCase {
             data.contents.insert(contentsOf: extras, at: i)
             
             var j = 0
-            data.deque.insert(maximumCount: layout.freeCapacity, at: i) { target in
+            data.deque.insert(addingCount: layout.freeCapacity, at: i) { target in
               while !target.isFull, j < c {
                 target.append(extras[j])
                 j += 1
@@ -1151,7 +1151,7 @@ final class RigidDequeTests: CollectionTestCase {
             expectThrows { () throws(TestError) in
               var j = 0
               try data.deque.insert(
-                maximumCount: layout.freeCapacity,
+                addingCount: layout.freeCapacity,
                 at: i
               ) { target throws(TestError) in
                 while !target.isFull, j < c {
@@ -1193,7 +1193,7 @@ final class RigidDequeTests: CollectionTestCase {
             }
             
             data.deque.insert(
-              maximumCount: layout.freeCapacity,
+              addingCount: layout.freeCapacity,
               from: &producer,
               at: i)
             expectEqual(extras.count, max(0, c - layout.freeCapacity))
@@ -1225,7 +1225,7 @@ final class RigidDequeTests: CollectionTestCase {
             
             expectThrows { () throws(TestError) in
               try data.deque.insert(
-                maximumCount: layout.freeCapacity,
+                addingCount: layout.freeCapacity,
                 from: &producer,
                 at: i)
             }

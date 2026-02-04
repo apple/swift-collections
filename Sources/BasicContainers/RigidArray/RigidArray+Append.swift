@@ -60,29 +60,33 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to store the new items in
   /// the buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
-  ///    - uninitializedCount: The number of items to append to the array.
-  ///    - body: A callback that gets called at most once to directly
+  /// If the callback fails to fully populate its output span or if
+  /// it throws an error, then the array keeps all items that were
+  /// successfully initialized before the callback terminated the insertion.
+  ///
+  /// - Parameters:
+  ///    - newItemCount: The number of items to append to the array.
+  ///    - initializer: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
-  ///       is allowed to initialize fewer than `uninitializedCount` items.
+  ///       is allowed to initialize fewer than `newItemCount` items.
   ///       The array is appended however many items the callback adds to
   ///       the output span before it returns (or before it throws an error).
   ///
-  /// - Complexity: O(`uninitializedCount`)
+  /// - Complexity: O(`newItemCount`)
   @_alwaysEmitIntoClient
   public mutating func append<E: Error>(
-    addingCapacity uninitializedCount: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    precondition(uninitializedCount >= 0, "Negative count")
-    precondition(freeCapacity >= uninitializedCount, "RigidArray capacity overflow")
-    let buffer = _freeSpace._extracting(first: uninitializedCount)
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(freeCapacity >= newItemCount, "RigidArray capacity overflow")
+    let buffer = _freeSpace._extracting(first: newItemCount)
     var span = OutputSpan(buffer: buffer, initializedCount: 0)
     defer {
       _count &+= span.finalize(for: buffer)
       span = OutputSpan()
     }
-    return try body(&span)
+    return try initializer(&span)
   }
   
   /// Append a given number of items to the end of this array by populating
@@ -91,29 +95,25 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to store the new items in
   /// the buffer, then this triggers a runtime error.
   ///
-  /// If the callback fails to fully populate its output span or if
-  /// it throws an error, then the items that were successfully initialized
-  /// still get appended to the end of the array.
-  ///
-  /// - Parameters
+  /// - Parameters:
   ///    - count: The number of items to append to the array.
-  ///    - body: A callback that gets called at most once to directly
+  ///    - initializer: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to initialize fewer than `count` items. The array is
   ///       appended however many items the callback adds to the output span
   ///       before it returns (or before it throws an error).
   ///
   /// - Complexity: O(`count`)
-  @available(*, deprecated, renamed: "append(addingCapacity:initializingWith:)")
+  @available(*, deprecated, renamed: "append(addingCount:initializingWith:)")
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<E: Error, Result: ~Copyable>(
     count: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Result
   ) throws(E) -> Result {
     var result: Result? = nil
-    try append(addingCapacity: count) { target throws(E) in
-      result = try body(&target)
+    try append(addingCount: count) { target throws(E) in
+      result = try initializer(&target)
     }
     return result.take()!
   }
