@@ -14,6 +14,7 @@ import XCTest
 public final class TestContext {
   internal var _nextStateId = 0
   internal var _nextIndexId = 0
+  internal var _failureCount = 0
 
   /// Stack of labels with associated source positions.
   /// Useful for tracking failed cases in combinatorial tests.
@@ -32,6 +33,10 @@ extension TestContext {
     }
     return current
   }
+  
+  /// Don't report more than this number of failures per test, to avoid
+  /// overwhelming Xcode's display engine.
+  public static var maximumFailureCount: Int { 100 }
 
   public static func pushNew() -> TestContext {
     let context = TestContext()
@@ -191,6 +196,16 @@ extension TestContext {
     for trace in _trace {
       result += "  - \(trace.label)\n"
     }
+    if _failureCount == Self.maximumFailureCount {
+      result += "*** Failure limit reached; additional failures will be suppressed ***"
+    }
+    return result
+  }
+  
+  public static func incrementFailureCount() -> Bool {
+    guard let context = _current else { return true }
+    let result = context._failureCount < maximumFailureCount
+    context._failureCount += 1
     return result
   }
 
