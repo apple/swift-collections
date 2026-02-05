@@ -358,7 +358,65 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
-
+  
+  func test_equatable() {
+    withSomeArrayLayouts("layoutA", ofCapacities: [0, 10, 100]) { layoutA in
+      withSomeArrayLayouts("layoutB", ofCapacities: [0, 10, 100]) { layoutB in
+        withLifetimeTracking { tracker in
+          let a = tracker.rigidArray(layout: layoutA)
+          let b = tracker.rigidArray(layout: layoutB)
+          expectTrue(a.isTriviallyIdentical(to: a))
+          expectEqual(
+            a.isTriviallyIdentical(to: b),
+            a.capacity == 0 && b.capacity == 0)
+          expectEqual(a == b, layoutA.count == layoutB.count)
+        }
+      }
+    }
+  }
+  
+  func test_hashable() {
+    withSomeArrayLayouts("layoutA", ofCapacities: [0, 10, 100]) { layoutA in
+      withSomeArrayLayouts("layoutB", ofCapacities: [0, 10, 100]) { layoutB in
+        withLifetimeTracking { tracker in
+          let a = tracker.rigidArray(layout: layoutA)
+          let b = tracker.rigidArray(layout: layoutB)
+          // FIXME: Use checkHashable when possible
+          var goodHash = false
+          for i in 0 ..< 10 {
+            var ha = Hasher()
+            ha.combine(i)
+            a.hash(into: &ha)
+            let hashValueA = ha.finalize()
+            
+            var hb = Hasher()
+            hb.combine(i)
+            b.hash(into: &hb)
+            let hashValueB = hb.finalize()
+            
+            if layoutA.count == layoutB.count {
+              expectEqual(hashValueA, hashValueB)
+              goodHash = true
+            } else if hashValueA != hashValueB {
+              goodHash = true
+            }
+          }
+          expectTrue(goodHash, "Hashing does not differentiate between inequal containers")
+        }
+      }
+    }
+  }
+  
+  func test_descriptions() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        expectEqual(a.description, "<\(layout.count) items>")
+        expectEqual(a.debugDescription, "<\(layout.count) items>")
+      }
+    }
+  }
+  
   func test_edit() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -651,7 +709,149 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-
+  
+  func test_pushLast() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        var a = tracker.rigidArray(layout: layout)
+        for i in layout.count ..< layout.capacity {
+          expectNil(a.pushLast(tracker.instance(for: i)))
+          expectEqual(a.count, i + 1)
+          expectIterableContents(
+            a,
+            equivalentTo: 0 ..< i + 1,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+        expectTrue(a.isFull)
+        let final = a.pushLast(tracker.instance(for: layout.capacity))
+        expectNotNil(final) { value in
+          expectEqual(value.payload, layout.capacity)
+        }
+      }
+    }
+  }
+  
+  func test_append_addingCount_full() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          var a = tracker.rigidArray(layout: layout)
+          a.append(addingCount: c) { target in
+            expectEqual(target.freeCapacity, c)
+            for i in 0 ..< c {
+              target.append(tracker.instance(for: layout.count + i))
+            }
+          }
+          expectIterableContents(
+            a,
+            equivalentTo: 0 ..< layout.count + c,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+      }
+    }
+  }
+  
+  func test_append_addingCount_partial() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      guard layout.freeCapacity > 0 else { return }
+      withEvery("c", in: 1 ..< layout.freeCapacity) { c in
+        withEvery("n", in: [0, 1, c / 2, c - 1] as Set) { n in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidArray(layout: layout)
+            a.append(addingCount: c) { target in
+              expectEqual(target.freeCapacity, c)
+              for i in layout.count ..< layout.count + n {
+                target.append(tracker.instance(for: i))
+              }
+            }
+            expectIterableContents(
+              a,
+              equivalentTo: 0 ..< layout.count + n,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+  
+  func test_append_moving_UnsafeMutableBufferPointer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+        withLifetimeTracking { tracker in
+          let additions = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+            .allocate(capacity: c)
+          for i in 0 ..< c {
+            additions.initializeElement(
+              at: i,
+              to: tracker.instance(for: layout.count + i))
+          }
+          
+          var a = tracker.rigidArray(layout: layout)
+          a.append(moving: additions)
+          
+          additions.deallocate()
+          
+          expectIterableContents(
+            a,
+            equivalentTo: 0 ..< layout.count + c,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+      }
+    }
+  }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_append_moving_InputSpan() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
+      withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
+        withLifetimeTracking { tracker in
+          var a = tracker.rigidArray(layout: layout)
+          
+          tracker.withInputSpan(
+            layout: spanLayout,
+            using: { layout.count + $0 }
+          ) { span in
+            a.append(moving: &span)
+          }
+          
+          expectIterableContents(
+            a,
+            equivalentTo: 0 ..< layout.count + spanLayout.count,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+      }
+    }
+  }
+#endif
+  
+  func test_append_moving_OutputSpan() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
+      withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
+        withLifetimeTracking { tracker in
+          var a = tracker.rigidArray(layout: layout)
+          
+          tracker.withOutputSpan(
+            layout: spanLayout,
+            using: { layout.count + $0 }
+          ) { span in
+            a.append(moving: &span)
+          }
+          
+          expectIterableContents(
+            a,
+            equivalentTo: 0 ..< layout.count + spanLayout.count,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+      }
+    }
+  }
+  
   func test_append_copying_MinimalSequence() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("isContiguous", in: [false, true]) { isContiguous in
@@ -737,7 +937,166 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-
+  
+  func test_insert_addingCount_full() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 20]) { layout in
+      withEvery("i", in: 0 ..< layout.count) { i in
+        withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidArray(layout: layout)
+            
+            a.insert(addingCount: c, at: i) { target in
+              expectEqual(target.freeCapacity, c)
+              for i in 0 ..< c {
+                target.append(tracker.instance(for: layout.count + i))
+              }
+            }
+            
+            var expected = Array(0 ..< layout.count)
+            expected.insert(
+              contentsOf: layout.count ..< layout.count + c,
+              at: i)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+  
+  func test_insert_addingCount_partial() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      guard !layout.isFull else { return }
+      withEvery("i", in: 0 ... layout.count) { i in
+        withEvery("c", in: 1 ..< layout.freeCapacity) { c in
+          withEvery("n", in: [0, 1, c / 2, c - 1] as Set) { n in
+            withLifetimeTracking { tracker in
+              var a = tracker.rigidArray(layout: layout)
+              
+              a.insert(addingCount: c, at: i) { target in
+                expectTrue(target.isEmpty)
+                expectEqual(target.freeCapacity, c)
+                for i in 0 ..< n {
+                  target.append(tracker.instance(for: layout.count + i))
+                }
+              }
+              expectEqual(a.count, layout.count + n)
+              
+              var expected = Array(0 ..< layout.count)
+              expected.insert(
+                contentsOf: layout.count ..< layout.count + n,
+                at: i)
+              
+              expectIterableContents(
+                a,
+                equivalentTo: expected,
+                by: { $0.payload == $1 },
+                printer: { "\($0.payload)" })
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  func test_insert_moving_UnsafeMutableBufferPointer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery("i", in: 0 ... layout.count) { i in
+        withEvery("c", in: 0 ..< layout.freeCapacity) { c in
+          withLifetimeTracking { tracker in
+            let additions = UnsafeMutableBufferPointer<LifetimeTracked<Int>>
+              .allocate(capacity: c)
+            for i in 0 ..< c {
+              additions.initializeElement(
+                at: i,
+                to: tracker.instance(for: layout.count + i))
+            }
+            
+            var a = tracker.rigidArray(layout: layout)
+            a.insert(moving: additions, at: i)
+            
+            additions.deallocate()
+            
+            var expected = Array(0 ..< layout.count)
+            expected.insert(contentsOf: layout.count ..< layout.count + c, at: i)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_insert_moving_InputSpan() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
+      withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
+        withEvery("i", in: 0 ... layout.count) { i in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidArray(layout: layout)
+            
+            tracker.withInputSpan(
+              layout: spanLayout,
+              using: { layout.count + $0 }
+            ) { span in
+              a.insert(moving: &span, at: i)
+            }
+            
+            var expected = Array(0 ..< layout.count)
+            expected.insert(
+              contentsOf: layout.count ..< layout.count + spanLayout.count,
+              at: i)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+#endif
+  
+  func test_insert_moving_OutputSpan() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
+      withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
+        withEvery("i", in: 0 ... layout.count) { i in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidArray(layout: layout)
+            
+            tracker.withOutputSpan(
+              layout: spanLayout,
+              using: { layout.count + $0 }
+            ) { span in
+              a.insert(moving: &span, at: i)
+            }
+            
+            var expected = Array(0 ..< layout.count)
+            expected.insert(
+              contentsOf: layout.count ..< layout.count + spanLayout.count,
+              at: i)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+  
   func test_insert_copying_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -793,29 +1152,24 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-
+  
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: Update
   func test_insert_copying_Container() {
-    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
         withEvery("spanCount", in: 1 ... Swift.max(1, layout.capacity - layout.count)) { spanCount in
           withLifetimeTracking { tracker in
-
+            
             var expected = Array(0 ..< layout.count)
             let addition = Array(layout.count ..< layout.capacity)
             expected.insert(contentsOf: addition, at: i)
-
+            
             var a = tracker.rigidArray(layout: layout)
             let rigidAddition = StaccatoContainer(
-              contents: RigidArray(capacity: addition.count) {
-                for item in addition {
-                  $0.append(tracker.instance(for: item))
-                }
-              },
-              spanCounts: [Swift.max(spanCount, 1)])
+              contents: tracker.instances(for: addition),
+              spanCounts: [spanCount])
             a.insert(copying: rigidAddition, at: i)
-
+            
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -828,7 +1182,71 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
-#endif
+
+  func test_replaceSubrange_addingCount_full() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 20]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidArray(layout: layout)
+            
+            a.replaceSubrange(subrange, addingCount: c) { target in
+              expectEqual(target.freeCapacity, c)
+              for i in 0 ..< c {
+                target.append(tracker.instance(for: layout.count + i))
+              }
+            }
+            
+            var expected = Array(0 ..< layout.count)
+            expected.replaceSubrange(
+              subrange,
+              with: layout.count ..< layout.count + c)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+  
+  func test_replaceSubrange_addingCount_partial() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      guard !layout.isFull else { return }
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: 1 ..< layout.freeCapacity) { c in
+          withEvery("n", in: [0, 1, c / 2, c - 1] as Set) { n in
+            withLifetimeTracking { tracker in
+              var a = tracker.rigidArray(layout: layout)
+              
+              a.replaceSubrange(subrange, addingCount: c) { target in
+                expectTrue(target.isEmpty)
+                expectEqual(target.freeCapacity, c)
+                for i in 0 ..< n {
+                  target.append(tracker.instance(for: layout.count + i))
+                }
+              }
+              expectEqual(a.count, layout.count - subrange.count + n)
+              
+              var expected = Array(0 ..< layout.count)
+              expected.replaceSubrange(
+                subrange,
+                with: layout.count ..< layout.count + n)
+              
+              expectIterableContents(
+                a,
+                equivalentTo: expected,
+                by: { $0.payload == $1 },
+                printer: { "\($0.payload)" })
+            }
+          }
+        }
+      }
+    }
+  }
 
   func test_replaceSubrange_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
@@ -884,7 +1302,6 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: Update
   func test_replaceSubrange_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -913,7 +1330,6 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-#endif
 #endif
 }
 #endif

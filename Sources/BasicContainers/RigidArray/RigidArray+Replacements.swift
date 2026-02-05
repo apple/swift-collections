@@ -92,7 +92,8 @@ extension RigidArray where Element: ~Copyable {
       if c < newItemCount {
         self._closeGap(
           at: subrange.lowerBound &+ c,
-          count: capacity &- c)
+          count: newItemCount &- c)
+        _count &-= newItemCount &- c
       }
       span = OutputSpan()
     }
@@ -564,25 +565,28 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   @inlinable
   internal mutating func _replaceSubrange<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
     _ subrange: Range<Int>,
-    copyingContainer newElements: borrowing C,
+    copyingContainer items: borrowing C,
     newCount: Int
   ) {
-    self.replaceSubrange(subrange, addingCapacity: newCount) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        count = newElements._copyContents(intoPrefixOf: buffer)
+    var it = items.makeBorrowingIterator()
+    self.replaceSubrange(subrange, addingCount: newCount) { target in
+      while !target.isFull {
+        let source = it.nextSpan(maximumCount: target.freeCapacity)
         precondition(
-          count == newCount,
+          !source.isEmpty,
           "Broken Container: count doesn't match contents")
+        target._append(copying: source)
       }
+      precondition(
+        it.nextSpan().isEmpty,
+        "Broken Container: count doesn't match contents")
     }
   }
-#endif
 #endif
 
   @inlinable
@@ -613,7 +617,6 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -649,9 +652,10 @@ extension RigidArray {
     copying newElements: borrowing C
   ) {
     _replaceSubrange(
-      subrange, copyingContainer: newElements, newCount: newElements.count)
+      subrange,
+      copyingContainer: newElements,
+      newCount: newElements.count)
   }
-#endif
 #endif
 
   /// Replaces the specified subrange of elements by copying the elements of
@@ -691,7 +695,6 @@ extension RigidArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given container.
   ///
@@ -730,7 +733,6 @@ extension RigidArray {
     _replaceSubrange(
       subrange, copyingContainer: newElements, newCount: newElements.count)
   }
-#endif
 #endif
 }
 

@@ -22,8 +22,6 @@ public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
   associatedtype BorrowingIterator: BorrowingIteratorProtocol<Element> & ~Copyable & ~Escapable
   
-  var isEmpty: Bool { get }
-
   var estimatedCount: EstimatedCount { get }
 
   @_lifetime(borrow self)

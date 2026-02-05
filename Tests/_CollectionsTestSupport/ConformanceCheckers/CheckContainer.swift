@@ -52,8 +52,6 @@ public func checkIterable<
 
   let expectedContents = Array(expectedContents)
 
-  expectEqual(iterable.isEmpty, expectedContents.isEmpty)
-
   let estimatedCount = iterable.estimatedCount
   switch estimatedCount {
   case .exactly(let c):

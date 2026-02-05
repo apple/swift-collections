@@ -45,7 +45,6 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   public mutating func pushLast(_ item: consuming Element) -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
     if isFull { return item }
     append(item)
     return nil
@@ -203,10 +202,8 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout RigidArray<Element>
   ) {
     // FIXME: Remove this in favor of a generic algorithm over range-replaceable containers
-    unsafe items._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe self.append(moving: source)
-      count = 0
+    items.edit { span in
+      self.append(moving: &span)
     }
   }
 }

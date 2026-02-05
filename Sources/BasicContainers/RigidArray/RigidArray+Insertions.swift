@@ -103,13 +103,14 @@ extension RigidArray where Element: ~Copyable {
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(newItemCount <= freeCapacity, "RigidArray capacity overflow")
     let target = unsafe _openGap(at: index, count: newItemCount)
+    _count &+= newItemCount
     var span = OutputSpan(buffer: target, initializedCount: 0)
     defer {
       let c = span.finalize(for: target)
       if c < newItemCount {
         _closeGap(at: index &+ c, count: newItemCount &- c)
+        _count &-= newItemCount &- c
       }
-      _count &+= c
       span = OutputSpan()
     }
     try initializer(&span)
@@ -261,10 +262,8 @@ extension RigidArray where Element: ~Copyable {
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
     guard !items.isEmpty else { return }
-    insert(addingCount: items.count, at: index) { target in
-      items.edit { source in
-        target._append(moving: &source)
-      }
+    items.edit { source in
+      self.insert(moving: &source, at: index)
     }
   }
 }
@@ -390,8 +389,7 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
-  @inlinable
+  @_alwaysEmitIntoClient
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
@@ -399,17 +397,16 @@ extension RigidArray {
     copying items: borrowing C,
     newCount: Int
   ) {
+    var it = items.makeBorrowingIterator()
     insert(addingCount: newCount, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        let copied = items._copyContents(intoPrefixOf: buffer)
-        precondition(
-          copied == newCount,
-          "Broken Container: count doesn't match contents")
-        count = newCount
+      while !target.isFull {
+        let source = it.nextSpan(maximumCount: target.freeCapacity)
+        precondition(!source.isEmpty, "Broken container: mismatching count")
+        target._append(copying: source)
       }
     }
+    precondition(it.nextSpan().isEmpty, "Broken container: mismatching count")
   }
-#endif
 #endif
 
   @inlinable
@@ -439,7 +436,6 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -469,7 +465,6 @@ extension RigidArray {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
-#endif
 #endif
 
   /// Copies the elements of a collection into this array at the specified
@@ -501,7 +496,6 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -531,7 +525,6 @@ extension RigidArray {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
-#endif
 #endif
 }
 
