@@ -30,6 +30,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/BorrowingSequence+Standard Conformances.swift"
   "Protocols/BorrowingSequence+Utilities.swift"
   "Protocols/Container.swift"
+  "Protocols/ContainerAlgorithms.swift"
   "Protocols/Drain.swift"
   "Protocols/Producer.swift"
   "Types/Borrow.swift"
