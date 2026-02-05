@@ -36,7 +36,7 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Copyabl
   }
 }
 
-#if true
+#if true // FIXME: rdar://150228920
 @available(SwiftStdlib 5.0, *)
 extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
@@ -45,12 +45,10 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   >(
     _ other: borrowing Other,
   ) -> Bool where Element: Equatable {
-    switch (self.estimatedCount, other.estimatedCount) {
-    case let (.exactly(a), .exactly(b)):
-      guard a == b else { return false }
-    default:
-      break
+    guard self.estimatedCount._mayBeEqual(to: other.estimatedCount) else {
+      return false
     }
+
     var it1 = self.makeBorrowingIterator()
     var it2 = other.makeBorrowingIterator()
     while true {
@@ -260,18 +258,6 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
       return true
     }
     return result
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Equatable {
-  @inlinable
-  public func elementsEqual<
-    Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
-  >(
-    _ other: borrowing Other,
-  ) -> Bool {
-    self.elementsEqual(other, by: ==)
   }
 }
 #endif

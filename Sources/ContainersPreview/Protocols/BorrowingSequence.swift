@@ -15,6 +15,20 @@ public enum EstimatedCount {
   case infinite
   case exactly(Int)
   case unknown
+  
+  @inlinable
+  package func _mayBeEqual(to other: EstimatedCount) -> Bool {
+    switch (self, other) {
+    case let (.exactly(a), .exactly(b)):
+      return a == b
+    case (.exactly(_), .infinite):
+      return false
+    case (.infinite, .exactly(_)):
+      return false
+    default:
+      return true
+    }
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

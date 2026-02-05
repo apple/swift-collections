@@ -103,6 +103,16 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 }
 
+extension _UnsafeDequeHandle where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  internal func isIdentical(to other: borrowing Self) -> Bool {
+    self._buffer._isIdentical(to: other._buffer)
+    && self.count == other.count
+    && self.startSlot == other.startSlot
+  }
+}
+
 // MARK: Test initializer
 
 extension _UnsafeDequeHandle where Element: ~Copyable {
