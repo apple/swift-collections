@@ -83,8 +83,8 @@ extension UniqueDeque where Element: ~Copyable {
       "Subrange out of bounds")
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
-    try _storage._handle.uncheckedReplaceSubrange(
-      subrange,
+    try _storage._handle.uncheckedReplace(
+      removing: subrange,
       addingCount: capacity,
       initializingWith: initializer)
   }
@@ -144,8 +144,8 @@ extension UniqueDeque where Element: ~Copyable {
   @inlinable
   public mutating func replaceSubrange<E: Error>(
     _ subrange: Range<Int>,
-    addingCount newItemCount: Int,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     precondition(
@@ -153,10 +153,10 @@ extension UniqueDeque where Element: ~Copyable {
       "Subrange out of bounds")
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
-    try _storage._handle.uncheckedReplaceSubrange(
-      subrange,
-      addingCount: newItemCount,
+    try _storage._handle.uncheckedReplace(
+      removing: subrange,
       consumingWith: consumer,
+      addingCount: newItemCount,
       initializingWith: initializer)
   }
 #endif

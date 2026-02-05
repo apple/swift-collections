@@ -1284,6 +1284,168 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
 
+  func test_replace_addingCount_full() {
+    withEveryDeque("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidDeque(with: layout).consume()
+            
+            var i = 0
+            a.replace(removing: subrange, addingCount: c) { target in
+              while !target.isFull {
+                target.append(tracker.instance(for: layout.count + i))
+                i += 1
+              }
+            }
+            expectEqual(i, c)
+            
+            var expected = Array(0 ..< layout.count)
+            expected.replaceSubrange(
+              subrange,
+              with: layout.count ..< layout.count + c)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+
+  func test_replace_addingCount_partial() {
+    withEveryDeque("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        guard layout.freeCapacity - subrange.count > 0 else { return }
+        withEvery("c", in: 1 ..< subrange.count + layout.freeCapacity) { c in
+          withEvery("n", in: 0 ..< c - 1) { n in
+            withLifetimeTracking { tracker in
+              var a = tracker.rigidDeque(with: layout).consume()
+              
+              var i = 0
+              a.replace(removing: subrange, addingCount: c) { target in
+                while !target.isFull, i < n {
+                  target.append(tracker.instance(for: layout.count + i))
+                  i += 1
+                }
+              }
+              expectEqual(i, n)
+              
+              var expected = Array(0 ..< layout.count)
+              expected.replaceSubrange(
+                subrange,
+                with: layout.count ..< layout.count + n)
+              
+              expectIterableContents(
+                a,
+                equivalentTo: expected,
+                by: { $0.payload == $1 },
+                printer: { "\($0.payload)" })
+            }
+          }
+        }
+      }
+    }
+  }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_replace_consuming_addingCount_full() {
+    withEveryDeque("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidDeque(with: layout).consume()
+            
+            var i = subrange.lowerBound
+            var j = 0
+            a.replace(
+              removing: subrange,
+              consumingWith: { source in
+                while let next = source.popFirst() {
+                  expectEqual(next.payload, i)
+                  i += 1
+                }
+              },
+              addingCount: c,
+              initializingWith: { target in
+                expectEqual(i, subrange.upperBound)
+                while !target.isFull {
+                  target.append(tracker.instance(for: layout.count + j))
+                  j += 1
+                }
+              })
+            expectEqual(i, subrange.upperBound)
+            expectEqual(j, c)
+
+            var expected = Array(0 ..< layout.count)
+            expected.replaceSubrange(
+              subrange,
+              with: layout.count ..< layout.count + c)
+            
+            expectIterableContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+          }
+        }
+      }
+    }
+  }
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_replace_consuming_addingCount_partial() {
+    withEveryDeque("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        guard layout.freeCapacity - subrange.count > 0 else { return }
+        withEvery("c", in: 1 ..< subrange.count + layout.freeCapacity) { c in
+          withEvery("n", in: 0 ..< c - 1) { n in
+            withLifetimeTracking { tracker in
+              var a = tracker.rigidDeque(with: layout).consume()
+              
+              var i = subrange.lowerBound
+              var j = 0
+              a.replace(
+                removing: subrange,
+                consumingWith: { source in
+                  while let next = source.popFirst() {
+                    expectEqual(next.payload, i)
+                    i += 1
+                  }
+                },
+                addingCount: c,
+                initializingWith: { target in
+                  expectEqual(i, subrange.upperBound)
+                  while !target.isFull, j < n {
+                    target.append(tracker.instance(for: layout.count + j))
+                    j += 1
+                  }
+                })
+              expectEqual(i, subrange.upperBound)
+              expectEqual(j, n)
+              
+              var expected = Array(0 ..< layout.count)
+              expected.replaceSubrange(
+                subrange,
+                with: layout.count ..< layout.count + n)
+              
+              expectIterableContents(
+                a,
+                equivalentTo: expected,
+                by: { $0.payload == $1 },
+                printer: { "\($0.payload)" })
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
+
   func test_removeOne() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("offset", in: 0 ..< layout.count) { offset in

@@ -66,36 +66,6 @@ extension UniqueArray where Element: ~Copyable {
       addingCount: newItemCount,
       initializingWith: initializer)
   }
-  
-  /// Append a given number of items to the end of this array by populating
-  /// an output span.
-  ///
-  /// If the array does not have sufficient capacity to hold the requested
-  /// number of new elements, then this reallocates the array's storage to
-  /// grow its capacity, using a geometric growth rate.
-  ///
-  /// - Parameters
-  ///    - count: The number of items to append to the array.
-  ///    - initializer: A callback that gets called exactly once to directly
-  ///       populate newly reserved storage within the array. The function
-  ///       is allowed to initialize fewer than `count` items. The array is
-  ///       appended however many items the callback adds to the output span
-  ///       before it returns (or before it throws an error).
-  ///
-  /// - Complexity: O(`count`)
-  @available(*, deprecated, renamed: "append(addingCount:initializingWith:)")
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public mutating func append<E: Error, Result: ~Copyable>(
-    count: Int,
-    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Result
-  ) throws(E) -> Result {
-    var result: Result? = nil
-    try append(addingCount: count) { target throws(E) in
-      result = try initializer(&target)
-    }
-    return result.take()!
-  }
 }
 
 @available(SwiftStdlib 5.0, *)

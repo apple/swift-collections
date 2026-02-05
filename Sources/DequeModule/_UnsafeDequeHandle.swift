@@ -1371,7 +1371,10 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       self.closeGap(
         offsets: (left ? subrange.prefix(-delta) : subrange.suffix(-delta)))
     }
-    let newRange = Range(uncheckedBounds: (subrange.lowerBound, newItemCount))
+    let newRange = Range(
+      uncheckedBounds: (
+        subrange.lowerBound,
+        subrange.lowerBound &+ newItemCount))
     let gap = self.mutableSegments(forOffsets: newRange)
     
     var c = 0
@@ -1387,8 +1390,8 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  internal mutating func uncheckedReplaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
+  internal mutating func uncheckedReplace<E: Error>(
+    removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
@@ -1406,10 +1409,10 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
-  internal mutating func uncheckedReplaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
-    addingCount newItemCount: Int,
+  internal mutating func uncheckedReplace<E: Error>(
+    removing subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     assert(

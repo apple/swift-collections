@@ -59,8 +59,8 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
   ///    of the callback invocations.
   @inlinable
-  public mutating func replaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
+  public mutating func replace<E: Error>(
+    removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
@@ -71,15 +71,15 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       newItemCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")
-    try _uncheckedReplaceSubrange(
-      subrange,
+    try _uncheckedReplace(
+      removing: subrange,
       addingCount: newItemCount,
       initializingWith: initializer)
   }
 
   @_alwaysEmitIntoClient
-  internal mutating func _uncheckedReplaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
+  internal mutating func _uncheckedReplace<E: Error>(
+    removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
@@ -98,50 +98,6 @@ extension RigidArray where Element: ~Copyable {
       span = OutputSpan()
     }
     try initializer(&span)
-  }
-
-  /// Replaces the specified range of elements by a given count of new items,
-  /// using a callback to directly initialize array storage by populating
-  /// an output span.
-  ///
-  /// This method has the effect of removing the specified range of elements
-  /// from the array and inserting room for the new elements starting at the
-  /// same location. The number of new elements need not match the number
-  /// of elements being removed.
-  ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
-  ///
-  /// If you pass a zero-length range as the `subrange` parameter, then
-  /// this method is equivalent to calling
-  /// `insert(count: newCount, at: subrange.lowerbound, initializingWith: body)`.
-  ///
-  /// Likewise, if you pass a zero for `newCount`, then this method
-  /// removes the elements in the given subrange without any replacement.
-  /// This case is more directly expressed by `removeSubrange(subrange)`.
-  ///
-  /// - Parameters
-  ///   - subrange: The subrange of the array to replace. The bounds of
-  ///      the range must be valid indices in the array.
-  ///   - newCount: the number of items to replace the old subrange.
-  ///   - body: A callback that gets called exactly once to directly
-  ///      populate newly reserved storage within the array. The function
-  ///      is called with an empty output span of capacity `newCount`,
-  ///      and it must fully populate it before returning.
-  ///
-  /// - Complexity: O(`self.count` + `newCount`)
-  @available(*, deprecated, renamed: "replaceSubrange(_:addingCapacity:initializingWith:)")
-  @inlinable
-  public mutating func replaceSubrange<Result: ~Copyable>(
-    _ subrange: Range<Int>,
-    newCount: Int,
-    initializingWith body: (inout OutputSpan<Element>) -> Result
-  ) -> Result {
-    var result: Result? = nil
-    self.replaceSubrange(subrange, addingCount: newCount) { target in
-      result = body(&target)
-    }
-    return result!
   }
 }
 
@@ -196,10 +152,10 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the
   ///    complexity of the callback invocations.
   @inlinable
-  public mutating func replaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
-    addingCount newItemCount: Int,
+  public mutating func replace<E: Error>(
+    removing subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     precondition(
@@ -209,18 +165,18 @@ extension RigidArray where Element: ~Copyable {
     precondition(
       newItemCount - subrange.count <= freeCapacity,
       "RigidArray capacity overflow")
-    try _uncheckedReplaceSubrange(
-      subrange,
-      addingCount: newItemCount,
+    try _uncheckedReplace(
+      removing: subrange,
       consumingWith: consumer,
+      addingCount: newItemCount,
       initializingWith: initializer)
   }
 
   @_alwaysEmitIntoClient
-  internal mutating func _uncheckedReplaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
-    addingCount newItemCount: Int,
+  internal mutating func _uncheckedReplace<E: Error>(
+    removing subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     do {
@@ -281,11 +237,11 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
-    replaceSubrange(subrange, addingCount: newElements.count) { target in
+    replace(removing: subrange, addingCount: newElements.count) { target in
       target._withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._moveInitializePrefix(from: newElements)
       }
@@ -320,13 +276,13 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving items: inout InputSpan<Element>
   ) {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
+      unsafe self.replace(removing: subrange, moving: source)
       count = 0
     }
   }
@@ -359,13 +315,13 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
     items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
+      unsafe self.replace(removing: subrange, moving: source)
       count = 0
     }
   }
@@ -399,14 +355,14 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving newElements: inout RigidArray<Element>,
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
     unsafe newElements._unsafeEdit { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
+      unsafe self.replace(removing: subrange, moving: source)
       count = 0
     }
   }
@@ -442,12 +398,12 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     consuming newElements: consuming RigidArray<Element>,
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
-    replaceSubrange(subrange, moving: &newElements)
+    replace(removing: subrange, moving: &newElements)
   }
 #endif
 }
@@ -481,11 +437,11 @@ extension RigidArray {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying newElements: UnsafeBufferPointer<Element>
   ) {
-    replaceSubrange(subrange, addingCount: newElements.count) { target in
+    replace(removing: subrange, addingCount: newElements.count) { target in
       target._withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._initializePrefix(copying: newElements)
       }
@@ -519,12 +475,12 @@ extension RigidArray {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying newElements: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe self.replaceSubrange(
-      subrange,
+    unsafe self.replace(
+      removing: subrange,
       copying: UnsafeBufferPointer(newElements))
   }
 
@@ -555,26 +511,26 @@ extension RigidArray {
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying newElements: Span<Element>
   ) {
     unsafe newElements.withUnsafeBufferPointer { buffer in
-      unsafe self.replaceSubrange(subrange, copying: buffer)
+      unsafe self.replace(removing: subrange, copying: buffer)
     }
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
-  internal mutating func _replaceSubrange<
+  internal mutating func _replace<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copyingContainer items: borrowing C,
     newCount: Int
   ) {
     var it = items.makeBorrowingIterator()
-    self.replaceSubrange(subrange, addingCount: newCount) { target in
+    self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
         let source = it.nextSpan(maximumCount: target.freeCapacity)
         precondition(
@@ -590,12 +546,12 @@ extension RigidArray {
 #endif
 
   @inlinable
-  internal mutating func _replaceSubrange(
-    _ subrange: Range<Int>,
+  internal mutating func _replace(
+    removing subrange: Range<Int>,
     copyingCollection newElements: __owned some Collection<Element>,
     newCount: Int
   ) {
-    self.replaceSubrange(subrange, addingCount: newCount) { target in
+    self.replace(removing: subrange, addingCount: newCount) { target in
       target._withUnsafeMutableBufferPointer { dst, dstCount in
         let done: Void? = newElements.withContiguousStorageIfAvailable { src in
           let i = unsafe dst._initializePrefix(copying: src)
@@ -645,14 +601,14 @@ extension RigidArray {
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange<
+  public mutating func replace<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copying newElements: borrowing C
   ) {
-    _replaceSubrange(
-      subrange,
+    _replace(
+      removing: subrange,
       copyingContainer: newElements,
       newCount: newElements.count)
   }
@@ -686,12 +642,14 @@ extension RigidArray {
   /// - Complexity: O(`self.count` + `newElements.count`)
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying newElements: __owned some Collection<Element>
   ) {
-    _replaceSubrange(
-      subrange, copyingCollection: newElements, newCount: newElements.count)
+    _replace(
+      removing: subrange,
+      copyingCollection: newElements,
+      newCount: newElements.count)
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -724,14 +682,16 @@ extension RigidArray {
   ///   *m* is the count of `newElements`.
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange<
+  public mutating func replace<
     C: Container<Element> & Collection<Element>
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copying newElements: C
   ) {
-    _replaceSubrange(
-      subrange, copyingContainer: newElements, newCount: newElements.count)
+    _replace(
+      removing: subrange,
+      copyingContainer: newElements,
+      newCount: newElements.count)
   }
 #endif
 }

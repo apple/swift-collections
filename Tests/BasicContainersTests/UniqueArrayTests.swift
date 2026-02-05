@@ -868,7 +868,7 @@ class UniqueArrayTests: CollectionTestCase {
 #endif
 #endif
 
-  func test_replaceSubrange_copying_Collection() {
+  func test_replace_copying_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("c", in: [0, 1, 10, 100]) { c in
@@ -879,7 +879,7 @@ class UniqueArrayTests: CollectionTestCase {
 
             var a = tracker.uniqueArray(layout: layout)
             let trackedAddition = addition.map { tracker.instance(for: $0) }
-            a.replaceSubrange(range, copying: trackedAddition)
+            a.replace(removing: range, copying: trackedAddition)
 
             expectIterableContents(
               a,
@@ -893,7 +893,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-  func test_replaceSubrange_copying_Span() {
+  func test_replace_copying_Span() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("c", in: [0, 1, 10, 100]) { c in
@@ -905,7 +905,7 @@ class UniqueArrayTests: CollectionTestCase {
             var a = tracker.uniqueArray(layout: layout)
             let trackedAddition = RigidArray(
               copying: addition.map { tracker.instance(for: $0) })
-            a.replaceSubrange(range, copying: trackedAddition.span)
+            a.replace(removing: range, copying: trackedAddition.span)
 
             expectIterableContents(
               a,
@@ -921,7 +921,7 @@ class UniqueArrayTests: CollectionTestCase {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 #if false // FIXME: Update
-  func test_replaceSubrange_copying_Container() {
+  func test_replace_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("c", in: [0, 1, 10, 100]) { c in

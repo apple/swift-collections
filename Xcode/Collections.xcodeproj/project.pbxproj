@@ -84,6 +84,8 @@
 		7D57A2CB2F342F43002543BD /* UniqueDeque+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2C82F342F43002543BD /* UniqueDeque+Equatable.swift */; };
 		7D57A2CC2F342F43002543BD /* UniqueDeque+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2C92F342F43002543BD /* UniqueDeque+Hashable.swift */; };
 		7D57A2CE2F343CA9002543BD /* ContainerAlgorithms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2CD2F343CA2002543BD /* ContainerAlgorithms.swift */; };
+		7D57A2D02F353946002543BD /* RigidArray+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2CF2F35393E002543BD /* RigidArray+Deprecated.swift */; };
+		7D57A2D22F353CA5002543BD /* UniqueArray+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2D12F353CA1002543BD /* UniqueArray+Deprecated.swift */; };
 		7D9748D42E9748930098631A /* BigString+Chunk+UTF16.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D32E9748930098631A /* BigString+Chunk+UTF16.swift */; };
 		7D9748D52E9748930098631A /* BigString+Chunk+UnicodeScalar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D12E9748930098631A /* BigString+Chunk+UnicodeScalar.swift */; };
 		7D9748D62E9748930098631A /* BigString+Chunk+Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748CF2E9748930098631A /* BigString+Chunk+Character.swift */; };
@@ -585,6 +587,8 @@
 		7D57A2C82F342F43002543BD /* UniqueDeque+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Equatable.swift"; sourceTree = "<group>"; };
 		7D57A2C92F342F43002543BD /* UniqueDeque+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Hashable.swift"; sourceTree = "<group>"; };
 		7D57A2CD2F343CA2002543BD /* ContainerAlgorithms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerAlgorithms.swift; sourceTree = "<group>"; };
+		7D57A2CF2F35393E002543BD /* RigidArray+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+Deprecated.swift"; sourceTree = "<group>"; };
+		7D57A2D12F353CA1002543BD /* UniqueArray+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+Deprecated.swift"; sourceTree = "<group>"; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D829CCF0FE00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1190,6 +1194,7 @@
 				7DA23F3A2F329A2300E4C03A /* RigidArray+Insertions.swift */,
 				7DA23F3B2F329A2300E4C03A /* RigidArray+Removals.swift */,
 				7DA23F3C2F329A2300E4C03A /* RigidArray+Replacements.swift */,
+				7D57A2CF2F35393E002543BD /* RigidArray+Deprecated.swift */,
 			);
 			path = RigidArray;
 			sourceTree = "<group>";
@@ -1209,6 +1214,7 @@
 				7DA23F422F329A2300E4C03A /* UniqueArray+Insertions.swift */,
 				7DA23F432F329A2300E4C03A /* UniqueArray+Removals.swift */,
 				7DA23F442F329A2300E4C03A /* UniqueArray+Replacements.swift */,
+				7D57A2D12F353CA1002543BD /* UniqueArray+Deprecated.swift */,
 			);
 			path = UniqueArray;
 			sourceTree = "<group>";
@@ -2498,6 +2504,7 @@
 				7D2A773D2F27F1E4005780C7 /* BorrowingSequence.swift in Sources */,
 				7D2A773E2F27F1E4005780C7 /* BorrowingSequence+Standard Conformances.swift in Sources */,
 				7D2A773F2F27F1E4005780C7 /* Borrow.swift in Sources */,
+				7D57A2D02F353946002543BD /* RigidArray+Deprecated.swift in Sources */,
 				7D2A77402F27F1E4005780C7 /* BorrowingIteratorProtocol.swift in Sources */,
 				7D2A77412F27F1E4005780C7 /* Inout.swift in Sources */,
 				7D2A77422F27F1E4005780C7 /* OutputSpan+Extras.swift in Sources */,
@@ -2520,6 +2527,7 @@
 				7DE9208029CA70F4004483EB /* BigString+Hashing.swift in Sources */,
 				7DE920F829CA70F4004483EB /* BitArray+Testing.swift in Sources */,
 				7DE920D629CA70F4004483EB /* BitSet+Equatable.swift in Sources */,
+				7D57A2D22F353CA5002543BD /* UniqueArray+Deprecated.swift in Sources */,
 				7DE9217A29CA70F4004483EB /* Heap+Descriptions.swift in Sources */,
 				7DE9216429CA70F4004483EB /* _HashNode.swift in Sources */,
 				7DAD89A52E8B09D900DD5786 /* _UnsafeBitSet+_Word.swift in Sources */,

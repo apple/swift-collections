@@ -92,41 +92,6 @@ extension UniqueArray where Element: ~Copyable {
       at: index,
       initializingWith: initializer)
   }
-  
-  /// Inserts a given number of new items into this array at the specified
-  /// position, using a callback to directly initialize array storage by
-  /// populating an output span.
-  ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new items.
-  ///
-  /// If the array does not have sufficient capacity to hold the new elements,
-  /// then this reallocates storage to extend its capacity, using a geometric
-  /// growth rate.
-  ///
-  /// - Parameters:
-  ///    - count: The number of items to insert into the array.
-  ///    - index: The position at which to insert the new items.
-  ///       `index` must be a valid index in the array.
-  ///    - body: A callback that gets called exactly once to directly
-  ///       populate newly reserved storage within the array. The function
-  ///       is called with an empty output span of capacity matching the
-  ///       supplied count, and it must fully populate it before returning.
-  ///
-  /// - Complexity: O(`self.count` + `count`)
-  @available(*, deprecated, renamed: "insert(addingCount:at:initializingWith:)")
-  @inlinable
-  public mutating func insert<Result: ~Copyable>(
-    count: Int,
-    at index: Int,
-    initializingWith body: (inout OutputSpan<Element>) -> Result
-  ) -> Result {
-    var result: Result? = nil
-    self.insert(addingCount: count, at: index) { target in
-      result = body(&target)
-    }
-    return result!
-  }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -350,7 +315,6 @@ extension UniqueArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -385,7 +349,6 @@ extension UniqueArray {
     _storage._insertContainer(at: index, copying: newElements, newCount: c)
   }
 #endif
-#endif
 
   /// Copies the elements of a collection into this array at the specified
   /// position.
@@ -419,7 +382,6 @@ extension UniqueArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -453,7 +415,6 @@ extension UniqueArray {
     _ensureFreeCapacity(c)
     _storage._insertContainer(at: index, copying: newElements, newCount: c)
   }
-#endif
 #endif
 }
 

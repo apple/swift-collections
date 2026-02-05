@@ -59,8 +59,8 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
   ///    of the callback invocations.
   @inlinable
-  public mutating func replaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
+  public mutating func replace<E: Error>(
+    removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
@@ -71,8 +71,8 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       count - subrange.count + newItemCount <= capacity,
       "RigidDeque capacity overflow")
-    try _handle.uncheckedReplaceSubrange(
-      subrange,
+    try _handle.uncheckedReplace(
+      removing: subrange,
       addingCount: newItemCount,
       initializingWith: initializer)
   }
@@ -135,10 +135,10 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `newItemCount`) in addition to the
   ///    complexity of the callback invocations.
   @inlinable
-  public mutating func replaceSubrange<E: Error>(
-    _ subrange: Range<Int>,
-    addingCount newItemCount: Int,
+  public mutating func replace<E: Error>(
+    removing subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     precondition(
@@ -148,10 +148,10 @@ extension RigidDeque where Element: ~Copyable {
     precondition(
       count - subrange.count + newItemCount <= capacity,
       "RigidDeque capacity overflow")
-    try _handle.uncheckedReplaceSubrange(
-      subrange,
-      addingCount: newItemCount,
+    try _handle.uncheckedReplace(
+      removing: subrange,
       consumingWith: consumer,
+      addingCount: newItemCount,
       initializingWith: initializer)
   }
 #endif
@@ -188,12 +188,12 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving items: UnsafeMutableBufferPointer<Element>,
   ) {
     var remainder = items
-    replaceSubrange(subrange, addingCount: remainder.count) { target in
+    replace(removing: subrange, addingCount: remainder.count) { target in
       target._withUnsafeMutableBufferPointer { buffer, count in
         buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
@@ -231,13 +231,13 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving items: inout InputSpan<Element>
   ) {
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(last: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
+      unsafe self.replace(removing: subrange, moving: source)
       count = 0
     }
   }
@@ -270,13 +270,13 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
     items._withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.replaceSubrange(subrange, moving: source)
+      unsafe self.replace(removing: subrange, moving: source)
       count = 0
     }
   }
@@ -320,14 +320,17 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Complexity: O(`self.count` + `maximumCount`)
   @_alwaysEmitIntoClient
-  public mutating func replaceSubrange<
+  public mutating func replace<
     P: Producer<Element> & ~Copyable & ~Escapable
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     from producer: inout P
   ) throws(P.ProducerError) {
-    try replaceSubrange(subrange, addingCount: newItemCount) { target throws(P.ProducerError) in
+    try replace(
+      removing: subrange,
+      addingCount: newItemCount
+    ) { target throws(P.ProducerError) in
       try producer.generate(into: &target)
     }
   }
@@ -363,12 +366,12 @@ extension RigidDeque /* where Element: Copyable */ {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying items: UnsafeBufferPointer<Element>
   ) {
     var remainder = items
-    replaceSubrange(subrange, addingCount: remainder.count) { target in
+    replace(removing: subrange, addingCount: remainder.count) { target in
       target._withUnsafeMutableBufferPointer { dst, dstCount in
         dst.initializeAll(fromContentsOf: remainder._trim(first: dst.count))
         dstCount += dst.count
@@ -404,12 +407,12 @@ extension RigidDeque /* where Element: Copyable */ {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying items: UnsafeMutableBufferPointer<Element>
   ) {
-    unsafe self.replaceSubrange(
-      subrange,
+    unsafe self.replace(
+      removing: subrange,
       copying: UnsafeBufferPointer(items))
   }
 
@@ -440,28 +443,28 @@ extension RigidDeque /* where Element: Copyable */ {
   ///
   /// - Complexity: O(`self.count` + `items.count`)
   @inlinable
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying items: Span<Element>
   ) {
     unsafe items.withUnsafeBufferPointer { buffer in
-      unsafe self.replaceSubrange(subrange, copying: buffer)
+      unsafe self.replace(removing: subrange, copying: buffer)
     }
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
-  internal mutating func _replaceSubrange<
+  internal mutating func _replace<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copyingContainer items: borrowing C,
     newCount: Int
   ) {
 
     let expectedCount = self.count - subrange.count + newCount
     var it = items.makeBorrowingIterator()
-    self.replaceSubrange(subrange, addingCount: newCount) { target in
+    self.replace(removing: subrange, addingCount: newCount) { target in
       it.copyContents(into: &target)
     }
     precondition(
@@ -471,8 +474,8 @@ extension RigidDeque /* where Element: Copyable */ {
 #endif
 
   @inlinable
-  internal mutating func _replaceSubrange(
-    _ subrange: Range<Int>,
+  internal mutating func _replace(
+    removing subrange: Range<Int>,
     copyingCollection items: __owned some Collection<Element>,
     newCount: Int
   ) {
@@ -480,12 +483,12 @@ extension RigidDeque /* where Element: Copyable */ {
       precondition(
         src.count == newCount,
         "Broken Collection: count doesn't match contents")
-      self.replaceSubrange(subrange, copying: src)
+      self.replace(removing: subrange, copying: src)
     }
     if done != nil { return }
 
     var i = items.startIndex
-    self.replaceSubrange(subrange, addingCount: newCount) { target in
+    self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
         target.append(items[i])
         items.formIndex(after: &i)
@@ -522,14 +525,14 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange<
+  public mutating func replace<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copying items: borrowing C
   ) {
-    _replaceSubrange(
-      subrange, copyingContainer: items, newCount: items.count)
+    _replace(
+      removing: subrange, copyingContainer: items, newCount: items.count)
   }
 #endif
 
@@ -561,12 +564,12 @@ extension RigidDeque /* where Element: Copyable */ {
   /// - Complexity: O(`self.count` + `items.count`)
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange(
-    _ subrange: Range<Int>,
+  public mutating func replace(
+    removing subrange: Range<Int>,
     copying items: __owned some Collection<Element>
   ) {
-    _replaceSubrange(
-      subrange, copyingCollection: items, newCount: items.count)
+    _replace(
+      removing: subrange, copyingCollection: items, newCount: items.count)
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -599,14 +602,14 @@ extension RigidDeque /* where Element: Copyable */ {
   ///   *m* is the count of `items`.
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange<
+  public mutating func replace<
     C: Container<Element> & Collection<Element>
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copying items: C
   ) {
-    _replaceSubrange(
-      subrange, copyingContainer: items, newCount: items.count)
+    _replace(
+      removing: subrange, copyingContainer: items, newCount: items.count)
   }
 #endif
 }

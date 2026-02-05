@@ -1183,14 +1183,14 @@ class RigidArrayTests: CollectionTestCase {
   }
 #endif
 
-  func test_replaceSubrange_addingCount_full() {
+  func test_replace_addingCount_full() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 20]) { layout in
       withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
         withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
             
-            a.replaceSubrange(subrange, addingCount: c) { target in
+            a.replace(removing: subrange, addingCount: c) { target in
               expectEqual(target.freeCapacity, c)
               for i in 0 ..< c {
                 target.append(tracker.instance(for: layout.count + i))
@@ -1213,7 +1213,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
   
-  func test_replaceSubrange_addingCount_partial() {
+  func test_replace_addingCount_partial() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       guard !layout.isFull else { return }
       withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
@@ -1222,7 +1222,7 @@ class RigidArrayTests: CollectionTestCase {
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
               
-              a.replaceSubrange(subrange, addingCount: c) { target in
+              a.replace(removing: subrange, addingCount: c) { target in
                 expectTrue(target.isEmpty)
                 expectEqual(target.freeCapacity, c)
                 for i in 0 ..< n {
@@ -1248,7 +1248,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-  func test_replaceSubrange_Collection() {
+  func test_replace_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("isContiguous", in: [false, true]) { isContiguous in
@@ -1262,7 +1262,7 @@ class RigidArrayTests: CollectionTestCase {
                 addition.map { tracker.instance(for: $0) },
                 isContiguous: isContiguous)
               var a = tracker.rigidArray(layout: layout)
-              a.replaceSubrange(range, copying: trackedAddition)
+              a.replace(removing: range, copying: trackedAddition)
 
               expectIterableContents(
                 a,
@@ -1276,7 +1276,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  func test_replaceSubrange_Span() {
+  func test_replace_Span() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("c", in: 0 ..< layout.capacity - layout.count + range.count) { c in
@@ -1287,7 +1287,7 @@ class RigidArrayTests: CollectionTestCase {
 
             var a = tracker.rigidArray(layout: layout)
             let trackedAddition = RigidArray(copying: addition.map { tracker.instance(for: $0) })
-            a.replaceSubrange(range, copying: trackedAddition.span)
+            a.replace(removing: range, copying: trackedAddition.span)
 
             expectIterableContents(
               a,
@@ -1302,7 +1302,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  func test_replaceSubrange_Container() {
+  func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
         withEvery("c", in: 0 ..< layout.capacity - layout.count + range.count) { c in
@@ -1316,7 +1316,7 @@ class RigidArrayTests: CollectionTestCase {
               let trackedAddition = StaccatoContainer(
                 contents: RigidArray(copying: addition.map { tracker.instance(for: $0) }),
                 spanCounts: [spanCount])
-              a.replaceSubrange(range, copying: trackedAddition)
+              a.replace(removing: range, copying: trackedAddition)
 
               expectIterableContents(
                 a,

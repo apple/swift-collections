@@ -87,35 +87,6 @@ extension RigidArray where Element: ~Copyable {
     }
     return try initializer(&span)
   }
-  
-  /// Append a given number of items to the end of this array by populating
-  /// an output span.
-  ///
-  /// If the array does not have sufficient capacity to store the new items in
-  /// the buffer, then this triggers a runtime error.
-  ///
-  /// - Parameters:
-  ///    - count: The number of items to append to the array.
-  ///    - initializer: A callback that gets called at most once to directly
-  ///       populate newly reserved storage within the array. The function
-  ///       is allowed to initialize fewer than `count` items. The array is
-  ///       appended however many items the callback adds to the output span
-  ///       before it returns (or before it throws an error).
-  ///
-  /// - Complexity: O(`count`)
-  @available(*, deprecated, renamed: "append(addingCount:initializingWith:)")
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public mutating func append<E: Error, Result: ~Copyable>(
-    count: Int,
-    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Result
-  ) throws(E) -> Result {
-    var result: Result? = nil
-    try append(addingCount: count) { target throws(E) in
-      result = try initializer(&target)
-    }
-    return result.take()!
-  }
 }
 
 @available(SwiftStdlib 5.0, *)
