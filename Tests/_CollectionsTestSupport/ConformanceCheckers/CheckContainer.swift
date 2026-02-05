@@ -11,7 +11,11 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import ContainersPreview
+#endif
 
 @available(SwiftStdlib 5.0, *)
 @inlinable

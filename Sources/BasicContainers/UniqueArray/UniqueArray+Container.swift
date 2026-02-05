@@ -21,7 +21,7 @@ import ContainersPreview
 extension UniqueArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
   
-  public var estimatedCount: ContainersPreview.EstimatedCount {
+  public var estimatedCount: EstimatedCount {
     .exactly(count)
   }
 
