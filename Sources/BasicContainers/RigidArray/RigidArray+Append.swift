@@ -45,7 +45,6 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   public mutating func pushLast(_ item: consuming Element) -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
     if isFull { return item }
     append(item)
     return nil
@@ -60,30 +59,33 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to store the new items in
   /// the buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
-  ///    - count: The number of items to append to the array.
-  ///    - body: A callback that gets called precisely once to directly
-  ///       populate newly reserved storage within the array. The function
-  ///       is allowed to initialize fewer than `count` items. The array is
-  ///       appended however many items the callback adds to the output span
-  ///       before it returns (or before it throws an error).
+  /// If the callback fails to fully populate its output span or if
+  /// it throws an error, then the array keeps all items that were
+  /// successfully initialized before the callback terminated the insertion.
   ///
-  /// - Complexity: O(`count`)
+  /// - Parameters:
+  ///    - newItemCount: The number of items to append to the array.
+  ///    - initializer: A callback that gets called at most once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `newItemCount` items.
+  ///       The array is appended however many items the callback adds to
+  ///       the output span before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`newItemCount`)
   @_alwaysEmitIntoClient
-  public mutating func append<E: Error, Result: ~Copyable>(
-    count: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
-  ) throws(E) -> Result {
-    // FIXME: This is extremely similar to `edit()`, except it provides a narrower span.
-    precondition(count >= 0, "Negative count")
-    precondition(freeCapacity >= count, "RigidArray capacity overflow")
-    let buffer = _freeSpace._extracting(first: count)
+  public mutating func append<E: Error>(
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(freeCapacity >= newItemCount, "RigidArray capacity overflow")
+    let buffer = _freeSpace._extracting(first: newItemCount)
     var span = OutputSpan(buffer: buffer, initializedCount: 0)
     defer {
       _count &+= span.finalize(for: buffer)
       span = OutputSpan()
     }
-    return try body(&span)
+    return try initializer(&span)
   }
 }
 
@@ -95,7 +97,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///
@@ -118,7 +120,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to hold all items in its
   /// storage, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents need to be appended to this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -140,7 +142,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to hold all items in its
   /// storage, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents need to be appended to this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -162,7 +164,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the target array does not have sufficient capacity to hold all items
   /// in the source array, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose items to move to the end of this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -171,10 +173,8 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout RigidArray<Element>
   ) {
     // FIXME: Remove this in favor of a generic algorithm over range-replaceable containers
-    unsafe items._unsafeEdit { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe self.append(moving: source)
-      count = 0
+    items.edit { span in
+      self.append(moving: &span)
     }
   }
 }
@@ -188,7 +188,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the target array does not have sufficient capacity to hold all items
   /// in the source array, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A container whose contents to move into this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -210,7 +210,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A fully initialized buffer whose contents to copy into
   ///       the array.
   ///
@@ -233,7 +233,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A fully initialized buffer whose contents to copy into
   ///        the array.
   ///
@@ -250,7 +250,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// span, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A span whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`)
@@ -289,7 +289,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// source sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A container whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`)
@@ -309,7 +309,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to copy into the array.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.
@@ -331,7 +331,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// source sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to copy into the array.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.

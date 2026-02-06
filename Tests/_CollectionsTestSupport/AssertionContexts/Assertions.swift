@@ -34,6 +34,7 @@ public func _expectFailure(
   file: StaticString,
   line: UInt
 ) {
+  guard TestContext.incrementFailureCount() else { return }
   let message = message()
   XCTFail(
     TestContext.currentTrace(

@@ -26,6 +26,14 @@ internal struct RigidTestData<Element>: ~Copyable {
     self.deque = deque
     self.contents = contents
   }
+  
+  mutating func take() -> RigidDeque<Element> {
+    exchange(&self.deque, with: .init())
+  }
+  
+  consuming func consume() -> RigidDeque<Element> {
+    exchange(&self.deque, with: .init())
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

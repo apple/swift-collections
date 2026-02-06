@@ -267,7 +267,7 @@ extension BigString {
   }
 
   func _utf8Index(after i: Index) -> Index {
-    precondition(i < endIndex, "Can't advance above end index")
+    precondition(i < endIndex, "Cannot advance above end index")
     let i = resolve(i, preferEnd: false)
     let ri = i._rope!
     var ci = i._chunkIndex
@@ -299,7 +299,7 @@ extension BigString {
   }
 
   func _utf8Index(before i: Index) -> Index {
-    precondition(i > startIndex, "Can't advance below start index")
+    precondition(i > startIndex, "Cannot advance below start index")
     let i = resolve(i, preferEnd: true)
     var ri = i._rope!
     let ci = i._chunkIndex

@@ -85,8 +85,8 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`k`)
   @_alwaysEmitIntoClient
   public mutating func removeFirst(_ k: Int) {
-    precondition(k >= 0, "Can't remove a negative number of elements")
-    precondition(k <= count, "Can't remove more elements than there are in a RigidDeque")
+    precondition(k >= 0, "Cannot remove a negative number of elements")
+    precondition(k <= count, "Cannot remove more elements than there are in the container")
     _handle.uncheckedRemoveFirst(k)
   }
   
@@ -103,8 +103,8 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`k`)
   @_alwaysEmitIntoClient
   public mutating func removeLast(_ n: Int) {
-    precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in a RigidDeque")
+    precondition(n >= 0, "Cannot remove a negative number of elements")
+    precondition(n <= count, "Cannot remove more elements than there are in the container")
     _handle.uncheckedRemoveLast(n)
   }
   

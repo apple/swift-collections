@@ -56,7 +56,7 @@ extension TreeSet {
   public mutating func update(_ member: Element, at index: Index) -> Element {
     defer { _fixLifetime(self) }
     precondition(_isValid(index), "Invalid index")
-    precondition(index._path.isOnItem, "Can't get element at endIndex")
+    precondition(index._path.isOnItem, "Cannot get element at endIndex")
     _invalidateIndices()
     return _UnsafeHandle.update(index._path.node) {
       let p = $0.itemPtr(at: index._path.currentItemSlot)

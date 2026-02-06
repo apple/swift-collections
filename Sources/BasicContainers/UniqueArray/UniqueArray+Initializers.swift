@@ -18,12 +18,27 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  /// Initializes a new unique array with no elements.
+  @inlinable
+  public init() {
+    _storage = .init(capacity: 0)
+  }
+  
+  /// Initializes a new unique array with the specified capacity and no elements.
+  @inlinable
+  public init(capacity: Int) {
+    _storage = .init(capacity: capacity)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: ~Copyable {
   /// Creates a new array with the specified capacity, directly initializing
   /// its storage using an output span.
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new array.
-  ///   - body: A callback that gets called precisely once to directly
+  ///   - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to add fewer than `capacity` items. The array is
   ///       initialized with however many items the callback adds to the

@@ -91,26 +91,11 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
     unsafe _storage.extracting(0 ..< _count).deinitialize()
     unsafe _storage.deallocate()
   }
-
-  /// Initializes a new rigid array with the specified capacity and no elements.
-  @inlinable
-  public init(capacity: Int) {
-    precondition(capacity >= 0, "Array capacity must be nonnegative")
-    if capacity > 0 {
-      unsafe _storage = .allocate(capacity: capacity)
-    } else {
-      unsafe _storage = .init(start: nil, count: 0)
-    }
-    _count = 0
-  }
-
-  /// Initializes a new rigid array with zero capacity and no elements.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public init() {
-    unsafe _storage = .init(start: nil, count: 0)
-    _count = 0
+  
+  @_alwaysEmitIntoClient
+  package init(_storage: UnsafeMutableBufferPointer<Element>, count: Int) {
+    self._storage = _storage
+    self._count = count
   }
 }
 
@@ -211,7 +196,7 @@ extension RigidArray where Element: ~Copyable {
 extension RigidArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
-  /// This method calls its function argument precisely once, allowing it to
+  /// This method calls its function argument at most once, allowing it to
   /// arbitrarily modify the contents of the output span it is given.
   /// The argument is free to add, remove or reorder any items; however,
   /// it is not allowed to replace the span or change its capacity.
@@ -222,7 +207,7 @@ extension RigidArray where Element: ~Copyable {
   ///
   /// - Parameter body: A function that edits the contents of this array through
   ///    an `OutputSpan` argument. This method invokes this function
-  ///    precisely once.
+  ///    at most once.
   /// - Returns: This method returns the result of its function argument.
   /// - Complexity: Adds O(1) overhead to the complexity of the function
   ///    argument.
@@ -267,113 +252,6 @@ extension RigidArray where Element: ~Copyable {
 }
 
 //MARK: - Container primitives
-
-@available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
-  /// A Boolean value indicating whether this array contains no elements.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var isEmpty: Bool { count == 0 }
-
-  /// The number of elements in this array.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var count: Int { _count }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
-  /// A type that represents a position in the array: an integer offset from the
-  /// start.
-  ///
-  /// Valid indices consist of the position of every element and a "past the
-  /// end” position that’s not valid for use as a subscript argument.
-  public typealias Index = Int
-
-  /// The position of the first element in a nonempty array. This is always zero.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var startIndex: Int { 0 }
-
-  /// The array’s "past the end” position—that is, the position one greater than
-  /// the last valid subscript argument. This is always equal to the array's
-  /// count.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var endIndex: Int { count }
-
-  /// The range of indices that are valid for subscripting the array.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
-  @inlinable @inline(__always)
-  internal func _ptr(to index: Int) -> UnsafePointer<Element> {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
-    let p = _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
-    return UnsafePointer(p)
-  }
-
-  @inlinable @inline(__always)
-  internal mutating func _mutablePtr(
-    to index: Int
-  ) -> UnsafeMutablePointer<Element> {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
-    return _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
-  }
-
-  /// Accesses the element at the specified position.
-  ///
-  /// - Parameter position: The position of the element to access.
-  ///     The position must be a valid index of the array that is not equal
-  ///     to the `endIndex` property.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public subscript(position: Int) -> Element {
-    @inline(__always)
-    unsafeAddress {
-      _ptr(to: position)
-    }
-    @inline(__always)
-    unsafeMutableAddress {
-      _mutablePtr(to: position)
-    }
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension RigidArray where Element: ~Copyable {
-  /// Exchanges the values at the specified indices of the array.
-  ///
-  /// Both parameters must be valid indices of the array and not equal to
-  /// endIndex. Passing the same index as both `i` and `j` has no effect.
-  ///
-  /// - Parameter i: The index of the first value to swap.
-  /// - Parameter j: The index of the second valud to swap.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public mutating func swapAt(_ i: Int, _ j: Int) {
-    precondition(
-      i >= 0 && i < _count && j >= 0 && j < _count,
-      "Index out of bounds")
-    unsafe _items.swapAt(i, j)
-  }
-}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
@@ -485,11 +363,11 @@ extension RigidArray {
   /// instance with just enough capacity to hold all its elements.
   ///
   /// - Complexity: O(`count`)
-  @inlinable
-  public func copy() -> Self {
-    copy(capacity: count)
+  @_alwaysEmitIntoClient
+  public func clone() -> Self {
+    clone(capacity: self.count)
   }
-
+  
   /// Copy the contents of this array into a newly allocated rigid array
   /// instance with the specified capacity.
   ///
@@ -498,7 +376,7 @@ extension RigidArray {
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public func copy(capacity: Int) -> Self {
+  public func clone(capacity: Int) -> Self {
     precondition(capacity >= count, "RigidArray capacity overflow")
     var result = RigidArray<Element>(capacity: capacity)
     let initialized = unsafe result._storage.initialize(fromContentsOf: _items)
@@ -544,36 +422,29 @@ extension RigidArray where Element: ~Copyable {
       Range(uncheckedBounds: (index, index + count)))
   }
   
-  /// Perform a range replacement up to populating the newly opened gap. This
-  /// deinitializes existing elements in the specified subrange, rearranges
-  /// following elements to be at their final location, and sets the container's
-  /// new count.
+  /// Resize the gap in the given subrange to have the specified count.
+  /// This operation moves elements following the gap to be at their expected
+  /// new location, and it adjusts the container's count to reflect the change.
   ///
   /// - Returns: A buffer pointer addressing the newly opened gap, to be
   ///     initialized by the caller.
   @inlinable
   @unsafe
-  internal mutating func _gapForReplacement(
-    of subrange: Range<Int>, withNewCount newCount: Int
+  internal mutating func _resizeGap(
+    in subrange: Range<Int>, to newItemCount: Int
   ) -> UnsafeMutableBufferPointer<Element> {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
-      "Index range out of bounds")
-    precondition(newCount >= 0, "Negative count")
-    precondition(
-      newCount - subrange.count <= freeCapacity,
-      "RigidArray capacity overflow")
-    unsafe _items.extracting(subrange).deinitialize()
-    if newCount > subrange.count {
+    assert(subrange.lowerBound >= 0 && subrange.upperBound <= _count)
+    assert(newItemCount >= 0 && newItemCount - subrange.count <= freeCapacity)
+    if newItemCount > subrange.count {
       _ = unsafe _openGap(
-        at: subrange.upperBound, count: newCount - subrange.count)
-    } else if newCount < subrange.count {
+        at: subrange.upperBound, count: newItemCount - subrange.count)
+    } else if newItemCount < subrange.count {
       _closeGap(
-        at: subrange.lowerBound + newCount, count: subrange.count - newCount)
+        at: subrange.lowerBound + newItemCount, count: subrange.count - newItemCount)
     }
-    _count += newCount - subrange.count
+    _count += newItemCount - subrange.count
     let gapRange = unsafe Range(
-      uncheckedBounds: (subrange.lowerBound, subrange.lowerBound + newCount))
+      uncheckedBounds: (subrange.lowerBound, subrange.lowerBound + newItemCount))
     return unsafe _storage.extracting(gapRange)
   }
 }

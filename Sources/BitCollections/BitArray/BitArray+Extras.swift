@@ -20,7 +20,7 @@ extension BitArray {
     toCount count: Int,
     with padding: Bool = false
   ) {
-    precondition(count >= 0, "Negative count")
+    precondition(count >= 0, "Cannot set a negative count")
     if count < _count {
       _removeLast(self.count - count)
     } else if count > _count {
@@ -35,7 +35,7 @@ extension BitArray {
     count: Int,
     at index: Int
   ) {
-    precondition(count >= 0, "Can't insert a negative number of values")
+    precondition(count >= 0, "Cannot add a negative number of items")
     precondition(index >= 0 && index <= count, "Index out of bounds")
     guard count > 0 else { return }
     _extend(by: count, with: false)
@@ -44,7 +44,7 @@ extension BitArray {
   }
 
   public mutating func append(repeating value: Bool, count: Int) {
-    precondition(count >= 0, "Can't append a negative number of values")
+    precondition(count >= 0, "Cannot add a negative number of items")
     guard count > 0 else { return }
     _extend(by: count, with: value)
   }

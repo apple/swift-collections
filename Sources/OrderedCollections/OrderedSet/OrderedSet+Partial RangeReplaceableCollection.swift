@@ -157,7 +157,7 @@ extension OrderedSet {
   ///    high-quality hashing.
   @inlinable
   public mutating func removeLast(_ n: Int) {
-    precondition(n >= 0, "Can't remove a negative number of elements")
+    precondition(n >= 0, "Cannot remove a negative number of items")
     precondition(n <= count, "Can't remove more elements than there are in the collection")
     removeSubrange(count - n ..< count)
   }
@@ -171,7 +171,7 @@ extension OrderedSet {
   @inlinable
   @discardableResult
   public mutating func removeFirst() -> Element {
-    precondition(!isEmpty, "Cannot remove first element of an empty collection")
+    precondition(!isEmpty, "Cannot remove first item of an empty collection")
     return remove(at: startIndex)
   }
 
@@ -187,8 +187,8 @@ extension OrderedSet {
   /// - Complexity: O(`count`).
   @inlinable
   public mutating func removeFirst(_ n: Int) {
-    precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in the collection")
+    precondition(n >= 0, "Cannot remove a negative number of items")
+    precondition(n <= count, "Cannot remove more elements than there are in the collection")
     removeSubrange(0 ..< n)
   }
 

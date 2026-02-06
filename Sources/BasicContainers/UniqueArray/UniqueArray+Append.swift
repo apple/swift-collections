@@ -43,22 +43,28 @@ extension UniqueArray where Element: ~Copyable {
   /// number of new elements, then this reallocates the array's storage to
   /// grow its capacity, using a geometric growth rate.
   ///
-  /// - Parameters
-  ///    - count: The number of items to append to the array.
-  ///    - body: A callback that gets called precisely once to directly
-  ///       populate newly reserved storage within the array. The function
-  ///       is allowed to initialize fewer than `count` items. The array is
-  ///       appended however many items the callback adds to the output span
-  ///       before it returns (or before it throws an error).
+  /// If the callback fails to fully populate its output span or if
+  /// it throws an error, then the array keeps all items that were
+  /// successfully initialized before the callback terminated the insertion.
   ///
-  /// - Complexity: O(`count`)
+  /// - Parameters:
+  ///    - newItemCount: The number of items to append to the array.
+  ///    - initializer: A callback that gets called at most once to directly
+  ///       populate newly reserved storage within the array. The function
+  ///       is allowed to initialize fewer than `uninitializedCount` items.
+  ///       The array is appended however many items the callback adds to the
+  ///       output span before it returns (or before it throws an error).
+  ///
+  /// - Complexity: O(`uninitializedCount`)
   @_alwaysEmitIntoClient
-  public mutating func append<E: Error, Result: ~Copyable>(
-    count: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Result
-  ) throws(E) -> Result {
-    _ensureFreeCapacity(count)
-    return try _storage.append(count: count, initializingWith: body)
+  public mutating func append<E: Error>(
+    addingCount newItemCount: Int,
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    _ensureFreeCapacity(newItemCount)
+    return try _storage.append(
+      addingCount: newItemCount,
+      initializingWith: initializer)
   }
 }
 
@@ -71,7 +77,7 @@ extension UniqueArray where Element: ~Copyable {
   /// buffer, then this reallocates the array's storage to grow its capacity,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///
@@ -92,7 +98,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates the array's storage to grow its capacity,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents need to be appended to this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -112,7 +118,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates the array's storage to grow its capacity,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents need to be appended to this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -132,7 +138,7 @@ extension UniqueArray where Element: ~Copyable {
   /// in the source array, then this automatically grows the target array's
   /// capacity, using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose items to move to the end of this array.
   ///
   /// - Complexity: O(`items.count`) when amortized over many invocations on
@@ -157,7 +163,7 @@ extension UniqueArray where Element: ~Copyable {
   /// in the source array, then this automatically grows the target array's
   /// capacity, using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose items to move to the end of this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -180,7 +186,7 @@ extension UniqueArray {
   /// in the source buffer, then this automatically grows the array's
   /// capacity, using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A fully initialized buffer whose contents to copy into
   ///       the array.
   ///
@@ -200,7 +206,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using
   /// a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A fully initialized buffer whose contents to copy into
   ///       the array.
   ///
@@ -219,7 +225,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A span whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`) when amortized over many
@@ -258,7 +264,7 @@ extension UniqueArray {
   /// estimate of its count, then the array's storage may need to be resized
   /// more than once.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A container whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`), when amortized over many invocations
@@ -283,7 +289,7 @@ extension UniqueArray {
   /// estimate of its count, then the array's storage may need to be resized
   /// more than once.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to copy into the array.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`, when
@@ -312,7 +318,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A container whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`), when amortized over many invocations

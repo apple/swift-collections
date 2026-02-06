@@ -121,8 +121,8 @@ extension OrderedDictionary {
   ///    high-quality hashing.
   @inlinable
   public mutating func removeLast(_ n: Int) {
-    precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in the collection")
+    precondition(n >= 0, "Cannot remove a negative number of items")
+    precondition(n <= count, "Cannot remove more elements than there are in the collection")
     _keys.removeLast(n)
     _values.removeLast(n)
   }
@@ -152,8 +152,8 @@ extension OrderedDictionary {
   /// - Complexity: O(`count`).
   @inlinable
   public mutating func removeFirst(_ n: Int) {
-    precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in the collection")
+    precondition(n >= 0, "Cannot remove a negative number of elements")
+    precondition(n <= count, "Cannot remove more elements than there are in the collection")
     _keys.removeFirst(n)
     _values.removeFirst(n)
   }

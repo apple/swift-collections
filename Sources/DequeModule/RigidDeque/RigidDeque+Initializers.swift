@@ -78,7 +78,7 @@ extension RigidDeque where Element: ~Copyable {
   /// previously produced items are discarded and the initializer rethrows the
   /// error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - producer: A producer that generates the items to append to the new
   ///       deque.
   ///

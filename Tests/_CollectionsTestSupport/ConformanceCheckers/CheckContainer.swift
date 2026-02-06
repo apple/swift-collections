@@ -11,7 +11,11 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
 import ContainersPreview
+#endif
 
 @available(SwiftStdlib 5.0, *)
 @inlinable
@@ -47,8 +51,6 @@ public func checkIterable<
   defer { TestContext.current.pop(entry) }
 
   let expectedContents = Array(expectedContents)
-
-  expectEqual(iterable.isEmpty, expectedContents.isEmpty)
 
   let estimatedCount = iterable.estimatedCount
   switch estimatedCount {

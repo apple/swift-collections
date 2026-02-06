@@ -19,12 +19,65 @@ public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
 
   var startIndex: Index { get }
   var endIndex: Index { get }
+  
+  /// Returns the position immediately after the given index.
+  ///
+  /// - Parameter index: A valid index of the container. `i` must be less
+  ///     than `endIndex`.
+  /// - Returns: The index immediately following `i`.
   func index(after index: Index) -> Index
+  
+  /// Replaces the given index with its successor.
+  ///
+  /// - Parameter index: A valid index of the container. `i` must be less
+  ///     than `endIndex`.
   func formIndex(after index: inout Index)
+
+  /// Returns an index that is the specified distance from the given index.
+  ///
+  /// The value passed as `n` must not offset `index` beyond the bounds of the
+  /// container.
+  ///
+  /// - Parameter index: A valid index of the container.
+  /// - Parameter n: The distance by which to offset `index`.
+  /// - Returns: An index offset by distance from `index`. If `n` is positive,
+  ///    this is the same value as the result of `n` calls to `index(after:)`.
+  ///    If `n` is negative, this is the same value as the result of `abs(n)`
+  ///    calls to `index(before:)`.
   func index(_ index: Index, offsetBy n: Int) -> Index
+  
+  /// Offsets the given index by the specified distance, but no further than
+  /// the given limiting index.
+  ///
+  /// If the operation was able to offset `index` by exactly the requested
+  /// number of steps without hitting `limit`, then on return `n` is set to `0`,
+  /// and `index` is set to the adjusted index.
+  ///
+  /// If the operation hits the limit before it can take the requested number
+  /// of steps, then on return `index` is set to `limit`, and `n` is set
+  /// to the number of steps that couldn't be taken.
+  ///
+  /// The value passed as `n` must not offset `index` beyond the bounds of the
+  /// container, unless the index passed as `limit` prevents offsetting beyond
+  /// those bounds.
+  ///
+  /// - Parameter index: A valid index of the container.
+  /// - Parameter n: The distance to offset `index`. `n` must not be negative
+  ///    unless the container conforms to the `BidirectionalContainer` protocol.
+  /// - Parameter limit: A valid index of the container to use as a limit.
+  ///    If `n > 0`, a limit that is less than `index` has no effect.
+  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
+  ///    effect.
   func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   )
+  
+  /// Returns the distance between two indices.
+  ///
+  /// - Parameter start: A valid index of the collection.
+  /// - Parameter end: Another valid index of the collection. If end is equal
+  ///    to start, the result is zero.
+  /// - Returns: The distance between `start` and `end`.
   func distance(from start: Index, to end: Index) -> Int
 
   /// Return a span over the container's storage that begins with the element at the given index,
@@ -41,11 +94,11 @@ public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
   ///       // Process items in `span`
   ///     }
   ///
-  /// Note: The spans returned by this method are not guaranteed to be disjunct. Some containers
+  /// - Note: The spans returned by this method are not guaranteed to be disjunct. Some containers
   /// may use the same storage chunk (or parts of a storage chunk) multiple times, to repeat their
   /// contents.
   ///
-  /// Note: Repeated invocations of `nextSpan` on the same container and index are not guaranteed
+  /// - Note: Repeated invocations of `nextSpan` on the same container and index are not guaranteed
   /// to return identical results. (This is particularly the case with containers that can store
   /// contents in their "inline" representation. Such containers may not always have
   /// a unique address in memory; the locations of the spans exposed by this method may vary
@@ -152,7 +205,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &i, maximumCount: distance)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       distance &-= span.count
     }
     return i
@@ -169,7 +222,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &j)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       guard span.count <= distance else { break }
       i = j
       distance &-= span.count
@@ -208,7 +261,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &j, maximumCount: distance)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       if j > limit {
         break
       }
@@ -231,7 +284,7 @@ extension Container where Self: ~Copyable & ~Escapable {
       let span = self.nextSpan(after: &j)
       precondition(
         !span.isEmpty,
-        "Can't advance index beyond the end of the container")
+        "Cannot advance index beyond the end of the container")
       guard span.count <= distance, j < limit else {
         break
       }

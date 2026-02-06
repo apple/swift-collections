@@ -66,7 +66,7 @@ extension BitSet {
     }
     set {
       guard let member = UInt(exactly: member) else {
-        precondition(!newValue, "Can't insert a negative value to a BitSet")
+        precondition(!newValue, "Cannot insert a negative value to a BitSet")
         return
       }
       if newValue {

@@ -757,8 +757,7 @@ extension Deque: RangeReplaceableCollection {
   ///    this reduces the complexity to amortized O(1).
   @inlinable
   public mutating func insert(_ newElement: Element, at index: Int) {
-    precondition(index >= 0 && index <= count,
-                 "Can't insert element at invalid index")
+    precondition(index >= 0 && index <= count, "Index out of bounds")
     _storage.ensureUnique(minimumCapacity: count + 1)
     _storage.update { target in
       if index == 0 {
@@ -797,8 +796,7 @@ extension Deque: RangeReplaceableCollection {
     contentsOf newElements: __owned some Collection<Element>,
     at index: Int
   ) {
-    precondition(index >= 0 && index <= count,
-                 "Can't insert elements at an invalid index")
+    precondition(index >= 0 && index <= count, "Index out of bounds")
     let newCount = newElements.count
     _storage.ensureUnique(minimumCapacity: count + newCount)
     _storage.update { target in
@@ -865,8 +863,8 @@ extension Deque: RangeReplaceableCollection {
 
   @inlinable
   public mutating func _customRemoveLast(_ n: Int) -> Bool {
-    precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in the Collection")
+    precondition(n >= 0, "Cannot remove a negative number of elements")
+    precondition(n <= count, "Cannot remove more elements than there are in the Collection")
     _storage.ensureUnique()
     _storage.update { $0.uncheckedRemoveLast(n) }
     return true
@@ -898,8 +896,8 @@ extension Deque: RangeReplaceableCollection {
   ///    O(`count`).
   @inlinable
   public mutating func removeFirst(_ n: Int) {
-    precondition(n >= 0, "Can't remove a negative number of elements")
-    precondition(n <= count, "Can't remove more elements than there are in the Collection")
+    precondition(n >= 0, "Cannot remove a negative number of elements")
+    precondition(n <= count, "Cannot remove more elements than there are in the Collection")
     _storage.ensureUnique()
     return _storage.update { $0.uncheckedRemoveFirst(n) }
   }

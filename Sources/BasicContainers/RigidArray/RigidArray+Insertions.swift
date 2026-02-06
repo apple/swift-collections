@@ -56,41 +56,64 @@ extension RigidArray where Element: ~Copyable {
   /// position, using a callback to directly initialize array storage by
   /// populating an output span.
   ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new items.
+  /// Existing elements in the array's storage are moved towards the back as
+  /// needed to make room for the new items.
   ///
-  /// If the capacity of the array isn't sufficient to accommodate the new
-  /// elements, then this method triggers a runtime error.
+  /// If the capacity of the array isn't sufficient to accommodate the specified
+  /// number of new elements, then this method triggers a runtime error.
+  ///
+  ///     var buffer = RigidArray<Int>(capacity: 20)
+  ///     buffer.append([-999, 999])
+  ///     var i = 0
+  ///     buffer.insert(capacity: 3, at: 1) { target in
+  ///       while !target.isFull {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [-999, 0, 1, 2, 999]
+  ///
+  /// If the callback fails to fully populate its output span or if
+  /// it throws an error, then the array keeps all items that were
+  /// successfully initialized before the callback terminated the insertion.
+  ///
+  /// Partial insertions create a gap in array storage that needs to be
+  /// closed by moving already inserted items to their correct positions given
+  /// the adjusted count. This adds some overhead compared to adding exactly as
+  /// many items as promised.
   ///
   /// - Parameters:
-  ///    - count: The number of items to insert into the array.
+  ///    - newItemCount: The maximum number of items to insert into the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///    - body: A callback that gets called precisely once to directly
+  ///    - initializer: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
-  ///       is called with an empty output span of capacity matching the
-  ///       supplied count, and it must fully populate it before returning.
+  ///      is always called with an empty output span.
   ///
-  /// - Complexity: O(`self.count` + `count`)
-  @inlinable
-  public mutating func insert<Result: ~Copyable>(
-    count: Int,
+  /// - Complexity: O(`self.count` + `newItemCount`) in addition to the complexity
+  ///    of the callback invocations.
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public mutating func insert<E: Error>(
+    addingCount newItemCount: Int,
     at index: Int,
-    initializingWith body: (inout OutputSpan<Element>) -> Result
-  ) -> Result {
-    // FIXME: This does not allow `body` to throw, to prevent having to move the tail twice. Is that okay?
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
     precondition(index >= 0 && index <= self.count, "Index out of bounds")
-    precondition(count >= 0, "Negative count")
-    precondition(count <= freeCapacity, "RigidArray capacity overflow")
-    let target = unsafe _openGap(at: index, count: count)
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(newItemCount <= freeCapacity, "RigidArray capacity overflow")
+    let target = unsafe _openGap(at: index, count: newItemCount)
+    _count &+= newItemCount
     var span = OutputSpan(buffer: target, initializedCount: 0)
     defer {
       let c = span.finalize(for: target)
-      precondition(c == count, "Inserted fewer items than promised")
-      _count &+= c
+      if c < newItemCount {
+        _closeGap(at: index &+ c, count: newItemCount &- c)
+        _count &-= newItemCount &- c
+      }
       span = OutputSpan()
     }
-    return body(&span)
+    try initializer(&span)
   }
 }
 
@@ -106,7 +129,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -118,7 +141,7 @@ extension RigidArray where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>,
     at index: Int
   ) {
-    insert(count: items.count, at: index) { target in
+    insert(addingCount: items.count, at: index) { target in
       target._append(moving: items)
     }
   }
@@ -133,7 +156,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -162,7 +185,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -192,7 +215,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
@@ -205,10 +228,8 @@ extension RigidArray where Element: ~Copyable {
   ) {
     // FIXME: Remove this in favor of a generic algorithm over consumable containers
     guard !items.isEmpty else { return }
-    insert(count: items.count, at: index) { target in
-      items.edit { source in
-        target._append(moving: &source)
-      }
+    items.edit { source in
+      self.insert(moving: &source, at: index)
     }
   }
 }
@@ -225,7 +246,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
@@ -258,7 +279,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -270,7 +291,7 @@ extension RigidArray {
     copying newElements: UnsafeBufferPointer<Element>, at index: Int
   ) {
     guard newElements.count > 0 else { return }
-    self.insert(count: newElements.count, at: index) { target in
+    self.insert(addingCount: newElements.count, at: index) { target in
       target._append(copying: newElements)
     }
   }
@@ -288,7 +309,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -316,7 +337,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -328,14 +349,13 @@ extension RigidArray {
     copying newElements: Span<Element>, at index: Int
   ) {
     guard newElements.count > 0 else { return }
-    self.insert(count: newElements.count, at: index) { target in
+    self.insert(addingCount: newElements.count, at: index) { target in
       target._append(copying: newElements)
     }
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
-  @inlinable
+  @_alwaysEmitIntoClient
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
   >(
@@ -343,17 +363,16 @@ extension RigidArray {
     copying items: borrowing C,
     newCount: Int
   ) {
-    insert(count: newCount, at: index) { target in
-      target.withUnsafeMutableBufferPointer { buffer, count in
-        let copied = items._copyContents(intoPrefixOf: buffer)
-        precondition(
-          copied == newCount,
-          "Broken Container: count doesn't match contents")
-        count = newCount
+    var it = items.makeBorrowingIterator()
+    insert(addingCount: newCount, at: index) { target in
+      while !target.isFull {
+        let source = it.nextSpan(maximumCount: target.freeCapacity)
+        precondition(!source.isEmpty, "Broken container: mismatching count")
+        target._append(copying: source)
       }
     }
+    precondition(it.nextSpan().isEmpty, "Broken container: mismatching count")
   }
-#endif
 #endif
 
   @inlinable
@@ -383,7 +402,6 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -397,7 +415,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -414,7 +432,6 @@ extension RigidArray {
       at: index, copying: newElements, newCount: newElements.count)
   }
 #endif
-#endif
 
   /// Copies the elements of a collection into this array at the specified
   /// position.
@@ -429,7 +446,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -445,7 +462,6 @@ extension RigidArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -459,7 +475,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -475,7 +491,6 @@ extension RigidArray {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
-#endif
 #endif
 }
 

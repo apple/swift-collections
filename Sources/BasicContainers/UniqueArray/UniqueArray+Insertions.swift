@@ -51,32 +51,46 @@ extension UniqueArray where Element: ~Copyable {
   /// position, using a callback to directly initialize array storage by
   /// populating an output span.
   ///
-  /// All existing elements at or following the specified position are moved to
-  /// make room for the new items.
+  /// Existing elements in the array's storage are moved towards the back as
+  /// needed to make room for the new items.
   ///
   /// If the array does not have sufficient capacity to hold the new elements,
-  /// then this reallocates storage to extend its capacity, using a geometric
-  /// growth rate.
+  /// then this operation reallocates storage to extend its capacity, using a
+  /// geometric growth rate.
+  ///
+  ///     var buffer = UniqueArray<Int>()
+  ///     buffer.append([-999, 999])
+  ///     var i = 0
+  ///     buffer.insert(capacity: 3, at: 1) { target in
+  ///       while !target.isFull {
+  ///         target.append(i)
+  ///         i += 1
+  ///       }
+  ///     }
+  ///     // `buffer` now contains [-999, 0, 1, 2, 999]
   ///
   /// - Parameters:
   ///    - count: The number of items to insert into the array.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
-  ///    - body: A callback that gets called precisely once to directly
+  ///    - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is called with an empty output span of capacity matching the
   ///       supplied count, and it must fully populate it before returning.
   ///
   /// - Complexity: O(`self.count` + `count`)
-  @inlinable
-  public mutating func insert<Result: ~Copyable>(
-    count: Int,
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public mutating func insert<E: Error>(
+    addingCount newItemCount: Int,
     at index: Int,
-    initializingWith body: (inout OutputSpan<Element>) -> Result
-  ) -> Result {
-    // FIXME: This does not allow `body` to throw, to prevent having to move the tail twice. Is that okay?
-    _ensureFreeCapacity(count)
-    return _storage.insert(count: count, at: index, initializingWith: body)
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
+  ) throws(E) {
+    _ensureFreeCapacity(newItemCount)
+    try _storage.insert(
+      addingCount: newItemCount,
+      at: index,
+      initializingWith: initializer)
   }
 }
 
@@ -90,7 +104,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates storage to extend its capacity, using a geometric
   /// growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///
@@ -116,7 +130,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates storage to extend its capacity, using a geometric
   /// growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -143,7 +157,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates storage to extend its capacity, using a geometric
   /// growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -168,7 +182,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates storage to extend its capacity, using a geometric
   /// growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose contents to move into `self`.
   ///
   /// - Complexity: O(`self.count` + `items.count`)
@@ -193,7 +207,7 @@ extension UniqueArray where Element: ~Copyable {
   /// then this reallocates storage to extend its capacity, using a geometric
   /// growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///
@@ -227,7 +241,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -257,7 +271,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -285,7 +299,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -301,7 +315,6 @@ extension UniqueArray {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -316,7 +329,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -336,7 +349,6 @@ extension UniqueArray {
     _storage._insertContainer(at: index, copying: newElements, newCount: c)
   }
 #endif
-#endif
 
   /// Copies the elements of a collection into this array at the specified
   /// position.
@@ -352,7 +364,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -370,7 +382,6 @@ extension UniqueArray {
   }
   
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-#if false // FIXME: This needs a container with an exact count.
   /// Copies the elements of a container into this array at the specified
   /// position.
   ///
@@ -385,7 +396,7 @@ extension UniqueArray {
   /// then this reallocates the array's storage to extend its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -404,7 +415,6 @@ extension UniqueArray {
     _ensureFreeCapacity(c)
     _storage._insertContainer(at: index, copying: newElements, newCount: c)
   }
-#endif
 #endif
 }
 

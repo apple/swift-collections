@@ -200,7 +200,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
   @inlinable
   @_lifetime(self: copy self)
   public mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool {
-    precondition(n > 0, "Can't skip less than 1 item")
+    precondition(n > 0, "Cannot skip fewer than one item")
     let maxBufferSize = 8
     return try withTemporaryOutputSpan(
       of: Element.self, capacity: Swift.min(maxBufferSize, n)

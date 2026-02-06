@@ -63,16 +63,9 @@ public struct UniqueArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   internal var _storage: RigidArray<Element>
 
-  /// Initializes a new unique array with the specified capacity and no elements.
-  @inlinable
-  public init(capacity: Int) {
-    _storage = .init(capacity: capacity)
-  }
-
-  /// Initializes a new unique array with no elements.
-  @inlinable
-  public init() {
-    _storage = .init(capacity: 0)
+  @_alwaysEmitIntoClient
+  package init(_storage: consuming RigidArray<Element>) {
+    self._storage = _storage
   }
 }
 
@@ -83,8 +76,8 @@ extension UniqueArray: Sendable where Element: Sendable & ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
-  /// The maximum number of elements this array can hold without reallocating
-  /// its storage.
+  /// The maximum number of elements this array can hold without having to
+  /// reallocate its storage.
   ///
   /// - Complexity: O(1)
   @inlinable
@@ -135,7 +128,7 @@ extension UniqueArray where Element: ~Copyable {
 extension UniqueArray where Element: ~Copyable {
   /// Arbitrarily edit the storage underlying this array by invoking a
   /// user-supplied closure with a mutable `OutputSpan` view over it.
-  /// This method calls its function argument precisely once, allowing it to
+  /// This method calls its function argument at most once, allowing it to
   /// arbitrarily modify the contents of the output span it is given.
   /// The argument is free to add, remove or reorder any items; however,
   /// it is not allowed to replace the span or change its capacity.
@@ -146,7 +139,7 @@ extension UniqueArray where Element: ~Copyable {
   ///
   /// - Parameter body: A function that edits the contents of this array through
   ///    an `OutputSpan` argument. This method invokes this function
-  ///    precisely once.
+  ///    at most once.
   /// - Returns: This method returns the result of its function argument.
   /// - Complexity: Adds O(1) overhead to the complexity of the function
   ///    argument.
@@ -159,108 +152,6 @@ extension UniqueArray where Element: ~Copyable {
 }
 
 //MARK: - Container primitives
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueArray where Element: ~Copyable {
-  /// A Boolean value indicating whether this array contains no elements.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var isEmpty: Bool { _storage.isEmpty }
-
-  /// The number of elements in this array.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var count: Int { _storage.count }
-}
-
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
-extension UniqueArray: BorrowingSequence where Element: ~Copyable {
-  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
-  
-  public var estimatedCount: ContainersPreview.EstimatedCount {
-    .exactly(count)
-  }
-
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  public func makeBorrowingIterator() -> BorrowingIterator {
-    self._storage.makeBorrowingIterator()
-  }
-}
-#endif
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueArray where Element: ~Copyable {
-  /// A type that represents a position in the array: an integer offset from the
-  /// start.
-  ///
-  /// Valid indices consist of the position of every element and a "past the
-  /// end” position that’s not valid for use as a subscript argument.
-  public typealias Index = Int
-
-  /// The position of the first element in a nonempty array. This is always zero.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var startIndex: Int { _storage.startIndex }
-
-  /// The array’s "past the end” position—that is, the position one greater than
-  /// the last valid subscript argument. This is always equal to array's count.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var endIndex: Int { _storage.count }
-
-  /// The range of indices that are valid for subscripting the array.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  @inline(__always)
-  public var indices: Range<Int> { _storage.indices }
-
-  /// Accesses the element at the specified position.
-  ///
-  /// - Parameter position: The position of the element to access.
-  ///     The position must be a valid index of the array that is not equal
-  ///     to the `endIndex` property.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public subscript(position: Int) -> Element {
-    @inline(__always)
-    unsafeAddress {
-      _storage._ptr(to: position)
-    }
-    @inline(__always)
-    unsafeMutableAddress {
-      _storage._mutablePtr(to: position)
-    }
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension UniqueArray where Element: ~Copyable {
-  /// Exchanges the values at the specified indices of the array.
-  ///
-  /// Both parameters must be valid indices of the array and not equal to
-  /// endIndex. Passing the same index as both `i` and `j` has no effect.
-  ///
-  /// - Parameter i: The index of the first value to swap.
-  /// - Parameter j: The index of the second valud to swap.
-  ///
-  /// - Complexity: O(1)
-  @inlinable
-  public mutating func swapAt(_ i: Int, _ j: Int) {
-    _storage.swapAt(i, j)
-  }
-}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
@@ -394,12 +285,11 @@ extension UniqueArray {
   /// instance with just enough capacity to hold all its elements.
   ///
   /// - Complexity: O(`count`)
-  @inlinable
-  @inline(__always)
-  public func copy() -> Self {
-    UniqueArray(consuming: _storage.copy())
+  @_alwaysEmitIntoClient
+  public func clone() -> Self {
+    UniqueArray(consuming: _storage.clone())
   }
-
+  
   /// Copy the contents of this array into a newly allocated unique array
   /// instance with the specified capacity.
   ///
@@ -409,11 +299,8 @@ extension UniqueArray {
   /// - Complexity: O(`count`)
   @inlinable
   @inline(__always)
-  public func copy(capacity: Int) -> Self {
-    UniqueArray(consuming: _storage.copy(capacity: capacity))
+  public func clone(capacity: Int) -> Self {
+    UniqueArray(consuming: _storage.clone(capacity: capacity))
   }
 }
-
-
-
 #endif

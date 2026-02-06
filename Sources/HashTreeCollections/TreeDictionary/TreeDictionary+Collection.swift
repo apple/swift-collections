@@ -159,7 +159,7 @@ extension TreeDictionary: Collection {
   @inlinable
   public subscript(i: Index) -> Element {
     precondition(_isValid(i), "Invalid index")
-    precondition(i._path.isOnItem, "Can't get element at endIndex")
+    precondition(i._path.isOnItem, "Cannot get element at endIndex")
     return _UnsafeHandle.read(i._path.node) {
       $0[item: i._path.currentItemSlot]
     }

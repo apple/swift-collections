@@ -18,12 +18,36 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  /// Initializes a new rigid array with zero capacity and no elements.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public init() {
+    unsafe _storage = .init(start: nil, count: 0)
+    _count = 0
+  }
+  
+  /// Initializes a new rigid array with the specified capacity and no elements.
+  @inlinable
+  public init(capacity: Int) {
+    precondition(capacity >= 0, "Array capacity must be nonnegative")
+    if capacity > 0 {
+      unsafe _storage = .allocate(capacity: capacity)
+    } else {
+      unsafe _storage = .init(start: nil, count: 0)
+    }
+    _count = 0
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
   /// Creates a new array with the specified capacity, directly initializing
   /// its storage using an output span.
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new array.
-  ///   - body: A callback that gets called precisely once to directly
+  ///   - body: A callback that gets called at most once to directly
   ///       populate newly reserved storage within the array. The function
   ///       is allowed to add fewer than `capacity` items. The array is
   ///       initialized with however many items the callback adds to the
@@ -31,10 +55,10 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public init<E: Error>(
     capacity: Int,
-    initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
+    initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     self.init(capacity: capacity)
-    try edit(body)
+    try edit(initializer)
   }
 }
 
