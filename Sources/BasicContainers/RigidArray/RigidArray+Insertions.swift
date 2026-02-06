@@ -129,7 +129,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -156,7 +156,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -185,7 +185,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents to move into
   ///        the array.
   ///    - index: The position at which to insert the new items.
@@ -215,7 +215,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
@@ -246,7 +246,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The array whose contents to move into `self`.
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the array.
@@ -279,7 +279,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -309,7 +309,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -337,7 +337,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -415,7 +415,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -446,7 +446,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.
@@ -475,7 +475,7 @@ extension RigidArray {
   /// If the capacity of the array isn't sufficient to accommodate the new
   /// elements, then this method triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the array.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the array.

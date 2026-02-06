@@ -74,7 +74,7 @@ extension UniqueDeque where Element: ~Copyable {
   ///     }
   ///     // `buffer` now contains [999, 0, 1, 2, 3]
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - maximumCount: The maximum number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque.
@@ -104,7 +104,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// elements, then this method reallocates the deque's storage to grow it,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
   ///
@@ -126,7 +126,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// elements, then this method reallocates the deque's storage to grow it,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents need to be appended to this deque.
   ///
   /// - Complexity: O(`items.count`) when amortized over many similar
@@ -150,7 +150,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// elements, then this method reallocates the deque's storage to grow it,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents need to be appended to this deque.
   ///
   /// - Complexity: O(`items.count`) when amortized over many similar
@@ -181,7 +181,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// producer; if the producer has more, then they remain available after this
   /// method returns.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - maximumCount: The maximum number of items to append to the deque, or
   ///       nil to append every item the producer generates.
   ///    - producer: A producer that generates the items to append.
@@ -231,7 +231,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// number of new elements, then this method reallocates the deque's storage
   /// to grow it, using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
   ///
@@ -251,7 +251,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// number of new elements, then this method reallocates the deque's storage
   /// to grow it, using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
   ///
@@ -270,7 +270,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// number of new elements, then this method reallocates the deque's storage
   /// to grow it, using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A span whose contents to copy into the deque.
   ///
   /// - Complexity: O(`items.count`) when amortized over many similar
@@ -301,7 +301,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// elements, then this method reallocates the deque's storage to grow it,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, when amortized
@@ -322,7 +322,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// estimate of its count, then the deque's storage may need to be resized
   /// more than once.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, when
@@ -351,7 +351,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// elements, then this method reallocates the deque's storage to grow it,
   /// using a geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, when

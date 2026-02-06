@@ -97,7 +97,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the array.
   ///
@@ -120,7 +120,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to hold all items in its
   /// storage, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents need to be appended to this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -142,7 +142,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the array does not have sufficient capacity to hold all items in its
   /// storage, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents need to be appended to this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -164,7 +164,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the target array does not have sufficient capacity to hold all items
   /// in the source array, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An array whose items to move to the end of this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -188,7 +188,7 @@ extension RigidArray where Element: ~Copyable {
   /// If the target array does not have sufficient capacity to hold all items
   /// in the source array, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A container whose contents to move into this array.
   ///
   /// - Complexity: O(`items.count`)
@@ -210,7 +210,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A fully initialized buffer whose contents to copy into
   ///       the array.
   ///
@@ -233,7 +233,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A fully initialized buffer whose contents to copy into
   ///        the array.
   ///
@@ -250,7 +250,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// span, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A span whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`)
@@ -289,7 +289,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// source sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: A container whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`)
@@ -309,7 +309,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to copy into the array.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.
@@ -331,7 +331,7 @@ extension RigidArray {
   /// If the array does not have sufficient capacity to hold all items in the
   /// source sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to copy into the array.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.

@@ -679,7 +679,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// it throws an error. In such cases, the deque keeps all items that were
   /// successfully initialized before the callback terminated.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - capacity: The maximum number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
@@ -739,7 +739,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   ///     }
   ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 10]
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - count: The number of items to append to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque. The function
@@ -777,7 +777,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// This unchecked routine does not verify that the deque has sufficient
   /// capacity to store the new items.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
   ///
@@ -804,7 +804,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// This unchecked routine does not verify that the deque has sufficient
   /// capacity to store the new items.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
   ///

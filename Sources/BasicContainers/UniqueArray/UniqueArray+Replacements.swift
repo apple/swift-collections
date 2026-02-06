@@ -49,7 +49,7 @@ extension UniqueArray where Element: ~Copyable {
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///      the range must be valid indices in the array.
   ///   - newItemCount: the maximum number of items to replace the old subrange.
@@ -116,7 +116,7 @@ extension UniqueArray where Element: ~Copyable {
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///      the range must be valid indices in the deque.
   ///   - consumer: A callback that gets called at most once to consume
@@ -174,7 +174,7 @@ extension UniqueArray where Element: ~Copyable {
   /// without replacement. Calling the `removeSubrange(_:)` method instead is
   /// preferred in this case.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: A fully initialized buffer whose contents to move into
@@ -213,7 +213,7 @@ extension UniqueArray where Element: ~Copyable {
   /// without replacement. Calling the `removeSubrange(_:)` method instead is
   /// preferred in this case.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - items: An input span whose contents are to be moved into the array.
@@ -251,7 +251,7 @@ extension UniqueArray where Element: ~Copyable {
   /// without replacement. Calling the `removeSubrange(_:)` method instead is
   /// preferred in this case.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - items: An output span whose contents are to be moved into the array.
@@ -290,7 +290,7 @@ extension UniqueArray where Element: ~Copyable {
   /// without replacement. Calling the `removeSubrange(_:)` method instead is
   /// preferred in this case.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: An array whose contents to move into `self`.
@@ -330,7 +330,7 @@ extension UniqueArray where Element: ~Copyable {
   /// without replacement. Calling the `removeSubrange(_:)` method instead is
   /// preferred in this case.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the array.
   ///   - newElements: An array whose contents to move into `self`.

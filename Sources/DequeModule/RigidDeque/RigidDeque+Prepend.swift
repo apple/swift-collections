@@ -96,7 +96,7 @@ extension RigidDeque where Element: ~Copyable {
   ///     }
   ///     // `buffer` now contains [0, 1, 2, 3, 999]
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newItemCount: The maximum number of items to prepend to the deque.
   ///    - body: A callback that gets called at most twice to directly
   ///       populate newly reserved storage within the deque.
@@ -122,7 +122,7 @@ extension RigidDeque where Element: ~Copyable {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
   ///
@@ -143,7 +143,7 @@ extension RigidDeque where Element: ~Copyable {
   /// If the deque does not have sufficient capacity to hold all items in its
   /// storage, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents need to be prepended to this deque.
   ///
   /// - Complexity: O(`items.count`)
@@ -165,7 +165,7 @@ extension RigidDeque where Element: ~Copyable {
   /// If the deque does not have sufficient capacity to hold all items in its
   /// storage, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents need to be prepended to this deque.
   ///
   /// - Complexity: O(`items.count`)
@@ -198,7 +198,7 @@ extension RigidDeque where Element: ~Copyable {
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - maximumCount: The maximum number of items to prepend to the deque, or
   ///       nil to use all available capacity.
 
@@ -230,7 +230,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///       the deque.
   ///
@@ -252,7 +252,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// buffer, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to copy into
   ///        the deque.
   ///
@@ -270,7 +270,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// span, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A span whose contents to copy into the deque.
   ///
   /// - Complexity: O(`items.count`)
@@ -323,7 +323,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// operation works by first appending the items, then finalizing the
   /// prepend by rotating them in place as a postprocessing step.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
@@ -340,7 +340,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// container, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(`items.count`)
@@ -427,7 +427,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
@@ -443,7 +443,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
@@ -459,7 +459,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
@@ -475,7 +475,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.

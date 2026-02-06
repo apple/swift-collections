@@ -124,7 +124,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: A fully initialized buffer whose contents to move into
   ///        the deque.
   ///    - index: The position at which to insert the new items.
@@ -161,7 +161,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An input span whose contents to move into
   ///        the deque.
   ///    - index: The position at which to insert the new items.
@@ -193,7 +193,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: An output span whose contents to move into
   ///        the deque.
   ///    - index: The position at which to insert the new items.
@@ -281,7 +281,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to insert into the deque. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -321,7 +321,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to insert into the deque. The buffer
   ///       must be fully initialized.
   ///    - index: The position at which to insert the new elements. It must be
@@ -351,7 +351,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to insert into the deque.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the deque.
@@ -426,7 +426,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - newElements: The new elements to insert into the deque.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the deque.
@@ -460,7 +460,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to insert into the deque.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the deque.
@@ -492,7 +492,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   /// then this reallocates the deque's storage to grow its capacity, using a
   /// geometric growth rate.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///    - items: The new elements to insert into the deque.
   ///    - index: The position at which to insert the new elements. It must be
   ///        a valid index of the deque.

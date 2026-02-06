@@ -48,7 +48,7 @@ extension RigidDeque where Element: ~Copyable {
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///      the range must be valid indices in the deque.
   ///   - newItemCount: the maximum number of items to replace the old subrange.
@@ -121,7 +121,7 @@ extension RigidDeque where Element: ~Copyable {
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///      the range must be valid indices in the deque.
   ///   - newItemCount: the maximum number of items to replace the old subrange.
@@ -180,7 +180,7 @@ extension RigidDeque where Element: ~Copyable {
   /// without replacement. This case is more directly expressed by calling
   /// `removeSubrange`.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///     the range must be valid indices in the deque.
   ///   - items: A fully initialized buffer whose contents to move into
@@ -224,7 +224,7 @@ extension RigidDeque where Element: ~Copyable {
   /// without replacement. This case is more directly expressed by calling
   /// `removeSubrange`.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///     the range must be valid indices in the deque.
   ///   - items: An input span whose contents are to be moved into the deque.
@@ -263,7 +263,7 @@ extension RigidDeque where Element: ~Copyable {
   /// without replacement. This case is more directly expressed by calling
   /// `removeSubrange`.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the array to replace. The bounds of
   ///     the range must be valid indices in the deque.
   ///   - items: An output span whose contents are to be moved into the deque.
@@ -312,7 +312,7 @@ extension RigidDeque where Element: ~Copyable {
   /// items to their correct positions given the adjusted count. This adds some
   /// overhead compared to adding exactly as many items as promised.
   ///
-  /// - Parameters
+  /// - Parameters:
   ///   - subrange: The subrange of the deque to replace. The bounds of
   ///     the range must be valid indices in the deque.
   ///   - newItemCount: The maximum number of items to insert into the deque.
