@@ -146,7 +146,7 @@ where Self: ~Copyable & ~Escapable, Element: Copyable
   @_lifetime(self: copy self)
   @_transparent
   public mutating func copyContents(into target: inout OutputSpan<Element>) {
-    target._withUnsafeMutableBufferPointer { dst, dstCount in
+    target.withUnsafeMutableBufferPointer { dst, dstCount in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
         let src = nextSpan(maximumCount: tail.count)
