@@ -194,7 +194,7 @@ extension RigidDeque where Element: ~Copyable {
   ) {
     var remainder = items
     replace(removing: subrange, addingCount: remainder.count) { target in
-      target._withUnsafeMutableBufferPointer { buffer, count in
+      target.withUnsafeMutableBufferPointer { buffer, count in
         buffer.moveInitializeAll(
           fromContentsOf: remainder._trim(first: buffer.count))
         count = buffer.count
@@ -274,7 +274,7 @@ extension RigidDeque where Element: ~Copyable {
     removing subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
-    items._withUnsafeMutableBufferPointer { buffer, count in
+    items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.replace(removing: subrange, moving: source)
       count = 0
@@ -372,7 +372,7 @@ extension RigidDeque /* where Element: Copyable */ {
   ) {
     var remainder = items
     replace(removing: subrange, addingCount: remainder.count) { target in
-      target._withUnsafeMutableBufferPointer { dst, dstCount in
+      target.withUnsafeMutableBufferPointer { dst, dstCount in
         dst.initializeAll(fromContentsOf: remainder._trim(first: dst.count))
         dstCount += dst.count
       }
