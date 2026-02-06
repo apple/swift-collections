@@ -1015,6 +1015,24 @@ extension OrderedDictionary {
       values: ContiguousArray(try _values.map(transform)))
   }
 
+  /// Returns a new dictionary containing the keys of this dictionary with the
+  /// values transformed by the given closure.
+  ///
+  /// - Parameter transform: A closure that transforms a value. `transform`
+  ///   accepts each key and value of the dictionary as its arguments and returns
+  ///   a transformed value of the same or of a different type.
+  /// - Returns: A new dictionary containing the keys and transformed values of
+  ///   this dictionary.
+  ///
+  /// - Complexity: O(`count`)
+  @inlinable
+  public func mapValuesWithKeys<T, E>(
+    _ transform: (Key, Value) throws(E) -> T
+  ) throws(E) -> OrderedDictionary<Key, T> {
+    let values = ContiguousArray(try elements.map(transform))
+    return OrderedDictionary<Key, T>(_uniqueKeys: _keys, values: values)
+  }
+
   /// Returns a new dictionary containing only the key-value pairs that have
   /// non-`nil` values as the result of transformation by the given closure.
   ///
