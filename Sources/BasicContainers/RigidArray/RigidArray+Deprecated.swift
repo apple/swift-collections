@@ -41,7 +41,7 @@ extension RigidArray where Element: ~Copyable {
     }
     return result.take()!
   }
-
+  
   /// Inserts a given number of new items into this array at the specified
   /// position, using a callback to directly initialize array storage by
   /// populating an output span.
@@ -75,7 +75,7 @@ extension RigidArray where Element: ~Copyable {
     }
     return result!
   }
-
+  
   /// Replaces the specified range of elements by a given count of new items,
   /// using a callback to directly initialize array storage by populating
   /// an output span.
@@ -228,10 +228,59 @@ extension RigidArray where Element: ~Copyable {
   ) {
     self.replace(removing: subrange, moving: &newElements)
   }
+  
+  
+  /// Perform a range replacement up to populating the newly opened gap. This
+  /// deinitializes existing elements in the specified subrange, rearranges
+  /// following elements to be at their final location, and sets the container's
+  /// new count.
+  ///
+  /// - Returns: A buffer pointer addressing the newly opened gap, to be
+  ///     initialized by the caller.
+  @available(*, deprecated) // FIXME: Obsolete, remove this
+  @usableFromInline
+  @unsafe
+  internal mutating func _gapForReplacement(
+    of subrange: Range<Int>, newItemCount: Int
+  ) -> UnsafeMutableBufferPointer<Element> {
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
+      "Index range out of bounds")
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(
+      newItemCount - subrange.count <= freeCapacity,
+      "RigidArray capacity overflow")
+    unsafe _items.extracting(subrange).deinitialize()
+    return _resizeGap(in: subrange, to: newItemCount)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray {
+  /// Copy the contents of this array into a newly allocated rigid array
+  /// instance with just enough capacity to hold all its elements.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "clone()")
+  @inlinable
+  public func copy() -> Self {
+    clone()
+  }
+  
+  
+  /// Copy the contents of this array into a newly allocated rigid array
+  /// instance with the specified capacity.
+  ///
+  /// - Parameter capacity: The desired capacity of the resulting rigid array.
+  ///    `capacity` must be greater than or equal to `count`.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "clone(capacity:)")
+  @inlinable
+  public func copy(capacity: Int) -> Self {
+    clone(capacity: capacity)
+  }
+  
   /// Replaces the specified subrange of elements by copying the elements of
   /// the given buffer pointer, which must be fully initialized.
   ///
