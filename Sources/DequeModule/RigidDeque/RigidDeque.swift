@@ -29,7 +29,86 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
 #else
 
 /// A fixed capacity, heap allocated, noncopyable double-ended queue of
-/// potentially noncopyable elements.
+/// potentially noncopyable elements. A deque (pronounced "deck")
+/// is an ordered random-access container that supports efficient
+/// insertions and removals from both ends.
+///
+/// Deques implement the same indexing semantics as arrays: they use integer
+/// indices, and the first element of a nonempty deque is always at logical
+/// index zero.
+///
+///     var colors = RigidDeque<String>(capacity: 5)
+///     colors.append("red")
+///     colors.prepend("yellow")
+///     colors.append("blue")
+///     // `colors` now contains "yellow", "red", "blue"
+///
+///     print(colors[0])            // prints "yellow"
+///     print(colors[1])            // prints "red"
+///
+///     print(colors.removeFirst()) // prints "yellow"
+///     print(colors.removeLast())  // prints "blue"
+///     // `colors` now contains "red"
+///
+/// This double-ended nature makes deques particularly well-suited for
+/// representing first-in-first-out (FIFO) buffers, where new items are
+/// inserted at one end, and old items are retrieved from the other.
+/// For example, they are ideal for modeling buffered data streams, such as
+/// networking channels, or other producer/consumer scenarios.
+///
+/// ### Implementation Notes
+///
+/// `RigidDeque` implements a ring buffer. It stores its elements in a
+/// single heap-allocated buffer, and to allow fast insertions and removals
+/// from both ends, the buffer behaves as if its ends were glued together into
+/// a ring shape. This comes at the cost of potentially discontiguous storage, as
+/// the contents of the ring buffer sometimes wrap around the edges.
+///
+/// While the first item in the deque is always addressed by the logical index
+/// zero, its physical location can be anywhere in the underlying ring buffer.
+/// Compare this with `RigidArray`'s contiguous storage, where the first item
+/// is always stored at the start of the buffer, so new data can always be
+/// efficiently appended to the end, but inserting at the front is relatively
+/// slow, as existing elements need to be shifted to make room.
+///
+/// ### Fixed Storage Capacity
+///
+/// `RigidDeque` instances are created with a specific maximum capacity.
+/// Elements can be added to the deque up to that capacity, but no more: trying
+/// to add an item to a full deque results in a runtime trap.
+///
+///      var items = RigidDeque<Int>(capacity: 2)
+///      items.prepend(1)
+///      items.prepend(2)
+///      items.prepend(3) // Runtime error: RigidDeque capacity overflow
+///
+/// Rigid deques provide convenience properties to help verify that it has
+/// enough available capacity: `isFull` and `freeCapacity`.
+///
+///     guard items.freeCapacity >= 4 else { throw CapacityOverflow() }
+///     items.append(copying: newItems)
+///
+/// It is possible to extend or shrink the capacity of a rigid deque instance,
+/// but this needs to be done explicitly, with operations dedicated to this
+/// purpose (such as ``reserveCapacity`` and ``reallocate(capacity:)``).
+/// The deque never resizes itself automatically.
+///
+/// Therefore, it is necessary to perform careful manual analysis (or up front
+/// runtime capacity checks) to prevent the deque from overflowing its storage.
+/// This makes this type more difficult to use than a dynamically resizing
+/// container. However, it allows this construct to provide predictably stable
+/// performance.
+///
+/// This trading of usability in favor of stable performance limits `RigidDeque`
+/// to the most resource-constrained of use cases, such as space-constrained
+/// environments that require carefully accounting of every heap allocation, or
+/// time-constrained applications that cannot accommodate unexpected latency
+/// spikes due to a reallocation getting triggered at an inopportune moment.
+///
+/// For use cases outside of these narrow domains, we generally recommmend
+/// to use the dynamically resizing ``UniqueDeque`` type rather than
+/// `RigidDeque`. For copyable elements, the copy-on-write `Deque` type is an
+/// even more convenient and expressive choice.
 @available(SwiftStdlib 5.0, *)
 @frozen
 @safe

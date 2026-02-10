@@ -16,6 +16,10 @@ import ContainersPreview
 
 #if compiler(<6.2)
 
+/// A dynamically self-resizing, heap allocated, noncopyable double-ended
+/// queue of potentially noncopyable elements. A deque (pronounced "deck")
+/// is an ordered random-access container that supports efficient
+/// insertions and removals from both ends.
 @frozen
 @available(*, unavailable, message: "UniqueDeque requires a Swift 6.2 toolchain")
 public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
@@ -26,6 +30,73 @@ public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
 
 #else
 
+/// A dynamically self-resizing, heap allocated, noncopyable double-ended
+/// queue of potentially noncopyable elements. A deque (pronounced "deck")
+/// is an ordered random-access container that supports efficient
+/// insertions and removals from both ends.
+///
+/// Deques implement the same indexing semantics as arrays: they use integer
+/// indices, and the first element of a nonempty deque is always at logical
+/// index zero.
+///
+///     var colors = UniqueDeque<String>()
+///     colors.append("red")
+///     colors.prepend("yellow")
+///     colors.append("blue")
+///     // `colors` now contains "yellow", "red", "blue"
+///
+///     print(colors[0])            // prints "yellow"
+///     print(colors[1])            // prints "red"
+///
+///     print(colors.removeFirst()) // prints "yellow"
+///     print(colors.removeLast())  // prints "blue"
+///     // `colors` now contains "red"
+///
+/// This double-ended nature makes deques particularly well-suited for
+/// representing first-in-first-out (FIFO) buffers, where new items are
+/// inserted at one end, and old items are retrieved from the other.
+/// For example, they are ideal for modeling buffered data streams, such as
+/// networking channels, or other producer/consumer scenarios.
+///
+/// ### Implementation Notes
+///
+/// `UniqueDeque` implements a ring buffer. It stores its elements in a
+/// single heap-allocated buffer, and to allow fast insertions and removals
+/// from both ends, the buffer behaves as if its ends were glued together into
+/// a ring shape. This comes at the cost of potentially discontiguous storage, as
+/// the contents of the ring buffer sometimes wrap around the edges.
+///
+/// While the first item in the deque is always addressed by the logical index
+/// zero, its physical location can be anywhere in the underlying ring buffer.
+/// Compare this with `UniqueArray`'s contiguous storage, where the first item
+/// is always stored at the start of the buffer, so new data can always be
+/// efficiently appended to the end, but inserting at the front is relatively
+/// slow, as existing elements need to be shifted to make room.
+///
+/// ### Dynamic Storage Sizing
+///
+/// `UniqueDeque` instances automatically resize their underlying storage as
+/// needed to accommodate newly inserted items, using a geometric growth curve.
+/// This lets code using `UniqueDeque` avoid having to carefully allocate enough
+/// capacity in advance; on the other hand, it makes it difficult to tell
+/// when and where such reallocations may happen.
+///
+/// For example, appending an element to a `UniqueDeque` has highly variable
+/// complexity; often, it runs at a constant cost, but if the operation has to
+/// resize storage, then the cost of an individual append suddenly becomes
+/// proportional to the size of the whole container.
+///
+/// The geometric growth curve allows the cost of such latency spikes to
+/// get amortized across repeated invocations, bringing the average cost back
+/// to O(1); but the spikes make this construct less suitable for use cases that
+/// expect predictable, consistent performance on every operation.
+///
+/// Implicit growth also makes it more difficult to predict/analyze the amount
+/// of memory an algorithm would need. Developers targeting environments with
+/// stringent limits on heap allocations may prefer to avoid using dynamically
+/// resizing container types as a matter of policy. The type `RigidDeque`
+/// provides a fixed-capacity deque variant that caters specifically for these
+/// use cases, trading ease-of-use for more consistent/predictable execution.
 @available(SwiftStdlib 5.0, *)
 @frozen
 @safe
