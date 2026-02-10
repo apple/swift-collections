@@ -10,24 +10,27 @@ Read more about the package, and the intent behind it, in the [announcement on s
 
 The package currently provides the following implementations:
 
-- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
+- [`UniqueArray`][UniqueArray] and [`RigidArray`][RigidArray], noncopyable array variants trading some of `Array`'s flexibility for more predictable performance.
 
-- [`Deque<Element>`][Deque], a double-ended queue backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
-
-- [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue.
+- [`Deque<Element>`][Deque], [`UniqueDeque`][UniqueDeque] and [`RigidDeque`][RigidDeque], variants of a double-ended queue type backed by a ring buffer. Deques are range-replaceable, mutable, random-access collections.
 
 - [`OrderedSet<Element>`][OrderedSet], a variant of the standard `Set` where the order of items is well-defined and items can be arbitrarily reordered. Uses a `ContiguousArray` as its backing store, augmented by a separate hash table of bit packed offsets into it.
 
 - [`OrderedDictionary<Key, Value>`][OrderedDictionary], an ordered variant of the standard `Dictionary`, providing similar benefits.
 
-- [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.
+- [`BitSet`][BitSet] and [`BitArray`][BitArray], dynamic bit collections.
 
-- [`UniqueArray`][UniqueArray] and [`RigidArray`][RigidArray], noncopyable array variants trading some of `Array`'s flexibility for more predictable performance.
+- [`Heap`][Heap], a min-max heap backed by an array, suitable for use as a priority queue.
+
+- [`TreeSet`][TreeSet] and [`TreeDictionary`][TreeDictionary], persistent hashed collections implementing Compressed Hash-Array Mapped Prefix Trees (CHAMP). These work similar to the standard `Set` and `Dictionary`, but they excel at use cases that mutate shared copies, offering dramatic memory savings and radical time improvements.
 
 - [`TrailingArray`][TrailingArray], a low-level, ownership-aware variant of `ManagedBuffer`, for interoperability with C constructs that consist of a fixed-size header directly followed by variable-size storage buffer.
 
 [BitSet]: https://swiftpackageindex.com/apple/swift-collections/documentation/bitcollections/bitset
 [BitArray]: https://swiftpackageindex.com/apple/swift-collections/documentation/bitcollections/bitarray
+[Deque]: https://swiftpackageindex.com/apple/swift-collections/documentation/dequemodule/deque
+[RigidDeque]: https://swiftpackageindex.com/apple/swift-collections/documentation/dequemodule/rigiddeque
+[UniqueDeque]: https://swiftpackageindex.com/apple/swift-collections/documentation/dequemodule/uniquedeque
 [Deque]: https://swiftpackageindex.com/apple/swift-collections/documentation/dequemodule/deque
 [Heap]: https://swiftpackageindex.com/apple/swift-collections/documentation/heapmodule/heap
 [OrderedSet]: https://swiftpackageindex.com/apple/swift-collections/documentation/orderedcollections/orderedset
@@ -57,7 +60,7 @@ The Swift Collections package is source stable. The version numbers follow [Sema
 
 ### Public API
 
-The public API of version 1.3 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules.
+The public API of version 1.4 of the `swift-collections` package consists of non-underscored declarations that are marked `public` in the `Collections`, `BasicContainers`, `BitCollections`, `DequeModule`, `HeapModule`, `OrderedCollections` and `HashTreeCollections` modules.
 
 Interfaces that aren't part of the public API may continue to change in any release, including patch releases.
 
@@ -68,9 +71,11 @@ By "underscored declarations" we mean declarations that have a leading underscor
 - `_FooModule.Bar` (underscored module)
 - `FooModule.Bar.init(_value:)` (underscored initializer)
 
+Interfaces that get enabled by opting into either of the `UnstableContainersPreview` or `UnstableSortedCollections` package traits are not part of the public API; those interfaces may get removed or changed in any release.
+
 If you have a use case that requires using underscored (or otherwise non-public) APIs, please [submit a Feature Request][enhancement] describing it! We'd like the public interface to be as useful as possible -- although preferably without compromising safety or limiting future evolution.
 
-This source compatibility promise only applies to swift-collection when built as a Swift package. (The repository also contains unstable configurations for building swift-collections using CMake and Xcode. These configurations are provided for internal Swift project use only -- such as for building the (private) swift-collections binaries that ship within Swift toolchains.)
+This source compatibility promise only applies to swift-collections when built as a Swift package. (The repository also contains unstable configurations for building swift-collections using CMake and Xcode. These configurations are provided for internal Swift project use only -- such as for building the (private) swift-collections binaries that ship within Swift toolchains.)
 
 Note that the files in the `Tests`, `Utils`, `Documentation`, `Xcode`, `cmake` and `Benchmarks` subdirectories may change at whim; they may be added, modified or removed in any new release. Do not rely on anything about them.
 
@@ -88,6 +93,7 @@ The following table maps package releases to their minimum required Swift toolch
 | swift-collections 1.1.x | >= Swift 5.7.2  | >= Xcode 14.2 |
 | swift-collections 1.2.x | >= Swift 5.10.0 | >= Xcode 15.3 |
 | swift-collections 1.3.x | >= Swift 6.0.3  | >= Xcode 16.2 |
+| swift-collections 1.4.x | >= Swift 6.0.3  | >= Xcode 16.2 |
 
 (Note: the package has no minimum deployment target, so while it does require clients to use a recent Swift toolchain to build it, the code itself is able to run on any OS release that supports running Swift code.)
 
@@ -104,7 +110,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-collections.git",
-      .upToNextMinor(from: "1.3.0") // or `.upToNextMajor
+      .upToNextMinor(from: "1.4.0") // or `.upToNextMajor
     )
   ],
   targets: [
@@ -134,15 +140,16 @@ We maintain separate branches for each minor version of the package:
 | ----------------------- | ----------- | -------- |
 | swift-collections 1.0.x | release/1.0 | Obsolete |
 | swift-collections 1.1.x | release/1.1 | Obsolete |
-| swift-collections 1.2.x | release/1.2 | Bugfixes only |
+| swift-collections 1.2.x | release/1.2 | Obsolete |
 | swift-collections 1.3.x | release/1.3 | Bugfixes only |
+| swift-collections 1.4.x | release/1.4 | Bugfixes only |
 | n.a.                    | main        | Feature work towards next minor release |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
 
-`release/1.1` → `release/1.2` → `release/1.3` → `main`
+`release/1.3` → `release/1.4` → `main`
 
-For example, anything landing on `release/1.2` will eventually appear on `release/1.3` and then `main` too; there is no need to file standalone PRs for each release line. Change propagation is not instantaneous, as it currently requires manual work -- it is performed by project maintainers.
+For example, anything landing on `release/1.3` will eventually appear on `release/1.4` and then `main` too; there is no need to file standalone PRs for each release line. Change propagation is not instantaneous, as it currently requires manual work -- it is performed by project maintainers.
 
 ### Working on the package
 
@@ -172,7 +179,7 @@ By submitting a pull request, you represent that you have the right to license y
 
 #### Proposing the addition of a new data structure
 
-**Note:** As of 2025, we are fully preoccupied with refactoring our existing data structures to support noncopyable and/or nonescapable element types; this includes designing new container protocols around them. I don't expect we'll have capacity to work on any major new data structure implementations until this effort is complete.
+**Note:** We are currently fully preoccupied with refactoring our existing data structures to support noncopyable and/or nonescapable element types; this includes designing new container protocols around them. I don't expect we'll have capacity to work on any major new data structure implementations until this effort is complete.
 
 ### Code of Conduct
 
