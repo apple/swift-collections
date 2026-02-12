@@ -171,6 +171,24 @@ extension RigidArray /*where Element: Copyable*/ {
     self.init(capacity: capacity ?? contents.count)
     self.append(copying: contents)
   }
+
+  /// Creates a new array with the specified capacity, holding a copy
+  /// of the contents of the given span.
+  ///
+  /// - Parameters:
+  ///   - capacity: The storage capacity of the new array, or nil to allocate
+  ///      just enough capacity to store the contents of the span.
+  ///   - span: The span whose contents to copy into the new array.
+  ///      The span must not contain more than `capacity` elements.
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public init(
+    capacity: Int? = nil,
+    copying span: Span<Element>
+  ) {
+    self.init(capacity: capacity ?? span.count)
+    self.append(copying: span)
+  }
 }
 
 // FIXME: Add init(moving:), init(consuming:)

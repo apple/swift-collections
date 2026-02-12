@@ -191,6 +191,29 @@ class RigidArrayTests: CollectionTestCase {
 #endif
 #endif
 
+  func test_init_copying_Span() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withLifetimeTracking { tracker in
+        let a = tracker.rigidArray(layout: layout)
+        let b = RigidArray(capacity: layout.capacity, copying: a.span)
+        expectEqual(tracker.instances, layout.count)
+        expectEqual(b.capacity, layout.capacity)
+        expectEqual(b.count, layout.count)
+        expectEqual(b.freeCapacity, layout.capacity - layout.count)
+        expectEqual(b.isEmpty, layout.count == 0)
+        expectEqual(b.isFull, layout.count == layout.capacity)
+        for i in 0 ..< layout.count {
+          expectEqual(b[i].payload, i)
+        }
+        expectIterableContents(
+          b,
+          equivalentTo: 0 ..< layout.count,
+          by: { $0.payload == $1 },
+          printer: { "\($0.payload)" })
+      }
+    }
+  }
+
   func test_span() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
