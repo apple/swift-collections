@@ -37,26 +37,28 @@ public struct UniqueArray<Element: ~Copyable>: ~Copyable {
 ///
 /// `UniqueArray` instances automatically resize their underlying storage as
 /// needed to accommodate newly inserted items, using a geometric growth curve.
-/// This frees code using `UniqueArray` from having to allocate enough
+/// This lets code using `UniqueArray` avoid having to allocate enough
 /// capacity in advance; on the other hand, it makes it difficult to tell
 /// when and where such reallocations may happen.
 ///
-/// For example, appending an element to a dynamic array has highly variable
+/// For example, appending an element to a `UniqueArray` has highly variable
 /// complexity; often, it runs at a constant cost, but if the operation has to
 /// resize storage, then the cost of an individual append suddenly becomes
 /// proportional to the size of the whole array.
 ///
 /// The geometric growth curve allows the cost of such latency spikes to
 /// get amortized across repeated invocations, bringing the average cost back
-/// to O(1); but they make this construct less suitable for use cases that
+/// to O(1); but the spikes make this construct less suitable for use cases that
 /// expect predictable, consistent performance on every operation.
 ///
 /// Implicit growth also makes it more difficult to predict/analyze the amount
 /// of memory an algorithm would need. Developers targeting environments with
 /// stringent limits on heap allocations may prefer to avoid using dynamically
-/// resizing array types as a matter of policy. The type `RigidArray` provides
+/// resizing container types as a matter of policy. The type `RigidArray` provides
 /// a fixed-capacity array variant that caters specifically for these use cases,
 /// trading ease-of-use for more consistent/predictable execution.
+/// For copyable elements, the copy-on-write `Array` type is an
+/// even more convenient and expressive choice.
 @available(SwiftStdlib 5.0, *)
 @frozen
 public struct UniqueArray<Element: ~Copyable>: ~Copyable {
