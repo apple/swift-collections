@@ -1,7 +1,7 @@
 #[[
 This source file is part of the Swift Collections Open Source Project
 
-Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 Licensed under Apache License v2.0 with Runtime Library Exception
 
 See https://swift.org/LICENSE.txt for license information
@@ -21,15 +21,6 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "Debugging.swift"
-  "Descriptions.swift"
-  "LifetimeOverride.swift"
-  "RandomAccessCollection+Offsets.swift"
-  "Span+Extras.swift"
-  "UnsafeBufferPointer+Extras.swift"
-  "UnsafeMutableBufferPointer+Extras.swift"
-  "UnsafeMutableRawBufferPointer+Extras.swift"
-  "UnsafeRawBufferPointer+Extras.swift"
   "IntegerTricks/FixedWidthInteger+roundUpToPowerOfTwo.swift"
   "IntegerTricks/Integer rank.swift"
   "IntegerTricks/UInt+first and last set bit.swift"
@@ -39,4 +30,14 @@ target_sources(${module_name} PRIVATE
   "UnsafeBitSet/_UnsafeBitSet.swift"
   "_SortedCollection.swift"
   "_UniqueCollection.swift"
+  "Debugging.swift"
+  "Descriptions.swift"
+  "LifetimeOverride.swift"
+  "RandomAccessCollection+Offsets.swift"
+  "Span+Extras.swift"
+  "String+Padding.swift"
+  "UnsafeBufferPointer+Extras.swift"
+  "UnsafeMutableBufferPointer+Extras.swift"
+  "UnsafeMutableRawBufferPointer+Extras.swift"
+  "UnsafeRawBufferPointer+Extras.swift"
   )

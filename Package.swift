@@ -34,6 +34,14 @@ let _traits: Set<Trait> = [
       production. We will make significant, source breaking API changes to these
       types before they ship. 
       """),
+  .trait(
+    name: "UnstableNoncopyableKeys",
+    description: """
+      Enables support for noncopyable set members and dictionary keys in
+      `BasicContainers`. This requires a Standard Library with generalized
+      `Equatable` and `Hashable` protocols that allow noncopyable conformers;
+      this feature has not shipped in a stable compiler version yet.
+      """),
 ]
 
 // This package recognizes the conditional compilation flags listed below.
@@ -48,6 +56,9 @@ var defines: [SwiftSetting] = [
   .define(
     "COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS",
     .when(traits: ["UnstableSortedCollections"])),
+  .define(
+    "COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS",
+    .when(traits: ["UnstableNoncopyableKeys"])),
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -89,6 +100,7 @@ let availabilityMacros: KeyValuePairs<String, String> = [
   "SwiftStdlib 5.0":  "macOS 10.14.4, iOS 12.2, watchOS 5.2, tvOS 12.2",
   "SwiftStdlib 5.1":  "macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0",
   "SwiftStdlib 5.6":  "macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4",
+  "SwiftStdlib 5.7":  "macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0",
   "SwiftStdlib 5.8":  "macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4",
   "SwiftStdlib 5.9":  "macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0",
   "SwiftStdlib 5.10": "macOS 14.4, iOS 17.4, watchOS 10.4, tvOS 17.4, visionOS 1.1",

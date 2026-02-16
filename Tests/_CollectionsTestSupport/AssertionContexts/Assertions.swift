@@ -87,8 +87,8 @@ public func expectNil<T>(
     message, trapping: trapping, file: file, line: line)
 }
 
-public func expectNotNil<T>(
-  _ value: Optional<T>,
+public func expectNotNil<T: ~Copyable & ~Escapable>(
+  _ value: borrowing Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #filePath,
@@ -100,21 +100,22 @@ public func expectNotNil<T>(
     message, trapping: trapping, file: file, line: line)
 }
 
-public func expectNotNil<T>(
-  _ value: Optional<T>,
+public func expectNotNil<T: ~Copyable & ~Escapable>(
+  _ value: borrowing Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ handler: (T) throws -> Void = { _ in }
+  _ handler: (borrowing T) throws -> Void = { _ in }
 ) rethrows {
-  if let value = value {
+  switch value {
+  case let value?:
     try handler(value)
-    return
+  case nil:
+    _expectFailure(
+      "value is nil",
+      message, trapping: trapping, file: file, line: line)
   }
-  _expectFailure(
-    "value is nil",
-    message, trapping: trapping, file: file, line: line)
 }
 
 public func expectIdentical<T: AnyObject>(

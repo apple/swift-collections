@@ -42,13 +42,13 @@ extension _UnsafeBitSet.Index {
   @inlinable
   package var word: Int {
     // Note: We perform on UInts to get faster unsigned math (shifts).
-    Int(truncatingIfNeeded: value / UInt(bitPattern: _Word.capacity))
+    Int(truncatingIfNeeded: value / _Word._capacity)
   }
 
   @inlinable
   package var bit: UInt {
     // Note: We perform on UInts to get faster unsigned math (masking).
-    value % UInt(bitPattern: _Word.capacity)
+    value % _Word._capacity
   }
 
   @inlinable
@@ -60,7 +60,7 @@ extension _UnsafeBitSet.Index {
   package var endSplit: (word: Int, bit: UInt) {
     let w = word
     let b = bit
-    if w > 0, b == 0 { return (w &- 1, UInt(_Word.capacity)) }
+    if w > 0, b == 0 { return (w &- 1, _Word._capacity) }
     return (w, b)
   }
 

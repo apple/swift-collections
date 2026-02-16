@@ -10,6 +10,15 @@
 //===----------------------------------------------------------------------===//
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
+  package func _ptr(at index: Int) -> UnsafeMutablePointer<Element> {
+    assert(index >= 0 && index < count)
+    return baseAddress.unsafelyUnwrapped + index
+  }
+}
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// Returns a Boolean value indicating whether two
   /// `UnsafeMutableBufferPointer` instances refer to the same region in
   /// memory.
