@@ -310,7 +310,8 @@ extension RigidArray where Element: ~Copyable {
   public func nextSpan(
     after index: inout Int, maximumCount: Int
   ) -> Span<Element> {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
+    precondition(UInt(bitPattern: index) <= _count, "Index out of bounds")
+    precondition(maximumCount > 0, "maximumCount must be positive")
     let start = index
     index = start &+ Swift.min(maximumCount, _count &- start)
     return _span(in: Range(uncheckedBounds: (start, index)))

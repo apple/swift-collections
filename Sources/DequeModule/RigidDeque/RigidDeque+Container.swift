@@ -94,6 +94,7 @@ extension RigidDeque where Element: ~Copyable {
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(maximumCount > 0, "maximumCount must be positive")
     let segment = self._handle
       .nextSegment(from: index)
       ._extracting(first: maximumCount)
