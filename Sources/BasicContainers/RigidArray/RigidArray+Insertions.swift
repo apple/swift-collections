@@ -37,7 +37,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`self.count`)
   @inlinable
   public mutating func insert(_ item: consuming Element, at index: Int) {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
+    _checkValidIndex(index)
     precondition(!isFull, "RigidArray capacity overflow")
     if index < count {
       let source = unsafe _storage.extracting(index ..< count)
@@ -99,7 +99,7 @@ extension RigidArray where Element: ~Copyable {
     at index: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    _checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(newItemCount <= freeCapacity, "RigidArray capacity overflow")
     let target = unsafe _openGap(at: index, count: newItemCount)
@@ -381,7 +381,7 @@ extension RigidArray {
     copying items: some Collection<Element>,
     newCount: Int
   ) {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
+    _checkValidIndex(index)
     precondition(newCount <= freeCapacity, "RigidArray capacity overflow")
     let gap = unsafe _openGap(at: index, count: newCount)
 

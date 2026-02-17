@@ -32,7 +32,7 @@ extension RigidDeque where Element: ~Copyable {
   @discardableResult
   @_alwaysEmitIntoClient
   public mutating func remove(at index: Int) -> Element {
-    precondition(index >= 0 && index < count, "Index out of bounds")
+    _checkItemIndex(index)
     return _handle.uncheckedRemove(at: index)
   }
   

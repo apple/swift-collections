@@ -40,7 +40,7 @@ extension RigidDeque where Element: ~Copyable {
   @inline(__always)
   public mutating func insert(_ item: consuming Element, at index: Int) {
     precondition(!isFull, "RigidDeque capacity overflow")
-    precondition(index >= 0 && index <= count, "Index out of bounds")
+    _checkValidIndex(index)
     _handle.uncheckedInsert(item, at: index)
   }
 }
@@ -98,7 +98,7 @@ extension RigidDeque where Element: ~Copyable {
     at index: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    _checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(newItemCount <= freeCapacity, "RigidDeque capacity overflow")
     try _handle.uncheckedInsert(

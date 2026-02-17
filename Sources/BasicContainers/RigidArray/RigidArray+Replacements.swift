@@ -64,9 +64,7 @@ extension RigidArray where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
-      "Index range out of bounds")
+    _checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(
       newItemCount - subrange.count <= freeCapacity,
@@ -158,9 +156,7 @@ extension RigidArray where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
-      "Index range out of bounds")
+    _checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(
       newItemCount - subrange.count <= freeCapacity,
