@@ -242,7 +242,7 @@ extension RigidArray where Element: ~Copyable {
     moving newElements: UnsafeMutableBufferPointer<Element>,
   ) {
     replace(removing: subrange, addingCount: newElements.count) { target in
-      target._withUnsafeMutableBufferPointer { buffer, count in
+      target.withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._moveInitializePrefix(from: newElements)
       }
     }
@@ -319,7 +319,7 @@ extension RigidArray where Element: ~Copyable {
     removing subrange: Range<Int>,
     moving items: inout OutputSpan<Element>
   ) {
-    items._withUnsafeMutableBufferPointer { buffer, count in
+    items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
       unsafe self.replace(removing: subrange, moving: source)
       count = 0
@@ -442,7 +442,7 @@ extension RigidArray {
     copying newElements: UnsafeBufferPointer<Element>
   ) {
     replace(removing: subrange, addingCount: newElements.count) { target in
-      target._withUnsafeMutableBufferPointer { buffer, count in
+      target.withUnsafeMutableBufferPointer { buffer, count in
         count = unsafe buffer._initializePrefix(copying: newElements)
       }
     }
@@ -552,7 +552,7 @@ extension RigidArray {
     newCount: Int
   ) {
     self.replace(removing: subrange, addingCount: newCount) { target in
-      target._withUnsafeMutableBufferPointer { dst, dstCount in
+      target.withUnsafeMutableBufferPointer { dst, dstCount in
         let done: Void? = newElements.withContiguousStorageIfAvailable { src in
           let i = unsafe dst._initializePrefix(copying: src)
           precondition(
