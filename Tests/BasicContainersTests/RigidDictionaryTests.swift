@@ -55,6 +55,7 @@ class RigidDictionaryTests: CollectionTestCase {
         d.insertValue(secondValue, forKey: secondKey),
         secondValue)
       
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
       let thirdKey = tracker.instance(for: 42)
       expectNotNil(d.value(forKey: thirdKey)) { valueRef in
         expectIdentical(valueRef.value, firstValue)
@@ -63,6 +64,7 @@ class RigidDictionaryTests: CollectionTestCase {
       expectNotNil(d.value(forKey: thirdKey)) { valueRef in
         expectEqual(valueRef.value.payload, "forty-two")
       }
+#endif
       
       expectEqual(d.count, 1)
       expectFalse(d.isEmpty)
@@ -86,6 +88,7 @@ class RigidDictionaryTests: CollectionTestCase {
       let res = d.updateValue(secondValue, forKey: secondKey)
       expectIdentical(res, firstValue)
       
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
       let thirdKey = tracker.instance(for: 42)
       expectNotNil(d.value(forKey: thirdKey)) { valueRef in
         expectIdentical(valueRef.value, secondValue)
@@ -94,7 +97,8 @@ class RigidDictionaryTests: CollectionTestCase {
       expectNotNil(d.value(forKey: thirdKey)) { valueRef in
         expectEqual(valueRef.value.payload, "forty-two")
       }
-      
+#endif
+
       expectEqual(d.count, 1)
       expectFalse(d.isEmpty)
       expectFalse(d.isFull)
@@ -133,6 +137,7 @@ class RigidDictionaryTests: CollectionTestCase {
         expectEqual(d.capacity, capacity)
         expectEqual(d.freeCapacity, 0)
         
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           expectNotNil(
@@ -142,6 +147,7 @@ class RigidDictionaryTests: CollectionTestCase {
             expectEqual(valueRef.value.payload, "\(i)")
           }
         }
+#endif
       }
     }
   }
@@ -179,6 +185,7 @@ class RigidDictionaryTests: CollectionTestCase {
         expectEqual(d.capacity, capacity)
         expectEqual(d.freeCapacity, 0)
         
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           expectNotNil(
@@ -188,11 +195,13 @@ class RigidDictionaryTests: CollectionTestCase {
             expectEqual(valueRef.value.payload, "\(i)")
           }
         }
+#endif
       }
     }
   }
   
-  func test_memoizedValue_ond() {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_memoizedValue_one() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
     withLifetimeTracking { tracker in
@@ -229,6 +238,7 @@ class RigidDictionaryTests: CollectionTestCase {
       expectEqual(d.freeCapacity, 19)
     }
   }
+#endif
 }
 
 #endif

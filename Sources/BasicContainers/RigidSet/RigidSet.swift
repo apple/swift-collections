@@ -11,6 +11,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import ContainersPreview
 #endif
 
 #if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
@@ -109,7 +110,7 @@ extension RigidSet where Element: ~Copyable {
 #if COLLECTIONS_DETERMINISTIC_HASHING
     Int(_table.scale)
 #else
-    Int(bitPattern: _baseAddress)
+    Int(bitPattern: _members)
 #endif
   }
 
@@ -252,7 +253,8 @@ extension RigidSet where Element: ~Copyable {
   }
 }
 
-extension RigidSet where Element: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+extension RigidSet: BorrowingSequence where Element: ~Copyable {
   @inlinable
   public var estimatedCount: EstimatedCount {
     .exactly(count)
@@ -314,4 +316,5 @@ extension RigidSet where Element: ~Copyable {
     }
   }
 }
+#endif
 #endif

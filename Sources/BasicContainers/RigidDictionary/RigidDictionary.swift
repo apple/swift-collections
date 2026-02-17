@@ -126,6 +126,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 }
 
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   @_lifetime(borrow self)
   public func value(
@@ -134,7 +135,21 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     guard let bucket = _keys._find(key) else { return nil }
     return Borrow(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
   }
-  
+#endif
+
+  /// A stand-in for a `struct Borrow`-returning lookup operation.
+  /// This is quite clumsy to use, but this is the best we can do without a way
+  /// to express optional borrows.
+  @_alwaysEmitIntoClient
+  @_transparent
+  public func withValue<E: Error, R: ~Copyable>(
+    forKey key: borrowing Key,
+    _ body: (borrowing Value) throws(E) -> R?
+  ) throws(E) -> R? {
+    guard let bucket = _keys._find(key) else { return nil }
+    return try body(_valueBuf[bucket])
+  }
+
   @inlinable
   public mutating func insertValue(
     _ value: consuming Value,
@@ -167,6 +182,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     return nil
   }
   
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   @_lifetime(&self)
   public mutating func memoizedValue(
@@ -186,6 +202,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     }
     return Borrow(unsafeAddress: p, borrowing: self)
   }
+#endif
 }
 
 

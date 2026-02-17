@@ -9,10 +9,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.2)
 extension _HTable {
   package var description: String {
-    let multiline = self.endBucket.offset > _Word.capacity
+    let multiline = self.endBucket.offset > Word.capacity
 
     var buckets = ""
     if !self.isSmall {

@@ -74,6 +74,20 @@ public func expectFalse(
     message, trapping: trapping, file: file, line: line)
 }
 
+#if compiler(>=6.2)
+public func expectNil<T: ~Copyable & ~Escapable>(
+  _ value: borrowing Optional<T>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  if value == nil { return }
+  _expectFailure(
+    "value is not nil",
+    message, trapping: trapping, file: file, line: line)
+}
+#else
 public func expectNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
@@ -86,7 +100,9 @@ public func expectNil<T>(
     "'\(value!)' is not nil",
     message, trapping: trapping, file: file, line: line)
 }
+#endif
 
+#if compiler(>=6.2)
 public func expectNotNil<T: ~Copyable & ~Escapable>(
   _ value: borrowing Optional<T>,
   _ message: @autoclosure () -> String = "",
@@ -99,7 +115,22 @@ public func expectNotNil<T: ~Copyable & ~Escapable>(
     "value is nil",
     message, trapping: trapping, file: file, line: line)
 }
+#else
+public func expectNotNil<T>(
+  _ value: Optional<T>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  if value != nil { return }
+  _expectFailure(
+    "value is nil",
+    message, trapping: trapping, file: file, line: line)
+}
+#endif
 
+#if compiler(>=6.2)
 public func expectNotNil<T: ~Copyable & ~Escapable>(
   _ value: borrowing Optional<T>,
   _ message: @autoclosure () -> String = "",
@@ -117,6 +148,25 @@ public func expectNotNil<T: ~Copyable & ~Escapable>(
       message, trapping: trapping, file: file, line: line)
   }
 }
+#else
+public func expectNotNil<T>(
+  _ value: Optional<T>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  _ handler: (borrowing T) throws -> Void = { _ in }
+) rethrows {
+  switch value {
+  case let value?:
+    try handler(value)
+  case nil:
+    _expectFailure(
+      "value is nil",
+      message, trapping: trapping, file: file, line: line)
+  }
+}
+#endif
 
 public func expectIdentical<T: AnyObject>(
   _ left: T?, _ right: T?,

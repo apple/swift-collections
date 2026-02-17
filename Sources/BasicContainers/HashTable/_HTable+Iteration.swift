@@ -76,10 +76,10 @@ extension _HTable {
         self._words = .init(bitmap)
         self._endBucket = table.endBucket
         self._nextBits = bitmap[_bucket.word].shiftedDown(by: _bucket.bit)
-        if table.endBucket._offset < _Word.capacity {
+        if table.endBucket._offset < Word.capacity {
           self._nextBitCount = UInt8(table.endBucket.bit &- _bucket.bit)
         } else {
-          self._nextBitCount = UInt8(_Word._capacity &- _bucket.bit)
+          self._nextBitCount = UInt8(Word._capacity &- _bucket.bit)
         }
       } else {
         self._words = nil
@@ -114,17 +114,19 @@ extension _HTable.BucketIterator {
   
   @_alwaysEmitIntoClient
   @_transparent
+  @_lifetime(self: copy self)
   package mutating func restart() {
     _wrapped = true
     _bucket._offset = 0
     if let words = _words {
       _nextBits = words[_bucket.word]
-      _nextBitCount = UInt8(Swift.min(_Word._capacity, _endBucket._offset))
+      _nextBitCount = UInt8(Swift.min(Word._capacity, _endBucket._offset))
     }
   }
   
   @_alwaysEmitIntoClient
   @_transparent
+  @_lifetime(self: copy self)
   package mutating func _wrap() {
     precondition(!_wrapped, "Corrupt hash table")
     restart()
@@ -133,6 +135,7 @@ extension _HTable.BucketIterator {
   
   @_alwaysEmitIntoClient
   @discardableResult
+  @_lifetime(self: copy self)
   package mutating func _advanceToNextWord() -> Bool {
     assert(!isAtEnd)
     _bucket.advanceToNextWord()
@@ -144,24 +147,26 @@ extension _HTable.BucketIterator {
     }
     if let words = _words{
       _nextBits = words[_bucket.word]
-      _nextBitCount = UInt8(_Word._capacity)
+      _nextBitCount = UInt8(Word._capacity)
     }
     return true
   }
 
   @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
   package mutating func _wrapToNextWord() {
     _bucket.advanceToNextWord()
     if isAtEnd {
       _wrap()
     } else if let words = _words {
       _nextBits = words[_bucket.word]
-      _nextBitCount = UInt8(_Word._capacity)
+      _nextBitCount = UInt8(Word._capacity)
     }
   }
 
   @_alwaysEmitIntoClient
   @discardableResult
+  @_lifetime(self: copy self)
   package mutating func advanceToNextBit() -> Bool {
     assert(!isAtEnd)
     _bucket._offset &+= 1
@@ -178,12 +183,13 @@ extension _HTable.BucketIterator {
     } else {
       assert(_bucket.bit == 0)
       _nextBits = words[_bucket.word]
-      _nextBitCount = UInt8(_Word._capacity)
+      _nextBitCount = UInt8(Word._capacity)
     }
     return true
   }
 
   @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
   package mutating func wrapToNextBit() {
     _bucket._offset &+= 1
     if isAtEnd {
@@ -197,13 +203,14 @@ extension _HTable.BucketIterator {
       _nextBits = _nextBits.shiftedDown(by: 1)
     } else {
       _nextBits = words[_bucket.word]
-      _nextBitCount = UInt8(_Word._capacity)
+      _nextBitCount = UInt8(Word._capacity)
     }
   }
 
   /// If the current bucket is already occupied, this does nothing.
   @_alwaysEmitIntoClient
   @discardableResult
+  @_lifetime(self: copy self)
   package mutating func advanceToOccupied() -> Bool {
     if isAtEnd { return false }
     guard _words != nil else {
@@ -222,6 +229,7 @@ extension _HTable.BucketIterator {
   }
 
   @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
   package mutating func wrapToOccupied() {
     if _words == nil {
       wrapToNextBit()
@@ -241,6 +249,7 @@ extension _HTable.BucketIterator {
   /// If the current bucket is already unoccupied, this does nothing.
   @_alwaysEmitIntoClient
   @discardableResult
+  @_lifetime(self: copy self)
   package mutating func advanceToUnoccupied() -> Bool {
     assert(!isAtEnd)
     if _words == nil {
@@ -263,6 +272,7 @@ extension _HTable.BucketIterator {
   /// If the current bucket is already unoccupied, this does nothing.
   @_alwaysEmitIntoClient
   @discardableResult
+  @_lifetime(self: copy self)
   package mutating func advanceToUnoccupied(
     maximumCount: Int = .max
   ) -> Bool {
@@ -299,6 +309,7 @@ extension _HTable.BucketIterator {
   }
 
   @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
   package mutating func wrapToUnoccupied() {
     if _words == nil {
       _bucket = _endBucket
@@ -316,6 +327,7 @@ extension _HTable.BucketIterator {
   }
 
   @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
   package mutating func nextOccupiedRegion(
     maximumCount: Int = .max
   ) -> Range<Bucket>? {

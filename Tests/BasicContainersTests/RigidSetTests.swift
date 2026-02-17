@@ -185,6 +185,7 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_iterate() {
     withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 1000]) { capacity in
       withEvery("maximumCount", in: [1, 2, 3, Int.max]) { maximumCount in
@@ -210,5 +211,6 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
+#endif
 }
 #endif
