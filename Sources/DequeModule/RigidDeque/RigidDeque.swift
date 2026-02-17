@@ -235,19 +235,43 @@ extension RigidDeque where Element: ~Copyable {
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 
   @_alwaysEmitIntoClient
+  @_transparent
+  package func _checkItemIndex(_ index: Int) {
+    precondition(
+      UInt(bitPattern: index) < UInt(bitPattern: _handle.count),
+      "Index out of bounds")
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  package func _checkValidIndex(_ index: Int) {
+    precondition(
+      UInt(bitPattern: index) <= UInt(bitPattern: _handle.count),
+      "Index out of bounds")
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  package func _checkValidBounds(_ subrange: Range<Int>) {
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= _handle.count,
+      "Index range out of bounds")
+  }
+
+  @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
     // FIXME: Replace with borrow/mutate accessors
     @inline(__always)
     @_transparent
     unsafeAddress {
-      precondition(position >= 0 && position < count, "Index out of bounds")
+      _checkItemIndex(position)
       let slot = _handle.slot(forOffset: position)
       return _handle.ptr(at: slot)
     }
     @inline(__always)
     @_transparent
     unsafeMutableAddress {
-      precondition(position >= 0 && position < count, "Index out of bounds")
+      _checkItemIndex(position)
       let slot = _handle.slot(forOffset: position)
       return _handle.mutablePtr(at: slot)
     }
@@ -267,9 +291,8 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   public mutating func swapAt(_ i: Int, _ j: Int) {
-    precondition(
-      i >= 0 && i < count && j >= 0 && j < count,
-      "Index out of bounds")
+    _checkItemIndex(i)
+    _checkItemIndex(j)
     _handle.uncheckedSwapAt(i, j)
   }
 }

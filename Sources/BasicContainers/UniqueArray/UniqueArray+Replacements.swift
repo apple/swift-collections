@@ -65,9 +65,7 @@ extension UniqueArray where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= self.count,
-      "Index range out of bounds")
+    _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     // FIXME: Avoid moving the subsequent elements twice on resize.
     _ensureFreeCapacity(newItemCount - subrange.count)
@@ -136,9 +134,7 @@ extension UniqueArray where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= self.count,
-      "Index range out of bounds")
+    _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
     try _storage._uncheckedReplace(

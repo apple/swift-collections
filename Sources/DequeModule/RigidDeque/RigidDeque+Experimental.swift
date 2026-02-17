@@ -23,7 +23,7 @@ extension RigidDeque where Element: ~Copyable {
   @_transparent
   @_lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
-    precondition(index >= 0 && index < count, "Index out of bounds")
+    _checkItemIndex(index)
     let slot = _handle.slot(forOffset: index)
     return Borrow(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
   }
@@ -32,7 +32,7 @@ extension RigidDeque where Element: ~Copyable {
   @_transparent
   @_lifetime(&self)
   public mutating func mutateElement(at index: Int) -> Inout<Element> {
-    precondition(index >= 0 && index < count, "Index out of bounds")
+    _checkItemIndex(index)
     let slot = _handle.slot(forOffset: index)
     return Inout(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
   }

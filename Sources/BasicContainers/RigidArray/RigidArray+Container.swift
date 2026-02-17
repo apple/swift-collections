@@ -88,13 +88,37 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  package func _checkItemIndex(_ index: Int) {
+    precondition(
+      UInt(bitPattern: index) < UInt(bitPattern: _count),
+      "Index out of bounds")
+  }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  package func _checkValidIndex(_ index: Int) {
+    precondition(
+      UInt(bitPattern: index) <= UInt(bitPattern: _count),
+      "Index out of bounds")
+  }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  package func _checkValidBounds(_ subrange: Range<Int>) {
+    precondition(
+      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
+      "Index range out of bounds")
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable @inline(__always)
   internal func _ptr(to index: Int) -> UnsafePointer<Element> {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
+    _checkItemIndex(index)
     let p = _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
     return UnsafePointer(p)
   }
@@ -103,7 +127,7 @@ extension RigidArray where Element: ~Copyable {
   internal mutating func _mutablePtr(
     to index: Int
   ) -> UnsafeMutablePointer<Element> {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
+    _checkItemIndex(index)
     return _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
   }
 
@@ -140,9 +164,8 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   public mutating func swapAt(_ i: Int, _ j: Int) {
-    precondition(
-      i >= 0 && i < _count && j >= 0 && j < _count,
-      "Index out of bounds")
+    _checkItemIndex(i)
+    _checkItemIndex(j)
     unsafe _items.swapAt(i, j)
   }
 }
@@ -358,7 +381,8 @@ extension RigidArray where Element: ~Copyable {
   public func nextSpan(
     after index: inout Int, maximumCount: Int
   ) -> Span<Element> {
-    precondition(index >= 0 && index <= _count, "Index out of bounds")
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
     let start = index
     index = start &+ Swift.min(maximumCount, _count &- start)
     return _span(in: Range(uncheckedBounds: (start, index)))

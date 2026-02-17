@@ -78,9 +78,7 @@ extension UniqueDeque where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= count,
-      "Subrange out of bounds")
+    _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
     try _storage._handle.uncheckedReplace(
@@ -148,9 +146,7 @@ extension UniqueDeque where Element: ~Copyable {
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= count,
-      "Subrange out of bounds")
+    _storage._checkValidBounds(subrange)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount - subrange.count)
     try _storage._handle.uncheckedReplace(

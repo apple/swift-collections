@@ -41,7 +41,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public mutating func insert(_ item: consuming Element, at index: Int) {
-    precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    _storage._checkValidIndex(index)
     _ensureFreeCapacity(1)
     _storage._handle.uncheckedInsert(item, at: index)
   }
@@ -102,7 +102,7 @@ extension UniqueDeque where Element: ~Copyable {
     at index: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    precondition(index >= 0 && index <= self.count, "Index out of bounds")
+    _storage._checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     _ensureFreeCapacity(newItemCount)
     try _storage._handle.uncheckedInsert(

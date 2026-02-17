@@ -22,7 +22,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
   public func borrowElement(at index: Int) -> Borrow<Element> {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
+    _checkItemIndex(index)
     return unsafe Borrow(
       unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
       borrowing: self
@@ -37,7 +37,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   public mutating func mutateElement(at index: Int) -> Mut<Element> {
-    precondition(index >= 0 && index < _count)
+    _checkItemIndex(index)
     return unsafe Mut(
       unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
       mutating: &self

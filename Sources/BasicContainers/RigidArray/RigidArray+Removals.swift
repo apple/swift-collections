@@ -31,7 +31,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @discardableResult
   public mutating func remove(at index: Int) -> Element {
-    precondition(index >= 0 && index < _count, "Index out of bounds")
+    _checkItemIndex(index)
     let old = unsafe _storage.moveElement(from: index)
     _closeGap(at: index, count: 1)
     _count -= 1
@@ -97,9 +97,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`count`)
   @inlinable
   public mutating func removeSubrange(_  bounds: Range<Int>) {
-    precondition(
-      bounds.lowerBound >= 0 && bounds.upperBound <= _count,
-      "Subrange out of bounds")
+    _checkValidBounds(bounds)
     guard !bounds.isEmpty else { return }
     unsafe _storage.extracting(bounds).deinitialize()
     _closeGap(at: bounds.lowerBound, count: bounds.count)

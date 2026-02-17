@@ -35,9 +35,7 @@ extension RigidArray where Element: ~Copyable {
     _ subrange: Range<Int>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    precondition(
-      subrange.lowerBound >= 0 && subrange.upperBound <= _count,
-      "Subrange out of bounds")
+    _checkValidBounds(subrange)
     guard !subrange.isEmpty else {
       var span = InputSpan<Element>()
       consumer(&span)
