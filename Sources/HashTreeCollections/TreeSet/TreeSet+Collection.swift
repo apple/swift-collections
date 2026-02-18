@@ -159,7 +159,7 @@ extension TreeSet: Collection {
   @inlinable
   public subscript(position: Index) -> Element {
     precondition(_isValid(position), "Invalid index")
-    precondition(position._path.isOnItem, "Can't get element at endIndex")
+    precondition(position._path.isOnItem, "Cannot get element at endIndex")
     return _UnsafeHandle.read(position._path.node) {
       $0[item: position._path.currentItemSlot].key
     }

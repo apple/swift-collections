@@ -26,6 +26,10 @@ struct ArrayLayout {
     self.capacity = capacity
     self.count = count
   }
+  
+  var isFull: Bool { count == capacity }
+  var isEmpty: Bool { count == 0 }
+  var freeCapacity: Int { capacity - count }
 }
 
 func withSomeArrayLayouts<E: Error>(
@@ -49,7 +53,7 @@ func withSomeArrayLayouts<E: Error>(
       counts.insert(2)
       counts.insert(capacity - 2)
     }
-    for count in counts {
+    for count in counts.sorted() {
       let layout = ArrayLayout(capacity: capacity, count: count)
       let entry = context.push("\(label): \(layout)", file: file, line: line)
 
@@ -90,7 +94,7 @@ extension LifetimeTracker {
   ) -> RigidArray<LifetimeTracked<Element>> {
     RigidArray(layout: layout, using: { self.instance(for: generator($0)) })
   }
-
+  
   func uniqueArray<Element>(
     layout: ArrayLayout,
     using generator: (Int) -> Element = { $0 }
@@ -99,6 +103,37 @@ extension LifetimeTracker {
       self.instance(for: generator($0))
     }
     return UniqueArray(consuming: contents)
+  }
+  
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func withInputSpan<Element>(
+    layout: ArrayLayout,
+    using generator: (Int) -> Element,
+    _ body: (inout InputSpan<LifetimeTracked<Element>>) -> Void
+  ) {
+    let buffer = UnsafeMutableBufferPointer<LifetimeTracked<Element>>
+      .allocate(capacity: layout.capacity)
+    for i in 0 ..< layout.count {
+      buffer.initializeElement(
+        at: layout.capacity - layout.count + i,
+        to: self.instance(for: generator(i)))
+    }
+    var span = InputSpan(buffer: buffer, initializedCount: layout.count)
+    body(&span)
+    _ = consume span
+    buffer.deallocate()
+  }
+#endif
+  
+  func withOutputSpan<Element>(
+    layout: ArrayLayout,
+    using generator: (Int) -> Element,
+    _ body: (inout OutputSpan<LifetimeTracked<Element>>) -> Void
+  ) {
+    var contents = RigidArray(layout: layout) {
+      self.instance(for: generator($0))
+    }
+    contents.edit(body)
   }
 }
 #endif

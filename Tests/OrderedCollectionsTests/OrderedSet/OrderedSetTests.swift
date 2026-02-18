@@ -380,7 +380,7 @@ class OrderedSetTests: CollectionTestCase {
             expectEqual(set[index], count)
             expectEqualElements(set[..<index], 0 ..< offset)
             expectEqualElements(set[set.index(after: index)...], offset ..< count)
-            expectEqual(set.firstIndex(of: count), index, "Can't find newly inserted element")
+            expectEqual(set.firstIndex(of: count), index, "Cannot find newly inserted element")
 
             let i2 = set.index(set.startIndex, offsetBy: offset / 2)
             let (inserted2, index2) = set.insert(count, at: i2)

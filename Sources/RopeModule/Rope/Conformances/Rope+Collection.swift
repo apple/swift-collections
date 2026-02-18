@@ -92,7 +92,7 @@ extension Rope: BidirectionalCollection {
   @inlinable
   public func formIndex(after i: inout Index) {
     validate(i)
-    precondition(i < endIndex, "Can't move after endIndex")
+    precondition(i < endIndex, "Cannot advance above endIndex")
     if let leaf = i._leaf {
       let done = leaf.read {
         let slot = i._path[$0.height] &+ 1
@@ -110,7 +110,7 @@ extension Rope: BidirectionalCollection {
   @inlinable
   public func formIndex(before i: inout Index) {
     validate(i)
-    precondition(i > startIndex, "Can't move before startIndex")
+    precondition(i > startIndex, "Cannot advance below startIndex")
     if let leaf = i._leaf {
       let done = leaf.read {
         let slot = i._path[$0.height]

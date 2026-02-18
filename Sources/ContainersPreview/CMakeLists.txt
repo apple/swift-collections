@@ -23,12 +23,19 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "BorrowIteratorProtocol.swift"
-  "Box.swift"
-  "Container.swift"
-  "Container+Utilities.swift"
-  "InputSpan.swift"
-  "Mut.swift"
-  "Ref.swift"
-  "Shared.swift"
+  "Extensions/OutputSpan+Extras.swift"
+  "Extensions/TemporaryAllocation.swift"
+  "Protocols/BorrowingIteratorProtocol.swift"
+  "Protocols/BorrowingSequence.swift"
+  "Protocols/BorrowingSequence+Standard Conformances.swift"
+  "Protocols/BorrowingSequence+Utilities.swift"
+  "Protocols/Container.swift"
+  "Protocols/ContainerAlgorithms.swift"
+  "Protocols/Drain.swift"
+  "Protocols/Producer.swift"
+  "Types/Borrow.swift"
+  "Types/Box.swift"
+  "Types/Inout.swift"
+  "Types/InputSpan.swift"
+  "Types/Shared.swift"
 )

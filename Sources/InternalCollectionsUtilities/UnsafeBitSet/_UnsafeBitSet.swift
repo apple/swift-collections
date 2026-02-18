@@ -331,7 +331,7 @@ extension _UnsafeBitSet: BidirectionalCollection {
     }
     while w.isEmpty {
       word -= 1
-      precondition(word >= 0, "Can't advance below startIndex")
+      precondition(word >= 0, "Cannot advance below startIndex")
       w = _words[word]
     }
     return Index(word: word, bit: w.lastMember!)

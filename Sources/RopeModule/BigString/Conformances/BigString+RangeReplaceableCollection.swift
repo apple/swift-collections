@@ -105,7 +105,7 @@ extension BigString: RangeReplaceableCollection {
   }
 
   public init(repeating value: Self, count: Int) {
-    precondition(count >= 0, "Negative count")
+    precondition(count >= 0, "Cannot add a negative number of items")
     guard count > 0 else {
       self.init()
       return

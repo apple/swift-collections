@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -34,6 +34,7 @@ public func _expectFailure(
   file: StaticString,
   line: UInt
 ) {
+  guard TestContext.incrementFailureCount() else { return }
   let message = message()
   XCTFail(
     TestContext.currentTrace(
@@ -157,6 +158,28 @@ public func expectEquivalent<A, B>(
     "'\(left)' is not equivalent to '\(right)'",
     message, trapping: trapping, file: file, line: line)
 }
+
+#if compiler(>=6.2)
+// FIXME: Remove when CustomStringConvertible starts supporting
+// noncopyable/nonescapable types.
+public func expectEquivalent<
+  A: ~Copyable & ~Escapable,
+  B
+>(
+  _ left: borrowing A, _ right: borrowing B,
+  by areEquivalent: (borrowing A, borrowing B) -> Bool,
+  printer: (borrowing A) -> String,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  if areEquivalent(left, right) { return }
+  _expectFailure(
+    "'\(printer(left))' is not equivalent to '\(right)'",
+    message, trapping: trapping, file: file, line: line)
+}
+#endif
 
 public func expectEquivalent<A, B>(
   _ left: A?, _ right: B?,
@@ -404,13 +427,13 @@ public func expectThrows<T>(
   }
 }
 
-public func expectThrows<T>(
+public func expectThrows<E: Error, T>(
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line,
-  body: () throws -> T,
-  errorHandler: (Error) -> Void = { _ in }
+  body: () throws(E) -> T,
+  errorHandler: (E) -> Void = { _ in }
 ) {
   do {
     let result = try body()

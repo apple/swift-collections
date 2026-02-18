@@ -48,7 +48,7 @@ extension _HashTable {
   @inline(__always)
   internal static var minimumLoadFactor: Double { 1 / 4 }
 
-  /// The maximum number of items that can be held in a hash table of the given scale.
+  /// The minimum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
   internal static func minimumCapacity(forScale scale: Int) -> Int {

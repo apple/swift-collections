@@ -542,7 +542,7 @@ extension TreeDictionary {
   @inlinable
   public mutating func remove(at index: Index) -> Element {
     precondition(_isValid(index), "Invalid index")
-    precondition(index._path._isItem, "Can't remove item at end index")
+    precondition(index._path._isItem, "Cannot remove item at end index")
     _invalidateIndices()
     let r = _root.remove(.top, at: index._path)
     assert(r.remainder == nil)

@@ -117,13 +117,13 @@ extension BigSubstring.UTF8View: BidirectionalCollection {
 
   @inline(__always)
   public func index(after i: Index) -> Index {
-    precondition(i < endIndex, "Can't advance above end index")
+    precondition(i < endIndex, "Cannot advance above end index")
     return _base._utf8Index(after: i)
   }
 
   @inline(__always)
   public func index(before i: Index) -> Index {
-    precondition(i > startIndex, "Can't advance below start index")
+    precondition(i > startIndex, "Cannot advance below start index")
     return _base._utf8Index(before: i)
   }
 
