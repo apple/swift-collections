@@ -10,13 +10,15 @@ on:
 jobs:
   tests:
     name: Test
-    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.6
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.7
     with:
       linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}]'
       macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}]'
       enable_macos_checks: true
       enable_wasm_sdk_build: true
+      enable_android_sdk_build: true
+      enable_android_sdk_checks: true
 
   embedded-swift:
     name: Build with Embedded Swift
