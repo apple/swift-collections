@@ -13,8 +13,106 @@
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
-  public func _dump() {
-    print(_table.description)
+  public func _describe(
+    bitmap: Bool = false,
+    chains: Bool = false,
+  ) -> String {
+    var s = _table.describe(bitmap: bitmap)
+    if chains {
+      s += "\n"
+      s += _chainDescription
+    }
+    return s
+  }
+
+  public func _dump(
+    bitmap: Bool = false,
+    chains: Bool = false,
+  ) {
+    print(self._describe(bitmap: bitmap, chains: chains))
+  }
+  
+  public func _probeLengthCounts() -> (successful: [Int], unsuccessful: [Int]) {
+    var positiveLengths: [Int: Int] = [:]
+    var negativeLengths: [Int: Int] = [:]
+    var it = self._table.makeBucketIterator()
+    var prev = self._table.startBucket
+    while let next = it.nextOccupiedRegion() {
+      negativeLengths[0, default: 0] += next.lowerBound.offset - prev.offset
+      var b = next.lowerBound
+      while b != next.upperBound {
+        let hashValue = self._hashValue(at: b)
+        let pl = _table.probeLength(forHashValue: hashValue, in: b)
+        positiveLengths[pl, default: 0] += 1
+
+        var nl = next.upperBound.offset - b.offset
+#if !COLLECTIONS_NO_ROBIN_HOOD_HASHING
+        nl = Swift.min(nl, _table._maxProbeLength)
+#endif
+        negativeLengths[nl, default: 0] += 1
+        _table.formBucket(after: &b)
+      }
+      prev = next.upperBound
+    }
+    var successful = Array(repeating: 0, count: positiveLengths.keys.max() ?? 0)
+    assert(positiveLengths[0] == nil)
+    var totalChainLength = 0
+    var totalCount = 0
+    for (length, count) in positiveLengths {
+      successful[length - 1] = count
+      totalChainLength += length * count
+      totalCount += count
+    }
+    assert(totalCount == self.count)
+
+    var unsuccessful = Array(
+      repeating: 0,
+      count: 1 + (negativeLengths.keys.max() ?? 0))
+    for (length, count) in negativeLengths {
+      unsuccessful[length] = count
+    }
+    //assert(totalChainLength == _table._totalProbeLength)
+    return (successful, unsuccessful)
+  }
+  
+  package var _chainDescription: String {
+    let data = self._probeLengthCounts()
+    var str = ""
+    do {
+      str += "Chain length distribution (for successful lookups):\n"
+      let max = data.successful.max() ?? 1
+      var sum = 0
+      var histogram = ""
+      for length in data.successful.indices {
+        let count = data.successful[length]
+        histogram += "\(String(length + 1).lpad(6)): "
+        let dotCount = (75 * count + max) / max
+        histogram += String(repeating: "*", count: dotCount)
+        histogram += " \(count)\n"
+        sum += (length + 1) * count
+      }
+      let avg = Double((sum * 1000 + 500) / _table.count) / 1000.0
+      str += "   AVG: \(avg)\n"
+      str += histogram
+    }
+    do {
+      str += "Chain length distribution (for unsuccessful lookups):\n"
+      let max = data.unsuccessful.max() ?? 1
+      var sum = 0
+      var histogram = ""
+      for length in data.unsuccessful.indices {
+        let count = data.unsuccessful[length]
+        histogram += "\(String(length).lpad(6)): "
+        let dotCount = (75 * count + max) / max
+        histogram += String(repeating: "*", count: dotCount)
+        histogram += " \(count)\n"
+        sum += length * count
+      }
+      let avg = Double((sum * 1000 + 500) / _table.storageCapacity) / 1000.0
+      str += "   AVG: \(avg)\n"
+      str += histogram
+    }
+    return str
   }
 }
 

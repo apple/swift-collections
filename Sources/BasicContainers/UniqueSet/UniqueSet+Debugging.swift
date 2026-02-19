@@ -13,8 +13,18 @@
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
-  public func _dump() {
-    _storage._dump()
+  public func _describe(
+    bitmap: Bool = false,
+    chains: Bool = false,
+  ) -> String {
+    _storage._describe(bitmap: bitmap, chains: chains)
+  }
+
+  public func _dump(
+    bitmap: Bool = false,
+    chains: Bool = false,
+  ) {
+    _storage._dump(bitmap: bitmap, chains: chains)
   }
 }
 

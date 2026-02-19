@@ -15,39 +15,73 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.2)
 extension _HTable {
-  package var description: String {
-    let multiline = self.endBucket.offset > Word.capacity
+  package func maxOccupiedRun() -> Int {
+    if isSmall {
+      return self.count
+    }
+    var maxOccupiedRun = 0
+    var it = self.makeBucketIterator()
+    var first = true
+    var wrap = 0
+    while let next = it.nextOccupiedRegion() {
+      if first, next.lowerBound.offset == 0 {
+        wrap = next._offsets.count
+      }
+      first = false
+      var c = next._offsets.count
+      if next.upperBound == self.endBucket {
+        c += wrap
+      }
+      maxOccupiedRun = max(maxOccupiedRun, c)
+    }
+    return maxOccupiedRun
+  }
 
-    var buckets = ""
+  package var _bitmapDescription: String {
+    let multiline = self.endBucket.offset > Word.capacity
+    var str = ""
     if !self.isSmall {
       let lastWord = self.endBucket.bit > 0 ? self.endBucket.word : self.endBucket.word - 1
       var it = self.makeBucketIterator()
       while !it.isAtEnd {
         if it.currentBucket.isOnWordBoundary {
           if multiline {
-            buckets += "\n  "
-            buckets += it.currentBucket.word == lastWord ? "└╴" : "├╴"
-            buckets += "[" + String(it.currentBucket.offset).lpad(8, with: "0") + "] "
+            str += "\n  "
+            str += it.currentBucket.word == lastWord ? "└╴" : "├╴"
+            str += "[" + String(it.currentBucket.offset).lpad(8, with: "0") + "] "
           } else {
-            buckets += " "
+            str += " "
           }
         } else if it.currentBucket.bit % 8 == 0 {
-          buckets += "∙"
+          str += "∙"
         }
-        buckets.append(it.isOccupied ? "■" : "□")
+        str.append(it.isOccupied ? "■" : "□")
         it.advanceToNextBit()
       }
     }
-
+    return str
+  }
+  
+  package func describe(
+    bitmap: Bool = false,
+  ) -> String {
+    let bitmapDesc = bitmap ? self._bitmapDescription : ""
+    let multiline = bitmapDesc.unicodeScalars.contains("\n")
     var s = "⌗ \(scale == 0 ? "small" : "large@\(scale)")"
-    s += "\(multiline ? "" : buckets) "
-    s += "\(count)/\(capacity), "
-    s += "totalProbeLength: \(_totalProbeLength)"
+    s += "\(multiline ? "" : bitmapDesc) "
+    s += "\(count)/\(capacity)/\(bucketCount), "
+    s += "maxProbeLength: \(_maxProbeLength), "
+    s += "totalProbeLength: \(_totalProbeLength), "
+    s += "maxOccupiedRun: \(maxOccupiedRun())"
 
     if !self.isSmall, multiline {
-      s += buckets
+      s += bitmapDesc
     }
     return s
+  }
+  
+  package var description: String {
+    describe()
   }
 }
 #endif

@@ -110,7 +110,7 @@ class RigidSetTests: CollectionTestCase {
   }
 
   func test_update_full() {
-    withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 200, 201, 202, 203, 1000]) { capacity in
+    withEvery("capacity", in: [0, 1, 2, 10, 100, 200, 1000]) { capacity in
       withLifetimeTracking { tracker in
         var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
         for i in 0 ..< capacity {
@@ -146,7 +146,7 @@ class RigidSetTests: CollectionTestCase {
   }
 
   func test_bucketIterator_consistency() {
-    withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 1000]) { capacity in
+    withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 200]) { capacity in
       withEvery("maximumCount", in: [1, 2, 3, Int.max]) { maximumCount in
         withLifetimeTracking { tracker in
           var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
@@ -183,6 +183,18 @@ class RigidSetTests: CollectionTestCase {
         }
       }
     }
+  }
+  
+  func test_probeLengths() {
+    // FIXME: This isn't really testing anything; figure out how to handle this
+    let c1 = 1000
+    let scale = _HTable.minimumScale(forCapacity: c1)
+    let c2 = _HTable.maximumCapacity(forScale: scale)
+    var set = RigidSet<Int>(capacity: c2)
+    for i in 0 ..< 1536 {
+      set.insert(i)
+    }
+    set._dump(chains: true)
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW

@@ -33,6 +33,9 @@ package struct _HTable: ~Copyable {
   package var _totalProbeLength: Int
 
   @_alwaysEmitIntoClient
+  package var _maxProbeLength: Int
+
+  @_alwaysEmitIntoClient
   package let scale: UInt8
 
   @inlinable
@@ -46,6 +49,7 @@ package struct _HTable: ~Copyable {
     self._count = 0
     self._capacity = _capacity
     self._totalProbeLength = 0
+    self._maxProbeLength = 0
     self.scale = scale
     if scale == 0 {
       self._bitmap = nil

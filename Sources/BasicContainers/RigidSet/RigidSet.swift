@@ -123,7 +123,7 @@ extension RigidSet where Element: ~Copyable {
   internal borrowing func _hashValue(
     at bucket: _HTable.Bucket
   ) -> Int {
-    assert(bucket.offset >= 0 && bucket.offset < capacity)
+    assert(bucket.offset >= 0 && bucket.offset < _table.storageCapacity)
     return _hashValue(for: _members.unsafelyUnwrapped[bucket.offset])
   }
 

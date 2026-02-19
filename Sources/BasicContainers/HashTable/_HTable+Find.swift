@@ -35,6 +35,7 @@ extension _HTable {
     tester: (Bucket) -> Bool,
   ) -> Bucket? {
     assert(!isSmall)
+#if COLLECTIONS_NO_ROBIN_HOOD_HASHING
     // Naive find
     let start = idealBucket(forHashValue: hashValue)
     var it = makeBucketIterator(from: start)
@@ -45,6 +46,19 @@ extension _HTable {
       it.wrapToNextBit()
     }
     return nil
+#else
+    let start = idealBucket(forHashValue: hashValue)
+    var it = makeBucketIterator(from: start)
+    var i = 0
+    while it.isOccupied, i <= _maxProbeLength {
+      if tester(it.currentBucket) {
+        return it.currentBucket
+      }
+      it.wrapToNextBit()
+      i &+= 1
+    }
+    return nil
+#endif
   }
 }
 #endif

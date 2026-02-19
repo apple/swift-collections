@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 extension _HTable {
   /// The minimum hash table scale.
   @_alwaysEmitIntoClient
-  internal static var minimumScale: UInt8 {
+  package static var minimumScale: UInt8 {
     @_effects(readnone)
     @_transparent
     get {
@@ -27,7 +27,7 @@ extension _HTable {
   
   /// The maximum hash table scale.
   @_alwaysEmitIntoClient
-  internal static var maximumScale: UInt8 {
+  package static var maximumScale: UInt8 {
     @_effects(readnone)
     @_transparent
     get {
@@ -37,7 +37,7 @@ extension _HTable {
   
   /// The maximum number of items for which we do not create a hash table.
   @usableFromInline
-  internal static var maximumUnhashedCount: Int {
+  package static var maximumUnhashedCount: Int {
     @_effects(readnone)
     get {
       maximumCapacity(forScale: 0)
@@ -53,17 +53,26 @@ extension _HTable {
   }
   
   /// The numerator of the maximum hash table load factor.
-  @_alwaysEmitIntoClient
   @_transparent
-  internal static var _maxLFNum: UInt { 7 }
+  internal static var _maxLFNum: UInt {
+#if COLLECTIONS_NO_ROBIN_HOOD_HASHING
+    3
+#else
+    7
+#endif
+  }
   
   /// The denominator of the maximum hash table load factor.
-  @_alwaysEmitIntoClient
   @_transparent
-  internal static var _maxLFDenom: UInt { 8 }
+  internal static var _maxLFDenom: UInt {
+#if COLLECTIONS_NO_ROBIN_HOOD_HASHING
+    4
+#else
+    8
+#endif
+  }
   
   /// The numerator of the minimum hash table load factor.
-  @_alwaysEmitIntoClient
   @_transparent
   internal static var _minLFNum: UInt { 1 }
   
@@ -75,7 +84,7 @@ extension _HTable {
   /// The minimum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
-  internal static func minimumCapacity(forScale scale: UInt8) -> Int {
+  package static func minimumCapacity(forScale scale: UInt8) -> Int {
     guard scale >= minimumScale else { return 0 }
     precondition(scale <= maximumScale)
     let bucketCount: UInt = 1 &<< scale
@@ -85,7 +94,7 @@ extension _HTable {
   /// The maximum number of items that can be held in a hash table of the given scale.
   @usableFromInline
   @_effects(readnone)
-  internal static func maximumCapacity(forScale scale: UInt8) -> Int {
+  package static func maximumCapacity(forScale scale: UInt8) -> Int {
     let scale = Swift.max(scale, minimumScale &- 1)
     let bucketCount: UInt = 1 &<< scale
     return Int(bucketCount * _maxLFNum / _maxLFDenom)
@@ -95,7 +104,7 @@ extension _HTable {
   /// The minimum hash table scale that can hold the specified number of elements.
   @usableFromInline
   @_effects(readnone)
-  internal static func minimumScale(forCapacity capacity: Int) -> UInt8 {
+  package static func minimumScale(forCapacity capacity: Int) -> UInt8 {
     guard capacity > maximumUnhashedCount else { return 0 }
     let capacity = UInt(truncatingIfNeeded: Swift.max(capacity, 1))
     // Calculate the minimum number of entries we need to allocate to satisfy
@@ -115,7 +124,7 @@ extension _HTable {
 
   @usableFromInline
   @_effects(readnone)
-  internal static func dynamicStorageParameters(
+  package static func dynamicStorageParameters(
     minimumCapacity: Int
   ) -> (scale: UInt8, capacity: Int) {
     let maximumUnhashedCount = self.maximumUnhashedCount
