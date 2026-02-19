@@ -59,7 +59,13 @@ extension _HTable.Bitmap {
     assert(isValid(bucket))
     _words[bucket.word].clear(bucket.bit)
   }
-  
+
+  @_transparent
+  @inlinable
+  package func clearAll() {
+    _words.update(repeating: .empty)
+  }
+
   @inlinable
   package func firstUnoccupiedBucket(from start: Bucket) -> Bucket {
     assert(isValid(start))

@@ -130,11 +130,19 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_transparent
-  package func initializeElement(
+  package func _initializeElement(
     at bucket: _HTable.Bucket,
     to value: consuming Element
   ) {
     initializeElement(at: bucket.offset, to: value)
+  }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  package func _extracting(_ buckets: Range<_HTable.Bucket>) -> Self {
+    _extracting(
+      uncheckedFrom: buckets.lowerBound.offset,
+      to: buckets.upperBound.offset)
   }
 }
 

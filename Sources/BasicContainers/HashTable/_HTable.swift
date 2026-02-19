@@ -24,7 +24,7 @@ package struct _HTable: ~Copyable {
   package var _count: Int
 
   @_alwaysEmitIntoClient
-  package let capacity: Int
+  package var _capacity: Int
 
   @_alwaysEmitIntoClient
   package let _bitmap: UnsafeMutablePointer<Word>?
@@ -40,9 +40,11 @@ package struct _HTable: ~Copyable {
     _capacity: Int,
     scale: UInt8
   ) {
-    assert(_capacity <= Self.maximumCapacity(forScale: scale))
+    assert(
+      _capacity >= Self.minimumCapacity(forScale: scale)
+      && _capacity <= Self.maximumCapacity(forScale: scale))
     self._count = 0
-    self.capacity = _capacity
+    self._capacity = _capacity
     self._totalProbeLength = 0
     self.scale = scale
     if scale == 0 {
@@ -64,6 +66,14 @@ package struct _HTable: ~Copyable {
       scale: Self.minimumScale(forCapacity: capacity))
   }
   
+  @inlinable
+  internal init(minimumCapacity: Int) {
+    precondition(minimumCapacity >= 0, "Capacity must be nonnegative")
+    let p = Self.dynamicStorageParameters(minimumCapacity: minimumCapacity)
+    self.init(_capacity: p.capacity, scale: p.scale)
+  }
+
+  
   @_alwaysEmitIntoClient
   deinit {
     _bitmap?.deallocate()
@@ -81,6 +91,12 @@ extension _HTable {
   @_transparent
   package var count: Int {
     _count
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  package var capacity: Int {
+    _capacity
   }
 
   @_alwaysEmitIntoClient
@@ -116,12 +132,18 @@ extension _HTable {
   package var endBucket: Bucket {
     Bucket(offset: bucketCount)
   }
-  
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  package var storageCapacity: Int {
+    if isSmall { return capacity }
+    return 1 &<< scale
+  }
+
   @_alwaysEmitIntoClient
   @_transparent
   package var bucketCount: UInt {
-    if isSmall { return UInt(bitPattern: capacity) }
-    return 1 &<< scale
+    UInt(bitPattern: storageCapacity)
   }
   
   @_transparent
@@ -191,6 +213,15 @@ extension _HTable {
   ) -> Int {
     let ideal = idealBucket(forHashValue: hashValue)
     return probeLength(from: ideal, to: bucket)
+  }
+}
+
+extension _HTable {
+  @inlinable
+  package mutating func clear() {
+    self._count = 0
+    self.bitmap.clearAll()
+    self._totalProbeLength = 0
   }
 }
 #endif

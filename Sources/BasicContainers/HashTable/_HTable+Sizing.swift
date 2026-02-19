@@ -17,9 +17,9 @@ import InternalCollectionsUtilities
 extension _HTable {
   /// The minimum hash table scale.
   @_alwaysEmitIntoClient
-  @_transparent
-  internal static var minimumScale: Int {
+  internal static var minimumScale: UInt8 {
     @_effects(readnone)
+    @_transparent
     get {
       4
     }
@@ -27,21 +27,20 @@ extension _HTable {
   
   /// The maximum hash table scale.
   @_alwaysEmitIntoClient
-  @_transparent
-  internal static var maximumScale: Int {
+  internal static var maximumScale: UInt8 {
     @_effects(readnone)
+    @_transparent
     get {
-      Swift.min(Int.bitWidth &- 1, 56)
+      Swift.min(UInt8(truncatingIfNeeded: Int.bitWidth) &- 1, 56)
     }
   }
   
   /// The maximum number of items for which we do not create a hash table.
-  @_alwaysEmitIntoClient
-  @_transparent
+  @usableFromInline
   internal static var maximumUnhashedCount: Int {
     @_effects(readnone)
     get {
-      (1 &<< (minimumScale &- 1)) &- 1
+      maximumCapacity(forScale: 0)
     }
   }
   
@@ -87,7 +86,7 @@ extension _HTable {
   @usableFromInline
   @_effects(readnone)
   internal static func maximumCapacity(forScale scale: UInt8) -> Int {
-    guard scale >= minimumScale else { return maximumUnhashedCount }
+    let scale = Swift.max(scale, minimumScale &- 1)
     let bucketCount: UInt = 1 &<< scale
     return Int(bucketCount * _maxLFNum / _maxLFDenom)
   }
@@ -100,10 +99,9 @@ extension _HTable {
     guard capacity > maximumUnhashedCount else { return 0 }
     let capacity = UInt(truncatingIfNeeded: Swift.max(capacity, 1))
     // Calculate the minimum number of entries we need to allocate to satisfy
-    // the maximum load factor. `capacity + 1` below ensures that we always
-    // leave at least one hole.
+    // the maximum load factor.
     let minimumEntries = Swift.max(
-      ((capacity + 1) * _maxLFDenom - 1) / _maxLFNum, // (capacity / maxLoadFactor).rounded(.up)
+      (capacity * _maxLFDenom + _maxLFNum - 1) / _maxLFNum, // (capacity / maxLoadFactor).rounded(.up)
       capacity + 1)
     // The actual number of entries we need to allocate is the lowest power of
     // two greater than or equal to the minimum entry count. Calculate its
@@ -113,6 +111,26 @@ extension _HTable {
     // The scale is the exponent corresponding to the bucket count.
     assert(self.maximumCapacity(forScale: UInt8(scale)) >= capacity)
     return UInt8(truncatingIfNeeded: scale)
+  }
+
+  @usableFromInline
+  @_effects(readnone)
+  internal static func dynamicStorageParameters(
+    minimumCapacity: Int
+  ) -> (scale: UInt8, capacity: Int) {
+    let maximumUnhashedCount = self.maximumUnhashedCount
+    if minimumCapacity <= maximumUnhashedCount {
+      let c = Swift.min(
+        minimumCapacity._roundUpToPowerOfTwo(),
+        maximumUnhashedCount)
+      return (0, c)
+    }
+    let scale = minimumScale(forCapacity: minimumCapacity)
+    let capacity = maximumCapacity(forScale: scale)
+    assert(capacity >= minimumCapacity)
+    let storageCapacity: Int = 1 &<< scale
+    assert(capacity < storageCapacity) // We need at least one empty bucket.
+    return (scale, capacity)
   }
 }
 #endif

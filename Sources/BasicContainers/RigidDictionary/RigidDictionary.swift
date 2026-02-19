@@ -15,9 +15,11 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+@available(SwiftStdlib 5.0, *)
+@frozen
 public struct RigidDictionary<
   Key: GeneralizedHashable & ~Copyable,
-    Value: ~Copyable
+  Value: ~Copyable
 >: ~Copyable {
   @_alwaysEmitIntoClient
   package var _keys: RigidSet<Key>
@@ -62,6 +64,7 @@ public struct RigidDictionary<
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
@@ -94,6 +97,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
@@ -125,6 +129,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
@@ -132,7 +137,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   public func value(
     forKey key: borrowing Key
   ) -> Borrow<Value>? {
-    guard let bucket = _keys._find(key) else { return nil }
+    guard let bucket = _keys._find(key).bucket else { return nil }
     return Borrow(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
   }
 #endif
@@ -146,7 +151,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     forKey key: borrowing Key,
     _ body: (borrowing Value) throws(E) -> R?
   ) throws(E) -> R? {
-    guard let bucket = _keys._find(key) else { return nil }
+    guard let bucket = _keys._find(key).bucket else { return nil }
     return try body(_valueBuf[bucket])
   }
 
@@ -162,7 +167,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     if r.found {
       return value
     }
-    valueBuf.initializeElement(at: r.bucket, to: value)
+    valueBuf._initializeElement(at: r.bucket, to: value)
     return nil
   }
   
@@ -178,7 +183,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     if r.found {
       return exchange(&valueBuf[r.bucket], with: value)
     }
-    valueBuf.initializeElement(at: r.bucket, to: value)
+    valueBuf._initializeElement(at: r.bucket, to: value)
     return nil
   }
   
