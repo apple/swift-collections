@@ -11,7 +11,7 @@
 
 #if compiler(>=6.2)
 extension _HTable {
-  @inlinable
+  @usableFromInline
   internal mutating func insertNew_Small(
     swapper: (Bucket) -> Void,
   ) -> Bucket {
@@ -25,7 +25,7 @@ extension _HTable {
   }
   
   
-  @inlinable
+  @usableFromInline
   internal mutating func insertNew_Large(
     hashValue: Int,
     hashGenerator: (Bucket) -> Int,

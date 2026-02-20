@@ -191,15 +191,13 @@ extension _HTable {
 
 extension _HTable {
   @_transparent
-  @inlinable
-  package func idealBucket(forHashValue hashValue: Int) -> Bucket {
+  internal func idealBucket(forHashValue hashValue: Int) -> Bucket {
     let hashValue = UInt(truncatingIfNeeded: hashValue)
     return Bucket(offset: hashValue & (bucketCount &- 1))
   }
 
   @_transparent
-  @inlinable
-  package func probeLength(
+  internal func probeLength(
     from start: Bucket,
     to end: Bucket
   ) -> Int {
@@ -210,8 +208,7 @@ extension _HTable {
   }
 
   @_transparent
-  @inlinable
-  package func probeLength(
+  internal func probeLength(
     forHashValue hashValue: Int,
     in bucket: Bucket
   ) -> Int {
@@ -221,11 +218,12 @@ extension _HTable {
 }
 
 extension _HTable {
-  @inlinable
+  @usableFromInline
   package mutating func clear() {
     self._count = 0
     self.bitmap.clearAll()
     self._totalProbeLength = 0
+    self._maxProbeLength = 0
   }
 }
 #endif

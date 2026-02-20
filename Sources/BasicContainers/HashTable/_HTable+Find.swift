@@ -15,7 +15,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.2)
 extension _HTable {
-  @inlinable
+  @usableFromInline
   internal func find_Small(
     tester: (Bucket) -> Bool,
   ) -> Bucket? {
@@ -29,7 +29,7 @@ extension _HTable {
     return nil
   }
 
-  @inlinable
+  @usableFromInline
   internal func find_Large(
     hashValue: Int,
     tester: (Bucket) -> Bool,

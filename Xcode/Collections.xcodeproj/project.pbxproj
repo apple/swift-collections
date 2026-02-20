@@ -82,6 +82,7 @@
 		7D479CCD2F46D23900A8CB59 /* UniqueSet+BorrowingSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CCC2F46D23400A8CB59 /* UniqueSet+BorrowingSequence.swift */; };
 		7D479CD22F46DD8600A8CB59 /* RigidSet+Initializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CD12F46DD8600A8CB59 /* RigidSet+Initializers.swift */; };
 		7D479CD42F46DD9600A8CB59 /* UniqueSet+Initializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CD32F46DD9600A8CB59 /* UniqueSet+Initializers.swift */; };
+		7D479CE72F47D88600A8CB59 /* _HTable+Consumption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CE62F47D88000A8CB59 /* _HTable+Consumption.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
 		7D48BCDF2E51558700D7F6F7 /* TestPrintable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */; };
 		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
@@ -111,7 +112,6 @@
 		7D72468C2F3D9DDB00112FD0 /* RigidSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246852F3D9DDB00112FD0 /* RigidSet.swift */; };
 		7D72468D2F3D9DDB00112FD0 /* _HTable+Bucket.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D72467C2F3D9DDB00112FD0 /* _HTable+Bucket.swift */; };
 		7D72468E2F3D9DDB00112FD0 /* _HTable+Bitmap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D72467B2F3D9DDB00112FD0 /* _HTable+Bitmap.swift */; };
-		7D72468F2F3D9DDB00112FD0 /* _HTable+Small.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246812F3D9DDB00112FD0 /* _HTable+Small.swift */; };
 		7D7246902F3D9DDB00112FD0 /* _HTable+Sizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D72467D2F3D9DDB00112FD0 /* _HTable+Sizing.swift */; };
 		7D7246922F3D9E6800112FD0 /* RigidSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246912F3D9E6800112FD0 /* RigidSetTests.swift */; };
 		7D9748D42E9748930098631A /* BigString+Chunk+UTF16.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D32E9748930098631A /* BigString+Chunk+UTF16.swift */; };
@@ -614,6 +614,7 @@
 		7D479CCC2F46D23400A8CB59 /* UniqueSet+BorrowingSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueSet+BorrowingSequence.swift"; sourceTree = "<group>"; };
 		7D479CD12F46DD8600A8CB59 /* RigidSet+Initializers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidSet+Initializers.swift"; sourceTree = "<group>"; };
 		7D479CD32F46DD9600A8CB59 /* UniqueSet+Initializers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueSet+Initializers.swift"; sourceTree = "<group>"; };
+		7D479CE62F47D88000A8CB59 /* _HTable+Consumption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Consumption.swift"; sourceTree = "<group>"; };
 		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPrintable.swift; sourceTree = "<group>"; };
@@ -649,7 +650,6 @@
 		7D72467E2F3D9DDB00112FD0 /* _HTable+Find.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Find.swift"; sourceTree = "<group>"; };
 		7D72467F2F3D9DDB00112FD0 /* _HTable+Insert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Insert.swift"; sourceTree = "<group>"; };
 		7D7246802F3D9DDB00112FD0 /* _HTable+Iteration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Iteration.swift"; sourceTree = "<group>"; };
-		7D7246812F3D9DDB00112FD0 /* _HTable+Small.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Small.swift"; sourceTree = "<group>"; };
 		7D7246832F3D9DDB00112FD0 /* RigidDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidDictionary.swift; sourceTree = "<group>"; };
 		7D7246852F3D9DDB00112FD0 /* RigidSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidSet.swift; sourceTree = "<group>"; };
 		7D7246912F3D9E6800112FD0 /* RigidSetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidSetTests.swift; sourceTree = "<group>"; };
@@ -1263,12 +1263,12 @@
 				7D72467A2F3D9DDB00112FD0 /* _HTable.swift */,
 				7D72467B2F3D9DDB00112FD0 /* _HTable+Bitmap.swift */,
 				7D72467C2F3D9DDB00112FD0 /* _HTable+Bucket.swift */,
-				7D72467D2F3D9DDB00112FD0 /* _HTable+Sizing.swift */,
+				7D479CE62F47D88000A8CB59 /* _HTable+Consumption.swift */,
+				7D9B75762F3E65DB0048157E /* _Htable+Debugging.swift */,
 				7D72467E2F3D9DDB00112FD0 /* _HTable+Find.swift */,
 				7D72467F2F3D9DDB00112FD0 /* _HTable+Insert.swift */,
 				7D7246802F3D9DDB00112FD0 /* _HTable+Iteration.swift */,
-				7D7246812F3D9DDB00112FD0 /* _HTable+Small.swift */,
-				7D9B75762F3E65DB0048157E /* _Htable+Debugging.swift */,
+				7D72467D2F3D9DDB00112FD0 /* _HTable+Sizing.swift */,
 			);
 			path = HashTable;
 			sourceTree = "<group>";
@@ -2411,7 +2411,6 @@
 				7D72468C2F3D9DDB00112FD0 /* RigidSet.swift in Sources */,
 				7D72468D2F3D9DDB00112FD0 /* _HTable+Bucket.swift in Sources */,
 				7D72468E2F3D9DDB00112FD0 /* _HTable+Bitmap.swift in Sources */,
-				7D72468F2F3D9DDB00112FD0 /* _HTable+Small.swift in Sources */,
 				7D7246902F3D9DDB00112FD0 /* _HTable+Sizing.swift in Sources */,
 				7D2A77992F27F2BF005780C7 /* Deque+Descriptions.swift in Sources */,
 				7D2A779A2F27F2BF005780C7 /* RigidDeque+Testing.swift in Sources */,
@@ -2497,6 +2496,7 @@
 				7D479CC72F46D21300A8CB59 /* UniqueSet+Resizing.swift in Sources */,
 				7DE9216129CA70F4004483EB /* _HashNode+Structural merge.swift in Sources */,
 				7DE9202F29CA70F3004483EB /* OrderedSet+ExpressibleByArrayLiteral.swift in Sources */,
+				7D479CE72F47D88600A8CB59 /* _HTable+Consumption.swift in Sources */,
 				7DE9202B29CA70F3004483EB /* OrderedSet+Equatable.swift in Sources */,
 				7D479CC52F46D20B00A8CB59 /* UniqueSet+Consumption.swift in Sources */,
 				7DE920EA29CA70F4004483EB /* BitArray.swift in Sources */,

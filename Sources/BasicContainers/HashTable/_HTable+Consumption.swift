@@ -10,25 +10,18 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2)
+
 extension _HTable {
   @usableFromInline
-  @frozen
-  internal enum Variant: ~Copyable {
-    case small(_HTable.Small)
-    case large(_HTable)
-  }
-
-  @usableFromInline
-  @frozen
-  internal struct Small: ~Copyable {
-    @_alwaysEmitIntoClient
-    internal var count: Int
-    
-    @_transparent
-    @_alwaysEmitIntoClient
-    internal init() {
-      self.count = 0
+  package mutating func consumeAll(
+    consumer: (Range<Bucket>) -> Void
+  ) {
+    var it = makeBucketIterator()
+    while let next = it.nextOccupiedRegion() {
+      consumer(next)
     }
+    clear()
   }
 }
+
 #endif

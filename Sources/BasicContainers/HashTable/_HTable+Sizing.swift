@@ -54,23 +54,11 @@ extension _HTable {
   
   /// The numerator of the maximum hash table load factor.
   @_transparent
-  internal static var _maxLFNum: UInt {
-#if COLLECTIONS_NO_ROBIN_HOOD_HASHING
-    3
-#else
-    7
-#endif
-  }
+  internal static var _maxLFNum: UInt { 7 }
   
   /// The denominator of the maximum hash table load factor.
   @_transparent
-  internal static var _maxLFDenom: UInt {
-#if COLLECTIONS_NO_ROBIN_HOOD_HASHING
-    4
-#else
-    8
-#endif
-  }
+  internal static var _maxLFDenom: UInt { 8 }
   
   /// The numerator of the minimum hash table load factor.
   @_transparent

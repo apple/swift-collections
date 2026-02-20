@@ -15,7 +15,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.2)
 extension _HTable {
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_lifetime(borrow self)
   package func makeBucketIterator(
     from start: Bucket = Bucket(offset: 0)
@@ -36,7 +36,6 @@ extension _HTable {
   ///     iterator values outside the closure call that produced the original
   ///     hash table.
   @usableFromInline
-  @frozen
   package struct BucketIterator: ~Copyable, ~Escapable {
     @usableFromInline
     package typealias Bucket = _HTable.Bucket
@@ -92,19 +91,19 @@ extension _HTable {
 }
 
 extension _HTable.BucketIterator {
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_transparent
   package var currentBucket: Bucket {
     _bucket
   }
   
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_transparent
   package var isAtEnd: Bool {
     _bucket >= _endBucket
   }
   
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_transparent
   package var isOccupied: Bool {
     assert(!isAtEnd)
@@ -112,7 +111,6 @@ extension _HTable.BucketIterator {
     return _nextBits.contains(0)
   }
   
-  @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(self: copy self)
   package mutating func restart() {
@@ -124,7 +122,6 @@ extension _HTable.BucketIterator {
     }
   }
   
-  @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(self: copy self)
   package mutating func _wrap() {
@@ -133,7 +130,7 @@ extension _HTable.BucketIterator {
   }
 
   
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func _advanceToNextWord() -> Bool {
@@ -152,7 +149,7 @@ extension _HTable.BucketIterator {
     return true
   }
 
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_lifetime(self: copy self)
   package mutating func _wrapToNextWord() {
     _bucket.advanceToNextWord()
@@ -164,7 +161,7 @@ extension _HTable.BucketIterator {
     }
   }
 
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func advanceToNextBit() -> Bool {
@@ -188,7 +185,7 @@ extension _HTable.BucketIterator {
     return true
   }
 
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_lifetime(self: copy self)
   package mutating func wrapToNextBit() {
     _bucket._offset &+= 1
@@ -208,7 +205,7 @@ extension _HTable.BucketIterator {
   }
 
   /// If the current bucket is already occupied, this does nothing.
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func advanceToOccupied() -> Bool {
@@ -228,7 +225,7 @@ extension _HTable.BucketIterator {
     return true
   }
 
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_lifetime(self: copy self)
   package mutating func wrapToOccupied() {
     if _words == nil {
@@ -247,7 +244,7 @@ extension _HTable.BucketIterator {
   }
 
   /// If the current bucket is already unoccupied, this does nothing.
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func advanceToUnoccupied() -> Bool {
@@ -270,7 +267,7 @@ extension _HTable.BucketIterator {
   }
 
   /// If the current bucket is already unoccupied, this does nothing.
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func advanceToUnoccupied(
@@ -308,7 +305,7 @@ extension _HTable.BucketIterator {
     return true
   }
 
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_lifetime(self: copy self)
   package mutating func wrapToUnoccupied() {
     if _words == nil {
@@ -326,7 +323,7 @@ extension _HTable.BucketIterator {
     }
   }
 
-  @_alwaysEmitIntoClient
+  @usableFromInline
   @_lifetime(self: copy self)
   package mutating func nextOccupiedRegion(
     maximumCount: Int = .max
