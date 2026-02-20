@@ -27,22 +27,17 @@ public struct RigidDictionary<
   @_alwaysEmitIntoClient
   package var _values: UnsafeMutablePointer<Value>?
   
-  @inlinable
-  public init() {
-    self.init(capacity: 0)
+  @_alwaysEmitIntoClient
+  @_transparent
+  package init(
+    _keys: consuming RigidSet<Key>,
+    values: UnsafeMutablePointer<Value>?
+  ) {
+    assert((values != nil) == (_keys._members != nil))
+    self._keys = _keys
+    self._values = values
   }
-
-  @inlinable
-  public init(capacity: Int) {
-    precondition(capacity >= 0, "Capacity must be nonnegative")
-    self._keys = RigidSet(capacity: capacity)
-    if capacity > 0 {
-      self._values = .allocate(capacity: Int(bitPattern: _keys._table.bucketCount))
-    } else {
-      self._values = nil
-    }
-  }
-
+  
   @_alwaysEmitIntoClient
   deinit {
     // FIXME: This iterates over the bitmap twice: once in `self._dispose()`,
@@ -95,6 +90,12 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   public var freeCapacity: Int {
     _assumeNonNegative(capacity &- count)
   }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var _scale: UInt8 {
+    _keys._scale
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -128,87 +129,5 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     _keys._memberPtr(at: bucket)
   }
 }
-
-@available(SwiftStdlib 5.0, *)
-extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @inlinable
-  @_lifetime(borrow self)
-  public func value(
-    forKey key: borrowing Key
-  ) -> Borrow<Value>? {
-    guard let bucket = _keys._find(key).bucket else { return nil }
-    return Borrow(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
-  }
-#endif
-
-  /// A stand-in for a `struct Borrow`-returning lookup operation.
-  /// This is quite clumsy to use, but this is the best we can do without a way
-  /// to express optional borrows.
-  @_alwaysEmitIntoClient
-  @_transparent
-  public func withValue<E: Error, R: ~Copyable>(
-    forKey key: borrowing Key,
-    _ body: (borrowing Value) throws(E) -> R?
-  ) throws(E) -> R? {
-    guard let bucket = _keys._find(key).bucket else { return nil }
-    return try body(_valueBuf[bucket])
-  }
-
-  @inlinable
-  public mutating func insertValue(
-    _ value: consuming Value,
-    forKey key: consuming Key
-  ) -> Value? {
-    let valueBuf = _valueBuf
-    let r = _keys._insert(key) { key, bucket in
-      swap(&value, &valueBuf[bucket])
-    }
-    if r.found {
-      return value
-    }
-    valueBuf._initializeElement(at: r.bucket, to: value)
-    return nil
-  }
-  
-  @inlinable
-  public mutating func updateValue(
-    _ value: consuming Value,
-    forKey key: consuming Key
-  ) -> Value? {
-    let valueBuf = _valueBuf
-    let r = _keys._insert(key) { key, bucket in
-      swap(&value, &valueBuf[bucket])
-    }
-    if r.found {
-      return exchange(&valueBuf[r.bucket], with: value)
-    }
-    valueBuf._initializeElement(at: r.bucket, to: value)
-    return nil
-  }
-  
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @inlinable
-  @_lifetime(&self)
-  public mutating func memoizedValue(
-    forKey key: consuming Key,
-    _ body: (borrowing Key) -> Value
-  ) -> Borrow<Value> {
-    let values = _valueBuf
-    var value: Value? = nil
-    let r = _keys._insert(key) { key, bucket in
-      var v = value.take() ?? body(key)
-      swap(&values[bucket.offset], &v)
-      value = consume v
-    }
-    let p = values._ptr(at: r.bucket)
-    if !r.found {
-      p.initialize(to: value.take() ?? body(_keys._memberBuf[r.bucket]))
-    }
-    return Borrow(unsafeAddress: p, borrowing: self)
-  }
-#endif
-}
-
 
 #endif

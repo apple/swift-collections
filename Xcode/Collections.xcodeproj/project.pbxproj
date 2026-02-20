@@ -82,7 +82,19 @@
 		7D479CCD2F46D23900A8CB59 /* UniqueSet+BorrowingSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CCC2F46D23400A8CB59 /* UniqueSet+BorrowingSequence.swift */; };
 		7D479CD22F46DD8600A8CB59 /* RigidSet+Initializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CD12F46DD8600A8CB59 /* RigidSet+Initializers.swift */; };
 		7D479CD42F46DD9600A8CB59 /* UniqueSet+Initializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CD32F46DD9600A8CB59 /* UniqueSet+Initializers.swift */; };
+		7D479CD72F47CB4600A8CB59 /* UniqueDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CD52F47CB4600A8CB59 /* UniqueDictionary.swift */; };
+		7D479CD92F47CBBA00A8CB59 /* RigidDictionary+Initializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CD82F47CBB400A8CB59 /* RigidDictionary+Initializers.swift */; };
+		7D479CDB2F47CD9000A8CB59 /* UniqueDictionary+Initializers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CDA2F47CD8900A8CB59 /* UniqueDictionary+Initializers.swift */; };
+		7D479CDD2F47D59C00A8CB59 /* RigidDictionary+Lookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CDC2F47D59700A8CB59 /* RigidDictionary+Lookup.swift */; };
+		7D479CDF2F47D5CA00A8CB59 /* RigidDictionary+Insertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CDE2F47D5C300A8CB59 /* RigidDictionary+Insertions.swift */; };
+		7D479CE12F47D62D00A8CB59 /* UniqueDictionary+Lookup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CE02F47D62800A8CB59 /* UniqueDictionary+Lookup.swift */; };
+		7D479CE32F47D63900A8CB59 /* UniqueDictionary+Insertions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CE22F47D63300A8CB59 /* UniqueDictionary+Insertions.swift */; };
+		7D479CE52F47D74500A8CB59 /* RigidDictionary+Resizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CE42F47D74500A8CB59 /* RigidDictionary+Resizing.swift */; };
 		7D479CE72F47D88600A8CB59 /* _HTable+Consumption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CE62F47D88000A8CB59 /* _HTable+Consumption.swift */; };
+		7D479CE92F47DE2700A8CB59 /* _HTable+Resizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CE82F47DE1C00A8CB59 /* _HTable+Resizing.swift */; };
+		7D479CEB2F47F3C100A8CB59 /* UniqueDictionary+Resizing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CEA2F47F3BC00A8CB59 /* UniqueDictionary+Resizing.swift */; };
+		7D479CED2F47F41000A8CB59 /* RigidDictionary+Consumption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CEC2F47F40700A8CB59 /* RigidDictionary+Consumption.swift */; };
+		7D479CEF2F47F4E900A8CB59 /* UniqueDictionary+Consumption.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CEE2F47F4E300A8CB59 /* UniqueDictionary+Consumption.swift */; };
 		7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */; };
 		7D48BCDF2E51558700D7F6F7 /* TestPrintable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */; };
 		7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */; };
@@ -614,7 +626,19 @@
 		7D479CCC2F46D23400A8CB59 /* UniqueSet+BorrowingSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueSet+BorrowingSequence.swift"; sourceTree = "<group>"; };
 		7D479CD12F46DD8600A8CB59 /* RigidSet+Initializers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidSet+Initializers.swift"; sourceTree = "<group>"; };
 		7D479CD32F46DD9600A8CB59 /* UniqueSet+Initializers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueSet+Initializers.swift"; sourceTree = "<group>"; };
+		7D479CD52F47CB4600A8CB59 /* UniqueDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueDictionary.swift; sourceTree = "<group>"; };
+		7D479CD82F47CBB400A8CB59 /* RigidDictionary+Initializers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Initializers.swift"; sourceTree = "<group>"; };
+		7D479CDA2F47CD8900A8CB59 /* UniqueDictionary+Initializers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Initializers.swift"; sourceTree = "<group>"; };
+		7D479CDC2F47D59700A8CB59 /* RigidDictionary+Lookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Lookup.swift"; sourceTree = "<group>"; };
+		7D479CDE2F47D5C300A8CB59 /* RigidDictionary+Insertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Insertions.swift"; sourceTree = "<group>"; };
+		7D479CE02F47D62800A8CB59 /* UniqueDictionary+Lookup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Lookup.swift"; sourceTree = "<group>"; };
+		7D479CE22F47D63300A8CB59 /* UniqueDictionary+Insertions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Insertions.swift"; sourceTree = "<group>"; };
+		7D479CE42F47D74500A8CB59 /* RigidDictionary+Resizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Resizing.swift"; sourceTree = "<group>"; };
 		7D479CE62F47D88000A8CB59 /* _HTable+Consumption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Consumption.swift"; sourceTree = "<group>"; };
+		7D479CE82F47DE1C00A8CB59 /* _HTable+Resizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Resizing.swift"; sourceTree = "<group>"; };
+		7D479CEA2F47F3BC00A8CB59 /* UniqueDictionary+Resizing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Resizing.swift"; sourceTree = "<group>"; };
+		7D479CEC2F47F40700A8CB59 /* RigidDictionary+Consumption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Consumption.swift"; sourceTree = "<group>"; };
+		7D479CEE2F47F4E300A8CB59 /* UniqueDictionary+Consumption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Consumption.swift"; sourceTree = "<group>"; };
 		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPrintable.swift; sourceTree = "<group>"; };
@@ -1234,6 +1258,19 @@
 			path = UniqueSet;
 			sourceTree = "<group>";
 		};
+		7D479CD62F47CB4600A8CB59 /* UniqueDictionary */ = {
+			isa = PBXGroup;
+			children = (
+				7D479CD52F47CB4600A8CB59 /* UniqueDictionary.swift */,
+				7D479CEE2F47F4E300A8CB59 /* UniqueDictionary+Consumption.swift */,
+				7D479CE22F47D63300A8CB59 /* UniqueDictionary+Insertions.swift */,
+				7D479CDA2F47CD8900A8CB59 /* UniqueDictionary+Initializers.swift */,
+				7D479CE02F47D62800A8CB59 /* UniqueDictionary+Lookup.swift */,
+				7D479CEA2F47F3BC00A8CB59 /* UniqueDictionary+Resizing.swift */,
+			);
+			path = UniqueDictionary;
+			sourceTree = "<group>";
+		};
 		7D48BCCE2E51524200D7F6F7 /* ContainersPreview */ = {
 			isa = PBXGroup;
 			children = (
@@ -1268,6 +1305,7 @@
 				7D72467E2F3D9DDB00112FD0 /* _HTable+Find.swift */,
 				7D72467F2F3D9DDB00112FD0 /* _HTable+Insert.swift */,
 				7D7246802F3D9DDB00112FD0 /* _HTable+Iteration.swift */,
+				7D479CE82F47DE1C00A8CB59 /* _HTable+Resizing.swift */,
 				7D72467D2F3D9DDB00112FD0 /* _HTable+Sizing.swift */,
 			);
 			path = HashTable;
@@ -1277,6 +1315,11 @@
 			isa = PBXGroup;
 			children = (
 				7D7246832F3D9DDB00112FD0 /* RigidDictionary.swift */,
+				7D479CEC2F47F40700A8CB59 /* RigidDictionary+Consumption.swift */,
+				7D479CD82F47CBB400A8CB59 /* RigidDictionary+Initializers.swift */,
+				7D479CDE2F47D5C300A8CB59 /* RigidDictionary+Insertions.swift */,
+				7D479CDC2F47D59700A8CB59 /* RigidDictionary+Lookup.swift */,
+				7D479CE42F47D74500A8CB59 /* RigidDictionary+Resizing.swift */,
 			);
 			path = RigidDictionary;
 			sourceTree = "<group>";
@@ -2206,6 +2249,7 @@
 				7D7246862F3D9DDB00112FD0 /* RigidSet */,
 				7D479CB22F45296000A8CB59 /* UniqueSet */,
 				7D7246842F3D9DDB00112FD0 /* RigidDictionary */,
+				7D479CD62F47CB4600A8CB59 /* UniqueDictionary */,
 				7D6FEE2F2E8880F6007C1B86 /* BasicContainers.docc */,
 			);
 			path = BasicContainers;
@@ -2439,11 +2483,13 @@
 				7DE9203429CA70F3004483EB /* OrderedSet+Partial SetAlgebra formUnion.swift in Sources */,
 				7DE9214A29CA70F4004483EB /* _HashNode+Subtree Insertions.swift in Sources */,
 				7DE9215829CA70F4004483EB /* _HashNode+Structural union.swift in Sources */,
+				7D479CEF2F47F4E900A8CB59 /* UniqueDictionary+Consumption.swift in Sources */,
 				7DE9204629CA70F3004483EB /* _Hashtable+Header.swift in Sources */,
 				7DE9208129CA70F4004483EB /* BigString+CustomStringConvertible.swift in Sources */,
 				7DE920A929CA70F4004483EB /* Optional Utilities.swift in Sources */,
 				7DE920BD29CA70F4004483EB /* BitSet+SetAlgebra symmetricDifference.swift in Sources */,
 				7DE9208229CA70F4004483EB /* BigString+BidirectionalCollection.swift in Sources */,
+				7D479CDF2F47D5CA00A8CB59 /* RigidDictionary+Insertions.swift in Sources */,
 				7DE9203E29CA70F3004483EB /* OrderedSet+Partial SetAlgebra subtract.swift in Sources */,
 				7D57A2CE2F343CA9002543BD /* ContainerAlgorithms.swift in Sources */,
 				7DE9216929CA70F4004483EB /* TreeDictionary+Filter.swift in Sources */,
@@ -2485,6 +2531,7 @@
 				7DE9215C29CA70F4004483EB /* _Bitmap.swift in Sources */,
 				7DE9207029CA70F4004483EB /* BigString+Chunk+RopeElement.swift in Sources */,
 				7DE9213729CA70F4004483EB /* TreeSet+Sequence.swift in Sources */,
+				7D479CED2F47F41000A8CB59 /* RigidDictionary+Consumption.swift in Sources */,
 				7DE9217629CA70F4004483EB /* TreeDictionary+Initializers.swift in Sources */,
 				7DE9207E29CA70F4004483EB /* BigString+UTF16View.swift in Sources */,
 				7DE9216F29CA70F4004483EB /* TreeDictionary+CustomReflectable.swift in Sources */,
@@ -2510,6 +2557,7 @@
 				7DA23F562F329E9000E4C03A /* UniqueArray+Container.swift in Sources */,
 				7DE9204729CA70F3004483EB /* _HashTable+Testing.swift in Sources */,
 				7DE920E929CA70F4004483EB /* BitArray+Invariants.swift in Sources */,
+				7D479CD72F47CB4600A8CB59 /* UniqueDictionary.swift in Sources */,
 				7DE9215429CA70F4004483EB /* _HashNode+UnsafeHandle.swift in Sources */,
 				7DE9209829CA70F4004483EB /* Rope+_Node.swift in Sources */,
 				7DE9204529CA70F3004483EB /* _HashTable+Constants.swift in Sources */,
@@ -2545,6 +2593,7 @@
 				7DE9208329CA70F4004483EB /* BigString+CustomDebugStringConvertible.swift in Sources */,
 				7DE9215D29CA70F4004483EB /* _HashNodeHeader.swift in Sources */,
 				7DE9213329CA70F4004483EB /* TreeSet+Collection.swift in Sources */,
+				7D479CE12F47D62D00A8CB59 /* UniqueDictionary+Lookup.swift in Sources */,
 				7DE9217929CA70F4004483EB /* Heap+UnsafeHandle.swift in Sources */,
 				7DE920BC29CA70F4004483EB /* _UniqueCollection.swift in Sources */,
 				7D9B859B29E4F74400B291CD /* BitArray+ExpressibleByStringLiteral.swift in Sources */,
@@ -2555,6 +2604,7 @@
 				C13E810E2E78F317008DFC5C /* TrailingPadding.swift in Sources */,
 				7D479CD22F46DD8600A8CB59 /* RigidSet+Initializers.swift in Sources */,
 				7DE920E129CA70F4004483EB /* UInt+Tricks.swift in Sources */,
+				7D479CDD2F47D59C00A8CB59 /* RigidDictionary+Lookup.swift in Sources */,
 				7DE920EB29CA70F4004483EB /* BitArray+Fill.swift in Sources */,
 				7DE9201929CA70F3004483EB /* OrderedDictionary+Values.swift in Sources */,
 				7DE9213929CA70F4004483EB /* TreeSet+SetAlgebra Initializers.swift in Sources */,
@@ -2620,6 +2670,7 @@
 				7DA23F4C2F329A2300E4C03A /* RigidArray+Append.swift in Sources */,
 				7DA23F4D2F329A2300E4C03A /* RigidArray+Removals.swift in Sources */,
 				7DA23F4E2F329A2300E4C03A /* UniqueArray+Initializers.swift in Sources */,
+				7D479CDB2F47CD9000A8CB59 /* UniqueDictionary+Initializers.swift in Sources */,
 				7DA23F4F2F329A2300E4C03A /* RigidArray+Initializers.swift in Sources */,
 				7DA23F502F329A2300E4C03A /* RigidArray+Insertions.swift in Sources */,
 				7DA23F512F329A2300E4C03A /* UniqueArray+Append.swift in Sources */,
@@ -2729,6 +2780,7 @@
 				7DE9215929CA70F4004483EB /* _HashNode+Structural isSubset.swift in Sources */,
 				7DE920C629CA70F4004483EB /* BitSet+SetAlgebra formSymmetricDifference.swift in Sources */,
 				7DE9202129CA70F3004483EB /* OrderedSet+Partial SetAlgebra isEqualSet.swift in Sources */,
+				7D479CE32F47D63900A8CB59 /* UniqueDictionary+Insertions.swift in Sources */,
 				7DE9206029CA70F4004483EB /* BigString+Summary.swift in Sources */,
 				7DE9203829CA70F3004483EB /* OrderedSet+Partial SetAlgebra formIntersection.swift in Sources */,
 				7DE9207629CA70F4004483EB /* BigString+Initializers.swift in Sources */,
@@ -2744,6 +2796,7 @@
 				7DE9217129CA70F4004483EB /* TreeDictionary+Values.swift in Sources */,
 				7D2A77262F27F1D1005780C7 /* Span+Extras.swift in Sources */,
 				7DE920D029CA70F4004483EB /* BitSet+SetAlgebra isSubset.swift in Sources */,
+				7D479CD92F47CBBA00A8CB59 /* RigidDictionary+Initializers.swift in Sources */,
 				7DE920C829CA70F4004483EB /* BitSet+SetAlgebra isEqualSet.swift in Sources */,
 				7DE9215B29CA70F4004483EB /* _HashNode+Structural mapValues.swift in Sources */,
 				7DE9217029CA70F4004483EB /* TreeDictionary+ExpressibleByDictionaryLiteral.swift in Sources */,
@@ -2755,6 +2808,7 @@
 				7DE920D929CA70F4004483EB /* BitSet+SetAlgebra intersection.swift in Sources */,
 				7DE920DD29CA70F4004483EB /* BitSet+SetAlgebra isStrictSubset.swift in Sources */,
 				7DE920F229CA70F4004483EB /* BitArray._UnsafeHandle.swift in Sources */,
+				7D479CEB2F47F3C100A8CB59 /* UniqueDictionary+Resizing.swift in Sources */,
 				7DE9204229CA70F3004483EB /* _HashTable+UnsafeHandle.swift in Sources */,
 				7DE9208E29CA70F4004483EB /* _RopeVersion.swift in Sources */,
 				7DE9212629CA70F4004483EB /* TreeSet+Sendable.swift in Sources */,
@@ -2765,6 +2819,7 @@
 				7D479CB92F46A6DB00A8CB59 /* RigidSet+Debugging.swift in Sources */,
 				7DE9202929CA70F3004483EB /* OrderedSet+Codable.swift in Sources */,
 				7DE9204829CA70F3004483EB /* _HashTable+CustomStringConvertible.swift in Sources */,
+				7D479CE52F47D74500A8CB59 /* RigidDictionary+Resizing.swift in Sources */,
 				7DE9213029CA70F4004483EB /* TreeSet+SetAlgebra isSuperset.swift in Sources */,
 				7DE9217529CA70F4004483EB /* TreeDictionary+MapValues.swift in Sources */,
 				7DE9206C29CA70F4004483EB /* BigString+Chunk.swift in Sources */,
@@ -2773,6 +2828,7 @@
 				7DE9209329CA70F4004483EB /* Rope+Invariants.swift in Sources */,
 				7DE920EE29CA70F4004483EB /* BitArray+ExpressibleByArrayLiteral.swift in Sources */,
 				7DE9214C29CA70F4004483EB /* _HashNode+Primitive Insertions.swift in Sources */,
+				7D479CE92F47DE2700A8CB59 /* _HTable+Resizing.swift in Sources */,
 				7DE920BE29CA70F4004483EB /* BitSet+SetAlgebra formIntersection.swift in Sources */,
 				7DE9217329CA70F4004483EB /* TreeDictionary+Merge.swift in Sources */,
 			);

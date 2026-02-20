@@ -9,36 +9,37 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if !COLLECTIONS_SINGLE_MODULE
-import InternalCollectionsUtilities
-import ContainersPreview
-#endif
-
 #if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
 
 @available(SwiftStdlib 5.0, *)
 @frozen
-public struct UniqueSet<Element: GeneralizedHashable & ~Copyable>: ~Copyable {
+public struct UniqueDictionary<
+  Key: GeneralizedHashable & ~Copyable,
+  Value: ~Copyable
+>: ~Copyable {
   @_alwaysEmitIntoClient
-  package var _storage: RigidSet<Element>
-
+  package var _storage: RigidDictionary<Key, Value>
+  
   @_alwaysEmitIntoClient
-  @_transparent
-  package init(_storage: consuming RigidSet<Element>) {
+  package init(_storage: consuming RigidDictionary<Key, Value>) {
     self._storage = _storage
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueSet where Element: ~Copyable {
+extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   @inline(__always)
-  public var count: Int { _storage.count }
-
+  public var count: Int {
+    _assumeNonNegative(_storage._keys._table._count)
+  }
+  
   @inlinable
   @inline(__always)
-  public var capacity: Int { _storage.capacity }
-
+  public var capacity: Int {
+    _assumeNonNegative(_storage._keys._table._capacity)
+  }
+  
   @inlinable
   @inline(__always)
   public var isEmpty: Bool {
@@ -53,12 +54,14 @@ extension UniqueSet where Element: ~Copyable {
   
   @inlinable
   @inline(__always)
-  public var freeCapacity: Int { _storage.freeCapacity }
-  
+  public var freeCapacity: Int {
+    _assumeNonNegative(capacity &- count)
+  }
+
   @_alwaysEmitIntoClient
   @_transparent
   public var _scale: UInt8 {
-    _storage._table.scale
+    _storage._scale
   }
 }
 

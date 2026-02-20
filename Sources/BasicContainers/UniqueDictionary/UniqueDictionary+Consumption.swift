@@ -12,30 +12,27 @@
 #if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet where Element: ~Copyable {
+extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   public mutating func consumeAll(
-    consumingWith consumer: (inout InputSpan<Element>) -> Void
+    consumingWith consumer: (
+      inout InputSpan<Key>,
+      inout InputSpan<Value>
+    ) -> Void
   ) {
-    let storage = self._memberBuf
-    _table.consumeAll { buckets in
-      let buffer = storage._extracting(buckets)
-      var span = InputSpan(buffer: buffer, initializedCount: buffer.count)
-      consumer(&span)
-      _ = consume span
-    }
+    _storage.consumeAll(consumingWith: consumer)
   }
 #endif
   
   @inlinable
   public mutating func _consumeAll(
-    consumingWith consumer: (UnsafeMutableBufferPointer<Element>) -> Void
+    consumingWith consumer: (
+      UnsafeMutableBufferPointer<Key>,
+      UnsafeMutableBufferPointer<Value>
+    ) -> Void
   ) {
-    let storage = self._memberBuf
-    _table.consumeAll { buckets in
-      consumer(storage._extracting(buckets))
-    }
+    _storage._consumeAll(consumingWith: consumer)
   }
 }
 

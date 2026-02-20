@@ -87,6 +87,18 @@ extension RigidSet where Element: ~Copyable {
   public var freeCapacity: Int {
     _assumeNonNegative(capacity &- count)
   }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var _scale: UInt8 {
+    _table.scale
+  }
+  
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var _storageCapacity: Int {
+    _table.storageCapacity
+  }
 }
 
 @available(SwiftStdlib 5.0, *)

@@ -187,14 +187,14 @@ class RigidSetTests: CollectionTestCase {
   
   func test_probeLengths() {
     // FIXME: This isn't really testing anything; figure out how to handle this
-    let c1 = 1000
+    let c1 = 500
     let scale = _HTable.minimumScale(forCapacity: c1)
     let c2 = _HTable.maximumCapacity(forScale: scale)
     var set = RigidSet<Int>(capacity: c2)
-    for i in 0 ..< 1536 {
+    for i in 0 ..< c2 {
       set.insert(i)
     }
-    set._dump(chains: true)
+    set._dump(bitmap: true, chains: true)
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
