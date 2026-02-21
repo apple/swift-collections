@@ -18,13 +18,13 @@ extension RigidSet where Element: ~Copyable {
   package struct _InsertResult: ~Copyable {
     // FIXME: This struct really just wants to be a tuple.
     @_alwaysEmitIntoClient
-    package var bucket: _HTable.Bucket
+    package var bucket: _Bucket
     @_alwaysEmitIntoClient
     package var remnant: Element?
     
     @_alwaysEmitIntoClient
     package init(
-      bucket: _HTable.Bucket, remnant: consuming Element?
+      bucket: _Bucket, remnant: consuming Element?
     ) {
       self.bucket = bucket
       self.remnant = remnant
@@ -39,8 +39,8 @@ extension RigidSet where Element: ~Copyable {
   package mutating func _insertNew(
     _ item: consuming Element,
     hashValue: Int,
-    swapper: (borrowing Element, _HTable.Bucket) -> Void = { _, _ in }
-  ) -> _HTable.Bucket {
+    swapper: (borrowing Element, _Bucket) -> Void = { _, _ in }
+  ) -> _Bucket {
     precondition(!isFull, "RigidSet capacity overflow")
     let storage = _memberBuf
     if _table.isSmall {
@@ -60,8 +60,8 @@ extension RigidSet where Element: ~Copyable {
   @inline(__always)
   package mutating func _insertNew_Large(
     _ item: consuming Element,
-    swapper: (borrowing Element, _HTable.Bucket) -> Void = { _, _ in }
-  ) -> _HTable.Bucket {
+    swapper: (borrowing Element, _Bucket) -> Void = { _, _ in }
+  ) -> _Bucket {
     _insertNew_Large(item, hashValue: _hashValue(for: item), swapper: swapper)
   }
   
@@ -69,8 +69,8 @@ extension RigidSet where Element: ~Copyable {
   package mutating func _insertNew_Large(
     _ item: consuming Element,
     hashValue: Int,
-    swapper: (borrowing Element, _HTable.Bucket) -> Void = { _, _ in }
-  ) -> _HTable.Bucket {
+    swapper: (borrowing Element, _Bucket) -> Void = { _, _ in }
+  ) -> _Bucket {
     let storage = _memberBuf
     let seed = self._seed
     let bucket = _table.insertNew_Large(
@@ -90,7 +90,7 @@ extension RigidSet where Element: ~Copyable {
   @discardableResult
   package mutating func _insert(
     _ item: consuming Element,
-    swapper: (borrowing Element, _HTable.Bucket) -> Void = { _, _ in }
+    swapper: (borrowing Element, _Bucket) -> Void = { _, _ in }
   ) -> _InsertResult {
     let r = _find(item)
     if let bucket = r.bucket {

@@ -11,36 +11,35 @@
 
 #if compiler(>=6.2) && !$Embedded
 
-@available(SwiftStdlib 6.2, *)
 extension StringProtocol {
   @inline(__always)
-  var _indexOfLastCharacter: Index {
+  internal var _indexOfLastCharacter: Index {
     guard !isEmpty else { return endIndex }
     return index(before: endIndex)
   }
 
   @inline(__always)
-  func _index(at offset: Int) -> Index {
+  internal func _index(at offset: Int) -> Index {
     self.index(self.startIndex, offsetBy: offset)
   }
 
   @inline(__always)
-  func _utf8Index(at offset: Int) -> Index {
+  internal func _utf8Index(at offset: Int) -> Index {
     self.utf8.index(startIndex, offsetBy: offset)
   }
 
   @inline(__always)
-  func _utf8ClampedIndex(at offset: Int) -> Index {
+  internal func _utf8ClampedIndex(at offset: Int) -> Index {
     self.utf8.index(startIndex, offsetBy: offset, limitedBy: endIndex) ?? endIndex
   }
 
   @inline(__always)
-  func _utf8Offset(of index: Index) -> Int {
+  internal func _utf8Offset(of index: Index) -> Int {
     self.utf8.distance(from: startIndex, to: index)
   }
 
   @inline(__always)
-  var _lastCharacter: (index: Index, utf8Length: Int) {
+  internal var _lastCharacter: (index: Index, utf8Length: Int) {
     let i = _indexOfLastCharacter
     let length = utf8.distance(from: i, to: endIndex)
     return (i, length)
@@ -49,23 +48,8 @@ extension StringProtocol {
 
 @available(SwiftStdlib 6.2, *)
 extension String {
-  internal func _lpad(to width: Int, with pad: Character = " ") -> String {
-    let c = self.count
-    if c >= width { return self }
-    return String(repeating: pad, count: width - c) + self
-  }
-
-  internal func _rpad(to width: Int, with pad: Character = " ") -> String {
-    let c = self.count
-    if c >= width { return self }
-    return self + String(repeating: pad, count: width - c)
-  }
-}
-
-@available(SwiftStdlib 6.2, *)
-extension String {
   @discardableResult
-  mutating func _appendQuotedProtectingLeft(
+  internal mutating func _appendQuotedProtectingLeft(
     _ str: String,
     with state: inout _CharacterRecognizer,
     maxLength: Int = Int.max
@@ -98,7 +82,7 @@ extension String {
     return i
   }
 
-  mutating func _appendProtectingRight(_ str: String, with state: inout _CharacterRecognizer) {
+  internal mutating func _appendProtectingRight(_ str: String, with state: inout _CharacterRecognizer) {
     var suffix = str
     while !self.isEmpty {
       guard let first = suffix.unicodeScalars.first else { return }
@@ -117,7 +101,7 @@ extension String {
   /// A representation of the string that is suitable for debugging.
   /// This implementation differs from `String.debugDescription` by properly quoting
   /// continuation characters after the opening quotation mark and similar meta-characters.
-  var _properDebugDescription: String {
+  internal var _properDebugDescription: String {
     var result = "\""
     var state = _CharacterRecognizer(consuming: result)
     result._appendQuotedProtectingLeft(self, with: &state)
@@ -128,7 +112,7 @@ extension String {
 
 extension String {
   @available(SwiftStdlib 6.2, *)
-  mutating func append(copying utf8Span: UTF8Span) {
+  internal mutating func append(copying utf8Span: UTF8Span) {
     self = String(unsafeUninitializedCapacity: utf8.count + utf8Span.count) {
       var buffer = $0
 

@@ -18,6 +18,9 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 @frozen
 public struct RigidSet<Element: GeneralizedHashable & ~Copyable>: ~Copyable {
+  @usableFromInline
+  package typealias _Bucket = _HTable.Bucket
+
   @_alwaysEmitIntoClient
   package var _members: UnsafeMutablePointer<Element>?
   
@@ -112,7 +115,7 @@ extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal func _memberPtr(
-    at bucket: _HTable.Bucket
+    at bucket: _Bucket
   ) -> UnsafeMutablePointer<Element> {
     assert(_table.isValid(bucket))
     return _members.unsafelyUnwrapped.advanced(by: bucket.offset)
@@ -133,7 +136,7 @@ extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   internal borrowing func _hashValue(
-    at bucket: _HTable.Bucket
+    at bucket: _Bucket
   ) -> Int {
     assert(bucket.offset >= 0 && bucket.offset < _table.storageCapacity)
     return _hashValue(for: _members.unsafelyUnwrapped[bucket.offset])

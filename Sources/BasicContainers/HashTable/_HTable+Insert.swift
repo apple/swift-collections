@@ -19,7 +19,6 @@ extension _HTable {
     // FIXME: Scramble order by swapping things in some way
     let r = Bucket(offset: _count)
     _count &+= 1
-    _totalProbeLength += _count
     _maxProbeLength = _count
     return r
   }
@@ -40,7 +39,6 @@ extension _HTable {
     let actual = bitmap.firstUnoccupiedBucket(from: ideal)
     bitmap.setOccupied(actual)
     let probeLength = self.probeLength(from: ideal, to: actual)
-    _totalProbeLength += probeLength
     _maxProbeLength = Swift.max(_maxProbeLength, probeLength)
     _count &+= 1
     return actual
@@ -49,7 +47,6 @@ extension _HTable {
     var probeLength = 0
     while bitmap.isOccupied(b) {
       probeLength &+= 1
-      _totalProbeLength &+= 1
       let oldHashValue = hashGenerator(b)
       let oldProbeLength = self.probeLength(
         forHashValue: oldHashValue,
@@ -68,7 +65,6 @@ extension _HTable {
     if probeLength > _maxProbeLength {
       _maxProbeLength = probeLength
     }
-    _totalProbeLength &+= 1
     return b
 #endif
   }

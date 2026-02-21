@@ -51,6 +51,25 @@ extension _HTable {
     let shift = Swift.max(UInt(scale), Word.wordShift) - Word.wordShift
     return 1 &<< shift
   }
+
+  // These specific parameters result in the following capacity ranges:
+  //
+  //    Scale   Capacity range
+  //        4     2 ... 14
+  //        5     4 ... 28
+  //        6     8 ... 56
+  //        7    16 ... 112
+  //        8    32 ... 224
+  //        9    64 ... 448
+  //       10   128 ... 896
+  //       11   256 ... 1792
+  //       12   512 ... 3584
+  //       etc.
+  //
+  // Note how neighboring intervals overlap significantly, as far as two steps
+  // away. This provides hysteresis for storage capacities, preventing hash
+  // tables from repeatedly shrinking/growing when only a handful of items are
+  // added/removed in a loop.
   
   /// The numerator of the maximum hash table load factor.
   @_transparent

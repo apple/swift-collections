@@ -42,39 +42,40 @@ extension RigidSet where Element: ~Copyable {
       self._table._capacity = capacity
       return
     }
-
+    
     let newTable = _HTable(_capacity: capacity, scale: scale)
     var old = exchange(&self, with: Self(_table: newTable))
     guard old.count > 0 else {
       return
     }
-
+    
     let source = old._members.unsafelyUnwrapped
     let target = self._members.unsafelyUnwrapped
     if self._table.isSmall {
       self._table.migrateItems_Small(from: &old._table) { src, dst in
         (target + dst.offset).initialize(to: (source + src.offset).move())
       }
-    } else {
-      let seed = self._seed
-      var src = source
-      self._table.migrateItems_Large(
-        from: &old._table,
-        selector: {
-          src = source + $0.offset
-          return src.pointee._rawHashValue(seed: seed)
-        },
-        hashGenerator: {
-          target[$0.offset]._rawHashValue(seed: seed)
-        },
-        swapper: {
-          swap(&src.pointee, &target[$0.offset])
-        },
-        finalizer: {
-          (target + $0.offset).initialize(to: src.move())
-        }
-      )
+      return
     }
+    
+    let seed = self._seed
+    var src = source
+    self._table.migrateItems_Large(
+      from: &old._table,
+      selector: {
+        src = source + $0.offset
+        return src.pointee._rawHashValue(seed: seed)
+      },
+      hashGenerator: {
+        target[$0.offset]._rawHashValue(seed: seed)
+      },
+      swapper: {
+        swap(&src.pointee, &target[$0.offset])
+      },
+      finalizer: {
+        (target + $0.offset).initialize(to: src.move())
+      }
+    )
   }
 }
 

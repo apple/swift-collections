@@ -26,14 +26,16 @@ extension _HTable {
     // ordered container.
     let c = source.count
     self._count = c
-    self._totalProbeLength = c * (c + 1) / 2
     self._maxProbeLength = c
-    var dst = Bucket(offset: 0)
-    var src = Bucket(offset: c)
-    while src._offset > 0 {
-      src._offset &-= 1
-      migrator(src, dst)
-      dst._offset &+= 1
+    var dst = Bucket(offset: c)
+    var it = source.makeBucketIterator()
+    while let next = it.nextOccupiedRegion() {
+      var src = next.lowerBound
+      while src != next.upperBound {
+        dst._offset &-= 1
+        migrator(src, dst)
+        src._offset &+= 1
+      }
     }
     source.clear()
   }

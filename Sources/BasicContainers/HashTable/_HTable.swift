@@ -30,13 +30,12 @@ package struct _HTable: ~Copyable {
   package let _bitmap: UnsafeMutablePointer<Word>?
   
   @_alwaysEmitIntoClient
-  package var _totalProbeLength: Int
-
-  @_alwaysEmitIntoClient
   package var _maxProbeLength: Int
 
   @_alwaysEmitIntoClient
   package let scale: UInt8
+  
+  // FIXME: Add a reservedScale for UniqueSet/UniqueDictonary
 
   @inlinable
   internal init(
@@ -48,7 +47,6 @@ package struct _HTable: ~Copyable {
       && _capacity <= Self.maximumCapacity(forScale: scale))
     self._count = 0
     self._capacity = _capacity
-    self._totalProbeLength = 0
     self._maxProbeLength = 0
     self.scale = scale
     if scale == 0 {
@@ -222,7 +220,6 @@ extension _HTable {
   package mutating func clear() {
     self._count = 0
     self.bitmap.clearAll()
-    self._totalProbeLength = 0
     self._maxProbeLength = 0
   }
 }

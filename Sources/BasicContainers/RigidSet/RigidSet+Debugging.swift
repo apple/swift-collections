@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
 
 @available(SwiftStdlib 5.0, *)
@@ -16,11 +20,31 @@ extension RigidSet where Element: ~Copyable {
   public func _describe(
     bitmap: Bool = false,
     chains: Bool = false,
+    buckets: Bool = false,
   ) -> String {
     var s = _table.describe(bitmap: bitmap)
     if chains {
       s += "\n"
       s += _chainDescription
+    }
+    if buckets, !_table.isSmall, !_table.isEmpty {
+      s += "\nBuckets:"
+      var it = _table.makeBucketIterator()
+      var c = 0
+      while let next = it.nextOccupiedRegion() {
+        var b = next.lowerBound
+        while b != next.upperBound {
+          if c.isMultiple(of: 8) { s += "\n  " }
+          let hashValue = _hashValue(at: b)
+          let idealBucket = _table.idealBucket(forHashValue: hashValue)
+          let s1 = String(b.offset)._lpad(5)
+          let s2 = String(idealBucket.offset)._rpad(5)
+          s += "\(s1)→\(s2) "
+          c += 1
+          b._offset += 1
+        }
+      }
+      s += "\n"
     }
     return s
   }
@@ -28,8 +52,9 @@ extension RigidSet where Element: ~Copyable {
   public func _dump(
     bitmap: Bool = false,
     chains: Bool = false,
+    buckets: Bool = false,
   ) {
-    print(self._describe(bitmap: bitmap, chains: chains))
+    print(self._describe(bitmap: bitmap, chains: chains, buckets: buckets))
   }
   
   public func _probeLengthCounts() -> (successful: [Int], unsuccessful: [Int]) {
@@ -63,7 +88,7 @@ extension RigidSet where Element: ~Copyable {
       totalChainLength += length * count
       totalCount += count
     }
-    assert(totalCount == self.count)
+    //assert(totalCount == self.count)
 
     var unsuccessful = Array(
       repeating: 0,
@@ -71,7 +96,6 @@ extension RigidSet where Element: ~Copyable {
     for (length, count) in negativeLengths {
       unsuccessful[length] = count
     }
-    //assert(totalChainLength == _table._totalProbeLength)
     return (successful, unsuccessful)
   }
   
@@ -85,7 +109,7 @@ extension RigidSet where Element: ~Copyable {
       var histogram = ""
       for length in data.successful.indices {
         let count = data.successful[length]
-        histogram += "\(String(length + 1).lpad(6)): "
+        histogram += "\(String(length + 1)._lpad(6)): "
         let dotCount = (75 * count + max) / max
         histogram += String(repeating: "*", count: dotCount)
         histogram += " \(count)\n"
@@ -102,7 +126,7 @@ extension RigidSet where Element: ~Copyable {
       var histogram = ""
       for length in data.unsuccessful.indices {
         let count = data.unsuccessful[length]
-        histogram += "\(String(length).lpad(6)): "
+        histogram += "\(String(length)._lpad(6)): "
         let dotCount = (75 * count + max) / max
         histogram += String(repeating: "*", count: dotCount)
         histogram += " \(count)\n"

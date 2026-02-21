@@ -19,6 +19,9 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 @frozen
 public struct UniqueSet<Element: GeneralizedHashable & ~Copyable>: ~Copyable {
+  @usableFromInline
+  package typealias _Bucket = _HTable.Bucket
+
   @_alwaysEmitIntoClient
   package var _storage: RigidSet<Element>
 

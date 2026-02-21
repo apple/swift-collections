@@ -58,7 +58,7 @@ extension RigidSet: BorrowingSequence where Element: ~Copyable {
 
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
-    internal func _span(over buckets: Range<_HTable.Bucket>) -> Span<Element> {
+    internal func _span(over buckets: Range<_Bucket>) -> Span<Element> {
       let items = UnsafeBufferPointer(
         start: _baseAddress.unsafelyUnwrapped + buckets.lowerBound.offset,
         count: buckets.upperBound.offset - buckets.lowerBound.offset)

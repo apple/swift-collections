@@ -11,21 +11,21 @@
 
 extension String {
   @_alwaysEmitIntoClient
-  package func lpad(_ width: Int, with character: Character = " ") -> Self {
+  package func _lpad(_ width: Int, with character: Character = " ") -> Self {
     let c = count
     guard c < width else { return self }
     return String(repeating: character, count: width - c) + self
   }
   
   @_alwaysEmitIntoClient
-  package func rpad(_ width: Int, with character: Character = " ") -> Self {
+  package func _rpad(_ width: Int, with character: Character = " ") -> Self {
     let c = count
     guard c < width else { return self }
     return self + String(repeating: character, count: width - c)
   }
   
   @_alwaysEmitIntoClient
-  package func cpad(_ width: Int, with character: Character = " ") -> Self {
+  package func _cpad(_ width: Int, with character: Character = " ") -> Self {
     let c = count
     guard c < width else { return self }
     let l = String(repeating: character, count: (width - c + 1) / 2)

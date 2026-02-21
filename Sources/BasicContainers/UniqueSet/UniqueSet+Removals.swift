@@ -12,26 +12,23 @@
 #if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet where Element: ~Copyable {
+extension UniqueSet where Element: ~Copyable {
   @inlinable
-  package borrowing func _find(
-    _ item: borrowing Element
-  ) -> (bucket: _Bucket?, hashValue: Int) {
-    let storage = _memberBuf
-    if _table.isSmall {
-      let bucket = _table.find_Small(tester: { storage[$0] == item })
-      return (bucket, 0)
+  package mutating func _remove(at bucket: _Bucket) -> Element {
+    guard self.count == _HTable.minimumCapacity(forScale: self._scale) else {
+      return _storage._remove(at: bucket)
     }
-    let hashValue = _hashValue(for: item)
-    let bucket = _table.find_Large(
-      hashValue: hashValue,
-      tester: { storage[$0] == item })
-    return (bucket, hashValue)
+    // Shrink storage.
+    let result = _storage._punchHole(at: bucket)
+    _resize(minimumCapacity: self.count)
+    return result
   }
   
   @inlinable
-  public borrowing func contains(_ item: borrowing Element) -> Bool {
-    _find(item).bucket != nil
+  public mutating func remove(_ member: borrowing Element) -> Element? {
+    let r = _storage._find(member)
+    guard let bucket = r.bucket else { return nil }
+    return _remove(at: bucket)
   }
 }
 

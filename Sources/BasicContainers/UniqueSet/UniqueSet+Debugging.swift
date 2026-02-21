@@ -16,15 +16,17 @@ extension UniqueSet where Element: ~Copyable {
   public func _describe(
     bitmap: Bool = false,
     chains: Bool = false,
+    buckets: Bool = false,
   ) -> String {
-    _storage._describe(bitmap: bitmap, chains: chains)
+    _storage._describe(bitmap: bitmap, chains: chains, buckets: buckets)
   }
 
   public func _dump(
     bitmap: Bool = false,
     chains: Bool = false,
+    buckets: Bool = false,
   ) {
-    _storage._dump(bitmap: bitmap, chains: chains)
+    _storage._dump(bitmap: bitmap, chains: chains, buckets: buckets)
   }
 }
 

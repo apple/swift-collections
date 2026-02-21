@@ -116,18 +116,106 @@ class UniqueSetTests: CollectionTestCase {
   func test_insert_growth() {
     // These are the storage capacities we expect to see for a UniqueSet
     // up to size 1000.
-    let expected = [0, 1, 2, 4, 7, 14, 28, 56, 112, 224, 448, 896, 1792]
+    var expectedCapacities = [
+      0, 1, 2, 4, 7, 14, 28, 56, 112, 224, 448, 896, 1792
+    ]
     var j = 0
 
     var set = UniqueSet<Int>()
-    expectEqual(set.capacity, expected[j])
+    expectEqual(set.capacity, expectedCapacities[j])
 
     withEvery("i", in: 1 ..< 1000) { i in
       set.insert(i)
-      if i > expected[j] {
+      if i > expectedCapacities[j] {
         j += 1
       }
-      expectEqual(set.capacity, expected[j])
+      expectEqual(set.capacity, expectedCapacities[j])
+    }
+  }
+  
+  func test_remove_one() {
+    withEvery("cap", in: [0, 1, 2, 4, 10, 100, 500]) { cap in
+      let scale = _HTable.minimumScale(forCapacity: cap)
+      let count = _HTable.minimumCapacity(forScale: scale)
+      withEvery("item", in: 0 ..< count) { item in
+        withLifetimeTracking { tracker in
+          var set = UniqueSet<LifetimeTracked<Int>>(minimumCapacity: cap)
+          expectEqual(set._scale, scale)
+          for i in 0 ..< count {
+            let instance = tracker.instance(for: i)
+            set.insert(instance)
+          }
+          expectEqual(set.count, count)
+          expectEqual(set._scale, scale)
+          
+          let dupe = tracker.instance(for: item)
+          let removed = set.remove(dupe)
+          expectNotNil(removed) {
+            expectNotIdentical($0, dupe)
+            expectEqual($0.payload, item)
+          }
+          expectEqual(set.count, count - 1)
+
+          let expectedScale = _HTable.minimumScale(forCapacity: count - 1)
+          if scale > 0 {
+            expectLessThan(expectedScale, scale)
+          }
+          expectEqual(set._scale, expectedScale)
+
+          withEvery("j", in: 0 ..< count) { j in
+            let found = set.contains(tracker.instance(for: j))
+            expectEqual(found, j != item)
+          }
+        }
+      }
+    }
+  }
+
+  func test_remove_all() {
+    withEvery("count", in: [0, 1, 2, 4, 10, 100, 1000]) { count in
+      withLifetimeTracking { tracker in
+        var set = UniqueSet<LifetimeTracked<Int>>(minimumCapacity: count)
+        for i in 0 ..< count {
+          let instance = tracker.instance(for: i)
+          set.insert(instance)
+        }
+        expectEqual(set.count, count)
+
+        withEvery("i", in: 0 ..< count) { i in
+          let dupe = tracker.instance(for: i)
+          let removed = set.remove(dupe)
+          expectNotNil(removed) {
+            expectNotIdentical($0, dupe)
+            expectEqual($0.payload, i)
+          }
+          expectEqual(set.count, count - 1 - i)
+          expectGreaterThanOrEqual(
+            set.count,
+            _HTable.minimumCapacity(forScale: set._scale))
+        }
+        expectEqual(set.count, 0)
+      }
+    }
+  }
+
+  func test_remove_shrinkage() {
+    let c = 1000
+    let expectedCapacities = [1792, 448, 112, 28, 4]
+    var set = UniqueSet<Int>(minimumCapacity: c)
+    for i in 0 ..< c {
+      set.insert(i)
+    }
+    var j = 0
+    expectEqual(set.capacity, expectedCapacities[j])
+    
+    withEvery("i", in: 0 ..< c) { i in
+      let removed = set.remove(i)
+      expectEqual(removed, i)
+      expectEqual(set.count, c - i - 1)
+      if set.capacity != expectedCapacities[j], j < expectedCapacities.count - 1 {
+        j += 1
+      }
+      expectEqual(set.capacity, expectedCapacities[j])
     }
   }
 

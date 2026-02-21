@@ -81,7 +81,7 @@ class RigidSetTests: CollectionTestCase {
       expectEqual(s.freeCapacity, 19)
     }
   }
-
+  
   func test_insert_full() {
     withEvery("capacity", in: [0, 1, 2, 10, 100, 1000]) { capacity in
       withLifetimeTracking { tracker in
@@ -108,7 +108,7 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
-
+  
   func test_update_full() {
     withEvery("capacity", in: [0, 1, 2, 10, 100, 200, 1000]) { capacity in
       withLifetimeTracking { tracker in
@@ -123,7 +123,7 @@ class RigidSetTests: CollectionTestCase {
         expectTrue(s.isFull)
         expectEqual(s.capacity, capacity)
         expectEqual(s.freeCapacity, 0)
-
+        
         for i in 0 ..< capacity {
           let new = tracker.instance(for: i)
           let old = s.update(with: new)
@@ -136,7 +136,7 @@ class RigidSetTests: CollectionTestCase {
         expectTrue(s.isFull)
         expectEqual(s.capacity, capacity)
         expectEqual(s.freeCapacity, 0)
-
+        
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           expectTrue(s.contains(dupe), "\(dupe) not found")
@@ -144,7 +144,7 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
-
+  
   func test_bucketIterator_consistency() {
     withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 200]) { capacity in
       withEvery("maximumCount", in: [1, 2, 3, Int.max]) { maximumCount in
@@ -152,7 +152,7 @@ class RigidSetTests: CollectionTestCase {
           var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
           withEvery("i", in: 0 ..< capacity) { i in
             s.insert(tracker.instance(for: i))
-
+            
             var it = s._table.makeBucketIterator()
             var j = s._table.startBucket
             while let next = it.nextOccupiedRegion(maximumCount: maximumCount) {
@@ -196,7 +196,7 @@ class RigidSetTests: CollectionTestCase {
     }
     set._dump(bitmap: true, chains: true)
   }
-
+  
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_iterate() {
     withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 1000]) { capacity in
@@ -224,5 +224,57 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 #endif
+  
+  func test_remove_one() {
+    withEvery("count", in: [0, 1, 2, 4, 10, 100, 500]) { count in
+      withEvery("item", in: 0 ..< count) { item in
+        withLifetimeTracking { tracker in
+          var set = RigidSet<LifetimeTracked<Int>>(capacity: count)
+          for i in 0 ..< count {
+            let instance = tracker.instance(for: i)
+            set.insert(instance)
+          }
+          expectEqual(set.count, count)
+          
+          let dupe = tracker.instance(for: item)
+          let removed = set.remove(dupe)
+          expectNotNil(removed) {
+            expectNotIdentical($0, dupe)
+            expectEqual($0.payload, item)
+          }
+          
+          expectEqual(set.count, count - 1)
+          
+          withEvery("j", in: 0 ..< count) { j in
+            let found = set.contains(tracker.instance(for: j))
+            expectEqual(found, j != item)
+          }
+        }
+      }
+    }
+  }
+  
+  func test_remove_all() {
+    withEvery("count", in: [0, 1, 2, 4, 10, 100, 1000]) { count in
+      withLifetimeTracking { tracker in
+        var set = RigidSet<LifetimeTracked<Int>>(capacity: count)
+        for i in 0 ..< count {
+          let instance = tracker.instance(for: i)
+          set.insert(instance)
+        }
+        expectEqual(set.count, count)
+
+        withEvery("i", in: 0 ..< count) { i in
+          let dupe = tracker.instance(for: i)
+          let removed = set.remove(dupe)
+          expectNotNil(removed) {
+            expectNotIdentical($0, dupe)
+            expectEqual($0.payload, i)
+          }
+        }
+        expectEqual(set.count, 0)
+      }
+    }
+  }
 }
 #endif

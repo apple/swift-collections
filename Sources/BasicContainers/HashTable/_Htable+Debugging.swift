@@ -16,9 +16,7 @@ import InternalCollectionsUtilities
 #if compiler(>=6.2)
 extension _HTable {
   package func maxOccupiedRun() -> Int {
-    if isSmall {
-      return self.count
-    }
+    if isSmall { return self.count }
     var maxOccupiedRun = 0
     var it = self.makeBucketIterator()
     var first = true
@@ -48,7 +46,7 @@ extension _HTable {
           if multiline {
             str += "\n  "
             str += it.currentBucket.word == lastWord ? "└╴" : "├╴"
-            str += "[" + String(it.currentBucket.offset).lpad(8, with: "0") + "] "
+            str += "[" + String(it.currentBucket.offset)._lpad(8, with: "0") + "] "
           } else {
             str += " "
           }
@@ -71,7 +69,6 @@ extension _HTable {
     s += "\(multiline ? "" : bitmapDesc) "
     s += "\(count)/\(capacity)/\(bucketCount), "
     s += "maxProbeLength: \(_maxProbeLength), "
-    s += "totalProbeLength: \(_totalProbeLength), "
     s += "maxOccupiedRun: \(maxOccupiedRun())"
 
     if !self.isSmall, multiline {
