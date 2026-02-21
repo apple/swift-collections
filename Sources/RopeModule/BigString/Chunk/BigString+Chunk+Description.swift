@@ -9,6 +9,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.2) && !$Embedded
 
 @available(SwiftStdlib 6.2, *)
@@ -16,7 +20,7 @@ extension BigString._Chunk: CustomStringConvertible {
   var description: String {
     let counts = """
           ❨\(utf8Count)⋅\(utf16Count)⋅\(unicodeScalarCount)⋅\(characterCount)❩
-          """._rpad(to: 17)
+          """._rpad(17)
     let d = _succinctContents(maxLength: 10)
     return "Chunk(\(_identity) \(counts) \(d))"
   }
@@ -28,7 +32,7 @@ extension BigString._Chunk: CustomStringConvertible {
   func _succinctContents(maxLength c: Int) -> String {
     /// 4+"short"-1
     /// 0+"longer...string"-1
-    let pc = String(prefixCount)._lpad(to: 3)
+    let pc = String(prefixCount)._lpad(3)
     let sc = String(suffixCount)
 
     let s = String(copying: wholeCharacters)

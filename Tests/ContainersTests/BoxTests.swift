@@ -33,11 +33,11 @@ final class BoxTests: XCTestCase {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
     var inoutToIntOnHeap = intOnHeap.leak()
 
-    XCTAssertEqual(inoutToIntOnHeap[], 123)
+    XCTAssertEqual(inoutToIntOnHeap.value, 123)
 
-    inoutToIntOnHeap[] = 321
+    inoutToIntOnHeap.value = 321
 
-    XCTAssertEqual(inoutToIntOnHeap[], 321)
+    XCTAssertEqual(inoutToIntOnHeap.value, 321)
 #endif
   }
 }

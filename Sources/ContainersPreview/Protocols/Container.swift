@@ -405,7 +405,7 @@ where Base: ~Copyable /*FIXME: & ~Escapable*/
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence!
   @_lifetime(&self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
-    _base[].nextSpan(after: &self._position, maximumCount: maximumCount)
+    _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
   }
 }
 

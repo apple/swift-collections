@@ -23,12 +23,12 @@ final class InoutTests: XCTestCase {
     var x = 0
     var y = Inout(&x)
 
-    var v = y[]
+    var v = y.value
     XCTAssertEqual(v, 0)
 
-    y[] += 10
+    y.value += 10
 
-    v = y[]
+    v = y.value
     XCTAssertEqual(v, 10)
     XCTAssertEqual(x, 10)
   }

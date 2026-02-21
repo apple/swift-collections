@@ -51,6 +51,9 @@ set(collections_swift_flags
   "-enable-experimental-feature BuiltinModule"
   "-enable-experimental-feature Lifetimes"
   "-enable-experimental-feature InoutLifetimeDependence"
+  "-enable-experimental-feature SuppressedAssociatedTypes"
+  "-enable-experimental-feature AddressableParameters"
+  "-enable-experimental-feature AddressableTypes"
 )
 foreach(flag ${collections_swift_flags})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")
@@ -62,6 +65,7 @@ set(availability_defs
   "SwiftStdlib 5.0: macOS 10.14.4, iOS 12.2, watchOS 5.2, tvOS 12.2"
   "SwiftStdlib 5.1: macOS 10.15, iOS 13.0, watchOS 6.0, tvOS 13.0"
   "SwiftStdlib 5.6: macOS 12.3, iOS 15.4, watchOS 8.5, tvOS 15.4"
+  "SwiftStdlib 5.7: macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0"
   "SwiftStdlib 5.8: macOS 13.3, iOS 16.4, watchOS 9.4, tvOS 16.4"
   "SwiftStdlib 5.9: macOS 14.0, iOS 17.0, watchOS 10.0, tvOS 17.0"
   "SwiftStdlib 5.10: macOS 14.4, iOS 17.4, watchOS 10.4, tvOS 17.4, visionOS 1.1"

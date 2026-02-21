@@ -10,6 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import BasicContainers
+#endif
+
 /// A type that tracks the number of live instances.
 ///
 /// `LifetimeTracked` conforms to `CustomStringConvertible`, and conditionally
@@ -71,6 +77,11 @@ extension LifetimeTracked: Hashable where Payload: Hashable {
     payload.hashValue
   }
 }
+
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+extension LifetimeTracked: GeneralizedEquatable where Payload: Equatable {}
+extension LifetimeTracked: GeneralizedHashable where Payload: Hashable {}
+#endif
 
 extension LifetimeTracked: Comparable where Payload: Comparable {
   public static func < (left: LifetimeTracked, right: LifetimeTracked) -> Bool {
