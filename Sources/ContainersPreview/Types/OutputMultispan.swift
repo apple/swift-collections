@@ -96,7 +96,7 @@ extension OutputMultispan where Element: ~Copyable {
   public var totalFreeCapacity: Int {
     var total = 0
     for idx in 0 ..< spanCount {
-      total += count(at: idx)
+      total += freeCapacity(at: idx)
     }
     return total
   }
