@@ -15,9 +15,15 @@ import ContainersPreview
 @frozen
 public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   
+  @frozen @usableFromInline
   internal struct _Buffer {
-    var ptr: UnsafeMutableRawBufferPointer
-    var count: Int
+    @usableFromInline var ptr: UnsafeMutableRawBufferPointer
+    @usableFromInline var count: Int
+    
+    @inlinable @inline(__always)
+    var capacity: Int {
+      count - ptr.count
+    }
   }
   
   @usableFromInline
@@ -51,7 +57,7 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func _firstNonFullSpanIndex() -> Int? {
     for idx in 0 ..< _pointers.count {
-      if _pointers[idx].count < _pointers[idx].ptr.count {
+      if _pointers[idx].count < _pointers[idx].capacity {
         return idx
       }
     }
@@ -84,7 +90,7 @@ extension OutputMultispan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public func freeCapacity(at index: Int) -> Int {
-    _assumeNonNegative(_pointers[index].ptr.count &- _pointers[index].count)
+    _assumeNonNegative(_pointers[index].capacity &- _pointers[index].count)
   }
   
   /// The number of additional elements that can be added to this span.
@@ -193,8 +199,8 @@ extension OutputMultispan where Element: ~Copyable {
     let bufIdx = index.bufferIndex
     precondition(bufIdx < _pointers.count)
     let elementOffset = index.elementIndex &* MemoryLayout<Element>.stride
-    precondition(elementOffset <= _pointers[bufIdx].ptr.count)
-    if elementOffset == _pointers[bufIdx].ptr.count {
+    precondition(elementOffset <= _pointers[bufIdx].capacity)
+    if elementOffset == _pointers[bufIdx].capacity {
       if bufIdx == _pointers.count {
         return endIndex
       }
