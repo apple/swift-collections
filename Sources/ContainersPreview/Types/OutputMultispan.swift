@@ -129,15 +129,16 @@ extension OutputMultispan where Element: ~Copyable  {
   @unsafe
   @_alwaysEmitIntoClient
   public mutating func _appendSpan(_ span: inout OutputSpan<Element>) {
-    let base = unsafe span._unsafeAddressOfElement(uncheckedOffset: 0)
-    let capacity = span.capacity
-    let count = span.count
-    _pointers.append(
-      OutputMultispan._Buffer(
-        ptr: UnsafeMutableRawBufferPointer(start: base, count: capacity),
-        count: count
+    span.withUnsafeMutableBufferPointer {
+      let capacity = $0.count
+      let count = $1
+      _pointers.append(
+        OutputMultispan._Buffer(
+          ptr: UnsafeMutableRawBufferPointer($0),
+          count: count
+        )
       )
-    )
+    }
   }
   
   /// Unsafely add partly-initialized memory to the spans covered by an OutputMultispan
@@ -315,8 +316,9 @@ extension OutputMultispan where Element: ~Copyable {
   ) throws(E) -> R {
     let buffer = _pointers[index]
     return try buffer.ptr.withMemoryRebound(to: Element.self) { (typedBuffer) throws(E) in
-      var span = OutputSpan(
-        _uncheckedBuffer: typedBuffer,
+      //TODO: this isn't building if I use _uncheckedBuffer, figure out why
+      var span = OutputSpan<Element>(
+        buffer: typedBuffer,
         initializedCount: buffer.count
       )
       return try work(&span)

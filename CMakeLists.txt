@@ -50,6 +50,7 @@ set(collections_swift_flags
   "-enable-upcoming-feature MemberImportVisibility"
   "-enable-experimental-feature BuiltinModule"
   "-enable-experimental-feature Lifetimes"
+  "-enable-experimental-feature LifetimeDependence"
   "-enable-experimental-feature InoutLifetimeDependence"
 )
 foreach(flag ${collections_swift_flags})

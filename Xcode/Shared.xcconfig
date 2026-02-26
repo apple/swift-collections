@@ -18,6 +18,7 @@ OTHER_SWIFT_FLAGS = $(inherited) \
   -enable-upcoming-feature MemberImportVisibility \
   -enable-experimental-feature BuiltinModule \
   -enable-experimental-feature Lifetimes \
+  -enable-experimental-feature LifetimeDependence \
   -enable-experimental-feature InoutLifetimeDependence \
   -enable-experimental-feature SuppressedAssociatedTypes \
   -enable-experimental-feature "AvailabilityMacro=SwiftStdlib 5.0: macOS 10.14.4, iOS 12.2, watchOS 5.2, tvOS 12.2" \

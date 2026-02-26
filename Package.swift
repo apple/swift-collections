@@ -104,6 +104,7 @@ let extraSettings: [SwiftSetting] = [
 //  .strictMemorySafety(),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
+  .enableExperimentalFeature("LifetimeDependence"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
   .enableExperimentalFeature("AddressableParameters"),
