@@ -1,12 +1,16 @@
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-import Swift
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+import ContainersPreview
+#endif
 
 // `OutputMultispan` is a reference to any number of contiguous regions of
 // memory that start with some number of initialized `Element` instances
 // followed by uninitialized memory. It provides operations to access the items
 // it stores, as well as to add new elements, remove existing ones, and access
 // the underlying regions individually
+@available(SwiftStdlib 5.0, *)
 @safe
 @frozen
 public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
@@ -25,7 +29,7 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
     for idx in 0 ..< _pointers.count {
       let count = _pointers[idx].count
       unsafe _pointers[idx].ptr.withMemoryRebound(to: Element.self) {
-        _ = unsafe UnsafeMutableBufferPointer(start: $0.baseAddress!, count: count).deinitialize()
+        _ = unsafe UnsafeMutableBufferPointer<Element>(start: $0.baseAddress!, count: count).deinitialize()
       }
     }
   }
@@ -38,10 +42,13 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan: @unchecked Sendable where Element: Sendable & ~Copyable {}
 
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan where Element: ~Copyable {
   
+  @_alwaysEmitIntoClient
   internal func _firstNonFullSpanIndex() -> Int? {
     for idx in 0 ..< _pointers.count {
       if _pointers[idx].count < _pointers[idx].ptr.count {
@@ -53,6 +60,7 @@ extension OutputMultispan where Element: ~Copyable {
   
 }
 
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
@@ -102,6 +110,7 @@ extension OutputMultispan where Element: ~Copyable {
   public var isFull: Bool { totalFreeCapacity == 0 }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan where Element: ~Copyable  {
   
   /// Unsafely add partly-initialized memory to the spans covered by an OutputMultispan
@@ -114,7 +123,7 @@ extension OutputMultispan where Element: ~Copyable  {
   @unsafe
   @_alwaysEmitIntoClient
   public mutating func _appendSpan(_ span: inout OutputSpan<Element>) {
-    let base = unsafe span._unsafeAddressOfElement(unchecked: 0)
+    let base = unsafe span._unsafeAddressOfElement(uncheckedOffset: 0)
     let capacity = span.capacity
     let count = span.count
     _pointers.append(
@@ -153,14 +162,16 @@ extension OutputMultispan where Element: ~Copyable  {
   
 }
 
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan where Element: ~Copyable {
   
   @frozen
   public struct Index: Comparable {
-    let bufferIndex: Int
-    let elementIndex: Int
+    @usableFromInline let bufferIndex: Int
+    @usableFromInline let elementIndex: Int
     
-    static func <(lhs: OutputMultispan.Index, rhs: OutputMultispan.Index) -> Bool {
+    @inlinable @inline(__always)
+    public static func <(lhs: OutputMultispan.Index, rhs: OutputMultispan.Index) -> Bool {
       if lhs.bufferIndex < rhs.bufferIndex {
         return true
       }
@@ -168,6 +179,12 @@ extension OutputMultispan where Element: ~Copyable {
         return lhs.elementIndex < rhs.elementIndex
       }
       return false
+    }
+    
+    @inlinable @inline(__always)
+    init(bufferIndex: Int, elementIndex: Int) {
+      self.bufferIndex = bufferIndex
+      self.elementIndex = elementIndex
     }
   }
   
@@ -206,9 +223,9 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func _checkIndex(_ index: Index) {
     let bufferIndex = index.bufferIndex
-    _precondition(_pointers.indices.contains(bufferIndex), "index out of bounds")
+    precondition(_pointers.indices.contains(bufferIndex), "index out of bounds")
     let buffer = _pointers[bufferIndex]
-    _precondition(buffer.ptr.indices.contains(bufferIndex), "index out of bounds")
+    precondition(buffer.ptr.indices.contains(bufferIndex), "index out of bounds")
   }
 
   /// Accesses the element at the specified position.
@@ -264,8 +281,8 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @lifetime(self: copy self)
   public mutating func swapAt(_ i: Index, _ j: Index) {
-    _precondition(indices.contains(i))
-    _precondition(indices.contains(j))
+    precondition(indices.contains(i))
+    precondition(indices.contains(j))
     unsafe swapAt(unchecked: i, unchecked: j)
   }
 
@@ -302,6 +319,7 @@ extension OutputMultispan where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan where Element: ~Copyable {
   /// Append a single element to this span.
   ///
@@ -309,7 +327,7 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @lifetime(self: copy self)
   public mutating func append(_ value: consuming Element) {
-    _precondition(totalFreeCapacity > 0, "OutputMultispan has no capacity")
+    precondition(totalFreeCapacity > 0, "OutputMultispan has no capacity")
     var v:Element? = consume value
     let idx = _firstNonFullSpanIndex().unsafelyUnwrapped
     withOutputSpan(at: idx) { outputSpan in
@@ -324,7 +342,7 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @lifetime(self: copy self)
   public mutating func removeLast() -> Element {
-    _precondition(spanCount > 0, "OutputMultispan has no capacity")
+    precondition(spanCount > 0, "OutputMultispan has no capacity")
     if let idx = _firstNonFullSpanIndex() {
       defer { _pointers[idx].count &-= 1 }
       return withOutputSpan(at: idx) { outputSpan in
@@ -344,7 +362,7 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @lifetime(self: copy self)
   public mutating func removeLast(_ k: Int) {
-    _precondition(spanCount > 0, "OutputMultispan has no capacity")
+    precondition(spanCount > 0, "OutputMultispan has no capacity")
     if let idx = _firstNonFullSpanIndex() {
       if _pointers[idx].count >= k {
         defer { _pointers[idx].count &-= k }
@@ -374,6 +392,7 @@ extension OutputMultispan where Element: ~Copyable {
 }
 
 //MARK: bulk-append functions
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan {
 
   /// Repeatedly append an element to this span.
@@ -386,6 +405,8 @@ extension OutputMultispan {
     }
   }
 }
+
+@available(SwiftStdlib 5.0, *)
 extension OutputMultispan where Element: ~Copyable {
   /// Consume the output span and return the number of initialized elements.
   ///
