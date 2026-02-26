@@ -1,7 +1,6 @@
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 import Swift
-import BasicContainers
 
 // `OutputMultispan` is a reference to any number of contiguous regions of
 // memory that start with some number of initialized `Element` instances

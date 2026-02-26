@@ -12,7 +12,6 @@
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 import Swift
-import BasicContainers
 
 @safe
 @frozen

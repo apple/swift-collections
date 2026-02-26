@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2)
+#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
@@ -30,18 +30,18 @@ extension RigidArray where Element: ~Copyable {
       _count &+= span.finalize(for: buffer)
       span = OutputSpan()
     }
-    var multiSpan = OutputMultispan()
-    multiSpan.append(span)
+    var multiSpan = OutputMultispan<Element>()
+    multiSpan._appendSpan(&span)
     return try await initializer(&multiSpan)
   }
   
   @inlinable
   public init<E: Error>(
     capacity: Int,
-    initializingWith body: (inout OutputMultispan<Element>) throws(E) -> Void
-  ) throws(E) {
+    initializingWith body: @escaping (inout OutputMultispan<Element>) throws(E) -> Void
+  ) async throws(E) {
     self.init(capacity: capacity)
-    try await append(body)
+    try await append(addingCount: capacity, initializingWith: body)
   }
 }
 
@@ -61,10 +61,10 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   public init<E: Error>(
     capacity: Int,
-    initializingWith body: (inout OutputMultispan<Element>) throws(E) -> Void
-  ) throws(E) {
+    initializingWith body: @escaping (inout OutputMultispan<Element>) throws(E) -> Void
+  ) async throws(E) {
     self.init(capacity: capacity)
-    try await append(body)
+    try await append(addingCount: capacity, initializingWith: body)
   }
 }
 
