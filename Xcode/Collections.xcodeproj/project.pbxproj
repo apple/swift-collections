@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		63E46A102F4D2F850008051A /* OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A0F2F4D2F850008051A /* OutputMultispan.swift */; };
 		63E46A122F4D2FA20008051A /* OutputMultispan+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */; };
+		63E46A172F4FCAE80008051A /* InputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A162F4FCAE80008051A /* InputMultispan.swift */; };
 		7D2A77262F27F1D1005780C7 /* Span+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77252F27F1D1005780C7 /* Span+Extras.swift */; };
 		7D2A77382F27F1E4005780C7 /* BorrowingSequence+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772D2F27F1E4005780C7 /* BorrowingSequence+Utilities.swift */; };
 		7D2A77392F27F1E4005780C7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77332F27F1E4005780C7 /* Box.swift */; };
@@ -512,6 +513,7 @@
 /* Begin PBXFileReference section */
 		63E46A0F2F4D2F850008051A /* OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispan.swift; sourceTree = "<group>"; };
 		63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputMultispan+Extras.swift"; sourceTree = "<group>"; };
+		63E46A162F4FCAE80008051A /* InputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispan.swift; sourceTree = "<group>"; };
 		7D2A77252F27F1D1005780C7 /* Span+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Span+Extras.swift"; sourceTree = "<group>"; };
 		7D2A77272F27F1E4005780C7 /* OutputSpan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputSpan+Extras.swift"; sourceTree = "<group>"; };
 		7D2A77282F27F1E4005780C7 /* TemporaryAllocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryAllocation.swift; sourceTree = "<group>"; };
@@ -1095,6 +1097,7 @@
 				7D2A77332F27F1E4005780C7 /* Box.swift */,
 				7D2A77342F27F1E4005780C7 /* Inout.swift */,
 				7D2A77352F27F1E4005780C7 /* InputSpan.swift */,
+				63E46A162F4FCAE80008051A /* InputMultispan.swift */,
 				63E46A0F2F4D2F850008051A /* OutputMultispan.swift */,
 				7D2A77362F27F1E4005780C7 /* Shared.swift */,
 			);
@@ -2360,6 +2363,7 @@
 				7DE9206A29CA70F4004483EB /* BigString+Chunk+Counts.swift in Sources */,
 				7DE9207529CA70F4004483EB /* BigString+Insert.swift in Sources */,
 				7DE9216129CA70F4004483EB /* _HashNode+Structural merge.swift in Sources */,
+				63E46A172F4FCAE80008051A /* InputMultispan.swift in Sources */,
 				7DE9202F29CA70F3004483EB /* OrderedSet+ExpressibleByArrayLiteral.swift in Sources */,
 				7DE9202B29CA70F3004483EB /* OrderedSet+Equatable.swift in Sources */,
 				7DE920EA29CA70F4004483EB /* BitArray.swift in Sources */,
