@@ -690,10 +690,10 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   /// - Complexity: O(`capacity`)
   @_alwaysEmitIntoClient
   internal mutating func uncheckedAppend<E: Error>(
-    maximumCount: Int,
+    addingCount newItemCount: Int,
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
-    let gap = self.mutableSegments(forOffsets: count ..< count + maximumCount)
+    let gap = self.mutableSegments(forOffsets: count ..< count + newItemCount)
     let c = self.count &+ gap.first.count
     try gap.first._initialize(
       initializedCount: &self.count, initializingWith: body)
