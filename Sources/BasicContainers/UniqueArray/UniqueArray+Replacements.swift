@@ -639,10 +639,10 @@ extension UniqueArray {
   ///   *m* is the count of `newElements`.
   @inlinable
   @inline(__always)
-  public mutating func replaceSubrange<
+  public mutating func replace<
     C: Container<Element> & Collection<Element>
   >(
-    _ subrange: Range<Int>,
+    removing subrange: Range<Int>,
     copying newElements: borrowing C
   ) {
     // FIXME: Avoid moving the subsequent elements twice.
