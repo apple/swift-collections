@@ -246,6 +246,78 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_insert_producer() {
+    withEvery("capacity", in: [0, 1, 2, 4, 10, 100, 200]) { capacity in
+      withEvery("count", in: 0 ..< capacity) { count in
+        withEvery("chunkSize", in: [1, 2, 10, 100, Int.max]) { chunkSize in
+          withLifetimeTracking { tracker in
+            var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
+            
+            var i = 0
+            var p = CustomProducer<LifetimeTracked<Int>, Never>(
+              underestimatedCount: 0,
+              chunkSize: chunkSize
+            ) {
+              guard i < count else { return nil }
+              defer { i += 1 }
+              return tracker.instance(for: i)
+            }
+            s.insert(from: &p)
+            
+            expectEqual(s.capacity, capacity)
+            expectEqual(s.count, count)
+            
+            var seen: Set<Int> = []
+            var index = s.startIndex
+            while index != s.endIndex {
+              let payload = s[index].payload
+              expectTrue(seen.insert(payload).inserted, "Duplicate item \(payload)")
+              index = s.index(after: index)
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_insert_drain() {
+    withEvery("capacity", in: [0, 1, 2, 4, 10, 100, 200]) { capacity in
+      withEvery("count", in: 0 ..< capacity) { count in
+        withEvery("chunkSize", in: [1, 2, 10, 100, 1000]) { chunkSize in
+          withLifetimeTracking { tracker in
+            var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
+            
+            var i = 0
+            var drain = CustomDrain<LifetimeTracked<Int>>(
+              underestimatedCount: 0,
+              chunkSize: chunkSize
+            ) {
+              guard i < count else { return nil }
+              defer { i += 1 }
+              return tracker.instance(for: i)
+            }
+            s.insert(from: &drain)
+            
+            expectEqual(s.capacity, capacity)
+            expectEqual(s.count, count)
+            
+            var seen: Set<Int> = []
+            var index = s.startIndex
+            while index != s.endIndex {
+              let payload = s[index].payload
+              expectTrue(seen.insert(payload).inserted, "Duplicate item \(payload)")
+              index = s.index(after: index)
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
+
   func test_remove_one() {
     withEvery("count", in: [0, 1, 2, 4, 10, 100, 500]) { count in
       withEvery("item", in: 0 ..< count) { item in
