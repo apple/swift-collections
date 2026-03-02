@@ -11,7 +11,11 @@
 
 #if compiler(>=6.2)
 
-/// A polyfill of the typed-throws supporting `withUnsafeTemporaryAllocation` in the 6.3 stdlib.
+/// A polyfill providing a typed-throws overload of `withUnsafeTemporaryAllocation`.
+///
+/// Swift 6.3's stdlib does not yet expose a typed-throws version of
+/// `withUnsafeTemporaryAllocation`, so we bridge via `Result` on all compiler
+/// versions until the stdlib provides it natively.
 @_alwaysEmitIntoClient @_transparent
 package func _withUnsafeTemporaryAllocation<
   T: ~Copyable, R: ~Copyable,
@@ -21,16 +25,12 @@ package func _withUnsafeTemporaryAllocation<
   capacity: Int,
   _ body: (UnsafeMutableBufferPointer<T>) throws(E) -> R
 ) throws(E) -> R {
-#if compiler(>=6.3)
-  try withUnsafeTemporaryAllocation(of: type, capacity: capacity, body)
-#else
   let r: Result<R, E> = withUnsafeTemporaryAllocation(
     of: T.self, capacity: capacity
   ) { buffer in
     return Result(catching: { () throws(E) in try body(buffer) })
   }
   return try r.get()
-#endif
 }
 
 #endif
