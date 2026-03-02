@@ -328,7 +328,9 @@ extension RigidDeque where Element: ~Copyable {
       removing: subrange,
       addingCount: newItemCount
     ) { target throws(E) in
-      try producer.generate(into: &target)
+      while !target.isFull {
+        guard try producer.generate(into: &target) else { break }
+      }
     }
   }
 #endif

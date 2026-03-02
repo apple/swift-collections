@@ -517,6 +517,7 @@
 		7DEB31682F52271900F9AF28 /* RigidDictionary+Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEB31672F52271300F9AF28 /* RigidDictionary+Index.swift */; };
 		7DEB316A2F52284200F9AF28 /* UniqueDictionary+Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEB31692F52283C00F9AF28 /* UniqueDictionary+Index.swift */; };
 		7DEB316C2F522EAB00F9AF28 /* UniqueDictionary+Indices.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEB316B2F522EA300F9AF28 /* UniqueDictionary+Indices.swift */; };
+		7DEB316E2F5281FC00F9AF28 /* CustomDrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEB316D2F5281FC00F9AF28 /* CustomDrain.swift */; };
 		7DEBDB6E29CCE44A00ADC226 /* SortedCollectionAPIChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB3029CCE43600ADC226 /* SortedCollectionAPIChecker.swift */; };
 		7DEBDB6F29CCE44A00ADC226 /* MinimalMutableRangeReplaceableRandomAccessCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB3F29CCE43600ADC226 /* MinimalMutableRangeReplaceableRandomAccessCollection.swift */; };
 		7DEBDB7029CCE44A00ADC226 /* ResettableValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB4229CCE43600ADC226 /* ResettableValue.swift */; };
@@ -1120,6 +1121,7 @@
 		7DEB31672F52271300F9AF28 /* RigidDictionary+Index.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Index.swift"; sourceTree = "<group>"; };
 		7DEB31692F52283C00F9AF28 /* UniqueDictionary+Index.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Index.swift"; sourceTree = "<group>"; };
 		7DEB316B2F522EA300F9AF28 /* UniqueDictionary+Indices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Indices.swift"; sourceTree = "<group>"; };
+		7DEB316D2F5281FC00F9AF28 /* CustomDrain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomDrain.swift; sourceTree = "<group>"; };
 		7DEBDB2129CCE43600ADC226 /* Combinatorics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combinatorics.swift; sourceTree = "<group>"; };
 		7DEBDB2229CCE43600ADC226 /* TestContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestContext.swift; sourceTree = "<group>"; };
 		7DEBDB2329CCE43600ADC226 /* Assertions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Assertions.swift; sourceTree = "<group>"; };
@@ -2274,6 +2276,7 @@
 			children = (
 				7DEBDB3B29CCE43600ADC226 /* _CollectionState.swift */,
 				7DEBDB4629CCE43600ADC226 /* _MinimalCollectionCore.swift */,
+				7DEB316D2F5281FC00F9AF28 /* CustomDrain.swift */,
 				7D2A77482F27F271005780C7 /* CustomProducer.swift */,
 				7DEBDB4029CCE43600ADC226 /* MinimalBidirectionalCollection.swift */,
 				7DEBDB4829CCE43600ADC226 /* MinimalCollection.swift */,
@@ -2946,6 +2949,7 @@
 				7DE9221B29CA8576004483EB /* DequeInternals.swift in Sources */,
 				7DEBDB6E29CCE44A00ADC226 /* SortedCollectionAPIChecker.swift in Sources */,
 				7DE9220929CA8576004483EB /* BitArrayTests.swift in Sources */,
+				7DEB316E2F5281FC00F9AF28 /* CustomDrain.swift in Sources */,
 				7DC85F8F2F43D065004A4E3D /* RigidDictionaryTests.swift in Sources */,
 				7D7246922F3D9E6800112FD0 /* RigidSetTests.swift in Sources */,
 				7DE9221629CA8576004483EB /* OrderedSet.UnorderedView Tests.swift in Sources */,

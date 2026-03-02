@@ -19,6 +19,16 @@ import ContainersPreview
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  @_lifetime(&self)
+  public mutating func _consumeAll() -> InputSpan<Element> {
+    let buffer = _items
+    self._count = 0
+    let result = InputSpan(
+      buffer: buffer,
+      initializedCount: buffer.count)
+    return _overrideLifetime(result, mutating: &self)
+  }
+  
   /// Remove the specified subrange of items from this array,
   /// passing an input span to the given function to consume them in place.
   ///
@@ -121,6 +131,109 @@ extension RigidArray where Element: ~Copyable {
       n >= 0 && n <= _count,
       "Count of elements to consume is out of bounds")
     self.consume(_count &- n ..< _count, consumingWith: consumer)
+  }
+}
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+    SubrangeConsumer(_base: &self, offsetRange: subrange)
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consume<R: RangeExpression<Index>>(
+    _ subrange: R
+  ) -> SubrangeConsumer {
+    consume(subrange.relative(to: indices))
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consumeAll() -> SubrangeConsumer {
+    consume(indices)
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consumeLast(_ n: Int) -> SubrangeConsumer {
+    precondition(
+      n >= 0 && n <= self.count,
+      "Count of elements to consume is out of bounds")
+    return consume(self.count - n ..< self.count)
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consumeFirst(_ n: Int) -> SubrangeConsumer {
+    precondition(
+      n >= 0 && n <= self.count,
+      "Count of elements to consume is out of bounds")
+    return consume(0 ..< n)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: ~Copyable {
+  @frozen
+  public struct SubrangeConsumer: ~Copyable, ~Escapable {
+    @usableFromInline
+    internal var _base: Inout<RigidArray>
+      
+    @usableFromInline
+    internal var _offsetRange: Range<Int>
+    
+    @usableFromInline
+    internal var _remainder: UnsafeMutableBufferPointer<Element>
+    
+    @_alwaysEmitIntoClient
+    @inline(__always)
+    @_lifetime(&_base)
+    internal init(_base: inout RigidArray, offsetRange: Range<Int>) {
+      
+      self._remainder = _base._storage._extracting(unchecked: offsetRange)
+      self._base = Inout(&_base)
+      self._offsetRange = offsetRange
+    }
+
+    @inlinable
+    deinit {
+      self._remainder.deinitialize()
+      
+      // FIXME: This needs to be written as
+      //    self._base.value.closeGap(offsets: self._offsetRange)
+      // but unfortunately we cannot mutate self in deinit yet.
+      // Inout's dereferencing operation is necessarily declared mutating
+      // to avoid exclusivity violations.
+      self._base._pointer.pointee
+        ._closeGap(at: _offsetRange.lowerBound, count: _offsetRange.count)
+    }
+  }
+}
+
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray.SubrangeConsumer: Drain {
+  @inlinable
+  @_lifetime(&self)
+  @_lifetime(self: copy self)
+  public mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {
+    if _remainder.isEmpty {
+      return .init()
+    }
+    let buffer = _remainder._trim(first: maximumCount)
+    return _overrideLifetime(
+      InputSpan(buffer: buffer, initializedCount: buffer.count),
+      mutating: &self)
   }
 }
 #endif
