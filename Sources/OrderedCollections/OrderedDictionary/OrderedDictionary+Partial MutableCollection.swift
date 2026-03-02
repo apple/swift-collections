@@ -98,7 +98,9 @@ extension OrderedDictionary {
     by areInIncreasingOrder: (Element, Element) throws -> Bool
   ) rethrows {
     // FIXME: Implement in-place sorting.
-    let temp = try self.sorted(by: areInIncreasingOrder)
+    // Note: Explicitly use Array's sort to avoid ambiguity with
+    // OrderedDictionary's own sorted(by:) method.
+    let temp = try Array(self).sorted(by: areInIncreasingOrder)
     precondition(temp.count == self.count)
     temp.withUnsafeBufferPointer { source in
       _keys = OrderedSet(uncheckedUniqueElements: source.lazy.map { $0.key })
