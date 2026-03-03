@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		63047EA22F566B8900C72A3F /* OutputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */; };
 		63E46A102F4D2F850008051A /* OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A0F2F4D2F850008051A /* OutputMultispan.swift */; };
 		63E46A122F4D2FA20008051A /* OutputMultispan+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */; };
 		63E46A172F4FCAE80008051A /* InputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A162F4FCAE80008051A /* InputMultispan.swift */; };
@@ -577,6 +578,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		63047EA02F5668E600C72A3F /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
+		63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
 		63E46A0F2F4D2F850008051A /* OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispan.swift; sourceTree = "<group>"; };
 		63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputMultispan+Extras.swift"; sourceTree = "<group>"; };
 		63E46A162F4FCAE80008051A /* InputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispan.swift; sourceTree = "<group>"; };
@@ -1354,6 +1357,7 @@
 				7D2A779D2F27F367005780C7 /* BorrowTests.swift */,
 				7D2A779E2F27F367005780C7 /* InoutTests.swift */,
 				7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */,
+				63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */,
 			);
 			path = ContainersTests;
 			sourceTree = "<group>";
@@ -2312,6 +2316,7 @@
 				7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */,
 				7D9B859C29E4F77D00B291CD /* Collections.xctestplan */,
 				7D5A64D229CCE8CC00CB2595 /* README.md */,
+				63047EA02F5668E600C72A3F /* OutputMultispanTests.swift */,
 			);
 			name = Xcode;
 			sourceTree = "<group>";
@@ -3023,6 +3028,7 @@
 				7DE9220829CA8576004483EB /* BitSetTests.swift in Sources */,
 				7DEBDB7329CCE44A00ADC226 /* _MinimalCollectionCore.swift in Sources */,
 				7DE921C829CA81DC004483EB /* _UniqueCollection.swift in Sources */,
+				63047EA22F566B8900C72A3F /* OutputMultispanTests.swift in Sources */,
 				7D48BCF42E5159A300D7F6F7 /* StaccatoContainer.swift in Sources */,
 				7DE9220629CA8576004483EB /* TreeSet Tests.swift in Sources */,
 				7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */,
