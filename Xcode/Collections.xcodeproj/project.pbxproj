@@ -139,7 +139,7 @@
 		7D9748D62E9748930098631A /* BigString+Chunk+Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748CF2E9748930098631A /* BigString+Chunk+Character.swift */; };
 		7D9748D72E9748930098631A /* BigString+Chunk+Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D02E9748930098631A /* BigString+Chunk+Index.swift */; };
 		7D9748D82E9748930098631A /* BigString+Chunk+UTF8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D22E9748930098631A /* BigString+Chunk+UTF8.swift */; };
-		7D9B75772F3E65E00048157E /* _HTable+Debugging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B75762F3E65DB0048157E /* _HTable+Debugging.swift */; };
+		7D9B75772F3E65E00048157E /* _HTable+Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B75762F3E65DB0048157E /* _HTable+Debug.swift */; };
 		7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */; };
 		7D9B859829E4F74400B291CD /* BitArray+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */; };
 		7D9B859929E4F74400B291CD /* BitArray+LosslessStringConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859329E4F74400B291CD /* BitArray+LosslessStringConvertible.swift */; };
@@ -713,7 +713,7 @@
 		7D9748D12E9748930098631A /* BigString+Chunk+UnicodeScalar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UnicodeScalar.swift"; sourceTree = "<group>"; };
 		7D9748D22E9748930098631A /* BigString+Chunk+UTF8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UTF8.swift"; sourceTree = "<group>"; };
 		7D9748D32E9748930098631A /* BigString+Chunk+UTF16.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UTF16.swift"; sourceTree = "<group>"; };
-		7D9B75762F3E65DB0048157E /* _HTable+Debugging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Debugging.swift"; sourceTree = "<group>"; };
+		7D9B75762F3E65DB0048157E /* _HTable+Debug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Debug.swift"; sourceTree = "<group>"; };
 		7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Shifts.swift"; sourceTree = "<group>"; };
 		7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Descriptions.swift"; sourceTree = "<group>"; };
 		7D9B859329E4F74400B291CD /* BitArray+LosslessStringConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+LosslessStringConvertible.swift"; sourceTree = "<group>"; };
@@ -1356,7 +1356,7 @@
 				7D72467B2F3D9DDB00112FD0 /* _HTable+Bitmap.swift */,
 				7D72467C2F3D9DDB00112FD0 /* _HTable+Bucket.swift */,
 				7D479CE62F47D88000A8CB59 /* _HTable+Consumption.swift */,
-				7D9B75762F3E65DB0048157E /* _HTable+Debugging.swift */,
+				7D9B75762F3E65DB0048157E /* _HTable+Debug.swift */,
 				7D72467E2F3D9DDB00112FD0 /* _HTable+Find.swift */,
 				7D72467F2F3D9DDB00112FD0 /* _HTable+Insert.swift */,
 				7D7246802F3D9DDB00112FD0 /* _HTable+Iteration.swift */,
@@ -2586,7 +2586,7 @@
 				7DE9214E29CA70F4004483EB /* _HashNode+Debugging.swift in Sources */,
 				7DE920A029CA70F4004483EB /* Rope+Join.swift in Sources */,
 				7DE9213E29CA70F4004483EB /* TreeSet+SetAlgebra union.swift in Sources */,
-				7D9B75772F3E65E00048157E /* _HTable+Debugging.swift in Sources */,
+				7D9B75772F3E65E00048157E /* _HTable+Debug.swift in Sources */,
 				7DE9214829CA70F4004483EB /* _HashNode+Primitive Removals.swift in Sources */,
 				7DE9216029CA70F4004483EB /* _HashNode+Structural isDisjoint.swift in Sources */,
 				7D479CF32F47FB4100A8CB59 /* _HTable+Removal.swift in Sources */,
