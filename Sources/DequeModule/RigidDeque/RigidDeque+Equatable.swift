@@ -13,6 +13,7 @@
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import ContainersPreview
 #endif
 
 @available(SwiftStdlib 5.0, *)

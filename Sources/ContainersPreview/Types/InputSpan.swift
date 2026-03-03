@@ -556,4 +556,21 @@ internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   }
 }
 
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  package mutating func _consumeAll(
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) {
+    self.withUnsafeMutableBufferPointer { buffer, count in
+      var span = InputSpan(
+        buffer: buffer._extracting(first: count),
+        initializedCount: count)
+      consumer(&span)
+      _ = consume span
+      count = 0
+    }
+  }
+}
+
 #endif

@@ -17,7 +17,7 @@
 /// merely providing borrowing access to them. A `Producer` instance represents
 /// an ongoing iteration over such a generative sequence.
 @available(SwiftStdlib 5.0, *)
-public protocol Producer<Element>: ~Copyable, ~Escapable {
+public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   /// The type of the items that this producer generates.
   associatedtype Element: ~Copyable
   

@@ -9,7 +9,37 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+
+#if false
+@available(SwiftStdlib 6.2, *)
+extension Container where Self: ~Copyable & ~Escapable {
+  public func map<E: Error, T: ~Copyable>(
+    _ transform: (borrowing Element) throws(E) -> T
+  ) throws(E) -> MapProducer<Element, T, E> {
+    
+  }
+}
+
+public struct MapProducer<
+  Base: BorrowingSequence & ~Copyable & ~Escapable,
+  Element: ~Copyable,
+  E: Error
+> {
+  internal var _transform: (borrowing Base.Element) throws(E) -> Element
+  
+  internal init(
+    _base: borrowing Base,
+    _ transform: @escaping (borrowing Base.Element) throws(E) -> Element
+  ) {
+    self._transform = transform
+  }
+}
+#endif
 
 @available(SwiftStdlib 6.2, *)
 extension Container where Self: ~Copyable & ~Escapable {

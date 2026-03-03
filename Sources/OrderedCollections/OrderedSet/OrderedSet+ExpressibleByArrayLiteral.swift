@@ -27,6 +27,10 @@ extension OrderedSet: ExpressibleByArrayLiteral {
   ///    high-quality hashing.
   @inlinable
   public init(arrayLiteral elements: Element...) {
-    self.init(elements)
+    if elements.isEmpty {
+      self.init()
+    } else {
+      self.init(elements)
+    }
   }
 }

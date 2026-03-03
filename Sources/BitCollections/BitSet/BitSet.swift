@@ -48,7 +48,7 @@ extension BitSet {
 
   @usableFromInline
   internal var _capacity: UInt {
-    UInt(_storage.count) &* UInt(_Word.capacity)
+    UInt(_storage.count) &* _Word._capacity
   }
 
   internal mutating func _ensureCapacity(limit capacity: UInt) {

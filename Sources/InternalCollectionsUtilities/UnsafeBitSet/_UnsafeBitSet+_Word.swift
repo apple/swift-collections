@@ -80,11 +80,29 @@ extension _UnsafeBitSet._Word {
 }
 
 extension _UnsafeBitSet._Word {
+  @_transparent
+  @inlinable
+  package static var wordShift: UInt {
+    #if _pointerBitWidth(_32)
+    return 5
+    #elseif _pointerBitWidth(_64)
+    return 6
+    #else
+    #error("Unsupported architecture")
+    #endif
+  }
+
+  @_transparent
+  @inlinable
+  package static var wordMask: UInt {
+    (1 &<< wordShift) &- 1
+  }
+
   @inlinable
   @inline(__always)
   package static func wordCount(forBitCount count: UInt) -> Int {
     // Note: We perform on UInts to get faster unsigned math (shifts).
-    let width = UInt(bitPattern: Self.capacity)
+    let width = Self._capacity
     return Int(bitPattern: (count + width - 1) / width)
   }
 }
@@ -94,6 +112,12 @@ extension _UnsafeBitSet._Word {
   @inline(__always)
   package static var capacity: Int {
     return UInt.bitWidth
+  }
+
+  @inlinable
+  @inline(__always)
+  package static var _capacity: UInt {
+    UInt(bitPattern: UInt.bitWidth)
   }
 
   @inlinable
@@ -135,6 +159,13 @@ extension _UnsafeBitSet._Word {
 
   @inlinable
   @inline(__always)
+  package mutating func set(_ bit: UInt) {
+    assert(bit < UInt.bitWidth)
+    value |= 1 &<< bit
+  }
+
+  @inlinable
+  @inline(__always)
   @discardableResult
   package mutating func insert(_ bit: UInt) -> Bool {
     assert(bit < UInt.bitWidth)
@@ -142,6 +173,13 @@ extension _UnsafeBitSet._Word {
     let inserted = value & mask == 0
     value |= mask
     return inserted
+  }
+
+  @inlinable
+  @inline(__always)
+  package mutating func clear(_ bit: UInt) {
+    assert(bit < UInt.bitWidth)
+    value &= ~(1 &<< bit)
   }
 
   @inlinable
@@ -171,7 +209,7 @@ extension _UnsafeBitSet._Word {
 extension _UnsafeBitSet._Word {
   @inlinable
   @inline(__always)
-  internal mutating func insertAll(upTo bit: UInt) {
+  package mutating func insertAll(upTo bit: UInt) {
     assert(bit >= 0 && bit < Self.capacity)
     let mask: UInt = (1 as UInt &<< bit) &- 1
     value |= mask
@@ -179,7 +217,7 @@ extension _UnsafeBitSet._Word {
 
   @inlinable
   @inline(__always)
-  internal mutating func removeAll(upTo bit: UInt) {
+  package mutating func removeAll(upTo bit: UInt) {
     assert(bit >= 0 && bit < Self.capacity)
     let mask = UInt.max &<< bit
     value &= mask
@@ -187,7 +225,7 @@ extension _UnsafeBitSet._Word {
 
   @inlinable
   @inline(__always)
-  internal mutating func removeAll(through bit: UInt) {
+  package mutating func removeAll(through bit: UInt) {
     assert(bit >= 0 && bit < Self.capacity)
     var mask = UInt.max &<< bit
     mask &= mask &- 1       // Clear lowest nonzero bit.
@@ -196,7 +234,7 @@ extension _UnsafeBitSet._Word {
 
   @inlinable
   @inline(__always)
-  internal mutating func removeAll(from bit: UInt) {
+  package mutating func removeAll(from bit: UInt) {
     assert(bit >= 0 && bit < Self.capacity)
     let mask: UInt = (1 as UInt &<< bit) &- 1
     value &= mask

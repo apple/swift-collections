@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension UnsafeBufferPointer {
+extension UnsafeBufferPointer where Element: ~Copyable{
   @inlinable
   @inline(__always)
   package func _ptr(at index: Int) -> UnsafePointer<Element> {

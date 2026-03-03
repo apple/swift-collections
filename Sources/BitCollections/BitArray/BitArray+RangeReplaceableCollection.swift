@@ -283,7 +283,7 @@ extension BitArray {
     var pos = _BitPosition(_count)
     if pos.bit > 0 {
       let (bits, count) = it._nextChunk(
-        maximumCount: UInt(_Word.capacity) - pos.bit)
+        maximumCount: _Word._capacity - pos.bit)
       guard count > 0 else { return }
       _count += count
       _update { $0._copy(bits: bits, count: count, to: pos) }

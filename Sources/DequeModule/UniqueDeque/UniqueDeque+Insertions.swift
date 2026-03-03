@@ -249,13 +249,14 @@ extension UniqueDeque where Element: ~Copyable {
   ///     similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func insert<
-    P: Producer<Element> & ~Copyable & ~Escapable
+    E: Error,
+    P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     addingCount newItemCount: Int,
     from producer: inout P,
     at index: Int
-  ) throws(P.ProducerError) {
-    try insert(addingCount: newItemCount, at: index) { target throws(P.ProducerError) in
+  ) throws(E) {
+    try insert(addingCount: newItemCount, at: index) { target throws(E) in
       while !target.isFull, try producer.generate(into: &target) {
         // Do nothing
       }

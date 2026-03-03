@@ -317,17 +317,20 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(`self.count` + `maximumCount`)
   @_alwaysEmitIntoClient
   public mutating func replace<
-    P: Producer<Element> & ~Copyable & ~Escapable
+    E: Error,
+    P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(P.ProducerError) {
+  ) throws(E) {
     try replace(
       removing: subrange,
       addingCount: newItemCount
-    ) { target throws(P.ProducerError) in
-      try producer.generate(into: &target)
+    ) { target throws(E) in
+      while !target.isFull {
+        guard try producer.generate(into: &target) else { break }
+      }
     }
   }
 #endif

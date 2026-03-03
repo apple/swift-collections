@@ -108,7 +108,7 @@ extension Drain where Self: ~Copyable & ~Escapable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  mutating func drainNext() -> InputSpan<Element> {
+  public mutating func drainNext() -> InputSpan<Element> {
     drainNext(maximumCount: Int.max)
   }
 

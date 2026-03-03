@@ -26,6 +26,10 @@ extension OrderedDictionary: ExpressibleByDictionaryLiteral {
   ///    high-quality hashing.
   @inlinable
   public init(dictionaryLiteral elements: (Key, Value)...) {
-    self.init(uniqueKeysWithValues: elements)
+    if elements.isEmpty {
+      self.init()
+    } else {
+      self.init(uniqueKeysWithValues: elements)
+    }
   }
 }
