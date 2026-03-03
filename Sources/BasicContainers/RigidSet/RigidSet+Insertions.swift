@@ -13,7 +13,7 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
@@ -69,7 +69,7 @@ extension RigidSet where Element: ~Copyable {
     let bucket = _table.insertNew_Large(
       hashValue: hashValue,
       hashGenerator: {
-        storage[$0]._rawHashValue_temp(seed: seed)
+        storage[$0]._rawHashValue(seed: seed)
       },
       swapper: {
         swap(&item, &storage[$0])

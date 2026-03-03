@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
@@ -49,7 +49,7 @@ extension RigidSet where Element: ~Copyable {
     _table.resolveHole(
       at: bucket,
       hashGenerator: {
-        members[$0.offset]._rawHashValue_temp(seed: seed)
+        members[$0.offset]._rawHashValue(seed: seed)
       },
       mover: {
         (members + $1.offset).initialize(to: (members + $0.offset).move())

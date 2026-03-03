@@ -68,6 +68,27 @@ extension LifetimeTrackedStruct: TestPrintable where Payload: TestPrintable & ~C
 }
 #endif
 
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+extension LifetimeTrackedStruct: Equatable where Payload: Equatable & ~Copyable {
+  public static func == (left: borrowing Self, right: borrowing Self) -> Bool {
+    return left.payload == right.payload
+  }
+}
+
+extension LifetimeTrackedStruct: Hashable where Payload: Hashable & ~Copyable {
+  public func _rawHashValue(seed: Int) -> Int {
+    payload._rawHashValue(seed: seed)
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(payload)
+  }
+
+  public var hashValue: Int {
+    payload.hashValue
+  }
+}
+#else
 extension LifetimeTrackedStruct/*: Equatable*/ where Payload: Equatable /*& ~Copyable*/ {
   public static func == (left: borrowing Self, right: borrowing Self) -> Bool {
     return left.payload == right.payload
@@ -87,6 +108,7 @@ extension LifetimeTrackedStruct/*: Hashable*/ where Payload: Hashable /*& ~Copya
     payload.hashValue
   }
 }
+#endif
 
 extension LifetimeTrackedStruct/*: Comparable*/ where Payload: Comparable /*& ~Copyable*/ {
   public static func < (left: borrowing Self, right: borrowing Self) -> Bool {

@@ -9,13 +9,22 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
-
+#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+@available(*, unavailable, message: "RigidSet requires a Swift 6.4 toolchain")
+public struct UniqueDictionary<
+  Key: Hashable,
+  Value: ~Copyable
+>: ~Copyable {
+  package init() {
+    fatalError()
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 @frozen
 @_addressableForDependencies
 public struct UniqueDictionary<
-  Key: GeneralizedHashable & ~Copyable,
+  Key: Hashable & ~Copyable,
   Value: ~Copyable
 >: ~Copyable {
   @usableFromInline

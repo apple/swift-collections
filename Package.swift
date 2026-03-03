@@ -35,7 +35,7 @@ let _traits: Set<Trait> = [
       types before they ship. 
       """),
   .trait(
-    name: "UnstableNoncopyableKeys",
+    name: "UnstableHashedContainers",
     description: """
       Enables support for noncopyable set members and dictionary keys in
       `BasicContainers`. This requires a Standard Library with generalized
@@ -57,8 +57,8 @@ var defines: [SwiftSetting] = [
     "COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS",
     .when(traits: ["UnstableSortedCollections"])),
   .define(
-    "COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS",
-    .when(traits: ["UnstableNoncopyableKeys"])),
+    "COLLECTIONS_UNSTABLE_HASHED_CONTAINERS",
+    .when(traits: ["UnstableHashedContainers"])),
 
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
@@ -113,8 +113,8 @@ let availabilityMacros: KeyValuePairs<String, String> = [
 ]
 
 let extraSettings: [SwiftSetting] = [
+  //  .strictMemorySafety(),
   .enableUpcomingFeature("MemberImportVisibility"),
-//  .strictMemorySafety(),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
   .enableExperimentalFeature("InoutLifetimeDependence"),

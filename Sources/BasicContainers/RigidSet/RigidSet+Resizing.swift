@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
@@ -64,10 +64,10 @@ extension RigidSet where Element: ~Copyable {
       from: &old._table,
       selector: {
         src = source + $0.offset
-        return src.pointee._rawHashValue_temp(seed: seed)
+        return src.pointee._rawHashValue(seed: seed)
       },
       hashGenerator: {
-        target[$0.offset]._rawHashValue_temp(seed: seed)
+        target[$0.offset]._rawHashValue(seed: seed)
       },
       swapper: {
         swap(&src.pointee, &target[$0.offset])
