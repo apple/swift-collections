@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -242,16 +242,12 @@ final class BitSetTest: CollectionTestCase {
       var expected: Set<Int> = []
       let input = (0 ..< count).shuffled(using: &rng)
       withEvery("i", in: input.indices) { i in
-        let (i1, m1) = actual.insert(input[i])
-        expected.insert(input[i])
-        expectTrue(i1)
-        expectEqual(m1, input[i])
+        let v = input[i]
+        expectTrue(actual.insert(v) == expected.insert(v))
         if i % 25 == 0 {
           expectEqual(Array(actual), expected.sorted())
         }
-        let (i2, m2) = actual.insert(input[i])
-        expectFalse(i2)
-        expectEqual(m2, m1)
+        expectTrue(actual.insert(v) == expected.insert(v))
       }
       expectEqual(Array(actual), expected.sorted())
     }
@@ -265,13 +261,12 @@ final class BitSetTest: CollectionTestCase {
       var expected: Set<Int> = []
       let input = (0 ..< count).shuffled(using: &rng)
       withEvery("i", in: input.indices) { i in
-        let old = actual.update(with: input[i])
-        expected.update(with: input[i])
-        expectEqual(old, input[i])
+        let v = input[i]
+        expectEqual(actual.update(with: v), expected.update(with: v))
         if i % 25 == 0 {
           expectEqual(Array(actual), expected.sorted())
         }
-        expectNil(actual.update(with: input[i]))
+        expectEqual(actual.update(with: v), expected.update(with: v))
       }
       expectEqual(Array(actual), expected.sorted())
     }
@@ -289,13 +284,11 @@ final class BitSetTest: CollectionTestCase {
       
       withEvery("i", in: input.indices) { i in
         let v = input[i]
-        let old = actual.remove(v)
-        expected.remove(v)
-        expectEqual(old, v)
+        expectEqual(actual.remove(v), expected.remove(v))
         if i % 25 == 0 {
           expectEqual(Array(actual), expected.sorted())
         }
-        expectNil(actual.remove(v))
+        expectEqual(actual.remove(v), expected.remove(v))
       }
       expectEqual(Array(actual), expected.sorted())
     }
