@@ -30,6 +30,12 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
     var capacity: Int {
       count - ptr.count
     }
+    
+    @inlinable @inline(__always)
+    init(ptr: UnsafeMutableRawBufferPointer, count: Int) {
+      self.ptr = ptr
+      self.count = count
+    }
   }
   
   @usableFromInline
@@ -492,7 +498,8 @@ extension InputMultispan where Element: ~Copyable {
     }
     //TODO: optimize the case where we need to use multiple buffers
     for idx in source.indices.reversed() {
-      prepend(source[idx])
+      let value = source.baseAddress!.advanced(by: idx).move()
+      prepend(value)
     }
   }
 }

@@ -24,6 +24,12 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
     var capacity: Int {
       count - ptr.count
     }
+    
+    @inlinable @inline(__always)
+    init(ptr: UnsafeMutableRawBufferPointer, count: Int) {
+      self.ptr = ptr
+      self.count = count
+    }
   }
   
   @usableFromInline
