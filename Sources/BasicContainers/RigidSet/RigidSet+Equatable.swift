@@ -15,7 +15,7 @@ import ContainersPreview
 #endif
 
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet {
@@ -27,7 +27,7 @@ extension RigidSet {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: GeneralizedEquatable { // Should be Equatable
+extension RigidSet: Equatable {
   @inlinable
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {
     if left.isTriviallyIdentical(to: right) { return true }

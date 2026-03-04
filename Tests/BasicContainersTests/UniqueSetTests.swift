@@ -17,7 +17,7 @@ import _CollectionsTestSupport
 import BasicContainers
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 class UniqueSetTests: CollectionTestCase {
   func test_empty() {
     let s = UniqueSet<Int>()

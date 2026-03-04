@@ -49,7 +49,6 @@ target_sources(${module_name} PRIVATE
   "UniqueArray/UniqueArray+Insertions.swift"
   "UniqueArray/UniqueArray+Removals.swift"
   "UniqueArray/UniqueArray+Replacements.swift"
-  "HashTable/ProtocolGeneralizations.swift"
   "HashTable/_HTable.swift"
   "HashTable/_HTable+Bitmap.swift"
   "HashTable/_HTable+Bucket.swift"

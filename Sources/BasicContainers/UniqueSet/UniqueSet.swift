@@ -14,11 +14,17 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
-
+#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+@available(*, unavailable, message: "RigidSet requires a Swift 6.4 toolchain")
+public struct UniqueSet<Element: Hashable>: ~Copyable {
+  package init() {
+    fatalError()
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 @frozen
-public struct UniqueSet<Element: GeneralizedHashable & ~Copyable>: ~Copyable {
+public struct UniqueSet<Element: Hashable & ~Copyable>: ~Copyable {
   @usableFromInline
   package typealias _Bucket = _HTable.Bucket
 

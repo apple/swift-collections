@@ -14,10 +14,10 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: GeneralizedHashable { // Should be Hashable
+extension RigidSet: Hashable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     // Generate a seed from a snapshot of the hasher.  This makes members' hash
@@ -36,7 +36,7 @@ extension RigidSet: GeneralizedHashable { // Should be Hashable
       let next = it.nextSpan()
       var i = 0
       while i < next.count {
-        hash ^= next[i]._rawHashValue_temp(seed: seed)
+        hash ^= next[i]._rawHashValue(seed: seed)
         i &+= 1
       }
     }
