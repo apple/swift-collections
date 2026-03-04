@@ -36,7 +36,10 @@ extension _HTable {
 #if COLLECTIONS_NO_ROBIN_HOOD_HASHING
     let ideal = idealBucket(forHashValue: hashValue)
     let bitmap = self.bitmap
-    let actual = bitmap.nextUnoccupiedBucket(wrappingFrom: ideal)
+    var actual = bitmap.firstUnoccupiedBucket(from: ideal)
+    if actual._offset >= self.bucketCount {
+      actual = bitmap.firstUnoccupiedBucket(from: Bucket(offset: 0))
+    }
     bitmap.setOccupied(actual)
     let probeLength = self.probeLength(from: ideal, to: actual)
     _maxProbeLength = Swift.max(_maxProbeLength, probeLength)
