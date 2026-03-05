@@ -28,7 +28,7 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
     
     @inlinable @inline(__always)
     var capacity: Int {
-      count - ptr.count
+      ptr.count - count
     }
     
     @inlinable @inline(__always)

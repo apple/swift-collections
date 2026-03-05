@@ -162,7 +162,7 @@ class OutputMultispanTests: CollectionTestCase {
       }
     }
     expectEqual(buffer1, [1, 2, 3])
-    expectEqual(buffer2, [4, 5])
+    expectEqual(buffer2, [4, 5, 0])
   }
   
   func test_append_repeating() {
@@ -182,88 +182,98 @@ class OutputMultispanTests: CollectionTestCase {
   // MARK: - Remove Tests
   
   func test_removeLast_singleElement() {
-    var buffer = [Int](repeating: 0, count: 5)
-    buffer.withUnsafeMutableBufferPointer { bufferPtr in
-      var multispan = OutputMultispan<Int>()
-      multispan._append(buffer: bufferPtr, initializedCount: 0)
-      
-      multispan.append(42)
-      multispan.append(99)
-      
-      let removed = multispan.removeLast()
-      
-      expectEqual(removed, 99)
-      expectEqual(multispan.totalCount, 1)
-      expectEqual(multispan.totalFreeCapacity, 4)
-    }
-    expectEqual(buffer, [42, 0, 0, 0, 0])
+    let bufferPtr = UnsafeMutableBufferPointer<Int>.allocate(capacity: 5)
+    bufferPtr.initialize(repeating: 0)
+    defer { bufferPtr.deallocate() }
+    
+    var multispan = OutputMultispan<Int>()
+    multispan._append(buffer: bufferPtr, initializedCount: 0)
+    
+    multispan.append(42)
+    multispan.append(99)
+    
+    let removed = multispan.removeLast()
+    
+    expectEqual(removed, 99)
+    expectEqual(multispan.totalCount, 1)
+    expectEqual(multispan.totalFreeCapacity, 4)
+    expectEqual(multispan.finalize(), 1)
+    /*
+     Can't test that the 99 was actually removed from the buffer because
+     deinitializing an Int doesn't set it to 0 it just makes it formally
+     invalid to refer to again until it's re-initialized
+     */
   }
   
   func test_removeLast_multipleElements() {
-    var buffer = [Int](repeating: 0, count: 10)
-    buffer.withUnsafeMutableBufferPointer { bufferPtr in
-      var multispan = OutputMultispan<Int>()
-      multispan._append(buffer: bufferPtr, initializedCount: 0)
-      
-      multispan.append(1)
-      multispan.append(2)
-      multispan.append(3)
-      multispan.append(4)
-      multispan.append(5)
-      
-      multispan.removeLast(3)
-      
-      expectEqual(multispan.totalCount, 2)
-      expectEqual(multispan.totalFreeCapacity, 8)
-    }
-    expectEqual(buffer, [1, 2, 0, 0, 0, 0, 0, 0, 0, 0])
+    let bufferPtr = UnsafeMutableBufferPointer<Int>.allocate(capacity: 10)
+    bufferPtr.initialize(repeating: 0)
+    defer { bufferPtr.deallocate() }
+    
+    var multispan = OutputMultispan<Int>()
+    multispan._append(buffer: bufferPtr, initializedCount: 0)
+    
+    multispan.append(1)
+    multispan.append(2)
+    multispan.append(3)
+    multispan.append(4)
+    multispan.append(5)
+    
+    multispan.removeLast(3)
+    
+    expectEqual(multispan.totalCount, 2)
+    expectEqual(multispan.totalFreeCapacity, 8)
+    expectEqual(multispan.finalize(), 2)
+    /*
+     Can't test that the elements were actually removed from the buffer because
+     deinitializing an Int doesn't set it to 0 it just makes it formally
+     invalid to refer to again until it's re-initialized
+     */
   }
   
   func test_removeAll() {
-    var buffer = [Int](repeating: 0, count: 10)
-    buffer.withUnsafeMutableBufferPointer { bufferPtr in
-      var multispan = OutputMultispan<Int>()
-      multispan._append(buffer: bufferPtr, initializedCount: 0)
-      
-      multispan.append(1)
-      multispan.append(2)
-      multispan.append(3)
-      
-      multispan.removeAll()
-      
-      expectEqual(multispan.totalCount, 0)
-      expectEqual(multispan.totalFreeCapacity, 10)
-      expectTrue(multispan.isEmpty)
-      expectFalse(multispan.isFull)
-    }
-    expectEqual(buffer, [Int](repeating: 0, count: 10))
+    let bufferPtr = UnsafeMutableBufferPointer<Int>.allocate(capacity: 10)
+    bufferPtr.initialize(repeating: 0)
+    defer { bufferPtr.deallocate() }
+    
+    var multispan = OutputMultispan<Int>()
+    multispan._append(buffer: bufferPtr, initializedCount: 0)
+    
+    multispan.append(1)
+    multispan.append(2)
+    multispan.append(3)
+    
+    multispan.removeAll()
+    
+    expectEqual(multispan.totalCount, 0)
+    expectEqual(multispan.totalFreeCapacity, 10)
+    expectTrue(multispan.isEmpty)
+    expectFalse(multispan.isFull)
   }
   
   func test_removeAll_multipleSpans() {
-    var buffer1 = [Int](repeating: 0, count: 5)
-    var buffer2 = [Int](repeating: 0, count: 5)
+    let buf1 = UnsafeMutableBufferPointer<Int>.allocate(capacity: 5)
+    buf1.initialize(repeating: 0)
+    defer { buf1.deallocate() }
+    let buf2 = UnsafeMutableBufferPointer<Int>.allocate(capacity: 5)
+    buf2.initialize(repeating: 0)
+    defer { buf2.deallocate() }
     
-    buffer1.withUnsafeMutableBufferPointer { buf1 in
-      buffer2.withUnsafeMutableBufferPointer { buf2 in
-        var multispan = OutputMultispan<Int>()
-        multispan._append(buffer: buf1, initializedCount: 0)
-        multispan._append(buffer: buf2, initializedCount: 0)
-        
-        // Add elements to both spans
-        for i in 1...7 {
-          multispan.append(i)
-        }
-        
-        multispan.removeAll()
-        
-        expectEqual(multispan.totalCount, 0)
-        expectEqual(multispan.count(at: 0), 0)
-        expectEqual(multispan.count(at: 1), 0)
-        expectTrue(multispan.isEmpty)
-      }
+    var multispan = OutputMultispan<Int>()
+    multispan._append(buffer: buf1, initializedCount: 0)
+    multispan._append(buffer: buf2, initializedCount: 0)
+    
+    // Add elements to both spans
+    for i in 1...7 {
+      multispan.append(i)
     }
-    expectEqual(buffer1, [Int](repeating: 0, count: 5))
-    expectEqual(buffer2, [Int](repeating: 0, count: 5))
+    
+    multispan.removeAll()
+    
+    expectEqual(multispan.totalCount, 0)
+    expectEqual(multispan.count(at: 0), 0)
+    expectEqual(multispan.count(at: 1), 0)
+    expectTrue(multispan.isEmpty)
   }
   
   // MARK: - Index and Subscript Tests
@@ -437,9 +447,10 @@ class OutputMultispanTests: CollectionTestCase {
       multispan.append(3)
       multispan.append(4)
       multispan.append(5)
+      print("is this thing on? Span count: \(multispan.totalCount)") 
     }
     
-    expectEqual(array.count, 5)
+    expectEqual(array.count, 5) 
     expectEqual(array.freeCapacity, 5)
     expectEqual(array[0], 1)
     expectEqual(array[4], 5)

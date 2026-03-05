@@ -18,17 +18,76 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   @frozen @usableFromInline
   internal struct _Buffer {
     @usableFromInline var ptr: UnsafeMutableRawBufferPointer
-    @usableFromInline var count: Int
+    @usableFromInline var _byteCount: Int
     
     @inlinable @inline(__always)
-    var capacity: Int {
-      count - ptr.count
+    var byteCapacity: Int {
+      _assumeNonNegative(ptr.count)
     }
     
     @inlinable @inline(__always)
-    init(ptr: UnsafeMutableRawBufferPointer, count: Int) {
+    var elementCapacity: Int {
+      byteCapacity / MemoryLayout<Element>.stride
+    }
+    
+    @inlinable @inline(__always)
+    var freeByteCapacity: Int {
+      _assumeNonNegative(ptr.count &- byteCount)
+    }
+    
+    @inlinable @inline(__always)
+    var freeElementCapacity: Int {
+      freeByteCapacity / MemoryLayout<Element>.stride
+    }
+    
+    @inlinable @inline(__always)
+    var byteCount: Int {
+      _assumeNonNegative(_byteCount)
+    }
+    
+    @inlinable @inline(__always)
+    var elementCount: Int {
+      get {
+        byteCount / MemoryLayout<Element>.stride
+      }
+      set(newValue) {
+        precondition(newValue >= 0)
+        _byteCount = newValue &* MemoryLayout<Element>.stride
+      }
+    }
+    
+    @inlinable @inline(__always)
+    mutating func withOutputSpan<R: ~Copyable, E: Error>(
+      _ work: (inout OutputSpan<Element>) throws(E) -> R
+    ) throws(E) -> R {
+      return try ptr.withMemoryRebound(to: Element.self) { (buffer) throws(E) in
+        var span = OutputSpan(buffer: buffer, initializedCount: elementCount)
+        return try work(&span)
+      }
+    }
+    
+    @inlinable @inline(__always)
+    func deinitialize() {
+      unsafe ptr.withMemoryRebound(to: Element.self) {
+        _ = unsafe UnsafeMutableBufferPointer<Element>(
+          start: $0.baseAddress.unsafelyUnwrapped,
+          count: elementCount
+        ).deinitialize()
+      }
+    }
+    
+    @inlinable @inline(__always)
+    init(ptr: UnsafeMutableRawBufferPointer, byteCount: Int) {
       self.ptr = ptr
-      self.count = count
+      self._byteCount = byteCount
+    }
+    
+    @inlinable @inline(__always)
+    init(ptr: UnsafeMutableBufferPointer<Element>, elementCount: Int) {
+      self.init(
+        ptr: UnsafeMutableRawBufferPointer(ptr),
+        byteCount: elementCount * MemoryLayout<Element>.stride
+      )
     }
   }
   
@@ -39,10 +98,7 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   @inlinable
   deinit {
     for idx in 0 ..< _pointers.count {
-      let count = _pointers[idx].count
-      unsafe _pointers[idx].ptr.withMemoryRebound(to: Element.self) {
-        _ = unsafe UnsafeMutableBufferPointer<Element>(start: $0.baseAddress!, count: count).deinitialize()
-      }
+      _pointers[idx].deinitialize()
     }
   }
 
@@ -63,7 +119,17 @@ extension OutputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func _firstNonFullSpanIndex() -> Int? {
     for idx in 0 ..< _pointers.count {
-      if _pointers[idx].count < _pointers[idx].capacity {
+      if freeCapacity(at: idx) > 0 {
+        return idx
+      }
+    }
+    return nil
+  }
+  
+  @_alwaysEmitIntoClient
+  internal func _lastNonEmptySpanIndex() -> Int? {
+    for idx in (0 ..< _pointers.count).reversed() {
+      if count(at: idx) > 0 {
         return idx
       }
     }
@@ -83,7 +149,7 @@ extension OutputMultispan where Element: ~Copyable {
   /// The number of initialized elements in this span.
   @_alwaysEmitIntoClient
   public func count(at index: Int) -> Int {
-    _assumeNonNegative(_pointers[index].count)
+    _assumeNonNegative(_pointers[index].elementCount)
   }
   
   public var totalCount: Int {
@@ -96,7 +162,7 @@ extension OutputMultispan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public func freeCapacity(at index: Int) -> Int {
-    _assumeNonNegative(_pointers[index].capacity &- _pointers[index].count)
+    _pointers[index].freeElementCapacity
   }
   
   /// The number of additional elements that can be added to this span.
@@ -136,12 +202,10 @@ extension OutputMultispan where Element: ~Copyable  {
   @_alwaysEmitIntoClient
   public mutating func _appendSpan(_ span: inout OutputSpan<Element>) {
     span.withUnsafeMutableBufferPointer {
-      let capacity = $0.count
-      let count = $1
       _pointers.append(
         OutputMultispan._Buffer(
-          ptr: UnsafeMutableRawBufferPointer($0),
-          count: count
+          ptr: $0,
+          elementCount: $1
         )
       )
     }
@@ -167,8 +231,8 @@ extension OutputMultispan where Element: ~Copyable  {
   ) {
     _pointers.append(
       OutputMultispan._Buffer(
-        ptr: UnsafeMutableRawBufferPointer(buffer),
-        count: initializedCount
+        ptr: buffer,
+        elementCount: initializedCount
       )
     )
   }
@@ -206,8 +270,8 @@ extension OutputMultispan where Element: ~Copyable {
     let bufIdx = index.bufferIndex
     precondition(bufIdx < _pointers.count)
     let elementOffset = index.elementIndex &* MemoryLayout<Element>.stride
-    precondition(elementOffset <= _pointers[bufIdx].capacity)
-    if elementOffset == _pointers[bufIdx].capacity {
+    precondition(elementOffset <= _pointers[bufIdx].elementCapacity)
+    if elementOffset == _pointers[bufIdx].elementCapacity {
       if bufIdx == _pointers.count {
         return endIndex
       }
@@ -283,8 +347,10 @@ extension OutputMultispan where Element: ~Copyable {
   internal func _unsafeAddressOfElement(
     unchecked index: Index
   ) -> UnsafeMutablePointer<Element> {
-    let address = unsafe _pointers[ index.bufferIndex].ptr.baseAddress.unsafelyUnwrapped.advanced(by: index.elementIndex)
-    return unsafe address.assumingMemoryBound(to: Element.self)
+    let chunk = _pointers[index.bufferIndex]
+    return chunk.ptr.withMemoryRebound(to: Element.self, { buffer in
+      buffer.baseAddress.unsafelyUnwrapped.advanced(by: index.elementIndex)
+    })
   }
 
   /// Exchange the elements at the two given offsets
@@ -316,17 +382,11 @@ extension OutputMultispan where Element: ~Copyable {
     unsafe pj.initialize(to: consume temporary)
   }
   
-  public func withOutputSpan<R: ~Copyable, E: Error>(
+  public mutating func withOutputSpan<R: ~Copyable, E: Error>(
     at index: Int,
     work: (inout OutputSpan<Element>) throws(E) -> R
   ) throws(E) -> R {
-    let buffer = _pointers[index]
-    return try buffer.ptr.withMemoryRebound(to: Element.self) { (typedBuffer) throws(E) in
-      //TODO: this isn't building if I use _uncheckedBuffer, figure out why
-      var span = OutputSpan<Element>(
-        buffer: typedBuffer,
-        initializedCount: buffer.count
-      )
+    return try _pointers[index].withOutputSpan { (span) throws(E) in
       return try work(&span)
       // Intentionally skipping finalize here. See TODO in our finalize method
     }
@@ -338,16 +398,17 @@ extension OutputMultispan where Element: ~Copyable {
   /// Append a single element to this span.
   ///
   ///
-  @_alwaysEmitIntoClient
+ // @_alwaysEmitIntoClient
   @lifetime(self: copy self)
   public mutating func append(_ value: consuming Element) {
     precondition(totalFreeCapacity > 0, "OutputMultispan has no capacity")
     var v:Element? = consume value
     let idx = _firstNonFullSpanIndex().unsafelyUnwrapped
     withOutputSpan(at: idx) { outputSpan in
+      precondition(!outputSpan.isFull)
       outputSpan.append(v.take()!)
     }
-    _pointers[idx].count &+= 1
+    _pointers[idx].elementCount &+= 1
   }
 
   /// Remove the last initialized element from this span.
@@ -357,16 +418,14 @@ extension OutputMultispan where Element: ~Copyable {
   @lifetime(self: copy self)
   public mutating func removeLast() -> Element {
     precondition(spanCount > 0, "OutputMultispan has no capacity")
-    if let idx = _firstNonFullSpanIndex() {
-      defer { _pointers[idx].count &-= 1 }
+    if let idx = _lastNonEmptySpanIndex() {
+      print("Found non empty span at index \(idx) with count \(count(at: idx))")
+      defer { _pointers[idx].elementCount &-= 1 }
       return withOutputSpan(at: idx) { outputSpan in
         outputSpan.removeLast()
       }
     }
-    defer { _pointers[spanCount - 1].count &-= 1 }
-    return withOutputSpan(at: spanCount - 1) { outputSpan in
-      outputSpan.removeLast()
-    }
+    fatalError("unreachable")
   }
 
   /// Remove the last N elements of this span, returning the memory they occupy
@@ -377,9 +436,9 @@ extension OutputMultispan where Element: ~Copyable {
   @lifetime(self: copy self)
   public mutating func removeLast(_ k: Int) {
     precondition(spanCount > 0, "OutputMultispan has no capacity")
-    if let idx = _firstNonFullSpanIndex() {
-      if _pointers[idx].count >= k {
-        defer { _pointers[idx].count &-= k }
+    if let idx = _lastNonEmptySpanIndex() {
+      if _pointers[idx].elementCount >= k {
+        defer { _pointers[idx].elementCount &-= k }
         withOutputSpan(at: idx) { outputSpan in
           outputSpan.removeLast(k)
         }
@@ -398,6 +457,9 @@ extension OutputMultispan where Element: ~Copyable {
   @lifetime(self: copy self)
   public mutating func removeAll() {
     for spanIdx in 0 ..< spanCount {
+      defer {
+        _pointers[spanIdx].elementCount = 0
+      }
       withOutputSpan(at: spanIdx) { outputSpan in
         outputSpan.removeAll()
       }

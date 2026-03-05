@@ -24,14 +24,15 @@ extension RigidArray where Element: ~Copyable {
   ) async throws(E) {
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
     precondition(freeCapacity >= newItemCount, "RigidArray capacity overflow")
-    let buffer = _freeSpace._extracting(first: newItemCount)
-    var span = OutputSpan(buffer: buffer, initializedCount: 0)
-    defer {
-      _count &+= span.finalize(for: buffer)
-      span = OutputSpan()
-    }
     var multiSpan = OutputMultispan<Element>()
-    multiSpan._appendSpan(&span)
+    multiSpan._append(
+      buffer: _freeSpace._extracting(first: newItemCount),
+      initializedCount: 0
+    )
+    defer {
+      _count &+= multiSpan.finalize()
+      multiSpan = OutputMultispan()
+    }
     return try await initializer(&multiSpan)
   }
   
