@@ -45,10 +45,6 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   >(
     _ other: borrowing Other,
   ) -> Bool where Element: Equatable {
-    guard self.estimatedCount._mayBeEqual(to: other.estimatedCount) else {
-      return false
-    }
-
     var it1 = self.makeBorrowingIterator()
     var it2 = other.makeBorrowingIterator()
     while true {
@@ -106,12 +102,6 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
     _ other: borrowing Other,
     by areEquivalent: (borrowing Element, borrowing Other.Element) throws(E) -> Bool
   ) throws(E) -> Bool {
-    switch (self.estimatedCount, other.estimatedCount) {
-    case let (.exactly(a), .exactly(b)):
-      guard a == b else { return false }
-    default:
-      break
-    }
     var it1 = self.makeBorrowingIterator()
     var it2 = other.makeBorrowingIterator()
     while true {

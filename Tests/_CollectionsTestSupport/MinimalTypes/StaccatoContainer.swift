@@ -115,9 +115,7 @@ public struct _StaccatoIndex: Comparable {
 extension StaccatoContainer: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
 
   public func makeBorrowingIterator() -> BorrowingIterator {
     BorrowingIterator(contents: _contents.span, params: _params)

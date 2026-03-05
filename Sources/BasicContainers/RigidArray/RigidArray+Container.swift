@@ -22,9 +22,7 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
 
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)

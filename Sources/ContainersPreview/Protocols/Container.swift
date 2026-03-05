@@ -378,7 +378,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @_transparent
-  public var estimatedCount: EstimatedCount { .exactly(count) }
+  public var underestimatedCount: Int { count }
 }
 
 

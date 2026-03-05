@@ -52,15 +52,7 @@ public func checkIterable<
 
   let expectedContents = Array(expectedContents)
 
-  let estimatedCount = iterable.estimatedCount
-  switch estimatedCount {
-  case .exactly(let c):
-    expectEqual(c, expectedContents.count)
-  case .infinite:
-    expectFailure()
-  case .unknown:
-    break
-  }
+  expectLessThanOrEqual(iterable.underestimatedCount, expectedContents.count)
 
   // Check that the spans seem plausibly sized and that the indices are monotonic.
   let spanShapes: [Range<Int>] = {

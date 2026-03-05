@@ -18,11 +18,6 @@ extension Span: BorrowingSequence where Element: ~Copyable {
   // we'll need to rather introduce a type more like `RigidArray.BorrowingIterator`.
   public typealias BorrowingIterator = Self
  
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
   @_lifetime(copy self)
   @inlinable
   public func makeBorrowingIterator() -> Span<Element> {
@@ -34,11 +29,6 @@ extension Span: BorrowingSequence where Element: ~Copyable {
 extension MutableSpan: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
  
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
   @_lifetime(borrow self)
   @inlinable
   public func makeBorrowingIterator() -> Span<Element> {
@@ -50,11 +40,6 @@ extension MutableSpan: BorrowingSequence where Element: ~Copyable {
 extension OutputSpan: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
  
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
   @_lifetime(borrow self)
   @inlinable
   public func makeBorrowingIterator() -> Span<Element> {
@@ -66,11 +51,6 @@ extension OutputSpan: BorrowingSequence where Element: ~Copyable {
 extension InputSpan: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
  
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
   @_lifetime(borrow self)
   @inlinable
   public func makeBorrowingIterator() -> Span<Element> {
@@ -83,9 +63,7 @@ extension Array: BorrowingSequence {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
  
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
   
   @_lifetime(borrow self)
   @inlinable
@@ -132,14 +110,18 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     }
   }
   
-  @inlinable
-  public var estimatedCount: EstimatedCount {
-    if let count = Int(exactly: lowerBound.distance(to: upperBound)) {
-      return .exactly(count)
+  @_alwaysEmitIntoClient
+  @_transparent
+  package var _borrowingUnderestimatedCount: Int {
+    guard let count = Int(exactly: lowerBound.distance(to: upperBound)) else {
+      return 0
     }
-    return .unknown
+    return count
   }
-  
+
+  @inlinable
+  public var underestimatedCount: Int { _borrowingUnderestimatedCount }
+
   @inlinable
   public func makeBorrowingIterator() -> BorrowingIterator {
     BorrowingIterator(self)
@@ -184,14 +166,18 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     }
   }
   
-  @inlinable
-  public var estimatedCount: EstimatedCount {
+  @_alwaysEmitIntoClient
+  @_transparent
+  package var _borrowingUnderestimatedCount: Int {
     guard let distance = Int(exactly: lowerBound.distance(to: upperBound))
-    else { return .unknown }
+    else { return 0 }
     let advanced = distance.addingReportingOverflow(1)
-    guard !advanced.overflow else { return .unknown }
-    return .exactly(advanced.partialValue)
+    guard !advanced.overflow else { return 0 }
+    return advanced.partialValue
   }
+
+  @inlinable
+  public var underestimatedCount: Int { _borrowingUnderestimatedCount }
   
   @inlinable
   public func makeBorrowingIterator() -> BorrowingIterator {

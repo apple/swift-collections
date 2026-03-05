@@ -18,9 +18,7 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidSet: BorrowingSequence where Element: ~Copyable {
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
   
   @inlinable
   public func _customContainsEquatableElement(

@@ -21,9 +21,8 @@ import ContainersPreview
 extension UniqueArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
 
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  @inlinable
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)

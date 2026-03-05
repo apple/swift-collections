@@ -65,9 +65,7 @@ where Key: ~Copyable, Value: ~Copyable
   }
 
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(self._base.value.count)
-  }
+  public var underestimatedCount: Int { self._base.value.count }
   
   @_lifetime(copy self)
   public func makeBorrowingIterator() -> BorrowingIterator {
