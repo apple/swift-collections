@@ -14,7 +14,7 @@
 ///
 /// To ensure maximum utility, this protocol refines neither `Collection` nor
 /// `SetAlgebra` although it does share some of the same requirements.
-public protocol SetAPIChecker {
+package protocol SetAPIChecker {
   associatedtype Element
   associatedtype Index
 
@@ -70,7 +70,7 @@ public protocol SetAPIChecker {
 
 extension Set: SetAPIChecker {}
 
-public protocol SetAPIExtras: SetAPIChecker {
+package protocol SetAPIExtras: SetAPIChecker {
   // Non-standard extensions
 
   mutating func update(_ member: Element, at index: Index) -> Element

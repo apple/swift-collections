@@ -21,7 +21,7 @@ import InternalCollectionsUtilities
 /// Conforming to this protocol admittedly doesn't do much, as the default
 /// implementations already exist for most of these requirements
 /// (but they aren't doing the right thing).
-public protocol SortedCollectionAPIChecker: Collection, _SortedCollection
+package protocol SortedCollectionAPIChecker: Collection, _SortedCollection
 where Element: Comparable {
   // This one actually does not come with a default implementation.
   func sorted() -> Self

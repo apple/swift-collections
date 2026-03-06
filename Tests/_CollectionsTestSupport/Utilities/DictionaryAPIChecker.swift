@@ -14,7 +14,7 @@
 ///
 /// To ensure maximum utility, this protocol doesn't refine `Collection`,
 /// although it does share some of the same requirements.
-public protocol DictionaryAPIChecker {
+package protocol DictionaryAPIChecker {
   associatedtype Key
   associatedtype Value
   associatedtype Index
@@ -96,7 +96,7 @@ extension Dictionary: DictionaryAPIChecker {}
 
 /// Additional entry points provided by this package that aren't provided
 /// by `Dictionary` (yet?).
-public protocol DictionaryAPIExtras: DictionaryAPIChecker {
+package protocol DictionaryAPIExtras: DictionaryAPIChecker {
   // Extras (not in the Standard Library)
 
   init<S: Sequence>(
