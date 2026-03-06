@@ -2,11 +2,13 @@
 //
 // This source file is part of the Swift.org open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -195,7 +197,7 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
       }
     }
   }
-  
+
   withSomeRanges(
     "range", in: 0 ..< allIndices.count - 1, maxSamples: maxSamples
   ) { range in
@@ -212,7 +214,7 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
     // Check `distance(from:to:)`
     let d = collection.distance(from: allIndices[i], to: allIndices[j])
     expectEqual(d, j - i)
-    
+
     // Check slicing.
     let range = allIndices[i] ..< allIndices[j]
     let slice = collection[range]
@@ -222,30 +224,30 @@ public func _checkCollection<C: Collection, Expected: Sequence>(
     expectEqual(slice.endIndex, allIndices[j])
     expectEqual(slice.distance(from: allIndices[i], to: allIndices[j]), j - i)
     expectEqual(slice.index(allIndices[i], offsetBy: j - i), allIndices[j])
-    
+
     expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[j]),
                 allIndices[j])
     expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[i]),
                 j - i > 0 ? nil : allIndices[i])
     expectEqual(slice.index(allIndices[i], offsetBy: j - i, limitedBy: allIndices[0]),
                 i > 0 || j == 0 ? allIndices[j] : nil)
-    
+
     expectEquivalentElements(slice, expectedContents[i ..< j],
                              by: areEquivalent)
-    
+
     expectEquivalentElements(
       slice._contentsByIterator(), expectedContents[i ..< j],
       by: areEquivalent)
     expectEquivalentElements(
       slice._contentsByCopyContents(), expectedContents[i ..< j],
       by: areEquivalent)
-    
+
     // Check _copyContents.
     let copyContents = collection._contentsByCopyContents()
     expectEquivalentElements(
       copyContents, expectedContents,
       by: areEquivalent)
-    
+
     expectEqualElements(slice._indicesByIndexAfter(), allIndices[i ..< j])
     expectEqualElements(slice._indicesByFormIndexAfter(), allIndices[i ..< j])
     expectEqualElements(slice.indices, allIndices[i ..< j])

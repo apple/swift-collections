@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -86,8 +88,10 @@ extension _HTable.Bitmap {
     }
   }
 
+  /// Note: If the bitmap has fewer than Word.capacity bits, then this may
+  /// report an unoccupied bit beyond the end of its actual size.
   @inlinable
-  package func firstUnoccupiedBucket(wrappingFrom start: Bucket) -> Bucket {
+  package func firstUnoccupiedBucket(from start: Bucket) -> Bucket {
     assert(isValid(start))
     var word = start.word
     var bits = _words[word]

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -22,9 +24,7 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
 
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)

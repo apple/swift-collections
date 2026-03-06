@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -65,9 +67,7 @@ where Key: ~Copyable, Value: ~Copyable
   }
 
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(self._base.value.count)
-  }
+  public var underestimatedCount: Int { self._base.value.count }
   
   @_lifetime(copy self)
   public func makeBorrowingIterator() -> BorrowingIterator {

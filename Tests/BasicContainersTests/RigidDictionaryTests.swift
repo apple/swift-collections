@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 import XCTest
@@ -358,7 +360,7 @@ class RigidDictionaryTests: CollectionTestCase {
             }
             
             let oldValue = d.removeValue(forKey: tracker.instance(for: key))
-            expectNotNil(oldValue) {
+            expectNotNil(oldValue, "\(key)") {
               expectEqual($0.payload, "\(key)")
             }
             expectEqual(d.count, count - 1)

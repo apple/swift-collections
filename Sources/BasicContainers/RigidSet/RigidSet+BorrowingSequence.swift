@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -18,9 +20,7 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidSet: BorrowingSequence where Element: ~Copyable {
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
   
   @inlinable
   public func _customContainsEquatableElement(

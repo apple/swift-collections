@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -21,9 +23,7 @@ extension UniqueSet: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = RigidSet<Element>.BorrowingIterator
   
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  public var underestimatedCount: Int { count }
   
   @inlinable
   public func _customContainsEquatableElement(

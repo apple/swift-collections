@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -103,16 +105,17 @@ extension RigidSet where Element: ~Copyable {
     let data = self._probeLengthCounts()
     var str = ""
     do {
-      str += "Chain length distribution (for successful lookups):\n"
+      str += "\nChain length distribution (for successful lookups):\n"
       let max = data.successful.max() ?? 1
       var sum = 0
       var histogram = ""
       for length in data.successful.indices {
         let count = data.successful[length]
         histogram += "\(String(length + 1)._lpad(6)): "
-        let dotCount = (75 * count + max) / max
+        let dotCount = count == 0 ? 0 : (75 * count + max) / max
+        histogram += "\(String(count)._rpad(5)) "
         histogram += String(repeating: "*", count: dotCount)
-        histogram += " \(count)\n"
+        histogram += "\n"
         sum += (length + 1) * count
       }
       let avg = Double((sum * 1000 + 500) / _table.count) / 1000.0
@@ -120,16 +123,17 @@ extension RigidSet where Element: ~Copyable {
       str += histogram
     }
     do {
-      str += "Chain length distribution (for unsuccessful lookups):\n"
+      str += "\nChain length distribution (for unsuccessful lookups):\n"
       let max = data.unsuccessful.max() ?? 1
       var sum = 0
       var histogram = ""
       for length in data.unsuccessful.indices {
         let count = data.unsuccessful[length]
         histogram += "\(String(length)._lpad(6)): "
-        let dotCount = (75 * count + max) / max
+        let dotCount = count == 0 ? 0 : (75 * count + max) / max
+        histogram += "\(String(count)._rpad(5)) "
         histogram += String(repeating: "*", count: dotCount)
-        histogram += " \(count)\n"
+        histogram += "\n"
         sum += length * count
       }
       let avg = Double((sum * 1000 + 500) / _table.storageCapacity) / 1000.0

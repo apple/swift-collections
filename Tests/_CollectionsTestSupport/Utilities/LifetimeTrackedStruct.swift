@@ -8,6 +8,8 @@
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 /// A type that tracks the number of live instances.
@@ -115,4 +117,3 @@ extension LifetimeTrackedStruct/*: Comparable*/ where Payload: Comparable /*& ~C
     return left.payload < right.payload
   }
 }
-

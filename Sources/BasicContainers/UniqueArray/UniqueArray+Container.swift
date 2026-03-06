@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -21,9 +23,8 @@ import ContainersPreview
 extension UniqueArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
 
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+  @inlinable
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
