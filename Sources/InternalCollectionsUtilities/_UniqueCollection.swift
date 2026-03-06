@@ -30,6 +30,7 @@
 ///
 /// The idea with these is that presumably a collection that can guarantee
 /// element uniqueness has a way to quickly find existing elements.
+@usableFromInline
 package protocol _UniqueCollection {}
 
 extension Set: _UniqueCollection {}

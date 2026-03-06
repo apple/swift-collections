@@ -22,6 +22,7 @@
 /// For any two valid indices `i` and `j` for a conforming collection `c`
 /// (both below the end index), it must hold true that if `i < j`, then
 /// `c[i] <= c[j]`.
+@usableFromInline
 package protocol _SortedCollection {}
 
 extension Slice: _SortedCollection where Base: _SortedCollection {}
