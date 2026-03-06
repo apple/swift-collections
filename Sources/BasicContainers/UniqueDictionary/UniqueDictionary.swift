@@ -11,7 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(<6.4)
 @available(*, unavailable, message: "RigidSet requires a Swift 6.4 toolchain")
 public struct UniqueDictionary<
   Key: Hashable,
@@ -80,4 +81,5 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
+#endif
 #endif

@@ -16,7 +16,8 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(<6.4)
 @available(*, unavailable, message: "RigidSet requires a Swift 6.4 toolchain")
 public struct UniqueSet<Element: Hashable>: ~Copyable {
   package init() {
@@ -72,5 +73,5 @@ extension UniqueSet where Element: ~Copyable {
     _storage._table.scale
   }
 }
-
+#endif
 #endif
