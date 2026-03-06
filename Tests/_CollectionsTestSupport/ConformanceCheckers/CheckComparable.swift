@@ -8,6 +8,8 @@
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 // Loosely adapted from https://github.com/apple/swift/tree/main/stdlib/private/StdlibUnittest
@@ -133,9 +135,9 @@ public func _checkComparable<Instances: Collection>(
     } else {
       let x = instances[i]
       let y = instances[j]
-      
+
       let expected = oracle(i, j)
-      
+
       expectEqual(
         expected.flip(), oracle(j, i),
           """
@@ -143,7 +145,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected == .lt, x < y,
           """
@@ -151,7 +153,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected != .gt, x <= y,
           """
@@ -159,7 +161,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected != .lt, x >= y,
           """
@@ -167,7 +169,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected == .gt, x > y,
           """
@@ -175,7 +177,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       withSome("k", in: instances.indices, maxSamples: 10) { k in
         let expected2 = oracle(j, k)
         if expected == expected2 {

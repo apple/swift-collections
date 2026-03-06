@@ -6,6 +6,8 @@
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
 // SPDX-License-Identifier: Apache-2.0 WITH Swift-exception

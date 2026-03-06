@@ -8,6 +8,8 @@
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if COLLECTIONS_SINGLE_MODULE
@@ -28,7 +30,7 @@ import BasicContainers
 public class LifetimeTracker {
   @usableFromInline
   package var _instances = 0
-  
+
   @usableFromInline
   package var _nextSerialNumber = 0
 
@@ -37,7 +39,7 @@ public class LifetimeTracker {
   deinit {
     check()
   }
-  
+
   @inlinable
   public var instances: Int { _instances }
 

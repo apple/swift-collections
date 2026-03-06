@@ -8,6 +8,8 @@
 // See https://swift.org/LICENSE.txt for license information
 // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 struct _MinimalCollectionCore<Element> {
@@ -354,4 +356,3 @@ extension _MinimalCollectionCore {
     try elements.removeAll(where: shouldBeRemoved)
   }
 }
-
