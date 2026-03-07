@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #import "Hashing.h"
@@ -36,4 +38,3 @@ cpp_custom_hash(const intptr_t *start, size_t count)
     black_hole(custom_intptr_hash{}(*p));
   }
 }
-
