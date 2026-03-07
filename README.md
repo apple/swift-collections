@@ -2,6 +2,8 @@
 
 **Swift Collections** is an open-source package of data structure implementations for the Swift programming language.
 
+[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fapple%2Fswift-collections%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/apple/swift-collections) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fapple%2Fswift-collections%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/apple/swift-collections)
+
 ## Table of Contents
 
   * [Stable Data Structures](#stable-data-structures)
