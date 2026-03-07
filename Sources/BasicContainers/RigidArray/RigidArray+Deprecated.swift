@@ -108,7 +108,7 @@ extension RigidArray where Element: ~Copyable {
   ///      and it must fully populate it before returning.
   ///
   /// - Complexity: O(`self.count` + `newCount`)
-  @available(*, deprecated, renamed: "replace(removing:addingCapacity:initializingWith:)")
+  @available(*, deprecated, renamed: "replace(removing:addingCount:initializingWith:)")
   @inlinable
   public mutating func replaceSubrange<Result: ~Copyable>(
     _ subrange: Range<Int>,
