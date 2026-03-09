@@ -31,7 +31,7 @@ jobs:
 
   soundness:
     name: Soundness
-    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.7
+    uses: swiftlang/github-workflows/.github/workflows/soundness.yml@0.0.8
     with:
       license_header_check_project_name: "Swift.org"
       # https://github.com/apple/swift-collections/issues/428
