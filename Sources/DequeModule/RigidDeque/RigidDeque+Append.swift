@@ -242,7 +242,7 @@ extension RigidDeque where Element: ~Copyable {
       }
     }
     if !done {
-      done = (try producer.generateNext() == nil)
+      done = (try producer.next() == nil)
     }
     precondition(done, "RigidDeque capacity overflow")
   }
