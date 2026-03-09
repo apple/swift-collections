@@ -48,19 +48,6 @@ extension BorrowingSequence where Self: Sequence {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Element: Copyable {
-  // FIXME: How do we expect this to work for ~Copyable elements?
-  public var first: Element? {
-    var it = makeBorrowingIterator()
-    let span = it.nextSpan(maximumCount: 1)
-    guard !span.isEmpty else { return nil }
-    return span[0]
-  }
-}
-
-
-
-@available(SwiftStdlib 5.0, *)
 extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
