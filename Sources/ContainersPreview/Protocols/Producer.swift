@@ -151,12 +151,12 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   /// resulting contents. This often produces satisfactory results; but the
   /// protocol allows conformances to customize this entry point if they believe
   /// it to be necessary (for example, if they can take shortcuts that aren't
-  /// available in the bulk method). Custom implementations of `generateNext()`
+  /// available in the bulk method). Custom implementations of `next()`
   /// must produce results that are indistinguishable from the default
   /// implementation, but they may exhibit observably different performance
   /// metrics.
   @_lifetime(self: copy self)
-  mutating func generateNext() throws(ProducerError) -> Element?
+  mutating func next() throws(ProducerError) -> Element?
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -239,13 +239,13 @@ extension Producer where Self: ~Copyable & ~Escapable {
   /// resulting contents. This often produces satisfactory results; but the
   /// protocol allows conformances to customize this entry point if they believe
   /// it to be necessary (for example, if they can take shortcuts that aren't
-  /// available in the bulk method). Custom implementations of `generateNext()`
+  /// available in the bulk method). Custom implementations of `next()`
   /// must produce results that are indistinguishable from the default
   /// implementation, but they may exhibit observably different performance
   /// metrics.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func generateNext() throws(ProducerError) -> Element? {
+  public mutating func next() throws(ProducerError) -> Element? {
     try withUnsafeTemporaryAllocation(
       of: Element.self, capacity: 1
     ) { buffer throws(ProducerError) in
