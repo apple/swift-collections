@@ -1,12 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Swift.org open source project
+// This source file is part of the Swift Collections open source project
 //
 // Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
-// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -74,6 +75,20 @@ public func expectFalse(
     message, trapping: trapping, file: file, line: line)
 }
 
+#if compiler(>=6.2)
+public func expectNil<T: ~Copyable & ~Escapable>(
+  _ value: borrowing Optional<T>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  if value == nil { return }
+  _expectFailure(
+    "value is not nil",
+    message, trapping: trapping, file: file, line: line)
+}
+#else
 public func expectNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
@@ -86,7 +101,22 @@ public func expectNil<T>(
     "'\(value!)' is not nil",
     message, trapping: trapping, file: file, line: line)
 }
+#endif
 
+#if compiler(>=6.2)
+public func expectNotNil<T: ~Copyable & ~Escapable>(
+  _ value: borrowing Optional<T>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  if value != nil { return }
+  _expectFailure(
+    "value is nil",
+    message, trapping: trapping, file: file, line: line)
+}
+#else
 public func expectNotNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
@@ -99,23 +129,45 @@ public func expectNotNil<T>(
     "value is nil",
     message, trapping: trapping, file: file, line: line)
 }
+#endif
 
+#if compiler(>=6.2)
+public func expectNotNil<T: ~Copyable & ~Escapable>(
+  _ value: borrowing Optional<T>,
+  _ message: @autoclosure () -> String = "",
+  trapping: Bool = false,
+  file: StaticString = #filePath,
+  line: UInt = #line,
+  _ handler: (borrowing T) throws -> Void = { _ in }
+) rethrows {
+  switch value {
+  case let value?:
+    try handler(value)
+  case nil:
+    _expectFailure(
+      "value is nil",
+      message, trapping: trapping, file: file, line: line)
+  }
+}
+#else
 public func expectNotNil<T>(
   _ value: Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ handler: (T) throws -> Void = { _ in }
+  _ handler: (borrowing T) throws -> Void = { _ in }
 ) rethrows {
-  if let value = value {
+  switch value {
+  case let value?:
     try handler(value)
-    return
+  case nil:
+    _expectFailure(
+      "value is nil",
+      message, trapping: trapping, file: file, line: line)
   }
-  _expectFailure(
-    "value is nil",
-    message, trapping: trapping, file: file, line: line)
 }
+#endif
 
 public func expectIdentical<T: AnyObject>(
   _ left: T?, _ right: T?,

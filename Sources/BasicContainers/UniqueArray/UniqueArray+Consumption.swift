@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -19,6 +21,11 @@ import ContainersPreview
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  @_lifetime(&self)
+  public mutating func _consumeAll() -> InputSpan<Element> {
+    _storage._consumeAll()
+  }
+
   /// Remove the specified subrange of items from this array,
   /// passing an input span to the given function to consume them in place.
   ///
@@ -105,6 +112,56 @@ extension UniqueArray where Element: ~Copyable {
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
     _storage.consumeLast(n, consumingWith: consumer)
+  }
+}
+#endif
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: ~Copyable {
+  public typealias SubrangeConsumer = RigidArray<Element>.SubrangeConsumer
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
+    SubrangeConsumer(_base: &self._storage, offsetRange: subrange)
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consume<R: RangeExpression<Index>>(
+    _ subrange: R
+  ) -> SubrangeConsumer {
+    consume(subrange.relative(to: indices))
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consumeAll() -> SubrangeConsumer {
+    consume(indices)
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consumeLast(_ n: Int) -> SubrangeConsumer {
+    precondition(
+      n >= 0 && n <= self.count,
+      "Count of elements to consume is out of bounds")
+    return consume(self.count - n ..< self.count)
+  }
+  
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  @_lifetime(&self)
+  public mutating func consumeFirst(_ n: Int) -> SubrangeConsumer {
+    precondition(
+      n >= 0 && n <= self.count,
+      "Count of elements to consume is out of bounds")
+    return consume(0 ..< n)
   }
 }
 #endif

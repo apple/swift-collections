@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -553,6 +555,23 @@ internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   ) { buffer throws(E) in
     var span = InputSpan(buffer: buffer, initializedCount: 0)
     return try body(&span)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  package mutating func _consumeAll(
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) {
+    self.withUnsafeMutableBufferPointer { buffer, count in
+      var span = InputSpan(
+        buffer: buffer._extracting(first: count),
+        initializedCount: count)
+      consumer(&span)
+      _ = consume span
+      count = 0
+    }
   }
 }
 

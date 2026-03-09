@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -69,9 +71,8 @@ public struct Inout<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Esca
 }
 
 extension Inout where Target: ~Copyable {
-  /// Dereferences the mutable reference allowing for in-place reads and writes
-  /// to the underlying instance.
   @_alwaysEmitIntoClient
+  @available(*, deprecated, renamed: "value")
   public subscript() -> Target {
     @_transparent
     unsafeAddress {
@@ -83,6 +84,21 @@ extension Inout where Target: ~Copyable {
       unsafe _pointer
     }
   }
+  
+  /// Dereferences the mutable reference allowing for in-place reads and writes
+  /// to the underlying instance.
+  @_alwaysEmitIntoClient
+  public var value: Target {
+    @_transparent
+    unsafeAddress {
+      unsafe .init(_pointer)
+    }
+    @_transparent
+    unsafeMutableAddress {
+      unsafe _pointer
+    }
+  }
+
 }
 
 

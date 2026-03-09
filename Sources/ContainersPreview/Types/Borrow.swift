@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -18,14 +20,14 @@ import Builtin
 public struct Borrow<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Escapable {
   @usableFromInline
   package let _pointer: UnsafePointer<Target>
-
+  
   @_lifetime(borrow value)
   @_alwaysEmitIntoClient
   @_transparent
   internal init(_borrowing value: borrowing @_addressable Target) {
     unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
   }
-
+  
 #if compiler(>=6.3) // rdar://161844406 (https://github.com/swiftlang/swift/pull/84748)
   @_lifetime(borrow value)
   @_alwaysEmitIntoClient
@@ -34,7 +36,7 @@ public struct Borrow<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Esca
     unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
   }
 #endif
-
+  
   @_lifetime(borrow owner)
   @_alwaysEmitIntoClient
   @_transparent
@@ -44,7 +46,7 @@ public struct Borrow<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Esca
   ) {
     unsafe _pointer = unsafeAddress
   }
-
+  
   @_lifetime(copy owner)
   @_alwaysEmitIntoClient
   @_transparent
@@ -54,9 +56,18 @@ public struct Borrow<Target: ~Copyable /* FIXME: ~Escapable */>: Copyable, ~Esca
   ) {
     unsafe _pointer = unsafeAddress
   }
-
+  
   @_alwaysEmitIntoClient
+  @available(*, deprecated, renamed: "value")
   public subscript() -> Target {
+    @_transparent
+    unsafeAddress {
+      unsafe _pointer
+    }
+  }
+  
+  @_alwaysEmitIntoClient
+  public var value: Target {
     @_transparent
     unsafeAddress {
       unsafe _pointer

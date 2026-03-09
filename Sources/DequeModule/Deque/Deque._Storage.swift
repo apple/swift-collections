@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -154,20 +156,14 @@ extension Deque._Storage {
     self = self.read { $0.copyElements() }
   }
 
-  /// The growth factor to use to increase storage size to make place for an
-  /// insertion.
-  @inlinable
-  @inline(__always)
-  internal static var growthFactor: Double { 1.5 }
-
   @usableFromInline
   internal func _growCapacity(
     to minimumCapacity: Int,
     linearly: Bool
   ) -> Int {
     if linearly { return Swift.max(capacity, minimumCapacity) }
-    return Swift.max(Int((Self.growthFactor * Double(capacity)).rounded(.up)),
-                     minimumCapacity)
+    let c = (3 &* UInt(bitPattern: capacity) &+ 1) &>> 1
+    return Swift.max(Int(bitPattern: c), minimumCapacity)
   }
 
   /// Ensure that we have a uniquely referenced buffer with enough space to

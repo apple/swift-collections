@@ -1,12 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Swift.org open source project
+// This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
-// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -78,7 +79,7 @@ public func checkEquatable<Instance: Equatable>(
     let expectedXY = oracle(i, j)
     expectEqual(oracle(j, i), expectedXY,
                 "bad oracle: broken symmetry between indices \(i), \(j)")
-    
+
     let actualXY = (x == y)
     let actualYX = (y == x)
     expectEqual(
@@ -110,7 +111,7 @@ public func checkEquatable<Instance: Equatable>(
         lhs (at index \(i)): \(String(reflecting: x))
         rhs (at index \(j)): \(String(reflecting: y))
         """)
-    
+
     // Check transitivity of the predicate represented by the oracle.
     // If we are adding the instance `j` into an equivalence set, check that
     // it is equal to every other instance in the set.

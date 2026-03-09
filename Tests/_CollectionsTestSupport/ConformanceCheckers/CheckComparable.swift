@@ -1,12 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Swift.org open source project
+// This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
-// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -133,9 +134,9 @@ public func _checkComparable<Instances: Collection>(
     } else {
       let x = instances[i]
       let y = instances[j]
-      
+
       let expected = oracle(i, j)
-      
+
       expectEqual(
         expected.flip(), oracle(j, i),
           """
@@ -143,7 +144,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected == .lt, x < y,
           """
@@ -151,7 +152,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected != .gt, x <= y,
           """
@@ -159,7 +160,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected != .lt, x >= y,
           """
@@ -167,7 +168,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       expectEqual(
         expected == .gt, x > y,
           """
@@ -175,7 +176,7 @@ public func _checkComparable<Instances: Collection>(
           lhs (at index \(i)): \(String(reflecting: x))
           rhs (at index \(j)): \(String(reflecting: y))
           """)
-      
+
       withSome("k", in: instances.indices, maxSamples: 10) { k in
         let expected2 = oracle(j, k)
         if expected == expected2 {

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -108,7 +110,7 @@ extension Drain where Self: ~Copyable & ~Escapable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  mutating func drainNext() -> InputSpan<Element> {
+  public mutating func drainNext() -> InputSpan<Element> {
     drainNext(maximumCount: Int.max)
   }
 

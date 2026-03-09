@@ -1,0 +1,16 @@
+**/*.md
+**/*.png
+**/*.rs
+**/*.sh
+**/*.xcconfig
+**/*.xcodeproj/*
+**/*.xctestplan
+**/*.xcworkspace/*
+**/*.yml
+**/Package.resolved
+.editorconfig
+Package.swift
+Benchmarks/Package.swift
+Package@swift-*.swift
+CODEOWNERS
+LICENSE.txt

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -378,7 +380,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @_transparent
-  public var estimatedCount: EstimatedCount { .exactly(count) }
+  public var underestimatedCount: Int { count }
 }
 
 
@@ -405,7 +407,7 @@ where Base: ~Copyable /*FIXME: & ~Escapable*/
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence!
   @_lifetime(&self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
-    _base[].nextSpan(after: &self._position, maximumCount: maximumCount)
+    _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
   }
 }
 

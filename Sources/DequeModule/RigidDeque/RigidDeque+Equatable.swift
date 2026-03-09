@@ -7,12 +7,15 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2)
 
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
+import ContainersPreview
 #endif
 
 @available(SwiftStdlib 5.0, *)

@@ -7,7 +7,18 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
+
+extension UnsafeMutableBufferPointer where Element: ~Copyable {
+  @inlinable
+  @inline(__always)
+  package func _ptr(at index: Int) -> UnsafeMutablePointer<Element> {
+    assert(index >= 0 && index < count)
+    return baseAddress.unsafelyUnwrapped + index
+  }
+}
 
 extension UnsafeMutableBufferPointer where Element: ~Copyable {
   /// Returns a Boolean value indicating whether two

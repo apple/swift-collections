@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -20,10 +22,9 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
-  
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
+
+  @inlinable
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -62,7 +63,7 @@ extension UniqueArray where Element: ~Copyable {
   /// start.
   ///
   /// Valid indices consist of the position of every element and a "past the
-  /// end” position that’s not valid for use as a subscript argument.
+  /// end" position that's not valid for use as a subscript argument.
   public typealias Index = Int
 
   /// The position of the first element in a nonempty array. This is always zero.
@@ -72,7 +73,7 @@ extension UniqueArray where Element: ~Copyable {
   @inline(__always)
   public var startIndex: Int { _storage.startIndex }
 
-  /// The array’s "past the end” position—that is, the position one greater than
+  /// The array's "past the end" position—that is, the position one greater than
   /// the last valid subscript argument. This is always equal to array's count.
   ///
   /// - Complexity: O(1)
@@ -141,7 +142,7 @@ extension UniqueArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   public func index(after index: Int) -> Int { index + 1 }
-  
+
   /// Returns the position immediately before the given index.
   ///
   /// - Note: To improve performance, this method does not validate that the
@@ -207,7 +208,7 @@ extension UniqueArray where Element: ~Copyable {
   public func index(_ index: Int, offsetBy n: Int) -> Int {
     index + n
   }
-  
+
   /// Returns the distance between two indices.
   ///
   /// - Note: To improve performance, this method does not validate that the
@@ -225,7 +226,7 @@ extension UniqueArray where Element: ~Copyable {
   public func distance(from start: Index, to end: Index) -> Int {
     end - start
   }
-  
+
   /// Offsets the given index by the specified distance, but no further than
   /// the given limiting index.
   ///

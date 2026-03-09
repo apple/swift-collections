@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -79,7 +81,7 @@ extension BitArray._UnsafeHandle {
     words[start.word].formUnion(bits.shiftedUp(by: start.bit))
     words[end.word].formIntersection(_Word(upTo: end.bit).complement())
     words[end.word].formUnion(
-      bits.shiftedDown(by: UInt(_Word.capacity) &- start.bit))
+      bits.shiftedDown(by: _Word._capacity &- start.bit))
   }
 
   internal mutating func copy(
@@ -160,7 +162,7 @@ extension BitArray._UnsafeHandle {
     var it = source.makeIterator()
     if pos.bit > 0 {
       let (bits, count) = it._nextChunk(
-        maximumCount: UInt(_Word.capacity) - pos.bit)
+        maximumCount: _Word._capacity - pos.bit)
       _copy(bits: bits, count: count, to: pos)
       pos.value += count
     }

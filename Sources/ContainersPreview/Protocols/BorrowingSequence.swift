@@ -7,36 +7,18 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-
-public enum EstimatedCount {
-  case infinite
-  case exactly(Int)
-  case unknown
-  
-  @inlinable
-  package func _mayBeEqual(to other: EstimatedCount) -> Bool {
-    switch (self, other) {
-    case let (.exactly(a), .exactly(b)):
-      return a == b
-    case (.exactly(_), .infinite):
-      return false
-    case (.infinite, .exactly(_)):
-      return false
-    default:
-      return true
-    }
-  }
-}
 
 @available(SwiftStdlib 5.0, *)
 public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
   associatedtype BorrowingIterator: BorrowingIteratorProtocol<Element> & ~Copyable & ~Escapable
   
-  var estimatedCount: EstimatedCount { get }
+  var underestimatedCount: Int { get }
 
   @_lifetime(borrow self)
   borrowing func makeBorrowingIterator() -> BorrowingIterator
@@ -49,16 +31,7 @@ public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
 @available(SwiftStdlib 5.0, *)
 extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
-  public var underestimatedCount: Int {
-    switch estimatedCount {
-    case .infinite:
-      Int.max
-    case .exactly(let c):
-      c
-    case .unknown:
-      0
-    }
-  }
+  public var underestimatedCount: Int { 0 }
   
   @inlinable
   public func _customContainsEquatableElement(_ element: borrowing Element) -> Bool? {

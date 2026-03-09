@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -230,7 +232,7 @@ extension RigidDeque where Element: ~Copyable {
     @inline(__always)
     @_lifetime(&_base)
     internal init(_base: inout RigidDeque, offsetRange: Range<Int>) {
-      _base._checkValidBounds(subrange)
+      _base._checkValidBounds(offsetRange)
       let segments = _base._handle.mutableSegments(forOffsets: offsetRange)
       self._buffer1 = segments.first
       self._buffer2 = segments.second ?? .init(start: nil, count: 0)

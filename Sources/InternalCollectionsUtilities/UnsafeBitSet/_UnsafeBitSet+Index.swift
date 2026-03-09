@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -42,13 +44,13 @@ extension _UnsafeBitSet.Index {
   @inlinable
   package var word: Int {
     // Note: We perform on UInts to get faster unsigned math (shifts).
-    Int(truncatingIfNeeded: value / UInt(bitPattern: _Word.capacity))
+    Int(truncatingIfNeeded: value / _Word._capacity)
   }
 
   @inlinable
   package var bit: UInt {
     // Note: We perform on UInts to get faster unsigned math (masking).
-    value % UInt(bitPattern: _Word.capacity)
+    value % _Word._capacity
   }
 
   @inlinable
@@ -60,7 +62,7 @@ extension _UnsafeBitSet.Index {
   package var endSplit: (word: Int, bit: UInt) {
     let w = word
     let b = bit
-    if w > 0, b == 0 { return (w &- 1, UInt(_Word.capacity)) }
+    if w > 0, b == 0 { return (w &- 1, _Word._capacity) }
     return (w, b)
   }
 

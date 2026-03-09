@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 import XCTest
@@ -346,7 +348,7 @@ final class RigidDequeTests: CollectionTestCase {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_initFromProducer() {
     withEvery("count", in: 0 ..< 10) { count in
-      withEvery("capacity", in: [count / 2, count, 2 * count] as Set) { capacity in
+      withEvery("capacity", in: [count, count + 1, 2 * count] as Set) { capacity in
         withLifetimeTracking { tracker in
           var invocations = 0
           var producer = CustomProducer<LifetimeTrackedStruct<Int>, Never> {
@@ -357,14 +359,13 @@ final class RigidDequeTests: CollectionTestCase {
             return tracker.structInstance(for: invocations)
           }
           
-          let c = min(count, capacity)
           let deque = RigidDeque(capacity: capacity, from: &producer)
-          expectEqual(invocations, c)
-          expectEqual(deque.count, c)
-          expectEqual(tracker.instances, c)
-          expectEqual(invocations, c)
+          expectEqual(invocations, count)
+          expectEqual(deque.count, count)
+          expectEqual(tracker.instances, count)
+          expectEqual(invocations, count)
           
-          for i in 0 ..< c {
+          for i in 0 ..< count {
             expectEqual(deque[i].payload, i)
           }
         }
@@ -636,7 +637,7 @@ final class RigidDequeTests: CollectionTestCase {
           data.contents.append(contentsOf: extras)
           
           var i = 0
-          data.deque.append(maximumCount: prependCount) { target in
+          data.deque.append(addingCount: prependCount) { target in
             while !target.isFull {
               target.append(extras[i])
               i += 1
@@ -684,7 +685,7 @@ final class RigidDequeTests: CollectionTestCase {
           data.contents.append(contentsOf: extras)
           
           var i = 0
-          data.deque.append(maximumCount: layout.freeCapacity) { target in
+          data.deque.append(addingCount: layout.freeCapacity) { target in
             while !target.isFull, i < prependCount {
               target.append(extras[i])
               i += 1
@@ -746,7 +747,7 @@ final class RigidDequeTests: CollectionTestCase {
           expectThrows { () throws(TestError) in
             var i = 0
             try data.deque.append(
-              maximumCount: layout.freeCapacity
+              addingCount: layout.freeCapacity
             ) { target throws(TestError) in
               while !target.isFull, i < prependCount {
                 target.append(extras[i])
@@ -794,13 +795,13 @@ final class RigidDequeTests: CollectionTestCase {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_Producer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
-      withEvery("producerSize", in: 0 ..< 6) { producerSize in
+      withEvery("producerSize", in: 0 ..< layout.freeCapacity) { producerSize in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
           
           var extras = tracker.instances(for: 0 ..< producerSize)
           
-          data.contents.append(contentsOf: extras.prefix(layout.freeCapacity))
+          data.contents.append(contentsOf: extras)
           
           var producer = CustomProducer<LifetimeTracked<Int>, Never> {
             guard !extras.isEmpty else { return nil }

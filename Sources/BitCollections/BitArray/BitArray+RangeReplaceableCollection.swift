@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -283,7 +285,7 @@ extension BitArray {
     var pos = _BitPosition(_count)
     if pos.bit > 0 {
       let (bits, count) = it._nextChunk(
-        maximumCount: UInt(_Word.capacity) - pos.bit)
+        maximumCount: _Word._capacity - pos.bit)
       guard count > 0 else { return }
       _count += count
       _update { $0._copy(bits: bits, count: count, to: pos) }
