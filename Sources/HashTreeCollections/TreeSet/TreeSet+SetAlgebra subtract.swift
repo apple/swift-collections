@@ -27,7 +27,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public mutating func subtract(_ other: Self) {
+  public mutating func subtract(_ other: TreeSet) {
     // FIXME: Implement in-place reductions
     self = subtracting(other)
   }

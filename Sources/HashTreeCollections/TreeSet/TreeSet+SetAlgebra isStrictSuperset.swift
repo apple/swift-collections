@@ -37,7 +37,7 @@ extension TreeSet {
   ///    the best use of hash tree structure to minimize work when possible,
   ///    e.g. by skipping over parts of the input trees.
   @inlinable
-  public func isStrictSuperset(of other: Self) -> Bool {
+  public func isStrictSuperset(of other: TreeSet) -> Bool {
     guard self.count > other.count else { return false }
     return other._root.isSubset(.top, of: self._root)
   }

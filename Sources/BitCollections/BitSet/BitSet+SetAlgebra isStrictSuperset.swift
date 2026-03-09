@@ -35,7 +35,7 @@ extension BitSet {
   /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `other`.
-  public func isStrictSuperset(of other: Self) -> Bool {
+  public func isStrictSuperset(of other: BitSet) -> Bool {
     other.isStrictSubset(of: self)
   }
 

@@ -146,7 +146,11 @@ extension OrderedSet {
   /// Insert a new member to this set at the specified index, if the set doesn't
   /// already contain it.
   ///
-  /// - Parameter item: The element to insert.
+  /// - Parameters:
+  ///   - item: The element to insert.
+  ///   - index: The index at which to insert the new element, if the set
+  ///      doesn't already contain it. `index` must be a valid index in the
+  ///      original set.
   ///
   /// - Returns: A pair `(inserted, index)`, where `inserted` is a Boolean value
   ///    indicating whether the operation added a new element, and `index` is

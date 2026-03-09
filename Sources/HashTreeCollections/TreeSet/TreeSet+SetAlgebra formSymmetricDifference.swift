@@ -28,7 +28,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public mutating func formSymmetricDifference(_ other: __owned Self) {
+  public mutating func formSymmetricDifference(_ other: __owned TreeSet) {
     self = symmetricDifference(other)
   }
 

@@ -212,9 +212,9 @@ extension BitSet: Collection, BidirectionalCollection {
   /// the collection.
   ///
   /// - Parameters:
-  ///   - i: A valid index of the collection.
-  ///   - distance: The distance to offset `i`.
-  /// - Returns: An index offset by `distance` from the index `i`. If
+  ///   - index: A valid index of the collection.
+  ///   - distance: The distance to offset `index`.
+  /// - Returns: An index offset by `distance` from `index`. If
   ///   `distance` is positive, this is the same value as the result of
   ///   `distance` calls to `index(after:)`. If `distance` is negative, this
   ///   is the same value as the result of `abs(distance)` calls to

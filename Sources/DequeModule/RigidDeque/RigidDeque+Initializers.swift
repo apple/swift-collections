@@ -161,7 +161,9 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// derived from the collection's count.
   ///
   /// - Parameters:
-  ///   - contents: The contents whose contents to copy into the new deque.
+  ///   - capacity: The desired capacity of the new deque, or nil to allocate
+  ///      just enough storage to fit the contents.
+  ///   - contents: The collection whose contents to copy into the new deque.
   @_alwaysEmitIntoClient
   @inline(__always)
   public init(

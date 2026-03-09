@@ -19,9 +19,9 @@ extension TreeSet: SetAlgebra {
   /// Returns a Boolean value that indicates whether the given element exists
   /// in the set.
   ///
-  /// - Parameter element: An element to look for in the set.
+  /// - Parameter item: An element to look for in the set.
   ///
-  /// - Returns: `true` if `element` exists in the set; otherwise, `false`.
+  /// - Returns: `true` if `item` exists in the set; otherwise, `false`.
   ///
   /// - Complexity: This operation is expected to perform O(1) hashing and
   ///    comparison operations on average, provided that `Element` implements

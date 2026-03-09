@@ -41,7 +41,7 @@ extension TreeDictionary {
   ///     dictionary.
   @inlinable
   public mutating func merge(
-    _ keysAndValues: Self,
+    _ keysAndValues: TreeDictionary,
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows {
     _invalidateIndices()
@@ -168,7 +168,7 @@ extension TreeDictionary {
   ///    hashing.
   @inlinable
   public func merging(
-    _ other: Self,
+    _ other: TreeDictionary,
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows -> Self {
     var copy = self

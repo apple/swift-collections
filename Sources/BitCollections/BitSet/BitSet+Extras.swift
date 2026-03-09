@@ -151,7 +151,7 @@ extension BitSet {
 extension BitSet {
   /// Removes and returns the element at the specified position.
   ///
-  /// - Parameter i: The position of the element to remove. `index` must be
+  /// - Parameter index: The position of the element to remove. `index` must be
   ///   a valid index of the collection that is not equal to the collection's
   ///   end index.
   ///

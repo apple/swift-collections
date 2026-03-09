@@ -22,7 +22,7 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is value of the largest member of
   ///     either set.
-  public func isEqualSet(to other: Self) -> Bool {
+  public func isEqualSet(to other: BitSet) -> Bool {
     self._storage == other._storage
   }
 

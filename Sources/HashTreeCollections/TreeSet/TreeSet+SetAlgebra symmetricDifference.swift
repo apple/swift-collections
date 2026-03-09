@@ -32,7 +32,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public func symmetricDifference(_ other: __owned Self) -> Self {
+  public func symmetricDifference(_ other: __owned TreeSet) -> TreeSet {
     let branch = _root.symmetricDifference(.top, other._root)
     guard let branch = branch else { return self }
     let root = branch.finalize(.top)
@@ -58,7 +58,7 @@ extension TreeSet {
   @inlinable
   public func symmetricDifference<Value>(
     _ other: __owned TreeDictionary<Element, Value>.Keys
-  ) -> Self {
+  ) -> TreeSet {
     let branch = _root.symmetricDifference(.top, other._base._root)
     guard let branch = branch else { return self }
     let root = branch.finalize(.top)
@@ -88,7 +88,7 @@ extension TreeSet {
   @inlinable
   public func symmetricDifference(
     _ other: __owned some Sequence<Element>
-  ) -> Self {
+  ) -> TreeSet {
     if let other = _specialize(other, for: Self.self) {
       return symmetricDifference(other)
     }

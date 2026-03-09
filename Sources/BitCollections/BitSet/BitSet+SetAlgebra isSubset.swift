@@ -34,7 +34,7 @@ extension BitSet {
   /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `self`.
-  public func isSubset(of other: Self) -> Bool {
+  public func isSubset(of other: BitSet) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words

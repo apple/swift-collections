@@ -31,9 +31,9 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Complexity: O(1) as amortized over many invocations on the same deque.
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func append(_ newElement: consuming Element) {
+  public mutating func append(_ item: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage._handle.uncheckedAppend(newElement)
+    _storage._handle.uncheckedAppend(item)
   }
 }
 

@@ -312,8 +312,9 @@ extension OrderedDictionary.Elements.SubSequence: RandomAccessCollection {
 
   /// Accesses the element at the specified position.
   ///
-  /// - Parameter index: The position of the element to access. `index` must be
-  ///   greater than or equal to `startIndex` and less than `endIndex`.
+  /// - Parameter position: The position of the element to access.
+  ///   `position` must be greater than or equal to `startIndex` and less than
+  ///   `endIndex`.
   ///
   /// - Complexity: O(1)
   @inlinable
