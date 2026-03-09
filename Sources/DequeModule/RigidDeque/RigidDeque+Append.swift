@@ -30,9 +30,9 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func append(_ newElement: consuming Element) {
+  public mutating func append(_ item: consuming Element) {
     precondition(!isFull, "RigidDeque capacity overflow")
-    _handle.uncheckedAppend(newElement)
+    _handle.uncheckedAppend(item)
   }
 
   /// Adds an element to the end of the deque, if possible.

@@ -718,8 +718,10 @@ extension OrderedDictionary {
   /// - Parameters:
   ///   - key: The key to look up (or append). If `key` does not already exist
   ///      in the dictionary, it is appended with the supplied default value.
-  ///   - defaultValue: The default value to append if `key` doesn't exist in
+  ///   - defaultValue: The default value to insert if `key` doesn't exist in
   ///      the dictionary.
+  ///   - index: The index at which to insert the new element, if it doesn't
+  ///      already exist.
   ///   - body: A function that performs an in-place mutation on the dictionary
   ///      value.
   ///

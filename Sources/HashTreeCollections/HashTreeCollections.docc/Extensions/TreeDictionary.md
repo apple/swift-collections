@@ -26,7 +26,7 @@ mutation, its `Values` view is not a `MutableCollection`.
 
 - ``init()``
 - ``init(_:)-(TreeDictionary<Key,Value>)``
-- ``init(_:)-(Dictionary<Key,Value>)``
+- ``init(_:)-([Key:Value])``
 - ``init(uniqueKeysWithValues:)-(Sequence<Element>)``
 - ``init(uniqueKeysWithValues:)-(Sequence<(Key,Value)>)``
 - ``init(_:uniquingKeysWith:)-(Sequence<Element>,_)``
@@ -43,9 +43,9 @@ mutation, its `Values` view is not a `MutableCollection`.
 
 ### Accessing Keys and Values
 
-- ``subscript(i:)``
-- ``subscript(key:default:)``
-- ``subscript(key:)``
+- ``subscript(_:)->TreeDictionary<Key,Value>.Element``
+- ``subscript(_:default:)``
+- ``subscript(_:)->Value?``
 - ``index(forKey:)``
 
 ### Adding or Updating Keys and Values
@@ -60,10 +60,10 @@ operation.) `TreeDictionary` also provides the standard `merge` and
 - ``updateValue(_:forKey:)``
 - ``updateValue(forKey:with:)``
 - ``updateValue(forKey:default:with:)``
-- ``merge(_:uniquingKeysWith:)-(Self,_)``
+- ``merge(_:uniquingKeysWith:)-(TreeDictionary,_)``
 - ``merge(_:uniquingKeysWith:)-(Sequence<Element>,_)``
 - ``merge(_:uniquingKeysWith:)-(Sequence<(Key,Value)>,_)``
-- ``merging(_:uniquingKeysWith:)-(Self,_)``
+- ``merging(_:uniquingKeysWith:)-(TreeDictionary,_)``
 - ``merging(_:uniquingKeysWith:)-(Sequence<Element>,_)``
 - ``merging(_:uniquingKeysWith:)-(Sequence<(Key,Value)>,_)``
 

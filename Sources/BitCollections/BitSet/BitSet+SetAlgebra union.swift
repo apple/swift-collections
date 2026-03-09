@@ -25,7 +25,7 @@ extension BitSet {
   /// - Parameter other: The set of elements to insert.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func union(_ other: Self) -> Self {
+  public func union(_ other: BitSet) -> BitSet {
     self._read { first in
       other._read { second in
         Self(
@@ -45,7 +45,7 @@ extension BitSet {
   /// - Parameter other: The set of elements to insert.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func union(_ other: BitSet.Counted) -> Self {
+  public func union(_ other: BitSet.Counted) -> BitSet {
     union(other._bits)
   }
 
@@ -58,7 +58,7 @@ extension BitSet {
   /// - Parameter other: A range of nonnegative integers.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func union(_ other: Range<Int>) -> Self {
+  public func union(_ other: Range<Int>) -> BitSet {
     var result = self
     result.formUnion(other)
     return result
@@ -77,7 +77,7 @@ extension BitSet {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public func union(_ other: __owned some Sequence<Int>) -> Self {
+  public func union(_ other: __owned some Sequence<Int>) -> BitSet {
     if let other = _specialize(other, for: BitSet.self) {
       return union(other)
     }

@@ -32,7 +32,7 @@ extension BitSet {
   /// Returns a Boolean value that indicates whether the given element exists
   /// in the set.
   ///
-  /// - Parameter element: An element to look for in the set.
+  /// - Parameter member: An element to look for in the set.
   ///
   /// - Returns: `true` if `member` exists in the set; otherwise, `false`.
   ///

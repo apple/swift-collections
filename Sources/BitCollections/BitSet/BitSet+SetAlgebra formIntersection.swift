@@ -26,7 +26,7 @@ extension BitSet {
   /// - Parameter other: A bit set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public mutating func formIntersection(_ other: Self) {
+  public mutating func formIntersection(_ other: BitSet) {
     other._read { source in
       if source.wordCount < _storage.count {
         self._storage.removeLast(_storage.count - source.wordCount)

@@ -30,9 +30,9 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func prepend(_ newElement: consuming Element) {
+  public mutating func prepend(_ item: consuming Element) {
     precondition(!isFull, "RigidDeque capacity overflow")
-    _handle.uncheckedPrepend(newElement)
+    _handle.uncheckedPrepend(item)
   }
   
   /// Adds an element to the front of the deque, if possible.

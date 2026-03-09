@@ -39,7 +39,7 @@ extension OrderedDictionary {
 
   /// Removes all members from the dictionary.
   ///
-  /// - Parameter keepingCapacity: If `true`, the dictionary's storage capacity
+  /// - Parameter keepCapacity: If `true`, the dictionary's storage capacity
   ///   is preserved; if `false`, the underlying storage is released. The
   ///   default is `false`.
   ///

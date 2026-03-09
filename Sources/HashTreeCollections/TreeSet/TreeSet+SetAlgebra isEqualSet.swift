@@ -30,7 +30,7 @@ extension TreeSet {
   ///    every available shortcut to reduce complexity, e.g. by skipping
   ///    comparing elements in shared subtrees.
   @inlinable
-  public func isEqualSet(to other: Self) -> Bool {
+  public func isEqualSet(to other: TreeSet) -> Bool {
     _root.isEqualSet(to: other._root, by: { _, _ in true })
   }
 

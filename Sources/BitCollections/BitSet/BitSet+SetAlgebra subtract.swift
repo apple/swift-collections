@@ -26,7 +26,7 @@ extension BitSet {
   /// - Parameter other: Another bit set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public mutating func subtract(_ other: Self) {
+  public mutating func subtract(_ other: BitSet) {
     _updateThenShrink { target, shrink in
       other._read { source in
         target.combineSharedPrefix(
@@ -58,8 +58,6 @@ extension BitSet {
   ///     // set is now [3, 4]
   ///
   /// - Parameter other: A range of arbitrary integers.
-  ///
-  /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in self.
   public mutating func subtract(_ other: Range<Int>) {

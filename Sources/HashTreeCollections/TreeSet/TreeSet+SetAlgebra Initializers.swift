@@ -56,7 +56,7 @@ extension TreeSet {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public init(_ items: __owned Self) {
+  public init(_ items: __owned TreeSet) {
     self = items
   }
 
@@ -68,8 +68,8 @@ extension TreeSet {
   /// - Complexity: O(*items.count*)
   @inlinable
   public init<Value>(
-    _ item: __owned TreeDictionary<Element, Value>.Keys
+    _ items: __owned TreeDictionary<Element, Value>.Keys
   ) {
-    self.init(_new: item._base._root.mapValues { _ in () })
+    self.init(_new: items._base._root.mapValues { _ in () })
   }
 }

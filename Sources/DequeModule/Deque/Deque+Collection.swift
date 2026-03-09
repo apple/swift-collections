@@ -274,8 +274,8 @@ extension Deque: RandomAccessCollection {
   /// the collection.
   ///
   /// - Parameters:
-  ///   - i: A valid index of the deque.
-  ///   - `distance`: The distance by which to offset `i`.
+  ///  - i: A valid index of the deque.
+  ///  - distance: The distance by which to offset `i`.
   ///
   /// - Returns: An index offset by `distance` from the index `i`. If `distance`
   ///    is positive, this is the same value as the result of `distance` calls

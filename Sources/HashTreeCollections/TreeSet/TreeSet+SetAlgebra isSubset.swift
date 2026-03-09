@@ -35,7 +35,7 @@ extension TreeSet {
   ///    the best use of hash tree structure to minimize work when possible,
   ///    e.g. by skipping over parts of the input trees.
   @inlinable
-  public func isSubset(of other: Self) -> Bool {
+  public func isSubset(of other: TreeSet) -> Bool {
     self._root.isSubset(.top, of: other._root)
   }
 

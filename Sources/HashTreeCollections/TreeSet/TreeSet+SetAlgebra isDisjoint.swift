@@ -31,7 +31,7 @@ extension TreeSet {
   /// - Complexity: Expected to be O(min(`self.count`, `other.count`)) on
   ///    average, if `Element` implements high-quality hashing.
   @inlinable
-  public func isDisjoint(with other: Self) -> Bool {
+  public func isDisjoint(with other: TreeSet) -> Bool {
     self._root.isDisjoint(.top, with: other._root)
   }
 

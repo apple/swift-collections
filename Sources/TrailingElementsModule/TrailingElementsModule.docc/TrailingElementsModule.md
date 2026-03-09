@@ -112,4 +112,4 @@ var padded = TrailingPadding(header: SomeType(), totalSize: getSizeOfSomeTypeWit
 - ``TrailingPadding``
 
 ### Protocols
-- ``TrailingElements`
+- ``TrailingElements``
