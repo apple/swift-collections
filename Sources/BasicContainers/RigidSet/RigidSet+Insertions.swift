@@ -140,6 +140,7 @@ extension RigidSet where Element: ~Copyable {
         capacity: c
       ) { output throws(E) in
         defer {
+          #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
           output._consumeAll { span in
             if span.count < c {
               remainder = 0
@@ -150,6 +151,14 @@ extension RigidSet where Element: ~Copyable {
               insert(next)
             }
           }
+          #else
+          output.withUnsafeMutableBufferPointer { buffer, count in
+            for i in 0 ..< count {
+              self.insert(buffer.moveElement(from: i))
+            }
+            count = 0
+          }
+          #endif
         }
         try initializer(&output)
       }

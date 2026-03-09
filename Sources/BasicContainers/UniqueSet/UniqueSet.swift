@@ -18,7 +18,7 @@ import ContainersPreview
 
 #if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 #if compiler(<6.4)
-@available(*, unavailable, message: "RigidSet requires a Swift 6.4 toolchain")
+@available(*, unavailable, message: "UniqueSet requires a Swift 6.4 toolchain")
 public struct UniqueSet<Element: Hashable>: ~Copyable {
   package init() {
     fatalError()
