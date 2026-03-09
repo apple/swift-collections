@@ -28,6 +28,7 @@ extension RigidSet {
   }
 }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidSet: Equatable {
   @inlinable
@@ -49,5 +50,6 @@ extension RigidSet: Equatable {
     return true
   }
 }
+#endif
 
 #endif

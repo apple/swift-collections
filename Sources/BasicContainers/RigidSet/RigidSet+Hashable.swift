@@ -16,7 +16,7 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet: Hashable {
@@ -32,6 +32,7 @@ extension RigidSet: Hashable {
   
   @inlinable
   public func _rawHashValue(seed: Int) -> Int {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
     var hash = 0
     var it = self.makeBorrowingIterator()
     while true {
@@ -43,6 +44,12 @@ extension RigidSet: Hashable {
       }
     }
     return hash
+#else
+    var hasher = Hasher()
+    hasher.combine(seed)
+    self.hash(into: &hasher)
+    return hasher.finalize()
+#endif
   }
 }
 
