@@ -20,6 +20,7 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
+#if !os(Android) // Exit tests are not available on this platform
 @Suite("RigidDeque Crash Tests")
 struct RigidDequeCrashTests {
     
@@ -79,5 +80,5 @@ struct RigidDequeCrashTests {
     }
   }
 }
-
+#endif
 #endif
