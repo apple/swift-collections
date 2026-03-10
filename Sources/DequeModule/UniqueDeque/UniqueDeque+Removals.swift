@@ -26,7 +26,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// gap left by the removed item. (The direction of the move depends on the
   /// location of the removal, minimizing the cost.)
   ///
-  /// - Parameter i: The position of the element to remove. `index` must be
+  /// - Parameter index: The position of the element to remove. `index` must be
   ///   a valid index of the deque that is not equal to the end index.
   /// - Returns: The removed element.
   ///

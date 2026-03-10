@@ -26,7 +26,7 @@ extension RigidDeque where Element: ~Copyable {
   /// gap left by the removed item. (The direction of the move depends on the
   /// location of the removal, minimizing the cost.)
   ///
-  /// - Parameter i: The position of the element to remove. `index` must be
+  /// - Parameter index: The position of the element to remove. `index` must be
   ///   a valid index of the deque that is not equal to the end index.
   /// - Returns: The removed element.
   ///
@@ -98,11 +98,11 @@ extension RigidDeque where Element: ~Copyable {
   /// Attempting to remove more elements than exist in the deque
   /// triggers a runtime error.
   ///
-  /// - Parameter k: The number of elements to remove from the deque.
-  ///   `k` must be greater than or equal to zero and must not exceed
+  /// - Parameter n: The number of elements to remove from the deque.
+  ///   `n` must be greater than or equal to zero and must not exceed
   ///   the count of the deque.
   ///
-  /// - Complexity: O(`k`)
+  /// - Complexity: O(`n`)
   @_alwaysEmitIntoClient
   public mutating func removeLast(_ n: Int) {
     precondition(n >= 0, "Cannot remove a negative number of elements")

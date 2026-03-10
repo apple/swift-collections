@@ -29,7 +29,7 @@ extension BitSet {
   ///   otherwise, `false`.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func isDisjoint(with other: Self) -> Bool {
+  public func isDisjoint(with other: BitSet) -> Bool {
     self._read { first in
       other._read { second in
         let w1 = first._words

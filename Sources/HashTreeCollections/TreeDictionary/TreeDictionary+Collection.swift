@@ -159,11 +159,11 @@ extension TreeDictionary: Collection {
   ///
   /// - Complexity: O(1)
   @inlinable
-  public subscript(i: Index) -> Element {
-    precondition(_isValid(i), "Invalid index")
-    precondition(i._path.isOnItem, "Cannot get element at endIndex")
-    return _UnsafeHandle.read(i._path.node) {
-      $0[item: i._path.currentItemSlot]
+  public subscript(position: Index) -> Element {
+    precondition(_isValid(position), "Invalid index")
+    precondition(position._path.isOnItem, "Cannot get element at endIndex")
+    return _UnsafeHandle.read(position._path.node) {
+      $0[item: position._path.currentItemSlot]
     }
   }
 

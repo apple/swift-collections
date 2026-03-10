@@ -38,7 +38,6 @@
 
 ### Sorted Set Operations
 
-- ``subscript(position:)``
 - ``subscript(member:)``
 - ``subscript(members:)-(RangeExpression<Int>)``
 - ``subscript(members:)-(Range<Int>)``
@@ -48,27 +47,27 @@
 
 ### Combining Sets
 
-- ``intersection(_:)-(Self)``
+- ``intersection(_:)-(BitSet)``
 - ``intersection(_:)-(Range<Int>)``
 - ``intersection(_:)-(BitSet.Counted)``
 - ``intersection(_:)-(Sequence<Int>)``
 
-- ``union(_:)-(Self)``
+- ``union(_:)-(BitSet)``
 - ``union(_:)-(Range<Int>)``
 - ``union(_:)-(BitSet.Counted)``
 - ``union(_:)-(Sequence<Int>)``
 
-- ``subtracting(_:)-(Self)``
+- ``subtracting(_:)-(BitSet)``
 - ``subtracting(_:)-(Range<Int>)``
 - ``subtracting(_:)-(BitSet.Counted)``
 - ``subtracting(_:)-(Sequence<Int>)``
 
-- ``symmetricDifference(_:)-(Self)``
+- ``symmetricDifference(_:)-(BitSet)``
 - ``symmetricDifference(_:)-(Range<Int>)``
 - ``symmetricDifference(_:)-(Counted)``
 - ``symmetricDifference(_:)-(Sequence<Int>)``
 
-- ``formIntersection(_:)-(Self)``
+- ``formIntersection(_:)-(BitSet)``
 - ``formIntersection(_:)-(Range<Int>)``
 - ``formIntersection(_:)-(BitSet.Counted)``
 - ``formIntersection(_:)-(Sequence<Int>)``
@@ -83,7 +82,7 @@
 - ``subtract(_:)-(BitSet.Counted)``
 - ``subtract(_:)-(Sequence<Int>)``
 
-- ``formSymmetricDifference(_:)-(Self)``
+- ``formSymmetricDifference(_:)-(BitSet)``
 - ``formSymmetricDifference(_:)-(Range<Int>)``
 - ``formSymmetricDifference(_:)-(BitSet.Counted)``
 - ``formSymmetricDifference(_:)-(Sequence<Int>)``
@@ -91,17 +90,17 @@
 ### Comparing Sets
 
 - ``==(_:_:)``
-- ``isEqualSet(to:)-(Self)``
+- ``isEqualSet(to:)-(BitSet)``
 - ``isEqualSet(to:)-(Range<Int>)``
 - ``isEqualSet(to:)-(BitSet.Counted)``
 - ``isEqualSet(to:)-(Sequence<Int>)``
 
-- ``isSubset(of:)-(Self)``
+- ``isSubset(of:)-(BitSet)``
 - ``isSubset(of:)-(Range<Int>)``
 - ``isSubset(of:)-(BitSet.Counted)``
 - ``isSubset(of:)-(Sequence<Int>)``
 
-- ``isSuperset(of:)-(Self)
+- ``isSuperset(of:)-(Self)``
 - ``isSuperset(of:)-(Range<Int>)``
 - ``isSuperset(of:)-(BitSet.Counted)``
 - ``isSuperset(of:)-(Sequence<Int>)``
@@ -116,7 +115,7 @@
 - ``isStrictSuperset(of:)-(BitSet.Counted)``
 - ``isStrictSuperset(of:)-(Sequence<Int>)``
 
-- ``isDisjoint(with:)-(Self)
+- ``isDisjoint(with:)-(Self)``
 - ``isDisjoint(with:)-(Range<Int>)``
 - ``isDisjoint(with:)-(BitSet.Counted)``
 - ``isDisjoint(with:)-(Sequence<Int>)``

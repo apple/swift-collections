@@ -26,7 +26,7 @@ extension BitSet {
   /// - Parameter other: The set of elements to insert.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public mutating func formUnion(_ other: Self) {
+  public mutating func formUnion(_ other: BitSet) {
     _ensureCapacity(limit: other._capacity)
     _update { target in
       other._read { source in

@@ -92,7 +92,7 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
 ///
 /// It is possible to extend or shrink the capacity of a rigid deque instance,
 /// but this needs to be done explicitly, with operations dedicated to this
-/// purpose (such as ``reserveCapacity`` and ``reallocate(capacity:)``).
+/// purpose (such as ``reserveCapacity(_:)`` and ``reallocate(capacity:)``).
 /// The deque never resizes itself automatically.
 ///
 /// Therefore, it is necessary to perform careful manual analysis (or up front

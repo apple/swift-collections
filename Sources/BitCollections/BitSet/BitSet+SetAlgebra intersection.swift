@@ -27,7 +27,7 @@ extension BitSet {
   /// - Parameter other: A bit set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public func intersection(_ other: Self) -> Self {
+  public func intersection(_ other: BitSet) -> BitSet {
     self._read { first in
       other._read { second in
         Self(
@@ -49,7 +49,7 @@ extension BitSet {
   /// - Parameter other: A bit set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public func intersection(_ other: BitSet.Counted) -> Self {
+  public func intersection(_ other: BitSet.Counted) -> BitSet {
     self.intersection(other._bits)
   }
 
@@ -64,7 +64,7 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
-  public func intersection(_ other: Range<Int>) -> Self {
+  public func intersection(_ other: Range<Int>) -> BitSet {
     var result = self
     result.formIntersection(other)
     return result
@@ -83,7 +83,7 @@ extension BitSet {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func intersection(_ other: __owned some Sequence<Int>) -> Self {
+  public func intersection(_ other: __owned some Sequence<Int>) -> BitSet {
     if let other = _specialize(other, for: Range<Int>.self) {
       return intersection(other)
     }

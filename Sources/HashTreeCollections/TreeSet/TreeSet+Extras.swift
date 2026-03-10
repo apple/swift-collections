@@ -46,10 +46,10 @@ extension TreeSet {
   ///
   /// Calling this method invalidates all existing indices of the collection.
   ///
-  /// - Parameter item: The new value that should replace the original element.
+  /// - Parameters:
+  ///   - member: The new value that should replace the original element.
   ///     `item` must compare equal to the original value.
-  ///
-  /// - Parameter index: The index of the element to be replaced.
+  ///   - index: The index of the element to be replaced.
   ///
   /// - Returns: The original element that was replaced.
   ///

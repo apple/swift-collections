@@ -41,14 +41,14 @@ var coords = TrailingArray(header: Coordinates(numPoints: 3)) { outputSpan in
 }
 ```
 
-Subscripting an ``TrailingArray`` provides access to the elements. One can also use the ``TrailingArray.elements`` or ``TrailingArray.mutableElements`` properties to get a [`Span`](https://developer.apple.com/documentation/swift/span) or [`MutableSpan`](https://developer.apple.com/documentation/swift/mutablespan) over the elements, respectively. Once the `coords` value is no longer used, the buffer will be deallocated.
+Subscripting an ``TrailingArray`` provides access to the elements. One can also use the ``TrailingArray/elements`` or ``TrailingArray/mutableElements`` properties to get a [`Span`](https://developer.apple.com/documentation/swift/span) or [`MutableSpan`](https://developer.apple.com/documentation/swift/mutablespan) over the elements, respectively. Once the `coords` value is no longer used, the buffer will be deallocated.
 
 ```swift
 print(coords[0])    // displays Point(x: 1, y: 2)
 ```
 
 ### Stack allocation
-If heap allocation is not acceptable, use the static method ``TrailingArray.withTemporaryValue`` to produce a temporary instance of ``TrailingArray`` that can be used within the given body closure, like this:
+If heap allocation is not acceptable, use the static method ``TrailingArray/withTemporaryValue(header:repeating:body:)`` to produce a temporary instance of ``TrailingArray`` that can be used within the given body closure, like this:
 
 ```swift
 TrailingArray.withTemporaryValue(header: Coordinates(numPoints: 3), repeating: Point(x: 0, y: 0)) { coords in
@@ -112,4 +112,4 @@ var padded = TrailingPadding(header: SomeType(), totalSize: getSizeOfSomeTypeWit
 - ``TrailingPadding``
 
 ### Protocols
-- ``TrailingElements`
+- ``TrailingElements``

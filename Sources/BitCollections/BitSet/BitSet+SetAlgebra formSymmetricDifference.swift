@@ -27,7 +27,7 @@ extension BitSet {
   /// - Parameter other: Another set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public mutating func formSymmetricDifference(_ other: Self) {
+  public mutating func formSymmetricDifference(_ other: BitSet) {
     _ensureCapacity(limit: other._capacity)
     _updateThenShrink { target, shrink in
       other._read { source in

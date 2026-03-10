@@ -31,9 +31,9 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Complexity: O(1) when amortized over many invocations on the same deque.
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func prepend(_ newElement: consuming Element) {
+  public mutating func prepend(_ item: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage._handle.uncheckedPrepend(newElement)
+    _storage._handle.uncheckedPrepend(item)
   }
 }
 

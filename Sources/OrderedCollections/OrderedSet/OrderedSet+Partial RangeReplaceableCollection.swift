@@ -16,7 +16,7 @@
 extension OrderedSet {
   /// Removes all members from the set.
   ///
-  /// - Parameter keepingCapacity: If `true`, the set's storage capacity is
+  /// - Parameter keepCapacity: If `true`, the set's storage capacity is
   ///   preserved; if `false`, the underlying storage is released. The default
   ///   is `false`.
   ///

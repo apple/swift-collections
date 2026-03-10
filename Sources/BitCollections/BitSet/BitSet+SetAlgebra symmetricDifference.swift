@@ -28,7 +28,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public func symmetricDifference(_ other: Self) -> Self {
+  public func symmetricDifference(_ other: BitSet) -> BitSet {
     self._read { first in
       other._read { second in
         Self(
@@ -51,7 +51,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public func symmetricDifference(_ other: Counted) -> Self {
+  public func symmetricDifference(_ other: Counted) -> BitSet {
     symmetricDifference(other._bits)
   }
 
@@ -66,7 +66,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func symmetricDifference(_ other: Range<Int>) -> Self {
+  public func symmetricDifference(_ other: Range<Int>) -> BitSet {
     var result = self
     result.formSymmetricDifference(other)
     return result
@@ -87,7 +87,7 @@ extension BitSet {
   @inlinable
   public func symmetricDifference(
     _ other: __owned some Sequence<Int>
-  ) -> Self {
+  ) -> BitSet {
     if let other = _specialize(other, for: Range<Int>.self) {
       return symmetricDifference(other)
     }
