@@ -27,8 +27,34 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
     @usableFromInline var count: Int
     
     @inlinable @inline(__always)
-    var capacity: Int {
-      ptr.count - count
+    var byteCapacity: Int {
+      _assumeNonNegative(ptr.count)
+    }
+    
+    @inlinable @inline(__always)
+    var elementCapacity: Int {
+      byteCapacity / MemoryLayout<Element>.stride
+    }
+    
+    @inlinable @inline(__always)
+    var elementCount: Int {
+      get {
+        count / MemoryLayout<Element>.stride
+      }
+      set(newValue) {
+        precondition(newValue >= 0)
+        count = newValue * MemoryLayout<Element>.stride
+      }
+    }
+ 
+    @inlinable @inline(__always)
+    var freeByteCapacity: Int {
+      _assumeNonNegative(ptr.count &- count)
+    }
+    
+    @inlinable @inline(__always)
+    var freeElementCapacity: Int {
+      freeByteCapacity / MemoryLayout<Element>.stride
     }
     
     @inlinable @inline(__always)
@@ -45,9 +71,13 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   @inlinable
   deinit {
     for idx in 0 ..< _pointers.count {
-      let count = _pointers[idx].count
+      let byteCount = _pointers[idx].count
+      let elementCount = byteCount / MemoryLayout<Element>.stride
       unsafe _pointers[idx].ptr.withMemoryRebound(to: Element.self) {
-        _ = unsafe UnsafeMutableBufferPointer<Element>(start: $0.baseAddress!, count: count).deinitialize()
+        _ = unsafe UnsafeMutableBufferPointer<Element>(
+          start: $0.baseAddress.unsafelyUnwrapped,
+          count: elementCount
+        ).deinitialize()
       }
     }
   }
@@ -69,7 +99,17 @@ extension InputMultispan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func _firstNonEmptySpanIndex() -> Int? {
     for idx in 0 ..< _pointers.count {
-      if _pointers[idx].count > 0 {
+      if _pointers[idx].elementCount > 0 {
+        return idx
+      }
+    }
+    return nil
+  }
+  
+  @_alwaysEmitIntoClient
+  internal func _lastNonFullSpanIndex() -> Int? {
+    for idx in (0 ..< _pointers.count).reversed() {
+      if _pointers[idx].freeElementCapacity > 0 {
         return idx
       }
     }
@@ -81,7 +121,11 @@ extension InputMultispan where Element: ~Copyable {
   internal func _unsafeAddressOfElement(
     unchecked index: Index
   ) -> UnsafeMutablePointer<Element> {
-    let address = unsafe _pointers[ index.bufferIndex].ptr.baseAddress.unsafelyUnwrapped.advanced(by: index.elementIndex)
+    let buffer = _pointers[index.bufferIndex]
+    // Elements are stored at the end of the buffer, like InputSpan
+    // The first element is at position (capacity - count)
+    let elementOffset = (buffer.elementCapacity &- buffer.elementCount &+ index.elementIndex) &* MemoryLayout<Element>.stride
+    let address = unsafe buffer.ptr.baseAddress.unsafelyUnwrapped.advanced(by: elementOffset)
     return unsafe address.assumingMemoryBound(to: Element.self)
   }
 }
@@ -125,7 +169,7 @@ extension InputMultispan where Element: ~Copyable {
   /// The number of initialized elements in this span.
   @_alwaysEmitIntoClient
   public func count(at index: Int) -> Int {
-    _assumeNonNegative(_pointers[index].count)
+    _assumeNonNegative(_pointers[index].elementCount)
   }
   
   public var totalCount: Int {
@@ -138,15 +182,15 @@ extension InputMultispan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public func freeCapacity(at index: Int) -> Int {
-    _assumeNonNegative(_pointers[index].capacity &- _pointers[index].count)
+    _pointers[index].freeElementCapacity
   }
   
-  /// The number of additional elements that can be added to this span.
+  /// The number of additional elements that can be consumed from this span.
   @_alwaysEmitIntoClient
   public var totalFreeCapacity: Int {
     var total = 0
     for idx in 0 ..< spanCount {
-      total += count(at: idx)
+      total += freeCapacity(at: idx)
     }
     return total
   }
@@ -167,31 +211,33 @@ extension InputMultispan where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension InputMultispan where Element: ~Copyable {
   
-  /// Unsafely add partly-initialized memory to the spans covered by an OutputMultispan
+  /// Unsafely add partly-initialized memory to the spans covered by an InputMultispan
   ///
   /// The memory in `span` must remain valid throughout the lifetime of the
-  /// newly-created `OutputMultispan`.
+  /// newly-created `InputMultispan`.
   ///
   /// - Parameters:
-  ///   - span: an `OutputSpan` to be initialized
+  ///   - span: an `InputSpan` to be initialized
   @unsafe
   @_alwaysEmitIntoClient
   public mutating func _appendSpan(_ span: inout InputSpan<Element>) {
-    let base = unsafe span._unsafeAddressOfElement(uncheckedOffset: 0)
-    let capacity = span.capacity
-    let count = span.count
-    _pointers.append(
-      InputMultispan._Buffer(
-        ptr: UnsafeMutableRawBufferPointer(start: base, count: capacity),
-        count: count
+    // Unfortunately there's no way to express the required lifetimes to store
+    // the InputSpan itself here, so we have to unsafely cheat and get the
+    // underlying pointer out
+    span.withUnsafeMutableBufferPointer { buffer, count in
+      _pointers.append(
+        InputMultispan._Buffer(
+          ptr: UnsafeMutableRawBufferPointer(buffer),
+          count: count * MemoryLayout<Element>.stride
+        )
       )
-    )
+    }
   }
   
-  /// Unsafely add partly-initialized memory to the spans covered by an OutputMultispan
+  /// Unsafely add partly-initialized memory to the spans covered by an InputMultispan
   ///
   /// The memory in `buffer` must remain valid throughout the lifetime
-  /// of the newly-created `OutputMultispan`. Its prefix must contain
+  /// of the newly-created `InputMultispan`. Its prefix must contain
   /// `initializedCount` initialized instances, followed by uninitialized
   /// memory. The default value of `initializedCount` is 0, representing
   /// the common case of a completely uninitialized `buffer`.
@@ -209,7 +255,7 @@ extension InputMultispan where Element: ~Copyable {
     _pointers.append(
       InputMultispan._Buffer(
         ptr: UnsafeMutableRawBufferPointer(buffer),
-        count: initializedCount
+        count: initializedCount * MemoryLayout<Element>.stride
       )
     )
   }
@@ -246,9 +292,9 @@ extension InputMultispan where Element: ~Copyable {
   public func index(after index: InputMultispan.Index) -> InputMultispan.Index {
     let bufIdx = index.bufferIndex
     precondition(bufIdx < _pointers.count)
-    let elementOffset = index.elementIndex &* MemoryLayout<Element>.stride
-    precondition(elementOffset <= _pointers[bufIdx].capacity)
-    if elementOffset == _pointers[bufIdx].capacity {
+    let elementOffset = index.elementIndex
+    precondition(elementOffset <= _pointers[bufIdx].elementCapacity)
+    if elementOffset == _pointers[bufIdx].elementCapacity {
       if bufIdx == _pointers.count {
         return endIndex
       }
@@ -395,7 +441,7 @@ extension InputMultispan where Element: ~Copyable {
     return try buffer.ptr.withMemoryRebound(to: Element.self) { (typedBuffer) throws(E) in
       var span = InputSpan<Element>(
         _uncheckedBuffer: typedBuffer,
-        initializedCount: buffer.count
+        initializedCount: buffer.elementCount
       )
       return try work(&span)
       // Intentionally skipping finalize here. See TODO in our finalize method
@@ -408,19 +454,15 @@ extension InputMultispan where Element: ~Copyable {
   public mutating func prepend(_ value: consuming Element) {
     precondition(spanCount > 0, "InputMultispan has no capacity")
     var v:Element? = consume value
-    if let firstNonEmptySpanIdx = _firstNonEmptySpanIndex() {
-      withInputSpan(at: firstNonEmptySpanIdx) { inputSpan in
-        inputSpan.prepend(v.take()!)
-      }
-      _pointers[firstNonEmptySpanIdx].count &+= 1
-      return
-    }
     
-    withInputSpan(at: spanCount - 1) { inputSpan in
+    // Find the last buffer with available capacity
+    // Since InputSpan grows backwards, we fill buffers from right to left
+    let targetIdx = _lastNonFullSpanIndex().unsafelyUnwrapped
+    
+    withInputSpan(at: targetIdx) { inputSpan in
       inputSpan.prepend(v.take()!)
     }
-    _pointers[spanCount - 1].count &+= 1
-    return
+    _pointers[targetIdx].elementCount &+= 1
   }
 
   /// Remove the first initialized element from this span.
@@ -430,8 +472,8 @@ extension InputMultispan where Element: ~Copyable {
   @_lifetime(self: copy self)
   public mutating func removeFirst() -> Element {
     precondition(!isEmpty, "InputMultispan underflow")
-    //TODO: optimize this to not iterate twice
     let idx = _firstNonEmptySpanIndex().unsafelyUnwrapped
+    defer { _pointers[idx].elementCount &-= 1 }
     return withInputSpan(at: idx) {
       $0.removeFirst()
     }
@@ -470,6 +512,9 @@ extension InputMultispan where Element: ~Copyable {
   @_lifetime(self: copy self)
   public mutating func removeAll() {
     for spanIdx in 0 ..< spanCount {
+      defer {
+        _pointers[spanIdx].elementCount = 0
+      }
       withInputSpan(at: spanIdx) { inputSpan in
         inputSpan.removeAll()
       }
@@ -486,13 +531,13 @@ extension InputMultispan where Element: ~Copyable {
   public mutating func prepend(moving source: UnsafeMutableBufferPointer<Element>) {
     precondition(source.count <= totalFreeCapacity, "InputSpan capacity overflow")
 
-    if let idx = _firstNonEmptySpanIndex() {
-      let capacity = _pointers[idx].capacity - _pointers[idx].count
-      if capacity >= source.count {
+    if let idx = _lastNonFullSpanIndex() {
+      let freeCapacity = _pointers[idx].freeElementCapacity
+      if freeCapacity >= source.count {
         withInputSpan(at: idx) {
           $0.prepend(moving: source)
         }
-        _pointers[idx].count &+= source.count
+        _pointers[idx].elementCount &+= source.count
         return
       }
     }
