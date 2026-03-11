@@ -50,6 +50,13 @@ extension _HTable {
 #else
     var b = idealBucket(forHashValue: hashValue)
     var probeLength = 1
+    if bitmap.isOccupied(b) {
+      // Shortcut: In the first iteration, we're at the minimum possible probe
+      // length, so there is no possible way we'd replace the current item.
+      // There is no point hashing it.
+      self.wrapBucket(after: &b)
+      probeLength &+= 1
+    }
     while bitmap.isOccupied(b) {
       let oldHashValue = hashGenerator(b)
       let oldProbeLength = self.probeLength(
