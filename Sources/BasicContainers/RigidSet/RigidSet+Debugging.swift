@@ -142,6 +142,26 @@ extension RigidSet where Element: ~Copyable {
     }
     return str
   }
+
+  public func _checkInvariants() -> Bool {
+    var passed = true
+    _checkInvariants { message in
+      if passed {
+        passed = false
+        _dump(bitmap: true, buckets: true)
+      }
+      print(message)
+    }
+    return passed
+  }
+
+  public func _checkInvariants(
+    failureHandler: (String) -> Void
+  ) {
+    _table.checkInvariants(
+      failureHandler: failureHandler,
+      hashGenerator: { _hashValue(at: $0) })
+  }
 }
 
 #endif

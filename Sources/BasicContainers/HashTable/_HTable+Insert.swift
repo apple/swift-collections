@@ -18,7 +18,10 @@ extension _HTable {
     swapper: (Bucket) -> Void,
   ) -> Bucket {
     assert(isSmall)
-    // FIXME: Scramble order by swapping things in some way
+    if _count > 0 {
+      // Scramble order by swapping the new item in the middle of the table.
+      swapper(Bucket(offset: _count / 2))
+    }
     let r = Bucket(offset: _count)
     _count &+= 1
     _maxProbeLength = _count
@@ -49,9 +52,15 @@ extension _HTable {
     return actual
 #else
     var b = idealBucket(forHashValue: hashValue)
-    var probeLength = 0
-    while bitmap.isOccupied(b) {
+    var probeLength = 1
+    if bitmap.isOccupied(b) {
+      // Shortcut: In the first iteration, we're at the minimum possible probe
+      // length, so there is no possible way we'd replace the current item.
+      // There is no point hashing it.
+      self.wrapBucket(after: &b)
       probeLength &+= 1
+    }
+    while bitmap.isOccupied(b) {
       let oldHashValue = hashGenerator(b)
       let oldProbeLength = self.probeLength(
         forHashValue: oldHashValue,
@@ -64,6 +73,7 @@ extension _HTable {
         probeLength = oldProbeLength
       }
       self.wrapBucket(after: &b)
+      probeLength &+= 1
     }
     bitmap.setOccupied(b)
     _count &+= 1

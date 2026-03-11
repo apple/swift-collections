@@ -82,5 +82,89 @@ extension _HTable {
   package var description: String {
     describe()
   }
+  
+  package func checkInvariants(
+    failureHandler: (String) -> Void,
+    hashGenerator: (Bucket) -> Int
+  ) {
+#if DEBUG
+    if self.count > self.capacity {
+      failureHandler("Count exceeds capacity (count: \(count), capacity: \(capacity))")
+    }
+    if self.capacity > self.storageCapacity {
+      failureHandler("Capacity exceeds storage capacity (capacity: \(capacity), storage: \(self.storageCapacity))")
+    }
+    if isSmall {
+      if self.capacity > _HTable.maximumUnhashedCount {
+        failureHandler("Oversized small table (capacity: \(self.capacity)")
+      }
+      if _maxProbeLength != self.count {
+        failureHandler(
+          "Invalid max probe length for small table (count: \(self.count), mpl: \(self._maxProbeLength)")
+      }
+      return
+    }
+    
+    // large
+    let c = bitmap.occupiedCount()
+    if c != self.count {
+      failureHandler("Count does not match bitmap count (count: \(self.count), bitmap: \(c))")
+    }
+    
+    guard c > 0 else { return }
+    // Start iterating from the first empty bucket, wrapping around once
+    var it = self.makeBucketIterator()
+    it.advanceToUnoccupied()
+    if it.isAtEnd {
+      failureHandler("No unoccupied bucket in large hash table")
+      return
+    }
+    var end: Bucket? = nil
+    var maxProbeLength = 0
+    while true {
+      it.wrapToOccupied()
+      if end == nil {
+        it = makeBucketIterator(from: it.currentBucket) // Reset wrapped state
+        end = it.currentBucket
+      } else if end == it.currentBucket {
+        break
+      }
+      let chainStart = it.currentBucket
+#if !COLLECTIONS_NO_ROBIN_HOOD_HASHING
+      var probeLength = 1
+#endif
+      while it.isOccupied {
+        let hash = hashGenerator(it.currentBucket)
+        let ideal = self.idealBucket(forHashValue: hash)
+        if (chainStart <= it.currentBucket
+            ? ideal < chainStart || ideal > it.currentBucket
+            : ideal > it.currentBucket && ideal < chainStart) {
+          failureHandler("Unreachable item: not on the correct chain (bucket: \(it.currentBucket), ideal: \(ideal)")
+        }
+        let pl = self.probeLength(from: ideal, to: it.currentBucket)
+        if pl > _maxProbeLength {
+          failureHandler("Unreachable item: probe length exceeds max (bucket: \(it.currentBucket), probeLength: \(pl), maxProbeLength: \(_maxProbeLength)")
+        }
+        maxProbeLength = Swift.max(pl, maxProbeLength)
+        #if !COLLECTIONS_NO_ROBIN_HOOD_HASHING
+        // No item in ideal ..< current should have a shorter probe length than
+        // the current item would have in that position.
+        if pl > probeLength {
+          failureHandler(
+            "Item is misplaced in its chain (bucket: \(it.currentBucket), probeLength: \(pl) > \(probeLength))"
+          )
+        }
+        probeLength = Swift.min(pl, probeLength) + 1
+        #endif
+        it.wrapToNextBit()
+      }
+    }
+    if maxProbeLength > _maxProbeLength {
+      // Note: the actual mpl can be lower than the estimate, due to removals.
+      failureHandler(
+        "Bad maximum probe length (stored: \(_maxProbeLength), actual: \(maxProbeLength))")
+    }
+#endif
+  }
 }
 #endif

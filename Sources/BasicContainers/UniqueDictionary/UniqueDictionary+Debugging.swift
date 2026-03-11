@@ -30,6 +30,26 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   ) {
     _storage._dump(bitmap: bitmap, chains: chains, buckets: buckets)
   }
+  
+  public func _checkInvariants() -> Bool {
+    var passed = true
+    _checkInvariants { message in
+      if passed {
+        passed = false
+        _dump(bitmap: true, buckets: true)
+      }
+      print(message)
+    }
+    return passed
+  }
+
+  public func _checkInvariants(
+    failureHandler: (String) -> Void
+  ) {
+    _storage._checkInvariants(failureHandler: failureHandler)
+    // Note: we should have a check for correct storage sizing here,
+    // but `reserveCapacity` can mess that up (until we persist it)
+  }
 }
 
 #endif
