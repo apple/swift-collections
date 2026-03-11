@@ -32,12 +32,15 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   }
   
   public func _checkInvariants() -> Bool {
-    var pass = true
+    var passed = true
     _checkInvariants { message in
-      pass = false
+      if passed {
+        passed = false
+        _dump(bitmap: true, buckets: true)
+      }
       print(message)
     }
-    return pass
+    return passed
   }
 
   public func _checkInvariants(
