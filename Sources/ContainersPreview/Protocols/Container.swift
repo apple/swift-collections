@@ -16,7 +16,15 @@
 @available(SwiftStdlib 5.0, *)
 public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
   associatedtype Index: Comparable
-  
+  // FIXME: Ideally Index should also be required to be Hashable.
+  // FIXME: If we discard the separate BorrowingSequence abstraction, then we
+  // should consider dropping Comparable and just having Equatable indices, so
+  // that linked lists can conform to this protocol.
+  // This (potentially) complicates `distance(from:to:)` and similar algorithms,
+  // and we'd probably want to re-add index comparability in a refining protocol
+  // somewhere -- `RandomAccessContainer` or `BidirectionalContainer` would be
+  // the obvious candidates.
+
   var count: Int { get }
 
   var startIndex: Index { get }
@@ -408,6 +416,18 @@ where Base: ~Copyable /*FIXME: & ~Escapable*/
   @_lifetime(&self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
     _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
+  }
+
+  @_lifetime(self: copy self)
+  public mutating func skip(by maximumOffset: Int) -> Int {
+    // FIXME: If we aren't modeling bidirectional iterators, then this should
+    // trap on negative maximumOffsets
+    var n = maximumOffset
+    let limit = (n < 0 ? _base.value.startIndex : _base.value.endIndex)
+    var i = self._position
+    self._base.value.formIndex(&i, offsetBy: &n, limitedBy: limit)
+    self._position = i
+    return maximumOffset - n
   }
 }
 
