@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		63047EA22F566B8900C72A3F /* OutputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */; };
+		6330DDA72F5F8F9C00FFB5C1 /* InputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6330DDA62F5F8F9C00FFB5C1 /* InputMultispanTests.swift */; };
 		63E46A102F4D2F850008051A /* OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A0F2F4D2F850008051A /* OutputMultispan.swift */; };
 		63E46A122F4D2FA20008051A /* OutputMultispan+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */; };
 		63E46A172F4FCAE80008051A /* InputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A162F4FCAE80008051A /* InputMultispan.swift */; };
@@ -580,6 +581,7 @@
 /* Begin PBXFileReference section */
 		63047EA02F5668E600C72A3F /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
 		63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
+		6330DDA62F5F8F9C00FFB5C1 /* InputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispanTests.swift; sourceTree = "<group>"; };
 		63E46A0F2F4D2F850008051A /* OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispan.swift; sourceTree = "<group>"; };
 		63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputMultispan+Extras.swift"; sourceTree = "<group>"; };
 		63E46A162F4FCAE80008051A /* InputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispan.swift; sourceTree = "<group>"; };
@@ -1358,6 +1360,7 @@
 				7D2A779E2F27F367005780C7 /* InoutTests.swift */,
 				7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */,
 				63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */,
+				6330DDA62F5F8F9C00FFB5C1 /* InputMultispanTests.swift */,
 			);
 			path = ContainersTests;
 			sourceTree = "<group>";
@@ -2979,6 +2982,7 @@
 				7DE9221A29CA8576004483EB /* HeapNodeTests.swift in Sources */,
 				7DEBDB7029CCE44A00ADC226 /* ResettableValue.swift in Sources */,
 				7DE9221129CA8576004483EB /* OrderedDictionary+Values Tests.swift in Sources */,
+				6330DDA72F5F8F9C00FFB5C1 /* InputMultispanTests.swift in Sources */,
 				A93AC21E2E7C845300A824DF /* UniqueArrayTests.swift in Sources */,
 				A93AC21F2E7C845300A824DF /* ArrayLayout.swift in Sources */,
 				A93AC2202E7C845300A824DF /* RigidArrayTests.swift in Sources */,

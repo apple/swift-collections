@@ -19,7 +19,7 @@ import _CollectionsTestSupport
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.2, *)
 class InputMultispanTests: CollectionTestCase {
    
   // MARK: - Basic Initialization Tests
