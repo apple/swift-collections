@@ -49,12 +49,6 @@ extension _HTable {
     // otherwise the same bucket would be part of a large number of diverging
     // chains, and such compacting would require a full rehashing.
 
-    // Note: _maxProbeLength is not updated here, and so it may get out of
-    // sync with reality. It will get reset at the next rehashing, but if the
-    // table gets stuck at this size, this parameter may get significantly
-    // larger than it should be. The hope is that it won't so much larger that
-    // it would materially affect the performance of negative lookups.
-
     var hole = bucket
 
     var candidate = bucket
@@ -76,6 +70,22 @@ extension _HTable {
       wrapBucket(after: &candidate)
     }
     bitmap.clearOccupied(hole)
+
+    // Calculating the exact maximum probe length would not be feasible here,
+    // so we simply limit it to the current count, which is a trivial upper
+    // bound. This allows _maxProbeLength to get out of sync with reality.
+    // It will get reset to the exact value at the next rehashing, but if
+    // the table never gets resized, then this parameter may get significantly
+    // larger than it should be. The hope here is that it won't get so much
+    // larger that it would materially affect the performance of negative
+    // lookups. (We _could_ store a histogram of probe lengths to allow precise
+    // incremental updates here (like the original thesis suggests), but it's
+    // unclear if the benefits of that would outweigh the costs.)
+    // (FIXME: Try it and see.)
+    if _maxProbeLength > _count {
+      _maxProbeLength = _count
+    }
+
     return hole
   }
 
@@ -93,6 +103,7 @@ extension _HTable {
     assert(isValid(bucket))
     if isSmall {
       let last = Bucket(offset: _count) // Note: _count was decreased by createHole
+      _maxProbeLength = _count
       guard bucket < last else { return bucket }
       mover(last, bucket)
       return last
