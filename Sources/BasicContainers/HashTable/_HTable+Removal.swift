@@ -57,7 +57,7 @@ extension _HTable {
     while isOccupied(candidate) {
       let hashValue = hashGenerator(candidate)
       let ideal = self.idealBucket(forHashValue: hashValue)
-    
+
       // Does this element belong in some bucket at or below `hole`?
       // If so, move it to the hole. We need two separate tests depending on
       // whether `[hole, candidate]` wraps around the end of the storage.
@@ -66,6 +66,14 @@ extension _HTable {
       if hole < candidate ? (c0 || c1) : (c0 && c1) {
         mover(candidate, hole)
         hole = candidate
+      } else {
+#if !COLLECTIONS_NO_ROBIN_HOOD_HASHING
+        // If our candidate's ideal bucket is after the hole, then it follows
+        // from the Robin Hood probe length invariant that no subsequent items
+        // can possibly want to be below or at the hole, either. (Otherwise
+        // they should've been swapped with the current candidate.)
+        break
+#endif
       }
       wrapBucket(after: &candidate)
     }
