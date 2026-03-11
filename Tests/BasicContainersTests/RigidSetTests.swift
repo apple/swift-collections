@@ -279,9 +279,8 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_probeLengths() {
-    // FIXME: This isn't really testing anything; figure out how to handle this
     let c1 = 500
     let scale = _HTable.minimumScale(forCapacity: c1)
     let c2 = _HTable.maximumCapacity(forScale: scale)
@@ -289,9 +288,9 @@ class RigidSetTests: CollectionTestCase {
     for i in 0 ..< c2 {
       set.insert(i)
     }
-    set._dump(bitmap: true, chains: true)
+    expectConsistentSet(set)
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_borrowing_iterator() {
     withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 1000]) { capacity in
@@ -300,7 +299,7 @@ class RigidSetTests: CollectionTestCase {
           var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
           withEvery("i", in: 0 ..< capacity) { i in
             s.insert(tracker.instance(for: i))
-            
+
             var expected = Set(0 ... i)
             var it = s.makeBorrowingIterator()
             while true {
@@ -319,6 +318,22 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 #endif
+
+  func test_iteration_order_for_small_sets() {
+    let c = _HTable.maximumUnhashedCount
+    var set = RigidSet<Int>(capacity: c)
+    for i in 0 ..< c {
+      set.insert(i)
+    }
+    var items: [Int] = []
+    var i = set.startIndex
+    while i != set.endIndex {
+      items.append(set[i])
+      i = set.index(after: i)
+    }
+    // The order of items is deterministic, but it should appear somewhat random
+    expectEqualElements(items, [1, 3, 5, 6, 0, 4, 2])
+  }
 
   func test_iteration_indexAfter() {
     withEvery("capacity", in: [0, 1, 2, 10, 100, 200]) { capacity in

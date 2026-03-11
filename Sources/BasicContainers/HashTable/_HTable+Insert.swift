@@ -18,7 +18,10 @@ extension _HTable {
     swapper: (Bucket) -> Void,
   ) -> Bucket {
     assert(isSmall)
-    // FIXME: Scramble order by swapping things in some way
+    if _count > 0 {
+      // Scramble order by swapping the new item in the middle of the table.
+      swapper(Bucket(offset: _count / 2))
+    }
     let r = Bucket(offset: _count)
     _count &+= 1
     _maxProbeLength = _count
