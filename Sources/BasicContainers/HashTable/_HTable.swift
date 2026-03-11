@@ -204,7 +204,7 @@ extension _HTable {
     if start.offset <= end.offset {
       return Int(end._offset &- start._offset &+ 1)
     }
-    return Int(bucketCount &- start._offset &+ end._offset)
+    return Int(bucketCount &- start._offset &+ end._offset &+ 1)
   }
 
   @_transparent

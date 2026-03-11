@@ -49,9 +49,8 @@ extension _HTable {
     return actual
 #else
     var b = idealBucket(forHashValue: hashValue)
-    var probeLength = 0
+    var probeLength = 1
     while bitmap.isOccupied(b) {
-      probeLength &+= 1
       let oldHashValue = hashGenerator(b)
       let oldProbeLength = self.probeLength(
         forHashValue: oldHashValue,
@@ -64,6 +63,7 @@ extension _HTable {
         probeLength = oldProbeLength
       }
       self.wrapBucket(after: &b)
+      probeLength &+= 1
     }
     bitmap.setOccupied(b)
     _count &+= 1
