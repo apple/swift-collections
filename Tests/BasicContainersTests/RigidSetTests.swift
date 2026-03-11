@@ -21,6 +21,41 @@ import BasicContainers
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
+fileprivate struct Pair: Hashable {
+  var first: Int
+  var second: Int
+
+  init(_ first: Int, _ second: Int) {
+    self.first = first
+    self.second = second
+  }
+
+  static func ==(left: Self, right: Self) -> Bool {
+    left.first == right.first && left.second == right.second
+  }
+
+  func hash(into hasher: inout Hasher) {
+    hasher.combine(first)
+    hasher.combine(second)
+  }
+}
+
+
+func expectConsistentSet<Element: ~Copyable>(
+  _ set: borrowing RigidSet<Element>,
+  file: StaticString = #filePath,
+  line: UInt = #line
+) {
+  var failed = false
+  set._checkInvariants { message in
+    if !failed {
+      set._dump(bitmap: true, buckets: true)
+      failed = true
+    }
+    expectFailure(message, file: file, line: line)
+  }
+}
+
 class RigidSetTests: CollectionTestCase {
   func test_empty() {
     let s = RigidSet<Int>()
@@ -29,8 +64,9 @@ class RigidSetTests: CollectionTestCase {
     expectTrue(s.isFull)
     expectEqual(s.capacity, 0)
     expectEqual(s.freeCapacity, 0)
+    expectConsistentSet(s)
   }
-  
+
   func test_init_capacity() {
     withSome("capacity", in: 0 ..< 1000) { capacity in
       let s = RigidSet<Int>(capacity: capacity)
@@ -39,51 +75,102 @@ class RigidSetTests: CollectionTestCase {
       expectEqual(s.isFull, capacity == 0)
       expectEqual(s.capacity, capacity)
       expectEqual(s.freeCapacity, capacity)
+      expectConsistentSet(s)
     }
   }
-  
-  func test_insert_one() {
+
+  func test_insert_one_small() {
+    withLifetimeTracking { tracker in
+      var s = RigidSet<LifetimeTracked<Int>>(capacity: 5)
+      let first = tracker.instance(for: 42)
+      expectNil(s.insert(first))
+      let second = tracker.instance(for: 42)
+      expectIdentical(s.insert(second), second)
+
+      expectTrue(s.contains(first))
+      expectTrue(s.contains(second))
+      _ = consume first
+      expectTrue(s.contains(second))
+
+      expectEqual(s.count, 1)
+      expectFalse(s.isEmpty)
+      expectFalse(s.isFull)
+      expectEqual(s.capacity, 5)
+      expectEqual(s.freeCapacity, 4)
+
+      expectConsistentSet(s)
+    }
+  }
+
+  func test_insert_one_large() {
     withLifetimeTracking { tracker in
       var s = RigidSet<LifetimeTracked<Int>>(capacity: 20)
       let first = tracker.instance(for: 42)
       expectNil(s.insert(first))
       let second = tracker.instance(for: 42)
       expectIdentical(s.insert(second), second)
-      
+
       expectTrue(s.contains(first))
       expectTrue(s.contains(second))
       _ = consume first
       expectTrue(s.contains(second))
-      
+
       expectEqual(s.count, 1)
       expectFalse(s.isEmpty)
       expectFalse(s.isFull)
       expectEqual(s.capacity, 20)
       expectEqual(s.freeCapacity, 19)
+
+      expectConsistentSet(s)
     }
   }
-  
-  func test_update_one() {
+
+  func test_update_one_small() {
+    withLifetimeTracking { tracker in
+      var s = RigidSet<LifetimeTracked<Int>>(capacity: 5)
+      let first = tracker.instance(for: 42)
+      expectNil(s.update(with: first))
+      let second = tracker.instance(for: 42)
+      expectIdentical(s.update(with: second), first)
+
+      expectTrue(s.contains(first))
+      expectTrue(s.contains(second))
+      _ = consume second
+      expectTrue(s.contains(first))
+
+      expectEqual(s.count, 1)
+      expectFalse(s.isEmpty)
+      expectFalse(s.isFull)
+      expectEqual(s.capacity, 5)
+      expectEqual(s.freeCapacity, 4)
+
+      expectConsistentSet(s)
+    }
+  }
+
+  func test_update_one_large() {
     withLifetimeTracking { tracker in
       var s = RigidSet<LifetimeTracked<Int>>(capacity: 20)
       let first = tracker.instance(for: 42)
       expectNil(s.update(with: first))
       let second = tracker.instance(for: 42)
       expectIdentical(s.update(with: second), first)
-      
+
       expectTrue(s.contains(first))
       expectTrue(s.contains(second))
       _ = consume second
       expectTrue(s.contains(first))
-      
+
       expectEqual(s.count, 1)
       expectFalse(s.isEmpty)
       expectFalse(s.isFull)
       expectEqual(s.capacity, 20)
       expectEqual(s.freeCapacity, 19)
+
+      expectConsistentSet(s)
     }
   }
-  
+
   func test_insert_full() {
     withEvery("capacity", in: [0, 1, 2, 10, 100, 1000]) { capacity in
       withLifetimeTracking { tracker in
@@ -92,13 +179,14 @@ class RigidSetTests: CollectionTestCase {
           let new = tracker.instance(for: i)
           let remnant = s.insert(new)
           expectNil(remnant)
+          expectConsistentSet(s)
         }
         expectEqual(s.count, capacity)
         expectEqual(s.isEmpty, capacity == 0)
         expectTrue(s.isFull)
         expectEqual(s.capacity, capacity)
         expectEqual(s.freeCapacity, 0)
-        
+
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           if s.contains(dupe) {
@@ -107,10 +195,12 @@ class RigidSetTests: CollectionTestCase {
             expectFailure("\(dupe.payload) not found")
           }
         }
+
+        expectConsistentSet(s)
       }
     }
   }
-  
+
   func test_update_full() {
     withEvery("capacity", in: [0, 1, 2, 10, 100, 200, 1000]) { capacity in
       withLifetimeTracking { tracker in
@@ -119,13 +209,14 @@ class RigidSetTests: CollectionTestCase {
           let new = tracker.instance(for: i)
           let old = s.update(with: new)
           expectNil(old)
+          expectConsistentSet(s)
         }
         expectEqual(s.count, capacity)
         expectEqual(s.isEmpty, capacity == 0)
         expectTrue(s.isFull)
         expectEqual(s.capacity, capacity)
         expectEqual(s.freeCapacity, 0)
-        
+
         for i in 0 ..< capacity {
           let new = tracker.instance(for: i)
           let old = s.update(with: new)
@@ -138,15 +229,17 @@ class RigidSetTests: CollectionTestCase {
         expectTrue(s.isFull)
         expectEqual(s.capacity, capacity)
         expectEqual(s.freeCapacity, 0)
-        
+
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           expectTrue(s.contains(dupe), "\(dupe) not found")
         }
+
+        expectConsistentSet(s)
       }
     }
   }
-  
+
   func test_bucketIterator_consistency() {
     withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 200]) { capacity in
       withEvery("maximumCount", in: [1, 2, 3, Int.max]) { maximumCount in
@@ -154,7 +247,7 @@ class RigidSetTests: CollectionTestCase {
           var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
           withEvery("i", in: 0 ..< capacity) { i in
             s.insert(tracker.instance(for: i))
-            
+
             var it = s._table.makeBucketIterator()
             var j = s._table.startBucket
             while let next = it.nextOccupiedRegion(maximumCount: maximumCount) {
@@ -234,7 +327,7 @@ class RigidSetTests: CollectionTestCase {
         withEvery("payload", in: 0 ..< capacity) { payload in
           let item = tracker.instance(for: payload)
           s.insert(item)
-          
+
           var seen: Set<Int> = []
           var i = s.startIndex
           while i != s.endIndex {
@@ -255,7 +348,7 @@ class RigidSetTests: CollectionTestCase {
         withEvery("chunkSize", in: [1, 2, 10, 100, Int.max]) { chunkSize in
           withLifetimeTracking { tracker in
             var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
-            
+
             var i = 0
             var p = CustomProducer<LifetimeTracked<Int>, Never>(
               underestimatedCount: 0,
@@ -266,10 +359,11 @@ class RigidSetTests: CollectionTestCase {
               return tracker.instance(for: i)
             }
             s.insert(from: &p)
-            
+            expectConsistentSet(s)
+
             expectEqual(s.capacity, capacity)
             expectEqual(s.count, count)
-            
+
             var seen: Set<Int> = []
             var index = s.startIndex
             while index != s.endIndex {
@@ -291,7 +385,7 @@ class RigidSetTests: CollectionTestCase {
         withEvery("chunkSize", in: [1, 2, 10, 100, 1000]) { chunkSize in
           withLifetimeTracking { tracker in
             var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
-            
+
             var i = 0
             var drain = CustomDrain<LifetimeTracked<Int>>(
               underestimatedCount: 0,
@@ -302,10 +396,11 @@ class RigidSetTests: CollectionTestCase {
               return tracker.instance(for: i)
             }
             s.insert(from: &drain)
-            
+            expectConsistentSet(s)
+
             expectEqual(s.capacity, capacity)
             expectEqual(s.count, count)
-            
+
             var seen: Set<Int> = []
             var index = s.startIndex
             while index != s.endIndex {
@@ -330,16 +425,17 @@ class RigidSetTests: CollectionTestCase {
             set.insert(instance)
           }
           expectEqual(set.count, count)
-          
+
           let dupe = tracker.instance(for: item)
           let removed = set.remove(dupe)
           expectNotNil(removed) {
             expectNotIdentical($0, dupe)
             expectEqual($0.payload, item)
           }
-          
+          expectConsistentSet(set)
+
           expectEqual(set.count, count - 1)
-          
+
           withEvery("j", in: 0 ..< count) { j in
             let found = set.contains(tracker.instance(for: j))
             expectEqual(found, j != item)
@@ -348,7 +444,7 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_remove_all() {
     withEvery("count", in: [0, 1, 2, 4, 10, 100, 1000]) { count in
       withLifetimeTracking { tracker in
@@ -358,7 +454,7 @@ class RigidSetTests: CollectionTestCase {
           set.insert(instance)
         }
         expectEqual(set.count, count)
-        
+
         withEvery("i", in: 0 ..< count) { i in
           let dupe = tracker.instance(for: i)
           let removed = set.remove(dupe)
@@ -366,12 +462,13 @@ class RigidSetTests: CollectionTestCase {
             expectNotIdentical($0, dupe)
             expectEqual($0.payload, i)
           }
+          expectConsistentSet(set)
         }
         expectEqual(set.count, 0)
       }
     }
   }
-  
+
   func test_removeAll() {
     withEvery("count", in: [0, 1, 2, 4, 10, 100, 1000]) { count in
       withLifetimeTracking { tracker in
@@ -385,6 +482,50 @@ class RigidSetTests: CollectionTestCase {
         set.removeAll()
         expectEqual(set.count, 0)
         expectEqual(set.capacity, count)
+        expectConsistentSet(set)
+      }
+    }
+  }
+
+  func test_insert_exercise() {
+    // Exercise insertions with lots of distinct hash layouts
+    withEvery("seed", in: 0 ..< 10_000) { seed in
+      withEvery("scale", in: _HTable.minimumScale ..< _HTable.minimumScale + 3) { scale in
+        let count = _HTable.maximumCapacity(forScale: scale)
+        var set = RigidSet<Pair>(capacity: count)
+        for i in 0 ..< count {
+          set.insert(Pair(seed, i))
+          expectConsistentSet(set)
+        }
+        expectEqual(set.count, count)
+
+        withEvery("i", in: 0 ..< count) { i in
+          expectTrue(set.contains(Pair(seed, i)))
+        }
+      }
+    }
+  }
+
+  func test_remove_exercise() {
+    // Exercise removals with lots of distinct hash layouts
+    withEvery("seed", in: 0 ..< 10_000) { seed in
+      withEvery("scale", in: _HTable.minimumScale ..< _HTable.minimumScale + 3) { scale in
+        let count = _HTable.maximumCapacity(forScale: scale)
+        var set = RigidSet<Pair>(capacity: count)
+        for i in 0 ..< count {
+          set.insert(Pair(seed, i))
+        }
+        expectEqual(set.count, count)
+
+        withEvery("i", in: 0 ..< count) { i in
+          let item = Pair(seed, i)
+          let removed = set.remove(item)
+          expectNotNil(removed) {
+            expectEqual($0, item)
+          }
+          expectConsistentSet(set)
+        }
+        expectEqual(set.count, 0)
       }
     }
   }
