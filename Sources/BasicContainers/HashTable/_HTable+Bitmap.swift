@@ -67,6 +67,15 @@ extension _HTable.Bitmap {
   package func clearAll() {
     _words.update(repeating: .empty)
   }
+  
+  @_alwaysEmitIntoClient
+  package func occupiedCount() -> Int {
+    var c = 0
+    for i in 0 ..< _words.count {
+      c += _words[i].count
+    }
+    return c
+  }
 
   @inlinable
   package func firstOccupiedBucket(from start: Bucket) -> Bucket? {

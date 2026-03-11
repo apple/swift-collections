@@ -30,6 +30,21 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   ) {
     _keys._dump(bitmap: bitmap, chains: chains, buckets: buckets)
   }
+  
+  public func _checkInvariants() -> Bool {
+    var pass = true
+    _checkInvariants { message in
+      pass = false
+      print(message)
+    }
+    return pass
+  }
+
+  public func _checkInvariants(
+    failureHandler: (String) -> Void
+  ) {
+    _keys._checkInvariants(failureHandler: failureHandler)
+  }
 }
 
 #endif

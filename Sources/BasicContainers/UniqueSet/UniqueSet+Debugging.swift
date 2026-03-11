@@ -30,6 +30,23 @@ extension UniqueSet where Element: ~Copyable {
   ) {
     _storage._dump(bitmap: bitmap, chains: chains, buckets: buckets)
   }
+  
+  public func _checkInvariants() -> Bool {
+    var pass = true
+    _checkInvariants { message in
+      pass = false
+      print(message)
+    }
+    return pass
+  }
+
+  public func _checkInvariants(
+    failureHandler: (String) -> Void
+  ) {
+    _storage._checkInvariants(failureHandler: failureHandler)
+    // Note: we should have a check for correct storage sizing here,
+    // but `reserveCapacity` can mess that up (until we persist it)
+  }
 }
 
 #endif
