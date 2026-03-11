@@ -38,11 +38,16 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Copyabl
   }
 }
 
-#if true // FIXME: rdar://150228920
+#if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
+// Note: This is the less efficient implementation of elementsEqual. The
+// variant in the #else branch would be preferable, but it doesn't work yet.
+// (It lets the two iterators run at their native speeds, with no artificial
+// maximumCounts.)
+
 @available(SwiftStdlib 5.0, *)
 extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
-  public func elementsEqual<
+  package func _elementsEqual<
     Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
@@ -97,7 +102,7 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   ///
   /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
   @inlinable
-  public func elementsEqual<
+  package func _elementsEqual<
     E: Error,
     Other: BorrowingSequence & ~Copyable & ~Escapable
   >(
@@ -136,7 +141,7 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
 @available(SwiftStdlib 5.0, *)
 extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   @inlinable
-  public func elementsEqual<
+  package func _elementsEqual<
     Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
@@ -230,7 +235,7 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   ///
   /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
   @inlinable
-  public func elementsEqual<
+  package func _elementsEqual<
     E: Error,
     Other: BorrowingSequence & ~Copyable & ~Escapable
   >(
