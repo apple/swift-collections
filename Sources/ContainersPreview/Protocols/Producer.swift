@@ -13,6 +13,10 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+@_alwaysEmitIntoClient
+@_transparent
+public var _producerBufferSize: Int { 8 }
+
 /// A type that supplies the values of a generative sequence by populating
 /// a client-supplied series of `OutputSpan` instances. "Generative" sequences
 /// transfer the ownership of items they produce to their clients, rather than
@@ -85,9 +89,9 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   /// - Returns: A boolean value indicating whether the operation was able to
   ///    append at least one item to the supplied output span without hitting
   ///    the end of the underlying sequence.
+  @discardableResult
   @_lifetime(target: copy target)
   @_lifetime(self: copy self)
-  @discardableResult
   mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(ProducerError) -> Bool
@@ -267,6 +271,23 @@ extension Producer where Self: ~Copyable & ~Escapable {
   public consuming func _isAtEnd() throws(ProducerError) -> Bool {
     var c = 1
     return try !skip(upTo: &c)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension Producer where Self: ~Copyable & ~Escapable {
+  @inlinable
+  public consuming func collect<R: DynamicContainer<Element>>(
+    into container: R.Type = R.self
+  ) throws(ProducerError) -> R {
+    try R(from: &self)
+  }
+
+  @inlinable
+  public consuming func collect(
+    into container: inout some DynamicContainer<Element>
+  ) throws(ProducerError) {
+    try container.append(from: &self)
   }
 }
 
