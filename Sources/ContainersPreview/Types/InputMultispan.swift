@@ -16,9 +16,8 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-
 @frozen @usableFromInline
-internal struct MultispanBuffer<Element> {
+internal struct MultispanBuffer<Element: ~Copyable> {
   @usableFromInline var ptr: UnsafeMutableRawBufferPointer
   @usableFromInline var count: Int
   
@@ -60,27 +59,28 @@ internal struct MultispanBuffer<Element> {
   }
 }
 
-internal struct SmallBufferPointerArray<Element>: RandomAccessCollection, RangeReplaceableCollection {
-  typealias Index = Int
-  typealias Element = MultispanBuffer<Element>
-  typealias StorageType = (UInt64, UInt64)
-  var storage: StorageType = (0, 0)
-  var count = 0
-  static var inlineThreshold: Int {
+@frozen @usableFromInline
+internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollection, RangeReplaceableCollection {
+  @usableFromInline typealias Index = Int
+  @usableFromInline typealias Element = MultispanBuffer<Element>
+  @usableFromInline typealias StorageType = (UInt64, UInt64, UInt64)
+  @usableFromInline var storage: StorageType = (0, 0, 0)
+  @usableFromInline var count = 0
+  @inlinable static var inlineThreshold: Int {
     1
   }
   
-  init() {
+  @inlinable init() {
     precondition(
       Self.inlineThreshold &* MemoryLayout<MultispanBuffer<Element>>.stride <= MemoryLayout<StorageType>.size
     )
   }
   
-  var inline: Bool {
-    count > Self.inlineThreshold
+  @inlinable var inline: Bool {
+    count <= Self.inlineThreshold
   }
   
-  subscript(position: Int) -> MultispanBuffer<Element> {
+  @inlinable subscript(position: Int) -> MultispanBuffer<Element> {
     _read {
       precondition(position < count)
       if inline {
@@ -126,7 +126,7 @@ internal struct SmallBufferPointerArray<Element>: RandomAccessCollection, RangeR
     }
   }
   
-  mutating func replaceSubrange(
+  @inlinable mutating func replaceSubrange(
     _ subrange: Range<Int>,
     with newElements: some Collection<MultispanBuffer<Element>>
   ) {
@@ -139,7 +139,7 @@ internal struct SmallBufferPointerArray<Element>: RandomAccessCollection, RangeR
     if inline && newCount > Self.inlineThreshold {
       // Save the current inline element
       let firstElement = count > 0 ? self[0] : nil
-      storage = (0, 0)
+      storage = (0, 0, 0)
       withUnsafeMutableBytes(of: &storage) {
         $0.withMemoryRebound(
           to: UniqueArray<MultispanBuffer<Element>>.self
@@ -208,12 +208,16 @@ internal struct SmallBufferPointerArray<Element>: RandomAccessCollection, RangeR
     count = newCount
   }
   
-  var startIndex: Int {
+  @inlinable var startIndex: Int {
     0
   }
   
-  var endIndex: Int {
+  @inlinable var endIndex: Int {
     count
+  }
+  
+  @inlinable mutating func append(_ element: MultispanBuffer<Element>) {
+    replaceSubrange(count..<count, with: CollectionOfOne(element))
   }
   
 }
@@ -223,51 +227,8 @@ internal struct SmallBufferPointerArray<Element>: RandomAccessCollection, RangeR
 @frozen
 public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   
-  @frozen @usableFromInline
-  internal struct _Buffer {
-    @usableFromInline var ptr: UnsafeMutableRawBufferPointer
-    @usableFromInline var count: Int
-    
-    @inlinable @inline(__always)
-    var byteCapacity: Int {
-      _assumeNonNegative(ptr.count)
-    }
-    
-    @inlinable @inline(__always)
-    var elementCapacity: Int {
-      byteCapacity / MemoryLayout<Element>.stride
-    }
-    
-    @inlinable @inline(__always)
-    var elementCount: Int {
-      get {
-        count / MemoryLayout<Element>.stride
-      }
-      set(newValue) {
-        precondition(newValue >= 0)
-        count = newValue * MemoryLayout<Element>.stride
-      }
-    }
- 
-    @inlinable @inline(__always)
-    var freeByteCapacity: Int {
-      _assumeNonNegative(ptr.count &- count)
-    }
-    
-    @inlinable @inline(__always)
-    var freeElementCapacity: Int {
-      freeByteCapacity / MemoryLayout<Element>.stride
-    }
-    
-    @inlinable @inline(__always)
-    init(ptr: UnsafeMutableRawBufferPointer, count: Int) {
-      self.ptr = ptr
-      self.count = count
-    }
-  }
-  
   @usableFromInline
-  internal var _pointers: UniqueArray<_Buffer> //TODO: optimize
+  internal var _pointers: SmallBufferPointerArray<Element>
 
   @_alwaysEmitIntoClient
   @inlinable
@@ -288,7 +249,7 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
   @lifetime(immortal)
   public init() {
-    _pointers = UniqueArray()
+    _pointers = SmallBufferPointerArray()
   }
 }
 
@@ -428,7 +389,7 @@ extension InputMultispan where Element: ~Copyable {
     // underlying pointer out
     span.withUnsafeMutableBufferPointer { buffer, count in
       _pointers.append(
-        InputMultispan._Buffer(
+        MultispanBuffer(
           ptr: UnsafeMutableRawBufferPointer(buffer),
           count: count * MemoryLayout<Element>.stride
         )
@@ -455,7 +416,7 @@ extension InputMultispan where Element: ~Copyable {
     initializedCount: Int = 0
   ) {
     _pointers.append(
-      InputMultispan._Buffer(
+      MultispanBuffer(
         ptr: UnsafeMutableRawBufferPointer(buffer),
         count: initializedCount * MemoryLayout<Element>.stride
       )

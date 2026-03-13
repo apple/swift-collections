@@ -15,90 +15,20 @@ import ContainersPreview
 @frozen
 public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   
-  @frozen @usableFromInline
-  internal struct _Buffer {
-    @usableFromInline var ptr: UnsafeMutableRawBufferPointer
-    @usableFromInline var _byteCount: Int
-    
-    @inlinable @inline(__always)
-    var byteCapacity: Int {
-      _assumeNonNegative(ptr.count)
-    }
-    
-    @inlinable @inline(__always)
-    var elementCapacity: Int {
-      byteCapacity / MemoryLayout<Element>.stride
-    }
-    
-    @inlinable @inline(__always)
-    var freeByteCapacity: Int {
-      _assumeNonNegative(ptr.count &- byteCount)
-    }
-    
-    @inlinable @inline(__always)
-    var freeElementCapacity: Int {
-      freeByteCapacity / MemoryLayout<Element>.stride
-    }
-    
-    @inlinable @inline(__always)
-    var byteCount: Int {
-      _assumeNonNegative(_byteCount)
-    }
-    
-    @inlinable @inline(__always)
-    var elementCount: Int {
-      get {
-        byteCount / MemoryLayout<Element>.stride
-      }
-      set(newValue) {
-        precondition(newValue >= 0)
-        _byteCount = newValue &* MemoryLayout<Element>.stride
-      }
-    }
-    
-    @inlinable @inline(__always)
-    mutating func withOutputSpan<R: ~Copyable, E: Error>(
-      _ work: (inout OutputSpan<Element>) throws(E) -> R
-    ) throws(E) -> R {
-      return try ptr.withMemoryRebound(to: Element.self) { (buffer) throws(E) in
-        var span = OutputSpan(buffer: buffer, initializedCount: elementCount)
-        return try work(&span)
-      }
-    }
-    
-    @inlinable @inline(__always)
-    func deinitialize() {
-      unsafe ptr.withMemoryRebound(to: Element.self) {
-        _ = unsafe UnsafeMutableBufferPointer<Element>(
-          start: $0.baseAddress.unsafelyUnwrapped,
-          count: elementCount
-        ).deinitialize()
-      }
-    }
-    
-    @inlinable @inline(__always)
-    init(ptr: UnsafeMutableRawBufferPointer, byteCount: Int) {
-      self.ptr = ptr
-      self._byteCount = byteCount
-    }
-    
-    @inlinable @inline(__always)
-    init(ptr: UnsafeMutableBufferPointer<Element>, elementCount: Int) {
-      self.init(
-        ptr: UnsafeMutableRawBufferPointer(ptr),
-        byteCount: elementCount * MemoryLayout<Element>.stride
-      )
-    }
-  }
-  
   @usableFromInline
-  internal var _pointers: UniqueArray<_Buffer> //TODO: optimize
+  internal var _pointers: SmallBufferPointerArray<Element>
 
   @_alwaysEmitIntoClient
   @inlinable
   deinit {
     for idx in 0 ..< _pointers.count {
-      _pointers[idx].deinitialize()
+      let buffer = _pointers[idx]
+      unsafe buffer.ptr.withMemoryRebound(to: Element.self) {
+        _ = unsafe UnsafeMutableBufferPointer<Element>(
+          start: $0.baseAddress.unsafelyUnwrapped,
+          count: buffer.elementCount
+        ).deinitialize()
+      }
     }
   }
 
@@ -106,7 +36,7 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
   @lifetime(immortal)
   public init() {
-    _pointers = UniqueArray()
+    _pointers = SmallBufferPointerArray()
   }
 }
 
@@ -203,9 +133,9 @@ extension OutputMultispan where Element: ~Copyable  {
   public mutating func _appendSpan(_ span: inout OutputSpan<Element>) {
     span.withUnsafeMutableBufferPointer {
       _pointers.append(
-        OutputMultispan._Buffer(
-          ptr: $0,
-          elementCount: $1
+        MultispanBuffer(
+          ptr: UnsafeMutableRawBufferPointer($0),
+          count: $1 * MemoryLayout<Element>.stride
         )
       )
     }
@@ -230,9 +160,9 @@ extension OutputMultispan where Element: ~Copyable  {
     initializedCount: Int = 0
   ) {
     _pointers.append(
-      OutputMultispan._Buffer(
-        ptr: buffer,
-        elementCount: initializedCount
+      MultispanBuffer(
+        ptr: UnsafeMutableRawBufferPointer(buffer),
+        count: initializedCount * MemoryLayout<Element>.stride
       )
     )
   }
@@ -386,7 +316,9 @@ extension OutputMultispan where Element: ~Copyable {
     at index: Int,
     work: (inout OutputSpan<Element>) throws(E) -> R
   ) throws(E) -> R {
-    return try _pointers[index].withOutputSpan { (span) throws(E) in
+    let buffer = _pointers[index]
+    return try buffer.ptr.withMemoryRebound(to: Element.self) { (typedBuffer) throws(E) in
+      var span = OutputSpan(buffer: typedBuffer, initializedCount: buffer.elementCount)
       return try work(&span)
       // Intentionally skipping finalize here. See TODO in our finalize method
     }
