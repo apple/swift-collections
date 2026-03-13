@@ -16,6 +16,208 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
+
+@frozen @usableFromInline
+internal struct MultispanBuffer<Element> {
+  @usableFromInline var ptr: UnsafeMutableRawBufferPointer
+  @usableFromInline var count: Int
+  
+  @inlinable @inline(__always)
+  var byteCapacity: Int {
+    _assumeNonNegative(ptr.count)
+  }
+  
+  @inlinable @inline(__always)
+  var elementCapacity: Int {
+    byteCapacity / MemoryLayout<Element>.stride
+  }
+  
+  @inlinable @inline(__always)
+  var elementCount: Int {
+    get {
+      count / MemoryLayout<Element>.stride
+    }
+    set(newValue) {
+      precondition(newValue >= 0)
+      count = newValue * MemoryLayout<Element>.stride
+    }
+  }
+
+  @inlinable @inline(__always)
+  var freeByteCapacity: Int {
+    _assumeNonNegative(ptr.count &- count)
+  }
+  
+  @inlinable @inline(__always)
+  var freeElementCapacity: Int {
+    freeByteCapacity / MemoryLayout<Element>.stride
+  }
+  
+  @inlinable @inline(__always)
+  init(ptr: UnsafeMutableRawBufferPointer, count: Int) {
+    self.ptr = ptr
+    self.count = count
+  }
+}
+
+internal struct SmallBufferPointerArray<Element>: RandomAccessCollection, RangeReplaceableCollection {
+  typealias Index = Int
+  typealias Element = MultispanBuffer<Element>
+  typealias StorageType = (UInt64, UInt64)
+  var storage: StorageType = (0, 0)
+  var count = 0
+  static var inlineThreshold: Int {
+    1
+  }
+  
+  init() {
+    precondition(
+      Self.inlineThreshold &* MemoryLayout<MultispanBuffer<Element>>.stride <= MemoryLayout<StorageType>.size
+    )
+  }
+  
+  var inline: Bool {
+    count > Self.inlineThreshold
+  }
+  
+  subscript(position: Int) -> MultispanBuffer<Element> {
+    _read {
+      precondition(position < count)
+      if inline {
+        yield withUnsafeBytes(of: storage) {
+          $0.assumingMemoryBound(to: MultispanBuffer<Element>.self)[position]
+        }
+      } else {
+        yield withUnsafeBytes(of: storage) {
+          return $0.assumingMemoryBound(
+            to: UniqueArray<MultispanBuffer<Element>>.self
+          )[0][position]
+        }
+      }
+    }
+    _modify {
+      precondition(position < count)
+      if inline {
+        var result = withUnsafeBytes(of: &storage) {
+          $0.assumingMemoryBound(to: MultispanBuffer<Element>.self)[position]
+        }
+        defer {
+          withUnsafeMutableBytes(of: &storage) {
+            $0.assumingMemoryBound(to: MultispanBuffer<Element>.self)[position] = result
+          }
+        }
+        yield &result
+       
+      } else {
+        var result = withUnsafeBytes(of: storage) {
+          $0.assumingMemoryBound(
+            to: UniqueArray<MultispanBuffer<Element>>.self
+          )[0][position]
+        }
+        defer {
+          withUnsafeMutableBytes(of: &storage) {
+            $0.assumingMemoryBound(
+              to: UniqueArray<MultispanBuffer<Element>>.self
+            )[0][position] = result
+          }
+        }
+        yield &result
+      }
+    }
+  }
+  
+  mutating func replaceSubrange(
+    _ subrange: Range<Int>,
+    with newElements: some Collection<MultispanBuffer<Element>>
+  ) {
+    precondition(subrange.lowerBound >= 0 && subrange.upperBound <= count, "Subrange out of bounds")
+    
+    let addedCount = newElements.count &- subrange.count
+    let newCount = count + addedCount
+    
+    // Check if we need to transition from inline to heap storage
+    if inline && newCount > Self.inlineThreshold {
+      // Save the current inline element
+      let firstElement = count > 0 ? self[0] : nil
+      storage = (0, 0)
+      withUnsafeMutableBytes(of: &storage) {
+        $0.withMemoryRebound(
+          to: UniqueArray<MultispanBuffer<Element>>.self
+        ) { buffer in
+          buffer.initializeElement(
+            at: 0,
+            to: UniqueArray(capacity: Swift.max(4, newCount))
+          )
+          if let firstElement {
+            buffer[0].append(firstElement)
+          }
+        }
+      }
+      // Now handle the replacement in heap storage
+      withUnsafeMutableBytes(of: &storage) {
+        $0.withMemoryRebound(
+          to: UniqueArray<MultispanBuffer<Element>>.self
+        ) { buffer in
+          buffer[0].replace(removing: subrange, copying: newElements)
+        }
+      }
+    } else if inline {
+      // Replace in inline storage
+      precondition(newCount <= Self.inlineThreshold, "Inline storage overflow")
+      withUnsafeMutableBytes(of: &storage) { bytes in
+        let buffers = bytes.assumingMemoryBound(to: MultispanBuffer<Element>.self)
+        
+        // Shift elements after the subrange if necessary
+        let shiftDistance = addedCount
+        if shiftDistance != 0 && subrange.upperBound < count {
+          let moveStart = subrange.upperBound
+          let moveEnd = count
+          let moveCount = moveEnd - moveStart
+          
+          if shiftDistance > 0 {
+            // Shift right: work backwards to avoid overwriting
+            for i in (0..<moveCount).reversed() {
+              buffers[moveStart + i + shiftDistance] = buffers[moveStart + i]
+            }
+          } else {
+            // Shift left: work forwards
+            for i in 0..<moveCount {
+              buffers[moveStart + i + shiftDistance] = buffers[moveStart + i]
+            }
+          }
+        }
+        
+        // Insert new elements
+        var insertIndex = subrange.lowerBound
+        for element in newElements {
+          buffers[insertIndex] = element
+          insertIndex &+= 1
+        }
+      }
+    } else {
+      // Replace in heap storage
+      withUnsafeMutableBytes(of: &storage) {
+        $0.withMemoryRebound(
+          to: UniqueArray<MultispanBuffer<Element>>.self
+        ) { buffer in
+          buffer[0].replace(removing: subrange, copying: newElements)
+        }
+      }
+    }
+    
+    count = newCount
+  }
+  
+  var startIndex: Int {
+    0
+  }
+  
+  var endIndex: Int {
+    count
+  }
+  
+}
+
 @available(SwiftStdlib 5.0, *)
 @safe
 @frozen
