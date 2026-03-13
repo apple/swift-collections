@@ -310,11 +310,10 @@ extension InputMultispan where Element: ~Copyable {
   /// - Returns: The number of initialized elements remaining at the end of the
   ///      underlying buffer.
   @unsafe
-  @_alwaysEmitIntoClient
+  @inlinable
   public consuming func finalize(
     for buffer: UnsafeMutableBufferPointer<Element>
   ) -> Int {
-    //TODO: clearly something needs to happen here but it's not obvious how to structure it
     return totalCount
   }
 }
@@ -649,9 +648,18 @@ extension InputMultispan where Element: ~Copyable {
   public mutating func removeFirst(_ k: Int) {
     precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= totalCount, "InputSpan underflow")
-    //TODO: optimize
-    for _ in 0 ..< k {
-      _ = removeFirst()
+    var remaining = k
+    for spanIdx in 0 ..< spanCount {
+      guard remaining > 0 else { break }
+      let spanElementCount = _pointers[spanIdx].elementCount
+      let toRemove = Swift.min(remaining, spanElementCount)
+      if toRemove > 0 {
+        withInputSpan(at: spanIdx) { inputSpan in
+          inputSpan.removeFirst(toRemove)
+        }
+        _pointers[spanIdx].elementCount &-= toRemove
+        remaining &-= toRemove
+      }
     }
   }
   
@@ -691,21 +699,22 @@ extension InputMultispan where Element: ~Copyable {
   @_lifetime(self: copy self)
   public mutating func prepend(moving source: UnsafeMutableBufferPointer<Element>) {
     precondition(source.count <= totalFreeCapacity, "InputSpan capacity overflow")
-
-    if let idx = _lastNonFullSpanIndex() {
+    var sourceOffset = source.count
+    for idx in (0 ..< _pointers.count).reversed() {
+      guard sourceOffset > 0 else { break }
       let freeCapacity = _pointers[idx].freeElementCapacity
-      if freeCapacity >= source.count {
-        withInputSpan(at: idx) {
-          $0.prepend(moving: source)
-        }
-        _pointers[idx].elementCount &+= source.count
-        return
+      guard freeCapacity > 0 else { continue }
+      let toMove = Swift.min(freeCapacity, sourceOffset)
+      let sliceStart = sourceOffset &- toMove
+      let slice = UnsafeMutableBufferPointer(
+        start: source.baseAddress.unsafelyUnwrapped.advanced(by: sliceStart),
+        count: toMove
+      )
+      withInputSpan(at: idx) {
+        $0.prepend(moving: slice)
       }
-    }
-    //TODO: optimize the case where we need to use multiple buffers
-    for idx in source.indices.reversed() {
-      let value = source.baseAddress!.advanced(by: idx).move()
-      prepend(value)
+      _pointers[idx].elementCount &+= toMove
+      sourceOffset &-= toMove
     }
   }
 }
@@ -717,9 +726,17 @@ extension InputMultispan /* where Element: Copyable */ {
   @_lifetime(self: copy self)
   public mutating func prepend(repeating repeatedValue: Element, count: Int) {
     precondition(count <= totalFreeCapacity, "InputSpan capacity overflow")
-    //TODO: optimize
-    for _ in 0 ..< count {
-      prepend(repeatedValue)
+    var remaining = count
+    for idx in (0 ..< _pointers.count).reversed() {
+      guard remaining > 0 else { break }
+      let freeCapacity = _pointers[idx].freeElementCapacity
+      guard freeCapacity > 0 else { continue }
+      let toFill = Swift.min(freeCapacity, remaining)
+      withInputSpan(at: idx) {
+        $0.prepend(repeating: repeatedValue, count: toFill)
+      }
+      _pointers[idx].elementCount &+= toFill
+      remaining &-= toFill
     }
   }
 }

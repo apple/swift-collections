@@ -348,7 +348,6 @@ extension OutputMultispan where Element: ~Copyable {
   public mutating func removeLast() -> Element {
     precondition(spanCount > 0, "OutputMultispan has no capacity")
     if let idx = _lastNonEmptySpanIndex() {
-      print("Found non empty span at index \(idx) with count \(count(at: idx))")
       defer { _pointers[idx].elementCount &-= 1 }
       return withOutputSpan(at: idx) { outputSpan in
         outputSpan.removeLast()
@@ -364,19 +363,20 @@ extension OutputMultispan where Element: ~Copyable {
   @inlinable
   @lifetime(self: copy self)
   public mutating func removeLast(_ k: Int) {
-    precondition(spanCount > 0, "OutputMultispan has no capacity")
-    if let idx = _lastNonEmptySpanIndex() {
-      if _pointers[idx].elementCount >= k {
-        defer { _pointers[idx].elementCount &-= k }
+    precondition(k >= 0, "Cannot remove a negative number of elements")
+    precondition(k <= totalCount, "OutputMultispan underflow")
+    var remaining = k
+    for idx in (0 ..< _pointers.count).reversed() {
+      guard remaining > 0 else { break }
+      let spanElementCount = _pointers[idx].elementCount
+      let toRemove = Swift.min(remaining, spanElementCount)
+      if toRemove > 0 {
         withOutputSpan(at: idx) { outputSpan in
-          outputSpan.removeLast(k)
+          outputSpan.removeLast(toRemove)
         }
-        return
+        _pointers[idx].elementCount &-= toRemove
+        remaining &-= toRemove
       }
-    }
-    //TODO: optimize
-    for _ in 0 ..< k {
-      _ = removeLast()
     }
   }
 
@@ -404,9 +404,18 @@ extension OutputMultispan {
   @inlinable
   @lifetime(self: copy self)
   public mutating func append(repeating repeatedValue: Element, count: Int) {
-    //TODO: optimize
-    for _ in 0 ..< count {
-      append(repeatedValue)
+    precondition(count <= totalFreeCapacity, "OutputMultispan capacity overflow")
+    var remaining = count
+    for idx in 0 ..< _pointers.count {
+      guard remaining > 0 else { break }
+      let freeCapacity = _pointers[idx].freeElementCapacity
+      guard freeCapacity > 0 else { continue }
+      let toFill = Swift.min(freeCapacity, remaining)
+      withOutputSpan(at: idx) { outputSpan in
+        outputSpan.append(repeating: repeatedValue, count: toFill)
+      }
+      _pointers[idx].elementCount &+= toFill
+      remaining &-= toFill
     }
   }
 }
@@ -431,7 +440,6 @@ extension OutputMultispan where Element: ~Copyable {
   @unsafe
   @inlinable
   public consuming func finalize() -> Int {
-    //TODO: clearly something needs to happen here but it's not obvious how to structure it
     return totalCount
   }
 }
