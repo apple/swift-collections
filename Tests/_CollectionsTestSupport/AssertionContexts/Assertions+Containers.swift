@@ -231,7 +231,7 @@ public func expectIterablesWithEquivalentElements<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  if left.elementsEqual(right, by: areEquivalent) { return }
+  if left._elementsEqual(right, by: areEquivalent) { return }
   _expectFailure(
     "Containers do not have equivalent elements",
     message, trapping: trapping, file: file, line: line)
@@ -251,7 +251,7 @@ public func expectIterablesWithEqualElements<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  if left.elementsEqual(right) { return }
+  if left._elementsEqual(right) { return }
   _expectFailure(
     "Containers do not have equal elements",
     message, trapping: trapping, file: file, line: line)

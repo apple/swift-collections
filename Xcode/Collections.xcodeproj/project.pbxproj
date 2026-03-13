@@ -11,7 +11,6 @@
 		7D2A77382F27F1E4005780C7 /* BorrowingSequence+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772D2F27F1E4005780C7 /* BorrowingSequence+Utilities.swift */; };
 		7D2A77392F27F1E4005780C7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77332F27F1E4005780C7 /* Box.swift */; };
 		7D2A773A2F27F1E4005780C7 /* Drain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772F2F27F1E4005780C7 /* Drain.swift */; };
-		7D2A773B2F27F1E4005780C7 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772E2F27F1E4005780C7 /* Container.swift */; };
 		7D2A773C2F27F1E4005780C7 /* TemporaryAllocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77282F27F1E4005780C7 /* TemporaryAllocation.swift */; };
 		7D2A773D2F27F1E4005780C7 /* BorrowingSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772B2F27F1E4005780C7 /* BorrowingSequence.swift */; };
 		7D2A773E2F27F1E4005780C7 /* BorrowingSequence+Standard Conformances.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772C2F27F1E4005780C7 /* BorrowingSequence+Standard Conformances.swift */; };
@@ -120,9 +119,26 @@
 		7D57A2CA2F342F43002543BD /* UniqueDeque+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2C72F342F43002543BD /* UniqueDeque+Descriptions.swift */; };
 		7D57A2CB2F342F43002543BD /* UniqueDeque+Equatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2C82F342F43002543BD /* UniqueDeque+Equatable.swift */; };
 		7D57A2CC2F342F43002543BD /* UniqueDeque+Hashable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2C92F342F43002543BD /* UniqueDeque+Hashable.swift */; };
-		7D57A2CE2F343CA9002543BD /* ContainerAlgorithms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2CD2F343CA2002543BD /* ContainerAlgorithms.swift */; };
 		7D57A2D02F353946002543BD /* RigidArray+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2CF2F35393E002543BD /* RigidArray+Deprecated.swift */; };
 		7D57A2D22F353CA5002543BD /* UniqueArray+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57A2D12F353CA1002543BD /* UniqueArray+Deprecated.swift */; };
+		7D57EDD32F647DB10029D5E3 /* RandomAccessContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDCB2F647DB10029D5E3 /* RandomAccessContainer.swift */; };
+		7D57EDD42F647DB10029D5E3 /* BorrowingIteratorProtocol+SpanwiseZip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC42F647DB10029D5E3 /* BorrowingIteratorProtocol+SpanwiseZip.swift */; };
+		7D57EDD52F647DB10029D5E3 /* MutableContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC92F647DB10029D5E3 /* MutableContainer.swift */; };
+		7D57EDD62F647DB10029D5E3 /* DynamicContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC82F647DB10029D5E3 /* DynamicContainer.swift */; };
+		7D57EDD72F647DB10029D5E3 /* Drain+Reduce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDD02F647DB10029D5E3 /* Drain+Reduce.swift */; };
+		7D57EDD82F647DB10029D5E3 /* Producer+Map.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDD12F647DB10029D5E3 /* Producer+Map.swift */; };
+		7D57EDD92F647DB10029D5E3 /* PermutableContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDCA2F647DB10029D5E3 /* PermutableContainer.swift */; };
+		7D57EDDA2F647DB10029D5E3 /* Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC62F647DB10029D5E3 /* Container.swift */; };
+		7D57EDDB2F647DB10029D5E3 /* BorrowingIteratorProtocol+Map.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC22F647DB10029D5E3 /* BorrowingIteratorProtocol+Map.swift */; };
+		7D57EDDC2F647DB10029D5E3 /* Producer+Reduce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDD22F647DB10029D5E3 /* Producer+Reduce.swift */; };
+		7D57EDDD2F647DB10029D5E3 /* RangeExpression2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDCC2F647DB10029D5E3 /* RangeExpression2.swift */; };
+		7D57EDDE2F647DB10029D5E3 /* ContainerAlgorithms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC72F647DB10029D5E3 /* ContainerAlgorithms.swift */; };
+		7D57EDDF2F647DB10029D5E3 /* Drain+Map.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDCF2F647DB10029D5E3 /* Drain+Map.swift */; };
+		7D57EDE02F647DB10029D5E3 /* BorrowingIteratorProtocol+ElementsEqual.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC12F647DB10029D5E3 /* BorrowingIteratorProtocol+ElementsEqual.swift */; };
+		7D57EDE12F647DB10029D5E3 /* BidirectionalContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC52F647DB10029D5E3 /* BidirectionalContainer.swift */; };
+		7D57EDE22F647DB10029D5E3 /* RangeReplaceableContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDCD2F647DB10029D5E3 /* RangeReplaceableContainer.swift */; };
+		7D57EDE32F647DB10029D5E3 /* BorrowingIteratorProtocol+Reduce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDC32F647DB10029D5E3 /* BorrowingIteratorProtocol+Reduce.swift */; };
+		7D57EDE52F64828A0029D5E3 /* Producer+Collect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D57EDE42F6482870029D5E3 /* Producer+Collect.swift */; };
 		7D7246872F3D9DDB00112FD0 /* _HTable+Iteration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246802F3D9DDB00112FD0 /* _HTable+Iteration.swift */; };
 		7D7246882F3D9DDB00112FD0 /* RigidDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246832F3D9DDB00112FD0 /* RigidDictionary.swift */; };
 		7D7246892F3D9DDB00112FD0 /* _HTable+Find.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D72467E2F3D9DDB00112FD0 /* _HTable+Find.swift */; };
@@ -582,7 +598,6 @@
 		7D2A772B2F27F1E4005780C7 /* BorrowingSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorrowingSequence.swift; sourceTree = "<group>"; };
 		7D2A772C2F27F1E4005780C7 /* BorrowingSequence+Standard Conformances.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingSequence+Standard Conformances.swift"; sourceTree = "<group>"; };
 		7D2A772D2F27F1E4005780C7 /* BorrowingSequence+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingSequence+Utilities.swift"; sourceTree = "<group>"; };
-		7D2A772E2F27F1E4005780C7 /* Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
 		7D2A772F2F27F1E4005780C7 /* Drain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Drain.swift; sourceTree = "<group>"; };
 		7D2A77302F27F1E4005780C7 /* Producer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Producer.swift; sourceTree = "<group>"; };
 		7D2A77322F27F1E4005780C7 /* Borrow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Borrow.swift; sourceTree = "<group>"; };
@@ -690,9 +705,26 @@
 		7D57A2C72F342F43002543BD /* UniqueDeque+Descriptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Descriptions.swift"; sourceTree = "<group>"; };
 		7D57A2C82F342F43002543BD /* UniqueDeque+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Equatable.swift"; sourceTree = "<group>"; };
 		7D57A2C92F342F43002543BD /* UniqueDeque+Hashable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Hashable.swift"; sourceTree = "<group>"; };
-		7D57A2CD2F343CA2002543BD /* ContainerAlgorithms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerAlgorithms.swift; sourceTree = "<group>"; };
 		7D57A2CF2F35393E002543BD /* RigidArray+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+Deprecated.swift"; sourceTree = "<group>"; };
 		7D57A2D12F353CA1002543BD /* UniqueArray+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+Deprecated.swift"; sourceTree = "<group>"; };
+		7D57EDC12F647DB10029D5E3 /* BorrowingIteratorProtocol+ElementsEqual.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingIteratorProtocol+ElementsEqual.swift"; sourceTree = "<group>"; };
+		7D57EDC22F647DB10029D5E3 /* BorrowingIteratorProtocol+Map.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingIteratorProtocol+Map.swift"; sourceTree = "<group>"; };
+		7D57EDC32F647DB10029D5E3 /* BorrowingIteratorProtocol+Reduce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingIteratorProtocol+Reduce.swift"; sourceTree = "<group>"; };
+		7D57EDC42F647DB10029D5E3 /* BorrowingIteratorProtocol+SpanwiseZip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingIteratorProtocol+SpanwiseZip.swift"; sourceTree = "<group>"; };
+		7D57EDC52F647DB10029D5E3 /* BidirectionalContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BidirectionalContainer.swift; sourceTree = "<group>"; };
+		7D57EDC62F647DB10029D5E3 /* Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Container.swift; sourceTree = "<group>"; };
+		7D57EDC72F647DB10029D5E3 /* ContainerAlgorithms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerAlgorithms.swift; sourceTree = "<group>"; };
+		7D57EDC82F647DB10029D5E3 /* DynamicContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicContainer.swift; sourceTree = "<group>"; };
+		7D57EDC92F647DB10029D5E3 /* MutableContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutableContainer.swift; sourceTree = "<group>"; };
+		7D57EDCA2F647DB10029D5E3 /* PermutableContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermutableContainer.swift; sourceTree = "<group>"; };
+		7D57EDCB2F647DB10029D5E3 /* RandomAccessContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccessContainer.swift; sourceTree = "<group>"; };
+		7D57EDCC2F647DB10029D5E3 /* RangeExpression2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeExpression2.swift; sourceTree = "<group>"; };
+		7D57EDCD2F647DB10029D5E3 /* RangeReplaceableContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RangeReplaceableContainer.swift; sourceTree = "<group>"; };
+		7D57EDCF2F647DB10029D5E3 /* Drain+Map.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Drain+Map.swift"; sourceTree = "<group>"; };
+		7D57EDD02F647DB10029D5E3 /* Drain+Reduce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Drain+Reduce.swift"; sourceTree = "<group>"; };
+		7D57EDD12F647DB10029D5E3 /* Producer+Map.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Producer+Map.swift"; sourceTree = "<group>"; };
+		7D57EDD22F647DB10029D5E3 /* Producer+Reduce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Producer+Reduce.swift"; sourceTree = "<group>"; };
+		7D57EDE42F6482870029D5E3 /* Producer+Collect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Producer+Collect.swift"; sourceTree = "<group>"; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D829CCF0FE00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -1206,13 +1238,21 @@
 			isa = PBXGroup;
 			children = (
 				7D2A772A2F27F1E4005780C7 /* BorrowingIteratorProtocol.swift */,
+				7D57EDC12F647DB10029D5E3 /* BorrowingIteratorProtocol+ElementsEqual.swift */,
+				7D57EDC22F647DB10029D5E3 /* BorrowingIteratorProtocol+Map.swift */,
+				7D57EDC32F647DB10029D5E3 /* BorrowingIteratorProtocol+Reduce.swift */,
+				7D57EDC42F647DB10029D5E3 /* BorrowingIteratorProtocol+SpanwiseZip.swift */,
 				7D2A772B2F27F1E4005780C7 /* BorrowingSequence.swift */,
 				7D2A772C2F27F1E4005780C7 /* BorrowingSequence+Standard Conformances.swift */,
 				7D2A772D2F27F1E4005780C7 /* BorrowingSequence+Utilities.swift */,
-				7D2A772E2F27F1E4005780C7 /* Container.swift */,
-				7D57A2CD2F343CA2002543BD /* ContainerAlgorithms.swift */,
+				7D57EDCE2F647DB10029D5E3 /* Container */,
 				7D2A772F2F27F1E4005780C7 /* Drain.swift */,
+				7D57EDCF2F647DB10029D5E3 /* Drain+Map.swift */,
+				7D57EDD02F647DB10029D5E3 /* Drain+Reduce.swift */,
 				7D2A77302F27F1E4005780C7 /* Producer.swift */,
+				7D57EDD12F647DB10029D5E3 /* Producer+Map.swift */,
+				7D57EDD22F647DB10029D5E3 /* Producer+Reduce.swift */,
+				7D57EDE42F6482870029D5E3 /* Producer+Collect.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -1350,6 +1390,22 @@
 				7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */,
 			);
 			path = ContainersTests;
+			sourceTree = "<group>";
+		};
+		7D57EDCE2F647DB10029D5E3 /* Container */ = {
+			isa = PBXGroup;
+			children = (
+				7D57EDC52F647DB10029D5E3 /* BidirectionalContainer.swift */,
+				7D57EDC62F647DB10029D5E3 /* Container.swift */,
+				7D57EDC72F647DB10029D5E3 /* ContainerAlgorithms.swift */,
+				7D57EDC82F647DB10029D5E3 /* DynamicContainer.swift */,
+				7D57EDC92F647DB10029D5E3 /* MutableContainer.swift */,
+				7D57EDCA2F647DB10029D5E3 /* PermutableContainer.swift */,
+				7D57EDCB2F647DB10029D5E3 /* RandomAccessContainer.swift */,
+				7D57EDCC2F647DB10029D5E3 /* RangeExpression2.swift */,
+				7D57EDCD2F647DB10029D5E3 /* RangeReplaceableContainer.swift */,
+			);
+			path = Container;
 			sourceTree = "<group>";
 		};
 		7D7246822F3D9DDB00112FD0 /* HashTable */ = {
@@ -2567,7 +2623,6 @@
 				7DE9208229CA70F4004483EB /* BigString+BidirectionalCollection.swift in Sources */,
 				7D479CDF2F47D5CA00A8CB59 /* RigidDictionary+Insertions.swift in Sources */,
 				7DE9203E29CA70F3004483EB /* OrderedSet+Partial SetAlgebra subtract.swift in Sources */,
-				7D57A2CE2F343CA9002543BD /* ContainerAlgorithms.swift in Sources */,
 				7DE9216929CA70F4004483EB /* TreeDictionary+Filter.swift in Sources */,
 				7DE9203129CA70F3004483EB /* OrderedSet+Partial MutableCollection.swift in Sources */,
 				7DE9209B29CA70F4004483EB /* Rope+Split.swift in Sources */,
@@ -2610,6 +2665,7 @@
 				7DE9215C29CA70F4004483EB /* _Bitmap.swift in Sources */,
 				7DE9207029CA70F4004483EB /* BigString+Chunk+RopeElement.swift in Sources */,
 				7DE9213729CA70F4004483EB /* TreeSet+Sequence.swift in Sources */,
+				7D57EDE52F64828A0029D5E3 /* Producer+Collect.swift in Sources */,
 				7D479CED2F47F41000A8CB59 /* RigidDictionary+Consumption.swift in Sources */,
 				7DE9217629CA70F4004483EB /* TreeDictionary+Initializers.swift in Sources */,
 				7DE9207E29CA70F4004483EB /* BigString+UTF16View.swift in Sources */,
@@ -2785,7 +2841,6 @@
 				7D2A77382F27F1E4005780C7 /* BorrowingSequence+Utilities.swift in Sources */,
 				7D2A77392F27F1E4005780C7 /* Box.swift in Sources */,
 				7D2A773A2F27F1E4005780C7 /* Drain.swift in Sources */,
-				7D2A773B2F27F1E4005780C7 /* Container.swift in Sources */,
 				7D479CC32F46D19600A8CB59 /* RigidSet+Resizing.swift in Sources */,
 				7D2A773C2F27F1E4005780C7 /* TemporaryAllocation.swift in Sources */,
 				7D2A773D2F27F1E4005780C7 /* BorrowingSequence.swift in Sources */,
@@ -2880,6 +2935,23 @@
 				7DE9206129CA70F4004483EB /* BigString.swift in Sources */,
 				7DE9215A29CA70F4004483EB /* _HashNode+Structural subtracting.swift in Sources */,
 				7DE9217E29CA70F4004483EB /* Heap+ExpressibleByArrayLiteral.swift in Sources */,
+				7D57EDD32F647DB10029D5E3 /* RandomAccessContainer.swift in Sources */,
+				7D57EDD42F647DB10029D5E3 /* BorrowingIteratorProtocol+SpanwiseZip.swift in Sources */,
+				7D57EDD52F647DB10029D5E3 /* MutableContainer.swift in Sources */,
+				7D57EDD62F647DB10029D5E3 /* DynamicContainer.swift in Sources */,
+				7D57EDD72F647DB10029D5E3 /* Drain+Reduce.swift in Sources */,
+				7D57EDD82F647DB10029D5E3 /* Producer+Map.swift in Sources */,
+				7D57EDD92F647DB10029D5E3 /* PermutableContainer.swift in Sources */,
+				7D57EDDA2F647DB10029D5E3 /* Container.swift in Sources */,
+				7D57EDDB2F647DB10029D5E3 /* BorrowingIteratorProtocol+Map.swift in Sources */,
+				7D57EDDC2F647DB10029D5E3 /* Producer+Reduce.swift in Sources */,
+				7D57EDDD2F647DB10029D5E3 /* RangeExpression2.swift in Sources */,
+				7D57EDDE2F647DB10029D5E3 /* ContainerAlgorithms.swift in Sources */,
+				7D57EDDF2F647DB10029D5E3 /* Drain+Map.swift in Sources */,
+				7D57EDE02F647DB10029D5E3 /* BorrowingIteratorProtocol+ElementsEqual.swift in Sources */,
+				7D57EDE12F647DB10029D5E3 /* BidirectionalContainer.swift in Sources */,
+				7D57EDE22F647DB10029D5E3 /* RangeReplaceableContainer.swift in Sources */,
+				7D57EDE32F647DB10029D5E3 /* BorrowingIteratorProtocol+Reduce.swift in Sources */,
 				7DE448452F2D3705005853A7 /* BinaryInteger extensions.swift in Sources */,
 				7DEB315C2F4E7A2500F9AF28 /* UniqueDictionary+Equatable.swift in Sources */,
 				7DA23F5A2F32C68300E4C03A /* RigidArray+Hashable.swift in Sources */,

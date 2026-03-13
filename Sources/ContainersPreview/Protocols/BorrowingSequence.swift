@@ -67,45 +67,4 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable {
-  @inlinable
-  public func borrowingReduce<Result: ~Copyable, E: Error>(
-    into initial: consuming Result,
-    _ update: (inout Result, borrowing Self.Element) throws(E) -> ()
-  ) throws(E) -> Result {
-    var result = initial
-    try self._borrowingForEach { item throws(E) in
-      try update(&result, item)
-    }
-    return result
-  }
-
-  @inlinable
-  public func borrowingReduce<Result: ~Copyable, E: Error>(
-    _ initial: consuming Result,
-    _ next: (consuming Result, borrowing Self.Element) throws(E) -> Result
-  ) throws(E) -> Result {
-    var result = initial
-#if false // FIXME: missing reinitialization of closure capture 'result' after consume
-    try self._borrowingForEach { item throws(E) in
-      result = try next(result, item)
-    }
-#else
-    var it = makeBorrowingIterator()
-    while true {
-      let span = it.nextSpan()
-      if span.isEmpty { break }
-      var i = 0
-      while i < span.count {
-        result = try next(result, span[unchecked: i])
-        i &+= 1
-      }
-    }
-#endif
-    return result
-  }
-
-}
-
 #endif
