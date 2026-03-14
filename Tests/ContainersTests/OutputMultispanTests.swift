@@ -457,7 +457,7 @@ class OutputMultispanTests: CollectionTestCase {
   }
   
   func test_rigidArray_initWithOutputMultispan() async throws {
-    let array = await RigidArray<Int>(capacity: 7) { multispan in
+    let array = await RigidArray<Int>(capacity: 7) { (multispan: inout OutputMultispan<Int>) in
       for i in 0..<7 {
         multispan.append(i * 10)
       }
@@ -486,7 +486,7 @@ class OutputMultispanTests: CollectionTestCase {
   }
   
   func test_uniqueArray_initWithOutputMultispan() async throws {
-    let array = await UniqueArray<Int>(capacity: 5) { multispan in
+    let array = await UniqueArray<Int>(capacity: 5) { (multispan: inout OutputMultispan<Int>) in
       multispan.append(repeating: 42, count: 5)
     }
     

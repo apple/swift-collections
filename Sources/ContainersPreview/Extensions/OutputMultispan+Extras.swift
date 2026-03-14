@@ -39,7 +39,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public init<E: Error>(
     capacity: Int,
-    initializingWith body: @escaping (inout OutputMultispan<Element>) throws(E) -> Void
+    initializingWith body: @escaping (inout OutputMultispan<Element>) async throws(E) -> Void
   ) async throws(E) {
     self.init(capacity: capacity)
     try await append(addingCount: capacity, initializingWith: body)
@@ -62,7 +62,7 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   public init<E: Error>(
     capacity: Int,
-    initializingWith body: @escaping (inout OutputMultispan<Element>) throws(E) -> Void
+    initializingWith body: @escaping (inout OutputMultispan<Element>) async throws(E) -> Void
   ) async throws(E) {
     self.init(capacity: capacity)
     try await append(addingCount: capacity, initializingWith: body)
