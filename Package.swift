@@ -119,6 +119,7 @@ let extraSettings: [SwiftSetting] = [
   .enableUpcomingFeature("MemberImportVisibility"),
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
+  .enableExperimentalFeature("LifetimeDependence"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
   .enableExperimentalFeature("SuppressedAssociatedTypes"),
   .enableExperimentalFeature("AddressableParameters"),
