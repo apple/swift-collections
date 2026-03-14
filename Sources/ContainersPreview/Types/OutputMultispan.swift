@@ -20,15 +20,7 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   @inlinable
   deinit {
-    for idx in 0 ..< _pointers.count {
-      let buffer = _pointers[idx]
-      unsafe buffer.ptr.withMemoryRebound(to: Element.self) {
-        _ = unsafe UnsafeMutableBufferPointer<Element>(
-          start: $0.baseAddress.unsafelyUnwrapped,
-          count: buffer.elementCount
-        ).deinitialize()
-      }
-    }
+    _pointers.destroyAll()
   }
 
   /// Create an OutputSpan with zero capacity
@@ -132,7 +124,7 @@ extension OutputMultispan where Element: ~Copyable  {
       _pointers.append(
         MultispanBuffer(
           ptr: UnsafeMutableRawBufferPointer($0),
-          count: $1 * MemoryLayout<Element>.stride
+          byteCount: $1 * MemoryLayout<Element>.stride
         )
       )
     }
@@ -159,7 +151,7 @@ extension OutputMultispan where Element: ~Copyable  {
     _pointers.append(
       MultispanBuffer(
         ptr: UnsafeMutableRawBufferPointer(buffer),
-        count: initializedCount * MemoryLayout<Element>.stride
+        byteCount: initializedCount * MemoryLayout<Element>.stride
       )
     )
   }
@@ -196,15 +188,16 @@ extension OutputMultispan where Element: ~Copyable {
   public func index(after index: OutputMultispan.Index) -> OutputMultispan.Index {
     let bufIdx = index.bufferIndex
     precondition(bufIdx < _pointers.count)
-    let elementOffset = index.elementIndex &* MemoryLayout<Element>.stride
-    precondition(elementOffset <= _pointers[bufIdx].elementCapacity)
-    if elementOffset == _pointers[bufIdx].elementCapacity {
-      if bufIdx == _pointers.count {
-        return endIndex
-      }
-      return Index(bufferIndex: bufIdx &+ 1, elementIndex: 0)
+    precondition(index.elementIndex < _pointers[bufIdx].elementCount)
+    let nextElementIndex = index.elementIndex &+ 1
+    if nextElementIndex < _pointers[bufIdx].elementCount {
+      return Index(bufferIndex: bufIdx, elementIndex: nextElementIndex)
     }
-    return Index(bufferIndex: bufIdx, elementIndex: index.elementIndex &+ 1)
+    let nextBufIdx = bufIdx &+ 1
+    if nextBufIdx >= _pointers.count {
+      return endIndex
+    }
+    return Index(bufferIndex: nextBufIdx, elementIndex: 0)
   }
 
   /// The range of `OutputSpan`s for this `OutputMultispan`.
@@ -352,8 +345,9 @@ extension OutputMultispan where Element: ~Copyable {
       return withOutputSpan(at: idx) { outputSpan in
         outputSpan.removeLast()
       }
+    } else {
+      preconditionFailure("OutputMultispan has no elements to remove")
     }
-    fatalError("unreachable")
   }
 
   /// Remove the last N elements of this span, returning the memory they occupy

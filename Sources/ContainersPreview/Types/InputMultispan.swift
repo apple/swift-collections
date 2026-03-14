@@ -53,9 +53,23 @@ internal struct MultispanBuffer<Element: ~Copyable> {
   }
   
   @inlinable @inline(__always)
-  init(ptr: UnsafeMutableRawBufferPointer, count: Int) {
+  init(ptr: UnsafeMutableRawBufferPointer, byteCount: Int) {
+    precondition(byteCount <= ptr.count)
+    precondition(byteCount.isMultiple(of: MemoryLayout<Element>.stride))
     self.ptr = ptr
-    self.count = count
+    self.count = byteCount
+  }
+  
+  @inlinable @inline(__always)
+  func deinitializeElements() {
+    let elementCount = self.elementCount
+    guard elementCount > 0 else { return }
+    unsafe ptr.withMemoryRebound(to: Element.self) {
+      _ = unsafe UnsafeMutableBufferPointer<Element>(
+        start: $0.baseAddress.unsafelyUnwrapped,
+        count: elementCount
+      ).deinitialize()
+    }
   }
 }
 
@@ -221,6 +235,27 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
   var endIndex: Int {
     count
   }
+  
+  @inlinable
+  func destroyAll() {
+    for idx in 0 ..< count {
+      self[idx].deinitializeElements()
+    }
+    if !inline {
+      /*
+       {Input, Output}Multispan.deinit is nonmutating, so we need a local copy
+       of the storage tuple here to free the heap allocation for the UniqueArray
+       */
+      var storageCopy = storage
+      _ = withUnsafeMutableBytes(of: &storageCopy) {
+        $0.withMemoryRebound(
+          to: UniqueArray<MultispanBuffer<Element>>.self
+        ) { buffer in
+          unsafe buffer.baseAddress.unsafelyUnwrapped.deinitialize(count: 1)
+        }
+      }
+    }
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -233,16 +268,7 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   @inlinable
   deinit {
-    for idx in 0 ..< _pointers.count {
-      let byteCount = _pointers[idx].count
-      let elementCount = byteCount / MemoryLayout<Element>.stride
-      unsafe _pointers[idx].ptr.withMemoryRebound(to: Element.self) {
-        _ = unsafe UnsafeMutableBufferPointer<Element>(
-          start: $0.baseAddress.unsafelyUnwrapped,
-          count: elementCount
-        ).deinitialize()
-      }
-    }
+    _pointers.destroyAll()
   }
 
   /// Create an OutputSpan with zero capacity
@@ -388,7 +414,7 @@ extension InputMultispan where Element: ~Copyable {
       _pointers.append(
         MultispanBuffer(
           ptr: UnsafeMutableRawBufferPointer(buffer),
-          count: count * MemoryLayout<Element>.stride
+          byteCount: count * MemoryLayout<Element>.stride
         )
       )
     }
@@ -415,7 +441,7 @@ extension InputMultispan where Element: ~Copyable {
     _pointers.append(
       MultispanBuffer(
         ptr: UnsafeMutableRawBufferPointer(buffer),
-        count: initializedCount * MemoryLayout<Element>.stride
+        byteCount: initializedCount * MemoryLayout<Element>.stride
       )
     )
   }
@@ -452,15 +478,16 @@ extension InputMultispan where Element: ~Copyable {
   public func index(after index: InputMultispan.Index) -> InputMultispan.Index {
     let bufIdx = index.bufferIndex
     precondition(bufIdx < _pointers.count)
-    let elementOffset = index.elementIndex
-    precondition(elementOffset <= _pointers[bufIdx].elementCapacity)
-    if elementOffset == _pointers[bufIdx].elementCapacity {
-      if bufIdx == _pointers.count {
-        return endIndex
-      }
-      return Index(bufferIndex: bufIdx &+ 1, elementIndex: 0)
+    precondition(index.elementIndex < _pointers[bufIdx].elementCount)
+    let nextElementIndex = index.elementIndex &+ 1
+    if nextElementIndex < _pointers[bufIdx].elementCount {
+      return Index(bufferIndex: bufIdx, elementIndex: nextElementIndex)
     }
-    return Index(bufferIndex: bufIdx, elementIndex: index.elementIndex &+ 1)
+    let nextBufIdx = bufIdx &+ 1
+    if nextBufIdx >= _pointers.count {
+      return endIndex
+    }
+    return Index(bufferIndex: nextBufIdx, elementIndex: 0)
   }
   
   /// The range of `InputSpan`s for this `InputMultispan`.
@@ -617,12 +644,15 @@ extension InputMultispan where Element: ~Copyable {
     
     // Find the last buffer with available capacity
     // Since InputSpan grows backwards, we fill buffers from right to left
-    let targetIdx = _lastNonFullSpanIndex().unsafelyUnwrapped
-    
-    withInputSpan(at: targetIdx) { inputSpan in
-      inputSpan.prepend(v.take()!)
+    if let targetIdx = _lastNonFullSpanIndex() {
+      
+      withInputSpan(at: targetIdx) { inputSpan in
+        inputSpan.prepend(v.take()!)
+      }
+      _pointers[targetIdx].elementCount &+= 1
+    } else {
+      preconditionFailure("InputMultispan has no capacity")
     }
-    _pointers[targetIdx].elementCount &+= 1
   }
 
   /// Remove the first initialized element from this span.

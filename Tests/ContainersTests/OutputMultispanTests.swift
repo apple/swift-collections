@@ -359,10 +359,10 @@ class OutputMultispanTests: CollectionTestCase {
   }
   
   func test_index_after() {
-    var buffer = [Int](repeating: 0, count: 5)
+    var buffer = [1, 2, 3]
     buffer.withUnsafeMutableBufferPointer { bufferPtr in
       var multispan = OutputMultispan<Int>()
-      multispan._append(buffer: bufferPtr, initializedCount: 0)
+      multispan._append(buffer: bufferPtr, initializedCount: 3)
       
       let idx0 = OutputMultispan<Int>.Index(bufferIndex: 0, elementIndex: 0)
       let idx1 = multispan.index(after: idx0)
