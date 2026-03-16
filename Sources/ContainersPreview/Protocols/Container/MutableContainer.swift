@@ -17,9 +17,6 @@
 public protocol MutableContainer<Element>: PermutableContainer, ~Copyable, ~Escapable {
   //  subscript(index: Index) -> Element { borrow mutate }
 
-  @_lifetime(self: copy self)
-  mutating func swapAt(_ i: Index, _ j: Index)
-
   @_lifetime(&self)
   mutating func nextMutableSpan(
     after index: inout Index,

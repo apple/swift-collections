@@ -74,6 +74,8 @@ where
     var success = false
     while !target.isFull {
       var source = _base.drainNext(maximumCount: target.freeCapacity)
+      if source.isEmpty { break }
+      success = true
       while !source.isEmpty {
         try target.append(_transform(source.removeFirst()))
       }

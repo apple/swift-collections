@@ -391,58 +391,6 @@ extension Container where Self: ~Copyable & ~Escapable {
   public var underestimatedCount: Int { count }
 }
 
-
-@available(SwiftStdlib 5.0, *)
-public struct ContainerIterator<
-  Base: Container & ~Copyable /*FIXME: & ~Escapable*/
->: ~Copyable, ~Escapable {
-  let _base: Borrow<Base> // FIXME: This doesn't support nonescapable Bases
-  var _position: Base.Index
-  
-  @_lifetime(borrow base)
-  init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
-    self._base = Borrow(_borrowing: base)
-    self._position = position
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension ContainerIterator: BorrowingIteratorProtocol
-where Base: ~Copyable /*FIXME: & ~Escapable*/
-{
-  public typealias Element = Base.Element
-
-  @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence!
-  @_lifetime(&self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
-    _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
-  }
-
-  @_lifetime(self: copy self)
-  public mutating func skip(by maximumOffset: Int) -> Int {
-    // FIXME: If we aren't modeling bidirectional iterators, then this should
-    // trap on negative maximumOffsets
-    var n = maximumOffset
-    let limit = (n < 0 ? _base.value.startIndex : _base.value.endIndex)
-    var i = self._position
-    self._base.value.formIndex(&i, offsetBy: &n, limitedBy: limit)
-    self._position = i
-    return maximumOffset - n
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension Container
-where
-  Self: ~Copyable /*FIXME: & ~Escapable*/,
-  BorrowingIterator == ContainerIterator<Self>
-{
-  @_lifetime(borrow self)
-  public func makeBorrowingIterator() -> BorrowingIterator {
-    ContainerIterator(_borrowing: self, from: self.startIndex)
-  }
-}
-
 #endif
 
 extension Strideable {
