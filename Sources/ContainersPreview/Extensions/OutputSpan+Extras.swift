@@ -131,6 +131,7 @@ extension OutputSpan /*where Element: Copyable*/ {
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   @inlinable
+  @_lifetime(self: copy self)
   package mutating func _remove(
     from index: Int,
     where shouldBeRemoved: (borrowing Element) -> Bool
