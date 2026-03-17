@@ -25,6 +25,8 @@ public protocol RangeReplaceableContainer<Element>
 {
   // Core requirements
 
+  var freeCapacity: Int { get }
+
   mutating func replace<E: Error>(
     removing subrange: Range<Index>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
