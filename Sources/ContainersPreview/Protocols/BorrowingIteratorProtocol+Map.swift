@@ -50,7 +50,11 @@ public struct BorrowingMapProducer<
 // FIXME: Sendable
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingMapProducer: Producer {
+extension BorrowingMapProducer: Producer
+where
+  Base: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   public typealias ProducerError = Error
 
   @inlinable

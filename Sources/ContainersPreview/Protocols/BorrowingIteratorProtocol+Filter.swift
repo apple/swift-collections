@@ -50,7 +50,8 @@ public struct BorrowingFilter<
 // FIXME: Sendable
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingFilter: BorrowingIteratorProtocol {
+extension BorrowingFilter: BorrowingIteratorProtocol
+where Base: ~Copyable & ~Escapable {
   @_lifetime(&self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
     // FIXME: This is quite inefficient compared to Container's filter
