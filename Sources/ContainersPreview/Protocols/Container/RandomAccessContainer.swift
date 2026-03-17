@@ -17,6 +17,21 @@
 public protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable {}
 
+extension RandomAccessCollection {
+  @inlinable
+  public func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  ) {
+    let l = self.distance(from: index, to: limit)
+    if n > 0 ? l >= 0 && l < n : l <= 0 && n < l {
+      index = limit
+      n -= l
+      return
+    }
+    formIndex(&index, offsetBy: n)
+    n = 0
+  }
+}
 
 @available(SwiftStdlib 6.2, *)
 extension RandomAccessContainer
@@ -70,19 +85,6 @@ where Self: ~Copyable & ~Escapable, Index: Strideable, Index.Stride == Int
   ) {
     // Note: Range checks are deferred until element access.
     index.advance(by: &distance, limitedBy: limit)
-  }
-
-
-  @_lifetime(borrow self)
-  @inlinable
-  public func nextSpan(
-    after index: inout Index, maximumCount: Int
-  ) -> Span<Element> {
-    precondition(maximumCount >= 0, "Maximum count must be non-negative")
-    let span = self.nextSpan(after: &index)
-    if span.count <= maximumCount { return span }
-    index = index.advanced(by: maximumCount - span.count)
-    return span.extracting(first: maximumCount)
   }
 }
 

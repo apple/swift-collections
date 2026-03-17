@@ -36,8 +36,22 @@ extension UniqueArray: BorrowingSequence where Element: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension UniqueArray: Container where Element: ~Copyable {
-}
+extension UniqueArray: Container where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray: BidirectionalContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray: MutableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray: RangeReplaceableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray: DynamicContainer where Element: ~Copyable {}
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -339,6 +353,22 @@ extension UniqueArray where Element: ~Copyable {
     after index: inout Int, maximumCount: Int
   ) -> Span<Element> {
     _storage.nextSpan(after: &index, maximumCount: maximumCount)
+  }
+
+  @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    _storage.nextMutableSpan(after: &index, maximumCount: maximumCount)
+  }
+
+  @inlinable
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    _storage.previousSpan(before: &index, maximumCount: maximumCount)
   }
 }
 

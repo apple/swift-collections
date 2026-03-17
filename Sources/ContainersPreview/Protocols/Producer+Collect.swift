@@ -16,7 +16,9 @@
 @available(SwiftStdlib 5.0, *)
 extension Producer where Self: ~Copyable & ~Escapable {
   @inlinable
-  public consuming func collect<R: DynamicContainer<Element>>(
+  public consuming func collect<
+    R: DynamicContainer<Element> & ~Copyable
+  >(
     into container: R.Type = R.self
   ) throws(ProducerError) -> R {
     try R(from: &self)
@@ -24,7 +26,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
 
   @inlinable
   public consuming func collect(
-    into container: inout some DynamicContainer<Element>
+    into container: inout some DynamicContainer<Element> & ~Copyable
   ) throws(ProducerError) {
     try container.append(from: &self)
   }

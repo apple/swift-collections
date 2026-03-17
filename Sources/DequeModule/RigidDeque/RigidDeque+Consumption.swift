@@ -174,42 +174,6 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func consume(_ subrange: Range<Index>) -> SubrangeConsumer {
     SubrangeConsumer(_base: &self, offsetRange: subrange)
   }
-  
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  @_lifetime(&self)
-  public mutating func consume<R: RangeExpression<Index>>(
-    _ subrange: R
-  ) -> SubrangeConsumer {
-    consume(subrange.relative(to: indices))
-  }
-  
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  @_lifetime(&self)
-  public mutating func consumeAll() -> SubrangeConsumer {
-    consume(indices)
-  }
-  
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  @_lifetime(&self)
-  public mutating func consumeLast(_ n: Int) -> SubrangeConsumer {
-    precondition(
-      n >= 0 && n <= self.count,
-      "Count of elements to consume is out of bounds")
-    return consume(self.count - n ..< self.count)
-  }
-  
-  @_alwaysEmitIntoClient
-  @inline(__always)
-  @_lifetime(&self)
-  public mutating func consumeFirst(_ n: Int) -> SubrangeConsumer {
-    precondition(
-      n >= 0 && n <= self.count,
-      "Count of elements to consume is out of bounds")
-    return consume(0 ..< n)
-  }
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -255,7 +219,7 @@ extension RigidDeque where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque.SubrangeConsumer: Drain {
+extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
