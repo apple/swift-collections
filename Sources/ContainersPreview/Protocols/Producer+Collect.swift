@@ -21,14 +21,14 @@ extension Producer where Self: ~Copyable & ~Escapable {
   >(
     into container: R.Type = R.self
   ) throws(ProducerError) -> R {
-    try R(from: &self)
+    try R(from: self)
   }
 
   @inlinable
   public consuming func collect(
     into container: inout some DynamicContainer<Element> & ~Copyable
   ) throws(ProducerError) {
-    try container.append(from: &self)
+    try container.append(from: self)
   }
 }
 

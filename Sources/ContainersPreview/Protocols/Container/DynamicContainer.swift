@@ -45,10 +45,10 @@ extension DynamicContainer where Self: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     minimumCapacity: Int? = nil,
-    from producer: inout P
+    from producer: consuming P
   ) throws(E) {
     self.init(minimumCapacity: minimumCapacity ?? producer.underestimatedCount)
-    try self.append(from: &producer)
+    try self.append(from: producer)
   }
 
   @inlinable
@@ -56,16 +56,21 @@ extension DynamicContainer where Self: ~Copyable {
     E: Error,
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
-    from producer: inout P
+    from producer: consuming P
   ) throws(E) {
-    var done = false
-    while !done {
-      let c = Swift.max(Swift.max(producer.underestimatedCount, self.freeCapacity), 1)
+    while true {
+      let c = Swift.max(producer.underestimatedCount, self.freeCapacity)
       try self.append(addingCount: c) { target throws(E) in
-        while !target.isFull, !done {
-          done = try !producer.generate(into: &target)
+        while !target.isFull {
+          guard try producer.generate(into: &target) else { return }
         }
       }
+      // Nudge the container to resize itself, providing more `freeCapacity` in
+      // the next iteration. Doing this separately avoids forcing the container
+      // to unnecessarily reallocate itself when the producer is already
+      // complete. (In exchange, we have to move a handful of items twice.)
+      guard let next = try producer.next() else { return }
+      self.append(next)
     }
   }
 }
