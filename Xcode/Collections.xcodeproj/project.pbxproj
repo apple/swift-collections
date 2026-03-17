@@ -1410,9 +1410,9 @@
 			children = (
 				7D57EDC52F647DB10029D5E3 /* BidirectionalContainer.swift */,
 				7D57EDC62F647DB10029D5E3 /* Container.swift */,
-				7D57EDEC2F649F0C0029D5E3 /* ContainerIterator.swift */,
 				7D57EDEA2F649CEF0029D5E3 /* Container+Filter.swift */,
 				7D57EDC72F647DB10029D5E3 /* Container+SpanwiseZip.swift */,
+				7D57EDEC2F649F0C0029D5E3 /* ContainerIterator.swift */,
 				7D57EDC82F647DB10029D5E3 /* DynamicContainer.swift */,
 				7D57EDC92F647DB10029D5E3 /* MutableContainer.swift */,
 				7D57EDCA2F647DB10029D5E3 /* PermutableContainer.swift */,
