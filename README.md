@@ -150,9 +150,16 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 - [`struct InputSpan<Element>`][InputSpan] is a reference to a contiguous region of consumable items.
 - [`struct Borrow<Target>`][Borrow] represents a borrowing reference to an item.
 - [`struct Inout<Target>`][Inout] represents a mutating reference to an item.
+
 - [`protocol BorrowingSequence<Element>`][BorrowingSequence] models borrowing sequences with ephemeral lifetimes.
 - [`protocol BorrowingIteratorProtocol<Element>`][BorrowingIteratorProtocol] models borrowing iterators with ephemeral elements.
 - [`protocol Container<Element>`][Container] models containers, or constructs that physically store their contents.
+- [`protocol BidirectionalContainer<Element>`][BidirectionalContainer] is the container analogue of `BidirectionalCollection`.
+- [`protocol RandomAccessContainer<Element>`][RandomAccessContainer] is the container analogue of `RandomAccessCollection`.
+- [`protocol PermutableContainer<Element>`][PermutableContainer] models a container that allows items to be arbitrarily reordered (sorted, reversed, etc).
+- [`protocol MutableContainer<Element>`][MutableContainer] refines `PermutableContainer` to also support arbitrary element replacements/mutations, like `MutableCollection`.
+- [`protocol RangeReplaceableContainer<Element>`][RangeReplaceableContainer] models a (potentially fixed capacity) container with insert/append/replace operations.
+- [`protocol DynamicContainer<Element>`][DynamicContainer] refines `RangeReplaceableContainer` to add operations that require dynamic storage sizing.
 - [`protocol Producer<Element, ProducerError>`][Producer] models a generative iterator -- an abstraction for producing items on demand.
 - [`protocol Drain<Element>`][Drain] refines `Producer` to model an in-place consumable elements -- primarily for use around container types.
 
@@ -161,14 +168,19 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 [Inout]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/Inout.swift
 [BorrowingSequence]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingSequence.swift
 [BorrowingIteratorProtocol]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingIteratorProtocol.swift
-[Container]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container.swift
+[Container]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
+[BidirectionalContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift
+[RandomAccessContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RandomAccessContainer.swift
+[PermutableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/PermutableContainer.swift
+[MutableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/MutableContainer.swift
+[RangeReplaceableContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/RangeReplaceableContainer.swift
+[DynamicContainer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/DynamicContainer.swift
 [Producer]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Producer.swift
 [Drain]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Drain.swift
 
+The trait also enables a large list of new APIs throughout the package that make use of these constructs -- such as generic methods for transferring items between container types, and implementations of the classic `map`/`reduce`/`filter`/etc algorithms.
 
-The trait also enables a large list of new APIs throughout the package that make use of these constructs -- such as generic methods for transferring items between container types.
-
-These constructs are previews of potential stdlib additions. As of March 2026, some of these are already making their way through the Swift Evolution process; others are still highly experimental. These need to remain unstable, as we expect that (as usual) these construct will see some API breaking changes on their way to the stdlib; additionally, they will likely need to be removed from the package entirely once they are fully adopted into the Standard Library. (It would not be feasible to maintain two distinct versions of universal library primitives, or basic protocols / generic algorithms.)
+These constructs are previews of potential stdlib additions. As of March 2026, some of these are already making their way through the Swift Evolution process; others are still unfinished and highly experimental. These need to remain unstable, as we expect that (as usual) these construct will see some API breaking changes on their way to the stdlib; additionally, they will likely need to be removed from the package entirely once they are fully adopted into the Standard Library. (It would not be feasible to maintain two distinct versions of universal library primitives, or basic protocols / generic algorithms.)
 
 ### `UnstableHashedContainers` package trait
 
