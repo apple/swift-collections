@@ -35,6 +35,23 @@ extension UniqueDeque where Element: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: Container where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: BidirectionalContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: RandomAccessContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: MutableContainer where Element: ~Copyable {}
+
+#if compiler(>=6.3)
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: RangeReplaceableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: DynamicContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -45,7 +62,15 @@ extension UniqueDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @inline(__always)
+  public func index(before index: Int) -> Int { index - 1 }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
   public func formIndex(after index: inout Int) { index += 1 }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(before index: inout Int) { index -= 1 }
 
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -64,6 +89,19 @@ extension UniqueDeque where Element: ~Copyable {
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
     _storage.nextSpan(after: &index, maximumCount: maximumCount)
+  }
+
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    _storage.nextMutableSpan(after: &index, maximumCount: maximumCount)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.previousSpan(before: &index, maximumCount: maximumCount)
   }
 }
 

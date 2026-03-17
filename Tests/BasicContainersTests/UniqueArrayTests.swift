@@ -21,7 +21,7 @@ import BasicContainers
 
 #if compiler(>=6.2)
 
-#if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 public func expectIterableContents<

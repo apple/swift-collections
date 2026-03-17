@@ -13,17 +13,23 @@
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftStdlib 5.0, *)
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable {
   func index(before i: Index) -> Index
+
   func formIndex(before i: inout Index)
 
   @_lifetime(borrow self)
   func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element>
 }
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftStdlib 5.0, *)
 extension BidirectionalContainer where Self: ~Copyable & ~Escapable {
+  @inlinable
+  public func formIndex(before i: inout Index) {
+    i = self.index(before: i)
+  }
+
   @inlinable
   @_lifetime(borrow self)
   public func previousSpan(before index: inout Index) -> Span<Element> {

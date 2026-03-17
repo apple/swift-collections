@@ -121,7 +121,7 @@ public func expectIterableContents<
   }
 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` contains lifetime tracked instances whose payloads equal
 /// the elements in `right`.
 @available(SwiftStdlib 5.0, *)
@@ -217,7 +217,7 @@ public func expectIterablePayloads<
 }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 public func expectIterablesWithEquivalentElements<
   S1: BorrowingSequence & ~Copyable & ~Escapable,

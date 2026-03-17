@@ -36,8 +36,21 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {
-}
+extension RigidArray: Container where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: BidirectionalContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
+
+#if compiler(>=6.3)
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: MutableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -386,6 +399,28 @@ extension RigidArray where Element: ~Copyable {
     let start = index
     index = start &+ Swift.min(maximumCount, _count &- start)
     return _span(in: Range(uncheckedBounds: (start, index)))
+  }
+
+  @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(after index: inout Int, maximumCount: Int) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
+    let start = index
+    index = start &+ Swift.min(maximumCount, _count &- start)
+    return _mutableSpan(in: Range(uncheckedBounds: (start, index)))
+  }
+
+  @inlinable
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
+    let start = index
+    index = start &- Swift.min(maximumCount, start)
+    return _span(in: Range(uncheckedBounds: (index, start)))
   }
 }
 

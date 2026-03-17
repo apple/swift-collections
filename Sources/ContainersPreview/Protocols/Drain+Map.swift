@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
 extension Drain where Self: ~Copyable & ~Escapable {
@@ -74,6 +74,8 @@ where
     var success = false
     while !target.isFull {
       var source = _base.drainNext(maximumCount: target.freeCapacity)
+      if source.isEmpty { break }
+      success = true
       while !source.isEmpty {
         try target.append(_transform(source.removeFirst()))
       }

@@ -32,7 +32,7 @@ final class BoxTests: XCTestCase {
 
     XCTAssertEqual(intOnHeap.copy(), 123)
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
     var inoutToIntOnHeap = intOnHeap.leak()
 
     XCTAssertEqual(inoutToIntOnHeap.value, 123)

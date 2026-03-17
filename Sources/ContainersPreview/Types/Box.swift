@@ -90,7 +90,7 @@ extension Box where T: ~Copyable {
     return result
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Leak the heap allocation behind this box, converting it into an
   /// immortal mutating reference.
   @_alwaysEmitIntoClient
@@ -114,7 +114,7 @@ extension Box where T: ~Copyable {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Return a mutating reference to the contents of this box.
   @_alwaysEmitIntoClient
   @_transparent
