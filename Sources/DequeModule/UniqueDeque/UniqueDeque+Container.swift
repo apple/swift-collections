@@ -45,11 +45,13 @@ extension UniqueDeque: RandomAccessContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: MutableContainer where Element: ~Copyable {}
 
+#if compiler(>=6.3)
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: RangeReplaceableContainer where Element: ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: DynamicContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)

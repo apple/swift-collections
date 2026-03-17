@@ -47,11 +47,13 @@ extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: MutableContainer where Element: ~Copyable {}
 
+#if compiler(>=6.3)
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: RangeReplaceableContainer where Element: ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: DynamicContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)

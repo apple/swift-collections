@@ -250,7 +250,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
   @inlinable
   @_lifetime(self: copy self)
   public mutating func next() throws(ProducerError) -> Element? {
-    try withUnsafeTemporaryAllocation(
+    try _withUnsafeTemporaryAllocation(
       of: Element.self, capacity: 1
     ) { buffer throws(ProducerError) in
       var span = OutputSpan(buffer: buffer, initializedCount: 0)
