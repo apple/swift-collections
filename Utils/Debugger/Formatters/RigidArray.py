@@ -1,0 +1,26 @@
+import lldb
+
+
+class RigidArraySynthetic:
+    valobj: lldb.SBValue
+    storage: lldb.SBValue
+    count: int
+
+    def __init__(self, valobj: lldb.SBValue, _) -> None:
+        self.valobj = valobj
+
+    def num_children(self) -> int:
+        return self.count
+
+    def get_child_at_index(self, idx: int) -> lldb.SBValue:
+        return self.storage.GetChildAtIndex(idx)
+
+    def update(self) -> None:
+        self.storage = self.valobj.GetChildMemberWithName(
+            "_storage"
+        ).GetSyntheticValue()
+        self.count = (
+            self.valobj.GetChildMemberWithName("_count")
+            .GetSyntheticValue()
+            .GetValueAsUnsigned()
+        )
