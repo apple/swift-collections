@@ -447,7 +447,6 @@ class OutputMultispanTests: CollectionTestCase {
       multispan.append(3)
       multispan.append(4)
       multispan.append(5)
-      print("is this thing on? Span count: \(multispan.totalCount)") 
     }
     
     expectEqual(array.count, 5) 
