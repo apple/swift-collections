@@ -401,6 +401,7 @@ extension RigidArray where Element: ~Copyable {
     return _span(in: Range(uncheckedBounds: (start, index)))
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(after index: inout Int, maximumCount: Int) -> MutableSpan<Element> {
@@ -422,6 +423,7 @@ extension RigidArray where Element: ~Copyable {
     index = start &- Swift.min(maximumCount, start)
     return _span(in: Range(uncheckedBounds: (index, start)))
   }
+#endif
 }
 
 #endif

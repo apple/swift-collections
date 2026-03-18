@@ -32,11 +32,13 @@ extension UniqueArray where Element: ~Copyable {
     _storage = .init(capacity: capacity)
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
   /// Initializes a new unique array with the specified capacity and no elements.
   @inlinable
   public init(minimumCapacity: Int) {
     _storage = .init(capacity: minimumCapacity)
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)
