@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -33,7 +35,7 @@ extension BitSet {
   /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in `other`.
-  public func isStrictSuperset(of other: Self) -> Bool {
+  public func isStrictSuperset(of other: BitSet) -> Bool {
     other.isStrictSubset(of: self)
   }
 

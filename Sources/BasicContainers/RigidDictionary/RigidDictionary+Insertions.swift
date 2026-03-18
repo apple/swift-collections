@@ -7,13 +7,15 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
@@ -54,7 +56,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     let bucket = self._keys._table.insertNew_Large(
       hashValue: hashValue,
       hashGenerator: {
-        keys[$0]._rawHashValue_temp(seed: seed)
+        keys[$0]._rawHashValue(seed: seed)
       },
       swapper: { bucket in
         swap(&key, &keys[bucket])

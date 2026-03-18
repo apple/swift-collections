@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -33,6 +35,23 @@ extension UniqueDeque where Element: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: Container where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: BidirectionalContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: RandomAccessContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: MutableContainer where Element: ~Copyable {}
+
+#if compiler(>=6.3)
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: RangeReplaceableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque: DynamicContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -41,9 +60,21 @@ extension UniqueDeque where Element: ~Copyable {
   @inline(__always)
   public func index(after index: Int) -> Int { index + 1 }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func index(before index: Int) -> Int { index - 1 }
+#endif
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public func formIndex(after index: inout Int) { index += 1 }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(before index: inout Int) { index -= 1 }
+#endif
 
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -63,6 +94,21 @@ extension UniqueDeque where Element: ~Copyable {
   public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
     _storage.nextSpan(after: &index, maximumCount: maximumCount)
   }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    _storage.nextMutableSpan(after: &index, maximumCount: maximumCount)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+    _storage.previousSpan(before: &index, maximumCount: maximumCount)
+  }
+#endif
 }
 
 #endif

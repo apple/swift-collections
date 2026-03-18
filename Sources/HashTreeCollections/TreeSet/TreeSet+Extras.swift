@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -21,7 +23,7 @@ extension TreeSet {
   /// Calling this method invalidates all existing indices of the collection.
   ///
   /// - Parameter position: The index of the member to remove. `position` must
-  ///    be a valid index of the set, and it must not be equal to the set’s
+  ///    be a valid index of the set, and it must not be equal to the set's
   ///    end index.
   /// - Returns: The element that was removed from the set.
   /// - Complexity: O(log(`count`)) if set storage might be shared; O(1)
@@ -44,10 +46,10 @@ extension TreeSet {
   ///
   /// Calling this method invalidates all existing indices of the collection.
   ///
-  /// - Parameter item: The new value that should replace the original element.
+  /// - Parameters:
+  ///   - member: The new value that should replace the original element.
   ///     `item` must compare equal to the original value.
-  ///
-  /// - Parameter index: The index of the element to be replaced.
+  ///   - index: The index of the element to be replaced.
   ///
   /// - Returns: The original element that was replaced.
   ///

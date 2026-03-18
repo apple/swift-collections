@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 import XCTest
@@ -18,7 +20,7 @@ import BasicContainers
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 class UniqueDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -193,6 +195,7 @@ class UniqueDictionaryTests: CollectionTestCase {
     }
   }
   
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @available(SwiftStdlib 6.2, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
@@ -227,6 +230,7 @@ class UniqueDictionaryTests: CollectionTestCase {
       }
     }
   }
+#endif
 
   func test_removeValueForKey_one() {
     typealias Key = LifetimeTracked<Int>

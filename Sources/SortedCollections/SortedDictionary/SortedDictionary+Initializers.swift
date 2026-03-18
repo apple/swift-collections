@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -114,7 +116,7 @@ extension SortedDictionary {
   /// by the given closure and whose values are arrays of the elements that
   /// returned each key.
   ///
-  /// The arrays in the “values” position of the new sorted dictionary each contain at least
+  /// The arrays in the "values" position of the new sorted dictionary each contain at least
   /// one element, with the elements in the same order as the source sequence.
   /// The following example declares an array of names, and then creates a sorted dictionary
   /// from that array by grouping the names by first letter:
@@ -123,7 +125,7 @@ extension SortedDictionary {
   ///     let studentsByLetter = SortedDictionary(grouping: students, by: { $0.first! })
   ///     // ["A": ["Abena", "Akosua"], "E": ["Efua"], "K": ["Kofi", "Kweku"]]
   ///
-  /// The new `studentsByLetter` sorted dictionary has three entries, with students’ names
+  /// The new `studentsByLetter` sorted dictionary has three entries, with students' names
   /// grouped by the keys `"A"`, `"E"`, and `"K"`
   ///
   ///

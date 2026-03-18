@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -24,7 +26,7 @@ extension BitSet {
   /// - Parameter other: Another bit set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public mutating func subtract(_ other: Self) {
+  public mutating func subtract(_ other: BitSet) {
     _updateThenShrink { target, shrink in
       other._read { source in
         target.combineSharedPrefix(
@@ -56,8 +58,6 @@ extension BitSet {
   ///     // set is now [3, 4]
   ///
   /// - Parameter other: A range of arbitrary integers.
-  ///
-  /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in self.
   public mutating func subtract(_ other: Range<Int>) {

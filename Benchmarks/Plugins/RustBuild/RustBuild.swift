@@ -1,3 +1,16 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift Collections open source project
+//
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
+//===----------------------------------------------------------------------===//
+
 import Foundation
 import PackagePlugin
 
@@ -19,7 +32,7 @@ struct RustBuild: BuildToolPlugin {
     pathString.removeLast()
     return URL(filePath: pathString)
   }
-  
+
   func createBuildCommands(
     context: PluginContext,
     target: Target
@@ -43,12 +56,14 @@ struct RustBuild: BuildToolPlugin {
     let output = context.pluginWorkDirectoryURL.appendingPathComponent(lib)
     let args = inputPaths + ["-o", output.path, "-O", "--crate-type", "staticlib"]
 
-    return [.buildCommand(
+    return [
+      .buildCommand(
         displayName: "Compiling Rust Sources in Target \(target.name)",
         executable: rustCompiler,
         arguments: args,
         inputFiles: inputs,
         outputFiles: [output]
-    )]
+      )
+    ]
   }
 }

@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -14,12 +16,13 @@ import XCTest
 import Collections
 #else
 import _CollectionsTestSupport
+import ContainersPreview
 import BasicContainers
 #endif
 
 #if compiler(>=6.2)
 
-#if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 internal func expectIterableContents<
@@ -381,7 +384,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_equatable() {
     withSomeArrayLayouts("layoutA", ofCapacities: [0, 10, 100]) { layoutA in
       withSomeArrayLayouts("layoutB", ofCapacities: [0, 10, 100]) { layoutB in
@@ -397,7 +400,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_hashable() {
     withSomeArrayLayouts("layoutA", ofCapacities: [0, 10, 100]) { layoutA in
       withSomeArrayLayouts("layoutB", ofCapacities: [0, 10, 100]) { layoutB in
@@ -411,12 +414,12 @@ class RigidArrayTests: CollectionTestCase {
             ha.combine(i)
             a.hash(into: &ha)
             let hashValueA = ha.finalize()
-            
+
             var hb = Hasher()
             hb.combine(i)
             b.hash(into: &hb)
             let hashValueB = hb.finalize()
-            
+
             if layoutA.count == layoutB.count {
               expectEqual(hashValueA, hashValueB)
               goodHash = true
@@ -429,7 +432,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_descriptions() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -439,7 +442,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_edit() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -732,7 +735,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_pushLast() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
@@ -754,7 +757,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_addingCount_full() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -775,7 +778,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_addingCount_partial() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -799,7 +802,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_moving_UnsafeMutableBufferPointer() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -811,12 +814,12 @@ class RigidArrayTests: CollectionTestCase {
               at: i,
               to: tracker.instance(for: layout.count + i))
           }
-          
+
           var a = tracker.rigidArray(layout: layout)
           a.append(moving: additions)
-          
+
           additions.deallocate()
-          
+
           expectIterableContents(
             a,
             equivalentTo: 0 ..< layout.count + c,
@@ -826,21 +829,21 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_moving_InputSpan() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
       withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
         withLifetimeTracking { tracker in
           var a = tracker.rigidArray(layout: layout)
-          
+
           tracker.withInputSpan(
             layout: spanLayout,
             using: { layout.count + $0 }
           ) { span in
             a.append(moving: &span)
           }
-          
+
           expectIterableContents(
             a,
             equivalentTo: 0 ..< layout.count + spanLayout.count,
@@ -851,20 +854,20 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_append_moving_OutputSpan() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
       withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
         withLifetimeTracking { tracker in
           var a = tracker.rigidArray(layout: layout)
-          
+
           tracker.withOutputSpan(
             layout: spanLayout,
             using: { layout.count + $0 }
           ) { span in
             a.append(moving: &span)
           }
-          
+
           expectIterableContents(
             a,
             equivalentTo: 0 ..< layout.count + spanLayout.count,
@@ -874,7 +877,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_copying_MinimalSequence() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("isContiguous", in: [false, true]) { isContiguous in
@@ -960,26 +963,26 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_addingCount_full() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 20]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in
         withEvery("c", in: 0 ..< layout.freeCapacity) { c in
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
-            
+
             a.insert(addingCount: c, at: i) { target in
               expectEqual(target.freeCapacity, c)
               for i in 0 ..< c {
                 target.append(tracker.instance(for: layout.count + i))
               }
             }
-            
+
             var expected = Array(0 ..< layout.count)
             expected.insert(
               contentsOf: layout.count ..< layout.count + c,
               at: i)
-            
+
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -990,7 +993,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_addingCount_partial() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       guard !layout.isFull else { return }
@@ -999,7 +1002,7 @@ class RigidArrayTests: CollectionTestCase {
           withEvery("n", in: [0, 1, c / 2, c - 1] as Set) { n in
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
-              
+
               a.insert(addingCount: c, at: i) { target in
                 expectTrue(target.isEmpty)
                 expectEqual(target.freeCapacity, c)
@@ -1008,12 +1011,12 @@ class RigidArrayTests: CollectionTestCase {
                 }
               }
               expectEqual(a.count, layout.count + n)
-              
+
               var expected = Array(0 ..< layout.count)
               expected.insert(
                 contentsOf: layout.count ..< layout.count + n,
                 at: i)
-              
+
               expectIterableContents(
                 a,
                 equivalentTo: expected,
@@ -1025,7 +1028,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_moving_UnsafeMutableBufferPointer() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1038,15 +1041,15 @@ class RigidArrayTests: CollectionTestCase {
                 at: i,
                 to: tracker.instance(for: layout.count + i))
             }
-            
+
             var a = tracker.rigidArray(layout: layout)
             a.insert(moving: additions, at: i)
-            
+
             additions.deallocate()
-            
+
             var expected = Array(0 ..< layout.count)
             expected.insert(contentsOf: layout.count ..< layout.count + c, at: i)
-            
+
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -1057,7 +1060,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_moving_InputSpan() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
@@ -1065,19 +1068,19 @@ class RigidArrayTests: CollectionTestCase {
         withEvery("i", in: 0 ... layout.count) { i in
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
-            
+
             tracker.withInputSpan(
               layout: spanLayout,
               using: { layout.count + $0 }
             ) { span in
               a.insert(moving: &span, at: i)
             }
-            
+
             var expected = Array(0 ..< layout.count)
             expected.insert(
               contentsOf: layout.count ..< layout.count + spanLayout.count,
               at: i)
-            
+
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -1089,26 +1092,26 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_insert_moving_OutputSpan() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
       withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
         withEvery("i", in: 0 ... layout.count) { i in
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
-            
+
             tracker.withOutputSpan(
               layout: spanLayout,
               using: { layout.count + $0 }
             ) { span in
               a.insert(moving: &span, at: i)
             }
-            
+
             var expected = Array(0 ..< layout.count)
             expected.insert(
               contentsOf: layout.count ..< layout.count + spanLayout.count,
               at: i)
-            
+
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -1119,7 +1122,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_copying_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1175,24 +1178,24 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
         withEvery("spanCount", in: 1 ... Swift.max(1, layout.capacity - layout.count)) { spanCount in
           withLifetimeTracking { tracker in
-            
+
             var expected = Array(0 ..< layout.count)
             let addition = Array(layout.count ..< layout.capacity)
             expected.insert(contentsOf: addition, at: i)
-            
+
             var a = tracker.rigidArray(layout: layout)
             let rigidAddition = StaccatoContainer(
               contents: tracker.instances(for: addition),
               spanCounts: [spanCount])
             a.insert(copying: rigidAddition, at: i)
-            
+
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -1212,19 +1215,19 @@ class RigidArrayTests: CollectionTestCase {
         withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
           withLifetimeTracking { tracker in
             var a = tracker.rigidArray(layout: layout)
-            
+
             a.replace(removing: subrange, addingCount: c) { target in
               expectEqual(target.freeCapacity, c)
               for i in 0 ..< c {
                 target.append(tracker.instance(for: layout.count + i))
               }
             }
-            
+
             var expected = Array(0 ..< layout.count)
             expected.replaceSubrange(
               subrange,
               with: layout.count ..< layout.count + c)
-            
+
             expectIterableContents(
               a,
               equivalentTo: expected,
@@ -1235,7 +1238,7 @@ class RigidArrayTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_replace_addingCount_partial() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       guard !layout.isFull else { return }
@@ -1244,7 +1247,7 @@ class RigidArrayTests: CollectionTestCase {
           withEvery("n", in: [0, 1, c / 2, c - 1] as Set) { n in
             withLifetimeTracking { tracker in
               var a = tracker.rigidArray(layout: layout)
-              
+
               a.replace(removing: subrange, addingCount: c) { target in
                 expectTrue(target.isEmpty)
                 expectEqual(target.freeCapacity, c)
@@ -1253,12 +1256,12 @@ class RigidArrayTests: CollectionTestCase {
                 }
               }
               expectEqual(a.count, layout.count - subrange.count + n)
-              
+
               var expected = Array(0 ..< layout.count)
               expected.replaceSubrange(
                 subrange,
                 with: layout.count ..< layout.count + n)
-              
+
               expectIterableContents(
                 a,
                 equivalentTo: expected,
@@ -1324,7 +1327,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -1352,6 +1355,34 @@ class RigidArrayTests: CollectionTestCase {
         }
       }
     }
+  }
+#endif
+
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_borrowing_map() {
+    let c = 100
+    let items = RigidArray(capacity: c, copying: 0 ..< c)
+    let transformed = items.makeBorrowingIterator()
+      .map { 2 * $0 }
+      .collect(into: UniqueArray.self)
+    expectEqual(transformed.count, c)
+    //expectEqual(transformed.capacity, c) // FIXME: Would be nice
+
+    let expected = (0 ..< c).map { 2 * $0 }
+    expectIterableContents(transformed, equalTo: expected)
+  }
+
+  func test_borrowing_filter() {
+    let c = 100
+    let items = RigidArray(capacity: c, copying: 0 ..< c)
+    let transformed = items.makeBorrowingIterator()
+      .filter { !$0.isMultiple(of: 6) }
+      .copy()
+      .collect(into: UniqueArray.self)
+    expectEqual(transformed.count, 5 * c / 6)
+
+    let expected = (0 ..< c).filter { !$0.isMultiple(of: 6) }
+    expectIterableContents(transformed, equalTo: expected)
   }
 #endif
 }

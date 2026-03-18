@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -26,7 +28,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public func symmetricDifference(_ other: Self) -> Self {
+  public func symmetricDifference(_ other: BitSet) -> BitSet {
     self._read { first in
       other._read { second in
         Self(
@@ -49,7 +51,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either set.
-  public func symmetricDifference(_ other: Counted) -> Self {
+  public func symmetricDifference(_ other: Counted) -> BitSet {
     symmetricDifference(other._bits)
   }
 
@@ -64,7 +66,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func symmetricDifference(_ other: Range<Int>) -> Self {
+  public func symmetricDifference(_ other: Range<Int>) -> BitSet {
     var result = self
     result.formSymmetricDifference(other)
     return result
@@ -85,7 +87,7 @@ extension BitSet {
   @inlinable
   public func symmetricDifference(
     _ other: __owned some Sequence<Int>
-  ) -> Self {
+  ) -> BitSet {
     if let other = _specialize(other, for: Range<Int>.self) {
       return symmetricDifference(other)
     }

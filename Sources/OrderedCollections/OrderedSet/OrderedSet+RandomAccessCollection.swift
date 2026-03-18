@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -43,7 +45,7 @@ extension OrderedSet: Sequence {
     return (Iterator(_elements: self, _position: copied), copied)
   }
 
-  /// Call `body(p)`, where `p` is a buffer pointer to the collection’s
+  /// Call `body(p)`, where `p` is a buffer pointer to the collection's
   /// contiguous storage. Ordered sets always have contiguous storage.
   ///
   /// - Parameter body: A function to call. The function must not escape its
@@ -223,8 +225,9 @@ extension OrderedSet: RandomAccessCollection {
 
   /// Accesses the element at the specified position.
   ///
-  /// - Parameter index: The position of the element to access. `index` must be
-  ///   greater than or equal to `startIndex` and less than `endIndex`.
+  /// - Parameter position: The position of the element to access.
+  ///   `position` must be greater than or equal to `startIndex` and less than
+  ///   `endIndex`.
   ///
   /// - Complexity: O(1)
   @inlinable

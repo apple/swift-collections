@@ -7,9 +7,11 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import Builtin
 
 /// A safe mutable reference allowing in-place mutation to an exclusive value.

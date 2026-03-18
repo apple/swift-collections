@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2024 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2024 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -88,7 +90,7 @@ extension Box where T: ~Copyable {
     return result
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Leak the heap allocation behind this box, converting it into an
   /// immortal mutating reference.
   @_alwaysEmitIntoClient
@@ -112,7 +114,7 @@ extension Box where T: ~Copyable {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Return a mutating reference to the contents of this box.
   @_alwaysEmitIntoClient
   @_transparent

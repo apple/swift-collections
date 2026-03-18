@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 import Testing
@@ -18,6 +20,7 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
+#if !os(Android) // Exit tests are not available on this platform
 @Suite("RigidDeque Crash Tests")
 struct RigidDequeCrashTests {
     
@@ -77,5 +80,5 @@ struct RigidDequeCrashTests {
     }
   }
 }
-
+#endif
 #endif

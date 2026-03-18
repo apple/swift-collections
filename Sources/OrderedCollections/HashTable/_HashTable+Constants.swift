@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -40,13 +42,15 @@ extension _HashTable {
     }
   }
 
-  /// The maximum hash table load factor.
-  @inline(__always)
-  internal static var maximumLoadFactor: Double { 3 / 4 }
+  /// The maximum hash table load factor. This is a rational number
+  /// represented by a (numerator, denominator) tuple.
+  @_transparent
+  internal static var maximumLoadFactor: (Int, Int) { (3, 4) }
 
-  /// The minimum hash table load factor.
-  @inline(__always)
-  internal static var minimumLoadFactor: Double { 1 / 4 }
+  /// The minimum hash table load factor. This is a rational number
+  /// represented by a (numerator, denominator) tuple.
+  @_transparent
+  internal static var minimumLoadFactor: (Int, Int) { (1, 4) }
 
   /// The minimum number of items that can be held in a hash table of the given scale.
   @usableFromInline
@@ -54,7 +58,7 @@ extension _HashTable {
   internal static func minimumCapacity(forScale scale: Int) -> Int {
     guard scale >= minimumScale else { return 0 }
     let bucketCount = 1 &<< scale
-    return Int(Double(bucketCount) * minimumLoadFactor)
+    return (bucketCount * minimumLoadFactor.0) / minimumLoadFactor.1
   }
 
   /// The maximum number of items that can be held in a hash table of the given scale.
@@ -63,7 +67,7 @@ extension _HashTable {
   internal static func maximumCapacity(forScale scale: Int) -> Int {
     guard scale >= minimumScale else { return maximumUnhashedCount }
     let bucketCount = 1 &<< scale
-    return Int(Double(bucketCount) * maximumLoadFactor)
+    return (bucketCount * maximumLoadFactor.0) / maximumLoadFactor.1
   }
 
   /// The minimum hash table scale that can hold the specified number of elements.
@@ -76,8 +80,8 @@ extension _HashTable {
     // the maximum load factor. `capacity + 1` below ensures that we always
     // leave at least one hole.
     let minimumEntries = Swift.max(
-      Int((Double(capacity) / maximumLoadFactor).rounded(.up)),
-      capacity + 1)
+        (capacity * maximumLoadFactor.1 + maximumLoadFactor.0 - 1) / maximumLoadFactor.0,
+        capacity + 1)
     // The actual number of entries we need to allocate is the lowest power of
     // two greater than or equal to the minimum entry count. Calculate its
     // exponent.
@@ -94,4 +98,3 @@ extension _HashTable {
     ((scale &<< scale) + 63) / 64
   }
 }
-

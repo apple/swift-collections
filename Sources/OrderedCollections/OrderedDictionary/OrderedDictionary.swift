@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -716,8 +718,10 @@ extension OrderedDictionary {
   /// - Parameters:
   ///   - key: The key to look up (or append). If `key` does not already exist
   ///      in the dictionary, it is appended with the supplied default value.
-  ///   - defaultValue: The default value to append if `key` doesn't exist in
+  ///   - defaultValue: The default value to insert if `key` doesn't exist in
   ///      the dictionary.
+  ///   - index: The index at which to insert the new element, if it doesn't
+  ///      already exist.
   ///   - body: A function that performs an in-place mutation on the dictionary
   ///      value.
   ///

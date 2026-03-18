@@ -7,9 +7,11 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
@@ -67,10 +69,10 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
         selector: {
           srcKey = sourceKeys + $0.offset
           srcValue = sourceValues + $0.offset
-          return srcKey.pointee._rawHashValue_temp(seed: seed)
+          return srcKey.pointee._rawHashValue(seed: seed)
         },
         hashGenerator: {
-          targetKeys[$0.offset]._rawHashValue_temp(seed: seed)
+          targetKeys[$0.offset]._rawHashValue(seed: seed)
         },
         swapper: {
           swap(&srcKey.pointee, &targetKeys[$0.offset])

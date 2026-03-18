@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -39,7 +41,7 @@ extension TreeDictionary {
   ///     dictionary.
   @inlinable
   public mutating func merge(
-    _ keysAndValues: Self,
+    _ keysAndValues: TreeDictionary,
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows {
     _invalidateIndices()
@@ -166,7 +168,7 @@ extension TreeDictionary {
   ///    hashing.
   @inlinable
   public func merging(
-    _ other: Self,
+    _ other: TreeDictionary,
     uniquingKeysWith combine: (Value, Value) throws -> Value
   ) rethrows -> Self {
     var copy = self

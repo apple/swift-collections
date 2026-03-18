@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -144,7 +146,11 @@ extension OrderedSet {
   /// Insert a new member to this set at the specified index, if the set doesn't
   /// already contain it.
   ///
-  /// - Parameter item: The element to insert.
+  /// - Parameters:
+  ///   - item: The element to insert.
+  ///   - index: The index at which to insert the new element, if the set
+  ///      doesn't already contain it. `index` must be a valid index in the
+  ///      original set.
   ///
   /// - Returns: A pair `(inserted, index)`, where `inserted` is a Boolean value
   ///    indicating whether the operation added a new element, and `index` is

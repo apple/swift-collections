@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -14,11 +16,18 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
-
+#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(<6.4)
+@available(*, unavailable, message: "UniqueSet requires a Swift 6.4 toolchain")
+public struct UniqueSet<Element: Hashable>: ~Copyable {
+  package init() {
+    fatalError()
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 @frozen
-public struct UniqueSet<Element: GeneralizedHashable & ~Copyable>: ~Copyable {
+public struct UniqueSet<Element: Hashable & ~Copyable>: ~Copyable {
   @usableFromInline
   package typealias _Bucket = _HTable.Bucket
 
@@ -64,5 +73,5 @@ extension UniqueSet where Element: ~Copyable {
     _storage._table.scale
   }
 }
-
+#endif
 #endif

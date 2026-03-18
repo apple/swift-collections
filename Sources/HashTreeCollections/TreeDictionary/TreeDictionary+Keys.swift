@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -14,7 +16,7 @@ import InternalCollectionsUtilities
 #endif
 
 extension TreeDictionary {
-  /// A view of a persistent dictionary’s keys, as a standalone collection.
+  /// A view of a persistent dictionary's keys, as a standalone collection.
   @frozen
   public struct Keys {
     @usableFromInline
@@ -230,7 +232,7 @@ extension TreeDictionary.Keys {
   ///     However, the implementation is careful to make the best use of
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
-  public func intersection(_ other: TreeSet<Key>) -> Self {
+  public func intersection(_ other: TreeSet<Key>) -> TreeDictionary.Keys {
     guard let r = _base._root.intersection(.top, other._root) else {
       return self
     }
@@ -257,7 +259,7 @@ extension TreeDictionary.Keys {
   ///     parts of the input trees directly into the result.
   public func subtracting<Value2>(
     _ other: TreeDictionary<Key, Value2>.Keys
-  ) -> Self {
+  ) -> TreeDictionary.Keys {
     guard let r = _base._root.subtracting(.top, other._base._root) else {
       return self
     }
@@ -281,7 +283,7 @@ extension TreeDictionary.Keys {
   ///     However, the implementation is careful to make the best use of
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
-  public func subtracting(_ other: TreeSet<Key>) -> Self {
+  public func subtracting(_ other: TreeSet<Key>) -> TreeDictionary.Keys {
     guard let r = _base._root.subtracting(.top, other._root) else {
       return self
     }
@@ -297,8 +299,8 @@ extension TreeDictionary.Keys: Equatable {
   /// Equality is the inverse of inequality. For any values `a` and `b`,
   /// `a == b` implies that `a != b` is `false`.
   ///
-  /// - Parameter lhs: A value to compare.
-  /// - Parameter rhs: Another value to compare.
+  /// - Parameter left: A value to compare.
+  /// - Parameter right: Another value to compare.
   ///
   /// - Complexity: Generally O(`count`), as long as`Element` properly
   ///    implements hashing. That said, the implementation is careful to take

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -90,7 +92,7 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
 ///
 /// It is possible to extend or shrink the capacity of a rigid deque instance,
 /// but this needs to be done explicitly, with operations dedicated to this
-/// purpose (such as ``reserveCapacity`` and ``reallocate(capacity:)``).
+/// purpose (such as ``reserveCapacity(_:)`` and ``reallocate(capacity:)``).
 /// The deque never resizes itself automatically.
 ///
 /// Therefore, it is necessary to perform careful manual analysis (or up front
@@ -133,7 +135,7 @@ public struct RigidDeque<Element: ~Copyable>: ~Copyable {
   deinit {
     _handle.dispose()
   }
-  
+
   @inlinable @inline(__always)
   package mutating func _takeHandle() -> _UnsafeHandle {
     exchange(&_handle, with: .allocate(capacity: 0))
@@ -167,7 +169,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var capacity: Int { _assumeNonNegative(_handle.capacity) }
-  
+
   /// The number of additional elements that can be added to this deque without
   /// exceeding its storage capacity.
   ///
@@ -175,7 +177,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var freeCapacity: Int { _assumeNonNegative(capacity &- count) }
-  
+
   /// A Boolean value indicating whether this rigid deque is fully populated.
   /// If this property returns true, then the array's storage is at capacity,
   /// and it cannot accommodate any additional elements.
@@ -194,31 +196,31 @@ extension RigidDeque where Element: ~Copyable {
   /// logical start position.
   ///
   /// Valid indices consist of the position of every element and a "past the
-  /// end" position that’s not valid for use as a subscript argument.
+  /// end" position that's not valid for use as a subscript argument.
   public typealias Index = Int
-  
+
   /// A Boolean value indicating whether this deque contains no elements.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var isEmpty: Bool { _handle.count == 0 }
-  
+
   /// The number of elements in this deque.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var count: Int { _handle.count }
-  
+
   /// The position of the first element in a nonempty deque. This is always zero.
   ///
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @_transparent
   public var startIndex: Int { 0 }
-  
-  /// The deque’s "past the end” position—that is, the position one greater than
+
+  /// The deque's "past the end" position—that is, the position one greater than
   /// the last valid subscript argument. This is always equal to the deque's
   /// count.
   ///
@@ -226,7 +228,7 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var endIndex: Int { _handle.count }
-  
+
   /// The range of indices that are valid for subscripting this deque.
   ///
   /// - Complexity: O(1)
@@ -316,7 +318,7 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func reallocate(capacity newCapacity: Int) {
     _handle.reallocate(capacity: newCapacity)
   }
-  
+
   /// Ensure that the deque has capacity to store the specified number of
   /// elements, by growing its storage buffer if necessary.
   ///

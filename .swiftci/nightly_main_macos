@@ -1,5 +1,0 @@
-macOSSwiftPackageJob {
-    swift_version = "main"
-    repo = "swift-collections"
-    branch = "main"
-}

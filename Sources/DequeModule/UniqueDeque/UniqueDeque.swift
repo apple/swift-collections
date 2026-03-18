@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -103,7 +105,7 @@ public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
 public struct UniqueDeque<Element: ~Copyable>: ~Copyable {
   @usableFromInline
   package var _storage: RigidDeque<Element>
-  
+
   @_alwaysEmitIntoClient
   @inline(__always)
   package init(_storage: consuming RigidDeque<Element>) {
@@ -138,7 +140,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var capacity: Int { _assumeNonNegative(_storage.capacity) }
-  
+
   /// The number of additional elements that can be added to this array without
   /// reallocating its storage.
   ///
@@ -146,7 +148,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var freeCapacity: Int { _assumeNonNegative(_storage.freeCapacity) }
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   public var _isFull: Bool { _storage.isFull }
@@ -177,7 +179,7 @@ extension UniqueDeque where Element: ~Copyable {
   @_transparent
   public var startIndex: Int { _storage.startIndex }
 
-  /// The deque’s "past the end” position—that is, the position one greater than
+  /// The deque's "past the end" position—that is, the position one greater than
   /// the last valid subscript argument. This is always equal to deque's count.
   ///
   /// - Complexity: O(1)
@@ -248,7 +250,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// buffer of the specified capacity, moving all existing elements
   /// to its new storage. The old storage is then deallocated.
   ///
-  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
+  /// - Parameter capacity: The desired new capacity. `capacity` must be
   ///    greater than or equal to the current count.
   ///
   /// - Complexity: O(`count`)
@@ -270,14 +272,14 @@ extension UniqueDeque where Element: ~Copyable {
     _storage.reserveCapacity(n)
   }
 
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   internal mutating func _ensureFreeCapacity(_ freeCapacity: Int) {
     guard _storage.freeCapacity < freeCapacity else { return }
     _ensureFreeCapacitySlow(freeCapacity)
   }
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   internal func _grow(freeCapacity: Int) -> Int {

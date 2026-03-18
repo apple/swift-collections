@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -28,9 +30,9 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public mutating func append(_ newElement: consuming Element) {
+  public mutating func append(_ item: consuming Element) {
     precondition(!isFull, "RigidDeque capacity overflow")
-    _handle.uncheckedAppend(newElement)
+    _handle.uncheckedAppend(item)
   }
 
   /// Adds an element to the end of the deque, if possible.
@@ -240,7 +242,7 @@ extension RigidDeque where Element: ~Copyable {
       }
     }
     if !done {
-      done = (try producer.generateNext() == nil)
+      done = (try producer.next() == nil)
     }
     precondition(done, "RigidDeque capacity overflow")
   }

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -14,10 +16,10 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: GeneralizedHashable { // Should be Hashable
+extension RigidSet: Hashable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     // Generate a seed from a snapshot of the hasher.  This makes members' hash
@@ -30,17 +32,24 @@ extension RigidSet: GeneralizedHashable { // Should be Hashable
   
   @inlinable
   public func _rawHashValue(seed: Int) -> Int {
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
     var hash = 0
     var it = self.makeBorrowingIterator()
     while true {
       let next = it.nextSpan()
       var i = 0
       while i < next.count {
-        hash ^= next[i]._rawHashValue_temp(seed: seed)
+        hash ^= next[i]._rawHashValue(seed: seed)
         i &+= 1
       }
     }
     return hash
+#else
+    var hasher = Hasher()
+    hasher.combine(seed)
+    self.hash(into: &hasher)
+    return hasher.finalize()
+#endif
   }
 }
 

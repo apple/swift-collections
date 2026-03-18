@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 import XCTest
@@ -20,7 +22,7 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
-#if !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 internal func expectIterableContents<
@@ -412,7 +414,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_initCopyingBorrowingSequence() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
@@ -555,7 +557,7 @@ final class RigidDequeTests: CollectionTestCase {
         var data = tracker.rigidDeque(with: layout)
         let extra = tracker.instance(for: layout.count)
         guard !data.deque.isFull else { return }
-        data.contents.insert(extra, at: data.contents.count)
+        data.contents.append(extra)
         data.deque.append(extra)
         expectIterableContents(data.deque, equalTo: data.contents)
       }

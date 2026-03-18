@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2)
@@ -122,6 +124,36 @@ extension OutputSpan /*where Element: Copyable*/ {
     // FIXME: This needs to be in the stdlib.
     source.withUnsafeBufferPointer { buffer in
       self._append(copying: buffer)
+    }
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension OutputSpan where Element: ~Copyable {
+  @inlinable
+  @_lifetime(self: copy self)
+  package mutating func _remove(
+    from index: Int,
+    where shouldBeRemoved: (borrowing Element) -> Bool
+  ) {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    self.withUnsafeMutableBufferPointer { buffer, count in
+      var i = index
+      var j = i
+      // Invariant: i ..< j is uninitialized
+      while j < count {
+        if shouldBeRemoved(buffer[j]) {
+          buffer.deinitializeElement(at: j)
+          j &+= 1
+        } else {
+          if i != j {
+            buffer.initializeElement(at: i, to: buffer.moveElement(from: j))
+          }
+          i &+= 1
+          j &+= 1
+        }
+      }
+      count = i
     }
   }
 }

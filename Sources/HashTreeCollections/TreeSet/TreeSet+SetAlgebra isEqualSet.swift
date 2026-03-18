@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -28,7 +30,7 @@ extension TreeSet {
   ///    every available shortcut to reduce complexity, e.g. by skipping
   ///    comparing elements in shared subtrees.
   @inlinable
-  public func isEqualSet(to other: Self) -> Bool {
+  public func isEqualSet(to other: TreeSet) -> Bool {
     _root.isEqualSet(to: other._root, by: { _, _ in true })
   }
 

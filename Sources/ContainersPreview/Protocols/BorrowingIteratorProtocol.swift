@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -82,8 +84,7 @@ public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
   /// skip the requested number of items. In this case, the iterator's current
   /// position is set to the end of the sequence.
   ///
-  /// `maximumOffset` must be nonnegative, unless this is a bidirectional
-  /// or random-access iterator.
+  /// `maximumOffset` must be nonnegative.
   @_lifetime(self: copy self)
   mutating func skip(by maximumOffset: Int) -> Int
   

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -14,12 +16,24 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(<6.4)
+@available(*, unavailable, message: "RigidDictionary requires a Swift 6.4 toolchain")
+@frozen
+public struct RigidDictionary<
+  Key: Hashable,
+  Value: ~Copyable
+>: ~Copyable {
+  package init() {
+    fatalError()
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 @frozen
 @_addressableForDependencies
 public struct RigidDictionary<
-  Key: GeneralizedHashable & ~Copyable,
+  Key: Hashable & ~Copyable,
   Value: ~Copyable
 >: ~Copyable {
   @usableFromInline
@@ -134,4 +148,5 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
+#endif
 #endif

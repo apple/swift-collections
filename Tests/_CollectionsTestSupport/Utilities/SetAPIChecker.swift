@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -14,7 +16,7 @@
 ///
 /// To ensure maximum utility, this protocol refines neither `Collection` nor
 /// `SetAlgebra` although it does share some of the same requirements.
-public protocol SetAPIChecker {
+package protocol SetAPIChecker {
   associatedtype Element
   associatedtype Index
 
@@ -70,7 +72,7 @@ public protocol SetAPIChecker {
 
 extension Set: SetAPIChecker {}
 
-public protocol SetAPIExtras: SetAPIChecker {
+package protocol SetAPIExtras: SetAPIChecker {
   // Non-standard extensions
 
   mutating func update(_ member: Element, at index: Index) -> Element

@@ -1,12 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Swift.org open source project
+// This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2014 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
-// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -77,11 +78,6 @@ extension LifetimeTracked: Hashable where Payload: Hashable {
     payload.hashValue
   }
 }
-
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
-extension LifetimeTracked: GeneralizedEquatable where Payload: Equatable {}
-extension LifetimeTracked: GeneralizedHashable where Payload: Hashable {}
-#endif
 
 extension LifetimeTracked: Comparable where Payload: Comparable {
   public static func < (left: LifetimeTracked, right: LifetimeTracked) -> Bool {

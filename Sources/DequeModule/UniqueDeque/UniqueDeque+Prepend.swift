@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -29,9 +31,9 @@ extension UniqueDeque where Element: ~Copyable {
   /// - Complexity: O(1) when amortized over many invocations on the same deque.
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func prepend(_ newElement: consuming Element) {
+  public mutating func prepend(_ item: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage._handle.uncheckedPrepend(newElement)
+    _storage._handle.uncheckedPrepend(item)
   }
 }
 

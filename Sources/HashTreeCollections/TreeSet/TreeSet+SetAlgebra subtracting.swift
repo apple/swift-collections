@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -30,7 +32,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public __consuming func subtracting(_ other: Self) -> Self {
+  public __consuming func subtracting(_ other: TreeSet) -> TreeSet {
     _subtracting(other._root)
   }
 
@@ -52,14 +54,14 @@ extension TreeSet {
   @inlinable
   public __consuming func subtracting<V>(
     _ other: TreeDictionary<Element, V>.Keys
-  ) -> Self {
+  ) -> TreeSet {
     _subtracting(other._base._root)
   }
 
   @inlinable
   internal __consuming func _subtracting<V>(
     _ other: _HashNode<Element, V>
-  ) -> Self {
+  ) -> TreeSet {
     guard let r = _root.subtracting(.top, other) else { return self }
     return Self(_new: r)
   }
@@ -77,7 +79,9 @@ extension TreeSet {
   /// - Complexity: O(*n*) where *n* is the number of elements in `other`,
   ///    as long as `Element` properly implements hashing.
   @inlinable
-  public __consuming func subtracting(_ other: some Sequence<Element>) -> Self {
+  public __consuming func subtracting(
+    _ other: some Sequence<Element>
+  ) -> TreeSet {
     if let other = _specialize(other, for: Self.self) {
       return subtracting(other)
     }

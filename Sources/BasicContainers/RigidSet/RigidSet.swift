@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -14,13 +16,22 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(<6.4)
+/// A fixed-capacity, noncopyable, unordered hashed container of unique
+/// elements.
+@available(*, unavailable, message: "RigidSet requires a Swift 6.4 toolchain")
+public struct RigidSet<Element: Hashable>: ~Copyable {
+  package init() {
+    fatalError()
+  }
+}
+#else
 /// A fixed-capacity, noncopyable, unordered hashed container of unique
 /// elements.
 @available(SwiftStdlib 5.0, *)
 @frozen
-public struct RigidSet<Element: GeneralizedHashable & ~Copyable>: ~Copyable {
+public struct RigidSet<Element: Hashable & ~Copyable>: ~Copyable {
   @usableFromInline
   package typealias _Bucket = _HTable.Bucket
 
@@ -150,7 +161,7 @@ extension RigidSet where Element: ~Copyable {
   internal borrowing func _hashValue(
     for item: borrowing Element
   ) -> Int {
-    item._rawHashValue_temp(seed: _seed)
+    item._rawHashValue(seed: _seed)
   }
 }
 
@@ -165,4 +176,5 @@ extension RigidSet where Element: ~Copyable {
   }
 }
 
+#endif
 #endif

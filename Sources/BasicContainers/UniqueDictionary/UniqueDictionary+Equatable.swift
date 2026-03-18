@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -15,7 +17,7 @@ import ContainersPreview
 #endif
 
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDictionary {
@@ -39,7 +41,7 @@ extension UniqueDictionary {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueDictionary: GeneralizedEquatable where Value: GeneralizedEquatable { // Should be Equatable
+extension UniqueDictionary: Equatable where Value: Equatable {
   @inlinable
   @inline(__always)
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {

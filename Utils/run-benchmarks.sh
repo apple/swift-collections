@@ -18,6 +18,7 @@ run() {
   local flags
   flags="-c release"
   flags="$flags -Xswiftc -Xllvm -Xswiftc -align-module-to-page-size"
+  flags="$flags --traits ${BENCHMARK_TRAITS:-default}"
   $swift run --package-path "$srcroot" $flags benchmark "$@"
 }
 

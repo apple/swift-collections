@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -408,6 +410,7 @@ extension InputSpan /* where Element: Copyable */ {
 @available(SwiftStdlib 5.0, *)
 extension InputSpan /* where Element: Copyable */ {
   @inlinable
+  @_lifetime(self: copy self)
   package mutating func prepend(copying source: UnsafeBufferPointer<Element>) {
     self.withUnsafeMutableBufferPointer { dst, dstCount in
       let dstEnd = dst.count &- dstCount
@@ -421,6 +424,7 @@ extension InputSpan /* where Element: Copyable */ {
   }
 
   @inlinable
+  @_lifetime(self: copy self)
   package mutating func prepend(copying source: borrowing Span<Element>) {
     source.withUnsafeBufferPointer { src in
       self.prepend(copying: src)
@@ -559,6 +563,7 @@ internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
   package mutating func _consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {

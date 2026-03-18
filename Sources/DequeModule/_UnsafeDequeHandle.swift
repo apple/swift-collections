@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -329,7 +331,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func nextSegment(
-    from startOffset: Int
+    after startOffset: Int
   ) -> UnsafeBufferPointer<Element> {
     assert(startOffset >= 0 && startOffset <= count)
     guard _buffer.baseAddress != nil else {
@@ -345,6 +347,26 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
     return UnsafeBufferPointer(
       start: ptr(at: Slot(at: position &- capacity)),
       count: startSlot.position &+ count &- position)
+  }
+
+  @_alwaysEmitIntoClient
+  internal func previousSegment(
+    before startOffset: Int
+  ) -> UnsafeBufferPointer<Element> {
+    assert(startOffset >= 0 && startOffset <= count)
+    guard _buffer.baseAddress != nil else {
+      return .init(._empty)
+    }
+    let position = startSlot.position &+ startOffset
+    if position <= capacity {
+      return UnsafeBufferPointer(
+        start: ptr(at: startSlot),
+        count: startOffset)
+    }
+    // We're after the wrap
+    return UnsafeBufferPointer(
+      start: ptr(at: Slot(at: 0)),
+      count: position - capacity)
   }
 
   @_alwaysEmitIntoClient

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -65,6 +67,20 @@ extension RigidDeque where Element: ~Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque: Container where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque: BidirectionalContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque: RandomAccessContainer where Element: ~Copyable {}
+
+#if compiler(>=6.3)
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque: MutableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque: RangeReplaceableContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -73,9 +89,21 @@ extension RigidDeque where Element: ~Copyable {
   @inline(__always)
   public func index(after index: Int) -> Int { index + 1 }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func index(before index: Int) -> Int { index - 1 }
+#endif
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public func formIndex(after index: inout Int) { index += 1 }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(before index: inout Int) { index -= 1 }
+#endif
 
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -96,11 +124,38 @@ extension RigidDeque where Element: ~Copyable {
     _checkValidIndex(index)
     precondition(maximumCount > 0, "maximumCount must be positive")
     let segment = self._handle
-      .nextSegment(from: index)
+      .nextSegment(after: index)
       ._extracting(first: maximumCount)
     index &+= segment.count
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    let segment = self._handle
+      .nextSegment(after: index)
+      ._extracting(first: maximumCount)
+    index &+= segment.count
+    return _overrideLifetime(
+      MutableSpan(_unsafeElements: .init(mutating: segment)),
+      mutating: &self)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
+    let segment = self._handle
+      .previousSegment(before: index)
+      ._extracting(last: maximumCount)
+    index &-= segment.count
+    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
+  }
+#endif
 }
 
 #endif

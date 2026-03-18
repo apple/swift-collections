@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -35,7 +37,7 @@ extension TreeSet {
   ///    the best use of hash tree structure to minimize work when possible,
   ///    e.g. by skipping over parts of the input trees.
   @inlinable
-  public func isStrictSubset(of other: Self) -> Bool {
+  public func isStrictSubset(of other: TreeSet) -> Bool {
     guard self.count < other.count else { return false }
     return isSubset(of: other)
   }

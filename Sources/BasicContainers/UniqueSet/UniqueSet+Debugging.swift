@@ -7,9 +7,11 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
@@ -27,6 +29,26 @@ extension UniqueSet where Element: ~Copyable {
     buckets: Bool = false,
   ) {
     _storage._dump(bitmap: bitmap, chains: chains, buckets: buckets)
+  }
+  
+  public func _checkInvariants() -> Bool {
+    var passed = true
+    _checkInvariants { message in
+      if passed {
+        passed = false
+        _dump(bitmap: true, buckets: true)
+      }
+      print(message)
+    }
+    return passed
+  }
+
+  public func _checkInvariants(
+    failureHandler: (String) -> Void
+  ) {
+    _storage._checkInvariants(failureHandler: failureHandler)
+    // Note: we should have a check for correct storage sizing here,
+    // but `reserveCapacity` can mess that up (until we persist it)
   }
 }
 

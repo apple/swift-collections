@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2)
@@ -34,7 +36,7 @@ extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */
     guard !left.isTriviallyIdentical(to: right) else { return true }
     
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-    return left.elementsEqual(right)
+    return left._elementsEqual(right)
 #else
     for i in 0 ..< left.count {
       guard left[i] == right[i] else { return false }

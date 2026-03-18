@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -20,12 +22,10 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = Span<Element>.BorrowingIterator
-  
+
   @inlinable
-  public var estimatedCount: EstimatedCount {
-    .exactly(count)
-  }
-  
+  public var underestimatedCount: Int { count }
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public func makeBorrowingIterator() -> BorrowingIterator {
@@ -36,8 +36,21 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {
-}
+extension RigidArray: Container where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: BidirectionalContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
+
+#if compiler(>=6.3)
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: MutableContainer where Element: ~Copyable {}
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
+#endif
 #endif
 
 @available(SwiftStdlib 5.0, *)
@@ -63,7 +76,7 @@ extension RigidArray where Element: ~Copyable {
   /// start.
   ///
   /// Valid indices consist of the position of every element and a "past the
-  /// end” position that’s not valid for use as a subscript argument.
+  /// end" position that's not valid for use as a subscript argument.
   public typealias Index = Int
 
   /// The position of the first element in a nonempty array. This is always zero.
@@ -73,7 +86,7 @@ extension RigidArray where Element: ~Copyable {
   @inline(__always)
   public var startIndex: Int { 0 }
 
-  /// The array’s "past the end” position—that is, the position one greater than
+  /// The array's "past the end" position—that is, the position one greater than
   /// the last valid subscript argument. This is always equal to the array's
   /// count.
   ///
@@ -88,7 +101,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   package func _checkItemIndex(_ index: Int) {
@@ -96,7 +109,7 @@ extension RigidArray where Element: ~Copyable {
       UInt(bitPattern: index) < UInt(bitPattern: _count),
       "Index out of bounds")
   }
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   package func _checkValidIndex(_ index: Int) {
@@ -104,7 +117,7 @@ extension RigidArray where Element: ~Copyable {
       UInt(bitPattern: index) <= UInt(bitPattern: _count),
       "Index out of bounds")
   }
-  
+
   @_alwaysEmitIntoClient
   @_transparent
   package func _checkValidBounds(_ subrange: Range<Int>) {
@@ -185,7 +198,7 @@ extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   public func index(after index: Int) -> Int { index + 1 }
-  
+
   /// Returns the position immediately before the given index.
   ///
   /// - Note: To improve performance, this method does not validate that the
@@ -251,7 +264,7 @@ extension RigidArray where Element: ~Copyable {
   public func index(_ index: Int, offsetBy n: Int) -> Int {
     index + n
   }
-  
+
   /// Returns the distance between two indices.
   ///
   /// - Note: To improve performance, this method does not validate that the
@@ -269,7 +282,7 @@ extension RigidArray where Element: ~Copyable {
   public func distance(from start: Index, to end: Index) -> Int {
     end - start
   }
-  
+
   /// Offsets the given index by the specified distance, but no further than
   /// the given limiting index.
   ///
@@ -387,7 +400,30 @@ extension RigidArray where Element: ~Copyable {
     index = start &+ Swift.min(maximumCount, _count &- start)
     return _span(in: Range(uncheckedBounds: (start, index)))
   }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
+  @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(after index: inout Int, maximumCount: Int) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
+    let start = index
+    index = start &+ Swift.min(maximumCount, _count &- start)
+    return _mutableSpan(in: Range(uncheckedBounds: (start, index)))
+  }
+
+  @inlinable
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
+    let start = index
+    index = start &- Swift.min(maximumCount, start)
+    return _span(in: Range(uncheckedBounds: (index, start)))
+  }
+#endif
 }
 
 #endif
-

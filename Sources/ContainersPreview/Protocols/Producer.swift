@@ -7,9 +7,15 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+
+@_alwaysEmitIntoClient
+@_transparent
+public var _producerBufferSize: Int { 8 }
 
 /// A type that supplies the values of a generative sequence by populating
 /// a client-supplied series of `OutputSpan` instances. "Generative" sequences
@@ -83,9 +89,9 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   /// - Returns: A boolean value indicating whether the operation was able to
   ///    append at least one item to the supplied output span without hitting
   ///    the end of the underlying sequence.
+  @discardableResult
   @_lifetime(target: copy target)
   @_lifetime(self: copy self)
-  @discardableResult
   mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(ProducerError) -> Bool
@@ -149,12 +155,12 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   /// resulting contents. This often produces satisfactory results; but the
   /// protocol allows conformances to customize this entry point if they believe
   /// it to be necessary (for example, if they can take shortcuts that aren't
-  /// available in the bulk method). Custom implementations of `generateNext()`
+  /// available in the bulk method). Custom implementations of `next()`
   /// must produce results that are indistinguishable from the default
   /// implementation, but they may exhibit observably different performance
   /// metrics.
   @_lifetime(self: copy self)
-  mutating func generateNext() throws(ProducerError) -> Element?
+  mutating func next() throws(ProducerError) -> Element?
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -237,14 +243,14 @@ extension Producer where Self: ~Copyable & ~Escapable {
   /// resulting contents. This often produces satisfactory results; but the
   /// protocol allows conformances to customize this entry point if they believe
   /// it to be necessary (for example, if they can take shortcuts that aren't
-  /// available in the bulk method). Custom implementations of `generateNext()`
+  /// available in the bulk method). Custom implementations of `next()`
   /// must produce results that are indistinguishable from the default
   /// implementation, but they may exhibit observably different performance
   /// metrics.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func generateNext() throws(ProducerError) -> Element? {
-    try withUnsafeTemporaryAllocation(
+  public mutating func next() throws(ProducerError) -> Element? {
+    try _withUnsafeTemporaryAllocation(
       of: Element.self, capacity: 1
     ) { buffer throws(ProducerError) in
       var span = OutputSpan(buffer: buffer, initializedCount: 0)

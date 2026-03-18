@@ -5,6 +5,8 @@ Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 Licensed under Apache License v2.0 with Runtime Library Exception
 
 See https://swift.org/LICENSE.txt for license information
+
+SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 #]]
 
 if(COLLECTIONS_SINGLE_MODULE)
@@ -49,19 +51,17 @@ target_sources(${module_name} PRIVATE
   "UniqueArray/UniqueArray+Insertions.swift"
   "UniqueArray/UniqueArray+Removals.swift"
   "UniqueArray/UniqueArray+Replacements.swift"
-  "HashTable/ProtocolGeneralizations.swift"
   "HashTable/_HTable.swift"
   "HashTable/_HTable+Bitmap.swift"
   "HashTable/_HTable+Bucket.swift"
   "HashTable/_HTable+Consumption.swift"
-  "HashTable/_HTable+Debugging.swift"
+  "HashTable/_HTable+Debug.swift"
   "HashTable/_HTable+Find.swift"
   "HashTable/_HTable+Insert.swift"
   "HashTable/_HTable+Iteration.swift"
   "HashTable/_HTable+Removal.swift"
   "HashTable/_HTable+Resizing.swift"
   "HashTable/_HTable+Sizing.swift"
-  "HashTable/ProtocolGeneralizations.swift"
   "RigidSet/RigidSet.swift"
   "RigidSet/RigidSet+BorrowingSequence.swift"
   "RigidSet/RigidSet+Consumption.swift"
@@ -88,6 +88,7 @@ target_sources(${module_name} PRIVATE
   "UniqueSet/UniqueSet+Resizing.swift"
   "RigidDictionary/RigidDictionary.swift"
   "RigidDictionary/RigidDictionary+Consumption.swift"
+  "RigidDictionary/RigidDictionary+Debugging.swift"
   "RigidDictionary/RigidDictionary+Equatable.swift"
   "RigidDictionary/RigidDictionary+Hashable.swift"
   "RigidDictionary/RigidDictionary+Index.swift"
@@ -100,6 +101,7 @@ target_sources(${module_name} PRIVATE
   "RigidDictionary/RigidDictionary+Resizing.swift"
   "UniqueDictionary/UniqueDictionary.swift"
   "UniqueDictionary/UniqueDictionary+Consumption.swift"
+  "UniqueDictionary/UniqueDictionary+Debugging.swift"
   "UniqueDictionary/UniqueDictionary+Equatable.swift"
   "UniqueDictionary/UniqueDictionary+Hashable.swift"
   "UniqueDictionary/UniqueDictionary+Index.swift"

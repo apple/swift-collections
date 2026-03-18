@@ -21,7 +21,7 @@
 
 ### Accessing Elements
 
-- ``subscript(position:)`
+- ``subscript(_:)``
 - ``first``
 - ``last``
 
@@ -43,7 +43,7 @@
 
 - ``remove(at:)``
 - ``removeAll(keepingCapacity:)``
-- ``removeAll(where:)``
+- ``removeAll(where:)-4izxo``
 - ``removeSubrange(_:)``
 - ``removeLast()``
 - ``removeLast(_:)``

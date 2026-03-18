@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -23,7 +25,7 @@ extension BitSet {
   /// - Parameter other: The set of elements to insert.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func union(_ other: Self) -> Self {
+  public func union(_ other: BitSet) -> BitSet {
     self._read { first in
       other._read { second in
         Self(
@@ -43,7 +45,7 @@ extension BitSet {
   /// - Parameter other: The set of elements to insert.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func union(_ other: BitSet.Counted) -> Self {
+  public func union(_ other: BitSet.Counted) -> BitSet {
     union(other._bits)
   }
 
@@ -56,7 +58,7 @@ extension BitSet {
   /// - Parameter other: A range of nonnegative integers.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func union(_ other: Range<Int>) -> Self {
+  public func union(_ other: Range<Int>) -> BitSet {
     var result = self
     result.formUnion(other)
     return result
@@ -75,7 +77,7 @@ extension BitSet {
   ///    input, and *k* is the complexity of iterating over all elements in
   ///    `other`.
   @inlinable
-  public func union(_ other: __owned some Sequence<Int>) -> Self {
+  public func union(_ other: __owned some Sequence<Int>) -> BitSet {
     if let other = _specialize(other, for: BitSet.self) {
       return union(other)
     }

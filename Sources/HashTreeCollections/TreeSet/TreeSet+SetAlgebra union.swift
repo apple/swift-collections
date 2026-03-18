@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -34,7 +36,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable
-  public func union(_ other: __owned Self) -> Self {
+  public func union(_ other: __owned TreeSet) -> TreeSet {
     let r = _root.union(.top, other._root)
     guard r.copied else { return self }
     r.node._fullInvariantCheck()
@@ -64,7 +66,7 @@ extension TreeSet {
   @inlinable
   public func union<Value>(
     _ other: __owned TreeDictionary<Element, Value>.Keys
-  ) -> Self {
+  ) -> TreeSet {
     let r = _root.union(.top, other._base._root)
     guard r.copied else { return self }
     r.node._fullInvariantCheck()
@@ -95,7 +97,7 @@ extension TreeSet {
   ///     the worst case, where *n* is the number of items in `other`,
   ///     as long as `Element` properly implements hashing.
   @inlinable
-  public func union(_ other: __owned some Sequence<Element>) -> Self {
+  public func union(_ other: __owned some Sequence<Element>) -> TreeSet {
     if let other = _specialize(other, for: Self.self) {
       return union(other)
     }

@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -29,8 +31,8 @@ extension Deque {
   ///   the requested number of elements.
   ///
   /// - Parameters:
-  ///   - unsafeUninitializedCapacity: The number of elements to allocate
-  ///     space for in the new deque.
+  ///   - capacity: The number of elements to allocate space for in the new
+  ///     deque.
   ///   - initializer: A closure that initializes elements and sets the count
   ///     of the new deque.
   ///     - Parameters:

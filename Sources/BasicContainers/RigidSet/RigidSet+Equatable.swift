@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
@@ -15,7 +17,7 @@ import ContainersPreview
 #endif
 
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet {
@@ -26,8 +28,9 @@ extension RigidSet {
   }
 }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: GeneralizedEquatable { // Should be Equatable
+extension RigidSet: Equatable {
   @inlinable
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {
     if left.isTriviallyIdentical(to: right) { return true }
@@ -47,5 +50,6 @@ extension RigidSet: GeneralizedEquatable { // Should be Equatable
     return true
   }
 }
+#endif
 
 #endif

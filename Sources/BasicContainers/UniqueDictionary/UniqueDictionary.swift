@@ -7,15 +7,27 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
-
+#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(<6.4)
+@available(*, unavailable, message: "UniqueDictionary requires a Swift 6.4 toolchain")
+public struct UniqueDictionary<
+  Key: Hashable,
+  Value: ~Copyable
+>: ~Copyable {
+  package init() {
+    fatalError()
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 @frozen
 @_addressableForDependencies
 public struct UniqueDictionary<
-  Key: GeneralizedHashable & ~Copyable,
+  Key: Hashable & ~Copyable,
   Value: ~Copyable
 >: ~Copyable {
   @usableFromInline
@@ -69,4 +81,5 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
+#endif
 #endif

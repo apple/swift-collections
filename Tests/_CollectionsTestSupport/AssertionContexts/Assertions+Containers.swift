@@ -1,12 +1,13 @@
 //===----------------------------------------------------------------------===//
 //
-// This source file is part of the Swift.org open source project
+// This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2014 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
-// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -120,7 +121,7 @@ public func expectIterableContents<
   }
 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` contains lifetime tracked instances whose payloads equal
 /// the elements in `right`.
 @available(SwiftStdlib 5.0, *)
@@ -216,7 +217,7 @@ public func expectIterablePayloads<
 }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 public func expectIterablesWithEquivalentElements<
   S1: BorrowingSequence & ~Copyable & ~Escapable,
@@ -230,7 +231,7 @@ public func expectIterablesWithEquivalentElements<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  if left.elementsEqual(right, by: areEquivalent) { return }
+  if left._elementsEqual(right, by: areEquivalent) { return }
   _expectFailure(
     "Containers do not have equivalent elements",
     message, trapping: trapping, file: file, line: line)
@@ -250,7 +251,7 @@ public func expectIterablesWithEqualElements<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  if left.elementsEqual(right) { return }
+  if left._elementsEqual(right) { return }
   _expectFailure(
     "Containers do not have equal elements",
     message, trapping: trapping, file: file, line: line)

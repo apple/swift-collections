@@ -7,9 +7,11 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_NONCOPYABLE_KEYS
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
@@ -32,7 +34,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     self._keys._table.resolveHole(
       at: bucket,
       hashGenerator: {
-        keys[$0.offset]._rawHashValue_temp(seed: seed)
+        keys[$0.offset]._rawHashValue(seed: seed)
       },
       mover: {
         (keys + $1.offset).initialize(to: (keys + $0.offset).move())

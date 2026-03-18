@@ -71,7 +71,7 @@ average -- typically they will need to compare against just one member.
 ### Creating a Set
 
 - ``init()``
-- ``init(_:)-(Self)``
+- ``init(_:)-(TreeSet)``
 - ``init(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``init(_:)-(Sequence<Element>)``
 
@@ -103,35 +103,35 @@ but `TreeSet` follows the tradition established by `Set` in providing
 additional overloads to each operation that allow combining a set with
 additional types, including arbitrary sequences.
 
-- ``intersection(_:)-(Self)`
+- ``intersection(_:)-(TreeSet)``
 - ``intersection(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``intersection(_:)-(Sequence<Element>)``
 
-- ``union(_:)-(Self)``
+- ``union(_:)-(TreeSet)``
 - ``union(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``union(_:)-(Sequence<Element>)``
 
-- ``subtracting(_:)-(Self)``
-- ``subtracting(_:)-(TreeDictionary<Element,Value>.Keys)``
+- ``subtracting(_:)-(TreeSet)``
+- ``subtracting(_:)-(TreeDictionary<Element,V>.Keys)``
 - ``subtracting(_:)-(Sequence<Element>)``
 
-- ``symmetricDifference(_:)-(Self)``
+- ``symmetricDifference(_:)-(TreeSet)``
 - ``symmetricDifference(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``symmetricDifference(_:)-(Sequence<Element>)``
 
-- ``formIntersection(_:)-(Self)``
+- ``formIntersection(_:)-(TreeSet)``
 - ``formIntersection(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``formIntersection(_:)-(Sequence<Element>)``
 
-- ``formUnion(_:)-(Self)``
+- ``formUnion(_:)-(TreeSet)``
 - ``formUnion(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``formUnion(_:)-(Sequence<Element>)``
 
-- ``subtract(_:)-(Self)``
+- ``subtract(_:)-(TreeSet)``
 - ``subtract(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``subtract(_:)-(Sequence<Element>)``
 
-- ``formSymmetricDifference(_:)-(Self)``
+- ``formSymmetricDifference(_:)-(TreeSet)``
 - ``formSymmetricDifference(_:)-(TreeDictionary<Element,Value>.Keys)``
 - ``formSymmetricDifference(_:)-(Sequence<Element>)``
 
@@ -146,26 +146,26 @@ Like `==`, the `isEqualSet` functions ignore element ordering and duplicates (if
 any).
 
 - ``==(_:_:)`` 
-- ``isEqualSet(to:)-(Self)`` 
+- ``isEqualSet(to:)-(TreeSet)`` 
 - ``isEqualSet(to:)-(TreeDictionary<Element,Value>.Keys)`` 
 - ``isEqualSet(to:)-(Sequence<Element>)`` 
 
-- ``isSubset(of:)-(Self)`` 
+- ``isSubset(of:)-(TreeSet)`` 
 - ``isSubset(of:)-(TreeDictionary<Element,Value>.Keys)`` 
 - ``isSubset(of:)-(Sequence<Element>)`` 
 
-- ``isSuperset(of:)-(Self)`` 
+- ``isSuperset(of:)-(TreeSet)`` 
 - ``isSuperset(of:)-(TreeDictionary<Element,Value>.Keys)`` 
 - ``isSuperset(of:)-(Sequence<Element>)`` 
 
-- ``isStrictSubset(of:)-(Self)`` 
+- ``isStrictSubset(of:)-(TreeSet)`` 
 - ``isStrictSubset(of:)-(TreeDictionary<Element,Value>.Keys)`` 
 - ``isStrictSubset(of:)-(Sequence<Element>)`` 
 
-- ``isStrictSuperset(of:)-(Self)`` 
+- ``isStrictSuperset(of:)-(TreeSet)`` 
 - ``isStrictSuperset(of:)-(TreeDictionary<Element,Value>.Keys)``
 - ``isStrictSuperset(of:)-(Sequence<Element>)`` 
 
-- ``isDisjoint(with:)-(Self)``
+- ``isDisjoint(with:)-(TreeSet)``
 - ``isDisjoint(with:)-(TreeDictionary<Element,Value>.Keys)``
 - ``isDisjoint(with:)-(Sequence<Element>)``

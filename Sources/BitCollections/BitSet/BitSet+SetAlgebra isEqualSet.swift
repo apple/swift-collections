@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -20,7 +22,7 @@ extension BitSet {
   ///
   /// - Complexity: O(*max*), where *max* is value of the largest member of
   ///     either set.
-  public func isEqualSet(to other: Self) -> Bool {
+  public func isEqualSet(to other: BitSet) -> Bool {
     self._storage == other._storage
   }
 

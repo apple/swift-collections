@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2025 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -24,7 +26,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// gap left by the removed item. (The direction of the move depends on the
   /// location of the removal, minimizing the cost.)
   ///
-  /// - Parameter i: The position of the element to remove. `index` must be
+  /// - Parameter index: The position of the element to remove. `index` must be
   ///   a valid index of the deque that is not equal to the end index.
   /// - Returns: The removed element.
   ///

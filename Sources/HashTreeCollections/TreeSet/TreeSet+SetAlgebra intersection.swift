@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2022 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -34,7 +36,7 @@ extension TreeSet {
   ///     hash tree structure to minimize work when possible, e.g. by linking
   ///     parts of the input trees directly into the result.
   @inlinable @inline(__always)
-  public func intersection(_ other: Self) -> Self {
+  public func intersection(_ other: TreeSet) -> TreeSet {
     _intersection(other._root)
   }
 
@@ -60,12 +62,12 @@ extension TreeSet {
   @inlinable @inline(__always)
   public func intersection<Value>(
     _ other: TreeDictionary<Element, Value>.Keys
-  ) -> Self {
+  ) -> TreeSet {
     _intersection(other._base._root)
   }
 
   @inlinable
-  internal func _intersection<V>(_ other: _HashNode<Element, V>) -> Self {
+  internal func _intersection<V>(_ other: _HashNode<Element, V>) -> TreeSet {
     guard let r = _root.intersection(.top, other) else { return self }
     return Self(_new: r)
   }
@@ -87,7 +89,7 @@ extension TreeSet {
   @inlinable
   public func intersection(
     _ other: some Sequence<Element>
-  ) -> Self {
+  ) -> TreeSet {
     if let other = _specialize(other, for: Self.self) {
       return intersection(other)
     }

@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2025 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -120,7 +122,7 @@ extension BitSet: Collection, BidirectionalCollection {
     Index(_position: _read { $0.startIndex })
   }
 
-  /// The collection’s “past the end” position--that is, the position one step
+  /// The collection's "past the end" position--that is, the position one step
   /// after the last valid subscript argument.
   ///
   /// - Complexity: O(1)
@@ -210,9 +212,9 @@ extension BitSet: Collection, BidirectionalCollection {
   /// the collection.
   ///
   /// - Parameters:
-  ///   - i: A valid index of the collection.
-  ///   - distance: The distance to offset `i`.
-  /// - Returns: An index offset by `distance` from the index `i`. If
+  ///   - index: A valid index of the collection.
+  ///   - distance: The distance to offset `index`.
+  /// - Returns: An index offset by `distance` from `index`. If
   ///   `distance` is positive, this is the same value as the result of
   ///   `distance` calls to `index(after:)`. If `distance` is negative, this
   ///   is the same value as the result of `abs(distance)` calls to

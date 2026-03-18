@@ -7,6 +7,8 @@
 //
 // See https://swift.org/LICENSE.txt for license information
 //
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
+//
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
@@ -14,7 +16,15 @@
 @available(SwiftStdlib 5.0, *)
 public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
   associatedtype Index: Comparable
-  
+  // FIXME: Ideally Index should also be required to be Hashable.
+  // FIXME: If we discard the separate BorrowingSequence abstraction, then we
+  // should consider dropping Comparable and just having Equatable indices, so
+  // that linked lists can conform to this protocol.
+  // This (potentially) complicates `distance(from:to:)` and similar algorithms,
+  // and we'd probably want to re-add index comparability in a refining protocol
+  // somewhere -- `RandomAccessContainer` or `BidirectionalContainer` would be
+  // the obvious candidates.
+
   var count: Int { get }
 
   var startIndex: Index { get }
@@ -378,47 +388,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable {
   @_transparent
-  public var estimatedCount: EstimatedCount { .exactly(count) }
-}
-
-
-@available(SwiftStdlib 5.0, *)
-public struct ContainerIterator<
-  Base: Container & ~Copyable /*FIXME: & ~Escapable*/
->: ~Copyable, ~Escapable {
-  let _base: Borrow<Base> // FIXME: This doesn't support nonescapable Bases
-  var _position: Base.Index
-  
-  @_lifetime(borrow base)
-  init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
-    self._base = Borrow(_borrowing: base)
-    self._position = position
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension ContainerIterator: BorrowingIteratorProtocol
-where Base: ~Copyable /*FIXME: & ~Escapable*/
-{
-  public typealias Element = Base.Element
-
-  @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence!
-  @_lifetime(&self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
-    _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension Container
-where
-  Self: ~Copyable /*FIXME: & ~Escapable*/,
-  BorrowingIterator == ContainerIterator<Self>
-{
-  @_lifetime(borrow self)
-  public func makeBorrowingIterator() -> BorrowingIterator {
-    ContainerIterator(_borrowing: self, from: self.startIndex)
-  }
+  public var underestimatedCount: Int { count }
 }
 
 #endif

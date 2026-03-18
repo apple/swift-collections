@@ -2,10 +2,12 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2021 - 2024 Apple Inc. and the Swift project authors
+// Copyright (c) 2021 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
+//
+// SPDX-License-Identifier: Apache-2.0 WITH Swift-exception
 //
 //===----------------------------------------------------------------------===//
 
@@ -26,7 +28,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func subtracting(_ other: Self) -> Self {
+  public func subtracting(_ other: BitSet) -> BitSet {
     self._read { first in
       other._read { second in
         Self(
@@ -49,7 +51,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in either input.
-  public func subtracting(_ other: BitSet.Counted) -> Self {
+  public func subtracting(_ other: BitSet.Counted) -> BitSet {
     subtracting(other._bits)
   }
 
@@ -64,7 +66,7 @@ extension BitSet {
   /// - Returns: A new set.
   ///
   /// - Complexity: O(*max*), where *max* is the largest item in self.
-  public func subtracting(_ other: Range<Int>) -> Self {
+  public func subtracting(_ other: Range<Int>) -> BitSet {
     var result = self
     result.subtract(other)
     return result
@@ -84,7 +86,7 @@ extension BitSet {
   /// - Complexity: O(*max*) + *k*, where *max* is the largest item in `self`,
   ///    and *k* is the complexity of iterating over all elements in `other`.
   @inlinable
-  public func subtracting(_ other: __owned some Sequence<Int>) -> Self {
+  public func subtracting(_ other: __owned some Sequence<Int>) -> BitSet {
     var result = self
     result.subtract(other)
     return result
