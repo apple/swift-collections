@@ -20,6 +20,18 @@ jobs:
       enable_android_sdk_build: true
       enable_android_sdk_checks: true
 
+  containers-tests:
+    name: Containers Test
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.8
+    with:
+      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
+      windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}, {"xcode_version": "16.3"}, {"xcode_version": "16.4"}]'
+      enable_macos_checks: true
+      enable_linux_checks: false
+      enable_windows_checks: false
+      swift_flags: --traits UnstableContainersPreview
+
   embedded-swift:
     name: Build with Embedded Swift
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.8
