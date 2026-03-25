@@ -21,7 +21,7 @@ import ContainersPreview
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: BorrowingSequence where Element: ~Copyable {
-  public typealias BorrowingIterator = Span<Element>.BorrowingIterator
+  public typealias BorrowingIterator = SpanIterator<Element>
 
   @inlinable
   public var underestimatedCount: Int { count }
@@ -29,7 +29,7 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   public func makeBorrowingIterator() -> BorrowingIterator {
-    self.span.makeBorrowingIterator()
+    SpanIterator(self.span)
   }
 }
 #endif
