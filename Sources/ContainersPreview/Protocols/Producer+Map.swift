@@ -48,6 +48,11 @@ where Base.Element: ~Copyable
   }
 }
 
+
+#if false // FIXME: This does not work with SuppressedAssociatedTypesWithDefaults
+// error: Conditional conformance to 'Escapable' must explicitly state whether
+// 'Base.Element' is required to conform to 'Escapable' or not
+// (Even though it states exactly that.)
 @available(SwiftStdlib 5.0, *)
 extension ConsumingMapProducer: Escapable
 where
@@ -56,6 +61,7 @@ where
   Base: Escapable,
   Base.Element: ~Copyable
 {}
+#endif
 
 @available(SwiftStdlib 5.0, *)
 extension ConsumingMapProducer: Producer where Base: ~Copyable & ~Escapable {
