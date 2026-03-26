@@ -15,7 +15,8 @@
 
 @available(SwiftStdlib 6.2, *)
 public protocol RandomAccessContainer<Element>
-: BidirectionalContainer, ~Copyable, ~Escapable {}
+: BidirectionalContainer, ~Copyable, ~Escapable
+where Element: ~Copyable {}
 
 extension RandomAccessCollection {
   @inlinable

@@ -14,7 +14,9 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
+public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable
+where Element: ~Copyable
+{
   associatedtype Index: Comparable
   // FIXME: Ideally Index should also be required to be Hashable.
   // FIXME: If we discard the separate BorrowingSequence abstraction, then we
@@ -168,7 +170,7 @@ public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable {
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// Return a span over the container's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
   /// that contains it. On return, the index is updated to address the next item
@@ -224,7 +226,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable {
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public func formIndex(after index: inout Index) {
     index = self.index(after: index)
@@ -256,7 +258,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 
 
 @available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable {
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public func _defaultDistance(from start: Index, to end: Index) -> Int {
     // FIXME: Use binary search here (with nextSpan(after:maximumCount:))
@@ -386,7 +388,7 @@ extension Container where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable {
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_transparent
   public var underestimatedCount: Int { count }
 }

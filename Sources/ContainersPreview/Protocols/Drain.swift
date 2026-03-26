@@ -23,7 +23,7 @@
 /// output spans.
 @available(SwiftStdlib 5.0, *)
 public protocol Drain<Element>: Producer, ~Copyable, ~Escapable
-where ProducerError == Never
+where Element: ~Copyable, ProducerError == Never
 {
   /// Returns the next span of consumable items in the sequence underlying this
   /// drain, of at most the specified maximum count. A `maximumCount` of nil
@@ -83,7 +83,7 @@ where ProducerError == Never
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Drain where Self: ~Copyable & ~Escapable {
+extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   /// Returns the next span of consumable items in the sequence underlying this
   /// drain, of an arbitrarily large count.
   ///

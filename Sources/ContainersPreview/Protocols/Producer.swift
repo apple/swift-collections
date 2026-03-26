@@ -164,7 +164,7 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Producer where Self: ~Copyable & ~Escapable {
+extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// A value less than or equal to the number of remaining items that this
   /// producer is able to generate until it reaches its end.
   ///
@@ -261,7 +261,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Producer where Self: ~Copyable & ~Escapable {
+extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// Returns true if the producer has no more elements, consuming it in
   /// the process. This is implemented by checking if it is possible to
   /// skip one item.

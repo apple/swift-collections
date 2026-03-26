@@ -14,7 +14,11 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   @inlinable
   public consuming func reduce<Result: ~Copyable, E: Error>(
     _ initialResult: consuming Result,

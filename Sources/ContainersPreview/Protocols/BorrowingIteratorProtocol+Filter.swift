@@ -14,7 +14,11 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   @inlinable
   @_lifetime(copy self)
   public consuming func filter(
@@ -26,8 +30,9 @@ extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
 
 @available(SwiftStdlib 5.0, *)
 public struct BorrowingFilter<
-  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable,
->: ~Copyable, ~Escapable {
+  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable
+>: ~Copyable, ~Escapable
+where Base.Element: ~Copyable {
   public typealias Element = Base.Element
 
   @_alwaysEmitIntoClient
@@ -51,7 +56,7 @@ public struct BorrowingFilter<
 
 @available(SwiftStdlib 5.0, *)
 extension BorrowingFilter: BorrowingIteratorProtocol
-where Base: ~Copyable & ~Escapable {
+where Base: ~Copyable & ~Escapable, Base.Element: ~Copyable {
   @_lifetime(&self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
     // FIXME: This is quite inefficient compared to Container's filter

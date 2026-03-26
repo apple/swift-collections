@@ -14,7 +14,11 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+extension BorrowingSequence
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   @inlinable
   public func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
@@ -45,12 +49,18 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: ~Copyab
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+extension BorrowingSequence
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   @inlinable
   public func elementsEqual<OtherSequence: BorrowingSequence>(
     _ other: borrowing OtherSequence,
     by areEquivalent: (borrowing Element, borrowing OtherSequence.Element) throws -> Bool
-  ) rethrows -> Bool where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element: ~Copyable {
+  ) rethrows -> Bool
+  where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element: ~Copyable
+  {
     var iter1 = makeBorrowingIterator()
     var iter2 = other.makeBorrowingIterator()
     while true {
@@ -75,7 +85,8 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: ~Copyab
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: ~Copyable & Equatable {
+extension BorrowingSequence
+where Self: ~Copyable & ~Escapable, Element: ~Copyable & Equatable {
   @inlinable
   public func elementsEqual<OtherSequence: BorrowingSequence<Element>>(
     _ other: borrowing OtherSequence

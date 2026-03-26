@@ -22,6 +22,7 @@ import InternalCollectionsUtilities
 @available(SwiftStdlib 5.0, *)
 public protocol RangeReplaceableContainer<Element>
 : Container, ~Copyable, ~Escapable
+where Element: ~Copyable
 {
   // Core requirements
 
@@ -64,7 +65,9 @@ public protocol RangeReplaceableContainer<Element>
 //MARK: - Default Implementations
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func remove(at index: Index) -> Element {
     let range = Range(uncheckedBounds: (index, self.index(after: index)))
@@ -135,7 +138,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 //MARK: - Standard Extensions
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func replace<
     E: Error,
@@ -202,7 +207,8 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public mutating func consume(
     _ subrange: Range<Index>,
@@ -256,7 +262,8 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 extension RangeReplaceableContainer
 where
   Self: BidirectionalContainer,
-  Self: ~Copyable & ~Escapable
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
 {
   @inlinable
   @_lifetime(&self)
@@ -272,7 +279,9 @@ where
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func removeSubrange(
     _ bounds: some RangeExpression2<Index>
@@ -289,7 +298,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func insert<
     E: Error,
@@ -324,7 +335,8 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public mutating func append<
     E: Error,

@@ -29,7 +29,10 @@ public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence
+where
+  Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public var underestimatedCount: Int { 0 }
   
@@ -48,7 +51,11 @@ extension BorrowingSequence where Self: Sequence {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
   public func _borrowingForEach<E: Error>(

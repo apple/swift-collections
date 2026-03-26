@@ -21,7 +21,7 @@ public protocol RangeExpression2<Bound> {
 
   func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
-  ) -> Range<Bound> where C.Index == Bound
+  ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable
 
   func contains(_ element: Bound) -> Bool
 }
@@ -31,7 +31,7 @@ extension Range: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
-  ) -> Range<Bound> where C.Index == Bound {
+  ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable {
     self
   }
 }
@@ -41,7 +41,7 @@ extension ClosedRange: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
-  ) -> Range<Bound> where C.Index == Bound {
+  ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable {
     let end = container.index(after: self.upperBound)
     return self.lowerBound ..< end
   }
@@ -52,7 +52,7 @@ extension PartialRangeFrom: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
-  ) -> Range<Bound> where C.Index == Bound {
+  ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable {
     self.lowerBound ..< container.endIndex
   }
 }
@@ -62,7 +62,7 @@ extension PartialRangeUpTo: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
-  ) -> Range<Bound> where C.Index == Bound {
+  ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable {
     return container.startIndex ..< self.upperBound
   }
 }
@@ -72,7 +72,7 @@ extension PartialRangeThrough: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
-  ) -> Range<Bound> where C.Index == Bound {
+  ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable {
     let end = container.index(after: self.upperBound)
     return container.startIndex ..< end
   }

@@ -18,7 +18,11 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Equatable {
+extension BorrowingSequence
+where
+  Self: ~Copyable & ~Escapable, Element: Equatable,
+  Element: ~Copyable
+{
   @inlinable
   package func _elementsEqual<
     Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
@@ -32,7 +36,11 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Equatab
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable {
+extension BorrowingSequence
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   /// Returns a Boolean value indicating whether two borrowing sequences contain
   /// equivalent elements in the same order, using the given predicate as the
   /// equivalence test.
@@ -72,7 +80,7 @@ extension BorrowingSequence where Self: ~Copyable & ~Escapable {
 extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element: Equatable
+  Element: ~Copyable & Equatable
 {
   @inlinable
   package consuming func elementsEqual<
@@ -159,7 +167,11 @@ where
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
   @inlinable
   package consuming func elementsEqual<
     E: Error,

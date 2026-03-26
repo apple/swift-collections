@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension Producer where Self: ~Copyable & ~Escapable {
+extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_lifetime(copy self)
   public consuming func map<T: ~Copyable>(
     _ transform: @escaping (consuming Element) throws(ProducerError) -> T
@@ -27,7 +27,9 @@ extension Producer where Self: ~Copyable & ~Escapable {
 public struct ConsumingMapProducer<
   Base: Producer & ~Copyable & ~Escapable,
   Element: ~Copyable,
->: ~Copyable, ~Escapable {
+>: ~Copyable, ~Escapable
+where Base.Element: ~Copyable
+{
   public typealias ProducerError = Base.ProducerError
 
   @_alwaysEmitIntoClient
@@ -51,7 +53,8 @@ extension ConsumingMapProducer: Escapable
 where
   Element: ~Copyable,
   Base: ~Copyable,
-  Base: Escapable
+  Base: Escapable,
+  Base.Element: ~Copyable
 {}
 
 @available(SwiftStdlib 5.0, *)

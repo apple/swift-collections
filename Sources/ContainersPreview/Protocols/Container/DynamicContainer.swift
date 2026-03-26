@@ -14,7 +14,9 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable {
+public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable
+where Element: ~Copyable
+{
   init()
   init(minimumCapacity: Int)
 
@@ -24,7 +26,7 @@ public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable 
 }
 
 @available(SwiftStdlib 5.0, *)
-extension DynamicContainer where Self: ~Copyable {
+extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   @inlinable
   public init() {
     self.init(minimumCapacity: 0)

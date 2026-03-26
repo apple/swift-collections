@@ -17,6 +17,7 @@
 extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
+  Element: ~Copyable,
   BorrowingIterator == ContainerIterator<Self>
 {
   @_lifetime(borrow self)
@@ -28,7 +29,9 @@ where
 @available(SwiftStdlib 5.0, *)
 public struct ContainerIterator<
   Base: Container & ~Copyable /*FIXME: & ~Escapable*/
->: ~Copyable, ~Escapable {
+>: ~Copyable, ~Escapable
+where Base.Element: ~Copyable
+{
   let _base: Borrow<Base> // FIXME: This doesn't support nonescapable Bases
   var _position: Base.Index
 
@@ -41,7 +44,9 @@ public struct ContainerIterator<
 
 @available(SwiftStdlib 5.0, *)
 extension ContainerIterator: BorrowingIteratorProtocol
-where Base: ~Copyable /*FIXME: & ~Escapable*/
+where
+  Base: ~Copyable /*FIXME: & ~Escapable*/,
+  Base.Element: ~Copyable
 {
   public typealias Element = Base.Element
 

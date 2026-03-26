@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension Producer where Self: ~Copyable & ~Escapable {
+extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_lifetime(copy self)
   public consuming func filter(
     // Note: The predicate is not throwing to avoid difficult exception safety problems
@@ -27,7 +27,8 @@ extension Producer where Self: ~Copyable & ~Escapable {
 @available(SwiftStdlib 5.0, *)
 public struct ConsumingFilterProducer<
   Base: Producer & ~Copyable & ~Escapable
->: ~Copyable, ~Escapable {
+>: ~Copyable, ~Escapable
+where Base.Element: ~Copyable {
   public typealias Element = Base.Element
   public typealias ProducerError = Base.ProducerError
 
@@ -55,8 +56,11 @@ where
 {}
 
 @available(SwiftStdlib 5.0, *)
-extension ConsumingFilterProducer: Producer where Base: ~Copyable & ~Escapable {
-
+extension ConsumingFilterProducer: Producer
+where
+  Base: ~Copyable & ~Escapable,
+  Base.Element: ~Copyable
+{
   @inlinable
   public var underestimatedCount: Int {
     _base.underestimatedCount
