@@ -55,7 +55,7 @@ set(collections_swift_flags
   "-enable-experimental-feature BuiltinModule"
   "-enable-experimental-feature Lifetimes"
   "-enable-experimental-feature InoutLifetimeDependence"
-  "-enable-experimental-feature SuppressedAssociatedTypes"
+  "-enable-experimental-feature SuppressedAssociatedTypesWithDefaults"
   "-enable-experimental-feature AddressableParameters"
   "-enable-experimental-feature AddressableTypes"
 )
