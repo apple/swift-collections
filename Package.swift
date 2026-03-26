@@ -120,7 +120,7 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("BuiltinModule"),
   .enableExperimentalFeature("Lifetimes"),
   .enableExperimentalFeature("InoutLifetimeDependence"),
-  .enableExperimentalFeature("SuppressedAssociatedTypes"),
+  .enableExperimentalFeature("SuppressedAssociatedTypesWithDefaults"),
   .enableExperimentalFeature("AddressableParameters"),
   .enableExperimentalFeature("AddressableTypes"),
 
