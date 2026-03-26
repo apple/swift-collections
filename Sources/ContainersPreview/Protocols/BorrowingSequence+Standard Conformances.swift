@@ -36,7 +36,11 @@ extension MutableSpan: BorrowingSequence where Element: ~Copyable {
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeBorrowingIterator() -> BorrowingIterator {
+  public func makeBorrowingIterator() -> SpanIterator<Element> {
+    // FIXME: This should be declared to return BorrowingIterator, but it
+    // clashes with the stdlib's alternate definition:
+    //    error: 'BorrowingIterator' is ambiguous for type lookup in this context
+    // Two different typealiases with the same name wreaks havoc with inference?
     SpanIterator(self.span)
   }
 }
@@ -92,7 +96,11 @@ extension InlineArray: BorrowingSequence where Element: ~Copyable {
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeBorrowingIterator() -> BorrowingIterator {
+  public func makeBorrowingIterator() -> SpanIterator<Element> {
+    // FIXME: This should be declared to return BorrowingIterator, but it
+    // clashes with the stdlib's alternate definition:
+    //    error: 'BorrowingIterator' is ambiguous for type lookup in this context
+    // Two different typealiases with the same name wreaks havoc with inference?
     SpanIterator(self.span)
   }
 }
