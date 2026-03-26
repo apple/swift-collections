@@ -11,11 +11,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import XCTest
+#if COLLECTIONS_SINGLE_MODULE
+import Collections
+#else
+import _CollectionsTestSupport
 import ContainersPreview
-import Synchronization
+#endif
 
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 final class BorrowingSequenceTests: XCTestCase {
   @available(SwiftStdlib 6.2, *)
   func testBasic() {
