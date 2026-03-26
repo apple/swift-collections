@@ -15,7 +15,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 //MARK: - Protocol Definition
 

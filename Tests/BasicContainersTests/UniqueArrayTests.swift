@@ -21,7 +21,7 @@ import BasicContainers
 
 #if compiler(>=6.2)
 
-#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 public func expectIterableContents<
@@ -78,7 +78,7 @@ class UniqueArrayTests: CollectionTestCase {
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
         expectIterableContents(items, equalTo: expected)
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
         checkIterable(items, expectedContents: expected)
 #endif
       }

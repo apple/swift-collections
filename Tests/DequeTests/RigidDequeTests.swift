@@ -22,7 +22,7 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
-#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
 internal func expectIterableContents<
@@ -345,7 +345,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_initFromProducer() {
     withEvery("count", in: 0 ..< 10) { count in
       withEvery("capacity", in: [count, count + 1, 2 * count] as Set) { capacity in
@@ -414,7 +414,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_initCopyingBorrowingSequence() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
@@ -767,7 +767,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_prepend_Producer_full() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< 6) { producerSize in
@@ -792,7 +792,7 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_Producer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< layout.freeCapacity) { producerSize in
@@ -817,7 +817,7 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_prepend_Producer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -848,7 +848,7 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_Producer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -1174,7 +1174,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_fromProducer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1206,7 +1206,7 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_fromProducer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -1264,7 +1264,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_RigidArray() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in

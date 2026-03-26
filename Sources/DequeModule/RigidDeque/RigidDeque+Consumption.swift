@@ -218,8 +218,14 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.4)
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
+}
+#endif
+
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)

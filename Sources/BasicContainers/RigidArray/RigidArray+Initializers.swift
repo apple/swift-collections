@@ -113,7 +113,7 @@ extension RigidArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
   ///
@@ -134,7 +134,7 @@ extension RigidArray /*where Element: Copyable*/ {
   
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
   ///
