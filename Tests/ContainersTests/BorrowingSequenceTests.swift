@@ -38,7 +38,7 @@ final class BorrowingSequenceTests: XCTestCase {
     XCTAssertEqual(array.reduce(0, +), span.reduce(0, +))
     XCTAssertEqual(array.reduce(into: 0, +=), span.reduce(into: 0, +=))
     
-    let inline: [8 of Int] = [1, 2, 3, 4, 5, 6, 7, 8]
+    let inline: InlineArray = [1, 2, 3, 4, 5, 6, 7, 8]
     let inlineCollected = inline.collectViaBorrowing()
     XCTAssertTrue(inline.elementsEqual(inline))
     XCTAssertTrue(inline.elementsEqual(inlineCollected))
@@ -46,13 +46,18 @@ final class BorrowingSequenceTests: XCTestCase {
     // Array.elementsEqual is ambiguous:
     // XCTAssertTrue(inlineCollected.elementsEqual(inlineCollected))
 
-    let nocopyInline: [8 of NoncopyableInt] = InlineArray(NoncopyableInt.init(value:))
+    let nocopyInline: InlineArray = [
+      NoncopyableInt(value: 0),
+      NoncopyableInt(value: 1),
+      NoncopyableInt(value: 2),
+      NoncopyableInt(value: 3)
+    ]
     XCTAssertTrue(nocopyInline.elementsEqual(nocopyInline))
 
     #if false // No BorrowingSequence conformance for UMBP yet...
-    let nocopyBuffer = UnsafeMutableBufferPointer<NoncopyableInt>.allocate(capacity: 8)
+    let nocopyBuffer = UnsafeMutableBufferPointer<NoncopyableInt>.allocate(capacity: nocopyInline.count)
     defer { nocopyBuffer.deallocate() }
-    for i in 0..<8 {
+    for i in 0..<nocopyBuffer.count {
       nocopyBuffer.initializeElement(at: i, to: NoncopyableInt(value: i))
     }
     #endif
