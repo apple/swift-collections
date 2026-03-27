@@ -11,7 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import XCTest
+
+#if compiler(>=6.4)
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
@@ -19,7 +22,6 @@ import _CollectionsTestSupport
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 final class BorrowingSequenceTests: XCTestCase {
   @available(SwiftStdlib 6.4, *)
   func testBasic() {
@@ -58,12 +60,12 @@ final class BorrowingSequenceTests: XCTestCase {
 }
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Copyable {
-  func collectViaBorrowing() -> [Element] {
-    var borrowIterator = makeBorrowingIterator()
-    var result: [Element] = []
+extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
+  func collectViaBorrowing() -> [Element_] {
+    var borrowIterator = makeBorrowingIterator_()
+    var result: [Element_] = []
     while true {
-      let span = borrowIterator.nextSpan(maximumCount: .max)
+      let span = borrowIterator.nextSpan_(maximumCount: .max)
       if span.isEmpty { break }
       for i in span.indices {
         result.append(span[i])
@@ -81,4 +83,13 @@ struct NoncopyableInt: ~Copyable, Equatable {
   }
 }
 
+#else
+
+final class BorrowingSequenceTests: XCTestCase {
+  func testRequire64() {
+    XCTFail("BorrowingSequenceTests require a Swift 6.4 compiler.")
+  }
+}
+
+#endif
 #endif
