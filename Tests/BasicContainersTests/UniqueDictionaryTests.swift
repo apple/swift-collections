@@ -145,19 +145,25 @@ class UniqueDictionaryTests: CollectionTestCase {
           d.withKeys { keys in
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-            var it = keys.makeBorrowingIterator()
-            var actual: Set<Int> = []
-            while true {
-              let next = it.nextSpan()
-              guard !next.isEmpty else { break }
-              for i in next.indices {
-                expectTrue(
-                  actual.insert(next[i].payload).inserted,
-                  "Duplicate value \(next[i].payload)")
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+            if #available(SwiftStdlib 6.4, *) {
+              var it = keys.makeBorrowingIterator()
+              var actual: Set<Int> = []
+              while true {
+                let next = it.nextSpan()
+                guard !next.isEmpty else { break }
+                for i in next.indices {
+                  expectTrue(
+                    actual.insert(next[i].payload).inserted,
+                    "Duplicate value \(next[i].payload)")
+                }
+              }
+              expectEqualElements(actual.sorted(), 0 ... i)
+            } else {
+              for j in 0 ... i {
+                expectTrue(keys.contains(tracker.instance(for: j)))
               }
             }
-            expectEqualElements(actual.sorted(), 0 ... i)
 #else
             for j in 0 ... i {
               expectTrue(keys.contains(tracker.instance(for: j)))
@@ -195,8 +201,8 @@ class UniqueDictionaryTests: CollectionTestCase {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.2, *)
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>

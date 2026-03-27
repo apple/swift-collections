@@ -22,10 +22,9 @@ import BasicContainers
 
 #if compiler(>=6.2)
 
-#if compiler(<6.4) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectRigidArrayContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -44,7 +43,7 @@ internal func expectIterableContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectRigidArrayContents<
   E1: ~Copyable,
   C2: Collection,
 >(
@@ -64,7 +63,6 @@ internal func expectIterableContents<
     printer: printer,
     message(), trapping: trapping, file: file, line: line)
 }
-#endif
 
 @available(SwiftStdlib 5.0, *)
 class RigidArrayTests: CollectionTestCase {
@@ -74,9 +72,11 @@ class RigidArrayTests: CollectionTestCase {
         let items = tracker.rigidArray(layout: layout)
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
-        expectIterableContents(items, equalTo: expected)
+        expectRigidArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-        checkIterable(items, expectedContents: expected)
+        if #available(SwiftStdlib 6.4, *) {
+          checkIterable(items, expectedContents: expected)
+        }
 #endif
       }
     }
@@ -120,7 +120,7 @@ class RigidArrayTests: CollectionTestCase {
         expectEqual(a.freeCapacity, layout.capacity - layout.count)
         expectEqual(a.isEmpty, layout.count == 0)
         expectEqual(a.isFull, layout.count == layout.capacity)
-        expectIterableContents(
+        expectRigidArrayContents(
           a,
           equivalentTo: 0 ..< layout.count,
           by: { $0.payload == $1 },
@@ -208,7 +208,7 @@ class RigidArrayTests: CollectionTestCase {
         for i in 0 ..< layout.count {
           expectEqual(b[i].payload, i)
         }
-        expectIterableContents(
+        expectRigidArrayContents(
           b,
           equivalentTo: 0 ..< layout.count,
           by: { $0.payload == $1 },
@@ -317,7 +317,7 @@ class RigidArrayTests: CollectionTestCase {
           a.swapAt(i, layout.count - 1 - i)
         }
         let expected = (0 ..< layout.count).reversed()
-        expectIterableContents(
+        expectRigidArrayContents(
           a,
           equivalentTo: expected,
           by: { $0.payload == $1 },
@@ -483,7 +483,7 @@ class RigidArrayTests: CollectionTestCase {
         errorHandler: { error in
           expectTrue(error is TestError)
         }
-        expectIterableContents(
+        expectRigidArrayContents(
           a,
           equivalentTo: (0 ..< layout.count).map { -$0 },
           by: { $0.payload == $1 },
@@ -509,7 +509,7 @@ class RigidArrayTests: CollectionTestCase {
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, newCapacity)
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
@@ -536,7 +536,7 @@ class RigidArrayTests: CollectionTestCase {
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, Swift.max(layout.capacity, newCapacity))
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
@@ -554,12 +554,12 @@ class RigidArrayTests: CollectionTestCase {
         expectEqual(b.count, layout.count)
         expectEqual(b.capacity, layout.count)
         expectEqual(tracker.instances, layout.count)
-        expectIterableContents(
+        expectRigidArrayContents(
           a,
           equivalentTo: 0 ..< layout.count,
           by: { $0.payload == $1 },
           printer: { "\($0.payload)" })
-        expectIterableContents(
+        expectRigidArrayContents(
           b,
           equivalentTo: 0 ..< layout.count,
           by: { $0.payload == $1 },
@@ -580,12 +580,12 @@ class RigidArrayTests: CollectionTestCase {
           expectEqual(b.count, layout.count)
           expectEqual(b.capacity, newCapacity)
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
             printer: { "\($0.payload)" })
-          expectIterableContents(
+          expectRigidArrayContents(
             b,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
@@ -633,7 +633,7 @@ class RigidArrayTests: CollectionTestCase {
           expectEqual(tracker.instances, layout.count)
           a.removeLast(k)
           expectEqual(tracker.instances, layout.count - k)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -653,7 +653,7 @@ class RigidArrayTests: CollectionTestCase {
           var a = tracker.rigidArray(layout: layout)
           let old = a.remove(at: i)
           expectEqual(old.payload, i)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -672,7 +672,7 @@ class RigidArrayTests: CollectionTestCase {
 
           var a = tracker.rigidArray(layout: layout)
           a.removeSubrange(range)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -691,7 +691,7 @@ class RigidArrayTests: CollectionTestCase {
 
         var a = tracker.rigidArray(layout: layout)
         a.removeAll(where: { $0.payload.isMultiple(of: 2) })
-        expectIterableContents(
+        expectRigidArrayContents(
           a, equivalentTo: expected, by: { $0.payload == $1 })
       }
     }
@@ -708,7 +708,7 @@ class RigidArrayTests: CollectionTestCase {
         let item = a.popLast()
 
         expectEquivalent(item, expectedItem, by: { $0?.payload == $1 })
-        expectIterableContents(
+        expectRigidArrayContents(
           a,
           equivalentTo: expected,
           by: { $0.payload == $1 },
@@ -724,7 +724,7 @@ class RigidArrayTests: CollectionTestCase {
         for i in layout.count ..< layout.capacity {
           a.append(tracker.instance(for: i))
           expectEqual(a.count, i + 1)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< i + 1,
             by: { $0.payload == $1 },
@@ -743,7 +743,7 @@ class RigidArrayTests: CollectionTestCase {
         for i in layout.count ..< layout.capacity {
           expectNil(a.pushLast(tracker.instance(for: i)))
           expectEqual(a.count, i + 1)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< i + 1,
             by: { $0.payload == $1 },
@@ -769,7 +769,7 @@ class RigidArrayTests: CollectionTestCase {
               target.append(tracker.instance(for: layout.count + i))
             }
           }
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count + c,
             by: { $0.payload == $1 },
@@ -792,7 +792,7 @@ class RigidArrayTests: CollectionTestCase {
                 target.append(tracker.instance(for: i))
               }
             }
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: 0 ..< layout.count + n,
               by: { $0.payload == $1 },
@@ -820,7 +820,7 @@ class RigidArrayTests: CollectionTestCase {
 
           additions.deallocate()
 
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count + c,
             by: { $0.payload == $1 },
@@ -844,7 +844,7 @@ class RigidArrayTests: CollectionTestCase {
             a.append(moving: &span)
           }
 
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count + spanLayout.count,
             by: { $0.payload == $1 },
@@ -868,7 +868,7 @@ class RigidArrayTests: CollectionTestCase {
             a.append(moving: &span)
           }
 
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count + spanLayout.count,
             by: { $0.payload == $1 },
@@ -905,7 +905,7 @@ class RigidArrayTests: CollectionTestCase {
           using: { layout.count + $0 })
         a.append(copying: b.span)
         expectTrue(a.isFull)
-        expectIterableContents(
+        expectRigidArrayContents(
           a,
           equivalentTo: 0 ..< layout.capacity,
           by: { $0.payload == $1 },
@@ -929,7 +929,7 @@ class RigidArrayTests: CollectionTestCase {
             spanCounts: [spanCount])
           a.append(copying: b)
           expectTrue(a.isFull)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.capacity,
             by: { $0.payload == $1 },
@@ -953,7 +953,7 @@ class RigidArrayTests: CollectionTestCase {
           var a = tracker.rigidArray(layout: layout)
           a.insert(tracker.instance(for: -1), at: i)
 
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -983,7 +983,7 @@ class RigidArrayTests: CollectionTestCase {
               contentsOf: layout.count ..< layout.count + c,
               at: i)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1017,7 +1017,7 @@ class RigidArrayTests: CollectionTestCase {
                 contentsOf: layout.count ..< layout.count + n,
                 at: i)
 
-              expectIterableContents(
+              expectRigidArrayContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -1050,7 +1050,7 @@ class RigidArrayTests: CollectionTestCase {
             var expected = Array(0 ..< layout.count)
             expected.insert(contentsOf: layout.count ..< layout.count + c, at: i)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1081,7 +1081,7 @@ class RigidArrayTests: CollectionTestCase {
               contentsOf: layout.count ..< layout.count + spanLayout.count,
               at: i)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1112,7 +1112,7 @@ class RigidArrayTests: CollectionTestCase {
               contentsOf: layout.count ..< layout.count + spanLayout.count,
               at: i)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1139,7 +1139,7 @@ class RigidArrayTests: CollectionTestCase {
             var a = tracker.rigidArray(layout: layout)
             a.insert(copying: trackedAddition, at: i)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1168,7 +1168,7 @@ class RigidArrayTests: CollectionTestCase {
           }
           a.insert(copying: rigidAddition.span, at: i)
 
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -1180,6 +1180,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1196,7 +1197,7 @@ class RigidArrayTests: CollectionTestCase {
               spanCounts: [spanCount])
             a.insert(copying: rigidAddition, at: i)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1228,7 +1229,7 @@ class RigidArrayTests: CollectionTestCase {
               subrange,
               with: layout.count ..< layout.count + c)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1262,7 +1263,7 @@ class RigidArrayTests: CollectionTestCase {
                 subrange,
                 with: layout.count ..< layout.count + n)
 
-              expectIterableContents(
+              expectRigidArrayContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -1290,7 +1291,7 @@ class RigidArrayTests: CollectionTestCase {
               var a = tracker.rigidArray(layout: layout)
               a.replace(removing: range, copying: trackedAddition)
 
-              expectIterableContents(
+              expectRigidArrayContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -1315,7 +1316,7 @@ class RigidArrayTests: CollectionTestCase {
             let trackedAddition = RigidArray(copying: addition.map { tracker.instance(for: $0) })
             a.replace(removing: range, copying: trackedAddition.span)
 
-            expectIterableContents(
+            expectRigidArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1328,6 +1329,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -1344,7 +1346,7 @@ class RigidArrayTests: CollectionTestCase {
                 spanCounts: [spanCount])
               a.replace(removing: range, copying: trackedAddition)
 
-              expectIterableContents(
+              expectRigidArrayContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -1359,6 +1361,7 @@ class RigidArrayTests: CollectionTestCase {
 #endif
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   func test_borrowing_map() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
@@ -1369,9 +1372,10 @@ class RigidArrayTests: CollectionTestCase {
     //expectEqual(transformed.capacity, c) // FIXME: Would be nice
 
     let expected = (0 ..< c).map { 2 * $0 }
-    expectIterableContents(transformed, equalTo: expected)
+    expectUniqueArrayContents(transformed, equalTo: expected)
   }
 
+  @available(SwiftStdlib 6.4, *)
   func test_borrowing_filter() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
@@ -1382,7 +1386,7 @@ class RigidArrayTests: CollectionTestCase {
     expectEqual(transformed.count, 5 * c / 6)
 
     let expected = (0 ..< c).filter { !$0.isMultiple(of: 6) }
-    expectIterableContents(transformed, equalTo: expected)
+    expectUniqueArrayContents(transformed, equalTo: expected)
   }
 #endif
 }

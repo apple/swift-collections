@@ -19,7 +19,7 @@ import Collections
 import ContainersPreview
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 @inlinable
 public func checkIterable<
   S: BorrowingSequence & ~Copyable & ~Escapable,
@@ -37,7 +37,7 @@ public func checkIterable<
     file: file, line: line)
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 @inlinable
 public func checkIterable<
   S: BorrowingSequence & ~Copyable & ~Escapable,
@@ -73,7 +73,7 @@ public func checkIterable<
     return r
   }()
   expectEqual(
-    spanShapes.reduce(into: 0, { $0 += $1.count }), expectedContents.count,
+    spanShapes.Swift::reduce(into: 0, { $0 += $1.count }), expectedContents.count,
     "Container's count does not match the sum of its spans")
 
   // Check that the spans have stable sizes and the expected contents.

@@ -31,20 +31,20 @@ extension RigidArray: BorrowingSequence where Element: ~Copyable {
 #endif
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: Container where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: BidirectionalContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
 
 #if compiler(>=6.3)
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: MutableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
 #endif
 #endif

@@ -124,7 +124,7 @@ public func expectIterableContents<
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` contains lifetime tracked instances whose payloads equal
 /// the elements in `right`.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablePayloads<
   Payload: Equatable,
   E1: BorrowingSequence<LifetimeTrackedStruct<Payload>> & ~Copyable & ~Escapable,
@@ -171,7 +171,7 @@ public func expectIterablePayloads<
 
 /// Check if `left` contains lifetime tracked instances whose payloads equal
 /// the elements in `right`.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablePayloads<
   Payload: Equatable,
   E1: BorrowingSequence<LifetimeTracked<Payload>> & ~Copyable & ~Escapable,
@@ -218,7 +218,7 @@ public func expectIterablePayloads<
 #endif
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablesWithEquivalentElements<
   S1: BorrowingSequence & ~Copyable & ~Escapable,
   S2: BorrowingSequence & ~Copyable & ~Escapable
@@ -242,7 +242,7 @@ where
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablesWithEqualElements<
   Element: Equatable,
   S1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
@@ -266,7 +266,7 @@ where
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterableContents<
   Element: Equatable,
   S1: BorrowingSequence<Element> & ~Copyable & ~Escapable,
@@ -308,7 +308,7 @@ public func expectIterableContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterableContents<
   S1: BorrowingSequence & ~Copyable & ~Escapable,
   C2: Collection,

@@ -21,7 +21,7 @@ import ContainersPreview
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 final class BorrowingSequenceTests: XCTestCase {
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftStdlib 6.4, *)
   func testBasic() {
     let array = [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -46,17 +46,19 @@ final class BorrowingSequenceTests: XCTestCase {
     // XCTAssertTrue(inlineCollected.elementsEqual(inlineCollected))
 
     let nocopyInline: [8 of NoncopyableInt] = InlineArray(NoncopyableInt.init(value:))
+    XCTAssertTrue(nocopyInline.elementsEqual(nocopyInline))
+
+    #if false // No BorrowingSequence conformance for UMBP yet...
     let nocopyBuffer = UnsafeMutableBufferPointer<NoncopyableInt>.allocate(capacity: 8)
     defer { nocopyBuffer.deallocate() }
     for i in 0..<8 {
       nocopyBuffer.initializeElement(at: i, to: NoncopyableInt(value: i))
     }
-    XCTAssertTrue(nocopyInline.elementsEqual(nocopyInline))
-    // No BorrowingSequence conformance for UMBP yet...
+    #endif
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension BorrowingSequence where Self: ~Copyable & ~Escapable, Element: Copyable {
   func collectViaBorrowing() -> [Element] {
     var borrowIterator = makeBorrowingIterator()

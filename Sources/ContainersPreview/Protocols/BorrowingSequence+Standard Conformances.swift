@@ -79,9 +79,8 @@ extension InputSpan: BorrowingSequence where Element: ~Copyable {
   }
 }
 
-#if false // Use the stdlib's conformance
 @available(SwiftStdlib 6.4, *)
-extension Array: BorrowingSequence {
+extension Array: @retroactive BorrowingSequence {
   public typealias BorrowingIterator = SpanIterator<Element>
 
   @inlinable
@@ -93,7 +92,6 @@ extension Array: BorrowingSequence {
     SpanIterator(self.span)
   }
 }
-#endif
 
 #if false // Use the stdlib's conformance
 @available(SwiftStdlib 6.4, *)
@@ -174,7 +172,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
 #endif
 
 @available(SwiftStdlib 6.4, *)
-extension ClosedRange: BorrowingSequence
+extension ClosedRange: @retroactive BorrowingSequence
 where Bound: Strideable, Bound.Stride: SignedInteger
 {
   public typealias Element = Bound
