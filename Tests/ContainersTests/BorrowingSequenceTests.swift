@@ -86,8 +86,8 @@ struct NoncopyableInt: ~Copyable, Equatable {
 #else
 
 final class BorrowingSequenceTests: XCTestCase {
-  func testRequire64() {
-    XCTFail("BorrowingSequenceTests require a Swift 6.4 compiler.")
+  func testRequire64Compiler() {
+    XCTFail("'BorrowingSequenceTests' requires a Swift 6.4 compiler.")
   }
 }
 
