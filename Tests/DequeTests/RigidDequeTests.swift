@@ -92,6 +92,7 @@ internal func expectRigidDequeContents<
     file: file,
     line: line)
 #else
+  var c = 0
   var j = right.startIndex
   for i in 0 ..< left.count {
     expectEquivalent(
