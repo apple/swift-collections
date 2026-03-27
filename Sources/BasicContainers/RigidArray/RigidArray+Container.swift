@@ -52,7 +52,7 @@ extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
-  public var underestimatedCount: Int { count }
+  public var underestimatedCount_: Int { count }
 
   /// A Boolean value indicating whether this array contains no elements.
   ///
