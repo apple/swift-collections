@@ -204,7 +204,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   @_lifetime(self: copy self)
   public mutating func skip(
     upTo n: inout Int
-  ) throws(ProducerError) -> Bool {
+  ) -> Bool { // FIXME: Compiler crash when this declares throws(ProducerError)
     precondition(n >= 0, "Cannot skip a negative number of elements")
     guard n > 0 else { return true }
     let span = drainNext(maximumCount: n)
