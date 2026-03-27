@@ -19,8 +19,10 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
+  public typealias Element_ = Element
+
   @inlinable
-  public var underestimatedCount: Int { count }
+  public var underestimatedCount_: Int { count }
   
   @inlinable
   public func _customContainsEquatableElement_(
@@ -31,18 +33,18 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
 
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(_set: self)
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(_set: self)
   }
 
   @frozen
-  public struct BorrowingIterator:
-    BorrowingIteratorProtocol,
+  public struct BorrowingIterator_:
+    BorrowingIteratorProtocol_,
     ~Copyable,
     ~Escapable
   {
     @_alwaysEmitIntoClient
-    internal var _baseAddress: UnsafePointer<Element>?
+    internal var _baseAddress: UnsafePointer<Element_>?
 
     @_alwaysEmitIntoClient
     internal var _bucketIterator: _HTable.BucketIterator
@@ -50,7 +52,7 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
     @_alwaysEmitIntoClient
     @_lifetime(borrow _set)
     internal init(
-      _set: borrowing RigidSet<Element>
+      _set: borrowing RigidSet<Element_>
     ) {
       self._baseAddress = .init(_set._members)
       self._bucketIterator = _set._table.makeBucketIterator()
@@ -58,7 +60,7 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
 
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
-    internal func _span(over buckets: Range<_Bucket>) -> Span<Element> {
+    internal func _span(over buckets: Range<_Bucket>) -> Span<Element_> {
       let items = UnsafeBufferPointer(
         start: _baseAddress.unsafelyUnwrapped + buckets.lowerBound.offset,
         count: buckets.upperBound.offset - buckets.lowerBound.offset)
@@ -67,7 +69,7 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
     
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
-    public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+    public mutating func nextSpan_(maximumCount: Int) -> Span<Element_> {
       precondition(maximumCount > 0, "maximumCount must be positive")
       guard
         let next = _bucketIterator.nextOccupiedRegion(maximumCount: maximumCount)

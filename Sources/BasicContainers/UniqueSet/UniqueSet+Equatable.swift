@@ -29,6 +29,9 @@ extension UniqueSet {
 }
 
 @available(SwiftStdlib 6.4, *)
+extension UniqueSet: Equatable {}
+
+@available(SwiftStdlib 5.0, *)
 extension UniqueSet: Equatable {
   @inlinable
   @inline(__always)

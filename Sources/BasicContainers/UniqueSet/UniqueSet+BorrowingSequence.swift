@@ -20,11 +20,12 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueSet: BorrowingSequence_ where Element: ~Copyable {
-  public typealias BorrowingIterator = RigidSet<Element>.BorrowingIterator
-  
+  public typealias Element_ = Element
+  public typealias BorrowingIterator_ = RigidSet<Element>.BorrowingIterator_
+
   @inlinable
-  public var underestimatedCount: Int { count }
-  
+  public var underestimatedCount_: Int { count }
+
   @inlinable
   public func _customContainsEquatableElement_(
     _ element: borrowing Element
@@ -34,8 +35,8 @@ extension UniqueSet: BorrowingSequence_ where Element: ~Copyable {
 
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(_set: _storage)
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(_set: _storage)
   }
 }
 #endif

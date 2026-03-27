@@ -227,9 +227,9 @@ extension RigidSet /* where Element: Copyable */ {
   >(
     copying items: borrowing S
   ) {
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       guard !span.isEmpty else { break }
       self.insert(copying: span)
     }

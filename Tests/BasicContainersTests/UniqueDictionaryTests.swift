@@ -146,10 +146,10 @@ class UniqueDictionaryTests: CollectionTestCase {
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-            var it = keys.makeBorrowingIterator()
+            var it = keys.makeBorrowingIterator_()
             var actual: Set<Int> = []
             while true {
-              let next = it.nextSpan()
+              let next = it.nextSpan_()
               guard !next.isEmpty else { break }
               for i in next.indices {
                 expectTrue(
@@ -196,6 +196,7 @@ class UniqueDictionaryTests: CollectionTestCase {
   }
   
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.2, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
@@ -209,9 +210,9 @@ class UniqueDictionaryTests: CollectionTestCase {
         
         var seen: Set<Int> = []
         let indices = d.indices
-        var it = indices.makeBorrowingIterator()
+        var it = indices.makeBorrowingIterator_()
         while true {
-          let next = it.nextSpan()
+          let next = it.nextSpan_()
           if next.isEmpty { break }
           expectEqual(next.count, 1)
           var i = 0
