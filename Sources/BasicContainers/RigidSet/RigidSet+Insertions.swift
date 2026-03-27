@@ -224,7 +224,7 @@ extension RigidSet /* where Element: Copyable */ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   package mutating func _insert<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -242,7 +242,7 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -264,7 +264,7 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {

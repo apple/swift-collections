@@ -17,11 +17,9 @@
 import InternalCollectionsUtilities
 #endif
 
-#if false // Use the stdlib's definition
-
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable
+public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
+  associatedtype Element_: ~Copyable
 
   // FIXME: This ought to be a core requirement, but `Ref` is not a thing yet.
 //  @_lifetime(&self)
@@ -76,7 +74,7 @@ public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
   /// method may vary between different borrows of the same container.)
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func nextSpan(maximumCount: Int) -> Span<Element>
+  mutating func nextSpan_(maximumCount: Int) -> Span<Element_>
 
   /// Advance the position of this iterator by the specified offset, or until
   /// the end of the underlying sequence.
@@ -88,7 +86,7 @@ public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
   ///
   /// `maximumOffset` must be nonnegative.
   @_lifetime(self: copy self)
-  mutating func skip(by maximumOffset: Int) -> Int
+  mutating func skip_(by maximumOffset: Int) -> Int
   
   // FIXME: Add BidirectionalBorrowingIteratorProtocol and RandomAccessBorrowingIteratorProtocol.
   // BidirectionalBorrowingIteratorProtocol would need to have a `previousSpan`
@@ -98,25 +96,25 @@ public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol
-where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+extension BorrowingIteratorProtocol_
+where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  public mutating func nextSpan() -> Span<Element> {
-    nextSpan(maximumCount: Int.max)
+  public mutating func nextSpan_() -> Span<Element_> {
+    nextSpan_(maximumCount: Int.max)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol
-where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+extension BorrowingIteratorProtocol_
+where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
-  public mutating func skip(by offset: Int) -> Int {
+  public mutating func skip_(by offset: Int) -> Int {
     var remainder = offset
     while remainder > 0 {
-      let span = nextSpan(maximumCount: remainder)
+      let span = nextSpan_(maximumCount: remainder)
       if span.isEmpty { break }
       remainder &-= span.count
     }
@@ -125,7 +123,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
 #if false // FIXME: This doesn't work, but it should?
   @_lifetime(&self)
   @_lifetime(self: copy self)
@@ -144,20 +142,18 @@ extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
   //  }
 }
 
-#endif
-
 @available(SwiftStdlib 6.4, *)
-extension BorrowingIteratorProtocol
-where Self: ~Copyable & ~Escapable, Element: Copyable
+extension BorrowingIteratorProtocol_
+where Self: ~Copyable & ~Escapable, Element_: Copyable
 {
   @_lifetime(self: copy self)
   @inlinable
   @_transparent
-  package mutating func _copyContents(into target: inout OutputSpan<Element>) {
+  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) {
     target.withUnsafeMutableBufferPointer { dst, dstCount in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
-        let src = nextSpan(maximumCount: tail.count)
+        let src = nextSpan_(maximumCount: tail.count)
         if src.isEmpty { break }
         tail._initializeAndDropPrefix(copying: src)
         dstCount += src.count

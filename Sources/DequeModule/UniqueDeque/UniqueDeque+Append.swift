@@ -301,11 +301,11 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   internal mutating func _append<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(copying items: borrowing S) {
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       if span.isEmpty { break }
       self.append(copying: span)
     }
@@ -325,7 +325,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///    over many similar invocations on the same deque
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func append<S: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
+  public mutating func append<S: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing S
   ) {
     self._append(copying: items)
@@ -377,7 +377,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
    >(
     copying items: S
    ) {

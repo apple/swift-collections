@@ -23,7 +23,7 @@ import ContainersPreview
 extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @frozen
-  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol {
+  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
     @usableFromInline
     internal var _currentSegment: Span<Element>
     
@@ -46,7 +46,7 @@ extension RigidDeque where Element: ~Copyable {
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
     @_lifetime(self: copy self)
-    public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+    public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
       let result = _currentSegment._trim(first: maximumCount)
       if _currentSegment.isEmpty {
         _currentSegment = _nextSegment
@@ -58,7 +58,7 @@ extension RigidDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self)
   }
 #endif

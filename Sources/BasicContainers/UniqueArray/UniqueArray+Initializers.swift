@@ -105,7 +105,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing Source
   ) {
@@ -142,7 +142,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence_<Element> & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: Source
   ) {

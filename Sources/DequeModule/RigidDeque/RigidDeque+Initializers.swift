@@ -133,7 +133,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     capacity: Int,
     copying contents: borrowing S
@@ -189,7 +189,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
   >(
     capacity: Int,
     copying contents: borrowing S
@@ -211,7 +211,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence<Element> & Collection<Element>
+    S: BorrowingSequence_<Element> & Collection<Element>
   >(
     capacity: Int? = nil,
     copying contents: S

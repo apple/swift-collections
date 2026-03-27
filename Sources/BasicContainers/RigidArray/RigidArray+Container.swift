@@ -20,11 +20,11 @@ import ContainersPreview
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 6.4, *)
-extension RigidArray: BorrowingSequence where Element: ~Copyable {
-  public typealias BorrowingIterator = SpanIterator<Element>
+extension RigidArray: BorrowingSequence_ where Element: ~Copyable {
+  public typealias BorrowingIterator_ = SpanIterator<Element>
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeBorrowingIterator() -> BorrowingIterator {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     SpanIterator(self.span)
   }
 }

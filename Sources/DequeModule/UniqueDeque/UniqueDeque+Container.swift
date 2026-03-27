@@ -26,7 +26,7 @@ extension UniqueDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self._storage)
   }
 #endif

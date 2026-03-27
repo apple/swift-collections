@@ -383,12 +383,12 @@ extension UniqueDeque /* where Element: Copyable */ {
     newCount: Int
   ) {
     let expectedCount = self.count + newCount
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     insert(addingCount: newCount, at: index) { target in
-      it._copyContents(into: &target)
+      it._copyContents_(into: &target)
     }
     precondition(
-      it.nextSpan().isEmpty && count == expectedCount,
+      it.nextSpan_().isEmpty && count == expectedCount,
       "Broken Container: count doesn't match contents")
   }
 #endif

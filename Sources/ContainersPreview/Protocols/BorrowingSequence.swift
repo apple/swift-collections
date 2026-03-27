@@ -13,59 +13,57 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-#if false // Use the stdlib's definition
-
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
-  associatedtype Element: ~Copyable
-  associatedtype BorrowingIterator: BorrowingIteratorProtocol<Element> & ~Copyable & ~Escapable
+public protocol BorrowingSequence_<Element_>: ~Copyable, ~Escapable {
+  associatedtype Element_: ~Copyable
+  associatedtype BorrowingIterator_: BorrowingIteratorProtocol_<Element_> & ~Copyable & ~Escapable
   
-  var underestimatedCount: Int { get }
+  var underestimatedCount_: Int { get }
 
   @_lifetime(borrow self)
-  borrowing func makeBorrowingIterator() -> BorrowingIterator
+  borrowing func makeBorrowingIterator_() -> BorrowingIterator_
   
-  func _customContainsEquatableElement(
-    _ element: borrowing Element
+  func _customContainsEquatableElement_(
+    _ element: borrowing Element_
   ) -> Bool?
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence
+extension BorrowingSequence_
 where
-  Self: ~Copyable & ~Escapable, Element: ~Copyable
+  Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
   @inlinable
-  public var underestimatedCount: Int { 0 }
+  public var underestimatedCount_: Int { 0 }
   
   @inlinable
-  public func _customContainsEquatableElement(_ element: borrowing Element) -> Bool? {
+  public func _customContainsEquatableElement_(_ element: borrowing Element_) -> Bool? {
     nil
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence where Self: Sequence {
+extension BorrowingSequence_ where Self: Sequence {
   @inlinable
-  public func _customContainsEquatableElement(_ element: borrowing Element) -> Bool? {
+  public func _customContainsEquatableElement_(_ element: borrowing Element) -> Bool? {
     nil
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence
+extension BorrowingSequence_
 where
   Self: ~Copyable & ~Escapable,
-  Element: ~Copyable
+  Element_: ~Copyable
 {
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
   public func _borrowingForEach<E: Error>(
-    _ body: (borrowing Element) throws(E) -> Void
+    _ body: (borrowing Element_) throws(E) -> Void
   ) throws(E) -> Void {
-    var it = makeBorrowingIterator()
+    var it = makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       if span.isEmpty { break }
       var i = 0
       while i < span.count {
@@ -75,7 +73,5 @@ where
     }
   }
 }
-
-#endif
 
 #endif

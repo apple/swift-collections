@@ -125,7 +125,7 @@ extension RigidArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
     capacity: Int,
     copying contents: borrowing Source
   ) {
@@ -147,7 +147,7 @@ extension RigidArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence_<Element> & Sequence<Element>>(
     capacity: Int,
     copying contents: Source
   ) {

@@ -14,9 +14,10 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 6.4, *)
-public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable
-where Element: ~Copyable
+public protocol Container<Element>: BorrowingSequence_, ~Copyable, ~Escapable
+where Element: ~Copyable, Element == Element_
 {
+  associatedtype Element: ~Copyable
   associatedtype Index: Comparable
   // FIXME: Ideally Index should also be required to be Hashable.
   // FIXME: If we discard the separate BorrowingSequence abstraction, then we

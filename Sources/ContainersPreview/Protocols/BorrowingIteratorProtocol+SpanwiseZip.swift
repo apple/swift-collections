@@ -18,21 +18,21 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingIteratorProtocol
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
-  Element: ~Copyable
+  Element_: ~Copyable
 {
   @inlinable
   internal consuming func _spanwiseZip<
-    Other: BorrowingIteratorProtocol & ~Copyable & ~Escapable,
+    Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
     State: ~Copyable, E: Error
   >(
     state: inout State,
     with other: consuming Other,
-    by process: (inout State, Span<Element>, Span<Other.Element>) throws(E) -> Bool
+    by process: (inout State, Span<Element_>, Span<Other.Element_>) throws(E) -> Bool
   ) throws(E)
-  where Other.Element: ~Copyable
+  where Other.Element_: ~Copyable
   {
 #if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
     // Note: This is the less efficient implementation of spanwiseZip. The
@@ -41,17 +41,17 @@ where
     // maximumCounts.)
   loop:
     while true {
-      var a = self.nextSpan()
+      var a = self.nextSpan_()
       if a.isEmpty {
         while true {
-          let b = other.nextSpan()
+          let b = other.nextSpan_()
           guard !b.isEmpty else { break }
           guard try process(&state, a, b) else { break }
         }
         return
       }
       repeat {
-        let b = other.nextSpan(maximumCount: a.count)
+        let b = other.nextSpan_(maximumCount: a.count)
         if b.isEmpty {
           guard try process(&state, a, b) else { return }
         } else {

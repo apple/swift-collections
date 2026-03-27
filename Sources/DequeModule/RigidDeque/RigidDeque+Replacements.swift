@@ -467,12 +467,12 @@ extension RigidDeque /* where Element: Copyable */ {
   ) {
 
     let expectedCount = self.count - subrange.count + newCount
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     self.replace(removing: subrange, addingCount: newCount) { target in
-      it._copyContents(into: &target)
+      it._copyContents_(into: &target)
     }
     precondition(
-      it.nextSpan().isEmpty && count == expectedCount,
+      it.nextSpan_().isEmpty && count == expectedCount,
       "Broken Container: count doesn't match contents")
   }
 #endif

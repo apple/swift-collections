@@ -314,11 +314,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   internal mutating func _append<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(copying items: borrowing S) {
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       if span.isEmpty { break }
       self.append(copying: span)
     }
@@ -336,7 +336,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func append<S: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
+  public mutating func append<S: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
     copying newElements: borrowing S
   ) {
     self._append(copying: newElements)
@@ -378,7 +378,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
    >(
     copying items: S
    ) {

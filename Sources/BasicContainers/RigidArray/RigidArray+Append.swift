@@ -350,7 +350,7 @@ extension RigidArray {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
-    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
@@ -373,7 +373,7 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
@@ -416,7 +416,7 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence<Element> & Sequence<Element>
+    Source: BorrowingSequence_<Element> & Sequence<Element>
   >(copying newElements: Source) {
     _append(copying: newElements)
   }

@@ -34,8 +34,7 @@ final class BorrowingSequenceTests: XCTestCase {
     // XCTAssertTrue(spanCollected.elementsEqual(spanCollected))
     
     XCTAssertEqual(array.reduce(0, +), span.reduce(0, +))
-    // Using 'borrowingReduce' to avoid ambiguity:
-    XCTAssertEqual(array._borrowingReduce(into: 0, +=), span.reduce(into: 0, +=))
+    XCTAssertEqual(array.reduce(into: 0, +=), span.reduce(into: 0, +=))
     
     let inline: [8 of Int] = [1, 2, 3, 4, 5, 6, 7, 8]
     let inlineCollected = inline.collectViaBorrowing()

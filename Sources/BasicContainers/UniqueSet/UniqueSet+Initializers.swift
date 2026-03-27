@@ -78,7 +78,7 @@ extension UniqueSet where Element: Copyable {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public init<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -97,7 +97,7 @@ extension UniqueSet where Element: Copyable {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public init<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {

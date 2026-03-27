@@ -18,10 +18,10 @@ extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
   Element: ~Copyable,
-  BorrowingIterator == ContainerIterator<Self>
+  BorrowingIterator_ == ContainerIterator<Self>
 {
   @_lifetime(borrow self)
-  public func makeBorrowingIterator() -> BorrowingIterator {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     ContainerIterator(_borrowing: self, from: self.startIndex)
   }
 }
@@ -43,16 +43,16 @@ where Base.Element: ~Copyable
 }
 
 @available(SwiftStdlib 6.4, *)
-extension ContainerIterator: BorrowingIteratorProtocol
+extension ContainerIterator: BorrowingIteratorProtocol_
 where
   Base: ~Copyable /*FIXME: & ~Escapable*/,
   Base.Element: ~Copyable
 {
-  public typealias Element = Base.Element
+  public typealias Element_ = Base.Element
 
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence?!
   @_lifetime(&self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
+  public mutating func nextSpan_(maximumCount: Int) -> Span<Base.Element> {
     _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
   }
 
@@ -69,7 +69,7 @@ where
 //  }
 
   @_lifetime(self: copy self)
-  public mutating func skip(by maximumOffset: Int) -> Int {
+  public mutating func skip_(by maximumOffset: Int) -> Int {
     // FIXME: If we aren't modeling bidirectional iterators, then this should
     // trap on negative maximumOffsets
     var n = maximumOffset

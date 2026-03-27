@@ -31,7 +31,7 @@ extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
 extension ContainerIterator where Base.Element: ~Copyable {
   @_lifetime(copy self)
   public func filter(
-    _ isIncluded: @escaping (borrowing Element) -> Bool
+    _ isIncluded: @escaping (borrowing Element_) -> Bool
   ) -> ContainerFilter<Base> {
     ContainerFilter(_base: _base, index: _position, isIncluded: isIncluded)
   }

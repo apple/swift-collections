@@ -323,7 +323,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(copying items: borrowing S) {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
@@ -340,14 +340,14 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S,
     exactCount: Int
   ) {
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     self.prepend(addingCount: exactCount) { target in
-      let span = it.nextSpan(maximumCount: target.freeCapacity)
+      let span = it.nextSpan_(maximumCount: target.freeCapacity)
       target._append(copying: span)
     }
   }
@@ -370,7 +370,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -482,7 +482,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {
@@ -502,7 +502,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence<Element> & Collection<Element>
+    S: BorrowingSequence_<Element> & Collection<Element>
   >(
     copying items: borrowing S
   ) {

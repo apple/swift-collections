@@ -416,15 +416,15 @@ extension RigidArray {
     copying items: borrowing C,
     newCount: Int
   ) {
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
-        let source = it.nextSpan(maximumCount: target.freeCapacity)
+        let source = it.nextSpan_(maximumCount: target.freeCapacity)
         precondition(!source.isEmpty, "Broken container: mismatching count")
         target._append(copying: source)
       }
     }
-    precondition(it.nextSpan().isEmpty, "Broken container: mismatching count")
+    precondition(it.nextSpan_().isEmpty, "Broken container: mismatching count")
   }
 #endif
 

@@ -14,15 +14,15 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingIteratorProtocol
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
-  Element: ~Copyable
+  Element_: ~Copyable
 {
   @inlinable
   @_lifetime(copy self)
   public consuming func filter(
-    _ isIncluded: @escaping (borrowing Element) -> Bool
+    _ isIncluded: @escaping (borrowing Element_) -> Bool
   ) -> BorrowingFilter<Self> {
     BorrowingFilter(_base: self, isIncluded: isIncluded)
   }
@@ -30,13 +30,13 @@ where
 
 @available(SwiftStdlib 6.4, *)
 public struct BorrowingFilter<
-  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable
+  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
 >: ~Copyable, ~Escapable
-where Base.Element: ~Copyable {
-  public typealias Element = Base.Element
+where Base.Element_: ~Copyable {
+  public typealias Element_ = Base.Element_
 
   @_alwaysEmitIntoClient
-  public let _isIncluded: (borrowing Element) -> Bool
+  public let _isIncluded: (borrowing Element_) -> Bool
 
   @_alwaysEmitIntoClient
   public var _base: Base
@@ -45,7 +45,7 @@ where Base.Element: ~Copyable {
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    isIncluded: @escaping (borrowing Element) -> Bool
+    isIncluded: @escaping (borrowing Element_) -> Bool
   ) {
     self._isIncluded = isIncluded
     self._base = _base
@@ -55,13 +55,13 @@ where Base.Element: ~Copyable {
 // FIXME: Sendable
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingFilter: BorrowingIteratorProtocol
-where Base: ~Copyable & ~Escapable, Base.Element: ~Copyable {
+extension BorrowingFilter: BorrowingIteratorProtocol_
+where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable {
   @_lifetime(&self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maximumCount: Int) -> Span<Element_> {
     // FIXME: This is quite inefficient compared to Container's filter
     while true {
-      let span = _base.nextSpan(maximumCount: 1)
+      let span = _base.nextSpan_(maximumCount: 1)
       if span.isEmpty { return span }
       precondition(span.count == 1, "Invalid BorrowingIterator")
       if _isIncluded(span[unchecked: 0]) { return span }

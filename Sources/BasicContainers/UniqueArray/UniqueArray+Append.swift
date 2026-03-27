@@ -311,14 +311,14 @@ extension UniqueArray {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
-    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
-    _ensureFreeCapacity(newElements.underestimatedCount)
-    var it = newElements.makeBorrowingIterator()
+    _ensureFreeCapacity(newElements.underestimatedCount_)
+    var it = newElements.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       if span.isEmpty { break }
       _ensureFreeCapacity(span.count)
       _storage.append(copying: span)
@@ -345,7 +345,7 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
@@ -400,7 +400,7 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence<Element> & Sequence<Element>
+    Source: BorrowingSequence_<Element> & Sequence<Element>
   >(copying newElements: Source) {
     self._append(copying: newElements)
   }

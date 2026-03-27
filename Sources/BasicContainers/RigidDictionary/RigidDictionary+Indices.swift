@@ -41,7 +41,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 }
 
 @available(SwiftStdlib 6.2, *)
-extension RigidDictionary.Indices: BorrowingSequence
+extension RigidDictionary.Indices: BorrowingSequence_
 where Key: ~Copyable, Value: ~Copyable
 {
   public typealias Element = RigidDictionary.Index

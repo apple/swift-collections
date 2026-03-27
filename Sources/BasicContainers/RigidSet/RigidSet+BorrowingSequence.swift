@@ -18,12 +18,12 @@ import ContainersPreview
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: BorrowingSequence where Element: ~Copyable {
+extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
   @inlinable
   public var underestimatedCount: Int { count }
   
   @inlinable
-  public func _customContainsEquatableElement(
+  public func _customContainsEquatableElement_(
     _ element: borrowing Element
   ) -> Bool? {
     self.contains(element)
