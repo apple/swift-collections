@@ -580,6 +580,7 @@ extension RigidArray {
   }
   
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _replace<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -658,6 +659,7 @@ extension RigidArray {
   ///   - newElements: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<
@@ -739,6 +741,7 @@ extension RigidArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<

@@ -286,6 +286,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
   
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<
     S: BorrowingSequence<Element> & ~Copyable & ~Escapable
@@ -302,6 +303,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     _handle.rotate(toStartAtOffset: oldCount)
   }
 
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<
     S: BorrowingSequence<Element> & ~Copyable & ~Escapable
@@ -330,6 +332,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<S: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing S
@@ -347,6 +350,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(`items.count`)
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing C
@@ -434,6 +438,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<S: BorrowingSequence<Element> & Sequence<Element>>(
     copying items: borrowing S
@@ -450,6 +455,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<S: BorrowingSequence<Element> & Collection<Element>>(
     copying items: borrowing S
@@ -466,6 +472,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Sequence<Element>>(
     copying items: borrowing C
@@ -482,6 +489,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Collection<Element>>(
     copying items: borrowing C

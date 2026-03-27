@@ -17,6 +17,8 @@
 import InternalCollectionsUtilities
 #endif
 
+#if false // Use the stdlib's definition
+
 @available(SwiftStdlib 5.0, *)
 public protocol BorrowingIteratorProtocol<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
@@ -142,13 +144,16 @@ extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
   //  }
 }
 
-@available(SwiftStdlib 5.0, *)
+#endif
+
+@available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol
 where Self: ~Copyable & ~Escapable, Element: Copyable
 {
   @_lifetime(self: copy self)
+  @inlinable
   @_transparent
-  public mutating func copyContents(into target: inout OutputSpan<Element>) {
+  package mutating func _copyContents(into target: inout OutputSpan<Element>) {
     target.withUnsafeMutableBufferPointer { dst, dstCount in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
@@ -160,5 +165,6 @@ where Self: ~Copyable & ~Escapable, Element: Copyable
     }
   }
 }
+
 
 #endif

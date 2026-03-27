@@ -13,9 +13,11 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+#if false // Use the stdlib's definition
+
 /// A borrowing iterator that provides access to the elements of a single
 /// span through a `BorrowingIteratorProtocol` interface.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct SpanIterator<Element>: BorrowingIteratorProtocol, ~Copyable, ~Escapable
   where Element: ~Copyable
 {
@@ -58,4 +60,5 @@ public struct SpanIterator<Element>: BorrowingIteratorProtocol, ~Copyable, ~Esca
   }
 }
 
+#endif
 #endif

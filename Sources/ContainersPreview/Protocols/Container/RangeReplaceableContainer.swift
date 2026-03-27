@@ -19,7 +19,7 @@ import InternalCollectionsUtilities
 
 //MARK: - Protocol Definition
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol RangeReplaceableContainer<Element>
 : Container, ~Copyable, ~Escapable
 where Element: ~Copyable
@@ -64,7 +64,7 @@ where Element: ~Copyable
 
 //MARK: - Default Implementations
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
@@ -137,7 +137,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
 
 //MARK: - Standard Extensions
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
@@ -206,7 +206,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
@@ -258,7 +258,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where
   Self: BidirectionalContainer,
@@ -278,7 +278,7 @@ where
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
@@ -297,7 +297,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
@@ -334,7 +334,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
@@ -367,7 +367,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
 //MARK: - Standard Extensions Requiring Copyability
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RangeReplaceableContainer
 where
   Self: ~Copyable & ~Escapable,

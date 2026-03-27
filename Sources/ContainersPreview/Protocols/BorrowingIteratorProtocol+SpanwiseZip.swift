@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,

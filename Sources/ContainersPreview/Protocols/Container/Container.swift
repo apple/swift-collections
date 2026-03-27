@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol Container<Element>: BorrowingSequence, ~Copyable, ~Escapable
 where Element: ~Copyable
 {
@@ -169,7 +169,7 @@ where Element: ~Copyable
   func index(alignedUp index: Index) -> Index
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// Return a span over the container's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
@@ -225,7 +225,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 //  }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public func formIndex(after index: inout Index) {
@@ -257,7 +257,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public func _defaultDistance(from start: Index, to end: Index) -> Int {
@@ -387,7 +387,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_transparent
   public var underestimatedCount: Int { count }

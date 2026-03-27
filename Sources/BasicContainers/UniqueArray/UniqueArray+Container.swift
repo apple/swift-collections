@@ -19,7 +19,7 @@ import ContainersPreview
 #if compiler(>=6.2)
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
 
@@ -35,23 +35,23 @@ extension UniqueArray: BorrowingSequence where Element: ~Copyable {
 #endif
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: Container where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: BidirectionalContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: MutableContainer where Element: ~Copyable {}
 
 #if compiler(>=6.3)
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: RangeReplaceableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: DynamicContainer where Element: ~Copyable {}
 #endif
 #endif

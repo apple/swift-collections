@@ -405,6 +405,7 @@ extension RigidArray {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -471,6 +472,7 @@ extension RigidArray {
   ///        a valid index of the array.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`).
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -531,6 +533,7 @@ extension RigidArray {
   ///        a valid index of the array.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

@@ -147,6 +147,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///   - capacity: The storage capacity of the new deque, or nil to let the
   ///      deque grow itself as needed to accomodate all items in `contents`.
   ///   - contents: A sequence whose contents to copy into the new deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
@@ -186,6 +187,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///      deque grow itself as needed to accomodate all items in `contents`.
   ///   - contents: A sequence whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
@@ -205,6 +207,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///   - capacity: The storage capacity of the new deque.
   ///   - contents: A sequence whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<

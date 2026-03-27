@@ -19,13 +19,9 @@ import ContainersPreview
 #if compiler(>=6.2)
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = SpanIterator<Element>
-
-  @inlinable
-  public var underestimatedCount: Int { count }
-
   @_alwaysEmitIntoClient
   @inline(__always)
   public func makeBorrowingIterator() -> BorrowingIterator {
@@ -55,6 +51,9 @@ extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  @inlinable
+  public var underestimatedCount: Int { count }
+
   /// A Boolean value indicating whether this array contains no elements.
   ///
   /// - Complexity: O(1)

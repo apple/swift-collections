@@ -55,9 +55,10 @@ set(collections_swift_flags
   "-enable-experimental-feature BuiltinModule"
   "-enable-experimental-feature Lifetimes"
   "-enable-experimental-feature InoutLifetimeDependence"
-  "-enable-experimental-feature SuppressedAssociatedTypesWithDefaults"
   "-enable-experimental-feature AddressableParameters"
   "-enable-experimental-feature AddressableTypes"
+  "-enable-experimental-feature SuppressedAssociatedTypesWithDefaults"
+  "-enable-experimental-feature BorrowingSequence"
 )
 foreach(flag ${collections_swift_flags})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")
@@ -77,6 +78,7 @@ set(availability_defs
   "SwiftStdlib 6.1: macOS 15.4, iOS 18.4, watchOS 11.4, tvOS 18.4, visionOS 2.4"
   "SwiftStdlib 6.2: macOS 26.0, iOS 26.0, watchOS 26.0, tvOS 26.0, visionOS 26.0"
   "SwiftStdlib 6.3: macOS 26.4, iOS 26.4, watchOS 26.4, tvOS 26.4, visionOS 26.4"
+  "SwiftStdlib 6.4: macOS 9999, iOS 9999, watchOS 9999, tvOS 9999, visionOS 9999"
   )
 foreach(def ${availability_defs})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:-enable-experimental-feature \"AvailabilityMacro=${def}\">")

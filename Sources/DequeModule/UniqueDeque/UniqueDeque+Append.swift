@@ -294,6 +294,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   internal mutating func _append<
     S: BorrowingSequence<Element> & ~Copyable & ~Escapable
@@ -318,6 +319,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, when amortized
   ///    over many similar invocations on the same deque
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<S: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing S
@@ -368,6 +370,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, when
   ///     amortized over many similar invocations over the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<
     S: BorrowingSequence<Element> & Sequence<Element>

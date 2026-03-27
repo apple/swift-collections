@@ -29,7 +29,7 @@ extension RigidSet {
 }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidSet: Equatable {
   @inlinable
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {

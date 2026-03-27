@@ -549,6 +549,7 @@ extension UniqueArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<
@@ -639,6 +640,7 @@ extension UniqueArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<

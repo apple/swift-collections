@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol MutableContainer<Element>:
   PermutableContainer, ~Copyable, ~Escapable
 where
@@ -30,7 +30,7 @@ where
   // FIXME: What about previousMutableSpan?
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension MutableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {

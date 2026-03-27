@@ -13,7 +13,8 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+#if false // Use the stdlib's conformance
+@available(SwiftStdlib 6.4, *)
 extension Span: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = SpanIterator<Element>
 
@@ -26,8 +27,10 @@ extension Span: BorrowingSequence where Element: ~Copyable {
     SpanIterator(self)
   }
 }
+#endif
 
-@available(SwiftStdlib 5.0, *)
+#if false // Use the stdlib's conformance
+@available(SwiftStdlib 6.4, *)
 extension MutableSpan: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = SpanIterator<Element>
 
@@ -44,8 +47,10 @@ extension MutableSpan: BorrowingSequence where Element: ~Copyable {
     SpanIterator(self.span)
   }
 }
+#endif
 
-@available(SwiftStdlib 5.0, *)
+#if false // Use the stdlib's conformance
+@available(SwiftStdlib 6.4, *)
 extension OutputSpan: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = SpanIterator<Element>
 
@@ -58,8 +63,9 @@ extension OutputSpan: BorrowingSequence where Element: ~Copyable {
     SpanIterator(self.span)
   }
 }
+#endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension InputSpan: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = SpanIterator<Element>
 
@@ -73,7 +79,8 @@ extension InputSpan: BorrowingSequence where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.2, *)
+#if false // Use the stdlib's conformance
+@available(SwiftStdlib 6.4, *)
 extension Array: BorrowingSequence {
   public typealias BorrowingIterator = SpanIterator<Element>
 
@@ -86,8 +93,10 @@ extension Array: BorrowingSequence {
     SpanIterator(self.span)
   }
 }
+#endif
 
-@available(SwiftStdlib 6.2, *)
+#if false // Use the stdlib's conformance
+@available(SwiftStdlib 6.4, *)
 extension InlineArray: BorrowingSequence where Element: ~Copyable {
   public typealias BorrowingIterator = SpanIterator<Element>
   
@@ -104,8 +113,10 @@ extension InlineArray: BorrowingSequence where Element: ~Copyable {
     SpanIterator(self.span)
   }
 }
+#endif
 
-@available(SwiftStdlib 6.2, *)
+#if false // Use the stdlib's conformance
+@available(SwiftStdlib 6.4, *)
 extension Range: BorrowingSequence
 where Bound: Strideable, Bound.Stride: SignedInteger
 {
@@ -160,8 +171,9 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     BorrowingIterator(self)
   }
 }
+#endif
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftStdlib 6.4, *)
 extension ClosedRange: BorrowingSequence
 where Bound: Strideable, Bound.Stride: SignedInteger
 {

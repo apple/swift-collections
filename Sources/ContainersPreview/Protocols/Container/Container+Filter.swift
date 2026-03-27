@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   @_lifetime(borrow self)
   public func _filter(
@@ -27,7 +27,7 @@ extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension ContainerIterator where Base.Element: ~Copyable {
   @_lifetime(copy self)
   public func filter(
@@ -37,7 +37,7 @@ extension ContainerIterator where Base.Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct ContainerFilter<
   Base: Container & ~Copyable/* FIXME & ~Escapable */
 >: ~Copyable, ~Escapable
@@ -85,7 +85,7 @@ where Base.Element: ~Copyable
 
 // FIXME: Sendable
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension ContainerFilter: BorrowingIteratorProtocol where Element: ~Copyable {
   @_lifetime(copy self)
   public mutating func nextSpan(maximumCount: Int) -> Span<Element> {

@@ -13,6 +13,8 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+#if false // Use the stdlib's definition
+
 @available(SwiftStdlib 5.0, *)
 public protocol BorrowingSequence<Element>: ~Copyable, ~Escapable {
   associatedtype Element: ~Copyable
@@ -73,5 +75,7 @@ where
     }
   }
 }
+
+#endif
 
 #endif
