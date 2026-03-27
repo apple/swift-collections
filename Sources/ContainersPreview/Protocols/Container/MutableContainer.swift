@@ -11,10 +11,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol MutableContainer<Element>: PermutableContainer, ~Copyable, ~Escapable {
+public protocol MutableContainer<Element>:
+  PermutableContainer, ~Copyable, ~Escapable
+where
+  Element: ~Copyable
+{
   //  subscript(index: Index) -> Element { borrow mutate }
 
   @_lifetime(&self)
@@ -27,7 +31,9 @@ public protocol MutableContainer<Element>: PermutableContainer, ~Copyable, ~Esca
 }
 
 @available(SwiftStdlib 5.0, *)
-extension MutableContainer where Self: ~Copyable & ~Escapable {
+extension MutableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   @_lifetime(&self)
   mutating func nextMutableSpan(

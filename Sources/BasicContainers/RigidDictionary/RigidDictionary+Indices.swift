@@ -17,7 +17,7 @@ import ContainersPreview
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.2, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @frozen
   public struct Indices: ~Escapable {
@@ -41,13 +41,14 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 }
 
 @available(SwiftStdlib 6.2, *)
-extension RigidDictionary.Indices: BorrowingSequence
+extension RigidDictionary.Indices: BorrowingSequence_
 where Key: ~Copyable, Value: ~Copyable
 {
   public typealias Element = RigidDictionary.Index
-  
+  public typealias Element_ = Element
+
   @frozen
-  public struct BorrowingIterator: ~Escapable {
+  public struct BorrowingIterator_: ~Escapable {
     public typealias Element = RigidDictionary.Index
 
     @usableFromInline
@@ -67,22 +68,24 @@ where Key: ~Copyable, Value: ~Copyable
   }
 
   @inlinable
-  public var underestimatedCount: Int { self._base.value.count }
-  
+  public var underestimatedCount_: Int { self._base.value.count }
+
   @_lifetime(copy self)
-  public func makeBorrowingIterator() -> BorrowingIterator {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     let bit = self._base.value.makeBucketIterator()
     // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
     let override = _overrideLifetime(bit, copying: self)
-    return BorrowingIterator(_it: override)
+    return BorrowingIterator_(_it: override)
   }
 }
 
 @available(SwiftStdlib 6.2, *)
-extension RigidDictionary.Indices.BorrowingIterator: BorrowingIteratorProtocol
+extension RigidDictionary.Indices.BorrowingIterator_: BorrowingIteratorProtocol_
 where Key: ~Copyable, Value: ~Copyable {
+  public typealias Element_ = Element
+
   @_lifetime(&self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
     guard _it.advanceToOccupied() else { return .init() }
     _current[0] = Element(_bucket: _it.currentBucket)
     _it.advanceToNextBit()

@@ -11,18 +11,22 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol_
+where
+  Self: ~Copyable & ~Escapable,
+  Element_: ~Copyable
+{
   @inlinable
   public consuming func reduce<Result: ~Copyable, E: Error>(
     _ initialResult: consuming Result,
-    _ nextPartialResult: (consuming Result, borrowing Element) throws(E) -> Result
+    _ nextPartialResult: (consuming Result, borrowing Element_) throws(E) -> Result
   ) throws(E) -> Result {
     var result = initialResult
     while true {
-      let span = self.nextSpan()
+      let span = self.nextSpan_()
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {
@@ -36,11 +40,11 @@ extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
   @inlinable
   public consuming func reduce<Result: ~Copyable, E: Error>(
     into initialResult: consuming Result,
-    _ updateAccumulatingResult: (inout Result, borrowing Element) throws(E) -> Void
+    _ updateAccumulatingResult: (inout Result, borrowing Element_) throws(E) -> Void
   ) throws(E) -> Result {
     var result = initialResult
     while true {
-      let span = self.nextSpan()
+      let span = self.nextSpan_()
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {

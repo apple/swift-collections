@@ -11,10 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol PermutableContainer<Element>: Container, ~Copyable, ~Escapable {
+public protocol PermutableContainer<Element>: Container, ~Copyable, ~Escapable
+where Element: ~Copyable
+{
   @_lifetime(self: copy self)
   mutating func swapAt(_ i: Index, _ j: Index)
 }

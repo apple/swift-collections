@@ -57,7 +57,9 @@ extension UniqueSet where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     minimumCapacity: Int? = nil, from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     let c = producer.underestimatedCount
     if let minimumCapacity {
       self.init(minimumCapacity: Swift.min(minimumCapacity, c))
@@ -75,7 +77,7 @@ extension UniqueSet where Element: Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   public init<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -93,7 +95,7 @@ extension UniqueSet where Element: Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   public init<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {

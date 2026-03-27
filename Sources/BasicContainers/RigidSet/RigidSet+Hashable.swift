@@ -18,8 +18,11 @@ import ContainersPreview
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+@available(SwiftStdlib 6.4, *)
+extension RigidSet: Hashable {}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: Hashable {
+extension RigidSet {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     // Generate a seed from a snapshot of the hasher.  This makes members' hash
@@ -34,9 +37,9 @@ extension RigidSet: Hashable {
   public func _rawHashValue(seed: Int) -> Int {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
     var hash = 0
-    var it = self.makeBorrowingIterator()
+    var it = self.makeBorrowingIterator_()
     while true {
-      let next = it.nextSpan()
+      let next = it.nextSpan_()
       var i = 0
       while i < next.count {
         hash ^= next[i]._rawHashValue(seed: seed)

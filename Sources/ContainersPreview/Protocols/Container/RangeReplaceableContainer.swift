@@ -15,13 +15,14 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 //MARK: - Protocol Definition
 
 @available(SwiftStdlib 5.0, *)
 public protocol RangeReplaceableContainer<Element>
 : Container, ~Copyable, ~Escapable
+where Element: ~Copyable
 {
   // Core requirements
 
@@ -64,7 +65,9 @@ public protocol RangeReplaceableContainer<Element>
 //MARK: - Default Implementations
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func remove(at index: Index) -> Element {
     let range = Range(uncheckedBounds: (index, self.index(after: index)))
@@ -135,7 +138,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 //MARK: - Standard Extensions
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func replace<
     E: Error,
@@ -144,7 +149,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
     removing subrange: some RangeExpression2<Index>,
     addingCount: Int,
     from producer: inout P
-  ) throws(P.ProducerError) {
+  ) throws(P.ProducerError)
+  where P.Element: ~Copyable
+  {
     try replace(
       removing: subrange.relative(to: self),
       consumingWith: { _ in },
@@ -202,7 +209,8 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public mutating func consume(
     _ subrange: Range<Index>,
@@ -256,7 +264,8 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 extension RangeReplaceableContainer
 where
   Self: BidirectionalContainer,
-  Self: ~Copyable & ~Escapable
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable
 {
   @inlinable
   @_lifetime(&self)
@@ -272,7 +281,9 @@ where
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func removeSubrange(
     _ bounds: some RangeExpression2<Index>
@@ -289,7 +300,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable
+{
   @inlinable
   public mutating func insert<
     E: Error,
@@ -298,7 +311,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
     addingCount newItemCount: Int,
     at index: Index,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try self.insert(addingCount: newItemCount, at: index) { target throws(E) in
       while !target.isFull, try producer.generate(into: &target) {
       }
@@ -324,7 +339,8 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
+extension RangeReplaceableContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public mutating func append<
     E: Error,
@@ -332,7 +348,9 @@ extension RangeReplaceableContainer where Self: ~Copyable & ~Escapable {
   >(
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try insert(addingCount: newItemCount, at: endIndex, from: &producer)
   }
 
@@ -407,13 +425,13 @@ where
 
   @inlinable
   public mutating func append<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
-    var it = items.makeBorrowingIterator()
+    var it = items.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       guard !span.isEmpty else { break }
       self.append(copying: span)
     }

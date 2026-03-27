@@ -113,7 +113,7 @@ extension RigidArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
   ///
@@ -124,7 +124,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
     capacity: Int,
     copying contents: borrowing Source
   ) {
@@ -134,7 +134,7 @@ extension RigidArray /*where Element: Copyable*/ {
   
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified capacity, holding a copy
   /// of the contents of a given container.
   ///
@@ -145,7 +145,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence_<Element> & Sequence<Element>>(
     capacity: Int,
     copying contents: Source
   ) {

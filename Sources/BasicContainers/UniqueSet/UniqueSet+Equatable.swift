@@ -28,8 +28,11 @@ extension UniqueSet {
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension UniqueSet: Equatable {}
+
 @available(SwiftStdlib 5.0, *)
-extension UniqueSet: Equatable {
+extension UniqueSet {
   @inlinable
   @inline(__always)
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {

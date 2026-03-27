@@ -15,10 +15,10 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable /*& ~Escapable*/ {
+extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   @_lifetime(borrow self)
   public func _filter(
     _ isIncluded: @escaping (borrowing Element) -> Bool
@@ -28,7 +28,7 @@ extension Container where Self: ~Copyable /*& ~Escapable*/ {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension ContainerIterator {
+extension ContainerIterator where Base.Element: ~Copyable {
   @_lifetime(copy self)
   public func filter(
     _ isIncluded: @escaping (borrowing Element) -> Bool
@@ -40,7 +40,9 @@ extension ContainerIterator {
 @available(SwiftStdlib 5.0, *)
 public struct ContainerFilter<
   Base: Container & ~Copyable/* FIXME & ~Escapable */
->: ~Copyable, ~Escapable {
+>: ~Copyable, ~Escapable
+where Base.Element: ~Copyable
+{
   public typealias Element = Base.Element
 
   @_alwaysEmitIntoClient
@@ -84,9 +86,9 @@ public struct ContainerFilter<
 // FIXME: Sendable
 
 @available(SwiftStdlib 5.0, *)
-extension ContainerFilter: BorrowingIteratorProtocol {
+extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
   @_lifetime(copy self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
     precondition(maximumCount > 0)
     while true {
       // Drop filtered out items from prefix of _remainder

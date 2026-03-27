@@ -86,7 +86,9 @@ extension UniqueSet where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     var done = false
     while !done {
       _ensureFreeCapacity(Swift.max(producer.underestimatedCount, 1))
@@ -130,14 +132,14 @@ extension UniqueSet /* where Element: Copyable */ {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   package mutating func _insert<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
-    _ensureFreeCapacity(items.underestimatedCount)
-    var it = items.makeBorrowingIterator()
+    _ensureFreeCapacity(items.underestimatedCount_)
+    var it = items.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan()
+      let span = it.nextSpan_()
       guard !span.isEmpty else { break }
       self.insert(copying: span)
     }
@@ -148,7 +150,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -170,7 +172,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {

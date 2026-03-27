@@ -18,23 +18,23 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
-extension UniqueArray: BorrowingSequence where Element: ~Copyable {
-  public typealias BorrowingIterator = RigidArray<Element>.BorrowingIterator
+extension UniqueArray: BorrowingSequence_ where Element: ~Copyable {
+  public typealias BorrowingIterator_ = RigidArray<Element>.BorrowingIterator_
 
   @inlinable
-  public var underestimatedCount: Int { count }
+  public var underestimatedCount_: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeBorrowingIterator() -> BorrowingIterator {
-    self._storage.makeBorrowingIterator()
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    self._storage.makeBorrowingIterator_()
   }
 }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: Container where Element: ~Copyable {}
 

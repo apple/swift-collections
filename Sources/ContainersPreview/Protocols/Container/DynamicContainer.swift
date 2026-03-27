@@ -11,10 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable {
+public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable
+where Element: ~Copyable
+{
   init()
   init(minimumCapacity: Int)
 
@@ -24,7 +26,7 @@ public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable 
 }
 
 @available(SwiftStdlib 5.0, *)
-extension DynamicContainer where Self: ~Copyable {
+extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   @inlinable
   public init() {
     self.init(minimumCapacity: 0)
@@ -46,7 +48,9 @@ extension DynamicContainer where Self: ~Copyable {
   >(
     minimumCapacity: Int? = nil,
     from producer: consuming P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     self.init(minimumCapacity: minimumCapacity ?? producer.underestimatedCount)
     try self.append(from: producer)
   }
@@ -57,7 +61,9 @@ extension DynamicContainer where Self: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: consuming P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     while true {
       let c = Swift.max(producer.underestimatedCount, self.freeCapacity)
       try self.append(addingCount: c) { target throws(E) in
