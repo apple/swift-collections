@@ -126,8 +126,8 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   ///    skip at least one item without hitting the end of the underlying
   ///    sequence.
   @_lifetime(self: copy self)
-  mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool
-  
+  mutating func skip(by n: inout Int) throws(ProducerError) -> Bool
+
   /// Generate and return the next element in the underlying generative
   /// sequence.
   ///
@@ -205,7 +205,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ///    sequence.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool {
+  public mutating func skip(by n: inout Int) throws(ProducerError) -> Bool {
     precondition(n > 0, "Cannot skip fewer than one item")
     let maxBufferSize = 8
     return try withTemporaryOutputSpan(
@@ -270,7 +270,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public consuming func _isAtEnd() throws(ProducerError) -> Bool {
     var c = 1
-    return try !skip(upTo: &c)
+    return try !skip(by: &c)
   }
 }
 
