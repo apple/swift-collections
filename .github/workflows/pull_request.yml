@@ -58,3 +58,26 @@ jobs:
       format_check_enabled: false
       # https://github.com/apple/swift-collections/issues/435
       api_breakage_check_enabled: false
+
+  cmake-build:
+    name: CMake Build
+    runs-on: ubuntu-latest
+    container:
+      image: swiftlang/swift:nightly-main-jammy
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+      - name: Install apt dependencies
+        run: apt-get -qq update && apt-get -qq -y install curl ninja-build
+      - name: Install CMake 3.30.2
+        run: |
+          ARCH=`uname -m`
+          curl -sL https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-$ARCH.tar.gz -O
+          tar xzf cmake-3.30.2-linux-$ARCH.tar.gz
+          export PATH="`pwd`/cmake-3.30.2-linux-$ARCH/bin:$PATH"
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          cmake --version
+      - name: Configure CMake
+        run: cmake -G Ninja -S . -B .cmake-build
+      - name: Build
+        run: cmake --build .cmake-build
