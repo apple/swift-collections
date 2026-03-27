@@ -32,6 +32,8 @@ public struct ContainerIterator<
 >: ~Copyable, ~Escapable
 where Base.Element: ~Copyable
 {
+  public typealias Element = Base.Element
+  
   let _base: Borrow<Base> // FIXME: This doesn't support nonescapable Bases
   var _position: Base.Index
 

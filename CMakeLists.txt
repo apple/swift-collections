@@ -58,7 +58,6 @@ set(collections_swift_flags
   "-enable-experimental-feature AddressableParameters"
   "-enable-experimental-feature AddressableTypes"
   "-enable-experimental-feature SuppressedAssociatedTypesWithDefaults"
-  "-enable-experimental-feature BorrowingSequence"
 )
 foreach(flag ${collections_swift_flags})
  add_compile_options("$<$<COMPILE_LANGUAGE:Swift>:SHELL:${flag}>")

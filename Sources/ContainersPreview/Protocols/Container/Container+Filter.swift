@@ -31,7 +31,7 @@ extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
 extension ContainerIterator where Base.Element: ~Copyable {
   @_lifetime(copy self)
   public func filter(
-    _ isIncluded: @escaping (borrowing Element_) -> Bool
+    _ isIncluded: @escaping (borrowing Element) -> Bool
   ) -> ContainerFilter<Base> {
     ContainerFilter(_base: _base, index: _position, isIncluded: isIncluded)
   }
@@ -86,9 +86,9 @@ where Base.Element: ~Copyable
 // FIXME: Sendable
 
 @available(SwiftStdlib 6.4, *)
-extension ContainerFilter: BorrowingIteratorProtocol where Element: ~Copyable {
+extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
   @_lifetime(copy self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
     precondition(maximumCount > 0)
     while true {
       // Drop filtered out items from prefix of _remainder
