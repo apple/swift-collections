@@ -23,7 +23,7 @@ import ContainersPreview
 #endif
 
 final class BorrowingSequenceTests: XCTestCase {
-  @available(SwiftStdlib 6.4, *)
+  @available(SwiftStdlib 6.2, *)
   func testBasic() {
     let array = [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -64,7 +64,7 @@ final class BorrowingSequenceTests: XCTestCase {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
   func collectViaBorrowing() -> [Element_] {
     var borrowIterator = makeBorrowingIterator_()

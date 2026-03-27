@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable
 where Element: ~Copyable
 {
@@ -25,7 +25,7 @@ where Element: ~Copyable
   var freeCapacity: Int { get }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   @inlinable
   public init() {
@@ -81,7 +81,7 @@ extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension DynamicContainer where Self: ~Copyable, Element: Copyable {
   @inlinable
   public init(repeating repeatedValue: Element, count: Int) {

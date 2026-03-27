@@ -74,9 +74,7 @@ class RigidArrayTests: CollectionTestCase {
         expectEqual(tracker.instances, 2 * layout.count)
         expectRigidArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-        if #available(SwiftStdlib 6.4, *) {
-          checkIterable(items, expectedContents: expected)
-        }
+        checkIterable(items, expectedContents: expected)
 #endif
       }
     }
@@ -1180,7 +1178,6 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1329,7 +1326,6 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -1361,7 +1357,6 @@ class RigidArrayTests: CollectionTestCase {
 #endif
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   func test_borrowing_map() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
@@ -1375,7 +1370,6 @@ class RigidArrayTests: CollectionTestCase {
     expectUniqueArrayContents(transformed, equalTo: expected)
   }
 
-  @available(SwiftStdlib 6.4, *)
   func test_borrowing_filter() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)

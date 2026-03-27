@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension Span: BorrowingSequence_ where Element: ~Copyable {
     public typealias BorrowingIterator_ = SpanIterator<Element>
     public typealias Element_ = Element
@@ -28,7 +28,7 @@ extension Span: BorrowingSequence_ where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension MutableSpan: BorrowingSequence_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
 
@@ -46,7 +46,7 @@ extension MutableSpan: BorrowingSequence_ where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension OutputSpan: BorrowingSequence_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
 
@@ -60,7 +60,7 @@ extension OutputSpan: BorrowingSequence_ where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension InputSpan: BorrowingSequence_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
 
@@ -74,7 +74,7 @@ extension InputSpan: BorrowingSequence_ where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 6.2, *)
 extension Array: BorrowingSequence_ {
   public typealias BorrowingIterator_ = SpanIterator<Element>
 
@@ -88,7 +88,7 @@ extension Array: BorrowingSequence_ {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 6.2, *)
 extension InlineArray: BorrowingSequence_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
   
@@ -106,7 +106,7 @@ extension InlineArray: BorrowingSequence_ where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 6.2, *)
 extension Range: BorrowingSequence_
 where Bound: Strideable, Bound.Stride: SignedInteger
 {
@@ -162,7 +162,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 6.2, *)
 extension ClosedRange: BorrowingSequence_
 where Bound: Strideable, Bound.Stride: SignedInteger
 {

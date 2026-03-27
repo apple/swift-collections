@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
 where Element: ~Copyable
 {
@@ -25,7 +25,7 @@ where Element: ~Copyable
   func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element>
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BidirectionalContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable

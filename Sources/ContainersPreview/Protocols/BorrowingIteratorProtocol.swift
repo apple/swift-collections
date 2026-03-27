@@ -142,7 +142,7 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
   //  }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BorrowingIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: Copyable
 {

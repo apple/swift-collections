@@ -355,7 +355,6 @@ extension RigidDeque /* where Element: Copyable */ {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -418,7 +417,6 @@ extension RigidDeque /* where Element: Copyable */ {
   ///        a valid index of the deque.
   ///
   /// - Complexity: O(`self.count` + `items.count`).
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -481,7 +479,6 @@ extension RigidDeque /* where Element: Copyable */ {
   ///        a valid index of the deque.
   ///
   /// - Complexity: O(`self.count` + `items.count`)
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

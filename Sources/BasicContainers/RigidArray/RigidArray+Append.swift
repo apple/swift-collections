@@ -347,7 +347,6 @@ extension RigidArray {
   }
   
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
     Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
@@ -369,7 +368,6 @@ extension RigidArray {
   ///    - newElements: A container whose contents to copy into the array.
   ///
   /// - Complexity: O(`newElements.count`)
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
@@ -412,7 +410,6 @@ extension RigidArray {
   ///    - newElements: The new elements to copy into the array.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<

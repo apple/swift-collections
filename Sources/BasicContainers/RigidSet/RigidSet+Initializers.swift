@@ -82,7 +82,6 @@ extension RigidSet where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension RigidSet /* where Element: Copyable */ {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
@@ -117,7 +116,6 @@ extension RigidSet /* where Element: Copyable */ {
   }
 
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
@@ -130,7 +128,6 @@ extension RigidSet /* where Element: Copyable */ {
     self._insert(copying: contents)
   }
 
-  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<

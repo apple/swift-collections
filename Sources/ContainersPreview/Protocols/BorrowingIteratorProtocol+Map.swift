@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
@@ -28,7 +28,7 @@ where
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 public struct BorrowingMapProducer<
   Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
   Element: ~Copyable,
@@ -53,7 +53,7 @@ public struct BorrowingMapProducer<
 
 // FIXME: Sendable
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BorrowingMapProducer: Producer
 where
   Base: ~Copyable & ~Escapable,

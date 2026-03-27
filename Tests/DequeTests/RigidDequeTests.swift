@@ -82,20 +82,16 @@ internal func expectRigidDequeContents<
   line: UInt = #line
 ) {
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  if #available(SwiftStdlib 6.4, *) {
-    expectIterableContents(
-      left,
-      equivalentTo: right,
-      by: areEquivalent,
-      printer: printer,
-      message(),
-      trapping: trapping,
-      file: file,
-      line: line)
-    return
-  }
-#endif
-  var c = 0
+  expectIterableContents(
+    left,
+    equivalentTo: right,
+    by: areEquivalent,
+    printer: printer,
+    message(),
+    trapping: trapping,
+    file: file,
+    line: line)
+#else
   var j = right.startIndex
   for i in 0 ..< left.count {
     expectEquivalent(
@@ -109,6 +105,7 @@ internal func expectRigidDequeContents<
     right.formIndex(after: &j)
     c += 1
   }
+#endif
 }
 
 final class RigidDequeTests: CollectionTestCase {
@@ -426,7 +423,6 @@ final class RigidDequeTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   func test_initCopyingBorrowingSequence() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
@@ -1277,7 +1273,6 @@ final class RigidDequeTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @available(SwiftStdlib 6.4, *)
   func test_insert_RigidArray() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in

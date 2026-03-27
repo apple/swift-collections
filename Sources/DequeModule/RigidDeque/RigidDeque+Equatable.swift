@@ -36,14 +36,13 @@ extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */
     guard !left.isTriviallyIdentical(to: right) else { return true }
     
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-    if #available(macOS 9999, iOS 9999, tvOS 9999, watchOS 9999, visionOS 9999, *) { // FIXME: SwiftStdlib 6.4
-      return left._elementsEqual(right)
-    }
-#endif
+    return left._elementsEqual(right)
+#else
     for i in 0 ..< left.count {
       guard left[i] == right[i] else { return false }
     }
     return true
+#endif
   }
 }
 

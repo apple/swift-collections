@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
@@ -28,7 +28,7 @@ where
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 public struct BorrowingFilter<
   Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
 >: ~Copyable, ~Escapable
@@ -54,7 +54,7 @@ where Base.Element_: ~Copyable {
 
 // FIXME: Sendable
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension BorrowingFilter: BorrowingIteratorProtocol_
 where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable {
   @_lifetime(&self)
