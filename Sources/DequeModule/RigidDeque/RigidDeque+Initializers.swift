@@ -90,7 +90,9 @@ extension RigidDeque where Element: ~Copyable {
   >(
     capacity: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     self.init(capacity: capacity)
     try self.append(from: &producer)
   }

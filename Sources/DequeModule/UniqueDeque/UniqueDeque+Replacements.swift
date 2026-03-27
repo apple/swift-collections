@@ -334,7 +334,9 @@ extension UniqueDeque where Element: ~Copyable {
     removing subrange: Range<Int>,
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try replace(removing: subrange, addingCount: newItemCount) { target throws(E) in
       while !target.isFull, try producer.generate(into: &target) {
         // Do nothing

@@ -257,7 +257,9 @@ extension UniqueDeque where Element: ~Copyable {
     addingCount newItemCount: Int,
     from producer: inout P,
     at index: Int
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try insert(addingCount: newItemCount, at: index) { target throws(E) in
       while !target.isFull, try producer.generate(into: &target) {
         // Do nothing

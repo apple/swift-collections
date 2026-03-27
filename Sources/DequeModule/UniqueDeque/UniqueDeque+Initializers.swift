@@ -93,7 +93,9 @@ extension UniqueDeque where Element: ~Copyable {
   >(
     capacity: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     self.init(capacity: capacity)
     try self.append(addingCount: capacity, from: &producer)
   }
@@ -113,7 +115,9 @@ extension UniqueDeque where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     self.init(capacity: producer.underestimatedCount)
     try self.append(from: &producer)
   }

@@ -173,7 +173,9 @@ extension RigidSet where Element: ~Copyable {
   >(
     maximumCount: Int? = nil,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try self.insert(
       maximumCount: maximumCount ?? freeCapacity
     ) { target throws(E) in

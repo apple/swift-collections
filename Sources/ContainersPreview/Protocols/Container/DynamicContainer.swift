@@ -48,7 +48,9 @@ extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   >(
     minimumCapacity: Int? = nil,
     from producer: consuming P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     self.init(minimumCapacity: minimumCapacity ?? producer.underestimatedCount)
     try self.append(from: producer)
   }
@@ -59,7 +61,9 @@ extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: consuming P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     while true {
       let c = Swift.max(producer.underestimatedCount, self.freeCapacity)
       try self.append(addingCount: c) { target throws(E) in

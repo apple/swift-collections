@@ -234,7 +234,9 @@ extension RigidArray where Element: ~Copyable {
   >(
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try self.append(addingCount: newItemCount) { target throws(E) in
       while !target.isFull {
         guard try producer.generate(into: &target) else { break }
@@ -261,7 +263,9 @@ extension RigidArray where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     var done = false
     while !done {
       try self.append(addingCount: freeCapacity) { target throws(E) in

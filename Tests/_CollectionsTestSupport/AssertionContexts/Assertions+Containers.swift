@@ -136,7 +136,7 @@ public func expectIterablePayloads<
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line
-) {
+) where E1.Element: ~Copyable {
   var it1 = left.makeBorrowingIterator()
   var it2 = right.makeIterator()
   var i = 0
@@ -230,7 +230,11 @@ public func expectIterablesWithEquivalentElements<
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line
-) {
+)
+where
+  S1.Element: ~Copyable,
+  S2.Element: ~Copyable
+{
   if left._elementsEqual(right, by: areEquivalent) { return }
   _expectFailure(
     "Containers do not have equivalent elements",
@@ -250,7 +254,11 @@ public func expectIterablesWithEqualElements<
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line
-) {
+)
+where
+  S1.Element: ~Copyable,
+  S2.Element: ~Copyable
+{
   if left._elementsEqual(right) { return }
   _expectFailure(
     "Containers do not have equal elements",
@@ -313,7 +321,7 @@ public func expectIterableContents<
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line
-) {
+) where S1.Element: ~Copyable {
   var it1 = left.makeBorrowingIterator()
   var it2 = right.makeIterator()
   var offset = 0

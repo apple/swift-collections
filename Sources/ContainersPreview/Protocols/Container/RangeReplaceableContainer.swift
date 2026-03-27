@@ -149,7 +149,9 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     removing subrange: some RangeExpression2<Index>,
     addingCount: Int,
     from producer: inout P
-  ) throws(P.ProducerError) {
+  ) throws(P.ProducerError)
+  where P.Element: ~Copyable
+  {
     try replace(
       removing: subrange.relative(to: self),
       consumingWith: { _ in },
@@ -309,7 +311,9 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     addingCount newItemCount: Int,
     at index: Index,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try self.insert(addingCount: newItemCount, at: index) { target throws(E) in
       while !target.isFull, try producer.generate(into: &target) {
       }
@@ -344,7 +348,9 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   >(
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try insert(addingCount: newItemCount, at: endIndex, from: &producer)
   }
 

@@ -206,7 +206,9 @@ extension UniqueDeque where Element: ~Copyable {
   >(
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     _ensureFreeCapacity(newItemCount)
     try _storage._handle.uncheckedPrepend(
       addingCount: newItemCount
@@ -237,7 +239,9 @@ extension UniqueDeque where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     var done = false
     while !done {
       let c = Swift.max(producer.underestimatedCount, 1)

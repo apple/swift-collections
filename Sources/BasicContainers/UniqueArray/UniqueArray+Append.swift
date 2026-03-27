@@ -206,7 +206,9 @@ extension UniqueArray where Element: ~Copyable {
   >(
     addingCount newItemCount: Int,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     _ensureFreeCapacity(newItemCount)
     try _storage.append(addingCount: newItemCount, from: &producer)
   }
@@ -230,7 +232,9 @@ extension UniqueArray where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     var done = false
     while !done {
       let c = Swift.max(producer.underestimatedCount, 1)

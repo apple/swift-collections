@@ -86,7 +86,9 @@ extension UniqueSet where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     var done = false
     while !done {
       _ensureFreeCapacity(Swift.max(producer.underestimatedCount, 1))

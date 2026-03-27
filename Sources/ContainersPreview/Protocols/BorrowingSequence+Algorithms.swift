@@ -61,6 +61,7 @@ where
   ) rethrows -> Bool
   where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element: ~Copyable
   {
+    // FIXME: Forward to the iterator's implementation of same
     var iter1 = makeBorrowingIterator()
     var iter2 = other.makeBorrowingIterator()
     while true {
@@ -90,7 +91,11 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable & Equatable {
   @inlinable
   public func elementsEqual<OtherSequence: BorrowingSequence<Element>>(
     _ other: borrowing OtherSequence
-  ) -> Bool where OtherSequence: ~Copyable & ~Escapable {
+  ) -> Bool
+  where
+    OtherSequence: ~Copyable & ~Escapable,
+    OtherSequence.Element: ~Copyable
+  {
     return self.elementsEqual(other, by: ==)
   }
 }

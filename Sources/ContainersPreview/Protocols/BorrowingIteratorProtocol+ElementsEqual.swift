@@ -28,7 +28,9 @@ where
     Other: BorrowingSequence<Element> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
-  ) -> Bool {
+  ) -> Bool
+  where Other.Element: ~Copyable
+  {
     let it1 = self.makeBorrowingIterator()
     let it2 = other.makeBorrowingIterator()
     return it1.elementsEqual(it2)
@@ -69,7 +71,9 @@ where
   >(
     _ other: borrowing Other,
     by areEquivalent: (borrowing Element, borrowing Other.Element) throws(E) -> Bool
-  ) throws(E) -> Bool {
+  ) throws(E) -> Bool
+  where Other.Element: ~Copyable
+  {
     let it1 = self.makeBorrowingIterator()
     let it2 = other.makeBorrowingIterator()
     return try it1.elementsEqual(it2, by: areEquivalent)
@@ -87,7 +91,9 @@ where
     Other: BorrowingIteratorProtocol<Element> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-  ) -> Bool  {
+  ) -> Bool
+  where Other.Element: ~Copyable
+  {
     var result = true
     _spanwiseZip(state: &result, with: other) { state, a, b in
       if a.isEmpty || b.isEmpty {
@@ -111,7 +117,9 @@ where
     Other: BorrowingIteratorProtocol<Element> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-  ) -> Bool  {
+  ) -> Bool
+  where Other.Element: ~Copyable
+  {
 #if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
     // Note: This is the less efficient implementation of elementsEqual. The
     // variant in the #else branch would be preferable, but it doesn't work yet.
@@ -179,7 +187,9 @@ where
   >(
     _ other: consuming Other,
     by areEquivalent: (borrowing Element, borrowing Other.Element) throws(E) -> Bool
-  ) throws(E) -> Bool {
+  ) throws(E) -> Bool
+  where Other.Element: ~Copyable
+  {
     var result = true
     try _spanwiseZip(state: &result, with: other) { state, a, b throws(E) in
       assert(a.count == b.count || a.isEmpty || b.isEmpty)

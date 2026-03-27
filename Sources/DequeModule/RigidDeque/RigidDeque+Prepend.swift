@@ -215,7 +215,9 @@ extension RigidDeque where Element: ~Copyable {
   >(
     addingCount newItemCount: Int? = nil,
     from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     try self.prepend(
       addingCount: newItemCount ?? freeCapacity
     ) { target throws(E) in

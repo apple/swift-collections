@@ -57,7 +57,9 @@ extension UniqueSet where Element: ~Copyable {
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
     minimumCapacity: Int? = nil, from producer: inout P
-  ) throws(E) {
+  ) throws(E)
+  where P.Element: ~Copyable
+  {
     let c = producer.underestimatedCount
     if let minimumCapacity {
       self.init(minimumCapacity: Swift.min(minimumCapacity, c))

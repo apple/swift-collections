@@ -31,7 +31,9 @@ where
     state: inout State,
     with other: consuming Other,
     by process: (inout State, Span<Element>, Span<Other.Element>) throws(E) -> Bool
-  ) throws(E) {
+  ) throws(E)
+  where Other.Element: ~Copyable
+  {
 #if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
     // Note: This is the less efficient implementation of spanwiseZip. The
     // variant in the #else branch would be preferable, but it doesn't work yet.
