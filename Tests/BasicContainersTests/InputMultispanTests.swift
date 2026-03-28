@@ -13,10 +13,10 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@testable import Collections
+import Collections
 #else
 import _CollectionsTestSupport
-@testable import BasicContainers
+import BasicContainers
 #endif
 
 #if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW

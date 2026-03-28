@@ -7,11 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		63047EA22F566B8900C72A3F /* OutputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */; };
-		6330DDA72F5F8F9C00FFB5C1 /* InputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6330DDA62F5F8F9C00FFB5C1 /* InputMultispanTests.swift */; };
-		63E46A102F4D2F850008051A /* OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A0F2F4D2F850008051A /* OutputMultispan.swift */; };
-		63E46A122F4D2FA20008051A /* OutputMultispan+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */; };
-		63E46A172F4FCAE80008051A /* InputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63E46A162F4FCAE80008051A /* InputMultispan.swift */; };
 		7D2A77262F27F1D1005780C7 /* Span+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77252F27F1D1005780C7 /* Span+Extras.swift */; };
 		7D2A77382F27F1E4005780C7 /* BorrowingSequence+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A772D2F27F1E4005780C7 /* BorrowingSequence+Utilities.swift */; };
 		7D2A77392F27F1E4005780C7 /* Box.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77332F27F1E4005780C7 /* Box.swift */; };
@@ -207,6 +202,13 @@
 		7DB257A32F58B1D3007B539F /* UniqueDictionary+Debugging.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DB257A22F58B1CC007B539F /* UniqueDictionary+Debugging.swift */; };
 		7DC85F8D2F3FDC91004A4E3D /* String+Padding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC85F8C2F3FDC82004A4E3D /* String+Padding.swift */; };
 		7DC85F8F2F43D065004A4E3D /* RigidDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC85F8E2F43D05F004A4E3D /* RigidDictionaryTests.swift */; };
+		7DD8643E2F77624C00E42CC8 /* OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD8643C2F77624C00E42CC8 /* OutputMultispan.swift */; };
+		7DD8643F2F77624C00E42CC8 /* InputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD8643B2F77624C00E42CC8 /* InputMultispan.swift */; };
+		7DD864432F77626C00E42CC8 /* InputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD864402F77626C00E42CC8 /* InputMultispanTests.swift */; };
+		7DD864442F77626C00E42CC8 /* OutputMultispanTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD864412F77626C00E42CC8 /* OutputMultispanTests.swift */; };
+		7DD864452F77626C00E42CC8 /* RawCollider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD864422F77626C00E42CC8 /* RawCollider.swift */; };
+		7DD864472F77630700E42CC8 /* RigidArray+OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD864462F77630700E42CC8 /* RigidArray+OutputMultispan.swift */; };
+		7DD864492F77631300E42CC8 /* UniqueArray+OutputMultispan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD864482F77631300E42CC8 /* UniqueArray+OutputMultispan.swift */; };
 		7DD99BC12F68D49F00E2B373 /* BorrowingIteratorProtocol+Copy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD99BC02F68D48500E2B373 /* BorrowingIteratorProtocol+Copy.swift */; };
 		7DE448452F2D3705005853A7 /* BinaryInteger extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DE448442F2D36F9005853A7 /* BinaryInteger extensions.swift */; };
 		7DE91B2F29CA6721004483EB /* Collections.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7DE91B2629CA6721004483EB /* Collections.framework */; };
@@ -601,12 +603,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		63047EA02F5668E600C72A3F /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
-		63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
-		6330DDA62F5F8F9C00FFB5C1 /* InputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispanTests.swift; sourceTree = "<group>"; };
-		63E46A0F2F4D2F850008051A /* OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispan.swift; sourceTree = "<group>"; };
-		63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputMultispan+Extras.swift"; sourceTree = "<group>"; };
-		63E46A162F4FCAE80008051A /* InputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispan.swift; sourceTree = "<group>"; };
 		7D2A77252F27F1D1005780C7 /* Span+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Span+Extras.swift"; sourceTree = "<group>"; };
 		7D2A77272F27F1E4005780C7 /* OutputSpan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputSpan+Extras.swift"; sourceTree = "<group>"; };
 		7D2A77282F27F1E4005780C7 /* TemporaryAllocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryAllocation.swift; sourceTree = "<group>"; };
@@ -810,6 +806,13 @@
 		7DB257A22F58B1CC007B539F /* UniqueDictionary+Debugging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Debugging.swift"; sourceTree = "<group>"; };
 		7DC85F8C2F3FDC82004A4E3D /* String+Padding.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Padding.swift"; sourceTree = "<group>"; };
 		7DC85F8E2F43D05F004A4E3D /* RigidDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidDictionaryTests.swift; sourceTree = "<group>"; };
+		7DD8643B2F77624C00E42CC8 /* InputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispan.swift; sourceTree = "<group>"; };
+		7DD8643C2F77624C00E42CC8 /* OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispan.swift; sourceTree = "<group>"; };
+		7DD864402F77626C00E42CC8 /* InputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputMultispanTests.swift; sourceTree = "<group>"; };
+		7DD864412F77626C00E42CC8 /* OutputMultispanTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputMultispanTests.swift; sourceTree = "<group>"; };
+		7DD864422F77626C00E42CC8 /* RawCollider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RawCollider.swift; sourceTree = "<group>"; };
+		7DD864462F77630700E42CC8 /* RigidArray+OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+OutputMultispan.swift"; sourceTree = "<group>"; };
+		7DD864482F77631300E42CC8 /* UniqueArray+OutputMultispan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueArray+OutputMultispan.swift"; sourceTree = "<group>"; };
 		7DD99BC02F68D48500E2B373 /* BorrowingIteratorProtocol+Copy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BorrowingIteratorProtocol+Copy.swift"; sourceTree = "<group>"; };
 		7DE448442F2D36F9005853A7 /* BinaryInteger extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BinaryInteger extensions.swift"; sourceTree = "<group>"; };
 		7DE448462F2D3940005853A7 /* BitCollections reexports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BitCollections reexports.swift"; sourceTree = "<group>"; };
@@ -1249,7 +1252,6 @@
 		7D2A77292F27F1E4005780C7 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				63E46A112F4D2FA20008051A /* OutputMultispan+Extras.swift */,
 				7D2A77272F27F1E4005780C7 /* OutputSpan+Extras.swift */,
 				7D2A77282F27F1E4005780C7 /* TemporaryAllocation.swift */,
 			);
@@ -1289,8 +1291,6 @@
 				7D2A77332F27F1E4005780C7 /* Box.swift */,
 				7D2A77342F27F1E4005780C7 /* Inout.swift */,
 				7D2A77352F27F1E4005780C7 /* InputSpan.swift */,
-				63E46A162F4FCAE80008051A /* InputMultispan.swift */,
-				63E46A0F2F4D2F850008051A /* OutputMultispan.swift */,
 				7D2A77362F27F1E4005780C7 /* Shared.swift */,
 			);
 			path = Types;
@@ -1415,8 +1415,6 @@
 				7D2A779D2F27F367005780C7 /* BorrowTests.swift */,
 				7D2A779E2F27F367005780C7 /* InoutTests.swift */,
 				7D48BCE62E5158A100D7F6F7 /* BoxTests.swift */,
-				63047EA12F566B8900C72A3F /* OutputMultispanTests.swift */,
-				6330DDA62F5F8F9C00FFB5C1 /* InputMultispanTests.swift */,
 			);
 			path = ContainersTests;
 			sourceTree = "<group>";
@@ -1510,6 +1508,7 @@
 				7DA23F592F32C67D00E4C03A /* RigidArray+Hashable.swift */,
 				7DA23F392F329A2300E4C03A /* RigidArray+Initializers.swift */,
 				7DA23F3A2F329A2300E4C03A /* RigidArray+Insertions.swift */,
+				7DD864462F77630700E42CC8 /* RigidArray+OutputMultispan.swift */,
 				7DA23F3B2F329A2300E4C03A /* RigidArray+Removals.swift */,
 				7DA23F3C2F329A2300E4C03A /* RigidArray+Replacements.swift */,
 			);
@@ -1530,10 +1529,20 @@
 				7D57A2BD2F342DEE002543BD /* UniqueArray+Hashable.swift */,
 				7DA23F412F329A2300E4C03A /* UniqueArray+Initializers.swift */,
 				7DA23F422F329A2300E4C03A /* UniqueArray+Insertions.swift */,
+				7DD864482F77631300E42CC8 /* UniqueArray+OutputMultispan.swift */,
 				7DA23F432F329A2300E4C03A /* UniqueArray+Removals.swift */,
 				7DA23F442F329A2300E4C03A /* UniqueArray+Replacements.swift */,
 			);
 			path = UniqueArray;
+			sourceTree = "<group>";
+		};
+		7DD8643D2F77624C00E42CC8 /* Multispans */ = {
+			isa = PBXGroup;
+			children = (
+				7DD8643B2F77624C00E42CC8 /* InputMultispan.swift */,
+				7DD8643C2F77624C00E42CC8 /* OutputMultispan.swift */,
+			);
+			path = Multispans;
 			sourceTree = "<group>";
 		};
 		7DE91B1C29CA6721004483EB = {
@@ -2393,7 +2402,6 @@
 				7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */,
 				7D9B859C29E4F77D00B291CD /* Collections.xctestplan */,
 				7D5A64D229CCE8CC00CB2595 /* README.md */,
-				63047EA02F5668E600C72A3F /* OutputMultispanTests.swift */,
 			);
 			name = Xcode;
 			sourceTree = "<group>";
@@ -2402,6 +2410,7 @@
 			isa = PBXGroup;
 			children = (
 				A93AC20F2E7C841700A824DF /* CMakeLists.txt */,
+				7DD8643D2F77624C00E42CC8 /* Multispans */,
 				7DA23F3D2F329A2300E4C03A /* RigidArray */,
 				7DA23F452F329A2300E4C03A /* UniqueArray */,
 				7D7246822F3D9DDB00112FD0 /* HashTable */,
@@ -2417,6 +2426,9 @@
 		A93AC21D2E7C845300A824DF /* BasicContainersTests */ = {
 			isa = PBXGroup;
 			children = (
+				7DD864402F77626C00E42CC8 /* InputMultispanTests.swift */,
+				7DD864412F77626C00E42CC8 /* OutputMultispanTests.swift */,
+				7DD864422F77626C00E42CC8 /* RawCollider.swift */,
 				A93AC21A2E7C845300A824DF /* ArrayLayout.swift */,
 				A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */,
 				A93AC21C2E7C845300A824DF /* UniqueArrayTests.swift */,
@@ -2603,7 +2615,6 @@
 				7D2A77932F27F2BF005780C7 /* _DequeBufferHeader.swift in Sources */,
 				7D2A77942F27F2BF005780C7 /* Deque+Collection.swift in Sources */,
 				7D2A77952F27F2BF005780C7 /* Deque+Codable.swift in Sources */,
-				63E46A122F4D2FA20008051A /* OutputMultispan+Extras.swift in Sources */,
 				7D2A77962F27F2BF005780C7 /* RigidDeque+Experimental.swift in Sources */,
 				7D2A77972F27F2BF005780C7 /* Deque+Testing.swift in Sources */,
 				7D2A77982F27F2BF005780C7 /* RigidDeque+Replacements.swift in Sources */,
@@ -2678,6 +2689,8 @@
 				7DE920A029CA70F4004483EB /* Rope+Join.swift in Sources */,
 				7DE9213E29CA70F4004483EB /* TreeSet+SetAlgebra union.swift in Sources */,
 				7D9B75772F3E65E00048157E /* _HTable+Debug.swift in Sources */,
+				7DD8643E2F77624C00E42CC8 /* OutputMultispan.swift in Sources */,
+				7DD8643F2F77624C00E42CC8 /* InputMultispan.swift in Sources */,
 				7DE9214829CA70F4004483EB /* _HashNode+Primitive Removals.swift in Sources */,
 				7DE9216029CA70F4004483EB /* _HashNode+Structural isDisjoint.swift in Sources */,
 				7D479CF32F47FB4100A8CB59 /* _HTable+Removal.swift in Sources */,
@@ -2711,7 +2724,6 @@
 				7DE9207529CA70F4004483EB /* BigString+Insert.swift in Sources */,
 				7D479CC72F46D21300A8CB59 /* UniqueSet+Resizing.swift in Sources */,
 				7DE9216129CA70F4004483EB /* _HashNode+Structural merge.swift in Sources */,
-				63E46A172F4FCAE80008051A /* InputMultispan.swift in Sources */,
 				7DE9202F29CA70F3004483EB /* OrderedSet+ExpressibleByArrayLiteral.swift in Sources */,
 				7D479CE72F47D88600A8CB59 /* _HTable+Consumption.swift in Sources */,
 				7DE9202B29CA70F3004483EB /* OrderedSet+Equatable.swift in Sources */,
@@ -2763,6 +2775,7 @@
 				7DE9201729CA70F3004483EB /* OrderedDictionary+Codable.swift in Sources */,
 				7DE9208329CA70F4004483EB /* BigString+CustomDebugStringConvertible.swift in Sources */,
 				7DE9215D29CA70F4004483EB /* _HashNodeHeader.swift in Sources */,
+				7DD864472F77630700E42CC8 /* RigidArray+OutputMultispan.swift in Sources */,
 				7DE9213329CA70F4004483EB /* TreeSet+Collection.swift in Sources */,
 				7D479CE12F47D62D00A8CB59 /* UniqueDictionary+Lookup.swift in Sources */,
 				7DE9217929CA70F4004483EB /* Heap+UnsafeHandle.swift in Sources */,
@@ -2845,6 +2858,7 @@
 				7DA23F482F329A2300E4C03A /* RigidArray+Replacements.swift in Sources */,
 				7DA23F492F329A2300E4C03A /* RigidArray+Container.swift in Sources */,
 				7DA23F4A2F329A2300E4C03A /* UniqueArray+Replacements.swift in Sources */,
+				7DD864492F77631300E42CC8 /* UniqueArray+OutputMultispan.swift in Sources */,
 				7DA23F4B2F329A2300E4C03A /* UniqueArray+Removals.swift in Sources */,
 				7DA23F4C2F329A2300E4C03A /* RigidArray+Append.swift in Sources */,
 				7DA23F4D2F329A2300E4C03A /* RigidArray+Removals.swift in Sources */,
@@ -2930,7 +2944,6 @@
 				7DEB31622F4F98D700F9AF28 /* RigidDictionary+Indices.swift in Sources */,
 				7DEB316C2F522EAB00F9AF28 /* UniqueDictionary+Indices.swift in Sources */,
 				7DE9212E29CA70F4004483EB /* TreeSet+SetAlgebra isStrictSuperset.swift in Sources */,
-				63E46A102F4D2F850008051A /* OutputMultispan.swift in Sources */,
 				7DE920A829CA70F4004483EB /* String.Index+ABI.swift in Sources */,
 				7DE9214129CA70F4004483EB /* _HashNode+Initializers.swift in Sources */,
 				7D9B859929E4F74400B291CD /* BitArray+LosslessStringConvertible.swift in Sources */,
@@ -3078,7 +3091,6 @@
 				7DE9221A29CA8576004483EB /* HeapNodeTests.swift in Sources */,
 				7DEBDB7029CCE44A00ADC226 /* ResettableValue.swift in Sources */,
 				7DE9221129CA8576004483EB /* OrderedDictionary+Values Tests.swift in Sources */,
-				6330DDA72F5F8F9C00FFB5C1 /* InputMultispanTests.swift in Sources */,
 				A93AC21E2E7C845300A824DF /* UniqueArrayTests.swift in Sources */,
 				A93AC21F2E7C845300A824DF /* ArrayLayout.swift in Sources */,
 				A93AC2202E7C845300A824DF /* RigidArrayTests.swift in Sources */,
@@ -3100,6 +3112,9 @@
 				7DEBDB8D29CCE44A00ADC226 /* RandomStableSample.swift in Sources */,
 				7DEBDB7429CCE44A00ADC226 /* DictionaryAPIChecker.swift in Sources */,
 				C13E81122E78F3D0008DFC5C /* TrailingElementsTests.swift in Sources */,
+				7DD864432F77626C00E42CC8 /* InputMultispanTests.swift in Sources */,
+				7DD864442F77626C00E42CC8 /* OutputMultispanTests.swift in Sources */,
+				7DD864452F77626C00E42CC8 /* RawCollider.swift in Sources */,
 				7D48BCDC2E51554900D7F6F7 /* ClassBox.swift in Sources */,
 				7DEBDB8629CCE44A00ADC226 /* LifetimeTracker.swift in Sources */,
 				7DEBDB8229CCE44A00ADC226 /* RepeatableRandomNumberGenerator.swift in Sources */,
@@ -3128,7 +3143,6 @@
 				7DE9220829CA8576004483EB /* BitSetTests.swift in Sources */,
 				7DEBDB7329CCE44A00ADC226 /* _MinimalCollectionCore.swift in Sources */,
 				7DE921C829CA81DC004483EB /* _UniqueCollection.swift in Sources */,
-				63047EA22F566B8900C72A3F /* OutputMultispanTests.swift in Sources */,
 				7D48BCF42E5159A300D7F6F7 /* StaccatoContainer.swift in Sources */,
 				7DE9220629CA8576004483EB /* TreeSet Tests.swift in Sources */,
 				7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */,

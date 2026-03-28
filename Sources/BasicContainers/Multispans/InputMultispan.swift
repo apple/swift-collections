@@ -19,7 +19,7 @@ import ContainersPreview
 #endif
 
 @frozen @usableFromInline
-internal struct MultispanBuffer<Element: ~Copyable> {
+internal struct _MultispanBuffer<Element: ~Copyable> {
   @usableFromInline var ptr: UnsafeMutableRawBufferPointer
   @usableFromInline var count: Int
   
@@ -76,9 +76,9 @@ internal struct MultispanBuffer<Element: ~Copyable> {
 }
 
 @frozen @usableFromInline
-internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollection, RangeReplaceableCollection {
+internal struct _SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollection, RangeReplaceableCollection {
   @usableFromInline typealias Index = Int
-  @usableFromInline typealias Element = MultispanBuffer<Element>
+  @usableFromInline typealias Element = _MultispanBuffer<Element>
   @usableFromInline typealias StorageType = (UInt64, UInt64, UInt64)
   @usableFromInline var storage: StorageType = (0, 0, 0)
   @usableFromInline var count = 0
@@ -89,7 +89,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
   @inlinable @inline(__always)
   init() {
     precondition(
-      Self.inlineThreshold &* MemoryLayout<MultispanBuffer<Element>>.stride <= MemoryLayout<StorageType>.size
+      Self.inlineThreshold &* MemoryLayout<_MultispanBuffer<Element>>.stride <= MemoryLayout<StorageType>.size
     )
   }
   
@@ -99,17 +99,17 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
   }
   
   @inlinable
-  subscript(position: Int) -> MultispanBuffer<Element> {
+  subscript(position: Int) -> _MultispanBuffer<Element> {
     _read {
       precondition(position < count)
       if inline {
         yield withUnsafeBytes(of: storage) {
-          $0.assumingMemoryBound(to: MultispanBuffer<Element>.self)[position]
+          $0.assumingMemoryBound(to: _MultispanBuffer<Element>.self)[position]
         }
       } else {
         yield withUnsafeBytes(of: storage) {
           return $0.assumingMemoryBound(
-            to: UniqueArray<MultispanBuffer<Element>>.self
+            to: UniqueArray<_MultispanBuffer<Element>>.self
           )[0][position]
         }
       }
@@ -118,11 +118,11 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       precondition(position < count)
       if inline {
         var result = withUnsafeBytes(of: &storage) {
-          $0.assumingMemoryBound(to: MultispanBuffer<Element>.self)[position]
+          $0.assumingMemoryBound(to: _MultispanBuffer<Element>.self)[position]
         }
         defer {
           withUnsafeMutableBytes(of: &storage) {
-            $0.assumingMemoryBound(to: MultispanBuffer<Element>.self)[position] = result
+            $0.assumingMemoryBound(to: _MultispanBuffer<Element>.self)[position] = result
           }
         }
         yield &result
@@ -130,13 +130,13 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       } else {
         var result = withUnsafeBytes(of: storage) {
           $0.assumingMemoryBound(
-            to: UniqueArray<MultispanBuffer<Element>>.self
+            to: UniqueArray<_MultispanBuffer<Element>>.self
           )[0][position]
         }
         defer {
           withUnsafeMutableBytes(of: &storage) {
             $0.assumingMemoryBound(
-              to: UniqueArray<MultispanBuffer<Element>>.self
+              to: UniqueArray<_MultispanBuffer<Element>>.self
             )[0][position] = result
           }
         }
@@ -148,7 +148,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
   @inlinable
   mutating func replaceSubrange(
     _ subrange: Range<Int>,
-    with newElements: some Collection<MultispanBuffer<Element>>
+    with newElements: some Collection<_MultispanBuffer<Element>>
   ) {
     precondition(subrange.lowerBound >= 0 && subrange.upperBound <= count, "Subrange out of bounds")
     
@@ -162,7 +162,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       storage = (0, 0, 0)
       withUnsafeMutableBytes(of: &storage) {
         $0.withMemoryRebound(
-          to: UniqueArray<MultispanBuffer<Element>>.self
+          to: UniqueArray<_MultispanBuffer<Element>>.self
         ) { buffer in
           buffer.initializeElement(
             at: 0,
@@ -176,7 +176,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       // Now handle the replacement in heap storage
       withUnsafeMutableBytes(of: &storage) {
         $0.withMemoryRebound(
-          to: UniqueArray<MultispanBuffer<Element>>.self
+          to: UniqueArray<_MultispanBuffer<Element>>.self
         ) { buffer in
           buffer[0].replace(removing: subrange, copying: newElements)
         }
@@ -185,7 +185,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       // Replace in inline storage
       precondition(newCount <= Self.inlineThreshold, "Inline storage overflow")
       withUnsafeMutableBytes(of: &storage) { bytes in
-        let buffers = bytes.assumingMemoryBound(to: MultispanBuffer<Element>.self)
+        let buffers = bytes.assumingMemoryBound(to: _MultispanBuffer<Element>.self)
         
         // Shift elements after the subrange if necessary
         let shiftDistance = addedCount
@@ -218,7 +218,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       // Replace in heap storage
       withUnsafeMutableBytes(of: &storage) {
         $0.withMemoryRebound(
-          to: UniqueArray<MultispanBuffer<Element>>.self
+          to: UniqueArray<_MultispanBuffer<Element>>.self
         ) { buffer in
           buffer[0].replace(removing: subrange, copying: newElements)
         }
@@ -251,7 +251,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
       var storageCopy = storage
       _ = withUnsafeMutableBytes(of: &storageCopy) {
         $0.withMemoryRebound(
-          to: UniqueArray<MultispanBuffer<Element>>.self
+          to: UniqueArray<_MultispanBuffer<Element>>.self
         ) { buffer in
           unsafe buffer.baseAddress.unsafelyUnwrapped.deinitialize(count: 1)
         }
@@ -266,7 +266,7 @@ internal struct SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollect
 public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
   
   @usableFromInline
-  internal var _pointers = SmallBufferPointerArray<Element>()
+  internal var _pointers = _SmallBufferPointerArray<Element>()
 
   @inlinable
   deinit {
@@ -275,7 +275,7 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   /// Create an OutputSpan with zero capacity
   @inlinable @inline(always)
-  @lifetime(immortal)
+  @_lifetime(immortal)
   public init() {}
 }
 
@@ -414,7 +414,7 @@ extension InputMultispan where Element: ~Copyable {
     // underlying pointer out
     span.withUnsafeMutableBufferPointer { buffer, count in
       _pointers.append(
-        MultispanBuffer(
+        _MultispanBuffer(
           ptr: UnsafeMutableRawBufferPointer(buffer),
           byteCount: count * MemoryLayout<Element>.stride
         )
@@ -441,7 +441,7 @@ extension InputMultispan where Element: ~Copyable {
     initializedCount: Int = 0
   ) {
     _pointers.append(
-      MultispanBuffer(
+      _MultispanBuffer(
         ptr: UnsafeMutableRawBufferPointer(buffer),
         byteCount: initializedCount * MemoryLayout<Element>.stride
       )
@@ -561,7 +561,7 @@ extension InputMultispan where Element: ~Copyable {
       _checkIndex(index)
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @lifetime(self: copy self)
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       _checkIndex(index)
       return unsafe _unsafeAddressOfElement(unchecked: index)
@@ -581,7 +581,7 @@ extension InputMultispan where Element: ~Copyable {
     unsafeAddress {
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @lifetime(self: copy self)
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       return unsafe _unsafeAddressOfElement(unchecked: index)
     }

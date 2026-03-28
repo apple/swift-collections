@@ -26,7 +26,6 @@ endif()
 
 target_sources(${module_name} PRIVATE
   "Extensions/OutputSpan+Extras.swift"
-  "Extensions/OutputMultispan+Extras.swift"
   "Extensions/TemporaryAllocation.swift"
   "Protocols/Container/BidirectionalContainer.swift"
   "Protocols/Container/Container.swift"
@@ -62,7 +61,5 @@ target_sources(${module_name} PRIVATE
   "Types/Box.swift"
   "Types/Inout.swift"
   "Types/InputSpan.swift"
-  "Types/InputMultispan.swift"
   "Types/Shared.swift"
-  "Types/OutputMultispan.swift"
 )
