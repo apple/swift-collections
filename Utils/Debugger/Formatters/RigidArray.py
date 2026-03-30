@@ -15,7 +15,7 @@ class RigidArraySynthetic:
     def get_child_at_index(self, idx: int) -> lldb.SBValue:
         return self.storage.GetChildAtIndex(idx)
 
-    def update(self) -> None:
+    def update(self) -> bool:
         self.storage = self.valobj.GetChildMemberWithName(
             "_storage"
         ).GetSyntheticValue()
@@ -24,3 +24,4 @@ class RigidArraySynthetic:
             .GetSyntheticValue()
             .GetValueAsUnsigned()
         )
+        return True
