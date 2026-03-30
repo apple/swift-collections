@@ -38,7 +38,7 @@ public struct OutputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   /// Create an OutputSpan with zero capacity
   @inlinable @inline(always)
-  @lifetime(immortal)
+  @_lifetime(immortal)
   public init() {}
 }
 
@@ -248,7 +248,7 @@ extension OutputMultispan where Element: ~Copyable {
       _checkIndex(index)
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @lifetime(self: copy self)
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       _checkIndex(index)
       return unsafe _unsafeAddressOfElement(unchecked: index)
@@ -268,7 +268,7 @@ extension OutputMultispan where Element: ~Copyable {
     unsafeAddress {
       unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @lifetime(self: copy self)
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       unsafe _unsafeAddressOfElement(unchecked: index)
     }
@@ -290,7 +290,7 @@ extension OutputMultispan where Element: ~Copyable {
   /// - Parameter i: A valid index into this span.
   /// - Parameter j: A valid index into this span.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func swapAt(_ i: Index, _ j: Index) {
     precondition(indices.contains(i))
     precondition(indices.contains(j))
@@ -305,7 +305,7 @@ extension OutputMultispan where Element: ~Copyable {
   /// - Parameter j: A valid index into this span.
   @unsafe
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func swapAt(unchecked i: Index, unchecked j: Index) {
     let pi = unsafe _unsafeAddressOfElement(unchecked: i)
     let pj = unsafe _unsafeAddressOfElement(unchecked: j)
@@ -334,7 +334,7 @@ extension OutputMultispan where Element: ~Copyable {
   ///
   ///
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func append(_ value: consuming Element) {
     precondition(totalFreeCapacity > 0, "OutputMultispan has no capacity")
     var v:Element? = consume value
@@ -350,7 +350,7 @@ extension OutputMultispan where Element: ~Copyable {
   ///
   /// Returns the last element. The `OutputSpan` must not be empty.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func removeLast() -> Element {
     precondition(spanCount > 0, "OutputMultispan has no capacity")
     if let idx = _lastNonEmptySpanIndex() {
@@ -368,7 +368,7 @@ extension OutputMultispan where Element: ~Copyable {
   ///
   /// `n` must not be greater than `count`
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func removeLast(_ k: Int) {
     precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= totalCount, "OutputMultispan underflow")
@@ -390,7 +390,7 @@ extension OutputMultispan where Element: ~Copyable {
   /// Remove all this span's elements and return its memory
   /// to the uninitialized state.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func removeAll() {
     for spanIdx in 0 ..< spanCount {
       defer {
@@ -409,7 +409,7 @@ extension OutputMultispan {
 
   /// Repeatedly append an element to this span.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func append(repeating repeatedValue: Element, count: Int) {
     precondition(count <= totalFreeCapacity, "OutputMultispan capacity overflow")
     var remaining = count

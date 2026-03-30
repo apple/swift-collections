@@ -185,7 +185,7 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   /// Create an OutputSpan with zero capacity
   @inlinable @inline(always)
-  @lifetime(immortal)
+  @_lifetime(immortal)
   public init() {}
 }
 
@@ -428,7 +428,7 @@ extension InputMultispan where Element: ~Copyable {
   
   @unsafe
   @inlinable @inline(__always)
-  @lifetime(borrow buffer)
+  @_lifetime(borrow buffer)
   public init(
     _uncheckedBuffer buffer: UnsafeMutableBufferPointer<Element>,
     initializedCount: Int
@@ -439,7 +439,7 @@ extension InputMultispan where Element: ~Copyable {
   
   @unsafe
   @inlinable @inline(__always)
-  @lifetime(borrow buffer)
+  @_lifetime(borrow buffer)
   public init(
     buffer: UnsafeMutableBufferPointer<Element>, initializedCount: Int
   ) {
@@ -471,7 +471,7 @@ extension InputMultispan where Element: ~Copyable {
       _checkIndex(index)
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @lifetime(self: copy self)
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       _checkIndex(index)
       return unsafe _unsafeAddressOfElement(unchecked: index)
@@ -491,7 +491,7 @@ extension InputMultispan where Element: ~Copyable {
     unsafeAddress {
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @lifetime(self: copy self)
+    @_lifetime(self: copy self)
     unsafeMutableAddress {
       return unsafe _unsafeAddressOfElement(unchecked: index)
     }
@@ -502,7 +502,7 @@ extension InputMultispan where Element: ~Copyable {
   /// - Parameter i: A valid index into this span.
   /// - Parameter j: A valid index into this span.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func swapAt(_ i: Index, _ j: Index) {
     precondition(indices.contains(i))
     precondition(indices.contains(j))
@@ -517,7 +517,7 @@ extension InputMultispan where Element: ~Copyable {
   /// - Parameter j: A valid index into this span.
   @unsafe
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func swapAt(unchecked i: Index, unchecked j: Index) {
     guard i != j else { return }
     let pi = unsafe _unsafeAddressOfElement(unchecked: i)
@@ -549,7 +549,7 @@ extension InputMultispan where Element: ~Copyable {
     
   /// Prepend a single element to this span.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func prepend(_ value: consuming Element) {
     precondition(spanCount > 0, "InputMultispan has no capacity")
     var v:Element? = consume value
@@ -571,7 +571,7 @@ extension InputMultispan where Element: ~Copyable {
   ///
   /// Returns the first element. The `InputSpan` must not be empty.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func removeFirst() -> Element {
     precondition(!isEmpty, "InputMultispan underflow")
     let idx = _firstNonEmptySpanIndex().unsafelyUnwrapped
@@ -586,7 +586,7 @@ extension InputMultispan where Element: ~Copyable {
   ///
   /// `n` must not be greater than `count`
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func removeFirst(_ k: Int) {
     precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= totalCount, "InputSpan underflow")
@@ -620,7 +620,7 @@ extension InputMultispan where Element: ~Copyable {
   /// Remove all this span's elements and return its memory
   /// to the uninitialized state.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func removeAll() {
     for spanIdx in 0 ..< spanCount {
       defer {
@@ -638,7 +638,7 @@ extension InputMultispan where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension InputMultispan where Element: ~Copyable {
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func prepend(moving source: UnsafeMutableBufferPointer<Element>) {
     precondition(source.count <= totalFreeCapacity, "InputSpan capacity overflow")
     var sourceOffset = source.count
@@ -665,7 +665,7 @@ extension InputMultispan where Element: ~Copyable {
 extension InputMultispan /* where Element: Copyable */ {
   /// Repeatedly prepend an element to this multispan.
   @inlinable
-  @lifetime(self: copy self)
+  @_lifetime(self: copy self)
   public mutating func prepend(repeating repeatedValue: Element, count: Int) {
     precondition(count <= totalFreeCapacity, "InputSpan capacity overflow")
     var remaining = count
