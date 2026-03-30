@@ -76,12 +76,12 @@ internal struct _MultispanBuffer<Element: ~Copyable> {
 }
 
 @frozen @usableFromInline
-internal struct _SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollection, RangeReplaceableCollection {
+internal struct _SmallBufferPointerArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline typealias Index = Int
   @usableFromInline typealias Element = _MultispanBuffer<Element>
 
   @usableFromInline
-  enum _Storage {
+  enum _Storage: ~Copyable {
     case empty
     case single(_MultispanBuffer<Element>)
     case array(UniqueArray<_MultispanBuffer<Element>>)
@@ -133,93 +133,26 @@ internal struct _SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollec
     }
   }
 
+  @inlinable @inline(always)
+  var indices: Range<Int> {
+    0 ..< count
+  }
+
   @inlinable
-  mutating func replaceSubrange(
-    _ subrange: Range<Int>,
-    with newElements: some Collection<_MultispanBuffer<Element>>
-  ) {
-    precondition(subrange.lowerBound >= 0 && subrange.upperBound <= count, "Subrange out of bounds")
-
-    let newCount = count + newElements.count &- subrange.count
-
+  mutating func append(_ element: _MultispanBuffer<Element>) {
     switch _storage {
     case .empty:
-      precondition(subrange == 0..<0)
-      if newElements.count == 0 {
-        return
-      } else if newElements.count == 1 {
-        _storage = .single(newElements.first.unsafelyUnwrapped)
-      } else {
-        var array = UniqueArray<_MultispanBuffer<Element>>(capacity: Swift.max(4, newCount))
-        for element in newElements {
-          array.append(element)
-        }
-        _storage = .array(array)
-      }
-
+      _storage = .single(element)
     case .single(let existing):
-      if newCount == 0 {
-        _storage = .empty
-      } else if newCount == 1 {
-        if subrange.count == 1 {
-          // Replacing the existing element
-          _storage = .single(newElements.first!)
-        } else {
-          // since we know the subrange is in-bounds, this has to be subrange.count == 0
-          // we also know that the old and new count are the same (.single && newCount == 1)
-          // so just put the original element back where it came from
-          _storage = .single(existing)
-        }
-      } else {
-        // The new count is >1, so we need to allocate storage.
-        // We have a single existing element at index 0; the subrange
-        // either includes it (replacing it) or falls before/after it
-        // (inserting around it). These two cases are mutually exclusive.
-        var array = UniqueArray<_MultispanBuffer<Element>>(capacity: newCount)
-        if subrange.contains(0) {
-          // existing element is being replaced; just insert newElements
-          for element in newElements {
-            array.append(element)
-          }
-        } else {
-          // existing element is kept; insert newElements at the subrange position
-          if subrange.lowerBound == 0 {
-            for element in newElements {
-              array.append(element)
-            }
-            array.append(existing)
-          } else {
-            array.append(existing)
-            for element in newElements {
-              array.append(element)
-            }
-          }
-        }
-        _storage = .array(array)
-      }
-
+      var array = UniqueArray<_MultispanBuffer<Element>>(capacity: 4)
+      array.append(existing)
+      array.append(element)
+      _storage = .array(array)
     case .array(var array):
-      _storage = .empty
-      array.replace(removing: subrange, copying: newElements)
-      if array.count == 0 {
-        _storage = .empty
-      } else if array.count == 1 {
-        let single = array[0]
-        _storage = .single(single)
-      } else {
-        _storage = .array(array)
-      }
+      _storage = .empty // avoid CoW
+      array.append(element)
+      _storage = .array(array)
     }
-  }
-
-  @inlinable @inline(always)
-  var startIndex: Int {
-    0
-  }
-
-  @inlinable @inline(always)
-  var endIndex: Int {
-    count
   }
 
   @inlinable
@@ -233,7 +166,6 @@ internal struct _SmallBufferPointerArray<Element: ~Copyable>: RandomAccessCollec
       for idx in 0 ..< array.count {
         array[idx].deinitializeElements()
       }
-      // UniqueArray will be freed when it goes out of scope
     }
   }
 }
@@ -253,7 +185,7 @@ public struct InputMultispan<Element: ~Copyable>: ~Copyable, ~Escapable {
 
   /// Create an OutputSpan with zero capacity
   @inlinable @inline(always)
-  @_lifetime(immortal)
+  @lifetime(immortal)
   public init() {}
 }
 
@@ -496,7 +428,7 @@ extension InputMultispan where Element: ~Copyable {
   
   @unsafe
   @inlinable @inline(__always)
-  @_lifetime(borrow buffer)
+  @lifetime(borrow buffer)
   public init(
     _uncheckedBuffer buffer: UnsafeMutableBufferPointer<Element>,
     initializedCount: Int
@@ -507,7 +439,7 @@ extension InputMultispan where Element: ~Copyable {
   
   @unsafe
   @inlinable @inline(__always)
-  @_lifetime(borrow buffer)
+  @lifetime(borrow buffer)
   public init(
     buffer: UnsafeMutableBufferPointer<Element>, initializedCount: Int
   ) {
@@ -539,7 +471,7 @@ extension InputMultispan where Element: ~Copyable {
       _checkIndex(index)
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @_lifetime(self: copy self)
+    @lifetime(self: copy self)
     unsafeMutableAddress {
       _checkIndex(index)
       return unsafe _unsafeAddressOfElement(unchecked: index)
@@ -559,7 +491,7 @@ extension InputMultispan where Element: ~Copyable {
     unsafeAddress {
       return unsafe UnsafePointer(_unsafeAddressOfElement(unchecked: index))
     }
-    @_lifetime(self: copy self)
+    @lifetime(self: copy self)
     unsafeMutableAddress {
       return unsafe _unsafeAddressOfElement(unchecked: index)
     }
@@ -570,7 +502,7 @@ extension InputMultispan where Element: ~Copyable {
   /// - Parameter i: A valid index into this span.
   /// - Parameter j: A valid index into this span.
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func swapAt(_ i: Index, _ j: Index) {
     precondition(indices.contains(i))
     precondition(indices.contains(j))
@@ -585,7 +517,7 @@ extension InputMultispan where Element: ~Copyable {
   /// - Parameter j: A valid index into this span.
   @unsafe
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func swapAt(unchecked i: Index, unchecked j: Index) {
     guard i != j else { return }
     let pi = unsafe _unsafeAddressOfElement(unchecked: i)
@@ -617,7 +549,7 @@ extension InputMultispan where Element: ~Copyable {
     
   /// Prepend a single element to this span.
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func prepend(_ value: consuming Element) {
     precondition(spanCount > 0, "InputMultispan has no capacity")
     var v:Element? = consume value
@@ -639,7 +571,7 @@ extension InputMultispan where Element: ~Copyable {
   ///
   /// Returns the first element. The `InputSpan` must not be empty.
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func removeFirst() -> Element {
     precondition(!isEmpty, "InputMultispan underflow")
     let idx = _firstNonEmptySpanIndex().unsafelyUnwrapped
@@ -654,7 +586,7 @@ extension InputMultispan where Element: ~Copyable {
   ///
   /// `n` must not be greater than `count`
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func removeFirst(_ k: Int) {
     precondition(k >= 0, "Cannot remove a negative number of elements")
     precondition(k <= totalCount, "InputSpan underflow")
@@ -688,7 +620,7 @@ extension InputMultispan where Element: ~Copyable {
   /// Remove all this span's elements and return its memory
   /// to the uninitialized state.
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func removeAll() {
     for spanIdx in 0 ..< spanCount {
       defer {
@@ -706,7 +638,7 @@ extension InputMultispan where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension InputMultispan where Element: ~Copyable {
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func prepend(moving source: UnsafeMutableBufferPointer<Element>) {
     precondition(source.count <= totalFreeCapacity, "InputSpan capacity overflow")
     var sourceOffset = source.count
@@ -733,7 +665,7 @@ extension InputMultispan where Element: ~Copyable {
 extension InputMultispan /* where Element: Copyable */ {
   /// Repeatedly prepend an element to this multispan.
   @inlinable
-  @_lifetime(self: copy self)
+  @lifetime(self: copy self)
   public mutating func prepend(repeating repeatedValue: Element, count: Int) {
     precondition(count <= totalFreeCapacity, "InputSpan capacity overflow")
     var remaining = count
