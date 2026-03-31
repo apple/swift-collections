@@ -49,7 +49,7 @@ for formatter in "$base/Utils/Debugger/Formatters"/*.py; do
 
   python3 "$compiler" --compile \
     --format swift \
-    --type-name "^${module}[.]${type_name}<.+>$" \
+    --type-name "^(${module}|Collections(Internal)?)[.]${type_name}<.+>$" \
     --append --output "$target" \
     "$formatter"
 done
