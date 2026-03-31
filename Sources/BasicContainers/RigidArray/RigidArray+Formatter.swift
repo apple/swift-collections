@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+// Generated with: ./Utils/Debugger/generate_formatters.sh
+
 #if swift(>=6.3)
 #if objectFormat(MachO)
 @section("__DATA_CONST,__lldbformatters")
