@@ -21,10 +21,9 @@ import BasicContainers
 
 #if compiler(>=6.2)
 
-#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIterableContents<
+public func expectUniqueArrayContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -43,7 +42,7 @@ public func expectIterableContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-public func expectIterableContents<
+public func expectUniqueArrayContents<
   E1: ~Copyable,
   C2: Collection,
 >(
@@ -66,8 +65,6 @@ public func expectIterableContents<
     file: file,
     line: line)
 }
-#endif
-
 
 @available(SwiftStdlib 6.2, *)
 class UniqueArrayTests: CollectionTestCase {
@@ -77,8 +74,8 @@ class UniqueArrayTests: CollectionTestCase {
         let items = UniqueArray(consuming: tracker.rigidArray(layout: layout))
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
-        expectIterableContents(items, equalTo: expected)
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+        expectUniqueArrayContents(items, equalTo: expected)
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
         checkIterable(items, expectedContents: expected)
 #endif
       }
@@ -157,7 +154,7 @@ class UniqueArrayTests: CollectionTestCase {
         expectEqual(a.count, layout.count)
         expectEqual(a.freeCapacity, layout.capacity - layout.count)
         expectEqual(a.isEmpty, layout.count == 0)
-        expectIterableContents(
+        expectUniqueArrayContents(
           a,
           equivalentTo: 0 ..< layout.count,
           by: { $0.payload == $1 },
@@ -242,7 +239,7 @@ class UniqueArrayTests: CollectionTestCase {
         for i in 0 ..< layout.count {
           expectEqual(b[i].payload, i)
         }
-        expectIterableContents(
+        expectUniqueArrayContents(
           b,
           equivalentTo: 0 ..< layout.count,
           by: { $0.payload == $1 },
@@ -351,7 +348,7 @@ class UniqueArrayTests: CollectionTestCase {
           a.swapAt(i, layout.count - 1 - i)
         }
         let expected = (0 ..< layout.count).reversed()
-        expectIterableContents(
+        expectUniqueArrayContents(
           a,
           equivalentTo: expected,
           by: { $0.payload == $1 },
@@ -432,7 +429,7 @@ class UniqueArrayTests: CollectionTestCase {
         errorHandler: { error in
           expectTrue(error is TestError)
         }
-        expectIterableContents(
+        expectUniqueArrayContents(
           a,
           equivalentTo: (0 ..< layout.count).map { -$0 },
           by: { $0.payload == $1 },
@@ -458,7 +455,7 @@ class UniqueArrayTests: CollectionTestCase {
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, newCapacity)
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
@@ -485,7 +482,7 @@ class UniqueArrayTests: CollectionTestCase {
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, Swift.max(layout.capacity, newCapacity))
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
@@ -545,7 +542,7 @@ class UniqueArrayTests: CollectionTestCase {
           expectEqual(tracker.instances, layout.count)
           a.removeLast(k)
           expectEqual(tracker.instances, layout.count - k)
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -565,7 +562,7 @@ class UniqueArrayTests: CollectionTestCase {
           var a = tracker.uniqueArray(layout: layout)
           let old = a.remove(at: i)
           expectEqual(old.payload, i)
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -584,7 +581,7 @@ class UniqueArrayTests: CollectionTestCase {
 
           var a = tracker.uniqueArray(layout: layout)
           a.removeSubrange(range)
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -603,7 +600,7 @@ class UniqueArrayTests: CollectionTestCase {
 
         var a = tracker.uniqueArray(layout: layout)
         a.removeAll(where: { $0.payload.isMultiple(of: 2) })
-        expectIterableContents(
+        expectUniqueArrayContents(
           a, equivalentTo: expected, by: { $0.payload == $1 })
       }
     }
@@ -620,7 +617,7 @@ class UniqueArrayTests: CollectionTestCase {
         let item = a.popLast()
 
         expectEquivalent(item, expectedItem, by: { $0?.payload == $1 })
-        expectIterableContents(
+        expectUniqueArrayContents(
           a,
           equivalentTo: expected,
           by: { $0.payload == $1 },
@@ -693,7 +690,7 @@ class UniqueArrayTests: CollectionTestCase {
         for i in layout.count ..< c {
           a.append(tracker.instance(for: i))
           expectEqual(a.count, i + 1)
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: 0 ..< i + 1,
             by: { $0.payload == $1 },
@@ -714,7 +711,7 @@ class UniqueArrayTests: CollectionTestCase {
             elements: (layout.count ..< c).map { tracker.instance(for: $0) },
             underestimatedCount: .half,
             isContiguous: isContiguous))
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: 0 ..< c,
             by: { $0.payload == $1},
@@ -737,7 +734,7 @@ class UniqueArrayTests: CollectionTestCase {
           }
           a.append(copying: b.span)
           let c = layout.count + additions
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: 0 ..< c,
             by: { $0.payload == $1 },
@@ -765,7 +762,7 @@ class UniqueArrayTests: CollectionTestCase {
               contents: RigidArray(copying: addition),
               spanCounts: [spanCount])
             a.append(copying: b)
-            expectIterableContents(
+            expectUniqueArrayContents(
               a,
               equivalentTo: 0 ..< c,
               by: { $0.payload == $1 },
@@ -789,7 +786,7 @@ class UniqueArrayTests: CollectionTestCase {
           var a = tracker.uniqueArray(layout: layout)
           a.insert(tracker.instance(for: -1), at: i)
 
-          expectIterableContents(
+          expectUniqueArrayContents(
             a,
             equivalentTo: expected,
             by: { $0.payload == $1 },
@@ -814,7 +811,7 @@ class UniqueArrayTests: CollectionTestCase {
             var a = tracker.uniqueArray(layout: layout)
             a.insert(copying: trackedAddition, at: i)
 
-            expectIterableContents(
+            expectUniqueArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -842,7 +839,7 @@ class UniqueArrayTests: CollectionTestCase {
             var a = tracker.uniqueArray(layout: layout)
             a.insert(copying: rigidAddition.span, at: i)
 
-            expectIterableContents(
+            expectUniqueArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -877,7 +874,7 @@ class UniqueArrayTests: CollectionTestCase {
                 spanCounts: [spanCount])
               a.insert(copying: rigidAddition, at: i)
 
-              expectIterableContents(
+              expectUniqueArrayContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -905,7 +902,7 @@ class UniqueArrayTests: CollectionTestCase {
             let trackedAddition = addition.map { tracker.instance(for: $0) }
             a.replace(removing: range, copying: trackedAddition)
 
-            expectIterableContents(
+            expectUniqueArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -931,7 +928,7 @@ class UniqueArrayTests: CollectionTestCase {
               copying: addition.map { tracker.instance(for: $0) })
             a.replace(removing: range, copying: trackedAddition.span)
 
-            expectIterableContents(
+            expectUniqueArrayContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -962,7 +959,7 @@ class UniqueArrayTests: CollectionTestCase {
                 spanCounts: [spanCount])
               a.replaceSubrange(range, copying: trackedAddition)
 
-              expectIterableContents(
+              expectUniqueArrayContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },

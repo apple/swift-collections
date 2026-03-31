@@ -20,6 +20,30 @@ jobs:
       enable_android_sdk_build: true
       enable_android_sdk_checks: true
 
+  containers-tests:
+    name: Containers Test
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.8
+    with:
+      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "nightly-6.3"}]'
+      windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}, {"xcode_version": "16.3"}, {"xcode_version": "16.4"}]'
+      enable_macos_checks: false
+      enable_linux_checks: true
+      enable_windows_checks: false
+      swift_flags: --traits UnstableContainersPreview
+
+  hashed-containers-tests:
+    name: Hashed Containers Test
+    uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.8
+    with:
+      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "nightly-6.3"}]'
+      windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
+      macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}, {"xcode_version": "16.3"}, {"xcode_version": "16.4"}]'
+      enable_macos_checks: false
+      enable_linux_checks: true
+      enable_windows_checks: false
+      swift_flags: --traits UnstableContainersPreview,UnstableHashedContainers
+
   embedded-swift:
     name: Build with Embedded Swift
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.8
@@ -46,3 +70,26 @@ jobs:
       format_check_enabled: false
       # https://github.com/apple/swift-collections/issues/435
       api_breakage_check_enabled: false
+
+  cmake-build:
+    name: CMake Build
+    runs-on: ubuntu-latest
+    container:
+      image: swiftlang/swift:nightly-main-jammy
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+      - name: Install apt dependencies
+        run: apt-get -qq update && apt-get -qq -y install curl ninja-build
+      - name: Install CMake 3.30.2
+        run: |
+          ARCH=`uname -m`
+          curl -sL https://github.com/Kitware/CMake/releases/download/v3.30.2/cmake-3.30.2-linux-$ARCH.tar.gz -O
+          tar xzf cmake-3.30.2-linux-$ARCH.tar.gz
+          export PATH="`pwd`/cmake-3.30.2-linux-$ARCH/bin:$PATH"
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          cmake --version
+      - name: Configure CMake
+        run: cmake -G Ninja -S . -B .cmake-build
+      - name: Build
+        run: cmake --build .cmake-build

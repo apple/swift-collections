@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 /// A type that supplies the values of an in-place consumable sequence through
 /// a series of `InputSpan` instances. This iterator-like construct allows
@@ -23,7 +23,7 @@
 /// output spans.
 @available(SwiftStdlib 5.0, *)
 public protocol Drain<Element>: Producer, ~Copyable, ~Escapable
-where ProducerError == Never
+where Element: ~Copyable, ProducerError == Never
 {
   /// Returns the next span of consumable items in the sequence underlying this
   /// drain, of at most the specified maximum count. A `maximumCount` of nil
@@ -83,7 +83,7 @@ where ProducerError == Never
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Drain where Self: ~Copyable & ~Escapable {
+extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   /// Returns the next span of consumable items in the sequence underlying this
   /// drain, of an arbitrarily large count.
   ///
@@ -204,7 +204,7 @@ extension Drain where Self: ~Copyable & ~Escapable {
   @_lifetime(self: copy self)
   public mutating func skip(
     upTo n: inout Int
-  ) throws(ProducerError) -> Bool {
+  ) -> Bool { // FIXME: Compiler crash when this declares throws(ProducerError)
     precondition(n >= 0, "Cannot skip a negative number of elements")
     guard n > 0 else { return true }
     let span = drainNext(maximumCount: n)

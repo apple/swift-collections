@@ -11,14 +11,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
+extension BorrowingIteratorProtocol_
+where
+  Self: ~Copyable & ~Escapable,
+  Element_: ~Copyable
+{
   @inlinable
   @_lifetime(copy self)
   public consuming func map<E: Error, T: ~Copyable>(
-    _ transform: @escaping (borrowing Element) throws(E) -> T
+    _ transform: @escaping (borrowing Element_) throws(E) -> T
   ) throws(E) -> BorrowingMapProducer<Self, T, E> {
     BorrowingMapProducer(_base: self, transform: transform)
   }
@@ -26,12 +30,12 @@ extension BorrowingIteratorProtocol where Self: ~Copyable & ~Escapable {
 
 @available(SwiftStdlib 5.0, *)
 public struct BorrowingMapProducer<
-  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable,
+  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
   Element: ~Copyable,
   Error: Swift.Error
 >: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
-  public let _transform: (borrowing Base.Element) throws(Error) -> Element
+  public let _transform: (borrowing Base.Element_) throws(Error) -> Element
 
   @_alwaysEmitIntoClient
   public var _it: Base
@@ -40,7 +44,7 @@ public struct BorrowingMapProducer<
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    transform: @escaping (borrowing Base.Element) throws(Error) -> Element
+    transform: @escaping (borrowing Base.Element_) throws(Error) -> Element
   ) {
     self._transform = transform
     self._it = _base
@@ -64,7 +68,7 @@ where
 
   @inlinable
   public mutating func next() throws(ProducerError) -> Element? {
-    let span = _it.nextSpan(maximumCount: 1)
+    let span = _it.nextSpan_(maximumCount: 1)
     guard !span.isEmpty else { return nil }
     return try _transform(span[unchecked: 0])
   }
@@ -78,7 +82,7 @@ where
   ) throws(Error) -> Bool {
     var success = false
     while !target.isFull {
-      let span = _it.nextSpan(maximumCount: target.freeCapacity)
+      let span = _it.nextSpan_(maximumCount: target.freeCapacity)
       guard !span.isEmpty else { break }
       success = true
       var i = 0

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @_alwaysEmitIntoClient
 @_transparent
@@ -126,8 +126,8 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
   ///    skip at least one item without hitting the end of the underlying
   ///    sequence.
   @_lifetime(self: copy self)
-  mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool
-  
+  mutating func skip(by n: inout Int) throws(ProducerError) -> Bool
+
   /// Generate and return the next element in the underlying generative
   /// sequence.
   ///
@@ -164,7 +164,7 @@ public protocol Producer<Element, ProducerError>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Producer where Self: ~Copyable & ~Escapable {
+extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// A value less than or equal to the number of remaining items that this
   /// producer is able to generate until it reaches its end.
   ///
@@ -205,7 +205,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
   ///    sequence.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func skip(upTo n: inout Int) throws(ProducerError) -> Bool {
+  public mutating func skip(by n: inout Int) throws(ProducerError) -> Bool {
     precondition(n > 0, "Cannot skip fewer than one item")
     let maxBufferSize = 8
     return try withTemporaryOutputSpan(
@@ -261,7 +261,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension Producer where Self: ~Copyable & ~Escapable {
+extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// Returns true if the producer has no more elements, consuming it in
   /// the process. This is implemented by checking if it is possible to
   /// skip one item.
@@ -270,7 +270,7 @@ extension Producer where Self: ~Copyable & ~Escapable {
   @inlinable
   public consuming func _isAtEnd() throws(ProducerError) -> Bool {
     var c = 1
-    return try !skip(upTo: &c)
+    return try !skip(by: &c)
   }
 }
 

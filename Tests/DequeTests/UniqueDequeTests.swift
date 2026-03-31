@@ -22,10 +22,9 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
-#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectUniqueDequeContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -36,7 +35,7 @@ internal func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  expectIterableContents(
+  expectUniqueDequeContents(
     left,
     equivalentTo: right,
     by: ==,
@@ -45,7 +44,7 @@ internal func expectIterableContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectUniqueDequeContents<
   E1,
   C2: Collection,
 >(
@@ -57,7 +56,7 @@ internal func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  expectIterableContents(
+  expectUniqueDequeContents(
     left,
     equivalentTo: right,
     by: areEquivalent,
@@ -69,7 +68,7 @@ internal func expectIterableContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectUniqueDequeContents<
   E1: ~Copyable,
   C2: Collection,
 >(
@@ -82,6 +81,17 @@ internal func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  expectIterableContents(
+    left,
+    equivalentTo: right,
+    by: areEquivalent,
+    printer: printer,
+    message(),
+    trapping: trapping,
+    file: file,
+    line: line)
+#else
   var c = 0
   var j = right.startIndex
   for i in 0 ..< left.count {
@@ -96,9 +106,8 @@ internal func expectIterableContents<
     right.formIndex(after: &j)
     c += 1
   }
-}
-
 #endif
+}
 
 final class UniqueDequeTests: CollectionTestCase {
   struct TestError: Error, Equatable {
@@ -162,7 +171,7 @@ final class UniqueDequeTests: CollectionTestCase {
           let new = tracker.instance(for: 100)
           data.deque[i] = new
           data.contents[i] = new
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectUniqueDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -176,7 +185,7 @@ final class UniqueDequeTests: CollectionTestCase {
             var data = tracker.uniqueDeque(with: layout)
             data.deque.swapAt(i, j)
             data.contents.swapAt(i, j)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectUniqueDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }

@@ -93,7 +93,7 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray /*where Element: Copyable*/ {
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given borrowing sequence.
   ///
@@ -104,7 +104,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing Source
   ) {
@@ -130,7 +130,7 @@ extension UniqueArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given container.
   ///
@@ -140,7 +140,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///   - contents: The container whose contents to copy into the new array.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence_<Element> & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: Source
   ) {

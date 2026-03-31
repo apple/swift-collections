@@ -18,7 +18,7 @@ import BasicContainers
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// A container type with user-defined contents and storage chunks.
 /// Useful for testing.
 @available(SwiftStdlib 5.0, *)
@@ -76,7 +76,7 @@ package struct _StaccatoParameters {
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol, ~Escapable {
+public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol_, ~Escapable {
   internal let _contents: Span<Element>
   internal let _params: _StaccatoParameters
   internal var _offset: Int
@@ -89,7 +89,7 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
   }
 
   @_lifetime(copy self)
-  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
     let endOffset = _params.endOffset(fromOffset: _offset, maximumCount: maximumCount)
     let startOffset = _offset
     _offset = endOffset
@@ -114,13 +114,13 @@ public struct _StaccatoIndex: Comparable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension StaccatoContainer: BorrowingSequence where Element: ~Copyable {
-  public typealias BorrowingIterator = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
+extension StaccatoContainer: BorrowingSequence_ where Element: ~Copyable {
+  public typealias BorrowingIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
-  public var underestimatedCount: Int { count }
+  public var underestimatedCount_: Int { count }
 
-  public func makeBorrowingIterator() -> BorrowingIterator {
-    BorrowingIterator(contents: _contents.span, params: _params)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(contents: _contents.span, params: _params)
   }
 }
 

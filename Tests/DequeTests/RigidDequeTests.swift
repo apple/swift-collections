@@ -22,10 +22,9 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
-#if compiler(<6.3) || !COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectRigidDequeContents<
   Element: Equatable,
   C2: Collection<Element>,
 >(
@@ -36,7 +35,7 @@ internal func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  expectIterableContents(
+  expectRigidDequeContents(
     left,
     equivalentTo: right,
     by: ==,
@@ -45,7 +44,7 @@ internal func expectIterableContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectRigidDequeContents<
   E1,
   C2: Collection,
 >(
@@ -57,7 +56,7 @@ internal func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-  expectIterableContents(
+  expectRigidDequeContents(
     left,
     equivalentTo: right,
     by: areEquivalent,
@@ -69,7 +68,7 @@ internal func expectIterableContents<
 
 /// Check if `left` and `right` contain equal elements in the same order.
 @available(SwiftStdlib 5.0, *)
-internal func expectIterableContents<
+internal func expectRigidDequeContents<
   E1: ~Copyable,
   C2: Collection,
 >(
@@ -82,6 +81,17 @@ internal func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  expectIterableContents(
+    left,
+    equivalentTo: right,
+    by: areEquivalent,
+    printer: printer,
+    message(),
+    trapping: trapping,
+    file: file,
+    line: line)
+#else
   var c = 0
   var j = right.startIndex
   for i in 0 ..< left.count {
@@ -96,9 +106,8 @@ internal func expectIterableContents<
     right.formIndex(after: &j)
     c += 1
   }
-}
-
 #endif
+}
 
 final class RigidDequeTests: CollectionTestCase {
   struct TestError: Error, Equatable {
@@ -117,7 +126,7 @@ final class RigidDequeTests: CollectionTestCase {
         for i in 0 ..< layout.count {
           expectEqual(data.deque[i], data.contents[i])
         }
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -180,7 +189,7 @@ final class RigidDequeTests: CollectionTestCase {
           let new = tracker.instance(for: 100)
           data.deque[i] = new
           data.contents[i] = new
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -194,7 +203,7 @@ final class RigidDequeTests: CollectionTestCase {
             var data = tracker.rigidDeque(with: layout)
             data.deque.swapAt(i, j)
             data.contents.swapAt(i, j)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -214,7 +223,7 @@ final class RigidDequeTests: CollectionTestCase {
           expectEqual(data.deque.capacity, newCapacity)
           expectEqual(data.deque.count, layout.count)
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -233,7 +242,7 @@ final class RigidDequeTests: CollectionTestCase {
           expectEqual(data.deque.capacity, Swift.max(layout.capacity, newCapacity))
           expectEqual(data.deque.count, layout.count)
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -345,7 +354,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_initFromProducer() {
     withEvery("count", in: 0 ..< 10) { count in
       withEvery("capacity", in: [count, count + 1, 2 * count] as Set) { capacity in
@@ -414,7 +423,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_initCopyingBorrowingSequence() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
@@ -450,7 +459,7 @@ final class RigidDequeTests: CollectionTestCase {
           
           expectEqual(deque.count, c)
           expectEqual(deque.capacity, capacity)
-          expectIterableContents(deque, equalTo: values)
+          expectRigidDequeContents(deque, equalTo: values)
           
           expectEqual(tracker.instances, c)
           _ = consume values
@@ -474,7 +483,7 @@ final class RigidDequeTests: CollectionTestCase {
           
           expectEqual(deque.count, c)
           expectEqual(deque.capacity, capacity)
-          expectIterableContents(deque, equalTo: values)
+          expectRigidDequeContents(deque, equalTo: values)
           
           expectEqual(tracker.instances, c)
           _ = consume values
@@ -495,7 +504,7 @@ final class RigidDequeTests: CollectionTestCase {
         
         expectEqual(deque.count, c)
         expectEqual(deque.capacity, capacity)
-        expectIterableContents(deque, equalTo: 0 ..< c)
+        expectRigidDequeContents(deque, equalTo: 0 ..< c)
       }
     }
   }
@@ -509,7 +518,7 @@ final class RigidDequeTests: CollectionTestCase {
         
         expectEqual(deque.count, c)
         expectEqual(deque.capacity, capacity)
-        expectIterableContents(deque, equalTo: 0 ..< c)
+        expectRigidDequeContents(deque, equalTo: 0 ..< c)
       }
     }
   }
@@ -521,7 +530,7 @@ final class RigidDequeTests: CollectionTestCase {
         let expected = data.contents[...].popFirst()
         let actual = data.deque.popFirst()
         expectEqual(actual, expected)
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -533,7 +542,7 @@ final class RigidDequeTests: CollectionTestCase {
         let expected = data.contents[...].popLast()
         let actual = data.deque.popLast()
         expectEqual(actual, expected)
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -546,7 +555,7 @@ final class RigidDequeTests: CollectionTestCase {
         guard !data.deque.isFull else { return }
         data.contents.insert(extra, at: 0)
         data.deque.prepend(extra)
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -559,7 +568,7 @@ final class RigidDequeTests: CollectionTestCase {
         guard !data.deque.isFull else { return }
         data.contents.append(extra)
         data.deque.append(extra)
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -574,10 +583,10 @@ final class RigidDequeTests: CollectionTestCase {
         
         if layout.count == layout.capacity {
           expectEqual(result, extra)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         } else {
           data.contents.insert(extra, at: 0)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -593,10 +602,10 @@ final class RigidDequeTests: CollectionTestCase {
         
         if layout.count == layout.capacity {
           expectEqual(result, extra)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         } else {
           data.contents.insert(extra, at: data.contents.count)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -620,7 +629,7 @@ final class RigidDequeTests: CollectionTestCase {
             }
           }
           
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -644,7 +653,7 @@ final class RigidDequeTests: CollectionTestCase {
             }
           }
           
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -668,7 +677,7 @@ final class RigidDequeTests: CollectionTestCase {
             }
           }
           expectEqual(i, extras.count)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -692,7 +701,7 @@ final class RigidDequeTests: CollectionTestCase {
             }
           }
           expectEqual(i, extras.count)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -726,7 +735,7 @@ final class RigidDequeTests: CollectionTestCase {
           errorHandler: { error in
             expectEqual(error.value, 42)
           }
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -761,13 +770,13 @@ final class RigidDequeTests: CollectionTestCase {
           errorHandler: { error in
             expectEqual(error.value, 42)
           }
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_prepend_Producer_full() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< 6) { producerSize in
@@ -785,14 +794,14 @@ final class RigidDequeTests: CollectionTestCase {
           
           data.deque.prepend(from: &producer)
           expectEqual(extras.count, max(0, producerSize - layout.freeCapacity))
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_Producer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< layout.freeCapacity) { producerSize in
@@ -810,14 +819,14 @@ final class RigidDequeTests: CollectionTestCase {
           
           data.deque.append(from: &producer)
           expectEqual(extras.count, max(0, producerSize - layout.freeCapacity))
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_prepend_Producer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -841,14 +850,14 @@ final class RigidDequeTests: CollectionTestCase {
             expectEqual(error.value, 23)
           }
           expectEqual(extras.count, 0)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_append_Producer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -872,7 +881,7 @@ final class RigidDequeTests: CollectionTestCase {
             expectEqual(error.value, 23)
           }
           expectEqual(extras.count, 0)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -889,7 +898,7 @@ final class RigidDequeTests: CollectionTestCase {
             let sequence = MinimalSequence(elements: extras, underestimatedCount: underestimatedCount)
             data.contents.insert(contentsOf: extras, at: 0)
             data.deque.prepend(copying: sequence)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -906,7 +915,7 @@ final class RigidDequeTests: CollectionTestCase {
             let sequence = MinimalSequence(elements: extras, underestimatedCount: underestimatedCount)
             data.contents.append(contentsOf: extras)
             data.deque.append(copying: sequence)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -922,7 +931,7 @@ final class RigidDequeTests: CollectionTestCase {
           let minimal = MinimalCollection(extra)
           data.contents.insert(contentsOf: extra, at: 0)
           data.deque.prepend(copying: minimal)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -937,7 +946,7 @@ final class RigidDequeTests: CollectionTestCase {
           let minimal = MinimalCollection(extra)
           data.contents.append(contentsOf: extra)
           data.deque.append(copying: minimal)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -952,7 +961,7 @@ final class RigidDequeTests: CollectionTestCase {
           let extra = ContiguousArray(tracker.instances(for: extraRange))
           data.contents.insert(contentsOf: extra, at: 0)
           data.deque.prepend(copying: extra)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -967,7 +976,7 @@ final class RigidDequeTests: CollectionTestCase {
           let extra = ContiguousArray(tracker.instances(for: extraRange))
           data.contents.append(contentsOf: extra)
           data.deque.append(copying: extra)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -991,7 +1000,7 @@ final class RigidDequeTests: CollectionTestCase {
           let extra = ContiguousArray(tracker.instances(for: extraRange))
           data.contents.insert(contentsOf: extra, at: 0)
           prependSequence(contentsOf: extra, to: &data.deque)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -1015,7 +1024,7 @@ final class RigidDequeTests: CollectionTestCase {
           let extra = ContiguousArray(tracker.instances(for: extraRange))
           data.contents.append(contentsOf: extra)
           appendSequence(contentsOf: extra, to: &data.deque)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -1035,7 +1044,7 @@ final class RigidDequeTests: CollectionTestCase {
           }
         contents.insert(contentsOf: extra, at: 0)
         deque.prepend(copying: extra)
-        expectIterableContents(
+        expectRigidDequeContents(
           deque,
           equivalentTo: contents,
           by: ==,
@@ -1058,7 +1067,7 @@ final class RigidDequeTests: CollectionTestCase {
           }
         contents.append(contentsOf: extra)
         deque.append(copying: extra)
-        expectIterableContents(
+        expectRigidDequeContents(
           deque,
           equivalentTo: contents,
           by: ==,
@@ -1076,7 +1085,7 @@ final class RigidDequeTests: CollectionTestCase {
           guard !data.deque.isFull else { return }
           data.contents.insert(extra, at: offset)
           data.deque.insert(extra, at: offset)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -1103,7 +1112,7 @@ final class RigidDequeTests: CollectionTestCase {
             }
             expectEqual(j, extras.count)
 
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -1130,7 +1139,7 @@ final class RigidDequeTests: CollectionTestCase {
               }
             }
             expectEqual(j, extras.count)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -1167,14 +1176,14 @@ final class RigidDequeTests: CollectionTestCase {
             errorHandler: { error in
               expectEqual(error.value, 42)
             }
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_fromProducer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1198,7 +1207,7 @@ final class RigidDequeTests: CollectionTestCase {
               from: &producer,
               at: i)
             expectEqual(extras.count, max(0, c - layout.freeCapacity))
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -1206,7 +1215,7 @@ final class RigidDequeTests: CollectionTestCase {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_fromProducer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -1234,7 +1243,7 @@ final class RigidDequeTests: CollectionTestCase {
               expectEqual(error.value, 23)
             }
             expectEqual(extras.count, 0)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -1256,7 +1265,7 @@ final class RigidDequeTests: CollectionTestCase {
                 isContiguous: isContiguous)
               data.contents.insert(contentsOf: extras, at: i)
               data.deque.insert(copying: collection, at: i)
-              expectIterableContents(data.deque, equalTo: data.contents)
+              expectRigidDequeContents(data.deque, equalTo: data.contents)
             }
           }
         }
@@ -1264,7 +1273,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   func test_insert_RigidArray() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1277,7 +1286,7 @@ final class RigidDequeTests: CollectionTestCase {
 
             let array = RigidArray(copying: extras)
             data.deque.insert(copying: array, at: i)
-            expectIterableContents(data.deque, equalTo: data.contents)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
           }
         }
       }
@@ -1306,7 +1315,7 @@ final class RigidDequeTests: CollectionTestCase {
               subrange,
               with: layout.count ..< layout.count + c)
             
-            expectIterableContents(
+            expectRigidDequeContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1340,7 +1349,7 @@ final class RigidDequeTests: CollectionTestCase {
                 subrange,
                 with: layout.count ..< layout.count + n)
               
-              expectIterableContents(
+              expectRigidDequeContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -1386,7 +1395,7 @@ final class RigidDequeTests: CollectionTestCase {
               subrange,
               with: layout.count ..< layout.count + c)
             
-            expectIterableContents(
+            expectRigidDequeContents(
               a,
               equivalentTo: expected,
               by: { $0.payload == $1 },
@@ -1434,7 +1443,7 @@ final class RigidDequeTests: CollectionTestCase {
                 subrange,
                 with: layout.count ..< layout.count + n)
               
-              expectIterableContents(
+              expectRigidDequeContents(
                 a,
                 equivalentTo: expected,
                 by: { $0.payload == $1 },
@@ -1455,7 +1464,7 @@ final class RigidDequeTests: CollectionTestCase {
           let expected = data.contents.remove(at: offset)
           let actual = data.deque.remove(at: offset)
           expectEqual(actual, expected)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -1468,7 +1477,7 @@ final class RigidDequeTests: CollectionTestCase {
           var data = tracker.rigidDeque(with: layout)
           data.contents.removeSubrange(range)
           data.deque.removeSubrange(range)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -1482,7 +1491,7 @@ final class RigidDequeTests: CollectionTestCase {
         let expected = data.contents.removeLast()
         let actual = data.deque.removeLast()
         expectEqual(actual, expected)
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -1495,7 +1504,7 @@ final class RigidDequeTests: CollectionTestCase {
           var data = tracker.rigidDeque(with: layout)
           data.contents.removeLast(n)
           data.deque.removeLast(n)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
@@ -1509,7 +1518,7 @@ final class RigidDequeTests: CollectionTestCase {
         let expected = data.contents.removeFirst()
         let actual = data.deque.removeFirst()
         expectEqual(actual, expected)
-        expectIterableContents(data.deque, equalTo: data.contents)
+        expectRigidDequeContents(data.deque, equalTo: data.contents)
       }
     }
   }
@@ -1522,7 +1531,7 @@ final class RigidDequeTests: CollectionTestCase {
           var data = tracker.rigidDeque(with: layout)
           data.contents.removeFirst(n)
           data.deque.removeFirst(n)
-          expectIterableContents(data.deque, equalTo: data.contents)
+          expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }

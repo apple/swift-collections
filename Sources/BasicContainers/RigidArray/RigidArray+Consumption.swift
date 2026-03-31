@@ -187,8 +187,15 @@ extension RigidArray where Element: ~Copyable {
 }
 
 
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 @available(SwiftStdlib 5.0, *)
 extension RigidArray.SubrangeConsumer: Drain where Element: ~Copyable {
+}
+#endif
+
+
+@available(SwiftStdlib 5.0, *)
+extension RigidArray.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
