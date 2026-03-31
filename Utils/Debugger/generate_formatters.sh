@@ -12,16 +12,8 @@
 
 set -euo pipefail
 
-COMPILER_VERSION="f74f32b529c35531198621fd104cde5d2cf77e0c"
-
 base=$(git rev-parse --show-toplevel)
-
-# Download formatter_bytecode.py compiler to a temp file
-compiler=$(mktemp /tmp/formatter_bytecode.XXXXXX)
-trap 'rm -f "$compiler"' EXIT
-curl -fsSL \
-  "https://raw.githubusercontent.com/llvm/llvm-project/$COMPILER_VERSION/lldb/examples/python/formatter_bytecode.py" \
-  -o "$compiler"
+compiler="$base/Utils/Debugger/formatter_bytecode.py"
 
 for formatter in "$base/Utils/Debugger/Formatters"/*.py; do
   type_name=$(basename "$formatter" .py)
