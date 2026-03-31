@@ -18,6 +18,7 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
+@available(SwiftStdlib 5.0, *)
 @frozen @usableFromInline
 internal struct _MultispanBuffer<Element: ~Copyable> {
   @usableFromInline var ptr: UnsafeMutableRawBufferPointer
@@ -75,6 +76,7 @@ internal struct _MultispanBuffer<Element: ~Copyable> {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 @frozen @usableFromInline
 internal struct _SmallBufferPointerArray<Element: ~Copyable>: ~Copyable {
   @usableFromInline typealias Index = Int
@@ -91,6 +93,11 @@ internal struct _SmallBufferPointerArray<Element: ~Copyable>: ~Copyable {
 
   @inlinable @inline(__always)
   init() {}
+  
+  @inlinable @inline(__always)
+  init(_ storage: consuming _Storage) {
+    _storage = storage
+  }
 
   @inlinable
   subscript(position: Int) -> _MultispanBuffer<Element> {
@@ -108,17 +115,21 @@ internal struct _SmallBufferPointerArray<Element: ~Copyable>: ~Copyable {
     }
     _modify {
       precondition(position < count)
-      switch _storage {
+      
+      let this = consume self
+      self = _SmallBufferPointerArray()
+      
+      switch this._storage {
       case .empty:
         fatalError("Index out of bounds")
       case .single(var element):
-        precondition(position == 0)
-        _storage = .empty
-        defer { _storage = .single(element) }
+        defer { self = _SmallBufferPointerArray(.single(element)) }
         yield &element
       case .array(var array):
-        _storage = .empty
-        defer { _storage = .array(array) }
+        defer {
+          self = _SmallBufferPointerArray(.array(array))
+          array = UniqueArray()
+        }
         yield &array[position]
       }
     }
@@ -142,16 +153,15 @@ internal struct _SmallBufferPointerArray<Element: ~Copyable>: ~Copyable {
   mutating func append(_ element: _MultispanBuffer<Element>) {
     switch _storage {
     case .empty:
-      _storage = .single(element)
+      self = _SmallBufferPointerArray(.single(element))
     case .single(let existing):
       var array = UniqueArray<_MultispanBuffer<Element>>(capacity: 4)
       array.append(existing)
       array.append(element)
-      _storage = .array(array)
+      self = _SmallBufferPointerArray(.array(array))
     case .array(var array):
-      _storage = .empty // avoid CoW
       array.append(element)
-      _storage = .array(array)
+      self = _SmallBufferPointerArray(.array(array))
     }
   }
 
