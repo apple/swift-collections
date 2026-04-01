@@ -176,9 +176,9 @@ extension OutputMultispan where Element: ~Copyable {
   
   @frozen
   public struct Index: Comparable {
-    @usableFromInline let bufferIndex: Int
-    @usableFromInline let elementIndex: Int
-    
+    @usableFromInline package let bufferIndex: Int
+    @usableFromInline package let elementIndex: Int
+
     @inlinable @inline(always)
     public static func <(lhs: OutputMultispan.Index, rhs: OutputMultispan.Index) -> Bool {
       if lhs.bufferIndex < rhs.bufferIndex {
@@ -189,9 +189,9 @@ extension OutputMultispan where Element: ~Copyable {
       }
       return false
     }
-    
+
     @inlinable @inline(always)
-    init(bufferIndex: Int, elementIndex: Int) {
+    package init(bufferIndex: Int, elementIndex: Int) {
       self.bufferIndex = bufferIndex
       self.elementIndex = elementIndex
     }
