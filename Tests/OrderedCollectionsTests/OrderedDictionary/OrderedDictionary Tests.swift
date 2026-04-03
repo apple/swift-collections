@@ -995,6 +995,33 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_replaceElement() {
+    withEvery("count", in: 1 ..< 20) { count in
+      withEvery("index", in: 0 ..< count) { index in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            let newKey = tracker.instance(for: count)
+            let newValue = tracker.instance(for: count + 100)
+            let expectedOld = reference[index]
+            reference[index] = (key: newKey, value: newValue)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              let old = d.replaceElement(
+                at: index, withKey: newKey, value: newValue)
+              expectEqual(old.key, expectedOld.key)
+              expectEqual(old.value, expectedOld.value)
+              expectEquivalentElements(
+                d, reference,
+                by: { $0.key == $1.key && $0.value == $1.value })
+              expectEqual(d[newKey], newValue)
+              expectNil(d[expectedOld.key])
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_partition() {
     withEvery("seed", in: 0 ..< 10) { seed in
       withEvery("count", in: 0 ..< 30) { count in

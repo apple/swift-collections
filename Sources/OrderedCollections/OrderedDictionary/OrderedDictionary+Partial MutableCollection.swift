@@ -29,6 +29,62 @@ extension OrderedDictionary {
     _values.swapAt(i, j)
   }
 
+  /// Replaces the key-value pair at the specified index with a new pair,
+  /// returning the original element.
+  ///
+  /// The new key must not already exist in the dictionary.
+  ///
+  ///     var dict: OrderedDictionary = [
+  ///         "a": 1, "b": 2, "c": 3
+  ///     ]
+  ///     let old = dict.replaceElement(at: 1, withKey: "d", value: 4)
+  ///     // old == (key: "b", value: 2)
+  ///     // dict is now ["a": 1, "d": 4, "c": 3]
+  ///
+  /// This method appends the new pair, swaps it into position, and removes
+  /// the old element from the end, achieving expected amortized O(1)
+  /// performance — unlike `remove(at:)` followed by an insertion, which
+  /// would be O(`count`).
+  ///
+  /// - Parameters:
+  ///   - index: The index of the element to replace. `index` must be a valid
+  ///     index of the dictionary.
+  ///   - key: The key of the new element. The dictionary must not already
+  ///     contain this key.
+  ///   - value: The value of the new element.
+  ///
+  /// - Returns: The original key-value pair that was replaced.
+  ///
+  /// - Complexity: Expected amortized O(1), if `Key` implements
+  ///   high-quality hashing.
+  @inlinable
+  @discardableResult
+  public mutating func replaceElement(
+    at index: Int,
+    withKey key: Key,
+    value: Value
+  ) -> Element {
+    precondition(index >= 0 && index < count, "Index out of range")
+
+    let (existingIndex, bucket) = _keys._find(key)
+    precondition(existingIndex == nil, "Duplicate key: '\(key)'")
+
+    // Append the new key-value pair at the end — amortized O(1)
+    _keys._appendNew(key, in: bucket)
+    _values.append(value)
+
+    // Swap the new element into the target position — O(1)
+    _keys.swapAt(index, count - 1)
+    _values.swapAt(index, count - 1)
+
+    // Remove the old element from the end — O(1)
+    let oldKey = _keys.removeLast()
+    let oldValue = _values.removeLast()
+
+    _checkInvariants()
+    return (oldKey, oldValue)
+  }
+
   /// Reorders the elements of the dictionary such that all the elements that
   /// match the given predicate are after all the elements that don't match.
   ///
