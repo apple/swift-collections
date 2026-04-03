@@ -443,7 +443,7 @@ class OutputMultispanTests: CollectionTestCase {
   func test_rigidArray_appendWithOutputMultispan() async {
     var array = RigidArray<Int>(capacity: 10)
     
-    await array.append(addingCount: 5) { (multispan: inout OutputMultispan<Int>) in
+    await array.asyncAppend(addingCount: 5) { (multispan: inout OutputMultispan<Int>) in
       multispan.append(1)
       multispan.append(2)
       multispan.append(3)
@@ -458,7 +458,7 @@ class OutputMultispanTests: CollectionTestCase {
   }
   
   func test_rigidArray_initWithOutputMultispan() async throws {
-    let array = await RigidArray<Int>(capacity: 7) { (multispan: inout OutputMultispan<Int>) in
+    let array = try await RigidArray<Int>.asyncCreate(capacity: 7) { (multispan: inout OutputMultispan<Int>) in
       for i in 0..<7 {
         multispan.append(i * 10)
       }
@@ -474,7 +474,7 @@ class OutputMultispanTests: CollectionTestCase {
   func test_uniqueArray_appendWithOutputMultispan() async {
     var array = UniqueArray<Int>(capacity: 8)
     
-    await array.append(addingCount: 4) { (multispan: inout OutputMultispan<Int>) in
+    await array.asyncAppend(addingCount: 4) { (multispan: inout OutputMultispan<Int>) in
       multispan.append(100)
       multispan.append(200)
       multispan.append(300)
@@ -487,7 +487,7 @@ class OutputMultispanTests: CollectionTestCase {
   }
   
   func test_uniqueArray_initWithOutputMultispan() async throws {
-    let array = await UniqueArray<Int>(capacity: 5) { (multispan: inout OutputMultispan<Int>) in
+    let array = try await UniqueArray<Int>.asyncCreate(capacity: 5) { (multispan: inout OutputMultispan<Int>) in
       multispan.append(repeating: 42, count: 5)
     }
     
@@ -507,7 +507,7 @@ class OutputMultispanTests: CollectionTestCase {
     var array = RigidArray<Int>(capacity: 10)
     
     do {
-      try await array.append(addingCount: 5) { (multispan: inout OutputMultispan<Int>) throws(TestError) in
+      try await array.asyncAppend(addingCount: 5) { (multispan: inout OutputMultispan<Int>) throws(TestError) in
         multispan.append(1)
         multispan.append(2)
         throw TestError.intentional

@@ -21,7 +21,7 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  public mutating func append<E: Error>(
+  public mutating func asyncAppend<E: Error>(
     addingCount newItemCount: Int,
     initializingWith initializer: @escaping (inout OutputMultispan<Element>) async throws(E) -> Void
   ) async throws(E) {
@@ -40,12 +40,13 @@ extension RigidArray where Element: ~Copyable {
   }
 
   @inlinable
-  public init<E: Error>(
+  public static func asyncCreate<E: Error>(
     capacity: Int,
     initializingWith body: @escaping (inout OutputMultispan<Element>) async throws(E) -> Void
-  ) async throws(E) {
-    self.init(capacity: capacity)
-    try await append(addingCount: capacity, initializingWith: body)
+  ) async throws(E) -> Self {
+    var result = Self(capacity: capacity)
+    try await result.asyncAppend(addingCount: capacity, initializingWith: body)
+    return result
   }
 }
 
