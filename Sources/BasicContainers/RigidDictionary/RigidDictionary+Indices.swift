@@ -70,7 +70,7 @@ where Key: ~Copyable, Value: ~Copyable
   @inlinable
   public var underestimatedCount_: Int { self._base.value.count }
 
-  @_lifetime(copy self)
+  @_lifetime(borrow self) // FIXME: Should be @_lifetime(copy self)
   public func makeBorrowingIterator_() -> BorrowingIterator_ {
     let bit = self._base.value.makeBucketIterator()
     // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
