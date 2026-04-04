@@ -43,6 +43,8 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
     ~Copyable,
     ~Escapable
   {
+    public typealias Element_ = Element
+
     @_alwaysEmitIntoClient
     internal var _baseAddress: UnsafePointer<Element_>?
 
@@ -68,7 +70,7 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
     }
     
     @_alwaysEmitIntoClient
-    @_lifetime(copy self)
+    @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
     public mutating func nextSpan_(maximumCount: Int) -> Span<Element_> {
       precondition(maximumCount > 0, "maximumCount must be positive")
       guard

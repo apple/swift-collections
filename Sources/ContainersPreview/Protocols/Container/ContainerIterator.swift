@@ -52,23 +52,24 @@ where
 {
   public typealias Element_ = Base.Element
 
+#if true
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence?!
   @_lifetime(&self)
   public mutating func nextSpan_(maximumCount: Int) -> Span<Base.Element> {
     _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
   }
-
-//  @_lifetime(copy self)
-//  public mutating func nextSpan2(maximumCount: Int) -> Span<Base.Element> {
-//    var i = self._position
-//    let span = _base.value.nextSpan(
-//      after: &i,
-//      maximumCount: maximumCount)
-//    _ = consume span
-//    let result = _overrideLifetime(span, copying: self)
-//    self._position = i
-//    return .init()
-//  }
+#else
+  @_lifetime(copy self)
+  public mutating func nextSpan(maximumCount: Int) -> Span<Base.Element> {
+    var i = self._position
+    let span = _base.value.nextSpan(
+      after: &i,
+      maximumCount: maximumCount)
+    self._position = i
+    let result = _overrideLifetime(span, copying: self)
+    return result
+  }
+#endif
 
   @_lifetime(self: copy self)
   public mutating func skip_(by maximumOffset: Int) -> Int {

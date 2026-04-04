@@ -24,6 +24,8 @@ extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @frozen
   public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
+    public typealias Element_ = Element
+
     @usableFromInline
     internal var _currentSegment: Span<Element>
     
@@ -44,7 +46,7 @@ extension RigidDeque where Element: ~Copyable {
     }
     
     @_alwaysEmitIntoClient
-    @_lifetime(copy self)
+    @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
     @_lifetime(self: copy self)
     public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
       let result = _currentSegment._trim(first: maximumCount)
