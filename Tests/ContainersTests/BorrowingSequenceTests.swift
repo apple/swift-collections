@@ -95,6 +95,19 @@ final class BorrowingSequenceTests: XCTestCase {
       .collect()
     XCTAssertEqual(greaterEqualToFive, [5, 6, 7, 8])
 
+    do {
+      let array = Array(1...100)
+      let span = array.span
+      let subset = span.makeBorrowingIterator_()
+        .prefix(25)
+        .dropFirst(10)
+        .prefix(while: { $0 < 20 })
+        .dropFirst(while: { $0 < 15 })
+        .copy()
+        .collect()
+      XCTAssertEqual(subset, [15, 16, 17, 18, 19])
+    }
+    
     // Spurious error?
     //   error: instance method 'map' requires that 'NoncopyableInt' conform to 'Copyable'
     //   points at 'BorrowingIteratorProtocol+Map.swift:24'
