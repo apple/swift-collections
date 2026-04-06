@@ -77,6 +77,8 @@ package struct _StaccatoParameters {
 
 @available(SwiftStdlib 5.0, *)
 public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol_, ~Escapable {
+  public typealias Element_ = Element
+
   internal let _contents: Span<Element>
   internal let _params: _StaccatoParameters
   internal var _offset: Int
@@ -88,7 +90,7 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
     self._offset = 0
   }
 
-  @_lifetime(copy self)
+  @_lifetime(&self) // FIXME: Should be `@_lifetime(copy self)`
   public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
     let endOffset = _params.endOffset(fromOffset: _offset, maximumCount: maximumCount)
     let startOffset = _offset

@@ -87,7 +87,9 @@ where Base.Element: ~Copyable
 
 @available(SwiftStdlib 5.0, *)
 extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
-  @_lifetime(copy self)
+  public typealias Element_ = Base.Element
+
+  @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
   public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
     precondition(maximumCount > 0)
     while true {
