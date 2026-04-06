@@ -13,6 +13,8 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+// MARK: prefix(_ count:)
+
 @available(SwiftStdlib 5.0, *)
 public struct PrefixBorrowingIterator<Base: BorrowingIteratorProtocol_>: BorrowingIteratorProtocol_, ~Copyable, ~Escapable
   where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable
@@ -52,10 +54,7 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable, Element
   }
 }
 
-
-//===----------------------------------------------------------------------===//
-// prefix(while:)
-//===----------------------------------------------------------------------===//
+// MARK: prefix(while:)
 
 @available(SwiftStdlib 5.0, *)
 public struct PrefixWhileBorrowingIterator<Base: BorrowingIteratorProtocol_>: BorrowingIteratorProtocol_, ~Copyable, ~Escapable

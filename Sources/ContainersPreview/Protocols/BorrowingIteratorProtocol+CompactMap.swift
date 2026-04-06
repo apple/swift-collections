@@ -62,11 +62,6 @@ where
   public typealias ProducerError = Error
 
   @inlinable
-  public var underestimatedCount: Int {
-    0 // FIXME
-  }
-
-  @inlinable
   public mutating func next() throws(ProducerError) -> Element? {
     while true {
       let span = _it.nextSpan_(maximumCount: 1)

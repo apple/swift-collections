@@ -13,6 +13,8 @@
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
+// MARK: dropFirst(_ count:)
+
 @available(SwiftStdlib 5.0, *)
 public struct DropFirstBorrowingIterator<Base: BorrowingIteratorProtocol_>: BorrowingIteratorProtocol_, ~Copyable, ~Escapable
   where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable
@@ -46,10 +48,7 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable, Element
   }
 }
 
-
-//===----------------------------------------------------------------------===//
-// prefix(while:)
-//===----------------------------------------------------------------------===//
+// MARK: dropFirst(while:)
 
 @available(SwiftStdlib 5.0, *)
 public struct DropFirstWhileBorrowingIterator<Base: BorrowingIteratorProtocol_>: BorrowingIteratorProtocol_, ~Copyable, ~Escapable
