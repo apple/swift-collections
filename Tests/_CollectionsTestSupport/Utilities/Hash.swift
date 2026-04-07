@@ -12,39 +12,39 @@
 //===----------------------------------------------------------------------===//
 
 /// An abstract representation of a hash value.
-struct Hash {
-  var value: Int
+package struct Hash {
+  package var value: Int
 
-  init(_ value: Int) {
+  package init(_ value: Int) {
     self.value = value
   }
 
-  init(_ value: UInt) {
+  package init(_ value: UInt) {
     self.value = Int(bitPattern: value)
   }
 }
 
 
 extension Hash {
-  static var bucketBitWidth: Int { 5 }
-  static var bucketCount: Int { 1 << bucketBitWidth }
-  static var bitWidth: Int { UInt.bitWidth }
+  package static var bucketBitWidth: Int { 5 }
+  package static var bucketCount: Int { 1 << bucketBitWidth }
+  package static var bitWidth: Int { UInt.bitWidth }
 }
 
 extension Hash: Equatable {
-  static func ==(left: Self, right: Self) -> Bool {
+  package static func ==(left: Self, right: Self) -> Bool {
     left.value == right.value
   }
 }
 
 extension Hash: Hashable {
-  func hash(into hasher: inout Hasher) {
+  package func hash(into hasher: inout Hasher) {
     hasher.combine(value)
   }
 }
 
 extension Hash: CustomStringConvertible {
-  var description: String {
+  package var description: String {
     // Print hash values in radix 32 & reversed, so that the path in the hash
     // tree is readily visible.
     let p = String(
@@ -62,7 +62,7 @@ extension Hash: CustomStringConvertible {
 }
 
 extension Hash: LosslessStringConvertible {
-  init?(_ description: String) {
+  package init?(_ description: String) {
     let s = String(description.reversed())
     guard let hash = UInt(s, radix: 32) else { return nil }
     self.init(Int(bitPattern: hash))
@@ -70,13 +70,13 @@ extension Hash: LosslessStringConvertible {
 }
 
 extension Hash: ExpressibleByIntegerLiteral {
-  init(integerLiteral value: UInt) {
+  package init(integerLiteral value: UInt) {
     self.init(value)
   }
 }
 
 extension Hash: ExpressibleByStringLiteral {
-  init(stringLiteral value: String) {
+  package init(stringLiteral value: String) {
     self.init(value)!
   }
 }
