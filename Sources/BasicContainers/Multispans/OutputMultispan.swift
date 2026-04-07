@@ -234,7 +234,7 @@ extension OutputMultispan where Element: ~Copyable {
     let bufferIndex = index.bufferIndex
     precondition(_pointers.indices.contains(bufferIndex), "index out of bounds")
     let buffer = _pointers[bufferIndex]
-    precondition(buffer.ptr.indices.contains(bufferIndex), "index out of bounds")
+    precondition(buffer.ptr.indices.contains(elementIndex), "index out of bounds")
   }
 
   /// Accesses the element at the specified position.
