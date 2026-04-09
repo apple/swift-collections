@@ -18,6 +18,13 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: ~Copyable {
+  public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
+    self._storage.isTriviallyIdentical(to: other._storage)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
   @inlinable
   public static func ==(
