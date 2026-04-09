@@ -13,20 +13,35 @@
 
 #if compiler(>=6.2)
 
+// FIXME: Add this when/if SE-0499 gets implemented.
+//#if compiler(>=6.x)
+//@available(SwiftStdlib 5.0, *)
+//extension RigidArray: CustomStringConvertible where Element: ~Copyable {
+//}
+//#endif
+
 @available(SwiftStdlib 5.0, *)
-extension RigidArray /*: CustomStringConvertible */ where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   public var description: String {
     /// FIXME: Print the item descriptions when available.
     "<\(count) items>"
   }
 }
 
+// FIXME: Add this when/if SE-0499 gets implemented.
+//#if compiler(>=6.5)
+//@available(SwiftStdlib 5.0, *)
+//extension RigidArray: CustomDebugStringConvertible where Element: ~Copyable {
+//}
+//#endif
+
 @available(SwiftStdlib 5.0, *)
-extension RigidArray /*: CustomDebugStringConvertible */ where Element: ~Copyable {
+extension RigidArray where Element: ~Copyable {
   public var debugDescription: String {
     /// FIXME: Print the item descriptions when available.
     "<\(count) items>"
   }
 }
+
 
 #endif
