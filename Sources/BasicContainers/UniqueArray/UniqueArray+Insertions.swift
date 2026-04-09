@@ -281,7 +281,7 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray {
-  /// Copyies the elements of a fully initialized buffer pointer into this
+  /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
@@ -311,7 +311,7 @@ extension UniqueArray {
     unsafe _storage.insert(copying: newElements, at: index)
   }
 
-  /// Copyies the elements of a fully initialized buffer pointer into this
+  /// Copies the elements of a fully initialized buffer pointer into this
   /// array at the specified position.
   ///
   /// The new elements are inserted before the element currently at the
