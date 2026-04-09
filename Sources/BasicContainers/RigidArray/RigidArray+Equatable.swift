@@ -18,14 +18,25 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-extension RigidArray /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension RigidArray where Element: ~Copyable {
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
     self._storage._isIdentical(to: other._storage)
     && self._count == other._count
   }
 }
 
-
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension RigidArray: Equatable where Element: Equatable & ~Copyable {
+  @inlinable
+  public static func ==(
+    left: borrowing Self,
+    right: borrowing Self
+  ) -> Bool {
+    left.span._elementsEqual(to: right.span)
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 extension RigidArray /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
   @inlinable
@@ -36,5 +47,6 @@ extension RigidArray /*: Equatable */ where Element: Equatable /* & ~Copyable */
     left.span._elementsEqual(to: right.span)
   }
 }
+#endif
 
 #endif
