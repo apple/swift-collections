@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-extension RigidArray /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension RigidArray where Element: ~Copyable {
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
     self._storage._isIdentical(to: other._storage)
     && self._count == other._count
