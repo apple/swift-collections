@@ -38,6 +38,26 @@ extension Span where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+@available(SwiftStdlib 5.0, *)
+extension Span where Element: Equatable & ~Copyable {
+  @_alwaysEmitIntoClient
+  package func _elementsEqual(to other: borrowing Self) -> Bool {
+    return self.withUnsafeBufferPointer { a in
+      other.withUnsafeBufferPointer { b in
+        guard a.count == b.count else { return false }
+        guard a.baseAddress != b.baseAddress else { return true }
+        var i = 0
+        while i < self.count {
+          guard a[i] == b[i] else { return false }
+          i &+= 1
+        }
+        return true
+      }
+    }
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Equatable /* & ~Copyable */ {
   @_alwaysEmitIntoClient
@@ -56,6 +76,7 @@ extension Span where Element: Equatable /* & ~Copyable */ {
     }
   }
 }
+#endif
 
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Hashable /* & ~Copyable */ {
