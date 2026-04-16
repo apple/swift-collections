@@ -786,6 +786,28 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_negative_capacity() {
+    // https://github.com/apple/swift-collections/issues/608
+    let set = OrderedSet<Int>(minimumCapacity: -1)
+    expectEqual(set.__unstable.scale, 0)
+    expectEqual(set.__unstable.reservedScale, 0)
+    expectEqual(set.__unstable.minimumCapacity, 0)
+    expectTrue(set.isEmpty)
+
+    let set2 = OrderedSet<Int>(minimumCapacity: -1, persistent: true)
+    expectEqual(set2.__unstable.scale, 0)
+    expectEqual(set2.__unstable.reservedScale, 0)
+    expectEqual(set2.__unstable.minimumCapacity, 0)
+    expectTrue(set2.isEmpty)
+
+    var set3 = OrderedSet<Int>([1, 2, 3])
+    set3.reserveCapacity(-1)
+    expectEqual(set3.count, 3)
+    expectTrue(set3.contains(1))
+    expectTrue(set3.contains(2))
+    expectTrue(set3.contains(3))
+  }
+
   func test_init_minimumCapacity() {
     withEvery("capacity", in: 0 ..< 1000) { capacity in
       let expectedScale = OrderedSet<Int>._scale(forCapacity: capacity)

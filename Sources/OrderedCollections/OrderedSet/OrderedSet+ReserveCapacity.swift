@@ -96,7 +96,7 @@ extension OrderedSet {
     _ minimumCapacity: Int,
     persistent: Bool
   ) {
-    precondition(minimumCapacity >= 0, "Minimum capacity cannot be negative")
+    let minimumCapacity = Swift.max(minimumCapacity, 0)
     defer { _checkInvariants() }
 
     _elements.reserveCapacity(minimumCapacity)
