@@ -14,11 +14,12 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol Container<Element>: BorrowingSequence_, ~Copyable, ~Escapable
-where Element: ~Copyable, Element == Element_
+public protocol Container<Element>:
+  BorrowingSequence_, ~Copyable, ~Escapable
+  where Element: ~Copyable, Element == Element_
 {
   associatedtype Element: ~Copyable
-  associatedtype Index: Comparable
+  associatedtype Index: Equatable
   // FIXME: Ideally Index should also be required to be Hashable.
   // FIXME: If we discard the separate BorrowingSequence abstraction, then we
   // should consider dropping Comparable and just having Equatable indices, so
@@ -28,6 +29,7 @@ where Element: ~Copyable, Element == Element_
   // somewhere -- `RandomAccessContainer` or `BidirectionalContainer` would be
   // the obvious candidates.
 
+  var isEmpty: Bool { get }
   var count: Int { get }
 
   var startIndex: Index { get }
@@ -164,10 +166,41 @@ where Element: ~Copyable, Element == Element_
   func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
 
   //  subscript(index: Index) -> Element { borrow }
-  
-  // FIXME: Do we want these as standard requirements this time?
+
+  /// Return the nearest valid index in this container less than or equal to
+  /// the given index value, which must be valid in at least one view of self.
+  ///
+  /// This operation is important for container types that provide multiple
+  /// alternative projections (or "views") over the same underlying
+  /// representation, with each view conforming to `Container`, and sharing
+  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
+  /// Unicode ccalar and character views in the `Collection` world.)
+  /// This rounding operation enables clients to convert/normalize valid index
+  /// values in one container view into valid indices in another, allowing them
+  /// to (easily) decide whether two (potentially misaligned) index values
+  /// address the same element.
+  ///
+  /// The default implementation of this operation simply returns `index`.
   func index(alignedDown index: Index) -> Index
+
+  /// Return the nearest valid index in this container greater than or equal to
+  /// the given index value, which must be valid in at least one view of self.
+  ///
+  /// This operation is important for container types that provide multiple
+  /// alternative projections (or "views") over the same underlying
+  /// representation, with each view conforming to `Container`, and sharing
+  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
+  /// Unicode ccalar and character views in the `Collection` world.)
+  /// This rounding operation enables clients to convert/normalize valid index
+  /// values in one container view into valid indices in another, allowing them
+  /// to (easily) decide whether two (potentially misaligned) index values
+  /// address the same element.
+  ///
+  /// The default implementation of this operation simply returns `index`.
   func index(alignedUp index: Index) -> Index
+
+  func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
+  func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -229,77 +262,41 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
+  public var isEmpty: Bool {
+    startIndex == endIndex
+  }
+
+  @inlinable
+  public var count: Int {
+    distance(from: startIndex, to: endIndex)
+  }
+
+  @inlinable
   public func formIndex(after index: inout Index) {
     index = self.index(after: index)
   }
 
   @inlinable
   public func index(_ index: Index, offsetBy n: Int) -> Index {
-    _defaultIndex(index, advancedBy: n)
-  }
-  
-  @inlinable
-  public func formIndex(
-    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
-  ) {
-    _defaultFormIndex(&index, advancedBy: &n, limitedBy: limit)
-  }
-
-  @inlinable
-  public func distance(from start: Index, to end: Index) -> Int {
-    _defaultDistance(from: start, to: end)
-  }
-
-  @inlinable
-  public func index(alignedDown index: Index) -> Index { index }
-
-  @inlinable
-  public func index(alignedUp index: Index) -> Index { index }
-}
-
-
-@available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @inlinable
-  public func _defaultDistance(from start: Index, to end: Index) -> Int {
-    // FIXME: Use binary search here (with nextSpan(after:maximumCount:))
-    var start = index(alignedDown: start)
-    let end = index(alignedDown: end)
-    if start > end {
-      return -_defaultDistance(from: end, to: start)
-    }
-    var count = 0
-    while start != end {
-      count = count + 1
-      formIndex(after: &start)
-    }
-    return count
-  }
-
-  @inlinable
-  public func _defaultIndex(_ i: Index, advancedBy distance: Int) -> Index {
     precondition(
-      distance >= 0,
+      n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
 
-    var i = index(alignedDown: i)
-    var distance = distance
+    var index = self.index(alignedDown: index)
+    var n = n
 
-    #if true // with nextSpan(after:maximumCount:)
-    while distance > 0 {
-      let span = self.nextSpan(after: &i, maximumCount: distance)
+#if true // with nextSpan(after:maximumCount:)
+    while n > 0 {
+      let span = self.nextSpan(after: &index, maximumCount: n)
       precondition(
         !span.isEmpty,
         "Cannot advance index beyond the end of the container")
-      distance &-= span.count
+      n &-= span.count
     }
-    return i
-    #else // without nextSpan(after:maximumCount:)
-    // FIXME: This implementation can be wasteful for contiguous containers,
-    // as iterating over spans will overshoot the target immediately.
-    // Reintroducing `nextSpan(after:maximumCount:)` would help avoid
-    // having to use a second loop to refine the result, but it would
-    // complicate conformances.
+    return index
+#else // without nextSpan(after:maximumCount:)
+    // FIXME: This implementation can be wasteful for piecewise contiguous
+    // containers, as iterating over spans will tend to overshoot the target.
 
     // Skip forward until we find the span that contains our target.
     while distance > 0 {
@@ -318,75 +315,100 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       distance &-= 1
     }
     return i
-    #endif
+#endif
   }
 
   @inlinable
-  public func _defaultFormIndex(
-    _ i: inout Index,
-    advancedBy distance: inout Int,
-    limitedBy limit: Index
+  public func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
     precondition(
-      distance >= 0,
+      n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
 
-    i = index(alignedDown: i)
-    let limit = index(alignedDown: limit)
-    if i > limit {
-      i = self.index(i, offsetBy: distance)
-      distance = 0
-      return
-    }
+    index = self.index(alignedDown: index)
+    let limit = self.index(alignedDown: limit)
 
-#if true // with nextSpan(after:maximumCount:)
-    // Skip forward until find our target or overshoot the limit.
-    while distance > 0, i < limit {
-      var j = i
-      let span = self.nextSpan(after: &j, maximumCount: distance)
-      precondition(
-        !span.isEmpty,
-        "Cannot advance index beyond the end of the container")
-      if j > limit {
-        break
-      }
-      i = j
-      distance &-= span.count
+    // Note: with Index not conforming to `Comparable`, we cannot do bulk
+    // iteration here, as we have no way to decide if we stepped over `limit`.
+    while n > 0, index != limit {
+      self.formIndex(after: &index)
+      n &-= 1
     }
-    // Step through to find the precise target.
-    // FIXME: Use binary search here
-    while distance != 0 {
-      if i == limit {
-        return
+  }
+
+  @inlinable
+  public func distance(from start: Index, to end: Index) -> Int {
+#if true
+    // This variant does not require that `start` precede `end`, but it's
+    // slower/larger.
+    // FIXME: Linked lists may require an even slower implementation
+    // to avoid looping (turtle/hare cycle detection).
+    let start = self.index(alignedDown: start)
+    let end = self.index(alignedDown: end)
+    let limit = self.endIndex
+    var a = start
+    var b = end
+    var d = 0
+    while true {
+      if a == end { return d }
+      if b == start { return -d }
+      if a == limit {
+        while b != end {
+          self.formIndex(after: &b)
+          d += 1
+        }
+        return -d
       }
-      formIndex(after: &i)
-      distance &-= 1
-    }
-#else // without nextSpan(after:maximumCount:)
-    // Skip forward until we find the span that contains our target.
-    while distance > 0 {
-      var j = i
-      let span = self.nextSpan(after: &j)
-      precondition(
-        !span.isEmpty,
-        "Cannot advance index beyond the end of the container")
-      guard span.count <= distance, j < limit else {
-        break
+      if b == limit {
+        while a != end {
+          self.formIndex(after: &a)
+          d += 1
+        }
+        return d
       }
-      i = j
-      distance &-= span.count
+      self.formIndex(after: &a)
+      self.formIndex(after: &b)
+      d += 1
     }
-    // Step through to find the precise target.
-    while distance != 0 {
-      if i == limit {
-        return
-      }
-      formIndex(after: &i)
-      distance &-= 1
+#else
+    // This variant requires that `start` precede `end`, but we cannot ensure
+    // that with a quick check, so we need to compare against the `endIndex` to
+    // avoid looping indefinitely.
+    // FIXME: Linked lists may require an even slower implementation
+    // to avoid looping (turtle/hare cycle detection).
+    let i = self.index(alignedDown: start)
+    let target = self.index(alignedDown: end)
+    let limit = self.endIndex
+    var count = 0
+    while i != target {
+      self.formIndex(after: &i)
+      precondition(i != limit, "Only BidirectionalContainers can have end come before start")
+      count += 1
     }
+    return count
 #endif
   }
+
+  @inlinable
+  public func index(alignedDown index: Index) -> Index { index }
+
+  @inlinable
+  public func index(alignedUp index: Index) -> Index { index }
+
+  @inlinable
+  public func _customIndexOfEquatableElement(_: borrowing Element) -> Index?? {
+    nil
+  }
+
+  @inlinable
+  public func _customLastIndexOfEquatableElement(
+    _ element: borrowing Element
+  ) -> Index?? {
+    nil
+  }
 }
+
 
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
@@ -395,40 +417,4 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 
 #endif
-
-extension Strideable {
-  @inlinable
-  package mutating func _advance(
-    by distance: inout Stride, limitedBy limit: Self
-  ) {
-    if distance >= 0 {
-      guard limit >= self else {
-        self = self.advanced(by: distance)
-        distance = 0
-        return
-      }
-      let d = Swift.min(distance, self.distance(to: limit))
-      self = self.advanced(by: d)
-      distance -= d
-    } else {
-      guard limit <= self else {
-        self = self.advanced(by: distance)
-        distance = 0
-        return
-      }
-      let d = Swift.max(distance, self.distance(to: limit))
-      self = self.advanced(by: d)
-      distance -= d
-    }
-  }
-
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  @inlinable
-  public mutating func advance(
-    by distance: inout Stride, limitedBy limit: Self
-  ) {
-    _advance(by: &distance, limitedBy: limit)
-  }
-#endif
-}
 

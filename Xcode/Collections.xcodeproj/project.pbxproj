@@ -160,6 +160,7 @@
 		7D9748D62E9748930098631A /* BigString+Chunk+Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748CF2E9748930098631A /* BigString+Chunk+Character.swift */; };
 		7D9748D72E9748930098631A /* BigString+Chunk+Index.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D02E9748930098631A /* BigString+Chunk+Index.swift */; };
 		7D9748D82E9748930098631A /* BigString+Chunk+UTF8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D22E9748930098631A /* BigString+Chunk+UTF8.swift */; };
+		7D974BC42F91BCD0009A4F88 /* Strideable+Limits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D974BC32F91BCD0009A4F88 /* Strideable+Limits.swift */; };
 		7D9B75772F3E65E00048157E /* _HTable+Debug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B75762F3E65DB0048157E /* _HTable+Debug.swift */; };
 		7D9B859729E4F74400B291CD /* BitArray+Shifts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */; };
 		7D9B859829E4F74400B291CD /* BitArray+Descriptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */; };
@@ -759,6 +760,7 @@
 		7D9748D12E9748930098631A /* BigString+Chunk+UnicodeScalar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UnicodeScalar.swift"; sourceTree = "<group>"; };
 		7D9748D22E9748930098631A /* BigString+Chunk+UTF8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UTF8.swift"; sourceTree = "<group>"; };
 		7D9748D32E9748930098631A /* BigString+Chunk+UTF16.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UTF16.swift"; sourceTree = "<group>"; };
+		7D974BC32F91BCD0009A4F88 /* Strideable+Limits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Strideable+Limits.swift"; sourceTree = "<group>"; };
 		7D9B75762F3E65DB0048157E /* _HTable+Debug.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "_HTable+Debug.swift"; sourceTree = "<group>"; };
 		7D9B859129E4F74400B291CD /* BitArray+Shifts.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Shifts.swift"; sourceTree = "<group>"; };
 		7D9B859229E4F74400B291CD /* BitArray+Descriptions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitArray+Descriptions.swift"; sourceTree = "<group>"; };
@@ -1417,17 +1419,18 @@
 		7D57EDCE2F647DB10029D5E3 /* Container */ = {
 			isa = PBXGroup;
 			children = (
-				7D57EDC52F647DB10029D5E3 /* BidirectionalContainer.swift */,
 				7D57EDC62F647DB10029D5E3 /* Container.swift */,
 				7D57EDEA2F649CEF0029D5E3 /* Container+Filter.swift */,
 				7D57EDC72F647DB10029D5E3 /* Container+SpanwiseZip.swift */,
 				7D57EDEC2F649F0C0029D5E3 /* ContainerIterator.swift */,
-				7D57EDC82F647DB10029D5E3 /* DynamicContainer.swift */,
-				7D57EDC92F647DB10029D5E3 /* MutableContainer.swift */,
-				7D57EDCA2F647DB10029D5E3 /* PermutableContainer.swift */,
+				7D57EDC52F647DB10029D5E3 /* BidirectionalContainer.swift */,
 				7D57EDCB2F647DB10029D5E3 /* RandomAccessContainer.swift */,
+				7D57EDCA2F647DB10029D5E3 /* PermutableContainer.swift */,
+				7D57EDC92F647DB10029D5E3 /* MutableContainer.swift */,
 				7D57EDCC2F647DB10029D5E3 /* RangeExpression2.swift */,
 				7D57EDCD2F647DB10029D5E3 /* RangeReplaceableContainer.swift */,
+				7D57EDC82F647DB10029D5E3 /* DynamicContainer.swift */,
+				7D974BC32F91BCD0009A4F88 /* Strideable+Limits.swift */,
 			);
 			path = Container;
 			sourceTree = "<group>";
@@ -2655,6 +2658,7 @@
 				7D479CBD2F46D05600A8CB59 /* RigidSet+Lookup.swift in Sources */,
 				7DE9212B29CA70F4004483EB /* TreeSet+SetAlgebra subtracting.swift in Sources */,
 				7D57EDE92F6499750029D5E3 /* BorrowingIteratorProtocol+Filter.swift in Sources */,
+				7D974BC42F91BCD0009A4F88 /* Strideable+Limits.swift in Sources */,
 				7DE920F629CA70F4004483EB /* BitArray+Equatable.swift in Sources */,
 				7D9B859829E4F74400B291CD /* BitArray+Descriptions.swift in Sources */,
 				7DE9212329CA70F4004483EB /* TreeSet+SetAlgebra isEqualSet.swift in Sources */,

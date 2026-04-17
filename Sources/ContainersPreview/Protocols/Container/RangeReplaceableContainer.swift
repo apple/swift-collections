@@ -22,7 +22,9 @@ import InternalCollectionsUtilities
 @available(SwiftStdlib 5.0, *)
 public protocol RangeReplaceableContainer<Element>
 : Container, ~Copyable, ~Escapable
-where Element: ~Copyable
+where
+  Element: ~Copyable,
+  Index: Comparable // For `Range<Index>`
 {
   // Core requirements
 
