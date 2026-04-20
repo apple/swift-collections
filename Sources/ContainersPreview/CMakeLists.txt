@@ -38,6 +38,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Container/RandomAccessContainer.swift"
   "Protocols/Container/RangeExpression2.swift"
   "Protocols/Container/RangeReplaceableContainer.swift"
+  "Protocols/Container/Strideable+Limits.swift"
   "Protocols/BorrowingIteratorProtocol.swift"
   "Protocols/BorrowingIteratorProtocol+Copy.swift"
   "Protocols/BorrowingIteratorProtocol+ElementsEqual.swift"
