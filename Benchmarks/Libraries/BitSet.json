@@ -7,6 +7,54 @@
       "kind": "group",
       "title": "BitSet Operations",
       "contents": [
+        {
+          "kind": "chart",
+          "title": "iteration-00",
+          "tasks": [
+            "BitSet iteration (0% filled)",
+            "BitSet index(after:) (0% filled)"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "iteration-00.1%",
+          "tasks": [
+            "BitSet iteration (0.1% filled)",
+            "BitSet index(after:) (0.1% filled)"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "iteration-1%",
+          "tasks": [
+            "BitSet iteration (1% filled)",
+            "BitSet index(after:) (1% filled)"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "iteration-10%",
+          "tasks": [
+            "BitSet iteration (10% filled)",
+            "BitSet index(after:) (10% filled)"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "iteration-25%",
+          "tasks": [
+            "BitSet iteration (25% filled)",
+            "BitSet index(after:) (25% filled)"
+          ]
+        },
+        {
+          "kind": "chart",
+          "title": "iteration-50%",
+          "tasks": [
+            "BitSet iteration (50% filled)",
+            "BitSet index(after:) (50% filled)"
+          ]
+        },
       ]
     },
     {

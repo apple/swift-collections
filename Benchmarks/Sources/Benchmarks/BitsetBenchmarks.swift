@@ -55,6 +55,34 @@ extension Benchmark {
       }
     }
 
+    for (percentage, count) in fillRatios {
+      self.add(
+        title: "BitSet index(after:) (\(percentage) filled)",
+        input: Int.self
+      ) { input in
+        guard input > 0 else { return nil }
+
+        var set = BitSet(reservingCapacity: input)
+        for i in (0 ..< input).shuffled().prefix(count(input)) {
+          set.insert(i)
+        }
+        // Make sure the set actually fills its storage capacity.
+        set.insert(input - 1)
+
+        return { timer in
+          var c = 0
+          timer.measure {
+            var i = set.startIndex
+            while i != set.endIndex {
+              c += 1
+              set.formIndex(after: &i)
+            }
+          }
+          precondition(c == set.count)
+        }
+      }
+    }
+
     self.add(
       title: "BitSet distance(from:to:)",
       input: Int.self
