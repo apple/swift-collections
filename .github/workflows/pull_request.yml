@@ -24,7 +24,7 @@ jobs:
     name: Containers Test
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.9
     with:
-      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "nightly-6.3"}]'
+      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "6.3"}, {"swift_version": "nightly-6.3"}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
       macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}, {"xcode_version": "16.3"}, {"xcode_version": "16.4"}]'
       enable_macos_checks: false
@@ -36,7 +36,7 @@ jobs:
     name: Hashed Containers Test
     uses: swiftlang/github-workflows/.github/workflows/swift_package_test.yml@0.0.9
     with:
-      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "nightly-6.3"}]'
+      linux_exclude_swift_versions: '[{"swift_version": "5.8"}, {"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}, {"swift_version": "6.3"}, {"swift_version": "nightly-6.3"}]'
       windows_exclude_swift_versions: '[{"swift_version": "5.9"}, {"swift_version": "5.10"}, {"swift_version": "6.0"}, {"swift_version": "6.1"}, {"swift_version": "6.2"}]'
       macos_exclude_xcode_versions: '[{"xcode_version": "26.0"}, {"xcode_version": "16.3"}, {"xcode_version": "16.4"}]'
       enable_macos_checks: false

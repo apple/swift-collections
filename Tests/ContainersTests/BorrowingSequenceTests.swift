@@ -11,10 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import XCTest
 
-#if compiler(>=6.4)
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
@@ -22,6 +20,7 @@ import _CollectionsTestSupport
 import ContainersPreview
 #endif
 
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 final class BorrowingSequenceTests: XCTestCase {
   @available(SwiftStdlib 6.2, *)
   func testBasic() {
@@ -88,13 +87,4 @@ struct NoncopyableInt: ~Copyable, Equatable {
   }
 }
 
-#else
-
-final class BorrowingSequenceTests: XCTestCase {
-  func testRequire64Compiler() {
-    XCTFail("'BorrowingSequenceTests' requires a Swift 6.4 compiler.")
-  }
-}
-
-#endif
 #endif
