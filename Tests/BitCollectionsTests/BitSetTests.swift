@@ -192,6 +192,29 @@ final class BitSetTest: CollectionTestCase {
     }
   }
 
+  func test_makeIterator_from() {
+    let max = 1000
+    withInterestingSets("input", maximum: max) { input in
+      let bits = BitSet(input)
+      let values = input.sorted()
+
+      withEvery("i", in: values.indices) { i in
+        let j = bits.firstIndex(of: values[i])!
+        var it = bits.makeIterator(from: j)
+
+        for k in i ..< values.count {
+          expectNotNil(it.next()) { v in
+            expectEqual(v, values[k])
+          }
+        }
+        expectNil(it.next())
+      }
+
+      var it = bits.makeIterator(from: bits.endIndex)
+      expectNil(it.next())
+    }
+  }
+
   func test_hashable() {
     // This is a silly test, but it does exercise hashing a bit.
     let classes: [[BitSet]] = [
