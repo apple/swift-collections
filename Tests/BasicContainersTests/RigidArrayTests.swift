@@ -1272,6 +1272,90 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_replace_consuming_full() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
+          withLifetimeTracking { tracker in
+            var a = tracker.rigidArray(layout: layout)
+
+            a.replace(
+              removing: subrange,
+              consumingWith: { span in
+                for i in 0 ..< subrange.count {
+                  expectEqual(span[i].payload, subrange.lowerBound + i)
+                }
+                span.removeAll()
+              },
+              addingCount: c
+            ) { target in
+              expectEqual(target.freeCapacity, c)
+              for i in 0 ..< c {
+                target.append(tracker.instance(for: layout.count + i))
+              }
+            }
+
+            var expected = Array(0 ..< layout.count)
+            expected.replaceSubrange(subrange, with: layout.count ..< layout.count + c)
+
+            expectRigidArrayContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+            expectEqual(tracker.instances, layout.count - subrange.count + c)
+          }
+        }
+      }
+    }
+  }
+
+  func test_replace_consuming_partial() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      guard !layout.isFull else { return }
+      withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
+        withEvery("c", in: 1 ..< layout.freeCapacity) { c in
+          withEvery("n", in: [0, 1, c / 2, c - 1] as Set) { n in
+            withLifetimeTracking { tracker in
+              var a = tracker.rigidArray(layout: layout)
+
+              a.replace(
+                removing: subrange,
+                consumingWith: { span in
+                  for i in 0 ..< subrange.count {
+                    expectEqual(span[i].payload, subrange.lowerBound + i)
+                  }
+                  span.removeAll()
+                },
+                addingCount: c
+              ) { target in
+                expectTrue(target.isEmpty)
+                expectEqual(target.freeCapacity, c)
+                for i in 0 ..< n {
+                  target.append(tracker.instance(for: layout.count + i))
+                }
+              }
+
+              expectEqual(a.count, layout.count - subrange.count + n)
+              expectEqual(tracker.instances, layout.count - subrange.count + n)
+
+              var expected = Array(0 ..< layout.count)
+              expected.replaceSubrange(subrange, with: layout.count ..< layout.count + n)
+
+              expectRigidArrayContents(
+                a,
+                equivalentTo: expected,
+                by: { $0.payload == $1 },
+                printer: { "\($0.payload)" })
+            }
+          }
+        }
+      }
+    }
+  }
+#endif
+
   func test_replace_Collection() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
