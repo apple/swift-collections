@@ -880,6 +880,10 @@ class UniqueArrayTests: CollectionTestCase {
                 by: { $0.payload == $1 },
                 printer: { "\($0.payload)" })
               expectEqual(tracker.instances, layout.count + c)
+
+              if c <= range.count {
+                expectEqual(a.capacity, layout.capacity)
+              }
             }
           }
         }
@@ -908,6 +912,10 @@ class UniqueArrayTests: CollectionTestCase {
               by: { $0.payload == $1 },
               printer: { "\($0.payload)" })
             expectEqual(tracker.instances, layout.count - range.count + c)
+
+            if c <= range.count {
+              expectEqual(a.capacity, layout.capacity)
+            }
           }
         }
       }
@@ -934,6 +942,43 @@ class UniqueArrayTests: CollectionTestCase {
               by: { $0.payload == $1 },
               printer: { "\($0.payload)" })
             expectEqual(tracker.instances, layout.count - range.count + c)
+
+            if c <= range.count {
+              expectEqual(a.capacity, layout.capacity)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_replace_copying_UnsafeBufferPointer() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
+      withEveryRange("range", in: 0 ..< layout.count) { range in
+        withEvery("c", in: [0, 1, 10, 100]) { c in
+          withLifetimeTracking { tracker in
+            var expected = Array(0 ..< layout.count)
+            let addition = (0 ..< c).map { -100 - $0 }
+            expected.replaceSubrange(range, with: addition)
+
+            let trackedAddition = RigidArray(
+              copying: addition.map { tracker.instance(for: $0) })
+
+            var a = tracker.uniqueArray(layout: layout)
+            trackedAddition.span.withUnsafeBufferPointer { buffer in
+              a.replace(removing: range, copying: buffer)
+            }
+
+            expectUniqueArrayContents(
+              a,
+              equivalentTo: expected,
+              by: { $0.payload == $1 },
+              printer: { "\($0.payload)" })
+            expectEqual(tracker.instances, layout.count - range.count + c)
+
+            if c <= range.count {
+              expectEqual(a.capacity, layout.capacity)
+            }
           }
         }
       }
