@@ -37,6 +37,16 @@ extension BitSet: Sequence {
     return Iterator(self)
   }
 
+  /// Returns an iterator over the elements of the bit set, starting from the
+  /// given index.
+  ///
+  /// - Parameter index: A valid index of the collection.
+  /// - Complexity: O(1)
+  @inlinable
+  public func makeIterator(from index: Index) -> Iterator {
+    return Iterator(_bitset: self, from: index)
+  }
+
   public func _customContainsEquatableElement(
     _ element: Int
   ) -> Bool? {
@@ -59,6 +69,20 @@ extension BitSet: Sequence {
       self.word = bitset._read { handle in
         guard handle.wordCount > 0 else { return .empty }
         return handle._words[0]
+      }
+    }
+
+    @usableFromInline
+    internal init(_bitset: BitSet, from start: Index) {
+      self.bitset = _bitset
+      let (word, bit) = start._position.split
+      self.index = word
+      self.word = bitset._read { handle in
+        precondition(word <= handle.wordCount, "Invalid index")
+        guard word < handle.wordCount else { return .empty }
+        var w = handle._words[word]
+        w.removeAll(upTo: bit)
+        return w
       }
     }
 
