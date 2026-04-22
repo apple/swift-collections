@@ -428,6 +428,36 @@ class RigidSetTests: CollectionTestCase {
       }
     }
   }
+
+  func test_insert_drain_maximumCount() {
+    withEvery("capacity", in: [5, 10, 100]) { capacity in
+      withEvery("drainLength", in: [0, 1, 2, 4, 10, capacity]) { drainLength in
+        withEvery("maxCount", in: [0, 1, 2, 3, 5]) { maxCount in
+          withEvery("chunkSize", in: [1, 2, 3, 10]) { chunkSize in
+            withLifetimeTracking { tracker in
+              var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
+
+              var i = 0
+              var drain = CustomDrain<LifetimeTracked<Int>>(
+                underestimatedCount: 0,
+                chunkSize: chunkSize
+              ) {
+                guard i < drainLength else { return nil }
+                defer { i += 1 }
+                return tracker.instance(for: i)
+              }
+              s.insert(maximumCount: maxCount, from: &drain)
+              expectConsistentSet(s)
+
+              let expectedCount = Swift.min(maxCount, drainLength)
+              expectEqual(s.count, expectedCount)
+              expectEqual(i, expectedCount)
+            }
+          }
+        }
+      }
+    }
+  }
 #endif
 
   func test_remove_one() {
