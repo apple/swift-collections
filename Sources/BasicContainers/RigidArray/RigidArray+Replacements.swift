@@ -193,7 +193,8 @@ extension RigidArray where Element: ~Copyable {
         if c < newItemCount {
           self._closeGap(
             at: subrange.lowerBound &+ c,
-            count: capacity &- c)
+            count: newItemCount &- c)
+          _count &-= newItemCount &- c
         }
         span = OutputSpan()
       }
