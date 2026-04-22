@@ -198,10 +198,10 @@ extension RigidSet where Element: ~Copyable {
     while remainder > 0 {
       var span = drain.drainNext(maximumCount: remainder)
       guard !span.isEmpty else { break }
+      remainder &-= span.count
       while let next = span.popFirst() {
         self.insert(next)
       }
-      remainder &-= span.count
     }
   }
 #endif
