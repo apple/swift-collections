@@ -1467,5 +1467,23 @@ class RigidArrayTests: CollectionTestCase {
     expectUniqueArrayContents(transformed, equalTo: expected)
   }
 #endif
+
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_consume_subrange_drainNext() {
+    withLifetimeTracking { tracker in
+      var a = RigidArray<LifetimeTracked<Int>>(capacity: 4)
+      for i in 0 ..< 4 {
+        a.append(tracker.instance(for: i))
+      }
+
+      var consumer = a.consume(0 ..< 2)
+      let span = consumer.drainNext(maximumCount: .max)
+
+      expectEqual(span.count, 2)
+      expectEqual(span[0].payload, 0)
+      expectEqual(span[1].payload, 1)
+    }
+  }
+#endif
 }
 #endif
