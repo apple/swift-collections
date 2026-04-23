@@ -32,7 +32,22 @@ extension OrderedDictionary {
   /// Replaces the key-value pair at the specified index with a new pair,
   /// returning the original element.
   ///
-  /// The new key must not already exist in the dictionary.
+  /// The new key must either not already exist in the dictionary, or be
+  /// equal to the key currently stored at `index`. The latter form is
+  /// useful when equal keys can be distinguished by identity or some other
+  /// means — for example, replacing a decomposed Unicode string with its
+  /// precomposed equivalent:
+  ///
+  ///     var dict: OrderedDictionary = [
+  ///         "a": 1, "e\u{301}": 2, "c": 3
+  ///     ]
+  ///     dict.replaceElement(at: 1, withKey: "é", value: 2)
+  ///     // dict is now ["a": 1, "é": 2, "c": 3]
+  ///
+  /// In the general case, the new pair is appended, swapped into position,
+  /// and the old element is removed from the end — each step is O(1).
+  /// When the new key compares equal to the one being replaced, the pair
+  /// is updated in place and the hash table is left untouched.
   ///
   ///     var dict: OrderedDictionary = [
   ///         "a": 1, "b": 2, "c": 3
@@ -41,16 +56,11 @@ extension OrderedDictionary {
   ///     // old == (key: "b", value: 2)
   ///     // dict is now ["a": 1, "d": 4, "c": 3]
   ///
-  /// This method appends the new pair, swaps it into position, and removes
-  /// the old element from the end, achieving expected amortized O(1)
-  /// performance — unlike `remove(at:)` followed by an insertion, which
-  /// would be O(`count`).
-  ///
   /// - Parameters:
   ///   - index: The index of the element to replace. `index` must be a valid
   ///     index of the dictionary.
-  ///   - key: The key of the new element. The dictionary must not already
-  ///     contain this key.
+  ///   - key: The key of the new element. If the dictionary already contains
+  ///     this key, it must be at `index`.
   ///   - value: The value of the new element.
   ///
   /// - Returns: The original key-value pair that was replaced.
@@ -67,6 +77,17 @@ extension OrderedDictionary {
     precondition(index >= 0 && index < count, "Index out of range")
 
     let (existingIndex, bucket) = _keys._find(key)
+
+    // The new key compares equal to the one already at `index` — replace
+    // in place. The hash bucket is unchanged, so no rehash is needed.
+    if existingIndex == index {
+      let oldKey = _keys.update(key, at: index)
+      let oldValue = _values[index]
+      _values[index] = value
+      _checkInvariants()
+      return (oldKey, oldValue)
+    }
+
     precondition(existingIndex == nil, "Duplicate key: '\(key)'")
 
     // Append the new key-value pair at the end — amortized O(1)
