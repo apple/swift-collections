@@ -2,7 +2,7 @@
 //
 // This source file is part of the Swift Collections open source project
 //
-// Copyright (c) 2026 Apple Inc. and the Swift project authors
+// Copyright (c) 2022 - 2026 Apple Inc. and the Swift project authors
 // Licensed under Apache License v2.0 with Runtime Library Exception
 //
 // See https://swift.org/LICENSE.txt for license information
@@ -11,43 +11,44 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// A type with precisely controlled hash values. This can be used to set up
-/// hash tables with fully deterministic contents.
-package struct RawCollider:
-  Hashable, CustomStringConvertible
+/// A type with manually controlled hash values, for easy testing of collision
+/// scenarios.
+package struct Collider:
+  Hashable, CustomStringConvertible, CustomDebugStringConvertible
 {
   package var identity: Int
-  package var rawHashValue: Int
+  package var hash: Hash
 
-  package init(_ identity: Int, _ rawHashValue: Int) {
+  package init(_ identity: Int, _ hash: Hash) {
     self.identity = identity
-    self.rawHashValue = rawHashValue
+    self.hash = hash
   }
 
   package init(_ identity: Int) {
     self.identity = identity
-    self.rawHashValue = identity
+    self.hash = Hash(identity)
+  }
+
+  package init(_ identity: String) {
+    self.hash = Hash(identity)!
+    self.identity = hash.value
   }
 
   package static func ==(left: Self, right: Self) -> Bool {
     guard left.identity == right.identity else { return false }
-    precondition(left.rawHashValue == right.rawHashValue)
+    precondition(left.hash == right.hash)
     return true
   }
 
-  package var hashValue: Int {
-    fatalError("Don't")
-  }
-
   package func hash(into hasher: inout Hasher) {
-    fatalError("Don't")
-  }
-
-  package func _rawHashValue(seed: Int) -> Int {
-    rawHashValue
+    hasher.combine(hash.value)
   }
 
   package var description: String {
-    "\(identity)#\(rawHashValue)"
+    "\(identity)(#\(hash))"
+  }
+
+  package var debugDescription: String {
+    description
   }
 }

@@ -25,6 +25,8 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
+  "Multispans/InputMultispan.swift"
+  "Multispans/OutputMultispan.swift"
   "RigidArray/RigidArray.swift"
   "RigidArray/RigidArray+Append.swift"
   "RigidArray/RigidArray+Consumption.swift"
@@ -36,6 +38,7 @@ target_sources(${module_name} PRIVATE
   "RigidArray/RigidArray+Hashable.swift"
   "RigidArray/RigidArray+Initializers.swift"
   "RigidArray/RigidArray+Insertions.swift"
+  "RigidArray/RigidArray+OutputMultispan.swift"
   "RigidArray/RigidArray+Removals.swift"
   "RigidArray/RigidArray+Replacements.swift"
   "UniqueArray/UniqueArray.swift"
@@ -49,6 +52,7 @@ target_sources(${module_name} PRIVATE
   "UniqueArray/UniqueArray+Hashable.swift"
   "UniqueArray/UniqueArray+Initializers.swift"
   "UniqueArray/UniqueArray+Insertions.swift"
+  "UniqueArray/UniqueArray+OutputMultispan.swift"
   "UniqueArray/UniqueArray+Removals.swift"
   "UniqueArray/UniqueArray+Replacements.swift"
   "HashTable/_HTable.swift"
