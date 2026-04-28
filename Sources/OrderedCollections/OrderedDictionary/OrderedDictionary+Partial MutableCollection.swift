@@ -29,6 +29,83 @@ extension OrderedDictionary {
     _values.swapAt(i, j)
   }
 
+  /// Replaces the key-value pair at the specified index with a new pair,
+  /// returning the original element.
+  ///
+  /// The new key must either not already exist in the dictionary, or be
+  /// equal to the key currently stored at `index`. The latter form is
+  /// useful when equal keys can be distinguished by identity or some other
+  /// means — for example, replacing a decomposed Unicode string with its
+  /// precomposed equivalent:
+  ///
+  ///     var dict: OrderedDictionary = [
+  ///         "a": 1, "e\u{301}": 2, "c": 3
+  ///     ]
+  ///     dict.replaceElement(at: 1, withKey: "é", value: 2)
+  ///     // dict is now ["a": 1, "é": 2, "c": 3]
+  ///
+  /// In the general case, the new pair is appended, swapped into position,
+  /// and the old element is removed from the end — each step is O(1).
+  /// When the new key compares equal to the one being replaced, the pair
+  /// is updated in place and the hash table is left untouched.
+  ///
+  ///     var dict: OrderedDictionary = [
+  ///         "a": 1, "b": 2, "c": 3
+  ///     ]
+  ///     let old = dict.replaceElement(at: 1, withKey: "d", value: 4)
+  ///     // old == (key: "b", value: 2)
+  ///     // dict is now ["a": 1, "d": 4, "c": 3]
+  ///
+  /// - Parameters:
+  ///   - index: The index of the element to replace. `index` must be a valid
+  ///     index of the dictionary.
+  ///   - key: The key of the new element. If the dictionary already contains
+  ///     this key, it must be at `index`.
+  ///   - value: The value of the new element.
+  ///
+  /// - Returns: The original key-value pair that was replaced.
+  ///
+  /// - Complexity: Expected amortized O(1), if `Key` implements
+  ///   high-quality hashing.
+  @inlinable
+  @discardableResult
+  public mutating func replaceElement(
+    at index: Int,
+    withKey key: Key,
+    value: Value
+  ) -> Element {
+    precondition(index >= 0 && index < count, "Index out of range")
+
+    let (existingIndex, bucket) = _keys._find(key)
+
+    // The new key compares equal to the one already at `index` — replace
+    // in place. The hash bucket is unchanged, so no rehash is needed.
+    if existingIndex == index {
+      let oldKey = _keys.update(key, at: index)
+      let oldValue = _values[index]
+      _values[index] = value
+      _checkInvariants()
+      return (oldKey, oldValue)
+    }
+
+    precondition(existingIndex == nil, "Duplicate key: '\(key)'")
+
+    // Append the new key-value pair at the end — amortized O(1)
+    _keys._appendNew(key, in: bucket)
+    _values.append(value)
+
+    // Swap the new element into the target position — O(1)
+    _keys.swapAt(index, count - 1)
+    _values.swapAt(index, count - 1)
+
+    // Remove the old element from the end — O(1)
+    let oldKey = _keys.removeLast()
+    let oldValue = _values.removeLast()
+
+    _checkInvariants()
+    return (oldKey, oldValue)
+  }
+
   /// Reorders the elements of the dictionary such that all the elements that
   /// match the given predicate are after all the elements that don't match.
   ///
