@@ -106,6 +106,7 @@ extension UniqueDeque where Element: ~Copyable {
   ) throws(E) {
     _storage._checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    guard newItemCount > 0 else { return }
     _ensureFreeCapacity(newItemCount)
     try _storage._handle.uncheckedInsert(
       addingCount: newItemCount, at: index, initializingWith: initializer)
