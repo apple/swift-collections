@@ -137,6 +137,8 @@ extension RigidDeque where Element: ~Copyable {
   public mutating func nextMutableSpan(
     after index: inout Int, maximumCount: Int
   ) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    precondition(maximumCount > 0, "maximumCount must be positive")
     let segment = self._handle
       .nextSegment(after: index)
       ._extracting(first: maximumCount)

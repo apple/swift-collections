@@ -136,7 +136,8 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
         if let value = value.take() { // Simple update
           _valuePtr(at: bucket).initialize(to: value)
         } else { // Removal
-          _ = _removeValue(at: bucket)
+          self._keyPtr(at: bucket).deinitialize(count: 1)
+          _resolveHole(at: bucket)
         }
       } else if let value = value.take() { // Insertion
         self._insertNew(key.take()!, hashValue: r.hashValue, value)

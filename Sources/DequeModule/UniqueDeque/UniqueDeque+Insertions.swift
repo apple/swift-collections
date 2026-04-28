@@ -79,7 +79,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// times to initialize each successive chunk of storage. However, invocations
   /// cease if the callback fails to fully populate its output span or if
   /// it throws an error. In such cases, the deque keeps all items that were
-  /// successfully initialized before the callback terminated the prepend.
+  /// successfully initialized before the callback terminated the insertion.
   ///
   /// Partial insertions create a gap in ring buffer storage that needs to be
   /// closed by moving already inserted items to their correct positions given
@@ -106,6 +106,7 @@ extension UniqueDeque where Element: ~Copyable {
   ) throws(E) {
     _storage._checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    guard newItemCount > 0 else { return }
     _ensureFreeCapacity(newItemCount)
     try _storage._handle.uncheckedInsert(
       addingCount: newItemCount, at: index, initializingWith: initializer)

@@ -67,13 +67,13 @@ extension RigidDeque where Element: ~Copyable {
   ///     var buffer = RigidDeque<Int>(capacity: 20)
   ///     buffer.append(999)
   ///     var i = 0
-  ///     buffer.prepend(count: 6) { target in
+  ///     buffer.prepend(addingCount: 6) { target in
   ///       while !target.isFull {
   ///         target.append(i)
   ///         i += 1
   ///       }
   ///     }
-  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 6, 999]
+  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 999]
   ///
   /// The newly prepended items are not guaranteed to form a single contiguous
   /// storage region. Therefore, the supplied callback may be invoked multiple
@@ -111,6 +111,7 @@ extension RigidDeque where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     precondition(newItemCount >= 0, "Cannot prepend a negative number of items")
+    guard newItemCount > 0 else { return }
     precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
     try _handle.uncheckedPrepend(addingCount: newItemCount, initializingWith: body)
   }
@@ -203,7 +204,6 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameters:
   ///    - maximumCount: The maximum number of items to prepend to the deque, or
   ///       nil to use all available capacity.
-
   ///    - producer: A producer that generates the items to prepend.
   ///
   /// - Complexity: O(`newItemCount ?? self.freeCapacity`)
@@ -427,7 +427,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
   
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a borrowing sequence to the end of this deque.
+  /// Copies the elements of a borrowing sequence to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
@@ -443,7 +443,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self._prepend(copying: items)
   }
 
-  /// Copies the elements of a borrowing sequence to the end of this deque.
+  /// Copies the elements of a borrowing sequence to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
@@ -459,7 +459,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self._prepend(copying: items, exactCount: items.count)
   }
 
-  /// Copies the elements of a container to the end of this deque.
+  /// Copies the elements of a container to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
@@ -475,7 +475,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self._prepend(copying: items, exactCount: items.count)
   }
 
-  /// Copies the elements of a container to the end of this deque.
+  /// Copies the elements of a container to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.

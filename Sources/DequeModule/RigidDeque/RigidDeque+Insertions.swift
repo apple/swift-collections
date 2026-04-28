@@ -102,6 +102,7 @@ extension RigidDeque where Element: ~Copyable {
   ) throws(E) {
     _checkValidIndex(index)
     precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    guard newItemCount > 0 else { return }
     precondition(newItemCount <= freeCapacity, "RigidDeque capacity overflow")
     try _handle.uncheckedInsert(
       addingCount: newItemCount, at: index, initializingWith: initializer)

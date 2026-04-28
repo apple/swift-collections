@@ -192,6 +192,30 @@ final class UniqueDequeTests: CollectionTestCase {
     }
   }
 
+  func test_replace_removing_addingCount() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("from", in: 0 ... layout.count) { from in
+        withEvery("to", in: from ... layout.count) { to in
+          withEvery("newCount", in: 0 ... 4) { newCount in
+            withLifetimeTracking { tracker in
+              var data = tracker.uniqueDeque(with: layout)
+              let newItems = tracker.instances(for: 100 ..< 100 + newCount)
+              var src = newItems.makeIterator()
+              data.deque.replace(removing: from ..< to, addingCount: newCount) { target in
+                while !target.isFull, let item = src.next() {
+                  target.append(item)
+                }
+              }
+              data.contents.replaceSubrange(from ..< to, with: newItems)
+              expectEqual(data.deque.count, data.contents.count)
+              expectUniqueDequeContents(data.deque, equalTo: data.contents)
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_growth() {
     let expectedCapacities = [
       0, 1, 2, 3, 5, 8, 12, 18, 27, 41, 62, 93, 140, 210, 315

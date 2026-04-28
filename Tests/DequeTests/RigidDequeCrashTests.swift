@@ -79,6 +79,36 @@ struct RigidDequeCrashTests {
       deque.removeLast() // Can't remove last element of an empty RigidDeque
     }
   }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  @Test("nextMutableSpan with out-of-bounds index traps")
+  func nextMutableSpanOutOfBoundsIndex() async {
+    await #expect(processExitsWith: .failure) {
+      var deque = RigidDeque(copying: [1, 2, 3])
+      var index = -1
+      _ = deque.nextMutableSpan(after: &index, maximumCount: 1)
+    }
+    await #expect(processExitsWith: .failure) {
+      var deque = RigidDeque(copying: [1, 2, 3])
+      var index = 4  // valid range is 0...3 (count == 3)
+      _ = deque.nextMutableSpan(after: &index, maximumCount: 1)
+    }
+  }
+
+  @Test("nextMutableSpan with non-positive maximumCount traps")
+  func nextMutableSpanNonPositiveMaximumCount() async {
+    await #expect(processExitsWith: .failure) {
+      var deque = RigidDeque(copying: [1, 2, 3])
+      var index = 0
+      _ = deque.nextMutableSpan(after: &index, maximumCount: 0)
+    }
+    await #expect(processExitsWith: .failure) {
+      var deque = RigidDeque(copying: [1, 2, 3])
+      var index = 0
+      _ = deque.nextMutableSpan(after: &index, maximumCount: -1)
+    }
+  }
+#endif
 }
 #endif
 #endif

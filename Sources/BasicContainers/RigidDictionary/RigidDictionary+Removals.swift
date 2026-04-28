@@ -25,9 +25,19 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   package mutating func _removeValue(at bucket: _Bucket) -> Value {
     assert(self._keys._table.isOccupied(bucket))
-    self._keys._table.createHole(at: bucket)
     self._keyPtr(at: bucket).deinitialize(count: 1)
     let oldValue = self._valuePtr(at: bucket).move()
+    _resolveHole(at: bucket)
+    return oldValue
+  }
+  
+  /// Remove the entry at `bucket`, assuming its value slot has already been
+  /// moved out (e.g., by `updateValue(forKey:with:)`). Handles key
+  /// deinitialization and hole resolution without touching the value slot.
+  @inlinable
+  package mutating func _resolveHole(at bucket: _Bucket) {
+    assert(self._keys._table.isOccupied(bucket))
+    self._keys._table.createHole(at: bucket)
     let seed = self._keys._seed
     let keys = self._keys._members.unsafelyUnwrapped
     let values = self._values.unsafelyUnwrapped
@@ -40,9 +50,8 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
         (keys + $1.offset).initialize(to: (keys + $0.offset).move())
         (values + $1.offset).initialize(to: (values + $0.offset).move())
       })
-    return oldValue
   }
-  
+
   /// Remove the member currently at the specified occupied bucket,
   /// and mark it as unoccupied, without restoring the hash table's
   /// invariants. Lookup operations may fail after this.
