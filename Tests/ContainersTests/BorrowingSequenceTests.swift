@@ -45,6 +45,11 @@ final class BorrowingSequenceTests: XCTestCase {
     // Array.elementsEqual is ambiguous:
     // XCTAssertTrue(inlineCollected.elementsEqual(inlineCollected))
 
+    let evenInline = inline.makeBorrowingIterator_()
+      .compactMap { $0.isMultiple(of: 2) ? $0 : nil }
+      .collect()
+    XCTAssertTrue(([2, 4, 6, 8] as InlineArray).elementsEqual(evenInline))
+
     let nocopyInline: InlineArray = [
       NoncopyableInt(value: 0),
       NoncopyableInt(value: 1),
@@ -60,6 +65,55 @@ final class BorrowingSequenceTests: XCTestCase {
       nocopyBuffer.initializeElement(at: i, to: NoncopyableInt(value: i))
     }
     #endif
+    
+    // This works, can collect noncopyable values into appropriate container
+    let inlineMappedToNoCopy = inline.makeBorrowingIterator_()
+      .map { NoncopyableInt(value: $0) }
+    
+    let firstFour = inline.makeBorrowingIterator_()
+      .prefix(4)
+      .copy()
+      .collect()
+    XCTAssertEqual(firstFour, [1, 2, 3, 4])
+    
+    let lessThanFive = inline.makeBorrowingIterator_()
+      .prefix(while: { $0 < 5 })
+      .copy()
+      .collect()
+    XCTAssertEqual(lessThanFive, [1, 2, 3, 4])
+    
+    let lastFour = inline.makeBorrowingIterator_()
+      .dropFirst(4)
+      .copy()
+      .collect()
+    XCTAssertEqual(lastFour, [5, 6, 7, 8])
+    
+    let greaterEqualToFive = inline.makeBorrowingIterator_()
+      .dropFirst(while: { $0 < 5 })
+      .copy()
+      .collect()
+    XCTAssertEqual(greaterEqualToFive, [5, 6, 7, 8])
+
+    do {
+      let array = Array(1...100)
+      let span = array.span
+      let subset = span.makeBorrowingIterator_()
+        .prefix(25)
+        .dropFirst(10)
+        .prefix(while: { $0 < 20 })
+        .dropFirst(while: { $0 < 15 })
+        .copy()
+        .collect()
+      XCTAssertEqual(subset, [15, 16, 17, 18, 19])
+    }
+    
+    // Spurious error?
+    //   error: instance method 'map' requires that 'NoncopyableInt' conform to 'Copyable'
+    //   points at 'BorrowingIteratorProtocol+Map.swift:24'
+    //   but that extension has `Element_: ~Copyable`
+    //
+    // let noCopyMappedToInlineArray = nocopyInline.makeBorrowingIterator_()
+    //  .map { $0.value }
   }
 }
 
