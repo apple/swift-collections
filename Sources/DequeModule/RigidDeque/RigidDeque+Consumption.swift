@@ -53,6 +53,7 @@ extension RigidDeque where Element: ~Copyable {
     if let second = segments.second {
       var span = InputSpan(buffer: second, initializedCount: second.count)
       consumer(&span)
+      _ = consume span
     }
     _handle.closeGap(offsets: subrange)
   }
