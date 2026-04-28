@@ -73,7 +73,7 @@ extension RigidDeque where Element: ~Copyable {
   ///         i += 1
   ///       }
   ///     }
-  ///     // `buffer` now contains [999, 0, 1, 2, 3, 4, 5, 6]
+  ///     // `buffer` now contains [999, 0, 1, 2, 3, 4, 5]
   ///
   /// The newly appended items are not guaranteed to form a single contiguous
   /// storage region. Therefore, the supplied callback may be invoked multiple

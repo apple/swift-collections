@@ -47,7 +47,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// number of new elements, then this method reallocates the deque's storage
   /// to grow it, using a geometric growth rate.
   ///
-  ///     var buffer = RigidDeque<Int>()
+  ///     var buffer = UniqueDeque<Int>()
   ///     buffer.append(999)
   ///     var i = 0
   ///     buffer.prepend(addingCount: 6) { target in
@@ -56,7 +56,7 @@ extension UniqueDeque where Element: ~Copyable {
   ///         i += 1
   ///       }
   ///     }
-  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 6, 999]
+  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 999]
   ///
   /// The newly prepended items are not guaranteed to form a single contiguous
   /// storage region. Therefore, the supplied callback may be invoked multiple
@@ -70,7 +70,7 @@ extension UniqueDeque where Element: ~Copyable {
   /// the adjusted count. This adds some overhead compared to adding exactly as
   /// many items as promised.
   ///
-  ///     var buffer = RigidDeque<Int>()
+  ///     var buffer = UniqueDeque<Int>()
   ///     buffer.append(999)
   ///     var i = 0
   ///     buffer.prepend(addingCount: 6) { target in

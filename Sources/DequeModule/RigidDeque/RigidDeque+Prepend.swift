@@ -67,13 +67,13 @@ extension RigidDeque where Element: ~Copyable {
   ///     var buffer = RigidDeque<Int>(capacity: 20)
   ///     buffer.append(999)
   ///     var i = 0
-  ///     buffer.prepend(count: 6) { target in
+  ///     buffer.prepend(addingCount: 6) { target in
   ///       while !target.isFull {
   ///         target.append(i)
   ///         i += 1
   ///       }
   ///     }
-  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 6, 999]
+  ///     // `buffer` now contains [0, 1, 2, 3, 4, 5, 999]
   ///
   /// The newly prepended items are not guaranteed to form a single contiguous
   /// storage region. Therefore, the supplied callback may be invoked multiple
@@ -203,7 +203,6 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameters:
   ///    - maximumCount: The maximum number of items to prepend to the deque, or
   ///       nil to use all available capacity.
-
   ///    - producer: A producer that generates the items to prepend.
   ///
   /// - Complexity: O(`newItemCount ?? self.freeCapacity`)
