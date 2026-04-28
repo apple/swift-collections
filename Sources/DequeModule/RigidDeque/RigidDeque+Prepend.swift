@@ -111,6 +111,7 @@ extension RigidDeque where Element: ~Copyable {
     initializingWith body: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
     precondition(newItemCount >= 0, "Cannot prepend a negative number of items")
+    guard newItemCount > 0 else { return }
     precondition(freeCapacity >= newItemCount, "RigidDeque capacity overflow")
     try _handle.uncheckedPrepend(addingCount: newItemCount, initializingWith: body)
   }
