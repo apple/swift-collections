@@ -55,6 +55,7 @@ extension RigidDeque where Element: ~Copyable {
       var span = InputSpan(buffer: second, initializedCount: second.count)
       consumer(&span)
     }
+    _handle.closeGap(offsets: subrange)
   }
 
   /// Remove the specified subrange of items from this deque,

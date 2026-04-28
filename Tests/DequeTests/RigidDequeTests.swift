@@ -1553,5 +1553,23 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
+
+#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+  func test_consume_subrange() {
+    withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
+      withEvery("from", in: 0 ... layout.count) { from in
+        withEvery("to", in: from ... layout.count) { to in
+          withLifetimeTracking { tracker in
+            var data = tracker.rigidDeque(with: layout)
+            data.deque.consume(from ..< to, consumingWith: { _ in })
+            data.contents.removeSubrange(from ..< to)
+            expectEqual(data.deque.count, data.contents.count)
+            expectRigidDequeContents(data.deque, equalTo: data.contents)
+          }
+        }
+      }
+    }
+  }
+#endif
 }
 #endif
