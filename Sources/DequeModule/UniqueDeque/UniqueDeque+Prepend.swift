@@ -259,7 +259,7 @@ extension UniqueDeque where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque /*where Element: Copyable*/ {
   /// Copies the elements of a buffer and prepend them to the front of this
-  /// rigid deque.
+  /// deque.
   ///
   /// If the deque doesn't have sufficient capacity to accommodate the specified
   /// number of new elements, then this method reallocates the deque's storage
@@ -396,13 +396,14 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// Prepend the elements of a sequence to the front of this deque by copying
   /// them.
   ///
-  /// If the deque does not have sufficient capacity to hold all items in the
-  /// sequence, then this triggers a runtime error.
+  /// If the deque does not have sufficient capacity to accommodate the new
+  /// elements, then this method reallocates the deque's storage to grow it,
+  /// using a geometric growth rate.
   ///
   /// This example prepends the elements of a `Range<Int>` instance
-  /// to a rigid deque of integers.
+  /// to a unique deque of integers.
   ///
-  ///     var numbers = RigidDeque<Int>(capacity: 10)
+  ///     var numbers = UniqueDeque<Int>()
   ///     numbers.append(copying: [1, 2, 3, 4, 5])
   ///     numbers.prepend(copying: 10...15)
   ///     // `numbers` now contains [10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]
@@ -433,13 +434,14 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// Prepend the elements of a collection to the front of this deque by copying
   /// them.
   ///
-  /// If the deque does not have sufficient capacity to hold all items in the
-  /// sequence, then this triggers a runtime error.
+  /// If the deque does not have sufficient capacity to accommodate the new
+  /// elements, then this method reallocates the deque's storage to grow it,
+  /// using a geometric growth rate.
   ///
   /// This example prepends the elements of a `Range<Int>` instance
-  /// to a rigid deque of integers.
+  /// to a unique deque of integers.
   ///
-  ///     var numbers = RigidDeque<Int>(capacity: 10)
+  ///     var numbers = UniqueDeque<Int>()
   ///     numbers.append(copying: [1, 2, 3, 4, 5])
   ///     numbers.prepend(copying: 10...15)
   ///     // `numbers` now contains [10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]

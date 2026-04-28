@@ -427,7 +427,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   }
   
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-  /// Copies the elements of a borrowing sequence to the end of this deque.
+  /// Copies the elements of a borrowing sequence to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
@@ -443,7 +443,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self._prepend(copying: items)
   }
 
-  /// Copies the elements of a borrowing sequence to the end of this deque.
+  /// Copies the elements of a borrowing sequence to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
@@ -459,7 +459,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self._prepend(copying: items, exactCount: items.count)
   }
 
-  /// Copies the elements of a container to the end of this deque.
+  /// Copies the elements of a container to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
@@ -475,7 +475,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     self._prepend(copying: items, exactCount: items.count)
   }
 
-  /// Copies the elements of a container to the end of this deque.
+  /// Copies the elements of a container to the front of this deque.
   ///
   /// If the deque does not have sufficient capacity to hold all items in the
   /// sequence, then this triggers a runtime error.
