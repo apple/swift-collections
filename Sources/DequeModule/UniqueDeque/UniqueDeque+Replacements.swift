@@ -85,7 +85,7 @@ extension UniqueDeque where Element: ~Copyable {
     _ensureFreeCapacity(newItemCount - subrange.count)
     try _storage._handle.uncheckedReplace(
       removing: subrange,
-      addingCount: capacity,
+      addingCount: newItemCount,
       initializingWith: initializer)
   }
   
