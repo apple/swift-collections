@@ -182,6 +182,7 @@ extension RigidArray where Element: ~Copyable {
       // to avoid exclusivity violations.
       self._base._pointer.pointee
         ._closeGap(at: _offsetRange.lowerBound, count: _offsetRange.count)
+      self._base._pointer.pointee._count -= _offsetRange.count
     }
   }
 }

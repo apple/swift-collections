@@ -158,7 +158,7 @@ extension UnsafeMutableBufferPointer where Element: ~Copyable {
     guard cut > 0 else { return .init(start: nil, count: 0) }
     let oldStart = baseAddress.unsafelyUnwrapped
     self = Self(start: oldStart + cut, count: count - cut)
-    return Self(start: baseAddress, count: cut)
+    return Self(start: oldStart, count: cut)
   }
 
   @_alwaysEmitIntoClient
