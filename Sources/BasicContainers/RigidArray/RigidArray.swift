@@ -61,7 +61,7 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
 ///
 /// It is possible to extend or shrink the capacity of a rigid array instance,
 /// but this needs to be done explicitly, with operations dedicated to this
-/// purpose (such as ``reserveCapacity`` and ``reallocate(capacity:)``).
+/// purpose (such as ``reserveCapacity(_:)`` and ``reallocate(capacity:)``).
 /// The array never resizes itself automatically.
 ///
 /// It therefore requires careful manual analysis or up front runtime capacity
