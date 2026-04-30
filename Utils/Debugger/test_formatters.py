@@ -62,7 +62,7 @@ class TestRigidArrayFormatter(unittest.TestCase):
     """Verify the RigidArray LLDB synthetic formatter."""
 
     @classmethod
-    def _build(cls):
+    def _build(cls) -> str:
         """Build the test fixture with SwiftPM and return the binary path."""
         target = "FormatterFixtures"
         repo_root = _run(("git", "rev-parse", "--show-toplevel"))
@@ -71,11 +71,11 @@ class TestRigidArrayFormatter(unittest.TestCase):
         return os.path.join(bin_dir, target)
 
     @classmethod
-    def _launch(cls, binary: str):
-        cls.debugger = lldb.SBDebugger.Create()
-        cls.debugger.SetAsync(False)
+    def _launch(cls, binary: str) -> None:
+        debugger = lldb.SBDebugger.Create()
+        debugger.SetAsync(False)
 
-        target = cls.debugger.CreateTarget(binary)
+        target = debugger.CreateTarget(binary)
         assert target.IsValid(), f"failed to create target: {binary}"
 
         bp = target.BreakpointCreateByName("main")
@@ -83,16 +83,19 @@ class TestRigidArrayFormatter(unittest.TestCase):
             bp.IsValid() and bp.GetNumLocations() > 0
         ), "could not set initial breakpoint"
 
-        cls.process = target.LaunchSimple(None, None, None)
-        assert cls.process.IsValid(), "failed to launch process"
+        process = target.LaunchSimple(None, None, None)
+        assert process.IsValid(), "failed to launch process"
+
+        cls.debugger = debugger
+        cls.process = process
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         binary = cls._build()
         cls._launch(binary)
 
     @classmethod
-    def tearDownClass(cls):
+    def tearDownClass(cls) -> None:
         lldb.SBDebugger.Destroy(cls.debugger)
 
     def setUp(self) -> None:
@@ -100,10 +103,10 @@ class TestRigidArrayFormatter(unittest.TestCase):
         self.assertEqual(
             self.process.GetState(),
             lldb.eStateStopped,
-            "setUp did not put the process in stopped state",
+            "process not set up in stopped state",
         )
 
-    def _run_to_function(self, func_name: str):
+    def _run_to_function(self, func_name: str) -> None:
         result = lldb.SBCommandReturnObject()
         self.debugger.GetCommandInterpreter().HandleCommand(
             f"breakpoint set -o -p breakHere -X {func_name}", result
@@ -147,8 +150,10 @@ class TestRigidArrayFormatter(unittest.TestCase):
             expected.num_children,
             f"value has the wrong number of children",
         )
-        for actual_, expected_ in zip(actual, expected):
-            self.assertEqual(str(actual_), str(expected_), "child value differs")
+        for actual_child, expected_child in zip(actual, expected):
+            self.assertEqual(
+                str(actual_child), str(expected_child), "child value differs"
+            )
 
 
 if __name__ == "__main__":
