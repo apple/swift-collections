@@ -18,7 +18,7 @@ Integration test for LLDB data formatters.
 Testing LLDB data formatters requires:
   1. A "fixture" executable that exercises swift-collection data types
   2. An LLDB instance to launch and control the fixture
-  3. A test runner that cooardinates the fixture process with with test suite execution
+  3. A test runner that coordinates the fixture process with with test suite execution
 
 The test fixture is built with SwiftPM. LLDB launches fixture binary and
 controls its process. Breakpoints are used to specify checkpoints for
