@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+// This file is a fixture for testing LLDB data formatters. To run the tests, see Utils/Debugger/test_formatters.py.
+
 import BasicContainers
 
 @available(SwiftStdlib 5.0, *)

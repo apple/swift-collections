@@ -15,12 +15,21 @@
 """
 Integration test for LLDB data formatters.
 
-Builds a test fixture via SwiftPM, runs it under LLDB using the SB API, and
-verifies that the synthetic formatter produces children matching the synthetic
-children of the expected value.
+Testing LLDB data formatters requires:
+  1. A "fixture" executable that exercises swift-collection data types
+  2. An LLDB instance to launch and control the fixture
+  3. A test runner that cooardinates the fixture process with with test suite execution
+
+The test fixture is built with SwiftPM. LLDB launches fixture binary and
+controls its process. Breakpoints are used to specify checkpoints for
+validation.  At each checkpoint, an "actual" value (a swift-collections data
+type) is tested against a known good "expected" value (a core Swift data type,
+for example Array).
 
 Usage:
     python3 Utils/Debugger/test_formatters.py [--verbose]
+
+The test runner uses Python's unittest module. Run with `--help` to see all options.
 """
 
 import os
