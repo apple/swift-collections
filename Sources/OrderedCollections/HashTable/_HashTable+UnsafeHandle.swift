@@ -166,7 +166,7 @@ extension _HashTable.UnsafeHandle {
   }
 
   /// Return the index of the word logically preceding `word` in this hash table.
-  /// The buckets form a cycle, so the first word is logically preceded by the first.
+  /// The buckets form a cycle, so the first word is logically preceded by the last.
   ///
   /// Note that the last word may be only partially filled if `scale` is less than 6.
   @inlinable
@@ -229,11 +229,11 @@ extension _HashTable.UnsafeHandle {
   @inlinable
   subscript(word word: Int) -> UInt64 {
     @inline(__always) get {
-      assert(word >= 0 && word < bucketCount)
+      assert(word >= 0 && word < wordCount)
       return _buckets[word]
     }
     @inline(__always) nonmutating set {
-      assert(word >= 0 && word < bucketCount)
+      assert(word >= 0 && word < wordCount)
       assertMutable()
       _buckets[word] = newValue
     }
