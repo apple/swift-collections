@@ -33,9 +33,8 @@ extension RigidDeque where Element: ~Copyable {
   /// may not be called at all.
   ///
   /// - Parameter subrange: The subrange of items to consume from this deque.
-  /// - Parameter consumer: A function taking an input span of the removed items,
+  /// - Parameter consumer: A function taking an input span of removed items,
   ///    allowing them to be consumed straight out of the deque's storage.
-  ///    The function is called at most once.
   ///
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
@@ -54,7 +53,9 @@ extension RigidDeque where Element: ~Copyable {
     if let second = segments.second {
       var span = InputSpan(buffer: second, initializedCount: second.count)
       consumer(&span)
+      _ = consume span
     }
+    _handle.closeGap(offsets: subrange)
   }
 
   /// Remove the specified subrange of items from this deque,
@@ -71,7 +72,6 @@ extension RigidDeque where Element: ~Copyable {
   /// - Parameter subrange: The subrange of items to consume from this deque.
   /// - Parameter consumer: A function taking an input span of the removed items,
   ///    allowing them to be consumed straight out of the deque's storage.
-  ///    The function is called at most once.
   ///
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
@@ -95,7 +95,6 @@ extension RigidDeque where Element: ~Copyable {
   ///
   /// - Parameter consumer: A function taking an input span of the removed items,
   ///    allowing them to be consumed straight out of the deque's storage.
-  ///    The function is called at most once.
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
   @inline(__always)

@@ -553,6 +553,7 @@ extension BigString {
     _rope.formIndex(after: &ri)
     while ri < endRopeIndex {
       body(_rope[ri]._bytes)
+      _rope.formIndex(after: &ri)
     }
 
     body(_rope[ri]._bytes.extracting(..<end._chunkIndex.utf8Offset))

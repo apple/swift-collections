@@ -308,10 +308,10 @@ extension UniqueDeque {
     UniqueDeque(_storage: _storage.clone())
   }
 
-  /// Copy the contents of this deque into a newly allocated rigid deque
+  /// Copy the contents of this deque into a newly allocated unique deque
   /// instance with the specified capacity.
   ///
-  /// - Parameter capacity: The desired capacity of the resulting rigid deque.
+  /// - Parameter capacity: The desired capacity of the resulting unique deque.
   ///    `capacity` must be greater than or equal to `count`.
   ///
   /// - Complexity: O(`count`)

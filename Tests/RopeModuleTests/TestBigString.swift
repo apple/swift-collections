@@ -137,6 +137,16 @@ class TestBigString: CollectionTestCase {
     checkHashable(equivalenceClasses: classes.map { [$0.utf16] })
   }
 
+  func test_utf8_hashing_infinite_loop() {
+    let str = String(repeating: "a", count: 400)
+    let big = BigString(str)
+    let sub = BigSubstring(big, in: big.startIndex ..< big.endIndex)
+
+    // Both paths feed the same UTF-8 bytes to the same Hasher API and must agree.
+    expectEqual(sub.utf8.hashValue, big.utf8.hashValue)
+    expectEqual(sub.unicodeScalars.hashValue, big.unicodeScalars.hashValue)
+  }
+
   @discardableResult
   func checkCharacterIndices(
     _ flat: String,

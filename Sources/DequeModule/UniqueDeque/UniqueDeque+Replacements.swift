@@ -85,7 +85,7 @@ extension UniqueDeque where Element: ~Copyable {
     _ensureFreeCapacity(newItemCount - subrange.count)
     try _storage._handle.uncheckedReplace(
       removing: subrange,
-      addingCount: capacity,
+      addingCount: newItemCount,
       initializingWith: initializer)
   }
   
@@ -506,6 +506,9 @@ extension UniqueDeque /* where Element: Copyable */ {
         items.formIndex(after: &i)
       }
     }
+    precondition(
+      i == items.endIndex,
+      "Broken Collection: count doesn't match contents")
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW

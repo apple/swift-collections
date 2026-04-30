@@ -43,7 +43,7 @@ extension RigidDeque where Element: ~Copyable {
   /// times to initialize each successive chunk of storage. However, invocations
   /// cease if the callback fails to fully populate its output span or if
   /// it throws an error. In such cases, the deque keeps all items that were
-  /// successfully initialized before the callback terminated the prepend.
+  /// successfully initialized before the callback terminated the replacement.
   ///
   /// Partial insertions create a gap in ring buffer storage that needs to be
   /// closed by moving newly inserted items to their correct positions given
@@ -497,6 +497,9 @@ extension RigidDeque /* where Element: Copyable */ {
         items.formIndex(after: &i)
       }
     }
+    precondition(
+      i == items.endIndex,
+      "Broken Collection: count doesn't match contents")
   }
 
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
