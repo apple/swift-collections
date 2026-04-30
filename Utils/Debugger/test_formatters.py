@@ -20,9 +20,9 @@ Testing LLDB data formatters requires:
   2. An LLDB instance to launch and control the fixture
   3. A test runner that coordinates the fixture process with with test suite execution
 
-The test fixture is built with SwiftPM. LLDB launches fixture binary and
+The test fixture is built with SwiftPM. LLDB launches the fixture binary and
 controls its process. Breakpoints are used to specify checkpoints for
-validation.  At each checkpoint, an "actual" value (a swift-collections data
+validation. At each checkpoint, an "actual" value (a swift-collections data
 type) is tested against a known good "expected" value (a core Swift data type,
 for example Array).
 
