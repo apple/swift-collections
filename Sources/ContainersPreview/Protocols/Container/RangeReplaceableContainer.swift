@@ -151,7 +151,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     removing subrange: some RangeExpression2<Index>,
     addingCount: Int,
     from producer: inout P
-  ) throws(P.ProducerError)
+  ) throws(P.Failure)
   where P.Element: ~Copyable
   {
     try replace(

@@ -20,12 +20,12 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     _ initialResult: consuming Result,
     _ nextPartialResult: (
       consuming Result, consuming Element
-    ) throws(ProducerError) -> Result
-  ) throws(ProducerError) -> Result {
+    ) throws(Failure) -> Result
+  ) throws(Failure) -> Result {
     var initialResult: Optional = initialResult
     return try _withUnsafeTemporaryAllocation(
       of: Element.self, capacity: _producerBufferSize
-    ) { buffer throws(ProducerError) in
+    ) { buffer throws(Failure) in
       var done = false
       var result = initialResult.take()!
       while !done {
@@ -47,12 +47,12 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     into initialResult: consuming Result,
     _ updateAccumulatingResult: (
       inout Result, consuming Element
-    ) throws(ProducerError) -> Void
-  ) throws(ProducerError) -> Result {
+    ) throws(Failure) -> Void
+  ) throws(Failure) -> Result {
     var result = initialResult
     try _withUnsafeTemporaryAllocation(
       of: Element.self, capacity: _producerBufferSize
-    ) { buffer throws(ProducerError) in
+    ) { buffer throws(Failure) in
       var done = false
       while !done {
         var span = OutputSpan(buffer: buffer, initializedCount: 0)

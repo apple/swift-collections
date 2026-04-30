@@ -28,10 +28,10 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 public struct DrainMapProducer<
   Base: Drain & ~Copyable & ~Escapable,
   Element: ~Copyable,
-  ProducerError: Error
+  Failure: Error
 >: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
-  public let _transform: (consuming Base.Element) throws(ProducerError) -> Element
+  public let _transform: (consuming Base.Element) throws(Failure) -> Element
 
   @_alwaysEmitIntoClient
   public var _base: Base
@@ -40,7 +40,7 @@ public struct DrainMapProducer<
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    transform: @escaping (consuming Base.Element) throws(ProducerError) -> Element
+    transform: @escaping (consuming Base.Element) throws(Failure) -> Element
   ) {
     self._base = _base
     self._transform = transform
@@ -59,7 +59,7 @@ where
   }
 
   @inlinable
-  public mutating func next() throws(ProducerError) -> Element? {
+  public mutating func next() throws(Failure) -> Element? {
     guard let next = _base.next() else { return nil }
     return try _transform(next)
   }

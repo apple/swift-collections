@@ -23,7 +23,7 @@
 /// output spans.
 @available(SwiftStdlib 5.0, *)
 public protocol Drain<Element>: Producer, ~Copyable, ~Escapable
-where Element: ~Copyable, ProducerError == Never
+where Element: ~Copyable, Failure == Never
 {
   /// Returns the next span of consumable items in the sequence underlying this
   /// drain, of at most the specified maximum count. A `maximumCount` of nil
@@ -204,7 +204,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   @_lifetime(self: copy self)
   public mutating func skip(
     upTo n: inout Int
-  ) -> Bool { // FIXME: Compiler crash when this declares throws(ProducerError)
+  ) -> Bool { // FIXME: Compiler crash when this declares throws(Failure)
     precondition(n >= 0, "Cannot skip a negative number of elements")
     guard n > 0 else { return true }
     let span = drainNext(maximumCount: n)
