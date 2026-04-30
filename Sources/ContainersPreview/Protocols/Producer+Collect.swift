@@ -20,7 +20,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     R: DynamicContainer<Element> & ~Copyable
   >(
     into container: R.Type = R.self
-  ) throws(ProducerError) -> R {
+  ) throws(Failure) -> R {
     try R(from: self)
   }
 
@@ -30,7 +30,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public consuming func collect(
     into container: inout some RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
-  ) throws(ProducerError) {
+  ) throws(Failure) {
     // Note: this is the same algorithm as `append(from:)` on `DynamicContainer`,
     // except it applies to RRCs.
     while true {
@@ -52,7 +52,7 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   public consuming func collect(
     into container: inout some DynamicContainer<Element> & ~Copyable
-  ) throws(ProducerError) {
+  ) throws(Failure) {
     try container.append(from: self)
   }
 }

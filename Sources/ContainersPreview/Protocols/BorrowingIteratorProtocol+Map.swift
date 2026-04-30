@@ -59,7 +59,7 @@ where
   Base: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
-  public typealias ProducerError = Error
+  public typealias Failure = Error
 
   @inlinable
   public var underestimatedCount: Int {
@@ -67,7 +67,7 @@ where
   }
 
   @inlinable
-  public mutating func next() throws(ProducerError) -> Element? {
+  public mutating func next() throws(Failure) -> Element? {
     let span = _it.nextSpan_(maximumCount: 1)
     guard !span.isEmpty else { return nil }
     return try _transform(span[unchecked: 0])

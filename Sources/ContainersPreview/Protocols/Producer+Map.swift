@@ -17,7 +17,7 @@
 extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_lifetime(copy self)
   public consuming func map<T: ~Copyable>(
-    _ transform: @escaping (consuming Element) throws(ProducerError) -> T
+    _ transform: @escaping (consuming Element) throws(Failure) -> T
   ) -> ConsumingMapProducer<Self, T> {
     ConsumingMapProducer(_base: self, transform: transform)
   }
@@ -30,18 +30,18 @@ public struct ConsumingMapProducer<
 >: ~Copyable, ~Escapable
 where Base.Element: ~Copyable
 {
-  public typealias ProducerError = Base.ProducerError
+  public typealias Failure = Base.Failure
 
   @_alwaysEmitIntoClient
   public var _base: Base
   @_alwaysEmitIntoClient
-  public let _transform: (consuming Base.Element) throws(ProducerError) -> Element
+  public let _transform: (consuming Base.Element) throws(Failure) -> Element
 
   @inlinable
   @_lifetime(copy _base)
   public init(
     _base: consuming Base,
-    transform: @escaping (consuming Base.Element) throws(ProducerError) -> Element
+    transform: @escaping (consuming Base.Element) throws(Failure) -> Element
   ) {
     self._base = _base
     self._transform = transform
@@ -72,7 +72,7 @@ extension ConsumingMapProducer: Producer where Base: ~Copyable & ~Escapable {
   }
 
   @inlinable
-  public mutating func next() throws(ProducerError) -> Element? {
+  public mutating func next() throws(Failure) -> Element? {
     guard let next = try _base.next() else { return nil }
     return try _transform(next)
   }
@@ -83,11 +83,11 @@ extension ConsumingMapProducer: Producer where Base: ~Copyable & ~Escapable {
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(ProducerError) -> Bool {
+  ) throws(Failure) -> Bool {
     let c = Swift.min(target.freeCapacity, _producerBufferSize)
     return try _withUnsafeTemporaryAllocation(
       of: Base.Element.self, capacity: c
-    ) { buffer throws(ProducerError) in
+    ) { buffer throws(Failure) in
       var outputSpan = OutputSpan(buffer: buffer, initializedCount: 0)
       let result = try _base.generate(into: &outputSpan)
       let c = outputSpan.finalize(for: buffer)

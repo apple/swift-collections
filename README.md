@@ -160,7 +160,7 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 - [`protocol MutableContainer<Element>`][MutableContainer] refines `PermutableContainer` to also support arbitrary element replacements/mutations, like `MutableCollection`.
 - [`protocol RangeReplaceableContainer<Element>`][RangeReplaceableContainer] models a (potentially fixed capacity) container with insert/append/replace operations.
 - [`protocol DynamicContainer<Element>`][DynamicContainer] refines `RangeReplaceableContainer` to add operations that require dynamic storage sizing.
-- [`protocol Producer<Element, ProducerError>`][Producer] models a generative iterator -- an abstraction for producing items on demand.
+- [`protocol Producer<Element, Failure>`][Producer] models a generative iterator -- an abstraction for producing items on demand.
 - [`protocol Drain<Element>`][Drain] refines `Producer` to model an in-place consumable elements -- primarily for use around container types.
 
 [InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/InputSpan.swift

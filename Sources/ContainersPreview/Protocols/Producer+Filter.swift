@@ -30,7 +30,7 @@ public struct ConsumingFilterProducer<
 >: ~Copyable, ~Escapable
 where Base.Element: ~Copyable {
   public typealias Element = Base.Element
-  public typealias ProducerError = Base.ProducerError
+  public typealias Failure = Base.Failure
 
   @_alwaysEmitIntoClient
   public var _base: Base
@@ -57,7 +57,7 @@ extension ConsumingFilterProducer: Escapable
 where
   Base: ~Copyable & Escapable,
   Base.Element: ~Copyable & Escapable, // FIXME: Why declare Escapable?
-  Base.ProducerError: Copyable & Escapable // FIXME: Why declare this?
+  Base.Failure: Copyable & Escapable // FIXME: Why declare this?
 {}
 #endif
 
@@ -73,7 +73,7 @@ where
   }
 
   @inlinable
-  public mutating func next() throws(ProducerError) -> Element? {
+  public mutating func next() throws(Failure) -> Element? {
     while let next = try _base.next() {
       if _isIncluded(next) { return next }
     }
@@ -86,7 +86,7 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(ProducerError) -> Bool {
+  ) throws(Failure) -> Bool {
     let startCount = target.count
     repeat {
       let prevCount = target.count
