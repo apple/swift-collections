@@ -109,7 +109,7 @@ class TestRigidArrayFormatter(unittest.TestCase):
     def _run_to_function(self, func_name: str) -> None:
         result = lldb.SBCommandReturnObject()
         self.debugger.GetCommandInterpreter().HandleCommand(
-            f"breakpoint set -o -p breakHere -X {func_name}", result
+            f"breakpoint set -p breakHere -X {func_name}", result
         )
         self.assertTrue(
             result.Succeeded(),
