@@ -166,8 +166,10 @@ extension _HashNode {
       count: child1.count &+ child2.count
     ) { children, items in
       assert(items.count == 0 && children.count == 2)
-      children.initializeElement(at: 0, to: child1)
-      children.initializeElement(at: 1, to: child2)
+      let i1 = child1Bucket < child2Bucket ? 0 : 1
+      let i2 = 1 &- i1
+      children.initializeElement(at: i1, to: child1)
+      children.initializeElement(at: i2, to: child2)
     }
     r.node._invariantCheck()
     return r.node

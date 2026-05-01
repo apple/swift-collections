@@ -1533,6 +1533,24 @@ class TreeDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_merge_collision_node_ordering() {
+    // Regression test for child ordering issue.
+    let a1 = RawCollider(1, "B")  // level-0 bucket = 11
+    let a2 = RawCollider(2, "B")  // same hash → collision node with a1
+    let b1 = RawCollider(3, "A")  // level-0 bucket = 10
+    let b2 = RawCollider(4, "A")  // same hash → collision node with b1
+
+    var left: TreeDictionary<RawCollider, Int> = [a1: 1, a2: 2]
+    let right: TreeDictionary<RawCollider, Int> = [b1: 3, b2: 4]
+    left.merge(right, uniquingKeysWith: { a, _ in a })
+
+    expectEqual(left.count, 4)
+    expectEqual(left[a1], 1)
+    expectEqual(left[a2], 2)
+    expectEqual(left[b1], 3)
+    expectEqual(left[b2], 4)
+  }
+
   func test_merge_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       withEverySubset("b", of: testItems) { b in

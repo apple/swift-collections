@@ -560,6 +560,24 @@ class TreeSetTests: CollectionTestCase {
     }
   }
 
+  func test_union_collision_node_ordering() {
+    // Regression test for child ordering issue.
+    let a1 = RawCollider(1, "B")  // level-0 bucket = 11
+    let a2 = RawCollider(2, "B")  // same hash → collision node with a1
+    let b1 = RawCollider(3, "A")  // level-0 bucket = 10
+    let b2 = RawCollider(4, "A")  // same hash → collision node with b1
+
+    let left = TreeSet([a1, a2])
+    let right = TreeSet([b1, b2])
+    let union = left.union(right)
+
+    expectEqual(union.count, 4)
+    expectTrue(union.contains(a1))
+    expectTrue(union.contains(a2))
+    expectTrue(union.contains(b1))
+    expectTrue(union.contains(b2))
+  }
+
   func test_symmetricDifference_exhaustive() {
     withEverySubset("a", of: testItems) { a in
       let x = TreeSet(a)
