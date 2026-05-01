@@ -191,6 +191,9 @@ extension _UnsafeBitSet {
     let hw = _Word(upTo: upper.bit).complement()
     guard _words[upper.word].intersection(hw).isEmpty else { return false }
 
+    for w in upper.word + 1 ..< wordCount {
+      guard _words[w].isEmpty else { return false }
+    }
     return true
   }
 
