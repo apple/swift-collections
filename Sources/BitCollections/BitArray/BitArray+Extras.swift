@@ -38,7 +38,7 @@ extension BitArray {
     at index: Int
   ) {
     precondition(count >= 0, "Cannot add a negative number of items")
-    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(index >= 0 && index <= self.count, "Index out of bounds")
     guard count > 0 else { return }
     _extend(by: count, with: false)
     _copy(from: index ..< self.count - count, to: index + count)
