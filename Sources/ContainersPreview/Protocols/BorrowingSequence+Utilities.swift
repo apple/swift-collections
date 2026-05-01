@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
+extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable, Failure == Never {
   @inlinable
   package func _copyContents(
     intoPrefixOf buffer: UnsafeMutableBufferPointer<Element_>

@@ -18,13 +18,10 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
+public protocol BorrowingIteratorProtocol_<Element_, Failure>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
 
-  // FIXME: This ought to be a core requirement, but `Ref` is not a thing yet.
-//  @_lifetime(&self)
-//  @_lifetime(self: copy self)
-//  mutating func next() -> Ref<Element>?
+  associatedtype Failure: Error = Never
 
   /// Advance the iterator, returning an ephemeral span over the elements
   /// that are ready to be visited.
@@ -74,7 +71,7 @@ public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   /// method may vary between different borrows of the same container.)
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func nextSpan_(maximumCount: Int) -> Span<Element_>
+  mutating func nextSpan_(maximumCount: Int) throws(Failure) -> Span<Element_>
 
   /// Advance the position of this iterator by the specified offset, or until
   /// the end of the underlying sequence.
@@ -86,14 +83,27 @@ public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   ///
   /// `maximumOffset` must be nonnegative.
   @_lifetime(self: copy self)
-  mutating func skip_(by maximumOffset: Int) -> Int
-  
-  // FIXME: Add BidirectionalBorrowingIteratorProtocol and RandomAccessBorrowingIteratorProtocol.
-  // BidirectionalBorrowingIteratorProtocol would need to have a `previousSpan`
-  // method, which considerably complicates implementation.
-  // Perhaps these would be better left to as variants of protocol Container,
-  // which do not need a separate iterator concept.
+  mutating func skip_(by n: inout Int) throws(Failure)
 }
+
+//extension BorrowingSequence_
+//where Self: ~Copyable & ~Escapable, Element_: ~Copyable & Equatable {
+//  func contains(_ value: borrowing Element_) throws(BorrowingIterator_.E) -> Bool {
+//    var it = self.makeBorrowingIterator_()
+//    var span = Span<Element_>()
+//    try it.nextSpan_(maximumCount: .max, into: &span)
+//    while !span.isEmpty {
+//      var i = 0
+//      while i < span.count {
+//        if span[unchecked: i] == value { return true }
+//        i &+= 1
+//      }
+//      try it.nextSpan_(maximumCount: .max, into: &span)
+//    }
+//    return false
+//  }
+//
+//}
 
 @available(SwiftStdlib 5.0, *)
 extension BorrowingIteratorProtocol_
@@ -101,8 +111,8 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  public mutating func nextSpan_() -> Span<Element_> {
-    nextSpan_(maximumCount: Int.max)
+  public mutating func nextSpan_() throws(Failure) -> Span<Element_> {
+    try nextSpan_(maximumCount: Int.max)
   }
 }
 
@@ -111,14 +121,12 @@ extension BorrowingIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
-  public mutating func skip_(by offset: Int) -> Int {
-    var remainder = offset
-    while remainder > 0 {
-      let span = nextSpan_(maximumCount: remainder)
+  public mutating func skip_(by n: inout Int) throws(Failure) {
+    while n > 0 {
+      let span = try nextSpan_(maximumCount: n)
       if span.isEmpty { break }
-      remainder &-= span.count
+      n &-= span.count
     }
-    return offset &- remainder
   }
 }
 
@@ -149,11 +157,11 @@ where Self: ~Copyable & ~Escapable, Element_: Copyable
   @_lifetime(self: copy self)
   @inlinable
   @_transparent
-  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) {
-    target.withUnsafeMutableBufferPointer { dst, dstCount in
+  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) throws(Failure) {
+    try target.withUnsafeMutableBufferPointer { dst, dstCount throws(Failure) in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
-        let src = nextSpan_(maximumCount: tail.count)
+        let src = try nextSpan_(maximumCount: tail.count)
         if src.isEmpty { break }
         tail._initializeAndDropPrefix(copying: src)
         dstCount += src.count

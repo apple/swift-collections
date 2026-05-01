@@ -322,7 +322,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @inlinable
   internal mutating func _prepend<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(copying items: borrowing S) {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
@@ -338,7 +338,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
 
   @inlinable
   internal mutating func _prepend<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(
     copying items: borrowing S,
     exactCount: Int
@@ -367,7 +367,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(
     copying items: borrowing S
   ) {
@@ -479,7 +479,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element, Never> & Sequence<Element> // FIXME(throws)
   >(
     copying items: borrowing S
   ) {
@@ -498,7 +498,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence_<Element> & Collection<Element>
+    S: BorrowingSequence_<Element, Never> & Collection<Element> // FIXME(throws)
   >(
     copying items: borrowing S
   ) {

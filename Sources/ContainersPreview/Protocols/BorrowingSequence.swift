@@ -14,18 +14,21 @@
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingSequence_<Element_>: ~Copyable, ~Escapable {
+public protocol BorrowingSequence_<Element_, Failure>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
-  associatedtype BorrowingIterator_: BorrowingIteratorProtocol_<Element_> & ~Copyable & ~Escapable
-  
+  associatedtype Failure: Error
+
+  associatedtype BorrowingIterator_:
+    BorrowingIteratorProtocol_<Element_, Failure> & ~Copyable & ~Escapable
+
   var underestimatedCount_: Int { get }
 
   @_lifetime(borrow self)
-  borrowing func makeBorrowingIterator_() -> BorrowingIterator_
-  
+  borrowing func makeBorrowingIterator_() throws(Failure) -> BorrowingIterator_
+
   func _customContainsEquatableElement_(
     _ element: borrowing Element_
-  ) -> Bool?
+  ) -> Bool? // FIXME(throws): Should this throw?
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -58,12 +61,12 @@ where
 {
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
-  public func _borrowingForEach<E: Error>(
-    _ body: (borrowing Element_) throws(E) -> Void
-  ) throws(E) -> Void {
-    var it = makeBorrowingIterator_()
+  public func _borrowingForEach(
+    _ body: (borrowing Element_) throws(Failure) -> Void // FIXME(throws): Union
+  ) throws(Failure) -> Void {
+    var it = try makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan_()
+      let span = try it.nextSpan_()
       if span.isEmpty { break }
       var i = 0
       while i < span.count {

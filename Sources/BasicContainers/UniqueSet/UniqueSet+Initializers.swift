@@ -77,7 +77,7 @@ extension UniqueSet where Element: Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   public init<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(
     copying items: borrowing S
   ) {
@@ -95,7 +95,7 @@ extension UniqueSet where Element: Copyable {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   public init<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element, Never> & Sequence<Element> // FIXME(throws)
   >(
     copying items: borrowing S
   ) {

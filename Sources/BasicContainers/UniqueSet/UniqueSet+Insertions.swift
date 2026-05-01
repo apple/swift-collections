@@ -132,7 +132,7 @@ extension UniqueSet /* where Element: Copyable */ {
 #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   package mutating func _insert<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(
     copying items: borrowing S
   ) {
@@ -150,7 +150,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(
     copying items: borrowing S
   ) {
@@ -172,7 +172,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element, Never> & Sequence<Element> // FIXME(throws)
   >(
     copying items: borrowing S
   ) {
