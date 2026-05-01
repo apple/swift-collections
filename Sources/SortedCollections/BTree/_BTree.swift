@@ -467,35 +467,40 @@ extension _BTree {
     func search(in node: Node) -> Unmanaged<Node.Storage>? {
       node.read({ handle in
         let slot = handle.startSlot(forKey: key)
-        if slot < handle.elementCount {
-          if handle.isLeaf {
+
+        if handle.isLeaf {
+          if slot < handle.elementCount {
             offset += slot
             targetSlot = slot
             return .passUnretained(node.storage)
-          } else {
-            // Calculate offset by summing previous subtrees
-            offset += slot
-            for i in 0...slot {
-              offset += handle[childAt: i].read({ $0.subtreeCount })
-            }
-            
-            let currentOffset = offset
-            let currentDepth = childSlots.depth
-            childSlots.append(UInt16(slot))
-            
-            if let foundEarlier = search(in: handle[childAt: slot]) {
-              return foundEarlier
-            } else {
-              childSlots.depth = currentDepth
-              targetSlot = slot
-              offset = currentOffset
-              
-              return .passUnretained(node.storage)
-            }
           }
-        } else {
-          // Start index exceeds node and is therefore not in this.
           return nil
+        }
+
+        // Internal node: advance offset to the start of child[slot].
+        // child[slot] starts after `slot` elements and `slot` preceding subtrees.
+        offset += slot
+        for i in 0..<slot {
+          offset += handle[childAt: i].read({ $0.subtreeCount })
+        }
+
+        if slot < handle.elementCount {
+          // elem[slot] >= key. Try child[slot] for an earlier occurrence first.
+          let elemOffset = offset + handle[childAt: slot].read({ $0.subtreeCount })
+          let savedDepth = childSlots.depth
+          childSlots.append(UInt16(slot))
+
+          if let foundEarlier = search(in: handle[childAt: slot]) {
+            return foundEarlier
+          }
+          childSlots.depth = savedDepth
+          targetSlot = slot
+          offset = elemOffset
+          return .passUnretained(node.storage)
+        } else {
+          // key > all elements here: descend into the rightmost child.
+          childSlots.append(UInt16(slot))
+          return search(in: handle[childAt: slot])
         }
       })
     }
