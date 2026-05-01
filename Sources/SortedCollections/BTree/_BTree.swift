@@ -474,6 +474,7 @@ extension _BTree {
             return .passUnretained(node.storage)
           } else {
             // Calculate offset by summing previous subtrees
+            offset += slot
             for i in 0...slot {
               offset += handle[childAt: i].read({ $0.subtreeCount })
             }

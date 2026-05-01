@@ -479,6 +479,19 @@ class SortedSetTests: CollectionTestCase {
       }
     }
   }
+
+  func test_rangeSubscript() {
+    withEvery("count", in: [0, 1, 5, 32, 64]) { count in
+      let set = SortedSet(0 ..< count)
+      guard count > 0 else { return }
+      withEvery("lo", in: 0 ..< count) { lo in
+        withEvery("hi", in: lo ... count) { hi in
+          let slice = set[lo ..< hi]
+          expectEqualElements(slice, lo ..< hi)
+        }
+      }
+    }
+  }
 }
 
 #endif

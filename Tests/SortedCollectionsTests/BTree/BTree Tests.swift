@@ -139,6 +139,20 @@ final class BTreeTests: CollectionTestCase {
     }
   }
   
+  func test_startIndexForKey() {
+    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
+      btreeOfSize(count) { btree, kvs in
+        withEvery("i", in: 0..<count) { i in
+          let index = btree.startIndex(forKey: kvs[i].key)
+          expectEqual(index.offset, i)
+        }
+        // Key not present: returns endIndex
+        let missing = btree.startIndex(forKey: count * 2 + 1)
+        expectEqual(missing, btree.endIndex)
+      }
+    }
+  }
+
   func test_randomInsertionOrder() {
     let kvs = [
       (key: 71, value: 142),
