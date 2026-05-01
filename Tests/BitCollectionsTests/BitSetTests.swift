@@ -1218,6 +1218,7 @@ final class BitSetTest: CollectionTestCase {
         "a": BitSet(10*step ..< 20*step),
         "b": BitSet(10*step ..< 20*step).subtracting(13*step ..< 14*step),
         "c": BitSet(10*step ..< 20*step - 1),
+        "d": BitSet(10*step ..< 20*step).union(100*step ..< 110*step),
       ]
 
       let tests: [(range: Range<Int>, expected: Set<String>)] = [
