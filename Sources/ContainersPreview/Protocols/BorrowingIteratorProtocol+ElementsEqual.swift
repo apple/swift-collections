@@ -21,11 +21,12 @@ import InternalCollectionsUtilities
 extension BorrowingSequence_
 where
   Self: ~Copyable & ~Escapable, Element_: Equatable,
-  Element_: ~Copyable
+  Element_: ~Copyable,
+  Failure == Never
 {
   @inlinable
   package func _elementsEqual<
-    Other: BorrowingSequence_<Element_> & ~Copyable & ~Escapable
+    Other: BorrowingSequence_<Element_, Never> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
   ) -> Bool
@@ -66,16 +67,15 @@ where
   /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
   @inlinable
   package func _elementsEqual<
-    E: Error,
     Other: BorrowingSequence_ & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
-    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(E) -> Bool
-  ) throws(E) -> Bool
-  where Other.Element_: ~Copyable
+    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure) -> Bool
+  ) throws(Failure) -> Bool
+  where Other.Element_: ~Copyable, Other.Failure == Failure
   {
-    let it1 = self.makeBorrowingIterator_()
-    let it2 = other.makeBorrowingIterator_()
+    let it1 = try self.makeBorrowingIterator_()
+    let it2 = try other.makeBorrowingIterator_()
     return try it1.elementsEqual(it2, by: areEquivalent)
   }
 }
@@ -84,11 +84,12 @@ where
 extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable & Equatable
+  Element_: ~Copyable & Equatable,
+  Failure == Never
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: BorrowingIteratorProtocol_<Element_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_<Element_, Never> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) -> Bool
@@ -114,7 +115,7 @@ where
 
   @inlinable
   package consuming func _directElementsEqual<
-    Other: BorrowingIteratorProtocol_<Element_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_<Element_, Never> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) -> Bool
@@ -182,16 +183,15 @@ where
 {
   @inlinable
   package consuming func elementsEqual<
-    E: Error,
     Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(E) -> Bool
-  ) throws(E) -> Bool
-  where Other.Element_: ~Copyable
+    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure) -> Bool
+  ) throws(Failure) -> Bool
+  where Other.Element_: ~Copyable, Other.Failure == Failure // FIXME(throws): Union
   {
     var result = true
-    try _spanwiseZip(state: &result, with: other) { state, a, b throws(E) in
+    try _spanwiseZip(state: &result, with: other) { state, a, b throws(Failure) in
       assert(a.count == b.count || a.isEmpty || b.isEmpty)
       if a.isEmpty || b.isEmpty {
         state = false

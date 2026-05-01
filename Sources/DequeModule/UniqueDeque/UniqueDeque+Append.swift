@@ -300,7 +300,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   internal mutating func _append<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable // FIXME(throws)
   >(copying items: borrowing S) {
     var it = items.makeBorrowingIterator_()
     while true {
@@ -323,7 +323,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `items`, when amortized
   ///    over many similar invocations on the same deque
   @_alwaysEmitIntoClient
-  public mutating func append<S: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
+  public mutating func append<S: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable>( // FIXME(throws)
     copying items: borrowing S
   ) {
     self._append(copying: items)
@@ -374,7 +374,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     amortized over many similar invocations over the same deque.
   @_alwaysEmitIntoClient
   public mutating func append<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: BorrowingSequence_<Element, Never> & Sequence<Element> // FIXME(throws)
    >(
     copying items: S
    ) {

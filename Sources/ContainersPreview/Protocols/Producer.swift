@@ -23,10 +23,12 @@ public var _producerBufferSize: Int { 8 }
 /// merely providing borrowing access to them. A `Producer` instance represents
 /// an ongoing iteration over such a generative sequence.
 @available(SwiftStdlib 5.0, *)
-public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
+public protocol Producer<Element, Failure>: ~Copyable, ~Escapable
+//FIXME: BorrowingSequence_ where BorrowingIterator_ == SomeAdaptor<Self>
+{
   /// The type of the items that this producer generates.
   associatedtype Element: ~Copyable
-  
+
   /// The error that this producer may throw, or `Never` if this producer
   /// always succeeds.
   associatedtype Failure: Error = Never

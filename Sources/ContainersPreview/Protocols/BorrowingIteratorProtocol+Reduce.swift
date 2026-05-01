@@ -20,13 +20,13 @@ where
   Element_: ~Copyable
 {
   @inlinable
-  public consuming func reduce<Result: ~Copyable, E: Error>(
+  public consuming func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
-    _ nextPartialResult: (consuming Result, borrowing Element_) throws(E) -> Result
-  ) throws(E) -> Result {
+    _ nextPartialResult: (consuming Result, borrowing Element_) throws(Failure) -> Result // FIXME(throws): Union
+  ) throws(Failure) -> Result {
     var result = initialResult
     while true {
-      let span = self.nextSpan_()
+      let span = try self.nextSpan_()
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {
@@ -38,13 +38,13 @@ where
   }
 
   @inlinable
-  public consuming func reduce<Result: ~Copyable, E: Error>(
+  public consuming func reduce<Result: ~Copyable>(
     into initialResult: consuming Result,
-    _ updateAccumulatingResult: (inout Result, borrowing Element_) throws(E) -> Void
-  ) throws(E) -> Result {
+    _ updateAccumulatingResult: (inout Result, borrowing Element_) throws(Failure) -> Void // FIXME(throws): Union
+  ) throws(Failure) -> Result {
     var result = initialResult
     while true {
-      let span = self.nextSpan_()
+      let span = try self.nextSpan_()
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {

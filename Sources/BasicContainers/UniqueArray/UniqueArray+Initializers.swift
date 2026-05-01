@@ -104,7 +104,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
+  public init<Source: BorrowingSequence_<Element, Never> & ~Copyable & ~Escapable>( // FIXME(throws)
     capacity: Int? = nil,
     copying contents: borrowing Source
   ) {
@@ -140,7 +140,7 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///   - contents: The container whose contents to copy into the new array.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence_<Element> & Sequence<Element>>(
+  public init<Source: BorrowingSequence_<Element, Never> & Sequence<Element>>( // FIXME(throws)
     capacity: Int? = nil,
     copying contents: Source
   ) {

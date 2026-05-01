@@ -20,9 +20,9 @@ import InternalCollectionsUtilities
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   @_lifetime(borrow self)
-  public func _filter(
-    _ isIncluded: @escaping (borrowing Element) -> Bool
-  ) -> ContainerFilter<Self> {
+  public func _filter<Failure: Error>(
+    _ isIncluded: @escaping (borrowing Element) throws(Failure) -> Bool
+  ) -> ContainerFilter<Self, Failure> {
     ContainerFilter(_base: self, isIncluded: isIncluded)
   }
 }
@@ -30,23 +30,24 @@ extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension ContainerIterator where Base.Element: ~Copyable {
   @_lifetime(copy self)
-  public func filter(
-    _ isIncluded: @escaping (borrowing Element) -> Bool
-  ) -> ContainerFilter<Base> {
+  public func filter<Failure: Error>(
+    _ isIncluded: @escaping (borrowing Element) throws(Failure) -> Bool
+  ) -> ContainerFilter<Base, Failure> {
     ContainerFilter(_base: _base, index: _position, isIncluded: isIncluded)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
 public struct ContainerFilter<
-  Base: Container & ~Copyable/* FIXME & ~Escapable */
+  Base: Container & ~Copyable/* FIXME & ~Escapable */,
+  Failure: Error
 >: ~Copyable, ~Escapable
 where Base.Element: ~Copyable
 {
   public typealias Element = Base.Element
 
   @_alwaysEmitIntoClient
-  public let _isIncluded: (borrowing Element) -> Bool
+  public let _isIncluded: (borrowing Element) throws(Failure) -> Bool
 
   @_alwaysEmitIntoClient
   public let _base: Borrow<Base> // FIXME: This does not allow escapable Bases
@@ -62,7 +63,7 @@ where Base.Element: ~Copyable
   internal init(
     _base: Borrow<Base>,
     index: Base.Index,
-    isIncluded: @escaping (borrowing Element) -> Bool
+    isIncluded: @escaping (borrowing Element) throws(Failure) -> Bool
   ) {
     self._isIncluded = isIncluded
     self._base = _base
@@ -74,7 +75,7 @@ where Base.Element: ~Copyable
   @_lifetime(borrow _base)
   internal init(
     _base: borrowing Base,
-    isIncluded: @escaping (borrowing Element) -> Bool
+    isIncluded: @escaping (borrowing Element) throws(Failure) -> Bool
   ) {
     self._isIncluded = isIncluded
     self._base = Borrow(_base)
@@ -90,12 +91,12 @@ extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
   public typealias Element_ = Base.Element
 
   @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
-  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maximumCount: Int) throws(Failure) -> Span<Element> {
     precondition(maximumCount > 0)
     while true {
       // Drop filtered out items from prefix of _remainder
       var i = 0
-      while i < _remainder.count, !_isIncluded(_remainder[unchecked: i]) {
+      while i < _remainder.count, try !_isIncluded(_remainder[unchecked: i]) {
         i &+= 1
       }
       _remainder = _remainder.extracting(droppingFirst: i)
@@ -103,7 +104,7 @@ extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
       if !_remainder.isEmpty {
         let c = Swift.min(_remainder.count, maximumCount)
         i = 1
-        while i < c, _isIncluded(_remainder[unchecked: i]) {
+        while i < c, try _isIncluded(_remainder[unchecked: i]) {
           i &+= 1
         }
         return _remainder._trim(first: i)

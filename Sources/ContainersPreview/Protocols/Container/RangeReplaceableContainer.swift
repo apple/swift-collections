@@ -427,13 +427,14 @@ where
 
   @inlinable
   public mutating func append<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    Failure: Error,
+    S: BorrowingSequence_<Element, Failure> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) {
-    var it = items.makeBorrowingIterator_()
+  ) throws(S.Failure) {
+    var it = try items.makeBorrowingIterator_()
     while true {
-      let span = it.nextSpan_()
+      let span = try it.nextSpan_()
       guard !span.isEmpty else { break }
       self.append(copying: span)
     }

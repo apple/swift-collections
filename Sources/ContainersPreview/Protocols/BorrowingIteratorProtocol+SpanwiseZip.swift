@@ -26,13 +26,13 @@ where
   @inlinable
   internal consuming func _spanwiseZip<
     Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
-    State: ~Copyable, E: Error
+    State: ~Copyable
   >(
     state: inout State,
     with other: consuming Other,
-    by process: (inout State, Span<Element_>, Span<Other.Element_>) throws(E) -> Bool
-  ) throws(E)
-  where Other.Element_: ~Copyable
+    by process: (inout State, Span<Element_>, Span<Other.Element_>) throws(Failure) -> Bool
+  ) throws(Failure)
+  where Other.Element_: ~Copyable, Other.Failure == Failure // FIXME(throws): Union
   {
 #if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
     // Note: This is the less efficient implementation of spanwiseZip. The
@@ -41,17 +41,17 @@ where
     // maximumCounts.)
   loop:
     while true {
-      var a = self.nextSpan_()
+      var a = try self.nextSpan_()
       if a.isEmpty {
         while true {
-          let b = other.nextSpan_()
+          let b = try other.nextSpan_()
           guard !b.isEmpty else { break }
           guard try process(&state, a, b) else { break }
         }
         return
       }
       repeat {
-        let b = other.nextSpan_(maximumCount: a.count)
+        let b = try other.nextSpan_(maximumCount: a.count)
         if b.isEmpty {
           guard try process(&state, a, b) else { return }
         } else {

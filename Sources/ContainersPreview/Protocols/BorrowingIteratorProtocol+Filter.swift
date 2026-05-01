@@ -22,7 +22,7 @@ where
   @inlinable
   @_lifetime(copy self)
   public consuming func filter(
-    _ isIncluded: @escaping (borrowing Element_) -> Bool
+    _ isIncluded: @escaping (borrowing Element_) throws(Failure) -> Bool // FIXME(throws): Union
   ) -> BorrowingFilter<Self> {
     BorrowingFilter(_base: self, isIncluded: isIncluded)
   }
@@ -34,9 +34,10 @@ public struct BorrowingFilter<
 >: ~Copyable, ~Escapable
 where Base.Element_: ~Copyable {
   public typealias Element_ = Base.Element_
+  public typealias Failure = Base.Failure
 
   @_alwaysEmitIntoClient
-  public let _isIncluded: (borrowing Element_) -> Bool
+  public let _isIncluded: (borrowing Element_) throws(Failure) -> Bool
 
   @_alwaysEmitIntoClient
   public var _base: Base
@@ -45,7 +46,7 @@ where Base.Element_: ~Copyable {
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    isIncluded: @escaping (borrowing Element_) -> Bool
+    isIncluded: @escaping (borrowing Element_) throws(Failure) -> Bool
   ) {
     self._isIncluded = isIncluded
     self._base = _base
@@ -58,13 +59,13 @@ where Base.Element_: ~Copyable {
 extension BorrowingFilter: BorrowingIteratorProtocol_
 where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable {
   @_lifetime(&self)
-  public mutating func nextSpan_(maximumCount: Int) -> Span<Element_> {
+  public mutating func nextSpan_(maximumCount: Int) throws(Failure) -> Span<Element_> {
     // FIXME: This is quite inefficient compared to Container's filter
     while true {
-      let span = _base.nextSpan_(maximumCount: 1)
+      let span = try _base.nextSpan_(maximumCount: 1)
       if span.isEmpty { return span }
       precondition(span.count == 1, "Invalid BorrowingIterator")
-      if _isIncluded(span[unchecked: 0]) { return span }
+      if try _isIncluded(span[unchecked: 0]) { return span }
     }
   }
 }
