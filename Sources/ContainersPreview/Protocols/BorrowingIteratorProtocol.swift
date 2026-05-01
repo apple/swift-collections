@@ -21,11 +21,6 @@ import InternalCollectionsUtilities
 public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
 
-  // FIXME: This ought to be a core requirement, but `Ref` is not a thing yet.
-//  @_lifetime(&self)
-//  @_lifetime(self: copy self)
-//  mutating func next() -> Ref<Element>?
-
   /// Advance the iterator, returning an ephemeral span over the elements
   /// that are ready to be visited.
   ///
@@ -87,12 +82,6 @@ public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   /// `maximumOffset` must be nonnegative.
   @_lifetime(self: copy self)
   mutating func skip_(by maximumOffset: Int) -> Int
-  
-  // FIXME: Add BidirectionalBorrowingIteratorProtocol and RandomAccessBorrowingIteratorProtocol.
-  // BidirectionalBorrowingIteratorProtocol would need to have a `previousSpan`
-  // method, which considerably complicates implementation.
-  // Perhaps these would be better left to as variants of protocol Container,
-  // which do not need a separate iterator concept.
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -133,13 +122,6 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
     return Ref(_borrowing: span[unchecked: 0])
   }
 #endif
-
-  //  @_lifetime(&self)
-  //  @_lifetime(self: copy self)
-  //  public mutating func nextSpan(maximumCount: Int) -> Span<Element> {
-  //    guard let ref = next() else { return Span() }
-  //    return ref.span // FIXME
-  //  }
 }
 
 @available(SwiftStdlib 5.0, *)
