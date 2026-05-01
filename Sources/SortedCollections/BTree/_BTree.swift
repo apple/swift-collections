@@ -522,34 +522,35 @@ extension _BTree {
     func search(in node: Node) -> Unmanaged<Node.Storage>? {
       node.read({ handle in
         let slot = handle.endSlot(forKey: key) - 1
-        if slot > 0 {
+        if slot >= 0 {
           assert(slot < handle.elementCount, "Slot out of bounds")
-          
+
           if handle.isLeaf {
             offset += slot
             targetSlot = slot
             return .passUnretained(node.storage)
           } else {
+            offset += slot
             for i in 0...slot {
               offset += handle[childAt: i].read({ $0.subtreeCount })
             }
-            
+
             let currentOffset = offset
             let currentDepth = childSlots.depth
             childSlots.append(UInt16(slot + 1))
-            
+
             if let foundLater = search(in: handle[childAt: slot + 1]) {
               return foundLater
             } else {
               childSlots.depth = currentDepth
               targetSlot = slot
               offset = currentOffset
-              
+
               return .passUnretained(node.storage)
             }
           }
         } else {
-          // Start index exceeds node and is therefore not in this.
+          // No element in this node is <= key.
           return nil
         }
       })
