@@ -97,7 +97,68 @@ class SortedSetTests: CollectionTestCase {
       expectNil(set.index(of: count))
     }
   }
-  
+
+  func test_firstIndexAfter() {
+    withEvery("count", in: 0 ..< 40) { count in
+      // Use even numbers so we can exercise both the "present" and "absent"
+      // paths: a query of 2i hits an element, 2i+1 falls between elements.
+      let set = SortedSet((0 ..< count).map { $0 * 2 })
+      withEvery("item", in: 0 ..< count) { item in
+        let member = item * 2
+        let between = member + 1
+        if item + 1 < count {
+          let expected = (item + 1) * 2
+          expectNotNil(set.firstIndex(after: member)) { index in
+            expectEqual(set[index], expected)
+          }
+          expectNotNil(set.firstIndex(after: between)) { index in
+            expectEqual(set[index], expected)
+          }
+        } else {
+          expectNil(set.firstIndex(after: member))
+          expectNil(set.firstIndex(after: between))
+        }
+      }
+      if count > 0 {
+        expectNotNil(set.firstIndex(after: -1)) { index in
+          expectEqual(set[index], 0)
+        }
+      } else {
+        expectNil(set.firstIndex(after: -1))
+      }
+    }
+  }
+
+  func test_lastIndexBefore() {
+    withEvery("count", in: 0 ..< 40) { count in
+      let set = SortedSet((0 ..< count).map { $0 * 2 })
+      withEvery("item", in: 0 ..< count) { item in
+        let member = item * 2
+        let between = member + 1
+        if item > 0 {
+          let expected = (item - 1) * 2
+          expectNotNil(set.lastIndex(before: member)) { index in
+            expectEqual(set[index], expected)
+          }
+        } else {
+          expectNil(set.lastIndex(before: member))
+        }
+        // `between` is strictly greater than `member`, so the largest
+        // element less than it is always `member`.
+        expectNotNil(set.lastIndex(before: between)) { index in
+          expectEqual(set[index], member)
+        }
+      }
+      if count > 0 {
+        expectNotNil(set.lastIndex(before: count * 2)) { index in
+          expectEqual(set[index], (count - 1) * 2)
+        }
+      } else {
+        expectNil(set.lastIndex(before: 0))
+      }
+    }
+  }
+
   func test_removeAtIndex() {
     withEvery("count", in: 0 ..< 40) { count in
       withEvery("index", in: 0..<count) { index in
