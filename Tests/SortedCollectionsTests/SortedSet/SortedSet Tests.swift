@@ -553,6 +553,53 @@ class SortedSetTests: CollectionTestCase {
       }
     }
   }
+
+  func test_closedRangeSubscript() {
+    withEvery("count", in: [1, 5, 32, 64]) { count in
+      // Use even values so `2i+1` probes positions that fall between members.
+      let set = SortedSet((0 ..< count).map { $0 * 2 })
+      withEvery("lo", in: 0 ... 2 * count) { lo in
+        withEvery("hi", in: lo ... 2 * count) { hi in
+          let slice = set[lo ... hi]
+          let expected = (lo ... hi).filter { $0.isMultiple(of: 2) && $0 < 2 * count }
+          expectEqualElements(slice, expected)
+        }
+      }
+    }
+  }
+
+  func test_partialRangeFromSubscript() {
+    withEvery("count", in: [0, 1, 5, 32, 64]) { count in
+      let set = SortedSet((0 ..< count).map { $0 * 2 })
+      withEvery("lo", in: -1 ... 2 * count) { lo in
+        let slice = set[lo...]
+        let expected = (0 ..< count).map { $0 * 2 }.filter { $0 >= lo }
+        expectEqualElements(slice, expected)
+      }
+    }
+  }
+
+  func test_partialRangeUpToSubscript() {
+    withEvery("count", in: [0, 1, 5, 32, 64]) { count in
+      let set = SortedSet((0 ..< count).map { $0 * 2 })
+      withEvery("hi", in: 0 ... 2 * count) { hi in
+        let slice = set[..<hi]
+        let expected = (0 ..< count).map { $0 * 2 }.filter { $0 < hi }
+        expectEqualElements(slice, expected)
+      }
+    }
+  }
+
+  func test_partialRangeThroughSubscript() {
+    withEvery("count", in: [0, 1, 5, 32, 64]) { count in
+      let set = SortedSet((0 ..< count).map { $0 * 2 })
+      withEvery("hi", in: -1 ... 2 * count) { hi in
+        let slice = set[...hi]
+        let expected = (0 ..< count).map { $0 * 2 }.filter { $0 <= hi }
+        expectEqualElements(slice, expected)
+      }
+    }
+  }
 }
 
 #endif
