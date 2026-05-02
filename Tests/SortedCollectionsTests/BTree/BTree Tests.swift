@@ -153,6 +153,20 @@ final class BTreeTests: CollectionTestCase {
     }
   }
 
+  func test_lastIndexForKey() {
+    withEvery("count", in: [1, 2, 4, 8, 16, 32, 64]) { count in
+      btreeOfSize(count) { btree, kvs in
+        withEvery("i", in: 0..<count) { i in
+          let index = btree.lastIndex(forKey: kvs[i].key)
+          expectEqual(index.offset, i)
+        }
+        // Key smaller than every element: no element <= key, returns endIndex
+        let below = btree.lastIndex(forKey: -1)
+        expectEqual(below, btree.endIndex)
+      }
+    }
+  }
+
   func test_randomInsertionOrder() {
     let kvs = [
       (key: 71, value: 142),
