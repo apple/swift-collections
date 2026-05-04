@@ -498,7 +498,7 @@ extension _Node.UnsafeHandle {
         )
         
         if !self.isLeaf {
-          rightHandle.moveInitializeElements(
+          rightHandle.moveInitializeChildren(
             count: rightHandle.childCount,
             fromSlot: 0,
             toSlot: self.childCount,

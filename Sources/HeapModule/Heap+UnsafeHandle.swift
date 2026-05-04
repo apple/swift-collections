@@ -76,6 +76,7 @@ extension Heap._UnsafeHandle {
   /// Swaps the element at the given node with the supplied value.
   @inlinable @inline(__always)
   internal func swapAt(_ i: _HeapNode, with value: inout Element) {
+    assert(i.offset < count)
     let p = buffer.baseAddress.unsafelyUnwrapped + i.offset
     swap(&p.pointee, &value)
   }

@@ -99,7 +99,6 @@ extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
         i &+= 1
       }
       _remainder = _remainder.extracting(droppingFirst: i)
-      // Return maximal
       if !_remainder.isEmpty {
         let c = Swift.min(_remainder.count, maximumCount)
         i = 1
