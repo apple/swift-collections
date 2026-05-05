@@ -80,7 +80,6 @@ struct RigidDequeCrashTests {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @Test("nextMutableSpan with out-of-bounds index traps")
   func nextMutableSpanOutOfBoundsIndex() async {
     await #expect(processExitsWith: .failure) {
@@ -108,7 +107,6 @@ struct RigidDequeCrashTests {
       _ = deque.nextMutableSpan(after: &index, maximumCount: -1)
     }
   }
-#endif
 }
 #endif
 #endif

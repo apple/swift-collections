@@ -91,21 +91,17 @@ extension RigidDeque where Element: ~Copyable {
   @inline(__always)
   public func index(after index: Int) -> Int { index + 1 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
   @_alwaysEmitIntoClient
   @inline(__always)
   public func index(before index: Int) -> Int { index - 1 }
-#endif
 
   @_alwaysEmitIntoClient
   @inline(__always)
   public func formIndex(after index: inout Int) { index += 1 }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
   @_alwaysEmitIntoClient
   @inline(__always)
   public func formIndex(before index: inout Int) { index -= 1 }
-#endif
 
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -132,7 +128,6 @@ extension RigidDeque where Element: ~Copyable {
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
   @_lifetime(&self)
   public mutating func nextMutableSpan(
     after index: inout Int, maximumCount: Int
@@ -159,7 +154,6 @@ extension RigidDeque where Element: ~Copyable {
     index &-= segment.count
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
-#endif
 }
 
 #endif

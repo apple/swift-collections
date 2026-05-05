@@ -32,18 +32,9 @@ extension UniqueDeque where Element: ~Copyable {
   /// Creates an empty unique deque with the specified capacity.
   @_alwaysEmitIntoClient
   @_transparent
-  public init(capacity: Int) {
-    _storage = .init(capacity: capacity)
-  }
-
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
-  /// Creates an empty unique deque with the specified capacity.
-  @_alwaysEmitIntoClient
-  @_transparent
   public init(minimumCapacity: Int) {
     _storage = .init(capacity: minimumCapacity)
   }
-#endif
 
   /// Creates a unique deque with the specified capacity, then calls the given
   /// closure with an output span covering the deque's uninitialized memory.

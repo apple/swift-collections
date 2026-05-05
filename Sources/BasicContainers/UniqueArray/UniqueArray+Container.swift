@@ -357,7 +357,6 @@ extension UniqueArray where Element: ~Copyable {
     _storage.nextSpan(after: &index, maximumCount: maximumCount)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW // FIXME: Enable unconditionally in 1.5.0
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(
@@ -373,7 +372,6 @@ extension UniqueArray where Element: ~Copyable {
   ) -> Span<Element> {
     _storage.previousSpan(before: &index, maximumCount: maximumCount)
   }
-#endif
 }
 
 #endif

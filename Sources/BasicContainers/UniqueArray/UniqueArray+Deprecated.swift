@@ -15,6 +15,13 @@
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  /// Initializes a new unique array with the specified capacity and no elements.
+  @available(*, deprecated, renamed: "init(minimumCapacity:)")
+  @inlinable
+  public init(capacity: Int) {
+    self.init(minimumCapacity: capacity)
+  }
+
   /// Append a given number of items to the end of this array by populating
   /// an output span.
   ///
