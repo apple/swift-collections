@@ -47,6 +47,7 @@ target_sources(${module_name} PRIVATE
   "UniqueDeque/UniqueDeque+Append.swift"
   "UniqueDeque/UniqueDeque+Consumption.swift"
   "UniqueDeque/UniqueDeque+Container.swift"
+  "UniqueDeque/UniqueDeque+Deprecated.swift"
   "UniqueDeque/UniqueDeque+Descriptions.swift"
   "UniqueDeque/UniqueDeque+Equatable.swift"
   "UniqueDeque/UniqueDeque+Experimental.swift"
