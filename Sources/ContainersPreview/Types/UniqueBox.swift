@@ -85,6 +85,7 @@ public struct UniqueBox<Value: ~Copyable>: ~Copyable {
 extension UniqueBox: @unchecked Sendable where Value: Sendable & ~Copyable {}
 
 extension UniqueBox where Value: ~Copyable {
+#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
   @_alwaysEmitIntoClient
   public var value: Value {
     @_transparent
@@ -99,6 +100,20 @@ extension UniqueBox where Value: ~Copyable {
       &_pointer.pointee
     }
   }
+#else
+  @_alwaysEmitIntoClient
+  public var value: Value {
+    @_transparent
+    unsafeAddress {
+      UnsafePointer(_pointer)
+    }
+
+    @_transparent
+    unsafeMutableAddress {
+      _pointer
+    }
+  }
+#endif
 
   /// Dereference this box, accessing its contents in a borrowing or
   /// mutating way.
