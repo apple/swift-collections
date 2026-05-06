@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 extension SortedSet: BidirectionalCollection {
   /// The number of elements in the sorted set.

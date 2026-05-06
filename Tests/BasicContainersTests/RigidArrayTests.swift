@@ -73,7 +73,7 @@ class RigidArrayTests: CollectionTestCase {
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
         expectRigidArrayContents(items, equalTo: expected)
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
         checkIterable(items, expectedContents: expected)
 #endif
       }
@@ -163,7 +163,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 #if false // FIXME: Update
   func test_init_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -828,7 +828,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_append_moving_InputSpan() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
       withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
@@ -913,7 +913,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 #if false // FIXME: Update
   func test_append_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -1059,7 +1059,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_insert_moving_InputSpan() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 1, 5, 10]) { layout in
       withSomeArrayLayouts("spanLayout", ofCapacities: 0 ..< layout.freeCapacity) { spanLayout in
@@ -1177,7 +1177,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1272,7 +1272,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_replace_consuming_full() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("subrange", in: 0 ..< layout.count) { subrange in
@@ -1409,7 +1409,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -1440,7 +1440,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   func test_borrowing_map() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
@@ -1468,7 +1468,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   func test_consume_subrange_drainNext() {
     withLifetimeTracking { tracker in
       var a = RigidArray<LifetimeTracked<Int>>(capacity: 4)

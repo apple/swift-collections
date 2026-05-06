@@ -16,7 +16,7 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if UnstableHashedContainers
 #if compiler(<6.4)
 /// A fixed-capacity, noncopyable, unordered hashed container of unique
 /// elements.

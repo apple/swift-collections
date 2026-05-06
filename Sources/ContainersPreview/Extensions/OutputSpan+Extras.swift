@@ -71,7 +71,7 @@ extension OutputSpan where Element: ~Copyable {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_lifetime(source: copy source)
   @inlinable
   @inline(__always)

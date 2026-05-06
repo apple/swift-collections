@@ -69,7 +69,7 @@ extension LifetimeTrackedStruct: TestPrintable where Payload: TestPrintable & ~C
 }
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 extension LifetimeTrackedStruct: Equatable where Payload: Equatable & ~Copyable {
   public static func == (left: borrowing Self, right: borrowing Self) -> Bool {
     return left.payload == right.payload

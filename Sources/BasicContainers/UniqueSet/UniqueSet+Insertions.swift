@@ -15,7 +15,7 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueSet where Element: ~Copyable {
@@ -79,7 +79,7 @@ extension UniqueSet where Element: ~Copyable {
       maximumCount: maximumCount, initializingWith: initializer)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public mutating func insert<
     E: Error,
@@ -101,7 +101,7 @@ extension UniqueSet where Element: ~Copyable {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public mutating func insert<
     D: Drain<Element> & ~Copyable & ~Escapable
@@ -129,7 +129,7 @@ extension UniqueSet /* where Element: Copyable */ {
     _storage.insert(copying: items)
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   package mutating func _insert<
     S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
@@ -146,7 +146,7 @@ extension UniqueSet /* where Element: Copyable */ {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -168,7 +168,7 @@ extension UniqueSet /* where Element: Copyable */ {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

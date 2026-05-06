@@ -52,16 +52,6 @@ let _traits: Set<Trait> = [
 //
 //     swift build -Xswiftc -DCOLLECTIONS_INTERNAL_CHECKS
 var defines: [SwiftSetting] = [
-  .define(
-    "COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW",
-    .when(traits: ["UnstableContainersPreview"])),
-  .define(
-    "COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS",
-    .when(traits: ["UnstableSortedCollections"])),
-  .define(
-    "COLLECTIONS_UNSTABLE_HASHED_CONTAINERS",
-    .when(traits: ["UnstableHashedContainers"])),
-
   // Enables internal consistency checks at the end of initializers and
   // mutating operations. This can have very significant overhead, so enabling
   // this setting invalidates all documented performance guarantees.

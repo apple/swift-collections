@@ -19,7 +19,7 @@ import _CollectionsTestSupport
 import BasicContainers
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 class UniqueSetTests: CollectionTestCase {
   func test_empty() {
     let s = UniqueSet<Int>()

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 extension SortedSet: Hashable where Element: Hashable {
   /// Hashes the essential components of this value by feeding them

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 extension _Node {
   /// A handle allowing potentially mutable operations to be performed.

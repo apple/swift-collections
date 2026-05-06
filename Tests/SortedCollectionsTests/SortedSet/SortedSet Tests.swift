@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 import XCTest
 @_spi(Testing) import SortedCollections

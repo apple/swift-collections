@@ -35,7 +35,7 @@ extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */
     guard left.count == right.count else { return false }
     guard !left.isTriviallyIdentical(to: right) else { return true }
     
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
     return left._elementsEqual(right)
 #else
     for i in 0 ..< left.count {

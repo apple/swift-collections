@@ -15,7 +15,7 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
@@ -140,7 +140,7 @@ extension RigidSet where Element: ~Copyable {
         capacity: c
       ) { output throws(E) in
         defer {
-          #if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+          #if UnstableContainersPreview
           output._consumeAll { span in
             if span.count < c {
               remainder = 0
@@ -165,7 +165,7 @@ extension RigidSet where Element: ~Copyable {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public mutating func insert<
     E: Error,
@@ -186,7 +186,7 @@ extension RigidSet where Element: ~Copyable {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public mutating func insert<
     D: Drain<Element> & ~Copyable & ~Escapable
@@ -220,7 +220,7 @@ extension RigidSet /* where Element: Copyable */ {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   package mutating func _insert<
     S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
@@ -236,7 +236,7 @@ extension RigidSet /* where Element: Copyable */ {
   }
 #endif
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -257,7 +257,7 @@ extension RigidSet /* where Element: Copyable */ {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

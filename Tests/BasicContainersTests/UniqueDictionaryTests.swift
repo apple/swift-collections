@@ -20,7 +20,7 @@ import BasicContainers
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 class UniqueDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -145,7 +145,7 @@ class UniqueDictionaryTests: CollectionTestCase {
           d.withKeys { keys in
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
             var it = keys.makeBorrowingIterator_()
             var actual: Set<Int> = []
             while true {
@@ -195,7 +195,7 @@ class UniqueDictionaryTests: CollectionTestCase {
     }
   }
   
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.2, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>

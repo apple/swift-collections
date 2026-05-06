@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
 import Builtin
 
 /// A safe mutable reference allowing in-place mutation to an exclusive value.

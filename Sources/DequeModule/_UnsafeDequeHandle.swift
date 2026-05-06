@@ -1429,7 +1429,7 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
       initializingWith: initializer)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   internal mutating func uncheckedReplace<E: Error>(
     removing subrange: Range<Int>,

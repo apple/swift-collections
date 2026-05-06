@@ -20,7 +20,7 @@ import _CollectionsTestSupport
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 final class BorrowingSequenceTests: XCTestCase {
   @available(SwiftStdlib 6.2, *)
   func testBasic() {

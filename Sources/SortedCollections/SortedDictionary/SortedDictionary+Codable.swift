@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 #if !$Embedded
 extension SortedDictionary: Encodable where Key: Codable, Value: Codable {

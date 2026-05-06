@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2) && UnstableContainersPreview
 
 #if false // TODO
 import Builtin // For Shared.isIdentical

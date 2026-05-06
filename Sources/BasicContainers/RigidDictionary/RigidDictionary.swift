@@ -16,7 +16,7 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if UnstableHashedContainers
 #if compiler(<6.4)
 @available(*, unavailable, message: "RigidDictionary requires a Swift 6.4 toolchain")
 @frozen

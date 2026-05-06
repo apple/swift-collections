@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 extension SortedDictionary: Equatable where Value: Equatable {
   /// Returns a Boolean value indicating whether two values are equal.

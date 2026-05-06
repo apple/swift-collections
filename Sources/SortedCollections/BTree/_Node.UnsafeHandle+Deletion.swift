@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 extension _Node.UnsafeHandle {
   /// Removes the key-value pair corresponding to the first found instance of the key.

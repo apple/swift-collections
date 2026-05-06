@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
 @available(SwiftStdlib 6.2, *)
 extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {

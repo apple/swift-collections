@@ -85,7 +85,7 @@ extension UniqueArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray /*where Element: Copyable*/ {
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given borrowing sequence.
   ///
@@ -122,7 +122,7 @@ extension UniqueArray /*where Element: Copyable*/ {
     self.append(copying: contents)
   }
   
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   /// Creates a new array with the specified initial capacity, holding a copy
   /// of the contents of a given container.
   ///

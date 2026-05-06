@@ -19,7 +19,7 @@ import _CollectionsTestSupport
 import ContainersPreview
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
 final class InoutTests: XCTestCase {
   func test_basic() {
     var x = 0

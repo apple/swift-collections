@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 // This contains `_BTree`'s general implementation of BidirectionalCollection.
 // These operations are bounds in contrast to most other methods on _BTree as

@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if UnstableHashedContainers
 #if compiler(<6.4)
 @available(*, unavailable, message: "UniqueDictionary requires a Swift 6.4 toolchain")
 public struct UniqueDictionary<

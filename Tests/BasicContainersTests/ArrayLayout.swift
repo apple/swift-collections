@@ -108,7 +108,7 @@ extension LifetimeTracker {
     return UniqueArray(consuming: contents)
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func withInputSpan<Element>(
     layout: ArrayLayout,
     using generator: (Int) -> Element,

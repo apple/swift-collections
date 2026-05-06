@@ -75,7 +75,7 @@ class UniqueArrayTests: CollectionTestCase {
         let expected = (0 ..< layout.count).map { tracker.instance(for: $0) }
         expectEqual(tracker.instances, 2 * layout.count)
         expectUniqueArrayContents(items, equalTo: expected)
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
         checkIterable(items, expectedContents: expected)
 #endif
       }
@@ -196,7 +196,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 #if false // FIXME: Update
   func test_init_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -745,7 +745,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 #if false // FIXME: Update
   func test_append_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -851,7 +851,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 #if false // FIXME: Update
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
@@ -985,7 +985,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 #if false // FIXME: Update
   func test_replace_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in

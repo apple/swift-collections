@@ -16,7 +16,7 @@ import InternalCollectionsUtilities
 import ContainersPreview
 #endif
 
-#if compiler(>=6.2) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.2) && UnstableContainersPreview
 
 #if false // FIXME
 @available(SwiftStdlib 5.0, *)
