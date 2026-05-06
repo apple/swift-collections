@@ -139,7 +139,7 @@ extension UniqueArray where Element: ~Copyable {
   /// it is not allowed to replace the span or change its capacity.
   ///
   /// When the function argument finishes (whether by returning or throwing an
-  /// error) the rigid array instance is updated to match the final contents of
+  /// error) the unique array instance is updated to match the final contents of
   /// the output span.
   ///
   /// - Parameter body: A function that edits the contents of this array through
