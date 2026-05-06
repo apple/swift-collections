@@ -20,26 +20,26 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.2)
-final class BoxTests: XCTestCase {
+final class UniqueBoxTests: CollectionTestCase {
   func test_basic() {
-    var intOnHeap = Box<Int>(0)
+    var box = UniqueBox<Int>(0)
 
-    XCTAssertEqual(intOnHeap[], 0)
+    expectEqual(box.value, 0)
 
-    intOnHeap[] = 123
+    box.value = 123
 
-    XCTAssertEqual(intOnHeap[], 123)
+    expectEqual(box.value, 123)
 
-    XCTAssertEqual(intOnHeap.copy(), 123)
+    expectEqual(box.clone().value, 123)
 
 #if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
-    var inoutToIntOnHeap = intOnHeap.leak()
+    var boxRef = box.leak()
 
-    XCTAssertEqual(inoutToIntOnHeap.value, 123)
+    expectEqual(boxRef.value, 123)
 
-    inoutToIntOnHeap.value = 321
+    boxRef.value = 321
 
-    XCTAssertEqual(inoutToIntOnHeap.value, 321)
+    expectEqual(boxRef.value, 321)
 #endif
   }
 }

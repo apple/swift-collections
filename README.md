@@ -117,10 +117,10 @@ Persistent hashed collections implementing Compressed Hash-Array Mapped Prefix T
 
 An experimental preview of an ownership-aware container model in Swift.
 
-- [`struct Box<T>`][Box] a wrapper type that forms a heap-allocated noncopyable box around an arbitrary item.
+- [`struct UniqueBox<Value>`][UniqueBox] is a heap-allocated noncopyable wrapper for an arbitrary value.
 
 [ContainersPreview]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview
-[Box]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview/box
+[UniqueBox]: https://swiftpackageindex.com/apple/swift-collections/documentation/containerspreview/uniquebox
 
 #### [`Collections`][CollectionsModule] module
 
