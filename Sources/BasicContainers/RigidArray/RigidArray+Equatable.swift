@@ -25,7 +25,7 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: Equatable where Element: Equatable & ~Copyable {
   @inlinable

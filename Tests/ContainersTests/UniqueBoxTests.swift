@@ -230,7 +230,7 @@ final class UniqueBoxTests: CollectionTestCase {
 
   // MARK: Preview-gated API
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @available(SwiftStdlib 5.0, *)
   func test_borrow_read() {
     let box = UniqueBox<Int>(123)
@@ -246,7 +246,7 @@ final class UniqueBoxTests: CollectionTestCase {
   }
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
   func test_mutate_read() {
     var box = UniqueBox<Int>(10)
     let ref = box.mutate()

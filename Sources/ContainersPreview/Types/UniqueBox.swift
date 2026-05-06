@@ -85,7 +85,7 @@ public struct UniqueBox<Value: ~Copyable>: ~Copyable {
 extension UniqueBox: @unchecked Sendable where Value: Sendable & ~Copyable {}
 
 extension UniqueBox where Value: ~Copyable {
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   @_alwaysEmitIntoClient
   public var value: Value {
     @_transparent
@@ -185,7 +185,7 @@ extension UniqueBox where Value: Copyable {
 }
 
 extension UniqueBox where Value: ~Copyable {
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
   /// Leak the heap allocation behind this box, converting it into an
   /// immortal mutating reference.
   @_alwaysEmitIntoClient
@@ -198,7 +198,7 @@ extension UniqueBox where Value: ~Copyable {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   /// Return a borrowing reference to the contents of this box.
   @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
@@ -209,7 +209,7 @@ extension UniqueBox where Value: ~Copyable {
   }
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
   /// Return a mutating reference to the contents of this box.
   @_alwaysEmitIntoClient
   @_transparent

@@ -19,7 +19,7 @@ import _CollectionsTestSupport
 import BasicContainers
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 fileprivate struct Pair: Hashable {
   var first: Int
@@ -291,7 +291,7 @@ class RigidSetTests: CollectionTestCase {
     expectConsistentSet(set)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_borrowing_iterator() {
     withEvery("capacity", in: [0, 1, 2, 3, 4, 10, 100, 1000]) { capacity in
       withEvery("maximumCount", in: [1, 2, 3, Int.max]) { maximumCount in
@@ -356,7 +356,7 @@ class RigidSetTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_insert_producer() {
     withEvery("capacity", in: [0, 1, 2, 4, 10, 100, 200]) { capacity in
       withEvery("count", in: 0 ..< capacity) { count in
@@ -393,7 +393,7 @@ class RigidSetTests: CollectionTestCase {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_insert_drain() {
     withEvery("capacity", in: [0, 1, 2, 4, 10, 100, 200]) { capacity in
       withEvery("count", in: 0 ..< capacity) { count in

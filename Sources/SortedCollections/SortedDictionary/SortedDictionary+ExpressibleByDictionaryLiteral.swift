@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 extension SortedDictionary: ExpressibleByDictionaryLiteral {
   /// Creates a new sorted dictionary from the contents of a dictionary

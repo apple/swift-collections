@@ -15,7 +15,7 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
@@ -40,7 +40,7 @@ extension RigidSet where Element: ~Copyable {
     _find(item).bucket != nil
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   package func _borrowValue(at bucket: _Bucket) -> Borrow<Element> {

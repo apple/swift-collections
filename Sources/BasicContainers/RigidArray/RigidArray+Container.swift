@@ -18,7 +18,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: BorrowingSequence_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
@@ -30,7 +30,7 @@ extension RigidArray: BorrowingSequence_ where Element: ~Copyable {
 }
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: Container where Element: ~Copyable {}
 

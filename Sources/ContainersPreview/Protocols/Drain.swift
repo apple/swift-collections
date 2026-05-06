@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 
 /// A type that supplies the values of an in-place consumable sequence through
 /// a series of `InputSpan` instances. This iterator-like construct allows

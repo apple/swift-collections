@@ -21,7 +21,7 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   @frozen
   public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
     public typealias Element_ = Element
@@ -66,7 +66,7 @@ extension RigidDeque where Element: ~Copyable {
 #endif
 }
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque: Container where Element: ~Copyable {}
 

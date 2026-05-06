@@ -18,7 +18,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @_lifetime(&self)
@@ -137,7 +137,7 @@ extension RigidArray where Element: ~Copyable {
 }
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -188,7 +188,7 @@ extension RigidArray where Element: ~Copyable {
 }
 
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray.SubrangeConsumer: Drain where Element: ~Copyable {
 }

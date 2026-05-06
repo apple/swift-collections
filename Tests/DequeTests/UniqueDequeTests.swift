@@ -81,7 +81,7 @@ internal func expectUniqueDequeContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   expectIterableContents(
     left,
     equivalentTo: right,

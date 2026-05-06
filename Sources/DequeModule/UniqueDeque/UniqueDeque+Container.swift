@@ -21,7 +21,7 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
   public typealias BorrowingIterator = RigidDeque<Element>.BorrowingIterator
   
   @_alwaysEmitIntoClient
@@ -32,7 +32,7 @@ extension UniqueDeque where Element: ~Copyable {
 #endif
 }
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: Container where Element: ~Copyable {}
 

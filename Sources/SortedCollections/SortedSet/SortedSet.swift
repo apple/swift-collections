@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 /// A collection which maintains unique members in ascending sorted order.
 public struct SortedSet<Element: Comparable> {

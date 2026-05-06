@@ -20,7 +20,7 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   /// Remove the specified subrange of items from this deque,
   /// passing a series of input spans to a given callback function to consume
   /// them in place.
@@ -164,7 +164,7 @@ extension RigidDeque where Element: ~Copyable {
 #endif
 }
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient

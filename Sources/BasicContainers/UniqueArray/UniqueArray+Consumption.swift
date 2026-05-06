@@ -18,7 +18,7 @@ import ContainersPreview
 
 #if compiler(>=6.2)
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   @_lifetime(&self)
@@ -116,7 +116,7 @@ extension UniqueArray where Element: ~Copyable {
 }
 #endif
 
-#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   public typealias SubrangeConsumer = RigidArray<Element>.SubrangeConsumer

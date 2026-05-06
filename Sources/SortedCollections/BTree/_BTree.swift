@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_UNSTABLE_SORTED_COLLECTIONS
+#if UnstableSortedCollections
 
 /// A bidirectional collection representing a BTree which efficiently stores its
 /// elements in sorted order and maintains roughly `O(log count)`

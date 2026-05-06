@@ -37,7 +37,7 @@ extension Strideable {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @inlinable
   public mutating func advance(
     by distance: inout Stride, limitedBy limit: Self

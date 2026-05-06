@@ -20,7 +20,7 @@ import BasicContainers
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 class RigidDictionaryTests: CollectionTestCase {
   func test_empty() {
@@ -58,7 +58,7 @@ class RigidDictionaryTests: CollectionTestCase {
         d.insertValue(secondValue, forKey: secondKey),
         secondValue)
       
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
       let thirdKey = tracker.instance(for: 42)
       expectNotNil(d.value(forKey: thirdKey)) { valueRef in
         expectIdentical(valueRef.value, firstValue)
@@ -91,7 +91,7 @@ class RigidDictionaryTests: CollectionTestCase {
       let res = d.updateValue(secondValue, forKey: secondKey)
       expectIdentical(res, firstValue)
       
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
       let thirdKey = tracker.instance(for: 42)
       expectNotNil(d.value(forKey: thirdKey)) { valueRef in
         expectIdentical(valueRef.value, secondValue)
@@ -140,7 +140,7 @@ class RigidDictionaryTests: CollectionTestCase {
         expectEqual(d.capacity, capacity)
         expectEqual(d.freeCapacity, 0)
         
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           expectNotNil(
@@ -188,7 +188,7 @@ class RigidDictionaryTests: CollectionTestCase {
         expectEqual(d.capacity, capacity)
         expectEqual(d.freeCapacity, 0)
         
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
         for i in 0 ..< capacity {
           let dupe = tracker.instance(for: i)
           expectNotNil(
@@ -203,7 +203,7 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
   
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   func test_memoizedValue_one() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
@@ -257,7 +257,7 @@ class RigidDictionaryTests: CollectionTestCase {
           d.withKeys { keys in
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if compiler(>=6.4) && UnstableContainersPreview
             var it = keys.makeBorrowingIterator_()
             var actual: Set<Int> = []
             while true {
@@ -308,7 +308,7 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @available(SwiftStdlib 6.2, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>

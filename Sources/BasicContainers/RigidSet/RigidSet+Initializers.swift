@@ -15,7 +15,7 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && COLLECTIONS_UNSTABLE_HASHED_CONTAINERS
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet where Element: ~Copyable {
@@ -49,7 +49,7 @@ extension RigidSet where Element: ~Copyable {
     try self.insert(maximumCount: capacity, initializingWith: initializer)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public init<
     E: Error,
@@ -65,7 +65,7 @@ extension RigidSet where Element: ~Copyable {
   }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public init<
     D: Drain<Element> & ~Copyable & ~Escapable
@@ -81,7 +81,7 @@ extension RigidSet where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidSet /* where Element: Copyable */ {
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
@@ -115,7 +115,7 @@ extension RigidSet /* where Element: Copyable */ {
     self.insert(copying: contents)
   }
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<

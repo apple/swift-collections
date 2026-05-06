@@ -108,7 +108,7 @@ extension OutputSpan: TestPrintable where Element: ~Copyable  {
 }
 #endif
 
-#if COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
+#if UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension InputSpan: TestPrintable where Element: ~Copyable  {
   public var testDescription: String {
