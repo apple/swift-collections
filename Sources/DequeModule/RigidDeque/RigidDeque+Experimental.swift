@@ -24,10 +24,10 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Borrow<Element> {
+  public func borrowElement(at index: Int) -> Ref<Element> {
     _checkItemIndex(index)
     let slot = _handle.slot(forOffset: index)
-    return Borrow(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
+    return Ref(unsafeAddress: _handle.ptr(at: slot), borrowing: self)
   }
   
   @_alwaysEmitIntoClient

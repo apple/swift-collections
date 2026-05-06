@@ -22,12 +22,12 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @frozen
   public struct Indices: ~Escapable {
     @_alwaysEmitIntoClient
-    package let _base: Borrow<_HTable>
-    
+    package let _base: Ref<_HTable>
+
     @_alwaysEmitIntoClient
     @_lifetime(borrow _base)
     package init(_base: borrowing @_addressable _HTable) {
-      self._base = Borrow(_base)
+      self._base = Ref(_base)
     }
   }
 

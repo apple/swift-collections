@@ -34,12 +34,12 @@ where Base.Element: ~Copyable
 {
   public typealias Element = Base.Element
   
-  let _base: Borrow<Base> // FIXME: This doesn't support nonescapable Bases
+  let _base: Ref<Base> // FIXME: This doesn't support nonescapable Bases
   var _position: Base.Index
 
   @_lifetime(borrow base)
   init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
-    self._base = Borrow(_borrowing: base)
+    self._base = Ref(base)
     self._position = position
   }
 }

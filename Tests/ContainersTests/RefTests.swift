@@ -11,18 +11,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if COLLECTIONS_CONTAINERS_PREVIEW
+#if compiler(>=6.3) && COLLECTIONS_UNSTABLE_CONTAINERS_PREVIEW
 import XCTest
 import ContainersPreview
 import Synchronization
 
-final class BorrowTests: XCTestCase {
+final class RefTests: XCTestCase {
   @available(SwiftStdlib 5.0, *)
-  func test_basic() {
-    let x: Atomic<Int>? = Atomic(0)
-    
+  func test_optional() {
+    let x: Atomic<Int>? = Atomic(42)
+
     if let y = x.borrow() {
-      XCTAssertEqual(y[].load(ordering: .relaxed), 0)
+      XCTAssertEqual(y[].load(ordering: .relaxed), 42)
     }
   }
 }

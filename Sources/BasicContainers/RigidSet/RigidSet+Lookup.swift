@@ -43,9 +43,9 @@ extension RigidSet where Element: ~Copyable {
 #if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  package func _borrowValue(at bucket: _Bucket) -> Borrow<Element> {
+  package func _borrowValue(at bucket: _Bucket) -> Ref<Element> {
     assert(self._table.isOccupied(bucket))
-    return Borrow(unsafeAddress: self._memberPtr(at: bucket), borrowing: self)
+    return Ref(unsafeAddress: self._memberPtr(at: bucket), borrowing: self)
   }
 #endif
 }

@@ -46,7 +46,7 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   @inline(__always)
   @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Borrow<Element> {
+  public func borrowElement(at index: Int) -> Ref<Element> {
     _storage.borrowElement(at: index)
   }
 }
