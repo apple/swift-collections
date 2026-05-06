@@ -59,7 +59,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Producer+Map.swift"
   "Protocols/Producer+Reduce.swift"
   "Types/Borrow.swift"
-  "Types/Box.swift"
+  "Types/UniqueBox.swift"
   "Types/Inout.swift"
   "Types/InputSpan.swift"
   "Types/Shared.swift"
