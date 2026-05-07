@@ -62,8 +62,8 @@
 		7D2A779A2F27F2BF005780C7 /* RigidDeque+Testing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A776B2F27F2BF005780C7 /* RigidDeque+Testing.swift */; };
 		7D2A779B2F27F2BF005780C7 /* UniqueDeque+Experimental.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77712F27F2BF005780C7 /* UniqueDeque+Experimental.swift */; };
 		7D2A779C2F27F2BF005780C7 /* Deque+ExpressibleByArrayLiteral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A775C2F27F2BF005780C7 /* Deque+ExpressibleByArrayLiteral.swift */; };
-		7D2A779F2F27F367005780C7 /* InoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A779E2F27F367005780C7 /* InoutTests.swift */; };
 		7D2A77A02F27F367005780C7 /* RefTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A779D2F27F367005780C7 /* RefTests.swift */; };
+		7D2F598E2FAC229B00D43FE7 /* MutableRefTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2F598D2FAC229B00D43FE7 /* MutableRefTests.swift */; };
 		7D479CB02F450E4600A8CB59 /* RigidSet+BorrowingSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CAF2F450E3F00A8CB59 /* RigidSet+BorrowingSequence.swift */; };
 		7D479CB32F45296A00A8CB59 /* UniqueSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CB12F45296000A8CB59 /* UniqueSet.swift */; };
 		7D479CB52F452D6900A8CB59 /* UniqueSetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D479CB42F452D6700A8CB59 /* UniqueSetTests.swift */; };
@@ -657,7 +657,7 @@
 		7D2A77752F27F2BF005780C7 /* UniqueDeque+Removals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Removals.swift"; sourceTree = "<group>"; };
 		7D2A77762F27F2BF005780C7 /* UniqueDeque+Replacements.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Replacements.swift"; sourceTree = "<group>"; };
 		7D2A779D2F27F367005780C7 /* RefTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefTests.swift; sourceTree = "<group>"; };
-		7D2A779E2F27F367005780C7 /* InoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InoutTests.swift; sourceTree = "<group>"; };
+		7D2F598D2FAC229B00D43FE7 /* MutableRefTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MutableRefTests.swift; sourceTree = "<group>"; };
 		7D479CAF2F450E3F00A8CB59 /* RigidSet+BorrowingSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidSet+BorrowingSequence.swift"; sourceTree = "<group>"; };
 		7D479CB12F45296000A8CB59 /* UniqueSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueSet.swift; sourceTree = "<group>"; };
 		7D479CB42F452D6700A8CB59 /* UniqueSetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueSetTests.swift; sourceTree = "<group>"; };
@@ -1414,7 +1414,7 @@
 				7D7646052FAAA2B9008639E5 /* UniqueBoxTests.swift */,
 				7D72F5972F75E5E6004AB792 /* BorrowingSequenceTests.swift */,
 				7D2A779D2F27F367005780C7 /* RefTests.swift */,
-				7D2A779E2F27F367005780C7 /* InoutTests.swift */,
+				7D2F598D2FAC229B00D43FE7 /* MutableRefTests.swift */,
 			);
 			path = ContainersTests;
 			sourceTree = "<group>";
@@ -3109,6 +3109,7 @@
 				7DEBDB8729CCE44A00ADC226 /* MinimalMutableRandomAccessCollection.swift in Sources */,
 				7DEBDB7829CCE44A00ADC226 /* Assertions.swift in Sources */,
 				7DE9220D29CA8576004483EB /* TestBigString.swift in Sources */,
+				7D2F598E2FAC229B00D43FE7 /* MutableRefTests.swift in Sources */,
 				7DEBDB8329CCE44A00ADC226 /* CheckHashable.swift in Sources */,
 				7DE921FF29CA8576004483EB /* Utilities.swift in Sources */,
 				7DEBDB8F29CCE44A00ADC226 /* CheckEquatable.swift in Sources */,
@@ -3134,7 +3135,6 @@
 				7DE9220129CA8576004483EB /* TreeDictionary.Keys Tests.swift in Sources */,
 				7DE9220729CA8576004483EB /* BitSet.Counted Tests.swift in Sources */,
 				7DE9220F29CA8576004483EB /* OrderedDictionary Tests.swift in Sources */,
-				7D2A779F2F27F367005780C7 /* InoutTests.swift in Sources */,
 				7D2A77A02F27F367005780C7 /* RefTests.swift in Sources */,
 				7D48BCDF2E51558700D7F6F7 /* TestPrintable.swift in Sources */,
 				7D48BCE02E51558700D7F6F7 /* LifetimeTrackedStruct.swift in Sources */,
