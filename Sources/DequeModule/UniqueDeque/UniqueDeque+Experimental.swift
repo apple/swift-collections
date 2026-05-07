@@ -30,7 +30,7 @@ public func borrowElement(at index: Int) -> Ref<Element> {
 @_alwaysEmitIntoClient
 @_transparent
 @_lifetime(&self)
-public mutating func mutateElement(at index: Int) -> Inout<Element> {
+public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
   _storage.mutateElement(at: index)
 }
 
