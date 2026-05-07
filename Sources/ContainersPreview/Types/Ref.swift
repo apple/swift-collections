@@ -17,7 +17,7 @@ import Builtin
 @available(*, deprecated, renamed: "Ref")
 public typealias Borrow = Ref
 
-#if compiler(>=6.4)
+#if compiler(>=6.4) && COLLECTIONS_BORROW_BUILTIN
 /// A safe reference allowing in-place reads to a shared value.
 @available(SwiftStdlib 5.0, *)
 @frozen
@@ -71,7 +71,7 @@ extension Ref where Value: ~Copyable {
   }
 }
 
-#else // compiler(>=6.3) && compiler(<6.4)
+#else
 
 /// A safe reference allowing in-place reads to a shared value.
 @available(SwiftStdlib 5.0, *)
@@ -141,7 +141,7 @@ extension Ref where Value: ~Copyable {
     unsafeAddress pointer: UnsafePointer<Value>,
     copying owner: borrowing Owner
   ) {
-#if compiler(>=6.4)
+#if compiler(>=6.4) && COLLECTIONS_BORROW_BUILTIN
     _builtin = unsafe Builtin.makeBorrow(pointer.pointee)
 #else
     _pointer = pointer
@@ -151,7 +151,7 @@ extension Ref where Value: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension Ref where Value: ~Copyable {
-#if compiler(>=6.4)
+#if compiler(>=6.4) && COLLECTIONS_BORROW_BUILTIN
   @_alwaysEmitIntoClient
   @available(*, deprecated, renamed: "value")
   public subscript() -> Value {
