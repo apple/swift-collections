@@ -14,17 +14,11 @@
 #if compiler(>=6.3) && UnstableContainersPreview
 import Builtin
 
-@available(*, deprecated, renamed: "Ref")
-public typealias Borrow = Ref
-
 #if compiler(>=6.4) && COLLECTIONS_BORROW_BUILTIN
 /// A safe reference allowing in-place reads to a shared value.
 @available(SwiftStdlib 5.0, *)
 @frozen
 public struct Ref<Value: ~Copyable>: Copyable, ~Escapable {
-  @available(*, deprecated, renamed: "Value")
-  public typealias Target = Value
-
   @usableFromInline
   let _builtin: Builtin.Borrow<Value>
 
@@ -78,12 +72,12 @@ extension Ref where Value: ~Copyable {
 @frozen
 public struct Ref<Value: ~Copyable>: Copyable, ~Escapable {
   @usableFromInline
-  package let _pointer: UnsafePointer<Target>
+  package let _pointer: UnsafePointer<Value>
 
   @_lifetime(borrow value)
   @_alwaysEmitIntoClient
   @_transparent
-  internal init(_borrowing value: borrowing @_addressable Target) {
+  internal init(_borrowing value: borrowing @_addressable Value) {
     unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
   }
 
@@ -93,7 +87,7 @@ public struct Ref<Value: ~Copyable>: Copyable, ~Escapable {
   @_lifetime(borrow value)
   @_alwaysEmitIntoClient
   @_transparent
-  public init(_ value: borrowing @_addressable Target) {
+  public init(_ value: borrowing @_addressable Value) {
     unsafe _pointer = UnsafePointer(Builtin.unprotectedAddressOfBorrow(value))
   }
 
@@ -125,7 +119,7 @@ extension Ref where Value: ~Copyable {
   public var value: Value {
     @_transparent
     unsafeAddress {
-      unsafe _pointer
+      _pointer
     }
   }
 }
@@ -149,6 +143,15 @@ extension Ref where Value: ~Copyable {
   }
 }
 
+@available(*, deprecated, renamed: "Ref")
+public typealias Borrow = Ref
+
+@available(SwiftStdlib 5.0, *)
+extension Ref where Value: ~Copyable {
+  @available(*, deprecated, renamed: "Value")
+  public typealias Target = Value
+}
+
 @available(SwiftStdlib 5.0, *)
 extension Ref where Value: ~Copyable {
 #if compiler(>=6.4) && COLLECTIONS_BORROW_BUILTIN
@@ -166,7 +169,7 @@ extension Ref where Value: ~Copyable {
   public subscript() -> Value {
     @_transparent
     unsafeAddress {
-      unsafe _pointer
+      _pointer
     }
   }
 #endif
@@ -180,7 +183,9 @@ extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */  {
     if self == nil {
       return nil
     }
-    
+
+    // FIXME: This assumes that `Optional<T>.some` is guaranteed to have
+    // `T` at the beginning of its layout. Is that true?
     let pointer = unsafe UnsafePointer<Wrapped>(
       Builtin.unprotectedAddressOfBorrow(self)
     )
