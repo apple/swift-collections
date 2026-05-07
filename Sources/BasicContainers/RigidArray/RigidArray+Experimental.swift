@@ -23,9 +23,9 @@ import ContainersPreview
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
-  public func borrowElement(at index: Int) -> Borrow<Element> {
+  public func borrowElement(at index: Int) -> Ref<Element> {
     _checkItemIndex(index)
-    return unsafe Borrow(
+    return unsafe Ref(
       unsafeAddress: _storage.baseAddress.unsafelyUnwrapped.advanced(by: index),
       borrowing: self
     )

@@ -49,7 +49,7 @@ where Base.Element: ~Copyable
   public let _isIncluded: (borrowing Element) -> Bool
 
   @_alwaysEmitIntoClient
-  public let _base: Borrow<Base> // FIXME: This does not allow escapable Bases
+  public let _base: Ref<Base> // FIXME: This does not allow escapable Bases
 
   @_alwaysEmitIntoClient
   public var _position: Base.Index
@@ -60,7 +60,7 @@ where Base.Element: ~Copyable
   @inlinable
   @_lifetime(copy _base)
   internal init(
-    _base: Borrow<Base>,
+    _base: Ref<Base>,
     index: Base.Index,
     isIncluded: @escaping (borrowing Element) -> Bool
   ) {
@@ -77,7 +77,7 @@ where Base.Element: ~Copyable
     isIncluded: @escaping (borrowing Element) -> Bool
   ) {
     self._isIncluded = isIncluded
-    self._base = Borrow(_base)
+    self._base = Ref(_base)
     self._position = _base.startIndex
     self._remainder = .init()
   }

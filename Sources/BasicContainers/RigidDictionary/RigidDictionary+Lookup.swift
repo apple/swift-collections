@@ -37,13 +37,13 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @_lifetime(borrow self)
   public func value(
     forKey key: borrowing Key
-  ) -> Borrow<Value>? {
+  ) -> Ref<Value>? {
     guard let bucket = self._find(key).bucket else { return nil }
-    return Borrow(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
+    return Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
   }
 #endif
 
-  /// A stand-in for a `struct Borrow`-returning lookup operation.
+  /// A stand-in for a `struct Ref`-returning lookup operation.
   /// This is quite clumsy to use, but this is the best we can do without a way
   /// to express optional borrows.
   @_alwaysEmitIntoClient
@@ -59,16 +59,16 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 #if UnstableContainersPreview
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  package func _borrowKey(at bucket: _Bucket) -> Borrow<Key> {
+  package func _borrowKey(at bucket: _Bucket) -> Ref<Key> {
     assert(_keys._table.isOccupied(bucket))
-    return Borrow(unsafeAddress: _keyPtr(at: bucket), borrowing: self)
+    return Ref(unsafeAddress: _keyPtr(at: bucket), borrowing: self)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  package func _borrowValue(at bucket: _Bucket) -> Borrow<Value> {
+  package func _borrowValue(at bucket: _Bucket) -> Ref<Value> {
     assert(_keys._table.isOccupied(bucket))
-    return Borrow(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
+    return Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
   }
 #endif
 }

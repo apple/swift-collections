@@ -204,8 +204,8 @@ extension UniqueBox where Value: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func borrow() -> Borrow<Value> {
-    unsafe Borrow(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
+  public func borrow() -> Ref<Value> {
+    unsafe Ref(unsafeAddress: UnsafePointer(_pointer), borrowing: self)
   }
 #endif
 

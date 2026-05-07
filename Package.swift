@@ -86,6 +86,9 @@ var defines: [SwiftSetting] = [
   
   // Enables longer, more exhaustive tests.
 //  .define("COLLECTIONS_LONG_TESTS"),
+
+  // Enable the use of `Builtin.Borrow` in `struct Ref`.
+//  .define("COLLECTIONS_BORROW_BUILTIN")
 ]
 
 let availabilityMacros: KeyValuePairs<String, String> = [

@@ -60,7 +60,7 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   public mutating func memoizedValue<E: Error>(
     forKey key: consuming Key,
     _ body: (borrowing Key) throws(E) -> Value
-  ) throws(E) -> Borrow<Value> {
+  ) throws(E) -> Ref<Value> {
     let r = _storage._find(key)
     let bucket: _Bucket
     if let b = r.bucket {
