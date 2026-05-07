@@ -23,7 +23,7 @@ import ContainersPreview
 final class InoutTests: XCTestCase {
   func test_basic() {
     var x = 0
-    var y = Inout(&x)
+    var y = MutableRef(&x)
 
     var v = y.value
     XCTAssertEqual(v, 0)

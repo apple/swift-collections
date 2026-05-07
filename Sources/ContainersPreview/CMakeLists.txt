@@ -58,9 +58,9 @@ target_sources(${module_name} PRIVATE
   "Protocols/Producer+Filter.swift"
   "Protocols/Producer+Map.swift"
   "Protocols/Producer+Reduce.swift"
-  "Types/Ref.swift"
-  "Types/UniqueBox.swift"
-  "Types/Inout.swift"
   "Types/InputSpan.swift"
+  "Types/MutableRef.swift"
+  "Types/Ref.swift"
   "Types/Shared.swift"
+  "Types/UniqueBox.swift"
 )

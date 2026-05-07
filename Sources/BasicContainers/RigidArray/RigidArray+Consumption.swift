@@ -153,7 +153,7 @@ extension RigidArray where Element: ~Copyable {
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     @usableFromInline
-    internal var _base: Inout<RigidArray>
+    internal var _base: MutableRef<RigidArray>
       
     @usableFromInline
     internal var _offsetRange: Range<Int>
@@ -167,7 +167,7 @@ extension RigidArray where Element: ~Copyable {
     internal init(_base: inout RigidArray, offsetRange: Range<Int>) {
       
       self._remainder = _base._storage._extracting(unchecked: offsetRange)
-      self._base = Inout(&_base)
+      self._base = MutableRef(&_base)
       self._offsetRange = offsetRange
     }
 

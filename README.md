@@ -149,7 +149,7 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 
 - [`struct InputSpan<Element>`][InputSpan] is a reference to a contiguous region of consumable items.
 - [`struct Ref<Target>`][Ref] represents a borrowing reference to an item.
-- [`struct Inout<Target>`][Inout] represents a mutating reference to an item.
+- [`struct MutableRef<Target>`][MutableRef] represents a mutating reference to an item.
 
 - [`protocol BorrowingSequence<Element>`][BorrowingSequence] models borrowing sequences with ephemeral lifetimes.
 - [`protocol BorrowingIteratorProtocol<Element>`][BorrowingIteratorProtocol] models borrowing iterators with ephemeral elements.
@@ -165,7 +165,7 @@ This trait enables the following types in the [`ContainersPreview`][ContainersPr
 
 [InputSpan]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/InputSpan.swift
 [Ref]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/Ref.swift
-[Inout]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/Inout.swift
+[MutableRef]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Types/MutableRef.swift
 [BorrowingSequence]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingSequence.swift
 [BorrowingIteratorProtocol]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/BorrowingIteratorProtocol.swift
 [Container]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/Container.swift

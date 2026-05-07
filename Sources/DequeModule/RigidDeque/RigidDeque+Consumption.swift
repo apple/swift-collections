@@ -180,7 +180,7 @@ extension RigidDeque where Element: ~Copyable {
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     @usableFromInline
-    internal var _base: Inout<RigidDeque>
+    internal var _base: MutableRef<RigidDeque>
       
     @usableFromInline
     internal var _offsetRange: Range<Int>
@@ -199,7 +199,7 @@ extension RigidDeque where Element: ~Copyable {
       let segments = _base._handle.mutableSegments(forOffsets: offsetRange)
       self._buffer1 = segments.first
       self._buffer2 = segments.second ?? .init(start: nil, count: 0)
-      self._base = Inout(&_base)
+      self._base = MutableRef(&_base)
       self._offsetRange = offsetRange
     }
 

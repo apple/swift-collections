@@ -191,8 +191,8 @@ extension UniqueBox where Value: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(immortal)
-  public consuming func leak() -> Inout<Value> {
-    let result = unsafe Inout<Value>(unsafeImmortalAddress: _pointer)
+  public consuming func leak() -> MutableRef<Value> {
+    let result = unsafe MutableRef<Value>(unsafeImmortalAddress: _pointer)
     discard self
     return result
   }
@@ -214,8 +214,8 @@ extension UniqueBox where Value: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(&self)
-  public mutating func mutate() -> Inout<Value> {
-    unsafe Inout(unsafeAddress: _pointer, mutating: &self)
+  public mutating func mutate() -> MutableRef<Value> {
+    unsafe MutableRef(unsafeAddress: _pointer, mutating: &self)
   }
 #endif
 }

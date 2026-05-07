@@ -14,24 +14,30 @@
 #if compiler(>=6.3) && UnstableContainersPreview
 import Builtin
 
+@available(*, deprecated, renamed: "MutableRef")
+public typealias Inout = MutableRef
+
 /// A safe mutable reference allowing in-place mutation to an exclusive value.
 ///
-/// In order to get an instance of a `Inout<Target>`, one must have exclusive access
+/// In order to get an instance of a `MutableRef<Target>`, one must have exclusive access
 /// to the instance of `Target`. This is achieved through the 'inout' operator, '&'.
 @frozen
 @safe
-public struct Inout<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapable {
+public struct MutableRef<Value: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Escapable {
+  @available(*, deprecated, renamed: "Value")
+  public typealias Target = Value
+
   @usableFromInline
-  package let _pointer: UnsafeMutablePointer<Target>
+  package let _pointer: UnsafeMutablePointer<Value>
 
   /// Initializes an instance of 'Mut' extending the exclusive access of the
   /// passed instance.
   ///
-  /// - Parameter instance: The desired instance to get a mutable reference to.
+  /// - Parameter value: The desired instance to get a mutable reference to.
   @_alwaysEmitIntoClient
   @_transparent
-  public init(_ instance: inout Target) {
-    unsafe _pointer = UnsafeMutablePointer<Target>(Builtin.unprotectedAddressOf(&instance))
+  public init(_ value: inout Value) {
+    unsafe _pointer = UnsafeMutablePointer<Value>(Builtin.unprotectedAddressOf(&value))
   }
 
   /// Unsafely initializes an instance of 'Mut' using the given 'unsafeAddress'
@@ -39,15 +45,15 @@ public struct Inout<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Esca
   /// argument.
   ///
   /// - Parameter unsafeAddress: The address to use to mutably reference an
-  ///                            instance of type 'Target'.
+  ///    instance of type 'Target'.
   /// - Parameter owner: The owning instance that this 'Mut' instance's
-  ///                    lifetime is based on.
+  ///    lifetime is based on.
   @unsafe
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(&owner)
   public init<Owner: ~Copyable & ~Escapable>(
-    unsafeAddress: UnsafeMutablePointer<Target>,
+    unsafeAddress: UnsafeMutablePointer<Value>,
     mutating owner: inout Owner
   ) {
     unsafe _pointer = unsafeAddress
@@ -64,19 +70,19 @@ public struct Inout<Target: ~Copyable /* FIXME: ~Escapable */>: ~Copyable, ~Esca
   @_alwaysEmitIntoClient
   @_transparent
   public init(
-    unsafeImmortalAddress: UnsafeMutablePointer<Target>
+    unsafeImmortalAddress: UnsafeMutablePointer<Value>
   ) {
     unsafe _pointer = unsafeImmortalAddress
   }
 }
 
-extension Inout where Target: ~Copyable {
+extension MutableRef where Value: ~Copyable {
   @_alwaysEmitIntoClient
   @available(*, deprecated, renamed: "value")
-  public subscript() -> Target {
+  public subscript() -> Value {
     @_transparent
     unsafeAddress {
-      unsafe UnsafePointer<Target>(_pointer)
+      unsafe UnsafePointer<Value>(_pointer)
     }
 
     @_transparent
@@ -88,7 +94,7 @@ extension Inout where Target: ~Copyable {
   /// Dereferences the mutable reference allowing for in-place reads and writes
   /// to the underlying instance.
   @_alwaysEmitIntoClient
-  public var value: Target {
+  public var value: Value {
     @_transparent
     unsafeAddress {
       unsafe .init(_pointer)
@@ -101,32 +107,22 @@ extension Inout where Target: ~Copyable {
 
 }
 
-
-extension Inout where Target: ~Copyable {
-  package func _withUnsafeTarget<E: Error, R: ~Copyable>(
-    _ body: (inout Target) throws(E) -> R
-  ) throws(E) -> R {
-    try body(&_pointer.pointee)
-  }
-}
-
-
 extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */ {
   @_lifetime(&self)
   @_alwaysEmitIntoClient
-  public mutating func mutate() -> Inout<Wrapped>? {
+  public mutating func mutate() -> MutableRef<Wrapped>? {
     if self == nil {
       return nil
     }
     let pointer = unsafe UnsafeMutablePointer<Wrapped>(
       Builtin.unprotectedAddressOf(&self))
-    return unsafe Inout(unsafeAddress: pointer, mutating: &self)
+    return unsafe MutableRef(unsafeAddress: pointer, mutating: &self)
   }
   
   @_lifetime(&self)
   @_alwaysEmitIntoClient
   @_transparent
-  public mutating func insert(_ value: consuming Wrapped) -> Inout<Wrapped> {
+  public mutating func insert(_ value: consuming Wrapped) -> MutableRef<Wrapped> {
     self = .some(value)
     return mutate()._consumingUnsafelyUnwrap()
   }

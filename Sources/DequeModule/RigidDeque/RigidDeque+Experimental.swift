@@ -33,10 +33,10 @@ extension RigidDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(&self)
-  public mutating func mutateElement(at index: Int) -> Inout<Element> {
+  public mutating func mutateElement(at index: Int) -> MutableRef<Element> {
     _checkItemIndex(index)
     let slot = _handle.slot(forOffset: index)
-    return Inout(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
+    return MutableRef(unsafeAddress: _handle.mutablePtr(at: slot), mutating: &self)
   }
 }
 #endif
