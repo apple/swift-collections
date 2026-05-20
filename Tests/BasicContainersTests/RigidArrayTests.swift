@@ -1472,7 +1472,7 @@ class RigidArrayTests: CollectionTestCase {
   func test_borrowing_map() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
-    let transformed = items.makeBorrowingIterator_()
+    let transformed = items.makeIterableIterator_()
       .map { 2 * $0 }
       .collect(into: UniqueArray.self)
     expectEqual(transformed.count, c)
@@ -1485,7 +1485,7 @@ class RigidArrayTests: CollectionTestCase {
   func test_borrowing_filter() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
-    let transformed = items.makeBorrowingIterator_()
+    let transformed = items.makeIterableIterator_()
       .filter { !$0.isMultiple(of: 6) }
       .copy()
       .collect(into: UniqueArray.self)

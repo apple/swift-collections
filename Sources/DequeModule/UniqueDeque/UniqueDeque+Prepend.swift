@@ -322,7 +322,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && UnstableContainersPreview
   @inlinable
   internal mutating func _prepend<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(copying items: borrowing S) {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
@@ -338,12 +338,12 @@ extension UniqueDeque /*where Element: Copyable*/ {
 
   @inlinable
   internal mutating func _prepend<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S,
     exactCount: Int
   ) {
-    var it = items.makeBorrowingIterator_()
+    var it = items.makeIterableIterator_()
     self.prepend(addingCount: exactCount) { target in
       let span = it.nextSpan_(maximumCount: target.freeCapacity)
       target._append(copying: span)
@@ -367,7 +367,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -479,7 +479,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: Iterable_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {
@@ -498,7 +498,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @_alwaysEmitIntoClient
   public mutating func prepend<
-    S: BorrowingSequence_<Element> & Collection<Element>
+    S: Iterable_<Element> & Collection<Element>
   >(
     copying items: borrowing S
   ) {

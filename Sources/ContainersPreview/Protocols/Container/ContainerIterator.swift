@@ -18,10 +18,10 @@ extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
   Element: ~Copyable,
-  BorrowingIterator_ == ContainerIterator<Self>
+  IterableIterator_ == ContainerIterator<Self>
 {
   @_lifetime(borrow self)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+  public func makeIterableIterator_() -> IterableIterator_ {
     ContainerIterator(_borrowing: self, from: self.startIndex)
   }
 }
@@ -45,7 +45,7 @@ where Base.Element: ~Copyable
 }
 
 @available(SwiftStdlib 5.0, *)
-extension ContainerIterator: BorrowingIteratorProtocol_
+extension ContainerIterator: IterableIteratorProtocol_
 where
   Base: ~Copyable /*FIXME: & ~Escapable*/,
   Base.Element: ~Copyable

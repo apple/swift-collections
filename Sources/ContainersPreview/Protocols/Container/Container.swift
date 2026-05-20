@@ -15,7 +15,7 @@
 
 @available(SwiftStdlib 5.0, *)
 public protocol Container<Element>:
-  BorrowingSequence_, ~Copyable, ~Escapable
+  Iterable_, ~Copyable, ~Escapable
   where Element: ~Copyable, Element == Element_
 {
   associatedtype Element: ~Copyable

@@ -64,9 +64,9 @@ final class BorrowingSequenceTests: XCTestCase {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
+extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
   func collectViaBorrowing() -> [Element_] {
-    var borrowIterator = makeBorrowingIterator_()
+    var borrowIterator = makeIterableIterator_()
     var result: [Element_] = []
     while true {
       let span = borrowIterator.nextSpan_(maximumCount: .max)

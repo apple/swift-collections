@@ -349,7 +349,7 @@ extension RigidArray {
 #if compiler(>=6.4) && UnstableContainersPreview
   @inlinable
   internal mutating func _append<
-    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    Source: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
@@ -371,7 +371,7 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    Source: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
@@ -413,7 +413,7 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence_<Element> & Sequence<Element>
+    Source: Iterable_<Element> & Sequence<Element>
   >(copying newElements: Source) {
     _append(copying: newElements)
   }

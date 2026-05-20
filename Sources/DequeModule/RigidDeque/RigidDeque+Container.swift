@@ -23,7 +23,7 @@ import ContainersPreview
 extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
   @frozen
-  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
+  public struct BorrowingIterator: ~Escapable, IterableIteratorProtocol_ {
     public typealias Element_ = Element
 
     @usableFromInline
@@ -60,7 +60,7 @@ extension RigidDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
+  public borrowing func makeIterableIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self)
   }
 #endif

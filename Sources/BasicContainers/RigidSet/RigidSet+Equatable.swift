@@ -40,7 +40,7 @@ extension RigidSet {
     
     guard left.count == right.count else { return false }
     
-    var lit = left.makeBorrowingIterator_()
+    var lit = left.makeIterableIterator_()
     while true {
       let l = lit.nextSpan_()
       if l.isEmpty { break }

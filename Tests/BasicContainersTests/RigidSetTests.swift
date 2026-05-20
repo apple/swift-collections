@@ -301,7 +301,7 @@ class RigidSetTests: CollectionTestCase {
             s.insert(tracker.instance(for: i))
 
             var expected = Set(0 ... i)
-            var it = s.makeBorrowingIterator_()
+            var it = s.makeIterableIterator_()
             while true {
               let next = it.nextSpan_(maximumCount: maximumCount)
               guard !next.isEmpty else { break }

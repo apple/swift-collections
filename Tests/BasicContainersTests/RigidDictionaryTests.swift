@@ -258,7 +258,7 @@ class RigidDictionaryTests: CollectionTestCase {
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
 #if compiler(>=6.4) && UnstableContainersPreview
-            var it = keys.makeBorrowingIterator_()
+            var it = keys.makeIterableIterator_()
             var actual: Set<Int> = []
             while true {
               let next = it.nextSpan_()
@@ -323,7 +323,7 @@ class RigidDictionaryTests: CollectionTestCase {
           
           var seen: Set<Int> = []
           let indices = d.indices
-          var it = indices.makeBorrowingIterator_()
+          var it = indices.makeIterableIterator_()
           while true {
             let next = it.nextSpan_()
             if next.isEmpty { break }

@@ -132,12 +132,12 @@ extension UniqueSet /* where Element: Copyable */ {
 #if UnstableContainersPreview
   @_alwaysEmitIntoClient
   package mutating func _insert<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
     _ensureFreeCapacity(items.underestimatedCount_)
-    var it = items.makeBorrowingIterator_()
+    var it = items.makeIterableIterator_()
     while true {
       let span = it.nextSpan_()
       guard !span.isEmpty else { break }
@@ -150,7 +150,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
   ) {
@@ -172,7 +172,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: Iterable_<Element> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {

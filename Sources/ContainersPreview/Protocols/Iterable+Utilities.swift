@@ -18,13 +18,13 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
+extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
   @inlinable
   package func _copyContents(
     intoPrefixOf buffer: UnsafeMutableBufferPointer<Element_>
   ) -> Int {
     var target = buffer
-    var it = self.makeBorrowingIterator_()
+    var it = self.makeIterableIterator_()
     while target.count != 0 {
       let span = it.nextSpan_(maximumCount: target.count)
       if span.isEmpty {

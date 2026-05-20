@@ -76,7 +76,7 @@ package struct _StaccatoParameters {
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol_, ~Escapable {
+public struct _StaccatoBorrowingIterator<Element: ~Copyable>: IterableIteratorProtocol_, ~Escapable {
   public typealias Element_ = Element
 
   internal let _contents: Span<Element>
@@ -116,13 +116,13 @@ public struct _StaccatoIndex: Comparable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension StaccatoContainer: BorrowingSequence_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
+extension StaccatoContainer: Iterable_ where Element: ~Copyable {
+  public typealias IterableIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
   public var underestimatedCount_: Int { count }
 
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(contents: _contents.span, params: _params)
+  public func makeIterableIterator_() -> IterableIterator_ {
+    IterableIterator_(contents: _contents.span, params: _params)
   }
 }
 

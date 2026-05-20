@@ -18,14 +18,14 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
 {
   @inlinable
   internal consuming func _spanwiseZip<
-    Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
+    Other: IterableIteratorProtocol_ & ~Copyable & ~Escapable,
     State: ~Copyable, E: Error
   >(
     state: inout State,

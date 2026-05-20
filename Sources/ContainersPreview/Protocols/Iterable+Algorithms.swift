@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_
+extension Iterable_
   where Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
   @inlinable
@@ -23,7 +23,7 @@ extension BorrowingSequence_
     _ nextPartialResult:
       (_ partialResult: consuming Result, borrowing Element_) throws -> Result
   ) rethrows -> Result {
-    try makeBorrowingIterator_().reduce(initialResult, nextPartialResult)
+    try makeIterableIterator_().reduce(initialResult, nextPartialResult)
   }
 
   @inlinable
@@ -32,19 +32,19 @@ extension BorrowingSequence_
     _ updateAccumulatingResult:
       (_ partialResult: inout Result, borrowing Element_) throws -> ()
   ) rethrows -> Result {
-    try makeBorrowingIterator_().reduce(into: initialResult, updateAccumulatingResult)
+    try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
 
 // Ambiguity breakers
 @available(SwiftStdlib 5.0, *)
-extension Sequence where Self: BorrowingSequence_ {
+extension Sequence where Self: Iterable_ {
   public func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
     _ nextPartialResult:
       (_ partialResult: consuming Result, borrowing Element_) throws -> Result
   ) rethrows -> Result {
-    try makeBorrowingIterator_().reduce(initialResult, nextPartialResult)
+    try makeIterableIterator_().reduce(initialResult, nextPartialResult)
   }
 
   @inlinable
@@ -53,24 +53,24 @@ extension Sequence where Self: BorrowingSequence_ {
     _ updateAccumulatingResult:
       (_ partialResult: inout Result, borrowing Element_) throws -> ()
   ) rethrows -> Result {
-    try makeBorrowingIterator_().reduce(into: initialResult, updateAccumulatingResult)
+    try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_
+extension Iterable_
   where Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
   @inlinable
-  public func elementsEqual<OtherSequence: BorrowingSequence_>(
+  public func elementsEqual<OtherSequence: Iterable_>(
     _ other: borrowing OtherSequence,
     by areEquivalent: (borrowing Element_, borrowing OtherSequence.Element_) throws -> Bool
   ) rethrows -> Bool
   where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element_: ~Copyable
   {
     // FIXME: Forward to the iterator's implementation of same
-    var iter1 = makeBorrowingIterator_()
-    var iter2 = other.makeBorrowingIterator_()
+    var iter1 = makeIterableIterator_()
+    var iter2 = other.makeIterableIterator_()
     while true {
       var el1 = iter1.nextSpan_()
 
@@ -93,10 +93,10 @@ extension BorrowingSequence_
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_
+extension Iterable_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable & Equatable {
   @inlinable
-  public func elementsEqual<OtherSequence: BorrowingSequence_<Element_>>(
+  public func elementsEqual<OtherSequence: Iterable_<Element_>>(
     _ other: borrowing OtherSequence
   ) -> Bool
   where

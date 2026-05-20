@@ -145,7 +145,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     capacity: Int? = nil,
     copying contents: borrowing S
@@ -184,7 +184,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: Iterable_<Element> & Sequence<Element>
   >(
     capacity: Int? = nil,
     copying contents: S
@@ -203,7 +203,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence_<Element> & Collection<Element>
+    S: Iterable_<Element> & Collection<Element>
   >(
     capacity: Int? = nil,
     copying contents: S

@@ -310,12 +310,12 @@ extension UniqueArray {
 #if compiler(>=6.4) && UnstableContainersPreview
   @inlinable
   internal mutating func _append<
-    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    Source: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
     _ensureFreeCapacity(newElements.underestimatedCount_)
-    var it = newElements.makeBorrowingIterator_()
+    var it = newElements.makeIterableIterator_()
     while true {
       let span = it.nextSpan_()
       if span.isEmpty { break }
@@ -343,7 +343,7 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    Source: Iterable_<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
   ) {
@@ -397,7 +397,7 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: BorrowingSequence_<Element> & Sequence<Element>
+    Source: Iterable_<Element> & Sequence<Element>
   >(copying newElements: Source) {
     self._append(copying: newElements)
   }

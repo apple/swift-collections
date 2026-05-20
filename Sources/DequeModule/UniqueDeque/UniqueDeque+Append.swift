@@ -300,9 +300,9 @@ extension UniqueDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && UnstableContainersPreview
   @_alwaysEmitIntoClient
   internal mutating func _append<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element> & ~Copyable & ~Escapable
   >(copying items: borrowing S) {
-    var it = items.makeBorrowingIterator_()
+    var it = items.makeIterableIterator_()
     while true {
       let span = it.nextSpan_()
       if span.isEmpty { break }
@@ -323,7 +323,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `items`, when amortized
   ///    over many similar invocations on the same deque
   @_alwaysEmitIntoClient
-  public mutating func append<S: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
+  public mutating func append<S: Iterable_<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing S
   ) {
     self._append(copying: items)
@@ -374,7 +374,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     amortized over many similar invocations over the same deque.
   @_alwaysEmitIntoClient
   public mutating func append<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: Iterable_<Element> & Sequence<Element>
    >(
     copying items: S
    ) {

@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
@@ -30,7 +30,7 @@ where
 
 @available(SwiftStdlib 5.0, *)
 public struct BorrowingMapProducer<
-  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
+  Base: IterableIteratorProtocol_ & ~Copyable & ~Escapable,
   Element: ~Copyable,
   Error: Swift.Error
 >: ~Copyable, ~Escapable {

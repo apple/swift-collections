@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
+public protocol IterableIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
 
   /// Advance the iterator, returning an ephemeral span over the elements
@@ -85,7 +85,7 @@ public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
@@ -96,7 +96,7 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
@@ -112,7 +112,7 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
+extension IterableIteratorProtocol_ where Self: ~Copyable & ~Escapable {
 #if false // FIXME: This doesn't work, but it should?
   @_lifetime(&self)
   @_lifetime(self: copy self)
@@ -125,7 +125,7 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: Copyable
 {
   @_lifetime(self: copy self)

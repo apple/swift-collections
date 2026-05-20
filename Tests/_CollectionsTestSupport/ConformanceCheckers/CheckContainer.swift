@@ -22,7 +22,7 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkIterable<
-  S: BorrowingSequence_ & ~Copyable & ~Escapable,
+  S: Iterable_ & ~Copyable & ~Escapable,
   Expected: Sequence<S.Element_>
 >(
   _ iterable: borrowing S,
@@ -40,7 +40,7 @@ public func checkIterable<
 @available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkIterable<
-  S: BorrowingSequence_ & ~Copyable & ~Escapable,
+  S: Iterable_ & ~Copyable & ~Escapable,
   Expected: Sequence<S.Element_>
 >(
   _ iterable: borrowing S,
@@ -60,7 +60,7 @@ public func checkIterable<
   let spanShapes: [Range<Int>] = {
     var r: [Range<Int>] = []
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     while true {
       let origPos = pos
       let span = it.nextSpan_()
@@ -79,7 +79,7 @@ public func checkIterable<
   // Check that the spans have stable sizes and the expected contents.
   do {
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     var spanIndex = 0
     while true {
       let span = it.nextSpan_()
@@ -100,7 +100,7 @@ public func checkIterable<
   // Check that we can iterate one by one.
   do {
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     while true {
       let span = it.nextSpan_(maximumCount: 1)
       if span.isEmpty { break }
@@ -116,7 +116,7 @@ public func checkIterable<
   // Check that we can iterate with huge maximum counts
   do {
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     var spanIndex = 0
     while true {
       let span = it.nextSpan_(maximumCount: Int.max)
