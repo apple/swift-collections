@@ -132,13 +132,13 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element, E> & ~Copyable & ~Escapable, E
   >(
     capacity: Int,
     copying contents: borrowing S
-  ) {
+  ) throws(E) {
     self.init(capacity: capacity)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 #endif
 
@@ -187,7 +187,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & Sequence<Element>
+    S: Iterable_<Element, Never> & Sequence<Element>
   >(
     capacity: Int,
     copying contents: borrowing S
@@ -208,7 +208,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & Collection<Element>
+    S: Iterable_<Element, Never> & Collection<Element>
   >(
     capacity: Int? = nil,
     copying contents: S

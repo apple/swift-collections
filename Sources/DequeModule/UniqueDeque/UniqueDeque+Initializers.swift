@@ -145,13 +145,13 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & ~Copyable & ~Escapable
+    S: Iterable_<Element, E> & ~Copyable & ~Escapable, E
   >(
     capacity: Int? = nil,
     copying contents: borrowing S
-  ) {
+  ) throws(E) {
     self.init(minimumCapacity: capacity ?? 0)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 #endif
 
@@ -184,7 +184,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & Sequence<Element>
+    S: Iterable_<Element, Never> & Sequence<Element>
   >(
     capacity: Int? = nil,
     copying contents: S
@@ -203,7 +203,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & Collection<Element>
+    S: Iterable_<Element, Never> & Collection<Element>
   >(
     capacity: Int? = nil,
     copying contents: S

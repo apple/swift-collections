@@ -124,12 +124,12 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable_<Element> & ~Copyable & ~Escapable>(
+  public init<Source: Iterable_<Element, E> & ~Copyable & ~Escapable, E>(
     capacity: Int,
     copying contents: borrowing Source
-  ) {
+  ) throws(E) {
     self.init(capacity: capacity)
-    self.append(copying: contents)
+    try self.append(copying: contents)
   }
   
 #endif
@@ -145,7 +145,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable_<Element> & Sequence<Element>>(
+  public init<Source: Iterable_<Element, Never> & Sequence<Element>>(
     capacity: Int,
     copying contents: Source
   ) {

@@ -17,7 +17,7 @@ import PackageDescription
 let _traits: Set<Trait> = [
   .default(
     enabledTraits: [
-//      "UnstableContainersPreview",
+      "UnstableContainersPreview",
 //      "UnstableHashedContainers",
 //      "UnstableSortedCollections",
     ]),

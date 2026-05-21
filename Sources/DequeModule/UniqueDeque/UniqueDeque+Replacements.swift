@@ -472,7 +472,7 @@ extension UniqueDeque /* where Element: Copyable */ {
     removing subrange: Range<Int>,
     copyingContainer items: borrowing C,
     newCount: Int
-  ) {
+  ) where C.Failure == Never {
 
     let expectedCount = self.count - subrange.count + newCount
     var it = items.makeIterableIterator_()
@@ -546,7 +546,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   >(
     removing subrange: Range<Int>,
     copying items: borrowing C
-  ) {
+  ) where C.Failure == Never {
     _replace(
       removing: subrange, copyingContainer: items, newCount: items.count)
   }
@@ -625,7 +625,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   >(
     removing subrange: Range<Int>,
     copying items: C
-  ) {
+  ) where C.Failure == Never {
     _replace(
       removing: subrange, copyingContainer: items, newCount: items.count)
   }

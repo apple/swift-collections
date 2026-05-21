@@ -119,7 +119,7 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & Sequence<Element>
+    S: Iterable_<Element, Never> & Sequence<Element>
   >(
     capacity: Int,
     copying contents: borrowing S
@@ -131,7 +131,7 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & Collection<Element>
+    S: Iterable_<Element, Never> & Collection<Element>
   >(
     capacity: Int? = nil,
     copying contents: S

@@ -68,8 +68,11 @@ where
 
   @inlinable
   public mutating func next() throws(Failure) -> Element? {
-    let span = _it.nextSpan_(maximumCount: 1)
-    guard !span.isEmpty else { return nil }
+    // FIXME: Probably wrong to eat the error from the base iterator
+    guard
+      let span = try? _it.nextSpan_(maximumCount: 1),
+      !span.isEmpty
+    else { return nil }
     return try _transform(span[unchecked: 0])
   }
 
@@ -82,8 +85,11 @@ where
   ) throws(Error) -> Bool {
     var success = false
     while !target.isFull {
-      let span = _it.nextSpan_(maximumCount: target.freeCapacity)
-      guard !span.isEmpty else { break }
+      // FIXME: Probably wrong to eat the error from the base iterator
+      guard
+        let span = try? _it.nextSpan_(maximumCount: target.freeCapacity),
+        !span.isEmpty
+      else { break }
       success = true
       var i = 0
       while i < span.count {

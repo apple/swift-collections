@@ -172,7 +172,7 @@ extension UniqueSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: Iterable_<Element> & Sequence<Element>
+    S: Iterable_<Element, Never> & Sequence<Element>
   >(
     copying items: borrowing S
   ) {
