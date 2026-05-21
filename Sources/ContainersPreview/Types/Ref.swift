@@ -143,6 +143,7 @@ extension Ref where Value: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
 @available(*, deprecated, renamed: "Ref")
 public typealias Borrow = Ref
 
