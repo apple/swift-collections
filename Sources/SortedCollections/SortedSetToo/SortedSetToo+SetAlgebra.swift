@@ -24,15 +24,21 @@ extension SortedSet: SetAlgebra {
   }
 
   public mutating func formIntersection(_ other: Self) {
-    self = self.intersection(other)
+    var result = self.intersection(other)
+    _ensureUnique()
+    swap(&self._storage, &result._storage)
   }
 
   public mutating func formSymmetricDifference(_ other: __owned Self) {
-    self = self.symmetricDifference(other)
+    var result = self.symmetricDifference(other)
+    _ensureUnique()
+    swap(&self._storage, &result._storage)
   }
 
   public mutating func formUnion(_ other: __owned Self) {
-    self = self.union(other)
+    var result = self.union(other)
+    _ensureUnique()
+    swap(&self._storage, &result._storage)
   }
 
   public init() {
@@ -128,7 +134,9 @@ extension SortedSet: SetAlgebra {
   }
 
   public mutating func subtract(_ other: Self) {
-    self = self.subtracting(other)
+    var result = self.subtracting(other)
+    _ensureUnique()
+    swap(&self._storage, &result._storage)
   }
 
   public func subtracting(_ other: Self) -> Self {

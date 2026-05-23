@@ -340,6 +340,27 @@ extension SortedSet {
       return result
     }
 
+    /// Unconditionally removes the first node and returns its value.
+    func popFirst() -> Element? {
+      guard let targetNode = self.rowHeads.first?.head else { return nil }
+
+      var rearRowsToRemove = 0
+      for i in self.rowHeads.indices.reversed() {
+        guard self.rowHeads[i].head === targetNode else { continue }
+        guard case let rowLength = self.rowHeads[i].count, rowLength > 1 else {
+          // Target this row for elimination.
+          rearRowsToRemove += 1
+          continue
+        }
+
+        let secondNode = targetNode.successors[i]
+        self.rowHeads[i] = (count: rowLength - 1, head: secondNode)
+      }
+      self.rowHeads.removeLast(rearRowsToRemove)
+      targetNode.successors.removeAll()
+      return targetNode.value
+    }
+
     /// The values expressed as a binary-search linked-lists
     var rowHeads = HeadLevels()
   }

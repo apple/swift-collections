@@ -20,7 +20,7 @@ public struct SortedSet<TotalOrdering: Orderable> {
   public typealias Element = TotalOrdering.Element
 
   /// Ensures that the underlying storage is uniquely referenced by this set.
-  private mutating func _ensureUnique() {
+  mutating func _ensureUnique() {
     if !isKnownUniquelyReferenced(&_storage) {
       _storage = SkipList(cloning: _storage)
     }
