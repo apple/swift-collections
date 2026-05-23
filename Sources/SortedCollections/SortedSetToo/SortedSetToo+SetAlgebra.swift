@@ -63,6 +63,7 @@ extension SortedSet: SetAlgebra {
   public mutating func insert(_ newMember: __owned Element) -> (
     inserted: Bool, memberAfterInsert: Element
   ) {
+    _ensureUnique()
     return
       switch self._storage.exchange(.add(value: newMember, replace: false))
     {
@@ -123,7 +124,8 @@ extension SortedSet: SetAlgebra {
   }
 
   public mutating func remove(_ member: Element) -> Element? {
-    switch self._storage.exchange(.remove(value: member)) {
+    _ensureUnique()
+    return switch self._storage.exchange(.remove(value: member)) {
     case .added, .existed:
       preconditionFailure("This should not be reachable")
     case .notPresent:
@@ -176,6 +178,7 @@ extension SortedSet: SetAlgebra {
   }
 
   public mutating func update(with newMember: __owned Element) -> Element? {
+    _ensureUnique()
     return
       switch self._storage.exchange(.add(value: newMember, replace: true))
     {
