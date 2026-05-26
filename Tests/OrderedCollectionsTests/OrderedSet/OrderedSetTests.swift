@@ -1597,10 +1597,304 @@ class OrderedSetTests: CollectionTestCase {
       let leftSlice = items1[0 ..< i]
       expectNotEqual(items1[0 ..< c], leftSlice)  //  same identity
       expectNotEqual(items2[0 ..< c], leftSlice)  //  different identity
-      
+
       let rightSlice = items1[i + 1 ..< c]
       expectNotEqual(items1[0 ..< c], rightSlice) //  same identity
       expectNotEqual(items2[0 ..< c], rightSlice) //  different identity
+    }
+  }
+
+  func test_move_empty() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      var set = OrderedSet(layout: layout)
+      let expected = Array(0 ..< layout.count)
+      set.move([] as [Int], toOffset: 0)
+      expectEqualElements(set, expected)
+    }
+  }
+
+  func test_move_single_element() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 1 else { return }
+      withEvery("source", in: 0 ..< count) { source in
+        withEvery("destination", in: 0 ..< count) { destination in
+          withEvery("isShared", in: [false, true]) { isShared in
+            var set = OrderedSet(layout: layout)
+            withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+              set.move([source], toOffset: destination)
+              var expected = Array(0 ..< count)
+              expected.remove(at: source)
+              expected.insert(source, at: destination)
+              expectEqualElements(set, expected)
+              withEvery("item", in: 0 ..< count) { item in
+                expectNotNil(set.firstIndex(of: item))
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_multiple_elements_to_middle() {
+    // Spot-check for a moderately-sized non-contiguous input. The pair
+    // form is exhaustively covered by `test_move_exhaustive_small`.
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 4 else { return }
+      withEvery("isShared", in: [false, true]) { isShared in
+        var set = OrderedSet(layout: layout)
+        withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+          let mid = (count - 2) / 2
+          set.move([0, count - 1], toOffset: mid)
+          var expected = Array(1 ..< count - 1)
+          expected.insert(contentsOf: [0, count - 1], at: mid)
+          expectEqualElements(set, expected)
+        }
+      }
+    }
+  }
+
+  func test_move_all_elements() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 1 else { return }
+      withEvery("isShared", in: [false, true]) { isShared in
+        var set = OrderedSet(layout: layout)
+        withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+          let reversed = Array((0 ..< count).reversed())
+          set.move(reversed, toOffset: 0)
+          expectEqualElements(set, reversed)
+        }
+      }
+    }
+  }
+
+  func test_move_already_in_place() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 3 else { return }
+      var set = OrderedSet(layout: layout)
+      let expected = Array(0 ..< count)
+      set.move([1, 2], toOffset: 1)
+      expectEqualElements(set, expected)
+    }
+  }
+
+  func test_move_scattered_sources() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 7 else { return }
+      withEvery("isShared", in: [false, true]) { isShared in
+        var set = OrderedSet(layout: layout)
+        withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+          let evens = stride(from: 0, to: count, by: 2).map { $0 }
+          let odds = stride(from: 1, to: count, by: 2).map { $0 }
+          set.move(evens, toOffset: 0)
+          var expected = evens
+          expected.append(contentsOf: odds)
+          expectEqualElements(set, expected)
+          withEvery("item", in: 0 ..< count) { item in
+            expectNotNil(set.firstIndex(of: item))
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_reorders_within_destination() {
+    // The moved elements must appear in the order given by the input,
+    // not their original order.
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 5 else { return }
+      withEvery("isShared", in: [false, true]) { isShared in
+        var set = OrderedSet(layout: layout)
+        withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+          set.move([3, 1], toOffset: 1)
+          var expected = Array(0 ..< count)
+          expected.remove(at: 3)
+          expected.remove(at: 1)
+          expected.insert(contentsOf: [3, 1], at: 1)
+          expectEqualElements(set, expected)
+        }
+      }
+    }
+  }
+
+  func test_move_exhaustive_small() {
+    withOrderedSetLayouts(scales: [0]) { layout in
+      let count = layout.count
+      guard count >= 3 else { return }
+      withEvery("a", in: 0 ..< count) { a in
+        withEvery("b", in: 0 ..< count) { b in
+          guard b != a else { return }
+          withEvery("destination", in: 0 ... count - 2) { destination in
+            var set = OrderedSet(layout: layout)
+            set.move([a, b], toOffset: destination)
+            var expected = Array(0 ..< count)
+            let ia = expected.firstIndex(of: a)!
+            expected.remove(at: ia)
+            let ib = expected.firstIndex(of: b)!
+            expected.remove(at: ib)
+            expected.insert(contentsOf: [a, b], at: destination)
+            expectEqualElements(set, expected)
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_range_noop() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 4 else { return }
+      var set = OrderedSet(layout: layout)
+      let expected = Array(0 ..< count)
+      let mid = count / 2
+      set.move(mid ..< mid + 2, toOffset: mid)
+      expectEqualElements(set, expected)
+    }
+  }
+
+  func test_move_range_exhaustive_small() {
+    withOrderedSetLayouts(scales: [0]) { layout in
+      let count = layout.count
+      guard count >= 2 else { return }
+      withEvery("src", in: 0 ..< count) { src in
+        withEvery("k", in: 1 ... count - src) { k in
+          withEvery("dst", in: 0 ... count - k) { dst in
+            var set = OrderedSet(layout: layout)
+            set.move(src ..< src + k, toOffset: dst)
+            var expected = Array(0 ..< count)
+            let removed = Array(expected[src ..< src + k])
+            expected.removeSubrange(src ..< src + k)
+            expected.insert(contentsOf: removed, at: dst)
+            expectEqualElements(set, expected)
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_contiguous_elements_uses_range_path() {
+    // Moving contiguous elements via the sequence overload must agree with
+    // the dedicated range overload.
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 8 else { return }
+      let src = count / 2
+      let k = 3
+      let dst = 1
+      var setA = OrderedSet(layout: layout)
+      var setB = OrderedSet(layout: layout)
+      setA.move(Array(src ..< src + k), toOffset: dst)
+      setB.move(src ..< src + k, toOffset: dst)
+      expectEqualElements(setA, setB)
+    }
+  }
+
+  func test_move_contiguous_reordered() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      guard count >= 8 else { return }
+      withEvery("isShared", in: [false, true]) { isShared in
+        var set = OrderedSet(layout: layout)
+        withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+          let src = count / 2
+          let k = 3
+          let dst = 1
+          let reversed = Array((src ..< src + k).reversed())
+          set.move(reversed, toOffset: dst)
+          var expected = Array(0 ..< count)
+          expected.removeSubrange(src ..< src + k)
+          expected.insert(contentsOf: reversed, at: dst)
+          expectEqualElements(set, expected)
+          withEvery("item", in: 0 ..< count) { item in
+            expectNotNil(set.firstIndex(of: item))
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_contiguous_reordered_exhaustive() {
+    withOrderedSetLayouts(scales: [0]) { layout in
+      let count = layout.count
+      guard count >= 5 else { return }
+      withEvery("src", in: 0 ..< count - 2) { src in
+        let elems = [src, src + 1, src + 2]
+        let permutations = [
+          [elems[0], elems[2], elems[1]],
+          [elems[1], elems[0], elems[2]],
+          [elems[1], elems[2], elems[0]],
+          [elems[2], elems[0], elems[1]],
+          [elems[2], elems[1], elems[0]],
+        ]
+        withEvery("permIndex", in: permutations.indices) { permIndex in
+          let perm = permutations[permIndex]
+          withEvery("dst", in: 0 ... count - 3) { dst in
+            var set = OrderedSet(layout: layout)
+            set.move(perm, toOffset: dst)
+            var expected = Array(0 ..< count)
+            for e in perm.reversed() {
+              expected.remove(at: expected.firstIndex(of: e)!)
+            }
+            expected.insert(contentsOf: perm, at: dst)
+            expectEqualElements(set, expected)
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_scattered_destination_is_source_hash_table_size() {
+    // count = 16, scale 5 -> capacity 24, targetedUpdateLimit = 8.
+    // sortedSources = [3, 5, 10], destination = 5: affectedCount = 8,
+    // so the targeted-update path fires. `destination` is itself a source.
+    var set = OrderedSet(0 ..< 16)
+    set.move([3, 5, 10], toOffset: 5)
+    expectEqualElements(set, [0, 1, 2, 4, 6, 3, 5, 10, 7, 8, 9, 11, 12, 13, 14, 15])
+    for v in 0 ..< 16 {
+      expectEqual(set.firstIndex(of: v), set.firstIndex(where: { $0 == v }))
+    }
+    let occupied = set.__unstable.hashTableContents.lazy
+      .filter { $0 != nil }.count
+    expectEqual(occupied, set.count)
+  }
+
+  // Sweeps over all non-empty source subsets of size up to `maxK`, every
+  // permutation, and every destination. Verifies the hash table has no
+  // phantom or missing buckets after each move; element order and lookup
+  // checks alone don't catch that class of defect.
+  func test_move_exhaustive_hash_table_integrity() {
+    func check(_ set: OrderedSet<Int>, _ context: @autoclosure () -> String) {
+      let occupied = set.__unstable.hashTableContents.lazy
+        .filter { $0 != nil }.count
+      expectEqual(occupied, set.count, "\(context())")
+      for v in set {
+        expectEqual(
+          set.firstIndex(of: v), set.firstIndex(where: { $0 == v }),
+          "\(context()): firstIndex(of: \(v))")
+      }
+    }
+
+    let n = 16
+    #if COLLECTIONS_LONG_TESTS
+    let maxK = 5
+    #else
+    let maxK = 3
+    #endif
+    withEverySubset("subset", of: Array(0 ..< n)) { subset in
+      guard !subset.isEmpty, subset.count <= maxK else { return }
+      withEveryPermutation("perm", of: subset) { perm in
+        for dst in 0 ... (n - perm.count) {
+          var set = OrderedSet(0 ..< n)
+          set.move(perm, toOffset: dst)
+          check(set, "perm=\(perm) dst=\(dst)")
+        }
+      }
     }
   }
 }

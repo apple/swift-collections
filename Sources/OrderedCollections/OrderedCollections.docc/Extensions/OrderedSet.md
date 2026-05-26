@@ -129,6 +129,8 @@
 - ``shuffle()``
 - ``shuffle(using:)``
 - ``partition(by:)``
+- ``move(_:toOffset:)-(Range<Int>,_)``
+- ``move(_:toOffset:)-(_,_)``
 
 ### Creating and Applying Differences
 
