@@ -19,7 +19,7 @@ import ContainersPreview
 #if compiler(>=6.2) && UnstableContainersPreview
 
 #if false // FIXME
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)

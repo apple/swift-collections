@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
@@ -26,7 +26,7 @@ where
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct ContainerIterator<
   Base: Container & ~Copyable /*FIXME: & ~Escapable*/
 >: ~Copyable, ~Escapable
@@ -44,7 +44,7 @@ where Base.Element: ~Copyable
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension ContainerIterator: IterableIteratorProtocol_
 where
   Base: ~Copyable /*FIXME: & ~Escapable*/,

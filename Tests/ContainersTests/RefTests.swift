@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false
+
 #if compiler(>=6.3) && UnstableContainersPreview
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
@@ -176,4 +178,6 @@ final class RefTests: CollectionTestCase {
     expectEqual(v, 99)
   }
 }
+#endif
+
 #endif

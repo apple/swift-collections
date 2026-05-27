@@ -11,6 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false
 
 #if compiler(<6.2)
 
@@ -219,5 +220,7 @@ extension UniqueBox where Value: ~Copyable {
   }
 #endif
 }
+
+#endif
 
 #endif

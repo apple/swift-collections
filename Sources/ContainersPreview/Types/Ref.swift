@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false
+
 #if compiler(>=6.3) && UnstableContainersPreview
 import Builtin
 
@@ -194,5 +196,7 @@ extension Optional where Wrapped: ~Copyable /* FIXME: ~Escapable */  {
     return unsafe Ref(unsafeAddress: pointer, borrowing: self)
   }
 }
+
+#endif
 
 #endif
