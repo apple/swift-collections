@@ -17,8 +17,12 @@
 import InternalCollectionsUtilities
 #endif
 
+@available(SwiftStdlib 6.4, *)
+extension RigidDeque: Hashable where Element: Hashable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque /*: Hashable */ where Element: Hashable /* & ~Copyable */ {
+extension RigidDeque where Element: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.count)

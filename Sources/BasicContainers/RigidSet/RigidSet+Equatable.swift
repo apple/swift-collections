@@ -20,7 +20,7 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet {
+extension RigidSet where Element: ~Copyable {
   @inlinable
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
     self._members == other._members
@@ -28,12 +28,11 @@ extension RigidSet {
   }
 }
 
-#if UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
-extension RigidSet: Equatable {}
+extension RigidSet: Equatable where Element: ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet {
+extension RigidSet where Element: ~Copyable {
   @inlinable
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {
     if left.isTriviallyIdentical(to: right) { return true }
@@ -53,6 +52,4 @@ extension RigidSet {
     return true
   }
 }
-#endif
-
 #endif

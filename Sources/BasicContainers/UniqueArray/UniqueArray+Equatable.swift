@@ -24,9 +24,13 @@ extension UniqueArray where Element: ~Copyable {
   }
 }
 
-#if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: Equatable where Element: Equatable & ~Copyable {
+}
+
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: Equatable & ~Copyable {
   @inlinable
   public static func ==(
     left: borrowing Self,

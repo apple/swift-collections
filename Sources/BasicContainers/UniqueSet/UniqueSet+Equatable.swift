@@ -20,7 +20,7 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueSet {
+extension UniqueSet where Element: ~Copyable {
   @inlinable
   @inline(__always)
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
@@ -29,10 +29,10 @@ extension UniqueSet {
 }
 
 @available(SwiftStdlib 6.4, *)
-extension UniqueSet: Equatable {}
+extension UniqueSet: Equatable where Element: ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueSet {
+extension UniqueSet where Element: ~Copyable {
   @inlinable
   @inline(__always)
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {

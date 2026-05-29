@@ -17,8 +17,12 @@
 import InternalCollectionsUtilities
 #endif
 
+@available(SwiftStdlib 6.4, *)
+extension UniqueDeque: Equatable where Element: Equatable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension UniqueDeque where Element: Equatable & ~Copyable {
   @inlinable
   public static func ==(
     left: borrowing Self,

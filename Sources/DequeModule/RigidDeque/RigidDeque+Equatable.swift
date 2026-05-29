@@ -19,14 +19,18 @@ import ContainersPreview
 #endif
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension RigidDeque: Equatable where Element: Equatable & ~Copyable {
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
     self._handle.isIdentical(to: other._handle)
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension RigidDeque: Equatable where Element: Equatable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension RigidDeque where Element: Equatable & ~Copyable {
   @inlinable
   public static func ==(
     left: borrowing Self,

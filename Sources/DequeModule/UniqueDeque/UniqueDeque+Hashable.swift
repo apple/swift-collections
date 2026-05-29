@@ -13,8 +13,12 @@
 
 #if compiler(>=6.2)
 
+@available(SwiftStdlib 6.4, *)
+extension UniqueDeque: Hashable where Element: Hashable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque /*: Hashable */ where Element: Hashable /* & ~Copyable */ {
+extension UniqueDeque where Element: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     self._storage.hash(into: &hasher)
