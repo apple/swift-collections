@@ -29,5 +29,6 @@ target_sources(${module_name} PRIVATE
   "Heap.swift"
   "Heap+Descriptions.swift"
   "Heap+ExpressibleByArrayLiteral.swift"
+  "Heap+Testing.swift"
   "Heap+Invariants.swift"
   "Heap+UnsafeHandle.swift")

@@ -11,12 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if DEBUG // These unit tests need access to HeapModule internals
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@testable import Collections
+@_spi(Testing) import Collections
 #else
-@testable import HeapModule
+@_spi(Testing) import HeapModule
 #endif
 
 class HeapNodeTests: XCTestCase {
@@ -26,11 +25,9 @@ class HeapNodeTests: XCTestCase {
     for exp in 0...12 {
       // Check [2^exp, 2^(exp + 1))
       for offset in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
-        let node = _HeapNode(offset: offset)
-        XCTAssertEqual(node.isMinLevel, isMin)
+        XCTAssertEqual(_HeapTestSupport.isMinLevel(offset: offset), isMin)
       }
       isMin.toggle()
     }
   }
 }
-#endif // DEBUG
