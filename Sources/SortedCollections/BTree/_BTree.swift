@@ -31,7 +31,7 @@ internal struct _BTree<Key: Comparable, Value> {
     return 4
     #else
     let capacityInBytes = 128
-    return Swift.min(16, capacityInBytes / MemoryLayout<Key>.stride)
+    return Swift.max(16, capacityInBytes / MemoryLayout<Key>.stride)
     #endif
   }
   
@@ -43,7 +43,7 @@ internal struct _BTree<Key: Comparable, Value> {
     return 5
     #else
     let capacityInBytes = 2000
-    return Swift.min(16, capacityInBytes / MemoryLayout<Key>.stride)
+    return Swift.max(16, capacityInBytes / MemoryLayout<Key>.stride)
     #endif
   }
   
