@@ -33,7 +33,7 @@ fileprivate func append(_ input: UnsafeBufferPointer<Int>) {
 
 @inline(never)
 fileprivate func appendReserveCapacity(_ input: UnsafeBufferPointer<Int>) {
-  var deque = UniqueDeque<Int>(capacity: input.count)
+  var deque = UniqueDeque<Int>(minimumCapacity: input.count)
   for i in input {
     deque.append(i)
   }
@@ -51,7 +51,7 @@ fileprivate func prepend(_ input: UnsafeBufferPointer<Int>) {
 
 @inline(never)
 fileprivate func prependReserveCapacity(_ input: UnsafeBufferPointer<Int>) {
-  var deque = UniqueDeque<Int>(capacity: input.count)
+  var deque = UniqueDeque<Int>(minimumCapacity: input.count)
   for i in input {
     deque.prepend(i)
   }
