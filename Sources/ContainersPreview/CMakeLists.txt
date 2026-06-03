@@ -52,6 +52,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Iterable+Algorithms.swift"
   "Protocols/Iterable+Standard Conformances.swift"
   "Protocols/Iterable+Utilities.swift"
+  "Protocols/CountedProducer.swift"
   "Protocols/Drain.swift"
   "Protocols/Drain+Map.swift"
   "Protocols/Drain+Reduce.swift"
