@@ -11,7 +11,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if false // SortedCollections is not a thing yet
+#if UnstableSortedCollections
 import CollectionsBenchmark
 import SortedCollections
 
