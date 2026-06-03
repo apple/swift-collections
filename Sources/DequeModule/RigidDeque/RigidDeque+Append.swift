@@ -305,7 +305,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(copying items: Span<Element>) {
-    unsafe items.withUnsafeBufferPointer { source in
+    items.withUnsafeBufferPointer { source in
       unsafe self.append(copying: source)
     }
   }

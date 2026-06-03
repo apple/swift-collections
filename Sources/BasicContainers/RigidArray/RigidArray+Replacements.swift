@@ -577,7 +577,7 @@ extension RigidArray {
     removing subrange: Range<Int>,
     copying newElements: Span<Element>
   ) {
-    unsafe newElements.withUnsafeBufferPointer { buffer in
+    newElements.withUnsafeBufferPointer { buffer in
       unsafe self.replace(removing: subrange, copying: buffer)
     }
   }

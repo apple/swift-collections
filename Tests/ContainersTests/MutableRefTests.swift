@@ -108,7 +108,7 @@ final class MutableRefTests: CollectionTestCase {
 
   func test_init_unsafeAddress_mutating() {
     var x = 789
-    let pointer = unsafe withUnsafeMutablePointer(to: &x) { $0 }
+    let pointer = withUnsafeMutablePointer(to: &x) { $0 }
     var ref = unsafe _MutableRef(unsafeAddress: pointer, mutating: &x)
     expectEqual(ref.value, 789)
     ref.value = 111
@@ -119,7 +119,7 @@ final class MutableRefTests: CollectionTestCase {
 
   func test_init_unsafeImmortalAddress() {
     var x = 555
-    let pointer = unsafe withUnsafeMutablePointer(to: &x) { $0 }
+    let pointer = withUnsafeMutablePointer(to: &x) { $0 }
     var ref = unsafe _MutableRef(unsafeImmortalAddress: pointer)
     expectEqual(ref.value, 555)
     ref.value = 666

@@ -71,7 +71,7 @@ final class RefTests: CollectionTestCase {
   @available(SwiftStdlib 6.4, *)
   func test_init_unsafeAddress_borrowing() {
     let x = 123
-    unsafe withUnsafePointer(to: x) { pointer in
+    withUnsafePointer(to: x) { pointer in
       let ref = Ref(unsafeAddress: pointer, borrowing: x)
       expectEqual(ref.value, 123)
     }

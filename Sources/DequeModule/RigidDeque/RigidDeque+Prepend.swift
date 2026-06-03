@@ -282,7 +282,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   @inlinable
   @_alwaysEmitIntoClient
   public mutating func prepend(copying items: Span<Element>) {
-    unsafe items.withUnsafeBufferPointer { source in
+    items.withUnsafeBufferPointer { source in
       unsafe self.prepend(copying: source)
     }
   }

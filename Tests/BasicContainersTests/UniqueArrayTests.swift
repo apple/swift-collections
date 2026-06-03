@@ -130,7 +130,7 @@ class UniqueArrayTests: CollectionTestCase {
 
   func test_init_capacity() {
     do {
-      let a = UniqueArray<Int>(capacity: 0)
+      let a = UniqueArray<Int>(minimumCapacity: 0)
       expectEqual(a.capacity, 0)
       expectEqual(a.count, 0)
       expectEqual(a.freeCapacity, 0)
@@ -138,7 +138,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
 
     do {
-      let a = UniqueArray<Int>(capacity: 10)
+      let a = UniqueArray<Int>(minimumCapacity: 10)
       expectEqual(a.capacity, 10)
       expectEqual(a.count, 0)
       expectEqual(a.freeCapacity, 10)

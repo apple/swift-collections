@@ -368,7 +368,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   public mutating func insert(
     copying items: Span<Element>, at index: Int
   ) {
-    unsafe items.withUnsafeBufferPointer {
+    items.withUnsafeBufferPointer {
       unsafe self.insert(copying: $0, at: index)
     }
   }

@@ -450,7 +450,7 @@ extension RigidDeque /* where Element: Copyable */ {
     removing subrange: Range<Int>,
     copying items: Span<Element>
   ) {
-    unsafe items.withUnsafeBufferPointer { buffer in
+    items.withUnsafeBufferPointer { buffer in
       unsafe self.replace(removing: subrange, copying: buffer)
     }
   }
