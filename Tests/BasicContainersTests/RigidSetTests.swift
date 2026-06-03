@@ -401,14 +401,11 @@ class RigidSetTests: CollectionTestCase {
           withLifetimeTracking { tracker in
             var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
 
-            var i = 0
             var drain = CustomDrain<LifetimeTracked<Int>>(
-              underestimatedCount: 0,
+              count: count,
               chunkSize: chunkSize
-            ) {
-              guard i < count else { return nil }
-              defer { i += 1 }
-              return tracker.instance(for: i)
+            ) { i in
+              tracker.instance(for: i)
             }
             s.insert(from: &drain)
             expectConsistentSet(s)
@@ -437,21 +434,17 @@ class RigidSetTests: CollectionTestCase {
             withLifetimeTracking { tracker in
               var s = RigidSet<LifetimeTracked<Int>>(capacity: capacity)
 
-              var i = 0
               var drain = CustomDrain<LifetimeTracked<Int>>(
-                underestimatedCount: 0,
+                count: drainLength,
                 chunkSize: chunkSize
-              ) {
-                guard i < drainLength else { return nil }
-                defer { i += 1 }
-                return tracker.instance(for: i)
+              ) { i in
+                tracker.instance(for: i)
               }
               s.insert(maximumCount: maxCount, from: &drain)
               expectConsistentSet(s)
 
               let expectedCount = Swift.min(maxCount, drainLength)
               expectEqual(s.count, expectedCount)
-              expectEqual(i, expectedCount)
             }
           }
         }

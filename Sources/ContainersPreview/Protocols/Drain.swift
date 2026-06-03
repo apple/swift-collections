@@ -22,7 +22,7 @@
 /// moving their consumable contents to the client-supplied series of
 /// output spans.
 @available(SwiftStdlib 5.0, *)
-public protocol Drain<Element>: Producer, ~Copyable, ~Escapable
+public protocol Drain<Element>: CountedProducer, ~Copyable, ~Escapable
 where Element: ~Copyable, Failure == Never
 {
   /// Returns the next span of consumable items in the sequence underlying this

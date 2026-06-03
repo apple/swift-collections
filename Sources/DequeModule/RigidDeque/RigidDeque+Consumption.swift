@@ -228,6 +228,11 @@ extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
 @available(SwiftStdlib 6.4, *)
 extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
   @inlinable
+  public var count: Int {
+    _buffer1.count + _buffer2.count
+  }
+
+  @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
   public mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {

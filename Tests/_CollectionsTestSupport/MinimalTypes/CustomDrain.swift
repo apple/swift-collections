@@ -23,22 +23,24 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 package struct CustomDrain<Element: ~Copyable>: ~Copyable {
-  package let underestimatedCount: Int
+  package let count: Int
   package let _chunkSize: Int
-  package let _generator: () -> Element?
+  package let _generator: (Int) -> Element
   package var _buffer: RigidArray<Element>
   package var _remainder: Int
+  package var _position: Int
 
   package init(
-    underestimatedCount: Int = 0,
+    count: Int = 0,
     chunkSize: Int,
-    generatingWith generator: @escaping () -> Element?
+    generatingWith generator: @escaping (Int) -> Element
   ) {
-    self.underestimatedCount = underestimatedCount
+    self.count = count
     self._chunkSize = chunkSize
     self._generator = generator
     self._buffer = .init(capacity: _chunkSize)
     self._remainder = _chunkSize
+    self._position = 0
   }
 }
 
@@ -53,7 +55,9 @@ extension CustomDrain: Drain where Element: ~Copyable {
     let c = Swift.min(maximumCount, _remainder)
     _remainder -= c
     for _ in 0 ..< c {
-      guard let next = _generator() else { break }
+      guard _position < count else { break }
+      let next = _generator(_position)
+      _position += 1
       _buffer.append(next)
     }
     return _buffer._consumeAll()
