@@ -86,6 +86,12 @@ let package = Package(
       name: "Benchmarks",
       dependencies: [
         .product(name: "Collections", package: "swift-collections"),
+        .product(name: "BasicContainers", package: "swift-collections"),
+        .product(name: "DequeModule", package: "swift-collections"),
+        .product(name: "HeapModule", package: "swift-collections"),
+        .product(name: "SortedCollections", package: "swift-collections"),
+        .product(name: "OrderedCollections", package: "swift-collections"),
+        .product(name: "BitCollections", package: "swift-collections"),
         .product(name: "CollectionsBenchmark", package: "swift-collections-benchmark"),
         "CppBenchmarks",
         .target(name: "RustBenchmarks", condition: .when(traits: ["EnableRustBenchmarks"])),
