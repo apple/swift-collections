@@ -37,7 +37,7 @@ benchmark.addRigidDequeBenchmarks()
 benchmark.addUniqueDequeBenchmarks()
 benchmark.addOrderedSetBenchmarks()
 benchmark.addOrderedDictionaryBenchmarks()
-#if false
+#if UnstableSortedCollections
 benchmark.addSortedSetBenchmarks()
 benchmark.addSortedDictionaryBenchmarks()
 #endif
@@ -45,7 +45,7 @@ benchmark.addHeapBenchmarks()
 benchmark.addBitSetBenchmarks()
 benchmark.addTreeSetBenchmarks()
 benchmark.addCppBenchmarks()
-#if ENABLE_RUST_BENCHMARKS
+#if EnableRustBenchmarks
 benchmark.addRustBenchmarks()
 #endif
 benchmark.addBigStringBenchmarks()
