@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 
-#if ENABLE_RUST_BENCHMARKS
+#if EnableRustBenchmarks
 
 import CollectionsBenchmark
 

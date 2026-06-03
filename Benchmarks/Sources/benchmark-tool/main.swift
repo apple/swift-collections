@@ -45,7 +45,7 @@ benchmark.addHeapBenchmarks()
 benchmark.addBitSetBenchmarks()
 benchmark.addTreeSetBenchmarks()
 benchmark.addCppBenchmarks()
-#if ENABLE_RUST_BENCHMARKS
+#if EnableRustBenchmarks
 benchmark.addRustBenchmarks()
 #endif
 benchmark.addBigStringBenchmarks()

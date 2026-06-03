@@ -17,6 +17,7 @@ import PackageDescription
 let _traits: Set<Trait> = [
   .default(
     enabledTraits: [
+//      "EnableRustBenchmarks",
     ]
   ),
   .trait(
@@ -45,7 +46,6 @@ let _sharedSettings: [SwiftSetting] = (
   } +
     [
       .enableExperimentalFeature("Extern", .when(traits: ["EnableRustBenchmarks"])),
-      .define("ENABLE_RUST_BENCHMARKS", .when(traits: ["EnableRustBenchmarks"])),
     ]
 )
 
