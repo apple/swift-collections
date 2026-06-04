@@ -13,9 +13,9 @@
 
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
-@_spi(Testing) import Collections
+import Collections
 #else
-@_spi(Testing) import HeapModule
+import HeapModule
 #endif
 
 class HeapNodeTests: XCTestCase {
@@ -25,7 +25,7 @@ class HeapNodeTests: XCTestCase {
     for exp in 0...12 {
       // Check [2^exp, 2^(exp + 1))
       for offset in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
-        XCTAssertEqual(_HeapTestSupport.isMinLevel(offset: offset), isMin)
+        XCTAssertEqual(Heap<Int>._isMinLevel(offset: offset), isMin)
       }
       isMin.toggle()
     }

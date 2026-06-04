@@ -11,9 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_spi(Testing)
-public enum _HeapTestSupport {
-  public static func isMinLevel(offset: Int) -> Bool {
+extension Heap {
+  package static func _isMinLevel(offset: Int) -> Bool {
     _HeapNode(offset: offset).isMinLevel
   }
 }
