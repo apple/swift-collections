@@ -130,8 +130,8 @@
 - ``shuffle(using:)``
 - ``partition(by:)``
 - ``moveSubrange(_:to:)``
-- ``move(contentsOf:to:)``
-- ``move(fromIndices:to:)``
+- ``move(members:to:)``
+- ``move(indices:to:)``
 
 ### Creating and Applying Differences
 

@@ -73,7 +73,7 @@ extension OrderedDictionary {
   /// duplicates.
   ///
   ///     var d: OrderedDictionary = [0: "a", 1: "b", 2: "c", 3: "d"]
-  ///     d.move(contentsOf: [3, 0], to: 1)
+  ///     d.move(keys: [3, 0], to: 1)
   ///     // d is now [1: "b", 3: "d", 0: "a", 2: "c"]
   ///
   /// - Parameters:
@@ -88,11 +88,11 @@ extension OrderedDictionary {
   ///    proportional to the distance moved.
   @inlinable
   public mutating func move(
-    contentsOf keys: some Sequence<Key>,
+    keys: some Sequence<Key>,
     to destination: Index
   ) {
     _values.withUnsafeMutableBufferPointer { values in
-      _keys._move(contentsOf: keys, to: destination) {
+      _keys._move(members: keys, to: destination) {
         sourceOffsets, sortedSources, isContiguousRange in
         values._move(
           sourceOffsets: sourceOffsets,
@@ -110,7 +110,7 @@ extension OrderedDictionary {
   /// `indices` must contain distinct, valid indices of the dictionary.
   ///
   ///     var d: OrderedDictionary = [0: "a", 1: "b", 2: "c", 3: "d", 4: "e"]
-  ///     d.move(fromIndices: [4, 1], to: 0)
+  ///     d.move(indices: [4, 1], to: 0)
   ///     // d is now [4: "e", 1: "b", 0: "a", 2: "c", 3: "d"]
   ///
   /// - Parameters:
@@ -124,19 +124,17 @@ extension OrderedDictionary {
   ///    proportional to the distance moved.
   @inlinable
   public mutating func move(
-    fromIndices indices: [Index],
+    indices: some Sequence<Index>,
     to destination: Index
   ) {
     _values.withUnsafeMutableBufferPointer { values in
-      indices.withUnsafeBufferPointer { indices in
-        _keys._move(fromIndices: indices, to: destination) {
-          sourceOffsets, sortedSources, isContiguousRange in
-          values._move(
-            sourceOffsets: sourceOffsets,
-            sortedSources: sortedSources,
-            isContiguousRange: isContiguousRange,
-            to: destination)
-        }
+      _keys._move(indices: indices, to: destination) {
+        sourceOffsets, sortedSources, isContiguousRange in
+        values._move(
+          sourceOffsets: sourceOffsets,
+          sortedSources: sortedSources,
+          isContiguousRange: isContiguousRange,
+          to: destination)
       }
     }
     _checkInvariants()

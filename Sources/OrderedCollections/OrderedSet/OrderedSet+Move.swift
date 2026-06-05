@@ -74,32 +74,31 @@ extension OrderedSet {
   }
 
   /// Moves the given elements to the given index, keeping them in the
-  /// order they appear in `elements`.
+  /// order they appear in `members`.
   ///
-  /// Elements of `elements` that are not members of the set are ignored;
-  /// only the members are relocated. `elements` must not contain duplicate
-  /// members.
+  /// Elements that are not members of the set are ignored; only the members
+  /// are relocated. `members` must not contain duplicate elements.
   ///
   ///     var set: OrderedSet = [0, 1, 2, 3, 4, 5, 6]
-  ///     set.move(contentsOf: [4, 1], to: 2)
+  ///     set.move(members: [4, 1], to: 2)
   ///     // set is now [0, 2, 4, 1, 3, 5, 6]
   ///
   /// - Parameters:
-  ///    - elements: The elements to move. Values that are not members of the
+  ///    - members: The elements to move. Values that are not members of the
   ///       set are ignored.
   ///    - destination: The index at which the moved elements should start in
   ///       the resulting set. Must be in the range `0 ... count - k`, where
-  ///       `k` is the number of `elements` that are members of the set.
+  ///       `k` is the number of `members` that are present in the set.
   ///
   /// - Complexity: O(`count`) in the worst case. When the elements form a
   ///    contiguous range or are moved a short distance, the operation is
   ///    proportional to the distance moved.
   @inlinable
   public mutating func move(
-    contentsOf elements: some Sequence<Element>,
+    members elements: some Sequence<Element>,
     to destination: Index
   ) {
-    _move(contentsOf: elements, to: destination)
+    _move(members: elements, to: destination)
   }
 
   /// Moves the elements at the given indices to the given index, keeping them
@@ -108,7 +107,7 @@ extension OrderedSet {
   /// `indices` must contain distinct, valid indices of the set.
   ///
   ///     var set: OrderedSet = [0, 1, 2, 3, 4]
-  ///     set.move(fromIndices: [4, 1], to: 0)
+  ///     set.move(indices: [4, 1], to: 0)
   ///     // set is now [4, 1, 0, 2, 3]
   ///
   /// - Parameters:
@@ -122,16 +121,60 @@ extension OrderedSet {
   ///    proportional to the distance moved.
   @inlinable
   public mutating func move(
-    fromIndices indices: [Index],
+    indices: some Sequence<Index>,
     to destination: Index
   ) {
-    indices.withUnsafeBufferPointer { indices in
-      _move(fromIndices: indices, to: destination)
-    }
+    _move(indices: indices, to: destination)
   }
 }
 
 extension OrderedSet {
+  @inlinable
+  internal mutating func _move(
+    indices: some Sequence<Index>,
+    to destination: Index,
+    applyingTo body: (
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+    ) -> Void = { _, _, _ in }
+  ) {
+    // Fast path: operate directly on the sequence's storage when available.
+    let handled: Void? = indices.withContiguousStorageIfAvailable { buffer in
+      _move(fromIndices: buffer, to: destination, applyingTo: body)
+    }
+    if handled != nil { return }
+
+    // Fallback: collect the indices into an array, checking bounds and
+    // detecting order as we go.
+    var isContiguousRange = true
+    var isSorted = true
+    var prev = -1
+    var sourceOffsets: [Int] = []
+    sourceOffsets.reserveCapacity(indices.underestimatedCount)
+    for index in indices {
+      precondition(
+        index >= 0 && index < count,
+        "Index \(index) at \(sourceOffsets.count) out of bounds 0 ..< \(count)")
+      if prev >= 0 {
+        if index <= prev {
+          isSorted = false
+          isContiguousRange = false
+        } else if index != prev + 1 {
+          isContiguousRange = false
+        }
+      }
+      prev = index
+      sourceOffsets.append(index)
+    }
+    sourceOffsets.withUnsafeBufferPointer { sourceOffsets in
+      _move(
+        sourceOffsets: sourceOffsets,
+        isContiguousRange: isContiguousRange,
+        isSorted: isSorted,
+        to: destination,
+        applyingTo: body)
+    }
+  }
+
   @inlinable
   internal mutating func _move(
     fromIndices sourceOffsets: UnsafeBufferPointer<Int>,
@@ -167,7 +210,7 @@ extension OrderedSet {
 
   @inlinable
   internal mutating func _move(
-    contentsOf elements: some Sequence<Element>,
+    members elements: some Sequence<Element>,
     to destination: Index,
     applyingTo body: (
       UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
@@ -252,14 +295,11 @@ extension OrderedSet {
       destination >= 0 && destination <= count - c,
       "Destination index \(destination) out of range 0 ... \(count - c)")
 
-    var isNoOp = true
-    for i in 0 ..< c {
-      if sourceOffsets[i] != destination + i {
-        isNoOp = false
-        break
-      }
-    }
-    guard !isNoOp else { return }
+    // A no-op is exactly an in-order contiguous run already sitting at
+    // `destination`. `isContiguousRange` (computed while scanning the input)
+    // already guarantees `sourceOffsets[i] == sourceOffsets[0] + i`, so it
+    // only remains to check that the run starts at `destination`.
+    if isContiguousRange && sourceOffsets[0] == destination { return }
 
     if isSorted {
       // Already ascending: the sorted view is the input view, no copy needed.

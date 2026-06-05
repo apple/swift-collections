@@ -606,7 +606,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: [size - 1], to: 0)
+          d.move(keys: [size - 1], to: 0)
         }
         blackHole(d)
       }
@@ -620,7 +620,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: [size - 1], to: size / 2)
+          d.move(keys: [size - 1], to: size / 2)
         }
         blackHole(d)
       }
@@ -636,7 +636,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: 0)
+          d.move(keys: toMove, to: 0)
         }
         blackHole(d)
       }
@@ -652,7 +652,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: size / 2)
+          d.move(keys: toMove, to: size / 2)
         }
         blackHole(d)
       }
@@ -667,7 +667,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: 0)
+          d.move(keys: toMove, to: 0)
         }
         precondition(d.count == size)
         blackHole(d)
@@ -684,7 +684,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: size / 2)
+          d.move(keys: toMove, to: size / 2)
         }
         blackHole(d)
       }
@@ -701,7 +701,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: [src], to: dst)
+          d.move(keys: [src], to: dst)
         }
         blackHole(d)
       }
@@ -719,7 +719,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: dst)
+          d.move(keys: toMove, to: dst)
         }
         blackHole(d)
       }
@@ -736,7 +736,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: 0)
+          d.move(keys: toMove, to: 0)
         }
         blackHole(d)
       }
@@ -755,7 +755,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: dst)
+          d.move(keys: toMove, to: dst)
         }
         blackHole(d)
       }
@@ -808,7 +808,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: 0)
+          d.move(keys: toMove, to: 0)
         }
         blackHole(d)
       }
@@ -826,7 +826,7 @@ extension Benchmark {
         var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
                                   values: size ..< 2 * size)
         timer.measure {
-          d.move(contentsOf: toMove, to: dst)
+          d.move(keys: toMove, to: dst)
         }
         blackHole(d)
       }

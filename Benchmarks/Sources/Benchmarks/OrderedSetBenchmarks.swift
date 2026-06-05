@@ -617,7 +617,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: [size - 1], to: 0)
+          set.move(members: [size - 1], to: 0)
         }
         blackHole(set)
       }
@@ -630,7 +630,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: [size - 1], to: size / 2)
+          set.move(members: [size - 1], to: size / 2)
         }
         blackHole(set)
       }
@@ -645,7 +645,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: 0)
+          set.move(members: toMove, to: 0)
         }
         blackHole(set)
       }
@@ -660,7 +660,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: size / 2)
+          set.move(members: toMove, to: size / 2)
         }
         blackHole(set)
       }
@@ -674,7 +674,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: 0)
+          set.move(members: toMove, to: 0)
         }
         precondition(set.count == size)
         blackHole(set)
@@ -690,7 +690,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: size / 2)
+          set.move(members: toMove, to: size / 2)
         }
         blackHole(set)
       }
@@ -706,7 +706,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: [src], to: dst)
+          set.move(members: [src], to: dst)
         }
         blackHole(set)
       }
@@ -723,7 +723,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: dst)
+          set.move(members: toMove, to: dst)
         }
         blackHole(set)
       }
@@ -739,7 +739,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: 0)
+          set.move(members: toMove, to: 0)
         }
         blackHole(set)
       }
@@ -757,7 +757,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: dst)
+          set.move(members: toMove, to: dst)
         }
         blackHole(set)
       }
@@ -807,7 +807,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: 0)
+          set.move(members: toMove, to: 0)
         }
         blackHole(set)
       }
@@ -824,7 +824,7 @@ extension Benchmark {
       return { timer in
         var set = OrderedSet(0 ..< size)
         timer.measure {
-          set.move(contentsOf: toMove, to: dst)
+          set.move(members: toMove, to: dst)
         }
         blackHole(set)
       }

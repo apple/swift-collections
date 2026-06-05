@@ -1153,7 +1153,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_move_contentsOf() {
+  func test_move_keys() {
     withEvery("count", in: 1 ..< 10) { count in
       let positions = Array(stride(from: 0, to: count, by: 2))
       withEvery("dst", in: 0 ... count - positions.count) { dst in
@@ -1165,7 +1165,7 @@ class OrderedDictionaryTests: CollectionTestCase {
             reference.removeAll { keysToMove.contains($0.key) }
             reference.insert(contentsOf: moved, at: dst)
             withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
-              d.move(contentsOf: keysToMove, to: dst)
+              d.move(keys: keysToMove, to: dst)
               expectEqualElements(d, reference)
               for (key, value) in reference {
                 expectEqual(d[key], value)
@@ -1177,7 +1177,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
-  func test_move_contentsOf_keepsInputOrder() {
+  func test_move_keys_keepsInputOrder() {
     // The moved pairs appear in the order their keys are given, not their
     // original order.
     withLifetimeTracking { tracker in
@@ -1186,12 +1186,12 @@ class OrderedDictionaryTests: CollectionTestCase {
       let moved = [reference[4], reference[1]]
       reference.removeAll { keysToMove.contains($0.key) }
       reference.insert(contentsOf: moved, at: 1)
-      d.move(contentsOf: keysToMove, to: 1)
+      d.move(keys: keysToMove, to: 1)
       expectEqualElements(d, reference)
     }
   }
 
-  func test_move_contentsOf_ignoresMissing() {
+  func test_move_keys_ignoresMissing() {
     // Keys not present in the dictionary are skipped.
     withLifetimeTracking { tracker in
       var (d, reference) = tracker.orderedDictionary(keys: 0 ..< 6)
@@ -1201,7 +1201,7 @@ class OrderedDictionaryTests: CollectionTestCase {
       let moved = [reference[4], reference[1]]
       reference.removeAll { $0.key == k4 || $0.key == k1 }
       reference.insert(contentsOf: moved, at: 0)
-      d.move(contentsOf: [k4, missing, k1], to: 0)
+      d.move(keys: [k4, missing, k1], to: 0)
       expectEqualElements(d, reference)
       for (key, value) in reference {
         expectEqual(d[key], value)
@@ -1234,14 +1234,14 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEveryPermutation("perm", of: subset) { perm in
         for dst in 0 ... (n - perm.count) {
           var d = OrderedDictionary(uniqueKeys: 0 ..< n, values: 100 ..< 100 + n)
-          d.move(contentsOf: perm, to: dst)
+          d.move(keys: perm, to: dst)
           check(d, "perm=\(perm) dst=\(dst)")
         }
       }
     }
   }
 
-  func test_move_fromIndices() {
+  func test_move_indices() {
     withEvery("count", in: 1 ..< 8) { count in
       withEvery("a", in: 0 ..< count) { a in
         withEvery("b", in: 0 ..< count) { b in
@@ -1256,7 +1256,7 @@ class OrderedDictionaryTests: CollectionTestCase {
                 reference.remove(at: sorted[0])
                 reference.insert(contentsOf: moved, at: dst)
                 withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
-                  d.move(fromIndices: [a, b], to: dst)
+                  d.move(indices: [a, b], to: dst)
                   expectEqualElements(d, reference)
                   for (key, value) in reference {
                     expectEqual(d[key], value)
