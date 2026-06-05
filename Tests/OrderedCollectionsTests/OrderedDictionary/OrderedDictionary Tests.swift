@@ -1113,6 +1113,163 @@ class OrderedDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_moveSubrange() {
+    withEvery("count", in: 0 ..< 12) { count in
+      withEvery("lower", in: 0 ..< count) { lower in
+        withEvery("k", in: 1 ... count - lower) { k in
+          withEvery("dst", in: 0 ... count - k) { dst in
+            withEvery("isShared", in: [false, true]) { isShared in
+              withLifetimeTracking { tracker in
+                var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+                let moved = Array(reference[lower ..< lower + k])
+                reference.removeSubrange(lower ..< lower + k)
+                reference.insert(contentsOf: moved, at: dst)
+                withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+                  d.moveSubrange(lower ..< lower + k, to: dst)
+                  expectEqualElements(d, reference)
+                  for (key, value) in reference {
+                    expectEqual(d[key], value)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_moveSubrange_rangeExpression() {
+    // The RangeExpression overload must agree with the concrete range.
+    withEvery("count", in: 4 ..< 10) { count in
+      withEvery("dst", in: 0 ... 2) { dst in
+        var viaExpression = OrderedDictionary(
+          uniqueKeys: 0 ..< count, values: 100 ..< 100 + count)
+        var viaRange = viaExpression
+        viaExpression.moveSubrange(2..., to: dst)
+        viaRange.moveSubrange(2 ..< count, to: dst)
+        expectEqualElements(viaExpression, viaRange)
+      }
+    }
+  }
+
+  func test_move_contentsOf() {
+    withEvery("count", in: 1 ..< 10) { count in
+      let positions = Array(stride(from: 0, to: count, by: 2))
+      withEvery("dst", in: 0 ... count - positions.count) { dst in
+        withEvery("isShared", in: [false, true]) { isShared in
+          withLifetimeTracking { tracker in
+            var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+            let keysToMove = positions.map { reference[$0].key }
+            let moved = positions.map { reference[$0] }
+            reference.removeAll { keysToMove.contains($0.key) }
+            reference.insert(contentsOf: moved, at: dst)
+            withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+              d.move(contentsOf: keysToMove, to: dst)
+              expectEqualElements(d, reference)
+              for (key, value) in reference {
+                expectEqual(d[key], value)
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_move_contentsOf_keepsInputOrder() {
+    // The moved pairs appear in the order their keys are given, not their
+    // original order.
+    withLifetimeTracking { tracker in
+      var (d, reference) = tracker.orderedDictionary(keys: 0 ..< 6)
+      let keysToMove = [reference[4].key, reference[1].key]
+      let moved = [reference[4], reference[1]]
+      reference.removeAll { keysToMove.contains($0.key) }
+      reference.insert(contentsOf: moved, at: 1)
+      d.move(contentsOf: keysToMove, to: 1)
+      expectEqualElements(d, reference)
+    }
+  }
+
+  func test_move_contentsOf_ignoresMissing() {
+    // Keys not present in the dictionary are skipped.
+    withLifetimeTracking { tracker in
+      var (d, reference) = tracker.orderedDictionary(keys: 0 ..< 6)
+      let missing = tracker.instance(for: 99)
+      let k4 = reference[4].key
+      let k1 = reference[1].key
+      let moved = [reference[4], reference[1]]
+      reference.removeAll { $0.key == k4 || $0.key == k1 }
+      reference.insert(contentsOf: moved, at: 0)
+      d.move(contentsOf: [k4, missing, k1], to: 0)
+      expectEqualElements(d, reference)
+      for (key, value) in reference {
+        expectEqual(d[key], value)
+      }
+    }
+  }
+
+  // Sweeps over source subsets, permutations, and destinations, verifying the
+  // keys' hash table stays consistent and every key still maps to its value
+  // after the move relocates keys and values in lockstep.
+  func test_move_exhaustive_hash_table_integrity() {
+    func check(_ d: OrderedDictionary<Int, Int>, _ context: @autoclosure () -> String) {
+      let occupied = d.keys.__unstable.hashTableContents.lazy
+        .filter { $0 != nil }.count
+      expectEqual(occupied, d.count, "\(context())")
+      for (key, value) in d {
+        expectEqual(d.keys.firstIndex(of: key), d.index(forKey: key), "\(context())")
+        expectEqual(value, 100 + key, "\(context()): value for \(key)")
+      }
+    }
+
+    let n = 16
+    #if COLLECTIONS_LONG_TESTS
+    let maxK = 5
+    #else
+    let maxK = 3
+    #endif
+    withEverySubset("subset", of: Array(0 ..< n)) { subset in
+      guard !subset.isEmpty, subset.count <= maxK else { return }
+      withEveryPermutation("perm", of: subset) { perm in
+        for dst in 0 ... (n - perm.count) {
+          var d = OrderedDictionary(uniqueKeys: 0 ..< n, values: 100 ..< 100 + n)
+          d.move(contentsOf: perm, to: dst)
+          check(d, "perm=\(perm) dst=\(dst)")
+        }
+      }
+    }
+  }
+
+  func test_move_fromIndices() {
+    withEvery("count", in: 1 ..< 8) { count in
+      withEvery("a", in: 0 ..< count) { a in
+        withEvery("b", in: 0 ..< count) { b in
+          guard a != b else { return }
+          withEvery("dst", in: 0 ... count - 2) { dst in
+            withEvery("isShared", in: [false, true]) { isShared in
+              withLifetimeTracking { tracker in
+                var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
+                let moved = [reference[a], reference[b]]
+                let sorted = [a, b].sorted()
+                reference.remove(at: sorted[1])
+                reference.remove(at: sorted[0])
+                reference.insert(contentsOf: moved, at: dst)
+                withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
+                  d.move(fromIndices: [a, b], to: dst)
+                  expectEqualElements(d, reference)
+                  for (key, value) in reference {
+                    expectEqual(d[key], value)
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_removeAll() {
     withEvery("count", in: 0 ..< 30) { count in
       withEvery("isShared", in: [false, true]) { isShared in

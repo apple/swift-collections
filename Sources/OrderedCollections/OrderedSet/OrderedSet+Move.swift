@@ -17,82 +17,321 @@ import InternalCollectionsUtilities
 
 // Reordering implementation.
 //
-// Both `move` overloads relocate elements to a new offset, preserving the
-// order they appear in the input. The work splits into two concerns:
-//
-//   1. Rearrange `_elements` so the moved values are contiguous at the
-//      destination, with the surrounding elements compacted around them.
-//   2. Update `_table` so each element's hash bucket points at its new
-//      offset.
-//
-// The implementation dispatches to one of three buffer strategies depending
-// on the input shape:
-//
-//   * Contiguous range source -> `_moveRange`: a three-reverse rotation of
-//     `_elements`. O(*d* + *k*) element moves, where *d* is the distance
-//     between source and destination and *k* is the source count.
-//
-//   * Contiguous range source in a different order -> `_moveContiguousReordered`:
-//     rotation, followed by a cycle-following in-place permutation to
-//     reorder the moved block.
-//
-//   * Scattered sources -> `_moveScattered`: a two-pointer compact-and-place
-//     pass that removes the source positions and writes the moved values
-//     into the resulting gap. O(*n*) element moves.
-//
-// For the hash table, each strategy further chooses between targeted
-// per-element bucket updates and a coarse fallback (full-table scan in
-// `_moveRange`, full rebuild in `_moveScattered`). The fallback is faster
-// once the affected region grows beyond roughly a third of the table; see
-// the `targetedUpdateLimit` comments at each branch.
+// A move rearranges `_elements` so the moved elements become consecutive at
+// the destination, then repoints the affected hash-table buckets. The element
+// rearrangement is factored into generic `UnsafeMutableBufferPointer`
+// operations; `OrderedDictionary` reuses them through the `applyingTo` closure
+// to relocate its values in lockstep with the keys.
 
 extension OrderedSet {
-  /// Moves the elements in the given range to the given offset, preserving
+  /// Moves the elements in the given range to the given index, preserving
   /// their relative order.
   ///
   ///     var set: OrderedSet = [0, 1, 2, 3, 4, 5, 6]
-  ///     set.move(4 ..< 6, toOffset: 1)
+  ///     set.moveSubrange(4 ..< 6, to: 1)
   ///     // set is now [0, 4, 5, 1, 2, 3, 6]
   ///
   /// - Parameters:
-  ///    - range: The index range of elements to move.
-  ///    - destination: The offset where the moved elements should start in
+  ///    - range: The range of indices addressing the elements to move.
+  ///    - destination: The index at which the moved elements should start in
   ///       the resulting set. Must be in the range `0 ... count - range.count`.
   ///
   /// - Complexity: O(*d* + *k*) where *d* is the distance between the source
   ///    and destination, and *k* is the number of elements moved. Falls back
   ///    to O(`count`) for large moves.
+  #if compiler(>=6.3)
+  @inline(always)
+  #else
+  @inline(__always)
+  #endif
   @inlinable
-  public mutating func move(
-    _ range: Range<Int>,
-    toOffset destination: Int
+  public mutating func moveSubrange(
+    _ range: some RangeExpression<Index>,
+    to destination: Index
+  ) {
+    _moveSubrange(range.relative(to: self), to: destination)
+  }
+
+  @inlinable
+  internal mutating func _moveSubrange(
+    _ range: Range<Index>,
+    to destination: Index
   ) {
     let c = range.count
     guard c > 0 else { return }
     _failEarlyRangeCheck(range, bounds: startIndex ..< endIndex)
     precondition(
       destination >= 0 && destination <= count - c,
-      "Destination offset \(destination) out of range 0 ... \(count - c)")
+      "Destination index \(destination) out of range 0 ... \(count - c)")
     guard range.lowerBound != destination else { return }
-    _moveRange(range.lowerBound, count: c, toOffset: destination)
+    _elements.withUnsafeMutableBufferPointer { buffer in
+      buffer._moveSubrange(
+        range.lowerBound ..< range.lowerBound + c, toOffset: destination)
+    }
+    _updateHashAfterContiguousMove(
+      src: range.lowerBound, count: c, to: destination)
+    _checkInvariants()
+  }
+
+  /// Moves the given elements to the given index, keeping them in the
+  /// order they appear in `elements`.
+  ///
+  /// Elements of `elements` that are not members of the set are ignored;
+  /// only the members are relocated. `elements` must not contain duplicate
+  /// members.
+  ///
+  ///     var set: OrderedSet = [0, 1, 2, 3, 4, 5, 6]
+  ///     set.move(contentsOf: [4, 1], to: 2)
+  ///     // set is now [0, 2, 4, 1, 3, 5, 6]
+  ///
+  /// - Parameters:
+  ///    - elements: The elements to move. Values that are not members of the
+  ///       set are ignored.
+  ///    - destination: The index at which the moved elements should start in
+  ///       the resulting set. Must be in the range `0 ... count - k`, where
+  ///       `k` is the number of `elements` that are members of the set.
+  ///
+  /// - Complexity: O(`count`) in the worst case. When the elements form a
+  ///    contiguous range or are moved a short distance, the operation is
+  ///    proportional to the distance moved.
+  @inlinable
+  public mutating func move(
+    contentsOf elements: some Sequence<Element>,
+    to destination: Index
+  ) {
+    _move(contentsOf: elements, to: destination)
+  }
+
+  /// Moves the elements at the given indices to the given index, keeping them
+  /// in the order the indices appear in `indices`.
+  ///
+  /// `indices` must contain distinct, valid indices of the set.
+  ///
+  ///     var set: OrderedSet = [0, 1, 2, 3, 4]
+  ///     set.move(fromIndices: [4, 1], to: 0)
+  ///     // set is now [4, 1, 0, 2, 3]
+  ///
+  /// - Parameters:
+  ///    - indices: The indices of the elements to move.
+  ///    - destination: The index at which the moved elements should start in
+  ///       the resulting set. Must be in the range `0 ... count - k`, where
+  ///       `k` is the number of elements being moved.
+  ///
+  /// - Complexity: O(`count`) in the worst case. When the elements form a
+  ///    contiguous range or are moved a short distance, the operation is
+  ///    proportional to the distance moved.
+  @inlinable
+  public mutating func move(
+    fromIndices indices: [Index],
+    to destination: Index
+  ) {
+    indices.withUnsafeBufferPointer { indices in
+      _move(fromIndices: indices, to: destination)
+    }
+  }
+}
+
+extension OrderedSet {
+  @inlinable
+  internal mutating func _move(
+    fromIndices sourceOffsets: UnsafeBufferPointer<Int>,
+    to destination: Index,
+    applyingTo body: (
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+    ) -> Void = { _, _, _ in }
+  ) {
+    var isContiguousRange = true
+    var isSorted = true
+    for i in 0 ..< sourceOffsets.count {
+      let index = sourceOffsets[i]
+      precondition(
+        index >= 0 && index < count,
+        "Index \(index) at \(i) out of bounds 0 ..< \(count)")
+      if i > 0 {
+        let prev = sourceOffsets[i - 1]
+        if index <= prev {
+          isSorted = false
+          isContiguousRange = false
+        } else if index != prev + 1 {
+          isContiguousRange = false
+        }
+      }
+    }
+    _move(
+      sourceOffsets: sourceOffsets,
+      isContiguousRange: isContiguousRange,
+      isSorted: isSorted,
+      to: destination,
+      applyingTo: body)
+  }
+
+  @inlinable
+  internal mutating func _move(
+    contentsOf elements: some Sequence<Element>,
+    to destination: Index,
+    applyingTo body: (
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+    ) -> Void = { _, _, _ in }
+  ) {
+    // Fast path: resolve member indices into a stack buffer, no heap copy.
+    // Elements that aren't members of the set are skipped.
+    let handled: Void? = elements.withContiguousStorageIfAvailable { source in
+      guard source.count > 0 else { return }
+      withUnsafeTemporaryAllocation(
+        of: Int.self, capacity: source.count
+      ) { sourceOffsets in
+        var isContiguousRange = true
+        var isSorted = true
+        var c = 0
+        for i in 0 ..< source.count {
+          guard let index = _find(source[i]).index else { continue }
+          if c > 0 {
+            let prev = sourceOffsets[c - 1]
+            if index <= prev {
+              isSorted = false
+              isContiguousRange = false
+            } else if index != prev + 1 {
+              isContiguousRange = false
+            }
+          }
+          sourceOffsets[c] = index
+          c += 1
+        }
+        _move(
+          sourceOffsets: UnsafeBufferPointer(rebasing: sourceOffsets[..<c]),
+          isContiguousRange: isContiguousRange,
+          isSorted: isSorted,
+          to: destination,
+          applyingTo: body)
+      }
+    }
+    if handled != nil { return }
+
+    // Fallback: resolve member indices into an array, skipping non-members.
+    var isContiguousRange = true
+    var isSorted = true
+    var prev = -1
+    var sourceOffsets: [Int] = []
+    sourceOffsets.reserveCapacity(elements.underestimatedCount)
+    for element in elements {
+      guard let index = _find(element).index else { continue }
+      if prev >= 0 {
+        if index <= prev {
+          isSorted = false
+          isContiguousRange = false
+        } else if index != prev + 1 {
+          isContiguousRange = false
+        }
+      }
+      prev = index
+      sourceOffsets.append(index)
+    }
+    sourceOffsets.withUnsafeBufferPointer { sourceOffsets in
+      _move(
+        sourceOffsets: sourceOffsets,
+        isContiguousRange: isContiguousRange,
+        isSorted: isSorted,
+        to: destination,
+        applyingTo: body)
+    }
+  }
+
+  @inlinable
+  internal mutating func _move(
+    sourceOffsets: UnsafeBufferPointer<Int>,
+    isContiguousRange: Bool,
+    isSorted: Bool,
+    to destination: Index,
+    applyingTo body: (
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+    ) -> Void
+  ) {
+    let c = sourceOffsets.count
+    guard c > 0 else { return }
+    precondition(
+      destination >= 0 && destination <= count - c,
+      "Destination index \(destination) out of range 0 ... \(count - c)")
+
+    var isNoOp = true
+    for i in 0 ..< c {
+      if sourceOffsets[i] != destination + i {
+        isNoOp = false
+        break
+      }
+    }
+    guard !isNoOp else { return }
+
+    if isSorted {
+      // Already ascending: the sorted view is the input view, no copy needed.
+      _applyMove(
+        sourceOffsets: sourceOffsets,
+        sortedSources: sourceOffsets,
+        isContiguousRange: isContiguousRange,
+        to: destination,
+        applyingTo: body)
+    } else {
+      withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { sortedBuffer in
+        sortedBuffer.baseAddress!.initialize(
+          from: sourceOffsets.baseAddress!, count: c)
+        var sorted = sortedBuffer
+        sorted.sort()
+        for i in 1 ..< c {
+          precondition(
+            sortedBuffer[i] != sortedBuffer[i - 1],
+            "Duplicate element in move list")
+        }
+        _applyMove(
+          sourceOffsets: sourceOffsets,
+          sortedSources: UnsafeBufferPointer(sortedBuffer),
+          isContiguousRange: isContiguousRange,
+          to: destination,
+          applyingTo: body)
+      }
+    }
     _checkInvariants()
   }
 
   @inlinable
-  internal mutating func _moveRange(
-    _ src: Int,
-    count: Int,
-    toOffset destination: Int
+  internal mutating func _applyMove(
+    sourceOffsets: UnsafeBufferPointer<Int>,
+    sortedSources: UnsafeBufferPointer<Int>,
+    isContiguousRange: Bool,
+    to destination: Index,
+    applyingTo body: (
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+    ) -> Void
   ) {
     _elements.withUnsafeMutableBufferPointer { buffer in
-      buffer._moveSubrange(src ..< src + count, toOffset: destination)
+      buffer._move(
+        sourceOffsets: sourceOffsets,
+        sortedSources: sortedSources,
+        isContiguousRange: isContiguousRange,
+        to: destination)
     }
+    _updateHashAfterMove(
+      sourceOffsets: sourceOffsets,
+      sortedSources: sortedSources,
+      isContiguousRange: isContiguousRange,
+      to: destination)
+    body(sourceOffsets, sortedSources, isContiguousRange)
+  }
+}
 
+extension OrderedSet {
+  /// Repoints buckets after a contiguous block of `count` elements starting at
+  /// `src` was rotated to start at `destination`. `_elements` is already
+  /// rearranged.
+  @inlinable
+  internal mutating func _updateHashAfterContiguousMove(
+    src: Int,
+    count: Int,
+    to destination: Int
+  ) {
     guard _table != nil else { return }
-
     _ensureUnique()
 
-    let distance: Int = destination < src ? src - destination : destination - src
+    let distance: Int =
+      destination < src ? src - destination : destination - src
 
     _table!.update { hashTable in
       // Targeted bucket updates touch O(count + distance) buckets, while a
@@ -126,8 +365,7 @@ extension OrderedSet {
           }
         }
       } else {
-        var it = hashTable.bucketIterator(
-          startingAt: _Bucket(offset: 0))
+        var it = hashTable.bucketIterator(startingAt: _Bucket(offset: 0))
         repeat {
           if let value = it.currentValue {
             if value >= src && value < src + count {
@@ -146,254 +384,145 @@ extension OrderedSet {
       }
     }
   }
-}
 
-extension OrderedSet {
-  /// Moves the specified elements to the given offset, keeping them in the
-  /// order they appear in `elements`.
-  ///
-  /// Every value in `elements` must be a member of the set, and `elements`
-  /// must not contain duplicates.
-  ///
-  ///     var set: OrderedSet = [0, 1, 2, 3, 4, 5, 6]
-  ///     set.move([4, 1], toOffset: 2)
-  ///     // set is now [0, 2, 4, 1, 3, 5, 6]
-  ///
-  /// - Parameters:
-  ///    - elements: The elements to move.
-  ///    - destination: The offset where the moved elements should start in
-  ///       the resulting set. Must be in the range `0 ... count - k`, where
-  ///       `k` is the number of elements being moved.
-  ///
-  /// - Complexity: O(`count`) in the worst case. When the elements form a
-  ///    contiguous range or are moved a short distance, the operation is
-  ///    proportional to the distance moved.
+  /// Repoints buckets after the elements at `sourceOffsets` were relocated to
+  /// start at `destination`. `_elements` is already rearranged.
   @inlinable
-  public mutating func move(
-    _ elements: some Sequence<Element>,
-    toOffset destination: Int
+  internal mutating func _updateHashAfterMove(
+    sourceOffsets: UnsafeBufferPointer<Int>,
+    sortedSources: UnsafeBufferPointer<Int>,
+    isContiguousRange: Bool,
+    to destination: Int
   ) {
-    let toMove = ContiguousArray(elements)
-    let c = toMove.count
-    guard c > 0 else { return }
-    precondition(
-      destination >= 0 && destination <= count - c,
-      "Destination offset \(destination) out of range 0 ... \(count - c)")
+    let count = sourceOffsets.count
+    let minSource = sortedSources[0]
 
-    withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { sourceOffsets in
-      var isContiguousRange = true
-      var isSorted = true
-      for i in 0 ..< c {
-        guard let index = _find(toMove[i]).index else {
-          preconditionFailure(
-            "Attempted to move an element that is not a member of the set")
-        }
-        if i > 0 {
-          let prev = sourceOffsets[i - 1]
-          if index <= prev {
-            isSorted = false
-            isContiguousRange = false
-          } else if index != prev + 1 {
-            isContiguousRange = false
+    if isContiguousRange {
+      _updateHashAfterContiguousMove(
+        src: minSource, count: count, to: destination)
+      return
+    }
+
+    guard _table != nil else { return }
+
+    let maxSource = sortedSources[count - 1]
+    let affectedStart: Int = Swift.min(minSource, destination)
+    let affectedEnd: Int = Swift.max(maxSource, destination + count - 1)
+    let affectedCount: Int = affectedEnd - affectedStart + 1
+
+    // Same heuristic as in `_updateHashAfterContiguousMove`: when the affected
+    // region is small relative to the table, per-bucket updates beat a
+    // full-table rebuild.
+    let targetedUpdateLimit = _capacity / 3
+
+    if affectedCount <= targetedUpdateLimit {
+      _ensureUnique()
+      _table!.update { hashTable in
+        for i in 0 ..< count {
+          let oldPos = sourceOffsets[i]
+          let newPos = destination + i
+          if oldPos != newPos {
+            var it = hashTable.bucketIterator(for: _elements[newPos])
+            it.advance(until: oldPos)
+            it.currentValue = newPos
           }
         }
-        sourceOffsets[i] = index
-      }
 
-      var isNoOp = true
-      for i in 0 ..< c {
-        if sourceOffsets[i] != destination + i {
-          isNoOp = false
-          break
-        }
-      }
-      guard !isNoOp else { return }
-
-      if isContiguousRange {
-        _moveRange(sourceOffsets[0], count: c, toOffset: destination)
-        _checkInvariants()
-        return
-      }
-
-      _moveScattered(
-        sourceOffsets: sourceOffsets,
-        isSorted: isSorted,
-        count: c,
-        toOffset: destination)
-    }
-  }
-
-  @inlinable
-  internal mutating func _moveScattered(
-    sourceOffsets: UnsafeMutableBufferPointer<Int>,
-    isSorted: Bool,
-    count: Int,
-    toOffset destination: Int
-  ) {
-    let totalCount = self.count
-
-    withUnsafeTemporaryAllocation(of: Int.self, capacity: count) { sortedCopy in
-      if !isSorted {
-        for i in 0 ..< count { sortedCopy[i] = sourceOffsets[i] }
-        var mutableSortedCopy = sortedCopy
-        mutableSortedCopy.sort()
-      }
-      let sortedSources = isSorted ? sourceOffsets : sortedCopy
-
-      if !isSorted {
-        for i in 1 ..< count {
-          precondition(
-            sortedSources[i] != sortedSources[i - 1],
-            "Duplicate element in move list")
-        }
-      }
-
-      // Contiguous indices in a different order: rotate, then permute.
-      if sortedSources[count - 1] - sortedSources[0] == count - 1 {
-        _moveContiguousReordered(
-          sourceOffsets: sourceOffsets,
-          minSource: sortedSources[0],
-          count: count,
-          toOffset: destination)
-        return
-      }
-
-      withUnsafeTemporaryAllocation(
-        of: Element.self, capacity: count
-      ) { saved in
-        for i in 0 ..< count {
-          saved.initializeElement(at: i, to: _elements[sourceOffsets[i]])
-        }
-        defer { saved.baseAddress!.deinitialize(count: count) }
-
-        _elements.withUnsafeMutableBufferPointer { buffer in
-          buffer._compactAndPlace(
-            removing: sortedSources,
-            inserting: saved,
-            at: destination,
-            totalCount: totalCount)
-        }
-      }
-
-      guard _table != nil else {
-        _checkInvariants()
-        return
-      }
-
-      _ensureUnique()
-
-      let minSource: Int = sortedSources[0]
-      let maxSource: Int = sortedSources[count - 1]
-      let affectedStart: Int = Swift.min(minSource, destination)
-      let affectedEnd: Int = Swift.max(maxSource, destination + count - 1)
-      let affectedCount: Int = affectedEnd - affectedStart + 1
-
-      // Same heuristic as in `_moveRange`: when the affected region is small
-      // relative to the table, per-bucket updates beat a full-table rebuild.
-      let targetedUpdateLimit = _capacity / 3
-
-      if affectedCount <= targetedUpdateLimit {
-        _table!.update { hashTable in
-          for i in 0 ..< count {
-            let oldPos = sourceOffsets[i]
-            let newPos = destination + i
+        if affectedStart < destination {
+          var oldPos = affectedStart
+            + sortedSources._sortedCount(below: affectedStart)
+          var si = oldPos - affectedStart
+          for newPos in affectedStart ..< destination {
+            // Mirrors the catch-up loop after the gap; see there.
+            while si < count && sortedSources[si] <= oldPos {
+              oldPos += 1
+              si += 1
+            }
             if oldPos != newPos {
               var it = hashTable.bucketIterator(for: _elements[newPos])
               it.advance(until: oldPos)
               it.currentValue = newPos
             }
-          }
-
-          if affectedStart < destination {
-            var oldPos = affectedStart
-              + sortedSources._sortedCount(below: affectedStart)
-            var si = oldPos - affectedStart
-            for newPos in affectedStart ..< destination {
-              // Mirrors the catch-up loop after the gap; see there.
-              while si < count && sortedSources[si] <= oldPos {
-                oldPos += 1
-                si += 1
-              }
-              if oldPos != newPos {
-                var it = hashTable.bucketIterator(for: _elements[newPos])
-                it.advance(until: oldPos)
-                it.currentValue = newPos
-              }
-              oldPos += 1
-            }
-          }
-
-          if destination + count <= affectedEnd {
-            let firstNSIndex = destination
-            var oldPos = firstNSIndex
-              + sortedSources._sortedCount(below: firstNSIndex)
-            var si = oldPos - firstNSIndex
-            for newPos in (destination + count) ... affectedEnd {
-              // `<=` (not `==`): the initial `oldPos` counts sources
-              // strictly below `firstNSIndex`, so any source in
-              // `[firstNSIndex, oldPos]` still needs folding in here.
-              while si < count && sortedSources[si] <= oldPos {
-                oldPos += 1
-                si += 1
-              }
-              if oldPos != newPos {
-                var it = hashTable.bucketIterator(for: _elements[newPos])
-                it.advance(until: oldPos)
-                it.currentValue = newPos
-              }
-              oldPos += 1
-            }
+            oldPos += 1
           }
         }
-      } else {
+
+        if destination + count <= affectedEnd {
+          let firstNSIndex = destination
+          var oldPos = firstNSIndex
+            + sortedSources._sortedCount(below: firstNSIndex)
+          var si = oldPos - firstNSIndex
+          for newPos in (destination + count) ... affectedEnd {
+            // `<=` (not `==`): the initial `oldPos` counts sources
+            // strictly below `firstNSIndex`, so any source in
+            // `[firstNSIndex, oldPos]` still needs folding in here.
+            while si < count && sortedSources[si] <= oldPos {
+              oldPos += 1
+              si += 1
+            }
+            if oldPos != newPos {
+              var it = hashTable.bucketIterator(for: _elements[newPos])
+              it.advance(until: oldPos)
+              it.currentValue = newPos
+            }
+            oldPos += 1
+          }
+        }
+      }
+    } else {
+      // Full rebuild: build fresh storage when shared, rather than copying the
+      // old table only to clear it.
+      if _isUnique() {
         _table!.update { hashTable in
           hashTable.clear()
           hashTable.fill(uncheckedUniqueElements: _elements)
         }
-      }
-
-      _checkInvariants()
-    }
-  }
-
-  @inlinable
-  internal mutating func _moveContiguousReordered(
-    sourceOffsets: UnsafeMutableBufferPointer<Int>,
-    minSource: Int,
-    count: Int,
-    toOffset destination: Int
-  ) {
-    _moveRange(minSource, count: count, toOffset: destination)
-
-    withUnsafeTemporaryAllocation(of: Int.self, capacity: count) { perm in
-      for i in 0 ..< count {
-        perm[i] = sourceOffsets[i] - minSource
-      }
-
-      _elements.withUnsafeMutableBufferPointer { buffer in
-        buffer._applyPermutation(perm, offset: destination)
+      } else {
+        _regenerateHashTable(scale: _scale, reservedScale: _reservedScale)
       }
     }
-
-    if _table != nil {
-      _ensureUnique()
-      _table!.update { hashTable in
-        for i in 0 ..< count {
-          let oldLocalPos = sourceOffsets[i] - minSource
-          guard oldLocalPos != i else { continue }
-          var it = hashTable.bucketIterator(
-            for: _elements[destination + i])
-          it.advance(until: destination + oldLocalPos)
-          it.currentValue = destination + i
-        }
-      }
-    }
-
-    _checkInvariants()
   }
 }
 
 extension UnsafeMutableBufferPointer {
+  /// Relocates the elements at `sourceOffsets` (in that order) into consecutive
+  /// slots starting at `destination`, dispatching to the cheapest applicable
+  /// strategy. `sortedSources` lists the same offsets ascending;
+  /// `isContiguousRange` is true when they form a gap-free ascending run.
+  @inlinable
+  internal func _move(
+    sourceOffsets: UnsafeBufferPointer<Int>,
+    sortedSources: UnsafeBufferPointer<Int>,
+    isContiguousRange: Bool,
+    to destination: Int
+  ) {
+    let c = sourceOffsets.count
+    let minSource = sortedSources[0]
+
+    if isContiguousRange {
+      _moveSubrange(minSource ..< minSource + c, toOffset: destination)
+      return
+    }
+
+    if sortedSources[c - 1] - minSource == c - 1 {
+      // Contiguous indices in a different order: rotate, then permute.
+      _moveSubrange(minSource ..< minSource + c, toOffset: destination)
+      withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { perm in
+        for i in 0 ..< c {
+          perm[i] = sourceOffsets[i] - minSource
+        }
+        _applyPermutation(perm, offset: destination)
+      }
+      return
+    }
+
+    _moveScattered(
+      movingFrom: sourceOffsets,
+      sortedSources: sortedSources,
+      to: destination,
+      totalCount: count)
+  }
+
   /// Moves a contiguous subrange to a new position using three-reverse
   /// rotation.
   @inlinable
@@ -426,6 +555,34 @@ extension UnsafeMutableBufferPointer {
     }
   }
 
+  /// Relocates the elements at `movingFrom` (in that order) into consecutive
+  /// slots starting at `destination`, compacting the rest around them.
+  /// `sortedSources` lists the same positions ascending; `totalCount` is the
+  /// number of initialized elements in the buffer.
+  @inlinable
+  internal func _moveScattered(
+    movingFrom sourceOffsets: UnsafeBufferPointer<Int>,
+    sortedSources: UnsafeBufferPointer<Int>,
+    to destination: Int,
+    totalCount: Int
+  ) {
+    let count = sourceOffsets.count
+    withUnsafeTemporaryAllocation(
+      of: Element.self, capacity: count
+    ) { saved in
+      for i in 0 ..< count {
+        saved.initializeElement(at: i, to: self[sourceOffsets[i]])
+      }
+      defer { saved.baseAddress!.deinitialize(count: count) }
+
+      _compactAndPlace(
+        removing: sortedSources,
+        inserting: saved,
+        at: destination,
+        totalCount: totalCount)
+    }
+  }
+
   /// Removes elements at the positions in `sortedRemovals` (which must be
   /// sorted and within bounds), compacts the remaining elements to leave a
   /// gap at `destination`, and fills the gap from `insertions`.
@@ -433,7 +590,7 @@ extension UnsafeMutableBufferPointer {
   /// `totalCount` is the number of initialized elements in the buffer.
   @inlinable
   internal func _compactAndPlace(
-    removing sortedRemovals: UnsafeMutableBufferPointer<Int>,
+    removing sortedRemovals: UnsafeBufferPointer<Int>,
     inserting insertions: UnsafeMutableBufferPointer<Element>,
     at destination: Int,
     totalCount: Int
@@ -506,7 +663,7 @@ extension UnsafeMutableBufferPointer {
   }
 }
 
-extension UnsafeMutableBufferPointer where Element == Int {
+extension UnsafeBufferPointer where Element == Int {
   /// Returns the number of elements strictly less than `value` in this
   /// sorted buffer (i.e., the lower bound index).
   @inlinable

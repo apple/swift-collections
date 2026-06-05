@@ -77,6 +77,9 @@
 - ``shuffle()``
 - ``shuffle(using:)``
 - ``partition(by:)``
+- ``moveSubrange(_:to:)``
+- ``move(contentsOf:to:)``
+- ``move(fromIndices:to:)``
 
 ### Transforming a Dictionary
 
