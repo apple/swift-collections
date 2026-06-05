@@ -22,6 +22,24 @@ import InternalCollectionsUtilities
 
 extension OrderedSet: SetAPIExtras {}
 
+/// Reference implementation of the move APIs' pre-removal destination
+/// semantics: relocate the elements at `positions` (in the given order) so they
+/// land just before the element originally at `destination` (`count` == end).
+/// Non-moved elements keep their relative order, those originally before
+/// `destination` staying before the moved block and the rest after it.
+func referenceMove<Element>(
+  _ contents: [Element], positions: [Int], to destination: Int
+) -> [Element] {
+  let moved = Set(positions)
+  var before: [Element] = []
+  var after: [Element] = []
+  for i in contents.indices where !moved.contains(i) {
+    if i < destination { before.append(contents[i]) }
+    else { after.append(contents[i]) }
+  }
+  return before + positions.map { contents[$0] } + after
+}
+
 class OrderedSetTests: CollectionTestCase {
   func test_init_uncheckedUniqueElements_concrete() {
     withEvery("count", in: 0 ..< 20) { count in
@@ -1618,14 +1636,13 @@ class OrderedSetTests: CollectionTestCase {
       let count = layout.count
       guard count >= 1 else { return }
       withEvery("source", in: 0 ..< count) { source in
-        withEvery("destination", in: 0 ..< count) { destination in
+        withEvery("destination", in: 0 ... count) { destination in
           withEvery("isShared", in: [false, true]) { isShared in
             var set = OrderedSet(layout: layout)
             withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
               set.move(members: [source], to: destination)
-              var expected = Array(0 ..< count)
-              expected.remove(at: source)
-              expected.insert(source, at: destination)
+              let expected = referenceMove(
+                Array(0 ..< count), positions: [source], to: destination)
               expectEqualElements(set, expected)
               withEvery("item", in: 0 ..< count) { item in
                 expectNotNil(set.firstIndex(of: item))
@@ -1648,8 +1665,8 @@ class OrderedSetTests: CollectionTestCase {
         withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
           let mid = (count - 2) / 2
           set.move(members: [0, count - 1], to: mid)
-          var expected = Array(1 ..< count - 1)
-          expected.insert(contentsOf: [0, count - 1], at: mid)
+          let expected = referenceMove(
+            Array(0 ..< count), positions: [0, count - 1], to: mid)
           expectEqualElements(set, expected)
         }
       }
@@ -1730,15 +1747,11 @@ class OrderedSetTests: CollectionTestCase {
       withEvery("a", in: 0 ..< count) { a in
         withEvery("b", in: 0 ..< count) { b in
           guard b != a else { return }
-          withEvery("destination", in: 0 ... count - 2) { destination in
+          withEvery("destination", in: 0 ... count) { destination in
             var set = OrderedSet(layout: layout)
             set.move(members: [a, b], to: destination)
-            var expected = Array(0 ..< count)
-            let ia = expected.firstIndex(of: a)!
-            expected.remove(at: ia)
-            let ib = expected.firstIndex(of: b)!
-            expected.remove(at: ib)
-            expected.insert(contentsOf: [a, b], at: destination)
+            let expected = referenceMove(
+              Array(0 ..< count), positions: [a, b], to: destination)
             expectEqualElements(set, expected)
           }
         }
@@ -1840,14 +1853,9 @@ class OrderedSetTests: CollectionTestCase {
       withEvery("a", in: 0 ..< count) { a in
         withEvery("b", in: 0 ..< count) { b in
           guard a != b else { return }
-          withEvery("dst", in: 0 ... count - 2) { dst in
+          withEvery("dst", in: 0 ... count) { dst in
             let contents = (0 ..< count).map { $0 * 10 }
-            var expected = contents
-            let moved = [expected[a], expected[b]]
-            let sorted = [a, b].sorted()
-            expected.remove(at: sorted[1])
-            expected.remove(at: sorted[0])
-            expected.insert(contentsOf: moved, at: dst)
+            let expected = referenceMove(contents, positions: [a, b], to: dst)
             // Array exercises the contiguous-storage fast path; AnySequence
             // exercises the collect-into-array fallback.
             withEvery("contiguous", in: [true, false]) { contiguous in
@@ -1889,13 +1897,11 @@ class OrderedSetTests: CollectionTestCase {
       guard count >= 2 else { return }
       withEvery("src", in: 0 ..< count) { src in
         withEvery("k", in: 1 ... count - src) { k in
-          withEvery("dst", in: 0 ... count - k) { dst in
+          withEvery("dst", in: 0 ... count) { dst in
             var set = OrderedSet(layout: layout)
             set.moveSubrange(src ..< src + k, to: dst)
-            var expected = Array(0 ..< count)
-            let removed = Array(expected[src ..< src + k])
-            expected.removeSubrange(src ..< src + k)
-            expected.insert(contentsOf: removed, at: dst)
+            let expected = referenceMove(
+              Array(0 ..< count), positions: Array(src ..< src + k), to: dst)
             expectEqualElements(set, expected)
           }
         }
@@ -1959,14 +1965,10 @@ class OrderedSetTests: CollectionTestCase {
         ]
         withEvery("permIndex", in: permutations.indices) { permIndex in
           let perm = permutations[permIndex]
-          withEvery("dst", in: 0 ... count - 3) { dst in
+          withEvery("dst", in: 0 ... count) { dst in
             var set = OrderedSet(layout: layout)
             set.move(members: perm, to: dst)
-            var expected = Array(0 ..< count)
-            for e in perm.reversed() {
-              expected.remove(at: expected.firstIndex(of: e)!)
-            }
-            expected.insert(contentsOf: perm, at: dst)
+            let expected = referenceMove(Array(0 ..< count), positions: perm, to: dst)
             expectEqualElements(set, expected)
           }
         }
@@ -1974,13 +1976,56 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  // The destination is allowed to coincide with a moved element (a "move into
+  // the middle of the selection"). The moved block then lands just after the
+  // nearest element that isn't moved, matching the standard library's
+  // `moveSubranges(_:to:)`. This mirrors the stdlib's own `to: 14` test case
+  // (`Array(1...20)`, moving `[10..<15, 18..<20]`).
+  func test_move_destination_inside_selection_matchesStdlib() {
+    var set = OrderedSet(1 ... 20)
+    // Elements at offsets 10...14 and 18...19 are values 11...15 and 19...20.
+    set.move(members: [11, 12, 13, 14, 15, 19, 20], to: 14)
+    expectEqualElements(
+      set,
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 19, 20, 16, 17, 18])
+
+    // A contiguous run whose destination falls inside the run is a no-op.
+    var run: OrderedSet = [0, 1, 2, 3, 4]
+    run.move(indices: [1, 2, 3], to: 2)
+    expectEqualElements(run, [0, 1, 2, 3, 4])
+    run.moveSubrange(1 ..< 4, to: 3)
+    expectEqualElements(run, [0, 1, 2, 3, 4])
+  }
+
+  // An empty selection is a no-op regardless of destination, for every overload.
+  func test_move_empty_selection_isNoOp() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      let expected = Array(0 ..< count)
+      withEvery("dst", in: 0 ... count) { dst in
+        var byMembers = OrderedSet(layout: layout)
+        byMembers.move(members: [] as [Int], to: dst)
+        expectEqualElements(byMembers, expected)
+
+        var byIndices = OrderedSet(layout: layout)
+        byIndices.move(indices: [] as [Int], to: dst)
+        expectEqualElements(byIndices, expected)
+
+        var byRange = OrderedSet(layout: layout)
+        byRange.moveSubrange(dst ..< dst, to: dst)
+        expectEqualElements(byRange, expected)
+      }
+    }
+  }
+
   func test_move_scattered_destination_is_source_hash_table_size() {
     // count = 16, scale 5 -> capacity 24, targetedUpdateLimit = 8.
-    // sortedSources = [3, 5, 10], destination = 5: affectedCount = 8,
-    // so the targeted-update path fires. `destination` is itself a source.
+    // Sources [3, 5, 10] to pre-removal offset 5 (itself a source) resolve to a
+    // final start of 4 (one source, 3, sits before the insertion point);
+    // affectedCount = 8, so the targeted-update path fires.
     var set = OrderedSet(0 ..< 16)
     set.move(members: [3, 5, 10], to: 5)
-    expectEqualElements(set, [0, 1, 2, 4, 6, 3, 5, 10, 7, 8, 9, 11, 12, 13, 14, 15])
+    expectEqualElements(set, [0, 1, 2, 4, 3, 5, 10, 6, 7, 8, 9, 11, 12, 13, 14, 15])
     for v in 0 ..< 16 {
       expectEqual(set.firstIndex(of: v), set.firstIndex(where: { $0 == v }))
     }
@@ -2014,7 +2059,7 @@ class OrderedSetTests: CollectionTestCase {
     withEverySubset("subset", of: Array(0 ..< n)) { subset in
       guard !subset.isEmpty, subset.count <= maxK else { return }
       withEveryPermutation("perm", of: subset) { perm in
-        for dst in 0 ... (n - perm.count) {
+        for dst in 0 ... n {
           var set = OrderedSet(0 ..< n)
           set.move(members: perm, to: dst)
           check(set, "perm=\(perm) dst=\(dst)")

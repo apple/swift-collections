@@ -24,8 +24,14 @@ import InternalCollectionsUtilities
 // to relocate its values in lockstep with the keys.
 
 extension OrderedSet {
-  /// Moves the elements in the given range to the given index, preserving
-  /// their relative order.
+  /// Moves the elements in the given range so they land just before the
+  /// element at the given index, preserving their relative order.
+  ///
+  /// `destination` is interpreted in the set's original index space (before the
+  /// moved elements are removed), matching the standard library's
+  /// `moveSubranges(_:to:)` and `MutableCollection.move(fromOffsets:toOffset:)`:
+  /// the moved elements are inserted just before the element currently at
+  /// `destination`. Pass `endIndex` to move them to the end.
   ///
   ///     var set: OrderedSet = [0, 1, 2, 3, 4, 5, 6]
   ///     set.moveSubrange(4 ..< 6, to: 1)
@@ -33,8 +39,8 @@ extension OrderedSet {
   ///
   /// - Parameters:
   ///    - range: The range of indices addressing the elements to move.
-  ///    - destination: The index at which the moved elements should start in
-  ///       the resulting set. Must be in the range `0 ... count - range.count`.
+  ///    - destination: The index before which to insert the moved elements, in
+  ///       the original index space. Must be in the range `0 ... count`.
   ///
   /// - Complexity: O(*d* + *k*) where *d* is the distance between the source
   ///    and destination, and *k* is the number of elements moved. Falls back
@@ -49,9 +55,18 @@ extension OrderedSet {
     _ range: some RangeExpression<Index>,
     to destination: Index
   ) {
-    _moveSubrange(range.relative(to: self), to: destination)
+    let range = range.relative(to: self)
+    precondition(
+      destination >= 0 && destination <= count,
+      "Destination index \(destination) out of range 0 ... \(count)")
+    // Convert the pre-removal insertion point to the moved block's final start
+    // index by discounting the moved elements that sit before it.
+    let target = destination
+      - Swift.max(0, Swift.min(range.count, destination - range.lowerBound))
+    _moveSubrange(range, to: target)
   }
 
+  /// - Parameter destination: The moved block's final start index (post-removal).
   @inlinable
   internal mutating func _moveSubrange(
     _ range: Range<Index>,
@@ -73,22 +88,27 @@ extension OrderedSet {
     _checkInvariants()
   }
 
-  /// Moves the given elements to the given index, keeping them in the
-  /// order they appear in `members`.
+  /// Moves the given elements so they land just before the element at the given
+  /// index, keeping them in the order they appear in `members`.
+  ///
+  /// `destination` is interpreted in the set's original index space (before the
+  /// moved elements are removed): the moved elements are inserted just before
+  /// the element currently at `destination`. Pass `endIndex` to move them to
+  /// the end. This matches the standard library's
+  /// `MutableCollection.move(fromOffsets:toOffset:)`.
   ///
   /// Elements that are not members of the set are ignored; only the members
   /// are relocated. `members` must not contain duplicate elements.
   ///
   ///     var set: OrderedSet = [0, 1, 2, 3, 4, 5, 6]
   ///     set.move(members: [4, 1], to: 2)
-  ///     // set is now [0, 2, 4, 1, 3, 5, 6]
+  ///     // set is now [0, 4, 1, 2, 3, 5, 6]
   ///
   /// - Parameters:
   ///    - members: The elements to move. Values that are not members of the
   ///       set are ignored.
-  ///    - destination: The index at which the moved elements should start in
-  ///       the resulting set. Must be in the range `0 ... count - k`, where
-  ///       `k` is the number of `members` that are present in the set.
+  ///    - destination: The index before which to insert the moved elements, in
+  ///       the original index space. Must be in the range `0 ... count`.
   ///
   /// - Complexity: O(`count`) in the worst case. When the elements form a
   ///    contiguous range or are moved a short distance, the operation is
@@ -101,8 +121,14 @@ extension OrderedSet {
     _move(members: elements, to: destination)
   }
 
-  /// Moves the elements at the given indices to the given index, keeping them
-  /// in the order the indices appear in `indices`.
+  /// Moves the elements at the given indices so they land just before the
+  /// element at the given index, keeping them in the order the indices appear
+  /// in `indices`.
+  ///
+  /// `destination` is interpreted in the set's original index space (before the
+  /// moved elements are removed): the moved elements are inserted just before
+  /// the element currently at `destination`. Pass `endIndex` to move them to
+  /// the end.
   ///
   /// `indices` must contain distinct, valid indices of the set.
   ///
@@ -112,9 +138,8 @@ extension OrderedSet {
   ///
   /// - Parameters:
   ///    - indices: The indices of the elements to move.
-  ///    - destination: The index at which the moved elements should start in
-  ///       the resulting set. Must be in the range `0 ... count - k`, where
-  ///       `k` is the number of elements being moved.
+  ///    - destination: The index before which to insert the moved elements, in
+  ///       the original index space. Must be in the range `0 ... count`.
   ///
   /// - Complexity: O(`count`) in the worst case. When the elements form a
   ///    contiguous range or are moved a short distance, the operation is
@@ -129,24 +154,33 @@ extension OrderedSet {
 }
 
 extension OrderedSet {
+  /// Moves the elements at the given indices so they land just before the
+  /// element at `destination`.
+  ///
+  /// - Parameter destination: A pre-removal insertion point in `0 ... count`;
+  ///    the moved elements land just before the element at this offset.
   @inlinable
   internal mutating func _move(
     indices: some Sequence<Index>,
     to destination: Index,
     applyingTo body: (
-      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
-    ) -> Void = { _, _, _ in }
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool, Int
+    ) -> Void = { _, _, _, _ in }
   ) {
+    precondition(
+      destination >= 0 && destination <= count,
+      "Destination index \(destination) out of range 0 ... \(count)")
     // Fast path: operate directly on the sequence's storage when available.
     let handled: Void? = indices.withContiguousStorageIfAvailable { buffer in
       _move(fromIndices: buffer, to: destination, applyingTo: body)
     }
     if handled != nil { return }
 
-    // Fallback: collect the indices into an array, checking bounds and
-    // detecting order as we go.
+    // Fallback: collect the indices into an array, checking bounds, detecting
+    // order, and counting how many sit before `destination` as we go.
     var isContiguousRange = true
     var isSorted = true
+    var below = 0
     var prev = -1
     var sourceOffsets: [Int] = []
     sourceOffsets.reserveCapacity(indices.underestimatedCount)
@@ -162,29 +196,42 @@ extension OrderedSet {
           isContiguousRange = false
         }
       }
+      if index < destination { below += 1 }
       prev = index
       sourceOffsets.append(index)
     }
+    // `destination` is a pre-removal insertion point; subtracting the moved
+    // elements before it gives the block's final start index.
+    let target = destination - below
     sourceOffsets.withUnsafeBufferPointer { sourceOffsets in
       _move(
         sourceOffsets: sourceOffsets,
         isContiguousRange: isContiguousRange,
         isSorted: isSorted,
-        to: destination,
+        to: target,
         applyingTo: body)
     }
   }
 
+  /// Moves the elements at the given offsets so they land just before the
+  /// element at `destination`.
+  ///
+  /// - Parameter destination: A pre-removal insertion point in `0 ... count`;
+  ///    the moved elements land just before the element at this offset.
   @inlinable
   internal mutating func _move(
     fromIndices sourceOffsets: UnsafeBufferPointer<Int>,
     to destination: Index,
     applyingTo body: (
-      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
-    ) -> Void = { _, _, _ in }
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool, Int
+    ) -> Void = { _, _, _, _ in }
   ) {
+    precondition(
+      destination >= 0 && destination <= count,
+      "Destination index \(destination) out of range 0 ... \(count)")
     var isContiguousRange = true
     var isSorted = true
+    var below = 0
     for i in 0 ..< sourceOffsets.count {
       let index = sourceOffsets[i]
       precondition(
@@ -199,23 +246,33 @@ extension OrderedSet {
           isContiguousRange = false
         }
       }
+      if index < destination { below += 1 }
     }
+    let target = destination - below
     _move(
       sourceOffsets: sourceOffsets,
       isContiguousRange: isContiguousRange,
       isSorted: isSorted,
-      to: destination,
+      to: target,
       applyingTo: body)
   }
 
+  /// Moves the given elements so they land just before the element at
+  /// `destination`, skipping any that aren't members.
+  ///
+  /// - Parameter destination: A pre-removal insertion point in `0 ... count`;
+  ///    the moved elements land just before the element at this offset.
   @inlinable
   internal mutating func _move(
     members elements: some Sequence<Element>,
     to destination: Index,
     applyingTo body: (
-      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
-    ) -> Void = { _, _, _ in }
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool, Int
+    ) -> Void = { _, _, _, _ in }
   ) {
+    precondition(
+      destination >= 0 && destination <= count,
+      "Destination index \(destination) out of range 0 ... \(count)")
     // Fast path: resolve member indices into a stack buffer, no heap copy.
     // Elements that aren't members of the set are skipped.
     let handled: Void? = elements.withContiguousStorageIfAvailable { source in
@@ -225,6 +282,7 @@ extension OrderedSet {
       ) { sourceOffsets in
         var isContiguousRange = true
         var isSorted = true
+        var below = 0
         var c = 0
         for i in 0 ..< source.count {
           guard let index = _find(source[i]).index else { continue }
@@ -237,6 +295,7 @@ extension OrderedSet {
               isContiguousRange = false
             }
           }
+          if index < destination { below += 1 }
           sourceOffsets[c] = index
           c += 1
         }
@@ -244,7 +303,7 @@ extension OrderedSet {
           sourceOffsets: UnsafeBufferPointer(rebasing: sourceOffsets[..<c]),
           isContiguousRange: isContiguousRange,
           isSorted: isSorted,
-          to: destination,
+          to: destination - below,
           applyingTo: body)
       }
     }
@@ -253,6 +312,7 @@ extension OrderedSet {
     // Fallback: resolve member indices into an array, skipping non-members.
     var isContiguousRange = true
     var isSorted = true
+    var below = 0
     var prev = -1
     var sourceOffsets: [Int] = []
     sourceOffsets.reserveCapacity(elements.underestimatedCount)
@@ -266,40 +326,46 @@ extension OrderedSet {
           isContiguousRange = false
         }
       }
+      if index < destination { below += 1 }
       prev = index
       sourceOffsets.append(index)
     }
+    let target = destination - below
     sourceOffsets.withUnsafeBufferPointer { sourceOffsets in
       _move(
         sourceOffsets: sourceOffsets,
         isContiguousRange: isContiguousRange,
         isSorted: isSorted,
-        to: destination,
+        to: target,
         applyingTo: body)
     }
   }
 
+  /// Relocates the elements at `sourceOffsets` (in that order) so the moved
+  /// block starts at `target`.
+  ///
+  /// - Parameter target: The moved block's final start index (post-removal), in
+  ///    `0 ... count - sourceOffsets.count`. Callers convert the public,
+  ///    pre-removal destination to this while scanning the input, so no extra
+  ///    pass is needed here.
   @inlinable
   internal mutating func _move(
     sourceOffsets: UnsafeBufferPointer<Int>,
     isContiguousRange: Bool,
     isSorted: Bool,
-    to destination: Index,
+    to target: Index,
     applyingTo body: (
-      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool, Int
     ) -> Void
   ) {
     let c = sourceOffsets.count
     guard c > 0 else { return }
-    precondition(
-      destination >= 0 && destination <= count - c,
-      "Destination index \(destination) out of range 0 ... \(count - c)")
 
     // A no-op is exactly an in-order contiguous run already sitting at
-    // `destination`. `isContiguousRange` (computed while scanning the input)
+    // `target`. `isContiguousRange` (computed while scanning the input)
     // already guarantees `sourceOffsets[i] == sourceOffsets[0] + i`, so it
-    // only remains to check that the run starts at `destination`.
-    if isContiguousRange && sourceOffsets[0] == destination { return }
+    // only remains to check that the run starts at `target`.
+    if isContiguousRange && sourceOffsets[0] == target { return }
 
     if isSorted {
       // Already ascending: the sorted view is the input view, no copy needed.
@@ -307,7 +373,7 @@ extension OrderedSet {
         sourceOffsets: sourceOffsets,
         sortedSources: sourceOffsets,
         isContiguousRange: isContiguousRange,
-        to: destination,
+        to: target,
         applyingTo: body)
     } else {
       withUnsafeTemporaryAllocation(of: Int.self, capacity: c) { sortedBuffer in
@@ -324,13 +390,17 @@ extension OrderedSet {
           sourceOffsets: sourceOffsets,
           sortedSources: UnsafeBufferPointer(sortedBuffer),
           isContiguousRange: isContiguousRange,
-          to: destination,
+          to: target,
           applyingTo: body)
       }
     }
     _checkInvariants()
   }
 
+  /// Rearranges `_elements` and repoints the hash table for an already-resolved
+  /// move, then invokes `body` so callers can mirror the rearrangement.
+  ///
+  /// - Parameter destination: The moved block's final start index (post-removal).
   @inlinable
   internal mutating func _applyMove(
     sourceOffsets: UnsafeBufferPointer<Int>,
@@ -338,7 +408,7 @@ extension OrderedSet {
     isContiguousRange: Bool,
     to destination: Index,
     applyingTo body: (
-      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool
+      UnsafeBufferPointer<Int>, UnsafeBufferPointer<Int>, Bool, Int
     ) -> Void
   ) {
     _elements.withUnsafeMutableBufferPointer { buffer in
@@ -353,14 +423,14 @@ extension OrderedSet {
       sortedSources: sortedSources,
       isContiguousRange: isContiguousRange,
       to: destination)
-    body(sourceOffsets, sortedSources, isContiguousRange)
+    body(sourceOffsets, sortedSources, isContiguousRange, destination)
   }
 }
 
 extension OrderedSet {
   /// Repoints buckets after a contiguous block of `count` elements starting at
   /// `src` was rotated to start at `destination`. `_elements` is already
-  /// rearranged.
+  /// rearranged. `destination` is the block's final start index (post-removal).
   @inlinable
   internal mutating func _updateHashAfterContiguousMove(
     src: Int,
@@ -426,7 +496,8 @@ extension OrderedSet {
   }
 
   /// Repoints buckets after the elements at `sourceOffsets` were relocated to
-  /// start at `destination`. `_elements` is already rearranged.
+  /// start at `destination`. `_elements` is already rearranged. `destination`
+  /// is the block's final start index (post-removal).
   @inlinable
   internal mutating func _updateHashAfterMove(
     sourceOffsets: UnsafeBufferPointer<Int>,
@@ -529,6 +600,7 @@ extension UnsafeMutableBufferPointer {
   /// slots starting at `destination`, dispatching to the cheapest applicable
   /// strategy. `sortedSources` lists the same offsets ascending;
   /// `isContiguousRange` is true when they form a gap-free ascending run.
+  /// `destination` is the block's final start index (post-removal).
   @inlinable
   internal func _move(
     sourceOffsets: UnsafeBufferPointer<Int>,
@@ -565,6 +637,8 @@ extension UnsafeMutableBufferPointer {
 
   /// Moves a contiguous subrange to a new position using three-reverse
   /// rotation.
+  ///
+  /// - Parameter destination: The subrange's final start index (post-removal).
   @inlinable
   internal func _moveSubrange(
     _ source: Range<Int>,
@@ -598,7 +672,8 @@ extension UnsafeMutableBufferPointer {
   /// Relocates the elements at `movingFrom` (in that order) into consecutive
   /// slots starting at `destination`, compacting the rest around them.
   /// `sortedSources` lists the same positions ascending; `totalCount` is the
-  /// number of initialized elements in the buffer.
+  /// number of initialized elements in the buffer. `destination` is the block's
+  /// final start index (post-removal).
   @inlinable
   internal func _moveScattered(
     movingFrom sourceOffsets: UnsafeBufferPointer<Int>,
@@ -628,6 +703,8 @@ extension UnsafeMutableBufferPointer {
   /// gap at `destination`, and fills the gap from `insertions`.
   ///
   /// `totalCount` is the number of initialized elements in the buffer.
+  ///
+  /// - Parameter destination: The gap's final start index (post-removal).
   @inlinable
   internal func _compactAndPlace(
     removing sortedRemovals: UnsafeBufferPointer<Int>,

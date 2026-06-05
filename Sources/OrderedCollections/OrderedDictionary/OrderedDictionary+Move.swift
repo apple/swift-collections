@@ -19,8 +19,13 @@
 // rearrangement to the parallel `_values` buffer.
 
 extension OrderedDictionary {
-  /// Moves the key-value pairs in the given range to the given index,
-  /// preserving their relative order.
+  /// Moves the key-value pairs in the given range so they land just before the
+  /// pair at the given index, preserving their relative order.
+  ///
+  /// `destination` is interpreted in the dictionary's original index space
+  /// (before the moved pairs are removed): the moved pairs are inserted just
+  /// before the pair currently at `destination`. Pass `endIndex` to move them
+  /// to the end. This matches the standard library's `moveSubranges(_:to:)`.
   ///
   ///     var d: OrderedDictionary = [0: "a", 1: "b", 2: "c", 3: "d"]
   ///     d.moveSubrange(2 ..< 4, to: 0)
@@ -28,9 +33,8 @@ extension OrderedDictionary {
   ///
   /// - Parameters:
   ///    - range: The range of indices addressing the pairs to move.
-  ///    - destination: The index at which the moved pairs should start in the
-  ///       resulting dictionary. Must be in the range
-  ///       `0 ... count - range.count`.
+  ///    - destination: The index before which to insert the moved pairs, in the
+  ///       original index space. Must be in the range `0 ... count`.
   ///
   /// - Complexity: O(*d* + *k*) where *d* is the distance between the source
   ///    and destination, and *k* is the number of pairs moved. Falls back
@@ -45,9 +49,18 @@ extension OrderedDictionary {
     _ range: some RangeExpression<Index>,
     to destination: Index
   ) {
-    _moveSubrange(range.relative(to: elements), to: destination)
+    let range = range.relative(to: elements)
+    precondition(
+      destination >= 0 && destination <= count,
+      "Destination index \(destination) out of range 0 ... \(count)")
+    // Convert the pre-removal insertion point to the moved block's final start
+    // index by discounting the moved pairs that sit before it.
+    let target = destination
+      - Swift.max(0, Swift.min(range.count, destination - range.lowerBound))
+    _moveSubrange(range, to: target)
   }
 
+  /// - Parameter destination: The moved block's final start index (post-removal).
   @inlinable
   internal mutating func _moveSubrange(
     _ range: Range<Index>,
@@ -65,8 +78,13 @@ extension OrderedDictionary {
     _checkInvariants()
   }
 
-  /// Moves the pairs with the given keys to the given index, keeping them in
-  /// the order the keys appear in `keys`.
+  /// Moves the pairs with the given keys so they land just before the pair at
+  /// the given index, keeping them in the order the keys appear in `keys`.
+  ///
+  /// `destination` is interpreted in the dictionary's original index space
+  /// (before the moved pairs are removed): the moved pairs are inserted just
+  /// before the pair currently at `destination`. Pass `endIndex` to move them
+  /// to the end.
   ///
   /// Keys in `keys` that are not present in the dictionary are ignored; only
   /// the pairs whose keys are present are relocated. `keys` must not contain
@@ -74,14 +92,13 @@ extension OrderedDictionary {
   ///
   ///     var d: OrderedDictionary = [0: "a", 1: "b", 2: "c", 3: "d"]
   ///     d.move(keys: [3, 0], to: 1)
-  ///     // d is now [1: "b", 3: "d", 0: "a", 2: "c"]
+  ///     // d is now [3: "d", 0: "a", 1: "b", 2: "c"]
   ///
   /// - Parameters:
   ///    - keys: The keys of the pairs to move. Keys that are not present in
   ///       the dictionary are ignored.
-  ///    - destination: The index at which the moved pairs should start in the
-  ///       resulting dictionary. Must be in the range `0 ... count - k`, where
-  ///       `k` is the number of `keys` that are present in the dictionary.
+  ///    - destination: The index before which to insert the moved pairs, in the
+  ///       original index space. Must be in the range `0 ... count`.
   ///
   /// - Complexity: O(`count`) in the worst case. When the pairs form a
   ///    contiguous range or are moved a short distance, the operation is
@@ -93,19 +110,25 @@ extension OrderedDictionary {
   ) {
     _values.withUnsafeMutableBufferPointer { values in
       _keys._move(members: keys, to: destination) {
-        sourceOffsets, sortedSources, isContiguousRange in
+        sourceOffsets, sortedSources, isContiguousRange, target in
         values._move(
           sourceOffsets: sourceOffsets,
           sortedSources: sortedSources,
           isContiguousRange: isContiguousRange,
-          to: destination)
+          to: target)
       }
     }
     _checkInvariants()
   }
 
-  /// Moves the pairs at the given indices to the given index, keeping them in
-  /// the order the indices appear in `indices`.
+  /// Moves the pairs at the given indices so they land just before the pair at
+  /// the given index, keeping them in the order the indices appear in
+  /// `indices`.
+  ///
+  /// `destination` is interpreted in the dictionary's original index space
+  /// (before the moved pairs are removed): the moved pairs are inserted just
+  /// before the pair currently at `destination`. Pass `endIndex` to move them
+  /// to the end.
   ///
   /// `indices` must contain distinct, valid indices of the dictionary.
   ///
@@ -115,9 +138,8 @@ extension OrderedDictionary {
   ///
   /// - Parameters:
   ///    - indices: The indices of the pairs to move.
-  ///    - destination: The index at which the moved pairs should start in the
-  ///       resulting dictionary. Must be in the range `0 ... count - k`, where
-  ///       `k` is the number of pairs being moved.
+  ///    - destination: The index before which to insert the moved pairs, in the
+  ///       original index space. Must be in the range `0 ... count`.
   ///
   /// - Complexity: O(`count`) in the worst case. When the pairs form a
   ///    contiguous range or are moved a short distance, the operation is
@@ -129,12 +151,12 @@ extension OrderedDictionary {
   ) {
     _values.withUnsafeMutableBufferPointer { values in
       _keys._move(indices: indices, to: destination) {
-        sourceOffsets, sortedSources, isContiguousRange in
+        sourceOffsets, sortedSources, isContiguousRange, target in
         values._move(
           sourceOffsets: sourceOffsets,
           sortedSources: sortedSources,
           isContiguousRange: isContiguousRange,
-          to: destination)
+          to: target)
       }
     }
     _checkInvariants()

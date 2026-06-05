@@ -1117,13 +1117,12 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEvery("count", in: 0 ..< 12) { count in
       withEvery("lower", in: 0 ..< count) { lower in
         withEvery("k", in: 1 ... count - lower) { k in
-          withEvery("dst", in: 0 ... count - k) { dst in
+          withEvery("dst", in: 0 ... count) { dst in
             withEvery("isShared", in: [false, true]) { isShared in
               withLifetimeTracking { tracker in
                 var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
-                let moved = Array(reference[lower ..< lower + k])
-                reference.removeSubrange(lower ..< lower + k)
-                reference.insert(contentsOf: moved, at: dst)
+                reference = referenceMove(
+                  reference, positions: Array(lower ..< lower + k), to: dst)
                 withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
                   d.moveSubrange(lower ..< lower + k, to: dst)
                   expectEqualElements(d, reference)
@@ -1156,14 +1155,12 @@ class OrderedDictionaryTests: CollectionTestCase {
   func test_move_keys() {
     withEvery("count", in: 1 ..< 10) { count in
       let positions = Array(stride(from: 0, to: count, by: 2))
-      withEvery("dst", in: 0 ... count - positions.count) { dst in
+      withEvery("dst", in: 0 ... count) { dst in
         withEvery("isShared", in: [false, true]) { isShared in
           withLifetimeTracking { tracker in
             var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
             let keysToMove = positions.map { reference[$0].key }
-            let moved = positions.map { reference[$0] }
-            reference.removeAll { keysToMove.contains($0.key) }
-            reference.insert(contentsOf: moved, at: dst)
+            reference = referenceMove(reference, positions: positions, to: dst)
             withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
               d.move(keys: keysToMove, to: dst)
               expectEqualElements(d, reference)
@@ -1232,7 +1229,7 @@ class OrderedDictionaryTests: CollectionTestCase {
     withEverySubset("subset", of: Array(0 ..< n)) { subset in
       guard !subset.isEmpty, subset.count <= maxK else { return }
       withEveryPermutation("perm", of: subset) { perm in
-        for dst in 0 ... (n - perm.count) {
+        for dst in 0 ... n {
           var d = OrderedDictionary(uniqueKeys: 0 ..< n, values: 100 ..< 100 + n)
           d.move(keys: perm, to: dst)
           check(d, "perm=\(perm) dst=\(dst)")
@@ -1246,15 +1243,11 @@ class OrderedDictionaryTests: CollectionTestCase {
       withEvery("a", in: 0 ..< count) { a in
         withEvery("b", in: 0 ..< count) { b in
           guard a != b else { return }
-          withEvery("dst", in: 0 ... count - 2) { dst in
+          withEvery("dst", in: 0 ... count) { dst in
             withEvery("isShared", in: [false, true]) { isShared in
               withLifetimeTracking { tracker in
                 var (d, reference) = tracker.orderedDictionary(keys: 0 ..< count)
-                let moved = [reference[a], reference[b]]
-                let sorted = [a, b].sorted()
-                reference.remove(at: sorted[1])
-                reference.remove(at: sorted[0])
-                reference.insert(contentsOf: moved, at: dst)
+                reference = referenceMove(reference, positions: [a, b], to: dst)
                 withHiddenCopies(if: isShared, of: &d, checker: { $0._checkInvariants() }) { d in
                   d.move(indices: [a, b], to: dst)
                   expectEqualElements(d, reference)
