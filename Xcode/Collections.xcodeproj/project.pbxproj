@@ -583,6 +583,9 @@
 		7DEBDB9029CCE44A00ADC226 /* TestContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2229CCE43600ADC226 /* TestContext.swift */; };
 		7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2429CCE43600ADC226 /* CollectionTestCase.swift */; };
 		7DEBDB9229CCE44A00ADC226 /* StringConvertibleValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DEBDB2B29CCE43600ADC226 /* StringConvertibleValue.swift */; };
+		7DFA40842FD3A98D00CD20C1 /* OrderedSet+Move.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFA40832FD3A98D00CD20C1 /* OrderedSet+Move.swift */; };
+		7DFA40862FD3A99D00CD20C1 /* OrderedDictionary+Move.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFA40852FD3A99D00CD20C1 /* OrderedDictionary+Move.swift */; };
+		7DFA408A2FD3ACE700CD20C1 /* UnsafeBufferTrimTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFA40892FD3ACE700CD20C1 /* UnsafeBufferTrimTests.swift */; };
 		A93AC21E2E7C845300A824DF /* UniqueArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC21C2E7C845300A824DF /* UniqueArrayTests.swift */; };
 		A93AC21F2E7C845300A824DF /* ArrayLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC21A2E7C845300A824DF /* ArrayLayout.swift */; };
 		A93AC2202E7C845300A824DF /* RigidArrayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */; };
@@ -1226,6 +1229,9 @@
 		7DEBDB9729CCE4A600ADC226 /* CollectionsTests.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = CollectionsTests.xcconfig; sourceTree = "<group>"; };
 		7DEBDB9829CCE4A600ADC226 /* Shared.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
 		7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = Collections.xcconfig; sourceTree = "<group>"; };
+		7DFA40832FD3A98D00CD20C1 /* OrderedSet+Move.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrderedSet+Move.swift"; sourceTree = "<group>"; };
+		7DFA40852FD3A99D00CD20C1 /* OrderedDictionary+Move.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrderedDictionary+Move.swift"; sourceTree = "<group>"; };
+		7DFA40892FD3ACE700CD20C1 /* UnsafeBufferTrimTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeBufferTrimTests.swift; sourceTree = "<group>"; };
 		A93AC20F2E7C841700A824DF /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		A93AC21A2E7C845300A824DF /* ArrayLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayLayout.swift; sourceTree = "<group>"; };
 		A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArrayTests.swift; sourceTree = "<group>"; };
@@ -1669,6 +1675,7 @@
 				7DE91E7729CA70F3004483EB /* OrderedDictionary+Hashable.swift */,
 				7DE91E7929CA70F3004483EB /* OrderedDictionary+Initializers.swift */,
 				7DE91E8029CA70F3004483EB /* OrderedDictionary+Invariants.swift */,
+				7DFA40852FD3A99D00CD20C1 /* OrderedDictionary+Move.swift */,
 				7DE91E8429CA70F3004483EB /* OrderedDictionary+Partial MutableCollection.swift */,
 				7DE91E7D29CA70F3004483EB /* OrderedDictionary+Partial RangeReplaceableCollection.swift */,
 				7DE91E8229CA70F3004483EB /* OrderedDictionary+Sendable.swift */,
@@ -1692,6 +1699,7 @@
 				7DE91E9529CA70F3004483EB /* OrderedSet+Initializers.swift */,
 				7DE91E9029CA70F3004483EB /* OrderedSet+Insertions.swift */,
 				7DE91E8D29CA70F3004483EB /* OrderedSet+Invariants.swift */,
+				7DFA40832FD3A98D00CD20C1 /* OrderedSet+Move.swift */,
 				7DE91E9A29CA70F3004483EB /* OrderedSet+Partial MutableCollection.swift */,
 				7DE91EA229CA70F3004483EB /* OrderedSet+Partial RangeReplaceableCollection.swift */,
 				7DE91EA129CA70F3004483EB /* OrderedSet+Partial SetAlgebra formIntersection.swift */,
@@ -2336,6 +2344,7 @@
 				7D2A774A2F27F285005780C7 /* RigidDequeCrashTests.swift */,
 				7D2A774B2F27F285005780C7 /* RigidDequeTests.swift */,
 				7D2A774C2F27F285005780C7 /* UniqueDequeTests.swift */,
+				7DFA40892FD3ACE700CD20C1 /* UnsafeBufferTrimTests.swift */,
 			);
 			path = DequeTests;
 			sourceTree = "<group>";
@@ -2900,6 +2909,7 @@
 				7DE920A329CA70F4004483EB /* Rope+Index.swift in Sources */,
 				7DA23F462F329A2300E4C03A /* RigidArray+Experimental.swift in Sources */,
 				7DA23F472F329A2300E4C03A /* UniqueArray.swift in Sources */,
+				7DFA40842FD3A98D00CD20C1 /* OrderedSet+Move.swift in Sources */,
 				7DA23F482F329A2300E4C03A /* RigidArray+Replacements.swift in Sources */,
 				7DA23F492F329A2300E4C03A /* RigidArray+Container.swift in Sources */,
 				7DA23F4A2F329A2300E4C03A /* UniqueArray+Replacements.swift in Sources */,
@@ -3018,6 +3028,7 @@
 				7DE9209229CA70F4004483EB /* Rope+_Storage.swift in Sources */,
 				7DE9203929CA70F3004483EB /* OrderedSet+Partial RangeReplaceableCollection.swift in Sources */,
 				7DE9206329CA70F4004483EB /* BigString+Contents.swift in Sources */,
+				7DFA40862FD3A99D00CD20C1 /* OrderedDictionary+Move.swift in Sources */,
 				7DE9215629CA70F4004483EB /* _HashNode+Structural compactMapValues.swift in Sources */,
 				7DE920CC29CA70F4004483EB /* BitSet.Counted.swift in Sources */,
 				7DE9207F29CA70F4004483EB /* BigSubstring+UTF8View.swift in Sources */,
@@ -3177,6 +3188,7 @@
 				7D2A774D2F27F285005780C7 /* RigidDequeCrashTests.swift in Sources */,
 				7D2A774E2F27F285005780C7 /* UniqueDequeTests.swift in Sources */,
 				7D2A774F2F27F285005780C7 /* RigidDequeTests.swift in Sources */,
+				7DFA408A2FD3ACE700CD20C1 /* UnsafeBufferTrimTests.swift in Sources */,
 				7DEBDB7729CCE44A00ADC226 /* HashableBox.swift in Sources */,
 				7DE9220E29CA8576004483EB /* SampleStrings.swift in Sources */,
 				7DEBDB9129CCE44A00ADC226 /* CollectionTestCase.swift in Sources */,

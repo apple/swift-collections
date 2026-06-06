@@ -44,6 +44,7 @@ target_sources(${module_name} PRIVATE
   "BitArray/BitArray+LosslessStringConvertible.swift"
   "BitArray/BitArray+RandomBits.swift"
   "BitArray/BitArray+RangeReplaceableCollection.swift"
+  "BitArray/BitArray+Shifts.swift"
   "BitArray/BitArray+Testing.swift"
   "BitArray/BitArray._UnsafeHandle.swift"
   "BitArray/BitArray.swift"
