@@ -262,6 +262,7 @@ The following table maps package releases to their minimum required Swift toolch
 | swift-collections 1.3.x | >= Swift 6.0.3  | >= Xcode 16.2 |
 | swift-collections 1.4.x | >= Swift 6.0.3  | >= Xcode 16.2 |
 | swift-collections 1.5.x | >= Swift 6.0.3  | >= Xcode 16.2 |
+| swift-collections 1.6.x | >= Swift 6.0.3 | >= Xcode 16.2 |
 
 We make an effort to ensure that each new minor package version supports the most recent three major Swift versions at the time of its release.
 
@@ -282,7 +283,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/apple/swift-collections.git",
-      .upToNextMinor(from: "1.5.0") // or `.upToNextMajor`
+      .upToNextMinor(from: "1.6.0") // or `.upToNextMajor`
     )
   ],
   targets: [
@@ -310,12 +311,13 @@ We maintain separate branches for each minor version of the package:
 
 | Package version         | Branch      | Status   |
 | ----------------------- | ----------- | -------- |
-| swift-collections 1.0.x | release/1.0 | Obsolete |
-| swift-collections 1.1.x | release/1.1 | Obsolete |
-| swift-collections 1.2.x | release/1.2 | Obsolete |
-| swift-collections 1.3.x | release/1.3 | Bugfixes only |
-| swift-collections 1.4.x | release/1.4 | Bugfixes only |
-| swift-collections 1.5.x | release/1.5 | Bugfixes only |
+| swift-collections 1.0.x | release/1.0 | Obsolete, closed|
+| swift-collections 1.1.x | release/1.1 | Obsolete, closed|
+| swift-collections 1.2.x | release/1.2 | Obsolete, closed|
+| swift-collections 1.3.x | release/1.3 | Bugfixes only|
+| swift-collections 1.4.x | <created on demand> | Bugfixes only |
+| swift-collections 1.5.x | <created on demand> | Bugfixes only |
+| swift-collections 1.6.x | <created on demand>| Bugfixes only |
 | n.a.                    | main        | Feature work towards next minor release |
 
 Changes must land on the branch corresponding to the earliest release that they will need to ship on. They are periodically propagated to subsequent branches, in the following direction:
