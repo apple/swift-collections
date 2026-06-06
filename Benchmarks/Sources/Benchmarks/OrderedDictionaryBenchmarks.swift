@@ -597,6 +597,240 @@ extension Benchmark {
         }
       }
     }
-    
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 1 trailing, to front",
+      input: Int.self
+    ) { size in
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: [size - 1], to: 0)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 1 trailing, to middle",
+      input: Int.self
+    ) { size in
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: [size - 1], to: size / 2)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10% trailing, to front",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let toMove = Array((size - k) ..< size)
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: 0)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10% trailing, to middle",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let toMove = Array((size - k) ..< size)
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: size / 2)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 50% evens, to front",
+      input: Int.self
+    ) { size in
+      let toMove = Array(stride(from: 0, to: size, by: 2))
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: 0)
+        }
+        precondition(d.count == size)
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10% scattered, to middle",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let toMove = Array(stride(from: 0, to: size, by: Swift.max(size / k, 1)).prefix(k))
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: size / 2)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 1 mid, back by 5",
+      input: Int.self
+    ) { size in
+      guard size > 10 else { return nil }
+      let src = size / 2
+      let dst = src - 5
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: [src], to: dst)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10 contiguous, back by 5",
+      input: Int.self
+    ) { size in
+      guard size > 20 else { return nil }
+      let start = size / 2
+      let toMove = Array(start ..< start + 10)
+      let dst = start - 5
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: dst)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10% contiguous, to front",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let start = size / 2
+      let toMove = Array(start ..< Swift.min(start + k, size))
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: 0)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10% contiguous, back by 5",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let start = size / 2
+      let end = Swift.min(start + k, size)
+      let toMove = Array(start ..< end)
+      let dst = Swift.max(start - 5, 0)
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: dst)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(range) 10% mid, to front",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let start = size / 2
+      let src = start ..< Swift.min(start + k, size)
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.moveSubrange(src, to: 0)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(range) 10 mid, back by 5",
+      input: Int.self
+    ) { size in
+      guard size > 20 else { return nil }
+      let start = size / 2
+      let src = start ..< start + 10
+      let dst = start - 5
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.moveSubrange(src, to: dst)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10% contiguous reversed, to front",
+      input: Int.self
+    ) { size in
+      let k = Swift.max(size / 10, 1)
+      let start = size / 2
+      let end = Swift.min(start + k, size)
+      let toMove = Array((start ..< end).reversed())
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: 0)
+        }
+        blackHole(d)
+      }
+    }
+
+    self.add(
+      title: "OrderedDictionary<Int, Int> move(sequence) 10 scattered in narrow window, local dest",
+      input: Int.self
+    ) { size in
+      guard size > 60 else { return nil }
+      let start = size / 2
+      let toMove = Array(stride(from: start, to: start + 20, by: 2))
+      let dst = start + 20
+      return { timer in
+        var d = OrderedDictionary(uncheckedUniqueKeys: 0 ..< size,
+                                  values: size ..< 2 * size)
+        timer.measure {
+          d.move(keys: toMove, to: dst)
+        }
+        blackHole(d)
+      }
+    }
+
   }
 }
