@@ -11,23 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-#if COLLECTIONS_SINGLE_MODULE
-import Collections
-#else
-import HeapModule
-#endif
-
-class HeapNodeTests: XCTestCase {
-  func test_levelCalculation() {
-    // Check alternating min and max levels in the heap
-    var isMin = true
-    for exp in 0...12 {
-      // Check [2^exp, 2^(exp + 1))
-      for offset in Int(pow(2, Double(exp)) - 1)..<Int(pow(2, Double(exp + 1)) - 1) {
-        XCTAssertEqual(Heap<Int>._isMinLevel(offset: offset), isMin)
-      }
-      isMin.toggle()
-    }
+extension Heap {
+  package static func _isMinLevel(offset: Int) -> Bool {
+    _HeapNode(offset: offset).isMinLevel
   }
 }
