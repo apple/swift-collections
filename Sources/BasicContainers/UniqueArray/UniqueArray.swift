@@ -294,7 +294,7 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   internal mutating func _ensureFreeCapacitySlow(_ freeCapacity: Int) {
     let newCapacity = _grow(freeCapacity: freeCapacity)
-    reallocate(capacity: newCapacity)
+    setCapacity(newCapacity)
   }
 }
 

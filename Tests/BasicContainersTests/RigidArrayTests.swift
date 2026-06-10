@@ -491,6 +491,7 @@ class RigidArrayTests: CollectionTestCase {
     }
   }
 
+  @available(*, deprecated)
   func test_reallocate() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery(
