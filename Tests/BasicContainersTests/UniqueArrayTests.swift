@@ -465,6 +465,33 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
+  func test_setCapacity() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery(
+        "newCapacity",
+        in: [
+          layout.capacity, layout.count, layout.count + 1, layout.capacity + 1,
+          0, layout.count - 1
+        ] as Set<Int>
+      ) { newCapacity in
+        withLifetimeTracking { tracker in
+          var a = tracker.uniqueArray(layout: layout)
+          expectEqual(a.count, layout.count)
+          expectEqual(a.capacity, layout.capacity)
+          a.setCapacity(newCapacity)
+          expectEqual(a.count, layout.count)
+          expectEqual(a.capacity, Swift.max(newCapacity, layout.count))
+          expectEqual(tracker.instances, layout.count)
+          expectIterableContents(
+            a,
+            equivalentTo: 0 ..< layout.count,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+      }
+    }
+  }
+
   func test_reserveCapacity() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery(

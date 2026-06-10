@@ -77,7 +77,31 @@ extension RigidArray where Element: ~Copyable {
     }
     return result!
   }
-  
+
+  /// Grow or shrink the capacity of a rigid array instance without discarding
+  /// its contents.
+  ///
+  /// This operation replaces the array's storage buffer with a newly allocated
+  /// buffer of the specified capacity, moving all existing elements
+  /// to its new storage. The old storage is then deallocated.
+  ///
+  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
+  ///    greater than or equal to the current count.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "setCapacity(_:)")
+  @inlinable
+  public mutating func reallocate(capacity newCapacity: Int) {
+    precondition(newCapacity >= count, "RigidArray capacity overflow")
+    guard newCapacity != capacity else { return }
+    let newStorage: UnsafeMutableBufferPointer<Element> = .allocate(
+      capacity: newCapacity)
+    let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
+    assert(i == count)
+    unsafe _storage.deallocate()
+    unsafe _storage = newStorage
+  }
+
   /// Replaces the specified range of elements by a given count of new items,
   /// using a callback to directly initialize array storage by populating
   /// an output span.
