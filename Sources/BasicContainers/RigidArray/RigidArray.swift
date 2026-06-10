@@ -344,9 +344,8 @@ extension RigidArray where Element: ~Copyable {
   /// buffer of the specified capacity, moving all existing elements
   /// to its new storage. The old storage is then deallocated.
   ///
-  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
-/// - Parameter newCapacity: The desired new capacity. The new capacity
-///    is set to the maximum of `newCapacity` and the current count.
+  /// - Parameter newCapacity: The desired new capacity. The new capacity
+  ///    is set to the maximum of `newCapacity` and the current count.
   ///
   /// - Complexity: O(`count`)
   @inlinable
