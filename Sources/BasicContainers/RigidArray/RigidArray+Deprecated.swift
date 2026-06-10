@@ -92,14 +92,7 @@ extension RigidArray where Element: ~Copyable {
   @available(*, deprecated, renamed: "setCapacity(_:)")
   @inlinable
   public mutating func reallocate(capacity newCapacity: Int) {
-    precondition(newCapacity >= count, "RigidArray capacity overflow")
-    guard newCapacity != capacity else { return }
-    let newStorage: UnsafeMutableBufferPointer<Element> = .allocate(
-      capacity: newCapacity)
-    let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
-    assert(i == count)
-    unsafe _storage.deallocate()
-    unsafe _storage = newStorage
+    setCapacity(newCapacity)
   }
 
   /// Replaces the specified range of elements by a given count of new items,
