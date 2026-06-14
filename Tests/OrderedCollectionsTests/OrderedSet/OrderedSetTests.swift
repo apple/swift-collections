@@ -565,6 +565,56 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_replace_at() {
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          let count = layout.count
+          let contents = (0 ..< count).map { tracker.instance(for: $0) }
+          withEvery("offset", in: 0 ..< count) { offset in
+            var set = OrderedSet(layout: layout, contents: contents)
+            withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+              let new = tracker.instance(for: count + offset) // Not yet a member.
+              let old = set.replace(new, at: offset)
+              expectIdentical(old, contents[offset])
+              expectIdentical(set[offset], new)
+              expectEqual(set.firstIndex(of: new), offset)
+              expectNil(set.firstIndex(of: contents[offset]))
+              // The other members keep their original positions and identities.
+              withEvery("j", in: 0 ..< count) { j in
+                if j != offset { expectIdentical(set[j], contents[j]) }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  func test_replace_at_equalElement() {
+    // Replacing a member with an equal element swaps the new instance into
+    // place, like `update(_:at:)`.
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      withEvery("isShared", in: [false, true]) { isShared in
+        withLifetimeTracking { tracker in
+          let count = layout.count
+          let contents = (0 ..< count).map { tracker.instance(for: $0) }
+          withEvery("offset", in: 0 ..< count) { offset in
+            var set = OrderedSet(layout: layout, contents: contents)
+            withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
+              // Equal to `contents[offset]`, but a distinct instance.
+              let new = tracker.instance(for: offset)
+              let old = set.replace(new, at: offset)
+              expectIdentical(old, contents[offset])
+              expectIdentical(set[offset], new)
+              expectEqualElements(set, contents)
+            }
+          }
+        }
+      }
+    }
+  }
+
   func test_partition() {
     withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
       withEvery("offset", in: 0 ... layout.count) { offset in
