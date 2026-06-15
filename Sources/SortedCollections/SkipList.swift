@@ -411,6 +411,11 @@ struct SkipList<TotalOrdering: Orderable>: Sequence {
   func getRepresentative(for target: Element) -> Element? {
     return self._core.representative(of: target)
   }
+
+  init() {
+    self._core = .init()
+  }
+
   /// Inserts the given element into the skip list.
   ///
   /// - Parameter newValue: The value to insert.
