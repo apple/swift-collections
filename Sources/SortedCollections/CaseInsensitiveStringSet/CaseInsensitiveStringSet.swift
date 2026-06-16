@@ -15,8 +15,8 @@
   Case-insensitive ordered set of `String`.
 
   This file defines `CaseInsensitiveStringSet`,
-  a lightweight wrapper around `SortedSet` that compares and stores `String`
-  values using a case-insensitive collation.
+  a lightweight wrapper around `SkipListedSortedSet` that compares and
+  stores `String` values using a case-insensitive collation.
   Membership, ordering, and set operations all use case-insensitive comparisons.
   For example, the strings "apple" and "APPLE" are considered equivalent and
   the set will contain at most one of them.
@@ -98,7 +98,7 @@ public struct CaseInsensitiveStringSet {
   }
 
   /// The underlying storage type.
-  public typealias _Inner = SortedSet<_Ordering>
+  public typealias _Inner = SkipListedSortedSet<_Ordering>
 
   /// The wrapped storage instance implementing all set semantics.
   var inner: _Inner

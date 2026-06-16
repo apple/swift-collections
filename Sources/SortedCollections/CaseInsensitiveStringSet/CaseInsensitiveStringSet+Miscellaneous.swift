@@ -13,42 +13,48 @@
 
 extension CaseInsensitiveStringSet {
   /// The number of elements in the set.
-  public var count: Int { self.underestimatedCount }
+  ///
+  /// - Complexity: `O(1)`.
+  public var count: Int { self.inner.count }
 
-  /// The least-ranked element of the set.
-  public var first: Element? {
-    self.inner._storage.rowHeads.first.map(\.head.value)
+  /// The first element of the set.
+  ///
+  /// If this set is empty, the value of this property is `nil`.
+  public var first: Element? { self.inner.first }
+
+  /// Removes and returns the first element of the set.
+  ///
+  /// - Returns: The first element of this set if the set is not empty;
+  ///   otherwise, `nil`.
+  ///
+  /// - Complexity: `O(log n)`, where *n* is the length of this set.
+  public mutating func popFirst() -> Element? {
+    return self.inner.popFirst()
   }
 
   /// Removes all elements from the set.
   public mutating func removeAll() {
-    self.inner._ensureUnique()
-    self.inner._storage.rowHeads.removeAll(keepingCapacity: true)
+    self.inner.removeAll()
   }
-
-  /// Removes all the elements that satisfy the given predicate.
-  public mutating func removeAll(
-    where shouldBeRemoved: (Element) throws -> Bool
-  ) rethrows {
-    self.inner._ensureUnique()
-    for killTarget in try self.filter(shouldBeRemoved) {  // must be non-lazy
-      self.remove(killTarget)
-    }
-  }
-
   /// Removes and returns the least-ranked element of the set.
+  ///
+  /// The set must not be empty.
+  ///
+  /// - Returns: The removed element.
+  ///
+  /// - Complexity: `O(log n)`, where *n* is the length of this set.
   @discardableResult
   public mutating func removeFirst() -> Element {
-    defer { self.removeFirst(1) }
-
-    return self.first!
+    return self.inner.removeFirst()
   }
-
   /// Removes the specified number of the least-ranked elements from the set.
+  ///
+  /// - Parameter k: The number of elements to remove from the set.
+  ///   `k` must be greater than or equal to zero and must not exceed the
+  ///   number of elements in the set.
+  ///
+  /// - Complexity: `O(k × log n)`, where *n* is the length of this set.
   public mutating func removeFirst(_ k: Int) {
-    self.inner._ensureUnique()
-    for _ in 0..<k {
-      _ = self.inner._storage.popFirst()
-    }
+    self.inner.removeFirst(k)
   }
 }
