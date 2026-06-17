@@ -87,6 +87,23 @@ extension UniqueArray where Element: ~Copyable {
     return result!
   }
 
+  /// Grow or shrink the capacity of a unique array instance without discarding
+  /// its contents.
+  ///
+  /// This operation replaces the array's storage buffer with a newly allocated
+  /// buffer of the specified capacity, moving all existing elements
+  /// to its new storage. The old storage is then deallocated.
+  ///
+  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
+  ///    greater than or equal to the current count.
+  ///
+  /// - Complexity: O(`count`)
+  @available(*, deprecated, renamed: "setCapacity(_:)")
+  @inlinable
+  public mutating func reallocate(capacity: Int) {
+    _storage.reallocate(capacity: capacity)
+  }
+
   /// Replaces the specified range of elements by a given count of new items,
   /// using a callback to directly initialize array storage by populating
   /// an output span.

@@ -344,16 +344,15 @@ extension RigidArray where Element: ~Copyable {
   /// buffer of the specified capacity, moving all existing elements
   /// to its new storage. The old storage is then deallocated.
   ///
-  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
-  ///    greater than or equal to the current count.
+  /// - Parameter newCapacity: The desired new capacity. The new capacity
+  ///    is set to the maximum of `newCapacity` and the current count.
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func reallocate(capacity newCapacity: Int) {
-    precondition(newCapacity >= count, "RigidArray capacity overflow")
+  public mutating func setCapacity(_ newCapacity: Int) {
     guard newCapacity != capacity else { return }
     let newStorage: UnsafeMutableBufferPointer<Element> = .allocate(
-      capacity: newCapacity)
+      capacity: Swift.max(newCapacity, count))
     let i = unsafe newStorage.moveInitialize(fromContentsOf: self._items)
     assert(i == count)
     unsafe _storage.deallocate()
@@ -371,7 +370,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func reserveCapacity(_ n: Int) {
     guard capacity < n else { return }
-    reallocate(capacity: n)
+    setCapacity(n)
   }
 }
 

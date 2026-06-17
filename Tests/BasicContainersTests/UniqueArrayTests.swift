@@ -439,6 +439,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
   }
 
+  @available(*, deprecated)
   func test_reallocate() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withEvery(
@@ -454,6 +455,33 @@ class UniqueArrayTests: CollectionTestCase {
           a.reallocate(capacity: newCapacity)
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, newCapacity)
+          expectEqual(tracker.instances, layout.count)
+          expectUniqueArrayContents(
+            a,
+            equivalentTo: 0 ..< layout.count,
+            by: { $0.payload == $1 },
+            printer: { "\($0.payload)" })
+        }
+      }
+    }
+  }
+
+  func test_setCapacity() {
+    withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
+      withEvery(
+        "newCapacity",
+        in: [
+          layout.capacity, layout.count, layout.count + 1, layout.capacity + 1,
+          0, layout.count - 1
+        ] as Set<Int>
+      ) { newCapacity in
+        withLifetimeTracking { tracker in
+          var a = tracker.uniqueArray(layout: layout)
+          expectEqual(a.count, layout.count)
+          expectEqual(a.capacity, layout.capacity)
+          a.setCapacity(newCapacity)
+          expectEqual(a.count, layout.count)
+          expectEqual(a.capacity, Swift.max(newCapacity, layout.count))
           expectEqual(tracker.instances, layout.count)
           expectUniqueArrayContents(
             a,

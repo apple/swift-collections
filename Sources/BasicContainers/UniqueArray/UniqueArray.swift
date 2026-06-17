@@ -254,13 +254,13 @@ extension UniqueArray where Element: ~Copyable {
   /// buffer of the specified capacity, moving all existing elements
   /// to its new storage. The old storage is then deallocated.
   ///
-  /// - Parameter newCapacity: The desired new capacity. `newCapacity` must be
-  ///    greater than or equal to the current count.
+  /// - Parameter newCapacity: The desired new capacity. The new capacity
+  ///    is set to the maximum of `newCapacity` and the current count.
   ///
   /// - Complexity: O(`count`)
   @inlinable
-  public mutating func reallocate(capacity: Int) {
-    _storage.reallocate(capacity: capacity)
+  public mutating func setCapacity(_ newCapacity: Int) {
+    _storage.setCapacity(newCapacity)
   }
 
   /// Ensure that the array has capacity to store the specified number of
@@ -294,7 +294,7 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   internal mutating func _ensureFreeCapacitySlow(_ freeCapacity: Int) {
     let newCapacity = _grow(freeCapacity: freeCapacity)
-    reallocate(capacity: newCapacity)
+    setCapacity(newCapacity)
   }
 }
 
