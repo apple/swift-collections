@@ -196,7 +196,7 @@ class UniqueDictionaryTests: CollectionTestCase {
   }
   
 #if compiler(>=6.4) && UnstableContainersPreview
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftStdlib 6.4, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>

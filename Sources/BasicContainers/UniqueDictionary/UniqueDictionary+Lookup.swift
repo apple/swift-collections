@@ -24,7 +24,7 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     _storage.containsKey(key)
   }
 
-#if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @_lifetime(borrow self)
   public func value(
@@ -33,7 +33,6 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
     // FIXME: Why is this override necessary? Is it sound? It was triggered by RigidDictionary becoming `@_addressableForDependencies`.
     _overrideLifetime(_storage.value(forKey: key), borrowing: self)
   }
-#endif
 
   /// A stand-in for a `struct Ref`-returning lookup operation.
   /// This is quite clumsy to use, but this is the best we can do without a way

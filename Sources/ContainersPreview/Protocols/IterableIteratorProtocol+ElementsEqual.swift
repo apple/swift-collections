@@ -25,10 +25,10 @@ where
 {
   @inlinable
   package func _elementsEqual<
-    Other: Iterable_<Element_, Failure> & ~Copyable & ~Escapable
+    Other: Iterable_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
-  ) throws(Failure) -> Bool
+  ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable
   {
     let it1 = self.makeIterableIterator_()
@@ -69,9 +69,9 @@ where
     Other: Iterable_ & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
-    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure) -> Bool
-  ) throws(Failure) -> Bool
-  where Other.Element_: ~Copyable, Other.Failure == Failure
+    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure_) -> Bool
+  ) throws(Failure_) -> Bool
+  where Other.Element_: ~Copyable, Other.Failure_ == Failure_
   {
     let it1 = self.makeIterableIterator_()
     let it2 = other.makeIterableIterator_()
@@ -87,10 +87,10 @@ where
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: IterableIteratorProtocol_<Element_, Failure> & ~Copyable & ~Escapable
+    Other: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-  ) throws(Failure) -> Bool
+  ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable
   {
     var result = true
@@ -113,10 +113,10 @@ where
 
   @inlinable
   package consuming func _directElementsEqual<
-    Other: IterableIteratorProtocol_<Element_, Failure> & ~Copyable & ~Escapable
+    Other: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-  ) throws(Failure) -> Bool
+  ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable
   {
 #if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
@@ -184,12 +184,12 @@ where
     Other: IterableIteratorProtocol_ & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure) -> Bool
-  ) throws(Failure) -> Bool
-  where Other.Element_: ~Copyable, Other.Failure == Failure
+    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure_) -> Bool
+  ) throws(Failure_) -> Bool
+  where Other.Element_: ~Copyable, Other.Failure_ == Failure_
   {
     var result = true
-    try _spanwiseZip(state: &result, with: other) { state, a, b throws(Failure) in
+    try _spanwiseZip(state: &result, with: other) { state, a, b throws(Failure_) in
       assert(a.count == b.count || a.isEmpty || b.isEmpty)
       if a.isEmpty || b.isEmpty {
         state = false

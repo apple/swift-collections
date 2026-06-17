@@ -85,13 +85,14 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: Iterable_<Element> & ~Copyable & ~Escapable
+    S: Iterable_ & ~Copyable & ~Escapable
   >(
     capacity: Int,
     copying contents: borrowing S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity)
-    self._insert(copying: contents)
+    try self._insert(copying: contents)
   }
 #endif
   

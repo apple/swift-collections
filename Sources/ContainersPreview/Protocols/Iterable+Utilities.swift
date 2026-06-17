@@ -22,7 +22,7 @@ extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
   @inlinable
   package func _copyContents(
     intoPrefixOf buffer: UnsafeMutableBufferPointer<Element_>
-  ) throws(Failure) -> Int {
+  ) throws(Failure_) -> Int {
     var target = buffer
     var it = self.makeIterableIterator_()
     while target.count != 0 {

@@ -396,7 +396,7 @@ extension UniqueArray {
     C: Container<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing C, at index: Int
-  ) where C.Failure == Never {
+  ) {
     // FIXME: Avoid moving the subsequent elements twice.
     let c = newElements.count
     _ensureFreeCapacity(c)
@@ -463,7 +463,7 @@ extension UniqueArray {
     C: Container<Element> & Collection<Element>
   >(
     copying newElements: borrowing C, at index: Int
-  ) where C.Failure == Never {
+  ) {
     // FIXME: Avoid moving the subsequent elements twice.
     let c = newElements.count
     _ensureFreeCapacity(c)

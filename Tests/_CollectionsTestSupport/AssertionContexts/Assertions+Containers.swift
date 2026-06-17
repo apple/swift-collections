@@ -232,11 +232,11 @@ public func expectIterablesWithEquivalentElements<
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(S1.Failure)
+) throws(S1.Failure_)
 where
   S1.Element_: ~Copyable,
   S2.Element_: ~Copyable,
-  S1.Failure == S2.Failure
+  S1.Failure_ == S2.Failure_
 {
   if try left._elementsEqual(right, by: areEquivalent) { return }
   _expectFailure(
@@ -326,7 +326,7 @@ public func expectIterableContents<
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(S1.Failure) where S1.Element_: ~Copyable {
+) throws(S1.Failure_) where S1.Element_: ~Copyable {
   var it1 = left.makeIterableIterator_()
   var it2 = right.makeIterator()
   var offset = 0

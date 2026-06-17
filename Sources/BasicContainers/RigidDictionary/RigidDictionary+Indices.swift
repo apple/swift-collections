@@ -15,10 +15,11 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 6.2, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
+  @available(SwiftStdlib 6.4, *)
   @frozen
   public struct Indices: ~Escapable {
     @_alwaysEmitIntoClient
@@ -31,6 +32,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   public var indices: Indices {
     @_lifetime(borrow self)
@@ -40,7 +42,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidDictionary.Indices: Iterable_
 where Key: ~Copyable, Value: ~Copyable
 {
@@ -79,7 +81,7 @@ where Key: ~Copyable, Value: ~Copyable
   }
 }
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidDictionary.Indices.IterableIterator_: IterableIteratorProtocol_
 where Key: ~Copyable, Value: ~Copyable {
   public typealias Element_ = Element

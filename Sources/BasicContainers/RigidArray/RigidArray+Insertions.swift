@@ -414,7 +414,7 @@ extension RigidArray {
     at index: Int,
     copying items: borrowing C,
     newCount: Int
-  ) where C.Failure == Never {
+  ) {
     var it = items.makeIterableIterator_()
     insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
@@ -479,7 +479,7 @@ extension RigidArray {
     C: Container<Element> & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing C, at index: Int
-  ) where C.Failure == Never {
+  ) {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }
@@ -539,7 +539,7 @@ extension RigidArray {
     C: Container<Element> & Collection<Element>
   >(
     copying newElements: borrowing C, at index: Int
-  ) where C.Failure == Never {
+  ) {
     _insertContainer(
       at: index, copying: newElements, newCount: newElements.count)
   }

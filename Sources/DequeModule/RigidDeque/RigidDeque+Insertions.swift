@@ -363,7 +363,7 @@ extension RigidDeque /* where Element: Copyable */ {
     at index: Int,
     copying items: borrowing C,
     newCount: Int
-  ) where C.Failure == Never {
+  ) {
     let expectedCount = self.count + newCount
     var it = items.makeIterableIterator_()
     insert(addingCount: newCount, at: index) { target in
@@ -424,7 +424,7 @@ extension RigidDeque /* where Element: Copyable */ {
     C: Container<Element> & ~Copyable & ~Escapable
   >(
     copying items: borrowing C, at index: Int
-  ) where C.Failure == Never {
+  ) {
     _insertContainer(
       at: index, copying: items, newCount: items.count)
   }
@@ -486,7 +486,7 @@ extension RigidDeque /* where Element: Copyable */ {
     C: Container<Element> & Collection<Element>
   >(
     copying items: borrowing C, at index: Int
-  ) where C.Failure == Never {
+  ) {
     _insertContainer(
       at: index, copying: items, newCount: items.count)
   }

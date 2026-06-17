@@ -427,6 +427,7 @@ where
 
   @inlinable
   public mutating func append<
+    Failure: Error,
     S: Iterable_<Element, Failure> & ~Copyable & ~Escapable
   >(
     copying items: borrowing S

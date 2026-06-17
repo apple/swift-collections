@@ -18,9 +18,9 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-public protocol IterableIteratorProtocol_<Element_, Failure>: ~Copyable, ~Escapable {
-  associatedtype Element_: ~Copyable & ~Escapable
-  associatedtype Failure: Error = Never
+public protocol IterableIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escapable {
+  associatedtype Element_: ~Copyable
+  associatedtype Failure_: Error = Never
 
   /// Advance the iterator, returning an ephemeral span over the elements
   /// that are ready to be visited.
@@ -70,7 +70,7 @@ public protocol IterableIteratorProtocol_<Element_, Failure>: ~Copyable, ~Escapa
   /// method may vary between different borrows of the same container.)
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func nextSpan_(maximumCount: Int) throws(Failure) -> Span<Element_>
+  mutating func nextSpan_(maximumCount: Int) throws(Failure_) -> Span<Element_>
 
   /// Advance the position of this iterator by the specified offset, or until
   /// the end of the underlying sequence.
@@ -82,7 +82,7 @@ public protocol IterableIteratorProtocol_<Element_, Failure>: ~Copyable, ~Escapa
   ///
   /// `maximumOffset` must be nonnegative.
   @_lifetime(self: copy self)
-  mutating func skip_(by maximumOffset: Int) throws(Failure) -> Int
+  mutating func skip_(by maximumOffset: Int) throws(Failure_) -> Int
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -91,7 +91,7 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  public mutating func nextSpan_() throws(Failure) -> Span<Element_> {
+  public mutating func nextSpan_() throws(Failure_) -> Span<Element_> {
     try nextSpan_(maximumCount: Int.max)
   }
 }
@@ -101,7 +101,7 @@ extension IterableIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
-  public mutating func skip_(by offset: Int) throws(Failure) -> Int {
+  public mutating func skip_(by offset: Int) throws(Failure_) -> Int {
     var remainder = offset
     while remainder > 0 {
       let span = try nextSpan_(maximumCount: remainder)
@@ -132,8 +132,8 @@ extension IterableIteratorProtocol_
   @_lifetime(self: copy self)
   @inlinable
   @_transparent
-  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) throws(Failure) {
-    try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure) -> Void in
+  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) throws(Failure_) {
+    try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure_) -> Void in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
         let src = try nextSpan_(maximumCount: tail.count)

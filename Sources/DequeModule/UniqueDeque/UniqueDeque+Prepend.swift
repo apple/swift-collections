@@ -388,7 +388,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing C
-  ) where C.Failure == Never {
+  ) {
     self._prepend(copying: items, exactCount: items.count)
   }
 #endif
@@ -518,7 +518,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Sequence<Element>>(
     copying items: borrowing C
-  ) where C.Failure == Never {
+  ) {
     self._prepend(copying: items, exactCount: items.count)
   }
 
@@ -535,7 +535,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Collection<Element>>(
     copying items: C
-  ) where C.Failure == Never {
+  ) {
     self._prepend(copying: items, exactCount: items.count)
   }
 #endif

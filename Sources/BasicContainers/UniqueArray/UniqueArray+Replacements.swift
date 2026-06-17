@@ -558,7 +558,7 @@ extension UniqueArray {
   >(
     removing subrange: Range<Int>,
     copying newElements: borrowing C
-  ) where C.Failure == Never {
+  ) {
     // FIXME: Avoid moving the subsequent elements twice.
     let c = newElements.count
     _ensureFreeCapacity(c - subrange.count)
@@ -648,7 +648,7 @@ extension UniqueArray {
   >(
     removing subrange: Range<Int>,
     copying newElements: borrowing C
-  ) where C.Failure == Never {
+  ) {
     // FIXME: Avoid moving the subsequent elements twice.
     let c = newElements.count
     _ensureFreeCapacity(c - subrange.count)

@@ -22,8 +22,8 @@ where
   @inlinable
   public consuming func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
-    _ nextPartialResult: (consuming Result, borrowing Element_) throws(Failure) -> Result
-  ) throws(Failure) -> Result {
+    _ nextPartialResult: (consuming Result, borrowing Element_) throws(Failure_) -> Result
+  ) throws(Failure_) -> Result {
     var result = initialResult
     while true {
       let span = try self.nextSpan_()
@@ -40,8 +40,8 @@ where
   @inlinable
   public consuming func reduce<Result: ~Copyable>(
     into initialResult: consuming Result,
-    _ updateAccumulatingResult: (inout Result, borrowing Element_) throws(Failure) -> Void
-  ) throws(Failure) -> Result {
+    _ updateAccumulatingResult: (inout Result, borrowing Element_) throws(Failure_) -> Void
+  ) throws(Failure_) -> Result {
     var result = initialResult
     while true {
       let span = try self.nextSpan_()

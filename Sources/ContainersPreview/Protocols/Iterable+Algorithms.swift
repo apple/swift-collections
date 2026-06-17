@@ -21,8 +21,8 @@ extension Iterable_
   public func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
     _ nextPartialResult:
-      (_ partialResult: consuming Result, borrowing Element_) throws(Failure) -> Result
-  ) throws(Failure) -> Result {
+      (_ partialResult: consuming Result, borrowing Element_) throws(Failure_) -> Result
+  ) throws(Failure_) -> Result {
     try makeIterableIterator_().reduce(initialResult, nextPartialResult)
   }
 
@@ -30,8 +30,8 @@ extension Iterable_
   public func reduce<Result>(
     into initialResult: consuming Result,
     _ updateAccumulatingResult:
-      (_ partialResult: inout Result, borrowing Element_) throws(Failure) -> ()
-  ) throws(Failure) -> Result {
+      (_ partialResult: inout Result, borrowing Element_) throws(Failure_) -> ()
+  ) throws(Failure_) -> Result {
     try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
@@ -42,8 +42,8 @@ extension Sequence where Self: Iterable_ {
   public func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
     _ nextPartialResult:
-      (_ partialResult: consuming Result, borrowing Element_) throws(Failure) -> Result
-  ) throws(Failure) -> Result {
+      (_ partialResult: consuming Result, borrowing Element_) throws(Failure_) -> Result
+  ) throws(Failure_) -> Result {
     try makeIterableIterator_().reduce(initialResult, nextPartialResult)
   }
 
@@ -51,8 +51,8 @@ extension Sequence where Self: Iterable_ {
   public func reduce<Result>(
     into initialResult: consuming Result,
     _ updateAccumulatingResult:
-      (_ partialResult: inout Result, borrowing Element_) throws(Failure) -> ()
-  ) throws(Failure) -> Result {
+      (_ partialResult: inout Result, borrowing Element_) throws(Failure_) -> ()
+  ) throws(Failure_) -> Result {
     try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
@@ -64,9 +64,9 @@ extension Iterable_
   @inlinable
   public func elementsEqual<OtherSequence: Iterable_>(
     _ other: borrowing OtherSequence,
-    by areEquivalent: (borrowing Element_, borrowing OtherSequence.Element_) throws(Failure) -> Bool
-  ) throws(Failure) -> Bool
-  where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element_: ~Copyable, OtherSequence.Failure == Failure
+    by areEquivalent: (borrowing Element_, borrowing OtherSequence.Element_) throws(Failure_) -> Bool
+  ) throws(Failure_) -> Bool
+  where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element_: ~Copyable, OtherSequence.Failure_ == Failure_
   {
     // FIXME: Forward to the iterator's implementation of same
     var iter1 = makeIterableIterator_()
@@ -96,9 +96,9 @@ extension Iterable_
 extension Iterable_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable & Equatable {
   @inlinable
-  public func elementsEqual<OtherSequence: Iterable_<Element_, Failure>>(
+  public func elementsEqual<OtherSequence: Iterable_<Element_, Failure_>>(
     _ other: borrowing OtherSequence
-  ) throws(Failure) -> Bool
+  ) throws(Failure_) -> Bool
   where
     OtherSequence: ~Copyable & ~Escapable,
     OtherSequence.Element_: ~Copyable

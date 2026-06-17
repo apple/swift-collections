@@ -77,12 +77,13 @@ extension UniqueSet where Element: Copyable {
 #if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public init<
-    S: Iterable_<Element> & ~Copyable & ~Escapable
+    S: Iterable_ & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init()
-    self.insert(copying: items)
+    try self.insert(copying: items)
   }
 #endif
   

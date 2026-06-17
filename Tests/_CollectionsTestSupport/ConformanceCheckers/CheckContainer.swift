@@ -29,7 +29,7 @@ public func checkIterable<
   expectedContents: Expected,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(S.Failure) where S.Element_: Equatable {
+) throws(S.Failure_) where S.Element_: Equatable {
   try checkIterable(
     iterable,
     expectedContents: expectedContents,
@@ -48,7 +48,7 @@ public func checkIterable<
   by areEquivalent: (S.Element_, S.Element_) -> Bool,
   file: StaticString = #filePath,
   line: UInt = #line
-) throws(S.Failure) where S.Element_: Equatable {
+) throws(S.Failure_) where S.Element_: Equatable {
   let entry = TestContext.current.push("checkIterable", file: file, line: line)
   defer { TestContext.current.pop(entry) }
 
@@ -57,7 +57,7 @@ public func checkIterable<
   expectLessThanOrEqual(iterable.underestimatedCount_, expectedContents.count)
 
   // Check that the spans seem plausibly sized and that the indices are monotonic.
-  let spanShapes: [Range<Int>] = try { () throws(S.Failure) in
+  let spanShapes: [Range<Int>] = try { () throws(S.Failure_) in
     var r: [Range<Int>] = []
     var pos = 0
     var it = iterable.makeIterableIterator_()

@@ -34,10 +34,10 @@ public struct BorrowingFilter<
 >: ~Copyable, ~Escapable
 where Base.Element_: ~Copyable {
   public typealias Element_ = Base.Element_
-  public typealias Failure = Base.Failure
-  
+  public typealias Failure = Base.Failure_
+
   @_alwaysEmitIntoClient
-  public let _isIncluded: (borrowing Element_) throws(Base.Failure) -> Bool
+  public let _isIncluded: (borrowing Element_) throws(Failure) -> Bool
 
   @_alwaysEmitIntoClient
   public var _base: Base

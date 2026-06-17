@@ -41,6 +41,7 @@ extension RigidSet where Element: ~Copyable {
   }
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   package func _borrowValue(at bucket: _Bucket) -> Ref<Element> {

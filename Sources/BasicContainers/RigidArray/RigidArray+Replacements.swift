@@ -590,7 +590,7 @@ extension RigidArray {
     removing subrange: Range<Int>,
     copyingContainer items: borrowing C,
     newCount: Int
-  ) where C.Failure == Never {
+  ) {
     var it = items.makeIterableIterator_()
     self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
@@ -668,7 +668,7 @@ extension RigidArray {
   >(
     removing subrange: Range<Int>,
     copying newElements: borrowing C
-  ) where C.Failure == Never {
+  ) {
     _replace(
       removing: subrange,
       copyingContainer: newElements,
@@ -749,7 +749,7 @@ extension RigidArray {
   >(
     removing subrange: Range<Int>,
     copying newElements: C
-  ) where C.Failure == Never {
+  ) {
     _replace(
       removing: subrange,
       copyingContainer: newElements,
