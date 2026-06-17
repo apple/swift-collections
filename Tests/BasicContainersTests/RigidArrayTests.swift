@@ -535,7 +535,7 @@ class RigidArrayTests: CollectionTestCase {
           expectEqual(a.count, layout.count)
           expectEqual(a.capacity, Swift.max(newCapacity, layout.count))
           expectEqual(tracker.instances, layout.count)
-          expectIterableContents(
+          expectRigidArrayContents(
             a,
             equivalentTo: 0 ..< layout.count,
             by: { $0.payload == $1 },
