@@ -99,6 +99,45 @@ extension RigidArray where Element: ~Copyable {
     }
     try initializer(&span)
   }
+
+  @_alwaysEmitIntoClient
+  public nonisolated(nonsending) mutating func replace<Result: ~Copyable>(
+    removing subrange: Range<Int>,
+    addingCount newItemCount: Int,
+    initializingWith initializer: nonisolated(nonsending) (inout OutputSpan<Element>) async -> Result
+  ) async -> Result {
+    _checkValidBounds(subrange)
+    precondition(newItemCount >= 0, "Cannot add a negative number of items")
+    precondition(
+      newItemCount - subrange.count <= freeCapacity,
+      "RigidArray capacity overflow")
+    return await _uncheckedReplace(
+      removing: subrange,
+      addingCount: newItemCount,
+      initializingWith: initializer)
+  }
+
+  @_alwaysEmitIntoClient
+  internal nonisolated(nonsending) mutating func _uncheckedReplace<Result: ~Copyable>(
+    removing subrange: Range<Int>,
+    addingCount newItemCount: Int,
+    initializingWith initializer: nonisolated(nonsending) (inout OutputSpan<Element>) async -> Result
+  ) async -> Result {
+    unsafe _items.extracting(subrange).deinitialize()
+    let target = _resizeGap(in: subrange, to: newItemCount)
+    var span = OutputSpan(buffer: target, initializedCount: 0)
+    defer {
+      let c = span.finalize(for: target)
+      if c < newItemCount {
+        self._closeGap(
+          at: subrange.lowerBound &+ c,
+          count: newItemCount &- c)
+        _count &-= newItemCount &- c
+      }
+      span = OutputSpan()
+    }
+    return await initializer(&span)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
