@@ -21,10 +21,32 @@ where
 {
   @inlinable
   @_lifetime(copy self)
-  public consuming func map<E: Error, T: ~Copyable>(
-    _ transform: @escaping (borrowing Element_) throws(E) -> T
-  ) throws(E) -> BorrowingMapProducer<Self, T, E> {
+  public consuming func map<T: ~Copyable>(
+    _ transform: @escaping (borrowing Element_) -> T
+  ) -> BorrowingMapProducer<Self, T> {
+    BorrowingMapProducer(
+      _base: self,
+      transform: { v throws(Failure_) in
+        // FIXME: Conversion from non-throwing to throwing closure should be implicit
+        transform(v)
+      })
+  }
+
+  @inlinable
+  @_lifetime(copy self)
+  public consuming func map2<T: ~Copyable>( // FIXME: We can't overload on the type of error thrown.
+    _ transform: @escaping (borrowing Element_) throws(Failure_) -> T
+  ) -> BorrowingMapProducer<Self, T> {
     BorrowingMapProducer(_base: self, transform: transform)
+  }
+
+  @inlinable
+  @_lifetime(copy self)
+  public consuming func map2<T: ~Copyable, E: Error>( // FIXME: We can't overload on the type of error thrown.
+    _ transform: @escaping (borrowing Element_) throws(E) -> T
+  ) -> BorrowingMapProducer<ErrorMappedIterator<Self, E>, T>
+  where Failure_ == Never {
+    BorrowingMapProducer(_base: self.mapError(), transform: transform)
   }
 }
 
@@ -32,10 +54,9 @@ where
 public struct BorrowingMapProducer<
   Base: IterableIteratorProtocol_ & ~Copyable & ~Escapable,
   Element: ~Copyable,
-  Error: Swift.Error
 >: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
-  public let _transform: (borrowing Base.Element_) throws(Error) -> Element
+  public let _transform: (borrowing Base.Element_) throws(Failure) -> Element
 
   @_alwaysEmitIntoClient
   public var _it: Base
@@ -44,7 +65,7 @@ public struct BorrowingMapProducer<
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    transform: @escaping (borrowing Base.Element_) throws(Error) -> Element
+    transform: @escaping (borrowing Base.Element_) throws(Failure) -> Element
   ) {
     self._transform = transform
     self._it = _base
@@ -59,7 +80,7 @@ where
   Base: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
-  public typealias Failure = Error
+  public typealias Failure = Base.Failure_
 
   @inlinable
   public var underestimatedCount: Int {
@@ -67,12 +88,10 @@ where
   }
 
   @inlinable
+  @_lifetime(self: copy self)
   public mutating func next() throws(Failure) -> Element? {
-    // FIXME: Probably wrong to eat the error from the base iterator
-    guard
-      let span = try? _it.nextSpan_(maximumCount: 1),
-      !span.isEmpty
-    else { return nil }
+    let span = try _it.nextSpan_(maximumCount: 1)
+    guard !span.isEmpty else { return nil }
     return try _transform(span[unchecked: 0])
   }
 
@@ -82,18 +101,15 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Error) -> Bool {
+  ) throws(Failure) -> Bool {
     var success = false
     while !target.isFull {
-      // FIXME: Probably wrong to eat the error from the base iterator
-      guard
-        let span = try? _it.nextSpan_(maximumCount: target.freeCapacity),
-        !span.isEmpty
-      else { break }
+      let span = try _it.nextSpan_(maximumCount: target.freeCapacity)
+      guard !span.isEmpty else { break }
       success = true
       var i = 0
       while i < span.count {
-        try target.append(_transform(span[unchecked: i]))
+        target.append(try _transform(span[unchecked: i]))
         i &+= 1
       }
     }
