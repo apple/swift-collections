@@ -78,6 +78,22 @@ extension Span where Element: Equatable /* & ~Copyable */ {
 }
 #endif
 
+#if compiler(>=6.4) && UnstableContainersPreview
+@available(SwiftStdlib 5.0, *)
+extension Span where Element: Hashable & ~Copyable {
+  @_alwaysEmitIntoClient
+  package func _hashContents(into hasher: inout Hasher) {
+    // Note: no discriminating combine call -- caller is expected to do that
+    // separately when needed.
+    var i = 0
+    while i < self.count {
+      hasher.combine(self[unchecked: i])
+      i &+= 1
+    }
+
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Hashable /* & ~Copyable */ {
   @_alwaysEmitIntoClient
@@ -92,5 +108,6 @@ extension Span where Element: Hashable /* & ~Copyable */ {
 
   }
 }
+#endif
 
 #endif

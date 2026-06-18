@@ -155,6 +155,7 @@ extension OutputSpan where Element: ~Copyable {
 }
 
 #if UnstableContainersPreview
+
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
