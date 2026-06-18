@@ -85,13 +85,14 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
+    S: Iterable_ & ~Copyable & ~Escapable
   >(
     capacity: Int,
     copying contents: borrowing S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity)
-    self._insert(copying: contents)
+    try self._insert(copying: contents)
   }
 #endif
   
@@ -119,25 +120,27 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence_<Element> & Sequence<Element>
+    S: Iterable_ & Sequence<Element>
   >(
     capacity: Int,
     copying contents: borrowing S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity)
-    self._insert(copying: contents)
+    try self._insert(copying: contents)
   }
 
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<
-    S: BorrowingSequence_<Element> & Collection<Element>
+    S: Iterable_ & Collection<Element>
   >(
     capacity: Int? = nil,
     copying contents: S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity ?? contents.count)
-    self._insert(copying: contents)
+    try self._insert(copying: contents)
   }
 #endif
 }

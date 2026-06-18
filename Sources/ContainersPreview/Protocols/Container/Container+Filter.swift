@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   @_lifetime(borrow self)
   public func _filter(
@@ -27,7 +27,7 @@ extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension ContainerIterator where Base.Element: ~Copyable {
   @_lifetime(copy self)
   public func filter(
@@ -37,7 +37,7 @@ extension ContainerIterator where Base.Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct ContainerFilter<
   Base: Container & ~Copyable/* FIXME & ~Escapable */
 >: ~Copyable, ~Escapable
@@ -85,8 +85,8 @@ where Base.Element: ~Copyable
 
 // FIXME: Sendable
 
-@available(SwiftStdlib 5.0, *)
-extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
+@available(SwiftStdlib 6.4, *)
+extension ContainerFilter: IterableIteratorProtocol_ where Element: ~Copyable {
   public typealias Element_ = Base.Element
 
   @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`

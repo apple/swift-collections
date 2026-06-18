@@ -18,8 +18,9 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
+public protocol IterableIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
+  associatedtype Failure_: Error = Never
 
   /// Advance the iterator, returning an ephemeral span over the elements
   /// that are ready to be visited.
@@ -69,7 +70,7 @@ public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   /// method may vary between different borrows of the same container.)
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func nextSpan_(maximumCount: Int) -> Span<Element_>
+  mutating func nextSpan_(maximumCount: Int) throws(Failure_) -> Span<Element_>
 
   /// Advance the position of this iterator by the specified offset, or until
   /// the end of the underlying sequence.
@@ -81,29 +82,29 @@ public protocol BorrowingIteratorProtocol_<Element_>: ~Copyable, ~Escapable {
   ///
   /// `maximumOffset` must be nonnegative.
   @_lifetime(self: copy self)
-  mutating func skip_(by maximumOffset: Int) -> Int
+  mutating func skip_(by maximumOffset: Int) throws(Failure_) -> Int
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  public mutating func nextSpan_() -> Span<Element_> {
-    nextSpan_(maximumCount: Int.max)
+  public mutating func nextSpan_() throws(Failure_) -> Span<Element_> {
+    try nextSpan_(maximumCount: Int.max)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
-  public mutating func skip_(by offset: Int) -> Int {
+  public mutating func skip_(by offset: Int) throws(Failure_) -> Int {
     var remainder = offset
     while remainder > 0 {
-      let span = nextSpan_(maximumCount: remainder)
+      let span = try nextSpan_(maximumCount: remainder)
       if span.isEmpty { break }
       remainder &-= span.count
     }
@@ -112,7 +113,7 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
+extension IterableIteratorProtocol_ where Self: ~Copyable & ~Escapable {
 #if false // FIXME: This doesn't work, but it should?
   @_lifetime(&self)
   @_lifetime(self: copy self)
@@ -125,17 +126,17 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
-where Self: ~Copyable & ~Escapable, Element_: Copyable
+extension IterableIteratorProtocol_
+  where Self: ~Copyable & ~Escapable, Element_: Copyable
 {
   @_lifetime(self: copy self)
   @inlinable
   @_transparent
-  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) {
-    target.withUnsafeMutableBufferPointer { dst, dstCount in
+  package mutating func _copyContents_(into target: inout OutputSpan<Element_>) throws(Failure_) {
+    try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure_) -> Void in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
-        let src = nextSpan_(maximumCount: tail.count)
+        let src = try nextSpan_(maximumCount: tail.count)
         if src.isEmpty { break }
         tail._initializeAndDropPrefix(copying: src)
         dstCount += src.count

@@ -26,7 +26,7 @@ extension UniqueDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
+  public borrowing func makeIterableIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self._storage)
   }
 #endif
@@ -45,11 +45,11 @@ extension UniqueDeque: RandomAccessContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: MutableContainer where Element: ~Copyable {}
 
-#if compiler(>=6.3)
-@available(SwiftStdlib 5.0, *)
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
 extension UniqueDeque: RangeReplaceableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueDeque: DynamicContainer where Element: ~Copyable {}
 #endif
 #endif

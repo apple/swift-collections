@@ -21,7 +21,7 @@ import ContainersPreview
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-final class BorrowingSequenceTests: XCTestCase {
+final class IterableTests: XCTestCase {
   @available(SwiftStdlib 6.2, *)
   func testBasic() {
     let array = [1, 2, 3, 4, 5, 6, 7, 8]
@@ -64,12 +64,12 @@ final class BorrowingSequenceTests: XCTestCase {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
-  func collectViaBorrowing() -> [Element_] {
-    var borrowIterator = makeBorrowingIterator_()
+extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
+  func collectViaBorrowing() throws(Failure_) -> [Element_] {
+    var borrowIterator = makeIterableIterator_()
     var result: [Element_] = []
     while true {
-      let span = borrowIterator.nextSpan_(maximumCount: .max)
+      let span = try borrowIterator.nextSpan_(maximumCount: .max)
       if span.isEmpty { break }
       for i in span.indices {
         result.append(span[i])

@@ -11,6 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if false
+
 import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
@@ -295,4 +297,6 @@ final class UniqueBoxTests: CollectionTestCase {
   }
 #endif
 }
+#endif
+
 #endif

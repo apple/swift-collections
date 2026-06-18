@@ -13,20 +13,20 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
   Element: ~Copyable,
-  BorrowingIterator_ == ContainerIterator<Self>
+  IterableIterator_ == ContainerIterator<Self>
 {
   @_lifetime(borrow self)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+  public func makeIterableIterator_() -> IterableIterator_ {
     ContainerIterator(_borrowing: self, from: self.startIndex)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct ContainerIterator<
   Base: Container & ~Copyable /*FIXME: & ~Escapable*/
 >: ~Copyable, ~Escapable
@@ -44,8 +44,8 @@ where Base.Element: ~Copyable
   }
 }
 
-@available(SwiftStdlib 5.0, *)
-extension ContainerIterator: BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension ContainerIterator: IterableIteratorProtocol_
 where
   Base: ~Copyable /*FIXME: & ~Escapable*/,
   Base.Element: ~Copyable

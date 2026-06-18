@@ -164,9 +164,10 @@ extension RigidDeque where Element: ~Copyable {
 #endif
 }
 
-#if compiler(>=6.3) && UnstableContainersPreview
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   @_lifetime(&self)
@@ -177,11 +178,14 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
+  @available(SwiftStdlib 6.4, *)
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
+    // FIXME: We have to use our own MutableRef because the standard one
+    // provides no access to the underlying pointer. See deinit why we need it.
     @usableFromInline
-    internal var _base: MutableRef<RigidDeque>
-      
+    internal var _base: _MutableRef<RigidDeque>
+
     @usableFromInline
     internal var _offsetRange: Range<Int>
     
@@ -199,7 +203,7 @@ extension RigidDeque where Element: ~Copyable {
       let segments = _base._handle.mutableSegments(forOffsets: offsetRange)
       self._buffer1 = segments.first
       self._buffer2 = segments.second ?? .init(start: nil, count: 0)
-      self._base = MutableRef(&_base)
+      self._base = _MutableRef(&_base)
       self._offsetRange = offsetRange
     }
 
@@ -217,13 +221,11 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
-#if compiler(>=6.4)
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
 }
-#endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)

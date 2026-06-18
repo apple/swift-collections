@@ -22,15 +22,15 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkIterable<
-  S: BorrowingSequence_ & ~Copyable & ~Escapable,
+  S: Iterable_ & ~Copyable & ~Escapable,
   Expected: Sequence<S.Element_>
 >(
   _ iterable: borrowing S,
   expectedContents: Expected,
   file: StaticString = #filePath,
   line: UInt = #line
-) where S.Element_: Equatable {
-  checkIterable(
+) throws(S.Failure_) where S.Element_: Equatable {
+  try checkIterable(
     iterable,
     expectedContents: expectedContents,
     by: ==,
@@ -40,7 +40,7 @@ public func checkIterable<
 @available(SwiftStdlib 5.0, *)
 @inlinable
 public func checkIterable<
-  S: BorrowingSequence_ & ~Copyable & ~Escapable,
+  S: Iterable_ & ~Copyable & ~Escapable,
   Expected: Sequence<S.Element_>
 >(
   _ iterable: borrowing S,
@@ -48,7 +48,7 @@ public func checkIterable<
   by areEquivalent: (S.Element_, S.Element_) -> Bool,
   file: StaticString = #filePath,
   line: UInt = #line
-) where S.Element_: Equatable {
+) throws(S.Failure_) where S.Element_: Equatable {
   let entry = TestContext.current.push("checkIterable", file: file, line: line)
   defer { TestContext.current.pop(entry) }
 
@@ -57,13 +57,13 @@ public func checkIterable<
   expectLessThanOrEqual(iterable.underestimatedCount_, expectedContents.count)
 
   // Check that the spans seem plausibly sized and that the indices are monotonic.
-  let spanShapes: [Range<Int>] = {
+  let spanShapes: [Range<Int>] = try { () throws(S.Failure_) in
     var r: [Range<Int>] = []
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     while true {
       let origPos = pos
-      let span = it.nextSpan_()
+      let span = try it.nextSpan_()
       pos += span.count
       if span.isEmpty {
         break
@@ -79,10 +79,10 @@ public func checkIterable<
   // Check that the spans have stable sizes and the expected contents.
   do {
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     var spanIndex = 0
     while true {
-      let span = it.nextSpan_()
+      let span = try it.nextSpan_()
       if span.isEmpty { break }
       expectEqual(
         span.count, spanShapes[spanIndex].count,
@@ -100,9 +100,9 @@ public func checkIterable<
   // Check that we can iterate one by one.
   do {
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     while true {
-      let span = it.nextSpan_(maximumCount: 1)
+      let span = try it.nextSpan_(maximumCount: 1)
       if span.isEmpty { break }
       expectEqual(span.count, 1)
       for i in 0 ..< span.count {
@@ -116,10 +116,10 @@ public func checkIterable<
   // Check that we can iterate with huge maximum counts
   do {
     var pos = 0
-    var it = iterable.makeBorrowingIterator_()
+    var it = iterable.makeIterableIterator_()
     var spanIndex = 0
     while true {
-      let span = it.nextSpan_(maximumCount: Int.max)
+      let span = try it.nextSpan_(maximumCount: Int.max)
       if span.isEmpty { break }
       expectEqual(
         span.count, spanShapes[spanIndex].count,

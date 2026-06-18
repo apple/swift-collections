@@ -137,8 +137,8 @@ extension RigidArray where Element: ~Copyable {
 }
 #endif
 
-#if compiler(>=6.3) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+#if compiler(>=6.4) && UnstableContainersPreview
+@available(SwiftStdlib 6.4, *)
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -148,13 +148,16 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray where Element: ~Copyable {
+  @available(SwiftStdlib 6.4, *)
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
+    // FIXME: We have to use our own MutableRef because the standard one
+    // provides no access to the underlying pointer. See deinit why we need it.
     @usableFromInline
-    internal var _base: MutableRef<RigidArray>
-      
+    internal var _base: _MutableRef<RigidArray>
+
     @usableFromInline
     internal var _offsetRange: Range<Int>
     
@@ -167,7 +170,7 @@ extension RigidArray where Element: ~Copyable {
     internal init(_base: inout RigidArray, offsetRange: Range<Int>) {
       
       self._remainder = _base._storage._extracting(unchecked: offsetRange)
-      self._base = MutableRef(&_base)
+      self._base = _MutableRef(&_base)
       self._offsetRange = offsetRange
     }
 
@@ -178,7 +181,7 @@ extension RigidArray where Element: ~Copyable {
       // FIXME: This needs to be written as
       //    self._base.value.closeGap(offsets: self._offsetRange)
       // but unfortunately we cannot mutate self in deinit yet.
-      // Inout's dereferencing operation is necessarily declared mutating
+      // MutableRef's dereferencing operation is necessarily declared mutating
       // to avoid exclusivity violations.
       self._base._pointer.pointee
         ._closeGap(at: _offsetRange.lowerBound, count: _offsetRange.count)
@@ -188,14 +191,11 @@ extension RigidArray where Element: ~Copyable {
 }
 
 
-#if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray.SubrangeConsumer: Drain where Element: ~Copyable {
 }
-#endif
 
-
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)

@@ -14,14 +14,16 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-public protocol BorrowingSequence_<Element_>: ~Copyable, ~Escapable {
+public protocol Iterable_<Element_, Failure_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
-  associatedtype BorrowingIterator_: BorrowingIteratorProtocol_<Element_> & ~Copyable & ~Escapable
-  
+  associatedtype Failure_: Error = Never
+
+  associatedtype IterableIterator_: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+
   var underestimatedCount_: Int { get }
 
   @_lifetime(borrow self)
-  borrowing func makeBorrowingIterator_() -> BorrowingIterator_
+  borrowing func makeIterableIterator_() -> IterableIterator_
   
   func _customContainsEquatableElement_(
     _ element: borrowing Element_
@@ -29,7 +31,7 @@ public protocol BorrowingSequence_<Element_>: ~Copyable, ~Escapable {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_
+extension Iterable_
 where
   Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
@@ -43,7 +45,7 @@ where
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_ where Self: Sequence {
+extension Iterable_ where Self: Sequence {
   @inlinable
   public func _customContainsEquatableElement_(_ element: borrowing Element) -> Bool? {
     nil
@@ -51,19 +53,19 @@ extension BorrowingSequence_ where Self: Sequence {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingSequence_
+extension Iterable_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
 {
   /// Implementation demo of what borrowing for-in loops would need to expand into.
   @inlinable
-  public func _borrowingForEach<E: Error>(
-    _ body: (borrowing Element_) throws(E) -> Void
-  ) throws(E) -> Void {
-    var it = makeBorrowingIterator_()
+  public func _borrowingForEach(
+    _ body: (borrowing Element_) throws(Failure_) -> Void
+  ) throws(Failure_) -> Void {
+    var it = makeIterableIterator_()
     while true {
-      let span = it.nextSpan_()
+      let span = try it.nextSpan_()
       if span.isEmpty { break }
       var i = 0
       while i < span.count {

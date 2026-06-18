@@ -18,7 +18,7 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
+extension RigidSet: Iterable_ where Element: ~Copyable {
   public typealias Element_ = Element
 
   @inlinable
@@ -33,13 +33,13 @@ extension RigidSet: BorrowingSequence_ where Element: ~Copyable {
 
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(_set: self)
+  public borrowing func makeIterableIterator_() -> IterableIterator_ {
+    IterableIterator_(_set: self)
   }
 
   @frozen
-  public struct BorrowingIterator_:
-    BorrowingIteratorProtocol_,
+  public struct IterableIterator_:
+    IterableIteratorProtocol_,
     ~Copyable,
     ~Escapable
   {

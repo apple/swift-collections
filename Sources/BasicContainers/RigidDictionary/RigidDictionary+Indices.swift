@@ -15,10 +15,11 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
+#if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 6.2, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
+  @available(SwiftStdlib 6.4, *)
   @frozen
   public struct Indices: ~Escapable {
     @_alwaysEmitIntoClient
@@ -31,6 +32,7 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
     }
   }
 
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   public var indices: Indices {
     @_lifetime(borrow self)
@@ -40,15 +42,15 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.2, *)
-extension RigidDictionary.Indices: BorrowingSequence_
+@available(SwiftStdlib 6.4, *)
+extension RigidDictionary.Indices: Iterable_
 where Key: ~Copyable, Value: ~Copyable
 {
   public typealias Element = RigidDictionary.Index
   public typealias Element_ = Element
 
   @frozen
-  public struct BorrowingIterator_: ~Escapable {
+  public struct IterableIterator_: ~Escapable {
     public typealias Element = RigidDictionary.Index
 
     @usableFromInline
@@ -71,16 +73,16 @@ where Key: ~Copyable, Value: ~Copyable
   public var underestimatedCount_: Int { self._base.value.count }
 
   @_lifetime(borrow self) // FIXME: Should be @_lifetime(copy self)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+  public func makeIterableIterator_() -> IterableIterator_ {
     let bit = self._base.value.makeBucketIterator()
     // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
     let override = _overrideLifetime(bit, copying: self)
-    return BorrowingIterator_(_it: override)
+    return IterableIterator_(_it: override)
   }
 }
 
-@available(SwiftStdlib 6.2, *)
-extension RigidDictionary.Indices.BorrowingIterator_: BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension RigidDictionary.Indices.IterableIterator_: IterableIteratorProtocol_
 where Key: ~Copyable, Value: ~Copyable {
   public typealias Element_ = Element
 

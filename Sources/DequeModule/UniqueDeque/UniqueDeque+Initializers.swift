@@ -144,14 +144,13 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///   - contents: A sequence whose contents to copy into the new deque.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: BorrowingSequence_<Element> & ~Copyable & ~Escapable
-  >(
+  public init<S: Iterable_ & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(minimumCapacity: capacity ?? 0)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 #endif
 
@@ -183,14 +182,13 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: BorrowingSequence_<Element> & Sequence<Element>
-  >(
+  public init<S: Iterable_ & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(minimumCapacity: capacity ?? contents.underestimatedCount)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 
   /// Creates a new deque with the specified capacity, holding a copy
@@ -202,14 +200,13 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: BorrowingSequence_<Element> & Collection<Element>
-  >(
+  public init<S: Iterable_ & Collection<Element>>(
     capacity: Int? = nil,
     copying contents: S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(minimumCapacity: capacity ?? contents.count)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 #endif
 

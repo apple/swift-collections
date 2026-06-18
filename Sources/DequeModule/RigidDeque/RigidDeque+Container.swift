@@ -23,7 +23,7 @@ import ContainersPreview
 extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
   @frozen
-  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
+  public struct BorrowingIterator: ~Escapable, IterableIteratorProtocol_ {
     public typealias Element_ = Element
 
     @usableFromInline
@@ -60,7 +60,7 @@ extension RigidDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
+  public borrowing func makeIterableIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self)
   }
 #endif
@@ -76,11 +76,11 @@ extension RigidDeque: BidirectionalContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque: RandomAccessContainer where Element: ~Copyable {}
 
-#if compiler(>=6.3)
-@available(SwiftStdlib 5.0, *)
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
 extension RigidDeque: MutableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidDeque: RangeReplaceableContainer where Element: ~Copyable {}
 #endif
 #endif

@@ -37,7 +37,7 @@ extension RigidSet {
   public func _rawHashValue(seed: Int) -> Int {
 #if UnstableContainersPreview
     var hash = 0
-    var it = self.makeBorrowingIterator_()
+    var it = self.makeIterableIterator_()
     while true {
       let next = it.nextSpan_()
       var i = 0

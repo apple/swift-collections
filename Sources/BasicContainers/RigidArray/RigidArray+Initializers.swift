@@ -124,12 +124,13 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence_<Element> & ~Copyable & ~Escapable>(
+  public init<Source: Iterable_ & ~Copyable & ~Escapable>(
     capacity: Int,
     copying contents: borrowing Source
-  ) {
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
     self.init(capacity: capacity)
-    self.append(copying: contents)
+    try self.append(copying: contents)
   }
   
 #endif
@@ -145,12 +146,13 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      The container must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: BorrowingSequence_<Element> & Sequence<Element>>(
+  public init<Source: Iterable_ & Sequence<Element>>(
     capacity: Int,
     copying contents: Source
-  ) {
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
     self.init(capacity: capacity)
-    self.append(copying: contents)
+    try self.append(copying: contents)
   }
 #endif
   

@@ -20,16 +20,16 @@ import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
-extension UniqueArray: BorrowingSequence_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = RigidArray<Element>.BorrowingIterator_
+extension UniqueArray: Iterable_ where Element: ~Copyable {
+  public typealias IterableIterator_ = RigidArray<Element>.IterableIterator_
 
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    self._storage.makeBorrowingIterator_()
+  public func makeIterableIterator_() -> IterableIterator_ {
+    self._storage.makeIterableIterator_()
   }
 }
 #endif
@@ -47,11 +47,11 @@ extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: MutableContainer where Element: ~Copyable {}
 
-#if compiler(>=6.3)
-@available(SwiftStdlib 5.0, *)
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: RangeReplaceableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: DynamicContainer where Element: ~Copyable {}
 #endif
 #endif

@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+extension IterableIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: Copyable
@@ -25,9 +25,9 @@ where
   /// will get copied.
   @inlinable
   @_lifetime(copy self)
-  public consuming func copy() -> BorrowingMapProducer<Self, Element_, Never> {
+  public consuming func copy() -> BorrowingMapProducer<Self, Element_> {
     // FIXME: We could also just define a direct implementation that avoids the closure.
-    BorrowingMapProducer(_base: self, transform: { $0 })
+    self.map { $0 }
   }
 
   // Note: We could also define `collect(into:)` directly on borrowing iterators,

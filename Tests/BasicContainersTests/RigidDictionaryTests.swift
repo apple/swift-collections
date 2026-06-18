@@ -58,17 +58,17 @@ class RigidDictionaryTests: CollectionTestCase {
         d.insertValue(secondValue, forKey: secondKey),
         secondValue)
       
-#if UnstableContainersPreview
-      let thirdKey = tracker.instance(for: 42)
-      expectNotNil(d.value(forKey: thirdKey)) { valueRef in
-        expectIdentical(valueRef.value, firstValue)
+      if #available(SwiftStdlib 6.4, *) {
+        let thirdKey = tracker.instance(for: 42)
+        expectNotNil(d.value(forKey: thirdKey)) { valueRef in
+          expectIdentical(valueRef.value, firstValue)
+        }
+        _ = consume firstValue
+        expectNotNil(d.value(forKey: thirdKey)) { valueRef in
+          expectEqual(valueRef.value.payload, "forty-two")
+        }
       }
-      _ = consume firstValue
-      expectNotNil(d.value(forKey: thirdKey)) { valueRef in
-        expectEqual(valueRef.value.payload, "forty-two")
-      }
-#endif
-      
+
       expectEqual(d.count, 1)
       expectFalse(d.isEmpty)
       expectFalse(d.isFull)
@@ -91,17 +91,17 @@ class RigidDictionaryTests: CollectionTestCase {
       let res = d.updateValue(secondValue, forKey: secondKey)
       expectIdentical(res, firstValue)
       
-#if UnstableContainersPreview
-      let thirdKey = tracker.instance(for: 42)
-      expectNotNil(d.value(forKey: thirdKey)) { valueRef in
-        expectIdentical(valueRef.value, secondValue)
+      if #available(SwiftStdlib 6.4, *) {
+        let thirdKey = tracker.instance(for: 42)
+        expectNotNil(d.value(forKey: thirdKey)) { valueRef in
+          expectIdentical(valueRef.value, secondValue)
+        }
+        _ = consume secondValue
+        expectNotNil(d.value(forKey: thirdKey)) { valueRef in
+          expectEqual(valueRef.value.payload, "forty-two")
+        }
       }
-      _ = consume secondValue
-      expectNotNil(d.value(forKey: thirdKey)) { valueRef in
-        expectEqual(valueRef.value.payload, "forty-two")
-      }
-#endif
-      
+
       expectEqual(d.count, 1)
       expectFalse(d.isEmpty)
       expectFalse(d.isFull)
@@ -139,18 +139,18 @@ class RigidDictionaryTests: CollectionTestCase {
         expectTrue(d.isFull)
         expectEqual(d.capacity, capacity)
         expectEqual(d.freeCapacity, 0)
-        
-#if UnstableContainersPreview
-        for i in 0 ..< capacity {
-          let dupe = tracker.instance(for: i)
-          expectNotNil(
-            d.value(forKey: dupe),
-            "\(dupe.payload) not found"
-          ) { valueRef in
-            expectEqual(valueRef.value.payload, "\(i)")
+
+        if #available(SwiftStdlib 6.4, *) {
+          for i in 0 ..< capacity {
+            let dupe = tracker.instance(for: i)
+            expectNotNil(
+              d.value(forKey: dupe),
+              "\(dupe.payload) not found"
+            ) { valueRef in
+              expectEqual(valueRef.value.payload, "\(i)")
+            }
           }
         }
-#endif
       }
     }
   }
@@ -188,22 +188,22 @@ class RigidDictionaryTests: CollectionTestCase {
         expectEqual(d.capacity, capacity)
         expectEqual(d.freeCapacity, 0)
         
-#if UnstableContainersPreview
-        for i in 0 ..< capacity {
-          let dupe = tracker.instance(for: i)
-          expectNotNil(
-            d.value(forKey: dupe),
-            "\(dupe.payload) not found"
-          ) { valueRef in
-            expectEqual(valueRef.value.payload, "\(i)")
+        if #available(SwiftStdlib 6.4, *) {
+          for i in 0 ..< capacity {
+            let dupe = tracker.instance(for: i)
+            expectNotNil(
+              d.value(forKey: dupe),
+              "\(dupe.payload) not found"
+            ) { valueRef in
+              expectEqual(valueRef.value.payload, "\(i)")
+            }
           }
         }
-#endif
       }
     }
   }
-  
-#if UnstableContainersPreview
+
+  @available(SwiftStdlib 6.4, *)
   func test_memoizedValue_one() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
@@ -241,8 +241,7 @@ class RigidDictionaryTests: CollectionTestCase {
       expectEqual(d.freeCapacity, 19)
     }
   }
-#endif
-  
+
   func test_withKeys() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
@@ -258,7 +257,7 @@ class RigidDictionaryTests: CollectionTestCase {
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
 #if compiler(>=6.4) && UnstableContainersPreview
-            var it = keys.makeBorrowingIterator_()
+            var it = keys.makeIterableIterator_()
             var actual: Set<Int> = []
             while true {
               let next = it.nextSpan_()
@@ -308,8 +307,7 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
-#if UnstableContainersPreview
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftStdlib 6.4, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
@@ -323,7 +321,7 @@ class RigidDictionaryTests: CollectionTestCase {
           
           var seen: Set<Int> = []
           let indices = d.indices
-          var it = indices.makeBorrowingIterator_()
+          var it = indices.makeIterableIterator_()
           while true {
             let next = it.nextSpan_()
             if next.isEmpty { break }
@@ -344,7 +342,6 @@ class RigidDictionaryTests: CollectionTestCase {
       }
     }
   }
-#endif
 
   func test_updateValue_with_remove() {
     typealias Key = LifetimeTracked<Int>

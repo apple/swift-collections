@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
-@available(SwiftStdlib 6.2, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   public typealias Indices = RigidDictionary<Key, Value>.Indices
 
