@@ -1469,6 +1469,7 @@ class RigidArrayTests: CollectionTestCase {
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_borrowing_map() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
@@ -1482,6 +1483,7 @@ class RigidArrayTests: CollectionTestCase {
     expectUniqueArrayContents(transformed, equalTo: expected)
   }
 
+  @available(SwiftStdlib 6.4, *)
   func test_borrowing_filter() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
@@ -1497,6 +1499,7 @@ class RigidArrayTests: CollectionTestCase {
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_consume_subrange_drainNext() {
     withLifetimeTracking { tracker in
       var a = RigidArray<LifetimeTracked<Int>>(capacity: 4)

@@ -25,6 +25,7 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
+  "Extensions/Optional+Extras.swift"
   "Extensions/OutputSpan+Extras.swift"
   "Extensions/TemporaryAllocation.swift"
   "Protocols/Container/BidirectionalContainer.swift"
@@ -61,7 +62,6 @@ target_sources(${module_name} PRIVATE
   "Protocols/Producer+Reduce.swift"
   "Types/InputSpan.swift"
   "Types/MutableRef.swift"
-  "Types/Ref.swift"
   "Types/Shared.swift"
   "Types/SpanIterator.swift"
   "Types/UniqueBox.swift"
