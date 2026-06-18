@@ -3250,8 +3250,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				WATCHOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_WATCHOS_DEPLOYMENT_TARGET)";
 			};
 			name = Debug;
 		};
@@ -3259,8 +3257,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 7DEBDB9929CCE4A600ADC226 /* Collections.xcconfig */;
 			buildSettings = {
-				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
-				WATCHOS_DEPLOYMENT_TARGET = "$(RECOMMENDED_WATCHOS_DEPLOYMENT_TARGET)";
 			};
 			name = Release;
 		};
