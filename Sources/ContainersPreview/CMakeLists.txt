@@ -44,6 +44,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/IterableIteratorProtocol+ElementsEqual.swift"
   "Protocols/IterableIteratorProtocol+Filter.swift"
   "Protocols/IterableIteratorProtocol+Map.swift"
+  "Protocols/IterableIteratorProtocol+MapError.swift"
   "Protocols/IterableIteratorProtocol+Reduce.swift"
   "Protocols/IterableIteratorProtocol+SpanwiseZip.swift"
   "Protocols/Iterable.swift"
