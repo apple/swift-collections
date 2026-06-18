@@ -290,8 +290,11 @@ extension RigidDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && UnstableContainersPreview
   @inlinable
   internal mutating func _prepend<
-    S: Iterable_<Element, E> & ~Copyable & ~Escapable, E
-  >(copying items: borrowing S) throws(E) {
+    S: Iterable_ & ~Copyable & ~Escapable
+  >(
+    copying items: borrowing S
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
     // them to their correct location.
@@ -306,13 +309,14 @@ extension RigidDeque /*where Element: Copyable*/ {
 
   @inlinable
   internal mutating func _prepend<
-    S: Iterable_<Element, E> & ~Copyable & ~Escapable, E
+    S: Iterable_ & ~Copyable & ~Escapable
   >(
     copying items: borrowing S,
     exactCount: Int
-  ) throws(E) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     var it = items.makeIterableIterator_()
-    try self.prepend(addingCount: exactCount) { (target) throws(E) in
+    try self.prepend(addingCount: exactCount) { (target) throws(S.Failure_) in
       let span = try it.nextSpan_(maximumCount: target.freeCapacity)
       target._append(copying: span)
     }
@@ -333,9 +337,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_<Element, E> & ~Copyable & ~Escapable, E>(
+  public mutating func prepend<S: Iterable_ & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(E) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     try self._prepend(copying: items)
   }
 
@@ -437,10 +442,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_<Element, Never> & Sequence<Element>>(
+  public mutating func prepend<S: Iterable_ & Sequence<Element>>(
     copying items: borrowing S
-  ) {
-    self._prepend(copying: items)
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
+    try self._prepend(copying: items)
   }
 
   /// Copies the elements of a borrowing sequence to the front of this deque.
@@ -453,10 +459,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_<Element, Never> & Collection<Element>>(
+  public mutating func prepend<S: Iterable_ & Collection<Element>>(
     copying items: borrowing S
-  ) {
-    self._prepend(copying: items, exactCount: items.count)
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
+    try self._prepend(copying: items, exactCount: items.count)
   }
 
   /// Copies the elements of a container to the front of this deque.

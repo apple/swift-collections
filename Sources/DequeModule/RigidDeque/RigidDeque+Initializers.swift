@@ -131,12 +131,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: Iterable_<Element, E> & ~Copyable & ~Escapable, E
-  >(
+  public init<S: Iterable_ & ~Copyable & ~Escapable>(
     capacity: Int,
     copying contents: borrowing S
-  ) throws(E) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity)
     try self._append(copying: contents)
   }
@@ -186,14 +185,13 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: Iterable_<Element, Never> & Sequence<Element>
-  >(
+  public init<S: Iterable_ & Sequence<Element>>(
     capacity: Int,
     copying contents: borrowing S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 
   /// Creates a new deque with the specified capacity, holding a copy
@@ -207,14 +205,13 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<
-    S: Iterable_<Element, Never> & Collection<Element>
-  >(
+  public init<S: Iterable_ & Collection<Element>>(
     capacity: Int? = nil,
     copying contents: S
-  ) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     self.init(capacity: capacity ?? contents.count)
-    self._append(copying: contents)
+    try self._append(copying: contents)
   }
 #endif
 

@@ -310,10 +310,11 @@ extension UniqueArray {
 #if compiler(>=6.4) && UnstableContainersPreview
   @inlinable
   internal mutating func _append<
-    Source: Iterable_<Element, E> & ~Copyable & ~Escapable, E
+    Source: Iterable_ & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
-  ) throws(E) {
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
     _ensureFreeCapacity(newElements.underestimatedCount_)
     var it = newElements.makeIterableIterator_()
     while true {
@@ -343,10 +344,11 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable_<Element, E> & ~Copyable & ~Escapable, E
+    Source: Iterable_ & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
-  ) throws(E) {
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
     try self._append(copying: newElements)
   }
 
@@ -397,9 +399,12 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable_<Element, Never> & Sequence<Element>
-  >(copying newElements: Source) {
-    self._append(copying: newElements)
+    Source: Iterable_ & Sequence<Element>
+  >(
+    copying newElements: Source
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
+    try self._append(copying: newElements)
   }
 #endif
 }

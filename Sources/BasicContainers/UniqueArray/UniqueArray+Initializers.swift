@@ -96,10 +96,11 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable_<Element, E> & ~Copyable & ~Escapable, E>(
+  public init<Source: Iterable_ & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing Source
-  ) throws(E) {
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
     self.init(minimumCapacity: capacity ?? 0)
     try self.append(copying: contents)
   }
@@ -132,12 +133,13 @@ extension UniqueArray /*where Element: Copyable*/ {
   ///   - contents: The container whose contents to copy into the new array.
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable_<Element, Never> & Sequence<Element>>(
+  public init<Source: Iterable_ & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: Source
-  ) {
+  ) throws(Source.Failure_)
+  where Source.Element_ == Element {
     self.init(minimumCapacity: capacity ?? 0)
-    self.append(copying: contents)
+    try self.append(copying: contents)
   }
 #endif
 

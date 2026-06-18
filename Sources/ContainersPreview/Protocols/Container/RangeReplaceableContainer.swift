@@ -427,11 +427,11 @@ where
 
   @inlinable
   public mutating func append<
-    Failure: Error,
-    S: Iterable_<Element, Failure> & ~Copyable & ~Escapable
+    S: Iterable_ & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(Failure) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     var it = items.makeIterableIterator_()
     while true {
       let span = try it.nextSpan_()

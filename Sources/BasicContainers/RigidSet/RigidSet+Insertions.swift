@@ -223,11 +223,11 @@ extension RigidSet /* where Element: Copyable */ {
 #if UnstableContainersPreview
   @_alwaysEmitIntoClient
   package mutating func _insert<
-    Failure: Error,
-    S: Iterable_<Element, Failure> & ~Copyable & ~Escapable
+    S: Iterable_ & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(S.Failure_) {
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
     var it = items.makeIterableIterator_()
     while true {
       let span = try it.nextSpan_()
@@ -263,11 +263,12 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: Iterable_<Element, Never> & Sequence<Element>
+    S: Iterable_ & Sequence<Element>
   >(
     copying items: borrowing S
-  ) {
-    _insert(copying: items)
+  ) throws(S.Failure_)
+  where S.Element_ == Element {
+    try _insert(copying: items)
   }
 #endif
 }
