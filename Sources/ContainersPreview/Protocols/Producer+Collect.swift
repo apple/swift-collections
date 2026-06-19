@@ -57,4 +57,33 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 5.0, *)
+extension Producer where Self: ~Copyable & ~Escapable, Element: Copyable {
+  @inlinable
+  public consuming func collect<
+    R: RangeReplaceableCollection<Element>
+  >(
+    into container: R.Type = R.self
+  ) throws(ProducerError) -> R {
+    // We don't have an `OutputSpan`-based init/append method for RRC,
+    // so the best we can do right now is individual element generation.
+    var result = R.init()
+    result.reserveCapacity(self.underestimatedCount)
+    while let element = try self.next() {
+      result.append(element)
+    }
+    return result
+  }
+  
+  @inlinable
+  public consuming func collect() throws(ProducerError) -> [Element] {
+    var result = try Array.init(capacity: underestimatedCount) { outputSpan throws(ProducerError) in
+      try self.generate(into: &outputSpan)
+    }
+    while let element = try self.next() {
+      result.append(element)
+    }
+    return result
+  }
+}
 #endif
