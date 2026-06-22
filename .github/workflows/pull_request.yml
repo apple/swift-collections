@@ -78,7 +78,7 @@ jobs:
       image: swiftlang/swift:nightly-main-jammy
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install apt dependencies
         run: apt-get -qq update && apt-get -qq -y install curl ninja-build
       - name: Install CMake 3.30.2
