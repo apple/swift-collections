@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import DequeModule
+@_exported import DequeModule
 
 public typealias Deque<Element> = DequeModule.Deque<Element>
 #endif

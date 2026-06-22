@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import HeapModule
+@_exported import HeapModule
 
 public typealias Heap<Element: Comparable> = HeapModule.Heap<Element>
 #endif

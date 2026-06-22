@@ -62,4 +62,12 @@ class CollectionsTests: XCTestCase {
     items.prepend(42)
     XCTAssertEqual(items.first, 42)
   }
+
+  func testOrderedSetMemberImportVisibility() {
+    var values: OrderedSet<String> = []
+    let insert = values.append("hello")
+
+    XCTAssertEqual(insert.index, values.startIndex)
+    XCTAssertEqual(values[values.startIndex], "hello")
+  }
 }
