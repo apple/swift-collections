@@ -120,7 +120,7 @@ where Header: ~Copyable
   /// that memory. The underlying storage will not be freed by this buffer;
   /// it is the responsibility of the caller. The header pointer and
   /// underlying storage are returned separately, to handle cases where
-  /// the alignment of the elements is greater than than of the header.
+  /// the alignment of the elements is greater than that of the header.
   @_alwaysEmitIntoClient
   public consuming func leakStorage() -> (
     pointer: UnsafeMutablePointer<Header>,

@@ -61,7 +61,7 @@ TrailingArray.withTemporaryValue(header: Coordinates(numPoints: 3), repeating: P
 ```
 
 ### Interoperability with unsafe C APIs
-``TrailingArray`` provides facilities for working with the underlying unsafe pointers, which can be useful when interoperating with C APIs. ``TrailingArray`` can take ownership of a heap-allocated pointer to its `Header` type (such as one might get back from a C API api) using `init(consuming:)`:
+``TrailingArray`` provides facilities for working with the underlying unsafe pointers, which can be useful when interoperating with C APIs. ``TrailingArray`` can take ownership of a heap-allocated pointer to its `Header` type (such as one might get back from a C API) using `init(consuming:)`:
 
 ```swift
 init(consuming pointer: UnsafeMutablePointer<Header>)
