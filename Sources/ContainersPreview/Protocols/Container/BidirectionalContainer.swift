@@ -17,11 +17,53 @@
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
 where Element: ~Copyable, Index: Comparable
 {
+  override associatedtype Element: ~Copyable
+  override associatedtype Index
+
+  // Note: Some `Container` requirements are redeclared as `override`s to help
+  // associated type inference; others are kept separate with `@_nonoverride`.
+  //
+  // @_nonoverride creates separate witness table entries, allowing divergent
+  // implementations in conditional conformances. This enables conforming types
+  // to provide distinct implementations depending on whether the caller is
+  // generic over `Container` or `BidirectionalContainer`.
+  //
+  // (Unfortunately, neither `override` nor `@_nonoverride` allows callers
+  // that are generic over `Container` to automatically dispatch
+  // to a more constrained bidirectional implementation variant. Still, at least
+  // `@_nonoverride` enables more refined implementations to take effect
+  // when the caller is explicitly generic over `BidirectionalContainer`.)
+  //
+  // `@_nonoverride` should be used on requirements with new semantic
+  // constraints in refining protocols.
+  //
+  // Collection types usually do not come with conditional conformances to
+  // refining collection protocols (as the resulting behavior can be quite
+  // confusing), so the separate witness entries rarely if ever get exercised
+  // in practice. I don't expect things would be different with Container.
+  //
+  // FIXME: Consider avoiding using `@_nonoverride`, reducing witness sizes.
+
+
   func index(before i: Index) -> Index
+
   func formIndex(before i: inout Index)
 
   @_lifetime(borrow self)
   func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element>
+
+  override func index(after index: Index) -> Index
+
+  override func formIndex(after index: inout Index)
+
+  @_nonoverride func index(_ index: Index, offsetBy n: Int) -> Index
+
+  @_nonoverride func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  )
+
+  @_nonoverride func distance(from start: Index, to end: Index) -> Int
+
 }
 
 @available(SwiftStdlib 5.0, *)

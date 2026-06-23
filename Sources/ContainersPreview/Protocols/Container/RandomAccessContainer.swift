@@ -16,8 +16,44 @@
 @available(SwiftStdlib 5.0, *)
 public protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable
-where Element: ~Copyable {}
+where Element: ~Copyable {
+  // Note: Some requirements are redeclared to help associated type inference;
+  // others are kept separate with `@_nonoverride`.
+  //
+  // See more detailed discussion on `BidirectionalContainer`.
+  //
+  // `RandomAccessContainer` should technically redeclare single-steppers
+  // like `index(after:)` as `@_nonoverride`, as the protocol adds a semantic
+  // requirement for O(1) complexity. However, we emulate
+  // `RandomAccessCollection`'s (not necessarily well-justified) decision to
+  // leave these marked as overrides, forcing all types to have a single
+  // implementation that fulfills the (unique) requirement. (I haven't seen a
+  // case where these steppers would need to vary their implementation, while
+  // offsetting/distance calculations do sometimes want that, at least in
+  // theory. Not so much in practice though -- see e.g. `ZipSequence`'s lack of
+  // a conditional (random-access) collection conformance.)
+  //
+  // FIXME: Consider avoiding using `@_nonoverride`, reducing witness sizes.
 
+  override associatedtype Element: ~Copyable
+  override associatedtype Index
+
+  override func index(after index: Index) -> Index
+  override func index(before index: Index) -> Index
+
+  override func formIndex(after index: inout Index)
+  override func formIndex(before index: inout Index)
+
+  @_nonoverride func index(_ index: Index, offsetBy n: Int) -> Index
+
+  @_nonoverride func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  )
+
+  @_nonoverride func distance(from start: Index, to end: Index) -> Int
+}
+
+@available(SwiftStdlib 5.0, *)
 extension RandomAccessCollection {
   @inlinable
   public func formIndex(
