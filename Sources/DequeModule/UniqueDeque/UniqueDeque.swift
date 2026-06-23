@@ -198,17 +198,14 @@ extension UniqueDeque where Element: ~Copyable {
   public subscript(position: Int) -> Element {
     @inline(__always)
     @_transparent
-    unsafeAddress {
-      precondition(position >= 0 && position < count, "Index out of bounds")
-      let slot = _storage._handle.slot(forOffset: position)
-      return _storage._handle.ptr(at: slot)
+    borrow {
+      _storage[position]
     }
     @inline(__always)
     @_transparent
-    unsafeMutableAddress {
-      precondition(position >= 0 && position < count, "Index out of bounds")
-      let slot = _storage._handle.slot(forOffset: position)
-      return _storage._handle.mutablePtr(at: slot)
+    @_unsafeSelfDependentResult // FIXME: Why is this necessary?
+    mutate {
+      &_storage[position]
     }
   }
 }

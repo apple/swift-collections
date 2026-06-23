@@ -62,7 +62,7 @@ extension InputSpan where Element: ~Copyable {
   internal func _start() -> UnsafeMutableRawPointer {
     unsafe _pointer.unsafelyUnwrapped
   }
-  
+
   @unsafe
   @_alwaysEmitIntoClient
   @_transparent
@@ -177,7 +177,7 @@ extension InputSpan where Element: ~Copyable {
     capacity = buffer.count
     _count = initializedCount
   }
-  
+
   @unsafe
   @_alwaysEmitIntoClient
   @_lifetime(borrow buffer)
@@ -244,15 +244,17 @@ extension InputSpan where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public subscript(_ index: Index) -> Element {
-    unsafeAddress {
+    @_unsafeSelfDependentResult
+    borrow {
       precondition(indices.contains(index), "Index out of bounds")
-      return unsafe UnsafePointer(_unsafeAddressOfElement(uncheckedOffset: index))
+      return unsafe _unsafeAddressOfElement(uncheckedOffset: index).pointee
     }
 
+    @_unsafeSelfDependentResult
     @_lifetime(self: copy self)
-    unsafeMutableAddress {
+    mutate {
       precondition(indices.contains(index), "Index out of bounds")
-      return unsafe _unsafeAddressOfElement(uncheckedOffset: index)
+      return unsafe &_unsafeAddressOfElement(uncheckedOffset: index).pointee
     }
   }
 
@@ -346,7 +348,7 @@ extension InputSpan where Element: ~Copyable {
     }
     _count &-= k
   }
-  
+
   /// Removes and returns the first element of this input span, if it exists.
   ///
   /// - Returns: The first element of the original span if it wasn't empty;
@@ -533,7 +535,7 @@ extension InputSpan where Element: ~Copyable {
   public mutating func consumePrefix(upTo n: Int) -> InputSpan<Element> {
     precondition(n >= 0, "Cannot consume a negative number of elements")
     let c = Swift.min(n, self.count)
-    
+
     let buffer = unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: 0
     ).withMemoryRebound(to: Element.self, capacity: c) { start in

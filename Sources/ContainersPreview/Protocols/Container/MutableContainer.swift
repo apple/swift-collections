@@ -19,7 +19,13 @@ public protocol MutableContainer<Element>:
 where
   Element: ~Copyable
 {
-  //  subscript(index: Index) -> Element { borrow mutate }
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///    `position` must be a valid index of the container that is not equal
+  ///    to the `endIndex` property.
+  /// - Complexity: O(1)
+  subscript(index: Index) -> Element { borrow mutate }
 
   @_lifetime(&self)
   mutating func nextMutableSpan(

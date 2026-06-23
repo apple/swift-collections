@@ -59,10 +59,8 @@ extension UniqueSet where Element: ~Copyable {
   
   @inlinable
   public subscript(index: Index) -> Element {
-    // FIXME: Use borrow accessor here
-    unsafeAddress {
-      _checkItemIndex(index)
-      return .init(_storage._memberPtr(at: index._bucket))
+    borrow {
+      _storage[index]
     }
   }
 }

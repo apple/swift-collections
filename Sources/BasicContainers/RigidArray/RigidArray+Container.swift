@@ -41,7 +41,7 @@ extension RigidArray: BidirectionalContainer where Element: ~Copyable {}
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray: MutableContainer where Element: ~Copyable {}
 
 @available(SwiftStdlib 6.4, *)
@@ -153,12 +153,14 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
-    unsafeAddress {
-      _ptr(to: position)
+    @_unsafeSelfDependentResult
+    borrow {
+      _ptr(to: position).pointee
     }
     @inline(__always)
-    unsafeMutableAddress {
-      _mutablePtr(to: position)
+    @_unsafeSelfDependentResult
+    mutate {
+      &_mutablePtr(to: position).pointee
     }
   }
 }

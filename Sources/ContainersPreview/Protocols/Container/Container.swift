@@ -95,6 +95,18 @@ public protocol Container<Element>:
   /// - Returns: The distance between `start` and `end`.
   func distance(from start: Index, to end: Index) -> Int
 
+  /// Accesses the element at the specified position.
+  ///
+  /// You can subscript a collection with any valid index other than the
+  /// collection’s end index. The end index refers to the position one past the
+  /// last element of a collection, so it doesn’t correspond with an element.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///    `position` must be a valid index of the container that is not equal
+  ///    to the `endIndex` property.
+  /// - Complexity: O(1)
+  subscript(index: Index) -> Element { borrow }
+
   /// Return a span over the container's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
   /// that contains it, but no more than `maximumCount` items.
@@ -164,8 +176,6 @@ public protocol Container<Element>:
   ///     element at the input index.
   @_lifetime(borrow self)
   func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
-
-  //  subscript(index: Index) -> Element { borrow }
 
   /// Return the nearest valid index in this container less than or equal to
   /// the given index value, which must be valid in at least one view of self.

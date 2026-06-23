@@ -114,12 +114,13 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   public subscript(position: Int) -> Element {
     @inline(__always)
-    unsafeAddress {
-      _storage._ptr(to: position)
+    borrow {
+      _storage[position]
     }
     @inline(__always)
-    unsafeMutableAddress {
-      _storage._mutablePtr(to: position)
+    @_unsafeSelfDependentResult // FIXME: Why is this necessary?
+    mutate {
+      &_storage[position]
     }
   }
 }

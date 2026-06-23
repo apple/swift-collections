@@ -262,20 +262,21 @@ extension RigidDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
-    // FIXME: Replace with borrow/mutate accessors
     @inline(__always)
     @_transparent
-    unsafeAddress {
+    @_unsafeSelfDependentResult
+    borrow {
       _checkItemIndex(position)
       let slot = _handle.slot(forOffset: position)
-      return _handle.ptr(at: slot)
+      return _handle.ptr(at: slot).pointee
     }
     @inline(__always)
     @_transparent
-    unsafeMutableAddress {
+    @_unsafeSelfDependentResult
+    mutate {
       _checkItemIndex(position)
       let slot = _handle.slot(forOffset: position)
-      return _handle.mutablePtr(at: slot)
+      return &_handle.mutablePtr(at: slot).pointee
     }
   }
 }
