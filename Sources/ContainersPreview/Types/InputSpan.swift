@@ -437,18 +437,38 @@ extension InputSpan /* where Element: Copyable */ {
 
 @available(SwiftStdlib 5.0, *)
 extension InputSpan where Element: ~Copyable {
+  @inlinable
+  @unsafe
+  @_lifetime(borrow self)
+  internal func _uncheckedSpan(in range: Range<Index>) -> Span<Element> {
+    let pointer = unsafe _pointer?
+      .assumingMemoryBound(to: Element.self)
+      .advanced(by: capacity &- _count &+ range.lowerBound)
+    let buffer = unsafe UnsafeBufferPointer(start: pointer, count: range.count)
+    let span = unsafe Span(_unsafeElements: buffer)
+    return unsafe _overrideLifetime(span, borrowing: self)
+  }
+
+  @inlinable
+  @unsafe
+  @_lifetime(&self)
+  internal mutating func _uncheckedMutableSpan(in range: Range<Index>) -> MutableSpan<Element> {
+    let pointer = unsafe _pointer?
+      .assumingMemoryBound(to: Element.self)
+      .advanced(by: capacity &- _count &+ range.lowerBound)
+    let buffer = unsafe UnsafeMutableBufferPointer(
+      start: pointer, count: range.count)
+    let span = unsafe MutableSpan(_unsafeElements: buffer)
+    return unsafe _overrideLifetime(span, mutating: &self)
+  }
+
   /// Borrow the underlying initialized memory for read-only access.
   @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
   public var span: Span<Element> {
     @_lifetime(borrow self)
     borrowing get {
-      let pointer = unsafe _pointer?
-        .assumingMemoryBound(to: Element.self)
-        .advanced(by: capacity &- _count)
-      let buffer = unsafe UnsafeBufferPointer(start: pointer, count: _count)
-      let span = unsafe Span(_unsafeElements: buffer)
-      return unsafe _overrideLifetime(span, borrowing: self)
+      _uncheckedSpan(in: 0 ..< _count)
     }
   }
 
@@ -458,13 +478,7 @@ extension InputSpan where Element: ~Copyable {
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
     mutating get {
-      let pointer = unsafe _pointer?
-        .assumingMemoryBound(to: Element.self)
-        .advanced(by: capacity &- _count)
-      let buffer = unsafe UnsafeMutableBufferPointer(
-        start: pointer, count: _count)
-      let span = unsafe MutableSpan(_unsafeElements: buffer)
-      return unsafe _overrideLifetime(span, borrowing: self)
+      _uncheckedMutableSpan(in: 0 ..< _count)
     }
   }
 }
@@ -559,6 +573,18 @@ internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
   ) { buffer throws(E) in
     var span = InputSpan(buffer: buffer, initializedCount: 0)
     return try body(&span)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension InputSpan where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(self: copy self)
+  package mutating func _consumeAll(
+    consumingWith consumer: (inout InputSpan<Element>) -> Void
+  ) {
+    consumer(&self)
+    self.removeAll()
   }
 }
 

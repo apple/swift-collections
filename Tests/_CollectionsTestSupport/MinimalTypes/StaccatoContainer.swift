@@ -137,6 +137,9 @@ extension StaccatoContainer: Container where Element: ~Copyable {
   package func _isValid(_ index: Index) -> Bool {
     index._offset >= 0 && index._offset <= count
   }
+  package func _isOccupied(_ index: Index) -> Bool {
+    index._offset >= 0 && index._offset < count
+  }
 
   public var startIndex: Index { Index(_offset: 0) }
   public var endIndex: Index { Index(_offset: _contents.count) }
@@ -170,7 +173,14 @@ extension StaccatoContainer: Container where Element: ~Copyable {
     index._offset._advance(by: &n, limitedBy: limit._offset)
     precondition(_isValid(index))
   }
-  
+
+  public subscript(position: Index) -> Element {
+    borrow {
+      precondition(_isOccupied(position))
+      return _contents[position._offset]
+    }
+  }
+
   @_lifetime(borrow self)
   public func nextSpan(
     after index: inout Index, maximumCount: Int
@@ -178,7 +188,6 @@ extension StaccatoContainer: Container where Element: ~Copyable {
     precondition(_isValid(index))
     let startOffset = index._offset
     let endOffset = _params.endOffset(fromOffset: index._offset, maximumCount: maximumCount)
-    print("\(startOffset) .-> \(endOffset)")
     index._offset = endOffset
     return _contents.span.extracting(startOffset ..< endOffset)
   }

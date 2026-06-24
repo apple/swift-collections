@@ -25,9 +25,10 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
-  "Extensions/Optional+Extras.swift"
-  "Extensions/OutputSpan+Extras.swift"
-  "Extensions/TemporaryAllocation.swift"
+  "Conformances/InputSpan+Container.swift"
+  "Conformances/MutableSpan+Container.swift"
+  "Conformances/OutputSpan+Container.swift"
+  "Conformances/Span+Container.swift"
   "Protocols/Container/BidirectionalContainer.swift"
   "Protocols/Container/Container.swift"
   "Protocols/Container/Container+Filter.swift"
