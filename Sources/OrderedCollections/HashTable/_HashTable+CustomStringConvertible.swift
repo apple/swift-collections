@@ -50,7 +50,7 @@ extension _HashTable.UnsafeHandle: CustomStringConvertible {
 extension _HashTable: CustomStringConvertible {
   @usableFromInline
   internal var description: String {
-    read { $0._description(type: "_HashTable") }
+    self.read { $0._description(type: "_HashTable") }
   }
 }
 

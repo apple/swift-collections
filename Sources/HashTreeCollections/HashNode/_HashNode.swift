@@ -103,27 +103,27 @@ extension _HashNode {
 extension _HashNode {
   @inlinable
   internal var isCollisionNode: Bool {
-    read { $0.isCollisionNode }
+    self.read { $0.isCollisionNode }
   }
 
   @inlinable
   internal var collisionHash: _Hash {
-    read { $0.collisionHash }
+    self.read { $0.collisionHash }
   }
 
   @inlinable
   internal var hasSingletonItem: Bool {
-    read { $0.hasSingletonItem }
+    self.read { $0.hasSingletonItem }
   }
 
   @inlinable
   internal var hasSingletonChild: Bool {
-    read { $0.hasSingletonChild }
+    self.read { $0.hasSingletonChild }
   }
 
   @inlinable
   internal var isAtrophied: Bool {
-    read { $0.isAtrophiedNode }
+    self.read { $0.isAtrophiedNode }
   }
 }
 
