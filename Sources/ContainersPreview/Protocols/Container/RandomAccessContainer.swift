@@ -72,51 +72,122 @@ extension RandomAccessCollection {
 
 @available(SwiftStdlib 5.0, *)
 extension RandomAccessContainer
-where Self: ~Copyable & ~Escapable, Index: Strideable, Index.Stride == Int
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable,
+  Index: Strideable,
+  Index.Stride == Int
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   public var isEmpty: Bool { startIndex == endIndex }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public var count: Int { startIndex.distance(to: endIndex) }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(after index: Index) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: 1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(before index: Index) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: -1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(after index: inout Index) {
     // Note: Range checks are deferred until element access.
     index = index.advanced(by: 1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(before index: inout Index) {
     // Note: Range checks are deferred until element access.
     index = index.advanced(by: -1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
     // Note: Range checks are deferred until element access.
     start.distance(to: end)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: n)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  public func formIndex(
+    _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
+  ) {
+    // Note: Range checks are deferred until element access.
+    index.advance(by: &distance, limitedBy: limit)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RandomAccessContainer
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable,
+  Index == Int
+{
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public var isEmpty: Bool { startIndex == endIndex }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public var count: Int { endIndex - startIndex }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func index(after index: Index) -> Index {
+    // Note: Range checks are deferred until element access.
+    index + 1
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func index(before index: Index) -> Index {
+    // Note: Range checks are deferred until element access.
+    index - 1
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(after index: inout Index) {
+    // Note: Range checks are deferred until element access.
+    index += 1
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(before index: inout Index) {
+    // Note: Range checks are deferred until element access.
+    index -= 1
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func distance(from start: Index, to end: Index) -> Int {
+    // Note: Range checks are deferred until element access.
+    end - start
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func index(_ index: Index, offsetBy n: Int) -> Index {
+    // Note: Range checks are deferred until element access.
+    index + n
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
   public func formIndex(
     _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
   ) {
@@ -135,43 +206,43 @@ where
   Index.Stride == Int,
   Indices == Range<Int>
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   public var isEmpty: Bool { startIndex == endIndex }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public var count: Int { endIndex - startIndex }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(after index: Index) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: 1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(before index: Index) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: -1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(after index: inout Index) {
     // Note: Range checks are deferred until element access.
     index = index.advanced(by: 1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(before index: inout Index) {
     // Note: Range checks are deferred until element access.
     index = index.advanced(by: -1)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
     // Note: Range checks are deferred until element access.
     start.distance(to: end)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: n)
