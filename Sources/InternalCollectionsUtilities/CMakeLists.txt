@@ -45,4 +45,6 @@ target_sources(${module_name} PRIVATE
   "UnsafeMutableBufferPointer+Extras.swift"
   "UnsafeMutableRawBufferPointer+Extras.swift"
   "UnsafeRawBufferPointer+Extras.swift"
+  "UnsafePointer+Extras.swift"
+  "UnsafeMutablePointer+Extras.swift"
   )
