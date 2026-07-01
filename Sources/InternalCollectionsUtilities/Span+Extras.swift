@@ -38,7 +38,7 @@ extension Span where Element: ~Copyable {
   }
 }
 
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Equatable & ~Copyable {
   @_alwaysEmitIntoClient
@@ -78,7 +78,7 @@ extension Span where Element: Equatable /* & ~Copyable */ {
 }
 #endif
 
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Hashable & ~Copyable {
   @_alwaysEmitIntoClient

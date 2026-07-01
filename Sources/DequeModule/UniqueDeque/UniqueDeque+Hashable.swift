@@ -13,6 +13,7 @@
 
 #if compiler(>=6.2)
 
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 extension UniqueDeque: Hashable where Element: Hashable & ~Copyable {
 }
@@ -24,5 +25,14 @@ extension UniqueDeque where Element: Hashable & ~Copyable {
     self._storage.hash(into: &hasher)
   }
 }
+#else
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque where Element: Hashable {
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    self._storage.hash(into: &hasher)
+  }
+}
+#endif
 
 #endif

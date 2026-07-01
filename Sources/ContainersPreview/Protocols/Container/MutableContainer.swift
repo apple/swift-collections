@@ -95,15 +95,13 @@ where
     after index: inout Index,
     maximumCount: Int
   ) -> MutableSpan<Element>
-
-  // FIXME: What about previousMutableSpan?
 }
 
 @available(SwiftStdlib 5.0, *)
 extension MutableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   mutating func nextMutableSpan(
     after index: inout Index,

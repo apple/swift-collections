@@ -249,44 +249,31 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
   ///     element at the input index.
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Index) -> Span<Element> {
     nextSpan(after: &index, maximumCount: Int.max)
   }
-
-//  @inlinable
-//  @_lifetime(borrow self)
-//  public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
-//    let original = index
-//    var span = nextSpan(after: &index)
-//    if span.count > maximumCount {
-//      span = span.extracting(first: maximumCount)
-//      // Index remains within the same span, so offseting it is expected to be quick
-//      index = self.index(original, offsetBy: maximumCount)
-//    }
-//    return span
-//  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @inlinable
+  @_alwaysEmitIntoClient
   public var isEmpty: Bool {
     startIndex == endIndex
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public var count: Int {
     distance(from: startIndex, to: endIndex)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(after index: inout Index) {
     index = self.index(after: index)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     precondition(
       n >= 0,
@@ -328,7 +315,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 #endif
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
@@ -347,7 +334,18 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  public func index(
+    _ index: Index, offsetBy n: Int, limitedBy limit: Index
+  ) -> Index? {
+    var index = index
+    var n = n
+    self.formIndex(&index, offsetBy: &n, limitedBy: limit)
+    if n != 0 { return nil }
+    return index
+  }
+
+  @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
 #if true
     // This variant does not require that `start` precede `end`, but it's
@@ -400,18 +398,18 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 #endif
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(alignedDown index: Index) -> Index { index }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(alignedUp index: Index) -> Index { index }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func _customIndexOfEquatableElement(_: borrowing Element) -> Index?? {
     nil
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func _customLastIndexOfEquatableElement(
     _ element: borrowing Element
   ) -> Index?? {
@@ -422,6 +420,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
   @_transparent
   public var underestimatedCount_: Int { count }
 }

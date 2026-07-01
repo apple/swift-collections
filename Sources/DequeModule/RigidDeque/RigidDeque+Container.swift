@@ -77,10 +77,10 @@ extension RigidDeque: BidirectionalContainer where Element: ~Copyable {}
 extension RigidDeque: RandomAccessContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque: MutableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque: RangeReplaceableContainer where Element: ~Copyable {}
 #endif
 #endif

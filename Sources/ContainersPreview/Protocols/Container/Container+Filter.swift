@@ -19,6 +19,7 @@ import InternalCollectionsUtilities
 
 @available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func _filter(
     _ isIncluded: @escaping (borrowing Element) -> Bool
@@ -29,6 +30,7 @@ extension Container where Self: ~Copyable /*& ~Escapable*/, Element: ~Copyable {
 
 @available(SwiftStdlib 6.4, *)
 extension ContainerIterator where Base.Element: ~Copyable {
+  @_alwaysEmitIntoClient
   @_lifetime(copy self)
   public func filter(
     _ isIncluded: @escaping (borrowing Element) -> Bool
@@ -57,7 +59,7 @@ where Base.Element: ~Copyable
   @_alwaysEmitIntoClient
   public var _remainder: Span<Element>
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(copy _base)
   internal init(
     _base: Ref<Base>,
@@ -70,7 +72,7 @@ where Base.Element: ~Copyable
     self._remainder = .init()
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(borrow _base)
   internal init(
     _base: borrowing Base,

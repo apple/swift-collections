@@ -103,13 +103,14 @@ extension UniqueArray where Element: ~Copyable {
   /// - Complexity: O(`self.count`)
   @_alwaysEmitIntoClient
   public mutating func removeSubrange(_  bounds: some RangeExpression<Int>) {
-    // FIXME: Remove this in favor of a standard algorithm.
+    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
     removeSubrange(bounds.relative(to: indices))
   }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+#if !UnstableContainersPreview
   /// Removes and returns the last element of the array, if there is one.
   ///
   /// - Returns: The last element of the array if the array is not empty;
@@ -118,9 +119,11 @@ extension UniqueArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public mutating func popLast() -> Element? {
+    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
     if isEmpty { return nil }
     return removeLast()
   }
+#endif
 }
 
 #endif

@@ -167,7 +167,7 @@ extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @available(SwiftStdlib 6.4, *)
+  @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   @_lifetime(&self)
@@ -178,7 +178,7 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @available(SwiftStdlib 6.4, *)
+  @available(SwiftStdlib 5.0, *)
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     // FIXME: We have to use our own MutableRef because the standard one
@@ -221,11 +221,11 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   public var count: Int {

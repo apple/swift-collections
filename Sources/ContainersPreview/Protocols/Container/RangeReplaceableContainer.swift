@@ -47,6 +47,10 @@ where
   mutating func remove(at index: Index) -> Element
   mutating func removeSubrange(_ bounds: Range<Index>)
   mutating func removeAll()
+  mutating func removeFirst() -> Element
+  mutating func removeFirst(_ n: Int)
+  mutating func _customRemoveLast() -> Element?
+  mutating func _customRemoveLast(_ n: Int) -> Bool
 
   mutating func insert<E: Error>(
     addingCount newItemCount: Int,
@@ -70,7 +74,7 @@ where
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func remove(at index: Index) -> Element {
     let range = Range(uncheckedBounds: (index, self.index(after: index)))
     var result: Element?
@@ -83,7 +87,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     return result
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func removeSubrange(_ bounds: Range<Index>) {
     replace(
       removing: bounds,
@@ -92,12 +96,39 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       initializingWith: { _ in })
   }
 
-  @inlinable
-  public mutating func removeAll() {
-    removeSubrange(startIndex ..< endIndex)
+  @_alwaysEmitIntoClient
+  public mutating func removeFirst() -> Element {
+    precondition(
+      !isEmpty,
+      "Can't remove first element from an empty container")
+    return self.remove(at: self.startIndex)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  public mutating func removeFirst(_ n: Int) {
+    if n == 0 { return }
+    precondition(n >= 0, "Number of elements to remove should be non-negative")
+    let start = self.startIndex
+    guard
+      let end = self.index(start, offsetBy: n, limitedBy: endIndex)
+    else {
+      preconditionFailure(
+        "Can't remove more items from a container than it has")
+    }
+    removeSubrange(start ..< end)
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _customRemoveLast() -> Element? {
+    nil
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func _customRemoveLast(_ n: Int) -> Bool {
+    false
+  }
+
+  @_alwaysEmitIntoClient
   public mutating func insert<E: Error>(
     addingCount newItemCount: Int,
     at index: Index,
@@ -110,7 +141,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       initializingWith: initializer)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func insert(
     _ item: consuming Element, at index: Index
   ) {
@@ -120,7 +151,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<E: Error>(
     addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
@@ -131,7 +162,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       initializingWith: initializer)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append(_ item: consuming Element) {
     insert(item, at: endIndex)
   }
@@ -143,7 +174,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<
     E: Error,
     P: Producer<Element, E> & ~Copyable & ~Escapable
@@ -164,7 +195,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       })
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<
     E: Error,
     P: CountedProducer<Element, E> & ~Copyable & ~Escapable
@@ -183,7 +214,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<E: Error>(
     removing subrange: some RangeExpression2<Index>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void,
@@ -211,7 +242,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     fatalError()
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<E: Error>(
     removing subrange: some RangeExpression2<Index>,
     addingCount newItemCount: Int,
@@ -224,7 +255,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       initializingWith: initializer)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -234,7 +265,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     replace(removing: targetSubrange, addingFrom: source.consumeAll())
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -252,7 +283,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -267,7 +298,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
 @available(SwiftStdlib 5.0, *)
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func consume(
     _ subrange: Range<Index>,
     consumingWith consumer: (inout InputSpan<Element>) -> Void
@@ -281,13 +312,13 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       })
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consumeAll() -> SubrangeConsumer {
     consume(startIndex ..< endIndex)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consume(
     _ subrange: some RangeExpression2<Index>
@@ -305,7 +336,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     fatalError()
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consume(
     _ subrange: UnboundedRange
@@ -313,7 +344,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     consume(startIndex ..< endIndex)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consumeFirst(_ n: Int) -> SubrangeConsumer {
     precondition(n >= 0, "Count of elements to consume is out of bounds")
@@ -333,7 +364,7 @@ where
   Self: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func consumeLast(_ n: Int) -> SubrangeConsumer {
     precondition(n >= 0, "Count of elements to consume is out of bounds")
@@ -350,18 +381,65 @@ where
 extension RangeReplaceableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
-  @inlinable
+  @_alwaysEmitIntoClient
+  public mutating func removeAll() {
+    removeSubrange(startIndex ..< endIndex)
+  }
+
+  @_alwaysEmitIntoClient
   public mutating func removeSubrange(
     _ bounds: some RangeExpression2<Index>
   ) {
     removeSubrange(bounds.relative(to: self))
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func removeSubrange(
     _ bounds: UnboundedRange
   ) {
     removeAll()
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RangeReplaceableContainer
+where Self: BidirectionalContainer & ~Copyable & ~Escapable, Element: ~Copyable
+{
+  @_alwaysEmitIntoClient
+  public mutating func removeLast() -> Element {
+    precondition(
+      !self.isEmpty,
+      "Can't remove last element from an empty container")
+    if let result = self._customRemoveLast() { return result }
+    return self.remove(at: self.index(before: self.endIndex))
+  }
+
+  @_alwaysEmitIntoClient
+  public mutating func removeLast(_ n: Int) {
+    if n == 0 { return }
+    precondition(n >= 0, "Number of elements to remove should be non-negative")
+    if self._customRemoveLast(n) {
+      return
+    }
+    let end = self.endIndex
+    guard let start = self.index(end, offsetBy: -n, limitedBy: self.startIndex)
+    else {
+      preconditionFailure(
+        "Can't remove more items from a collection than it contains")
+    }
+    self.removeSubrange(start ..< end)
+  }
+}
+
+@available(SwiftStdlib 5.0, *)
+extension RangeReplaceableContainer
+where Self: BidirectionalContainer & ~Copyable & ~Escapable, Element: ~Copyable
+{
+  @_alwaysEmitIntoClient
+  public mutating func popLast() -> Element? {
+    if self.isEmpty { return nil }
+    if let result = self._customRemoveLast() { return result }
+    return self.remove(at: self.index(before: self.endIndex))
   }
 }
 
@@ -390,7 +468,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the container.
   ///    - producer: A producer that generates the items to append.
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func insert<
     E: Error,
     P: Producer<Element, E> & ~Copyable & ~Escapable
@@ -428,7 +506,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   ///    - index: The position at which to insert the new items.
   ///       `index` must be a valid index in the container.
   ///    - producer: A producer that generates the items to append.
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func insert<
     E: Error,
     P: CountedProducer<Element, E> & ~Copyable & ~Escapable
@@ -448,7 +526,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func insert<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -458,7 +536,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     self.insert(from: source.consumeAll(), at: index)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func insert<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -475,7 +553,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func insert<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -504,7 +582,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// - Parameters:
   ///    - newItemCount: The number of items to append to the container.
   ///    - producer: A producer that generates the items to append.
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<
     E: Error,
     P: Producer<Element, E> & ~Copyable & ~Escapable
@@ -529,7 +607,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - producer: A producer that generates the items to append.
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<
     E: Error,
     P: CountedProducer<Element, E> & ~Copyable & ~Escapable
@@ -552,7 +630,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: A container whose contents to move into this container.
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -561,7 +639,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     self.append(from: items.consumeAll())
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -585,7 +663,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ///
   /// - Parameters:
   ///    - items: A container whose contents to move into this container.
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<
     C: RangeReplaceableContainer<Element> & ~Copyable & ~Escapable
   >(
@@ -603,7 +681,7 @@ where
   Self: ~Copyable & ~Escapable,
   Element: Copyable
 {
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func replace<C: Container<Element> & ~Copyable & ~Escapable>(
     removing subrange: Range<Index>,
     copying items: borrowing C
@@ -760,7 +838,7 @@ where
     }
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public mutating func append<
     S: Iterable_ & ~Copyable & ~Escapable
   >(

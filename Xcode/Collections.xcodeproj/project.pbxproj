@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D12E33D2FF5CC2A003050AB /* OutputSpan+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D12E33C2FF5CC2A003050AB /* OutputSpan+Extras.swift */; };
 		7D24E3ED2FAD4C37005A55EB /* RigidArray+Formatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D24E3EC2FAD4C37005A55EB /* RigidArray+Formatter.swift */; };
 		7D2A77262F27F1D1005780C7 /* Span+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77252F27F1D1005780C7 /* Span+Extras.swift */; };
 		7D2A77392F27F1E4005780C7 /* UniqueBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D2A77332F27F1E4005780C7 /* UniqueBox.swift */; };
@@ -133,6 +134,10 @@
 		7D59D05C2FE48B89005B5097 /* Optional+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D0592FE48B89005B5097 /* Optional+Extras.swift */; };
 		7D59D05D2FE48B89005B5097 /* OutputSpan+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D05A2FE48B89005B5097 /* OutputSpan+Extras.swift */; };
 		7D59D05E2FE48B89005B5097 /* TemporaryAllocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D05B2FE48B89005B5097 /* TemporaryAllocation.swift */; };
+		7D59D0662FE49C87005B5097 /* Span+Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D0642FE49C87005B5097 /* Span+Container.swift */; };
+		7D59D0672FE49C87005B5097 /* InputSpan+Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D0612FE49C87005B5097 /* InputSpan+Container.swift */; };
+		7D59D0682FE49C87005B5097 /* MutableSpan+Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D0622FE49C87005B5097 /* MutableSpan+Container.swift */; };
+		7D59D0692FE49C87005B5097 /* OutputSpan+Container.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D59D0632FE49C87005B5097 /* OutputSpan+Container.swift */; };
 		7D7246872F3D9DDB00112FD0 /* _HTable+Iteration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246802F3D9DDB00112FD0 /* _HTable+Iteration.swift */; };
 		7D7246882F3D9DDB00112FD0 /* RigidDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7246832F3D9DDB00112FD0 /* RigidDictionary.swift */; };
 		7D7246892F3D9DDB00112FD0 /* _HTable+Find.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D72467E2F3D9DDB00112FD0 /* _HTable+Find.swift */; };
@@ -147,6 +152,8 @@
 		7D7646062FAAA2B9008639E5 /* UniqueBoxTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7646052FAAA2B9008639E5 /* UniqueBoxTests.swift */; };
 		7D7646082FAAABE3008639E5 /* UniqueDeque+Deprecated.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D7646072FAAABDF008639E5 /* UniqueDeque+Deprecated.swift */; };
 		7D77E6122FCF810E003FA63B /* CountedProducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D77E6112FCF810E003FA63B /* CountedProducer.swift */; };
+		7D77E6252FD0F880003FA63B /* UnsafePointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D77E6242FD0F87B003FA63B /* UnsafePointer+Extras.swift */; };
+		7D77E6272FD0F94B003FA63B /* UnsafeMutablePointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D77E6262FD0F940003FA63B /* UnsafeMutablePointer+Extras.swift */; };
 		7D9748D42E9748930098631A /* BigString+Chunk+UTF16.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D32E9748930098631A /* BigString+Chunk+UTF16.swift */; };
 		7D9748D52E9748930098631A /* BigString+Chunk+UnicodeScalar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D12E9748930098631A /* BigString+Chunk+UnicodeScalar.swift */; };
 		7D9748D62E9748930098631A /* BigString+Chunk+Character.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748CF2E9748930098631A /* BigString+Chunk+Character.swift */; };
@@ -609,6 +616,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D12E33C2FF5CC2A003050AB /* OutputSpan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputSpan+Extras.swift"; sourceTree = "<group>"; };
 		7D24E3EC2FAD4C37005A55EB /* RigidArray+Formatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidArray+Formatter.swift"; sourceTree = "<group>"; };
 		7D24E9862FAD53E1005A55EB /* RigidArray_Fixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArray_Fixture.swift; sourceTree = "<group>"; };
 		7D24E9882FAD53E1005A55EB /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -703,7 +711,6 @@
 		7D479CFA2F4D080500A8CB59 /* UniqueDictionary+Keys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Keys.swift"; sourceTree = "<group>"; };
 		7D479CFB2F4D080500A8CB59 /* UniqueDictionary+Removals.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Removals.swift"; sourceTree = "<group>"; };
 		7D479CFE2F4E487700A8CB59 /* RigidSet+Equatable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidSet+Equatable.swift"; sourceTree = "<group>"; };
-		7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7D48BCDB2E51554900D7F6F7 /* ClassBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassBox.swift; sourceTree = "<group>"; };
 		7D48BCDD2E51558700D7F6F7 /* TestPrintable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestPrintable.swift; sourceTree = "<group>"; };
 		7D48BCDE2E51558700D7F6F7 /* LifetimeTrackedStruct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifetimeTrackedStruct.swift; sourceTree = "<group>"; };
@@ -744,6 +751,11 @@
 		7D59D0592FE48B89005B5097 /* Optional+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Optional+Extras.swift"; sourceTree = "<group>"; };
 		7D59D05A2FE48B89005B5097 /* OutputSpan+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputSpan+Extras.swift"; sourceTree = "<group>"; };
 		7D59D05B2FE48B89005B5097 /* TemporaryAllocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemporaryAllocation.swift; sourceTree = "<group>"; };
+		7D59D0602FE49BDA005B5097 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		7D59D0612FE49C87005B5097 /* InputSpan+Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InputSpan+Container.swift"; sourceTree = "<group>"; };
+		7D59D0622FE49C87005B5097 /* MutableSpan+Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MutableSpan+Container.swift"; sourceTree = "<group>"; };
+		7D59D0632FE49C87005B5097 /* OutputSpan+Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputSpan+Container.swift"; sourceTree = "<group>"; };
+		7D59D0642FE49C87005B5097 /* Span+Container.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Span+Container.swift"; sourceTree = "<group>"; };
 		7D5A64D229CCE8CC00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D329CCEE9A00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		7D5A64D829CCF0FE00CB2595 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -763,6 +775,8 @@
 		7D7646052FAAA2B9008639E5 /* UniqueBoxTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniqueBoxTests.swift; sourceTree = "<group>"; };
 		7D7646072FAAABDF008639E5 /* UniqueDeque+Deprecated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDeque+Deprecated.swift"; sourceTree = "<group>"; };
 		7D77E6112FCF810E003FA63B /* CountedProducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountedProducer.swift; sourceTree = "<group>"; };
+		7D77E6242FD0F87B003FA63B /* UnsafePointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafePointer+Extras.swift"; sourceTree = "<group>"; };
+		7D77E6262FD0F940003FA63B /* UnsafeMutablePointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeMutablePointer+Extras.swift"; sourceTree = "<group>"; };
 		7D9748CF2E9748930098631A /* BigString+Chunk+Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+Character.swift"; sourceTree = "<group>"; };
 		7D9748D02E9748930098631A /* BigString+Chunk+Index.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+Index.swift"; sourceTree = "<group>"; };
 		7D9748D12E9748930098631A /* BigString+Chunk+UnicodeScalar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+UnicodeScalar.swift"; sourceTree = "<group>"; };
@@ -978,7 +992,6 @@
 		7DE91F1F29CA70F3004483EB /* _CharacterRecognizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _CharacterRecognizer.swift; sourceTree = "<group>"; };
 		7DE91F2029CA70F3004483EB /* String.Index+ABI.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String.Index+ABI.swift"; sourceTree = "<group>"; };
 		7DE91F2129CA70F3004483EB /* Optional Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Optional Utilities.swift"; sourceTree = "<group>"; };
-		7DE91F2E29CA70F3004483EB /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		7DE91F3029CA70F3004483EB /* _SortedCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _SortedCollection.swift; sourceTree = "<group>"; };
 		7DE91F3829CA70F3004483EB /* _UniqueCollection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = _UniqueCollection.swift; sourceTree = "<group>"; };
 		7DE91F3B29CA70F3004483EB /* BitSet+SetAlgebra symmetricDifference.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "BitSet+SetAlgebra symmetricDifference.swift"; sourceTree = "<group>"; };
@@ -1238,6 +1251,7 @@
 		7DFA40832FD3A98D00CD20C1 /* OrderedSet+Move.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrderedSet+Move.swift"; sourceTree = "<group>"; };
 		7DFA40852FD3A99D00CD20C1 /* OrderedDictionary+Move.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OrderedDictionary+Move.swift"; sourceTree = "<group>"; };
 		7DFA40892FD3ACE700CD20C1 /* UnsafeBufferTrimTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsafeBufferTrimTests.swift; sourceTree = "<group>"; };
+		7DFC9DF62FEB5D7D00BE8808 /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		A93AC20F2E7C841700A824DF /* CMakeLists.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		A93AC21A2E7C845300A824DF /* ArrayLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrayLayout.swift; sourceTree = "<group>"; };
 		A93AC21B2E7C845300A824DF /* RigidArrayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidArrayTests.swift; sourceTree = "<group>"; };
@@ -1340,6 +1354,7 @@
 			children = (
 				7D2A77332F27F1E4005780C7 /* UniqueBox.swift */,
 				7DC037C82FE3792300CF0CB8 /* MutableRef.swift */,
+				7D12E33C2FF5CC2A003050AB /* OutputSpan+Extras.swift */,
 				7D2A77352F27F1E4005780C7 /* InputSpan.swift */,
 				7D2A77362F27F1E4005780C7 /* Shared.swift */,
 				7DACFA112F75FBF100291F2E /* SpanIterator.swift */,
@@ -1452,9 +1467,10 @@
 		7D48BCCE2E51524200D7F6F7 /* ContainersPreview */ = {
 			isa = PBXGroup;
 			children = (
+				7D59D0602FE49BDA005B5097 /* CMakeLists.txt */,
+				7D59D0652FE49C87005B5097 /* Conformances */,
 				7D2A77312F27F1E4005780C7 /* Protocols */,
 				7D2A77372F27F1E4005780C7 /* Types */,
-				7D48BCC92E51524200D7F6F7 /* CMakeLists.txt */,
 				7D6FEE312E88A4B9007C1B86 /* ContainersPreview.docc */,
 			);
 			path = ContainersPreview;
@@ -1488,6 +1504,17 @@
 				7D974BC32F91BCD0009A4F88 /* Strideable+Limits.swift */,
 			);
 			path = Container;
+			sourceTree = "<group>";
+		};
+		7D59D0652FE49C87005B5097 /* Conformances */ = {
+			isa = PBXGroup;
+			children = (
+				7D59D0612FE49C87005B5097 /* InputSpan+Container.swift */,
+				7D59D0622FE49C87005B5097 /* MutableSpan+Container.swift */,
+				7D59D0632FE49C87005B5097 /* OutputSpan+Container.swift */,
+				7D59D0642FE49C87005B5097 /* Span+Container.swift */,
+			);
+			path = Conformances;
 			sourceTree = "<group>";
 		};
 		7D7246822F3D9DDB00112FD0 /* HashTable */ = {
@@ -1941,6 +1968,7 @@
 			children = (
 				7DEBDAE229CBEE5300ADC226 /* IntegerTricks */,
 				7DEBDADA29CBEE5300ADC226 /* UnsafeBitSet */,
+				7DFC9DF62FEB5D7D00BE8808 /* CMakeLists.txt */,
 				7DE91F3029CA70F3004483EB /* _SortedCollection.swift */,
 				7DE91F3829CA70F3004483EB /* _UniqueCollection.swift */,
 				7DAD89A82E8B09EC00DD5786 /* Debugging.swift */,
@@ -1956,7 +1984,8 @@
 				7DAD89AD2E8B09EC00DD5786 /* UnsafeMutableBufferPointer+Extras.swift */,
 				7DAD89AE2E8B09EC00DD5786 /* UnsafeMutableRawBufferPointer+Extras.swift */,
 				7DAD89AF2E8B09EC00DD5786 /* UnsafeRawBufferPointer+Extras.swift */,
-				7DE91F2E29CA70F3004483EB /* CMakeLists.txt */,
+				7D77E6242FD0F87B003FA63B /* UnsafePointer+Extras.swift */,
+				7D77E6262FD0F940003FA63B /* UnsafeMutablePointer+Extras.swift */,
 			);
 			path = InternalCollectionsUtilities;
 			sourceTree = "<group>";
@@ -2685,6 +2714,7 @@
 				7D2A77952F27F2BF005780C7 /* Deque+Codable.swift in Sources */,
 				7D2A77962F27F2BF005780C7 /* RigidDeque+Experimental.swift in Sources */,
 				7D2A77972F27F2BF005780C7 /* Deque+Testing.swift in Sources */,
+				7D12E33D2FF5CC2A003050AB /* OutputSpan+Extras.swift in Sources */,
 				7D2A77982F27F2BF005780C7 /* RigidDeque+Replacements.swift in Sources */,
 				7D7246872F3D9DDB00112FD0 /* _HTable+Iteration.swift in Sources */,
 				7D7246882F3D9DDB00112FD0 /* RigidDictionary.swift in Sources */,
@@ -2718,6 +2748,7 @@
 				7D57A2B82F33FF48002543BD /* RigidArray+Consumption.swift in Sources */,
 				7DA23F582F32C66300E4C03A /* RigidArray+Equatable.swift in Sources */,
 				7D479CFC2F4D080500A8CB59 /* UniqueDictionary+Removals.swift in Sources */,
+				7D77E6272FD0F94B003FA63B /* UnsafeMutablePointer+Extras.swift in Sources */,
 				7D479CFD2F4D080500A8CB59 /* UniqueDictionary+Keys.swift in Sources */,
 				7DE9208A29CA70F4004483EB /* BigString+Comparable.swift in Sources */,
 				7DE9213629CA70F4004483EB /* TreeSet+SetAlgebra basics.swift in Sources */,
@@ -2731,6 +2762,7 @@
 				7DE9204629CA70F3004483EB /* _Hashtable+Header.swift in Sources */,
 				7DE9208129CA70F4004483EB /* BigString+CustomStringConvertible.swift in Sources */,
 				7DE920A929CA70F4004483EB /* Optional Utilities.swift in Sources */,
+				7D77E6252FD0F880003FA63B /* UnsafePointer+Extras.swift in Sources */,
 				7DE920BD29CA70F4004483EB /* BitSet+SetAlgebra symmetricDifference.swift in Sources */,
 				7DE9208229CA70F4004483EB /* BigString+BidirectionalCollection.swift in Sources */,
 				7D479CDF2F47D5CA00A8CB59 /* RigidDictionary+Insertions.swift in Sources */,
@@ -3054,6 +3086,10 @@
 				7DE9217E29CA70F4004483EB /* Heap+ExpressibleByArrayLiteral.swift in Sources */,
 				7D57EDD32F647DB10029D5E3 /* RandomAccessContainer.swift in Sources */,
 				7D57EDD52F647DB10029D5E3 /* MutableContainer.swift in Sources */,
+				7D59D0662FE49C87005B5097 /* Span+Container.swift in Sources */,
+				7D59D0672FE49C87005B5097 /* InputSpan+Container.swift in Sources */,
+				7D59D0682FE49C87005B5097 /* MutableSpan+Container.swift in Sources */,
+				7D59D0692FE49C87005B5097 /* OutputSpan+Container.swift in Sources */,
 				7D57EDD62F647DB10029D5E3 /* DynamicContainer.swift in Sources */,
 				7D57EDD72F647DB10029D5E3 /* Drain+Reduce.swift in Sources */,
 				7D57EDD82F647DB10029D5E3 /* Producer+Map.swift in Sources */,

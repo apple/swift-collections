@@ -44,7 +44,7 @@ extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: MutableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
 #endif
 #endif

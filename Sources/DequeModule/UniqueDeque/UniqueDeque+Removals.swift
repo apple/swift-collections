@@ -136,6 +136,7 @@ extension UniqueDeque where Element: ~Copyable {
     _storage.popFirst()
   }
 
+#if !UnstableContainersPreview
   /// Removes and returns the last element of the deque, if there is one.
   ///
   /// - Returns: The last element of the original deque if it was not empty;
@@ -147,6 +148,7 @@ extension UniqueDeque where Element: ~Copyable {
   public mutating func popLast() -> Element? {
     _storage.popLast()
   }
+#endif
 }
 
 #endif

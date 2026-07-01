@@ -64,6 +64,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Producer+Reduce.swift"
   "Types/InputSpan.swift"
   "Types/MutableRef.swift"
+  "Types/OutputSpan+Extras.swift"
   "Types/Shared.swift"
   "Types/SpanIterator.swift"
   "Types/UniqueBox.swift"

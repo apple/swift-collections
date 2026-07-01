@@ -20,6 +20,7 @@ where
   Element: ~Copyable,
   IterableIterator_ == ContainerIterator<Self>
 {
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeIterableIterator_() -> IterableIterator_ {
     ContainerIterator(_borrowing: self, from: self.startIndex)
@@ -33,12 +34,16 @@ public struct ContainerIterator<
 where Base.Element: ~Copyable
 {
   public typealias Element = Base.Element
-  
-  let _base: Ref<Base> // FIXME: This doesn't support nonescapable Bases
-  var _position: Base.Index
 
+  @_alwaysEmitIntoClient
+  package let _base: Ref<Base> // FIXME: This doesn't support nonescapable Bases
+
+  @_alwaysEmitIntoClient
+  package var _position: Base.Index
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow base)
-  init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
+  package init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
     self._base = Ref(base)
     self._position = position
   }
@@ -52,12 +57,14 @@ where
 {
   public typealias Element_ = Base.Element
 
+  @_alwaysEmitIntoClient
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence?!
   @_lifetime(&self)
   public mutating func nextSpan_(maximumCount: Int) -> Span<Base.Element> {
     _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
   }
 
+  @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
   public mutating func skip_(by maximumOffset: Int) -> Int {
     // FIXME: If we aren't modeling bidirectional iterators, then this should
