@@ -117,7 +117,8 @@ extension _Node {
   /// does not exist, ``_Node.dummyValue`` can be used to obtain a valid value within the type system
   /// that can be passed to APIs.
   @usableFromInline
-  internal class Storage: ManagedBuffer<_Node.Header, Key> {    
+  @_fixed_layout // Not really! This module isn't ABI stable.
+  internal class Storage: ManagedBuffer<_Node.Header, Key> {
     /// Allows **read-only** access to the underlying data behind the node.
     ///
     /// - Parameter body: A closure with a handle which allows interacting with the node
