@@ -50,7 +50,7 @@ where Base.Element: ~Copyable
 }
 
 @available(SwiftStdlib 6.4, *)
-extension ContainerIterator: IterableIteratorProtocol_
+extension ContainerIterator: BorrowingIteratorProtocol_
 where
   Base: ~Copyable /*FIXME: & ~Escapable*/,
   Base.Element: ~Copyable

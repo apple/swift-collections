@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
@@ -30,7 +30,7 @@ where
 
 @available(SwiftStdlib 5.0, *)
 public struct BorrowingFilter<
-  Base: IterableIteratorProtocol_ & ~Copyable & ~Escapable
+  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
 >: ~Copyable, ~Escapable
 where Base.Element_: ~Copyable {
   public typealias Element_ = Base.Element_
@@ -56,7 +56,7 @@ where Base.Element_: ~Copyable {
 // FIXME: Sendable
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingFilter: IterableIteratorProtocol_
+extension BorrowingFilter: BorrowingIteratorProtocol_
 where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable {
   @_lifetime(&self)
   public mutating func nextSpan_(maximumCount: Int) throws(Failure) -> Span<Element_> {

@@ -88,7 +88,7 @@ where Base.Element: ~Copyable
 // FIXME: Sendable
 
 @available(SwiftStdlib 6.4, *)
-extension ContainerFilter: IterableIteratorProtocol_ where Element: ~Copyable {
+extension ContainerFilter: BorrowingIteratorProtocol_ where Element: ~Copyable {
   public typealias Element_ = Base.Element
 
   @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`

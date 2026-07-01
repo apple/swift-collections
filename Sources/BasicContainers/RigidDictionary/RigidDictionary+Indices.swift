@@ -82,7 +82,7 @@ where Key: ~Copyable, Value: ~Copyable
 }
 
 @available(SwiftStdlib 6.4, *)
-extension RigidDictionary.Indices.IterableIterator_: IterableIteratorProtocol_
+extension RigidDictionary.Indices.IterableIterator_: BorrowingIteratorProtocol_
 where Key: ~Copyable, Value: ~Copyable {
   public typealias Element_ = Element
 

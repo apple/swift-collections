@@ -16,7 +16,7 @@
 /// A borrowing iterator that provides access to the elements of a single
 /// span through a `BorrowingIteratorProtocol` interface.
 @available(SwiftStdlib 5.0, *)
-public struct SpanIterator<Element_>: IterableIteratorProtocol_, ~Copyable, ~Escapable
+public struct SpanIterator<Element_>: BorrowingIteratorProtocol_, ~Copyable, ~Escapable
   where Element_: ~Copyable
 {
   @usableFromInline

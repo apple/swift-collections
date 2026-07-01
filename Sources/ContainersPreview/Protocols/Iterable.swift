@@ -18,7 +18,7 @@ public protocol Iterable_<Element_, Failure_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
   associatedtype Failure_: Error = Never
 
-  associatedtype IterableIterator_: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+  associatedtype IterableIterator_: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
 
   var underestimatedCount_: Int { get }
 

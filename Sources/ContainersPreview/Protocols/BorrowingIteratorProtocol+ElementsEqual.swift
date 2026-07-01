@@ -80,14 +80,14 @@ where
 }
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable & Equatable
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) throws(Failure_) -> Bool
@@ -113,7 +113,7 @@ where
 
   @inlinable
   package consuming func _directElementsEqual<
-    Other: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) throws(Failure_) -> Bool
@@ -174,14 +174,14 @@ where
 }
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: IterableIteratorProtocol_ & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
     by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure_) -> Bool

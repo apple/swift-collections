@@ -23,7 +23,7 @@ import ContainersPreview
 extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
   @frozen
-  public struct BorrowingIterator: ~Escapable, IterableIteratorProtocol_ {
+  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
     public typealias Element_ = Element
 
     @usableFromInline

@@ -76,7 +76,7 @@ package struct _StaccatoParameters {
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoBorrowingIterator<Element: ~Copyable>: IterableIteratorProtocol_, ~Escapable {
+public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol_, ~Escapable {
   public typealias Element_ = Element
 
   internal let _contents: Span<Element>

@@ -113,7 +113,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   public typealias Element = Bound
   
   @frozen
-  public struct IterableIterator_: IterableIteratorProtocol_, ~Copyable {
+  public struct IterableIterator_: BorrowingIteratorProtocol_, ~Copyable {
     @usableFromInline
     internal var _current: InlineArray<1, Bound>
     
@@ -169,7 +169,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   public typealias Element = Bound
   
   @frozen
-  public struct IterableIterator_: IterableIteratorProtocol_, ~Copyable {
+  public struct IterableIterator_: BorrowingIteratorProtocol_, ~Copyable {
     @usableFromInline
     internal var _current: InlineArray<1, Bound>
     

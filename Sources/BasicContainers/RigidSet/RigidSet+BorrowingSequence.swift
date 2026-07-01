@@ -39,7 +39,7 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
 
   @frozen
   public struct IterableIterator_:
-    IterableIteratorProtocol_,
+    BorrowingIteratorProtocol_,
     ~Copyable,
     ~Escapable
   {
