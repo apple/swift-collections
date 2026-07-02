@@ -31,7 +31,10 @@ extension RigidDeque where Element: ~Copyable {
     
     @usableFromInline
     internal var _nextSegment: Span<Element>
-    
+
+    @usableFromInline
+    internal var _position: Int
+
     @_alwaysEmitIntoClient
     @_lifetime(borrow _deque)
     internal init(_deque: borrowing RigidDeque<Element>) {
@@ -43,10 +46,28 @@ extension RigidDeque where Element: ~Copyable {
         Span(
           _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
         borrowing: _deque)
+      self._position = 0
     }
-    
+
     @_alwaysEmitIntoClient
-    @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
+    @_lifetime(borrow _deque)
+    internal init(
+      _deque: borrowing RigidDeque<Element>,
+      from start: Int
+    ) {
+      precondition(start >= 0 && start <= _deque.count, "Index out of bounds")
+      self.init(_deque: _deque)
+      var remainder = start
+      while remainder > 0 {
+        let d = self.skip_(by: remainder)
+        precondition(d > 0)
+        remainder &-= d
+      }
+      self._position = start
+    }
+
+    @_alwaysEmitIntoClient
+    @_lifetime(&self)
     @_lifetime(self: copy self)
     public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
       let result = _currentSegment._trim(first: maxCount)
@@ -54,6 +75,7 @@ extension RigidDeque where Element: ~Copyable {
         _currentSegment = _nextSegment
         _nextSegment = Span()
       }
+      _position &+= result.count
       return result
     }
   }
@@ -68,7 +90,21 @@ extension RigidDeque where Element: ~Copyable {
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque: Container where Element: ~Copyable {}
+extension RigidDeque: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index
+  ) -> BorrowingIterator_ {
+    BorrowingIterator(_deque: self, from: start)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    // FIXME: This should validate that the iterator belongs to this deque.
+    return iterator._position
+  }
+}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque: BidirectionalContainer where Element: ~Copyable {}

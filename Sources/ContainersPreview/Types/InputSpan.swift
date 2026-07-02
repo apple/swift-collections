@@ -465,6 +465,7 @@ extension InputSpan where Element: ~Copyable {
   /// Borrow the underlying initialized memory for read-only access.
   @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
+  @_transparent
   public var span: Span<Element> {
     @_lifetime(borrow self)
     borrowing get {

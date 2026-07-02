@@ -101,28 +101,28 @@ extension BorrowingIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
-  public mutating func skip_(by offset: Int) throws(Failure_) -> Int {
-    var remainder = offset
+  public mutating func skip_(by maxDistance: Int) throws(Failure_) -> Int {
+    var remainder = maxDistance
     while remainder > 0 {
       let span = try nextSpan_(maxCount: remainder)
       if span.isEmpty { break }
       remainder &-= span.count
     }
-    return offset &- remainder
+    return maxDistance &- remainder
   }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
-#if false // FIXME: This doesn't work, but it should?
+  @available(SwiftStdlib 6.4, *)
+  @_unsafeNonescapableResult // FIXME: Eep; _overrideLifetime(_:mutating:) doesn't work
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func next() -> Ref<Element>? {
-    let span = nextSpan(maxCount: 1)
+  public mutating func next() throws(Failure_) -> Ref<Element_>? {
+    let span = try nextSpan_(maxCount: 1)
     guard !span.isEmpty else { return nil }
-    return Ref(_borrowing: span[unchecked: 0])
+    return Ref(span[unchecked: 0])
   }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -144,6 +144,5 @@ extension BorrowingIteratorProtocol_
     }
   }
 }
-
 
 #endif

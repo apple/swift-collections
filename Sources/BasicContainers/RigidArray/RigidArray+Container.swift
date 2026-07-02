@@ -22,17 +22,40 @@ import ContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: Iterable_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
+
   @_alwaysEmitIntoClient
   @inline(__always)
   public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    SpanIterator(self.span)
+    let span = self.span
+    let it = span.makeBorrowingIterator_()
+    // FIXME: `it` is borrowing `span`, not self
+    return _overrideLifetime(it, borrowing: self)
   }
 }
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {}
+extension RigidArray: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index
+  ) -> BorrowingIterator_ {
+    let span = self.span
+    let it = span.makeBorrowingIterator(from: start)
+    // FIXME: `it` is borrowing `span`, not self
+    return _overrideLifetime(it, borrowing: self)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    precondition(
+      iterator._span.isTriviallyIdentical(to: self.span),
+      "Invalid iterator instance")
+    return iterator._start
+  }
+}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: BidirectionalContainer where Element: ~Copyable {}

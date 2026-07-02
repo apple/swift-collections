@@ -15,8 +15,8 @@
 
 @available(SwiftStdlib 5.0, *)
 extension Span: Iterable_ where Element: ~Copyable {
-    public typealias BorrowingIterator_ = SpanIterator<Element>
-    public typealias Element_ = Element
+  public typealias BorrowingIterator_ = SpanIterator<Element>
+  public typealias Element_ = Element
 
   @inlinable
   public var underestimatedCount_: Int { count }
@@ -31,6 +31,7 @@ extension Span: Iterable_ where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension MutableSpan: Iterable_ where Element: ~Copyable {
   public typealias BorrowingIterator_ = SpanIterator<Element>
+  public typealias Element_ = Element
 
   @inlinable
   public var underestimatedCount_: Int { count }

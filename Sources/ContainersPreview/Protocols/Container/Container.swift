@@ -29,6 +29,10 @@ public protocol Container<Element>:
   // somewhere -- `RandomAccessContainer` or `BidirectionalContainer` would be
   // the obvious candidates.
 
+  @_lifetime(borrow self)
+  func makeBorrowingIterator(from start: Index) -> BorrowingIterator_
+  func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index
+
   var isEmpty: Bool { get }
   var count: Int { get }
 

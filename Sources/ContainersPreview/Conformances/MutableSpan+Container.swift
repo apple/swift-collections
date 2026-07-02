@@ -19,6 +19,27 @@ import InternalCollectionsUtilities
 
 extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(from start: Int) -> SpanIterator<Element_> {
+    var it = SpanIterator(self.span)
+    var remainder = start
+    while remainder > 0 {
+      let d = it.skip_(by: remainder)
+      precondition(d > 0)
+      remainder &-= d
+    }
+    return it
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing SpanIterator<Element>) -> Int {
+    precondition(
+      self.span.isTriviallyIdentical(to: iterator._span),
+      "Invalid iterator")
+    return iterator._start
+  }
+
+  @_alwaysEmitIntoClient
   public var startIndex: Int {
     0
   }

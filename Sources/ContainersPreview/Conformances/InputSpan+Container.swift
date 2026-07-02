@@ -22,6 +22,22 @@ extension InputSpan: RandomAccessContainer, MutableContainer
 where Element: ~Copyable
 {
   @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index
+  ) -> BorrowingIterator_ {
+    let span = self.span
+    let it = span.makeBorrowingIterator(from: start)
+    // FIXME: `it` is borrowing `span`, not self
+    return _overrideLifetime(it, borrowing: self)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    self.span.currentIndex(of: iterator)
+  }
+
+  @_alwaysEmitIntoClient
   @inline(__always)
   public var startIndex: Index { 0 }
 

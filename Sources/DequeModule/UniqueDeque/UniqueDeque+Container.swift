@@ -34,7 +34,20 @@ extension UniqueDeque where Element: ~Copyable {
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque: Container where Element: ~Copyable {}
+extension UniqueDeque: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index
+  ) -> BorrowingIterator_ {
+    _storage.makeBorrowingIterator(from: start)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    _storage.currentIndex(of: iterator)
+  }
+}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: BidirectionalContainer where Element: ~Copyable {}

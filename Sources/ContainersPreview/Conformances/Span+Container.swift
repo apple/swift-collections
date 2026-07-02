@@ -15,6 +15,30 @@
 
 extension Span: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(from start: Int) -> SpanIterator<Element> {
+    precondition(start >= 0 && start <= self.count, "Index out of bounds")
+    // FIXME: SpanIterator needs to have a direct initializer that takes `start`
+    var it = SpanIterator(self)
+    var remainder = start
+    while remainder > 0 {
+      let d = it.skip_(by: remainder)
+      precondition(d > 0)
+      remainder &-= d
+    }
+    return it
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing SpanIterator<Element>) -> Int {
+    // FIXME: SpanIterator needs to have public `base` and `position` properties
+    precondition(
+      self.isTriviallyIdentical(to: iterator._span),
+      "Invalid iterator")
+    return iterator._start
+  }
+
+  @_alwaysEmitIntoClient
   public var startIndex: Int {
     0
   }
