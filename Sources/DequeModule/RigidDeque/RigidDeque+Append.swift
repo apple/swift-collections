@@ -316,7 +316,7 @@ extension RigidDeque /*where Element: Copyable*/ {
     S: Iterable_ & ~Copyable & ~Escapable
   >(copying items: borrowing S) throws(S.Failure_)
   where S.Element_ == Element {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       if span.isEmpty { break }

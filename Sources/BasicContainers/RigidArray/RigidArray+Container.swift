@@ -21,10 +21,10 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidArray: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = SpanIterator<Element>
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeIterableIterator_() -> IterableIterator_ {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     SpanIterator(self.span)
   }
 }

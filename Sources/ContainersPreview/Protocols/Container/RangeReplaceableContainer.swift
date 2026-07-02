@@ -692,7 +692,7 @@ where
     copying items: borrowing C,
     at index: Index
   ) {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
         let source = it.nextSpan_(maxCount: target.freeCapacity)
@@ -818,7 +818,7 @@ where
     copying items: borrowing S
   ) throws(S.Failure_)
   where S.Element_ == Element {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       guard !span.isEmpty else { break }

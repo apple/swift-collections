@@ -139,7 +139,7 @@ extension UniqueSet /* where Element: Copyable */ {
   ) throws(S.Failure_)
   where S.Element_ == Element {
     _ensureFreeCapacity(items.underestimatedCount_)
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       guard !span.isEmpty else { break }

@@ -18,12 +18,12 @@ public protocol Iterable_<Element_, Failure_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
   associatedtype Failure_: Error = Never
 
-  associatedtype IterableIterator_: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+  associatedtype BorrowingIterator_: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
 
   var underestimatedCount_: Int { get }
 
   @_lifetime(borrow self)
-  borrowing func makeIterableIterator_() -> IterableIterator_
+  borrowing func makeBorrowingIterator_() -> BorrowingIterator_
   
   func _customContainsEquatableElement_(
     _ element: borrowing Element_
@@ -63,7 +63,7 @@ where
   public func _borrowingForEach(
     _ body: (borrowing Element_) throws(Failure_) -> Void
   ) throws(Failure_) -> Void {
-    var it = makeIterableIterator_()
+    var it = makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       if span.isEmpty { break }

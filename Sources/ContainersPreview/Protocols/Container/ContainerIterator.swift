@@ -18,11 +18,11 @@ extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
   Element: ~Copyable,
-  IterableIterator_ == ContainerIterator<Self>
+  BorrowingIterator_ == ContainerIterator<Self>
 {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeIterableIterator_() -> IterableIterator_ {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     ContainerIterator(_borrowing: self, from: self.startIndex)
   }
 }

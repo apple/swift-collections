@@ -138,7 +138,7 @@ public func expectIterablePayloads<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(E) where E1.Element_: ~Copyable {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   var i = 0
   while true {
@@ -186,7 +186,7 @@ public func expectIterablePayloads<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(E) {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   var i = 0
   while true {
@@ -284,7 +284,7 @@ public func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(E) {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   while true {
     let span = try it1.nextSpan_()
@@ -327,7 +327,7 @@ public func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(S1.Failure_) where S1.Element_: ~Copyable {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   var offset = 0
   while true {

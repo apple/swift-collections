@@ -33,12 +33,12 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
 
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func makeIterableIterator_() -> IterableIterator_ {
-    IterableIterator_(_set: self)
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(_set: self)
   }
 
   @frozen
-  public struct IterableIterator_:
+  public struct BorrowingIterator_:
     BorrowingIteratorProtocol_,
     ~Copyable,
     ~Escapable

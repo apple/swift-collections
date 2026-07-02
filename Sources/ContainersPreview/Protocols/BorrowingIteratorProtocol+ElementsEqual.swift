@@ -31,8 +31,8 @@ where
   ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable
   {
-    let it1 = self.makeIterableIterator_()
-    let it2 = other.makeIterableIterator_()
+    let it1 = self.makeBorrowingIterator_()
+    let it2 = other.makeBorrowingIterator_()
     return try it1.elementsEqual(it2)
   }
 }
@@ -73,8 +73,8 @@ where
   ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable, Other.Failure_ == Failure_
   {
-    let it1 = self.makeIterableIterator_()
-    let it2 = other.makeIterableIterator_()
+    let it1 = self.makeBorrowingIterator_()
+    let it2 = other.makeBorrowingIterator_()
     return try it1.elementsEqual(it2, by: areEquivalent)
   }
 }

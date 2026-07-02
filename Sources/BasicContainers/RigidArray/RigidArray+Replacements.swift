@@ -591,7 +591,7 @@ extension RigidArray {
     copyingContainer items: borrowing C,
     newCount: Int
   ) {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
         let source = it.nextSpan_(maxCount: target.freeCapacity)

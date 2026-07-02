@@ -50,7 +50,7 @@ where Key: ~Copyable, Value: ~Copyable
   public typealias Element_ = Element
 
   @frozen
-  public struct IterableIterator_: ~Escapable {
+  public struct BorrowingIterator_: ~Escapable {
     public typealias Element = RigidDictionary.Index
 
     @usableFromInline
@@ -73,16 +73,16 @@ where Key: ~Copyable, Value: ~Copyable
   public var underestimatedCount_: Int { self._base.value.count }
 
   @_lifetime(borrow self) // FIXME: Should be @_lifetime(copy self)
-  public func makeIterableIterator_() -> IterableIterator_ {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     let bit = self._base.value.makeBucketIterator()
     // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
     let override = _overrideLifetime(bit, copying: self)
-    return IterableIterator_(_it: override)
+    return BorrowingIterator_(_it: override)
   }
 }
 
 @available(SwiftStdlib 6.4, *)
-extension RigidDictionary.Indices.IterableIterator_: BorrowingIteratorProtocol_
+extension RigidDictionary.Indices.BorrowingIterator_: BorrowingIteratorProtocol_
 where Key: ~Copyable, Value: ~Copyable {
   public typealias Element_ = Element
 

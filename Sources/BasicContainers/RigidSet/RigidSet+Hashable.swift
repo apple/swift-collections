@@ -37,7 +37,7 @@ extension RigidSet where Element: ~Copyable {
   public func _rawHashValue(seed: Int) -> Int {
 #if UnstableContainersPreview
     var hash = 0
-    var it = self.makeIterableIterator_()
+    var it = self.makeBorrowingIterator_()
     while true {
       let next = it.nextSpan_()
       var i = 0

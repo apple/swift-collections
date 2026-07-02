@@ -15,7 +15,7 @@
 
 @available(SwiftStdlib 5.0, *)
 extension Span: Iterable_ where Element: ~Copyable {
-    public typealias IterableIterator_ = SpanIterator<Element>
+    public typealias BorrowingIterator_ = SpanIterator<Element>
     public typealias Element_ = Element
 
   @inlinable
@@ -23,21 +23,21 @@ extension Span: Iterable_ where Element: ~Copyable {
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeIterableIterator_() -> SpanIterator<Element> {
+  public func makeBorrowingIterator_() -> SpanIterator<Element> {
     SpanIterator(self)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension MutableSpan: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = SpanIterator<Element>
 
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeIterableIterator_() -> SpanIterator<Element> {
+  public func makeBorrowingIterator_() -> SpanIterator<Element> {
     // FIXME: This should be declared to return BorrowingIterator, but it
     // clashes with the stdlib's alternate definition:
     //    error: 'BorrowingIterator' is ambiguous for type lookup in this context
@@ -48,56 +48,56 @@ extension MutableSpan: Iterable_ where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension OutputSpan: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = SpanIterator<Element>
 
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeIterableIterator_() -> IterableIterator_ {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     SpanIterator(self.span)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension InputSpan: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = SpanIterator<Element>
 
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeIterableIterator_() -> IterableIterator_ {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     SpanIterator(self.span)
   }
 }
 
 @available(SwiftStdlib 6.2, *)
 extension Array: Iterable_ {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = SpanIterator<Element>
 
   @inlinable
   public var underestimatedCount_: Int { count }
   
   @_lifetime(borrow self)
   @inlinable
-  public func makeIterableIterator_() -> IterableIterator_ {
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
     SpanIterator(self.span)
   }
 }
 
 @available(SwiftStdlib 6.2, *)
 extension InlineArray: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = SpanIterator<Element>
   
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeIterableIterator_() -> SpanIterator<Element> {
+  public func makeBorrowingIterator_() -> SpanIterator<Element> {
     // FIXME: This should be declared to return BorrowingIterator, but it
     // clashes with the stdlib's alternate definition:
     //    error: 'BorrowingIterator' is ambiguous for type lookup in this context
@@ -113,7 +113,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   public typealias Element = Bound
   
   @frozen
-  public struct IterableIterator_: BorrowingIteratorProtocol_, ~Copyable {
+  public struct BorrowingIterator_: BorrowingIteratorProtocol_, ~Copyable {
     @usableFromInline
     internal var _current: InlineArray<1, Bound>
     
@@ -157,8 +157,8 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   public var underestimatedCount_: Int { _borrowingUnderestimatedCount }
 
   @inlinable
-  public func makeIterableIterator_() -> IterableIterator_ {
-    IterableIterator_(self)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(self)
   }
 }
 
@@ -169,7 +169,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   public typealias Element = Bound
   
   @frozen
-  public struct IterableIterator_: BorrowingIteratorProtocol_, ~Copyable {
+  public struct BorrowingIterator_: BorrowingIteratorProtocol_, ~Copyable {
     @usableFromInline
     internal var _current: InlineArray<1, Bound>
     
@@ -214,8 +214,8 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   public var underestimatedCount_: Int { _borrowingUnderestimatedCount }
   
   @inlinable
-  public func makeIterableIterator_() -> IterableIterator_ {
-    IterableIterator_(self)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(self)
   }
 }
 

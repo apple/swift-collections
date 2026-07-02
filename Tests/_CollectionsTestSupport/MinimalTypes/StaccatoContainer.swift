@@ -117,12 +117,12 @@ public struct _StaccatoIndex: Comparable {
 
 @available(SwiftStdlib 5.0, *)
 extension StaccatoContainer: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
+  public typealias BorrowingIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
   public var underestimatedCount_: Int { count }
 
-  public func makeIterableIterator_() -> IterableIterator_ {
-    IterableIterator_(contents: _contents.span, params: _params)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(contents: _contents.span, params: _params)
   }
 }
 

@@ -266,7 +266,7 @@ extension UniqueArray {
   ) throws(Source.Failure_)
   where Source.Element_ == Element {
     _ensureFreeCapacity(newElements.underestimatedCount_)
-    var it = newElements.makeIterableIterator_()
+    var it = newElements.makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       if span.isEmpty { break }

@@ -21,15 +21,15 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = RigidArray<Element>.IterableIterator_
+  public typealias BorrowingIterator_ = RigidArray<Element>.BorrowingIterator_
 
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeIterableIterator_() -> IterableIterator_ {
-    self._storage.makeIterableIterator_()
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    self._storage.makeBorrowingIterator_()
   }
 }
 #endif

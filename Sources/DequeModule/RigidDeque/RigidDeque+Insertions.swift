@@ -365,7 +365,7 @@ extension RigidDeque /* where Element: Copyable */ {
     newCount: Int
   ) {
     let expectedCount = self.count + newCount
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     insert(addingCount: newCount, at: index) { target in
       it._copyContents_(into: &target)
     }

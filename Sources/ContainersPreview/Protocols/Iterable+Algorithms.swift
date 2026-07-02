@@ -23,7 +23,7 @@ extension Iterable_
     _ nextPartialResult:
       (_ partialResult: consuming Result, borrowing Element_) throws(Failure_) -> Result
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(initialResult, nextPartialResult)
+    try makeBorrowingIterator_().reduce(initialResult, nextPartialResult)
   }
 
   @inlinable
@@ -32,7 +32,7 @@ extension Iterable_
     _ updateAccumulatingResult:
       (_ partialResult: inout Result, borrowing Element_) throws(Failure_) -> ()
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
+    try makeBorrowingIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
 
@@ -44,7 +44,7 @@ extension Sequence where Self: Iterable_ {
     _ nextPartialResult:
       (_ partialResult: consuming Result, borrowing Element_) throws(Failure_) -> Result
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(initialResult, nextPartialResult)
+    try makeBorrowingIterator_().reduce(initialResult, nextPartialResult)
   }
 
   @inlinable
@@ -53,7 +53,7 @@ extension Sequence where Self: Iterable_ {
     _ updateAccumulatingResult:
       (_ partialResult: inout Result, borrowing Element_) throws(Failure_) -> ()
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
+    try makeBorrowingIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
 
@@ -69,8 +69,8 @@ extension Iterable_
   where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element_: ~Copyable, OtherSequence.Failure_ == Failure_
   {
     // FIXME: Forward to the iterator's implementation of same
-    var iter1 = makeIterableIterator_()
-    var iter2 = other.makeIterableIterator_()
+    var iter1 = makeBorrowingIterator_()
+    var iter2 = other.makeBorrowingIterator_()
     while true {
       var el1 = try iter1.nextSpan_()
 

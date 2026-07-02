@@ -24,7 +24,7 @@ extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
     intoPrefixOf buffer: UnsafeMutableBufferPointer<Element_>
   ) throws(Failure_) -> Int {
     var target = buffer
-    var it = self.makeIterableIterator_()
+    var it = self.makeBorrowingIterator_()
     while target.count != 0 {
       let span = try it.nextSpan_(maxCount: target.count)
       if span.isEmpty {
