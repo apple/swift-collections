@@ -25,6 +25,7 @@ extension RigidSet where Element: ~Copyable {
     try self.insert(addingCount: maximumCount, initializingWith: initializer)
   }
 
+  #if UnstableContainersPreview
   @available(*, deprecated, renamed: "insert(addingCount:from:)")
   @_alwaysEmitIntoClient
   public mutating func insert<
@@ -38,7 +39,9 @@ extension RigidSet where Element: ~Copyable {
   {
     try self.insert(addingCount: maximumCount, from: &producer)
   }
+  #endif
 
+#if UnstableContainersPreview
   @available(*, deprecated, renamed: "insert(addingCount:from:)")
   @_alwaysEmitIntoClient
   public mutating func insert<
@@ -57,6 +60,7 @@ extension RigidSet where Element: ~Copyable {
       }
     }
   }
+  #endif
 }
 #endif
 

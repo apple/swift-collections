@@ -307,6 +307,7 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
+  #if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
@@ -342,6 +343,7 @@ class RigidDictionaryTests: CollectionTestCase {
       }
     }
   }
+  #endif
 
   func test_updateValue_with_remove() {
     typealias Key = LifetimeTracked<Int>

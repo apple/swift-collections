@@ -38,7 +38,8 @@ extension RigidSet where Element: ~Copyable {
     if left.isTriviallyIdentical(to: right) { return true }
     
     guard left.count == right.count else { return false }
-    
+
+    #if UnstableContainersPreview
     var lit = left.makeIterableIterator_()
     while true {
       let l = lit.nextSpan_()
@@ -49,6 +50,13 @@ extension RigidSet where Element: ~Copyable {
         i &+= 1
       }
     }
+    #else
+    var i = left.startIndex
+    while i != left.endIndex {
+      guard right.contains(left[i]) else { return false }
+      i = left.index(after: i)
+    }
+    #endif
     return true
   }
 }
