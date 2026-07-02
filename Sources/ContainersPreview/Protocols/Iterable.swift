@@ -47,32 +47,11 @@ where
 @available(SwiftStdlib 5.0, *)
 extension Iterable_ where Self: Sequence {
   @inlinable
+  public var underestimatedCount_: Int { 0 }
+
+  @inlinable
   public func _customContainsEquatableElement_(_ element: borrowing Element) -> Bool? {
     nil
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension Iterable_
-where
-  Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
-{
-  /// Implementation demo of what borrowing for-in loops would need to expand into.
-  @inlinable
-  public func _borrowingForEach(
-    _ body: (borrowing Element_) throws(Failure_) -> Void
-  ) throws(Failure_) -> Void {
-    var it = makeBorrowingIterator_()
-    while true {
-      let span = try it.nextSpan_()
-      if span.isEmpty { break }
-      var i = 0
-      while i < span.count {
-        try body(span[unchecked: i])
-        i &+= 1
-      }
-    }
   }
 }
 
