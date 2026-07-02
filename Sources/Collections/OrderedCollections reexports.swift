@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import OrderedCollections
+@_exported import OrderedCollections
 
 public typealias OrderedSet<Element: Hashable> = OrderedCollections.OrderedSet<Element>
 public typealias OrderedDictionary<Key: Hashable, Value> = OrderedCollections.OrderedDictionary<Key, Value>

@@ -361,7 +361,7 @@ let targets: [CustomTarget] = [
     kind: .test,
     name: "CollectionsModuleTests",
     dependencies: ["Collections", "_CollectionsTestSupport"],
-    settings: _baseSettings),
+    settings: _testSettings),
 ]
 
 let _products: [Product] = targets.compactMap { t in

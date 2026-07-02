@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import HashTreeCollections
+@_exported import HashTreeCollections
 
 public typealias TreeSet<Element: Hashable> = HashTreeCollections.TreeSet<Element>
 public typealias TreeDictionary<Key: Hashable, Value> = HashTreeCollections.TreeDictionary<Key, Value>

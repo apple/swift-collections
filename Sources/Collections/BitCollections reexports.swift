@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #if !COLLECTIONS_SINGLE_MODULE
-import BitCollections
+@_exported import BitCollections
 
 public typealias BitSet = BitCollections.BitSet
 public typealias BitArray = BitCollections.BitArray
