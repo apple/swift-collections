@@ -50,7 +50,7 @@ where Element: ~Copyable, Index: Comparable
   func formIndex(before i: inout Index)
 
   @_lifetime(borrow self)
-  func previousSpan(before index: inout Index, maximumCount: Int) -> Span<Element>
+  func previousSpan(before index: inout Index, maxCount: Int) -> Span<Element>
 
   override func index(after index: Index) -> Index
 
@@ -77,7 +77,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
   public func previousSpan(before index: inout Index) -> Span<Element> {
-    previousSpan(before: &index, maximumCount: Int.max)
+    previousSpan(before: &index, maxCount: Int.max)
   }
 
   @inlinable
@@ -107,7 +107,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     var n = n
     if n >= 0 {
       while n > 0 {
-        let span = self.nextSpan(after: &index, maximumCount: n)
+        let span = self.nextSpan(after: &index, maxCount: n)
         precondition(
           !span.isEmpty,
           "Cannot advance index beyond the end of the container")
@@ -116,7 +116,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     } else {
       n = -n
       while n > 0 {
-        let span = self.previousSpan(before: &index, maximumCount: n)
+        let span = self.previousSpan(before: &index, maxCount: n)
         precondition(
           !span.isEmpty,
           "Cannot advance index beyond the end of the container")
@@ -142,7 +142,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       // Skip forward until we find our target or overshoot the limit.
       while n > 0 {
         var j = index
-        let span = self.nextSpan(after: &j, maximumCount: n)
+        let span = self.nextSpan(after: &j, maxCount: n)
         precondition(
           !span.isEmpty,
           "Cannot advance index beyond the end of the container")
@@ -172,7 +172,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     // Skip backward until we find our target or overshoot the limit.
     while n < 0 {
       var j = index
-      let span = self.previousSpan(before: &j, maximumCount: -n)
+      let span = self.previousSpan(before: &j, maxCount: -n)
       precondition(
         !span.isEmpty,
         "Cannot move index before the start of the container")

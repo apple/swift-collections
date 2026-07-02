@@ -15,7 +15,7 @@
 import ContainersPreview
 #endif
 
-#if compiler(>=6.4) && UnstableHashedContainers
+#if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
 @available(SwiftStdlib 6.2, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
@@ -87,7 +87,7 @@ where Key: ~Copyable, Value: ~Copyable {
   public typealias Element_ = Element
 
   @_lifetime(&self)
-  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
+  public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
     guard _it.advanceToOccupied() else { return .init() }
     _current[0] = Element(_bucket: _it.currentBucket)
     _it.advanceToNextBit()

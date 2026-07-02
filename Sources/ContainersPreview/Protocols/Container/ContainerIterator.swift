@@ -60,8 +60,8 @@ where
   @_alwaysEmitIntoClient
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence?!
   @_lifetime(&self)
-  public mutating func nextSpan_(maximumCount: Int) -> Span<Base.Element> {
-    _base.value.nextSpan(after: &self._position, maximumCount: maximumCount)
+  public mutating func nextSpan_(maxCount: Int) -> Span<Base.Element> {
+    _base.value.nextSpan(after: &self._position, maxCount: maxCount)
   }
 
   @_alwaysEmitIntoClient

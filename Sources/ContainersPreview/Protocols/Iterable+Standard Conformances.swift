@@ -131,7 +131,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     }
     @inlinable
     @_lifetime(&self)
-    public mutating func nextSpan_(maximumCount: Int) -> Span<Bound> {
+    public mutating func nextSpan_(maxCount: Int) -> Span<Bound> {
       if _progress {
         _current[0] = _current[0].advanced(by: 1)
       }
@@ -187,7 +187,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     }
     @inlinable
     @_lifetime(&self)
-    public mutating func nextSpan_(maximumCount: Int) -> Span<Bound> {
+    public mutating func nextSpan_(maxCount: Int) -> Span<Bound> {
       if _progress {
         _current[0] = _current[0].advanced(by: 1)
       }

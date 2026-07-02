@@ -205,11 +205,11 @@ extension RigidArray.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {
+  public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
     if _remainder.isEmpty {
       return .init()
     }
-    let buffer = _remainder._trim(first: maximumCount)
+    let buffer = _remainder._trim(first: maxCount)
     return _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)

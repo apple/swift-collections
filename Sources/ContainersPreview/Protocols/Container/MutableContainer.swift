@@ -29,7 +29,7 @@ where
 
   /// Return a mutable span over the container's storage that begins with the
   /// element at the given index, and extends to the end of the contiguous
-  /// storage chunk that contains it, but no more than `maximumCount` items.
+  /// storage chunk that contains it, but no more than `maxCount` items.
   ///
   /// On return, the index is updated to address the next item following the
   /// end of the returned span.
@@ -40,30 +40,30 @@ where
   ///
   ///     var index = items.startIndex
   ///     while true {
-  ///       var span = items.nextMutableSpan(after: &index, maximumCount: 4)
+  ///       var span = items.nextMutableSpan(after: &index, maxCount: 4)
   ///       if span.isEmpty { break }
   ///       // Process items in `span`
   ///     }
   ///
-  /// The `maximumCount` argument gives the caller control over the number of
+  /// The `maxCount` argument gives the caller control over the number of
   /// items it receives from the iterator. This lets the caller avoid getting
   /// more elements than it would be able to immediately process, which would
   /// significantly complicate container use.
   ///
   /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maximumCount`, or simply by calling the
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
   /// `nexSpan(after:)` method, which does precisely that. This is frequently
   /// the case when the caller simply wants to iterate over the entire
   /// container in a single loop.
   ///
-  /// `maximumCount` sets an upper bound. To read a specific number of items,
+  /// `maxCount` sets an upper bound. To read a specific number of items,
   /// the caller usually needs to invoke `nextSpan` in a loop:
   ///
   ///     var items: some MutableContainer<Int>
   ///     var index = items.startIndex
   ///     var remainder = numberOfItemsToRead
   ///     while remainder > 0 {
-  ///       let next = items.nextMutableSpan(after: &index, maximumCount: remainder)
+  ///       let next = items.nextMutableSpan(after: &index, maxCount: remainder)
   ///       guard !next.isEmpty else {
   ///         // Container does not have enough items
   ///         break
@@ -82,10 +82,10 @@ where
   /// - Parameter index: A valid index in the container, including the end
   ///     index. On return, this index is advanced by the count of the resulting
   ///     span, to simplify iteration.
-  /// - Parameter maximumCount: The maximum number of items the caller is able
-  ///     to process immediately. `maximumCount` must be greater than zero.
+  /// - Parameter maxCount: The maximum number of items the caller is able
+  ///     to process immediately. `maxCount` must be greater than zero.
   ///     If you are able to process an arbitrary number of items, set
-  ///     `maximumCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
   /// - Returns: A mutable span over contiguous storage that starts at the given
   ///     index. If the input index is the end index, then this returns an empty
   ///     span. Otherwise the result is non-empty, with its first element
@@ -93,7 +93,7 @@ where
   @_lifetime(&self)
   mutating func nextMutableSpan(
     after index: inout Index,
-    maximumCount: Int
+    maxCount: Int
   ) -> MutableSpan<Element>
 }
 
@@ -106,7 +106,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
   mutating func nextMutableSpan(
     after index: inout Index,
   ) -> MutableSpan<Element> {
-    nextMutableSpan(after: &index, maximumCount: Int.max)
+    nextMutableSpan(after: &index, maxCount: Int.max)
   }
 }
 

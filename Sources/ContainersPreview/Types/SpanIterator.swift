@@ -37,8 +37,8 @@ public struct SpanIterator<Element_>: BorrowingIteratorProtocol_, ~Copyable, ~Es
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
-  public mutating func nextSpan_(maximumCount: Int) -> Span<Element_> {
-    let c = Swift.min(maximumCount, _count)
+  public mutating func nextSpan_(maxCount: Int) -> Span<Element_> {
+    let c = Swift.min(maxCount, _count)
     defer {
       _start &+= c
       _count &-= c

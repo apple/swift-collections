@@ -235,14 +235,14 @@ extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {
+  public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
     if _buffer1.isEmpty {
       if _buffer2.isEmpty {
         return .init()
       }
       swap(&_buffer1, &_buffer2)
     }
-    let buffer = _buffer1._trim(first: maximumCount)
+    let buffer = _buffer1._trim(first: maxCount)
     return _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)

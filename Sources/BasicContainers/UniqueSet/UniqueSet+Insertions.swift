@@ -56,7 +56,8 @@ extension UniqueSet where Element: ~Copyable {
   /// Inserts the given element in the set if it is not already present.
   ///
   /// - Parameter item: An element to insert into the set.
-  /// - Returns:
+  /// - Returns: `item` if an equal member already exists in the set;
+  ///     otherwise `nil`.
   @inlinable
   @discardableResult
   public mutating func insert(
@@ -71,12 +72,12 @@ extension UniqueSet where Element: ~Copyable {
 extension UniqueSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func insert<E: Error>(
-    maximumCount: Int,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    _ensureFreeCapacity(maximumCount)
+    _ensureFreeCapacity(newItemCount)
     try _storage.insert(
-      maximumCount: maximumCount, initializingWith: initializer)
+      addingCount: newItemCount, initializingWith: initializer)
   }
 
 #if UnstableContainersPreview
@@ -92,7 +93,7 @@ extension UniqueSet where Element: ~Copyable {
     var done = false
     while !done {
       _ensureFreeCapacity(Swift.max(producer.underestimatedCount, 1))
-      try self.insert(maximumCount: self.freeCapacity) { target throws(E) in
+      try self.insert(addingCount: self.freeCapacity) { target throws(E) in
         while !target.isFull, !done {
           done = try !producer.generate(into: &target)
         }

@@ -69,7 +69,7 @@ extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
     var borrowIterator = makeIterableIterator_()
     var result: [Element_] = []
     while true {
-      let span = try borrowIterator.nextSpan_(maximumCount: .max)
+      let span = try borrowIterator.nextSpan_(maxCount: .max)
       if span.isEmpty { break }
       for i in span.indices {
         result.append(span[i])

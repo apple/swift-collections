@@ -324,7 +324,7 @@ extension RigidArray where Element: ~Copyable {
 
   /// Return a span over the array's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it, but no more than `maximumCount` items.
+  /// that contains it, but no more than `maxCount` items.
   ///
   /// On return, the index is updated to address the next item following the
   /// end of the returned span.
@@ -335,30 +335,30 @@ extension RigidArray where Element: ~Copyable {
   ///
   ///     var index = items.startIndex
   ///     while true {
-  ///       let span = items.nextSpan(after: &index, maximumCount: 4)
+  ///       let span = items.nextSpan(after: &index, maxCount: 4)
   ///       if span.isEmpty { break }
   ///       // Process items in `span`
   ///     }
   ///
-  /// The `maximumCount` argument gives the caller control over the number of
+  /// The `maxCount` argument gives the caller control over the number of
   /// items it receives from the iterator. This lets the caller avoid getting
   /// more elements than it would be able to immediately process, which would
   /// significantly complicate container use.
   ///
   /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maximumCount`, or simply by calling the
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
   /// `nexSpan(after:)` method, which does precisely that. This is frequently
   /// the case when the caller simply wants to iterate over the entire
   /// container in a single loop.
   ///
-  /// `maximumCount` sets an upper bound. To read a specific number of items,
+  /// `maxCount` sets an upper bound. To read a specific number of items,
   /// the caller usually needs to invoke `nextSpan` in a loop:
   ///
   ///     var items: some Container<Int>
   ///     var index = items.startIndex
   ///     var remainder = numberOfItemsToRead
   ///     while remainder > 0 {
-  ///       let next = items.nextSpan(after: &index, maximumCount: remainder)
+  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
   ///       guard !next.isEmpty else {
   ///         // Container does not have enough items
   ///         break
@@ -381,10 +381,10 @@ extension RigidArray where Element: ~Copyable {
   /// - Parameter index: A valid index in the container, including the end
   ///     index. On return, this index is advanced by the count of the resulting
   ///     span, to simplify iteration.
-  /// - Parameter maximumCount: The maximum number of items the caller is able
-  ///     to process immediately. `maximumCount` must be greater than zero.
+  /// - Parameter maxCount: The maximum number of items the caller is able
+  ///     to process immediately. `maxCount` must be greater than zero.
   ///     If you are able to process an arbitrary number of items, set
-  ///     `maximumCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
   /// - Returns: A span over contiguous storage that starts at the given index.
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
@@ -393,34 +393,36 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Int, maximumCount: Int
+    after index: inout Int, maxCount: Int
   ) -> Span<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let start = index
-    index = start &+ Swift.min(maximumCount, _count &- start)
+    index = start &+ Swift.min(maxCount, _count &- start)
     return _span(in: Range(uncheckedBounds: (start, index)))
   }
 
   @inlinable
   @_lifetime(&self)
-  public mutating func nextMutableSpan(after index: inout Int, maximumCount: Int) -> MutableSpan<Element> {
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int
+  ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let start = index
-    index = start &+ Swift.min(maximumCount, _count &- start)
+    index = start &+ Swift.min(maxCount, _count &- start)
     return _mutableSpan(in: Range(uncheckedBounds: (start, index)))
   }
 
   @inlinable
   @_lifetime(borrow self)
   public func previousSpan(
-    before index: inout Int, maximumCount: Int
+    before index: inout Int, maxCount: Int
   ) -> Span<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let start = index
-    index = start &- Swift.min(maximumCount, start)
+    index = start &- Swift.min(maxCount, start)
     return _span(in: Range(uncheckedBounds: (index, start)))
   }
 }

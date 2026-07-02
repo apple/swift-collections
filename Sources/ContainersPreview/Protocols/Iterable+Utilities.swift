@@ -26,7 +26,7 @@ extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
     var target = buffer
     var it = self.makeIterableIterator_()
     while target.count != 0 {
-      let span = try it.nextSpan_(maximumCount: target.count)
+      let span = try it.nextSpan_(maxCount: target.count)
       if span.isEmpty {
         return buffer.count - target.count
       }

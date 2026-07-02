@@ -26,19 +26,19 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Int, maxCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let limit = index &+ Swift.min(maximumCount, count &- index)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let limit = index &+ Swift.min(maxCount, count &- index)
     return self.extracting(unchecked: Range(uncheckedBounds: (index, limit)))
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let limit = index &- Swift.min(maximumCount, index)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let limit = index &- Swift.min(maxCount, index)
     return self.extracting(unchecked: Range(uncheckedBounds: (limit, index)))
   }
 }

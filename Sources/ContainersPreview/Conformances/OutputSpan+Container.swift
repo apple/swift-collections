@@ -30,30 +30,30 @@ where Element: ~Copyable
 
   @inlinable
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let limit = Swift.min(count &- index, maximumCount)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let limit = Swift.min(count &- index, maxCount)
     return self.span.extracting(unchecked: Range(uncheckedBounds: (index, limit)))
   }
 
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Index, maximumCount: Int
+    after index: inout Index, maxCount: Int
   ) -> MutableSpan<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let limit = Swift.min(count &- index, maximumCount)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let limit = Swift.min(count &- index, maxCount)
     return self.mutableSpan._consumingExtracting(Range(uncheckedBounds: (index, limit)))
   }
 
   @inlinable
   @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let limit = Swift.max(0, index - maximumCount)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let limit = Swift.max(0, index - maxCount)
     return self.span.extracting(unchecked: Range(uncheckedBounds: (limit, index)))
   }
 }

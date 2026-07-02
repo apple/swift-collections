@@ -46,7 +46,7 @@ extension RigidSet where Element: ~Copyable {
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) {
     self.init(capacity: capacity)
-    try self.insert(maximumCount: capacity, initializingWith: initializer)
+    try self.insert(addingCount: capacity, initializingWith: initializer)
   }
 
 #if UnstableContainersPreview
@@ -61,7 +61,7 @@ extension RigidSet where Element: ~Copyable {
   where P.Element: ~Copyable
   {
     self.init(capacity: capacity)
-    try self.insert(maximumCount: capacity, from: &producer)
+    try self.insert(addingCount: capacity, from: &producer)
   }
 #endif
 
@@ -74,7 +74,7 @@ extension RigidSet where Element: ~Copyable {
     from drain: inout D
   ) {
     self.init(capacity: capacity)
-    self.insert(maximumCount: capacity, from: &drain)
+    self.insert(addingCount: capacity, from: &drain)
   }
 #endif
 }

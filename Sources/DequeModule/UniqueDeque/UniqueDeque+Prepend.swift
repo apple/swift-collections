@@ -346,7 +346,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   where S.Element_ == Element {
     var it = items.makeIterableIterator_()
     try self.prepend(addingCount: exactCount) { (target) throws(S.Failure_) in
-      let span = try it.nextSpan_(maximumCount: target.freeCapacity)
+      let span = try it.nextSpan_(maxCount: target.freeCapacity)
       target._append(copying: span)
     }
   }

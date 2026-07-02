@@ -102,7 +102,8 @@ extension RigidSet where Element: ~Copyable {
   /// Inserts the given element in the set if it is not already present.
   ///
   /// - Parameter item: An element to insert into the set.
-  /// - Returns:
+  /// - Returns: `item` if an equal member already exists in the set;
+  ///     otherwise `nil`.
   @inlinable
   @discardableResult
   public mutating func insert(
@@ -121,14 +122,14 @@ extension RigidSet where Element: ~Copyable {
 extension RigidSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func insert<E: Error>(
-    maximumCount: Int,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    precondition(maximumCount >= 0, "Cannot insert a negative number of items")
-    guard maximumCount > 0 else { return }
-    precondition(freeCapacity >= maximumCount, "RigidSet capacity overflow")
-    var remainder = maximumCount
-    
+    precondition(newItemCount >= 0, "Cannot insert a negative number of items")
+    guard newItemCount > 0 else { return }
+    precondition(freeCapacity >= newItemCount, "RigidSet capacity overflow")
+    var remainder = newItemCount
+
     // FIXME: Instead of getting temporary buffers, we could place the new
     // items in unoccupied buckets, then incrementally
     // rehash them into their correct location, like the stdlib does for
@@ -171,13 +172,13 @@ extension RigidSet where Element: ~Copyable {
     E: Error,
     P: Producer<Element, E> & ~Copyable & ~Escapable
   >(
-    maximumCount: Int? = nil,
+    addingCount newItemCount: Int? = nil,
     from producer: inout P
   ) throws(E)
   where P.Element: ~Copyable
   {
     try self.insert(
-      maximumCount: maximumCount ?? freeCapacity
+      addingCount: newItemCount ?? freeCapacity
     ) { target throws(E) in
       while !target.isFull {
         guard try producer.generate(into: &target) else { break }
@@ -189,20 +190,33 @@ extension RigidSet where Element: ~Copyable {
 #if UnstableContainersPreview
   @_alwaysEmitIntoClient
   public mutating func insert<
+    E: Error,
+    P: CountedProducer<Element, E> & ~Copyable & ~Escapable
+  >(
+    from producer: consuming P
+  ) throws(E) {
+    try self.insert(addingCount: producer.count, from: &producer)
+    try producer._expectEnd("Invalid CountedProducer")
+  }
+#endif
+
+#if UnstableContainersPreview
+  @_alwaysEmitIntoClient
+  public mutating func insert<
     D: Drain<Element> & ~Copyable & ~Escapable
   >(
-    maximumCount: Int? = nil,
-    from drain: inout D
+    from drain: consuming D
   ) {
-    var remainder = maximumCount ?? freeCapacity
+    var remainder = drain.count
     while remainder > 0 {
-      var span = drain.drainNext(maximumCount: remainder)
+      var span = drain.drainNext(maxCount: remainder)
       guard !span.isEmpty else { break }
       remainder &-= span.count
       while let next = span.popFirst() {
         self.insert(next)
       }
     }
+    drain._expectEnd("Invalid Drain")
   }
 #endif
 }

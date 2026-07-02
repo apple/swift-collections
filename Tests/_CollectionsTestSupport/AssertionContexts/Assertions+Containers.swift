@@ -142,7 +142,7 @@ public func expectIterablePayloads<
   var it2 = right.makeIterator()
   var i = 0
   while true {
-    let next1 = try it1.nextSpan_(maximumCount: 1)
+    let next1 = try it1.nextSpan_(maxCount: 1)
     let next2 = it2.next()
     switch (next1.isEmpty, next2) {
     case (true, nil):
@@ -190,7 +190,7 @@ public func expectIterablePayloads<
   var it2 = right.makeIterator()
   var i = 0
   while true {
-    let next1 = try it1.nextSpan_(maximumCount: 1)
+    let next1 = try it1.nextSpan_(maxCount: 1)
     let next2 = it2.next()
     switch (next1.isEmpty, next2) {
     case (true, nil):

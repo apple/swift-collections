@@ -1508,7 +1508,7 @@ class RigidArrayTests: CollectionTestCase {
       }
 
       var consumer = a.consume(0 ..< 2)
-      let span = consumer.drainNext(maximumCount: .max)
+      let span = consumer.drainNext(maxCount: .max)
 
       expectEqual(span.count, 2)
       expectEqual(span[0].payload, 0)

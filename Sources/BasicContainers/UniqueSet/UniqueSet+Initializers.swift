@@ -46,7 +46,7 @@ extension UniqueSet where Element: ~Copyable {
   ) throws(E) {
     self.init(minimumCapacity: minimumCapacity)
     try self.insert(
-      maximumCount: minimumCapacity,
+      addingCount: minimumCapacity,
       initializingWith: initializer)
   }
   

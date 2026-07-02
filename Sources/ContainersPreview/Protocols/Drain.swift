@@ -26,7 +26,7 @@ public protocol Drain<Element>: CountedProducer, ~Copyable, ~Escapable
 where Element: ~Copyable, Failure == Never
 {
   /// Returns the next span of consumable items in the sequence underlying this
-  /// drain, of at most the specified maximum count. A `maximumCount` of nil
+  /// drain, of at most the specified maximum count. A `maxCount` of nil
   /// indicates no limit, meaning that the client is able to process an
   /// arbitrarily large number of elements.
   ///
@@ -36,7 +36,7 @@ where Element: ~Copyable, Failure == Never
   ///
   /// While the returned input spans exist, they continue to mutate the drain,
   /// extending the exclusive access initiated by the call to
-  /// `drainNext(maximumCount:)`. To call this (or any other) method again, the
+  /// `drainNext(maxCount:)`. To call this (or any other) method again, the
   /// returned input span needs to be consumed or otherwise destroyed.
   ///
   /// Once this method returns, the contents of the resulting input span are
@@ -47,7 +47,7 @@ where Element: ~Copyable, Failure == Never
   /// temporary location and later reinserting them into the underlying
   /// construct through some type-specific operations.
   ///
-  /// - Parameter maximumCount: The maximum number of items that the client
+  /// - Parameter maxCount: The maximum number of items that the client
   ///       is prepared to consume, or nil if the client is able to process an
   ///       arbitrary number of elements. If this is non-nil, then it must be a
   ///       positive integer.
@@ -57,7 +57,7 @@ where Element: ~Copyable, Failure == Never
   ///       the end of the sequence.
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func drainNext(maximumCount: Int) -> InputSpan<Element>
+  mutating func drainNext(maxCount: Int) -> InputSpan<Element>
   // TODO: The primary use case does not need this to throw; do we need to allow that?
   // Note: making this failable is not entirely straightforward, as there is no
   // easy way to signal partial success -- conforming implementations
@@ -75,7 +75,7 @@ where Element: ~Copyable, Failure == Never
   //     ) throws(E) -> R
   //
   // This would allow partial consumption, eliminating the need for
-  // `maximumCount`, but at the cost of having to deal with closures --
+  // `maxCount`, but at the cost of having to deal with closures --
   // it can be tricky to elegantly flow data/control in & out higher-order
   // functions. Allowing the function argument to throw also precludes
   // the drain itself from throwing, unless they are both required
@@ -93,7 +93,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   ///
   /// While the returned input spans exist, they continue to mutate the drain,
   /// extending the exclusive access initiated by the call to
-  /// `drain(maximumCount:)`. To call this (or any other) method again, the
+  /// `drain(maxCount:)`. To call this (or any other) method again, the
   /// returned input span needs to be consumed or otherwise destroyed.
   ///
   /// Once this method returns, the contents of the resulting input span are
@@ -111,7 +111,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   @_lifetime(self: copy self)
   @_transparent
   public mutating func drainNext() -> InputSpan<Element> {
-    drainNext(maximumCount: Int.max)
+    drainNext(maxCount: Int.max)
   }
 
   /// Generate the next batch of items into the supplied output span instance,
@@ -165,7 +165,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   public mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Never) -> Bool {
-    var source = self.drainNext(maximumCount: target.freeCapacity)
+    var source = self.drainNext(maxCount: target.freeCapacity)
     if source.isEmpty { return false }
     target._append(moving: &source)
     return true
@@ -207,7 +207,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   ) -> Bool { // FIXME: Compiler crash when this declares throws(Failure)
     precondition(n >= 0, "Cannot skip a negative number of elements")
     guard n > 0 else { return true }
-    let span = drainNext(maximumCount: n)
+    let span = drainNext(maxCount: n)
     let success = span.count > 0
     n &-= span.count
     return success

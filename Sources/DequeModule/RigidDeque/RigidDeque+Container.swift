@@ -48,8 +48,8 @@ extension RigidDeque where Element: ~Copyable {
     @_alwaysEmitIntoClient
     @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
     @_lifetime(self: copy self)
-    public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
-      let result = _currentSegment._trim(first: maximumCount)
+    public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+      let result = _currentSegment._trim(first: maxCount)
       if _currentSegment.isEmpty {
         _currentSegment = _nextSegment
         _nextSegment = Span()
@@ -118,25 +118,25 @@ extension RigidDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Int, maxCount: Int) -> Span<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let segment = self._handle
       .nextSegment(after: index)
-      ._extracting(first: maximumCount)
+      ._extracting(first: maxCount)
     index &+= segment.count
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Int, maximumCount: Int
+    after index: inout Int, maxCount: Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let segment = self._handle
       .nextSegment(after: index)
-      ._extracting(first: maximumCount)
+      ._extracting(first: maxCount)
     index &+= segment.count
     return _overrideLifetime(
       MutableSpan(_unsafeElements: .init(mutating: segment)),
@@ -145,12 +145,12 @@ extension RigidDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let segment = self._handle
       .previousSegment(before: index)
-      ._extracting(last: maximumCount)
+      ._extracting(last: maxCount)
     index &-= segment.count
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }

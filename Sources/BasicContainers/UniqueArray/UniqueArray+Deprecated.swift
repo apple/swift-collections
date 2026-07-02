@@ -15,6 +15,33 @@
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
+  @available(*, deprecated, renamed: "nextSpan(after:maxCount:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: maximumCount)
+  }
+
+  @available(*, deprecated, renamed: "nextMutableSpan(after:maxCount:)")
+  @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    self.nextMutableSpan(after: &index, maxCount: maximumCount)
+  }
+
+  @available(*, deprecated, renamed: "previousSpan(before:maxCount:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    self.previousSpan(before: &index, maxCount: maximumCount)
+  }
+
   /// Initializes a new unique array with the specified capacity and no elements.
   @available(*, deprecated, renamed: "init(minimumCapacity:)")
   @inlinable

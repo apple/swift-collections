@@ -446,7 +446,7 @@ extension RigidArray where Element: ~Copyable {
   ///   - newItemCount: The maximum number of items to insert into the array.
   ///   - producer: A producer that generates the items to append.
   ///
-  /// - Complexity: O(`self.count` + `maximumCount`)
+  /// - Complexity: O(`self.count` + `newItemCount`)
   @_alwaysEmitIntoClient
   public mutating func replace<
     E: Error,
@@ -594,7 +594,7 @@ extension RigidArray {
     var it = items.makeIterableIterator_()
     self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
-        let source = it.nextSpan_(maximumCount: target.freeCapacity)
+        let source = it.nextSpan_(maxCount: target.freeCapacity)
         precondition(
           !source.isEmpty,
           "Broken Container: count doesn't match contents")

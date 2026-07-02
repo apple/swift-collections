@@ -76,12 +76,12 @@ extension Iterable_
 
       if el1.isEmpty {
         // LHS is empty - sequences are equal iff RHS is also empty
-        let el2 = try iter2.nextSpan_(maximumCount: 1)
+        let el2 = try iter2.nextSpan_(maxCount: 1)
         return el2.isEmpty
       }
 
       while el1.count > 0 {
-        let el2 = try iter2.nextSpan_(maximumCount: el1.count)
+        let el2 = try iter2.nextSpan_(maxCount: el1.count)
         if el2.isEmpty { return false }
         for i in 0..<el2.count {
           if try !areEquivalent(el1[i], el2[i]) { return false }

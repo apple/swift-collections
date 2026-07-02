@@ -109,7 +109,7 @@ public protocol Container<Element>:
 
   /// Return a span over the container's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it, but no more than `maximumCount` items.
+  /// that contains it, but no more than `maxCount` items.
   ///
   /// On return, the index is updated to address the next item following the
   /// end of the returned span.
@@ -120,30 +120,30 @@ public protocol Container<Element>:
   ///
   ///     var index = items.startIndex
   ///     while true {
-  ///       let span = items.nextSpan(after: &index, maximumCount: 4)
+  ///       let span = items.nextSpan(after: &index, maxCount: 4)
   ///       if span.isEmpty { break }
   ///       // Process items in `span`
   ///     }
   ///
-  /// The `maximumCount` argument gives the caller control over the number of
+  /// The `maxCount` argument gives the caller control over the number of
   /// items it receives from the iterator. This lets the caller avoid getting
   /// more elements than it would be able to immediately process, which would
   /// significantly complicate container use.
   ///
   /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maximumCount`, or simply by calling the
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
   /// `nexSpan(after:)` method, which does precisely that. This is frequently
   /// the case when the caller simply wants to iterate over the entire
   /// container in a single loop.
   ///
-  /// `maximumCount` sets an upper bound. To read a specific number of items,
+  /// `maxCount` sets an upper bound. To read a specific number of items,
   /// the caller usually needs to invoke `nextSpan` in a loop:
   ///
   ///     var items: some Container<Int>
   ///     var index = items.startIndex
   ///     var remainder = numberOfItemsToRead
   ///     while remainder > 0 {
-  ///       let next = items.nextSpan(after: &index, maximumCount: remainder)
+  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
   ///       guard !next.isEmpty else {
   ///         // Container does not have enough items
   ///         break
@@ -166,16 +166,16 @@ public protocol Container<Element>:
   /// - Parameter index: A valid index in the container, including the end
   ///     index. On return, this index is advanced by the count of the resulting
   ///     span, to simplify iteration.
-  /// - Parameter maximumCount: The maximum number of items the caller is able
-  ///     to process immediately. `maximumCount` must be greater than zero.
+  /// - Parameter maxCount: The maximum number of items the caller is able
+  ///     to process immediately. `maxCount` must be greater than zero.
   ///     If you are able to process an arbitrary number of items, set
-  ///     `maximumCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
   /// - Returns: A span over contiguous storage that starts at the given index.
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
   ///     element at the input index.
   @_lifetime(borrow self)
-  func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
+  func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element>
 
   /// Return the nearest valid index in this container less than or equal to
   /// the given index value, which must be valid in at least one view of self.
@@ -252,7 +252,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Index) -> Span<Element> {
-    nextSpan(after: &index, maximumCount: Int.max)
+    nextSpan(after: &index, maxCount: Int.max)
   }
 }
 
@@ -282,16 +282,16 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     var index = self.index(alignedDown: index)
     var n = n
 
-#if true // with nextSpan(after:maximumCount:)
+#if true // with nextSpan(after:maxCount:)
     while n > 0 {
-      let span = self.nextSpan(after: &index, maximumCount: n)
+      let span = self.nextSpan(after: &index, maxCount: n)
       precondition(
         !span.isEmpty,
         "Cannot advance index beyond the end of the container")
       n &-= span.count
     }
     return index
-#else // without nextSpan(after:maximumCount:)
+#else // without nextSpan(after:maxCount:)
     // FIXME: This implementation can be wasteful for piecewise contiguous
     // containers, as iterating over spans will tend to overshoot the target.
 

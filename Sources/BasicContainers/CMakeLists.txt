@@ -57,6 +57,7 @@ target_sources(${module_name} PRIVATE
   "HashTable/_HTable+Bucket.swift"
   "HashTable/_HTable+Consumption.swift"
   "HashTable/_HTable+Debug.swift"
+  "HashTable/_HTable+Deprecated.swift"
   "HashTable/_HTable+Find.swift"
   "HashTable/_HTable+Insert.swift"
   "HashTable/_HTable+Iteration.swift"

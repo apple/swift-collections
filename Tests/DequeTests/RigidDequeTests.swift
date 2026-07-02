@@ -1573,15 +1573,15 @@ final class RigidDequeTests: CollectionTestCase {
 
   func test_nextMutableSpan() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      withEvery("maximumCount", in: [1, 2, 3, 5, 100]) { maximumCount in
+      withEvery("maxCount", in: [1, 2, 3, 5, 100]) { maxCount in
         var deque = RigidDeque(layout: layout, contents: layout.valueRange)
         var index = deque.startIndex
         var totalSeen = 0
         while index < deque.endIndex {
           let oldIndex = index
-          var span = deque.nextMutableSpan(after: &index, maximumCount: maximumCount)
+          var span = deque.nextMutableSpan(after: &index, maxCount: maxCount)
           expectGreaterThan(span.count, 0)
-          expectLessThanOrEqual(span.count, maximumCount)
+          expectLessThanOrEqual(span.count, maxCount)
           expectEqual(index, oldIndex + span.count)
           // Overwrite each element with its logical position in the deque.
           for i in 0 ..< span.count {

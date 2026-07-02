@@ -162,7 +162,7 @@ extension BitArray._UnsafeHandle {
     var it = source.makeIterator()
     if pos.bit > 0 {
       let (bits, count) = it._nextChunk(
-        maximumCount: _Word._capacity - pos.bit)
+        maxCount: _Word._capacity - pos.bit)
       _copy(bits: bits, count: count, to: pos)
       pos.value += count
     }

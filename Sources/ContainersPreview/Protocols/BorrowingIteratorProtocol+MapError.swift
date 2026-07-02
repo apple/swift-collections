@@ -73,9 +73,9 @@ where
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func nextSpan_(maximumCount: Int) throws(Failure_) -> Span<Element_> {
+  public mutating func nextSpan_(maxCount: Int) throws(Failure_) -> Span<Element_> {
     do {
-      return try _base.nextSpan_(maximumCount: maximumCount)
+      return try _base.nextSpan_(maxCount: maxCount)
     } catch {
       throw _transform(error)
     }

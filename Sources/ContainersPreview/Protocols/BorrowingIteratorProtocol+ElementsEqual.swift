@@ -123,7 +123,7 @@ where
     // Note: This is the less efficient implementation of elementsEqual. The
     // variant in the #else branch would be preferable, but it doesn't work yet.
     // (It lets the two iterators run at their native speeds, with no artificial
-    // maximumCounts.)
+    // maxCounts.)
     while true {
       let a = try self.nextSpan_()
       var i = 0
@@ -131,7 +131,7 @@ where
         return try other.nextSpan_().isEmpty
       }
       while i < a.count {
-        let b = try other.nextSpan_(maximumCount: a.count - i)
+        let b = try other.nextSpan_(maxCount: a.count - i)
         if b.isEmpty {
           return false
         }

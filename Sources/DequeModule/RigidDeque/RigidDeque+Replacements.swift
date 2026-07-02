@@ -316,7 +316,7 @@ extension RigidDeque where Element: ~Copyable {
   ///   - newItemCount: The maximum number of items to insert into the deque.
   ///   - producer: A producer that generates the items to append.
   ///
-  /// - Complexity: O(`self.count` + `maximumCount`)
+  /// - Complexity: O(`self.count` + `maxCount`)
   @_alwaysEmitIntoClient
   public mutating func replace<
     E: Error,

@@ -90,7 +90,7 @@ where
   @inlinable
   @_lifetime(self: copy self)
   public mutating func next() throws(Failure) -> Element? {
-    let span = try _it.nextSpan_(maximumCount: 1)
+    let span = try _it.nextSpan_(maxCount: 1)
     guard !span.isEmpty else { return nil }
     return try _transform(span[unchecked: 0])
   }
@@ -104,7 +104,7 @@ where
   ) throws(Failure) -> Bool {
     var success = false
     while !target.isFull {
-      let span = try _it.nextSpan_(maximumCount: target.freeCapacity)
+      let span = try _it.nextSpan_(maxCount: target.freeCapacity)
       guard !span.isEmpty else { break }
       success = true
       var i = 0

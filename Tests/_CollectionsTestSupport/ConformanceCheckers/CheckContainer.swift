@@ -102,7 +102,7 @@ public func checkIterable<
     var pos = 0
     var it = iterable.makeIterableIterator_()
     while true {
-      let span = try it.nextSpan_(maximumCount: 1)
+      let span = try it.nextSpan_(maxCount: 1)
       if span.isEmpty { break }
       expectEqual(span.count, 1)
       for i in 0 ..< span.count {
@@ -119,7 +119,7 @@ public func checkIterable<
     var it = iterable.makeIterableIterator_()
     var spanIndex = 0
     while true {
-      let span = try it.nextSpan_(maximumCount: Int.max)
+      let span = try it.nextSpan_(maxCount: Int.max)
       if span.isEmpty { break }
       expectEqual(
         span.count, spanShapes[spanIndex].count,

@@ -266,15 +266,17 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  /// Returns true if the producer has no more elements, consuming it in
+  /// Triggers a runtime trap if the producer is not at its end, consuming it in
   /// the process. This is implemented by checking if it is possible to
   /// skip one item.
-  ///
-  /// This is useful in preconditions.
   @inlinable
-  public consuming func _isAtEnd() throws(Failure) -> Bool {
+  public consuming func _expectEnd(
+    _ message: String = "Invalid Producer"
+  ) throws(Failure) {
     var c = 1
-    return try !skip(by: &c)
+    if try !skip(by: &c) {
+      preconditionFailure(message)
+    }
   }
 }
 

@@ -47,12 +47,12 @@ package struct CustomDrain<Element: ~Copyable>: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension CustomDrain: Drain where Element: ~Copyable {
   @_lifetime(&self)
-  package mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {
+  package mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
     assert(_buffer.isEmpty)
     if _remainder == 0 {
       _remainder = _chunkSize
     }
-    let c = Swift.min(maximumCount, _remainder)
+    let c = Swift.min(maxCount, _remainder)
     _remainder -= c
     for _ in 0 ..< c {
       guard _position < count else { break }

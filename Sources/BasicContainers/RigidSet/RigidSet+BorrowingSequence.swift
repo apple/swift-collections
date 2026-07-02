@@ -70,11 +70,11 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
     }
     
     @_alwaysEmitIntoClient
-    @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
-    public mutating func nextSpan_(maximumCount: Int) -> Span<Element_> {
-      precondition(maximumCount > 0, "maximumCount must be positive")
+    @_lifetime(&self)
+    public mutating func nextSpan_(maxCount: Int) -> Span<Element_> {
+      precondition(maxCount > 0, "maxCount must be positive")
       guard
-        let next = _bucketIterator.nextOccupiedRegion(maximumCount: maximumCount)
+        let next = _bucketIterator.nextOccupiedRegion(maxCount: maxCount)
       else {
         return .init()
       }

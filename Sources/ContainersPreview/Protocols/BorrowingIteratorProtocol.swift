@@ -34,10 +34,10 @@ public protocol BorrowingIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Esca
   /// invocation of it.
   ///
   /// If the iterator has not yet reached the end of the underlying sequence,
-  /// then this method returns a non-empty span of at most `maximumCount`
+  /// then this method returns a non-empty span of at most `maxCount`
   /// elements, and updates the iterator's current position to the element
   /// following the last item in the returned span (or the end, if there is
-  /// none). The `maximumCount` argument allows callers to avoid getting more
+  /// none). The `maxCount` argument allows callers to avoid getting more
   /// items that they are able to process in one go, simplifying usage, and
   /// avoiding materializing more elements than needed.
   ///
@@ -70,7 +70,7 @@ public protocol BorrowingIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Esca
   /// method may vary between different borrows of the same container.)
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func nextSpan_(maximumCount: Int) throws(Failure_) -> Span<Element_>
+  mutating func nextSpan_(maxCount: Int) throws(Failure_) -> Span<Element_>
 
   /// Advance the position of this iterator by the specified offset, or until
   /// the end of the underlying sequence.
@@ -92,7 +92,7 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @_transparent
   public mutating func nextSpan_() throws(Failure_) -> Span<Element_> {
-    try nextSpan_(maximumCount: Int.max)
+    try nextSpan_(maxCount: Int.max)
   }
 }
 
@@ -104,7 +104,7 @@ where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   public mutating func skip_(by offset: Int) throws(Failure_) -> Int {
     var remainder = offset
     while remainder > 0 {
-      let span = try nextSpan_(maximumCount: remainder)
+      let span = try nextSpan_(maxCount: remainder)
       if span.isEmpty { break }
       remainder &-= span.count
     }
@@ -118,7 +118,7 @@ extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   public mutating func next() -> Ref<Element>? {
-    let span = nextSpan(maximumCount: 1)
+    let span = nextSpan(maxCount: 1)
     guard !span.isEmpty else { return nil }
     return Ref(_borrowing: span[unchecked: 0])
   }
@@ -136,7 +136,7 @@ extension BorrowingIteratorProtocol_
     try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure_) -> Void in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
-        let src = try nextSpan_(maximumCount: tail.count)
+        let src = try nextSpan_(maxCount: tail.count)
         if src.isEmpty { break }
         tail._initializeAndDropPrefix(copying: src)
         dstCount += src.count

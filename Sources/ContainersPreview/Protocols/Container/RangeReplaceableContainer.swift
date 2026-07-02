@@ -209,9 +209,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       removing: subrange,
       addingCount: producer.count,
       from: &producer)
-    if try !producer._isAtEnd() {
-      preconditionFailure("Invalid Container")
-    }
+    try producer._expectEnd("Invalid Container")
   }
 
   @_alwaysEmitIntoClient
@@ -278,9 +276,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     var producer = source.consume(sourceSubrange)
     let targetSubrange = targetSubrange.relative(to: self)
     self.replace(removing: targetSubrange, addingCount: c, from: &producer)
-    if !producer._isAtEnd() {
-      preconditionFailure("Invalid Container")
-    }
+    producer._expectEnd("Invalid Container")
   }
 
   @_alwaysEmitIntoClient
@@ -521,9 +517,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
       while !target.isFull, try producer.generate(into: &target) {
       }
     }
-    if try !producer._isAtEnd() {
-      preconditionFailure("Invalid Container")
-    }
+    try producer._expectEnd("Invalid Container")
   }
 
   @_alwaysEmitIntoClient
@@ -548,9 +542,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
     let c = source.distance(from: sourceSubrange.lowerBound, to: sourceSubrange.upperBound)
     var producer = source.consume(sourceSubrange)
     self.insert(addingCount: c, from: &producer, at: index)
-    if !producer._isAtEnd() {
-      preconditionFailure("Invalid Container")
-    }
+    producer._expectEnd("Invalid Container")
   }
 
   @_alwaysEmitIntoClient
@@ -617,9 +609,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   where P.Element: ~Copyable
   {
     try append(addingCount: producer.count, from: &producer)
-    if try !producer._isAtEnd() {
-      preconditionFailure("Invalid Container")
-    }
+    try producer._expectEnd("Invalid Container")
   }
 
   /// Moves the elements of a given container into the end of this one, leaving
@@ -650,9 +640,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     let c = source.distance(from: sourceSubrange.lowerBound, to: sourceSubrange.upperBound)
     var producer = source.consume(sourceSubrange)
     self.append(addingCount: c, from: &producer)
-    if !producer._isAtEnd() {
-      preconditionFailure("Invalid Container")
-    }
+    producer._expectEnd("Invalid Container")
   }
 
   /// Appends the elements of a given container to the end of this one by
@@ -689,7 +677,7 @@ where
     var c = items.count
     var i = items.startIndex
     self.replace(removing: subrange, addingCount: c) { target in
-      let source = items.nextSpan(after: &i, maximumCount: target.freeCapacity)
+      let source = items.nextSpan(after: &i, maxCount: target.freeCapacity)
       target._append(copying: source)
       c -= source.count
     }
@@ -707,7 +695,7 @@ where
     var it = items.makeIterableIterator_()
     insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
-        let source = it.nextSpan_(maximumCount: target.freeCapacity)
+        let source = it.nextSpan_(maxCount: target.freeCapacity)
         precondition(!source.isEmpty, "Broken container: mismatching count")
         target._append(copying: source)
       }

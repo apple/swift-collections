@@ -73,7 +73,7 @@ where
   ) throws(Error) -> Bool {
     var success = false
     while !target.isFull {
-      var source = _base.drainNext(maximumCount: target.freeCapacity)
+      var source = _base.drainNext(maxCount: target.freeCapacity)
       if source.isEmpty { break }
       success = true
       while !source.isEmpty {

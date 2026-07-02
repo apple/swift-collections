@@ -202,7 +202,7 @@ extension RigidDeque where Element: ~Copyable {
   /// many items as promised.
   ///
   /// - Parameters:
-  ///    - maximumCount: The maximum number of items to prepend to the deque, or
+  ///    - maxCount: The maximum number of items to prepend to the deque, or
   ///       nil to use all available capacity.
   ///    - producer: A producer that generates the items to prepend.
   ///
@@ -317,7 +317,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   where S.Element_ == Element {
     var it = items.makeIterableIterator_()
     try self.prepend(addingCount: exactCount) { (target) throws(S.Failure_) in
-      let span = try it.nextSpan_(maximumCount: target.freeCapacity)
+      let span = try it.nextSpan_(maxCount: target.freeCapacity)
       target._append(copying: span)
     }
   }
