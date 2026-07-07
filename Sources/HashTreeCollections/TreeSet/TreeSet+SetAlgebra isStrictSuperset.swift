@@ -25,7 +25,7 @@ extension TreeSet {
   ///
   ///     let a: TreeSet = [1, 2, 3, 4]
   ///     let b: TreeSet = [4, 2, 1]
-  ///     a.isStrictSuperset(of: b.unordered) // true
+  ///     a.isStrictSuperset(of: b) // true
   ///
   /// - Parameter other: Another set.
   ///
@@ -45,17 +45,17 @@ extension TreeSet {
   /// Returns a Boolean value that indicates whether the set is a strict
   /// superset of the given set.
   ///
-  /// Set *A* is a strict subset of another set *B* if every member of *A* is
-  /// also a member of *B* and *B* contains at least one element that is not a
-  /// member of *A*. (Ignoring the order the elements appear in the sets.)
+  /// Set *A* is a strict superset of another set *B* if every member of *B* is
+  /// also a member of *A* and *A* contains at least one element that is not a
+  /// member of *B*. (Ignoring the order the elements appear in the sets.)
   ///
   ///     let a: TreeSet = [1, 2, 3, 4]
-  ///     let b: TreeSet = [4, 2, 1]
-  ///     a.isStrictSuperset(of: b.unordered) // true
+  ///     let b: TreeDictionary = [4: "four", 2: "two", 1: "one"]
+  ///     a.isStrictSuperset(of: b.keys) // true
   ///
   /// - Parameter other: The keys view of a persistent dictionary.
   ///
-  /// - Returns: `true` if `self` is a strict subset of `other`; otherwise,
+  /// - Returns: `true` if `self` is a strict superset of `other`; otherwise,
   ///    `false`.
   ///
   /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
@@ -73,18 +73,18 @@ extension TreeSet {
   /// Returns a Boolean value that indicates whether the set is a strict
   /// superset of the given set.
   ///
-  /// Set *A* is a strict subset of another set *B* if every member of *A* is
-  /// also a member of *B* and *B* contains at least one element that is not a
-  /// member of *A*. (Ignoring the order the elements appear in the sets.)
+  /// Set *A* is a strict superset of another set *B* if every member of *B* is
+  /// also a member of *A* and *A* contains at least one element that is not a
+  /// member of *B*. (Ignoring the order the elements appear in the sets.)
   ///
   ///     let a: TreeSet = [1, 2, 3, 4]
   ///     let b: TreeSet = [4, 2, 1]
-  ///     a.isStrictSuperset(of: b.unordered) // true
+  ///     a.isStrictSuperset(of: b) // true
   ///
   /// - Parameter other: A sequence of elements, some of whose elements may
   ///    appear more than once. (Duplicate items are ignored.)
   ///
-  /// - Returns: `true` if `self` is a strict subset of `other`; otherwise,
+  /// - Returns: `true` if `self` is a strict superset of `other`; otherwise,
   ///    `false`.
   ///
   /// - Complexity: In the worst case, this makes O(*n*) calls to

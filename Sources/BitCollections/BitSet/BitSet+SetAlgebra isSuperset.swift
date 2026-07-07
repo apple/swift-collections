@@ -65,7 +65,7 @@ extension BitSet {
   ///
   /// - Parameter other: An arbitrary range of integers.
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: O(`range.count`)
   public func isSuperset(of other: Range<Int>) -> Bool {
@@ -89,7 +89,7 @@ extension BitSet {
   /// - Parameter other: A sequence of arbitrary integers, some of whose members
   ///    may appear more than once. (Duplicate items are ignored.)
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: The same as the complexity of iterating over all elements
   ///    in `other`.
