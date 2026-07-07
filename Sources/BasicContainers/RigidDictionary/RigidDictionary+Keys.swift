@@ -15,19 +15,15 @@
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
+  @_alwaysEmitIntoClient
+  public var keys: RigidSet<Key> {
+    borrow {
+      _keys
+    }
+  }
 
-#if false // This requires the BorrowAndMutateAccessors feature that isn't available yet.
-//  @inlinable
-//  public var keys: RigidSet<Key> {
-//    borrow {
-//      _keys
-//    }
-//  }
-#endif
-  
-  /// This is a stand-in for an eventual computed property with a `borrow`
-  /// accessor. It is destined for deprecation once that feature becomes
-  /// available.
+  // FIXME: Remove
+  @available(*, deprecated, renamed: "keys")
   @_alwaysEmitIntoClient
   public func withKeys<E: Error, R: ~Copyable>(
   _ body: (borrowing RigidSet<Key>) throws(E) -> R
