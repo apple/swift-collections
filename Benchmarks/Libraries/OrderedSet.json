@@ -38,6 +38,7 @@
             "OrderedSet<Int> random swaps",
             "OrderedSet<Int> partitioning around middle",
             "OrderedSet<Int> sort",
+            "OrderedSet<Int> reverse",
           ]
         },
         {

@@ -496,6 +496,20 @@ extension _UnsafeHashTable {
 }
 
 extension _UnsafeHashTable {
+  @inlinable
+  internal func reverse(count: Int) {
+    assertMutable()
+    var it = bucketIterator(startingAt: Bucket(offset: 0))
+    repeat {
+      if let value = it.currentValue {
+        it.currentValue = count - 1 - value
+      }
+      it.advance()
+    } while it.currentBucket.offset != 0
+  }
+}
+
+extension _UnsafeHashTable {
   @usableFromInline
   internal func clear() {
     assertMutable()

@@ -407,6 +407,17 @@ extension OrderedSet {
       hashTable.fill(uncheckedUniqueElements: _elements)
     }
   }
+
+  @inlinable
+  internal mutating func _reverseHashTable() {
+    guard _table != nil else {
+      return
+    }
+    _ensureUnique()
+    _table!.update { hashTable in
+      hashTable.reverse(count: _elements.count)
+    }
+  }
 }
 
 extension OrderedSet {

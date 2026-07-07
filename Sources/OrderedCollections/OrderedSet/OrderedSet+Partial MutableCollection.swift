@@ -350,8 +350,7 @@ extension OrderedSet {
   @inlinable
   public mutating func reverse() {
     _elements.reverse()
-    // FIXME: Update hash table contents in place.
-    _regenerateHashTable()
+    _reverseHashTable()
     _checkInvariants()
   }
 }
