@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
   @inlinable
   package func _copyContents(

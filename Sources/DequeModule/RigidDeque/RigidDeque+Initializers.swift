@@ -129,6 +129,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///   - capacity: The storage capacity of the new deque.
   ///   - contents: A sequence whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<S: Iterable_ & ~Copyable & ~Escapable>(
@@ -183,6 +184,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///   - capacity: The storage capacity of the new deque.
   ///   - contents: A sequence whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<S: Iterable_ & Sequence<Element>>(
@@ -193,7 +195,9 @@ extension RigidDeque /*where Element: Copyable*/ {
     self.init(capacity: capacity)
     try self._append(copying: contents)
   }
+#endif
 
+#if compiler(>=6.4) && UnstableContainersPreview
   /// Creates a new deque with the specified capacity, holding a copy
   /// of the contents of a given collection.
   ///
@@ -203,6 +207,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///      than or equal to the count of the collection.
   ///   - contents: A collection whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<S: Iterable_ & Collection<Element>>(

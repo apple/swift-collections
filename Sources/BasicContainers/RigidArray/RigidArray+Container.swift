@@ -19,9 +19,9 @@ import ContainersPreview
 #if compiler(>=6.2)
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: Iterable_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = Span<Element>.BorrowingIterator_
 
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -35,7 +35,7 @@ extension RigidArray: Iterable_ where Element: ~Copyable {
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: Container where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
@@ -57,17 +57,17 @@ extension RigidArray: Container where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: BidirectionalContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: MutableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
 #endif
 #endif

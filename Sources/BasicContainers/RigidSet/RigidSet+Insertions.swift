@@ -235,6 +235,7 @@ extension RigidSet /* where Element: Copyable */ {
   }
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   package mutating func _insert<
     S: Iterable_ & ~Copyable & ~Escapable
@@ -252,6 +253,7 @@ extension RigidSet /* where Element: Copyable */ {
 #endif
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -274,6 +276,7 @@ extension RigidSet /* where Element: Copyable */ {
   }
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

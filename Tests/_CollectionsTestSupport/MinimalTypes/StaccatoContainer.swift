@@ -84,10 +84,15 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
   internal var _offset: Int
 
   @_lifetime(copy contents)
-  internal init(contents: Span<Element>, params: _StaccatoParameters) {
+  internal init(
+    contents: Span<Element>,
+    params: _StaccatoParameters,
+    start: _StaccatoIndex = .init(_offset: 0)
+  ) {
+    precondition(start._offset >= 0 && start._offset <= params._count)
     self._contents = contents
     self._params = params
-    self._offset = 0
+    self._offset = start._offset
   }
 
   @_lifetime(&self) // FIXME: Should be `@_lifetime(copy self)`
@@ -96,6 +101,10 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
     let startOffset = _offset
     _offset = endOffset
     return _contents.extracting(startOffset ..< endOffset)
+  }
+
+  public var currentIndex: _StaccatoIndex {
+    _StaccatoIndex(_offset: _offset)
   }
 }
 
@@ -132,8 +141,16 @@ extension StaccatoContainer: Container where Element: ~Copyable {
   
   public var isEmpty: Bool { _contents.isEmpty }
   public var count: Int { _contents.count }
-  
-  
+
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(from start: Index) -> BorrowingIterator_ {
+    BorrowingIterator_(contents: _contents.span, params: _params, start: start)
+  }
+
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    iterator.currentIndex
+  }
+
   package func _isValid(_ index: Index) -> Bool {
     index._offset >= 0 && index._offset <= count
   }

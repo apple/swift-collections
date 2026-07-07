@@ -258,6 +258,7 @@ extension UniqueArray {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
     Source: Iterable_ & ~Copyable & ~Escapable
@@ -291,6 +292,7 @@ extension UniqueArray {
   ///
   /// - Complexity: O(`newElements.count`), when amortized over many invocations
   ///    over the same array.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
@@ -346,6 +348,7 @@ extension UniqueArray {
   ///
   /// - Complexity: O(`newElements.count`), when amortized over many invocations
   ///    over the same array.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<

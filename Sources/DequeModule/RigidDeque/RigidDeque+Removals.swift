@@ -153,7 +153,6 @@ extension RigidDeque where Element: ~Copyable {
     return _handle.uncheckedRemoveFirst()
   }
 
-#if !UnstableContainersPreview
   /// Removes and returns the last element of the deque, if there is one.
   ///
   /// - Returns: The last element of the original deque if it was not empty;
@@ -162,10 +161,11 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public mutating func popLast() -> Element? {
+    // FIXME: Remove this algorithm; it is already provided by
+    // RangeReplaceableContainer, albeit with stricter availability.
     guard !isEmpty else { return nil }
     return _handle.uncheckedRemoveLast()
   }
-#endif
 }
 
 #endif

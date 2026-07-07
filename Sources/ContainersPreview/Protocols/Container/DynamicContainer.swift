@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol DynamicContainer<Element>: RangeReplaceableContainer, ~Copyable
 where Element: ~Copyable
 {
@@ -41,7 +41,7 @@ where Element: ~Copyable
   var freeCapacity: Int { get }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   public init() {
@@ -104,7 +104,7 @@ extension DynamicContainer where Self: ~Copyable, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension DynamicContainer where Self: ~Copyable, Element: Copyable {
   @_alwaysEmitIntoClient
   public init(repeating repeatedValue: Element, count: Int) {

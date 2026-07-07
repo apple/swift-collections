@@ -13,13 +13,14 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
+@available(SwiftStdlib 6.4, *)
 extension Span: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Int) -> SpanIterator<Element> {
+  public func makeBorrowingIterator(from start: Int) -> BorrowingIterator_ {
     precondition(start >= 0 && start <= self.count, "Index out of bounds")
     // FIXME: SpanIterator needs to have a direct initializer that takes `start`
-    var it = SpanIterator(self)
+    var it = BorrowingIterator_(self)
     var remainder = start
     while remainder > 0 {
       let d = it.skip_(by: remainder)
@@ -30,7 +31,7 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing SpanIterator<Element>) -> Int {
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Int {
     // FIXME: SpanIterator needs to have public `base` and `position` properties
     precondition(
       self.isTriviallyIdentical(to: iterator._span),

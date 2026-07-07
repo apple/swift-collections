@@ -25,10 +25,18 @@ else()
 endif()
 
 target_sources(${module_name} PRIVATE
+  "Conformances/Array+Iterable.swift"
+  "Conformances/ClosedRange+Iterable.swift"
+  "Conformances/InlineArray+Iterable.swift"
   "Conformances/InputSpan+Container.swift"
+  "Conformances/InputSpan+Iterable.swift"
   "Conformances/MutableSpan+Container.swift"
+  "Conformances/MutableSpan+Iterable.swift"
   "Conformances/OutputSpan+Container.swift"
+  "Conformances/OutputSpan+Iterable.swift"
+  "Conformances/Range+Iterable.swift"
   "Conformances/Span+Container.swift"
+  "Conformances/Span+Iterable.swift"
   "Protocols/Container/BidirectionalContainer.swift"
   "Protocols/Container/Container.swift"
   "Protocols/Container/Container+Filter.swift"
@@ -51,7 +59,6 @@ target_sources(${module_name} PRIVATE
   "Protocols/BorrowingIteratorProtocol+SpanwiseZip.swift"
   "Protocols/Iterable.swift"
   "Protocols/Iterable+Algorithms.swift"
-  "Protocols/Iterable+Standard Conformances.swift"
   "Protocols/Iterable+Utilities.swift"
   "Protocols/CountedProducer.swift"
   "Protocols/Drain.swift"
@@ -66,6 +73,5 @@ target_sources(${module_name} PRIVATE
   "Types/MutableRef.swift"
   "Types/OutputSpan+Helpers.swift"
   "Types/Shared.swift"
-  "Types/SpanIterator.swift"
   "Types/UniqueBox.swift"
 )

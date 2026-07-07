@@ -17,11 +17,14 @@
 import InternalCollectionsUtilities
 #endif
 
+@available(SwiftStdlib 6.4, *)
 extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Int) -> SpanIterator<Element_> {
-    var it = SpanIterator(self.span)
+  public func makeBorrowingIterator(
+    from start: Int
+  ) -> BorrowingIterator_ {
+    var it = Span<Element>.BorrowingIterator_(self.span)
     var remainder = start
     while remainder > 0 {
       let d = it.skip_(by: remainder)
@@ -32,7 +35,9 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing SpanIterator<Element>) -> Int {
+  public func currentIndex(
+    of iterator: borrowing BorrowingIterator_
+  ) -> Int {
     precondition(
       self.span.isTriviallyIdentical(to: iterator._span),
       "Invalid iterator")
@@ -72,6 +77,7 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 6.4, *)
 extension MutableSpan: MutableContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(&self)

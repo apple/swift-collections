@@ -330,13 +330,14 @@ extension RigidArray {
     }
   }
 
-#if !UnstableContainersPreview
   @_alwaysEmitIntoClient
   package mutating func _insertCollection(
     addingCount newCount: Int,
     copying items: some Collection<Element>,
     at index: Index
   ) {
+    // FIXME: Remove this -- RangeReplaceContainer already has this algorithm,
+    // albeit with stricter availability.
     let done: Void? = items.withContiguousStorageIfAvailable { buffer in
       precondition(buffer.count == newCount, "Broken Collection: mismatching count")
       self.insert(addingCount: buffer.count, at: index) { target in
@@ -353,7 +354,6 @@ extension RigidArray {
     }
     precondition(it.next() == nil, "Broken Collection")
   }
-#endif
 
   /// Copies the elements of a collection into this array at the specified
   /// position.
@@ -379,9 +379,6 @@ extension RigidArray {
   public mutating func insert(
     copying items: some Collection<Element>, at index: Int
   ) {
-    // FIXME: Remove this -- RangeReplaceContainer already has this algorithm.
-    // (Note that this would be source breaking while RRC lives in the separate
-    // ContainersPreview module.)
     _insertCollection(addingCount: items.count, copying: items, at: index)
   }
 }

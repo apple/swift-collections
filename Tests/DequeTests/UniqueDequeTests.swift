@@ -82,16 +82,19 @@ internal func expectUniqueDequeContents<
   line: UInt = #line
 ) {
 #if compiler(>=6.4) && UnstableContainersPreview
-  expectIterableContents(
-    left,
-    equivalentTo: right,
-    by: areEquivalent,
-    printer: printer,
-    message(),
-    trapping: trapping,
-    file: file,
-    line: line)
-#else
+  if #available(SwiftStdlib 6.4, *) {
+    expectIterableContents(
+      left,
+      equivalentTo: right,
+      by: areEquivalent,
+      printer: printer,
+      message(),
+      trapping: trapping,
+      file: file,
+      line: line)
+    return
+  }
+#endif
   var c = 0
   var j = right.startIndex
   for i in 0 ..< left.count {
@@ -106,7 +109,6 @@ internal func expectUniqueDequeContents<
     right.formIndex(after: &j)
     c += 1
   }
-#endif
 }
 
 final class UniqueDequeTests: CollectionTestCase {

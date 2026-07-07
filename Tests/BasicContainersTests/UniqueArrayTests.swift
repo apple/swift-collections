@@ -76,7 +76,9 @@ class UniqueArrayTests: CollectionTestCase {
         expectEqual(tracker.instances, 2 * layout.count)
         expectUniqueArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && UnstableContainersPreview
-        checkIterable(items, expectedContents: expected)
+        if #available(SwiftStdlib 6.4, *) {
+          checkIterable(items, expectedContents: expected)
+        }
 #endif
       }
     }

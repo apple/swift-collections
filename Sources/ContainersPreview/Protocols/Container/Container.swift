@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol Container<Element>:
   Iterable_, ~Copyable, ~Escapable
   where Element: ~Copyable, Element == Element_, Failure_ == Never
@@ -217,7 +217,7 @@ public protocol Container<Element>:
   func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// Return a span over the container's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
@@ -260,7 +260,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   public var isEmpty: Bool {
@@ -422,7 +422,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent

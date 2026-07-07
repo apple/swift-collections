@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable
 where Element: ~Copyable {
@@ -70,7 +70,7 @@ extension RandomAccessCollection {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RandomAccessContainer
 where
   Self: ~Copyable & ~Escapable,
@@ -129,7 +129,7 @@ where
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RandomAccessContainer
 where
   Self: ~Copyable & ~Escapable,
@@ -198,7 +198,7 @@ where
 
 // Disambiguate parallel extensions on RandomAccessContainer and RandomAccessCollection
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RandomAccessCollection
 where
   Self: RandomAccessContainer,

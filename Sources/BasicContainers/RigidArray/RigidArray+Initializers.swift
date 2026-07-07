@@ -122,6 +122,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      just enough capacity to store the contents.
   ///   - contents: The container whose contents to copy into the new array.
   ///      The container must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<Source: Iterable_ & ~Copyable & ~Escapable>(
@@ -144,6 +145,7 @@ extension RigidArray /*where Element: Copyable*/ {
   ///      just enough capacity to store the contents.
   ///   - contents: The container whose contents to copy into the new array.
   ///      The container must not contain more than `capacity` elements.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public init<Source: Iterable_ & Sequence<Element>>(

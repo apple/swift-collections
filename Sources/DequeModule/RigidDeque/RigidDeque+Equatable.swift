@@ -40,13 +40,14 @@ extension RigidDeque where Element: Equatable & ~Copyable {
     guard !left.isTriviallyIdentical(to: right) else { return true }
     
 #if compiler(>=6.4) && UnstableContainersPreview
-    return left._elementsEqual(right)
-#else
+    if #available(anyAppleOS 27, *) {
+      return left._elementsEqual(right)
+    }
+#endif
     for i in 0 ..< left.count {
       guard left[i] == right[i] else { return false }
     }
     return true
-#endif
   }
 }
 

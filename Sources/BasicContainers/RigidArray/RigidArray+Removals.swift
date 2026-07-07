@@ -121,7 +121,6 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-#if !UnstableContainersPreview
   /// Removes and returns the last element of the array, if there is one.
   ///
   /// - Returns: The last element of the array if the array is not empty;
@@ -134,7 +133,6 @@ extension RigidArray where Element: ~Copyable {
     if isEmpty { return nil }
     return removeLast()
   }
-#endif
 }
 
 #endif

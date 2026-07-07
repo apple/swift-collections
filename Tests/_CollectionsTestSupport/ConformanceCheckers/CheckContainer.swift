@@ -19,7 +19,7 @@ import Collections
 import ContainersPreview
 #endif
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 @inlinable
 public func checkIterable<
   S: Iterable_ & ~Copyable & ~Escapable,
@@ -37,7 +37,7 @@ public func checkIterable<
     file: file, line: line)
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 @inlinable
 public func checkIterable<
   S: Iterable_ & ~Copyable & ~Escapable,

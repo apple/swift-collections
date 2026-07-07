@@ -13,8 +13,14 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol Iterable_<Element_, Failure_>: ~Copyable, ~Escapable {
+  // FIXME: None of these names should not have trailing underscores, but that
+  // would clash with the stdlib's versions:
+  //    error: 'BorrowingIterator' is ambiguous for type lookup in this context
+  //
+  // This is likely best resolved by removing these definitions as soon as they
+  // appear in the stdlib.
   associatedtype Element_: ~Copyable
   associatedtype Failure_: Error = Never
 
@@ -30,7 +36,7 @@ public protocol Iterable_<Element_, Failure_>: ~Copyable, ~Escapable {
   ) -> Bool?
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
 where
   Self: ~Copyable & ~Escapable, Element_: ~Copyable
@@ -44,7 +50,7 @@ where
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_ where Self: Sequence {
   @inlinable
   public var underestimatedCount_: Int { 0 }

@@ -74,7 +74,9 @@ class RigidArrayTests: CollectionTestCase {
         expectEqual(tracker.instances, 2 * layout.count)
         expectRigidArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && UnstableContainersPreview
-        checkIterable(items, expectedContents: expected)
+        if #available(SwiftStdlib 6.4, *) {
+          checkIterable(items, expectedContents: expected)
+        }
 #endif
       }
     }
@@ -1206,6 +1208,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1438,6 +1441,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in

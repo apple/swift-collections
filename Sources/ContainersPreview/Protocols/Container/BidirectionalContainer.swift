@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
 where Element: ~Copyable, Index: Comparable
 {
@@ -66,7 +66,7 @@ where Element: ~Copyable, Index: Comparable
 
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension BidirectionalContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable

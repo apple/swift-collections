@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.2) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension InputSpan: RandomAccessContainer, MutableContainer
 where Element: ~Copyable
 {

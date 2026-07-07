@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
   where Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
@@ -37,7 +37,7 @@ extension Iterable_
 }
 
 // Ambiguity breakers
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Sequence where Self: Iterable_ {
   public func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
@@ -57,7 +57,7 @@ extension Sequence where Self: Iterable_ {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
   where Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
@@ -92,7 +92,7 @@ extension Iterable_
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable & Equatable {
   @inlinable

@@ -75,6 +75,7 @@ extension UniqueSet where Element: ~Copyable {
 extension UniqueSet where Element: Copyable {
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public init<
     S: Iterable_ & ~Copyable & ~Escapable
@@ -94,6 +95,7 @@ extension UniqueSet where Element: Copyable {
   }
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public init<
     S: Iterable_ & Sequence<Element>
