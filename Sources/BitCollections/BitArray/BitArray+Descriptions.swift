@@ -31,7 +31,7 @@ extension BitArray: CustomStringConvertible {
   /// Bit arrays print themselves as a string of binary bits, with the
   /// highest-indexed elements appearing first, as in the binary representation
   /// of integers. The digits are surrounded by angle brackets, so that the
-  /// notation is non-ambigous even for empty bit arrays:
+  /// notation is non-ambiguous even for empty bit arrays:
   ///
   ///     let bits: BitArray = [false, false, false, true, true]
   ///     print(bits) // "<11000>"
