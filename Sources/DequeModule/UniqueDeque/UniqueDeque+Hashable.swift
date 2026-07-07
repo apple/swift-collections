@@ -13,7 +13,7 @@
 
 #if compiler(>=6.2)
 
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
 @available(SwiftStdlib 6.4, *)
 extension UniqueDeque: Hashable where Element: Hashable & ~Copyable {
 }

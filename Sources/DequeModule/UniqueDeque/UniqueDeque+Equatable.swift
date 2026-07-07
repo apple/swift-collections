@@ -24,6 +24,7 @@ extension UniqueDeque where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.4)
 @available(SwiftStdlib 6.4, *)
 extension UniqueDeque: Equatable where Element: Equatable & ~Copyable {
 }
@@ -38,5 +39,17 @@ extension UniqueDeque where Element: Equatable & ~Copyable {
     left._storage == right._storage
   }
 }
+#else
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque where Element: Equatable {
+  @inlinable
+  public static func ==(
+    left: borrowing Self,
+    right: borrowing Self
+  ) -> Bool {
+    left._storage == right._storage
+  }
+}
+#endif
 
 #endif

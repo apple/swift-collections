@@ -25,9 +25,9 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
+#if compiler(>=6.4)
 @available(SwiftStdlib 6.4, *)
-extension RigidDeque: Equatable where Element: Equatable & ~Copyable {
-}
+extension RigidDeque: Equatable where Element: Equatable & ~Copyable {}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: Equatable & ~Copyable {
@@ -38,8 +38,8 @@ extension RigidDeque where Element: Equatable & ~Copyable {
   ) -> Bool {
     guard left.count == right.count else { return false }
     guard !left.isTriviallyIdentical(to: right) else { return true }
-    
-#if compiler(>=6.4) && UnstableContainersPreview
+
+#if UnstableContainersPreview
     if #available(anyAppleOS 27, *) {
       return left._elementsEqual(right)
     }
@@ -50,5 +50,23 @@ extension RigidDeque where Element: Equatable & ~Copyable {
     return true
   }
 }
+#else
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: Equatable {
+  @inlinable
+  public static func ==(
+    left: borrowing Self,
+    right: borrowing Self
+  ) -> Bool {
+    guard left.count == right.count else { return false }
+    guard !left.isTriviallyIdentical(to: right) else { return true }
+
+    for i in 0 ..< left.count {
+      guard left[i] == right[i] else { return false }
+    }
+    return true
+  }
+}
+#endif
 
 #endif
