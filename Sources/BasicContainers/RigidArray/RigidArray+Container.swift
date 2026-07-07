@@ -157,7 +157,7 @@ extension RigidArray where Element: ~Copyable {
     let p = _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
     return UnsafePointer(p)
   }
-
+  
   @inlinable @inline(__always)
   internal mutating func _mutablePtr(
     to index: Int
@@ -165,7 +165,8 @@ extension RigidArray where Element: ~Copyable {
     _checkItemIndex(index)
     return _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
   }
-
+  
+#if compiler(>=6.4)
   /// Accesses the element at the specified position.
   ///
   /// - Parameter position: The position of the element to access.
@@ -186,6 +187,26 @@ extension RigidArray where Element: ~Copyable {
       &_mutablePtr(to: position).pointee
     }
   }
+#else
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///     The position must be a valid index of the array that is not equal
+  ///     to the `endIndex` property.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    unsafeAddress {
+      _ptr(to: position)
+    }
+    @inline(__always)
+    unsafeMutableAddress {
+      _mutablePtr(to: position)
+    }
+  }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

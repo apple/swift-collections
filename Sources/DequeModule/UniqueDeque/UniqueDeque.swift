@@ -194,6 +194,7 @@ extension UniqueDeque where Element: ~Copyable {
   @inline(__always)
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 
+#if compiler(>=6.4)
   @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
     @inline(__always)
@@ -208,6 +209,25 @@ extension UniqueDeque where Element: ~Copyable {
       &_storage[position]
     }
   }
+#else
+  @_alwaysEmitIntoClient
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    @_transparent
+    unsafeAddress {
+      precondition(position >= 0 && position < count, "Index out of bounds")
+      let slot = _storage._handle.slot(forOffset: position)
+      return _storage._handle.ptr(at: slot)
+    }
+    @inline(__always)
+    @_transparent
+    unsafeMutableAddress {
+      precondition(position >= 0 && position < count, "Index out of bounds")
+      let slot = _storage._handle.slot(forOffset: position)
+      return _storage._handle.mutablePtr(at: slot)
+    }
+  }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

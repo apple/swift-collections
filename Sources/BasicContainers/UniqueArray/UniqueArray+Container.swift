@@ -117,6 +117,7 @@ extension UniqueArray where Element: ~Copyable {
   @inline(__always)
   public var indices: Range<Int> { _storage.indices }
 
+#if compiler(>=6.4)
   /// Accesses the element at the specified position.
   ///
   /// - Parameter position: The position of the element to access.
@@ -136,6 +137,26 @@ extension UniqueArray where Element: ~Copyable {
       &_storage[position]
     }
   }
+#else
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///     The position must be a valid index of the array that is not equal
+  ///     to the `endIndex` property.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    unsafeAddress {
+      _storage._ptr(to: position)
+    }
+    @inline(__always)
+    unsafeMutableAddress {
+      _storage._mutablePtr(to: position)
+    }
+  }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

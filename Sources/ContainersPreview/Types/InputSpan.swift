@@ -237,6 +237,7 @@ extension InputSpan where Element: ~Copyable {
     unsafe Range(uncheckedBounds: (0, _count))
   }
 
+#if compiler(>=6.4)
   /// Accesses the element at the specified position.
   ///
   /// - Parameter index: A valid index into this span.
@@ -257,6 +258,26 @@ extension InputSpan where Element: ~Copyable {
       return unsafe &_unsafeAddressOfElement(uncheckedOffset: index).pointee
     }
   }
+#else
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter index: A valid index into this span.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  public subscript(_ index: Index) -> Element {
+    unsafeAddress {
+      precondition(indices.contains(index), "Index out of bounds")
+      return unsafe UnsafePointer(_unsafeAddressOfElement(uncheckedOffset: index))
+    }
+
+    @_lifetime(self: copy self)
+    unsafeMutableAddress {
+      precondition(indices.contains(index), "Index out of bounds")
+      return unsafe _unsafeAddressOfElement(uncheckedOffset: index)
+    }
+  }
+#endif
 
   /// Accesses the element at the specified position.
   ///
