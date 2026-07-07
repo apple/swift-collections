@@ -17,6 +17,13 @@
 import InternalCollectionsUtilities
 #endif
 
+@available(SwiftStdlib 5.0, *)
+extension UniqueDeque where Element: ~Copyable {
+  public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
+    self._storage.isTriviallyIdentical(to: other._storage)
+  }
+}
+
 @available(SwiftStdlib 6.4, *)
 extension UniqueDeque: Equatable where Element: Equatable & ~Copyable {
 }
