@@ -38,11 +38,11 @@ extension Span where Element: ~Copyable {
     public typealias Element_ = Element
 
     @usableFromInline
-    internal var _span: Span<Element_>
+    package var _span: Span<Element_>
     @usableFromInline
-    internal var _start: Int
+    package var _start: Int
     @usableFromInline
-    internal var _count: Int
+    package var _count: Int
 
     @_lifetime(copy elements)
     public init(_ elements: Span<Element_>) {

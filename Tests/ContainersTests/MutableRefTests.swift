@@ -15,6 +15,7 @@ import XCTest
 #if COLLECTIONS_SINGLE_MODULE
 import Collections
 #else
+import InternalCollectionsUtilities
 import _CollectionsTestSupport
 import ContainersPreview
 #endif
