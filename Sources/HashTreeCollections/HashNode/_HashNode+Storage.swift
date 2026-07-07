@@ -37,6 +37,7 @@ extension _HashNode {
   /// Instances of this class hold (tail-allocated) storage for individual
   /// nodes in a hash tree.
   @usableFromInline
+  @_fixed_layout // Not really! This module isn't ABI stable.
   internal final class Storage: _RawHashStorage {
     @usableFromInline
     internal typealias Element = (key: Key, value: Value)
