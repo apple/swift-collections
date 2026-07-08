@@ -575,7 +575,7 @@ class OrderedSetTests: CollectionTestCase {
             var set = OrderedSet(layout: layout, contents: contents)
             withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
               let new = tracker.instance(for: count + offset) // Not yet a member.
-              let old = set.replace(new, at: offset)
+              let old = set.replace(at: offset, with: new)
               expectIdentical(old, contents[offset])
               expectIdentical(set[offset], new)
               expectEqual(set.firstIndex(of: new), offset)
@@ -604,7 +604,7 @@ class OrderedSetTests: CollectionTestCase {
             withHiddenCopies(if: isShared, of: &set, checker: { $0._checkInvariants() }) { set in
               // Equal to `contents[offset]`, but a distinct instance.
               let new = tracker.instance(for: offset)
-              let old = set.replace(new, at: offset)
+              let old = set.replace(at: offset, with: new)
               expectIdentical(old, contents[offset])
               expectIdentical(set[offset], new)
               expectEqualElements(set, contents)

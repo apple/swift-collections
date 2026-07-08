@@ -210,7 +210,7 @@ extension OrderedSet {
   /// takes over its position:
   ///
   ///     var set: OrderedSet = [1, 2, 3]
-  ///     let old = set.replace(4, at: 1)
+  ///     let old = set.replace(at: 1, with: 4)
   ///     // old == 2
   ///     // set is now [1, 4, 3]
   ///
@@ -218,12 +218,12 @@ extension OrderedSet {
   /// different index triggers a runtime error, as that would introduce a
   /// duplicate.
   ///
+  /// - Parameter index: The index of the member to replace. It must be a valid
+  ///     index below `endIndex`.
+  ///
   /// - Parameter item: The element to place at `index`. It must not already be
   ///     a member of the set, unless it compares equal to the member currently
   ///     at `index`.
-  ///
-  /// - Parameter index: The index of the member to replace. It must be a valid
-  ///     index below `endIndex`.
   ///
   /// - Returns: The original member that was replaced.
   ///
@@ -231,7 +231,7 @@ extension OrderedSet {
   ///     high-quality hashing.
   @inlinable
   @discardableResult
-  public mutating func replace(_ item: Element, at index: Int) -> Element {
+  public mutating func replace(at index: Int, with item: Element) -> Element {
     precondition(index >= 0 && index < count, "Index out of bounds")
     defer { _checkInvariants() }
     let (existing, bucket) = _find(item)
