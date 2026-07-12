@@ -28,7 +28,7 @@ extension TreeSet {
   ///
   /// - Parameter other: Another set.
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
   ///    implements high-quality hashing. The implementation is careful to make
@@ -51,7 +51,7 @@ extension TreeSet {
   ///
   /// - Parameter other: The keys view of a persistent dictionary.
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: Expected to be O(`other.count`) on average, if `Element`
   ///    implements high-quality hashing. The implementation is careful to make
@@ -77,7 +77,7 @@ extension TreeSet {
   /// - Parameter other: A sequence of elements, some of whose elements may
   ///    appear more than once. (Duplicate items are ignored.)
   ///
-  /// - Returns: `true` if the set is a subset of `other`; otherwise, `false`.
+  /// - Returns: `true` if the set is a superset of `other`; otherwise, `false`.
   ///
   /// - Complexity: O(*n*) calls to `self.contains`, where *n* is the number
   ///    of elements in `other`.

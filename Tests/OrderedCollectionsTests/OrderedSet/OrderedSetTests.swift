@@ -682,6 +682,22 @@ class OrderedSetTests: CollectionTestCase {
     }
   }
 
+  func test_reverse_lookups() {
+    // Check that elements are still accessible through the hash table at their
+    // new positions after reversing.
+    withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
+      let count = layout.count
+      var set = OrderedSet(layout: layout, contents: 0 ..< count)
+      set.reverse()
+      for offset in 0 ..< count {
+        let item = count - 1 - offset
+        expectEqual(set.firstIndex(of: item), offset)
+        expectEqual(set[offset], item)
+      }
+      expectNil(set.firstIndex(of: count))
+    }
+  }
+
   func test_remove_at() {
     withOrderedSetLayouts(scales: [0, 5, 6]) { layout in
       withEvery("offset", in: 0 ..< layout.count) { offset in

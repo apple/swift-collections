@@ -131,6 +131,19 @@ extension Benchmark {
       }
     }
 
+    self.add(
+      title: "OrderedSet<Int> reverse",
+      input: [Int].self
+    ) { input in
+      return { timer in
+        var set = OrderedSet(input)
+        timer.measure {
+          set.reverse()
+        }
+        blackHole(set)
+      }
+    }
+
     self.addSimple(
       title: "OrderedSet<Int> append",
       input: [Int].self

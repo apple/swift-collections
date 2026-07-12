@@ -140,7 +140,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new deque, or nil to let the
-  ///      deque grow itself as needed to accomodate all items in `contents`.
+  ///      deque grow itself as needed to accommodate all items in `contents`.
   ///   - contents: A sequence whose contents to copy into the new deque.
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -159,7 +159,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new deque, or nil to let the
-  ///      deque grow itself as needed to accomodate all items in `contents`.
+  ///      deque grow itself as needed to accommodate all items in `contents`.
   ///   - contents: The sequence whose contents to copy into the new deque.
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -177,7 +177,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Parameters:
   ///   - capacity: The storage capacity of the new deque, or nil to let the
-  ///      deque grow itself as needed to accomodate all items in `contents`.
+  ///      deque grow itself as needed to accommodate all items in `contents`.
   ///   - contents: A sequence whose contents to copy into the new deque.
   ///      The sequence must not contain more than `capacity` elements.
   @_alwaysEmitIntoClient
