@@ -202,6 +202,57 @@ extension OrderedSet {
 }
 
 extension OrderedSet {
+  /// Replace the member at the given index with a new element.
+  ///
+  /// If `item` compares equal to the member currently at `index`, then it is
+  /// replaced in place, leaving the set's order unchanged (as in
+  /// `update(_:at:)`). Otherwise the original member is removed and `item`
+  /// takes over its position:
+  ///
+  ///     var set: OrderedSet = [1, 2, 3]
+  ///     let old = set.replace(at: 1, with: 4)
+  ///     // old == 2
+  ///     // set is now [1, 4, 3]
+  ///
+  /// Replacing a member with an element that is already in the set at a
+  /// different index triggers a runtime error, as that would introduce a
+  /// duplicate.
+  ///
+  /// - Parameter index: The index of the member to replace. It must be a valid
+  ///     index below `endIndex`.
+  ///
+  /// - Parameter item: The element to place at `index`. It must not already be
+  ///     a member of the set, unless it compares equal to the member currently
+  ///     at `index`.
+  ///
+  /// - Returns: The original member that was replaced.
+  ///
+  /// - Complexity: Expected amortized O(1), if `Element` implements
+  ///     high-quality hashing.
+  @inlinable
+  @discardableResult
+  public mutating func replace(at index: Int, with item: Element) -> Element {
+    precondition(index >= 0 && index < count, "Index out of bounds")
+    defer { _checkInvariants() }
+    let (existing, bucket) = _find(item)
+
+    // The new element compares equal to the one already at `index` — replace
+    // it in place. Its hash table bucket is unchanged, so no rehash is needed.
+    if existing == index {
+      return update(item, at: index)
+    }
+
+    precondition(existing == nil, "Duplicate element")
+
+    // Append the new element, swap it into the target position, and remove the
+    // old member from the end — each step is O(1).
+    _appendNew(item, in: bucket)
+    swapAt(index, count - 1)
+    return removeLast()
+  }
+}
+
+extension OrderedSet {
   /// Adds the given element to the set unconditionally, either appending it to
   /// the set, or replacing an existing value if it's already present.
   ///
