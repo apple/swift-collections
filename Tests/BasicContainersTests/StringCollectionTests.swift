@@ -28,7 +28,6 @@ import Testing
 struct StringCollectionTests {
   @Suite("Initializers")
   struct InitializerTests {
-    @available(macOS 15.0, *)
     @Test("Empty init produces empty collection")
     func emptyInit() async throws {
       let c = StringCollection()
@@ -37,7 +36,6 @@ struct StringCollectionTests {
       #expect(c.startIndex == c.endIndex)
     }
 
-    @available(macOS 15.0, *)
     @Test("Variadic init stores elements in order")
     func variadicInitOrder() async throws {
       let c = StringCollection("a", "bb", "ccc")
@@ -46,7 +44,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["a", "bb", "ccc"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Variadic init accepts StringProtocol types")
     func variadicInitStringProtocol() async throws {
       let sub: Substring = "hello".prefix(3)  // "hel"
@@ -56,7 +53,6 @@ struct StringCollectionTests {
       #expect(c.last == "lo")
     }
 
-    @available(macOS 15.0, *)
     @Test("Duplicates of the same value")
     func repeatingInit() async throws {
       let c0 = StringCollection(repeating: "x", count: 0)
@@ -71,7 +67,6 @@ struct StringCollectionTests {
       #expect(cEmpty.elementsEqual(["", ""]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Reading from another Sequence")
     func sequenceInit() async throws {
       let cEmpty = StringCollection([String]())
@@ -86,7 +81,6 @@ struct StringCollectionTests {
 
   @Suite("Equality and Hashing")
   struct ComparisonDemos {
-    @available(macOS 15.0, *)
     @Test("Equatable equality and inequality")
     func equatable() async throws {
       let a = StringCollection("a", "b", "c")
@@ -98,7 +92,6 @@ struct StringCollectionTests {
       #expect(a != d)
     }
 
-    @available(macOS 15.0, *)
     @Test("Hashable matches equality semantics")
     func hashable() async throws {
       let a = StringCollection("x", "y")
@@ -112,7 +105,6 @@ struct StringCollectionTests {
 
   @Suite("Searching methods")
   struct SearchTests {
-    @available(macOS 15.0, *)
     @Test("Check first & last locations of given element values")
     func searching() async throws {
       let fruits = StringCollection(
@@ -150,7 +142,6 @@ struct StringCollectionTests {
       #expect(fruits.lastIndex(of: "date") == nil)
     }
 
-    @available(macOS 15.0, *)
     @Test("Check if a value is contained in the collection.")
     func containsTests() async throws {
       let empty = StringCollection()
@@ -166,7 +157,6 @@ struct StringCollectionTests {
 
   @Suite("Indexing")
   struct IndexManipulationTests {
-    @available(macOS 15.0, *)
     @Test("Indices and traversal forward/backward")
     func bidirectionalIndices() async throws {
       let c = StringCollection("a", "b", "cd")
@@ -187,7 +177,6 @@ struct StringCollectionTests {
       #expect(ci == c.startIndex)
     }
 
-    @available(macOS 15.0, *)
     @Test("Index navigation on singleton")
     func singletonIndices() async throws {
       let c = StringCollection("only")
@@ -198,7 +187,6 @@ struct StringCollectionTests {
       #expect(c.endIndex - c.startIndex > 1)
     }
 
-    @available(macOS 15.0, *)
     @Test(
       """
       Indices are traversed with index(after:) and\
@@ -236,7 +224,6 @@ struct StringCollectionTests {
 
   @Suite("Subscripting")
   struct SubscriptingTests {
-    @available(macOS 15.0, *)
     @Test("Subscript by Index returns correct elements")
     func subscriptByIndex() async throws {
       let c = StringCollection("zero", "one", "two")
@@ -248,7 +235,6 @@ struct StringCollectionTests {
       #expect(c[ci] == "two")
     }
 
-    @available(macOS 15.0, *)
     @Test("Subscript by index range returns element bundles (slicing)")
     func slicingBounds() async throws {
       let c = StringCollection("a", "b", "c", "d")
@@ -278,7 +264,6 @@ struct StringCollectionTests {
 
   @Suite("Replacment of elements")
   struct ReplacementTests {
-    @available(macOS 15.0, *)
     @Test("Sub-sequence replacement")
     func replaceSubrangeSequence() async throws {
       var c = StringCollection("a", "b", "c", "d")
@@ -289,7 +274,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["a", "x", "y", "d"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Replacement with an empty collection")
     func replaceSubrangeRemoval() async throws {
       var c = StringCollection("a", "b", "c")
@@ -299,7 +283,6 @@ struct StringCollectionTests {
       #expect(c.first == "a")
     }
 
-    @available(macOS 15.0, *)
     @Test("Replacment at the end (i.e. appending)")
     func replaceSubrangeInsertionAtEnd() async throws {
       var c = StringCollection("a")
@@ -308,7 +291,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["a", "b", "c"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Replacing an entire range")
     func replaceEntireRange() async throws {
       var c = StringCollection("a", "b", "c")
@@ -320,7 +302,6 @@ struct StringCollectionTests {
 
   @Suite("Additive mutating operations")
   struct InsertionTests {
-    @available(macOS 15.0, *)
     @Test("Single-element append")
     func appendElement() async throws {
       var c = StringCollection()
@@ -337,7 +318,6 @@ struct StringCollectionTests {
       #expect(original.elementsEqual(["x", "y"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Appending a sub-sequence")
     func appendContents() async throws {
       var c = StringCollection("a")
@@ -348,7 +328,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["a", "b", "c"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Arbitrary single-element insertion")
     func insertAtIndex() async throws {
       var c = StringCollection()
@@ -369,7 +348,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["0", "X", "a", "b"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Arbitrary sub-sequence insertion")
     func insertContentsAtIndex() async throws {
       var c = StringCollection("a", "d")
@@ -395,7 +373,6 @@ struct StringCollectionTests {
 
   @Suite("Subractive mutating operations")
   struct RemovalTests {
-    @available(macOS 15.0, *)
     @Test("Remove last element(s)")
     func removeLastBehavior() async throws {
       var c = StringCollection("a", "b", "c", "d", "e")
@@ -408,7 +385,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["a", "b"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Arbitrary single-element removal")
     func removeAtIndex() async throws {
       var c = StringCollection("a", "b", "c", "d")
@@ -426,7 +402,6 @@ struct StringCollectionTests {
       #expect(c.elementsEqual(["b"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Arbitrary sub-sequence removal")
     func removeSubrangeTests() async throws {
       var c = StringCollection("a", "b", "c", "d", "e")
@@ -451,7 +426,6 @@ struct StringCollectionTests {
       #expect(c.isEmpty)
     }
 
-    @available(macOS 15.0, *)
     @Test("Remove first element(s)")
     func removeFirstBehavior() async throws {
       var c = StringCollection("a", "b", "c", "d")
@@ -470,7 +444,6 @@ struct StringCollectionTests {
       #expect(c.isEmpty)
     }
 
-    @available(macOS 15.0, *)
     @Test("Predicate-based removal")
     func removeAllWhere() async throws {
       var c = StringCollection("a", "bb", "c", "ddd", "e")
@@ -485,7 +458,6 @@ struct StringCollectionTests {
       #expect(d.elementsEqual(["y"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Removing everything clears the collection")
     func removeAllTest() async throws {
       var c = StringCollection("a", "b")
@@ -497,7 +469,6 @@ struct StringCollectionTests {
 
   @Suite("Copy-on-write Semantics")
   struct CopyOnWriteTests {
-    @available(macOS 15.0, *)
     @Test("Mutation should not affect original")
     func copyOnWriteIsolation() async throws {
       let original = StringCollection("a", "b", "c")
@@ -516,7 +487,6 @@ struct StringCollectionTests {
       #expect(copy.elementsEqual(["a", "B", "c"]))
     }
 
-    @available(macOS 15.0, *)
     @Test("Copies versus removeAll")
     func copyOnWriteRemoveAll() async throws {
       let original = StringCollection("x", "y")
