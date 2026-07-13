@@ -18,99 +18,112 @@
 ///
 /// Elements are stored in a compact,
 /// normalized scalar representation inside a *single* backing buffer.
-/// Blocks support efficient appends and removals at the ends
-/// (except prepending).
 ///
 /// Specifying or retaining element capacity is not supported.
-@available(macOS 15.0, *)
-public struct StringCollection: Hashable, Sendable {
-  /// Ensures that the instance has unique ownership of its storage before
-  /// mutation.
-  ///
-  /// If the backing storage is shared with other copies,
-  /// this method clones it so that subsequent mutations do not affect other
-  /// values.
-  /// This underpins the type's copy-on-write semantics.
-  mutating func ensureUnique() {
-    if !isKnownUniquelyReferenced(&self.inner) {
-      self.inner = .init(cloning: self.inner)
+public struct StringCollection: @unchecked Sendable {
+  /// Copy-on-write access to the actual elements.
+  private var storage: Storage
+
+  public init<S: StringProtocol>(_ elements: some Sequence<S>) {
+    let empty = Storage.State()
+    let state = Storage.State(
+      clone: empty,
+      replacing: empty.startIndex..<empty.endIndex,
+      with: elements
+    )
+    self.storage = .init(state)
+  }
+
+  /// Create a collection with the given strings, in order.
+  public init<each S: StringProtocol>(_ string: repeat each S) {
+    // The Swift compiler won't (currently) use this initializer to
+    // implement the default initializer.
+    var strings = [String]()
+    for s in repeat each string {
+      strings.append(String(s))
     }
+    self.init(strings)
+  }
+}
+
+// MARK: - Collection conformances
+
+extension StringCollection: BidirectionalCollection, RangeReplaceableCollection
+{
+  public var count: Int { self.storage.state.count }
+
+  public func _customContainsEquatableElement(_ element: Element) -> Bool? {
+    return self.storage.state.contains(element)
+  }
+  public func _customIndexOfEquatableElement(_ element: Element) -> Index?? {
+    return self.storage.state.firstIndex(of: element)
+  }
+  public func _customLastIndexOfEquatableElement(_ element: Element) -> Index??
+  {
+    return self.storage.state.lastIndex(of: element)
+  }
+  public mutating func _customRemoveLast() -> Element? {
+    defer { _ = self._customRemoveLast(1) }
+
+    return self.last
+  }
+  public mutating func _customRemoveLast(_ n: Int) -> Bool {
+    let suffixCutoff = self.index(self.endIndex, offsetBy: -n)
+    self.replaceSubrange(suffixCutoff..., with: EmptyCollection())
+    return true
+  }
+
+  public var endIndex: Index { self.storage.state.endIndex }
+
+  public func index(after i: Index) -> Index {
+    return self.storage.state.index(after: i)
+  }
+  public func index(before i: Index) -> Index {
+    return self.storage.state.index(before: i)
   }
 
   public init() {
-    self.inner = .init()
+    self.init(EmptyCollection<String>())
   }
-  /// Creates a block with the individually-given strings (in order).
-  ///
-  /// - Parameter string: The strings to store.
-  public init<each S: StringProtocol>(_ string: repeat each S) {
-    self.init()
-    for str in repeat each string {
-      self.inner.append(String(str))
-    }
+  public init(repeating repeatedValue: String, count: Int) {
+    self.init(repeatElement(repeatedValue, count: count))
   }
 
-  /// The elements stored to enable copy-on-write.
-  var inner: ClassyEmbeddedStringStorage
-}
+  public var isEmpty: Bool { self.storage.state.isEmpty }
 
-// MARK: - Conformances
-
-@available(macOS 15.0, *)
-extension StringCollection: BidirectionalCollection,
-  RangeReplaceableCollection
-{
-  public var count: Int { self.inner.count }
-
-  public func _customContainsEquatableElement(_ element: Element) -> Bool? {
-    return self.inner._customContainsEquatableElement(element)
-  }
-
-  public func _customIndexOfEquatableElement(_ element: Element) -> Index?? {
-    return self.inner._customIndexOfEquatableElement(element)
-  }
-  public func _customLastIndexOfEquatableElement(_ element: Element)
-    -> Index??
-  {
-    return self.inner._customLastIndexOfEquatableElement(element)
-  }
-
-  public mutating func _customRemoveLast() -> Element? {
-    self.ensureUnique()
-    return self.inner._customRemoveLast()
-  }
-  public mutating func _customRemoveLast(_ n: Int) -> Bool {
-    self.ensureUnique()
-    return self.inner._customRemoveLast(n)
-  }
-
-  public var endIndex: Index { self.inner.endIndex }
-
-  public func index(after i: Index) -> Index {
-    return self.inner.index(after: i)
-  }
-  public func index(before i: Index) -> Index {
-    return self.inner.index(before: i)
-  }
-
-  public var isEmpty: Bool { self.inner.isEmpty }
-
-  public var startIndex: Index { self.inner.startIndex }
-
-  public subscript(position: Int) -> String {
-    return self.inner[position]
-  }
-
-  public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
-    self.ensureUnique()
-    self.inner.removeAll(keepingCapacity: keepCapacity)
-  }
-
-  public mutating func replaceSubrange<S: StringProtocol & Sendable>(
+  public mutating func replaceSubrange<S: StringProtocol>(
     _ subrange: some RangeExpression<Index>,
     with newElements: some Sequence<S>
   ) {
-    self.ensureUnique()
-    self.inner.replaceSubrange(subrange, with: newElements)
+    if isKnownUniquelyReferenced(&self.storage) {
+      self.storage.state.replaceSubrange(subrange, with: newElements)
+    } else {
+      let newState = Self.Storage.State(
+        clone: self.storage.state,
+        replacing: subrange.relative(to: self),
+        with: newElements
+      )
+      let newStorage = Self.Storage(newState)
+      self.storage = newStorage
+    }
+  }
+
+  public var startIndex: Index { self.storage.state.startIndex }
+
+  public subscript(position: Int) -> String {
+    return self.storage.state[position]
+  }
+}
+
+// MARK: - Comparison conformances
+
+extension StringCollection: Hashable {
+  public static func == (lhs: Self, rhs: Self) -> Bool {
+    return lhs.storage.state.innerElements
+      == rhs.storage.state.innerElements
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    self.storage.state.innerElements.hash(into: &hasher)
   }
 }
