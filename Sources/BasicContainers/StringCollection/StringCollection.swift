@@ -139,3 +139,11 @@ extension StringCollection: CustomStringConvertible {
     "[" + self.lazy.map(String.init(reflecting:)).joined(separator: ", ") + "]"
   }
 }
+
+// MARK: - Array-literal support
+
+extension StringCollection: ExpressibleByArrayLiteral {
+  public init(arrayLiteral elements: Element...) {
+    self.init(elements)
+  }
+}

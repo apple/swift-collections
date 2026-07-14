@@ -646,6 +646,57 @@ struct StringCollectionTests {
     }
   }
 
+  @Suite("Array Literal Conformance")
+  struct ArrayLiteralTests {
+    @Test("Empty array literal creates empty collection")
+    func emptyArrayLiteral() async throws {
+      let c: StringCollection = []
+      #expect(c.isEmpty)
+      #expect(c.count == 0)
+    }
+
+    @Test("Single element array literal stores that one element")
+    func singleElementArrayLiteral() async throws {
+      let c: StringCollection = ["hello"]
+      #expect(c.count == 1)
+      #expect(c.first == "hello")
+      #expect(c == ["hello"])
+    }
+
+    @Test("Multiple elements preserve order from array literal's terms")
+    func multipleElementsArrayLiteral() async throws {
+      let c: StringCollection = ["a", "bb", "ccc"]
+      #expect(c.count == 3)
+      #expect(Array(c) == ["a", "bb", "ccc"])
+    }
+
+    @Test("Type inference with `var` and mutation after creation")
+    func typeInferenceAndMutation() async throws {
+      var c: StringCollection = ["x", "y"]
+      c.append("z")
+      #expect(c == ["x", "y", "z"])
+    }
+
+    @Test("Copy-on-write behavior from a literal")
+    func cowFromLiteral() async throws {
+      let original: StringCollection = ["a", "b", "c"]
+      var copy = original
+      // Mutate copy
+      let i = copy.index(after: copy.startIndex)
+      copy.replaceSubrange(i..<copy.index(after: i), with: ["B"])  // "b" ⇄ "B"
+      #expect(original == ["a", "b", "c"])
+      #expect(copy == ["a", "B", "c"])
+    }
+
+    @Test("Using array literal in generic context")
+    func genericContextUsage() async throws {
+      func echo(_ x: StringCollection) -> StringCollection { return x }
+      let literal: StringCollection = ["m", "n"]
+      let echoed = echo(literal)
+      #expect(echoed == ["m", "n"])
+    }
+  }
+
   @Suite("Input and Output")
   struct InputOutputTests {
     @Suite("Print output")
