@@ -101,6 +101,155 @@ struct StringCollectionTests {
       #expect(a == b)
       #expect(a != c)
     }
+
+    @Suite("Comparable (<) tests")
+    struct ComparableTests {
+      @Test("Empty vs empty")
+      func emptyVsEmpty() {
+        let a = StringCollection([])
+        let b = StringCollection([])
+        #expect(!(a < b))
+        #expect(!(b < a))
+        #expect(a == b)
+      }
+
+      @Test("Empty vs non-empty")
+      func emptyVsNonEmpty() {
+        let a = StringCollection([])
+        let b = StringCollection(["a"])
+        #expect(a < b)
+        #expect(!(b < a))
+      }
+
+      @Test("Single element comparison: different values")
+      func singleElementDifferentValues() {
+        let a = StringCollection(["a"])
+        let b = StringCollection(["b"])
+        #expect(a < b)
+        #expect(!(b < a))
+      }
+
+      @Test("Single element comparison: equal values")
+      func singleElementEqualValues() {
+        let a = StringCollection(["hello"])
+        let b = StringCollection(["hello"])
+        #expect(!(a < b))
+        #expect(!(b < a))
+        #expect(a == b)
+      }
+
+      @Test("Prefix relationship: shorter is less")
+      func prefixRelationship() {
+        let a = StringCollection(["a", "b"])
+        let b = StringCollection(["a", "b", "c"])
+        #expect(a < b)
+        #expect(!(b < a))
+      }
+
+      @Test("First differing element determines order")
+      func firstDifferenceDeterminesOrder() {
+        let a = StringCollection(["a", "b", "x"])
+        let b = StringCollection(["a", "c", "y"])
+        // Compare: "a" == "a", then "b" < "c" => a < b
+        #expect(a < b)
+        #expect(!(b < a))
+      }
+
+      @Test("Equal up to end: same length, same elements")
+      func equalSameLength() {
+        let a = StringCollection(["swift", "rocks"])
+        let b = StringCollection(["swift", "rocks"])
+        #expect(!(a < b))
+        #expect(!(b < a))
+        #expect(a == b)
+      }
+
+      @Test("Duplicate and repeated values")
+      func duplicatesAndRepeats() {
+        let a = StringCollection(["a", "a", "a"])
+        let b = StringCollection(["a", "a", "b"])
+        #expect(a < b)
+        #expect(!(b < a))
+
+        let c = StringCollection(["a", "a"])
+        let d = StringCollection(["a", "a", ""])
+        // c is a strict prefix of d => c < d
+        #expect(c < d)
+        #expect(!(d < c))
+      }
+
+      @Test("Unicode: basic equivalence and ordering")
+      func unicodeOrdering() {
+        // Note: StringCollection stores normalized scalars internally,
+        // but < uses lexicographical order of elements as Strings.
+        // We assert intuitive ordering between different user-perceived
+        // strings.
+        let a = StringCollection(["Å"])  // U+00C5
+        let b = StringCollection(["Ä"])  // U+00C4
+        // In default Swift String ordering,
+        // these compare by Unicode scalar order.
+        // We don't assert locale-sensitive ordering;
+        // we just assert asymmetry.
+        #expect((a < b) != (b < a))
+
+        // Different length Unicode strings
+        let c = StringCollection(["é"])  // U+00E9
+        let d = StringCollection(["é"])  // "e"+combining acute (U+0065 U+0301)
+        // They are canonically equivalent as user-perceived text,
+        // but as Strings,
+        // Swift may consider them equal after normalization.
+        // Validate that equality implies neither is less than the other.
+        #expect(!(c < d))
+        #expect(!(d < c))
+        #expect(c == d)
+      }
+
+      @Test("Multi-element Unicode ordering with first difference")
+      func unicodeFirstDifference() {
+        let a = StringCollection(["café", "alpha"])
+        let b = StringCollection(["café", "beta"])
+        #expect(a < b)
+        #expect(!(b < a))
+      }
+
+      @Test("Large collections sanity")
+      func largeCollections() {
+        let base = (0..<1000).map { "s\($0)" }
+        var a = StringCollection(base)
+        var b = StringCollection(base)
+        #expect(!(a < b))
+        #expect(!(b < a))
+        #expect(a == b)
+
+        // Change one element to be larger
+        var larger = base
+        larger[500] = "sZ"
+        b = StringCollection(larger)
+        #expect(a < b)
+        #expect(!(b < a))
+
+        // Change an earlier element to be smaller, flips order
+        var smaller = base
+        smaller[100] = "a"
+        a = StringCollection(smaller)
+        #expect(a < b)
+        #expect(!(b < a))
+      }
+
+      @Test("Mixed empty strings inside")
+      func mixedEmptyStrings() {
+        let a = StringCollection(["", "a"])
+        let b = StringCollection(["", "b"])
+        #expect(a < b)
+        #expect(!(b < a))
+
+        let c = StringCollection(["", "a"])
+        let d = StringCollection([""])
+        // d is a strict prefix of c => d < c
+        #expect(d < c)
+        #expect(!(c < d))
+      }
+    }
   }
 
   @Suite("Searching methods")

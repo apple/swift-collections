@@ -117,7 +117,11 @@ extension StringCollection: BidirectionalCollection, RangeReplaceableCollection
 
 // MARK: - Comparison conformances
 
-extension StringCollection: Hashable {
+extension StringCollection: Comparable, Hashable {
+  public static func < (lhs: Self, rhs: Self) -> Bool {
+    return lhs.lexicographicallyPrecedes(rhs)
+  }
+
   public static func == (lhs: Self, rhs: Self) -> Bool {
     return lhs.storage.state.innerElements
       == rhs.storage.state.innerElements
