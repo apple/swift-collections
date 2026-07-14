@@ -645,4 +645,73 @@ struct StringCollectionTests {
       #expect(copy.count == 0)
     }
   }
+
+  @Suite("Input and Output")
+  struct InputOutputTests {
+    @Suite("Print output")
+    struct DescriptionTests {
+      @Test("Empty collection renders as []")
+      func emptyDescription() async throws {
+        let c = StringCollection()
+        #expect(String(describing: c) == "[]")
+      }
+
+      @Test(
+        """
+        Strings are expressed as their quoted value\
+        , and not directly dumped into the result
+        """
+      )
+      func singleElement() async throws {
+        let c = StringCollection("hello")
+        #expect(String(describing: c) == ##"["hello"]"##)
+      }
+
+      @Test(##"Multiple elements are ", "-separated"##)
+      func multipleElements() async throws {
+        let c = StringCollection("a", "b", "c")
+        #expect(String(describing: c) == ##"["a", "b", "c"]"##)
+      }
+
+      @Test("Elements containing commas and brackets are preserved")
+      func punctuationElements() async throws {
+        let c = StringCollection("a,b", "[mid]", "]]")
+        #expect(String(describing: c) == ##"["a,b", "[mid]", "]]"]"##)
+      }
+
+      @Test("Whitespace is preserved; no trimming occurs")
+      func whitespacePreserved() async throws {
+        let c = StringCollection("  lead", "trail  ", " mid ")
+        #expect(String(describing: c) == ##"["  lead", "trail  ", " mid "]"##)
+      }
+
+      @Test("Unicode and emoji are preserved")
+      func unicodeAndEmoji() async throws {
+        let c = StringCollection("naïve", "🤖", "🐱‍👤")
+        #expect(String(describing: c) == ##"["naïve", "🤖", "🐱‍👤"]"##)
+      }
+
+      @Test("Newlines and control characters are escaped")
+      func newlinesAndControls() async throws {
+        let c = StringCollection("line1\n", "line2", "\tend")
+        #expect(String(describing: c) == ##"["line1\n", "line2", "\tend"]"##)
+      }
+
+      @Test("Includes empty strings as \"\"")
+      func includesEmptyStrings() async throws {
+        let c = StringCollection("", "a", "", "b", "")
+        #expect(String(describing: c) == ##"["", "a", "", "b", ""]"##)
+      }
+
+      @Test("Large content concatenates with commas correctly")
+      func longContent() async throws {
+        let parts = (0..<10).map { "x\($0)" }
+        let c = StringCollection(parts)
+        let expected =
+          "[" + parts.map { String(reflecting: $0) }.joined(separator: ", ")
+          + "]"
+        #expect(String(describing: c) == expected)
+      }
+    }
+  }
 }

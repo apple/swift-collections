@@ -131,3 +131,11 @@ extension StringCollection: Comparable, Hashable {
     self.storage.state.innerElements.hash(into: &hasher)
   }
 }
+
+// MARK: - String expression
+
+extension StringCollection: CustomStringConvertible {
+  public var description: String {
+    "[" + self.lazy.map(String.init(reflecting:)).joined(separator: ", ") + "]"
+  }
+}
