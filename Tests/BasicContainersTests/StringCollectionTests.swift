@@ -764,5 +764,83 @@ struct StringCollectionTests {
         #expect(String(describing: c) == expected)
       }
     }
+
+    @Suite("Codable")
+    struct CodableTests {
+      @Test("JSON: encode empty and decode back")
+      func jsonEmptyRoundTrip() async throws {
+        let original = StringCollection()
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(
+          StringCollection.self,
+          from: data
+        )
+        #expect(decoded.isEmpty)
+        #expect(decoded == original)
+      }
+
+      @Test("JSON: simple ASCII round trip preserves order and values")
+      func jsonSimpleRoundTrip() async throws {
+        let original = StringCollection("a", "bb", "ccc")
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(
+          StringCollection.self,
+          from: data
+        )
+        #expect(decoded.count == 3)
+        #expect(decoded.elementsEqual(["a", "bb", "ccc"]))
+        #expect(decoded == original)
+      }
+
+      @Test("JSON: Unicode and emoji round trip")
+      func jsonUnicodeRoundTrip() async throws {
+        let original = StringCollection("naïve", "🤖", "🐱‍👤")
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(
+          StringCollection.self,
+          from: data
+        )
+        #expect(decoded == original)
+      }
+
+      @Test("JSON: duplicates and empty strings are preserved")
+      func jsonDuplicatesAndEmpties() async throws {
+        let original = StringCollection("", "x", "x", "", "y")
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(
+          StringCollection.self,
+          from: data
+        )
+        #expect(decoded.elementsEqual(["", "x", "x", "", "y"]))
+        #expect(decoded == original)
+      }
+
+      @Test("JSON: nested within another Codable type")
+      func jsonNestedInWrapper() async throws {
+        struct Wrapper: Codable, Equatable {
+          var title: String
+          var payload: StringCollection
+        }
+        // Using array-literal conformance to express the payload.
+        let wrapper = Wrapper(title: "test", payload: ["a", "b"])
+        let data = try JSONEncoder().encode(wrapper)
+        let decoded = try JSONDecoder().decode(Wrapper.self, from: data)
+        #expect(decoded == wrapper)
+        #expect(decoded.payload.elementsEqual(["a", "b"]))
+      }
+
+      @Test("JSON: decoding from non-array fails")
+      func jsonDecodeFailureFromNonArray() async throws {
+        // Have an object here instead of an array
+        let invalidJSON = try JSONEncoder().encode(["key": "value"])
+        do {
+          _ = try JSONDecoder().decode(StringCollection.self, from: invalidJSON)
+          #expect(Bool(false), "Decoding should have failed for non-array JSON")
+        } catch {
+          // Expected failure
+          #expect(true)
+        }
+      }
+    }
   }
 }

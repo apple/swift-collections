@@ -147,3 +147,24 @@ extension StringCollection: ExpressibleByArrayLiteral {
     self.init(elements)
   }
 }
+
+// MARK: - Codable support
+
+extension StringCollection: Decodable, Encodable {
+  public func encode(to encoder: any Encoder) throws {
+    var container = encoder.unkeyedContainer()
+    try container.encode(contentsOf: self)
+  }
+
+  public init(from decoder: any Decoder) throws {
+    var values = try decoder.unkeyedContainer()
+    var elements = [Element]()
+    if let vc = values.count {
+      elements.reserveCapacity(vc)
+    }
+    while !values.isAtEnd {
+      elements.append(try values.decode(String.self))
+    }
+    self.init(elements)
+  }
+}
