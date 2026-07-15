@@ -171,46 +171,46 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
     return true
   }
   
-  /// Skip at most the given number items in the underlying generative sequence,
-  /// decreasing it by the number of items successfully skipped.
+  /// Skip the given number items in the underlying generative sequence,
+  /// decreasing it by the number of items successfully skipped before hitting
+  /// the end of the sequence or an error.
   ///
   /// This is equivalent to generating the same number of items then immediately
   /// discarding them, except it may avoid the overhead of actually
-  /// materializing them.
+  /// materializing the elements.
   ///
   /// As soon as the producer has run out of items, all subsequent calls to
-  /// this method stop decrementing `remainder` and return false.
+  /// this method stop decrementing `n` and return false.
   ///
-  /// The default implementation of this method calls `generate(into:)` with
-  /// a small temporary buffer, immediately discarding all generated items.
-  /// Conforming types are encouraged to replace this default approach
-  /// with a more efficient implementation whenever it is possible to do so.
+  /// The default implementation of this method repeatedly calls
+  /// `generate(into:)` with a small temporary buffer, immediately discarding
+  /// all generated items. Conforming types are encouraged to replace this
+  /// default approach with a more efficient implementation whenever it is
+  /// possible to do so.
   ///
   /// ### Error handling
   ///
   /// This method throws an error to indicate a failure while trying to skip
-  /// the upcoming next item in the sequence. Failure may happen midway through
-  /// skipping a batch of items, in which case the `remainder` will still be
+  /// an upcoming item in the sequence. Failure may happen midway through
+  /// skipping a batch of items, in which case `n` will still be
   /// decremented by the number of elements that were successfully skipped
-  /// before encountering the problem.
+  /// before encountering the problem. This can be used to precisely track
+  /// the current position of the failed producer, allowing better diagnostics,
+  /// and allowing iteration to continue if the failure is resolvable.
   ///
-  /// - Parameter remainder: The maximum number of items remaining to skip.
-  ///     This method decrements this value by the number of items it
+  /// - Parameter n: The number of items to skip. This must be greater than
+  ///     zero. This method decrements this value by the number of items it
   ///     successfully skipped before returning.
-  /// - Returns: A boolean value indicating whether the operation was able to
-  ///    satisfy the request at least partially without hitting the end of the
-  ///    underlying consumable sequence.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func skip(
-    upTo n: inout Int
-  ) -> Bool { // FIXME: Compiler crash when this declares throws(Failure)
+  public mutating func skip(by n: inout Int) {
+    // FIXME: Compiler crash when this declares throws(Failure)
     precondition(n >= 0, "Cannot skip a negative number of elements")
-    guard n > 0 else { return true }
-    let span = drainNext(maxCount: n)
-    let success = span.count > 0
-    n &-= span.count
-    return success
+    while n > 0 {
+      let span = drainNext(maxCount: n)
+      guard !span.isEmpty else { return }
+      n &-= span.count
+    }
   }
 }
 

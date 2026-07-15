@@ -100,37 +100,38 @@ public protocol Producer<Element, Failure>: ~Copyable, ~Escapable {
     into target: inout OutputSpan<Element>
   ) throws(Failure) -> Bool
   
-  /// Skip at most the given number items in the underlying generative sequence,
-  /// decreasing it by the number of items successfully skipped.
+  /// Skip the given number items in the underlying generative sequence,
+  /// decreasing it by the number of items successfully skipped before hitting
+  /// the end of the sequence or an error.
   ///
   /// This is equivalent to generating the same number of items then immediately
   /// discarding them, except it may avoid the overhead of actually
-  /// materializing them.
+  /// materializing the elements.
   ///
   /// As soon as the producer has run out of items, all subsequent calls to
   /// this method stop decrementing `n` and return false.
   ///
-  /// The default implementation of this method calls `generate(into:)` with
-  /// a small temporary buffer, immediately discarding all generated items.
-  /// Conforming types are encouraged to replace this default approach
-  /// with a more efficient implementation whenever it is possible to do so.
+  /// The default implementation of this method repeatedly calls
+  /// `generate(into:)` with a small temporary buffer, immediately discarding
+  /// all generated items. Conforming types are encouraged to replace this
+  /// default approach with a more efficient implementation whenever it is
+  /// possible to do so.
   ///
   /// ### Error handling
   ///
   /// This method throws an error to indicate a failure while trying to skip
-  /// the upcoming next item in the sequence. Failure may happen midway through
+  /// an upcoming item in the sequence. Failure may happen midway through
   /// skipping a batch of items, in which case `n` will still be
   /// decremented by the number of elements that were successfully skipped
-  /// before encountering the problem.
+  /// before encountering the problem. This can be used to precisely track
+  /// the current position of the failed producer, allowing better diagnostics,
+  /// and allowing iteration to continue if the failure is resolvable.
   ///
-  /// - Parameter n: The maximum number of items remaining to skip. This
-  ///     must be greater than zero. This method decrements this value by the
-  ///     number of items it successfully skipped before returning.
-  /// - Returns: A boolean value indicating whether the operation was able to
-  ///    skip at least one item without hitting the end of the underlying
-  ///    sequence.
+  /// - Parameter n: The number of items to skip. This must be greater than
+  ///     zero. This method decrements this value by the number of items it
+  ///     successfully skipped before returning.
   @_lifetime(self: copy self)
-  mutating func skip(by n: inout Int) throws(Failure) -> Bool
+  mutating func skip(by n: inout Int) throws(Failure)
 
   /// Generate and return the next element in the underlying generative
   /// sequence.
@@ -178,46 +179,87 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inline(__always)
   public var underestimatedCount: Int { 0 }
 
-  /// Skip at most the given number items in the underlying generative sequence,
-  /// decreasing it by the number of items successfully skipped.
+  /// Skip the given number items in the underlying generative sequence,
+  /// decreasing it by the number of items successfully skipped before hitting
+  /// the end of the sequence or an error.
   ///
   /// This is equivalent to generating the same number of items then immediately
   /// discarding them, except it may avoid the overhead of actually
-  /// materializing them.
+  /// materializing the elements.
   ///
   /// As soon as the producer has run out of items, all subsequent calls to
   /// this method stop decrementing `n` and return false.
   ///
-  /// The default implementation of this method calls `generate(into:)` with
-  /// a small temporary buffer, immediately discarding all generated items.
-  /// Conforming types are encouraged to replace this default approach
-  /// with a more efficient implementation whenever it is possible to do so.
+  /// The default implementation of this method repeatedly calls
+  /// `generate(into:)` with a small temporary buffer, immediately discarding
+  /// all generated items. Conforming types are encouraged to replace this
+  /// default approach with a more efficient implementation whenever it is
+  /// possible to do so.
   ///
   /// ### Error handling
   ///
   /// This method throws an error to indicate a failure while trying to skip
-  /// the upcoming next item in the sequence. Failure may happen midway through
+  /// an upcoming item in the sequence. Failure may happen midway through
   /// skipping a batch of items, in which case `n` will still be
   /// decremented by the number of elements that were successfully skipped
-  /// before encountering the problem.
+  /// before encountering the problem. This can be used to precisely track
+  /// the current position of the failed producer, allowing better diagnostics,
+  /// and allowing iteration to continue if the failure is resolvable.
   ///
-  /// - Parameter n: The maximum number of items remaining to skip. This
-  ///     must be greater than zero. This method decrements this value by the
-  ///     number of items it successfully skipped before returning.
-  /// - Returns: A boolean value indicating whether the operation was able to
-  ///    skip at least one item without hitting the end of the underlying
-  ///    sequence.
+  /// - Parameter n: The number of items to skip. This must be greater than
+  ///     zero. This method decrements this value by the number of items it
+  ///     successfully skipped before returning.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func skip(by n: inout Int) throws(Failure) -> Bool {
+  public mutating func skip(by n: inout Int) throws(Failure) {
     precondition(n > 0, "Cannot skip fewer than one item")
-    let maxBufferSize = 8
-    return try withTemporaryOutputSpan(
-      of: Element.self, capacity: Swift.min(maxBufferSize, n)
-    ) { span throws(Failure) in
-      defer { n &-= span.count }
-      return try self.generate(into: &span)
+    let maxBufferSize = _producerBufferSize
+    return try withTemporaryAllocation(
+      of: Element.self,
+      capacity: Swift.min(maxBufferSize, n)
+    ) { buffer throws(Failure) in
+      repeat {
+        defer { n &-= buffer.count }
+        guard try self.generate(into: &buffer) else { return }
+        buffer.removeAll()
+      } while n > 0
     }
+  }
+
+  /// Skip the given number items in the underlying generative sequence,
+  /// returning the number of items successfully skipped before hitting the end
+  /// of the sequence.
+  ///
+  /// This is equivalent to generating the same number of items then immediately
+  /// discarding them, except it may avoid the overhead of actually
+  /// materializing the elements.
+  ///
+  /// If the producer runs out of items, all subsequent calls to
+  /// this method return zero without skipping any elements.
+  ///
+  /// ### Error handling
+  ///
+  /// This method throws an error to indicate a failure while trying to skip
+  /// an upcoming item in the sequence. Failure may happen midway through
+  /// skipping a batch of items, in which case this operation has no way to
+  /// report which item triggered the error. This is not an issue in the common
+  /// case when the iterator simply gets discarded anyway; however, when losing
+  /// position is not acceptable, it is recommended to avoid calling this
+  /// algorithm, and instead call the variant of `skip(by:)` that takes an inout
+  /// integer value. For example, this applies to use cases that need to report
+  /// the precise location of errors, and cases that are able to recover some
+  /// error conditions and want to be able to continue iterating without losing
+  /// data.
+  ///
+  /// - Returns: The number of items successfully skipped. This can be less than
+  ///    `n` if the operation hits the end of the underlying sequence before
+  ///    managing to skip the requested number of elements.
+  @inlinable
+  @_lifetime(self: copy self)
+  public mutating func skip(by n: Int) throws(Failure) -> Int {
+    var remainder = n
+    try self.skip(by: &remainder)
+    return n - remainder
   }
 
   /// Generate and return the next element in the underlying generative
@@ -254,12 +296,11 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @inlinable
   @_lifetime(self: copy self)
   public mutating func next() throws(Failure) -> Element? {
-    try _withUnsafeTemporaryAllocation(
+    try withTemporaryAllocation(
       of: Element.self, capacity: 1
     ) { buffer throws(Failure) in
-      var span = OutputSpan(buffer: buffer, initializedCount: 0)
-      guard try self.generate(into: &span) else { return nil }
-      return span.removeLast()
+      guard try self.generate(into: &buffer) else { return nil }
+      return buffer.removeLast()
     }
   }
 }
@@ -274,9 +315,8 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     _ message: String = "Invalid Producer"
   ) throws(Failure) {
     var c = 1
-    if try !skip(by: &c) {
-      preconditionFailure(message)
-    }
+    try skip(by: &c)
+    precondition(c == 0, message)
   }
 }
 
