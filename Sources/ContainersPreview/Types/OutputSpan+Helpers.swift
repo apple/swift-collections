@@ -35,14 +35,14 @@ extension OutputSpan where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
-  package mutating func _consumeAll(
-    consumingWith consumer: (inout InputSpan<Element>) -> Void
-  ) {
-    self.withUnsafeMutableBufferPointer { buffer, count in
+  package mutating func _consumeAll<Failure: Error>(
+    consumingWith consumer: (inout InputSpan<Element>) throws(Failure) -> Void
+  ) throws(Failure) {
+    try self.withUnsafeMutableBufferPointer { buffer, count throws(Failure) in
       var span = InputSpan(
         buffer: buffer._extracting(first: count),
         initializedCount: count)
-      consumer(&span)
+      try consumer(&span)
       _ = consume span
       count = 0
     }

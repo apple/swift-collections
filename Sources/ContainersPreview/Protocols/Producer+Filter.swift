@@ -101,6 +101,8 @@ where
     } while target.count == startCount
     return target.count > startCount
   }
+
+  // Note: We can't implement skip(by:) a better way than the default algorithm.
 }
 
 #endif

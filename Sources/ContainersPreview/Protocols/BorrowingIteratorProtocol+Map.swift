@@ -115,6 +115,28 @@ where
     }
     return success
   }
+
+  @inlinable
+  @_lifetime(self: copy self)
+  public mutating func skip(by n: inout Int) throws(Failure) {
+    precondition(n > 0, "Can't skip a negative number of elements")
+    if Failure.self == Never.self {
+      n -= try! _it.skip_(by: n)
+      return
+    }
+#if false
+    // FIXME: Iterator's ill-conceived skip(by:) fails to report the position that triggers errors
+    try _it.skip_(by: &n)
+#else
+    // We have no choice other than skipping items one by one, or allowing
+    // the base to materialize every element. The latter performs better in
+    // the common case of containers, so let's do that.
+    while n > 0 {
+      let span = try _it.nextSpan_(maxCount: n)
+      n -= span.count
+    }
+#endif
+  }
 }
 
 #endif
