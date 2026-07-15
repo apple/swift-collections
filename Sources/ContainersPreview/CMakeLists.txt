@@ -69,6 +69,7 @@ target_sources(${module_name} PRIVATE
   "Protocols/Producer+Filter.swift"
   "Protocols/Producer+Map.swift"
   "Protocols/Producer+Reduce.swift"
+  "Protocols/Producer+Unfold.swift"
   "Types/InputSpan.swift"
   "Types/MutableRef.swift"
   "Types/OutputSpan+Helpers.swift"
