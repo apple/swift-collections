@@ -109,7 +109,7 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoIndex: Comparable {
+public struct _StaccatoIndex: Comparable, Hashable{
   var _offset: Int
   init(_offset: Int) {
     self._offset = _offset
@@ -121,6 +121,10 @@ public struct _StaccatoIndex: Comparable {
   
   public static func <(left: Self, right: Self) -> Bool {
     left._offset < right._offset
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(_offset)
   }
 }
 
@@ -139,8 +143,8 @@ extension StaccatoContainer: Iterable_ where Element: ~Copyable {
 extension StaccatoContainer: Container where Element: ~Copyable {
   public typealias Index = _StaccatoIndex
   
-  public var isEmpty: Bool { _contents.isEmpty }
-  public var count: Int { _contents.count }
+  public var isEmpty: Bool { count == 0 }
+  public var count: Int { _params._count }
 
   @_lifetime(borrow self)
   public func makeBorrowingIterator(from start: Index) -> BorrowingIterator_ {

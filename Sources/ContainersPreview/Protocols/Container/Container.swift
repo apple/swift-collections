@@ -19,7 +19,16 @@ public protocol Container<Element>:
   where Element: ~Copyable, Element == Element_, Failure_ == Never
 {
   associatedtype Element: ~Copyable
-  associatedtype Index: Equatable
+
+  /// Indices are expected to implement `==` and `hash(into:)` with
+  /// constant complexity.
+  associatedtype Index: Equatable, Hashable
+
+  // FIXME: We need Container to define a default value for BorrowingIterator,
+  // but we can only do that once ContainerIterator can support a
+  // nonescapable Base.
+  //associatedtype BorrowingIterator = ContainerIterator<Self>
+
   // FIXME: Ideally Index should also be required to be Hashable.
   // FIXME: If we discard the separate BorrowingSequence abstraction, then we
   // should consider dropping Comparable and just having Equatable indices, so
@@ -29,14 +38,26 @@ public protocol Container<Element>:
   // somewhere -- `RandomAccessContainer` or `BidirectionalContainer` would be
   // the obvious candidates.
 
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
   @_lifetime(borrow self)
   func makeBorrowingIterator(from start: Index) -> BorrowingIterator_
+
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
   func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index
 
+  /// Complexity: O(1)
   var isEmpty: Bool { get }
+
+  /// Complexity: O(1)
   var count: Int { get }
 
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
   var startIndex: Index { get }
+
+  /// Complexity: Must be O(1) on all container types.
   var endIndex: Index { get }
   
   /// Returns the position immediately after the given index.
@@ -44,12 +65,16 @@ public protocol Container<Element>:
   /// - Parameter index: A valid index of the container. `i` must be less
   ///     than `endIndex`.
   /// - Returns: The index immediately following `i`.
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
   func index(after index: Index) -> Index
   
   /// Replaces the given index with its successor.
   ///
   /// - Parameter index: A valid index of the container. `i` must be less
   ///     than `endIndex`.
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
   func formIndex(after index: inout Index)
 
   /// Returns an index that is the specified distance from the given index.
@@ -63,6 +88,8 @@ public protocol Container<Element>:
   ///    this is the same value as the result of `n` calls to `index(after:)`.
   ///    If `n` is negative, this is the same value as the result of `abs(n)`
   ///    calls to `index(before:)`.
+  /// - Complexity: Recommended to be O(`n`); conforming types must clearly
+  ///   document deviations from this expectation.
   func index(_ index: Index, offsetBy n: Int) -> Index
   
   /// Offsets the given index by the specified distance, but no further than
@@ -87,6 +114,8 @@ public protocol Container<Element>:
   ///    If `n > 0`, a limit that is less than `index` has no effect.
   ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
   ///    effect.
+  /// - Complexity: Recommended to be O(n); conforming types must clearly
+  ///   document deviations from this expectation.
   func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   )
@@ -97,6 +126,9 @@ public protocol Container<Element>:
   /// - Parameter end: Another valid index of the collection. If end is equal
   ///    to start, the result is zero.
   /// - Returns: The distance between `start` and `end`.
+  /// - Complexity: Recommended to be O(*d*), where *d* is the resulting
+  ///    distance.  Conforming types must clearly document deviations from this
+  ///    expectation.
   func distance(from start: Index, to end: Index) -> Int
 
   /// Accesses the element at the specified position.
@@ -108,7 +140,7 @@ public protocol Container<Element>:
   /// - Parameter position: The position of the element to access.
   ///    `position` must be a valid index of the container that is not equal
   ///    to the `endIndex` property.
-  /// - Complexity: O(1)
+  /// - Complexity: O(1). This is a hard requirement.
   subscript(index: Index) -> Element { borrow }
 
   /// Return a span over the container's storage that begins with the element at
@@ -178,40 +210,18 @@ public protocol Container<Element>:
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
   ///     element at the input index.
+  /// - Complexity: Recommended to be O(1). Conforming types must clearly
+  ///    document deviations from this expectation.
   @_lifetime(borrow self)
   func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element>
 
-  /// Return the nearest valid index in this container less than or equal to
-  /// the given index value, which must be valid in at least one view of self.
-  ///
-  /// This operation is important for container types that provide multiple
-  /// alternative projections (or "views") over the same underlying
-  /// representation, with each view conforming to `Container`, and sharing
-  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode ccalar and character views in the `Collection` world.)
-  /// This rounding operation enables clients to convert/normalize valid index
-  /// values in one container view into valid indices in another, allowing them
-  /// to (easily) decide whether two (potentially misaligned) index values
-  /// address the same element.
-  ///
-  /// The default implementation of this operation simply returns `index`.
-  func index(alignedDown index: Index) -> Index
-
-  /// Return the nearest valid index in this container greater than or equal to
-  /// the given index value, which must be valid in at least one view of self.
-  ///
-  /// This operation is important for container types that provide multiple
-  /// alternative projections (or "views") over the same underlying
-  /// representation, with each view conforming to `Container`, and sharing
-  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode ccalar and character views in the `Collection` world.)
-  /// This rounding operation enables clients to convert/normalize valid index
-  /// values in one container view into valid indices in another, allowing them
-  /// to (easily) decide whether two (potentially misaligned) index values
-  /// address the same element.
-  ///
-  /// The default implementation of this operation simply returns `index`.
-  func index(alignedUp index: Index) -> Index
+  // This allows faster default implementations for algorithms like
+  // `distance(from:to:)` or `formIndex(_:offsetBy:limitedBy:)`.
+  @_lifetime(borrow self)
+  func nextSpan(
+    after index: inout Index,
+    limitedBy limit: Index
+  ) -> Span<Element>
 
   func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
   func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
@@ -264,7 +274,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   public var isEmpty: Bool {
-    startIndex == endIndex
+    count == 0
   }
 
   @_alwaysEmitIntoClient
@@ -283,7 +293,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
 
-    var index = self.index(alignedDown: index)
+    var index = index
     var n = n
 
 #if true // with nextSpan(after:maxCount:)
@@ -327,9 +337,6 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
 
-    index = self.index(alignedDown: index)
-    let limit = self.index(alignedDown: limit)
-
     // Note: with Index not conforming to `Comparable`, we cannot do bulk
     // iteration here, as we have no way to decide if we stepped over `limit`.
     while n > 0, index != limit {
@@ -356,8 +363,6 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     // slower/larger.
     // FIXME: Linked lists may require an even slower implementation
     // to avoid looping (turtle/hare cycle detection).
-    let start = self.index(alignedDown: start)
-    let end = self.index(alignedDown: end)
     let limit = self.endIndex
     var a = start
     var b = end
@@ -387,14 +392,17 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     // This variant requires that `start` precede `end`, but we cannot ensure
     // that with a quick check, so we need to compare against the `endIndex` to
     // avoid looping indefinitely.
-    // FIXME: Linked lists may require an even slower implementation
-    // to avoid looping (turtle/hare cycle detection).
-    let i = self.index(alignedDown: start)
-    let target = self.index(alignedDown: end)
+    // FIXME: Certain linked lists may require an even slower implementation
+    // to avoid looping indefinitely (turtle/hare cycle detection).
+    var i = start
+    let target = end
     let limit = self.endIndex
     var count = 0
     while i != target {
       self.formIndex(after: &i)
+      // We cannot rely on `formIndex(after:)` catching the end in a resonable
+      // time, as container implementations often delay index validation until
+      // an element is actually accessed.
       precondition(i != limit, "Only BidirectionalContainers can have end come before start")
       count += 1
     }
@@ -403,10 +411,14 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func index(alignedDown index: Index) -> Index { index }
-
-  @_alwaysEmitIntoClient
-  public func index(alignedUp index: Index) -> Index { index }
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index,
+    limitedBy limit: Index
+  ) -> Span<Element> {
+    let d = self.distance(from: index, to: limit)
+    return self.nextSpan(after: &index, maxCount: d)
+  }
 
   @_alwaysEmitIntoClient
   public func _customIndexOfEquatableElement(_: borrowing Element) -> Index?? {
@@ -421,6 +433,28 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension Container
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable,
+  Index: Comparable
+{
+  @_alwaysEmitIntoClient
+  public func distance(from start: Index, to end: Index) -> Int {
+    var (i, j, step): (Index, Index, Int) = (start <= end
+     ? (start, end, 1)
+     : (end, start, -1))
+    var d = 0
+    while i < j {
+      // FIXME: Consider using bulk iteration here, with binary search within the final chunk.
+      // (The code size complexity may not be worth the effort.)
+      self.formIndex(after: &i)
+      d += step
+    }
+    return d
+  }
+}
 
 @available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
@@ -428,6 +462,8 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_transparent
   public var underestimatedCount_: Int { count }
 }
+
+// FIXME: Add ambiguity resolvers against Collection's algorithms.
 
 #endif
 

@@ -82,8 +82,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
   @inlinable
   public func distance(from start: Index, to end: Index) -> Int {
-    var i = self.index(alignedDown: start)
-    let end = self.index(alignedDown: end)
+    var i = start
     var d = 0
     if start <= end {
       // FIXME: Use bulk iteration here, with binary search within the final chunk.
@@ -103,7 +102,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
   @inlinable
   public func index(_ index: Index, offsetBy n: Int) -> Index {
-    var index = self.index(alignedDown: index)
+    var index = index
     var n = n
     if n >= 0 {
       while n > 0 {
@@ -130,9 +129,7 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
-    index = self.index(alignedDown: index)
     var n = n
-    let limit = self.index(alignedDown: limit)
     if n >= 0 {
       if index > limit {
         index = self.index(index, offsetBy: n)
