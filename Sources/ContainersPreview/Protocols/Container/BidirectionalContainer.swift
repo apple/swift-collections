@@ -50,7 +50,6 @@ where Element: ~Copyable, Index: Comparable
 
   func spanBoundary(before index: Index, maxDistance: Int) -> Index?
 
-
   override func index(after index: Index) -> Index
 
   override func formIndex(after index: inout Index)
@@ -68,6 +67,17 @@ where Element: ~Copyable, Index: Comparable
 extension BidirectionalContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index) -> Index? {
+    self.spanBoundary(before: index, maxDistance: Int.max)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(before index: inout Index) -> Span<Element> {
+    previousSpan(before: &index, maxCount: Int.max)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
     before index: inout Index, maxCount: Int
@@ -82,125 +92,103 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     return span
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Index,
+    limitedBy limit: Index
+  ) -> Span<Element> {
+    var j = index
+    let span = self.previousSpan(before: &j)
+    if limit <= index, limit > j {
+      let d = self.distance(from: limit, to: index)
+      index = limit
+      return span.extracting(last: d)
+    }
+    index = j
+    return span
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension BidirectionalContainer
+where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
   public func formIndex(before i: inout Index) {
     i = self.index(before: i)
   }
 
-  @inlinable
-  @_lifetime(borrow self)
-  public func previousSpan(before index: inout Index) -> Span<Element> {
-    previousSpan(before: &index, maxCount: Int.max)
-  }
-
-  @inlinable
-  public func distance(from start: Index, to end: Index) -> Int {
-    var i = start
-    var d = 0
-    if start <= end {
-      // FIXME: Use bulk iteration here, with binary search within the final chunk.
-      while i != end {
-        self.formIndex(after: &i)
-        d += 1
-      }
-    } else {
-      // FIXME: Use bulk iteration here, with binary search within the final chunk.
-      while i != end {
-        self.formIndex(before: &i)
-        d -= 1
-      }
-    }
-    return d
-  }
-
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     var index = index
     var n = n
     if n >= 0 {
       while n > 0 {
-        let span = self.nextSpan(after: &index, maxCount: n)
-        precondition(
-          !span.isEmpty,
-          "Cannot advance index beyond the end of the container")
-        n &-= span.count
+        self.formIndex(after: &index)
+        n &-= 1
       }
     } else {
-      n = -n
-      while n > 0 {
-        let span = self.previousSpan(before: &index, maxCount: n)
-        precondition(
-          !span.isEmpty,
-          "Cannot advance index beyond the end of the container")
-        n &-= span.count
+      while n < 0 {
+        self.formIndex(before: &index)
+        n &+= 1
       }
     }
     return index
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
     var n = n
     if n >= 0 {
-      if index > limit {
+      while n > 0 {
+        var j = index
+        let c = self.nextSpan(after: &j, limitedBy: limit).count
+        if c == 0 {
+          // We hit the limit (or the end)
+          break
+        }
+        if c > n {
+          index = self.index(index, offsetBy: n)
+          n = 0
+          break
+        }
+        index = j
+        n &-= c
+      }
+      return
+    }
+    // Note: Don't negate `n` -- it may be `Int.min`.
+    while n < 0 {
+      let c = self.previousSpan(before: &index, limitedBy: limit).count
+      if c == 0 {
+        // We hit the limit (or the start)
+        return
+      }
+      n &+= c
+      if n > 0 {
         index = self.index(index, offsetBy: n)
         n = 0
         return
       }
-      // Skip forward until we find our target or overshoot the limit.
-      while n > 0 {
-        var j = index
-        let span = self.nextSpan(after: &j, maxCount: n)
-        precondition(
-          !span.isEmpty,
-          "Cannot advance index beyond the end of the container")
-        if j > limit {
-          break
-        }
-        index = j
-        n &-= span.count
-      }
-      // Step through to find the precise target when we hit the limit.
-      // FIXME: Figure out a way to use binary search here (with `index(_:offsetBy:)`)
-      while n != 0 {
-        if index == limit {
-          return
-        }
-        formIndex(after: &index)
-        n &-= 1
-      }
-      return
-    }
-    // n < 0
-    if index < limit {
-      index = self.index(index, offsetBy: n)
-      n = 0
-      return
-    }
-    // Skip backward until we find our target or overshoot the limit.
-    while n < 0 {
-      var j = index
-      let span = self.previousSpan(before: &j, maxCount: -n)
-      precondition(
-        !span.isEmpty,
-        "Cannot move index before the start of the container")
-      if j < limit {
-        break
-      }
-      index = j
-      n &+= span.count
-    }
-    // Step through to find the precise target when we hit the limit.
-    // FIXME: Figure out a way to use binary search here (with `index(_:offsetBy:)`)
-    while n != 0 {
-      if index == limit {
-        return
-      }
-      formIndex(before: &index)
-      n &+= 1
     }
   }
+
+  @_alwaysEmitIntoClient
+  public func index(
+    _ index: Index, offsetBy n: Int, limitedBy limit: Index
+  ) -> Index? {
+    var index = index
+    var n = n
+    self.formIndex(&index, offsetBy: &n, limitedBy: limit)
+    if n != 0 { return nil }
+    return index
+  }
+
+  // Note: `distance(from:to:)` comes from `Container where Index: Comparable`.
 }
+
+// FIXME: Add ambiguity resolvers against BidirectionCollection algorithms.
+
 #endif
