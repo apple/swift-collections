@@ -219,16 +219,21 @@ public protocol Container<Element>:
   @_lifetime(borrow self)
   func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element>
 
-  // This allows faster default implementations for algorithms like
-  // `distance(from:to:)` or `formIndex(_:offsetBy:limitedBy:)`.
   @_lifetime(borrow self)
   func nextSpan(
     after index: inout Index,
-    limitedBy limit: Index
+    limitedBy limit: Index?
   ) -> Span<Element>
 
   func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
   func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
+}
+
+@available(SwiftStdlib 6.4, *)
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var underestimatedCount_: Int { count }
 }
 
 @available(SwiftStdlib 6.4, *)
@@ -270,7 +275,7 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Index) -> Span<Element> {
-    nextSpan(after: &index, maxCount: Int.max)
+    nextSpan(after: &index, limitedBy: nil)
   }
 }
 
@@ -281,10 +286,12 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     count == 0
   }
 
+#if false // count is required to be O(1), so it cannot have a default implementation
   @_alwaysEmitIntoClient
   public var count: Int {
     distance(from: startIndex, to: endIndex)
   }
+#endif
 
   @_alwaysEmitIntoClient
   public func formIndex(after index: inout Index) {
@@ -297,10 +304,11 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
 
+#if false
+    // This is tempting, but it would lead to mutual recursion with the
+    // default implementation of `nextSpan(after:maxCount:)`.
     var index = index
     var n = n
-
-#if true // with nextSpan(after:maxCount:)
     while n > 0 {
       let span = self.nextSpan(after: &index, maxCount: n)
       precondition(
@@ -308,29 +316,15 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
         "Cannot advance index beyond the end of the container")
       n &-= span.count
     }
-    return index
-#else // without nextSpan(after:maxCount:)
-    // FIXME: This implementation can be wasteful for piecewise contiguous
-    // containers, as iterating over spans will tend to overshoot the target.
-
-    // Skip forward until we find the span that contains our target.
-    while distance > 0 {
-      var j = i
-      let span = self.nextSpan(after: &j)
-      precondition(
-        !span.isEmpty,
-        "Cannot advance index beyond the end of the container")
-      guard span.count <= distance else { break }
-      i = j
-      distance &-= span.count
+#else
+    var index = index
+    var n = n
+    while n > 0 {
+      self.formIndex(after: &index)
+      n &-= 1
     }
-    // Step through to find the precise target.
-    while distance > 0 {
-      self.formIndex(after: &i)
-      distance &-= 1
-    }
-    return i
 #endif
+    return index
   }
 
   @_alwaysEmitIntoClient
@@ -340,12 +334,16 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     precondition(
       n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
-
-    // Note: with Index not conforming to `Comparable`, we cannot do bulk
-    // iteration here, as we have no way to decide if we stepped over `limit`.
-    while n > 0, index != limit {
-      self.formIndex(after: &index)
-      n &-= 1
+    while n > 0 {
+      var j = index
+      let span = self.nextSpan(after: &j, limitedBy: limit)
+      if span.count > n {
+        index = self.index(index, offsetBy: n)
+        n = 0
+        break
+      }
+      index = j
+      n &-= span.count
     }
   }
 
@@ -362,66 +360,31 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
-#if true
-    // This variant does not require that `start` precede `end`, but it's
-    // slower/larger.
-    // FIXME: Linked lists may require an even slower implementation
-    // to avoid looping (turtle/hare cycle detection).
-    let limit = self.endIndex
-    var a = start
-    var b = end
-    var d = 0
-    while true {
-      if a == end { return d }
-      if b == start { return -d }
-      if a == limit {
-        while b != end {
-          self.formIndex(after: &b)
-          d += 1
-        }
-        return -d
-      }
-      if b == limit {
-        while a != end {
-          self.formIndex(after: &a)
-          d += 1
-        }
-        return d
-      }
-      self.formIndex(after: &a)
-      self.formIndex(after: &b)
-      d += 1
-    }
-#else
-    // This variant requires that `start` precede `end`, but we cannot ensure
-    // that with a quick check, so we need to compare against the `endIndex` to
-    // avoid looping indefinitely.
-    // FIXME: Certain linked lists may require an even slower implementation
-    // to avoid looping indefinitely (turtle/hare cycle detection).
+    // This variant allows bulk iteration, but as we can't decide if
+    // start <= end, we have to measure distances from both ends.
+    var d1 = 0
+    var d2 = 0
     var i = start
-    let target = end
-    let limit = self.endIndex
-    var count = 0
-    while i != target {
-      self.formIndex(after: &i)
-      // We cannot rely on `formIndex(after:)` catching the end in a resonable
-      // time, as container implementations often delay index validation until
-      // an element is actually accessed.
-      precondition(i != limit, "Only BidirectionalContainers can have end come before start")
-      count += 1
+    var j = end
+    while true {
+      d1 += self.nextSpan(after: &i, limitedBy: end).count
+      if i == end { return d1 }
+      d2 += self.nextSpan(after: &j, limitedBy: start).count
+      if j == start { return d2 }
     }
-    return count
-#endif
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(
-    after index: inout Index,
-    limitedBy limit: Index
-  ) -> Span<Element> {
-    let d = self.distance(from: index, to: limit)
-    return self.nextSpan(after: &index, maxCount: d)
+  public func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
+    var j = index
+    let span = self.nextSpan(after: &j)
+    if span.count <= maxCount {
+      index = j
+      return span
+    }
+    index = self.index(index, offsetBy: maxCount)
+    return span.extracting(first: maxCount)
   }
 
   @_alwaysEmitIntoClient
@@ -446,25 +409,16 @@ where
 {
   @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
-    var (i, j, step): (Index, Index, Int) = (start <= end
-     ? (start, end, 1)
-     : (end, start, -1))
+    var (i, j, forward): (Index, Index, Bool) = (start <= end
+     ? (start, end, true)
+     : (end, start, false))
     var d = 0
     while i < j {
-      // FIXME: Consider using bulk iteration here, with binary search within the final chunk.
-      // (The code size complexity may not be worth the effort.)
-      self.formIndex(after: &i)
-      d += step
+      let span = self.nextSpan(after: &i, limitedBy: j)
+      d += span.count
     }
-    return d
+    return forward ? d : -d
   }
-}
-
-@available(SwiftStdlib 6.4, *)
-extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @_alwaysEmitIntoClient
-  @_transparent
-  public var underestimatedCount_: Int { count }
 }
 
 // FIXME: Add ambiguity resolvers against Collection's algorithms.

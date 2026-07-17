@@ -45,7 +45,7 @@ where Element: ~Copyable
   @inline(__always)
   public var endIndex: Index { count }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
@@ -55,7 +55,20 @@ where Element: ~Copyable
     return _uncheckedSpan(in: Range(uncheckedBounds: (start, start &+ c)))
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, limitedBy limit: Index?
+  ) -> Span<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    let end = Swift.min(limit ?? count, count)
+    let base = capacity &- count
+    let range = Range(uncheckedBounds: (base &+ index, base &+ end))
+    index = end
+    return _uncheckedSpan(in: range)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func nextMutableSpan(
     after index: inout Index, maxCount: Int

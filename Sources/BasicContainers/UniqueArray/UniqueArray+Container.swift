@@ -392,6 +392,14 @@ extension UniqueArray where Element: ~Copyable {
     _storage.nextSpan(after: &index, maxCount: maxCount)
   }
 
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int, limitedBy limit: Int?
+  ) -> Span<Element> {
+    _storage.nextSpan(after: &index, limitedBy: limit)
+  }
+
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(

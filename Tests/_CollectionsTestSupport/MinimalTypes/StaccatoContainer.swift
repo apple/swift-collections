@@ -142,7 +142,7 @@ extension StaccatoContainer: Iterable_ where Element: ~Copyable {
 @available(SwiftStdlib 5.0, *)
 extension StaccatoContainer: Container where Element: ~Copyable {
   public typealias Index = _StaccatoIndex
-  
+
   public var isEmpty: Bool { count == 0 }
   public var count: Int { _params._count }
 
@@ -164,29 +164,29 @@ extension StaccatoContainer: Container where Element: ~Copyable {
 
   public var startIndex: Index { Index(_offset: 0) }
   public var endIndex: Index { Index(_offset: _contents.count) }
-  
+
   public func index(after index: Index) -> Index {
     precondition(index._offset >= 0 && index._offset < count)
     return Index(_offset: index._offset + 1)
   }
-  
+
   public func index(before index: Index) -> Index {
     precondition(index._offset > 0 && index._offset <= count)
     return Index(_offset: index._offset - 1)
   }
-  
+
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     precondition(index._offset >= 0 && index._offset <= count)
     let j = index._offset + n
     precondition(j >= 0 && j <= count)
     return Index(_offset: j)
   }
-  
+
   public func distance(from start: Index, to end: Index) -> Int {
     precondition(_isValid(start) && _isValid(end))
     return end._offset - start._offset
   }
-  
+
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
@@ -209,6 +209,23 @@ extension StaccatoContainer: Container where Element: ~Copyable {
     precondition(_isValid(index))
     let startOffset = index._offset
     let endOffset = _params.endOffset(fromOffset: index._offset, maxCount: maxCount)
+    index._offset = endOffset
+    return _contents.span.extracting(startOffset ..< endOffset)
+  }
+
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, limitedBy limit: Index?
+  ) -> Span<Element> {
+    precondition(_isValid(index))
+
+    var limit = limit ?? endIndex
+    if limit < index { limit = endIndex }
+
+    let startOffset = index._offset
+    let endOffset = _params.endOffset(
+      fromOffset: index._offset,
+      maxCount: limit._offset - index._offset)
     index._offset = endOffset
     return _contents.span.extracting(startOffset ..< endOffset)
   }

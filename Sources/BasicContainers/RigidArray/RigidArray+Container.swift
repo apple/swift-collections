@@ -439,11 +439,15 @@ extension RigidArray where Element: ~Copyable {
   public func nextSpan(
     after index: inout Int, maxCount: Int
   ) -> Span<Element> {
-    _checkValidIndex(index)
-    precondition(maxCount > 0, "maxCount must be positive")
-    let start = index
-    index = start &+ Swift.min(maxCount, _count &- start)
-    return _span(in: Range(uncheckedBounds: (start, index)))
+    self.span._nextSpan(after: &index, maxCount: maxCount)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, limitedBy limit: Index?
+  ) -> Span<Element> {
+    self.span._nextSpan(after: &index, limitedBy: limit)
   }
 
   @inlinable

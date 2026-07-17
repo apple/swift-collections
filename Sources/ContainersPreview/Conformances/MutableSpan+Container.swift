@@ -59,18 +59,20 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   public func nextSpan(
     after index: inout Int, maxCount: Int
   ) -> Span<Element> {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxCount > 0, "maxCount must be positive")
-    let limit = index &+ Swift.min(maxCount, count &- index)
-    return self.span.extracting(unchecked: Range(uncheckedBounds: (index, limit)))
+    self.span._nextSpan(after: &index, maxCount: maxCount)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, limitedBy limit: Index?
+  ) -> Span<Element> {
+    self.span._nextSpan(after: &index, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient
   public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxDistance > 0, "maxDistance must be positive")
-    guard index > 0 else { return nil }
-    return Swift.max(0, index &- maxDistance)
+    self.span.spanBoundary(before: index, maxDistance: maxDistance)
   }
 }
 

@@ -38,7 +38,10 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
       "Invalid iterator")
     return iterator._start
   }
+}
 
+@available(SwiftStdlib 5.0, *)
+extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public var startIndex: Int {
     0
@@ -49,13 +52,47 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
     count
   }
 
+  // FIXME: This has the proper lifetime declaration but can't fulfill the Container requirement.
   @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maxCount: Int) -> Span<Element> {
+  @_lifetime(copy self)
+  public func _nextSpan(after index: inout Int, maxCount: Int) -> Self {
     precondition(index >= 0 && index <= count, "Index out of bounds")
     precondition(maxCount > 0, "maxCount must be positive")
     let limit = index &+ Swift.min(maxCount, count &- index)
     return self.extracting(unchecked: Range(uncheckedBounds: (index, limit)))
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(after index: inout Int, maxCount: Int) -> Self {
+    _nextSpan(after: &index, maxCount: maxCount)
+  }
+
+  // FIXME: This has the proper lifetime declaration but can't fulfill the Container requirement.
+  @_alwaysEmitIntoClient
+  @_lifetime(copy self)
+  public func _nextSpan(
+    after index: inout Index, limitedBy limit: Index?
+  ) -> Self {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    let end: Index
+    if let limit {
+      precondition(limit >= 0 && limit <= count, "Index out of bounds")
+      end = Swift.min(limit, count)
+    } else {
+      end = count
+    }
+    let range = Range(uncheckedBounds: (index, end))
+    index = end
+    return self.extracting(unchecked: range)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, limitedBy limit: Index?
+  ) -> Self {
+    _nextSpan(after: &index, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient
