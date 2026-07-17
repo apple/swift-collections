@@ -13,6 +13,10 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
+/// An `Iterable` that holds its elements in memory, so that we can form
+/// references to them that aren't dependent on iteration state.
+/// The contents of a container can be traversed multiple times,
+/// nondestructively, and efficiently accessed.
 @available(SwiftStdlib 6.4, *)
 public protocol Container<Element>:
   Iterable_, ~Copyable, ~Escapable
@@ -59,7 +63,7 @@ public protocol Container<Element>:
 
   /// Complexity: Must be O(1) on all container types.
   var endIndex: Index { get }
-  
+
   /// Returns the position immediately after the given index.
   ///
   /// - Parameter index: A valid index of the container. `i` must be less
@@ -68,7 +72,7 @@ public protocol Container<Element>:
   /// - Complexity: Recommended to be O(1); conforming types must clearly
   ///   document deviations from this expectation.
   func index(after index: Index) -> Index
-  
+
   /// Replaces the given index with its successor.
   ///
   /// - Parameter index: A valid index of the container. `i` must be less
@@ -91,7 +95,7 @@ public protocol Container<Element>:
   /// - Complexity: Recommended to be O(`n`); conforming types must clearly
   ///   document deviations from this expectation.
   func index(_ index: Index, offsetBy n: Int) -> Index
-  
+
   /// Offsets the given index by the specified distance, but no further than
   /// the given limiting index.
   ///
@@ -119,7 +123,7 @@ public protocol Container<Element>:
   func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   )
-  
+
   /// Returns the distance between two indices.
   ///
   /// - Parameter start: A valid index of the collection.
@@ -147,8 +151,8 @@ public protocol Container<Element>:
   /// the given index, and extends to the end of the contiguous storage chunk
   /// that contains it, but no more than `maxCount` items.
   ///
-  /// On return, the index is updated to address the next item following the
-  /// end of the returned span.
+  /// On return, the index is updated to address the item following the
+  /// last element of the returned span.
   ///
   /// This method can be used to efficiently process the items of a container in
   /// bulk, by directly iterating over its piecewise contiguous pieces of
@@ -168,7 +172,7 @@ public protocol Container<Element>:
   ///
   /// If the caller is able to process any number available items, it can signal
   /// that by passing `Int.max` as the `maxCount`, or simply by calling the
-  /// `nexSpan(after:)` method, which does precisely that. This is frequently
+  /// `nextSpan(after:)` method, which does precisely that. This is frequently
   /// the case when the caller simply wants to iterate over the entire
   /// container in a single loop.
   ///
@@ -466,4 +470,3 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 // FIXME: Add ambiguity resolvers against Collection's algorithms.
 
 #endif
-

@@ -25,6 +25,17 @@ where
   public func makeBorrowingIterator_() -> BorrowingIterator_ {
     ContainerIterator(_borrowing: self, from: self.startIndex)
   }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(from start: Index) -> BorrowingIterator_ {
+    ContainerIterator(_borrowing: self, from: start)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    iterator._position
+  }
 }
 
 @available(SwiftStdlib 6.4, *)
@@ -43,7 +54,7 @@ where Base.Element: ~Copyable
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow base)
-  package init(_borrowing base: borrowing @_addressable Base, from position: Base.Index) {
+  package init(_borrowing base: borrowing Base, from position: Base.Index) {
     self._base = Ref(base)
     self._position = position
   }
