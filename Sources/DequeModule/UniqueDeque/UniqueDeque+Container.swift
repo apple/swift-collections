@@ -104,11 +104,17 @@ extension UniqueDeque where Element: ~Copyable {
     _storage.nextSpan(after: &index, maxCount: maxCount)
   }
 
+  @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func nextMutableSpan(
     after index: inout Int, maxCount: Int
   ) -> MutableSpan<Element> {
     _storage.nextMutableSpan(after: &index, maxCount: maxCount)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+    _storage.spanBoundary(before: index, maxDistance: maxDistance)
   }
 
   @_alwaysEmitIntoClient

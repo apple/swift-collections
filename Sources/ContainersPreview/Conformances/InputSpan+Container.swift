@@ -67,14 +67,12 @@ where Element: ~Copyable
     return _uncheckedMutableSpan(in: Range(uncheckedBounds: (start, start &+ c)))
   }
 
-  @inlinable
-  @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxCount > 0, "maxCount must be positive")
-    let c = Swift.min(index, maxCount)
-    let end = capacity &- count &+ index
-    return _uncheckedSpan(in: Range(uncheckedBounds: (end &- c, end)))
+    precondition(maxDistance > 0, "maxDistance must be positive")
+    guard index > 0 else { return nil }
+    return Swift.max(0, index &- maxDistance)
   }
 }
 #endif

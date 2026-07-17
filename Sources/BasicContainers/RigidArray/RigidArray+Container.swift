@@ -458,6 +458,14 @@ extension RigidArray where Element: ~Copyable {
     return _mutableSpan(in: Range(uncheckedBounds: (start, index)))
   }
 
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(maxDistance > 0, "maxDistance must be positive")
+    guard index > 0 else { return nil }
+    return Swift.max(0, index &- maxDistance)
+  }
+
   @inlinable
   @_lifetime(borrow self)
   public func previousSpan(

@@ -180,6 +180,14 @@ extension RigidDeque where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(maxDistance > 0, "maxDistance must be positive")
+    guard index > 0 else { return nil }
+    return Swift.max(0, index &- maxDistance)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
     _checkValidIndex(index)

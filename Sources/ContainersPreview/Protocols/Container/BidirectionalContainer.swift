@@ -44,13 +44,12 @@ where Element: ~Copyable, Index: Comparable
   //
   // FIXME: Consider avoiding using `@_nonoverride`, reducing witness sizes.
 
-
   func index(before i: Index) -> Index
 
   func formIndex(before i: inout Index)
 
-  @_lifetime(borrow self)
-  func previousSpan(before index: inout Index, maxCount: Int) -> Span<Element>
+  func spanBoundary(before index: Index, maxDistance: Int) -> Index?
+
 
   override func index(after index: Index) -> Index
 
@@ -63,12 +62,26 @@ where Element: ~Copyable, Index: Comparable
   )
 
   @_nonoverride func distance(from start: Index, to end: Index) -> Int
-
 }
 
 @available(SwiftStdlib 6.4, *)
 extension BidirectionalContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Index, maxCount: Int
+  ) -> Span<Element> {
+    guard let i = spanBoundary(before: index, maxDistance: maxCount) else {
+      return .init()
+    }
+    var j = i
+    let span = nextSpan(after: &j, maxCount: maxCount)
+    precondition(j == index, "Invalid BidirectionalContainer")
+    index = i
+    return span
+  }
+
   @inlinable
   public func formIndex(before i: inout Index) {
     i = self.index(before: i)

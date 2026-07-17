@@ -400,6 +400,11 @@ extension UniqueArray where Element: ~Copyable {
     _storage.nextMutableSpan(after: &index, maxCount: maxCount)
   }
 
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+    _storage.spanBoundary(before: index, maxDistance: maxDistance)
+  }
+
   @inlinable
   @_lifetime(borrow self)
   public func previousSpan(

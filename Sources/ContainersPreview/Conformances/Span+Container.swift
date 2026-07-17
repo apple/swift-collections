@@ -59,12 +59,11 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
+  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxCount > 0, "maxCount must be positive")
-    let limit = index &- Swift.min(maxCount, index)
-    return self.extracting(unchecked: Range(uncheckedBounds: (limit, index)))
+    precondition(maxDistance > 0, "maxDistance must be positive")
+    guard index > 0 else { return nil }
+    return Swift.max(0, index &- maxDistance)
   }
 }
 
