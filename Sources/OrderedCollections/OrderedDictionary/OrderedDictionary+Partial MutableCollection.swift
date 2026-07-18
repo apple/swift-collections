@@ -44,8 +44,9 @@ extension OrderedDictionary {
   ///     dict.replaceElement(at: 1, withKey: "é", value: 2)
   ///     // dict is now ["a": 1, "é": 2, "c": 3]
   ///
-  /// In the general case, the new pair is appended, swapped into position,
-  /// and the old element is removed from the end — each step is O(1).
+  /// In the general case, the new key is appended, swapped into position, and
+  /// the old key removed from the end, while the value is overwritten in
+  /// place — each step is O(1).
   /// When the new key compares equal to the one being replaced, the pair
   /// is updated in place and the hash table is left untouched.
   ///
@@ -90,17 +91,11 @@ extension OrderedDictionary {
 
     precondition(existingIndex == nil, "Duplicate key: '\(key)'")
 
-    // Append the new key-value pair at the end — amortized O(1)
-    _keys._appendNew(key, in: bucket)
-    _values.append(value)
-
-    // Swap the new element into the target position — O(1)
-    _keys.swapAt(index, count - 1)
-    _values.swapAt(index, count - 1)
-
-    // Remove the old element from the end — O(1)
-    let oldKey = _keys.removeLast()
-    let oldValue = _values.removeLast()
+    // Replace the key through OrderedSet's shared primitive, then overwrite the
+    // value at `index` — each step is O(1).
+    let oldKey = _keys._replaceNew(at: index, with: key, in: bucket)
+    let oldValue = _values[index]
+    _values[index] = value
 
     _checkInvariants()
     return (oldKey, oldValue)
