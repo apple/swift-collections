@@ -52,47 +52,43 @@ extension Span where Element: ~Copyable {
     count
   }
 
-  // FIXME: This has the proper lifetime declaration but can't fulfill the Container requirement.
   @_alwaysEmitIntoClient
   @_lifetime(copy self)
-  public func _nextSpan(after index: inout Int, maxCount: Int) -> Self {
+  public func _nextSpan(after index: inout Int) -> Self {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxCount > 0, "maxCount must be positive")
-    let limit = index &+ Swift.min(maxCount, count &- index)
-    return self.extracting(unchecked: Range(uncheckedBounds: (index, limit)))
+    let result = self.extracting(last: count - index)
+    index = count
+    return result
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maxCount: Int) -> Self {
-    _nextSpan(after: &index, maxCount: maxCount)
+  public func nextSpan(after index: inout Int) -> Self {
+    _nextSpan(after: &index)
   }
 
   // FIXME: This has the proper lifetime declaration but can't fulfill the Container requirement.
   @_alwaysEmitIntoClient
   @_lifetime(copy self)
   public func _nextSpan(
-    after index: inout Index, limitedBy limit: Index?
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
   ) -> Self {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    let end: Index
-    if let limit {
-      precondition(limit >= 0 && limit <= count, "Index out of bounds")
-      end = Swift.min(limit, count)
-    } else {
-      end = count
+    precondition(maxCount > 0, "maxCount must be positive")
+    precondition(limit >= 0 && limit <= count, "Index out of bounds")
+    var end = index &+ Swift.min(maxCount, count &- index)
+    if limit >= index, limit < end {
+      end = limit
     }
-    let range = Range(uncheckedBounds: (index, end))
-    index = end
-    return self.extracting(unchecked: range)
+    return self.extracting(unchecked: Range(uncheckedBounds: (index, end)))
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Index, limitedBy limit: Index?
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
   ) -> Self {
-    _nextSpan(after: &index, limitedBy: limit)
+    _nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient

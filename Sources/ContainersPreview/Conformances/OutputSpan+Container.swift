@@ -46,14 +46,16 @@ where Element: ~Copyable
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
-    self.span._nextSpan(after: &index, maxCount: maxCount)
+  public func nextSpan(after index: inout Index) -> Span<Element> {
+    self.span._nextSpan(after: &index)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index, limitedBy limit: Int?) -> Span<Element> {
-    self.span._nextSpan(after: &index, limitedBy: limit)
+  public func nextSpan(
+    after index: inout Index, maxCount: Int, limitedBy limit: Int
+  ) -> Span<Element> {
+    self.span._nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient

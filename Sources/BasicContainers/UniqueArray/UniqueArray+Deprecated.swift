@@ -21,7 +21,10 @@ extension UniqueArray where Element: ~Copyable {
   public func nextSpan(
     after index: inout Int, maximumCount: Int
   ) -> Span<Element> {
-    self.nextSpan(after: &index, maxCount: maximumCount)
+    self.nextSpan(
+      after: &index,
+      maxCount: maximumCount,
+      limitedBy: self.endIndex)
   }
 
   @available(*, deprecated, renamed: "nextMutableSpan(after:maxCount:)")

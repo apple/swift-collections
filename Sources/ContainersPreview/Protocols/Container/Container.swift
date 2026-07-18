@@ -64,6 +64,130 @@ public protocol Container<Element>:
   /// Complexity: Must be O(1) on all container types.
   var endIndex: Index { get }
 
+  /// Return a span over the container's storage that begins with the element at
+  /// the given index, and extends to the end of the contiguous storage chunk
+  /// that contains it. On return, the index is updated to address the next item
+  /// following the end of the returned span.
+  ///
+  /// This method can be used to efficiently process the items of a container in
+  /// bulk, by directly iterating over its piecewise contiguous pieces of
+  /// storage:
+  ///
+  ///     var index = items.startIndex
+  ///     while true {
+  ///       let span = items.nextSpan(after: &index)
+  ///       if span.isEmpty { break }
+  ///       // Process items in `span`
+  ///     }
+  ///
+  /// - Note: The spans returned by this method are not guaranteed to be
+  ///    disjunct. Some containers may use the same storage chunk (or parts of a
+  ///    storage chunk) multiple times, to repeat their contents.
+  ///
+  /// - Note: Repeated invocations of `nextSpan` on the same container and index
+  ///    are not guaranteed to return identical results. (This is particularly
+  ///    the case with containers that can store contents in their "inline"
+  ///    representation. Such containers may not always have a unique address
+  ///    in memory; the locations of the spans exposed by this method may vary
+  ///    between different borrows of the same container.)
+  ///
+  /// - Parameter index: A valid index in the container, including the end
+  ///     index. On return, this index is advanced by the count of the resulting
+  ///     span, to simplify iteration.
+  /// - Returns: A span over contiguous storage that starts at the given index.
+  ///     If the input index is the end index, then this returns an empty span.
+  ///     Otherwise the result is non-empty, with its first element matching the
+  ///     element at the input index.
+  @_lifetime(borrow self)
+  func nextSpan(after index: inout Index) -> Span<Element>
+
+  /// Return a span over the container's storage that begins with the element at
+  /// the given index, and extends to the end of the contiguous storage chunk
+  /// that contains it, but no more than `maxCount` items, and no further than
+  /// the given limiting index (if any).
+  ///
+  /// On return, the index is updated to address the item following the
+  /// last element of the returned span.
+  ///
+  /// This method can be used to efficiently process the items of a container in
+  /// bulk, by directly iterating over its piecewise contiguous pieces of
+  /// storage:
+  ///
+  ///     var index = items.startIndex
+  ///     while true {
+  ///       let span = items.nextSpan(
+  ///         after: &index,
+  ///         maxCount: 4,
+  ///         limitedBy: items.endIndex)
+  ///       if span.isEmpty { break }
+  ///       // Process items in `span`
+  ///     }
+  ///
+  /// The `maxCount` argument gives the caller control over the number of
+  /// items it receives from the iterator. This lets the caller avoid getting
+  /// more elements than it would be able to immediately process, which would
+  /// significantly complicate container use.
+  ///
+  /// If the caller is able to process any number available items, it can signal
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
+  /// `nextSpan(after:)` method, which does precisely that. This is frequently
+  /// the case when the caller simply wants to iterate over the entire
+  /// container in a single loop.
+  ///
+  /// `maxCount` sets an upper bound. To read a specific number of items,
+  /// the caller usually needs to invoke `nextSpan` in a loop:
+  ///
+  ///     var items: some Container<Int>
+  ///     var index = items.startIndex
+  ///     var remainder = numberOfItemsToRead
+  ///     while remainder > 0 {
+  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
+  ///       guard !next.isEmpty else {
+  ///         // Container does not have enough items
+  ///         break
+  ///       }
+  ///       remainder -= next.count
+  ///       // Process items in `next`
+  ///     }
+  ///
+  /// - Note: The spans returned by this method are not guaranteed to be
+  ///    disjunct. Some containers may use the same storage chunk (or parts of a
+  ///    storage chunk) multiple times, to repeat their contents.
+  ///
+  /// - Note: Repeated invocations of `nextSpan` on the same container and index
+  ///    are not guaranteed to return identical results. (This is particularly
+  ///    the case with containers that can store contents in their "inline"
+  ///    representation. Such containers may not always have a unique address
+  ///    in memory; the locations of the spans exposed by this method may vary
+  ///    between different borrows of the same container.)
+  ///
+  /// - Parameter index: A valid index in the container, including the end
+  ///     index. On return, this index is advanced by the count of the resulting
+  ///     span, to simplify iteration.
+  /// - Parameter maxCount: The maximum number of items the caller is ready
+  ///     to process. `maxCount` must be greater than zero.
+  ///     If the client is able to process an arbitrary number of items, then
+  ///     this can be signalled by setting `maxCount` to `Int.max`; calling
+  ///     the `nextSpan(after:)` method is a more direct way to express the same.
+  /// - Parameter limit: A valid index of the container to use as a limit.
+  ///     A limit that precedes `index` has no effect. Otherwise the method
+  ///     stops before exceeding `limit`. If you don't have a specific limiting
+  ///     index to use, you can set this to `endIndex` to allow the method to
+  ///     traverse the entire container.
+  /// - Returns: A span over contiguous storage that starts at the given index.
+  ///     If the input index is equal to the end index or `limit`, then this
+  ///     returns an empty span.
+  ///     Otherwise the result is non-empty, with its first element matching the
+  ///     element at the input index.
+  /// - Complexity: Recommended to be O(1). Conforming types must clearly
+  ///    document deviations from this expectation.
+  @_lifetime(borrow self)
+  func nextSpan(
+    after index: inout Index,
+    maxCount: Int,
+    limitedBy limit: Index
+  ) -> Span<Element>
+
   /// Returns the position immediately after the given index.
   ///
   /// - Parameter index: A valid index of the container. `i` must be less
@@ -147,84 +271,6 @@ public protocol Container<Element>:
   /// - Complexity: O(1). This is a hard requirement.
   subscript(index: Index) -> Element { borrow }
 
-  /// Return a span over the container's storage that begins with the element at
-  /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it, but no more than `maxCount` items.
-  ///
-  /// On return, the index is updated to address the item following the
-  /// last element of the returned span.
-  ///
-  /// This method can be used to efficiently process the items of a container in
-  /// bulk, by directly iterating over its piecewise contiguous pieces of
-  /// storage:
-  ///
-  ///     var index = items.startIndex
-  ///     while true {
-  ///       let span = items.nextSpan(after: &index, maxCount: 4)
-  ///       if span.isEmpty { break }
-  ///       // Process items in `span`
-  ///     }
-  ///
-  /// The `maxCount` argument gives the caller control over the number of
-  /// items it receives from the iterator. This lets the caller avoid getting
-  /// more elements than it would be able to immediately process, which would
-  /// significantly complicate container use.
-  ///
-  /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
-  /// `nextSpan(after:)` method, which does precisely that. This is frequently
-  /// the case when the caller simply wants to iterate over the entire
-  /// container in a single loop.
-  ///
-  /// `maxCount` sets an upper bound. To read a specific number of items,
-  /// the caller usually needs to invoke `nextSpan` in a loop:
-  ///
-  ///     var items: some Container<Int>
-  ///     var index = items.startIndex
-  ///     var remainder = numberOfItemsToRead
-  ///     while remainder > 0 {
-  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
-  ///       guard !next.isEmpty else {
-  ///         // Container does not have enough items
-  ///         break
-  ///       }
-  ///       remainder -= next.count
-  ///       // Process items in `next`
-  ///     }
-  ///
-  /// - Note: The spans returned by this method are not guaranteed to be
-  ///    disjunct. Some containers may use the same storage chunk (or parts of a
-  ///    storage chunk) multiple times, to repeat their contents.
-  ///
-  /// - Note: Repeated invocations of `nextSpan` on the same container and index
-  ///    are not guaranteed to return identical results. (This is particularly
-  ///    the case with containers that can store contents in their "inline"
-  ///    representation. Such containers may not always have a unique address
-  ///    in memory; the locations of the spans exposed by this method may vary
-  ///    between different borrows of the same container.)
-  ///
-  /// - Parameter index: A valid index in the container, including the end
-  ///     index. On return, this index is advanced by the count of the resulting
-  ///     span, to simplify iteration.
-  /// - Parameter maxCount: The maximum number of items the caller is able
-  ///     to process immediately. `maxCount` must be greater than zero.
-  ///     If you are able to process an arbitrary number of items, set
-  ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
-  /// - Returns: A span over contiguous storage that starts at the given index.
-  ///     If the input index is the end index, then this returns an empty span.
-  ///     Otherwise the result is non-empty, with its first element matching the
-  ///     element at the input index.
-  /// - Complexity: Recommended to be O(1). Conforming types must clearly
-  ///    document deviations from this expectation.
-  @_lifetime(borrow self)
-  func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element>
-
-  @_lifetime(borrow self)
-  func nextSpan(
-    after index: inout Index,
-    limitedBy limit: Index?
-  ) -> Span<Element>
-
   func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
   func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
@@ -238,44 +284,33 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
 @available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  /// Return a span over the container's storage that begins with the element at
-  /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it. On return, the index is updated to address the next item
-  /// following the end of the returned span.
-  ///
-  /// This method can be used to efficiently process the items of a container in
-  /// bulk, by directly iterating over its piecewise contiguous pieces of
-  /// storage:
-  ///
-  ///     var index = items.startIndex
-  ///     while true {
-  ///       let span = items.nextSpan(after: &index)
-  ///       if span.isEmpty { break }
-  ///       // Process items in `span`
-  ///     }
-  ///
-  /// - Note: The spans returned by this method are not guaranteed to be
-  ///    disjunct. Some containers may use the same storage chunk (or parts of a
-  ///    storage chunk) multiple times, to repeat their contents.
-  ///
-  /// - Note: Repeated invocations of `nextSpan` on the same container and index
-  ///    are not guaranteed to return identical results. (This is particularly
-  ///    the case with containers that can store contents in their "inline"
-  ///    representation. Such containers may not always have a unique address
-  ///    in memory; the locations of the spans exposed by this method may vary
-  ///    between different borrows of the same container.)
-  ///
-  /// - Parameter index: A valid index in the container, including the end
-  ///     index. On return, this index is advanced by the count of the resulting
-  ///     span, to simplify iteration.
-  /// - Returns: A span over contiguous storage that starts at the given index.
-  ///     If the input index is the end index, then this returns an empty span.
-  ///     Otherwise the result is non-empty, with its first element matching the
-  ///     element at the input index.
   @_alwaysEmitIntoClient
+  @_transparent
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index) -> Span<Element> {
-    nextSpan(after: &index, limitedBy: nil)
+  public func nextSpan(
+    after index: inout Index
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: Int.max, limitedBy: self.endIndex)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index,
+    maxCount: Int
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: maxCount, limitedBy: self.endIndex)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index,
+    limitedBy limit: Index
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: Int.max, limitedBy: limit)
   }
 }
 
@@ -286,12 +321,21 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     count == 0
   }
 
-#if false // count is required to be O(1), so it cannot have a default implementation
+#if false // count is required to be O(1), so it cannot have this default implementation
   @_alwaysEmitIntoClient
   public var count: Int {
     distance(from: startIndex, to: endIndex)
   }
 #endif
+
+  @_alwaysEmitIntoClient
+  public func index(after index: Index) -> Index {
+    let end = self.endIndex
+    var index = index
+    let c = self.nextSpan(after: &index, maxCount: 1, limitedBy: end).count
+    precondition(c == 1, "Can't advance beyond endIndex")
+    return index
+  }
 
   @_alwaysEmitIntoClient
   public func formIndex(after index: inout Index) {
@@ -300,30 +344,14 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
-    precondition(
-      n >= 0,
-      "Only BidirectionalContainers can be advanced by a negative amount")
-
-#if false
-    // This is tempting, but it would lead to mutual recursion with the
-    // default implementation of `nextSpan(after:maxCount:)`.
     var index = index
     var n = n
+    let end = self.endIndex
     while n > 0 {
-      let span = self.nextSpan(after: &index, maxCount: n)
-      precondition(
-        !span.isEmpty,
-        "Cannot advance index beyond the end of the container")
-      n &-= span.count
+      let c = self.nextSpan(after: &index, maxCount: n, limitedBy: end).count
+      precondition(c > 0, "Cannot advance index beyond the end of the container")
+      n &-= c
     }
-#else
-    var index = index
-    var n = n
-    while n > 0 {
-      self.formIndex(after: &index)
-      n &-= 1
-    }
-#endif
     return index
   }
 
@@ -335,15 +363,10 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
     while n > 0 {
-      var j = index
-      let span = self.nextSpan(after: &j, limitedBy: limit)
-      if span.count > n {
-        index = self.index(index, offsetBy: n)
-        n = 0
-        break
-      }
-      index = j
-      n &-= span.count
+      let c = self.nextSpan(after: &index, maxCount: n, limitedBy: limit).count
+      precondition(c <= n, "Invalid container")
+      guard c > 0 else { break }
+      n &-= c
     }
   }
 
@@ -359,6 +382,21 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
+  public func _customIndexOfEquatableElement(_: borrowing Element) -> Index?? {
+    nil
+  }
+
+  @_alwaysEmitIntoClient
+  public func _customLastIndexOfEquatableElement(
+    _ element: borrowing Element
+  ) -> Index?? {
+    nil
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
     // This variant allows bulk iteration, but as we can't decide if
     // start <= end, we have to measure distances from both ends.
@@ -372,31 +410,6 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       d2 += self.nextSpan(after: &j, limitedBy: start).count
       if j == start { return d2 }
     }
-  }
-
-  @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
-    var j = index
-    let span = self.nextSpan(after: &j)
-    if span.count <= maxCount {
-      index = j
-      return span
-    }
-    index = self.index(index, offsetBy: maxCount)
-    return span.extracting(first: maxCount)
-  }
-
-  @_alwaysEmitIntoClient
-  public func _customIndexOfEquatableElement(_: borrowing Element) -> Index?? {
-    nil
-  }
-
-  @_alwaysEmitIntoClient
-  public func _customLastIndexOfEquatableElement(
-    _ element: borrowing Element
-  ) -> Index?? {
-    nil
   }
 }
 

@@ -57,17 +57,17 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Int, maxCount: Int
+    after index: inout Int
   ) -> Span<Element> {
-    self.span._nextSpan(after: &index, maxCount: maxCount)
+    self.span._nextSpan(after: &index)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Index, limitedBy limit: Index?
+    after index: inout Index, maxCount: Int, limitedBy limit: Index
   ) -> Span<Element> {
-    self.span._nextSpan(after: &index, limitedBy: limit)
+    self.span._nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient

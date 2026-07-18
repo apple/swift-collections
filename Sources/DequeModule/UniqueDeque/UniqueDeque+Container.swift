@@ -100,14 +100,16 @@ extension UniqueDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maxCount: Int) -> Span<Element> {
-    _storage.nextSpan(after: &index, maxCount: maxCount)
+  public func nextSpan(after index: inout Int) -> Span<Element> {
+    _storage.nextSpan(after: &index)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, limitedBy limit: Int?) -> Span<Element> {
-    _storage.nextSpan(after: &index, limitedBy: limit)
+  public func nextSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> Span<Element> {
+    _storage.nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient

@@ -47,25 +47,16 @@ where Element: ~Copyable
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxCount > 0, "maxCount must be positive")
-    let c = Swift.min(count &- index, maxCount)
-    let start = capacity &- count &+ index
-    return _uncheckedSpan(in: Range(uncheckedBounds: (start, start &+ c)))
+  public func nextSpan(after index: inout Index) -> Span<Element> {
+    self.span._nextSpan(after: &index)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Index, limitedBy limit: Index?
+    after index: inout Index, maxCount: Int, limitedBy limit: Index
   ) -> Span<Element> {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
-    let end = Swift.min(limit ?? count, count)
-    let base = capacity &- count
-    let range = Range(uncheckedBounds: (base &+ index, base &+ end))
-    index = end
-    return _uncheckedSpan(in: range)
+    self.span._nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient

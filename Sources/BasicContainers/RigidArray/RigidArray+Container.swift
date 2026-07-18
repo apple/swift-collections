@@ -354,16 +354,20 @@ extension RigidArray where Element: ~Copyable {
   ///    On return, `n` is set to zero if the operation succeeded without
   ///    hitting the limit; otherwise, `n` reflects the number of steps that
   ///    couldn't be taken.
-  /// - Parameter limit: A valid index of the array to use as a limit.
-  ///    If `n > 0`, a limit that is less than `index` has no effect.
-  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
-  ///    effect.
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
     index._advance(by: &n, limitedBy: limit)
+  }
+
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int
+  ) -> Span<Element> {
+    self.span._nextSpan(after: &index)
   }
 
   /// Return a span over the array's storage that begins with the element at
@@ -429,6 +433,10 @@ extension RigidArray where Element: ~Copyable {
   ///     to process immediately. `maxCount` must be greater than zero.
   ///     If you are able to process an arbitrary number of items, set
   ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  /// - Parameter limit: A valid index of the array to use as a limit.
+  ///    If `n > 0`, a limit that is less than `index` has no effect.
+  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
+  ///    effect.
   /// - Returns: A span over contiguous storage that starts at the given index.
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
@@ -437,17 +445,9 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Int, maxCount: Int
+    after index: inout Int, maxCount: Int, limitedBy limit: Index
   ) -> Span<Element> {
-    self.span._nextSpan(after: &index, maxCount: maxCount)
-  }
-
-  @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public func nextSpan(
-    after index: inout Index, limitedBy limit: Index?
-  ) -> Span<Element> {
-    self.span._nextSpan(after: &index, limitedBy: limit)
+    self.span._nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @inlinable

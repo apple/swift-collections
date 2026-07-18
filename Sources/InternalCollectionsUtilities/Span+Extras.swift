@@ -110,4 +110,35 @@ extension Span where Element: Hashable /* & ~Copyable */ {
 }
 #endif
 
+#if compiler(>=6.4)
+@available(SwiftStdlib 5.0, *)
+extension Span where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(copy self)
+  package func clamped(to limits: borrowing Self) -> Self {
+    if self.isEmpty || limits.isEmpty { return .init() }
+    let buffer = self.withUnsafeBufferPointer { buffer in
+      limits.withUnsafeBufferPointer { limits in
+        let start = buffer.baseAddress!
+        let end = start + buffer.count
+        let limitStart = limits.baseAddress!
+        let limitEnd = limitStart + limits.count
+
+        let clampedStart = (
+          limitStart > start ? limitStart
+          : limitEnd < start ? limitEnd
+          : start)
+        let clampedEnd = (
+          limitEnd < end ? limitEnd
+          : limitStart > end ? limitStart
+          : end)
+        let count = clampedEnd.distance(to: clampedStart)
+        return UnsafeBufferPointer(start: clampedStart, count: count)
+      }
+    }
+    return _overrideLifetime(Span(_unsafeElements: buffer), copying: self)
+  }
+}
+#endif
+
 #endif

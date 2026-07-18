@@ -204,28 +204,28 @@ extension StaccatoContainer: Container where Element: ~Copyable {
 
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Index, maxCount: Int
+    after index: inout Index
   ) -> Span<Element> {
     precondition(_isValid(index))
     let startOffset = index._offset
-    let endOffset = _params.endOffset(fromOffset: index._offset, maxCount: maxCount)
+    let endOffset = _params.endOffset(fromOffset: index._offset, maxCount: Int.max)
     index._offset = endOffset
     return _contents.span.extracting(startOffset ..< endOffset)
   }
 
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Index, limitedBy limit: Index?
+    after index: inout Index, maxCount: Int, limitedBy limit: Index
   ) -> Span<Element> {
     precondition(_isValid(index))
-
-    var limit = limit ?? endIndex
+    precondition(_isValid(limit))
+    var limit = limit
     if limit < index { limit = endIndex }
 
     let startOffset = index._offset
     let endOffset = _params.endOffset(
       fromOffset: index._offset,
-      maxCount: limit._offset - index._offset)
+      maxCount: Swift.min(limit._offset - index._offset, maxCount))
     index._offset = endOffset
     return _contents.span.extracting(startOffset ..< endOffset)
   }
