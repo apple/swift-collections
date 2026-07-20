@@ -12,7 +12,6 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.4) && UnstableContainersPreview
-
 @available(SwiftStdlib 6.4, *)
 extension Span: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -39,7 +38,9 @@ extension Span: RandomAccessContainer where Element: ~Copyable {
     return iterator._start
   }
 }
+#endif
 
+#if compiler(>=6.2)
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -112,5 +113,4 @@ extension Span where Element: ~Copyable {
     return (p, index &- p)
   }
 }
-
 #endif

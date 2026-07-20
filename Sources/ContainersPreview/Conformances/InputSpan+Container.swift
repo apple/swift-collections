@@ -15,8 +15,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
-
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 extension InputSpan: RandomAccessContainer, MutableContainer
 where Element: ~Copyable
@@ -36,7 +35,12 @@ where Element: ~Copyable
   public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
     self.span.currentIndex(of: iterator)
   }
+}
+#endif
 
+#if compiler(>=6.2) && UnstableContainersPreview
+@available(SwiftStdlib 5.0, *)
+extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   public var startIndex: Index { 0 }

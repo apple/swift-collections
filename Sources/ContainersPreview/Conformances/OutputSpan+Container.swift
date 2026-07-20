@@ -15,7 +15,7 @@
 import InternalCollectionsUtilities
 #endif
 
-#if compiler(>=6.2) && UnstableContainersPreview
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 extension OutputSpan: RandomAccessContainer, MutableContainer
 where Element: ~Copyable

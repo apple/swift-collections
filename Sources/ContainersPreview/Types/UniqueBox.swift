@@ -28,17 +28,11 @@ public struct UniqueBox<Value: ~Copyable>: ~Copyable {
   public typealias T = Value
 
   @usableFromInline
-  internal let _pointer: UnsafeMutablePointer<T>
+  internal let _pointer: UnsafeMutablePointer<Value>
 
   @_alwaysEmitIntoClient
   @_transparent
   public init(_ value: consuming Value) {
-    fatalError()
-  }
-
-  @_alwaysEmitIntoClient
-  @inlinable
-  deinit {
     fatalError()
   }
 }

@@ -11,12 +11,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if compiler(>=6.4) && UnstableContainersPreview
-
 #if !COLLECTIONS_SINGLE_MODULE
 import InternalCollectionsUtilities
 #endif
 
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
@@ -43,7 +42,12 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
       "Invalid iterator")
     return iterator._start
   }
+}
+#endif
 
+#if compiler(>=6.2) && UnstableContainersPreview
+@available(SwiftStdlib 5.0, *)
+extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public var startIndex: Int {
     0
@@ -84,9 +88,16 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
     self.span.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
   }
 }
+#endif
 
+#if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
-extension MutableSpan: MutableContainer where Element: ~Copyable {
+extension MutableSpan: MutableContainer where Element: ~Copyable {}
+#endif
+
+#if compiler(>=6.2) && UnstableContainersPreview
+@available(SwiftStdlib 5.0, *)
+extension MutableSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(copy self)
   public consuming func _nextMutableSpan(
@@ -148,5 +159,4 @@ extension MutableSpan: MutableContainer where Element: ~Copyable {
     return r
   }
 }
-
 #endif
