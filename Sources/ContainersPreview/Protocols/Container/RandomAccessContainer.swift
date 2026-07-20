@@ -16,7 +16,7 @@
 @available(SwiftStdlib 6.4, *)
 public protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable
-where Element: ~Copyable {
+where Element: ~Copyable, Index: Comparable {
   // Note: Some requirements are redeclared to help associated type inference;
   // others are kept separate with `@_nonoverride`.
   //
@@ -246,6 +246,15 @@ where
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     // Note: Range checks are deferred until element access.
     index.advanced(by: n)
+  }
+
+  @_alwaysEmitIntoClient
+  @inline(__always)
+  public func formIndex(
+    _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
+  ) {
+    // Note: Range checks are deferred until element access.
+    index.advance(by: &distance, limitedBy: limit)
   }
 }
 
