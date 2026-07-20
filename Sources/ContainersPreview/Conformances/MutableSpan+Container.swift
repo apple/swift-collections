@@ -71,8 +71,17 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
-    self.span.spanBoundary(before: index, maxDistance: maxDistance)
+  public func spanBoundary(
+    before index: Index
+  ) -> (index: Index, distance: Int) {
+    self.span.spanBoundary(before: index)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    self.span.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
   }
 }
 

@@ -463,18 +463,25 @@ extension RigidArray where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
     precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxDistance > 0, "maxDistance must be positive")
-    guard index > 0 else { return nil }
-    return Swift.max(0, index &- maxDistance)
+    return (0, index)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    self.span.spanBoundary(
+      before: index, maxDistance: maxDistance, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
     before index: inout Int, maxCount: Int
   ) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _checkValidIndex(index)
     precondition(maxCount > 0, "maxCount must be positive")
     let start = index

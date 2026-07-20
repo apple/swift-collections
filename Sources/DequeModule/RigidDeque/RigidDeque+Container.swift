@@ -195,16 +195,27 @@ extension RigidDeque where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
     precondition(index >= 0 && index <= count, "Index out of bounds")
+    let r = self._handle.spanBoundary(before: index)
+    return (r.offset, r.distance)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(limit >= 0 && limit <= count, "Index out of bounds")
     precondition(maxDistance > 0, "maxDistance must be positive")
-    guard index > 0 else { return nil }
-    return Swift.max(0, index &- maxDistance)
+    let r = self._handle.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
+    return (r.offset, r.distance)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _checkValidIndex(index)
     precondition(maxCount > 0, "maxCount must be positive")
     let segment = self._handle

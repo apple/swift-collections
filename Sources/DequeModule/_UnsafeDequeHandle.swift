@@ -370,6 +370,32 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
+  internal func spanBoundary(
+    before startOffset: Int
+  ) -> (offset: Int, distance: Int) {
+    assert(startOffset >= 0 && startOffset <= count)
+    let wrapOffset = capacity &- startSlot.position
+    if startOffset <= wrapOffset {
+      return (0, startOffset)
+    }
+    return (wrapOffset, startOffset &- wrapOffset)
+  }
+
+  @_alwaysEmitIntoClient
+  internal func spanBoundary(
+    before startOffset: Int, maxDistance: Int, limitedBy limitOffset: Int
+  ) -> (offset: Int, distance: Int) {
+    assert(startOffset >= 0 && startOffset <= count)
+    assert(limitOffset >= 0 && limitOffset <= count)
+    let wrapOffset = capacity &- startSlot.position
+    let p = startOffset._clampedDown(
+      towards: startOffset <= wrapOffset ? 0 : wrapOffset,
+      maxDistance: maxDistance,
+      limitedBy: limitOffset)
+    return (p, p &- startOffset)
+  }
+
+  @_alwaysEmitIntoClient
   internal func segments() -> _UnsafeDequeSegments<Element> {
     guard _buffer.baseAddress != nil else {
       return .init(._empty)

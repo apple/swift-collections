@@ -48,7 +48,11 @@ where Element: ~Copyable, Index: Comparable
 
   func formIndex(before i: inout Index)
 
-  func spanBoundary(before index: Index, maxDistance: Int) -> Index?
+  func spanBoundary(before index: Index) -> (index: Index, distance: Int)
+
+  func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int)
 
   override func index(after index: Index) -> Index
 
@@ -67,45 +71,54 @@ where Element: ~Copyable, Index: Comparable
 extension BidirectionalContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
-  public func spanBoundary(before index: Index) -> Index? {
-    self.spanBoundary(before: index, maxDistance: Int.max)
+  @_transparent
+  public func spanBoundary(
+    before index: Index
+  ) -> (index: Index, distance: Int) {
+    self.spanBoundary(
+      before: index,
+      maxDistance: Int.max,
+      limitedBy: self.endIndex)
   }
 
   @_alwaysEmitIntoClient
-  @_lifetime(borrow self)
-  public func previousSpan(before index: inout Index) -> Span<Element> {
-    previousSpan(before: &index, maxCount: Int.max)
+  @_transparent
+  public func spanBoundary(
+    before index: Index,
+    maxDistance: Int
+  ) -> (index: Index, distance: Int) {
+    self.spanBoundary(
+      before: index,
+      maxDistance: maxDistance,
+      limitedBy: self.endIndex)
   }
 
   @_alwaysEmitIntoClient
+  @_transparent
   @_lifetime(borrow self)
   public func previousSpan(
-    before index: inout Index, maxCount: Int
+    before index: inout Index,
+    maxCount: Int = Int.max
   ) -> Span<Element> {
-    guard let i = spanBoundary(before: index, maxDistance: maxCount) else {
-      return .init()
-    }
-    var j = i
-    let span = nextSpan(after: &j, maxCount: maxCount)
-    precondition(j == index, "Invalid BidirectionalContainer")
-    index = i
-    return span
+    self.previousSpan(
+      before: &index,
+      maxCount: maxCount,
+      limitedBy: self.endIndex)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
     before index: inout Index,
+    maxCount: Int = Int.max,
     limitedBy limit: Index
   ) -> Span<Element> {
-    var j = index
-    let span = self.previousSpan(before: &j)
-    if limit <= index, limit > j {
-      let d = self.distance(from: limit, to: index)
-      index = limit
-      return span.extracting(last: d)
-    }
-    index = j
+    let (i, d) = spanBoundary(before: index, maxDistance: maxCount, limitedBy: limit)
+    if d == 0 { return .init() }
+    var j = i
+    let span = nextSpan(after: &j, limitedBy: index)
+    precondition(j == index && span.count <= maxCount, "Invalid BidirectionalContainer")
+    index = i
     return span
   }
 }
@@ -113,6 +126,11 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 @available(SwiftStdlib 6.4, *)
 extension BidirectionalContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  public func index(before i: Index) -> Index {
+    self.spanBoundary(before: i, maxDistance: 1).index
+  }
+
   @_alwaysEmitIntoClient
   public func formIndex(before i: inout Index) {
     i = self.index(before: i)
@@ -122,16 +140,20 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     var index = index
     var n = n
+    let end = self.endIndex
     if n >= 0 {
       while n > 0 {
-        self.formIndex(after: &index)
-        n &-= 1
+        let c = self.nextSpan(after: &index, maxCount: n, limitedBy: end).count
+        precondition(c > 0, "Cannot advance index beyond the end of the container")
+        n &-= c
       }
-    } else {
-      while n < 0 {
-        self.formIndex(before: &index)
-        n &+= 1
-      }
+      return index
+    }
+    n = -n
+    while n > 0 {
+      let r = self.spanBoundary(before: index, maxDistance: n, limitedBy: end)
+      index = r.index
+      n &-= r.distance
     }
     return index
   }
@@ -143,35 +165,22 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     var n = n
     if n >= 0 {
       while n > 0 {
-        var j = index
-        let c = self.nextSpan(after: &j, limitedBy: limit).count
-        if c == 0 {
-          // We hit the limit (or the end)
-          break
-        }
-        if c > n {
-          index = self.index(index, offsetBy: n)
-          n = 0
-          break
-        }
-        index = j
+        let c = self.nextSpan(after: &index, maxCount: n, limitedBy: limit).count
+        precondition(c <= n, "Invalid container")
+        guard c > 0 else { break }
         n &-= c
       }
       return
     }
-    // Note: Don't negate `n` -- it may be `Int.min`.
-    while n < 0 {
-      let c = self.previousSpan(before: &index, limitedBy: limit).count
-      if c == 0 {
+    n = -n
+    while n > 0 {
+      let r = self.spanBoundary(before: index, maxDistance: n, limitedBy: limit)
+      if r.distance == 0 {
         // We hit the limit (or the start)
         return
       }
-      n &+= c
-      if n > 0 {
-        index = self.index(index, offsetBy: n)
-        n = 0
-        return
-      }
+      n &+= r.distance
+      index = r.index
     }
   }
 
@@ -187,6 +196,34 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 
   // Note: `distance(from:to:)` comes from `Container where Index: Comparable`.
+}
+
+extension Strideable {
+  @_alwaysEmitIntoClient
+  package func _clampedUp(
+    towards boundary: Self, maxDistance: Stride, limitedBy limit: Self
+  ) -> Self {
+    assert(self <= boundary)
+    assert(maxDistance >= 0)
+    let limit = (limit >= self ? Swift.min(limit, boundary) : boundary)
+    if limit.distance(to: self) <= maxDistance {
+      return limit
+    }
+    return self.advanced(by: maxDistance)
+  }
+
+  @_alwaysEmitIntoClient
+  package func _clampedDown(
+    towards boundary: Self, maxDistance: Stride, limitedBy limit: Self
+  ) -> Self {
+    assert(self >= boundary)
+    assert(maxDistance >= 0)
+    let limit = (limit <= self ? Swift.max(limit, boundary) : boundary)
+    if self.distance(to: limit) <= maxDistance {
+      return limit
+    }
+    return self.advanced(by: -maxDistance)
+  }
 }
 
 // FIXME: Add ambiguity resolvers against BidirectionCollection algorithms.

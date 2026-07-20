@@ -121,13 +121,21 @@ extension UniqueDeque where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
-    _storage.spanBoundary(before: index, maxDistance: maxDistance)
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
+    _storage.spanBoundary(before: index)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    _storage.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _storage.previousSpan(before: &index, maxCount: maxCount)
   }
 }

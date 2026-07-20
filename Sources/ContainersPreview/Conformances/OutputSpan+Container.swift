@@ -70,11 +70,20 @@ where Element: ~Copyable
   }
 
   @_alwaysEmitIntoClient
-  public func spanBoundary(before index: Index, maxDistance: Int) -> Index? {
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
     precondition(index >= 0 && index <= count, "Index out of bounds")
+    return (0, index)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(limit >= 0 && limit <= count, "Index out of bounds")
     precondition(maxDistance > 0, "maxDistance must be positive")
-    guard index > 0 else { return nil }
-    return Swift.max(0, index &- maxDistance)
+    let p = index._clampedDown(towards: 0, maxDistance: maxDistance, limitedBy: limit)
+    return (p, index &- p)
   }
 }
 #endif
