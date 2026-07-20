@@ -486,7 +486,7 @@ extension RigidArray where Element: ~Copyable {
     precondition(maxCount > 0, "maxCount must be positive")
     let start = index
     index = start &- Swift.min(maxCount, start)
-    return _span(in: Range(uncheckedBounds: (index, start)))
+    return _span(in: Range(uncheckedBounds: (start, index)))
   }
 }
 

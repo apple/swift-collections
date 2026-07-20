@@ -331,17 +331,17 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
 extension _UnsafeDequeHandle where Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func nextSegment(
-    after startOffset: Int
+    after offset: Int
   ) -> UnsafeBufferPointer<Element> {
-    assert(startOffset >= 0 && startOffset <= count)
+    assert(offset >= 0 && offset <= count)
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
     }
-    let position = startSlot.position &+ startOffset
+    let position = startSlot.position &+ offset
     if position < capacity {
       return UnsafeBufferPointer(
         start: ptr(at: Slot(at: position)),
-        count: Swift.min(count &- startOffset, capacity &- position))
+        count: Swift.min(count &- offset, capacity &- position))
     }
     // We're after the wrap
     return UnsafeBufferPointer(
@@ -350,23 +350,40 @@ extension _UnsafeDequeHandle where Element: ~Copyable {
   }
 
   @_alwaysEmitIntoClient
-  internal func previousSegment(
-    before startOffset: Int
+  internal func nextSegment(
+    after offset: inout Int,
+    maxCount: Int,
+    limitedBy limit: Int
   ) -> UnsafeBufferPointer<Element> {
-    assert(startOffset >= 0 && startOffset <= count)
+    assert(limit >= 0 && limit <= count)
+    assert(maxCount > 0)
+    var segment = self.nextSegment(after: offset)
+      ._extracting(first: maxCount)
+    if limit >= offset, segment.count > limit &- offset {
+      segment = segment._extracting(first: limit &- offset)
+    }
+    offset &+= segment.count
+    return segment
+  }
+
+  @_alwaysEmitIntoClient
+  internal func previousSegment(
+    before offset: Int
+  ) -> UnsafeBufferPointer<Element> {
+    assert(offset >= 0 && offset <= count)
     guard _buffer.baseAddress != nil else {
       return .init(._empty)
     }
-    let position = startSlot.position &+ startOffset
-    if position <= capacity {
+    let slot = startSlot.position &+ offset
+    if slot <= capacity {
       return UnsafeBufferPointer(
         start: ptr(at: startSlot),
-        count: startOffset)
+        count: offset)
     }
     // We're after the wrap
     return UnsafeBufferPointer(
       start: ptr(at: Slot(at: 0)),
-      count: position - capacity)
+      count: slot - capacity)
   }
 
   @_alwaysEmitIntoClient

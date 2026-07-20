@@ -198,34 +198,6 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   // Note: `distance(from:to:)` comes from `Container where Index: Comparable`.
 }
 
-extension Strideable {
-  @_alwaysEmitIntoClient
-  package func _clampedUp(
-    towards boundary: Self, maxDistance: Stride, limitedBy limit: Self
-  ) -> Self {
-    assert(self <= boundary)
-    assert(maxDistance >= 0)
-    let limit = (limit >= self ? Swift.min(limit, boundary) : boundary)
-    if limit.distance(to: self) <= maxDistance {
-      return limit
-    }
-    return self.advanced(by: maxDistance)
-  }
-
-  @_alwaysEmitIntoClient
-  package func _clampedDown(
-    towards boundary: Self, maxDistance: Stride, limitedBy limit: Self
-  ) -> Self {
-    assert(self >= boundary)
-    assert(maxDistance >= 0)
-    let limit = (limit <= self ? Swift.max(limit, boundary) : boundary)
-    if self.distance(to: limit) <= maxDistance {
-      return limit
-    }
-    return self.advanced(by: -maxDistance)
-  }
-}
-
 // FIXME: Add ambiguity resolvers against BidirectionCollection algorithms.
 
 #endif

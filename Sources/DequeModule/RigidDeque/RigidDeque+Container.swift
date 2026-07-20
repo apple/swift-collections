@@ -168,15 +168,10 @@ extension RigidDeque where Element: ~Copyable {
   ) -> Span<Element> {
     _checkValidIndex(index)
     _checkValidIndex(limit)
-    let segment = self._handle
-      .nextSegment(after: index)
-      ._extracting(first: maxCount)
-    var span = _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
-    if limit >= index, span.count > limit &- index {
-      span = span.extracting(first: limit &- index)
-    }
-    index &+= span.count
-    return span
+    precondition(maxCount > 0, "maxCount must be positive")
+    let segment = self._handle.nextSegment(
+      after: &index, maxCount: maxCount, limitedBy: limit)
+    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 
   @_lifetime(&self)

@@ -80,7 +80,9 @@ extension Span where Element: ~Copyable {
     if limit >= index, limit < end {
       end = limit
     }
-    return self.extracting(unchecked: Range(uncheckedBounds: (index, end)))
+    let r = self.extracting(unchecked: Range(uncheckedBounds: (index, end)))
+    index = end
+    return r
   }
 
   @_alwaysEmitIntoClient
