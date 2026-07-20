@@ -33,7 +33,10 @@ extension RigidArray where Element: ~Copyable {
   public mutating func nextMutableSpan(
     after index: inout Int, maximumCount: Int
   ) -> MutableSpan<Element> {
-    self.nextMutableSpan(after: &index, maxCount: maximumCount)
+    self.nextMutableSpan(
+      after: &index,
+      maxCount: maximumCount,
+      limitedBy: self.endIndex)
   }
 
   @available(*, deprecated, renamed: "previousSpan(before:maxCount:)")

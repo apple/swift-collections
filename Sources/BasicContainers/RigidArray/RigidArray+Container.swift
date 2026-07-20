@@ -453,13 +453,23 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Int, maxCount: Int
+    after index: inout Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
+    return _mutableSpan(in: Range(uncheckedBounds: (index, count)))
+  }
+
+  @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    _checkValidIndex(limit)
     precondition(maxCount > 0, "maxCount must be positive")
-    let start = index
-    index = start &+ Swift.min(maxCount, _count &- start)
-    return _mutableSpan(in: Range(uncheckedBounds: (start, index)))
+    let end = index._clampedUp(
+      towards: count, maxDistance: maxCount, limitedBy: limit)
+    return _mutableSpan(in: Range(uncheckedBounds: (index, end)))
   }
 
   @_alwaysEmitIntoClient

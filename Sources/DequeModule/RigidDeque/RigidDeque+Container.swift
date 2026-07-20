@@ -176,14 +176,25 @@ extension RigidDeque where Element: ~Copyable {
 
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Int, maxCount: Int
+    after index: inout Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    precondition(maxCount > 0, "maxCount must be positive")
-    let segment = self._handle
-      .nextSegment(after: index)
-      ._extracting(first: maxCount)
+    let segment = self._handle.nextSegment(after: index)
     index &+= segment.count
+    return _overrideLifetime(
+      MutableSpan(_unsafeElements: .init(mutating: segment)),
+      mutating: &self)
+  }
+
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    _checkValidIndex(limit)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let segment = self._handle.nextSegment(
+      after: &index, maxCount: maxCount, limitedBy: limit)
     return _overrideLifetime(
       MutableSpan(_unsafeElements: .init(mutating: segment)),
       mutating: &self)

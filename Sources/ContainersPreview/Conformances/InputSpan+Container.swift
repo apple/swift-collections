@@ -62,13 +62,17 @@ where Element: ~Copyable
   @_alwaysEmitIntoClient
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Index, maxCount: Int
+    after index: inout Index
   ) -> MutableSpan<Element> {
-    precondition(index >= 0 && index <= count, "Index out of bounds")
-    precondition(maxCount > 0, "maxCount must be positive")
-    let c = Swift.min(count &- index, maxCount)
-    let start = capacity &- count &+ index
-    return _uncheckedMutableSpan(in: Range(uncheckedBounds: (start, start &+ c)))
+    self.mutableSpan._nextMutableSpan(after: &index)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Index, maxCount: Int, limitedBy limit: Index
+  ) -> MutableSpan<Element> {
+    self.mutableSpan._nextMutableSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @_alwaysEmitIntoClient

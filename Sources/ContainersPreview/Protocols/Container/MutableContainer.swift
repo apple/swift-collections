@@ -27,7 +27,11 @@ where
   /// - Complexity: O(1)
   subscript(index: Index) -> Element { borrow mutate }
 
-  /// Return a mutable span over the container's storage that begins with the
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  mutating func nextMutableSpan(after index: inout Index) -> MutableSpan<Element>
+
+    /// Return a mutable span over the container's storage that begins with the
   /// element at the given index, and extends to the end of the contiguous
   /// storage chunk that contains it, but no more than `maxCount` items.
   ///
@@ -93,7 +97,8 @@ where
   @_lifetime(&self)
   mutating func nextMutableSpan(
     after index: inout Index,
-    maxCount: Int
+    maxCount: Int,
+    limitedBy limit: Index
   ) -> MutableSpan<Element>
 }
 
@@ -103,10 +108,66 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
   @_alwaysEmitIntoClient
   @_lifetime(&self)
-  mutating func nextMutableSpan(
-    after index: inout Index,
+  public mutating func nextMutableSpan(
+    after index: inout Index
   ) -> MutableSpan<Element> {
-    nextMutableSpan(after: &index, maxCount: Int.max)
+    nextMutableSpan(after: &index, maxCount: Int.max, limitedBy: self.endIndex)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Index,
+    limitedBy limit: Index
+  ) -> MutableSpan<Element> {
+    nextMutableSpan(after: &index, maxCount: Int.max, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Index,
+    maxCount: Int
+  ) -> MutableSpan<Element> {
+    nextMutableSpan(after: &index, maxCount: maxCount, limitedBy: self.endIndex)
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension MutableContainer
+where
+  Self: BidirectionalContainer & ~Copyable & ~Escapable,
+  Element: ~Copyable
+{
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func previousMutableSpan(
+    before index: inout Index
+  ) -> MutableSpan<Element> {
+    let start = self.spanBoundary(before: index).index
+    var i = start
+    let span = self.nextMutableSpan(after: &i, limitedBy: index)
+    precondition(i == index, "Invalid BidirectionalContainer")
+    return span
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func previousMutableSpan(
+    before index: inout Index,
+    maxCount: Int,
+    limitedBy limit: Index
+  ) -> MutableSpan<Element> {
+    let start = self.spanBoundary(
+      before: index,
+      maxDistance: maxCount,
+      limitedBy: limit
+    ).index
+    var i = start
+    let span = self.nextMutableSpan(after: &i, limitedBy: index)
+    precondition(i == index, "Invalid BidirectionalContainer")
+    index = start
+    return span
   }
 }
 

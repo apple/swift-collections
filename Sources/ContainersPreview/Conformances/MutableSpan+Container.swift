@@ -88,14 +88,64 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
 @available(SwiftStdlib 6.4, *)
 extension MutableSpan: MutableContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
-  @_lifetime(&self)
-  public mutating func nextMutableSpan(
-    after index: inout Int, maxCount: Int
+  @_lifetime(copy self)
+  public consuming func _nextMutableSpan(
+    after index: inout Int
   ) -> MutableSpan<Element> {
     precondition(index >= 0 && index <= count, "Index out of bounds")
+    let end = self.count
+    let r = self._consumingExtracting(unchecked: Range(uncheckedBounds: (index, end)))
+    index = end
+    return r
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int
+  ) -> MutableSpan<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    let end = self.count
+    let r = self._mutatingExtracting(
+      unchecked: Range(uncheckedBounds: (index, end)))
+    index = end
+    return r
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(copy self)
+  public consuming func _nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(limit >= 0 && limit <= count, "Index out of bounds")
     precondition(maxCount > 0, "maxCount must be positive")
-    let limit = index &+ Swift.min(maxCount, count &- index)
-    return self._mutatingExtracting(unchecked: Range(uncheckedBounds: (index, limit)))
+    var end = index &+ Swift.min(maxCount, count &- index)
+    if limit >= index, limit < end {
+      end = limit
+    }
+    let r = self._consumingExtracting(
+      unchecked: Range(uncheckedBounds: (index, end)))
+    index = end
+    return r
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(limit >= 0 && limit <= count, "Index out of bounds")
+    precondition(maxCount > 0, "maxCount must be positive")
+    var end = index &+ Swift.min(maxCount, count &- index)
+    if limit >= index, limit < end {
+      end = limit
+    }
+    let r = self._mutatingExtracting(
+      unchecked: Range(uncheckedBounds: (index, end)))
+    index = end
+    return r
   }
 }
 
