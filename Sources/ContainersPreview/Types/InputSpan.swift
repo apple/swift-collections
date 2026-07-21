@@ -279,6 +279,28 @@ extension InputSpan where Element: ~Copyable {
   }
 #endif
 
+#if compiler(>=6.4)
+  /// Accesses the element at the specified position.
+  ///
+  /// This subscript does not validate `position`; this is an unsafe operation.
+  ///
+  /// - Parameter index: A valid index into this span.
+  ///
+  /// - Complexity: O(1)
+  @unsafe
+  @_alwaysEmitIntoClient
+  public subscript(unchecked index: Index) -> Element {
+    @_unsafeSelfDependentResult
+    borrow {
+      unsafe _unsafeAddressOfElement(uncheckedOffset: index).pointee
+    }
+    @_unsafeSelfDependentResult
+    @_lifetime(self: copy self)
+    mutate {
+      unsafe &_unsafeAddressOfElement(uncheckedOffset: index).pointee
+    }
+  }
+#else
   /// Accesses the element at the specified position.
   ///
   /// This subscript does not validate `position`; this is an unsafe operation.
@@ -297,6 +319,7 @@ extension InputSpan where Element: ~Copyable {
       unsafe _unsafeAddressOfElement(uncheckedOffset: index)
     }
   }
+#endif
 
   /// Exchange the elements at the two given offsets
   ///
@@ -585,7 +608,7 @@ extension InputSpan where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
+internal func _withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
   of type: Element.Type,
   capacity: Int,
   _ body: (inout InputSpan<Element>) throws(E) -> R
