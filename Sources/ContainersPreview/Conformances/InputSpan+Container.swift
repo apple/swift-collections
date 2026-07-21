@@ -23,10 +23,11 @@ where Element: ~Copyable
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
-    from start: Index
+    from start: Index,
+    to end: Index
   ) -> BorrowingIterator_ {
     let span = self.span
-    let it = span.makeBorrowingIterator(from: start)
+    let it = span.makeBorrowingIterator(from: start, to: end)
     // FIXME: `it` is borrowing `span`, not self
     return _overrideLifetime(it, borrowing: self)
   }

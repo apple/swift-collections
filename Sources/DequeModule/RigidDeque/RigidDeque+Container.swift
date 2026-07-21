@@ -53,16 +53,20 @@ extension RigidDeque where Element: ~Copyable {
     @_lifetime(borrow _deque)
     internal init(
       _deque: borrowing RigidDeque<Element>,
-      from start: Int
+      from start: Int,
+      to end: Int
     ) {
       precondition(start >= 0 && start <= _deque.count, "Index out of bounds")
-      self.init(_deque: _deque)
-      var remainder = start
-      while remainder > 0 {
-        let d = self.skip_(by: remainder)
-        precondition(d > 0)
-        remainder &-= d
-      }
+      precondition(end >= 0 && end <= _deque.count, "Index out of bounds")
+      precondition(start <= end, "The start must not be greater than the end")
+      let segments = _deque._handle.segments(forOffsets: start ..< end)
+      self._currentSegment = _overrideLifetime(
+        Span(_unsafeElements: segments.first),
+        borrowing: _deque)
+      self._nextSegment = _overrideLifetime(
+        Span(
+          _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
+        borrowing: _deque)
       self._position = start
     }
 
@@ -94,9 +98,9 @@ extension RigidDeque: Container where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
-    from start: Index
+    from start: Index, to end: Index
   ) -> BorrowingIterator_ {
-    BorrowingIterator(_deque: self, from: start)
+    BorrowingIterator(_deque: self, from: start, to: end)
   }
 
   @_alwaysEmitIntoClient

@@ -15,18 +15,17 @@
 @available(SwiftStdlib 6.4, *)
 extension Span: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
+  @_lifetime(copy self)
+  package func _makeBorrowingIterator(from start: Int, to end: Int) -> BorrowingIterator_ {
+    // Note: This is declared `copy self` so that types can forward to it without having to override lifetimes.
+    // FIXME: SpanIterator needs to have a public "slicing" initializer
+    BorrowingIterator_(self, from: start, to: end)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Int) -> BorrowingIterator_ {
-    precondition(start >= 0 && start <= self.count, "Index out of bounds")
-    // FIXME: SpanIterator needs to have a direct initializer that takes `start`
-    var it = BorrowingIterator_(self)
-    var remainder = start
-    while remainder > 0 {
-      let d = it.skip_(by: remainder)
-      precondition(d > 0)
-      remainder &-= d
-    }
-    return it
+  public func makeBorrowingIterator(from start: Int, to end: Int) -> BorrowingIterator_ {
+    _makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient

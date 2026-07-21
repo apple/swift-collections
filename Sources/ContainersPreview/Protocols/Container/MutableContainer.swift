@@ -27,7 +27,6 @@ where
   /// - Complexity: O(1)
   subscript(index: Index) -> Element { borrow mutate }
 
-  @_alwaysEmitIntoClient
   @_lifetime(&self)
   mutating func nextMutableSpan(after index: inout Index) -> MutableSpan<Element>
 

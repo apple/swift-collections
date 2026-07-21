@@ -38,9 +38,9 @@ extension UniqueDeque: Container where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
-    from start: Index
+    from start: Index, to end: Index
   ) -> BorrowingIterator_ {
-    _storage.makeBorrowingIterator(from: start)
+    _storage.makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient

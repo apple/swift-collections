@@ -51,6 +51,16 @@ extension Span where Element: ~Copyable {
       _count = elements.count
     }
 
+    @_lifetime(copy elements)
+    public init(_ elements: Span<Element_>, from start: Int, to end: Int) {
+      precondition(start >= 0 && start <= elements.count, "Index out of bounds")
+      precondition(end >= 0 && end <= elements.count, "Index out of bounds")
+      precondition(start <= end, "start index must be less than or equal to end index")
+      _span = elements
+      _start = start
+      _count = end &- start
+    }
+
     @_alwaysEmitIntoClient
     @_lifetime(&self)
     @_lifetime(self: copy self)

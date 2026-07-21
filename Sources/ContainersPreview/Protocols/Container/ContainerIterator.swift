@@ -23,13 +23,16 @@ where
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    ContainerIterator(_borrowing: self, from: self.startIndex)
+    ContainerIterator(
+      _borrowing: self,
+      from: self.startIndex,
+      to: self.endIndex)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Index) -> BorrowingIterator_ {
-    ContainerIterator(_borrowing: self, from: start)
+  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_ {
+    ContainerIterator(_borrowing: self, from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
@@ -50,13 +53,17 @@ where Base.Element: ~Copyable
   package let _base: Ref<Base> // FIXME: This doesn't support nonescapable Bases
 
   @_alwaysEmitIntoClient
+  package let _end: Base.Index
+
+  @_alwaysEmitIntoClient
   package var _position: Base.Index
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow base)
-  package init(_borrowing base: borrowing Base, from position: Base.Index) {
+  package init(_borrowing base: borrowing Base, from start: Base.Index, to end: Base.Index) {
     self._base = Ref(base)
-    self._position = position
+    self._end = end
+    self._position = start
   }
 }
 
@@ -72,7 +79,11 @@ where
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence?!
   @_lifetime(&self)
   public mutating func nextSpan_(maxCount: Int) -> Span<Base.Element> {
-    _base.value.nextSpan(after: &self._position, maxCount: maxCount)
+    _base.value
+      .nextSpan(
+        after: &self._position,
+        maxCount: maxCount,
+        limitedBy: self._end)
   }
 
   @_alwaysEmitIntoClient

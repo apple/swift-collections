@@ -60,7 +60,7 @@ package struct _StaccatoParameters {
     fromOffset startOffset: Int,
     maxCount: Int
   ) -> Int {
-    precondition(maxCount > 0)
+    precondition(maxCount >= 0)
     precondition(startOffset >= 0 && startOffset <= _count)
     var cycleOffset = startOffset % _modulus
     var i = 0
@@ -82,21 +82,26 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
   internal let _contents: Span<Element>
   internal let _params: _StaccatoParameters
   internal var _offset: Int
+  internal let _end: Int
 
   @_lifetime(copy contents)
   internal init(
     contents: Span<Element>,
     params: _StaccatoParameters,
-    start: _StaccatoIndex = .init(_offset: 0)
+    start: _StaccatoIndex = .init(_offset: 0),
+    end: _StaccatoIndex? = nil
   ) {
     precondition(start._offset >= 0 && start._offset <= params._count)
     self._contents = contents
     self._params = params
     self._offset = start._offset
+    self._end = end?._offset ?? params._count
   }
 
-  @_lifetime(&self) // FIXME: Should be `@_lifetime(copy self)`
+  @_lifetime(&self)
   public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+    precondition(maxCount > 0)
+    let maxCount = Swift.min(maxCount, _end - _offset)
     let endOffset = _params.endOffset(fromOffset: _offset, maxCount: maxCount)
     let startOffset = _offset
     _offset = endOffset
@@ -147,8 +152,8 @@ extension StaccatoContainer: Container where Element: ~Copyable {
   public var count: Int { _params._count }
 
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Index) -> BorrowingIterator_ {
-    BorrowingIterator_(contents: _contents.span, params: _params, start: start)
+  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_ {
+    BorrowingIterator_(contents: _contents.span, params: _params, start: start, end: end)
   }
 
   public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {

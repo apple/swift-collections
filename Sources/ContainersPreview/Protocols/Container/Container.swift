@@ -22,7 +22,7 @@ public protocol Container<Element>:
   Iterable_, ~Copyable, ~Escapable
   where Element: ~Copyable, Element == Element_, Failure_ == Never
 {
-  associatedtype Element: ~Copyable
+  override associatedtype Element: ~Copyable
 
   /// Indices are expected to implement `==` and `hash(into:)` with
   /// constant complexity.
@@ -45,7 +45,7 @@ public protocol Container<Element>:
   /// - Complexity: Recommended to be O(1); conforming types must clearly
   ///   document deviations from this expectation.
   @_lifetime(borrow self)
-  func makeBorrowingIterator(from start: Index) -> BorrowingIterator_
+  func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_
 
   /// - Complexity: Recommended to be O(1); conforming types must clearly
   ///   document deviations from this expectation.
@@ -188,6 +188,18 @@ public protocol Container<Element>:
     limitedBy limit: Index
   ) -> Span<Element>
 
+  /// Accesses the element at the specified position.
+  ///
+  /// You can subscript a collection with any valid index other than the
+  /// collection’s end index. The end index refers to the position one past the
+  /// last element of a collection, so it doesn’t correspond with an element.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///    `position` must be a valid index of the container that is not equal
+  ///    to the `endIndex` property.
+  /// - Complexity: O(1). This is a hard requirement.
+  subscript(index: Index) -> Element { borrow }
+
   /// Returns the position immediately after the given index.
   ///
   /// - Parameter index: A valid index of the container. `i` must be less
@@ -259,18 +271,6 @@ public protocol Container<Element>:
   ///    expectation.
   func distance(from start: Index, to end: Index) -> Int
 
-  /// Accesses the element at the specified position.
-  ///
-  /// You can subscript a collection with any valid index other than the
-  /// collection’s end index. The end index refers to the position one past the
-  /// last element of a collection, so it doesn’t correspond with an element.
-  ///
-  /// - Parameter position: The position of the element to access.
-  ///    `position` must be a valid index of the container that is not equal
-  ///    to the `endIndex` property.
-  /// - Complexity: O(1). This is a hard requirement.
-  subscript(index: Index) -> Element { borrow }
-
   func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
   func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
@@ -280,6 +280,20 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
   public var underestimatedCount_: Int { count }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    self.makeBorrowingIterator(from: self.startIndex, to: self.endIndex)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator_(from start: Index) -> BorrowingIterator_ {
+    self.makeBorrowingIterator(from: start, to: self.endIndex)
+  }
 }
 
 @available(SwiftStdlib 6.4, *)
@@ -398,18 +412,44 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   public func distance(from start: Index, to end: Index) -> Int {
-    // This variant allows bulk iteration, but as we can't decide if
-    // start <= end, we have to measure distances from both ends.
+#if true
+    // This variant allows start to follow end, but as indices aren't
+    // comparable, we have to measure distances from both ends.
     var d1 = 0
     var d2 = 0
-    var i = start
-    var j = end
-    while true {
-      d1 += self.nextSpan(after: &i, limitedBy: end).count
-      if i == end { return d1 }
-      d2 += self.nextSpan(after: &j, limitedBy: start).count
-      if j == start { return d2 }
+    var i1 = start
+    var i2 = end
+    var forward = true
+    var backward = true
+    while forward || backward {
+      if forward {
+        let c = self.nextSpan(after: &i1, limitedBy: end).count
+        d1 += c
+        if i1 == end { return d1 }
+        if c == 0 { forward = false }
+      }
+      if backward {
+        let c = self.nextSpan(after: &i2, limitedBy: start).count
+        d2 -= c
+        if i2 == start { return d2 }
+        if c == 0 { backward = false }
+      }
     }
+    fatalError("Invalid Container")
+#else
+    // Worse variant: this requires start <= end, but it has no way to quickly
+    // validate it. Furthermore, the restriction conflicts with Collection's
+    // more flexible implementation.
+    var i = start
+    var d = 0
+    while true {
+      let c = self.nextSpan(after: &i, limitedBy: j).count
+      d += c
+      if i == end { break }
+      precondition(c > 0, "Invalid Container or 'start' does not precede 'end'")
+    }
+    return d
+#endif
   }
 }
 

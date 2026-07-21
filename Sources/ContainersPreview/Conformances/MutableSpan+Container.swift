@@ -21,16 +21,10 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
-    from start: Int
+    from start: Int, to end: Int
   ) -> BorrowingIterator_ {
-    var it = Span<Element>.BorrowingIterator_(self.span)
-    var remainder = start
-    while remainder > 0 {
-      let d = it.skip_(by: remainder)
-      precondition(d > 0)
-      remainder &-= d
-    }
-    return it
+    // FIXME: `makeBorrowingIterator` would be borrowing the temporary `span`, not self
+    self.span._makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
