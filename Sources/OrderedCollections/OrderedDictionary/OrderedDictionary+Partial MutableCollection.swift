@@ -94,8 +94,7 @@ extension OrderedDictionary {
     // Replace the key through OrderedSet's shared primitive, then overwrite the
     // value at `index` — each step is O(1).
     let oldKey = _keys._replaceNew(at: index, with: key, in: bucket)
-    let oldValue = _values[index]
-    _values[index] = value
+    let oldValue = exchange(&_values[index], with: value)
 
     _checkInvariants()
     return (oldKey, oldValue)
