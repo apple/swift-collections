@@ -1,5 +1,11 @@
 # An Ownership-Aware Container Model for Swift
 
+* Author: [Karoy Lorentey](https://github.com/lorentey)
+* Version history:
+   - 0.1 (2026-07-21): Initial draft, describing `Container`.
+
+## Table of Contents
+
   * [Introduction](#introduction)
   * [Making Sense of the Design Space](#making-sense-of-the-design-space)
     * ["Elementwise Iteration" vs "Bulk Iteration"](#elementwise-iteration-vs-bulk-iteration)
@@ -44,7 +50,7 @@
 
 ## Introduction
 
-Over the last several years, we've been [gradually][BorrowingConsuming] [building][NoncopyableTypes] [up][NoncopyableGenerics] [an][PartialConsumption] [ownership][PatternMatching] [model][NonescapableTypes] [for][SuppressedAssociatedTypes] [Swift][BorrowAndMutate], to simplify the creation of safe high-performance Swift code. Our goal is to fulfill Swift's mandate to become a high-performance systems programming language, suitable for use in all computing tasks, from the smallest microcontrollers to the largest supercomputers. As many of the target environments need to operate within strict performance constraints, developers who specialize on them expect to have precise, predictable control over runtime behavior, even at the cost of some coding flexibility.
+Over the last several years, we've been [gradually][BorrowingConsuming] [building][NoncopyableTypes] [up][NoncopyableGenerics] [an][PartialConsumption] [ownership][PatternMatching] [model][NonescapableTypes] [for][SuppressedAssociatedTypes] [Swift][BorrowAndMutate], to simplify the creation of safe high-performance Swift code. Our goal is to fulfill Swift's mandate to become a high-performance systems programming language, suitable for use in all computing tasks, from the smallest microcontrollers to the largest supercomputers. As many of the target environments need to operate within strict performance constraints, developers who specialize in them expect to have precise, predictable control over runtime behavior, even at the cost of some coding flexibility.
 
 [BorrowingConsuming]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0377-parameter-ownership-modifiers.md
 [NoncopyableTypes]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0390-noncopyable-structs-and-enums.md
@@ -59,7 +65,7 @@ Over the last several years, we've been [gradually][BorrowingConsuming] [buildin
 
 Crucially, Swift needs to satisfy this need without resorting to unsafe interfaces: our aim is to build constructs that can match (or exceed) the performance of legacy systems programming languages, while also avoiding undefined behavior if the interfaces get misused.
 
-As of Swift 6.4, we have now implemented a small but quickly growing list of useful data structures that follow these new design priorities:
+As of Swift 6.4, we have implemented a small but quickly growing list of useful data structures that follow these new design priorities:
 
 - Members of the nonescapable span family provide safe, direct access to "somebody else's" contiguous pieces of memory.
   - [`Span`][Span], a read-only reference to fully initialized memory
@@ -106,7 +112,7 @@ However, unlike `Collection`s, these types can contain noncopyable elements, and
 
 Swift 6.4 introduced [protocol `Iterable`][Iterable] to enable borrowing for-in loops over these new types. The new protocol made several notable choices in the design space of ownership-aware iteration; it is crucial that we identify them so that we can carefully examine the purpose and consequences of each one, and so that we are able to analyze alternative choices. Each specific choice defines a particular design axis; we'll give them names that reflect their purpose.
 
-We do this not to criticise the design of `Iterable`, but to understand the use cases for which it is best suited, and to allow us to explore the full design space with intention. Identifying design axes allows us to derive a full set of potential abstractions almost mechanically, so that we can analyze them and develop the ones that seem most useful into concrete protocols in the rest of this document.
+We do this not to criticize the design of `Iterable`, but to understand the use cases for which it is best suited, and to allow us to explore the full design space with intention. Identifying design axes allows us to derive a full set of potential abstractions almost mechanically, so that we can analyze them and develop the ones that seem most useful into concrete protocols in the rest of this document.
 
 We list the four axes we are considering below. The rest of this introductory section will define each of these in detail, but their names already give us a hint of their purpose:
 
@@ -118,21 +124,21 @@ We list the four axes we are considering below. The rest of this introductory se
 Under these terms, our classic `Sequence` models _non-failable, generative, elementwise iteration by taking elements_.<br>
 The new `Iterable` protocol models _failable, generative, bulk iteration by borrowing elements_.
 
-In the rest of this document, we'll define three additional core protocols, `Container`, `Producer` and `Drain` (as well as a number of auxiliary protocols refining them). The four core protocols have the following properties:
+In the rest of this document, we'll define three additional core protocols, `Container`, `Producer` and `Drain` (as well as a number of auxiliary protocols refining them). The four core protocols have the following properties and relationships:
 
 | Protocol | Elementwise/bulk | Borrowing/taking | Generative/Visitative | Failable |
 | :--- | :--- | :---: | :---: | :---: |
 | [`Iterable`][Iterable] | bulk (`Span`-based) | borrowing | generative | failable |
-| `└╴`[`Container`](#container) | bulk (`Span`-based) | borrowing | visitative | -- |
-| [`Producer`](#producer) | bulk (`OutputSpan`-based) | taking | generative | failable |
-| `└╴`[`Drain`](#drain) | bulk (`InputSpan`-based) | taking | visitative | -- |
+| `└╴`[`Container`](#read-only-container-model) | bulk (`Span`-based) | borrowing | visitative | -- |
+| [`Producer`](#producers) | bulk (`OutputSpan`-based) | taking | generative | failable |
+| `└╴`[`Drain`](#protocol-drain) | bulk (`InputSpan`-based) | taking | visitative | -- |
 
 We can already use this table to gain some interesting observations:
 
 - Our proposed new protocols all have a strong preference towards bulk (rather than elementwise) iteration.
 - "Iteration by borrowing" and "iteration by taking" are independent abstractions; they are both useful enough to deserve their separate protocol hierarchies.
-- Both visitative protocols refine their generative counterparts. This indicates a strong relationship between these concepts, with the visitative model providing a richer abstraction, in exchange for putting more restrictions on conforming types.
-- Failability is strongly correlated with generative iteration. Neither of our proposed "visitative" protocols are failable.
+- The design indicates that the generative iteration model is a "wider" or "weaker" abstraction than the "narrower"/"stronger" visitative one; both visitative protocols refine their generative counterparts. This is, to some extent, intuitively understandable: a protocol that only works with preexisting elements can also implement an interface that allows them to be generated on the fly. In exchange, the visitative protocols can provide richer, more specialized abstractions.
+- This design also strongly correlates failability with generative iteration. Neither of our proposed "visitative" protocols is failable. This too follows from the fact that visitative iteration merely accesses elements that already exist; there isn't much possibility for these accesses to fail.
 
 Let's now explore this design space a little further, by looking at the benefits and consequences of each decision.
 
@@ -148,15 +154,15 @@ This model of **elementwise iteration** is extremely straightforward to understa
 
 In elementwise iteration, we need to call a protocol's customizable entry point for each and every item we traverse. The entry point needs to load the iteration's current state, and find (or generate) the next element to visit -- precisely what that means varies wildly between each type we want to iterate over.
 
-This makes it much harder for the compiler to reliably reason about and optimize code using `Sequence` types; this is especially difficult for sequences whose definitions are hidden behind a resiliance boundary. In classic Swift, it isn't uncommon to see performance drop by a factor of hundreds as an operation's implementation moves across resilient module boundaries. As library evolution is a crucial feature of the language, this is rather unfortunate.
+This makes it much harder for the compiler to reliably reason about and optimize code using `Sequence` types; this is especially difficult for sequences whose definitions are hidden behind a resilience boundary. In classic Swift, it isn't uncommon to see performance drop by a factor of hundreds as an operation's implementation moves across resilient module boundaries. As library evolution is a crucial feature of the language, this is rather unfortunate.
 
 The new `Iterable` protocol resolves this issue by introducing the idea of **bulk iteration**, where each primitive iteration step exposes multiple items all at once to the client, batched up into a `Span` instance.
 
 ```swift
-  mutating func nextSpan(maximumCount: Int) throws(Failure) -> Span<Element>
+  mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element>
 ```
 
-`Span` is a small, frozen type in the Swift Standard Library, eminently amenable to optimizations -- efficiently traversing the elements of a span is a drastically simpler problem than iterating over an arbitrary sequence. `Iterable` forcibly forces conforming types to factor iteration into two distinct layers: clients still invoke custom code to retrieve the next batch of items, but once they have them, accessing the individual elements within each batch becomes dependably cheap.
+`Span` is a small, frozen type in the Swift Standard Library, eminently amenable to optimizations -- efficiently traversing the elements of a span is a drastically simpler problem than iterating over an arbitrary sequence. `Iterable` forces conforming types to factor iteration into two distinct layers: clients still invoke custom code to retrieve the next batch of items, but once they have them, accessing the individual elements within each batch becomes dependably cheap.
 
 For iterables that physically store their contents in memory, implementing iteration simply requires exposing spans over their preexisting piecewise contiguous storage chunks -- the bigger the chunks, the more efficient iteration becomes, even if `nextSpan`'s implementation isn't visible to the optimizer.
 
@@ -170,7 +176,13 @@ Bulk iteration is not without drawbacks: it comes with a drastically more compli
 
 To understand how `Iterable` works, we need to learn about what `Span` is, which requires us to also learn at least a little about nonescapable types. We need to figure out how to resolve a whole new class of compiler errors, and ultimately we need to get comfortable reading lifetime dependency declarations, to allow us to predict what operations we can express and architect our solutions without running into constant issues.
 
-Operations for bulk iteration are full of subtle design problems that often don't seem particularly important, but dismissing them can render the abstraction impossible to use in some contexts. For instance, `nextSpan`'s `maxCount` parameter is there to allow clients to limit the number of elements they receive at a time. Having to accommodate this limit is a significant complication for conforming types, so it is tempting to cut the complexity by force-feeding clients with an arbitrary number of items. (After all, clients often set `maxCount` to `Int.max` anyway, and don't mind having to potentially deal with millions of items at a time.) However, if someone just needs to look at the first three elements to make a decision about what to do with the rest, giving them four thousand items would put them in an awkward position -- they need to stash the leftovers somewhere, and then process them before pulling on the iterator again. The spans that `nextSpan` returns are tied to an exclusively access of the iterator, which (currently at least) makes it impossible to actually store them in any meaningful way: these clients would be drowned in a sea of elements they cannot process. By simplifying conforming implementations, we would significantly limit the usefulness of the protocol.
+Operations for bulk iteration are full of subtle design complications that often don't seem particularly important, but dismissing them can render the abstraction impossible to use in some contexts. For instance, `nextSpan`'s `maxCount` parameter is there to allow clients to limit the number of elements they receive at a time. Having to accommodate this limit is a significant complication for conforming types, so it is tempting to cut the complexity by force-feeding clients an arbitrary number of items. (After all, clients often set `maxCount` to `Int.max` anyway, and don't mind having to potentially deal with millions of items at a time.)
+
+However, consider a client that just wants to look at the first three elements to make a decision about what to do with the rest. Giving this caller four thousand items would put them in an awkward position: they would need to stash the leftovers somewhere, and then process them all before pulling on the iterator again. The spans that `nextSpan` returns are tied to an exclusive access of the iterator, which (currently at least) makes it impossible to actually store them alongside the iterator in any meaningful way: these clients would be drowned in a sea of elements they cannot process. By simplifying conforming implementations, we would significantly limit the usefulness of the protocol.
+
+<details><summary>Click to expand footnote</summary>
+> Throwing away the iterator and restarting it may seem like a possible workaround, but as `Iterable` types aren't required to produce the same items on repeated iterations, this cannot be a general solution. It only works on some iterable types, such as the containers we are introducing in this document.
+</details>
 
 <p id="bulk-failures">How bulk operations report/handle failures is a similarly subtle but important complication: operations that need to throw errors must be able to properly report partial success, to avoid data loss and to allow clients to identify precisely which element triggered the error. If the fifth element of an `Iterable` instance happens to trigger an error, it still needs to be possible for clients to reliably access the first four elements -- no matter what value they use for `maxCount`.</p>
 
@@ -182,7 +194,7 @@ Code iterating over a `Sequence` gains full ownership of the items it accesses. 
 
 In contrast, `Iterable` was designed to support noncopyable elements, which do not allow such simple workarounds. Returning a noncopyable instance means transferring unique ownership of it. For container types, this would be a destructive operation, as the contents would have to be physically moved out of the container, emptying it out or entirely consuming it in the process. This would not be workable as the default form of iteration: we naturally expect to be able to iterate over a container multiple times without destroying it in the process.
 
-To avoid this, `Iterable` instead choses to return _borrowing references_ to the elements it traverses, not the elements themselves. Clients do not get ownership over the items they access -- they get a temporary window that they can peer through to see a batch of items at a time; but they don't get to break the glass (to modify or consume the items), and once the window moves to the next batch, they lose sight to all previously seen items.
+To avoid this, `Iterable` instead chooses to return _borrowing references_ to the elements it traverses, not the elements themselves. Clients do not get ownership over the items they access -- they get a temporary window that they can peer through to see a batch of items at a time; but they don't get to break the glass (to modify or consume the items), and once the window moves to the next batch, they lose sight of all previously seen items.
 
 In this document, we'll call the ownership model of `Iterable` **iteration by borrowing**, as clients _borrow_ the elements they traverse. The other way to gain access to something is to _take_ ownership of it -- hence, we'll call the model `Sequence` follows **iteration by taking**.
 
@@ -192,21 +204,21 @@ In this document, we'll call the ownership model of `Iterable` **iteration by bo
 
 </details>
 
-Of course, the way `Iterable` only provides read-only, borrowing access to its elements severely limits what clients can do with them. Obviously, we will also need to provide iterator-like constructs that transfer ownership of their elements to the caller, so that it can collect them into a container type, or otherwise mutate/consume them as it wishes. In this document, we are modeling the idea of "iterating by taking elements" with protocol [`Producer`][Producer]
+Of course, the way `Iterable` only provides read-only, borrowing access to its elements severely limits what clients can do with them. Obviously, we will also need to provide iterator-like constructs that transfer ownership of their elements to the caller, so that it can collect them into a container type, or otherwise mutate/consume them as it wishes. In this document, we are modeling the idea of "iterating by taking elements" with protocol [`Producer`](#producers).
 
 A variant of the `Iterable` approach is one where instead of borrowing references, we provide mutable references to elements -- we change the unit of iteration from `Span<Element>` to `MutableSpan<Element>` (or change `Ref<Element>` to `MutableRef<Element>`). The source of the elements still retains ownership in this case, but clients are allowed to arbitrarily mutate or even replace them. In this document, we are modeling this approach with `MutableContainer`; we are not introducing an `Iterable`-style, generative protocol.
 
 ### "Generative" vs "Visitative Iteration"
 
-`Sequence` and `Iterable` both allow their elements to be generated on the fly. We'll be calling this style of traversal **generative iteration**. This allows a wide spectrum of conforming types, but it complicates performance analyis, as the variable cost of on-demand generation inherently adds a difficult term to the complexity of element access.
+`Sequence` and `Iterable` both allow their elements to be generated on the fly. We'll be calling this style of traversal **generative iteration**. This allows a wide spectrum of conforming types, but it complicates performance analysis, as the variable cost of on-demand generation inherently adds a difficult term to the complexity of element access.
 
-Additionally, generative iteration by _borrowing_ (as implemented by `Iterable`) has the crucial limitation that the client cannot hold on to generated items as they come out of the iterator -- it is only able to see only a single batch of them at a time, and the minute it advances the iterator, it loses sight of all the items it previously encountered. Because `Iterable` allows elements to be generated (and discarded!) on the fly, clients must destroy all references to the elements they see before they can advance to the next batch. This strictly limits the kinds of algorithms we can implement over `Iterable`: in particular, we cannot define lookup or search algorithms that need to return references to specific elements (such as `min()` or `first(where:)`), unless we require `Element` to be copyable. The elements we want to reference may evaporate the moment we advance the iterator!
+Additionally, generative iteration by _borrowing_ (as implemented by `Iterable`) has the crucial limitation that the client cannot hold on to generated items as they come out of the iterator -- it is only able to see a single batch of them at a time, and the minute it advances the iterator, it loses sight of all the items it previously encountered. Because `Iterable` allows elements to be generated (and discarded!) on the fly, clients must destroy all references to the elements they see before they can advance to the next batch. This strictly limits the kinds of algorithms we can implement over `Iterable`: in particular, we cannot define lookup or search algorithms that need to return references to specific elements (such as `min()` or `first(where:)`), unless we require `Element` to be copyable. The elements we want to reference may evaporate the moment we advance the iterator!
 
 Not all iterable types need to generate their items on demand. In particular, many of the most useful data structures physically hold their contents in memory, and they can implement iteration by simply locating their storage chunks and directly exposing spans over them. Arrays, linked lists, hashed sets, hashed dictionaries, ring buffers, search trees, ropes are all examples of such data structures, and of course there are many more.
 
 Data structures with preexisting storage form a highly useful subset of iterables, and it is worth giving them a name; we'll call such types **containers**, and the traversal they support **visitative iteration**. These terms emphasize that iterating over a container merely visits its preexisting contents, rather than materializing them on the fly. Locating items in preexisting storage is a far simpler task than generating them; and clients can safely extract and work with references to such items as long as they do not mutate the instance that contains them.
 
-Not all data structures are containers, of course. For example, Swift's standard `String` type is a sequence of `Character` instances, but those instances are not directly stored anywhere in `String`'s storage representation -- they need to be created on the fly, as we iterate over the string instance. `String` therefore implements _generative_ rather than _visitative_ iteration; it is not a container type. (Of course, it would be possible to build a container of text data; but to do it efficiently, we'd likely need to avoid using `Character` as its `Element`.)
+Not all data structures are containers in this sense, of course. For example, Swift's standard `String` type is a sequence of `Character` instances, but those instances are not directly stored anywhere in `String`'s storage representation -- they need to be created on the fly, as we iterate over the string instance. `String` therefore implements _generative_ rather than _visitative_ iteration; it is not a container type. (Of course, it would be possible to build a container of text data; but to do it efficiently, we'd likely need to avoid using `Character`-style grapheme clusters as its `Element`.)
 
 ### Failability
 
@@ -214,21 +226,25 @@ The final design aspect we need to consider is failability: whether we need to a
 
 The classic `Sequence` protocol provides no way for conforming types to signal a failure, other than by trapping or by stopping the iteration earlier than expected. For many developers, this feels like a defect -- `Sequence` allows (or even encourages) conforming types to produce their elements by running arbitrarily complex calculations; and of course those calculations can sometimes legitimately encounter non-fatal problems. The inability to properly signal failure leads to awkward workarounds.
 
-Using the terminology established in the previous section, the ability of fail is therefore a natural expectation for _generative_ constructs.
+Using the terminology established in the previous section, the ability to fail is therefore a natural expectation for _generative_ constructs.
 
-The `Iterable` protocol addresses this by defining `Failure` associated type and providing a throwing `nextSpan` method on its iterator. It relies on [typed throws][TypedThrows] so that conforming types that never need to throw can set `Never` as their failure type, enabling clients to avoid writing error handling code that deals with errors that are guaranteed never to happen.
+The `Iterable` protocol addresses this by defining a `Failure` associated type and providing a throwing `nextSpan` method on its iterator. It relies on [typed throws][TypedThrows] so that conforming types that never need to throw can set `Never` as their failure type, enabling clients to avoid writing error handling code that deals with errors that are guaranteed never to happen.
 
 This potentially allows lazy `Iterable` algorithms (like `filter`) to take throwing closures, and cleanly propagate errors to clients. In exchange, failability greatly complicates the bulk iteration model, as operations need to be able to [properly report partial success](#bulk-failures).
 
 <details><summary>Click to expand footnote</summary>
 
-(However, we also expect a filter predicate to be able to throw a _different_ error type than the `Iterable`'s own `Failure`. We currently lack the means to express that, as the `nextSpan` method would need to be able to throw either error. We need to do further language-level work -- such as union error types -- to allow us to express such abstractions in a satisfying way.)
+> However, we also expect a filter predicate to be able to throw a _different_ error type than the `Iterable`'s own `Failure`. We currently lack the means to express that, as the `nextSpan` method would need to be able to throw either error. We need to do further language-level work -- such as union error types -- to allow us to express such abstractions in a satisfying way.
 
 </details>
 
 On the other hand, the ability to fail is far less important for _visitative_ constructs, like `Container` -- if the items we're visiting already exist in memory at the start of the iteration, there is little reason to take on the complexity of throwing. Therefore, our two visitative protocols (`Container` and `Drain`) do not allow throwing.
 
 This greatly simplifies the container model, but it does mean that throwing algorithms like our hypothetical lazy `filter` can only produce `Iterable` types -- they cannot return containers, even if their input is one.
+
+<details><summary>Click to expand footnote</summary>
+Some readers may note a wrinkle in that we're assuming that accessing storage held in memory cannot possibly fail. While it is true that accessing memory can trigger faults (e.g., consider `mmap`ped regions), we lack the means to turn these faults into recoverable errors in Swift, and it seems unlikely it would be actually desirable to design container protocols around a hypothetical future language direction like that. The pragmatic choice is to assume that container types are stored in memory allocated using Swift's dedicated primitives, and access to them can never fail without crashing the entire process (or an isolated subsystem within it).
+</details>
 
 Let us now introduce the actual protocols, starting with `Container` itself.
 
@@ -250,7 +266,7 @@ where
 
 The `Container` protocol refines `Iterable`; `Iterable` algorithms are able to work with container types with no extra effort. However, not all iterable types can be containers. The requirement that a container's elements must preexist in memory rules out all iterables that generate items on demand; using the terms [we established above](#generative-iteration-vs-visitative-iteration), we say that iterables model _generative iteration_, while containers are restricted to _visitative_ semantics.
 
-`Container` requires `Failure` to be set to `Never`: because the contents of a container are required exist in advance within the container instance, they can always be successfully iterated: there is never a need to throw an error.
+`Container` requires `Failure` to be set to `Never`: because the contents of a container are required to exist in advance within the container instance, they can always be successfully iterated: there is never a need to throw an error.
 
 Naturally, container types are not required to be copyable, nor escapable. They don't require their elements to be copyable, either. (Support for nonescapable elements is a [highly desirable future direction](#support-for-nonescapable-element-types), but we currently lack the tools to express it.)
 
@@ -268,17 +284,17 @@ protocol Container<Element>: ... {
 
 Repeated invocations of the `count` property on the same container must return the same value. The returned value must match the number of elements that can be accessed by iterating through the container.
 
-Unlike `Collection`, types conforming to `Container` are **required to produce their `count` in constant complexity**. This reflects the protocol's focus on predictable performance, and avoids a common worry with `Collection`.
+Unlike `Collection`, types conforming to `Container` are **required to produce their `count` in constant complexity**. This reflects the protocol's focus on predictable performance, and avoids a common worry with `Collection`. Conforming to this requirement typically requires container implementations to cache their count in an easily accessible stored property, and incrementally update it every time the container changes its size.
 
 <details><summary>Click to expand footnote</summary>
 
-A consequence of this requirement is that constructs like lazy filter algorithms cannot practically conform to the protocol. However, they can still be `Iterable`, and that is in fact good enough for the vast majority of their use cases in practice. Notably, custom on-the-fly filtering is inherently incompatible with the expectation of predictable performance. (After all, this protocol exists to focus on high-performance use cases; it would be a mistake to dilute this focus until the protocol becomes indistinguishable from `Collection`.)
-
-`count` is required to return a finite integer that fits in `Int`. This can be a true limitation, as some containers may have more than `Int.max` elements, despite the protocol's requirement for preexisting storage! The storage requirement does not preclude some containers to link specific storage chunks multiple times (or simply repeat them), without allocating separate storage for each duplicate run. Such repetitions can cause the count of a container to overflow `Int`'s range, without ever overflowing available memory. While such humungous containers are certainly interesting, we do not consider it crucial to provide dedicated support for them.
-
-In the design we are proposing, humungous containers can choose to either only conform to `Iterable`, or to trigger a trap if they are ever asked for their count. Client code often invokes `count` so that it can preallocate storage for related work; obviously that is not going to end well if a container's count exceeds `Int.max`. (And in fact trapping early is much preferable to allowing the operation to inevitably fail midway through some vast computation.)
-
-If we wanted to support  would be to have `count` return an optional, or to push this property down into a separate `FiniteContainer` protocol. The overwhelming complexity of these options does not feel to be anywhere in proportion to the practical importance of such cases. Which is not to say they don't exist: tree-based ropes in particular (like `Foundation`'s `AttributedString`) can easily grow to humungous sizes, by simply concatenating a rope with itself a few dozen times. However, these are mostly just fun curiosities; such trees are rarely (if ever) practically useful.)
+> One consequence of this requirement is that constructs like lazy filter algorithms cannot practically conform to the protocol. However, they can still conform to `Iterable`, and that is in fact good enough for the vast majority of their use cases in practice. Notably, custom on-the-fly filtering is inherently incompatible with the expectation of predictable performance. (After all, the `Container` protocol exists to focus on high-performance use cases; it would be a mistake to dilute this focus until the protocol becomes indistinguishable from `Collection`.)
+>
+> `count` is required to return a finite integer that fits in `Int`. This can be a true limitation, as some containers may have more than `Int.max` elements, despite the protocol's requirement for preexisting storage! The storage requirement does not preclude some containers from linking specific storage chunks multiple times (or simply repeating them), without allocating separate storage for each duplicate run. Such repetitions can cause the count of a container to overflow `Int`'s range, without ever overflowing available memory. While such humongous containers are certainly interesting, we do not consider it crucial to provide dedicated support for them.
+>
+> In the design we are proposing, humongous containers can choose to either only conform to `Iterable`, or to trigger a trap if they are ever asked for their count. Client code often invokes `count` so that it can preallocate storage for related work; obviously that is not going to end well if a container's count exceeds `Int.max`. (And in fact trapping early is much preferable to allowing the operation to inevitably fail midway through some vast computation.)
+>
+> If we wanted to support them, one option would be to have `count` return an optional, or to push this property down into a separate `FiniteContainer` protocol. The overwhelming complexity of these options does not feel to be anywhere in proportion to the practical importance of such cases. Which is not to say they don't exist: tree-based ropes in particular (like `Foundation`'s `AttributedString`) can easily grow to humongous sizes, by simply concatenating a rope with itself a few dozen times. However, these are mostly just fun curiosities; such trees are rarely (if ever) practically useful.
 
 </details>
 
@@ -294,6 +310,8 @@ protocol Container<Element>: ... {
 
 This comes with a default implementation that simply checks if `count` is zero. (`Collection` defines a default implementation for its `isEmpty` that compares `startIndex` to `endIndex`. Given that `Container` requires its `count` to have O(1) complexity, it is slightly better to define `isEmpty` in terms of it, as it avoids having to materialize two index instances.)
 
+Infinite/vast containers can provide their own `isEmpty` implementation that avoids using `count`, for example, by following `Collection`'s pattern. (They also need to provide a custom implementation for `underestimatedCount`, for the same reason.)
+
 ### Container Indices
 
 As `Container` refines `Iterable`, it provides a `BorrowingIterator`, and we can use this iterator to access the elements of a container in batches, starting from its beginning. However, it would be a shame to stop there: `Container` can also provide a more flexible model for element access that acknowledges that its contents survive across iteration steps. To help model this, we introduce a slightly adapted version of `Collection`'s familiar `Index` concept.
@@ -306,7 +324,7 @@ protocol Container<Element>: ... {
 }
 ```
 
-Our indices represent abstract positions within containers (just as they do in collections): one useful way to look at them is to say that they're addressing the logical boundaries between neighboring elements, with a "start index" addressing the boundary before the first element, and the "end index" addressing the boundary after the last. A container with five items therefore has six indices, adressing all its various logical positions:
+Our indices represent abstract positions within containers (just as they do in collections): one useful way to look at them is to say that they're addressing the logical boundaries between neighboring elements, with a "start index" addressing the boundary before the first element, and the "end index" addressing the boundary after the last. A container with five items therefore has six indices, addressing all its various logical positions:
 
 ```
          ┌─────┬─────┬─────┬─────┬─────┐
@@ -347,15 +365,20 @@ protocol Container<Element>: ... {
 
 `startIndex` and `endIndex` work exactly like `Collection`'s corresponding properties, defining the bounds of a half-open range: `endIndex` returns a valid index that addresses the logical empty slot following the container's last element, while `startIndex` addresses the container's first element.
 
-`index(_:offsetBy:)` is the `Container` analogue of `BorrowingIterator`'s `skip(by:)` method.
-
-Notably, we replace `Collection`'s classic `index(_:offsetBy:limitedBy:)` requirement with an improved variant ([first introduced on `UniqueArray`][formIndex-offsetBy-limitedBy]) that reports the number of steps it managed to take before reaching the limit. This avoids having to figure this out with a separate `distance(from:to:)` invocation, enabling more efficient use of this operation situation that need this data; notably, it allows easy single-pass offsetting across concatenated containers. `Collection`'s original `index(_:offsetBy:limitedBy:)` operation is still available, as a standard algorithm based on the new requirement.
-
-[formIndex-offsetBy-limitedBy]: https://github.com/swiftlang/swift/blob/swift-6.4.x-DEVELOPMENT-SNAPSHOT-2026-07-06-a/stdlib/public/core/UniqueArray/UniqueArray%2BContainer.swift#L267-L273
+`index(_:offsetBy:)` is the `Container` analogue of `BorrowingIterator`'s `skip(by:)` method. It has slightly different semantics though, as it follows `Collection`'s behavior: `index(_:offsetBy:)` always takes exactly the specified number of steps, and it traps if it runs off the end of the container.
 
 As `Container` models a forward-only container, its `index(_:offsetBy:)` operation requires a nonnegative offset. (We'll shortly introduce a `BidirectionalContainer` refinement that will relax this constraint.)
 
-<span id="distance-from-to">As indices aren't required to be `Comparable`, the default implementation of `distance(from:to:)` cannot quickly validate that its `start` argument precedes `end`. To avoid having to run all the way to end of the container to detect misuse, the algorithm instead iterates forward from both arguments, until it finds the other. This makes the default implementation twice as slow, but it allows it to correctly calculate negative distances. In the common case when `Index` is `Comparable`, we also provide a refined default algorithm that avoids this overhead.</span>
+<span id="distance-from-to">As indices aren't required to be `Comparable`, the default implementation of `distance(from:to:)` cannot quickly validate that its `start` argument precedes `end`. To avoid having to run all the way to the end of the container to detect misuse, the algorithm instead iterates forward from both arguments, until it finds the other. This makes the default implementation twice as slow, but it allows it to correctly calculate negative distances. In the common case when `Index` is `Comparable`, we also provide a refined default algorithm that avoids this overhead.</span>
+
+Notably, we replace `Collection`'s classic `index(_:offsetBy:limitedBy:)` requirement with an improved variant ([first introduced on `UniqueArray`][formIndex-offsetBy-limitedBy]) that reports the number of steps it was unable to take when reaching the limit. This avoids having to figure this out with a separate `distance(from:to:)` invocation, enabling more efficient use of this operation in situations that need this data; for example, it allows easy single-pass offsetting across concatenated containers. `Collection`'s original `index(_:offsetBy:limitedBy:)` operation is still available, as a standard algorithm based on the new requirement.
+
+<span id="limiting-index-semantics">
+The `limit` argument here (and also elsewhere throughout the `Container` interface surface) means a **limiting index**, intended to cause the operation to stop if it encounters the limit during its execution. A limit of this sort only stops the operation if it needs to actively iterate over the corresponding position; a limit that the operation never needs to visit has no effect, whether it happens to address a position before or after the visited range. For example, if we're trying to iterate forward by `n` steps, a limit that's behind the start position has no effect. These specific semantics allow types that cannot provide comparable indices to still correctly conform to the protocol. (For example, linked lists usually cannot determine relative ordering between their indices without actively iterating through the list in linear time, as we've seen with `distance(from:to:)`.)
+</span>
+
+[formIndex-offsetBy-limitedBy]: https://github.com/swiftlang/swift/blob/swift-6.4.x-DEVELOPMENT-SNAPSHOT-2026-07-06-a/stdlib/public/core/UniqueArray/UniqueArray%2BContainer.swift#L267-L273
+
 
 ### Visitative Iteration
 
@@ -372,7 +395,7 @@ protocol Container<Element>: ... {
 
 Like the corresponding iterator method on `Iterable`, this implements [bulk iteration](#elementwise-iteration-vs-bulk-iteration): it gives clients access to a batch of items all at once, allowing them to quickly iterate over the returned `Span` instance without invoking any other `Container` methods.
 
-However, this `nextSpan` function is only allowed to mutate an index, not the container itself. Additionally, the spans returned by `nextSpan` are declared to be scoped to a "borrow" of the container, too. This is the crucial difference from `Iterable`, whose spans extend (and are tied to) a particular mutation of the iterator. This is what causes `Container` to fundamentally require its elements to pre-exist in memory -- it isn't possible a `nextSpan` with this signature to materialize items on the fly. Containers are required to implement [visitative iteration](#generative-vs-visitative-iteration).
+However, this `nextSpan` function is only allowed to mutate an index, not the container itself. Additionally, the spans returned by `nextSpan` are declared to be scoped to a "borrow" of the container, too. This is the crucial difference from `Iterable`, whose spans extend (and are tied to) a particular mutation of the iterator. This is what causes `Container` to fundamentally require its elements to preexist in memory -- it isn't possible for a `nextSpan` with this signature to materialize items on the fly. Containers are required to implement [visitative iteration](#generative-vs-visitative-iteration).
 
 `Container.nextSpan` returns a `Span` instance that begins with the container's element that the given index addresses, and runs to the end of the container's storage chunk that contains it. On return, the index is updated to address the item following the last element in the returned span. If the input index is the `endIndex`, then the method returns an empty span, and leaves the index as is.
 
@@ -430,7 +453,7 @@ This more powerful form of `nextSpan` is a core primitive; by default, most othe
 
 ```swift
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  public func index(_ index: Index, offsetBy n: Int) -> Index {
+  func index(_ index: Index, offsetBy n: Int) -> Index {
     var index = index
     var n = n
     let end = self.endIndex
@@ -444,9 +467,9 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 ```
 
-Containers often hold their contents in piecewise contiguous storage chunks; as this default implementation iterates over entire chunks, it can be considerably more efficient than stepping through indices one by one, like `Collection` does. As the elements are required to preexist in memory, materializing spans over them is relatively cheap -- `nextSpan` merely needs to locate storage, not populate its contents. Still, it is often possible to implement required operations more directly, and it is good practice to do so whenever it leads to measureable improvement.
+Containers often hold their contents in piecewise contiguous storage chunks. As this default implementation iterates over entire chunks, it can be considerably more efficient than stepping through indices one by one, like `Collection` does. As the elements are required to preexist in memory, materializing spans over them is relatively cheap -- `nextSpan` merely needs to locate storage, not populate its contents. Still, it is often possible to implement required operations more directly, and it is good practice to do so whenever it leads to measurable improvement.
 
-The default implementation of `distance(from:to:)` poses an interesting problem: `Container` only allows forward iteration, so to measure the distance between two indices, we have to start iterating from the one addressing the earlier one. But container's `Index` is not required to be `Comparable`, which means that we have three options:
+The default implementation of `distance(from:to:)` poses an interesting problem: `Container` only allows forward iteration, so to measure the distance between two indices, we have to start iterating from the one addressing the earlier one. But container does not require its `Index` to be `Comparable`, so that's not something we can easily check. We have three options to resolve this:
 
 1. Only provide a default `distance` algorithm for containers with comparable indices.
 
@@ -457,13 +480,14 @@ The default implementation of `distance(from:to:)` poses an interesting problem:
       Element: ~Copyable,
       Index: Comparable
     {
-      public func distance(from start: Index, to end: Index) -> Int {
+      func distance(from start: Index, to end: Index) -> Int {
         var (i, j, forward): (Index, Index, Bool) = (start <= end
          ? (start, end, true)
          : (end, start, false))
         var d = 0
         while i < j {
-          let span = self.nextSpan(after: &i, limitedBy: j)
+          let span = self.nextSpan(after: &i, maxCount: .max, limitedBy: j)
+          precondition(span.count > 0, "Invalid Container")
           d += span.count
         }
         return forward ? d : -d
@@ -471,15 +495,17 @@ The default implementation of `distance(from:to:)` poses an interesting problem:
     }
     ```
 
+   This visits exactly as many storage chunks as exist between the indices, so it is the most efficient way to calculate the distance. (Without knowing more about the internals of the container.)
+
 2. Require `start` to precede `end`, but with no easy way to validate this other than letting iteration go all the way to the end of the container.
 
     ```swift
     extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-      public func distance(from start: Index, to end: Index) -> Int {
+      func distance(from start: Index, to end: Index) -> Int {
         var i = start
         var d = 0
         while true {
-          let c = self.nextSpan(after: &i, limitedBy: j).count
+          let c = self.nextSpan(after: &i, maxCount: .max, limitedBy: end).count
           d += c
           if i == end { break }
           precondition(c > 0, "Invalid Container or 'start' does not precede 'end'")
@@ -489,11 +515,13 @@ The default implementation of `distance(from:to:)` poses an interesting problem:
     }
     ```
 
+    This option is equivalent to the previous one if `start` happens to come before `end`, but it runs all the way to the end of the container and then traps if they are in the wrong order. `Collection`'s original `distance` had no trouble returning negative values, so choosing this option could invite accidental misuse.
+
 3. Allow `start` and `end` to be in any order, but iterate forward from both ends until we find the other:
 
     ```swift
     extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-      public func distance(from start: Index, to end: Index) -> Int {
+      func distance(from start: Index, to end: Index) -> Int {
         // This variant allows start to follow end, but as indices aren't
         // comparable, we have to measure distances from both ends.
         var d1 = 0
@@ -521,7 +549,27 @@ The default implementation of `distance(from:to:)` poses an interesting problem:
     }
     ```
 
-To preserve continuity/interoperability with `Collection` (whose distance allows any ordering), `Container` implements option three, while also providing the simpler/faster implementation from option 1, for the common case when `Index` is `Comparable`.
+    This option has to visit (at worst) twice as many items as the previous two in their regular execution, as the `limitedBy:` arguments [have no effect if the specified `limit` lies behind the start position](#limiting-index-semantics).
+
+To preserve continuity/interoperability with `Collection` (whose distance allows any ordering), `Container` implements option 3, while also providing the simpler/faster implementation from option 1, for the common case when `Index` is `Comparable`.
+
+For convenience, `Container` provides overloads that (effectively) make `nextSpan`'s `maxCount` and `limit` arguments optional:
+
+```swift
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_lifetime(borrow self)
+  func nextSpan(after index: inout Index, maxCount: Int) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: maxCount, limitedBy: self.endIndex)
+  }
+
+  @_lifetime(borrow self)
+  func nextSpan(after index: inout Index, limitedBy limit: Index) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: .max, limitedBy: limit)
+  }
+}
+```
+
+(The snippets above have already relied on these to avoid spelling out `maxCount`.)
 
 ### Subscripting
 
@@ -572,8 +620,7 @@ where
 
   @_lifetime(&self)
   mutating func nextSpan(maxCount: Int) -> Span<Element> {
-    _base.value.nextSpan(after: &self._position, maxCount: maxCount, limitedBy: end)
-  }
+    _base.value.nextSpan(after: &self._position, maxCount: maxCount, limitedBy: _end)
   }
 
   @_lifetime(self: copy self)
@@ -599,7 +646,7 @@ protocol Container<Element>: ... {
 extension Container
 where
   Self: ~Copyable & ~Escapable,
-  Element: ~Copyable,
+  Element: ~Copyable
 {
   @_lifetime(borrow self)
   func makeBorrowingIterator() -> BorrowingIterator {
@@ -620,7 +667,7 @@ The `underestimatedCount` of a `Container` is simply its count:
 ```swift
 extension Container
 where
-  Self: ~Copyable,
+  Self: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
   var underestimatedCount: Int { self.count }
@@ -678,7 +725,7 @@ Like with `Collection`, these operations come with default implementations that 
 
 ### Performance Requirements
 
-To achive predictable performance, `Container` operations are expected to have the following worst-case complexities:
+To achieve predictable performance, `Container` operations are expected to have the following worst-case complexities:
 
 | Operation | Complexity |
 |---|---|
@@ -762,17 +809,19 @@ Types that wish to conform to protocol `Container` must, at minimum, complete th
 
 3. Implement a `count` property with O(1) complexity. Often, this requires backing it by a stored property that gets incrementally updated every time the container changes its size.
 
-2. Choose a `BorrowingIterator` type, and implement the related methods `makeBorrowingIterator(from:to:)` and `currentIndex(of:)`. The most straightforward choice is to use the standard `ContainerIterator` type; it provides a reasonable default for most container types.
+4. Choose a `BorrowingIterator` type, and implement the related methods `makeBorrowingIterator(from:to:)` and `currentIndex(of:)`. The most straightforward choice is to use the standard `ContainerIterator` type; it provides a reasonable default for most container types.
 
-3. Implement the `nextSpan(after:minCount:limitedBy:)` method. This is the core container primitive: the rest of container operations all come with default implementations based on this one.
+5. Implement the `nextSpan(after:maxCount:limitedBy:)` method. This is the core container primitive: the rest of container operations all come with default implementations based on this one.
 
-4. If the container is able to look up elements by value, provide custom implementations of `_custom[Last]IndexOfEquatableElement` so that standard algorithms can avoid falling back to linear searching.
+6. If the container is able to look up elements by value, provide custom implementations of `_custom[Last]IndexOfEquatableElement` so that standard algorithms can avoid falling back to linear searching.
 
-4. Implement custom implementations for additional container requirements, as needed. It is often possible to supply hand-optimized implementations that exploit the specific details of the container to provide measurably more efficient code than what the standard implementations achieve. Whether it is worth taking the extra effort to do this up front depends on the kind of container we're building, and its intended target use cases.
+7. Implement custom implementations for additional container requirements, as needed. It is often possible to supply hand-optimized implementations that exploit the specific details of the container to provide measurably more efficient code than what the standard implementations achieve. Whether it is worth taking the extra effort to do this up front depends on the kind of container we're building, and its intended target use cases.
 
 Once a container type ships in source (or ABI) stable code base, its choices for `Index` and `BorrowingIterator` types get baked into its interface, and become tricky (or impossible) to change in future releases. However, it will still be possible to change the implementations of specific operations, for example, to replace the default implementation of an operation with a more efficient alternative.
 
 ### Bidirectional Containers
+
+Note: This and the following sections are not yet complete.
 
 ```swift
 protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
@@ -803,21 +852,21 @@ Note: Some `Container` requirements are redeclared as `override`s to help associ
 
 <details><summary>Click to expand footnote</summary>
 
-`@_nonoverride` creates separate witness table entries, allowing divergent implementations in conditional conformances. This enables conforming types to provide distinct implementations depending on whether the caller is generic over `Container` or `BidirectionalContainer`.
-
-(Unfortunately, neither `override` nor `@_nonoverride` allows callers that are generic over `Container` to automatically dispatch to a more constrained bidirectional implementation variant. Still, at least `@_nonoverride` enables more refined implementations to take effect when the caller is explicitly generic over `BidirectionalContainer`.)
-
-`@_nonoverride` should be used on requirements with new semantic constraints in refining protocols.
-
-Collection types usually do not come with conditional conformances to refining collection protocols (as the resulting behavior can be quite confusing), so the separate witness entries rarely if ever get exercised in practice. I don't expect things would be different with Container.
-
-FIXME: Consider avoiding using `@_nonoverride`, reducing witness sizes.
+> `@_nonoverride` creates separate witness table entries, allowing divergent implementations in conditional conformances. This enables conforming types to provide distinct implementations depending on whether the caller is generic over `Container` or `BidirectionalContainer`.
+>
+> (Unfortunately, neither `override` nor `@_nonoverride` allows callers that are generic over `Container` to automatically dispatch to a more constrained bidirectional implementation variant. Still, at least `@_nonoverride` enables more refined implementations to take effect when the caller is explicitly generic over `BidirectionalContainer`.)
+>
+> `@_nonoverride` should be used on requirements with new semantic constraints in refining protocols.
+>
+> Collection types usually do not come with conditional conformances to refining collection protocols (as the resulting behavior can be quite confusing), so the separate witness entries rarely if ever get exercised in practice. I don't expect things would be different with `Container`.
+>
+> FIXME: Consider avoiding using `@_nonoverride`, reducing witness sizes.
 </details>
 
 ### Random-Access Containers
 
 ```
-public protocol RandomAccessContainer<Element>
+protocol RandomAccessContainer<Element>
 : BidirectionalContainer, ~Copyable, ~Escapable
 where Element: ~Copyable, Index: Comparable {
   override associatedtype Element: ~Copyable
@@ -836,7 +885,7 @@ where Element: ~Copyable, Index: Comparable {
 ```
 
 <details><summary>Click to expand footnote</summary>
-`RandomAccessContainer` should technically redeclare single-steppers like `index(after:)` as `@_nonoverride`, as the protocol adds a semantic requirement for O(1) complexity. However, we emulate `RandomAccessCollection`'s (not necessarily well-justified) decision to leave these marked as overrides, forcing all types to have a single implementation that fulfills the (unique) requirement. (I haven't seen a case where these steppers would need to vary their implementation, while offsetting/distance calculations do sometimes want that, at least in theory. Not so much in practice though -- see e.g. `ZipSequence`'s lack of a conditional (random-access) collection conformance.
+> `RandomAccessContainer` should technically redeclare single-steppers like `index(after:)` as `@_nonoverride`, as the protocol adds a semantic requirement for O(1) complexity. However, we emulate `RandomAccessCollection`'s (not necessarily well-justified) decision to leave these marked as overrides, forcing all types to have a single implementation that fulfills the (unique) requirement. (I haven't seen a case where these steppers would need to vary their implementation, while offsetting/distance calculations do sometimes want that, at least in theory. Not so much in practice though -- see e.g. `ZipSequence`'s lack of a conditional (random-access) collection conformance.)
 </details>
 
 ## Mutable Containers
@@ -844,7 +893,7 @@ where Element: ~Copyable, Index: Comparable {
 ### `protocol PermutableContainer`
 
 ```swift
-public protocol PermutableContainer<Element>: Container, ~Copyable, ~Escapable
+protocol PermutableContainer<Element>: Container, ~Copyable, ~Escapable
 where Element: ~Copyable
 {
   @_lifetime(self: copy self)
@@ -855,7 +904,7 @@ where Element: ~Copyable
 ### `protocol MutableContainer`
 
 ```swift
-public protocol MutableContainer<Element>:
+protocol MutableContainer<Element>:
   PermutableContainer, ~Copyable, ~Escapable
 where
   Element: ~Copyable
@@ -897,8 +946,8 @@ struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   var endIndex: Index { get }
   var indices: Range<Index> { get }
 
-  subscript(_ index: Int) { borrow mutate }
-  subscript(unchecked index: Int) { borrow mutate }
+  subscript(_ index: Int) -> Element { borrow mutate }
+  subscript(unchecked index: Int) -> Element { borrow mutate }
 
   mutating func swapAt(_ i: Index, _ j: Index)
   mutating func swapAt(unchecked i: Index, unchecked j: Index)
@@ -955,7 +1004,7 @@ struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   /// alternative projections (or "views") over the same underlying
   /// representation, with each view conforming to `Container`, and sharing
   /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode ccalar and character views in the `Collection` world.)
+  /// Unicode scalar and character views in the `Collection` world.)
   /// This rounding operation enables clients to convert/normalize valid index
   /// values in one container view into valid indices in another, allowing them
   /// to (easily) decide whether two (potentially misaligned) index values
@@ -974,7 +1023,7 @@ struct InputSpan<Element: ~Copyable>: ~Copyable, ~Escapable {
   /// alternative projections (or "views") over the same underlying
   /// representation, with each view conforming to `Container`, and sharing
   /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode ccalar and character views in the `Collection` world.)
+  /// Unicode scalar and character views in the `Collection` world.)
   /// This rounding operation enables clients to convert/normalize valid index
   /// values in one container view into valid indices in another, allowing them
   /// to (easily) decide whether two (potentially misaligned) index values
