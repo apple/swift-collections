@@ -25,7 +25,8 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @inlinable
   public init() {
-    unsafe _storage = .init(start: nil, count: 0)
+    unsafe _ptr = ._dangling()
+    _capacity = 0
     _count = 0
   }
   
@@ -34,9 +35,11 @@ extension RigidArray where Element: ~Copyable {
   public init(capacity: Int) {
     precondition(capacity >= 0, "Array capacity must be nonnegative")
     if capacity > 0 {
-      unsafe _storage = .allocate(capacity: capacity)
+      unsafe _ptr = .allocate(capacity: capacity)
+      _capacity = capacity
     } else {
-      unsafe _storage = .init(start: nil, count: 0)
+      unsafe _ptr = ._dangling()
+      _capacity = 0
     }
     _count = 0
   }
