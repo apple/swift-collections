@@ -13,16 +13,30 @@
 
 #if compiler(>=6.2)
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
+extension UniqueArray: Hashable where Element: Hashable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension UniqueArray /*: Hashable */ where Element: Hashable /* & ~Copyable */ {
+extension UniqueArray where Element: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
-    hasher.combine(self.count)
-    let span = self.span
-    for i in 0 ..< count {
-      hasher.combine(span[unchecked: i])
-    }
+    self._storage.hash(into: &hasher)
   }
 }
+#else
+@available(SwiftStdlib 5.0, *)
+extension UniqueArray where Element: Hashable {
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    self._storage.hash(into: &hasher)
+  }
+}
+#endif
 
 #endif

@@ -350,12 +350,13 @@ extension RigidDeque /* where Element: Copyable */ {
   public mutating func insert(
     copying items: Span<Element>, at index: Int
   ) {
-    unsafe items.withUnsafeBufferPointer {
+    items.withUnsafeBufferPointer {
       unsafe self.insert(copying: $0, at: index)
     }
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _insertContainer<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -365,7 +366,7 @@ extension RigidDeque /* where Element: Copyable */ {
     newCount: Int
   ) {
     let expectedCount = self.count + newCount
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     insert(addingCount: newCount, at: index) { target in
       it._copyContents_(into: &target)
     }
@@ -418,6 +419,7 @@ extension RigidDeque /* where Element: Copyable */ {
   ///        a valid index of the deque.
   ///
   /// - Complexity: O(`self.count` + `items.count`).
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -480,6 +482,7 @@ extension RigidDeque /* where Element: Copyable */ {
   ///        a valid index of the deque.
   ///
   /// - Complexity: O(`self.count` + `items.count`)
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

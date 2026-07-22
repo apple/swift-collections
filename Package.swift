@@ -116,7 +116,6 @@ let extraSettings: [SwiftSetting] = [
   .enableExperimentalFeature("AddressableParameters"),
   .enableExperimentalFeature("AddressableTypes"),
   .enableExperimentalFeature("SuppressedAssociatedTypesWithDefaults"), // Requires Swift 6.4
-
   // Note: if you touch these, please make sure to also update the similar lists in
   // CMakeLists.txt and Xcode/Shared.xcconfig.
 ]

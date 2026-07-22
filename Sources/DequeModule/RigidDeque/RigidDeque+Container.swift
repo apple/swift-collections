@@ -23,7 +23,7 @@ import ContainersPreview
 extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
   @frozen
-  public struct BorrowingIterator: ~Escapable, IterableIteratorProtocol_ {
+  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
     public typealias Element_ = Element
 
     @usableFromInline
@@ -31,7 +31,10 @@ extension RigidDeque where Element: ~Copyable {
     
     @usableFromInline
     internal var _nextSegment: Span<Element>
-    
+
+    @usableFromInline
+    internal var _position: Int
+
     @_alwaysEmitIntoClient
     @_lifetime(borrow _deque)
     internal init(_deque: borrowing RigidDeque<Element>) {
@@ -43,24 +46,47 @@ extension RigidDeque where Element: ~Copyable {
         Span(
           _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
         borrowing: _deque)
+      self._position = 0
     }
-    
+
     @_alwaysEmitIntoClient
-    @_lifetime(&self) // FIXME: This should be `@_lifetime(copy self)`
+    @_lifetime(borrow _deque)
+    internal init(
+      _deque: borrowing RigidDeque<Element>,
+      from start: Int,
+      to end: Int
+    ) {
+      precondition(start >= 0 && start <= _deque.count, "Index out of bounds")
+      precondition(end >= 0 && end <= _deque.count, "Index out of bounds")
+      precondition(start <= end, "The start must not be greater than the end")
+      let segments = _deque._handle.segments(forOffsets: start ..< end)
+      self._currentSegment = _overrideLifetime(
+        Span(_unsafeElements: segments.first),
+        borrowing: _deque)
+      self._nextSegment = _overrideLifetime(
+        Span(
+          _unsafeElements: segments.second ?? UnsafeBufferPointer._empty),
+        borrowing: _deque)
+      self._position = start
+    }
+
+    @_alwaysEmitIntoClient
+    @_lifetime(&self)
     @_lifetime(self: copy self)
-    public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
-      let result = _currentSegment._trim(first: maximumCount)
+    public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+      let result = _currentSegment._trim(first: maxCount)
       if _currentSegment.isEmpty {
         _currentSegment = _nextSegment
         _nextSegment = Span()
       }
+      _position &+= result.count
       return result
     }
   }
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeIterableIterator_() -> BorrowingIterator {
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self)
   }
 #endif
@@ -68,7 +94,21 @@ extension RigidDeque where Element: ~Copyable {
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque: Container where Element: ~Copyable {}
+extension RigidDeque: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index, to end: Index
+  ) -> BorrowingIterator_ {
+    BorrowingIterator(_deque: self, from: start, to: end)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    // FIXME: This should validate that the iterator belongs to this deque.
+    return iterator._position
+  }
+}
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque: BidirectionalContainer where Element: ~Copyable {}
@@ -77,10 +117,10 @@ extension RigidDeque: BidirectionalContainer where Element: ~Copyable {}
 extension RigidDeque: RandomAccessContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque: MutableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque: RangeReplaceableContainer where Element: ~Copyable {}
 #endif
 #endif
@@ -118,39 +158,79 @@ extension RigidDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func nextSpan(after index: inout Int) -> Span<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let segment = self._handle
-      .nextSegment(after: index)
-      ._extracting(first: maximumCount)
+    let segment = self._handle.nextSegment(after: index)
     index &+= segment.count
+    return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> Span<Element> {
+    _checkValidIndex(index)
+    _checkValidIndex(limit)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let segment = self._handle.nextSegment(
+      after: &index, maxCount: maxCount, limitedBy: limit)
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }
 
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Int, maximumCount: Int
+    after index: inout Int
   ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let segment = self._handle
-      .nextSegment(after: index)
-      ._extracting(first: maximumCount)
+    let segment = self._handle.nextSegment(after: index)
     index &+= segment.count
     return _overrideLifetime(
       MutableSpan(_unsafeElements: .init(mutating: segment)),
       mutating: &self)
   }
 
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    _checkValidIndex(limit)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let segment = self._handle.nextSegment(
+      after: &index, maxCount: maxCount, limitedBy: limit)
+    return _overrideLifetime(
+      MutableSpan(_unsafeElements: .init(mutating: segment)),
+      mutating: &self)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    let r = self._handle.spanBoundary(before: index)
+    return (r.offset, r.distance)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    precondition(limit >= 0 && limit <= count, "Index out of bounds")
+    precondition(maxDistance > 0, "maxDistance must be positive")
+    let r = self._handle.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
+    return (r.offset, r.distance)
+  }
+
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
+  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let segment = self._handle
       .previousSegment(before: index)
-      ._extracting(last: maximumCount)
+      ._extracting(last: maxCount)
     index &-= segment.count
     return _overrideLifetime(Span(_unsafeElements: segment), borrowing: self)
   }

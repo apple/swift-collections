@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
@@ -96,6 +100,12 @@ extension ConsumingMapProducer: Producer where Base: ~Copyable & ~Escapable {
       }
       return result
     }
+  }
+
+  @inlinable
+  @_lifetime(self: copy self)
+  public mutating func skip(by n: inout Int) throws(Failure) {
+    try _base.skip(by: &n)
   }
 }
 

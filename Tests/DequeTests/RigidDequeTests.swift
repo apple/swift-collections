@@ -82,16 +82,19 @@ internal func expectRigidDequeContents<
   line: UInt = #line
 ) {
 #if compiler(>=6.4) && UnstableContainersPreview
-  expectIterableContents(
-    left,
-    equivalentTo: right,
-    by: areEquivalent,
-    printer: printer,
-    message(),
-    trapping: trapping,
-    file: file,
-    line: line)
-#else
+  if #available(SwiftStdlib 6.4, *) {
+    expectIterableContents(
+      left,
+      equivalentTo: right,
+      by: areEquivalent,
+      printer: printer,
+      message(),
+      trapping: trapping,
+      file: file,
+      line: line)
+    return
+  }
+#endif
   var c = 0
   var j = right.startIndex
   for i in 0 ..< left.count {
@@ -106,7 +109,6 @@ internal func expectRigidDequeContents<
     right.formIndex(after: &j)
     c += 1
   }
-#endif
 }
 
 final class RigidDequeTests: CollectionTestCase {
@@ -114,7 +116,7 @@ final class RigidDequeTests: CollectionTestCase {
     let value: Int
     init(_ value: Int) { self.value = value }
   }
-  
+
   func test_testingSPIs() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -130,10 +132,10 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_basicProperties() {
     var deque = RigidDeque<Int>(capacity: 10)
-    
+
     // Empty deque
     expectEqual(deque.isEmpty, true)
     expectEqual(deque.isFull, false)
@@ -143,12 +145,12 @@ final class RigidDequeTests: CollectionTestCase {
     expectEqual(deque.startIndex, 0)
     expectEqual(deque.endIndex, 0)
     expectEqual(deque.indices, 0 ..< 0)
-    
+
     // Add some elements
     deque.append(1)
     deque.append(2)
     deque.append(3)
-    
+
     expectEqual(deque.isEmpty, false)
     expectEqual(deque.isFull, false)
     expectEqual(deque.count, 3)
@@ -157,19 +159,19 @@ final class RigidDequeTests: CollectionTestCase {
     expectEqual(deque.startIndex, 0)
     expectEqual(deque.endIndex, 3)
     expectEqual(deque.indices, 0 ..< 3)
-    
+
     // Fill to capacity
     for i in 4...10 {
       deque.append(i)
     }
-    
+
     expectEqual(deque.isEmpty, false)
     expectEqual(deque.isFull, true)
     expectEqual(deque.count, 10)
     expectEqual(deque.freeCapacity, 0)
     expectEqual(deque.indices, 0 ..< 10)
   }
-  
+
   func test_subscriptBorrow() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -180,7 +182,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_subscriptMutate() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in
@@ -194,7 +196,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_swapAt() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("i", in: 0 ..< layout.count) { i in
@@ -209,7 +211,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_reallocate() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery(
@@ -219,7 +221,7 @@ final class RigidDequeTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
           data.deque.reallocate(capacity: newCapacity)
-          
+
           expectEqual(data.deque.capacity, newCapacity)
           expectEqual(data.deque.count, layout.count)
           expectEqual(tracker.instances, layout.count)
@@ -228,7 +230,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_reserveCapacity() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery(
@@ -238,7 +240,7 @@ final class RigidDequeTests: CollectionTestCase {
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
           data.deque.reserveCapacity(newCapacity)
-          
+
           expectEqual(data.deque.capacity, Swift.max(layout.capacity, newCapacity))
           expectEqual(data.deque.count, layout.count)
           expectEqual(tracker.instances, layout.count)
@@ -247,7 +249,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_initWithCapacity() {
     withEvery("capacity", in: [0, 1, 2, 3, 5, 10]) { capacity in
       let deque = RigidDeque<Int>(capacity: capacity)
@@ -259,7 +261,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_initEmpty() {
     let deque = RigidDeque<Int>()
     expectEqual(deque.capacity, 0)
@@ -267,7 +269,7 @@ final class RigidDequeTests: CollectionTestCase {
     expectEqual(deque.freeCapacity, 0)
     expectNil(deque._handle._buffer.baseAddress) // No allocations
   }
-  
+
   func test_initWithClosure_Full() {
     withEvery("capacity", in: 0 ..< 10) { capacity in
       withLifetimeTracking { tracker in
@@ -281,14 +283,14 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("i", in: 0 ..< capacity) { i in
           expectEqual(deque[i].payload, i)
         }
-        
+
         expectEqual(tracker.instances, capacity)
         _ = consume deque
         expectEqual(tracker.instances, 0)
       }
     }
   }
-  
+
   func test_initWithClosure_Partial() {
     withEvery("capacity", in: 0 ..< 10) { capacity in
       withEvery("count", in: [0, capacity / 2, max(capacity - 1, 0)] as Set) { count in
@@ -303,7 +305,7 @@ final class RigidDequeTests: CollectionTestCase {
           withEvery("i", in: 0 ..< count) { i in
             expectEqual(deque[i].payload, i)
           }
-          
+
           expectEqual(tracker.instances, count)
           _ = consume deque
           expectEqual(tracker.instances, 0)
@@ -311,7 +313,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_initWithClosure_Failing() {
     withEvery("capacity", in: 1 ..< 10 as Range<Int>) { capacity -> Void in
       withEvery("count", in: [0, capacity / 2, max(capacity - 1, 0)] as Set) { count -> Void in
@@ -335,7 +337,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_init_consumingUniqueDeque() {
     withLifetimeTracking { tracker in
       let ud = UniqueDeque(copying: tracker.instances(for: 0 ..< 10))
@@ -343,17 +345,17 @@ final class RigidDequeTests: CollectionTestCase {
       expectEqual(tracker.instances, 10)
       let buffer = ud._storage._handle._buffer
       expectNotNil(buffer.baseAddress)
-      
+
       let rd = RigidDeque(consuming: ud)
       expectEqual(rd.count, 10)
       expectEqual(tracker.instances, 10)
       expectEqual(rd._handle._buffer.baseAddress, buffer.baseAddress)
-      
+
       _ = consume rd
       expectEqual(tracker.instances, 0)
     }
   }
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   func test_initFromProducer() {
     withEvery("count", in: 0 ..< 10) { count in
@@ -367,13 +369,13 @@ final class RigidDequeTests: CollectionTestCase {
             defer { invocations += 1 }
             return tracker.structInstance(for: invocations)
           }
-          
+
           let deque = RigidDeque(capacity: capacity, from: &producer)
           expectEqual(invocations, count)
           expectEqual(deque.count, count)
           expectEqual(tracker.instances, count)
           expectEqual(invocations, count)
-          
+
           for i in 0 ..< count {
             expectEqual(deque[i].payload, i)
           }
@@ -381,7 +383,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_initFromThrowingProducer() {
     withEvery("count", in: 0 ..< 10) { (count: Int) in
       withLifetimeTracking { tracker in
@@ -394,7 +396,7 @@ final class RigidDequeTests: CollectionTestCase {
           defer { invocations += 1 }
           return tracker.structInstance(for: invocations)
         }
-        
+
         expectThrows { () throws(TestError) in
           let _ = try RigidDeque(capacity: count + 10, from: &producer)
         }
@@ -406,7 +408,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_initRepeatingValue() {
     withEvery("c", in: 0 ..< 10) { c in
       withLifetimeTracking { tracker in
@@ -424,17 +426,18 @@ final class RigidDequeTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_initCopyingBorrowingSequence() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
         withLifetimeTracking { tracker in
           let values = RigidArray(copying: tracker.instances(for: 0 ..< c))
           let deque = RigidDeque(capacity: capacity, copying: values)
-          
+
           expectEqual(deque.count, c)
           expectEqual(deque.capacity, capacity)
           expectIterablePayloads(deque, equalTo: 0 ..< c)
-          
+
           expectEqual(tracker.instances, c)
           _ = consume values
           expectEqual(tracker.instances, c)
@@ -445,7 +448,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_initCopyingSequence() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
@@ -454,13 +457,13 @@ final class RigidDequeTests: CollectionTestCase {
           let contents = MinimalSequence(
             elements: values,
             underestimatedCount: .value(0))
-          
+
           let deque = RigidDeque(capacity: capacity, copying: contents)
-          
+
           expectEqual(deque.count, c)
           expectEqual(deque.capacity, capacity)
           expectRigidDequeContents(deque, equalTo: values)
-          
+
           expectEqual(tracker.instances, c)
           _ = consume values
           _ = consume contents
@@ -471,20 +474,20 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_initCopyingCollection() {
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
         withLifetimeTracking { tracker in
           let values = tracker.instances(for: 0 ..< c)
           let contents = MinimalCollection(values)
-          
+
           let deque = RigidDeque(capacity: capacity, copying: contents)
-          
+
           expectEqual(deque.count, c)
           expectEqual(deque.capacity, capacity)
           expectRigidDequeContents(deque, equalTo: values)
-          
+
           expectEqual(tracker.instances, c)
           _ = consume values
           _ = consume contents
@@ -495,34 +498,34 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_initCopyingRange_classic() {
     // With a deployment target <6.2, this tests the Collection initializer
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
         let deque = RigidDeque(capacity: capacity, copying: 0 ..< c)
-        
+
         expectEqual(deque.count, c)
         expectEqual(deque.capacity, capacity)
         expectRigidDequeContents(deque, equalTo: 0 ..< c)
       }
     }
   }
-  
+
   @available(SwiftStdlib 6.2, *)
   func test_initCopyingRange_modern() {
     // With a deployment target >=6.2, this tests the BorrowingSequence initializer
     withEvery("c", in: 0 ..< 10) { c in
       withEvery("capacity", in: [c, c + 1]) { capacity in
         let deque = RigidDeque(capacity: capacity, copying: 0 ..< c)
-        
+
         expectEqual(deque.count, c)
         expectEqual(deque.capacity, capacity)
         expectRigidDequeContents(deque, equalTo: 0 ..< c)
       }
     }
   }
-  
+
   func test_popFirst() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -534,7 +537,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_popLast() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -546,7 +549,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -559,7 +562,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
@@ -572,15 +575,15 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_pushFirst() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
         var data = tracker.rigidDeque(with: layout)
         let extra = tracker.instance(for: layout.count)
-        
+
         let result = data.deque.pushFirst(extra)
-        
+
         if layout.count == layout.capacity {
           expectEqual(result, extra)
           expectRigidDequeContents(data.deque, equalTo: data.contents)
@@ -591,15 +594,15 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_pushLast() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withLifetimeTracking { tracker in
         var data = tracker.rigidDeque(with: layout)
         let extra = tracker.instance(for: layout.count)
-        
+
         let result = data.deque.pushLast(extra)
-        
+
         if layout.count == layout.capacity {
           expectEqual(result, extra)
           expectRigidDequeContents(data.deque, equalTo: data.contents)
@@ -610,17 +613,17 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend_initializingWith_full() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
-          
+
           data.contents.insert(contentsOf: extras, at: 0)
-          
+
           var i = 0
           data.deque.prepend(addingCount: prependCount) { target in
             while !target.isFull {
@@ -628,23 +631,23 @@ final class RigidDequeTests: CollectionTestCase {
               i += 1
             }
           }
-          
+
           expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
   }
-  
+
   func test_append_initializingWith_full() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
-          
+
           data.contents.append(contentsOf: extras)
-          
+
           var i = 0
           data.deque.append(addingCount: prependCount) { target in
             while !target.isFull {
@@ -652,23 +655,23 @@ final class RigidDequeTests: CollectionTestCase {
               i += 1
             }
           }
-          
+
           expectRigidDequeContents(data.deque, equalTo: data.contents)
         }
       }
     }
   }
-  
+
   func test_prepend_initializingWith_partial() {
     withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
       withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
-          
+
           data.contents.insert(contentsOf: extras, at: 0)
-          
+
           var i = 0
           data.deque.prepend(addingCount: layout.freeCapacity) { target in
             while !target.isFull, i < prependCount {
@@ -682,17 +685,17 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_initializingWith_partial() {
     withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
       withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
-          
+
           data.contents.append(contentsOf: extras)
-          
+
           var i = 0
           data.deque.append(addingCount: layout.freeCapacity) { target in
             while !target.isFull, i < prependCount {
@@ -706,18 +709,18 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend_initializingWith_failing() {
     withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
       if layout.freeCapacity == 0 { return }
       withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
-          
+
           data.contents.insert(contentsOf: extras, at: 0)
-          
+
           expectThrows { () throws(TestError) in
             var i = 0
             try data.deque.prepend(
@@ -740,19 +743,19 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
-  
+
+
   func test_append_initializingWith_failing() {
     withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
       if layout.freeCapacity == 0 { return }
       withEvery("prependCount", in: 0 ..< layout.freeCapacity) { prependCount in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           let extras = tracker.instances(for: layout.count ..< layout.count + prependCount)
-          
+
           data.contents.append(contentsOf: extras)
-          
+
           expectThrows { () throws(TestError) in
             var i = 0
             try data.deque.append(
@@ -775,23 +778,23 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   func test_prepend_Producer_full() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< 6) { producerSize in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           var extras = tracker.instances(for: 0 ..< producerSize)
-          
+
           data.contents.insert(contentsOf: extras.prefix(layout.freeCapacity), at: 0)
-          
+
           var producer = CustomProducer<LifetimeTracked<Int>, Never> {
             guard !extras.isEmpty else { return nil }
             return extras.removeFirst()
           }
-          
+
           data.deque.prepend(from: &producer)
           expectEqual(extras.count, max(0, producerSize - layout.freeCapacity))
           expectRigidDequeContents(data.deque, equalTo: data.contents)
@@ -800,23 +803,23 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   func test_append_Producer() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
       withEvery("producerSize", in: 0 ..< layout.freeCapacity) { producerSize in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           var extras = tracker.instances(for: 0 ..< producerSize)
-          
+
           data.contents.append(contentsOf: extras)
-          
+
           var producer = CustomProducer<LifetimeTracked<Int>, Never> {
             guard !extras.isEmpty else { return nil }
             return extras.removeFirst()
           }
-          
+
           data.deque.append(from: &producer)
           expectEqual(extras.count, max(0, producerSize - layout.freeCapacity))
           expectRigidDequeContents(data.deque, equalTo: data.contents)
@@ -825,7 +828,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   func test_prepend_Producer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
@@ -833,16 +836,16 @@ final class RigidDequeTests: CollectionTestCase {
       withEvery("producerSize", in: 0 ..< layout.freeCapacity - 1) { producerSize in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           var extras = tracker.instances(for: 0 ..< producerSize)
-          
+
           data.contents.insert(contentsOf: extras, at: 0)
-          
+
           var producer = CustomProducer<LifetimeTracked<Int>, TestError> { () throws(TestError) in
             guard !extras.isEmpty else { throw TestError(23) }
             return extras.removeFirst()
           }
-          
+
           expectThrows { () throws(TestError) in
             try data.deque.prepend(from: &producer)
           }
@@ -856,7 +859,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   func test_append_Producer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
@@ -864,16 +867,16 @@ final class RigidDequeTests: CollectionTestCase {
       withEvery("producerSize", in: 0 ..< layout.freeCapacity - 1) { producerSize in
         withLifetimeTracking { tracker in
           var data = tracker.rigidDeque(with: layout)
-          
+
           var extras = tracker.instances(for: 0 ..< producerSize)
-          
+
           data.contents.append(contentsOf: extras)
-          
+
           var producer = CustomProducer<LifetimeTracked<Int>, TestError> { () throws(TestError) in
             guard !extras.isEmpty else { throw TestError(23) }
             return extras.removeFirst()
           }
-          
+
           expectThrows { () throws(TestError) in
             try data.deque.append(from: &producer)
           }
@@ -887,7 +890,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
   func test_prepend_MinimalSequence() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -904,7 +907,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_MinimalSequence() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -921,7 +924,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend_MinimalCollection() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -936,7 +939,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_MinimalCollection() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -951,7 +954,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend_ContiguousArray_asCollection() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -966,7 +969,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_ContiguousArray_asCollection() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
@@ -981,7 +984,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend_ContiguousArray_asSequence() {
     // This calls the Sequence-based `Deque.prepend` overload, even if
     // `elements` happens to be of a Collection type.
@@ -991,7 +994,7 @@ final class RigidDequeTests: CollectionTestCase {
     ) {
       deque.prepend(copying: elements)
     }
-    
+
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
         withLifetimeTracking { tracker in
@@ -1005,7 +1008,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_ContiguousArray_asSequence() {
     // This calls the Sequence-based `Deque.append` overload, even if
     // `elements` happens to be of a Collection type.
@@ -1015,7 +1018,7 @@ final class RigidDequeTests: CollectionTestCase {
     ) {
       deque.append(copying: elements)
     }
-    
+
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("c", in: 0 ..< layout.freeCapacity) { c in
         withLifetimeTracking { tracker in
@@ -1029,7 +1032,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_prepend_BridgedArray() {
     // https://github.com/apple/swift-collections/issues/27
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
@@ -1052,7 +1055,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_append_BridgedArray() {
     // https://github.com/apple/swift-collections/issues/27
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
@@ -1075,7 +1078,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("offset", in: 0 ... layout.count) { offset in
@@ -1097,11 +1100,11 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< layout.freeCapacity) { c in
           withLifetimeTracking { tracker in
             var data = tracker.rigidDeque(with: layout)
-            
+
             let extras = tracker.instances(for: layout.count ..< layout.count + c)
-            
+
             data.contents.insert(contentsOf: extras, at: i)
-            
+
             var j = 0
             data.deque.insert(addingCount: c, at: i) { target in
               expectLessThanOrEqual(target.count, extras.count - j)
@@ -1118,7 +1121,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_initializingWith_partial() {
     withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
       guard layout.freeCapacity > 0 else { return }
@@ -1126,11 +1129,11 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< layout.freeCapacity - 1) { c in
           withLifetimeTracking { tracker in
             var data = tracker.rigidDeque(with: layout)
-            
+
             let extras = tracker.instances(for: layout.count ..< layout.count + c)
-            
+
             data.contents.insert(contentsOf: extras, at: i)
-            
+
             var j = 0
             data.deque.insert(addingCount: layout.freeCapacity, at: i) { target in
               while !target.isFull, j < c {
@@ -1145,7 +1148,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_insert_initializingWith_failing() {
     withEveryDeque("layout", ofCapacities: [1, 2, 3, 5, 10]) { layout in
       if layout.freeCapacity == 0 { return }
@@ -1153,11 +1156,11 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< layout.freeCapacity - 1) { c in
           withLifetimeTracking { tracker in
             var data = tracker.rigidDeque(with: layout)
-            
+
             let extras = tracker.instances(for: layout.count ..< layout.count + c)
-            
+
             data.contents.insert(contentsOf: extras, at: i)
-            
+
             expectThrows { () throws(TestError) in
               var j = 0
               try data.deque.insert(
@@ -1190,18 +1193,18 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< 6) { c in
           withLifetimeTracking { tracker in
             var data = tracker.rigidDeque(with: layout)
-            
+
             var extras = tracker.instances(for: 0 ..< c)
-            
+
             data.contents.insert(
               contentsOf: extras.prefix(layout.freeCapacity),
               at: i)
-            
+
             var producer = CustomProducer<LifetimeTracked<Int>, Never> {
               guard !extras.isEmpty else { return nil }
               return extras.removeFirst()
             }
-            
+
             data.deque.insert(
               addingCount: layout.freeCapacity,
               from: &producer,
@@ -1214,7 +1217,7 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 #endif
-  
+
 #if compiler(>=6.4) && UnstableContainersPreview
   func test_insert_fromProducer_failing() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5]) { layout in
@@ -1223,16 +1226,16 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< layout.freeCapacity - 1) { c in
           withLifetimeTracking { tracker in
             var data = tracker.rigidDeque(with: layout)
-            
+
             var extras = tracker.instances(for: 0 ..< c)
-            
+
             data.contents.insert(contentsOf: extras, at: i)
-            
+
             var producer = CustomProducer<LifetimeTracked<Int>, TestError> { () throws(TestError) in
               guard !extras.isEmpty else { throw TestError(23) }
               return extras.removeFirst()
             }
-            
+
             expectThrows { () throws(TestError) in
               try data.deque.insert(
                 addingCount: layout.freeCapacity,
@@ -1274,6 +1277,7 @@ final class RigidDequeTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_insert_RigidArray() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1300,7 +1304,7 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
           withLifetimeTracking { tracker in
             var a = tracker.rigidDeque(with: layout).consume()
-            
+
             var i = 0
             a.replace(removing: subrange, addingCount: c) { target in
               while !target.isFull {
@@ -1309,12 +1313,12 @@ final class RigidDequeTests: CollectionTestCase {
               }
             }
             expectEqual(i, c)
-            
+
             var expected = Array(0 ..< layout.count)
             expected.replaceSubrange(
               subrange,
               with: layout.count ..< layout.count + c)
-            
+
             expectRigidDequeContents(
               a,
               equivalentTo: expected,
@@ -1334,7 +1338,7 @@ final class RigidDequeTests: CollectionTestCase {
           withEvery("n", in: 0 ..< c - 1) { n in
             withLifetimeTracking { tracker in
               var a = tracker.rigidDeque(with: layout).consume()
-              
+
               var i = 0
               a.replace(removing: subrange, addingCount: c) { target in
                 while !target.isFull, i < n {
@@ -1343,12 +1347,12 @@ final class RigidDequeTests: CollectionTestCase {
                 }
               }
               expectEqual(i, n)
-              
+
               var expected = Array(0 ..< layout.count)
               expected.replaceSubrange(
                 subrange,
                 with: layout.count ..< layout.count + n)
-              
+
               expectRigidDequeContents(
                 a,
                 equivalentTo: expected,
@@ -1368,7 +1372,7 @@ final class RigidDequeTests: CollectionTestCase {
         withEvery("c", in: 0 ..< subrange.count + layout.freeCapacity) { c in
           withLifetimeTracking { tracker in
             var a = tracker.rigidDeque(with: layout).consume()
-            
+
             var i = subrange.lowerBound
             var j = 0
             a.replace(
@@ -1394,7 +1398,7 @@ final class RigidDequeTests: CollectionTestCase {
             expected.replaceSubrange(
               subrange,
               with: layout.count ..< layout.count + c)
-            
+
             expectRigidDequeContents(
               a,
               equivalentTo: expected,
@@ -1416,7 +1420,7 @@ final class RigidDequeTests: CollectionTestCase {
           withEvery("n", in: 0 ..< c - 1) { n in
             withLifetimeTracking { tracker in
               var a = tracker.rigidDeque(with: layout).consume()
-              
+
               var i = subrange.lowerBound
               var j = 0
               a.replace(
@@ -1437,12 +1441,12 @@ final class RigidDequeTests: CollectionTestCase {
                 })
               expectEqual(i, subrange.upperBound)
               expectEqual(j, n)
-              
+
               var expected = Array(0 ..< layout.count)
               expected.replaceSubrange(
                 subrange,
                 with: layout.count ..< layout.count + n)
-              
+
               expectRigidDequeContents(
                 a,
                 equivalentTo: expected,
@@ -1469,7 +1473,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeSubrange() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -1482,7 +1486,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeLast() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       guard layout.count > 0 else { return }
@@ -1495,7 +1499,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeLast_many() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       guard layout.count > 0 else { return }
@@ -1509,7 +1513,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeFirst_one() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       guard layout.count > 0 else { return }
@@ -1522,7 +1526,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeFirst_many() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       guard layout.count > 0 else { return }
@@ -1536,7 +1540,7 @@ final class RigidDequeTests: CollectionTestCase {
       }
     }
   }
-  
+
   func test_removeAll_keepingCapacity() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
       withEvery("isShared", in: [false, true]) { isShared in
@@ -1571,17 +1575,20 @@ final class RigidDequeTests: CollectionTestCase {
     }
   }
 
-  func test_nextMutableSpan() {
+  func test_nextMutableSpan_maxCount() {
     withEveryDeque("layout", ofCapacities: [0, 1, 2, 3, 5, 10]) { layout in
-      withEvery("maximumCount", in: [1, 2, 3, 5, 100]) { maximumCount in
+      withEvery("maxCount", in: [1, 2, 3, 5, 100]) { maxCount in
         var deque = RigidDeque(layout: layout, contents: layout.valueRange)
         var index = deque.startIndex
         var totalSeen = 0
         while index < deque.endIndex {
           let oldIndex = index
-          var span = deque.nextMutableSpan(after: &index, maximumCount: maximumCount)
+          var span = deque.nextMutableSpan(
+            after: &index,
+            maxCount: maxCount,
+            limitedBy: deque.endIndex)
           expectGreaterThan(span.count, 0)
-          expectLessThanOrEqual(span.count, maximumCount)
+          expectLessThanOrEqual(span.count, maxCount)
           expectEqual(index, oldIndex + span.count)
           // Overwrite each element with its logical position in the deque.
           for i in 0 ..< span.count {

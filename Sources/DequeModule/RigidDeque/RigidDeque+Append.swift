@@ -305,18 +305,19 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(`items.count`)
   @_alwaysEmitIntoClient
   public mutating func append(copying items: Span<Element>) {
-    unsafe items.withUnsafeBufferPointer { source in
+    items.withUnsafeBufferPointer { source in
       unsafe self.append(copying: source)
     }
   }
   
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   internal mutating func _append<
     S: Iterable_ & ~Copyable & ~Escapable
   >(copying items: borrowing S) throws(S.Failure_)
   where S.Element_ == Element {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       if span.isEmpty { break }
@@ -334,6 +335,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - newElements: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<S: Iterable_ & ~Copyable & ~Escapable>(
     copying newElements: borrowing S
@@ -375,6 +377,7 @@ extension RigidDeque /*where Element: Copyable*/ {
   ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`.  @available(SwiftStdlib 5.0, *)
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<
     S: Iterable_ & Sequence<Element>

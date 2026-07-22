@@ -446,7 +446,7 @@ extension RigidArray where Element: ~Copyable {
   ///   - newItemCount: The maximum number of items to insert into the array.
   ///   - producer: A producer that generates the items to append.
   ///
-  /// - Complexity: O(`self.count` + `maximumCount`)
+  /// - Complexity: O(`self.count` + `newItemCount`)
   @_alwaysEmitIntoClient
   public mutating func replace<
     E: Error,
@@ -577,12 +577,13 @@ extension RigidArray {
     removing subrange: Range<Int>,
     copying newElements: Span<Element>
   ) {
-    unsafe newElements.withUnsafeBufferPointer { buffer in
+    newElements.withUnsafeBufferPointer { buffer in
       unsafe self.replace(removing: subrange, copying: buffer)
     }
   }
   
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _replace<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -591,10 +592,10 @@ extension RigidArray {
     copyingContainer items: borrowing C,
     newCount: Int
   ) {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
-        let source = it.nextSpan_(maximumCount: target.freeCapacity)
+        let source = it.nextSpan_(maxCount: target.freeCapacity)
         precondition(
           !source.isEmpty,
           "Broken Container: count doesn't match contents")
@@ -661,6 +662,7 @@ extension RigidArray {
   ///   - newElements: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `newElements.count`)
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<
@@ -742,6 +744,7 @@ extension RigidArray {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this array and
   ///   *m* is the count of `newElements`.
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<

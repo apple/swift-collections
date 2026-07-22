@@ -56,7 +56,8 @@ extension UniqueSet where Element: ~Copyable {
   /// Inserts the given element in the set if it is not already present.
   ///
   /// - Parameter item: An element to insert into the set.
-  /// - Returns:
+  /// - Returns: `item` if an equal member already exists in the set;
+  ///     otherwise `nil`.
   @inlinable
   @discardableResult
   public mutating func insert(
@@ -71,12 +72,12 @@ extension UniqueSet where Element: ~Copyable {
 extension UniqueSet where Element: ~Copyable {
   @_alwaysEmitIntoClient
   public mutating func insert<E: Error>(
-    maximumCount: Int,
+    addingCount newItemCount: Int,
     initializingWith initializer: (inout OutputSpan<Element>) throws(E) -> Void
   ) throws(E) -> Void {
-    _ensureFreeCapacity(maximumCount)
+    _ensureFreeCapacity(newItemCount)
     try _storage.insert(
-      maximumCount: maximumCount, initializingWith: initializer)
+      addingCount: newItemCount, initializingWith: initializer)
   }
 
 #if UnstableContainersPreview
@@ -92,7 +93,7 @@ extension UniqueSet where Element: ~Copyable {
     var done = false
     while !done {
       _ensureFreeCapacity(Swift.max(producer.underestimatedCount, 1))
-      try self.insert(maximumCount: self.freeCapacity) { target throws(E) in
+      try self.insert(addingCount: self.freeCapacity) { target throws(E) in
         while !target.isFull, !done {
           done = try !producer.generate(into: &target)
         }
@@ -130,6 +131,7 @@ extension UniqueSet /* where Element: Copyable */ {
   }
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   package mutating func _insert<
     S: Iterable_ & ~Copyable & ~Escapable
@@ -138,7 +140,7 @@ extension UniqueSet /* where Element: Copyable */ {
   ) throws(S.Failure_)
   where S.Element_ == Element {
     _ensureFreeCapacity(items.underestimatedCount_)
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     while true {
       let span = try it.nextSpan_()
       guard !span.isEmpty else { break }
@@ -148,6 +150,7 @@ extension UniqueSet /* where Element: Copyable */ {
 #endif
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
@@ -170,6 +173,7 @@ extension UniqueSet /* where Element: Copyable */ {
   }
   
 #if UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<

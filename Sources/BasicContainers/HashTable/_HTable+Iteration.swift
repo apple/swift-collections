@@ -232,9 +232,9 @@ extension _HTable.BucketIterator {
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func advanceToOccupied(
-    maximumCount: Int
+    maxCount: Int
   ) -> Bool {
-    var remainder = UInt(bitPattern: maximumCount)
+    var remainder = UInt(bitPattern: maxCount)
     if isAtEnd { return false }
     if _words == nil {
       let delta = Swift.min(_endBucket._offset &- _bucket._offset, remainder)
@@ -309,11 +309,11 @@ extension _HTable.BucketIterator {
   @discardableResult
   @_lifetime(self: copy self)
   package mutating func advanceToUnoccupied(
-    maximumCount: Int
+    maxCount: Int
   ) -> Bool {
-    assert(maximumCount > 0)
+    assert(maxCount > 0)
     assert(!isAtEnd)
-    var remainder = UInt(bitPattern: maximumCount)
+    var remainder = UInt(bitPattern: maxCount)
     if _words == nil {
       let delta = Swift.min(_endBucket._offset &- _bucket._offset, remainder)
       _bucket._offset &+= delta
@@ -363,13 +363,13 @@ extension _HTable.BucketIterator {
   @usableFromInline
   @_lifetime(self: copy self)
   package mutating func nextOccupiedRegion(
-    maximumCount: Int = .max
+    maxCount: Int = .max
   ) -> Range<Bucket>? {
-    assert(maximumCount > 0)
+    assert(maxCount > 0)
     guard self.advanceToOccupied() else { return nil }
     assert(self.isOccupied)
     let start = self.currentBucket
-    self.advanceToUnoccupied(maximumCount: maximumCount)
+    self.advanceToUnoccupied(maxCount: maxCount)
     let end = self.currentBucket
     return Range(uncheckedBounds: (start, end))
   }
@@ -377,13 +377,13 @@ extension _HTable.BucketIterator {
   @usableFromInline
   @_lifetime(self: copy self)
   package mutating func nextUnoccupiedRegion(
-    maximumCount: Int = .max
+    maxCount: Int = .max
   ) -> Range<Bucket>? {
-    assert(maximumCount > 0)
+    assert(maxCount > 0)
     guard self.advanceToUnoccupied() else { return nil }
     assert(!self.isOccupied)
     let start = self.currentBucket
-    self.advanceToOccupied(maximumCount: maximumCount)
+    self.advanceToOccupied(maxCount: maxCount)
     let end = self.currentBucket
     return Range(uncheckedBounds: (start, end))
   }

@@ -19,32 +19,45 @@ import ContainersPreview
 #if compiler(>=6.2)
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = RigidArray<Element>.IterableIterator_
+  public typealias BorrowingIterator_ = Span<Element>.BorrowingIterator_
 
   @inlinable
   public var underestimatedCount_: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeIterableIterator_() -> IterableIterator_ {
-    self._storage.makeIterableIterator_()
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    self._storage.makeBorrowingIterator_()
   }
 }
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
-extension UniqueArray: Container where Element: ~Copyable {}
+@available(SwiftStdlib 6.4, *)
+extension UniqueArray: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index, to end: Index
+  ) -> BorrowingIterator_ {
+    _storage.makeBorrowingIterator(from: start, to: end)
+  }
 
-@available(SwiftStdlib 5.0, *)
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    _storage.currentIndex(of: iterator)
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: BidirectionalContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: RandomAccessContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension UniqueArray: MutableContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
@@ -104,6 +117,27 @@ extension UniqueArray where Element: ~Copyable {
   @inline(__always)
   public var indices: Range<Int> { _storage.indices }
 
+#if compiler(>=6.4)
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///     The position must be a valid index of the array that is not equal
+  ///     to the `endIndex` property.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    borrow {
+      _storage[position]
+    }
+    @inline(__always)
+    @_unsafeSelfDependentResult // FIXME: Why is this necessary?
+    mutate {
+      &_storage[position]
+    }
+  }
+#else
   /// Accesses the element at the specified position.
   ///
   /// - Parameter position: The position of the element to access.
@@ -122,6 +156,7 @@ extension UniqueArray where Element: ~Copyable {
       _storage._mutablePtr(to: position)
     }
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -283,7 +318,7 @@ extension UniqueArray where Element: ~Copyable {
 
   /// Return a span over the array's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it, but no more than `maximumCount` items.
+  /// that contains it, but no more than `maxCount` items.
   ///
   /// On return, the index is updated to address the next item following the
   /// end of the returned span.
@@ -294,30 +329,30 @@ extension UniqueArray where Element: ~Copyable {
   ///
   ///     var index = items.startIndex
   ///     while true {
-  ///       let span = items.nextSpan(after: &index, maximumCount: 4)
+  ///       let span = items.nextSpan(after: &index, maxCount: 4)
   ///       if span.isEmpty { break }
   ///       // Process items in `span`
   ///     }
   ///
-  /// The `maximumCount` argument gives the caller control over the number of
+  /// The `maxCount` argument gives the caller control over the number of
   /// items it receives from the iterator. This lets the caller avoid getting
   /// more elements than it would be able to immediately process, which would
   /// significantly complicate container use.
   ///
   /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maximumCount`, or simply by calling the
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
   /// `nexSpan(after:)` method, which does precisely that. This is frequently
   /// the case when the caller simply wants to iterate over the entire
   /// container in a single loop.
   ///
-  /// `maximumCount` sets an upper bound. To read a specific number of items,
+  /// `maxCount` sets an upper bound. To read a specific number of items,
   /// the caller usually needs to invoke `nextSpan` in a loop:
   ///
   ///     var items: some Container<Int>
   ///     var index = items.startIndex
   ///     var remainder = numberOfItemsToRead
   ///     while remainder > 0 {
-  ///       let next = items.nextSpan(after: &index, maximumCount: remainder)
+  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
   ///       guard !next.isEmpty else {
   ///         // Container does not have enough items
   ///         break
@@ -340,10 +375,10 @@ extension UniqueArray where Element: ~Copyable {
   /// - Parameter index: A valid index in the container, including the end
   ///     index. On return, this index is advanced by the count of the resulting
   ///     span, to simplify iteration.
-  /// - Parameter maximumCount: The maximum number of items the caller is able
-  ///     to process immediately. `maximumCount` must be greater than zero.
+  /// - Parameter maxCount: The maximum number of items the caller is able
+  ///     to process immediately. `maxCount` must be greater than zero.
   ///     If you are able to process an arbitrary number of items, set
-  ///     `maximumCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
   /// - Returns: A span over contiguous storage that starts at the given index.
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
@@ -352,25 +387,49 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Int, maximumCount: Int
+    after index: inout Int
   ) -> Span<Element> {
-    _storage.nextSpan(after: &index, maximumCount: maximumCount)
+    _storage.nextSpan(after: &index)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> Span<Element> {
+    _storage.nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @inlinable
   @_lifetime(&self)
   public mutating func nextMutableSpan(
-    after index: inout Int, maximumCount: Int
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
   ) -> MutableSpan<Element> {
-    _storage.nextMutableSpan(after: &index, maximumCount: maximumCount)
+    _storage.nextMutableSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index
+  ) -> (index: Index, distance: Int) {
+    _storage.spanBoundary(before: index)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    _storage.spanBoundary(
+      before: index, maxDistance: maxDistance, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
-    before index: inout Int, maximumCount: Int
+    before index: inout Int, maxCount: Int
   ) -> Span<Element> {
-    _storage.previousSpan(before: &index, maximumCount: maximumCount)
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
+    _storage.previousSpan(before: &index, maxCount: maxCount)
   }
 }
 

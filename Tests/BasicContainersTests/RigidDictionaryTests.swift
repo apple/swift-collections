@@ -242,6 +242,46 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
+  func test_keys() {
+    typealias Key = LifetimeTracked<Int>
+    typealias Value = LifetimeTracked<String>
+    withEvery("capacity", in: [0, 1, 2, 10, 100, 1000]) { capacity in
+      withLifetimeTracking { tracker in
+        var d = RigidDictionary<Key, Value>(capacity: capacity)
+        withEvery("i", in: 0 ..< capacity) { i in
+          let key = tracker.instance(for: i)
+          let value = tracker.instance(for: "\(i)")
+          d.insertValue(value, forKey: key)
+
+          expectEqual(d.keys.count, i + 1)
+          expectEqual(d.keys.capacity, capacity)
+
+#if UnstableContainersPreview
+          var actual: Set<Int> = []
+          _with(d.keys) { keys in // FIXME: Sigh, borrow accessors are limited in 6.4
+            var it = keys.makeBorrowingIterator_()
+            while true {
+              let next = it.nextSpan_()
+              guard !next.isEmpty else { break }
+              for i in next.indices {
+                expectTrue(
+                  actual.insert(next[i].payload).inserted,
+                  "Duplicate value \(next[i].payload)")
+              }
+            }
+          }
+          expectEqualElements(actual.sorted(), 0 ... i)
+#else
+          for j in 0 ... i {
+            expectTrue(d.keys.contains(tracker.instance(for: j)))
+          }
+#endif
+        }
+      }
+    }
+  }
+
+  @available(*, deprecated)
   func test_withKeys() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
@@ -256,8 +296,8 @@ class RigidDictionaryTests: CollectionTestCase {
           d.withKeys { keys in
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
-#if compiler(>=6.4) && UnstableContainersPreview
-            var it = keys.makeIterableIterator_()
+#if UnstableContainersPreview
+            var it = keys.makeBorrowingIterator_()
             var actual: Set<Int> = []
             while true {
               let next = it.nextSpan_()
@@ -307,6 +347,7 @@ class RigidDictionaryTests: CollectionTestCase {
     }
   }
 
+  #if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   func test_iteration_indices() {
     typealias Key = LifetimeTracked<Int>
@@ -321,7 +362,7 @@ class RigidDictionaryTests: CollectionTestCase {
           
           var seen: Set<Int> = []
           let indices = d.indices
-          var it = indices.makeIterableIterator_()
+          var it = indices.makeBorrowingIterator_()
           while true {
             let next = it.nextSpan_()
             if next.isEmpty { break }
@@ -342,6 +383,7 @@ class RigidDictionaryTests: CollectionTestCase {
       }
     }
   }
+  #endif
 
   func test_updateValue_with_remove() {
     typealias Key = LifetimeTracked<Int>

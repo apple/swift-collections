@@ -59,7 +59,13 @@ extension RigidDeque where Element: ~Copyable {
     precondition(!isEmpty, "Cannot remove first element of an empty RigidDeque")
     return _handle.uncheckedRemoveFirst()
   }
-  
+
+  @_alwaysEmitIntoClient
+  public mutating func _customRemoveLast() -> Element? {
+    precondition(!isEmpty, "Cannot remove last element of an empty RigidDeque")
+    return _handle.uncheckedRemoveLast()
+  }
+
   /// Removes and returns the last element of the deque.
   ///
   /// The deque must not be empty.
@@ -91,7 +97,15 @@ extension RigidDeque where Element: ~Copyable {
     precondition(k <= count, "Cannot remove more elements than there are in the container")
     _handle.uncheckedRemoveFirst(k)
   }
-  
+
+  @_alwaysEmitIntoClient
+  public mutating func _customRemoveLast(_ n: Int) -> Bool {
+    precondition(n >= 0, "Cannot remove a negative number of elements")
+    precondition(n <= count, "Cannot remove more elements than there are in the container")
+    _handle.uncheckedRemoveLast(n)
+    return true
+  }
+
   /// Removes and discards the specified number of elements from the end of the
   /// deque.
   ///
@@ -147,6 +161,8 @@ extension RigidDeque where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public mutating func popLast() -> Element? {
+    // FIXME: Remove this algorithm; it is already provided by
+    // RangeReplaceableContainer, albeit with stricter availability.
     guard !isEmpty else { return nil }
     return _handle.uncheckedRemoveLast()
   }

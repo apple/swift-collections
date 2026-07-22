@@ -87,15 +87,15 @@ internal struct _ChunkedBitsBackwardIterator {
 
 extension IteratorProtocol where Element == Bool {
   mutating func _nextChunk(
-    maximumCount: UInt = _Word._capacity
+    maxCount: UInt = _Word._capacity
   ) -> (bits: _Word, count: UInt) {
-    assert(maximumCount <= _Word.capacity)
+    assert(maxCount <= _Word.capacity)
     var bits = _Word.empty
     var c: UInt = 0
     while let v = next() {
       if v { bits.insert(c) }
       c += 1
-      if c == maximumCount { break }
+      if c == maxCount { break }
     }
     return (bits, c)
   }

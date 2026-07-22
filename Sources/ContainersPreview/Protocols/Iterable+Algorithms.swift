@@ -13,7 +13,7 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
   where Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
@@ -23,7 +23,7 @@ extension Iterable_
     _ nextPartialResult:
       (_ partialResult: consuming Result, borrowing Element_) throws(Failure_) -> Result
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(initialResult, nextPartialResult)
+    try makeBorrowingIterator_().reduce(initialResult, nextPartialResult)
   }
 
   @inlinable
@@ -32,19 +32,19 @@ extension Iterable_
     _ updateAccumulatingResult:
       (_ partialResult: inout Result, borrowing Element_) throws(Failure_) -> ()
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
+    try makeBorrowingIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
 
 // Ambiguity breakers
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Sequence where Self: Iterable_ {
   public func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
     _ nextPartialResult:
       (_ partialResult: consuming Result, borrowing Element_) throws(Failure_) -> Result
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(initialResult, nextPartialResult)
+    try makeBorrowingIterator_().reduce(initialResult, nextPartialResult)
   }
 
   @inlinable
@@ -53,11 +53,11 @@ extension Sequence where Self: Iterable_ {
     _ updateAccumulatingResult:
       (_ partialResult: inout Result, borrowing Element_) throws(Failure_) -> ()
   ) throws(Failure_) -> Result {
-    try makeIterableIterator_().reduce(into: initialResult, updateAccumulatingResult)
+    try makeBorrowingIterator_().reduce(into: initialResult, updateAccumulatingResult)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
   where Self: ~Copyable & ~Escapable, Element_: ~Copyable
 {
@@ -69,19 +69,19 @@ extension Iterable_
   where OtherSequence: ~Copyable & ~Escapable, OtherSequence.Element_: ~Copyable, OtherSequence.Failure_ == Failure_
   {
     // FIXME: Forward to the iterator's implementation of same
-    var iter1 = makeIterableIterator_()
-    var iter2 = other.makeIterableIterator_()
+    var iter1 = makeBorrowingIterator_()
+    var iter2 = other.makeBorrowingIterator_()
     while true {
       var el1 = try iter1.nextSpan_()
 
       if el1.isEmpty {
         // LHS is empty - sequences are equal iff RHS is also empty
-        let el2 = try iter2.nextSpan_(maximumCount: 1)
+        let el2 = try iter2.nextSpan_(maxCount: 1)
         return el2.isEmpty
       }
 
       while el1.count > 0 {
-        let el2 = try iter2.nextSpan_(maximumCount: el1.count)
+        let el2 = try iter2.nextSpan_(maxCount: el1.count)
         if el2.isEmpty { return false }
         for i in 0..<el2.count {
           if try !areEquivalent(el1[i], el2[i]) { return false }
@@ -92,7 +92,7 @@ extension Iterable_
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable & Equatable {
   @inlinable

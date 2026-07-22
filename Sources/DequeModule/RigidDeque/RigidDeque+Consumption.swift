@@ -167,7 +167,7 @@ extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @available(SwiftStdlib 6.4, *)
+  @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
   @inline(__always)
   @_lifetime(&self)
@@ -178,7 +178,7 @@ extension RigidDeque where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidDeque where Element: ~Copyable {
-  @available(SwiftStdlib 6.4, *)
+  @available(SwiftStdlib 5.0, *)
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     // FIXME: We have to use our own MutableRef because the standard one
@@ -221,23 +221,28 @@ extension RigidDeque where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque.SubrangeConsumer: Drain where Element: ~Copyable {
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidDeque.SubrangeConsumer where Element: ~Copyable {
+  @inlinable
+  public var count: Int {
+    _buffer1.count + _buffer2.count
+  }
+
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {
+  public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
     if _buffer1.isEmpty {
       if _buffer2.isEmpty {
         return .init()
       }
       swap(&_buffer1, &_buffer2)
     }
-    let buffer = _buffer1._trim(first: maximumCount)
+    let buffer = _buffer1._trim(first: maxCount)
     return _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)

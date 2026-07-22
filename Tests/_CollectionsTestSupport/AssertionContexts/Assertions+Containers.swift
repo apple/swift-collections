@@ -124,7 +124,7 @@ public func expectIterableContents<
 #if compiler(>=6.4) && UnstableContainersPreview
 /// Check if `left` contains lifetime tracked instances whose payloads equal
 /// the elements in `right`.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablePayloads<
   Payload: Equatable,
   E1: Iterable_<LifetimeTrackedStruct<Payload>, E> & ~Copyable & ~Escapable,
@@ -138,11 +138,11 @@ public func expectIterablePayloads<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(E) where E1.Element_: ~Copyable {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   var i = 0
   while true {
-    let next1 = try it1.nextSpan_(maximumCount: 1)
+    let next1 = try it1.nextSpan_(maxCount: 1)
     let next2 = it2.next()
     switch (next1.isEmpty, next2) {
     case (true, nil):
@@ -172,7 +172,7 @@ public func expectIterablePayloads<
 
 /// Check if `left` contains lifetime tracked instances whose payloads equal
 /// the elements in `right`.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablePayloads<
   Payload: Equatable,
   E1: Iterable_<LifetimeTracked<Payload>, E> & ~Copyable & ~Escapable,
@@ -186,11 +186,11 @@ public func expectIterablePayloads<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(E) {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   var i = 0
   while true {
-    let next1 = try it1.nextSpan_(maximumCount: 1)
+    let next1 = try it1.nextSpan_(maxCount: 1)
     let next2 = it2.next()
     switch (next1.isEmpty, next2) {
     case (true, nil):
@@ -220,7 +220,7 @@ public func expectIterablePayloads<
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablesWithEquivalentElements<
   S1: Iterable_ & ~Copyable & ~Escapable,
   S2: Iterable_ & ~Copyable & ~Escapable
@@ -245,7 +245,7 @@ where
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterablesWithEqualElements<
   Element: Equatable,
   S1: Iterable_<Element, E> & ~Copyable & ~Escapable,
@@ -270,7 +270,7 @@ where
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterableContents<
   Element: Equatable,
   S1: Iterable_<Element, E> & ~Copyable & ~Escapable,
@@ -284,7 +284,7 @@ public func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(E) {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   while true {
     let span = try it1.nextSpan_()
@@ -313,7 +313,7 @@ public func expectIterableContents<
 }
 
 /// Check if `left` and `right` contain equal elements in the same order.
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public func expectIterableContents<
   S1: Iterable_ & ~Copyable & ~Escapable,
   C2: Collection,
@@ -327,7 +327,7 @@ public func expectIterableContents<
   file: StaticString = #filePath,
   line: UInt = #line
 ) throws(S1.Failure_) where S1.Element_: ~Copyable {
-  var it1 = left.makeIterableIterator_()
+  var it1 = left.makeBorrowingIterator_()
   var it2 = right.makeIterator()
   var offset = 0
   while true {

@@ -85,26 +85,26 @@ struct RigidDequeCrashTests {
     await #expect(processExitsWith: .failure) {
       var deque = RigidDeque(copying: [1, 2, 3])
       var index = -1
-      _ = deque.nextMutableSpan(after: &index, maximumCount: 1)
+      _ = deque.nextMutableSpan(after: &index, maxCount: 1, limitedBy: deque.endIndex)
     }
     await #expect(processExitsWith: .failure) {
       var deque = RigidDeque(copying: [1, 2, 3])
       var index = 4  // valid range is 0...3 (count == 3)
-      _ = deque.nextMutableSpan(after: &index, maximumCount: 1)
+      _ = deque.nextMutableSpan(after: &index, maxCount: 1, limitedBy: deque.endIndex)
     }
   }
 
-  @Test("nextMutableSpan with non-positive maximumCount traps")
+  @Test("nextMutableSpan with non-positive maxCount traps")
   func nextMutableSpanNonPositiveMaximumCount() async {
     await #expect(processExitsWith: .failure) {
       var deque = RigidDeque(copying: [1, 2, 3])
       var index = 0
-      _ = deque.nextMutableSpan(after: &index, maximumCount: 0)
+      _ = deque.nextMutableSpan(after: &index, maxCount: 0, limitedBy: deque.endIndex)
     }
     await #expect(processExitsWith: .failure) {
       var deque = RigidDeque(copying: [1, 2, 3])
       var index = 0
-      _ = deque.nextMutableSpan(after: &index, maximumCount: -1)
+      _ = deque.nextMutableSpan(after: &index, maxCount: -1, limitedBy: deque.endIndex)
     }
   }
 }

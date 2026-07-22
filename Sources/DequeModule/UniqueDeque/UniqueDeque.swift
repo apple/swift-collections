@@ -194,6 +194,22 @@ extension UniqueDeque where Element: ~Copyable {
   @inline(__always)
   public var indices: Range<Int> { unsafe Range(uncheckedBounds: (0, count)) }
 
+#if compiler(>=6.4)
+  @_alwaysEmitIntoClient
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    @_transparent
+    borrow {
+      _storage[position]
+    }
+    @inline(__always)
+    @_transparent
+    @_unsafeSelfDependentResult // FIXME: Why is this necessary?
+    mutate {
+      &_storage[position]
+    }
+  }
+#else
   @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
     @inline(__always)
@@ -211,6 +227,7 @@ extension UniqueDeque where Element: ~Copyable {
       return _storage._handle.mutablePtr(at: slot)
     }
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

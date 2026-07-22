@@ -15,6 +15,39 @@
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  @available(*, deprecated, renamed: "nextSpan(after:maxCount:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    self.nextSpan(
+      after: &index,
+      maxCount: maximumCount,
+      limitedBy: self.endIndex)
+  }
+
+  @available(*, deprecated, renamed: "nextMutableSpan(after:maxCount:)")
+  @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maximumCount: Int
+  ) -> MutableSpan<Element> {
+    self.nextMutableSpan(
+      after: &index,
+      maxCount: maximumCount,
+      limitedBy: self.endIndex)
+  }
+
+  @available(*, deprecated, renamed: "previousSpan(before:maxCount:)")
+  @inlinable
+  @_lifetime(borrow self)
+  public func previousSpan(
+    before index: inout Int, maximumCount: Int
+  ) -> Span<Element> {
+    self.previousSpan(before: &index, maxCount: maximumCount)
+  }
+
   /// Append a given number of items to the end of this array by populating
   /// an output span.
   ///

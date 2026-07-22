@@ -26,7 +26,7 @@ extension UniqueDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeIterableIterator_() -> BorrowingIterator {
+  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
     BorrowingIterator(_deque: self._storage)
   }
 #endif
@@ -34,7 +34,20 @@ extension UniqueDeque where Element: ~Copyable {
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 5.0, *)
-extension UniqueDeque: Container where Element: ~Copyable {}
+extension UniqueDeque: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index, to end: Index
+  ) -> BorrowingIterator_ {
+    _storage.makeBorrowingIterator(from: start, to: end)
+  }
+
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    _storage.currentIndex(of: iterator)
+  }
+}
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDeque: BidirectionalContainer where Element: ~Copyable {}
@@ -46,10 +59,10 @@ extension UniqueDeque: RandomAccessContainer where Element: ~Copyable {}
 extension UniqueDeque: MutableContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueDeque: RangeReplaceableContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueDeque: DynamicContainer where Element: ~Copyable {}
 #endif
 #endif
@@ -87,21 +100,51 @@ extension UniqueDeque where Element: ~Copyable {
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Int, maximumCount: Int) -> Span<Element> {
-    _storage.nextSpan(after: &index, maximumCount: maximumCount)
-  }
-
-  @_lifetime(&self)
-  public mutating func nextMutableSpan(
-    after index: inout Int, maximumCount: Int
-  ) -> MutableSpan<Element> {
-    _storage.nextMutableSpan(after: &index, maximumCount: maximumCount)
+  public func nextSpan(after index: inout Int) -> Span<Element> {
+    _storage.nextSpan(after: &index)
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func previousSpan(before index: inout Int, maximumCount: Int) -> Span<Element> {
-    _storage.previousSpan(before: &index, maximumCount: maximumCount)
+  public func nextSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> Span<Element> {
+    _storage.nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int
+  ) -> MutableSpan<Element> {
+    _storage.nextMutableSpan(after: &index)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    _storage.nextMutableSpan(after: &index, maxCount: maxCount, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
+    _storage.spanBoundary(before: index)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    _storage.spanBoundary(before: index, maxDistance: maxDistance, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func previousSpan(before index: inout Int, maxCount: Int) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
+    _storage.previousSpan(before: &index, maxCount: maxCount)
   }
 }
 

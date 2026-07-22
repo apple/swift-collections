@@ -18,14 +18,14 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
 {
   @inlinable
   internal consuming func _spanwiseZip<
-    Other: IterableIteratorProtocol_ & ~Copyable & ~Escapable,
+    Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
     State: ~Copyable
   >(
     state: inout State,
@@ -38,7 +38,7 @@ where
     // Note: This is the less efficient implementation of spanwiseZip. The
     // variant in the #else branch would be preferable, but it doesn't work yet.
     // (It lets the two iterators run at their native speeds, with no artificial
-    // maximumCounts.)
+    // maxCounts.)
   loop:
     while true {
       var a = try self.nextSpan_()
@@ -51,7 +51,7 @@ where
         return
       }
       repeat {
-        let b = try other.nextSpan_(maximumCount: a.count)
+        let b = try other.nextSpan_(maxCount: a.count)
         if b.isEmpty {
           guard try process(&state, a, b) else { return }
         } else {

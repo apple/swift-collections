@@ -38,7 +38,7 @@ extension Span where Element: ~Copyable {
   }
 }
 
-#if compiler(>=6.4) && UnstableContainersPreview
+#if compiler(>=6.4)
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Equatable & ~Copyable {
   @_alwaysEmitIntoClient
@@ -78,6 +78,22 @@ extension Span where Element: Equatable /* & ~Copyable */ {
 }
 #endif
 
+#if compiler(>=6.4)
+@available(SwiftStdlib 5.0, *)
+extension Span where Element: Hashable & ~Copyable {
+  @_alwaysEmitIntoClient
+  package func _hashContents(into hasher: inout Hasher) {
+    // Note: no discriminating combine call -- caller is expected to do that
+    // separately when needed.
+    var i = 0
+    while i < self.count {
+      hasher.combine(self[unchecked: i])
+      i &+= 1
+    }
+
+  }
+}
+#else
 @available(SwiftStdlib 5.0, *)
 extension Span where Element: Hashable /* & ~Copyable */ {
   @_alwaysEmitIntoClient
@@ -92,5 +108,37 @@ extension Span where Element: Hashable /* & ~Copyable */ {
 
   }
 }
+#endif
+
+#if compiler(>=6.4)
+@available(SwiftStdlib 5.0, *)
+extension Span where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(copy self)
+  package func clamped(to limits: borrowing Self) -> Self {
+    if self.isEmpty || limits.isEmpty { return .init() }
+    let buffer = self.withUnsafeBufferPointer { buffer in
+      limits.withUnsafeBufferPointer { limits in
+        let start = buffer.baseAddress!
+        let end = start + buffer.count
+        let limitStart = limits.baseAddress!
+        let limitEnd = limitStart + limits.count
+
+        let clampedStart = (
+          limitStart > start ? limitStart
+          : limitEnd < start ? limitEnd
+          : start)
+        let clampedEnd = (
+          limitEnd < end ? limitEnd
+          : limitStart > end ? limitStart
+          : end)
+        let count = clampedEnd.distance(to: clampedStart)
+        return UnsafeBufferPointer(start: clampedStart, count: count)
+      }
+    }
+    return _overrideLifetime(Span(_unsafeElements: buffer), copying: self)
+  }
+}
+#endif
 
 #endif

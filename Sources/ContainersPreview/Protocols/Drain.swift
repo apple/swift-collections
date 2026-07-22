@@ -22,11 +22,11 @@
 /// moving their consumable contents to the client-supplied series of
 /// output spans.
 @available(SwiftStdlib 5.0, *)
-public protocol Drain<Element>: Producer, ~Copyable, ~Escapable
+public protocol Drain<Element>: CountedProducer, ~Copyable, ~Escapable
 where Element: ~Copyable, Failure == Never
 {
   /// Returns the next span of consumable items in the sequence underlying this
-  /// drain, of at most the specified maximum count. A `maximumCount` of nil
+  /// drain, of at most the specified maximum count. A `maxCount` of nil
   /// indicates no limit, meaning that the client is able to process an
   /// arbitrarily large number of elements.
   ///
@@ -36,7 +36,7 @@ where Element: ~Copyable, Failure == Never
   ///
   /// While the returned input spans exist, they continue to mutate the drain,
   /// extending the exclusive access initiated by the call to
-  /// `drainNext(maximumCount:)`. To call this (or any other) method again, the
+  /// `drainNext(maxCount:)`. To call this (or any other) method again, the
   /// returned input span needs to be consumed or otherwise destroyed.
   ///
   /// Once this method returns, the contents of the resulting input span are
@@ -47,7 +47,7 @@ where Element: ~Copyable, Failure == Never
   /// temporary location and later reinserting them into the underlying
   /// construct through some type-specific operations.
   ///
-  /// - Parameter maximumCount: The maximum number of items that the client
+  /// - Parameter maxCount: The maximum number of items that the client
   ///       is prepared to consume, or nil if the client is able to process an
   ///       arbitrary number of elements. If this is non-nil, then it must be a
   ///       positive integer.
@@ -57,7 +57,7 @@ where Element: ~Copyable, Failure == Never
   ///       the end of the sequence.
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func drainNext(maximumCount: Int) -> InputSpan<Element>
+  mutating func drainNext(maxCount: Int) -> InputSpan<Element>
   // TODO: The primary use case does not need this to throw; do we need to allow that?
   // Note: making this failable is not entirely straightforward, as there is no
   // easy way to signal partial success -- conforming implementations
@@ -75,7 +75,7 @@ where Element: ~Copyable, Failure == Never
   //     ) throws(E) -> R
   //
   // This would allow partial consumption, eliminating the need for
-  // `maximumCount`, but at the cost of having to deal with closures --
+  // `maxCount`, but at the cost of having to deal with closures --
   // it can be tricky to elegantly flow data/control in & out higher-order
   // functions. Allowing the function argument to throw also precludes
   // the drain itself from throwing, unless they are both required
@@ -93,7 +93,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   ///
   /// While the returned input spans exist, they continue to mutate the drain,
   /// extending the exclusive access initiated by the call to
-  /// `drain(maximumCount:)`. To call this (or any other) method again, the
+  /// `drain(maxCount:)`. To call this (or any other) method again, the
   /// returned input span needs to be consumed or otherwise destroyed.
   ///
   /// Once this method returns, the contents of the resulting input span are
@@ -111,7 +111,7 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   @_lifetime(self: copy self)
   @_transparent
   public mutating func drainNext() -> InputSpan<Element> {
-    drainNext(maximumCount: Int.max)
+    drainNext(maxCount: Int.max)
   }
 
   /// Generate the next batch of items into the supplied output span instance,
@@ -165,52 +165,52 @@ extension Drain where Self: ~Copyable & ~Escapable, Element: ~Copyable  {
   public mutating func generate(
     into target: inout OutputSpan<Element>
   ) throws(Never) -> Bool {
-    var source = self.drainNext(maximumCount: target.freeCapacity)
+    var source = self.drainNext(maxCount: target.freeCapacity)
     if source.isEmpty { return false }
     target._append(moving: &source)
     return true
   }
   
-  /// Skip at most the given number items in the underlying generative sequence,
-  /// decreasing it by the number of items successfully skipped.
+  /// Skip the given number items in the underlying generative sequence,
+  /// decreasing it by the number of items successfully skipped before hitting
+  /// the end of the sequence or an error.
   ///
   /// This is equivalent to generating the same number of items then immediately
   /// discarding them, except it may avoid the overhead of actually
-  /// materializing them.
+  /// materializing the elements.
   ///
   /// As soon as the producer has run out of items, all subsequent calls to
-  /// this method stop decrementing `remainder` and return false.
+  /// this method stop decrementing `n` and return false.
   ///
-  /// The default implementation of this method calls `generate(into:)` with
-  /// a small temporary buffer, immediately discarding all generated items.
-  /// Conforming types are encouraged to replace this default approach
-  /// with a more efficient implementation whenever it is possible to do so.
+  /// The default implementation of this method repeatedly calls
+  /// `generate(into:)` with a small temporary buffer, immediately discarding
+  /// all generated items. Conforming types are encouraged to replace this
+  /// default approach with a more efficient implementation whenever it is
+  /// possible to do so.
   ///
   /// ### Error handling
   ///
   /// This method throws an error to indicate a failure while trying to skip
-  /// the upcoming next item in the sequence. Failure may happen midway through
-  /// skipping a batch of items, in which case the `remainder` will still be
+  /// an upcoming item in the sequence. Failure may happen midway through
+  /// skipping a batch of items, in which case `n` will still be
   /// decremented by the number of elements that were successfully skipped
-  /// before encountering the problem.
+  /// before encountering the problem. This can be used to precisely track
+  /// the current position of the failed producer, allowing better diagnostics,
+  /// and allowing iteration to continue if the failure is resolvable.
   ///
-  /// - Parameter remainder: The maximum number of items remaining to skip.
-  ///     This method decrements this value by the number of items it
+  /// - Parameter n: The number of items to skip. This must be greater than
+  ///     zero. This method decrements this value by the number of items it
   ///     successfully skipped before returning.
-  /// - Returns: A boolean value indicating whether the operation was able to
-  ///    satisfy the request at least partially without hitting the end of the
-  ///    underlying consumable sequence.
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func skip(
-    upTo n: inout Int
-  ) -> Bool { // FIXME: Compiler crash when this declares throws(Failure)
+  public mutating func skip(by n: inout Int) {
+    // FIXME: Compiler crash when this declares throws(Failure)
     precondition(n >= 0, "Cannot skip a negative number of elements")
-    guard n > 0 else { return true }
-    let span = drainNext(maximumCount: n)
-    let success = span.count > 0
-    n &-= span.count
-    return success
+    while n > 0 {
+      let span = drainNext(maxCount: n)
+      guard !span.isEmpty else { return }
+      n &-= span.count
+    }
   }
 }
 

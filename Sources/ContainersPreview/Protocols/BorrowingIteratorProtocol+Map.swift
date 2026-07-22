@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
@@ -52,7 +52,7 @@ where
 
 @available(SwiftStdlib 5.0, *)
 public struct BorrowingMapProducer<
-  Base: IterableIteratorProtocol_ & ~Copyable & ~Escapable,
+  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
   Element: ~Copyable,
 >: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
@@ -90,7 +90,7 @@ where
   @inlinable
   @_lifetime(self: copy self)
   public mutating func next() throws(Failure) -> Element? {
-    let span = try _it.nextSpan_(maximumCount: 1)
+    let span = try _it.nextSpan_(maxCount: 1)
     guard !span.isEmpty else { return nil }
     return try _transform(span[unchecked: 0])
   }
@@ -104,7 +104,7 @@ where
   ) throws(Failure) -> Bool {
     var success = false
     while !target.isFull {
-      let span = try _it.nextSpan_(maximumCount: target.freeCapacity)
+      let span = try _it.nextSpan_(maxCount: target.freeCapacity)
       guard !span.isEmpty else { break }
       success = true
       var i = 0
@@ -114,6 +114,28 @@ where
       }
     }
     return success
+  }
+
+  @inlinable
+  @_lifetime(self: copy self)
+  public mutating func skip(by n: inout Int) throws(Failure) {
+    precondition(n > 0, "Can't skip a negative number of elements")
+    if Failure.self == Never.self {
+      n -= try! _it.skip_(by: n)
+      return
+    }
+#if false
+    // FIXME: Iterator's ill-conceived skip(by:) fails to report the position that triggers errors
+    try _it.skip_(by: &n)
+#else
+    // We have no choice other than skipping items one by one, or allowing
+    // the base to materialize every element. The latter performs better in
+    // the common case of containers, so let's do that.
+    while n > 0 {
+      let span = try _it.nextSpan_(maxCount: n)
+      n -= span.count
+    }
+#endif
   }
 }
 

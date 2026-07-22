@@ -148,7 +148,7 @@ extension UniqueDeque where Element: ~Copyable {
 }
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueDeque where Element: ~Copyable {
   public typealias SubrangeConsumer = RigidDeque<Element>.SubrangeConsumer
 

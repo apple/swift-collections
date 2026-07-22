@@ -76,7 +76,9 @@ class UniqueArrayTests: CollectionTestCase {
         expectEqual(tracker.instances, 2 * layout.count)
         expectUniqueArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && UnstableContainersPreview
-        checkIterable(items, expectedContents: expected)
+        if #available(SwiftStdlib 6.4, *) {
+          checkIterable(items, expectedContents: expected)
+        }
 #endif
       }
     }
@@ -130,7 +132,7 @@ class UniqueArrayTests: CollectionTestCase {
 
   func test_init_capacity() {
     do {
-      let a = UniqueArray<Int>(capacity: 0)
+      let a = UniqueArray<Int>(minimumCapacity: 0)
       expectEqual(a.capacity, 0)
       expectEqual(a.count, 0)
       expectEqual(a.freeCapacity, 0)
@@ -138,7 +140,7 @@ class UniqueArrayTests: CollectionTestCase {
     }
 
     do {
-      let a = UniqueArray<Int>(capacity: 10)
+      let a = UniqueArray<Int>(minimumCapacity: 10)
       expectEqual(a.capacity, 10)
       expectEqual(a.count, 0)
       expectEqual(a.freeCapacity, 10)

@@ -13,10 +13,6 @@
 
 #if compiler(>=6.2)
 
-#if !COLLECTIONS_SINGLE_MODULE
-import InternalCollectionsUtilities
-#endif
-
 @available(SwiftStdlib 5.0, *)
 @_alwaysEmitIntoClient
 package func withTemporaryOutputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
@@ -70,23 +66,6 @@ extension OutputSpan where Element: ~Copyable {
       dstCount &+= source.count
     }
   }
-  
-#if UnstableContainersPreview
-  @_lifetime(source: copy source)
-  @inlinable
-  @inline(__always)
-  @_lifetime(self: copy self)
-  package mutating func _append(moving source: inout InputSpan<Element>) {
-    // FIXME: This needs to be in the stdlib.
-    source.withUnsafeMutableBufferPointer { src, srcCount in
-      let srcItems = src._extracting(
-        uncheckedFrom: src.count &- srcCount,
-        to: src.count)
-      self._append(moving: srcItems)
-      srcCount = 0
-    }
-  }
-#endif
 
   @_lifetime(source: copy source)
   @inlinable
@@ -117,7 +96,7 @@ extension OutputSpan /*where Element: Copyable*/ {
       dstCount &+= source.count
     }
   }
-  
+
   @inlinable
   @_lifetime(self: copy self)
   package mutating func _append(copying source: Span<Element>) {
@@ -159,3 +138,4 @@ extension OutputSpan where Element: ~Copyable {
 }
 
 #endif
+

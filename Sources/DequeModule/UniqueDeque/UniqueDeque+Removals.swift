@@ -145,6 +145,8 @@ extension UniqueDeque where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func popLast() -> Element? {
+    // FIXME: Remove this algorithm; it is already provided by
+    // RangeReplaceableContainer, albeit with stricter availability.
     _storage.popLast()
   }
 }

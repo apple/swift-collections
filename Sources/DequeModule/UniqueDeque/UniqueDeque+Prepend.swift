@@ -314,12 +314,13 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @inlinable
   @_alwaysEmitIntoClient
   public mutating func prepend(copying items: Span<Element>) {
-    unsafe items.withUnsafeBufferPointer { source in
+    items.withUnsafeBufferPointer { source in
       unsafe self.prepend(copying: source)
     }
   }
   
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<S: Iterable_ & ~Copyable & ~Escapable>(
     copying items: borrowing S
@@ -338,15 +339,16 @@ extension UniqueDeque /*where Element: Copyable*/ {
     _storage._handle.rotate(toStartAtOffset: oldCount)
   }
 
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<S: Iterable_ & ~Copyable & ~Escapable>(
     copying items: borrowing S,
     exactCount: Int
   ) throws(S.Failure_)
   where S.Element_ == Element {
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     try self.prepend(addingCount: exactCount) { (target) throws(S.Failure_) in
-      let span = try it.nextSpan_(maximumCount: target.freeCapacity)
+      let span = try it.nextSpan_(maxCount: target.freeCapacity)
       target._append(copying: span)
     }
   }
@@ -366,6 +368,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, as amortized
   ///     over many similar invocations on the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<S: Iterable_ & ~Copyable & ~Escapable>(
     copying items: borrowing S
@@ -385,6 +388,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(`items.count`) when amortized over many similar
   ///     invocations on the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & ~Copyable & ~Escapable>(
     copying items: borrowing C
@@ -477,6 +481,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items`, as amortized
   ///     over many similar invocations on the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<S: Iterable_ & Sequence<Element>>(
     copying items: borrowing S
@@ -495,6 +500,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items` when amortized
   ///     over many similar invocations on the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<S: Iterable_ & Collection<Element>>(
     copying items: borrowing S
@@ -513,6 +519,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items` when amortized
   ///     over many similar invocations on the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Sequence<Element>>(
     copying items: borrowing C
@@ -530,6 +537,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items` when amortized
   ///     over many similar invocations on the same deque.
+  @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func prepend<C: Container<Element> & Collection<Element>>(
     copying items: C

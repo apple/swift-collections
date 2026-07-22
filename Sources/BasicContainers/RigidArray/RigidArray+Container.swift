@@ -19,25 +19,46 @@ import ContainersPreview
 #if compiler(>=6.2)
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = SpanIterator<Element>
+  public typealias BorrowingIterator_ = Span<Element>.BorrowingIterator_
+
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeIterableIterator_() -> IterableIterator_ {
-    SpanIterator(self.span)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    let span = self.span
+    let it = span.makeBorrowingIterator_()
+    // FIXME: `it` is borrowing `span`, not self
+    return _overrideLifetime(it, borrowing: self)
   }
 }
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 5.0, *)
-extension RigidArray: Container where Element: ~Copyable {}
+@available(SwiftStdlib 6.4, *)
+extension RigidArray: Container where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(
+    from start: Index, to end: Index
+  ) -> BorrowingIterator_ {
+    // FIXME: `makeBorrowingIterator` would be borrowing the temporary `span`, not self
+    self.span._makeBorrowingIterator(from: start, to: end)
+  }
 
-@available(SwiftStdlib 5.0, *)
+  @_alwaysEmitIntoClient
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    precondition(
+      iterator._span.isTriviallyIdentical(to: self.span),
+      "Invalid iterator instance")
+    return iterator._start
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: BidirectionalContainer where Element: ~Copyable {}
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension RigidArray: RandomAccessContainer where Element: ~Copyable {}
 
 #if compiler(>=6.4)
@@ -134,7 +155,7 @@ extension RigidArray where Element: ~Copyable {
     let p = _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
     return UnsafePointer(p)
   }
-
+  
   @inlinable @inline(__always)
   internal mutating func _mutablePtr(
     to index: Int
@@ -142,7 +163,29 @@ extension RigidArray where Element: ~Copyable {
     _checkItemIndex(index)
     return _storage.baseAddress.unsafelyUnwrapped.advanced(by: index)
   }
-
+  
+#if compiler(>=6.4)
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///     The position must be a valid index of the array that is not equal
+  ///     to the `endIndex` property.
+  ///
+  /// - Complexity: O(1)
+  @inlinable
+  public subscript(position: Int) -> Element {
+    @inline(__always)
+    @_unsafeSelfDependentResult
+    borrow {
+      _ptr(to: position).pointee
+    }
+    @inline(__always)
+    @_unsafeSelfDependentResult
+    mutate {
+      &_mutablePtr(to: position).pointee
+    }
+  }
+#else
   /// Accesses the element at the specified position.
   ///
   /// - Parameter position: The position of the element to access.
@@ -161,6 +204,7 @@ extension RigidArray where Element: ~Copyable {
       _mutablePtr(to: position)
     }
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)
@@ -308,10 +352,6 @@ extension RigidArray where Element: ~Copyable {
   ///    On return, `n` is set to zero if the operation succeeded without
   ///    hitting the limit; otherwise, `n` reflects the number of steps that
   ///    couldn't be taken.
-  /// - Parameter limit: A valid index of the array to use as a limit.
-  ///    If `n > 0`, a limit that is less than `index` has no effect.
-  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
-  ///    effect.
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public func formIndex(
@@ -320,9 +360,17 @@ extension RigidArray where Element: ~Copyable {
     index._advance(by: &n, limitedBy: limit)
   }
 
+  @inlinable
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Int
+  ) -> Span<Element> {
+    self.span._nextSpan(after: &index)
+  }
+
   /// Return a span over the array's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it, but no more than `maximumCount` items.
+  /// that contains it, but no more than `maxCount` items.
   ///
   /// On return, the index is updated to address the next item following the
   /// end of the returned span.
@@ -333,30 +381,30 @@ extension RigidArray where Element: ~Copyable {
   ///
   ///     var index = items.startIndex
   ///     while true {
-  ///       let span = items.nextSpan(after: &index, maximumCount: 4)
+  ///       let span = items.nextSpan(after: &index, maxCount: 4)
   ///       if span.isEmpty { break }
   ///       // Process items in `span`
   ///     }
   ///
-  /// The `maximumCount` argument gives the caller control over the number of
+  /// The `maxCount` argument gives the caller control over the number of
   /// items it receives from the iterator. This lets the caller avoid getting
   /// more elements than it would be able to immediately process, which would
   /// significantly complicate container use.
   ///
   /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maximumCount`, or simply by calling the
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
   /// `nexSpan(after:)` method, which does precisely that. This is frequently
   /// the case when the caller simply wants to iterate over the entire
   /// container in a single loop.
   ///
-  /// `maximumCount` sets an upper bound. To read a specific number of items,
+  /// `maxCount` sets an upper bound. To read a specific number of items,
   /// the caller usually needs to invoke `nextSpan` in a loop:
   ///
   ///     var items: some Container<Int>
   ///     var index = items.startIndex
   ///     var remainder = numberOfItemsToRead
   ///     while remainder > 0 {
-  ///       let next = items.nextSpan(after: &index, maximumCount: remainder)
+  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
   ///       guard !next.isEmpty else {
   ///         // Container does not have enough items
   ///         break
@@ -379,10 +427,14 @@ extension RigidArray where Element: ~Copyable {
   /// - Parameter index: A valid index in the container, including the end
   ///     index. On return, this index is advanced by the count of the resulting
   ///     span, to simplify iteration.
-  /// - Parameter maximumCount: The maximum number of items the caller is able
-  ///     to process immediately. `maximumCount` must be greater than zero.
+  /// - Parameter maxCount: The maximum number of items the caller is able
+  ///     to process immediately. `maxCount` must be greater than zero.
   ///     If you are able to process an arbitrary number of items, set
-  ///     `maximumCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  ///     `maxCount` to `Int.max`, or call the `nextSpan(after:)` method.
+  /// - Parameter limit: A valid index of the array to use as a limit.
+  ///    If `n > 0`, a limit that is less than `index` has no effect.
+  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
+  ///    effect.
   /// - Returns: A span over contiguous storage that starts at the given index.
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
@@ -391,35 +443,58 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Int, maximumCount: Int
+    after index: inout Int, maxCount: Int, limitedBy limit: Index
   ) -> Span<Element> {
-    _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let start = index
-    index = start &+ Swift.min(maximumCount, _count &- start)
-    return _span(in: Range(uncheckedBounds: (start, index)))
+    self.span._nextSpan(after: &index, maxCount: maxCount, limitedBy: limit)
   }
 
   @inlinable
   @_lifetime(&self)
-  public mutating func nextMutableSpan(after index: inout Int, maximumCount: Int) -> MutableSpan<Element> {
+  public mutating func nextMutableSpan(
+    after index: inout Int
+  ) -> MutableSpan<Element> {
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
-    let start = index
-    index = start &+ Swift.min(maximumCount, _count &- start)
-    return _mutableSpan(in: Range(uncheckedBounds: (start, index)))
+    return _mutableSpan(in: Range(uncheckedBounds: (index, count)))
   }
 
   @inlinable
+  @_lifetime(&self)
+  public mutating func nextMutableSpan(
+    after index: inout Int, maxCount: Int, limitedBy limit: Int
+  ) -> MutableSpan<Element> {
+    _checkValidIndex(index)
+    _checkValidIndex(limit)
+    precondition(maxCount > 0, "maxCount must be positive")
+    let end = index._clampedUp(
+      towards: count, maxDistance: maxCount, limitedBy: limit)
+    return _mutableSpan(in: Range(uncheckedBounds: (index, end)))
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(before index: Index) -> (index: Index, distance: Int) {
+    precondition(index >= 0 && index <= count, "Index out of bounds")
+    return (0, index)
+  }
+
+  @_alwaysEmitIntoClient
+  public func spanBoundary(
+    before index: Index, maxDistance: Int, limitedBy limit: Index
+  ) -> (index: Index, distance: Int) {
+    self.span.spanBoundary(
+      before: index, maxDistance: maxDistance, limitedBy: limit)
+  }
+
+  @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func previousSpan(
-    before index: inout Int, maximumCount: Int
+    before index: inout Int, maxCount: Int
   ) -> Span<Element> {
+    // FIXME: Remove this in favor of the BidirectionalContainer algorithm.
     _checkValidIndex(index)
-    precondition(maximumCount > 0, "maximumCount must be positive")
+    precondition(maxCount > 0, "maxCount must be positive")
     let start = index
-    index = start &- Swift.min(maximumCount, start)
-    return _span(in: Range(uncheckedBounds: (index, start)))
+    index = start &- Swift.min(maxCount, start)
+    return _span(in: Range(uncheckedBounds: (start, index)))
   }
 }
 

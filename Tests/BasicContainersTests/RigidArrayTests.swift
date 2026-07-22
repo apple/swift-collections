@@ -74,7 +74,9 @@ class RigidArrayTests: CollectionTestCase {
         expectEqual(tracker.instances, 2 * layout.count)
         expectRigidArrayContents(items, equalTo: expected)
 #if compiler(>=6.4) && UnstableContainersPreview
-        checkIterable(items, expectedContents: expected)
+        if #available(SwiftStdlib 6.4, *) {
+          checkIterable(items, expectedContents: expected)
+        }
 #endif
       }
     }
@@ -1206,6 +1208,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_insert_copying_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEvery("i", in: 0 ... layout.count) { i in
@@ -1438,6 +1441,7 @@ class RigidArrayTests: CollectionTestCase {
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   func test_replace_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 5, 10]) { layout in
       withEveryRange("range", in: 0 ..< layout.count) { range in
@@ -1473,7 +1477,7 @@ class RigidArrayTests: CollectionTestCase {
   func test_borrowing_map() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
-    let transformed = items.makeIterableIterator_()
+    let transformed = items.makeBorrowingIterator_()
       .map { 2 * $0 }
       .collect(into: UniqueArray.self)
     expectEqual(transformed.count, c)
@@ -1487,7 +1491,7 @@ class RigidArrayTests: CollectionTestCase {
   func test_borrowing_filter() {
     let c = 100
     let items = RigidArray(capacity: c, copying: 0 ..< c)
-    let transformed = items.makeIterableIterator_()
+    let transformed = items.makeBorrowingIterator_()
       .filter { !$0.isMultiple(of: 6) }
       .copy()
       .collect(into: UniqueArray.self)
@@ -1508,7 +1512,7 @@ class RigidArrayTests: CollectionTestCase {
       }
 
       var consumer = a.consume(0 ..< 2)
-      let span = consumer.drainNext(maximumCount: .max)
+      let span = consumer.drainNext(maxCount: .max)
 
       expectEqual(span.count, 2)
       expectEqual(span[0].payload, 0)

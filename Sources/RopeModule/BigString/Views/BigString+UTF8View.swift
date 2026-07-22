@@ -96,7 +96,7 @@ extension BigString.UTF8View.Iterator: IteratorProtocol {
   }
 
   public mutating func next<R>(
-    maximumCount: Int,
+    maximumCount: Int, // FIXME: Should be `maxCount`
     with body: (UnsafeBufferPointer<UInt8>) -> (consumed: Int, result: R)
   ) -> R {
     guard _index < _base.endIndex else {

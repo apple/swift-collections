@@ -13,24 +13,30 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public protocol Iterable_<Element_, Failure_>: ~Copyable, ~Escapable {
+  // FIXME: None of these names should not have trailing underscores, but that
+  // would clash with the stdlib's versions:
+  //    error: 'BorrowingIterator' is ambiguous for type lookup in this context
+  //
+  // This is likely best resolved by removing these definitions as soon as they
+  // appear in the stdlib.
   associatedtype Element_: ~Copyable
   associatedtype Failure_: Error = Never
 
-  associatedtype IterableIterator_: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+  associatedtype BorrowingIterator_: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
 
   var underestimatedCount_: Int { get }
 
   @_lifetime(borrow self)
-  borrowing func makeIterableIterator_() -> IterableIterator_
+  borrowing func makeBorrowingIterator_() -> BorrowingIterator_
   
   func _customContainsEquatableElement_(
     _ element: borrowing Element_
   ) -> Bool?
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
 where
   Self: ~Copyable & ~Escapable, Element_: ~Copyable
@@ -44,35 +50,14 @@ where
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_ where Self: Sequence {
+  @inlinable
+  public var underestimatedCount_: Int { 0 }
+
   @inlinable
   public func _customContainsEquatableElement_(_ element: borrowing Element) -> Bool? {
     nil
-  }
-}
-
-@available(SwiftStdlib 5.0, *)
-extension Iterable_
-where
-  Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
-{
-  /// Implementation demo of what borrowing for-in loops would need to expand into.
-  @inlinable
-  public func _borrowingForEach(
-    _ body: (borrowing Element_) throws(Failure_) -> Void
-  ) throws(Failure_) -> Void {
-    var it = makeIterableIterator_()
-    while true {
-      let span = try it.nextSpan_()
-      if span.isEmpty { break }
-      var i = 0
-      while i < span.count {
-        try body(span[unchecked: i])
-        i &+= 1
-      }
-    }
   }
 }
 

@@ -11,6 +11,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if !COLLECTIONS_SINGLE_MODULE
+import InternalCollectionsUtilities
+#endif
+
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
@@ -23,22 +27,20 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     ) throws(Failure) -> Result
   ) throws(Failure) -> Result {
     var initialResult: Optional = initialResult
-    return try _withUnsafeTemporaryAllocation(
+    return try withTemporaryAllocation(
       of: Element.self, capacity: _producerBufferSize
     ) { buffer throws(Failure) in
       var done = false
-      var result = initialResult.take()!
-      while !done {
-        var span = OutputSpan(buffer: buffer, initializedCount: 0)
-        done = try !self.generate(into: &span)
-        let c = span.finalize(for: buffer)
-        for i in 0 ..< c {
-          result = try nextPartialResult(
-            result,
-            buffer.moveElement(from: i))
+      var result = initialResult.take()
+      repeat {
+        done = try !self.generate(into: &buffer)
+        try buffer._consumeAll { span throws(Failure) in
+          while let next = span.popFirst() {
+            result = try nextPartialResult(result.take()!, next)
+          }
         }
-      }
-      return result
+      } while !done
+      return result!
     }
   }
 
@@ -49,23 +51,22 @@ extension Producer where Self: ~Copyable & ~Escapable, Element: ~Copyable {
       inout Result, consuming Element
     ) throws(Failure) -> Void
   ) throws(Failure) -> Result {
-    var result = initialResult
-    try _withUnsafeTemporaryAllocation(
+    var initialResult: Optional = initialResult
+    return try withTemporaryAllocation(
       of: Element.self, capacity: _producerBufferSize
     ) { buffer throws(Failure) in
+      var result = initialResult.take()!
       var done = false
-      while !done {
-        var span = OutputSpan(buffer: buffer, initializedCount: 0)
-        done = try !self.generate(into: &span)
-        let c = span.finalize(for: buffer)
-        for i in 0 ..< c {
-          try updateAccumulatingResult(
-            &result,
-            buffer.moveElement(from: i))
+      repeat {
+        done = try !self.generate(into: &buffer)
+        try buffer._consumeAll { span throws(Failure) in
+          while let next = span.popFirst() {
+            try updateAccumulatingResult(&result, next)
+          }
         }
-      }
+      } while !done
+      return result
     }
-    return result
   }
 }
 

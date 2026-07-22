@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
@@ -41,7 +41,7 @@ where
 
 @frozen
 public struct ErrorMappedIterator<
-  Base: IterableIteratorProtocol_ & ~Copyable & ~Escapable,
+  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
   Failure: Error
 >: ~Copyable, ~Escapable
 where Base.Element_: ~Copyable {
@@ -62,7 +62,7 @@ where Base.Element_: ~Copyable {
   }
 }
 
-extension ErrorMappedIterator: IterableIteratorProtocol_
+extension ErrorMappedIterator: BorrowingIteratorProtocol_
 where
   Base: ~Copyable & ~Escapable,
   Base.Element_: ~Copyable
@@ -73,9 +73,9 @@ where
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func nextSpan_(maximumCount: Int) throws(Failure_) -> Span<Element_> {
+  public mutating func nextSpan_(maxCount: Int) throws(Failure_) -> Span<Element_> {
     do {
-      return try _base.nextSpan_(maximumCount: maximumCount)
+      return try _base.nextSpan_(maxCount: maxCount)
     } catch {
       throw _transform(error)
     }

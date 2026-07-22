@@ -20,7 +20,7 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDictionary {
+extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
     self._keys.isTriviallyIdentical(to: other._keys)
@@ -29,7 +29,7 @@ extension RigidDictionary {
 }
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDictionary {
+extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   @inlinable
   public func isEqual(
     to other: borrowing Self,
@@ -56,8 +56,11 @@ extension RigidDictionary {
   }
 }
 
+@available(SwiftStdlib 6.4, *)
+extension RigidDictionary: Equatable where Key: ~Copyable, Value: Equatable & ~Copyable {}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidDictionary: Equatable where Value: Equatable {
+extension RigidDictionary where Key: ~Copyable, Value: Equatable & ~Copyable {
   @inlinable
   public static func ==(left: borrowing Self, right: borrowing Self) -> Bool {
     left.isEqual(to: right, by: ==)

@@ -14,7 +14,7 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
@@ -30,7 +30,7 @@ where
 
 @available(SwiftStdlib 5.0, *)
 public struct BorrowingFilter<
-  Base: IterableIteratorProtocol_ & ~Copyable & ~Escapable
+  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
 >: ~Copyable, ~Escapable
 where Base.Element_: ~Copyable {
   public typealias Element_ = Base.Element_
@@ -56,13 +56,13 @@ where Base.Element_: ~Copyable {
 // FIXME: Sendable
 
 @available(SwiftStdlib 5.0, *)
-extension BorrowingFilter: IterableIteratorProtocol_
+extension BorrowingFilter: BorrowingIteratorProtocol_
 where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable {
   @_lifetime(&self)
-  public mutating func nextSpan_(maximumCount: Int) throws(Failure) -> Span<Element_> {
+  public mutating func nextSpan_(maxCount: Int) throws(Failure) -> Span<Element_> {
     // FIXME: This is quite inefficient compared to Container's filter
     while true {
-      let span = try _base.nextSpan_(maximumCount: 1)
+      let span = try _base.nextSpan_(maxCount: 1)
       if span.isEmpty { return span }
       precondition(span.count == 1, "Invalid BorrowingIterator")
       if try _isIncluded(span[unchecked: 0]) { return span }

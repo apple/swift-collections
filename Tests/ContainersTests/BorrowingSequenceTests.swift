@@ -22,7 +22,7 @@ import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 final class IterableTests: XCTestCase {
-  @available(SwiftStdlib 6.2, *)
+  @available(SwiftStdlib 6.4, *)
   func testBasic() {
     let array = [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -63,13 +63,13 @@ final class IterableTests: XCTestCase {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
   func collectViaBorrowing() throws(Failure_) -> [Element_] {
-    var borrowIterator = makeIterableIterator_()
+    var borrowIterator = makeBorrowingIterator_()
     var result: [Element_] = []
     while true {
-      let span = try borrowIterator.nextSpan_(maximumCount: .max)
+      let span = try borrowIterator.nextSpan_(maxCount: .max)
       if span.isEmpty { break }
       for i in span.indices {
         result.append(span[i])

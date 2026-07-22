@@ -117,7 +117,7 @@ extension UniqueArray where Element: ~Copyable {
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension UniqueArray where Element: ~Copyable {
   public typealias SubrangeConsumer = RigidArray<Element>.SubrangeConsumer
 

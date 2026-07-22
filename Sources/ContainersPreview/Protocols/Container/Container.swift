@@ -13,13 +13,26 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+/// An `Iterable` that holds its elements in memory, so that we can form
+/// references to them that aren't dependent on iteration state.
+/// The contents of a container can be traversed multiple times,
+/// nondestructively, and efficiently accessed.
+@available(SwiftStdlib 6.4, *)
 public protocol Container<Element>:
   Iterable_, ~Copyable, ~Escapable
   where Element: ~Copyable, Element == Element_, Failure_ == Never
 {
-  associatedtype Element: ~Copyable
-  associatedtype Index: Equatable
+  override associatedtype Element: ~Copyable
+
+  /// Indices are expected to implement `==` and `hash(into:)` with
+  /// constant complexity.
+  associatedtype Index: Equatable, Hashable
+
+  // FIXME: We need Container to define a default value for BorrowingIterator,
+  // but we can only do that once ContainerIterator can support a
+  // nonescapable Base.
+  //associatedtype BorrowingIterator = ContainerIterator<Self>
+
   // FIXME: Ideally Index should also be required to be Hashable.
   // FIXME: If we discard the separate BorrowingSequence abstraction, then we
   // should consider dropping Comparable and just having Equatable indices, so
@@ -29,182 +42,28 @@ public protocol Container<Element>:
   // somewhere -- `RandomAccessContainer` or `BidirectionalContainer` would be
   // the obvious candidates.
 
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
+  @_lifetime(borrow self)
+  func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_
+
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
+  func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index
+
+  /// Complexity: O(1)
   var isEmpty: Bool { get }
+
+  /// Complexity: O(1)
   var count: Int { get }
 
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
   var startIndex: Index { get }
+
+  /// Complexity: Must be O(1) on all container types.
   var endIndex: Index { get }
-  
-  /// Returns the position immediately after the given index.
-  ///
-  /// - Parameter index: A valid index of the container. `i` must be less
-  ///     than `endIndex`.
-  /// - Returns: The index immediately following `i`.
-  func index(after index: Index) -> Index
-  
-  /// Replaces the given index with its successor.
-  ///
-  /// - Parameter index: A valid index of the container. `i` must be less
-  ///     than `endIndex`.
-  func formIndex(after index: inout Index)
 
-  /// Returns an index that is the specified distance from the given index.
-  ///
-  /// The value passed as `n` must not offset `index` beyond the bounds of the
-  /// container.
-  ///
-  /// - Parameter index: A valid index of the container.
-  /// - Parameter n: The distance by which to offset `index`.
-  /// - Returns: An index offset by distance from `index`. If `n` is positive,
-  ///    this is the same value as the result of `n` calls to `index(after:)`.
-  ///    If `n` is negative, this is the same value as the result of `abs(n)`
-  ///    calls to `index(before:)`.
-  func index(_ index: Index, offsetBy n: Int) -> Index
-  
-  /// Offsets the given index by the specified distance, but no further than
-  /// the given limiting index.
-  ///
-  /// If the operation was able to offset `index` by exactly the requested
-  /// number of steps without hitting `limit`, then on return `n` is set to `0`,
-  /// and `index` is set to the adjusted index.
-  ///
-  /// If the operation hits the limit before it can take the requested number
-  /// of steps, then on return `index` is set to `limit`, and `n` is set
-  /// to the number of steps that couldn't be taken.
-  ///
-  /// The value passed as `n` must not offset `index` beyond the bounds of the
-  /// container, unless the index passed as `limit` prevents offsetting beyond
-  /// those bounds.
-  ///
-  /// - Parameter index: A valid index of the container.
-  /// - Parameter n: The distance to offset `index`. `n` must not be negative
-  ///    unless the container conforms to the `BidirectionalContainer` protocol.
-  /// - Parameter limit: A valid index of the container to use as a limit.
-  ///    If `n > 0`, a limit that is less than `index` has no effect.
-  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
-  ///    effect.
-  func formIndex(
-    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
-  )
-  
-  /// Returns the distance between two indices.
-  ///
-  /// - Parameter start: A valid index of the collection.
-  /// - Parameter end: Another valid index of the collection. If end is equal
-  ///    to start, the result is zero.
-  /// - Returns: The distance between `start` and `end`.
-  func distance(from start: Index, to end: Index) -> Int
-
-  /// Return a span over the container's storage that begins with the element at
-  /// the given index, and extends to the end of the contiguous storage chunk
-  /// that contains it, but no more than `maximumCount` items.
-  ///
-  /// On return, the index is updated to address the next item following the
-  /// end of the returned span.
-  ///
-  /// This method can be used to efficiently process the items of a container in
-  /// bulk, by directly iterating over its piecewise contiguous pieces of
-  /// storage:
-  ///
-  ///     var index = items.startIndex
-  ///     while true {
-  ///       let span = items.nextSpan(after: &index, maximumCount: 4)
-  ///       if span.isEmpty { break }
-  ///       // Process items in `span`
-  ///     }
-  ///
-  /// The `maximumCount` argument gives the caller control over the number of
-  /// items it receives from the iterator. This lets the caller avoid getting
-  /// more elements than it would be able to immediately process, which would
-  /// significantly complicate container use.
-  ///
-  /// If the caller is able to process any number available items, it can signal
-  /// that by passing `Int.max` as the `maximumCount`, or simply by calling the
-  /// `nexSpan(after:)` method, which does precisely that. This is frequently
-  /// the case when the caller simply wants to iterate over the entire
-  /// container in a single loop.
-  ///
-  /// `maximumCount` sets an upper bound. To read a specific number of items,
-  /// the caller usually needs to invoke `nextSpan` in a loop:
-  ///
-  ///     var items: some Container<Int>
-  ///     var index = items.startIndex
-  ///     var remainder = numberOfItemsToRead
-  ///     while remainder > 0 {
-  ///       let next = items.nextSpan(after: &index, maximumCount: remainder)
-  ///       guard !next.isEmpty else {
-  ///         // Container does not have enough items
-  ///         break
-  ///       }
-  ///       remainder -= next.count
-  ///       // Process items in `next`
-  ///     }
-  ///
-  /// - Note: The spans returned by this method are not guaranteed to be
-  ///    disjunct. Some containers may use the same storage chunk (or parts of a
-  ///    storage chunk) multiple times, to repeat their contents.
-  ///
-  /// - Note: Repeated invocations of `nextSpan` on the same container and index
-  ///    are not guaranteed to return identical results. (This is particularly
-  ///    the case with containers that can store contents in their "inline"
-  ///    representation. Such containers may not always have a unique address
-  ///    in memory; the locations of the spans exposed by this method may vary
-  ///    between different borrows of the same container.)
-  ///
-  /// - Parameter index: A valid index in the container, including the end
-  ///     index. On return, this index is advanced by the count of the resulting
-  ///     span, to simplify iteration.
-  /// - Parameter maximumCount: The maximum number of items the caller is able
-  ///     to process immediately. `maximumCount` must be greater than zero.
-  ///     If you are able to process an arbitrary number of items, set
-  ///     `maximumCount` to `Int.max`, or call the `nextSpan(after:)` method.
-  /// - Returns: A span over contiguous storage that starts at the given index.
-  ///     If the input index is the end index, then this returns an empty span.
-  ///     Otherwise the result is non-empty, with its first element matching the
-  ///     element at the input index.
-  @_lifetime(borrow self)
-  func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element>
-
-  //  subscript(index: Index) -> Element { borrow }
-
-  /// Return the nearest valid index in this container less than or equal to
-  /// the given index value, which must be valid in at least one view of self.
-  ///
-  /// This operation is important for container types that provide multiple
-  /// alternative projections (or "views") over the same underlying
-  /// representation, with each view conforming to `Container`, and sharing
-  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode ccalar and character views in the `Collection` world.)
-  /// This rounding operation enables clients to convert/normalize valid index
-  /// values in one container view into valid indices in another, allowing them
-  /// to (easily) decide whether two (potentially misaligned) index values
-  /// address the same element.
-  ///
-  /// The default implementation of this operation simply returns `index`.
-  func index(alignedDown index: Index) -> Index
-
-  /// Return the nearest valid index in this container greater than or equal to
-  /// the given index value, which must be valid in at least one view of self.
-  ///
-  /// This operation is important for container types that provide multiple
-  /// alternative projections (or "views") over the same underlying
-  /// representation, with each view conforming to `Container`, and sharing
-  /// the same `Index`. (Like `String` does with its UTF-8, UTF-16,
-  /// Unicode ccalar and character views in the `Collection` world.)
-  /// This rounding operation enables clients to convert/normalize valid index
-  /// values in one container view into valid indices in another, allowing them
-  /// to (easily) decide whether two (potentially misaligned) index values
-  /// address the same element.
-  ///
-  /// The default implementation of this operation simply returns `index`.
-  func index(alignedUp index: Index) -> Index
-
-  func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
-  func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
-}
-
-@available(SwiftStdlib 5.0, *)
-extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   /// Return a span over the container's storage that begins with the element at
   /// the given index, and extends to the end of the contiguous storage chunk
   /// that contains it. On return, the index is updated to address the next item
@@ -239,169 +98,309 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   ///     If the input index is the end index, then this returns an empty span.
   ///     Otherwise the result is non-empty, with its first element matching the
   ///     element at the input index.
-  @inlinable
   @_lifetime(borrow self)
-  public func nextSpan(after index: inout Index) -> Span<Element> {
-    nextSpan(after: &index, maximumCount: Int.max)
-  }
+  func nextSpan(after index: inout Index) -> Span<Element>
 
-//  @inlinable
-//  @_lifetime(borrow self)
-//  public func nextSpan(after index: inout Index, maximumCount: Int) -> Span<Element> {
-//    let original = index
-//    var span = nextSpan(after: &index)
-//    if span.count > maximumCount {
-//      span = span.extracting(first: maximumCount)
-//      // Index remains within the same span, so offseting it is expected to be quick
-//      index = self.index(original, offsetBy: maximumCount)
-//    }
-//    return span
-//  }
+  /// Return a span over the container's storage that begins with the element at
+  /// the given index, and extends to the end of the contiguous storage chunk
+  /// that contains it, but no more than `maxCount` items, and no further than
+  /// the given limiting index (if any).
+  ///
+  /// On return, the index is updated to address the item following the
+  /// last element of the returned span.
+  ///
+  /// This method can be used to efficiently process the items of a container in
+  /// bulk, by directly iterating over its piecewise contiguous pieces of
+  /// storage:
+  ///
+  ///     var index = items.startIndex
+  ///     while true {
+  ///       let span = items.nextSpan(
+  ///         after: &index,
+  ///         maxCount: 4,
+  ///         limitedBy: items.endIndex)
+  ///       if span.isEmpty { break }
+  ///       // Process items in `span`
+  ///     }
+  ///
+  /// The `maxCount` argument gives the caller control over the number of
+  /// items it receives from the iterator. This lets the caller avoid getting
+  /// more elements than it would be able to immediately process, which would
+  /// significantly complicate container use.
+  ///
+  /// If the caller is able to process any number available items, it can signal
+  /// that by passing `Int.max` as the `maxCount`, or simply by calling the
+  /// `nextSpan(after:)` method, which does precisely that. This is frequently
+  /// the case when the caller simply wants to iterate over the entire
+  /// container in a single loop.
+  ///
+  /// `maxCount` sets an upper bound. To read a specific number of items,
+  /// the caller usually needs to invoke `nextSpan` in a loop:
+  ///
+  ///     var items: some Container<Int>
+  ///     var index = items.startIndex
+  ///     var remainder = numberOfItemsToRead
+  ///     while remainder > 0 {
+  ///       let next = items.nextSpan(after: &index, maxCount: remainder)
+  ///       guard !next.isEmpty else {
+  ///         // Container does not have enough items
+  ///         break
+  ///       }
+  ///       remainder -= next.count
+  ///       // Process items in `next`
+  ///     }
+  ///
+  /// - Note: The spans returned by this method are not guaranteed to be
+  ///    disjunct. Some containers may use the same storage chunk (or parts of a
+  ///    storage chunk) multiple times, to repeat their contents.
+  ///
+  /// - Note: Repeated invocations of `nextSpan` on the same container and index
+  ///    are not guaranteed to return identical results. (This is particularly
+  ///    the case with containers that can store contents in their "inline"
+  ///    representation. Such containers may not always have a unique address
+  ///    in memory; the locations of the spans exposed by this method may vary
+  ///    between different borrows of the same container.)
+  ///
+  /// - Parameter index: A valid index in the container, including the end
+  ///     index. On return, this index is advanced by the count of the resulting
+  ///     span, to simplify iteration.
+  /// - Parameter maxCount: The maximum number of items the caller is ready
+  ///     to process. `maxCount` must be greater than zero.
+  ///     If the client is able to process an arbitrary number of items, then
+  ///     this can be signalled by setting `maxCount` to `Int.max`; calling
+  ///     the `nextSpan(after:)` method is a more direct way to express the same.
+  /// - Parameter limit: A valid index of the container to use as a limit.
+  ///     A limit that precedes `index` has no effect. Otherwise the method
+  ///     stops before exceeding `limit`. If you don't have a specific limiting
+  ///     index to use, you can set this to `endIndex` to allow the method to
+  ///     traverse the entire container.
+  /// - Returns: A span over contiguous storage that starts at the given index.
+  ///     If the input index is equal to the end index or `limit`, then this
+  ///     returns an empty span.
+  ///     Otherwise the result is non-empty, with its first element matching the
+  ///     element at the input index.
+  /// - Complexity: Recommended to be O(1). Conforming types must clearly
+  ///    document deviations from this expectation.
+  @_lifetime(borrow self)
+  func nextSpan(
+    after index: inout Index,
+    maxCount: Int,
+    limitedBy limit: Index
+  ) -> Span<Element>
+
+  /// Accesses the element at the specified position.
+  ///
+  /// You can subscript a collection with any valid index other than the
+  /// collection’s end index. The end index refers to the position one past the
+  /// last element of a collection, so it doesn’t correspond with an element.
+  ///
+  /// - Parameter position: The position of the element to access.
+  ///    `position` must be a valid index of the container that is not equal
+  ///    to the `endIndex` property.
+  /// - Complexity: O(1). This is a hard requirement.
+  subscript(index: Index) -> Element { borrow }
+
+  /// Returns the position immediately after the given index.
+  ///
+  /// - Parameter index: A valid index of the container. `i` must be less
+  ///     than `endIndex`.
+  /// - Returns: The index immediately following `i`.
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
+  func index(after index: Index) -> Index
+
+  /// Replaces the given index with its successor.
+  ///
+  /// - Parameter index: A valid index of the container. `i` must be less
+  ///     than `endIndex`.
+  /// - Complexity: Recommended to be O(1); conforming types must clearly
+  ///   document deviations from this expectation.
+  func formIndex(after index: inout Index)
+
+  /// Returns an index that is the specified distance from the given index.
+  ///
+  /// The value passed as `n` must not offset `index` beyond the bounds of the
+  /// container.
+  ///
+  /// - Parameter index: A valid index of the container.
+  /// - Parameter n: The distance by which to offset `index`.
+  /// - Returns: An index offset by distance from `index`. If `n` is positive,
+  ///    this is the same value as the result of `n` calls to `index(after:)`.
+  ///    If `n` is negative, this is the same value as the result of `abs(n)`
+  ///    calls to `index(before:)`.
+  /// - Complexity: Recommended to be O(`n`); conforming types must clearly
+  ///   document deviations from this expectation.
+  func index(_ index: Index, offsetBy n: Int) -> Index
+
+  /// Offsets the given index by the specified distance, but no further than
+  /// the given limiting index.
+  ///
+  /// If the operation was able to offset `index` by exactly the requested
+  /// number of steps without hitting `limit`, then on return `n` is set to `0`,
+  /// and `index` is set to the adjusted index.
+  ///
+  /// If the operation hits the limit before it can take the requested number
+  /// of steps, then on return `index` is set to `limit`, and `n` is set
+  /// to the number of steps that couldn't be taken.
+  ///
+  /// The value passed as `n` must not offset `index` beyond the bounds of the
+  /// container, unless the index passed as `limit` prevents offsetting beyond
+  /// those bounds.
+  ///
+  /// - Parameter index: A valid index of the container.
+  /// - Parameter n: The distance to offset `index`. `n` must not be negative
+  ///    unless the container conforms to the `BidirectionalContainer` protocol.
+  /// - Parameter limit: A valid index of the container to use as a limit.
+  ///    If `n > 0`, a limit that is less than `index` has no effect.
+  ///    Likewise, if `n < 0`, a limit that is greater than `index` has no
+  ///    effect.
+  /// - Complexity: Recommended to be O(n); conforming types must clearly
+  ///   document deviations from this expectation.
+  func formIndex(
+    _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
+  )
+
+  /// Returns the distance between two indices.
+  ///
+  /// - Parameter start: A valid index of the collection.
+  /// - Parameter end: Another valid index of the collection. If end is equal
+  ///    to start, the result is zero.
+  /// - Returns: The distance between `start` and `end`.
+  /// - Complexity: Recommended to be O(*d*), where *d* is the resulting
+  ///    distance.  Conforming types must clearly document deviations from this
+  ///    expectation.
+  func distance(from start: Index, to end: Index) -> Int
+
+  func _customIndexOfEquatableElement(_ element: borrowing Element) -> Index??
+  func _customLastIndexOfEquatableElement(_ element: borrowing Element) -> Index??
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @inlinable
-  public var isEmpty: Bool {
-    startIndex == endIndex
+  @_alwaysEmitIntoClient
+  @_transparent
+  public var underestimatedCount_: Int { count }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    self.makeBorrowingIterator(from: self.startIndex, to: self.endIndex)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator_(from start: Index) -> BorrowingIterator_ {
+    self.makeBorrowingIterator(from: start, to: self.endIndex)
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: Int.max, limitedBy: self.endIndex)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index,
+    maxCount: Int
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: maxCount, limitedBy: self.endIndex)
+  }
+
+  @_alwaysEmitIntoClient
+  @_transparent
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index,
+    limitedBy limit: Index
+  ) -> Span<Element> {
+    self.nextSpan(after: &index, maxCount: Int.max, limitedBy: limit)
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  public var isEmpty: Bool {
+    count == 0
+  }
+
+#if false // count is required to be O(1), so it cannot have this default implementation
+  @_alwaysEmitIntoClient
   public var count: Int {
     distance(from: startIndex, to: endIndex)
   }
+#endif
 
-  @inlinable
+  @_alwaysEmitIntoClient
+  public func index(after index: Index) -> Index {
+    let end = self.endIndex
+    var index = index
+    let c = self.nextSpan(after: &index, maxCount: 1, limitedBy: end).count
+    precondition(c == 1, "Can't advance beyond endIndex")
+    return index
+  }
+
+  @_alwaysEmitIntoClient
   public func formIndex(after index: inout Index) {
     index = self.index(after: index)
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func index(_ index: Index, offsetBy n: Int) -> Index {
-    precondition(
-      n >= 0,
-      "Only BidirectionalContainers can be advanced by a negative amount")
-
-    var index = self.index(alignedDown: index)
+    var index = index
     var n = n
-
-#if true // with nextSpan(after:maximumCount:)
+    let end = self.endIndex
     while n > 0 {
-      let span = self.nextSpan(after: &index, maximumCount: n)
-      precondition(
-        !span.isEmpty,
-        "Cannot advance index beyond the end of the container")
-      n &-= span.count
+      let c = self.nextSpan(after: &index, maxCount: n, limitedBy: end).count
+      precondition(c > 0, "Cannot advance index beyond the end of the container")
+      n &-= c
     }
     return index
-#else // without nextSpan(after:maximumCount:)
-    // FIXME: This implementation can be wasteful for piecewise contiguous
-    // containers, as iterating over spans will tend to overshoot the target.
-
-    // Skip forward until we find the span that contains our target.
-    while distance > 0 {
-      var j = i
-      let span = self.nextSpan(after: &j)
-      precondition(
-        !span.isEmpty,
-        "Cannot advance index beyond the end of the container")
-      guard span.count <= distance else { break }
-      i = j
-      distance &-= span.count
-    }
-    // Step through to find the precise target.
-    while distance > 0 {
-      self.formIndex(after: &i)
-      distance &-= 1
-    }
-    return i
-#endif
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
     precondition(
       n >= 0,
       "Only BidirectionalContainers can be advanced by a negative amount")
-
-    index = self.index(alignedDown: index)
-    let limit = self.index(alignedDown: limit)
-
-    // Note: with Index not conforming to `Comparable`, we cannot do bulk
-    // iteration here, as we have no way to decide if we stepped over `limit`.
-    while n > 0, index != limit {
-      self.formIndex(after: &index)
-      n &-= 1
+    while n > 0 {
+      let c = self.nextSpan(after: &index, maxCount: n, limitedBy: limit).count
+      precondition(c <= n, "Invalid container")
+      guard c > 0 else { break }
+      n &-= c
     }
   }
 
-  @inlinable
-  public func distance(from start: Index, to end: Index) -> Int {
-#if true
-    // This variant does not require that `start` precede `end`, but it's
-    // slower/larger.
-    // FIXME: Linked lists may require an even slower implementation
-    // to avoid looping (turtle/hare cycle detection).
-    let start = self.index(alignedDown: start)
-    let end = self.index(alignedDown: end)
-    let limit = self.endIndex
-    var a = start
-    var b = end
-    var d = 0
-    while true {
-      if a == end { return d }
-      if b == start { return -d }
-      if a == limit {
-        while b != end {
-          self.formIndex(after: &b)
-          d += 1
-        }
-        return -d
-      }
-      if b == limit {
-        while a != end {
-          self.formIndex(after: &a)
-          d += 1
-        }
-        return d
-      }
-      self.formIndex(after: &a)
-      self.formIndex(after: &b)
-      d += 1
-    }
-#else
-    // This variant requires that `start` precede `end`, but we cannot ensure
-    // that with a quick check, so we need to compare against the `endIndex` to
-    // avoid looping indefinitely.
-    // FIXME: Linked lists may require an even slower implementation
-    // to avoid looping (turtle/hare cycle detection).
-    let i = self.index(alignedDown: start)
-    let target = self.index(alignedDown: end)
-    let limit = self.endIndex
-    var count = 0
-    while i != target {
-      self.formIndex(after: &i)
-      precondition(i != limit, "Only BidirectionalContainers can have end come before start")
-      count += 1
-    }
-    return count
-#endif
+  @_alwaysEmitIntoClient
+  public func index(
+    _ index: Index, offsetBy n: Int, limitedBy limit: Index
+  ) -> Index? {
+    var index = index
+    var n = n
+    self.formIndex(&index, offsetBy: &n, limitedBy: limit)
+    if n != 0 { return nil }
+    return index
   }
 
-  @inlinable
-  public func index(alignedDown index: Index) -> Index { index }
-
-  @inlinable
-  public func index(alignedUp index: Index) -> Index { index }
-
-  @inlinable
+  @_alwaysEmitIntoClient
   public func _customIndexOfEquatableElement(_: borrowing Element) -> Index?? {
     nil
   }
 
-  @inlinable
+  @_alwaysEmitIntoClient
   public func _customLastIndexOfEquatableElement(
     _ element: borrowing Element
   ) -> Index?? {
@@ -409,12 +408,72 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   }
 }
 
-
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
-  @_transparent
-  public var underestimatedCount_: Int { count }
+  @_alwaysEmitIntoClient
+  public func distance(from start: Index, to end: Index) -> Int {
+#if true
+    // This variant allows start to follow end, but as indices aren't
+    // comparable, we have to measure distances from both ends.
+    var d1 = 0
+    var d2 = 0
+    var i1 = start
+    var i2 = end
+    var forward = true
+    var backward = true
+    while forward || backward {
+      if forward {
+        let c = self.nextSpan(after: &i1, limitedBy: end).count
+        d1 += c
+        if i1 == end { return d1 }
+        if c == 0 { forward = false }
+      }
+      if backward {
+        let c = self.nextSpan(after: &i2, limitedBy: start).count
+        d2 -= c
+        if i2 == start { return d2 }
+        if c == 0 { backward = false }
+      }
+    }
+    fatalError("Invalid Container")
+#else
+    // Worse variant: this requires start <= end, but it has no way to quickly
+    // validate it. Furthermore, the restriction conflicts with Collection's
+    // more flexible implementation.
+    var i = start
+    var d = 0
+    while true {
+      let c = self.nextSpan(after: &i, limitedBy: j).count
+      d += c
+      if i == end { break }
+      precondition(c > 0, "Invalid Container or 'start' does not precede 'end'")
+    }
+    return d
+#endif
+  }
 }
 
-#endif
+@available(SwiftStdlib 6.4, *)
+extension Container
+where
+  Self: ~Copyable & ~Escapable,
+  Element: ~Copyable,
+  Index: Comparable
+{
+  @_alwaysEmitIntoClient
+  public func distance(from start: Index, to end: Index) -> Int {
+    var (i, j, forward): (Index, Index, Bool) = (start <= end
+     ? (start, end, true)
+     : (end, start, false))
+    var d = 0
+    while i < j {
+      let span = self.nextSpan(after: &i, limitedBy: j)
+      d += span.count
+    }
+    return forward ? d : -d
+  }
+}
 
+// FIXME: Add ambiguity resolvers against Collection's algorithms.
+
+#endif

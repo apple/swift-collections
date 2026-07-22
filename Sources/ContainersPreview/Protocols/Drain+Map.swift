@@ -48,7 +48,7 @@ public struct DrainMapProducer<
 }
 
 @available(SwiftStdlib 5.0, *)
-extension DrainMapProducer
+extension DrainMapProducer: Producer
 where
   Base: ~Copyable & ~Escapable,
   Element: ~Copyable
@@ -70,10 +70,10 @@ where
   @_lifetime(self: copy self)
   public mutating func generate(
     into target: inout OutputSpan<Element>
-  ) throws(Error) -> Bool {
+  ) throws(Failure) -> Bool {
     var success = false
     while !target.isFull {
-      var source = _base.drainNext(maximumCount: target.freeCapacity)
+      var source = _base.drainNext(maxCount: target.freeCapacity)
       if source.isEmpty { break }
       success = true
       while !source.isEmpty {
@@ -81,6 +81,12 @@ where
       }
     }
     return success
+  }
+
+  @inlinable
+  @_lifetime(self: copy self)
+  public mutating func skip(by n: inout Int) throws(Failure) {
+    _base.skip(by: &n)
   }
 }
 

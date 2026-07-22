@@ -15,18 +15,18 @@
 
 // FIXME: Figure out if it would be possible to add the container-based
 // `relative(to:)` to the existing `RangeExpression`.
-@available(SwiftStdlib 5.0, *)
-public protocol RangeExpression2<Bound> {
-  associatedtype Bound: Comparable
+@available(SwiftStdlib 6.4, *)
+public protocol RangeExpression2<Bound>: RangeExpression {
+  override associatedtype Bound: Comparable
 
   func relative<C: Container & ~Copyable & ~Escapable>(
     to container: borrowing C
   ) -> Range<Bound> where C.Index == Bound, C.Element: ~Copyable
 
-  func contains(_ element: Bound) -> Bool
+  override func contains(_ element: Bound) -> Bool
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Range: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
@@ -36,7 +36,7 @@ extension Range: RangeExpression2 {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension ClosedRange: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
@@ -47,7 +47,7 @@ extension ClosedRange: RangeExpression2 {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension PartialRangeFrom: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
@@ -57,7 +57,7 @@ extension PartialRangeFrom: RangeExpression2 {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension PartialRangeUpTo: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(
@@ -67,7 +67,7 @@ extension PartialRangeUpTo: RangeExpression2 {
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension PartialRangeThrough: RangeExpression2 {
   @inlinable
   public func relative<C: Container & ~Copyable & ~Escapable>(

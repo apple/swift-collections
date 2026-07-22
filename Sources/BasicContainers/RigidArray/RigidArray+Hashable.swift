@@ -17,13 +17,28 @@
 import InternalCollectionsUtilities
 #endif
 
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
+extension RigidArray: Hashable where Element: Hashable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidArray /*: Hashable */ where Element: Hashable /* & ~Copyable */ {
+extension RigidArray where Element: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(self.count)
     self.span._hashContents(into: &hasher)
   }
 }
+#else
+@available(SwiftStdlib 5.0, *)
+extension RigidArray where Element: Hashable {
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.count)
+    self.span._hashContents(into: &hasher)
+  }
+}
+#endif
 
 #endif

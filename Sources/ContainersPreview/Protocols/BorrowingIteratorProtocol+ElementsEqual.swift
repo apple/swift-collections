@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
 where
   Self: ~Copyable & ~Escapable, Element_: Equatable,
@@ -31,13 +31,13 @@ where
   ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable
   {
-    let it1 = self.makeIterableIterator_()
-    let it2 = other.makeIterableIterator_()
+    let it1 = self.makeBorrowingIterator_()
+    let it2 = other.makeBorrowingIterator_()
     return try it1.elementsEqual(it2)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Iterable_
 where
   Self: ~Copyable & ~Escapable,
@@ -73,21 +73,21 @@ where
   ) throws(Failure_) -> Bool
   where Other.Element_: ~Copyable, Other.Failure_ == Failure_
   {
-    let it1 = self.makeIterableIterator_()
-    let it2 = other.makeIterableIterator_()
+    let it1 = self.makeBorrowingIterator_()
+    let it2 = other.makeBorrowingIterator_()
     return try it1.elementsEqual(it2, by: areEquivalent)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable & Equatable
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) throws(Failure_) -> Bool
@@ -113,7 +113,7 @@ where
 
   @inlinable
   package consuming func _directElementsEqual<
-    Other: IterableIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
   ) throws(Failure_) -> Bool
@@ -123,7 +123,7 @@ where
     // Note: This is the less efficient implementation of elementsEqual. The
     // variant in the #else branch would be preferable, but it doesn't work yet.
     // (It lets the two iterators run at their native speeds, with no artificial
-    // maximumCounts.)
+    // maxCounts.)
     while true {
       let a = try self.nextSpan_()
       var i = 0
@@ -131,7 +131,7 @@ where
         return try other.nextSpan_().isEmpty
       }
       while i < a.count {
-        let b = try other.nextSpan_(maximumCount: a.count - i)
+        let b = try other.nextSpan_(maxCount: a.count - i)
         if b.isEmpty {
           return false
         }
@@ -173,15 +173,15 @@ where
   }
 }
 
-@available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol_
 where
   Self: ~Copyable & ~Escapable,
   Element_: ~Copyable
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: IterableIteratorProtocol_ & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
     by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure_) -> Bool

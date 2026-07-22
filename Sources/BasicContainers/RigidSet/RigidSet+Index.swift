@@ -100,10 +100,10 @@ extension RigidSet where Element: ~Copyable {
   
   @inlinable
   public subscript(index: Index) -> Element {
-    // FIXME: Use borrow accessor here
-    unsafeAddress {
+    @_unsafeSelfDependentResult
+    borrow {
       _checkItemIndex(index)
-      return .init(_memberPtr(at: index._bucket))
+      return _memberPtr(at: index._bucket).pointee
     }
   }
 }

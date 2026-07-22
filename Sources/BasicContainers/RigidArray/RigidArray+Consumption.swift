@@ -138,7 +138,7 @@ extension RigidArray where Element: ~Copyable {
 #endif
 
 #if compiler(>=6.4) && UnstableContainersPreview
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @inline(__always)
@@ -148,9 +148,9 @@ extension RigidArray where Element: ~Copyable {
   }
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  @available(SwiftStdlib 6.4, *)
+  @available(SwiftStdlib 5.0, *)
   @frozen
   public struct SubrangeConsumer: ~Copyable, ~Escapable {
     // FIXME: We have to use our own MutableRef because the standard one
@@ -191,20 +191,25 @@ extension RigidArray where Element: ~Copyable {
 }
 
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray.SubrangeConsumer: Drain where Element: ~Copyable {
 }
 
-@available(SwiftStdlib 6.4, *)
+@available(SwiftStdlib 5.0, *)
 extension RigidArray.SubrangeConsumer where Element: ~Copyable {
+  @inlinable
+  public var count: Int {
+    _remainder.count
+  }
+
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func drainNext(maximumCount: Int) -> InputSpan<Element> {
+  public mutating func drainNext(maxCount: Int) -> InputSpan<Element> {
     if _remainder.isEmpty {
       return .init()
     }
-    let buffer = _remainder._trim(first: maximumCount)
+    let buffer = _remainder._trim(first: maxCount)
     return _overrideLifetime(
       InputSpan(buffer: buffer, initializedCount: buffer.count),
       mutating: &self)

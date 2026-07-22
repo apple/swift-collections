@@ -18,7 +18,7 @@ import InternalCollectionsUtilities
 #endif
 
 @available(SwiftStdlib 5.0, *)
-public protocol IterableIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escapable {
+public protocol BorrowingIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escapable {
   associatedtype Element_: ~Copyable
   associatedtype Failure_: Error = Never
 
@@ -34,10 +34,10 @@ public protocol IterableIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escap
   /// invocation of it.
   ///
   /// If the iterator has not yet reached the end of the underlying sequence,
-  /// then this method returns a non-empty span of at most `maximumCount`
+  /// then this method returns a non-empty span of at most `maxCount`
   /// elements, and updates the iterator's current position to the element
   /// following the last item in the returned span (or the end, if there is
-  /// none). The `maximumCount` argument allows callers to avoid getting more
+  /// none). The `maxCount` argument allows callers to avoid getting more
   /// items that they are able to process in one go, simplifying usage, and
   /// avoiding materializing more elements than needed.
   ///
@@ -70,7 +70,7 @@ public protocol IterableIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escap
   /// method may vary between different borrows of the same container.)
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  mutating func nextSpan_(maximumCount: Int) throws(Failure_) -> Span<Element_>
+  mutating func nextSpan_(maxCount: Int) throws(Failure_) -> Span<Element_>
 
   /// Advance the position of this iterator by the specified offset, or until
   /// the end of the underlying sequence.
@@ -86,47 +86,47 @@ public protocol IterableIteratorProtocol_<Element_, Failure_>: ~Copyable, ~Escap
 }
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(&self)
   @_lifetime(self: copy self)
   @_transparent
   public mutating func nextSpan_() throws(Failure_) -> Span<Element_> {
-    try nextSpan_(maximumCount: Int.max)
+    try nextSpan_(maxCount: Int.max)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
 where Self: ~Copyable & ~Escapable, Element_: ~Copyable {
   @_lifetime(self: copy self)
   @inlinable
-  public mutating func skip_(by offset: Int) throws(Failure_) -> Int {
-    var remainder = offset
+  public mutating func skip_(by maxDistance: Int) throws(Failure_) -> Int {
+    var remainder = maxDistance
     while remainder > 0 {
-      let span = try nextSpan_(maximumCount: remainder)
+      let span = try nextSpan_(maxCount: remainder)
       if span.isEmpty { break }
       remainder &-= span.count
     }
-    return offset &- remainder
+    return maxDistance &- remainder
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_ where Self: ~Copyable & ~Escapable {
-#if false // FIXME: This doesn't work, but it should?
+extension BorrowingIteratorProtocol_ where Self: ~Copyable & ~Escapable {
+  @available(SwiftStdlib 6.4, *)
+  @_unsafeNonescapableResult // FIXME: Eep; _overrideLifetime(_:mutating:) doesn't work
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func next() -> Ref<Element>? {
-    let span = nextSpan(maximumCount: 1)
+  public mutating func next() throws(Failure_) -> Ref<Element_>? {
+    let span = try nextSpan_(maxCount: 1)
     guard !span.isEmpty else { return nil }
-    return Ref(_borrowing: span[unchecked: 0])
+    return Ref(span[unchecked: 0])
   }
-#endif
 }
 
 @available(SwiftStdlib 5.0, *)
-extension IterableIteratorProtocol_
+extension BorrowingIteratorProtocol_
   where Self: ~Copyable & ~Escapable, Element_: Copyable
 {
   @_lifetime(self: copy self)
@@ -136,7 +136,7 @@ extension IterableIteratorProtocol_
     try target.withUnsafeMutableBufferPointer { (dst, dstCount) throws(Failure_) -> Void in
       var tail = dst._extracting(droppingFirst: dstCount)
       while !tail.isEmpty {
-        let src = try nextSpan_(maximumCount: tail.count)
+        let src = try nextSpan_(maxCount: tail.count)
         if src.isEmpty { break }
         tail._initializeAndDropPrefix(copying: src)
         dstCount += src.count
@@ -144,6 +144,5 @@ extension IterableIteratorProtocol_
     }
   }
 }
-
 
 #endif

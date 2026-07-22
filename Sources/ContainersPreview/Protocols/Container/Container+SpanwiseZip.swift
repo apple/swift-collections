@@ -17,7 +17,7 @@ import InternalCollectionsUtilities
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   internal func _spanwiseZip<Other: Container & ~Copyable & ~Escapable, E: Error>(

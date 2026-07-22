@@ -260,9 +260,29 @@ extension RigidDeque where Element: ~Copyable {
       "Index range out of bounds")
   }
 
+#if compiler(>=6.4)
   @_alwaysEmitIntoClient
   public subscript(position: Int) -> Element {
-    // FIXME: Replace with borrow/mutate accessors
+    @inline(__always)
+    @_transparent
+    @_unsafeSelfDependentResult
+    borrow {
+      _checkItemIndex(position)
+      let slot = _handle.slot(forOffset: position)
+      return _handle.ptr(at: slot).pointee
+    }
+    @inline(__always)
+    @_transparent
+    @_unsafeSelfDependentResult
+    mutate {
+      _checkItemIndex(position)
+      let slot = _handle.slot(forOffset: position)
+      return &_handle.mutablePtr(at: slot).pointee
+    }
+  }
+#else
+  @_alwaysEmitIntoClient
+  public subscript(position: Int) -> Element {
     @inline(__always)
     @_transparent
     unsafeAddress {
@@ -278,6 +298,7 @@ extension RigidDeque where Element: ~Copyable {
       return _handle.mutablePtr(at: slot)
     }
   }
+#endif
 }
 
 @available(SwiftStdlib 5.0, *)

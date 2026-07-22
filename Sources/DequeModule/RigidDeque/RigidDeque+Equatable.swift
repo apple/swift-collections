@@ -19,14 +19,18 @@ import ContainersPreview
 #endif
 
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension RigidDeque where Element: ~Copyable {
   public func isTriviallyIdentical(to other: borrowing Self) -> Bool {
     self._handle.isIdentical(to: other._handle)
   }
 }
 
+#if compiler(>=6.4)
+@available(SwiftStdlib 6.4, *)
+extension RigidDeque: Equatable where Element: Equatable & ~Copyable {}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */ {
+extension RigidDeque where Element: Equatable & ~Copyable {
   @inlinable
   public static func ==(
     left: borrowing Self,
@@ -34,16 +38,35 @@ extension RigidDeque /*: Equatable */ where Element: Equatable /* & ~Copyable */
   ) -> Bool {
     guard left.count == right.count else { return false }
     guard !left.isTriviallyIdentical(to: right) else { return true }
-    
-#if compiler(>=6.4) && UnstableContainersPreview
-    return left._elementsEqual(right)
-#else
+
+#if UnstableContainersPreview
+    if #available(anyAppleOS 27, *) {
+      return left._elementsEqual(right)
+    }
+#endif
     for i in 0 ..< left.count {
       guard left[i] == right[i] else { return false }
     }
     return true
-#endif
   }
 }
+#else
+@available(SwiftStdlib 5.0, *)
+extension RigidDeque where Element: Equatable {
+  @inlinable
+  public static func ==(
+    left: borrowing Self,
+    right: borrowing Self
+  ) -> Bool {
+    guard left.count == right.count else { return false }
+    guard !left.isTriviallyIdentical(to: right) else { return true }
+
+    for i in 0 ..< left.count {
+      guard left[i] == right[i] else { return false }
+    }
+    return true
+  }
+}
+#endif
 
 #endif

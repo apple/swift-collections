@@ -459,12 +459,13 @@ extension UniqueDeque /* where Element: Copyable */ {
     removing subrange: Range<Int>,
     copying items: Span<Element>
   ) {
-    unsafe items.withUnsafeBufferPointer { buffer in
+    items.withUnsafeBufferPointer { buffer in
       unsafe self.replace(removing: subrange, copying: buffer)
     }
   }
   
 #if compiler(>=6.4) && UnstableContainersPreview
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _replace<
     C: Container<Element> & ~Copyable & ~Escapable
@@ -475,7 +476,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   ) {
 
     let expectedCount = self.count - subrange.count + newCount
-    var it = items.makeIterableIterator_()
+    var it = items.makeBorrowingIterator_()
     self.replace(removing: subrange, addingCount: newCount) { target in
       it._copyContents_(into: &target)
     }
@@ -539,6 +540,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   ///   - items: The new elements to copy into the collection.
   ///
   /// - Complexity: O(`self.count` + `items.count`)
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<
@@ -618,6 +620,7 @@ extension UniqueDeque /* where Element: Copyable */ {
   ///
   /// - Complexity: O(*n* + *m*), where *n* is count of this deque and
   ///   *m* is the count of `items`.
+  @available(SwiftStdlib 6.4, *)
   @inlinable
   @inline(__always)
   public mutating func replace<

@@ -18,8 +18,12 @@ import ContainersPreview
 
 #if compiler(>=6.4) && UnstableHashedContainers
 
+@available(SwiftStdlib 6.4, *)
+extension RigidDictionary: Hashable where Value: Hashable & ~Copyable {
+}
+
 @available(SwiftStdlib 5.0, *)
-extension RigidDictionary: Hashable where Value: Hashable { // Should be Hashable
+extension RigidDictionary where Value: Hashable & ~Copyable {
   @inlinable
   public func hash(into hasher: inout Hasher) {
     var commutativeHash = 0

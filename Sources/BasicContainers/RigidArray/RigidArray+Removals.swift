@@ -114,7 +114,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(`count`)
   @_alwaysEmitIntoClient
   public mutating func removeSubrange(_  bounds: some RangeExpression<Int>) {
-    // FIXME: Remove this in favor of a standard algorithm.
+    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
     removeSubrange(bounds.relative(to: indices))
   }
 }
@@ -129,7 +129,7 @@ extension RigidArray where Element: ~Copyable {
   /// - Complexity: O(1)
   @_alwaysEmitIntoClient
   public mutating func popLast() -> Element? {
-    // FIXME: Remove this in favor of a standard algorithm.
+    // FIXME: Remove this in favor of the RangeReplaceableContainer algorithm.
     if isEmpty { return nil }
     return removeLast()
   }

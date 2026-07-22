@@ -62,7 +62,7 @@ extension InputSpan where Element: ~Copyable {
   internal func _start() -> UnsafeMutableRawPointer {
     unsafe _pointer.unsafelyUnwrapped
   }
-  
+
   @unsafe
   @_alwaysEmitIntoClient
   @_transparent
@@ -177,7 +177,7 @@ extension InputSpan where Element: ~Copyable {
     capacity = buffer.count
     _count = initializedCount
   }
-  
+
   @unsafe
   @_alwaysEmitIntoClient
   @_lifetime(borrow buffer)
@@ -237,6 +237,28 @@ extension InputSpan where Element: ~Copyable {
     unsafe Range(uncheckedBounds: (0, _count))
   }
 
+#if compiler(>=6.4)
+  /// Accesses the element at the specified position.
+  ///
+  /// - Parameter index: A valid index into this span.
+  ///
+  /// - Complexity: O(1)
+  @_alwaysEmitIntoClient
+  public subscript(_ index: Index) -> Element {
+    @_unsafeSelfDependentResult
+    borrow {
+      precondition(indices.contains(index), "Index out of bounds")
+      return unsafe _unsafeAddressOfElement(uncheckedOffset: index).pointee
+    }
+
+    @_unsafeSelfDependentResult
+    @_lifetime(self: copy self)
+    mutate {
+      precondition(indices.contains(index), "Index out of bounds")
+      return unsafe &_unsafeAddressOfElement(uncheckedOffset: index).pointee
+    }
+  }
+#else
   /// Accesses the element at the specified position.
   ///
   /// - Parameter index: A valid index into this span.
@@ -255,7 +277,30 @@ extension InputSpan where Element: ~Copyable {
       return unsafe _unsafeAddressOfElement(uncheckedOffset: index)
     }
   }
+#endif
 
+#if compiler(>=6.4)
+  /// Accesses the element at the specified position.
+  ///
+  /// This subscript does not validate `position`; this is an unsafe operation.
+  ///
+  /// - Parameter index: A valid index into this span.
+  ///
+  /// - Complexity: O(1)
+  @unsafe
+  @_alwaysEmitIntoClient
+  public subscript(unchecked index: Index) -> Element {
+    @_unsafeSelfDependentResult
+    borrow {
+      unsafe _unsafeAddressOfElement(uncheckedOffset: index).pointee
+    }
+    @_unsafeSelfDependentResult
+    @_lifetime(self: copy self)
+    mutate {
+      unsafe &_unsafeAddressOfElement(uncheckedOffset: index).pointee
+    }
+  }
+#else
   /// Accesses the element at the specified position.
   ///
   /// This subscript does not validate `position`; this is an unsafe operation.
@@ -274,6 +319,7 @@ extension InputSpan where Element: ~Copyable {
       unsafe _unsafeAddressOfElement(uncheckedOffset: index)
     }
   }
+#endif
 
   /// Exchange the elements at the two given offsets
   ///
@@ -346,7 +392,7 @@ extension InputSpan where Element: ~Copyable {
     }
     _count &-= k
   }
-  
+
   /// Removes and returns the first element of this input span, if it exists.
   ///
   /// - Returns: The first element of the original span if it wasn't empty;
@@ -435,18 +481,39 @@ extension InputSpan /* where Element: Copyable */ {
 
 @available(SwiftStdlib 5.0, *)
 extension InputSpan where Element: ~Copyable {
+  @inlinable
+  @unsafe
+  @_lifetime(borrow self)
+  internal func _uncheckedSpan(in range: Range<Index>) -> Span<Element> {
+    let pointer = unsafe _pointer?
+      .assumingMemoryBound(to: Element.self)
+      .advanced(by: capacity &- _count &+ range.lowerBound)
+    let buffer = unsafe UnsafeBufferPointer(start: pointer, count: range.count)
+    let span = unsafe Span(_unsafeElements: buffer)
+    return unsafe _overrideLifetime(span, borrowing: self)
+  }
+
+  @inlinable
+  @unsafe
+  @_lifetime(&self)
+  internal mutating func _uncheckedMutableSpan(in range: Range<Index>) -> MutableSpan<Element> {
+    let pointer = unsafe _pointer?
+      .assumingMemoryBound(to: Element.self)
+      .advanced(by: capacity &- _count &+ range.lowerBound)
+    let buffer = unsafe UnsafeMutableBufferPointer(
+      start: pointer, count: range.count)
+    let span = unsafe MutableSpan(_unsafeElements: buffer)
+    return unsafe _overrideLifetime(span, mutating: &self)
+  }
+
   /// Borrow the underlying initialized memory for read-only access.
   @available(SwiftStdlib 5.0, *)
   @_alwaysEmitIntoClient
+  @_transparent
   public var span: Span<Element> {
     @_lifetime(borrow self)
     borrowing get {
-      let pointer = unsafe _pointer?
-        .assumingMemoryBound(to: Element.self)
-        .advanced(by: capacity &- _count)
-      let buffer = unsafe UnsafeBufferPointer(start: pointer, count: _count)
-      let span = unsafe Span(_unsafeElements: buffer)
-      return unsafe _overrideLifetime(span, borrowing: self)
+      _uncheckedSpan(in: 0 ..< _count)
     }
   }
 
@@ -456,13 +523,7 @@ extension InputSpan where Element: ~Copyable {
   public var mutableSpan: MutableSpan<Element> {
     @_lifetime(&self)
     mutating get {
-      let pointer = unsafe _pointer?
-        .assumingMemoryBound(to: Element.self)
-        .advanced(by: capacity &- _count)
-      let buffer = unsafe UnsafeMutableBufferPointer(
-        start: pointer, count: _count)
-      let span = unsafe MutableSpan(_unsafeElements: buffer)
-      return unsafe _overrideLifetime(span, borrowing: self)
+      _uncheckedMutableSpan(in: 0 ..< _count)
     }
   }
 }
@@ -533,7 +594,7 @@ extension InputSpan where Element: ~Copyable {
   public mutating func consumePrefix(upTo n: Int) -> InputSpan<Element> {
     precondition(n >= 0, "Cannot consume a negative number of elements")
     let c = Swift.min(n, self.count)
-    
+
     let buffer = unsafe _unsafeRawAddressOfSlot(
       uncheckedOffset: 0
     ).withMemoryRebound(to: Element.self, capacity: c) { start in
@@ -547,7 +608,7 @@ extension InputSpan where Element: ~Copyable {
 }
 
 @available(SwiftStdlib 5.0, *)
-internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
+internal func _withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>(
   of type: Element.Type,
   capacity: Int,
   _ body: (inout InputSpan<Element>) throws(E) -> R
@@ -561,20 +622,14 @@ internal func withTemporaryInputSpan<Element: ~Copyable, E: Error, R: ~Copyable>
 }
 
 @available(SwiftStdlib 5.0, *)
-extension OutputSpan where Element: ~Copyable {
+extension InputSpan where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
   package mutating func _consumeAll(
     consumingWith consumer: (inout InputSpan<Element>) -> Void
   ) {
-    self.withUnsafeMutableBufferPointer { buffer, count in
-      var span = InputSpan(
-        buffer: buffer._extracting(first: count),
-        initializedCount: count)
-      consumer(&span)
-      _ = consume span
-      count = 0
-    }
+    consumer(&self)
+    self.removeAll()
   }
 }
 

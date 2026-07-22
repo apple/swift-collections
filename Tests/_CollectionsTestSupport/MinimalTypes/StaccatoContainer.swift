@@ -58,9 +58,9 @@ package struct _StaccatoParameters {
 
   internal func endOffset(
     fromOffset startOffset: Int,
-    maximumCount: Int
+    maxCount: Int
   ) -> Int {
-    precondition(maximumCount > 0)
+    precondition(maxCount >= 0)
     precondition(startOffset >= 0 && startOffset <= _count)
     var cycleOffset = startOffset % _modulus
     var i = 0
@@ -71,36 +71,50 @@ package struct _StaccatoParameters {
       i += 1
     }
     let c = _spanCounts[i]
-    return Swift.min(_count, startOffset + Swift.min(c - cycleOffset, maximumCount))
+    return Swift.min(_count, startOffset + Swift.min(c - cycleOffset, maxCount))
   }
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoBorrowingIterator<Element: ~Copyable>: IterableIteratorProtocol_, ~Escapable {
+public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol_, ~Escapable {
   public typealias Element_ = Element
 
   internal let _contents: Span<Element>
   internal let _params: _StaccatoParameters
   internal var _offset: Int
+  internal let _end: Int
 
   @_lifetime(copy contents)
-  internal init(contents: Span<Element>, params: _StaccatoParameters) {
+  internal init(
+    contents: Span<Element>,
+    params: _StaccatoParameters,
+    start: _StaccatoIndex = .init(_offset: 0),
+    end: _StaccatoIndex? = nil
+  ) {
+    precondition(start._offset >= 0 && start._offset <= params._count)
     self._contents = contents
     self._params = params
-    self._offset = 0
+    self._offset = start._offset
+    self._end = end?._offset ?? params._count
   }
 
-  @_lifetime(&self) // FIXME: Should be `@_lifetime(copy self)`
-  public mutating func nextSpan_(maximumCount: Int) -> Span<Element> {
-    let endOffset = _params.endOffset(fromOffset: _offset, maximumCount: maximumCount)
+  @_lifetime(&self)
+  public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+    precondition(maxCount > 0)
+    let maxCount = Swift.min(maxCount, _end - _offset)
+    let endOffset = _params.endOffset(fromOffset: _offset, maxCount: maxCount)
     let startOffset = _offset
     _offset = endOffset
     return _contents.extracting(startOffset ..< endOffset)
   }
+
+  public var currentIndex: _StaccatoIndex {
+    _StaccatoIndex(_offset: _offset)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoIndex: Comparable {
+public struct _StaccatoIndex: Comparable, Hashable{
   var _offset: Int
   init(_offset: Int) {
     self._offset = _offset
@@ -113,56 +127,71 @@ public struct _StaccatoIndex: Comparable {
   public static func <(left: Self, right: Self) -> Bool {
     left._offset < right._offset
   }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(_offset)
+  }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension StaccatoContainer: Iterable_ where Element: ~Copyable {
-  public typealias IterableIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
+  public typealias BorrowingIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
   public var underestimatedCount_: Int { count }
 
-  public func makeIterableIterator_() -> IterableIterator_ {
-    IterableIterator_(contents: _contents.span, params: _params)
+  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+    BorrowingIterator_(contents: _contents.span, params: _params)
   }
 }
 
 @available(SwiftStdlib 5.0, *)
 extension StaccatoContainer: Container where Element: ~Copyable {
   public typealias Index = _StaccatoIndex
-  
-  public var isEmpty: Bool { _contents.isEmpty }
-  public var count: Int { _contents.count }
-  
-  
+
+  public var isEmpty: Bool { count == 0 }
+  public var count: Int { _params._count }
+
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_ {
+    BorrowingIterator_(contents: _contents.span, params: _params, start: start, end: end)
+  }
+
+  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+    iterator.currentIndex
+  }
+
   package func _isValid(_ index: Index) -> Bool {
     index._offset >= 0 && index._offset <= count
+  }
+  package func _isOccupied(_ index: Index) -> Bool {
+    index._offset >= 0 && index._offset < count
   }
 
   public var startIndex: Index { Index(_offset: 0) }
   public var endIndex: Index { Index(_offset: _contents.count) }
-  
+
   public func index(after index: Index) -> Index {
     precondition(index._offset >= 0 && index._offset < count)
     return Index(_offset: index._offset + 1)
   }
-  
+
   public func index(before index: Index) -> Index {
     precondition(index._offset > 0 && index._offset <= count)
     return Index(_offset: index._offset - 1)
   }
-  
+
   public func index(_ index: Index, offsetBy n: Int) -> Index {
     precondition(index._offset >= 0 && index._offset <= count)
     let j = index._offset + n
     precondition(j >= 0 && j <= count)
     return Index(_offset: j)
   }
-  
+
   public func distance(from start: Index, to end: Index) -> Int {
     precondition(_isValid(start) && _isValid(end))
     return end._offset - start._offset
   }
-  
+
   public func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   ) {
@@ -170,15 +199,38 @@ extension StaccatoContainer: Container where Element: ~Copyable {
     index._offset._advance(by: &n, limitedBy: limit._offset)
     precondition(_isValid(index))
   }
-  
+
+  public subscript(position: Index) -> Element {
+    borrow {
+      precondition(_isOccupied(position))
+      return _contents[position._offset]
+    }
+  }
+
   @_lifetime(borrow self)
   public func nextSpan(
-    after index: inout Index, maximumCount: Int
+    after index: inout Index
   ) -> Span<Element> {
     precondition(_isValid(index))
     let startOffset = index._offset
-    let endOffset = _params.endOffset(fromOffset: index._offset, maximumCount: maximumCount)
-    print("\(startOffset) .-> \(endOffset)")
+    let endOffset = _params.endOffset(fromOffset: index._offset, maxCount: Int.max)
+    index._offset = endOffset
+    return _contents.span.extracting(startOffset ..< endOffset)
+  }
+
+  @_lifetime(borrow self)
+  public func nextSpan(
+    after index: inout Index, maxCount: Int, limitedBy limit: Index
+  ) -> Span<Element> {
+    precondition(_isValid(index))
+    precondition(_isValid(limit))
+    var limit = limit
+    if limit < index { limit = endIndex }
+
+    let startOffset = index._offset
+    let endOffset = _params.endOffset(
+      fromOffset: index._offset,
+      maxCount: Swift.min(limit._offset - index._offset, maxCount))
     index._offset = endOffset
     return _contents.span.extracting(startOffset ..< endOffset)
   }
