@@ -33,12 +33,10 @@ public struct RigidArray<Element: ~Copyable>: ~Copyable {
   internal var _count: Int
 
   deinit {
-    if _capacity == 0 {
-      return
+    if _capacity != 0 {
+      _ptr.deinitialize(count: _count)
+      _ptr.deallocate()
     }
-
-    _ptr.deinitialize(count: _count)
-    _ptr.deallocate()
   }
 
   public init() {
