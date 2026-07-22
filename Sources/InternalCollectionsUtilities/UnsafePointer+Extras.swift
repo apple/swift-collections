@@ -33,6 +33,6 @@ extension UnsafePointer where Pointee: ~Copyable {
   @_transparent
   package static func _dangling() -> Self {
     let align = MemoryLayout<Pointee>.alignment
-    return unsafe Self(bitPattern: align).unsafelyUnwrapped
+    return Self(bitPattern: align).unsafelyUnwrapped
   }
 }
