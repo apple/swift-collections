@@ -167,9 +167,11 @@ The new `Iterable` protocol resolves this issue by introducing the idea of **bul
 For iterables that physically store their contents in memory, implementing iteration simply requires exposing spans over their preexisting piecewise contiguous storage chunks -- the bigger the chunks, the more efficient iteration becomes, even if `nextSpan`'s implementation isn't visible to the optimizer.
 
 <details><summary>Click to expand footnote</summary>
+
 > Of course, it was always possible to factor the implementation of iterators this way, by splitting `next()` into two layers, with judicious use of `@inlinable` or even `@inline(always)` attributes to encourage better performance while we're iterating within a storage chunk. However, this required a deep understanding of the underlying issues, and a large amount of willpower to structure the implementation the right way: this meant that only a select handful of types made an effort, and clients couldn't depend on it.
 >
 > `Iterable` forces all conforming types to organize their implementation around this idea, drastically improving clients' ability to reason about performance costs, even in generic contexts.
+
 </details>
 
 Bulk iteration is not without drawbacks: it comes with a drastically more complicated interface, increasing the mental load of authoring conforming types, and of solving problems using the protocol.
@@ -181,7 +183,9 @@ Operations for bulk iteration are full of subtle design complications that often
 However, consider a client that just wants to look at the first three elements to make a decision about what to do with the rest. Giving this caller four thousand items would put them in an awkward position: they would need to stash the leftovers somewhere, and then process them all before pulling on the iterator again. The spans that `nextSpan` returns are tied to an exclusive access of the iterator, which (currently at least) makes it impossible to actually store them alongside the iterator in any meaningful way: these clients would be drowned in a sea of elements they cannot process. By simplifying conforming implementations, we would significantly limit the usefulness of the protocol.
 
 <details><summary>Click to expand footnote</summary>
+
 > Throwing away the iterator and restarting it may seem like a possible workaround, but as `Iterable` types aren't required to produce the same items on repeated iterations, this cannot be a general solution. It only works on some iterable types, such as the containers we are introducing in this document.
+
 </details>
 
 <p id="bulk-failures">How bulk operations report/handle failures is a similarly subtle but important complication: operations that need to throw errors must be able to properly report partial success, to avoid data loss and to allow clients to identify precisely which element triggered the error. If the fifth element of an `Iterable` instance happens to trigger an error, it still needs to be possible for clients to reliably access the first four elements -- no matter what value they use for `maxCount`.</p>
@@ -243,7 +247,9 @@ On the other hand, the ability to fail is far less important for _visitative_ co
 This greatly simplifies the container model, but it does mean that throwing algorithms like our hypothetical lazy `filter` can only produce `Iterable` types -- they cannot return containers, even if their input is one.
 
 <details><summary>Click to expand footnote</summary>
-Some readers may note a wrinkle in that we're assuming that accessing storage held in memory cannot possibly fail. While it is true that accessing memory can trigger faults (e.g., consider `mmap`ped regions), we lack the means to turn these faults into recoverable errors in Swift, and it seems unlikely it would be actually desirable to design container protocols around a hypothetical future language direction like that. The pragmatic choice is to assume that container types are stored in memory allocated using Swift's dedicated primitives, and access to them can never fail without crashing the entire process (or an isolated subsystem within it).
+
+> Some readers may note a problem with the assumption that accessing storage held in memory cannot possibly fail. While it is true that accessing memory can trigger faults (e.g., consider `mmap`ped regions), we lack the means to turn these faults into recoverable errors in Swift, and it seems unlikely it would be actually desirable to design container protocols around a hypothetical future language direction like that. The pragmatic choice is to assume that container types are stored in memory allocated using Swift's dedicated heap allocation primitives, and access to them can never fail without crashing the entire process (or at least bringing down an isolated subsystem within it).
+
 </details>
 
 Let us now introduce the actual protocols, starting with `Container` itself.
@@ -294,7 +300,7 @@ Unlike `Collection`, types conforming to `Container` are **required to produce t
 >
 > In the design we are proposing, humongous containers can choose to either only conform to `Iterable`, or to trigger a trap if they are ever asked for their count. Client code often invokes `count` so that it can preallocate storage for related work; obviously that is not going to end well if a container's count exceeds `Int.max`. (And in fact trapping early is much preferable to allowing the operation to inevitably fail midway through some vast computation.)
 >
-> If we wanted to support them, one option would be to have `count` return an optional, or to push this property down into a separate `FiniteContainer` protocol. The overwhelming complexity of these options does not feel to be anywhere in proportion to the practical importance of such cases. Which is not to say they don't exist: tree-based ropes in particular (like `Foundation`'s `AttributedString`) can easily grow to humongous sizes, by simply concatenating a rope with itself a few dozen times. However, these are mostly just fun curiosities; such trees are rarely (if ever) practically useful.
+> If we wanted to support such containers better, one option would be to have `count` return an optional; another would be to push the property down into a separate `FiniteContainer` protocol. The overwhelming complexity of these options does not feel to be anywhere in proportion to the practical importance of such cases. Which is not to say they don't exist: tree-based ropes in particular (like `Foundation`'s `AttributedString`) can easily grow to humongous sizes, by simply concatenating a rope with itself a few dozen times. However, these are mostly just curiosities; such trees are rarely (if ever) practically useful.
 
 </details>
 
@@ -343,7 +349,7 @@ Every one of the standard container types we've introduced so far (from `Span` t
 
 `Container` indices are required to be `Equatable`, but unlike `Collection`, they do not need to be `Comparable`. Linked lists are commonly used in systems programming, and this choice allows some linked list implementations to usefully conform to `Container`. The lack of an inherent ordering does complicate the default implementations of some index operations -- [see below](#distance-from-to).
 
-In exchange, `Container` requires its indices to be `Hashable`. This does not put an undue burden on container implementations, but it does allow indices to be collected in sets or used as dictionary keys, enabling use cases such as dynamic filtering or out-of-band storage of data associated with container elements. (This fixes a small wrinkle with `Collection`, in that it does not require hashable indices.)
+In exchange, `Container` requires its indices to be `Hashable`. This does not put an undue burden on container implementations, but it does allow indices to be collected in sets or used as dictionary keys, enabling use cases such as dynamic filtering or out-of-band storage of data associated with container elements. (Not guaranteeing hashable indices is an old `Collection`wrinkle.)
 
 To acknowledge our performance goals, **we require that `Container` indices must be compared for equality and hashed with constant complexity**. If a container's index does happen to be `Comparable`, then it is required that `<` has O(1) complexity as well.
 
@@ -369,12 +375,18 @@ protocol Container<Element>: ... {
 
 As `Container` models a forward-only container, its `index(_:offsetBy:)` operation requires a nonnegative offset. (We'll shortly introduce a `BidirectionalContainer` refinement that will relax this constraint.)
 
-<span id="distance-from-to">As indices aren't required to be `Comparable`, the default implementation of `distance(from:to:)` cannot quickly validate that its `start` argument precedes `end`. To avoid having to run all the way to the end of the container to detect misuse, the algorithm instead iterates forward from both arguments, until it finds the other. This makes the default implementation twice as slow, but it allows it to correctly calculate negative distances. In the common case when `Index` is `Comparable`, we also provide a refined default algorithm that avoids this overhead.</span>
+<span id="distance-from-to">
+
+As indices aren't required to be `Comparable`, the default implementation of `distance(from:to:)` cannot quickly validate that its `start` argument precedes `end`. To avoid having to run all the way to the end of the container to detect misuse, the algorithm instead iterates forward from both arguments, until it finds the other. This makes the default implementation twice as slow, but it allows it to correctly calculate negative distances. In the common case when `Index` is `Comparable`, we also provide a refined default algorithm that avoids this overhead.
+
+</span>
 
 Notably, we replace `Collection`'s classic `index(_:offsetBy:limitedBy:)` requirement with an improved variant ([first introduced on `UniqueArray`][formIndex-offsetBy-limitedBy]) that reports the number of steps it was unable to take when reaching the limit. This avoids having to figure this out with a separate `distance(from:to:)` invocation, enabling more efficient use of this operation in situations that need this data; for example, it allows easy single-pass offsetting across concatenated containers. `Collection`'s original `index(_:offsetBy:limitedBy:)` operation is still available, as a standard algorithm based on the new requirement.
 
 <span id="limiting-index-semantics">
+
 The `limit` argument here (and also elsewhere throughout the `Container` interface surface) means a **limiting index**, intended to cause the operation to stop if it encounters the limit during its execution. A limit of this sort only stops the operation if it needs to actively iterate over the corresponding position; a limit that the operation never needs to visit has no effect, whether it happens to address a position before or after the visited range. For example, if we're trying to iterate forward by `n` steps, a limit that's behind the start position has no effect. These specific semantics allow types that cannot provide comparable indices to still correctly conform to the protocol. (For example, linked lists usually cannot determine relative ordering between their indices without actively iterating through the list in linear time, as we've seen with `distance(from:to:)`.)
+
 </span>
 
 [formIndex-offsetBy-limitedBy]: https://github.com/swiftlang/swift/blob/swift-6.4.x-DEVELOPMENT-SNAPSHOT-2026-07-06-a/stdlib/public/core/UniqueArray/UniqueArray%2BContainer.swift#L267-L273
@@ -430,7 +442,7 @@ protocol Container<Element>: ... {
 ```
 
 
-The `maxCount` argument gives the caller control over the number of items it receives from the iterator, while `limit` allows the caller to request that the result never exceed a specific index. These parameters let callers avoid overrunning their target, which would significantly complicate container use.
+The `maxCount` argument gives the caller control over the number of items it receives from the iterator, while `limit` allows the caller to request that the result never step over a specific index. These parameters let callers avoid overrunning their target, which would significantly complicate container use.
 
 Not all containers are contiguous, so `maxCount` only sets an upper bound. To read a specific number of items, the caller usually needs to invoke `nextSpan` in a loop:
 
@@ -467,9 +479,9 @@ extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
 }
 ```
 
-Containers often hold their contents in piecewise contiguous storage chunks. As this default implementation iterates over entire chunks, it can be considerably more efficient than stepping through indices one by one, like `Collection` does. As the elements are required to preexist in memory, materializing spans over them is relatively cheap -- `nextSpan` merely needs to locate storage, not populate its contents. Still, it is often possible to implement required operations more directly, and it is good practice to do so whenever it leads to measurable improvement.
+Containers often hold their contents in piecewise contiguous storage chunks. As this default implementation iterates over entire chunks, it can be considerably more efficient than stepping through indices one by one, like `Collection` does. As the elements are required to preexist in memory, materializing spans over them is relatively cheap -- `nextSpan` merely needs to locate storage, not populate its contents. Still, it is often possible to implement `Container` operations more directly, and it is good practice to do so whenever it leads to measurable improvement.
 
-The default implementation of `distance(from:to:)` poses an interesting problem: `Container` only allows forward iteration, so to measure the distance between two indices, we have to start iterating from the one addressing the earlier one. But container does not require its `Index` to be `Comparable`, so that's not something we can easily check. We have three options to resolve this:
+The default implementation of `distance(from:to:)` poses an interesting problem: `Container` only allows forward iteration, so to measure the distance between two indices, we have to start iterating from the one addressing the earlier one. But `Container` does not require its `Index` to be `Comparable`, so we cannot easily decide which index goes first! We have three options to resolve this:
 
 1. Only provide a default `distance` algorithm for containers with comparable indices.
 
@@ -885,7 +897,9 @@ where Element: ~Copyable, Index: Comparable {
 ```
 
 <details><summary>Click to expand footnote</summary>
+
 > `RandomAccessContainer` should technically redeclare single-steppers like `index(after:)` as `@_nonoverride`, as the protocol adds a semantic requirement for O(1) complexity. However, we emulate `RandomAccessCollection`'s (not necessarily well-justified) decision to leave these marked as overrides, forcing all types to have a single implementation that fulfills the (unique) requirement. (I haven't seen a case where these steppers would need to vary their implementation, while offsetting/distance calculations do sometimes want that, at least in theory. Not so much in practice though -- see e.g. `ZipSequence`'s lack of a conditional (random-access) collection conformance.)
+
 </details>
 
 ## Mutable Containers
