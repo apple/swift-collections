@@ -43,7 +43,7 @@ target_sources(${module_name} PRIVATE
   "TemporaryAllocation.swift"
   "UnsafeBufferPointer+Extras.swift"
   "UnsafeMutableBufferPointer+Extras.swift"
-  "UnsfeMutablePointer+Extras.swift"
+  "UnsafeMutablePointer+Extras.swift"
   "UnsafeMutableRawBufferPointer+Extras.swift"
   "UnsafePointer+Extras.swift"
   "UnsafeRawBufferPointer+Extras.swift"
