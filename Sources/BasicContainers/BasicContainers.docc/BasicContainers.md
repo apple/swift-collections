@@ -60,9 +60,35 @@ Unlike ``InlineArray``, the capacity of a ``RigidArray`` is not part of its type
 
 This allows ``RigidArray`` to still provide _explicit_ resizing operations: it has a `reallocate(capacity:)` method that can be used to arbitrarily resize its storage, as well as the familiar ``reserveCapacity(_:)`` operation. This enables building dynamic array types on top of ``RigidArray``; indeed, `UniqueArray` is a relatively simple wrapper around rigid array instance, forwarding operations to it when possible.
 
+### struct TemporaryArray
+
+``TemporaryArray`` is a dynamically self-resizing array whose *initial* storage is **borrowed** -- most usefully a stack allocation vended by the ``withTemporaryArray(of:capacity:_:)`` function. As long as the element count stays within a seed buffer small enough to live on the stack, the array performs no heap allocation at all. The moment an insertion would exceed the borrowed capacity, the array transparently spills over into freshly allocated heap storage, moving its existing elements across, and from then on behaves like an ordinary heap-backed array that owns its storage.
+
+```swift
+    let sum = withTemporaryArray(of: Int.self, capacity: 64) { scratch in
+        for x in numbers where isHot(x) {
+            scratch.append(x * x)
+        }
+        var total = 0
+        for i in scratch.indices { total += scratch[i] }
+        return total
+    }
+```
+
+Because it can hold a dependency on borrowed (stack) memory, ``TemporaryArray`` is *non-escapable*: instances cannot outlive the scope that provides their initial buffer. This is enforced by the compiler. To keep the accumulated elements past that scope, move them into an owning container with ``TemporaryArray/take()``, which hands back a ``UniqueArray`` -- transferring the heap buffer directly if the array had already spilled, or moving the elements into a fresh allocation otherwise.
+
+This makes ``TemporaryArray`` a good fit for algorithms that need scratch storage of an unknown final size where small cases dominate, such as collecting the results of mapping or filtering an arbitrary sequence: a reasonable lower-bound guess can be reserved on the stack, and only the unexpectedly large cases pay for a heap allocation.
+
+Its API deliberately mirrors ``UniqueArray`` (SE-0527), minus the operations that don't apply to a non-escapable scratch type, plus a few members unique to its borrow-then-spill design (``TemporaryArray/take()`` and the copying ``TemporaryArray/clone()`` operations).
+
 ## Topics
 
 ### Types
 
 - ``UniqueArray``
 - ``RigidArray``
+- ``TemporaryArray``
+
+### Functions
+
+- ``withTemporaryArray(of:capacity:_:)``
