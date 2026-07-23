@@ -68,6 +68,12 @@ public func expectUniqueArrayContents<
 
 @available(SwiftStdlib 6.2, *)
 class UniqueArrayTests: CollectionTestCase {
+  func test_memory_layout() {
+    let word = MemoryLayout<Int>.size
+    expectEqual(MemoryLayout<UniqueArray<Int>>.stride, 3 * word)
+    expectEqual(MemoryLayout<UniqueArray<Int>?>.stride, 3 * word)
+  }
+
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in
