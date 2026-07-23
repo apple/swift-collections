@@ -66,6 +66,12 @@ internal func expectRigidArrayContents<
 
 @available(SwiftStdlib 5.0, *)
 class RigidArrayTests: CollectionTestCase {
+  func test_memory_layout() {
+    let word = MemoryLayout<Int>.size
+    expectEqual(MemoryLayout<RigidArray<Int>>.stride, 3 * word)
+    expectEqual(MemoryLayout<RigidArray<Int>?>.stride, 3 * word)
+  }
+
   func test_validate_Container() {
     withSomeArrayLayouts("layout", ofCapacities: [0, 10, 100]) { layout in
       withLifetimeTracking { tracker in

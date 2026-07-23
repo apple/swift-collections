@@ -15,7 +15,7 @@
 
 @available(SwiftStdlib 6.4, *)
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
-where Element: ~Copyable, Index: Comparable
+where Element: ~Copyable
 {
   override associatedtype Element: ~Copyable
   override associatedtype Index
@@ -63,8 +63,6 @@ where Element: ~Copyable, Index: Comparable
   @_nonoverride func formIndex(
     _ index: inout Index, offsetBy n: inout Int, limitedBy limit: Index
   )
-
-  @_nonoverride func distance(from start: Index, to end: Index) -> Int
 }
 
 @available(SwiftStdlib 6.4, *)
@@ -194,8 +192,6 @@ where Self: ~Copyable & ~Escapable, Element: ~Copyable {
     if n != 0 { return nil }
     return index
   }
-
-  // Note: `distance(from:to:)` comes from `Container where Index: Comparable`.
 }
 
 // FIXME: Add ambiguity resolvers against BidirectionCollection algorithms.
