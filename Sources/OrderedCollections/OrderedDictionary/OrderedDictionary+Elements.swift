@@ -408,8 +408,9 @@ extension OrderedDictionary.Elements {
   ///     dict.elements.replaceElement(at: 1, withKey: "é", value: 2)
   ///     // dict is now ["a": 1, "é": 2, "c": 3]
   ///
-  /// In the general case, the new pair is appended, swapped into position,
-  /// and the old element is removed from the end — each step is O(1).
+  /// In the general case, the new key is appended, swapped into position, and
+  /// the old key removed from the end, while the value is overwritten in
+  /// place — each step is O(1).
   /// When the new key compares equal to the one being replaced, the pair
   /// is updated in place and the hash table is left untouched.
   ///
