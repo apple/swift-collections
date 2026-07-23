@@ -2,8 +2,8 @@
 
 1. Create a milestone for the new version (if one doesn't exist yet).
 2. Collect all issues & PRs that are going to be included in the new tag under the new milestone.
-3. If the new release moves code between source files or adds new API that has the potential to cause mutual dependencies between source files, then run the [shuffle-sources.sh](./Utils/shuffle-sources.sh) script for at least a few hundred iterations on the affected module to help catch [nondeterministic build issues with the compiler's MergeModules phase](https://github.com/apple/swift-collections/issues/7). (Note: it's best to do this on a fresh clone. We can stop doing this when MergeModules is no longer used to build debug configurations in SPM.)
-4. Run the [full tests script](./Utils/run-full-tests.sh) on the commit that you intend to tag, with all supported (major) toolchain releases, and on as many supported platforms as are practical. (At minimum, run the script with the latest stable toolchain releases on macOS and one Linux distribution.)
+3. If the new release moves code between source files or adds new API that has the potential to cause mutual dependencies between source files, then run the [shuffle-sources.sh](../../Utils/shuffle-sources.sh) script for at least a few hundred iterations on the affected module to help catch [nondeterministic build issues with the compiler's MergeModules phase](https://github.com/apple/swift-collections/issues/7). (Note: it's best to do this on a fresh clone. We can stop doing this when MergeModules is no longer used to build debug configurations in SPM.)
+4. Run the [full tests script](../../Utils/run-full-tests.sh) on the commit that you intend to tag, with all supported (major) toolchain releases, and on as many supported platforms as are practical. (At minimum, run the script with the latest stable toolchain releases on macOS and one Linux distribution.)
   The script exercises a tiny subset of the environments this package can be built and run on.
   
    The full matrix includes the following axes:
