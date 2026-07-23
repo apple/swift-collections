@@ -32,3 +32,11 @@ extension UnsafeMutablePointer where Pointee: ~Copyable {
 }
 
 #endif
+
+extension UnsafeMutablePointer where Pointee: ~Copyable {
+  @_alwaysEmitIntoClient
+  @_transparent
+  package static func _dangling() -> Self {
+    return Self(mutating: ._dangling())
+  }
+}
