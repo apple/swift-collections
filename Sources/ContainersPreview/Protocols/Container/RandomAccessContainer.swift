@@ -122,7 +122,7 @@ where
 
   @_alwaysEmitIntoClient
   public func formIndex(
-    _ index: inout Index, offsetBy distance: inout Index.Stride, limitedBy limit: Index
+    _ index: inout Index, offsetBy distance: inout Int, limitedBy limit: Index
   ) {
     // Note: Range checks are deferred until element access.
     index.advance(by: &distance, limitedBy: limit)

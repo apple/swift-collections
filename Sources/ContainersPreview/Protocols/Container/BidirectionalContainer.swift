@@ -15,7 +15,7 @@
 
 @available(SwiftStdlib 6.4, *)
 public protocol BidirectionalContainer<Element>: Container, ~Copyable, ~Escapable
-where Element: ~Copyable, Index: Comparable
+where Element: ~Copyable
 {
   override associatedtype Element: ~Copyable
   override associatedtype Index
