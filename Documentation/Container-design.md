@@ -4,6 +4,7 @@
 * Version history:
    - 0.1 (2026-07-21): Initial draft, describing `Container`.
    - 0.2 (2026-07-22): Second draft, completing the chapter on the read-only container model.
+   - 0.3 (2026-07-28): `PermutableContainer` and `MutableContainer`
 
 ## Table of Contents
 
@@ -66,6 +67,8 @@ Over the last several years, we've been [gradually][BorrowingConsuming] [buildin
 [BorrowAndMutate]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0507-borrow-accessors.md
 [YieldingAccessors]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0474-yielding-accessors.md
 [TypedThrows]: https://github.com/swiftlang/swift-evolution/blob/main/proposals/0413-typed-throws.md
+[Array]: https://developer.apple.com/documentation/swift/array
+[DequeModule]: https://swiftpackageindex.com/apple/swift-collections/main/documentation/dequemodule
 
 Crucially, Swift needs to satisfy this need without resorting to unsafe interfaces: our aim is to build constructs that can match (or exceed) the performance of legacy systems programming languages, while also avoiding undefined behavior if the interfaces get misused.
 
@@ -258,7 +261,11 @@ This greatly simplifies the container model, but it does mean that throwing algo
 
 <details><summary>Click to expand footnote</summary>
 
-> Some readers may note a problem with the assumption that accessing storage held in memory cannot possibly fail. While it is true that accessing memory can trigger faults (e.g., consider `mmap`ped regions), we lack the means to turn these faults into recoverable errors in Swift, and it seems unlikely it would be actually desirable to design container protocols around a hypothetical future language direction like that. The pragmatic choice is to assume that container types are stored in memory allocated using Swift's dedicated heap allocation primitives, and access to them can never fail without crashing the entire process (or at least bringing down an isolated subsystem within it).
+> Some readers may note a problem with the assumption that accessing storage held in memory cannot possibly fail. While it is true that accessing memory can trigger hardware-level exceptions (e.g., consider I/O errors while accessing memory-mapped files or devices, or running out of physical memory while trying to resolve pretty much any page fault), we lack the means to turn these faults into recoverable errors in Swift.
+>
+> Additionally, it seems unlikely it would be actually desirable to design container protocols to accommodate a hypothetical future language direction like that: all memory access can potentially fail, including access to instructions while executing program code (which is typically at least partially memory mapped), access to heap-allocated memory (which also commonly relies on page faults to delay actually allocating memory until first access), access to the stack (same problem), etc. Trying to model all these (plus logic issues like integer overflows etc) as locally recoverable errors seems hopeless.
+>
+> The pragmatic choice is to assume that access to a container's memory can never fail without crashing the entire process. (Perhaps in the fullness of time we may figure out how to carve up Swift processes into cleanly isolated subsystems so that such traps can cause only the triggering subsystem to be abandoned, but the rest of the process can still continue running, to safely perform an orderly shutdown of whatever remains. Or perhaps we could just rely on subprocesses for that; after all, that is a big reason why modern operating systems have them.)
 
 </details>
 
@@ -355,7 +362,7 @@ Equivalently, we can say that each index addresses a specific element, with the 
 
 Over the years, Swift's indices have proven to be extremely successful abstractions. This incarnation preserves them as copyable and escapable types, so that they can be processed without undue friction. Indices are soft references that are allowed to go stale when the underlying container is mutated; therefore, container operations taking indices are still required to carefully validate their inputs to catch misuse. (We could have chosen to replace indices with a nonescapable abstraction that would avoid this; however, in practice we found that direction to be [impractical](#cursors).)
 
-Every one of the standard container types we've introduced so far (from `Span` to `UniqueArray` and beyond) already defines an index that fits this model.
+Every one of the standard container types we've introduced so far (from [`Span`][Span] to [`UniqueArray`][UniqueArray] and beyond) already defines an index that fits this model.
 
 `Container` indices are required to be `Equatable`, but unlike `Collection`, they do not need to be `Comparable`. Linked lists are commonly used in systems programming, and this choice allows some linked list implementations to usefully conform to `Container`. The lack of an inherent ordering does complicate the default implementations of some index operations -- [see below](#distance-from-to).
 
@@ -757,7 +764,7 @@ To achieve predictable performance, `Container` operations are expected to have 
 
 | Operation | Complexity |
 |---|---|
-| `Index.==` | O(1) |
+| <code>Index.=&#8288;=</code> | O(1) |
 | `Index.hash(into:)` | O(1) |
 | `isEmpty` | O(1) |
 | `count` | O(1) |
@@ -996,7 +1003,7 @@ However, the protocol adds strong semantic complexity requirements across all op
 
 | Operation | Complexity |
 |---|---|
-| <code>Index.&#61;&#61;</code> | O(1) |
+| <code>Index.&#61;&#8288;&#61;</code> | O(1) |
 | `Index.<` | O(1) |
 | `Index.hash(into:)` | O(1) |
 | `isEmpty` | O(1) |
@@ -1020,7 +1027,7 @@ However, the protocol adds strong semantic complexity requirements across all op
 
 Random-access containers must have a `Comparable` index type. This is mostly a consequence of an O(1) `distance(from:to:)`: if we can measure distances between indices in constant time, then we can simply use the sign of the resulting distance to decide their ordering. Requiring indices to be `Comparable` only take a little bit of additional effort, in that it requires that we can do this based on just the indices themselves, without consulting the container.
 
-Random-access container (and collection) indices are largely isomorphic to integer offsets, and we are often able to increment/decrement them independent of their container. Indeed, well-designed random-access containers often use simple `Int` values as their index; `Span`, `InlineArray`, `UniqueArray` all use integer indices, and so do `RigidArray`, `RigidDeque` and `UniqueDeque` in swift-collections. To exploit this, and to simplify creating conforming types, `RandomAccessContainer` provides efficient default implementations for most indexing operations if `Index` is `Strideable`:
+Random-access container (and collection) indices are largely isomorphic to integer offsets, and we are often able to increment/decrement them independent of their container. Indeed, well-designed random-access containers often use simple `Int` values as their index; [`Span`][Span], [`InlineArray`][InlineArray], [`UniqueArray`][UniqueArray] all use integer indices, and so do [`RigidArray`][RigidArray], [`RigidDeque`][RigidDeque] and [`UniqueDeque`][UniqueDeque] in swift-collections. To exploit this, and to simplify creating conforming types, `RandomAccessContainer` provides efficient default implementations for most indexing operations if `Index` is `Strideable`:
 
 ```swift
 extension RandomAccessContainer
@@ -1052,7 +1059,11 @@ Based on our expectations for predictably good container performance, we believe
 
 ## Mutable Containers
 
+It is relatively straightforward to augment our read-only container model with new operations that allow in-place mutations. We'll follow in the footsteps of `MutableCollection` by defining a `MutableContainer` protocol. However, we carve it into two separate levels, by first introducing an intermediate protocol that forcuses on reordering.
+
 ### `protocol PermutableContainer`
+
+Protocol `PermutableContainer` adds a single requirement to `Container`, the mutating method `swapAt`:
 
 ```swift
 protocol PermutableContainer<Element>: Container, ~Copyable, ~Escapable
@@ -1063,14 +1074,43 @@ where Element: ~Copyable
 }
 ```
 
+Like its `MutableCollection` counterpart, `swapAt` swaps the two elements addressed by the given indices. (Doing nothing if `i == j`.) Swapping elements does not invalidate any existing index in the container; it merely changes the elements that the two indices are addressing.
+
+The single `swapAt` operation on `PermutableContainer` enables us to develop a variety of useful generic algorithms, including for [reversing][PermutableContainer-reverse], [shuffling][PermutableContainer-shuffle] and [sorting][PermutableContainer-heapSort] elements, or [moving subranges][PermutableContainer-moveSubrange] within a container.
+
+[PermutableContainer-reverse]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/PermutableContainer%2BReverse.swift
+[PermutableContainer-shuffle]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/PermutableContainer%2BShuffle.swift
+[PermutableContainer-heapSort]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/PermutableContainer%2BHeapSort.swift
+[PermutableContainer-moveSubrange]: https://github.com/apple/swift-collections/blob/main/Sources/ContainersPreview/Protocols/Container/PermutableContainer%2BMoveSubrange.swift
+
+Carving out a new protocol focusing on reordering contents allows us to express a number of useful generic algorithms on container types that are permutable, but cannot conform to the full `MutableContainer` protocol. This is sometimes the case with container types that set constraints on their elements that aren't expressed as type constraints on the `Element` type, or with containers that have content-dependent layouts.
+
+For example, the [`OrderedSet`][OrderedSet] type in swift-collections has both of these properties: it makes use of hashing to ensure that its elements are all distinct (under `==`), and to support fast lookup operations. The requirement for distinctness is not enforced by a type constraint on the `Element` type; rather, it is enforced at runtime, through hashing. An element's storage location in the hash table is based on a hash value derived from its actual value. Allowing an element to get mutated inside the hash table would invalidate its location, rendering the table useless.
+
+[OrderedSet]: https://swiftpackageindex.com/apple/swift-collections/main/documentation/orderedcollections/orderedset
+
+<details><summary>Click to expand footnote</summary>
+
+> One idea to allow hashed containers to allow in-place mutations would be to have the container clean up after each mutation by rehashing affected elements, potentially discarding duplicates. As we'll see, this is not compatible with a `MutableContainer` conformance, as (1) the protocol does not allow the container to run any postprocessing/cleanup operations on updated elements, and (2) the protocol requires that its mutations do not invalidate any indices. Rehashing elements or removing duplicates would run afoul of both constraints.
+
+</details>
+
+
+Unlike most other container operations, we define no bulk variant of `swapAt`. We don't have a `PermutableSpan` type that could express reorderable regions of memory, and even if we defined one, iterating over the permutable spans of a container would not let us express any of the algorithms above! To do that, we'd need to invent a way to access the spans of a container all at once, and we need to have an operation to swap elements between them, and _only_ between them. This is not possible in current Swift, so `PermutableContainer` only supports pairwise swaps.
+
+<details><summary>Click to expand footnote</summary>
+
+> Another way to support "bulk" reordering would be to define a standard type that represents an arbitrary n-ary permutation, and define an operation that applies it to a concrete permutable container instance. Unfortunately, this would not be a lightweight abstraction: the permutation representation itself would be quite expensive, and it is unclear if any container types could implement this operation in a way that's meaningfully more efficient than a generic algorithm based on `swapAt`.
+
+</details>
+
 ### `protocol MutableContainer`
 
+The `MutableContainer` protocol refines `PermutableContainer` by adding operations to gain direct mutable access to the container's storage:
+
 ```swift
-protocol MutableContainer<Element>:
-  PermutableContainer, ~Copyable, ~Escapable
-where
-  Element: ~Copyable
-{
+protocol MutableContainer<Element>: PermutableContainer, ~Copyable, ~Escapable
+where Element: ~Copyable {
   subscript(index: Index) -> Element { borrow mutate }
 
   @_lifetime(&self)
@@ -1082,6 +1122,118 @@ where
     maxCount: Int,
     limitedBy limit: Index
   ) -> MutableSpan<Element>
+}
+```
+
+The refined subscript provides a `mutate` accessor for elementwise access. For example, here is one way to increment all integers stored inside a mutable container:
+
+```swift
+extension MutableContainer where Self: ~Copyable & ~Escapable, Element: BinaryInteger {
+  mutating func incrementAll() {
+    var i = self.startIndex
+    while i != self.endIndex {
+      self[i] += 1
+      self.formIndex(after: &i)
+    }
+  }
+}
+```
+
+The two `nextMutableSpan` operations are the mutating variants of the borrowing `nextSpan` on `Container`.
+We can use them to reduce the number of protocol witness invocations from three per visited item (or two with a cached `endIndex`) to just one:
+
+```swift
+extension MutableContainer where Self: ~Copyable & ~Escapable, Element: BinaryInteger {
+  mutating func incrementAll() {
+    var index = self.startIndex
+    while true {
+      var span = self.nextMutableSpan(after: &index)
+      guard !span.isEmpty else { break }
+      for i in span.indices {
+        span[i] += 1
+      }
+    }
+  }
+}
+```
+
+(Note how the subscript is now invoked on a `MutableSpan` instance that is a standard type with an easily optimizable implementation.)
+
+All these operations provide direct mutable access to the container's storage, with minimal overhead. In effect, the container's job reduces to simply locating the particular elements in its storage: it gets no chance to postprocess the result of the mutation in any way. The `MutableSpan` instances (and mutate accessor's inout reference result) are directly returned to the caller, who can arbitrarily mutate the referenced elements. However, the caller cannot consume any of them without putting something back in exchange. When the caller completes its mutation, it destroys its mutable reference, thus completing the exclusive access that began with the invocation of the mutating container operation that returned it. However, the container does not get a callback when the access completes -- it cannot run any cleanup after the mutation.
+
+There is a large number of container types that can conform to `MutableContainer`: this includes all contiguous mutable iterable types in the Swift 6.4 Standard Library ([`MutableSpan`][MutableSpan], [`OutputSpan`][OutputSpan], [`InlineArray`][InlineArray], [`UniqueArray`][UniqueArray]), as well as piecewise contiguous data structure implementations such the [ring buffer implementations in swift-collections][DequeModule], or linked lists.
+
+Notably, the inability to consume items means that `MutableContainer` cannot provide a fully generic default implementation for `PermutableContainer.swapAt`. Instead, it only provides a partial default implementation that only applies if `Element` happens to be copyable; it works by creating two temporary copies:
+
+```swift
+extension MutableContainer
+where Self: ~Copyable & ~Escapable, Element: Copyable
+{
+  mutating func swapAt(_ i: Index, _ j: Index) {
+    let copy = self[i] // First copy
+    self[i] = self[j] // Second copy
+    self[j] = copy
+  }
+}
+```
+
+Mutable containers with noncopyable elements must manually provide a direct implementation of the core `swapAt` primitive.
+
+<details><summary>Click to expand footnote</summary>
+
+> It would also be possible to provide a default implementation for `swapAt` for containers with contiguous storage, by invoking `swapAt` on the container's single mutable storage span.
+>
+> ```swift
+> protocol ContiguousMutableContainer: // Example only
+>   RandomAccessContainer,
+>   MutableContainer,
+>   ~Copyable,
+>   ~Escapable
+> where Element: ~Copyable {
+>   var mutableSpan: MutableSpan<Element> { borrow mutate }
+> }
+>
+> extension ContiguousMutableContainer
+> where Self: ~Copyable & ~Escapable, Element: ~Copyable
+> {
+>   mutating func swapAt(_ i: Index, _ j: Index) {
+>     let offset1 = self.distance(from: self.startIndex, to: i)
+>     let offset2 = offset1 + self.distance(from: i, to: j)
+>     self.mutableSpan.swapAt(i, j)
+>   }
+> }
+> ```
+>
+> It seems like a waste to introduce a whole new protocol just to be able to supply a default `swapAt`, though.
+>
+> Or we could change `swapAt` to take a valid element outside the container to facilitate the exchange. Here is one way to do the latter:
+>
+> ```swift
+> extension MutableContainer
+> where Self: ~Copyable & ~Escapable, Element: ~Copyable
+> {
+>   mutating func swapAt(_ i: Index, _ j: Index, using scratch: inout Element) {
+>     swap(&self[i], &scratch)
+>     swap(&self[j], &scratch)
+>     swap(&self[i], &scratch)
+>     // scratch is back to its original value
+>   }
+> }
+> ```
+>
+> Of these three, copying elements seems the most practical; therefore
+
+</details>
+
+There are surprisingly few interesting generic algorithms that operate on `MutableContainer`; we expect most generic code will simply perform an elementwise mutation, such as the `incrementAll` implementations above. However, the ability to express that is already worth the price of admission! Mutating iterations are a common need, and it is reasonable to spend a protocol on making them pleasant. For example, we could teach Swift's for-in loops to efficiently iterate over inout references to a mutable container's elements, with a nice, succinct syntax:
+
+```swift
+extension MutableContainer where Self: ~Copyable & ~Escapable, Element: BinaryInteger {
+  mutating func incrementAll() {
+    for inout item in &self { // Example syntax
+      item += 1
+    }
+  }
 }
 ```
 
@@ -1583,6 +1735,8 @@ where Element: ~Copyable
 ### Cursors
 
 ### Index Rounding Operations
+
+### protocol ContiguousContainer
 
 ## Potential Future Directions
 
