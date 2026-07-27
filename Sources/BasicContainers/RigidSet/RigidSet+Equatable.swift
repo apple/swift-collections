@@ -40,9 +40,9 @@ extension RigidSet where Element: ~Copyable {
     guard left.count == right.count else { return false }
 
     #if UnstableContainersPreview
-    var lit = left.makeBorrowingIterator_()
+    var lit = left.makeBorrowingIterator()
     while true {
-      let l = lit.nextSpan_()
+      let l = lit.nextSpan(maxCount: .max)
       if l.isEmpty { break }
       var i = 0
       while i < l.count {

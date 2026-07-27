@@ -20,16 +20,16 @@ import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
-extension UniqueArray: Iterable_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = Span<Element>.BorrowingIterator_
+extension UniqueArray: Iterable where Element: ~Copyable {
+  public typealias BorrowingIterator = Span<Element>.BorrowingIterator
 
   @inlinable
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    self._storage.makeBorrowingIterator_()
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    self._storage.makeBorrowingIterator()
   }
 }
 #endif
@@ -41,13 +41,13 @@ extension UniqueArray: Container where Element: ~Copyable {
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
     from start: Index, to end: Index
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     _storage.makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
-    _storage.currentIndex(of: iterator)
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    _storage.currentIndex(of: &iterator)
   }
 }
 

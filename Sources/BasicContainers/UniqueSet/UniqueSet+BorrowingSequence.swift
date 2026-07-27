@@ -19,15 +19,14 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension UniqueSet: Iterable_ where Element: ~Copyable {
-  public typealias Element_ = Element
-  public typealias BorrowingIterator_ = RigidSet<Element>.BorrowingIterator_
+extension UniqueSet: Iterable where Element: ~Copyable {
+  public typealias BorrowingIterator = RigidSet<Element>.BorrowingIterator
 
   @inlinable
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
 
   @inlinable
-  public func _customContainsEquatableElement_(
+  public func _customContainsEquatableElement(
     _ element: borrowing Element
   ) -> Bool? {
     self.contains(element)
@@ -35,8 +34,8 @@ extension UniqueSet: Iterable_ where Element: ~Copyable {
 
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(_set: _storage)
+  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(_set: _storage)
   }
 }
 #endif

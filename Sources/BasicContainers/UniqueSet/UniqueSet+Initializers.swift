@@ -77,12 +77,10 @@ extension UniqueSet where Element: Copyable {
 #if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public init<
-    S: Iterable_ & ~Copyable & ~Escapable
-  >(
+  public init<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init()
     try self.insert(copying: items)
   }
@@ -97,12 +95,10 @@ extension UniqueSet where Element: Copyable {
 #if UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public init<
-    S: Iterable_ & Sequence<Element>
-  >(
+  public init<S: Iterable & Sequence<Element>>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init()
     try self._insert(copying: items)
   }

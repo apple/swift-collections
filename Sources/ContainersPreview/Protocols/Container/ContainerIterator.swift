@@ -18,11 +18,11 @@ extension Container
 where
   Self: ~Copyable /*FIXME: & ~Escapable*/,
   Element: ~Copyable,
-  BorrowingIterator_ == ContainerIterator<Self>
+  BorrowingIterator == ContainerIterator<Self>
 {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+  public func makeBorrowingIterator() -> BorrowingIterator {
     ContainerIterator(
       _borrowing: self,
       from: self.startIndex,
@@ -31,12 +31,13 @@ where
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_ {
+  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator {
     ContainerIterator(_borrowing: self, from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    // FIXME: This should validate that the iterator belongs to this container.
     iterator._position
   }
 }
@@ -68,17 +69,15 @@ where Base.Element: ~Copyable
 }
 
 @available(SwiftStdlib 6.4, *)
-extension ContainerIterator: BorrowingIteratorProtocol_
+extension ContainerIterator: BorrowingIteratorProtocol
 where
   Base: ~Copyable /*FIXME: & ~Escapable*/,
   Base.Element: ~Copyable
 {
-  public typealias Element_ = Base.Element
-
   @_alwaysEmitIntoClient
   @_unsafeNonescapableResult // FIXME: we cannot convert from a borrow to an inout dependence?!
   @_lifetime(&self)
-  public mutating func nextSpan_(maxCount: Int) -> Span<Base.Element> {
+  public mutating func nextSpan(maxCount: Int) -> Span<Base.Element> {
     _base.value
       .nextSpan(
         after: &self._position,
@@ -88,7 +87,7 @@ where
 
   @_alwaysEmitIntoClient
   @_lifetime(self: copy self)
-  public mutating func skip_(by maximumOffset: Int) -> Int {
+  public mutating func skip(by maximumOffset: Int) -> Int {
     // FIXME: If we aren't modeling bidirectional iterators, then this should
     // trap on negative maximumOffsets
     var n = maximumOffset

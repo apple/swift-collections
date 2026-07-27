@@ -23,9 +23,7 @@ import ContainersPreview
 extension RigidDeque where Element: ~Copyable {
 #if compiler(>=6.4) && UnstableContainersPreview
   @frozen
-  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol_ {
-    public typealias Element_ = Element
-
+  public struct BorrowingIterator: ~Escapable, BorrowingIteratorProtocol {
     @usableFromInline
     internal var _currentSegment: Span<Element>
     
@@ -73,7 +71,7 @@ extension RigidDeque where Element: ~Copyable {
     @_alwaysEmitIntoClient
     @_lifetime(&self)
     @_lifetime(self: copy self)
-    public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+    public mutating func nextSpan(maxCount: Int) -> Span<Element> {
       let result = _currentSegment._trim(first: maxCount)
       if _currentSegment.isEmpty {
         _currentSegment = _nextSegment
@@ -86,7 +84,7 @@ extension RigidDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
+  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
     BorrowingIterator(_deque: self)
   }
 #endif
@@ -99,12 +97,12 @@ extension RigidDeque: Container where Element: ~Copyable {
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
     from start: Index, to end: Index
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     BorrowingIterator(_deque: self, from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
     // FIXME: This should validate that the iterator belongs to this deque.
     return iterator._position
   }

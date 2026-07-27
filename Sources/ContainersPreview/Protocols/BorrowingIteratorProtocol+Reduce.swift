@@ -13,20 +13,20 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
+  Element: ~Copyable
 {
   @inlinable
   public consuming func reduce<Result: ~Copyable>(
     _ initialResult: consuming Result,
-    _ nextPartialResult: (consuming Result, borrowing Element_) throws(Failure_) -> Result
-  ) throws(Failure_) -> Result {
+    _ nextPartialResult: (consuming Result, borrowing Element) throws(Failure) -> Result
+  ) throws(Failure) -> Result {
     var result = initialResult
     while true {
-      let span = try self.nextSpan_()
+      let span = try self.nextSpan()
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {
@@ -40,11 +40,11 @@ where
   @inlinable
   public consuming func reduce<Result: ~Copyable>(
     into initialResult: consuming Result,
-    _ updateAccumulatingResult: (inout Result, borrowing Element_) throws(Failure_) -> Void
-  ) throws(Failure_) -> Result {
+    _ updateAccumulatingResult: (inout Result, borrowing Element) throws(Failure) -> Void
+  ) throws(Failure) -> Result {
     var result = initialResult
     while true {
-      let span = try self.nextSpan_()
+      let span = try self.nextSpan()
       guard !span.isEmpty else { break }
       var i = 0
       while i < span.count {

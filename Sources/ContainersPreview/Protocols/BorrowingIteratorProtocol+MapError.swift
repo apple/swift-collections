@@ -13,16 +13,16 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
+  Element: ~Copyable
 {
   @inlinable
   @_lifetime(copy self)
   public consuming func mapError<NewFailure: Error>(
-    _ transform: @escaping (Failure_) -> NewFailure
+    _ transform: @escaping (Failure) -> NewFailure
   ) -> ErrorMappedIterator<Self, NewFailure> {
     ErrorMappedIterator(base: self, transform: transform)
   }
@@ -32,21 +32,22 @@ where
   public consuming func mapError<NewFailure: Error>(
     to error: NewFailure.Type = NewFailure.self
   ) -> ErrorMappedIterator<Self, NewFailure>
-  where Failure_ == Never {
+  where Failure == Never {
     ErrorMappedIterator(base: self, transform: { _ in
       fatalError("Unreachable")
     })
   }
 }
 
+@available(SwiftStdlib 6.4, *)
 @frozen
 public struct ErrorMappedIterator<
-  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
+  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable,
   Failure: Error
 >: ~Copyable, ~Escapable
-where Base.Element_: ~Copyable {
+where Base.Element: ~Copyable {
   @usableFromInline
-  internal let _transform: (Base.Failure_) -> Failure
+  internal let _transform: (Base.Failure) -> Failure
 
   @usableFromInline
   internal var _base: Base
@@ -55,27 +56,28 @@ where Base.Element_: ~Copyable {
   @_lifetime(copy base)
   public init(
     base: consuming Base,
-    transform: @escaping (Base.Failure_) -> Failure
+    transform: @escaping (Base.Failure) -> Failure
   ) {
     self._base = base
     self._transform = transform
   }
 }
 
-extension ErrorMappedIterator: BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension ErrorMappedIterator: BorrowingIteratorProtocol
 where
   Base: ~Copyable & ~Escapable,
-  Base.Element_: ~Copyable
+  Base.Element: ~Copyable
 {
-  public typealias Element_ = Base.Element_
-  public typealias Failure_ = Failure
+  public typealias Element = Base.Element
+  public typealias Failure = Failure
 
   @inlinable
   @_lifetime(&self)
   @_lifetime(self: copy self)
-  public mutating func nextSpan_(maxCount: Int) throws(Failure_) -> Span<Element_> {
+  public mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element> {
     do {
-      return try _base.nextSpan_(maxCount: maxCount)
+      return try _base.nextSpan(maxCount: maxCount)
     } catch {
       throw _transform(error)
     }
@@ -83,9 +85,9 @@ where
 
   @inlinable
   @_lifetime(self: copy self)
-  public mutating func skip_(by maximumOffset: Int) throws(Failure_) -> Int {
+  public mutating func skip(by maximumOffset: Int) throws(Failure) -> Int {
     do {
-      return try _base.skip_(by: maximumOffset)
+      return try _base.skip(by: maximumOffset)
     } catch {
       throw _transform(error)
     }

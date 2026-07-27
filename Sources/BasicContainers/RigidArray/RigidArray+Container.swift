@@ -20,16 +20,13 @@ import ContainersPreview
 
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
-extension RigidArray: Iterable_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = Span<Element>.BorrowingIterator_
+extension RigidArray: Iterable where Element: ~Copyable {
+  public typealias BorrowingIterator = Span<Element>.BorrowingIterator
 
   @_alwaysEmitIntoClient
   @inline(__always)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    let span = self.span
-    let it = span.makeBorrowingIterator_()
-    // FIXME: `it` is borrowing `span`, not self
-    return _overrideLifetime(it, borrowing: self)
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    self.span._makeBorrowingIterator(from: 0, to: count)
   }
 }
 #endif
@@ -41,17 +38,14 @@ extension RigidArray: Container where Element: ~Copyable {
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
     from start: Index, to end: Index
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     // FIXME: `makeBorrowingIterator` would be borrowing the temporary `span`, not self
     self.span._makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
-    precondition(
-      iterator._span.isTriviallyIdentical(to: self.span),
-      "Invalid iterator instance")
-    return iterator._start
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    self.span.currentIndex(of: &iterator)
   }
 }
 
@@ -73,7 +67,7 @@ extension RigidArray: RangeReplaceableContainer where Element: ~Copyable {}
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
   @inlinable
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
 
   /// A Boolean value indicating whether this array contains no elements.
   ///

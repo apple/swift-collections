@@ -11,30 +11,66 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_frozen
+@usableFromInline
+package struct _ShamSpanIterator {
+  // FIXME: Remove this when `Span.BorrowingIterator` becomes actually usable.
+  @_alwaysEmitIntoClient
+  internal var _basePointer: UnsafeRawPointer?
+
+  @_alwaysEmitIntoClient
+  internal var _baseCount: Int
+
+  @_alwaysEmitIntoClient
+  internal var _start: Int
+
+  @_alwaysEmitIntoClient
+  internal var _count: Int
+}
+
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 extension Span: RandomAccessContainer where Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_lifetime(copy self)
-  package func _makeBorrowingIterator(from start: Int, to end: Int) -> BorrowingIterator_ {
+  package func _makeBorrowingIterator(from start: Int, to end: Int) -> BorrowingIterator {
     // Note: This is declared `copy self` so that types can forward to it without having to override lifetimes.
-    // FIXME: SpanIterator needs to have a public "slicing" initializer
-    BorrowingIterator_(self, from: start, to: end)
+    #if false // FIXME: Span's iterator needs to provide a public "slicing" initializer
+    return BorrowingIterator(self, from: start, to: end)
+    #else
+    var it = BorrowingIterator(self.extracting(first: end))
+    let c = it.skip(by: start)
+    precondition(c == start)
+    return it
+    #endif
   }
 
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Int, to end: Int) -> BorrowingIterator_ {
+  public func makeBorrowingIterator(from start: Int, to end: Int) -> BorrowingIterator {
     _makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Int {
-    // FIXME: SpanIterator needs to have public `base` and `position` properties
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Int {
+    #if false // FIXME: SpanIterator needs to provide public `base` and `position` properties
     precondition(
       self.isTriviallyIdentical(to: iterator._span),
-      "Invalid iterator")
+      "Iterator does not belong to this container")
     return iterator._start
+    #else
+    precondition(MemoryLayout<BorrowingIterator>.stride == MemoryLayout<_ShamSpanIterator>.stride)
+    return self.withUnsafeBufferPointer { ourBuffer in
+      Swift.withUnsafeBytes(of: &iterator) { buffer in
+        buffer.withMemoryRebound(to: _ShamSpanIterator.self) { shamBuffer in
+          precondition(
+            shamBuffer[0]._basePointer == UnsafeRawPointer(ourBuffer.baseAddress) && shamBuffer[0]._baseCount <= ourBuffer.count,
+            "Iterator does not belong to this container")
+          return shamBuffer[0]._start
+        }
+      }
+    }
+    #endif
   }
 }
 #endif

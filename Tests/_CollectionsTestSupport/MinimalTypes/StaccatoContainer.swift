@@ -76,9 +76,7 @@ package struct _StaccatoParameters {
 }
 
 @available(SwiftStdlib 5.0, *)
-public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol_, ~Escapable {
-  public typealias Element_ = Element
-
+public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorProtocol, ~Escapable {
   internal let _contents: Span<Element>
   internal let _params: _StaccatoParameters
   internal var _offset: Int
@@ -99,7 +97,7 @@ public struct _StaccatoBorrowingIterator<Element: ~Copyable>: BorrowingIteratorP
   }
 
   @_lifetime(&self)
-  public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+  public mutating func nextSpan(maxCount: Int) -> Span<Element> {
     precondition(maxCount > 0)
     let maxCount = Swift.min(maxCount, _end - _offset)
     let endOffset = _params.endOffset(fromOffset: _offset, maxCount: maxCount)
@@ -134,13 +132,13 @@ public struct _StaccatoIndex: Comparable, Hashable{
 }
 
 @available(SwiftStdlib 5.0, *)
-extension StaccatoContainer: Iterable_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
+extension StaccatoContainer: Iterable where Element: ~Copyable {
+  public typealias BorrowingIterator = _StaccatoBorrowingIterator<Element> // FIXME rdar://150240032
   
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
 
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(contents: _contents.span, params: _params)
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(contents: _contents.span, params: _params)
   }
 }
 
@@ -152,11 +150,11 @@ extension StaccatoContainer: Container where Element: ~Copyable {
   public var count: Int { _params._count }
 
   @_lifetime(borrow self)
-  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_ {
-    BorrowingIterator_(contents: _contents.span, params: _params, start: start, end: end)
+  public func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator {
+    BorrowingIterator(contents: _contents.span, params: _params, start: start, end: end)
   }
 
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
     iterator.currentIndex
   }
 

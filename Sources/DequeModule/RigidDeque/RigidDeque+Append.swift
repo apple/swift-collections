@@ -314,12 +314,12 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   internal mutating func _append<
-    S: Iterable_ & ~Copyable & ~Escapable
-  >(copying items: borrowing S) throws(S.Failure_)
-  where S.Element_ == Element {
-    var it = items.makeBorrowingIterator_()
+    S: Iterable & ~Copyable & ~Escapable
+  >(copying items: borrowing S) throws(S.Failure)
+  where S.Element == Element {
+    var it = items.makeBorrowingIterator()
     while true {
-      let span = try it.nextSpan_()
+      let span = try it.nextSpan()
       if span.isEmpty { break }
       self.append(copying: span)
     }
@@ -337,10 +337,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `newElements`.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func append<S: Iterable_ & ~Copyable & ~Escapable>(
+  public mutating func append<S: Iterable & ~Copyable & ~Escapable>(
     copying newElements: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._append(copying: newElements)
   }
 #endif
@@ -380,11 +380,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   public mutating func append<
-    S: Iterable_ & Sequence<Element>
+    S: Iterable & Sequence<Element>
   >(
     copying items: S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._append(copying: items)
   }
 #endif

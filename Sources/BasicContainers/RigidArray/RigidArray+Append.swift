@@ -256,11 +256,11 @@ extension RigidArray {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
-    Source: Iterable_ & ~Copyable & ~Escapable
+    Source: Iterable & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     let target = _freeSpace
     _count += try newElements._copyContents(intoPrefixOf: target)
   }
@@ -280,11 +280,11 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable_ & ~Copyable & ~Escapable
+    Source: Iterable & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     try _append(copying: newElements)
   }
 #endif
@@ -324,11 +324,11 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable_ & Sequence<Element>
+    Source: Iterable & Sequence<Element>
   >(
     copying newElements: Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     try _append(copying: newElements)
   }
 #endif

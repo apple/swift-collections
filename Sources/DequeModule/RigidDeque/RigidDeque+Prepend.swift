@@ -291,16 +291,16 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<
-    S: Iterable_ & ~Copyable & ~Escapable
+    S: Iterable & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
     // them to their correct location.
     //
-    // FIXME: If we get a Iterable_.estimatedCount with an exact case,
+    // FIXME: If we get a Iterable.estimatedCount with an exact case,
     // then we should use that when possible to copy items to their final
     // location in a single pass.
     let oldCount = self.count
@@ -311,15 +311,15 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _prepend<
-    S: Iterable_ & ~Copyable & ~Escapable
+    S: Iterable & ~Copyable & ~Escapable
   >(
     copying items: borrowing S,
     exactCount: Int
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
-    var it = items.makeBorrowingIterator_()
-    try self.prepend(addingCount: exactCount) { (target) throws(S.Failure_) in
-      let span = try it.nextSpan_(maxCount: target.freeCapacity)
+  ) throws(S.Failure)
+  where S.Element == Element {
+    var it = items.makeBorrowingIterator()
+    try self.prepend(addingCount: exactCount) { (target) throws(S.Failure) in
+      let span = try it.nextSpan(maxCount: target.freeCapacity)
       target._append(copying: span)
     }
   }
@@ -340,10 +340,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_ & ~Copyable & ~Escapable>(
+  public mutating func prepend<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._prepend(copying: items)
   }
 
@@ -447,10 +447,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_ & Sequence<Element>>(
+  public mutating func prepend<S: Iterable & Sequence<Element>>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._prepend(copying: items)
   }
 
@@ -465,10 +465,10 @@ extension RigidDeque /*where Element: Copyable*/ {
   /// - Complexity: O(*m*), where *m* is the length of `items`.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_ & Collection<Element>>(
+  public mutating func prepend<S: Iterable & Collection<Element>>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._prepend(copying: items, exactCount: items.count)
   }
 

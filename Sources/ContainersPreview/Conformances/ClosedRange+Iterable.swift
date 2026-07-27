@@ -14,13 +14,13 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 6.2, *)
-extension ClosedRange: Iterable_
+extension ClosedRange: @retroactive Iterable
 where Bound: Strideable, Bound.Stride: SignedInteger
 {
-  public typealias Element_ = Bound
+  public typealias Element = Bound
   
   @frozen
-  public struct BorrowingIterator_: BorrowingIteratorProtocol_, ~Copyable {
+  public struct BorrowingIterator: BorrowingIteratorProtocol, ~Copyable {
     @usableFromInline
     internal var _current: InlineArray<1, Bound>
     
@@ -38,7 +38,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
     }
     @inlinable
     @_lifetime(&self)
-    public mutating func nextSpan_(maxCount: Int) -> Span<Bound> {
+    public mutating func nextSpan(maxCount: Int) -> Span<Bound> {
       if _progress {
         _current[0] = _current[0].advanced(by: 1)
       }
@@ -52,7 +52,7 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   }
   
   @inlinable
-  public var underestimatedCount_: Int {
+  public var underestimatedCount: Int {
     guard let distance = Int(exactly: lowerBound.distance(to: upperBound))
     else { return 0 }
     let advanced = distance.addingReportingOverflow(1)
@@ -61,8 +61,8 @@ where Bound: Strideable, Bound.Stride: SignedInteger
   }
 
   @inlinable
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(self)
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(self)
   }
 }
 

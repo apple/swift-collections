@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		7D0DC7BF2FFD929900BEE8B2 /* Array+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DC7BE2FFD929500BEE8B2 /* Array+Iterable.swift */; };
-		7D0DC7C12FFD92BB00BEE8B2 /* InlineArray+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DC7C02FFD92B500BEE8B2 /* InlineArray+Iterable.swift */; };
 		7D0DC7C32FFD987800BEE8B2 /* Range+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DC7C22FFD987400BEE8B2 /* Range+Iterable.swift */; };
 		7D0DC7C52FFD990E00BEE8B2 /* ClosedRange+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DC7C42FFD990E00BEE8B2 /* ClosedRange+Iterable.swift */; };
 		7D0DC7C72FFDC40900BEE8B2 /* With.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0DC7C62FFDC40600BEE8B2 /* With.swift */; };
@@ -163,9 +162,6 @@
 		7D77E6252FD0F880003FA63B /* UnsafePointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D77E6242FD0F87B003FA63B /* UnsafePointer+Extras.swift */; };
 		7D77E6272FD0F94B003FA63B /* UnsafeMutablePointer+Extras.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D77E6262FD0F940003FA63B /* UnsafeMutablePointer+Extras.swift */; };
 		7D945E6B2FF5E0D1001041A6 /* UniqueSet+Deprecations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D945E6A2FF5E0CB001041A6 /* UniqueSet+Deprecations.swift */; };
-		7D945E6D2FF71D76001041A6 /* Span+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D945E6C2FF71D76001041A6 /* Span+Iterable.swift */; };
-		7D945E6F2FF71DFF001041A6 /* MutableSpan+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D945E6E2FF71DF8001041A6 /* MutableSpan+Iterable.swift */; };
-		7D945E712FF71E58001041A6 /* OutputSpan+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D945E702FF71E53001041A6 /* OutputSpan+Iterable.swift */; };
 		7D945E732FF71E8C001041A6 /* InputSpan+Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D945E722FF71E86001041A6 /* InputSpan+Iterable.swift */; };
 		7D9748D42E9748930098631A /* BigString+Chunk+UTF16.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D32E9748930098631A /* BigString+Chunk+UTF16.swift */; };
 		7D9748D52E9748930098631A /* BigString+Chunk+UnicodeScalar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D9748D12E9748930098631A /* BigString+Chunk+UnicodeScalar.swift */; };
@@ -221,7 +217,6 @@
 		7DC037BA2FE3492D00CF0CB8 /* BorrowingIteratorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037B02FE3492D00CF0CB8 /* BorrowingIteratorProtocol.swift */; };
 		7DC037BB2FE3492D00CF0CB8 /* Iterable+Algorithms.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037AD2FE3492D00CF0CB8 /* Iterable+Algorithms.swift */; };
 		7DC037BC2FE3492D00CF0CB8 /* BorrowingIteratorProtocol+Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037B32FE3492D00CF0CB8 /* BorrowingIteratorProtocol+Filter.swift */; };
-		7DC037BD2FE3492D00CF0CB8 /* Iterable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037AC2FE3492D00CF0CB8 /* Iterable.swift */; };
 		7DC037BE2FE3492D00CF0CB8 /* BorrowingIteratorProtocol+ElementsEqual.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037B22FE3492D00CF0CB8 /* BorrowingIteratorProtocol+ElementsEqual.swift */; };
 		7DC037BF2FE3492D00CF0CB8 /* BorrowingIteratorProtocol+Reduce.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037B52FE3492D00CF0CB8 /* BorrowingIteratorProtocol+Reduce.swift */; };
 		7DC037C02FE3492D00CF0CB8 /* BorrowingIteratorProtocol+SpanwiseZip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DC037B62FE3492D00CF0CB8 /* BorrowingIteratorProtocol+SpanwiseZip.swift */; };
@@ -628,7 +623,6 @@
 
 /* Begin PBXFileReference section */
 		7D0DC7BE2FFD929500BEE8B2 /* Array+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Iterable.swift"; sourceTree = "<group>"; };
-		7D0DC7C02FFD92B500BEE8B2 /* InlineArray+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InlineArray+Iterable.swift"; sourceTree = "<group>"; };
 		7D0DC7C22FFD987400BEE8B2 /* Range+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Range+Iterable.swift"; sourceTree = "<group>"; };
 		7D0DC7C42FFD990E00BEE8B2 /* ClosedRange+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClosedRange+Iterable.swift"; sourceTree = "<group>"; };
 		7D0DC7C62FFDC40600BEE8B2 /* With.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = With.swift; sourceTree = "<group>"; };
@@ -797,9 +791,6 @@
 		7D77E6242FD0F87B003FA63B /* UnsafePointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafePointer+Extras.swift"; sourceTree = "<group>"; };
 		7D77E6262FD0F940003FA63B /* UnsafeMutablePointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeMutablePointer+Extras.swift"; sourceTree = "<group>"; };
 		7D945E6A2FF5E0CB001041A6 /* UniqueSet+Deprecations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueSet+Deprecations.swift"; sourceTree = "<group>"; };
-		7D945E6C2FF71D76001041A6 /* Span+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Span+Iterable.swift"; sourceTree = "<group>"; };
-		7D945E6E2FF71DF8001041A6 /* MutableSpan+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MutableSpan+Iterable.swift"; sourceTree = "<group>"; };
-		7D945E702FF71E53001041A6 /* OutputSpan+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OutputSpan+Iterable.swift"; sourceTree = "<group>"; };
 		7D945E722FF71E86001041A6 /* InputSpan+Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "InputSpan+Iterable.swift"; sourceTree = "<group>"; };
 		7D9748CF2E9748930098631A /* BigString+Chunk+Character.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+Character.swift"; sourceTree = "<group>"; };
 		7D9748D02E9748930098631A /* BigString+Chunk+Index.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BigString+Chunk+Index.swift"; sourceTree = "<group>"; };
@@ -851,7 +842,6 @@
 		7DAD89AF2E8B09EC00DD5786 /* UnsafeRawBufferPointer+Extras.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UnsafeRawBufferPointer+Extras.swift"; sourceTree = "<group>"; };
 		7DB257A02F58B1A3007B539F /* RigidDictionary+Debugging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RigidDictionary+Debugging.swift"; sourceTree = "<group>"; };
 		7DB257A22F58B1CC007B539F /* UniqueDictionary+Debugging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UniqueDictionary+Debugging.swift"; sourceTree = "<group>"; };
-		7DC037AC2FE3492D00CF0CB8 /* Iterable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Iterable.swift; sourceTree = "<group>"; };
 		7DC037AD2FE3492D00CF0CB8 /* Iterable+Algorithms.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Iterable+Algorithms.swift"; sourceTree = "<group>"; };
 		7DC037AF2FE3492D00CF0CB8 /* Iterable+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Iterable+Utilities.swift"; sourceTree = "<group>"; };
 		7DC037B02FE3492D00CF0CB8 /* BorrowingIteratorProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BorrowingIteratorProtocol.swift; sourceTree = "<group>"; };
@@ -1345,7 +1335,6 @@
 		7D2A77312F27F1E4005780C7 /* Protocols */ = {
 			isa = PBXGroup;
 			children = (
-				7DC037AC2FE3492D00CF0CB8 /* Iterable.swift */,
 				7DC037AD2FE3492D00CF0CB8 /* Iterable+Algorithms.swift */,
 				7DC037AF2FE3492D00CF0CB8 /* Iterable+Utilities.swift */,
 				7DC037B02FE3492D00CF0CB8 /* BorrowingIteratorProtocol.swift */,
@@ -1533,15 +1522,11 @@
 			children = (
 				7D0DC7BE2FFD929500BEE8B2 /* Array+Iterable.swift */,
 				7D0DC7C42FFD990E00BEE8B2 /* ClosedRange+Iterable.swift */,
-				7D0DC7C02FFD92B500BEE8B2 /* InlineArray+Iterable.swift */,
 				7D945E722FF71E86001041A6 /* InputSpan+Iterable.swift */,
 				7D59D0612FE49C87005B5097 /* InputSpan+Container.swift */,
-				7D945E6E2FF71DF8001041A6 /* MutableSpan+Iterable.swift */,
 				7D59D0622FE49C87005B5097 /* MutableSpan+Container.swift */,
-				7D945E702FF71E53001041A6 /* OutputSpan+Iterable.swift */,
 				7D59D0632FE49C87005B5097 /* OutputSpan+Container.swift */,
 				7D0DC7C22FFD987400BEE8B2 /* Range+Iterable.swift */,
-				7D945E6C2FF71D76001041A6 /* Span+Iterable.swift */,
 				7D59D0642FE49C87005B5097 /* Span+Container.swift */,
 			);
 			path = Conformances;
@@ -2704,7 +2689,6 @@
 				7DC037BA2FE3492D00CF0CB8 /* BorrowingIteratorProtocol.swift in Sources */,
 				7DC037BB2FE3492D00CF0CB8 /* Iterable+Algorithms.swift in Sources */,
 				7DC037BC2FE3492D00CF0CB8 /* BorrowingIteratorProtocol+Filter.swift in Sources */,
-				7DC037BD2FE3492D00CF0CB8 /* Iterable.swift in Sources */,
 				7DC037BE2FE3492D00CF0CB8 /* BorrowingIteratorProtocol+ElementsEqual.swift in Sources */,
 				7DC037BF2FE3492D00CF0CB8 /* BorrowingIteratorProtocol+Reduce.swift in Sources */,
 				7DC037C02FE3492D00CF0CB8 /* BorrowingIteratorProtocol+SpanwiseZip.swift in Sources */,
@@ -2720,7 +2704,6 @@
 				7D2A777F2F27F2BF005780C7 /* RigidDeque+Container.swift in Sources */,
 				7D2A77802F27F2BF005780C7 /* Deque.swift in Sources */,
 				7D2A77812F27F2BF005780C7 /* UniqueDeque+Append.swift in Sources */,
-				7D945E712FF71E58001041A6 /* OutputSpan+Iterable.swift in Sources */,
 				7D2A77822F27F2BF005780C7 /* UniqueDeque+Initializers.swift in Sources */,
 				7D2A77832F27F2BF005780C7 /* Deque+Equatable.swift in Sources */,
 				7D2A77842F27F2BF005780C7 /* UniqueDeque+Container.swift in Sources */,
@@ -3105,7 +3088,6 @@
 				7DE9201829CA70F3004483EB /* OrderedDictionary+Invariants.swift in Sources */,
 				7DE920CD29CA70F4004483EB /* BitSet+CustomDebugStringConvertible.swift in Sources */,
 				7DE9212529CA70F4004483EB /* TreeSet+SetAlgebra isStrictSubset.swift in Sources */,
-				7D945E6F2FF71DFF001041A6 /* MutableSpan+Iterable.swift in Sources */,
 				7DE9209229CA70F4004483EB /* Rope+_Storage.swift in Sources */,
 				7DE9203929CA70F3004483EB /* OrderedSet+Partial RangeReplaceableCollection.swift in Sources */,
 				7DE9206329CA70F4004483EB /* BigString+Contents.swift in Sources */,
@@ -3173,13 +3155,11 @@
 				7D77E6122FCF810E003FA63B /* CountedProducer.swift in Sources */,
 				7DE920E829CA70F4004483EB /* BitArray+BitwiseOperations.swift in Sources */,
 				7DE9207829CA70F4004483EB /* BigString+Append.swift in Sources */,
-				7D0DC7C12FFD92BB00BEE8B2 /* InlineArray+Iterable.swift in Sources */,
 				7DE9217F29CA70F4004483EB /* _HeapNode.swift in Sources */,
 				7D479CB92F46A6DB00A8CB59 /* RigidSet+Debugging.swift in Sources */,
 				7DE9202929CA70F3004483EB /* OrderedSet+Codable.swift in Sources */,
 				7DE9204829CA70F3004483EB /* _HashTable+CustomStringConvertible.swift in Sources */,
 				7D479CE52F47D74500A8CB59 /* RigidDictionary+Resizing.swift in Sources */,
-				7D945E6D2FF71D76001041A6 /* Span+Iterable.swift in Sources */,
 				7DE9213029CA70F4004483EB /* TreeSet+SetAlgebra isSuperset.swift in Sources */,
 				7DE9217529CA70F4004483EB /* TreeDictionary+MapValues.swift in Sources */,
 				7DE9206C29CA70F4004483EB /* BigString+Chunk.swift in Sources */,

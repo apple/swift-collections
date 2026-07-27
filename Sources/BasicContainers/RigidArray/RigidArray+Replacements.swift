@@ -592,17 +592,17 @@ extension RigidArray {
     copyingContainer items: borrowing C,
     newCount: Int
   ) {
-    var it = items.makeBorrowingIterator_()
+    var it = items.makeBorrowingIterator()
     self.replace(removing: subrange, addingCount: newCount) { target in
       while !target.isFull {
-        let source = it.nextSpan_(maxCount: target.freeCapacity)
+        let source = it.nextSpan(maxCount: target.freeCapacity)
         precondition(
           !source.isEmpty,
           "Broken Container: count doesn't match contents")
         target._append(copying: source)
       }
       precondition(
-        it.nextSpan_().isEmpty,
+        it.nextSpan().isEmpty,
         "Broken Container: count doesn't match contents")
     }
   }

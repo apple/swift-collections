@@ -97,11 +97,11 @@ extension UniqueArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable_ & ~Copyable & ~Escapable>(
+  public init<Source: Iterable & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     self.init(minimumCapacity: capacity ?? 0)
     try self.append(copying: contents)
   }
@@ -135,11 +135,11 @@ extension UniqueArray /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<Source: Iterable_ & Sequence<Element>>(
+  public init<Source: Iterable & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     self.init(minimumCapacity: capacity ?? 0)
     try self.append(copying: contents)
   }
