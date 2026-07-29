@@ -145,11 +145,11 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<S: Iterable_ & ~Copyable & ~Escapable>(
+  public init<S: Iterable & ~Copyable & ~Escapable>(
     capacity: Int? = nil,
     copying contents: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init(minimumCapacity: capacity ?? 0)
     try self._append(copying: contents)
   }
@@ -184,11 +184,11 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<S: Iterable_ & Sequence<Element>>(
+  public init<S: Iterable & Sequence<Element>>(
     capacity: Int? = nil,
     copying contents: S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init(minimumCapacity: capacity ?? contents.underestimatedCount)
     try self._append(copying: contents)
   }
@@ -203,11 +203,11 @@ extension UniqueDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<S: Iterable_ & Collection<Element>>(
+  public init<S: Iterable & Collection<Element>>(
     capacity: Int? = nil,
     copying contents: S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init(minimumCapacity: capacity ?? contents.count)
     try self._append(copying: contents)
   }

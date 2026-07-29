@@ -26,7 +26,7 @@ extension UniqueDeque where Element: ~Copyable {
   
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator {
+  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
     BorrowingIterator(_deque: self._storage)
   }
 #endif
@@ -39,13 +39,13 @@ extension UniqueDeque: Container where Element: ~Copyable {
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
     from start: Index, to end: Index
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     _storage.makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
-    _storage.currentIndex(of: iterator)
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    _storage.currentIndex(of: &iterator)
   }
 }
 

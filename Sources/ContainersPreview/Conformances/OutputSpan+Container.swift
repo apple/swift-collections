@@ -18,20 +18,20 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 @available(SwiftStdlib 6.4, *)
 extension OutputSpan: RandomAccessContainer, MutableContainer
-where Element: ~Copyable
+/*where Element: ~Copyable*/ // FIXME: rdar://183153655 OutputSpan's Iterable conformance requires Element to be Copyable
 {
   @_alwaysEmitIntoClient
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
     from start: Index, to end: Index
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     // FIXME: `makeBorrowingIterator` would be borrowing the temporary `span`, not self
     self.span._makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
-    self.span.currentIndex(of: iterator)
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    self.span.currentIndex(of: &iterator)
   }
 
   @_alwaysEmitIntoClient

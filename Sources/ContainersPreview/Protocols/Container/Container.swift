@@ -19,8 +19,8 @@
 /// nondestructively, and efficiently accessed.
 @available(SwiftStdlib 6.4, *)
 public protocol Container<Element>:
-  Iterable_, ~Copyable, ~Escapable
-  where Element: ~Copyable, Element == Element_, Failure_ == Never
+  Iterable, ~Copyable, ~Escapable
+  where Element: ~Copyable, Failure == Never
 {
   override associatedtype Element: ~Copyable
 
@@ -45,11 +45,12 @@ public protocol Container<Element>:
   /// - Complexity: Recommended to be O(1); conforming types must clearly
   ///   document deviations from this expectation.
   @_lifetime(borrow self)
-  func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator_
+  func makeBorrowingIterator(from start: Index, to end: Index) -> BorrowingIterator
 
   /// - Complexity: Recommended to be O(1); conforming types must clearly
   ///   document deviations from this expectation.
-  func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index
+  func currentIndex(of iterator: inout BorrowingIterator) -> Index
+  // FIXME: `inout` needs to be `borrowing`, but Span's needlessly limited iterator makes that unworkable.
 
   /// Complexity: O(1)
   var isEmpty: Bool { get }
@@ -279,19 +280,19 @@ public protocol Container<Element>:
 extension Container where Self: ~Copyable & ~Escapable, Element: ~Copyable {
   @_alwaysEmitIntoClient
   @_transparent
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
 
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+  public func makeBorrowingIterator() -> BorrowingIterator {
     self.makeBorrowingIterator(from: self.startIndex, to: self.endIndex)
   }
 
   @_alwaysEmitIntoClient
   @_transparent
   @_lifetime(borrow self)
-  public func makeBorrowingIterator_(from start: Index) -> BorrowingIterator_ {
+  public func makeBorrowingIterator(from start: Index) -> BorrowingIterator {
     self.makeBorrowingIterator(from: start, to: self.endIndex)
   }
 }

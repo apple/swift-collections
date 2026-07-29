@@ -14,16 +14,16 @@
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 6.4, *)
-extension InputSpan: Iterable_ where Element: ~Copyable {
-  public typealias BorrowingIterator_ = Span<Element>.BorrowingIterator_
+extension InputSpan: Iterable where Element: ~Copyable {
+  public typealias BorrowingIterator = Span<Element>.BorrowingIterator
 
   @inlinable
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
 
   @_lifetime(borrow self)
   @inlinable
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(self.span)
+  public func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(self.span)
   }
 }
 

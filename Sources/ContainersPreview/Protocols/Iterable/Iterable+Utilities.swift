@@ -18,21 +18,21 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 6.4, *)
-extension Iterable_ where Self: ~Copyable & ~Escapable, Element_: Copyable {
+extension Iterable where Self: ~Copyable & ~Escapable, Element: Copyable {
   @inlinable
   package func _copyContents(
-    intoPrefixOf buffer: UnsafeMutableBufferPointer<Element_>
-  ) throws(Failure_) -> Int {
+    intoPrefixOf buffer: UnsafeMutableBufferPointer<Element>
+  ) throws(Failure) -> Int {
     var target = buffer
-    var it = self.makeBorrowingIterator_()
+    var it = self.makeBorrowingIterator()
     while target.count != 0 {
-      let span = try it.nextSpan_(maxCount: target.count)
+      let span = try it.nextSpan(maxCount: target.count)
       if span.isEmpty {
         return buffer.count - target.count
       }
       target._initializeAndDropPrefix(copying: span)
     }
-    let test = try it.nextSpan_()
+    let test = try it.nextSpan()
     precondition(test.isEmpty, "Contents do not fit in target buffer")
     return buffer.count
   }

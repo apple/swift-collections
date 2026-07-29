@@ -13,11 +13,11 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: Copyable
+  Element: Copyable
 {
   /// Turns a borrowing iterator into a producer by copying its elements.
   /// This allows producer algorithms (such as `collect(into:)`) to get
@@ -25,7 +25,7 @@ where
   /// will get copied.
   @inlinable
   @_lifetime(copy self)
-  public consuming func copy() -> BorrowingMapProducer<Self, Element_> {
+  public consuming func copy() -> BorrowingMapProducer<Self, Element> {
     // FIXME: We could also just define a direct implementation that avoids the closure.
     self.map { $0 }
   }

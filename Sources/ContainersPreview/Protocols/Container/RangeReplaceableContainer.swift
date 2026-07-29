@@ -692,15 +692,15 @@ where
     copying items: borrowing C,
     at index: Index
   ) {
-    var it = items.makeBorrowingIterator_()
+    var it = items.makeBorrowingIterator()
     insert(addingCount: newCount, at: index) { target in
       while !target.isFull {
-        let source = it.nextSpan_(maxCount: target.freeCapacity)
+        let source = it.nextSpan(maxCount: target.freeCapacity)
         precondition(!source.isEmpty, "Broken container: mismatching count")
         target._append(copying: source)
       }
     }
-    precondition(it.nextSpan_().isEmpty, "Broken container: mismatching count")
+    precondition(it.nextSpan().isEmpty, "Broken container: mismatching count")
   }
 
   @_alwaysEmitIntoClient
@@ -813,14 +813,14 @@ where
 
   @_alwaysEmitIntoClient
   package mutating func _appendIterable<
-    S: Iterable_ & ~Copyable & ~Escapable
+    S: Iterable & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
-    var it = items.makeBorrowingIterator_()
+  ) throws(S.Failure)
+  where S.Element == Element {
+    var it = items.makeBorrowingIterator()
     while true {
-      let span = try it.nextSpan_()
+      let span = try it.nextSpan()
       guard !span.isEmpty else { break }
       self.append(copying: span)
     }
@@ -828,11 +828,11 @@ where
 
   @_alwaysEmitIntoClient
   public mutating func append<
-    S: Iterable_ & ~Copyable & ~Escapable
+    S: Iterable & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try _appendIterable(copying: items)
   }
 
@@ -863,11 +863,11 @@ where
   ///    - newElements: The new elements to copy into the container.
   @_alwaysEmitIntoClient
   public mutating func append<
-    Source: Iterable_ & Sequence<Element>
+    Source: Iterable & Sequence<Element>
   >(
     copying newElements: Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     try self._appendIterable(copying: newElements)
   }
 }

@@ -259,9 +259,9 @@ class RigidDictionaryTests: CollectionTestCase {
 #if UnstableContainersPreview
           var actual: Set<Int> = []
           _with(d.keys) { keys in // FIXME: Sigh, borrow accessors are limited in 6.4
-            var it = keys.makeBorrowingIterator_()
+            var it = keys.makeBorrowingIterator()
             while true {
-              let next = it.nextSpan_()
+              let next = it.nextSpan()
               guard !next.isEmpty else { break }
               for i in next.indices {
                 expectTrue(
@@ -297,10 +297,10 @@ class RigidDictionaryTests: CollectionTestCase {
             expectEqual(keys.count, i + 1)
             expectEqual(keys.capacity, capacity)
 #if UnstableContainersPreview
-            var it = keys.makeBorrowingIterator_()
+            var it = keys.makeBorrowingIterator()
             var actual: Set<Int> = []
             while true {
-              let next = it.nextSpan_()
+              let next = it.nextSpan()
               guard !next.isEmpty else { break }
               for i in next.indices {
                 expectTrue(
@@ -362,9 +362,9 @@ class RigidDictionaryTests: CollectionTestCase {
           
           var seen: Set<Int> = []
           let indices = d.indices
-          var it = indices.makeBorrowingIterator_()
+          var it = indices.makeBorrowingIterator()
           while true {
-            let next = it.nextSpan_()
+            let next = it.nextSpan()
             if next.isEmpty { break }
             expectEqual(next.count, 1)
             var i = 0

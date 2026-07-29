@@ -300,13 +300,13 @@ extension UniqueDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  internal mutating func _append<S: Iterable_ & ~Copyable & ~Escapable>(
+  internal mutating func _append<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
-    var it = items.makeBorrowingIterator_()
+  ) throws(S.Failure)
+  where S.Element == Element {
+    var it = items.makeBorrowingIterator()
     while true {
-      let span = try it.nextSpan_()
+      let span = try it.nextSpan()
       if span.isEmpty { break }
       self.append(copying: span)
     }
@@ -326,10 +326,10 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///    over many similar invocations on the same deque
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func append<S: Iterable_ & ~Copyable & ~Escapable>(
+  public mutating func append<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._append(copying: items)
   }
 #endif
@@ -378,10 +378,10 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     amortized over many similar invocations over the same deque.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func append<S: Iterable_ & Sequence<Element>>(
+  public mutating func append<S: Iterable & Sequence<Element>>(
     copying items: S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._append(copying: items)
   }
 #endif

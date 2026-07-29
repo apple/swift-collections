@@ -18,30 +18,30 @@ import InternalCollectionsUtilities
 #if compiler(>=6.4) && UnstableContainersPreview
 
 @available(SwiftStdlib 6.4, *)
-extension Iterable_
+extension Iterable
 where
-  Self: ~Copyable & ~Escapable, Element_: Equatable,
-  Element_: ~Copyable
+  Self: ~Copyable & ~Escapable, Element: Equatable,
+  Element: ~Copyable
 {
   @inlinable
   package func _elementsEqual<
-    Other: Iterable_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: Iterable<Element, Failure> & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
-  ) throws(Failure_) -> Bool
-  where Other.Element_: ~Copyable
+  ) throws(Failure) -> Bool
+  where Other.Element: ~Copyable
   {
-    let it1 = self.makeBorrowingIterator_()
-    let it2 = other.makeBorrowingIterator_()
+    let it1 = self.makeBorrowingIterator()
+    let it2 = other.makeBorrowingIterator()
     return try it1.elementsEqual(it2)
   }
 }
 
 @available(SwiftStdlib 6.4, *)
-extension Iterable_
+extension Iterable
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
+  Element: ~Copyable
 {
   /// Returns a Boolean value indicating whether two borrowing sequences contain
   /// equivalent elements in the same order, using the given predicate as the
@@ -66,32 +66,32 @@ where
   /// - Complexity: O(*m*), where *m* is the count of the longer of the input sequences.
   @inlinable
   package func _elementsEqual<
-    Other: Iterable_ & ~Copyable & ~Escapable
+    Other: Iterable & ~Copyable & ~Escapable
   >(
     _ other: borrowing Other,
-    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure_) -> Bool
-  ) throws(Failure_) -> Bool
-  where Other.Element_: ~Copyable, Other.Failure_ == Failure_
+    by areEquivalent: (borrowing Element, borrowing Other.Element) throws(Failure) -> Bool
+  ) throws(Failure) -> Bool
+  where Other.Element: ~Copyable, Other.Failure == Failure
   {
-    let it1 = self.makeBorrowingIterator_()
-    let it2 = other.makeBorrowingIterator_()
+    let it1 = self.makeBorrowingIterator()
+    let it2 = other.makeBorrowingIterator()
     return try it1.elementsEqual(it2, by: areEquivalent)
   }
 }
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingIteratorProtocol_
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable & Equatable
+  Element: ~Copyable & Equatable
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol<Element, Failure> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-  ) throws(Failure_) -> Bool
-  where Other.Element_: ~Copyable
+  ) throws(Failure) -> Bool
+  where Other.Element: ~Copyable
   {
     var result = true
     try _spanwiseZip(state: &result, with: other) { state, a, b in
@@ -113,11 +113,11 @@ where
 
   @inlinable
   package consuming func _directElementsEqual<
-    Other: BorrowingIteratorProtocol_<Element_, Failure_> & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol<Element, Failure> & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-  ) throws(Failure_) -> Bool
-  where Other.Element_: ~Copyable
+  ) throws(Failure) -> Bool
+  where Other.Element: ~Copyable
   {
 #if true // FIXME: rdar://150228920 Exclusive access scopes aren't expanded enough
     // Note: This is the less efficient implementation of elementsEqual. The
@@ -125,13 +125,13 @@ where
     // (It lets the two iterators run at their native speeds, with no artificial
     // maxCounts.)
     while true {
-      let a = try self.nextSpan_()
+      let a = try self.nextSpan()
       var i = 0
       if a.isEmpty {
-        return try other.nextSpan_().isEmpty
+        return try other.nextSpan().isEmpty
       }
       while i < a.count {
-        let b = try other.nextSpan_(maxCount: a.count - i)
+        let b = try other.nextSpan(maxCount: a.count - i)
         if b.isEmpty {
           return false
         }
@@ -174,22 +174,22 @@ where
 }
 
 @available(SwiftStdlib 6.4, *)
-extension BorrowingIteratorProtocol_
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
+  Element: ~Copyable
 {
   @inlinable
   package consuming func elementsEqual<
-    Other: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
+    Other: BorrowingIteratorProtocol & ~Copyable & ~Escapable
   >(
     _ other: consuming Other,
-    by areEquivalent: (borrowing Element_, borrowing Other.Element_) throws(Failure_) -> Bool
-  ) throws(Failure_) -> Bool
-  where Other.Element_: ~Copyable, Other.Failure_ == Failure_
+    by areEquivalent: (borrowing Element, borrowing Other.Element) throws(Failure) -> Bool
+  ) throws(Failure) -> Bool
+  where Other.Element: ~Copyable, Other.Failure == Failure
   {
     var result = true
-    try _spanwiseZip(state: &result, with: other) { state, a, b throws(Failure_) in
+    try _spanwiseZip(state: &result, with: other) { state, a, b throws(Failure) in
       assert(a.count == b.count || a.isEmpty || b.isEmpty)
       if a.isEmpty || b.isEmpty {
         state = false

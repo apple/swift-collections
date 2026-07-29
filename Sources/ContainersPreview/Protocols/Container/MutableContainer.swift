@@ -103,6 +103,18 @@ where
 
 @available(SwiftStdlib 6.4, *)
 extension MutableContainer
+where Self: ~Copyable & ~Escapable, Element: Copyable
+{
+  @_alwaysEmitIntoClient
+  public mutating func swapAt(_ i: Index, _ j: Index) {
+    // Note: `swapAt` isn't implementable in terms of the mutating subscript
+    // unless `Element` is copyable.
+    self[j] = exchange(&self[i], with: self[j])
+  }
+}
+
+@available(SwiftStdlib 6.4, *)
+extension MutableContainer
 where Self: ~Copyable & ~Escapable, Element: ~Copyable
 {
   @_alwaysEmitIntoClient

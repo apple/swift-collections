@@ -239,14 +239,14 @@ extension RigidSet /* where Element: Copyable */ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   package mutating func _insert<
-    S: Iterable_ & ~Copyable & ~Escapable
+    S: Iterable & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
-    var it = items.makeBorrowingIterator_()
+  ) throws(S.Failure)
+  where S.Element == Element {
+    var it = items.makeBorrowingIterator()
     while true {
-      let span = try it.nextSpan_()
+      let span = try it.nextSpan()
       guard !span.isEmpty else { break }
       self.insert(copying: span)
     }
@@ -258,11 +258,11 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: Iterable_ & ~Copyable & ~Escapable
+    S: Iterable & ~Copyable & ~Escapable
   >(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try _insert(copying: items)
   }
 #endif
@@ -281,11 +281,11 @@ extension RigidSet /* where Element: Copyable */ {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func insert<
-    S: Iterable_ & Sequence<Element>
+    S: Iterable & Sequence<Element>
   >(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try _insert(copying: items)
   }
 #endif

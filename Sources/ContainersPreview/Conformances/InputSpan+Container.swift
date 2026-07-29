@@ -25,7 +25,7 @@ where Element: ~Copyable
   public func makeBorrowingIterator(
     from start: Index,
     to end: Index
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     let span = self.span
     let it = span.makeBorrowingIterator(from: start, to: end)
     // FIXME: `it` is borrowing `span`, not self
@@ -33,8 +33,8 @@ where Element: ~Copyable
   }
 
   @_alwaysEmitIntoClient
-  public func currentIndex(of iterator: borrowing BorrowingIterator_) -> Index {
-    self.span.currentIndex(of: iterator)
+  public func currentIndex(of iterator: inout BorrowingIterator) -> Index {
+    self.span.currentIndex(of: &iterator)
   }
 }
 #endif

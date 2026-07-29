@@ -22,19 +22,16 @@ extension MutableSpan: RandomAccessContainer where Element: ~Copyable {
   @_lifetime(borrow self)
   public func makeBorrowingIterator(
     from start: Int, to end: Int
-  ) -> BorrowingIterator_ {
+  ) -> BorrowingIterator {
     // FIXME: `makeBorrowingIterator` would be borrowing the temporary `span`, not self
     self.span._makeBorrowingIterator(from: start, to: end)
   }
 
   @_alwaysEmitIntoClient
   public func currentIndex(
-    of iterator: borrowing BorrowingIterator_
+    of iterator: inout BorrowingIterator
   ) -> Int {
-    precondition(
-      self.span.isTriviallyIdentical(to: iterator._span),
-      "Invalid iterator")
-    return iterator._start
+    self.span.currentIndex(of: &iterator)
   }
 }
 #endif

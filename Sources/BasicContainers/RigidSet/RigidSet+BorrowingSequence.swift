@@ -18,14 +18,12 @@ import ContainersPreview
 #if compiler(>=6.4) && UnstableHashedContainers && UnstableContainersPreview
 
 @available(SwiftStdlib 5.0, *)
-extension RigidSet: Iterable_ where Element: ~Copyable {
-  public typealias Element_ = Element
-
+extension RigidSet: Iterable where Element: ~Copyable {
   @inlinable
-  public var underestimatedCount_: Int { count }
+  public var underestimatedCount: Int { count }
   
   @inlinable
-  public func _customContainsEquatableElement_(
+  public func _customContainsEquatableElement(
     _ element: borrowing Element
   ) -> Bool? {
     self.contains(element)
@@ -33,20 +31,18 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
 
   @inlinable
   @_lifetime(borrow self)
-  public borrowing func makeBorrowingIterator_() -> BorrowingIterator_ {
-    BorrowingIterator_(_set: self)
+  public borrowing func makeBorrowingIterator() -> BorrowingIterator {
+    BorrowingIterator(_set: self)
   }
 
   @frozen
-  public struct BorrowingIterator_:
-    BorrowingIteratorProtocol_,
+  public struct BorrowingIterator:
+    BorrowingIteratorProtocol,
     ~Copyable,
     ~Escapable
   {
-    public typealias Element_ = Element
-
     @_alwaysEmitIntoClient
-    internal var _baseAddress: UnsafePointer<Element_>?
+    internal var _baseAddress: UnsafePointer<Element>?
 
     @_alwaysEmitIntoClient
     internal var _bucketIterator: _HTable.BucketIterator
@@ -54,7 +50,7 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
     @_alwaysEmitIntoClient
     @_lifetime(borrow _set)
     internal init(
-      _set: borrowing RigidSet<Element_>
+      _set: borrowing RigidSet<Element>
     ) {
       self._baseAddress = .init(_set._members)
       self._bucketIterator = _set._table.makeBucketIterator()
@@ -62,7 +58,7 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
 
     @_alwaysEmitIntoClient
     @_lifetime(copy self)
-    internal func _span(over buckets: Range<_Bucket>) -> Span<Element_> {
+    internal func _span(over buckets: Range<_Bucket>) -> Span<Element> {
       let items = UnsafeBufferPointer(
         start: _baseAddress.unsafelyUnwrapped + buckets.lowerBound.offset,
         count: buckets.upperBound.offset - buckets.lowerBound.offset)
@@ -71,7 +67,7 @@ extension RigidSet: Iterable_ where Element: ~Copyable {
     
     @_alwaysEmitIntoClient
     @_lifetime(&self)
-    public mutating func nextSpan_(maxCount: Int) -> Span<Element_> {
+    public mutating func nextSpan(maxCount: Int = .max) -> Span<Element> {
       precondition(maxCount > 0, "maxCount must be positive")
       guard
         let next = _bucketIterator.nextOccupiedRegion(maxCount: maxCount)

@@ -13,31 +13,31 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
+  Element: ~Copyable
 {
   @inlinable
   @_lifetime(copy self)
   public consuming func filter(
-    _ isIncluded: @escaping (borrowing Element_) -> Bool
+    _ isIncluded: @escaping (borrowing Element) -> Bool
   ) -> BorrowingFilter<Self> {
     BorrowingFilter(_base: self, isIncluded: isIncluded)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct BorrowingFilter<
-  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable
+  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable
 >: ~Copyable, ~Escapable
-where Base.Element_: ~Copyable {
-  public typealias Element_ = Base.Element_
-  public typealias Failure = Base.Failure_
+where Base.Element: ~Copyable {
+  public typealias Element = Base.Element
+  public typealias Failure = Base.Failure
 
   @_alwaysEmitIntoClient
-  public let _isIncluded: (borrowing Element_) throws(Failure) -> Bool
+  public let _isIncluded: (borrowing Element) throws(Failure) -> Bool
 
   @_alwaysEmitIntoClient
   public var _base: Base
@@ -46,7 +46,7 @@ where Base.Element_: ~Copyable {
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    isIncluded: @escaping (borrowing Element_) -> Bool
+    isIncluded: @escaping (borrowing Element) -> Bool
   ) {
     self._isIncluded = isIncluded
     self._base = _base
@@ -55,14 +55,14 @@ where Base.Element_: ~Copyable {
 
 // FIXME: Sendable
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingFilter: BorrowingIteratorProtocol_
-where Base: ~Copyable & ~Escapable, Base.Element_: ~Copyable {
+@available(SwiftStdlib 6.4, *)
+extension BorrowingFilter: BorrowingIteratorProtocol
+where Base: ~Copyable & ~Escapable, Base.Element: ~Copyable {
   @_lifetime(&self)
-  public mutating func nextSpan_(maxCount: Int) throws(Failure) -> Span<Element_> {
+  public mutating func nextSpan(maxCount: Int) throws(Failure) -> Span<Element> {
     // FIXME: This is quite inefficient compared to Container's filter
     while true {
-      let span = try _base.nextSpan_(maxCount: 1)
+      let span = try _base.nextSpan(maxCount: 1)
       if span.isEmpty { return span }
       precondition(span.count == 1, "Invalid BorrowingIterator")
       if try _isIncluded(span[unchecked: 0]) { return span }

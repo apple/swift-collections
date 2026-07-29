@@ -43,14 +43,13 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
 }
 
 @available(SwiftStdlib 6.4, *)
-extension RigidDictionary.Indices: Iterable_
+extension RigidDictionary.Indices: Iterable
 where Key: ~Copyable, Value: ~Copyable
 {
   public typealias Element = RigidDictionary.Index
-  public typealias Element_ = Element
 
   @frozen
-  public struct BorrowingIterator_: ~Escapable {
+  public struct BorrowingIterator: ~Escapable {
     public typealias Element = RigidDictionary.Index
 
     @usableFromInline
@@ -70,24 +69,22 @@ where Key: ~Copyable, Value: ~Copyable
   }
 
   @inlinable
-  public var underestimatedCount_: Int { self._base.value.count }
+  public var underestimatedCount: Int { self._base.value.count }
 
-  @_lifetime(borrow self) // FIXME: Should be @_lifetime(copy self)
-  public func makeBorrowingIterator_() -> BorrowingIterator_ {
+  @_lifetime(borrow self)
+  public func makeBorrowingIterator() -> BorrowingIterator {
     let bit = self._base.value.makeBucketIterator()
     // FIXME: This override really should not be necessary. Check if the real `struct Borrow` fixes it.
     let override = _overrideLifetime(bit, copying: self)
-    return BorrowingIterator_(_it: override)
+    return BorrowingIterator(_it: override)
   }
 }
 
 @available(SwiftStdlib 6.4, *)
-extension RigidDictionary.Indices.BorrowingIterator_: BorrowingIteratorProtocol_
+extension RigidDictionary.Indices.BorrowingIterator: BorrowingIteratorProtocol
 where Key: ~Copyable, Value: ~Copyable {
-  public typealias Element_ = Element
-
   @_lifetime(&self)
-  public mutating func nextSpan_(maxCount: Int) -> Span<Element> {
+  public mutating func nextSpan(maxCount: Int) -> Span<Element> {
     guard _it.advanceToOccupied() else { return .init() }
     _current[0] = Element(_bucket: _it.currentBucket)
     _it.advanceToNextBit()

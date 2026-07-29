@@ -322,10 +322,10 @@ extension UniqueDeque /*where Element: Copyable*/ {
 #if compiler(>=6.4) && UnstableContainersPreview
   @available(SwiftStdlib 6.4, *)
   @inlinable
-  internal mutating func _prepend<S: Iterable_ & ~Copyable & ~Escapable>(
+  internal mutating func _prepend<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element
+  ) throws(S.Failure)
+  where S.Element == Element
   {
     // We don't know the exact count of new elements, so we cannot initialize
     // them in place. Append them to the end of the deque first, then rotate
@@ -341,14 +341,14 @@ extension UniqueDeque /*where Element: Copyable*/ {
 
   @available(SwiftStdlib 6.4, *)
   @inlinable
-  internal mutating func _prepend<S: Iterable_ & ~Copyable & ~Escapable>(
+  internal mutating func _prepend<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S,
     exactCount: Int
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
-    var it = items.makeBorrowingIterator_()
-    try self.prepend(addingCount: exactCount) { (target) throws(S.Failure_) in
-      let span = try it.nextSpan_(maxCount: target.freeCapacity)
+  ) throws(S.Failure)
+  where S.Element == Element {
+    var it = items.makeBorrowingIterator()
+    try self.prepend(addingCount: exactCount) { (target) throws(S.Failure) in
+      let span = try it.nextSpan(maxCount: target.freeCapacity)
       target._append(copying: span)
     }
   }
@@ -370,10 +370,10 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_ & ~Copyable & ~Escapable>(
+  public mutating func prepend<S: Iterable & ~Copyable & ~Escapable>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._prepend(copying: items)
   }
 
@@ -483,10 +483,10 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_ & Sequence<Element>>(
+  public mutating func prepend<S: Iterable & Sequence<Element>>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._prepend(copying: items)
   }
 
@@ -502,10 +502,10 @@ extension UniqueDeque /*where Element: Copyable*/ {
   ///     over many similar invocations on the same deque.
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
-  public mutating func prepend<S: Iterable_ & Collection<Element>>(
+  public mutating func prepend<S: Iterable & Collection<Element>>(
     copying items: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     try self._prepend(copying: items, exactCount: items.count)
   }
 

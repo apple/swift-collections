@@ -13,20 +13,20 @@
 
 #if compiler(>=6.4) && UnstableContainersPreview
 
-@available(SwiftStdlib 5.0, *)
-extension BorrowingIteratorProtocol_
+@available(SwiftStdlib 6.4, *)
+extension BorrowingIteratorProtocol
 where
   Self: ~Copyable & ~Escapable,
-  Element_: ~Copyable
+  Element: ~Copyable
 {
   @inlinable
   @_lifetime(copy self)
   public consuming func map<T: ~Copyable>(
-    _ transform: @escaping (borrowing Element_) -> T
+    _ transform: @escaping (borrowing Element) -> T
   ) -> BorrowingMapProducer<Self, T> {
     BorrowingMapProducer(
       _base: self,
-      transform: { v throws(Failure_) in
+      transform: { v throws(Failure) in
         // FIXME: Conversion from non-throwing to throwing closure should be implicit
         transform(v)
       })
@@ -35,7 +35,7 @@ where
   @inlinable
   @_lifetime(copy self)
   public consuming func map2<T: ~Copyable>( // FIXME: We can't overload on the type of error thrown.
-    _ transform: @escaping (borrowing Element_) throws(Failure_) -> T
+    _ transform: @escaping (borrowing Element) throws(Failure) -> T
   ) -> BorrowingMapProducer<Self, T> {
     BorrowingMapProducer(_base: self, transform: transform)
   }
@@ -43,20 +43,20 @@ where
   @inlinable
   @_lifetime(copy self)
   public consuming func map2<T: ~Copyable, E: Error>( // FIXME: We can't overload on the type of error thrown.
-    _ transform: @escaping (borrowing Element_) throws(E) -> T
+    _ transform: @escaping (borrowing Element) throws(E) -> T
   ) -> BorrowingMapProducer<ErrorMappedIterator<Self, E>, T>
-  where Failure_ == Never {
+  where Failure == Never {
     BorrowingMapProducer(_base: self.mapError(), transform: transform)
   }
 }
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 public struct BorrowingMapProducer<
-  Base: BorrowingIteratorProtocol_ & ~Copyable & ~Escapable,
+  Base: BorrowingIteratorProtocol & ~Copyable & ~Escapable,
   Element: ~Copyable,
 >: ~Copyable, ~Escapable {
   @_alwaysEmitIntoClient
-  public let _transform: (borrowing Base.Element_) throws(Failure) -> Element
+  public let _transform: (borrowing Base.Element) throws(Failure) -> Element
 
   @_alwaysEmitIntoClient
   public var _it: Base
@@ -65,7 +65,7 @@ public struct BorrowingMapProducer<
   @_lifetime(copy _base)
   internal init(
     _base: consuming Base,
-    transform: @escaping (borrowing Base.Element_) throws(Failure) -> Element
+    transform: @escaping (borrowing Base.Element) throws(Failure) -> Element
   ) {
     self._transform = transform
     self._it = _base
@@ -74,13 +74,13 @@ public struct BorrowingMapProducer<
 
 // FIXME: Sendable
 
-@available(SwiftStdlib 5.0, *)
+@available(SwiftStdlib 6.4, *)
 extension BorrowingMapProducer: Producer
 where
   Base: ~Copyable & ~Escapable,
   Element: ~Copyable
 {
-  public typealias Failure = Base.Failure_
+  public typealias Failure = Base.Failure
 
   @inlinable
   public var underestimatedCount: Int {
@@ -90,7 +90,7 @@ where
   @inlinable
   @_lifetime(self: copy self)
   public mutating func next() throws(Failure) -> Element? {
-    let span = try _it.nextSpan_(maxCount: 1)
+    let span = try _it.nextSpan(maxCount: 1)
     guard !span.isEmpty else { return nil }
     return try _transform(span[unchecked: 0])
   }
@@ -104,7 +104,7 @@ where
   ) throws(Failure) -> Bool {
     var success = false
     while !target.isFull {
-      let span = try _it.nextSpan_(maxCount: target.freeCapacity)
+      let span = try _it.nextSpan(maxCount: target.freeCapacity)
       guard !span.isEmpty else { break }
       success = true
       var i = 0
@@ -121,18 +121,18 @@ where
   public mutating func skip(by n: inout Int) throws(Failure) {
     precondition(n > 0, "Can't skip a negative number of elements")
     if Failure.self == Never.self {
-      n -= try! _it.skip_(by: n)
+      n -= try! _it.skip(by: n)
       return
     }
 #if false
     // FIXME: Iterator's ill-conceived skip(by:) fails to report the position that triggers errors
-    try _it.skip_(by: &n)
+    try _it.skip(by: &n)
 #else
     // We have no choice other than skipping items one by one, or allowing
     // the base to materialize every element. The latter performs better in
     // the common case of containers, so let's do that.
     while n > 0 {
-      let span = try _it.nextSpan_(maxCount: n)
+      let span = try _it.nextSpan(maxCount: n)
       n -= span.count
     }
 #endif

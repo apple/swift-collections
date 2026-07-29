@@ -132,11 +132,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<S: Iterable_ & ~Copyable & ~Escapable>(
+  public init<S: Iterable & ~Copyable & ~Escapable>(
     capacity: Int,
     copying contents: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init(capacity: capacity)
     try self._append(copying: contents)
   }
@@ -187,11 +187,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<S: Iterable_ & Sequence<Element>>(
+  public init<S: Iterable & Sequence<Element>>(
     capacity: Int,
     copying contents: borrowing S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init(capacity: capacity)
     try self._append(copying: contents)
   }
@@ -210,11 +210,11 @@ extension RigidDeque /*where Element: Copyable*/ {
   @available(SwiftStdlib 6.4, *)
   @_alwaysEmitIntoClient
   @inline(__always)
-  public init<S: Iterable_ & Collection<Element>>(
+  public init<S: Iterable & Collection<Element>>(
     capacity: Int? = nil,
     copying contents: S
-  ) throws(S.Failure_)
-  where S.Element_ == Element {
+  ) throws(S.Failure)
+  where S.Element == Element {
     self.init(capacity: capacity ?? contents.count)
     try self._append(copying: contents)
   }

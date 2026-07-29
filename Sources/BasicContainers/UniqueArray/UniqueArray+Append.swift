@@ -261,15 +261,15 @@ extension UniqueArray {
   @available(SwiftStdlib 6.4, *)
   @inlinable
   internal mutating func _append<
-    Source: Iterable_ & ~Copyable & ~Escapable
+    Source: Iterable & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
-    _ensureFreeCapacity(newElements.underestimatedCount_)
-    var it = newElements.makeBorrowingIterator_()
+  ) throws(Source.Failure)
+  where Source.Element == Element {
+    _ensureFreeCapacity(newElements.underestimatedCount)
+    var it = newElements.makeBorrowingIterator()
     while true {
-      let span = try it.nextSpan_()
+      let span = try it.nextSpan()
       if span.isEmpty { break }
       _ensureFreeCapacity(span.count)
       _storage.append(copying: span)
@@ -296,11 +296,11 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable_ & ~Copyable & ~Escapable
+    Source: Iterable & ~Copyable & ~Escapable
   >(
     copying newElements: borrowing Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     try self._append(copying: newElements)
   }
 
@@ -352,11 +352,11 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   @inline(__always)
   public mutating func append<
-    Source: Iterable_ & Sequence<Element>
+    Source: Iterable & Sequence<Element>
   >(
     copying newElements: Source
-  ) throws(Source.Failure_)
-  where Source.Element_ == Element {
+  ) throws(Source.Failure)
+  where Source.Element == Element {
     try self._append(copying: newElements)
   }
 #endif
