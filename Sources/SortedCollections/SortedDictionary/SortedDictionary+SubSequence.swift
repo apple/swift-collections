@@ -300,7 +300,7 @@ extension SortedDictionary.SubSequence: Equatable where Value: Equatable {
   public static func ==(lhs: Self, rhs: Self) -> Bool {
     if lhs.count != rhs.count { return false }
     for (e1, e2) in zip(lhs, rhs) {
-      if e1.key != e2.key || e1.value != e2.value {
+      if e1 != e2 {
         return false
       }
     }
