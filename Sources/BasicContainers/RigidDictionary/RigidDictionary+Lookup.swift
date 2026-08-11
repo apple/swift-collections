@@ -26,12 +26,21 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   ) -> (bucket: _Bucket?, hashValue: Int) {
     self._keys._find(key)
   }
-  
+
+  /// Checks if the given key is present in the `RigidDictionary`.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
   @inlinable
   public func containsKey(_ key: borrowing Key) -> Bool {
     _find(key).bucket != nil
   }
 
+  /// Checks if the given key is present in the `RigidDictionary`, and returns
+  /// a reference to the value associated with it.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
+  /// - Returns: A reference to the value associated with the given `key`, or
+  ///            nil if the `key` is not found.
   @available(SwiftStdlib 6.4, *)
   @inlinable
   @_lifetime(borrow self)
@@ -40,6 +49,22 @@ extension RigidDictionary where Key: ~Copyable, Value: ~Copyable {
   ) -> Ref<Value>? {
     guard let bucket = self._find(key).bucket else { return nil }
     return Ref(unsafeAddress: _valuePtr(at: bucket), borrowing: self)
+  }
+
+  /// Checks if the given key is present in the `RigidDictionary`, and returns
+  /// a mutable reference to the value associated with it.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
+  /// - Returns: A mutable reference to the value associated with the given
+  ///            `key`, or nil if the `key` is not found.
+  @available(SwiftStdlib 6.4, *)
+  @inlinable
+  @_lifetime(&self)
+  public mutating func mutableValue(
+    forKey key: borrowing Key
+  ) -> MutableRef<Value>? {
+    guard let bucket = self._find(key).bucket else { return nil }
+    return MutableRef(unsafeAddress: _valuePtr(at: bucket), mutating: &self)
   }
 
   /// A stand-in for a `struct Ref`-returning lookup operation.

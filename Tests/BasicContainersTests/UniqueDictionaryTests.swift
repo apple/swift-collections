@@ -43,6 +43,32 @@ class UniqueDictionaryTests: CollectionTestCase {
     }
   }
   
+  func test_mutableValueForKey() {
+    typealias Key = LifetimeTracked<Int>
+    typealias Value = LifetimeTracked<String>
+    withLifetimeTracking { tracker in
+      var d = UniqueDictionary<Key, Value>(minimumCapacity: 20)
+      let firstKey = tracker.instance(for: 67)
+      let firstValue = tracker.instance(for: "sixty-seven")
+      expectNil(d.insertValue(firstValue, forKey: firstKey))
+
+      if #available(SwiftStdlib 6.4, *) {
+        let secondKey = tracker.instance(for: 67)
+        expectNotNil(d.mutableValue(forKey: secondKey)) { tmpRef in
+          // FIXME: The language needs to grow up to allow us to elide this
+          //        binding definition.
+          var valueRef = tmpRef
+          expectIdentical(valueRef.value, firstValue)
+
+          let secondValue = tracker.instance(for: "six-seven")
+          valueRef.value = secondValue
+          expectNotIdentical(valueRef.value, firstValue)
+          expectIdentical(valueRef.value, secondValue)
+        }
+      }
+    }
+  }
+
   func test_insert_one() {
     typealias Key = LifetimeTracked<Int>
     typealias Value = LifetimeTracked<String>
