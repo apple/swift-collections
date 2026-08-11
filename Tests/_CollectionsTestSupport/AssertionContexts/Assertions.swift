@@ -133,14 +133,14 @@ public func expectNotNil<T>(
 
 #if compiler(>=6.2)
 public func expectNotNil<T: ~Copyable & ~Escapable>(
-  _ value: borrowing Optional<T>,
+  _ value: consuming Optional<T>,
   _ message: @autoclosure () -> String = "",
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ handler: (borrowing T) throws -> Void = { _ in }
+  _ handler: (consuming T) throws -> Void = { _ in }
 ) rethrows {
-  switch value {
+  switch consume value {
   case let value?:
     try handler(value)
   case nil:
@@ -156,7 +156,7 @@ public func expectNotNil<T>(
   trapping: Bool = false,
   file: StaticString = #filePath,
   line: UInt = #line,
-  _ handler: (borrowing T) throws -> Void = { _ in }
+  _ handler: (consuming T) throws -> Void = { _ in }
 ) rethrows {
   switch value {
   case let value?:

@@ -19,11 +19,20 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
+  /// Checks if the given key is present in the `UniqueDictionary`.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
   @inlinable
   public func containsKey(_ key: borrowing Key) -> Bool {
     _storage.containsKey(key)
   }
 
+  /// Checks if the given key is present in the `RigidDictionary`, and returns
+  /// a reference to the value associated with it.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
+  /// - Returns: A reference to the value associated with the given `key`, or
+  ///            nil if the `key` is not found.
   @available(SwiftStdlib 6.4, *)
   @inlinable
   @_lifetime(borrow self)
@@ -32,6 +41,21 @@ extension UniqueDictionary where Key: ~Copyable, Value: ~Copyable {
   ) -> Ref<Value>? {
     // FIXME: Why is this override necessary? Is it sound? It was triggered by RigidDictionary becoming `@_addressableForDependencies`.
     _overrideLifetime(_storage.value(forKey: key), borrowing: self)
+  }
+
+  /// Checks if the given key is present in the `RigidDictionary`, and returns
+  /// a mutable reference to the value associated with it.
+  ///
+  /// - Parameter key: The key to find in the dictionary.
+  /// - Returns: A mutable reference to the value associated with the given
+  ///            `key`, or nil if the `key` is not found.
+  @available(SwiftStdlib 6.4, *)
+  @inlinable
+  @_lifetime(&self)
+  public mutating func mutableValue(
+    forKey key: borrowing Key
+  ) -> MutableRef<Value>? {
+    _storage.mutableValue(forKey: key)
   }
 
   /// A stand-in for a `struct Ref`-returning lookup operation.
