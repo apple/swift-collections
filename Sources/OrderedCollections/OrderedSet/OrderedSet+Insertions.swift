@@ -202,6 +202,25 @@ extension OrderedSet {
 }
 
 extension OrderedSet {
+  /// Replace the member at `index` with `item`, a new element that is not yet a
+  /// member of the set, registering it in the given hash table `bucket` (as
+  /// returned by `_find`) without verifying that it isn't present elsewhere.
+  /// The member currently at `index` is removed and returned.
+  ///
+  /// Appends the new element, swaps it into `index`, then removes the old
+  /// member from the end — each step is O(1).
+  ///
+  /// - Complexity: Amortized O(1)
+  @inlinable
+  @discardableResult
+  internal mutating func _replaceNew(
+    at index: Int, with item: Element, in bucket: _Bucket
+  ) -> Element {
+    _appendNew(item, in: bucket)
+    swapAt(index, count - 1)
+    return removeLast()
+  }
+
   /// Replace the member at the given index with a new element.
   ///
   /// If `item` compares equal to the member currently at `index`, then it is
@@ -243,12 +262,7 @@ extension OrderedSet {
     }
 
     precondition(existing == nil, "Duplicate element")
-
-    // Append the new element, swap it into the target position, and remove the
-    // old member from the end — each step is O(1).
-    _appendNew(item, in: bucket)
-    swapAt(index, count - 1)
-    return removeLast()
+    return _replaceNew(at: index, with: item, in: bucket)
   }
 }
 
