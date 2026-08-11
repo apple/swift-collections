@@ -284,6 +284,97 @@ final class SortedDictionaryTests: CollectionTestCase {
       }
     }
   }
+
+  func test_keys_Equatable() {
+    let left: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "three",
+    ]
+    let rightEqual: SortedDictionary = [
+      3: "trois",
+      1: "un",
+      2: "deux",
+    ]
+    let rightUnequal: SortedDictionary = [
+      1: "one",
+      2: "two",
+      4: "four",
+    ]
+
+    expectEqual(left.keys, left.keys)
+    expectEqual(left.keys, rightEqual.keys)
+    expectNotEqual(left.keys, rightUnequal.keys)
+
+    checkEquatable(equivalenceClasses: [
+      [SortedDictionary<Int, String>().keys, SortedDictionary<Int, String>().keys],
+      [left.keys, rightEqual.keys],
+      [rightUnequal.keys],
+    ])
+  }
+
+  func test_values_Equatable() {
+    let left: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "three",
+    ]
+    let rightEqual: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "three",
+    ]
+    let rightUnequal: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "trois",
+    ]
+
+    expectEqual(left.values, left.values)
+    expectEqual(left.values, rightEqual.values)
+    expectNotEqual(left.values, rightUnequal.values)
+
+    checkEquatable(equivalenceClasses: [
+      [SortedDictionary<Int, String>().values, SortedDictionary<Int, String>().values],
+      [left.values, rightEqual.values],
+      [rightUnequal.values],
+    ])
+  }
+
+  func test_subSequence_Equatable() {
+    let left: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "three",
+      4: "four",
+    ]
+    let rightEqual: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "three",
+      4: "four",
+    ]
+    let rightUnequal: SortedDictionary = [
+      1: "one",
+      2: "two",
+      3: "trois",
+      4: "four",
+    ]
+
+    let leftSlice = left[left.index(after: left.startIndex)..<left.index(before: left.endIndex)]
+    let rightEqualSlice = rightEqual[
+      rightEqual.index(after: rightEqual.startIndex)
+        ..< rightEqual.index(before: rightEqual.endIndex)
+    ]
+    let rightUnequalSlice = rightUnequal[
+      rightUnequal.index(after: rightUnequal.startIndex)
+        ..< rightUnequal.index(before: rightUnequal.endIndex)
+    ]
+
+    expectEqual(leftSlice, leftSlice)
+    expectEqual(leftSlice, rightEqualSlice)
+    expectNotEqual(leftSlice, rightUnequalSlice)
+  }
 }
 
 #endif
