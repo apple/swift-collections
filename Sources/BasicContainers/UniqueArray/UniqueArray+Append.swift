@@ -32,7 +32,7 @@ extension UniqueArray where Element: ~Copyable {
   @inlinable
   public mutating func append(_ item: consuming Element) {
     _ensureFreeCapacity(1)
-    _storage.append(item)
+    unsafe _storage._appendUnchecked(item)
   }
 }
 
@@ -89,7 +89,7 @@ extension UniqueArray where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>
   ) {
     _ensureFreeCapacity(items.count)
-    _storage.append(moving: items)
+    _storage._appendUnchecked(moving: items)
   }
   
 #if UnstableContainersPreview
@@ -129,7 +129,11 @@ extension UniqueArray where Element: ~Copyable {
     moving items: inout OutputSpan<Element>
   ) {
     _ensureFreeCapacity(items.count)
-    _storage.append(moving: &items)
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(first: count)
+      unsafe _storage._appendUnchecked(moving: source)
+      count = 0
+    }
   }
 
 #if !UnstableContainersPreview
@@ -218,7 +222,7 @@ extension UniqueArray {
     copying newElements: UnsafeBufferPointer<Element>
   ) {
     _ensureFreeCapacity(newElements.count)
-    unsafe _storage.append(copying: newElements)
+    unsafe _storage._appendUnchecked(copying: newElements)
   }
 
   /// Copies the elements of a buffer to the end of this array.
@@ -254,7 +258,9 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   public mutating func append(copying newElements: Span<Element>) {
     _ensureFreeCapacity(newElements.count)
-    _storage.append(copying: newElements)
+    newElements.withUnsafeBufferPointer { source in
+      unsafe _storage._appendUnchecked(copying: source)
+    }
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview
@@ -272,7 +278,9 @@ extension UniqueArray {
       let span = try it.nextSpan()
       if span.isEmpty { break }
       _ensureFreeCapacity(span.count)
-      _storage.append(copying: span)
+      span.withUnsafeBufferPointer { source in
+        unsafe _storage._appendUnchecked(copying: source)
+      }
     }
   }
   // FIXME: Add _append(copyingContainer:), forwarding to the same method on RigidArray
@@ -323,7 +331,7 @@ extension UniqueArray {
   public mutating func append(copying newElements: some Sequence<Element>) {
     let done: Void? = newElements.withContiguousStorageIfAvailable { buffer in
       _ensureFreeCapacity(buffer.count)
-      unsafe _storage.append(copying: buffer)
+      unsafe _storage._appendUnchecked(copying: buffer)
       return
     }
     if done != nil { return }
@@ -331,8 +339,7 @@ extension UniqueArray {
     _ensureFreeCapacity(newElements.underestimatedCount)
     var it = _storage._append(prefixOf: newElements)
     while let item = it.next() {
-      _ensureFreeCapacity(1)
-      _storage.append(item)
+      self.append(item)
     }
   }
   

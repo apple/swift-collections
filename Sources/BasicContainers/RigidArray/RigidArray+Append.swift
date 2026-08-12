@@ -20,6 +20,13 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @unsafe
+  internal mutating func _appendUnchecked(_ item: consuming Element) {
+    unsafe _storage.initializeElement(at: _count, to: item)
+    _count &+= 1
+  }
+
   /// Adds an element to the end of the array.
   ///
   /// If the array does not have sufficient capacity to hold any more elements,
@@ -31,8 +38,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func append(_ item: consuming Element) {
     precondition(!isFull, "RigidArray capacity overflow")
-    unsafe _storage.initializeElement(at: _count, to: item)
-    _count &+= 1
+    unsafe _appendUnchecked(item)
   }
 
   /// Adds an element to the end of the array, if possible.
@@ -48,7 +54,7 @@ extension RigidArray where Element: ~Copyable {
   @inlinable
   public mutating func pushLast(_ item: consuming Element) -> Element? {
     if isFull { return item }
-    append(item)
+    unsafe _appendUnchecked(item)
     return nil
   }
 }
@@ -93,6 +99,17 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
+  @_alwaysEmitIntoClient
+  @unsafe
+  internal mutating func _appendUnchecked(
+    moving items: UnsafeMutableBufferPointer<Element>
+  ) {
+    guard items.count > 0 else { return }
+    let c = unsafe _freeSpace._moveInitializePrefix(from: items)
+    assert(c == items.count)
+    _count &+= items.count
+  }
+
   /// Moves the elements of a buffer to the end of this array, leaving the
   /// buffer uninitialized.
   ///
@@ -109,10 +126,7 @@ extension RigidArray where Element: ~Copyable {
     moving items: UnsafeMutableBufferPointer<Element>
   ) {
     precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    guard items.count > 0 else { return }
-    let c = unsafe _freeSpace._moveInitializePrefix(from: items)
-    assert(c == items.count)
-    _count &+= items.count
+    unsafe _appendUnchecked(moving: items)
   }
 
 #if UnstableContainersPreview
@@ -154,9 +168,10 @@ extension RigidArray where Element: ~Copyable {
     moving items: inout OutputSpan<Element>
   ) {
     // FIXME: Remove this when `OutputSpan` starts conforming to RangeReplaceableContainer
+    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe self.append(moving: source)
+      unsafe _appendUnchecked(moving: source)
       count = 0
     }
   }
@@ -186,6 +201,17 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray {
+  @_alwaysEmitIntoClient
+  @unsafe
+  internal mutating func _appendUnchecked(
+    copying newElements: UnsafeBufferPointer<Element>
+  ) {
+    guard newElements.count > 0 else { return }
+    unsafe _freeSpace.baseAddress.unsafelyUnwrapped.initialize(
+      from: newElements.baseAddress.unsafelyUnwrapped, count: newElements.count)
+    _count &+= newElements.count
+  }
+
   /// Copies the elements of a buffer to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
@@ -203,10 +229,7 @@ extension RigidArray {
     precondition(
       newElements.count <= freeCapacity,
       "RigidArray capacity overflow")
-    guard newElements.count > 0 else { return }
-    unsafe _freeSpace.baseAddress.unsafelyUnwrapped.initialize(
-      from: newElements.baseAddress.unsafelyUnwrapped, count: newElements.count)
-    _count &+= newElements.count
+    unsafe _appendUnchecked(copying: newElements)
   }
 
   /// Copies the elements of a buffer to the end of this array.
@@ -237,8 +260,9 @@ extension RigidArray {
   /// - Complexity: O(`newElements.count`)
   @_alwaysEmitIntoClient
   public mutating func append(copying items: Span<Element>) {
+    precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
     items.withUnsafeBufferPointer { source in
-      unsafe self.append(copying: source)
+      unsafe _appendUnchecked(copying: source)
     }
   }
 
