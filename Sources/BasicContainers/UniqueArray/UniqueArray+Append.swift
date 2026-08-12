@@ -129,7 +129,11 @@ extension UniqueArray where Element: ~Copyable {
     moving items: inout OutputSpan<Element>
   ) {
     _ensureFreeCapacity(items.count)
-    unsafe _storage._appendUnchecked(moving: &items)
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(first: count)
+      unsafe _appendUnchecked(moving: source)
+      count = 0
+    }
   }
 
 #if !UnstableContainersPreview
@@ -254,7 +258,9 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   public mutating func append(copying newElements: Span<Element>) {
     _ensureFreeCapacity(newElements.count)
-    unsafe _storage._appendUnchecked(copying: newElements)
+    items.withUnsafeBufferPointer { source in
+      unsafe _storage._appendUnchecked(copying: source)
+    }
   }
 
 #if compiler(>=6.4) && UnstableContainersPreview

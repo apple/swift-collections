@@ -153,19 +153,6 @@ extension RigidArray where Element: ~Copyable {
   }
 #endif
 
-  @_alwaysEmitIntoClient
-  @unsafe
-  internal mutating func _appendUnchecked(
-    moving items: inout OutputSpan<Element>
-  ) {
-    // FIXME: Remove this when `OutputSpan` starts conforming to RangeReplaceableContainer
-    items.withUnsafeMutableBufferPointer { buffer, count in
-      let source = buffer._extracting(first: count)
-      unsafe _appendUnchecked(moving: source)
-      count = 0
-    }
-  }
-
   /// Moves the elements of an output span to the end of this array, leaving the
   /// span empty.
   ///
@@ -180,8 +167,13 @@ extension RigidArray where Element: ~Copyable {
   public mutating func append(
     moving items: inout OutputSpan<Element>
   ) {
+    // FIXME: Remove this when `OutputSpan` starts conforming to RangeReplaceableContainer
     precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    _appendUnchecked(moving: &items)
+    items.withUnsafeMutableBufferPointer { buffer, count in
+      let source = buffer._extracting(first: count)
+      unsafe _appendUnchecked(moving: source)
+      count = 0
+    }
   }
 
 #if !UnstableContainersPreview
@@ -257,14 +249,6 @@ extension RigidArray {
     unsafe self.append(copying: UnsafeBufferPointer(items))
   }
 
-  @_alwaysEmitIntoClient
-  @unsafe
-  internal mutating func _appendUnchecked(copying items: Span<Element>) {
-    items.withUnsafeBufferPointer { source in
-      unsafe _appendUnchecked(copying: source)
-    }
-  }
-
   /// Copies the elements of a span to the end of this array.
   ///
   /// If the array does not have sufficient capacity to hold all items in the
@@ -277,7 +261,9 @@ extension RigidArray {
   @_alwaysEmitIntoClient
   public mutating func append(copying items: Span<Element>) {
     precondition(items.count <= freeCapacity, "RigidArray capacity overflow")
-    _appendUnchecked(copying: items)
+    items.withUnsafeBufferPointer { source in
+      unsafe _appendUnchecked(copying: source)
+    }
   }
 
   @_alwaysEmitIntoClient
