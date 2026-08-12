@@ -296,14 +296,9 @@ extension Deque._UnsafeHandle {
     assert(minimumCapacity >= count)
     let object = _DequeBuffer<Element>.create(
       minimumCapacity: minimumCapacity,
-      makingHeaderWith: {
-        #if os(OpenBSD)
-        let capacity = minimumCapacity
-        #else
-        let capacity = $0.capacity
-        #endif
+      makingHeaderWith: { _ in
         return _DequeBufferHeader(
-          capacity: capacity,
+          capacity: minimumCapacity,
           count: count,
           startSlot: .zero)
       })
@@ -330,14 +325,9 @@ extension Deque._UnsafeHandle {
     assert(minimumCapacity >= count)
     let object = _DequeBuffer<Element>.create(
       minimumCapacity: minimumCapacity,
-      makingHeaderWith: {
-        #if os(OpenBSD)
-        let capacity = minimumCapacity
-        #else
-        let capacity = $0.capacity
-        #endif
+      makingHeaderWith: { _ in
         return _DequeBufferHeader(
-          capacity: capacity,
+          capacity: minimumCapacity,
           count: count,
           startSlot: .zero)
       })
