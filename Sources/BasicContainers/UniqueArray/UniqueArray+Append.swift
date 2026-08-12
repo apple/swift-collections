@@ -258,7 +258,7 @@ extension UniqueArray {
   @_alwaysEmitIntoClient
   public mutating func append(copying newElements: Span<Element>) {
     _ensureFreeCapacity(newElements.count)
-    items.withUnsafeBufferPointer { source in
+    newElements.withUnsafeBufferPointer { source in
       unsafe _storage._appendUnchecked(copying: source)
     }
   }
