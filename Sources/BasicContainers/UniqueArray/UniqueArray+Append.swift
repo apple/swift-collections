@@ -131,7 +131,7 @@ extension UniqueArray where Element: ~Copyable {
     _ensureFreeCapacity(items.count)
     items.withUnsafeMutableBufferPointer { buffer, count in
       let source = buffer._extracting(first: count)
-      unsafe _appendUnchecked(moving: source)
+      unsafe _storage._appendUnchecked(moving: source)
       count = 0
     }
   }
