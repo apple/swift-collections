@@ -20,7 +20,7 @@ import ContainersPreview
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  @inlinable
+  @_alwaysEmitIntoClient
   @unsafe
   internal mutating func _appendUnchecked(_ item: consuming Element) {
     unsafe _storage.initializeElement(at: _count, to: item)
@@ -99,7 +99,7 @@ extension RigidArray where Element: ~Copyable {
 
 @available(SwiftStdlib 5.0, *)
 extension RigidArray where Element: ~Copyable {
-  @inlinable
+  @_alwaysEmitIntoClient
   @unsafe
   internal mutating func _appendUnchecked(
     moving items: UnsafeMutableBufferPointer<Element>
