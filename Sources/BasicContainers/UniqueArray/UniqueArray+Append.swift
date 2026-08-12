@@ -278,7 +278,9 @@ extension UniqueArray {
       let span = try it.nextSpan()
       if span.isEmpty { break }
       _ensureFreeCapacity(span.count)
-      unsafe _storage._appendUnchecked(copying: span)
+      span.withUnsafeBufferPointer { source in
+        unsafe _storage._appendUnchecked(copying: source)
+      }
     }
   }
   // FIXME: Add _append(copyingContainer:), forwarding to the same method on RigidArray
