@@ -496,7 +496,7 @@ extension UniqueDeque /*where Element: Copyable*/ {
   /// sequence, then this triggers a runtime error.
   ///
   /// - Parameters:
-  ///    - newElements: The new elements to copy into the deque.
+  ///    - items: The new elements to copy into the deque.
   ///
   /// - Complexity: O(*m*), where *m* is the length of `items` when amortized
   ///     over many similar invocations on the same deque.

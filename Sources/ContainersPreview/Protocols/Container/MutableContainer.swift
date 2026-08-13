@@ -21,7 +21,7 @@ where
 {
   /// Accesses the element at the specified position.
   ///
-  /// - Parameter position: The position of the element to access.
+  /// - Parameter index: The position of the element to access.
   ///    `position` must be a valid index of the container that is not equal
   ///    to the `endIndex` property.
   /// - Complexity: O(1)
