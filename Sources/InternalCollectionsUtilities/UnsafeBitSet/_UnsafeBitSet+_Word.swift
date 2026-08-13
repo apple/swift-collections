@@ -250,6 +250,7 @@ extension _UnsafeBitSet._Word {
     Self(0)
   }
 
+  @inlinable
   @inline(__always)
   package static var allBits: Self {
     Self(UInt.max)

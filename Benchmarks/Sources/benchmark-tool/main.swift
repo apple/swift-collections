@@ -43,6 +43,7 @@ benchmark.addSortedDictionaryBenchmarks()
 #endif
 benchmark.addHeapBenchmarks()
 benchmark.addBitSetBenchmarks()
+benchmark.addBitArrayBenchmarks()
 benchmark.addTreeSetBenchmarks()
 benchmark.addCppBenchmarks()
 #if EnableRustBenchmarks
